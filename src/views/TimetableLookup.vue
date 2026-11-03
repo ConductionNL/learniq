@@ -12,11 +12,9 @@
  @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 -->
 <template>
-	<div class="timetables">
+	<div class="timetables lq-board-page">
 		<header>
-			<h2 class="timetables__title">
-				{{ t('learniq', 'Timetables') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Timetables')" />
 			<p class="timetables__intro">
 				{{
 					t(
@@ -27,42 +25,44 @@
 			</p>
 		</header>
 
-		<div class="timetables__controls">
-			<div
-				class="timetables__kind"
-				role="group"
-				:aria-label="t('learniq', 'Kind of timetable')">
-				<NcButton
-					v-for="option in kinds"
-					:key="option.value"
-					:variant="kind === option.value ? 'primary' : 'secondary'"
-					@click="setKind(option.value)">
-					{{ option.label }}
-				</NcButton>
+		<CnDetailCard>
+			<div class="timetables__controls">
+				<div
+					class="timetables__kind"
+					role="group"
+					:aria-label="t('learniq', 'Kind of timetable')">
+					<NcButton
+						v-for="option in kinds"
+						:key="option.value"
+						:variant="kind === option.value ? 'primary' : 'secondary'"
+						@click="setKind(option.value)">
+						{{ option.label }}
+					</NcButton>
+				</div>
+				<NcSelect
+					v-model="selectedId"
+					:options="options"
+					:reduce="(o) => o.id"
+					label="label"
+					:inputLabel="pickerLabel"
+					:loading="loadingOptions" />
+				<div class="timetables__week">
+					<NcButton
+						variant="tertiary"
+						:aria-label="t('learniq', 'Previous week')"
+						@click="shiftWeek(-1)">
+						‹
+					</NcButton>
+					<span>{{ rangeLabel }}</span>
+					<NcButton
+						variant="tertiary"
+						:aria-label="t('learniq', 'Next week')"
+						@click="shiftWeek(1)">
+						›
+					</NcButton>
+				</div>
 			</div>
-			<NcSelect
-				v-model="selectedId"
-				:options="options"
-				:reduce="(o) => o.id"
-				label="label"
-				:inputLabel="pickerLabel"
-				:loading="loadingOptions" />
-			<div class="timetables__week">
-				<NcButton
-					variant="tertiary"
-					:aria-label="t('learniq', 'Previous week')"
-					@click="shiftWeek(-1)">
-					‹
-				</NcButton>
-				<span>{{ rangeLabel }}</span>
-				<NcButton
-					variant="tertiary"
-					:aria-label="t('learniq', 'Next week')"
-					@click="shiftWeek(1)">
-					›
-				</NcButton>
-			</div>
-		</div>
+		</CnDetailCard>
 
 		<NcNoteCard v-if="!loadingOptions && options.length === 0" type="info">
 			{{
@@ -76,7 +76,7 @@
 		<NcNoteCard v-else-if="error" type="error">
 			{{ error }}
 		</NcNoteCard>
-		<template v-else-if="selectedId">
+		<CnDetailCard v-else-if="selectedId" :title="selectedTitle">
 			<NcEmptyContent
 				v-if="sessions.length === 0"
 				:name="t('learniq', 'No lessons this week')" />
@@ -103,11 +103,12 @@
 					</li>
 				</ul>
 			</section>
-		</template>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import {
@@ -133,7 +134,7 @@ function mondayOf(date) {
 export default {
 	name: 'TimetableLookup',
 
-	components: { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcSelect },
+	components: { CnDetailCard, CnPageHeader, NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcSelect },
 
 	data() {
 		return {
@@ -161,6 +162,17 @@ export default {
 				{ value: 'teacher', label: t('learniq', 'Teachers') },
 				{ value: 'room', label: t('learniq', 'Rooms') },
 			]
+		},
+
+		/**
+		 * The open timetable's card title, naming the chosen group, teacher or room.
+		 *
+		 * @return {string}
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+		 */
+		selectedTitle() {
+			const option = this.options.find((o) => o.id === this.selectedId)
+			return option ? t('learniq', 'Timetable of {name}', { name: option.label }) : ''
 		},
 
 		/**
@@ -371,17 +383,6 @@ export default {
 </script>
 
 <style scoped>
-.timetables {
-	padding: 16px;
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-}
-
-.timetables__title {
-	margin: 0;
-}
-
 .timetables__intro {
 	margin: 4px 0 0;
 	color: var(--color-text-maxcontrast);

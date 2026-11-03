@@ -30,9 +30,7 @@
 				v-if="valid"
 				class="lrs-verify__result lrs-verify__result--valid"
 				role="status">
-				<h2 class="lrs-verify__heading">
-					{{ t('learniq', 'Verified learning record') }}
-				</h2>
+				<CnPageHeader :title="t('learniq', 'Verified learning record')" />
 				<p class="lrs-verify__hint">
 					{{
 						t(
@@ -57,9 +55,7 @@
 				v-else
 				class="lrs-verify__result lrs-verify__result--denied"
 				role="alert">
-				<h2 class="lrs-verify__heading">
-					{{ t('learniq', 'This share could not be verified') }}
-				</h2>
+				<CnPageHeader :title="t('learniq', 'This share could not be verified')" />
 				<p>{{ deniedReasonLabel }}</p>
 			</div>
 		</template>
@@ -67,10 +63,12 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'LearningRecordShareVerifyView',
+	components: { CnPageHeader },
 
 	data() {
 		return {
@@ -202,12 +200,6 @@ export default {
 	margin: 0 auto;
 	padding: calc(var(--default-grid-baseline, 8px) * 3)
 		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.lrs-verify__heading {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-	margin-bottom: var(--default-grid-baseline, 8px);
 }
 
 .lrs-verify__hint {

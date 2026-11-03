@@ -18,11 +18,9 @@
 -->
 
 <template>
-	<div class="proctoring-review-queue">
+	<div class="proctoring-review-queue lq-board-page">
 		<header class="proctoring-review-queue__header">
-			<h2 class="proctoring-review-queue__title">
-				{{ t('learniq', 'Proctoring flag review queue') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Proctoring flag review queue')" />
 			<p class="proctoring-review-queue__subtitle">
 				{{
 					t(
@@ -58,130 +56,134 @@
 		</div>
 
 		<!-- Session list -->
-		<ul v-else class="proctoring-review-queue__sessions">
-			<li
-				v-for="session in sessionsWithPendingFlags"
-				:key="session.uuid"
-				class="proctoring-review-queue__session">
-				<header class="proctoring-review-queue__session-header">
-					<h3>
-						{{
+		<template v-else>
+			<ul class="proctoring-review-queue__sessions">
+				<li
+					v-for="session in sessionsWithPendingFlags"
+					:key="session.uuid"
+					class="proctoring-review-queue__session">
+					<CnDetailCard
+						:title="
 							t('learniq', 'Session {id}', {
 								id: shortId(session.uuid),
 							})
-						}}
-					</h3>
-					<span class="proctoring-review-queue__meta">
-						{{
-							t('learniq', 'Learner: {id}', { id: session.learnerId })
-						}}
-						&mdash;
-						{{ t('learniq', 'Provider: {p}', { p: session.provider }) }}
-					</span>
-					<span class="proctoring-review-queue__pending-count">
-						{{
-							t('learniq', '{n} pending flag(s)', {
-								n: pendingCount(session),
-							})
-						}}
-					</span>
-				</header>
+						">
+						<template #actions>
+							<span class="proctoring-review-queue__pending-count">
+								{{
+									t('learniq', '{n} pending flag(s)', {
+										n: pendingCount(session),
+									})
+								}}
+							</span>
+						</template>
+						<p class="proctoring-review-queue__meta">
+							{{
+								t('learniq', 'Learner: {id}', { id: session.learnerId })
+							}}
+							·
+							{{ t('learniq', 'Provider: {p}', { p: session.provider }) }}
+						</p>
 
-				<!-- Flags -->
-				<ul class="proctoring-review-queue__flags">
-					<li
-						v-for="flag in session.flags"
-						:key="flag.flagId"
-						class="proctoring-review-queue__flag"
-						:class="'proctoring-review-queue__flag--' + flag.severity">
-						<div class="proctoring-review-queue__flag-info">
-							<span class="proctoring-review-queue__flag-kind">{{
-								flagKindLabel(flag.kind)
-							}}</span>
-							<span class="proctoring-review-queue__flag-severity">{{
-								flag.severity
-							}}</span>
-							<span class="proctoring-review-queue__flag-time">{{
-								formatDate(flag.occurredAt)
-							}}</span>
-						</div>
+						<!-- Flags -->
+						<ul class="proctoring-review-queue__flags">
+							<li
+								v-for="flag in session.flags"
+								:key="flag.flagId"
+								class="proctoring-review-queue__flag"
+								:class="'proctoring-review-queue__flag--' + flag.severity">
+								<div class="proctoring-review-queue__flag-info">
+									<span class="proctoring-review-queue__flag-kind">{{
+										flagKindLabel(flag.kind)
+									}}</span>
+									<span class="proctoring-review-queue__flag-severity">{{
+										flag.severity
+									}}</span>
+									<span class="proctoring-review-queue__flag-time">{{
+										formatDate(flag.occurredAt)
+									}}</span>
+								</div>
 
-						<div class="proctoring-review-queue__flag-decision">
-							<template v-if="flag.reviewDecision === 'pending'">
-								<button
-									class="button-vue"
-									:disabled="savingFlagId === flag.flagId"
-									@click="
-										recordDecision(session, flag, 'allowed')
-									">
-									<span
-										v-if="savingFlagId === flag.flagId"
-										class="icon-loading"
-										aria-hidden="true" />
-									{{ t('learniq', 'Allow') }}
-								</button>
-								<button
-									class="button-vue button-vue--error"
-									:disabled="savingFlagId === flag.flagId"
-									@click="
-										recordDecision(session, flag, 'annulled')
-									">
-									{{ t('learniq', 'Annul') }}
-								</button>
-							</template>
-							<template v-else>
-								<span
-									class="proctoring-review-queue__flag-decided"
-									:class="
-										'proctoring-review-queue__flag-decided--'
-										+ flag.reviewDecision
-									">
-									{{
-										flag.reviewDecision === 'allowed'
-											? t('learniq', 'Allowed')
-											: t('learniq', 'Annulled')
-									}}
-								</span>
-								<span class="proctoring-review-queue__flag-reviewer">
-									{{
-										t('learniq', 'by {who} at {when}', {
-											who: flag.reviewedBy,
-											when: formatDate(flag.reviewedAt),
-										})
-									}}
-								</span>
-							</template>
-						</div>
-					</li>
-				</ul>
+								<div class="proctoring-review-queue__flag-decision">
+									<template v-if="flag.reviewDecision === 'pending'">
+										<button
+											class="button-vue"
+											:disabled="savingFlagId === flag.flagId"
+											@click="
+												recordDecision(session, flag, 'allowed')
+											">
+											<span
+												v-if="savingFlagId === flag.flagId"
+												class="icon-loading"
+												aria-hidden="true" />
+											{{ t('learniq', 'Allow') }}
+										</button>
+										<button
+											class="button-vue button-vue--error"
+											:disabled="savingFlagId === flag.flagId"
+											@click="
+												recordDecision(session, flag, 'annulled')
+											">
+											{{ t('learniq', 'Annul') }}
+										</button>
+									</template>
+									<template v-else>
+										<span
+											class="proctoring-review-queue__flag-decided"
+											:class="
+												'proctoring-review-queue__flag-decided--'
+												+ flag.reviewDecision
+											">
+											{{
+												flag.reviewDecision === 'allowed'
+													? t('learniq', 'Allowed')
+													: t('learniq', 'Annulled')
+											}}
+										</span>
+										<span class="proctoring-review-queue__flag-reviewer">
+											{{
+												t('learniq', 'by {who} at {when}', {
+													who: flag.reviewedBy,
+													when: formatDate(flag.reviewedAt),
+												})
+											}}
+										</span>
+									</template>
+								</div>
+							</li>
+						</ul>
 
-				<p
-					v-if="sessionError[session.uuid]"
-					role="alert"
-					class="proctoring-review-queue__error-inline">
-					{{ sessionError[session.uuid] }}
-				</p>
+						<p
+							v-if="sessionError[session.uuid]"
+							role="alert"
+							class="proctoring-review-queue__error-inline">
+							{{ sessionError[session.uuid] }}
+						</p>
+					</CnDetailCard>
+				</li>
+			</ul>
 
-				<!-- Human-oversight reminder -->
-				<p class="proctoring-review-queue__oversight-note">
-					{{
-						t(
-							'learniq',
-							'Annulling a flag does not automatically invalidate the result. Use the AssessmentResult view to take further action.',
-						)
-					}}
-				</p>
-			</li>
-		</ul>
+			<!-- Human-oversight reminder -->
+			<p class="proctoring-review-queue__oversight-note">
+				{{
+					t(
+						'learniq',
+						'Annulling a flag does not automatically invalidate the result. Use the AssessmentResult view to take further action.',
+					)
+				}}
+			</p>
+		</template>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'ProctoringReviewQueue',
+	components: { CnDetailCard, CnPageHeader },
 
 	data() {
 		return {
@@ -394,21 +396,6 @@ export default {
 </script>
 
 <style scoped>
-.proctoring-review-queue {
-	max-width: 900px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.proctoring-review-queue__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.proctoring-review-queue__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-}
 
 .proctoring-review-queue__subtitle {
 	color: var(--color-text-maxcontrast);
@@ -426,30 +413,12 @@ export default {
 }
 
 .proctoring-review-queue__sessions {
+	display: flex;
+	flex-direction: column;
+	gap: var(--cn-board-section-gap, 16px);
+	margin: 0;
 	list-style: none;
 	padding: 0;
-}
-
-.proctoring-review-queue__session {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius, 4px);
-	overflow: hidden;
-}
-
-.proctoring-review-queue__session-header {
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-	background: var(--color-background-dark);
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: var(--default-grid-baseline, 8px);
-}
-
-.proctoring-review-queue__session-header h3 {
-	margin: 0;
-	font-weight: bold;
 }
 
 .proctoring-review-queue__meta {
@@ -458,12 +427,12 @@ export default {
 }
 
 .proctoring-review-queue__pending-count {
-	margin-left: auto;
 	font-weight: bold;
 	color: var(--color-warning);
 }
 
 .proctoring-review-queue__flags {
+	margin: 0;
 	list-style: none;
 	padding: 0;
 }
@@ -472,8 +441,7 @@ export default {
 	display: flex;
 	align-items: center;
 	gap: calc(var(--default-grid-baseline, 8px) * 2);
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
+	padding: 12px 0;
 	border-top: 1px solid var(--color-border);
 }
 
@@ -536,12 +504,9 @@ export default {
 }
 
 .proctoring-review-queue__oversight-note {
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
 	font-size: 0.85em;
 	color: var(--color-text-maxcontrast);
 	font-style: italic;
-	background: var(--color-background-hover);
 }
 
 .proctoring-review-queue__error-inline {

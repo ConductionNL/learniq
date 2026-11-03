@@ -40,7 +40,7 @@
 		<!-- Content -->
 		<template v-else-if="entry">
 			<header class="grade-impact__header">
-				<h2>{{ t('learniq', 'Grade impact') }}</h2>
+				<CnPageHeader :title="t('learniq', 'Grade impact')" />
 				<p class="grade-impact__meta">
 					{{
 						t('learniq', 'Component: {id}', {
@@ -176,10 +176,12 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'GradeImpactDetail',
+	components: { CnPageHeader },
 
 	props: {
 		/**

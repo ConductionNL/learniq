@@ -23,9 +23,7 @@
 <template>
 	<div class="bsa-risk-dashboard">
 		<header class="bsa-risk-dashboard__header">
-			<h2 class="bsa-risk-dashboard__title">
-				{{ t('learniq', 'BSA risk dashboard') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'BSA risk dashboard')" />
 			<p class="bsa-risk-dashboard__subtitle">
 				{{
 					t(
@@ -104,10 +102,12 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'BsaRiskDashboard',
+	components: { CnPageHeader },
 
 	data() {
 		return {
@@ -236,11 +236,6 @@ export default {
 
 .bsa-risk-dashboard__header {
 	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.bsa-risk-dashboard__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
 }
 
 .bsa-risk-dashboard__subtitle {

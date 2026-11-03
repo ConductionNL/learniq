@@ -4239,7 +4239,17 @@ OC.L10N.register(
         "You are not allowed to create courses.": "Je mag geen cursussen aanmaken.",
         "The time could not be placed. Check the teacher and the times, and try again.": "De tijd kon niet worden ingepland. Controleer de leraar en de tijden en probeer het opnieuw.",
         "Enrol a group": "Een groep inschrijven",
-        "Everyone in the group without an open enrolment for the course is enrolled.": "Iedereen in de groep zonder lopende inschrijving voor de cursus wordt ingeschreven."
+        "Everyone in the group without an open enrolment for the course is enrolled.": "Iedereen in de groep zonder lopende inschrijving voor de cursus wordt ingeschreven.",
+        "Open evaluations": "Open evaluaties",
+        "Lessons you can check in to now": "Lessen waar je nu kunt inchecken",
+        "Heat map of your groups": "Heatmap van uw groepen",
+        "Your request": "Uw aanvraag",
+        "Waitlist": "Wachtlijst",
+        "Today's changes": "Wijzigingen vandaag",
+        "Timetable of {name}": "Rooster van {name}",
+        "Upload a package": "Een pakket uploaden",
+        "Lesson blocks": "Blokken van de les",
+        "_%n pupil_::_%n pupils_": ["%n leerling","%n leerlingen"]
     },
     "nplurals=2; plural=(n != 1);"
 )

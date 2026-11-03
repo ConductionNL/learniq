@@ -57,7 +57,7 @@
 			role="status"
 			aria-live="polite">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<h2>{{ t('learniq', 'Self-assessment submitted') }}</h2>
+			<CnPageHeader :title="t('learniq', 'Self-assessment submitted')" />
 			<p>
 				{{
 					t('learniq', 'Score: {score} / {max}', {
@@ -71,7 +71,7 @@
 		<!-- Marking form -->
 		<template v-else-if="submission">
 			<header class="self-assessment-view__header">
-				<h2>{{ t('learniq', 'Self-assessment') }}</h2>
+				<CnPageHeader :title="t('learniq', 'Self-assessment')" />
 				<p class="self-assessment-view__meta">
 					{{
 						t('learniq', 'Assignment: {title}', {
@@ -173,12 +173,14 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'SelfAssessmentView',
+	components: { CnPageHeader },
 
 	props: {
 		/**

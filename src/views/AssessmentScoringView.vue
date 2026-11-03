@@ -18,8 +18,8 @@
  @spec openspec/specs/assessment/spec.md#requirement-a-teacher-scores-open-answers-question-by-question-and-a-finished-attempt-stays-immutable
 -->
 <template>
-	<div class="assessment-scoring">
-		<h2>{{ t('learniq', 'Score open answers') }}</h2>
+	<div class="assessment-scoring lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Score open answers')" />
 
 		<NcLoadingIcon v-if="loading" :size="32" />
 
@@ -44,30 +44,31 @@
 				t('learniq', 'No submitted attempts are waiting for a score.')
 			" />
 
-		<template v-else>
-			<div class="assessment-scoring__question">
-				<NcButton
-					variant="tertiary"
-					:disabled="index === 0"
-					@click="index -= 1">
-					{{ t('learniq', 'Previous question') }}
-				</NcButton>
-				<h3>
-					{{
-						t('learniq', 'Question {n} of {total}: {title}', {
-							n: index + 1,
-							total: items.length,
-							title: current.title,
-						})
-					}}
-				</h3>
-				<NcButton
-					variant="tertiary"
-					:disabled="index === items.length - 1"
-					@click="index += 1">
-					{{ t('learniq', 'Next question') }}
-				</NcButton>
-			</div>
+		<CnDetailCard
+			v-else
+			:title="
+				t('learniq', 'Question {n} of {total}: {title}', {
+					n: index + 1,
+					total: items.length,
+					title: current.title,
+				})
+			">
+			<template #actions>
+				<div class="assessment-scoring__question">
+					<NcButton
+						variant="tertiary"
+						:disabled="index === 0"
+						@click="index -= 1">
+						{{ t('learniq', 'Previous question') }}
+					</NcButton>
+					<NcButton
+						variant="tertiary"
+						:disabled="index === items.length - 1"
+						@click="index += 1">
+						{{ t('learniq', 'Next question') }}
+					</NcButton>
+				</div>
+			</template>
 			<p v-if="current.max !== null" class="assessment-scoring__max">
 				{{ t('learniq', 'Maximum score: {max}', { max: current.max }) }}
 			</p>
@@ -134,11 +135,12 @@
 					}}
 				</NcButton>
 			</div>
-		</template>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
@@ -170,6 +172,8 @@ export default {
 	name: 'AssessmentScoringView',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
@@ -440,10 +444,6 @@ export default {
 </script>
 
 <style scoped>
-.assessment-scoring {
-	padding: 1rem;
-}
-
 .assessment-scoring__question {
 	display: flex;
 	gap: 0.5rem;

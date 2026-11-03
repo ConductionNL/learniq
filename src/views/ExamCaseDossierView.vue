@@ -17,7 +17,7 @@
 -->
 
 <template>
-	<div class="exam-case-dossier">
+	<div class="exam-case-dossier lq-board-page">
 		<div v-if="loading" class="exam-case-dossier__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
 			<span>{{ t('learniq', 'Loading case...') }}</span>
@@ -34,13 +34,7 @@
 
 		<template v-else>
 			<header class="exam-case-dossier__header">
-				<h2>
-					{{
-						isExemption
-							? t('learniq', 'Exemption request')
-							: t('learniq', 'Fraud case')
-					}}
-				</h2>
+				<CnPageHeader :title="isExemption ? t('learniq', 'Exemption request') : t('learniq', 'Fraud case')" />
 				<span
 					class="exam-case-dossier__status"
 					:class="'exam-case-dossier__status--' + caseObject.lifecycle">
@@ -49,7 +43,7 @@
 			</header>
 
 			<!-- ExemptionCase data -->
-			<section v-if="isExemption" class="exam-case-dossier__section">
+			<CnDetailCard v-if="isExemption" class="exam-case-dossier__section">
 				<dl class="exam-case-dossier__fields">
 					<dt>{{ t('learniq', 'Learner') }}</dt>
 					<dd>{{ caseObject.learnerId }}</dd>
@@ -121,10 +115,10 @@
 						{{ t('learniq', 'Withdraw') }}
 					</button>
 				</div>
-			</section>
+			</CnDetailCard>
 
 			<!-- FraudCase data -->
-			<section v-else class="exam-case-dossier__section">
+			<CnDetailCard v-else class="exam-case-dossier__section">
 				<dl class="exam-case-dossier__fields">
 					<dt>{{ t('learniq', 'Accused learner') }}</dt>
 					<dd>{{ caseObject.accusedLearnerId }}</dd>
@@ -304,7 +298,7 @@
 						{{ t('learniq', 'Dismiss') }}
 					</button>
 				</div>
-			</section>
+			</CnDetailCard>
 
 			<p v-if="saveError" role="alert" class="exam-case-dossier__error-inline">
 				{{ saveError }}
@@ -314,6 +308,7 @@
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
@@ -321,6 +316,7 @@ import { canWithdrawExemption, isExamBoard } from '../utils/examBoard.js'
 
 export default {
 	name: 'ExamCaseDossierView',
+	components: { CnDetailCard, CnPageHeader },
 
 	props: {
 		/** OpenRegister object UUID, injected by vue-router from the `:id` route param. */
@@ -583,11 +579,6 @@ export default {
 
 <style scoped lang="scss">
 .exam-case-dossier {
-	display: flex;
-	flex-direction: column;
-	gap: var(--default-grid-baseline, 8px);
-	padding: calc(var(--default-grid-baseline, 8px) * 2);
-
 	&__header {
 		display: flex;
 		align-items: center;

@@ -37,11 +37,9 @@
 -->
 
 <template>
-	<div class="pupil-dossier-timeline">
+	<div class="pupil-dossier-timeline lq-board-page">
 		<header class="pupil-dossier-timeline__header">
-			<h2 class="pupil-dossier-timeline__title">
-				{{ t('learniq', 'Pupil dossier timeline') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Pupil dossier timeline')" />
 			<p class="pupil-dossier-timeline__subtitle">
 				{{
 					t(
@@ -53,34 +51,36 @@
 		</header>
 
 		<!-- No learner selected: inline picker. -->
-		<div v-if="!learnerId" class="pupil-dossier-timeline__picker" role="form">
-			<label for="pupil-dossier-timeline-learner-id">
-				{{ t('learniq', 'Learner ID') }}
-			</label>
-			<div class="pupil-dossier-timeline__picker-row">
-				<input
-					id="pupil-dossier-timeline-learner-id"
-					v-model="learnerIdInput"
-					type="text"
-					:placeholder="t('learniq', 'Nextcloud user ID of the learner')"
-					@keyup.enter="openLearner" />
-				<button
-					type="button"
-					class="button-vue button-vue--vue-primary"
-					:disabled="!learnerIdInput"
-					@click="openLearner">
-					{{ t('learniq', 'Open timeline') }}
-				</button>
+		<CnDetailCard v-if="!learnerId">
+			<div class="pupil-dossier-timeline__picker" role="form">
+				<label for="pupil-dossier-timeline-learner-id">
+					{{ t('learniq', 'Learner ID') }}
+				</label>
+				<div class="pupil-dossier-timeline__picker-row">
+					<input
+						id="pupil-dossier-timeline-learner-id"
+						v-model="learnerIdInput"
+						type="text"
+						:placeholder="t('learniq', 'Nextcloud user ID of the learner')"
+						@keyup.enter="openLearner" />
+					<button
+						type="button"
+						class="button-vue button-vue--vue-primary"
+						:disabled="!learnerIdInput"
+						@click="openLearner">
+						{{ t('learniq', 'Open timeline') }}
+					</button>
+				</div>
+				<p class="pupil-dossier-timeline__picker-hint">
+					{{
+						t(
+							'learniq',
+							'Usually opened from a learner\'s profile page ("Dossier timeline" tile) — this picker is a fallback for direct navigation.',
+						)
+					}}
+				</p>
 			</div>
-			<p class="pupil-dossier-timeline__picker-hint">
-				{{
-					t(
-						'learniq',
-						'Usually opened from a learner\'s profile page ("Dossier timeline" tile) — this picker is a fallback for direct navigation.',
-					)
-				}}
-			</p>
-		</div>
+		</CnDetailCard>
 
 		<template v-else>
 			<!-- Loading -->
@@ -118,50 +118,54 @@
 			</div>
 
 			<!-- Timeline -->
-			<ul v-else class="pupil-dossier-timeline__entries">
-				<li
-					v-for="entry in entries"
-					:key="entry.kind + '-' + entry.id"
-					class="pupil-dossier-timeline__entry"
-					:class="'pupil-dossier-timeline__entry--' + entry.kind">
-					<div class="pupil-dossier-timeline__entry-meta">
-						<span class="pupil-dossier-timeline__entry-kind">{{
-							entry.kindLabel
-						}}</span>
-						<span class="pupil-dossier-timeline__entry-date">{{
-							/**
-							 * @spec openspec/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
-							 */
-							formatDate(entry.date)
-						}}</span>
-					</div>
-					<div class="pupil-dossier-timeline__entry-body">
-						<router-link
-							v-if="entry.route"
-							:to="{ name: entry.route, params: { id: entry.id } }"
-							class="pupil-dossier-timeline__entry-title">
-							{{ entry.title }}
-						</router-link>
-						<span v-else class="pupil-dossier-timeline__entry-title">{{
-							entry.title
-						}}</span>
-						<p
-							v-if="entry.summary"
-							class="pupil-dossier-timeline__entry-summary">
-							{{ entry.summary }}
-						</p>
-					</div>
-				</li>
-			</ul>
+			<CnDetailCard v-else>
+				<ul class="pupil-dossier-timeline__entries">
+					<li
+						v-for="entry in entries"
+						:key="entry.kind + '-' + entry.id"
+						class="pupil-dossier-timeline__entry"
+						:class="'pupil-dossier-timeline__entry--' + entry.kind">
+						<div class="pupil-dossier-timeline__entry-meta">
+							<span class="pupil-dossier-timeline__entry-kind">{{
+								entry.kindLabel
+							}}</span>
+							<span class="pupil-dossier-timeline__entry-date">{{
+								/**
+								 * @spec openspec/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
+								 */
+								formatDate(entry.date)
+							}}</span>
+						</div>
+						<div class="pupil-dossier-timeline__entry-body">
+							<router-link
+								v-if="entry.route"
+								:to="{ name: entry.route, params: { id: entry.id } }"
+								class="pupil-dossier-timeline__entry-title">
+								{{ entry.title }}
+							</router-link>
+							<span v-else class="pupil-dossier-timeline__entry-title">{{
+								entry.title
+							}}</span>
+							<p
+								v-if="entry.summary"
+								class="pupil-dossier-timeline__entry-summary">
+								{{ entry.summary }}
+							</p>
+						</div>
+					</li>
+				</ul>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'PupilDossierTimelineView',
+	components: { CnDetailCard, CnPageHeader },
 
 	data() {
 		return {
@@ -487,21 +491,6 @@ export default {
 </script>
 
 <style scoped>
-.pupil-dossier-timeline {
-	max-width: 900px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.pupil-dossier-timeline__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.pupil-dossier-timeline__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-}
 
 .pupil-dossier-timeline__subtitle {
 	color: var(--color-text-maxcontrast);
@@ -513,9 +502,6 @@ export default {
 	display: flex;
 	flex-direction: column;
 	gap: var(--default-grid-baseline, 8px);
-	padding: calc(var(--default-grid-baseline, 8px) * 2);
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius, 4px);
 }
 
 .pupil-dossier-timeline__picker-row {
@@ -539,6 +525,7 @@ export default {
 }
 
 .pupil-dossier-timeline__entries {
+	margin: 0;
 	list-style: none;
 	padding: 0;
 	border-left: 2px solid var(--color-border);

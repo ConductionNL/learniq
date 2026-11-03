@@ -51,13 +51,7 @@
 
 		<template v-else-if="portfolio">
 			<header class="portfolio-builder__header">
-				<h2>
-					{{
-						t('learniq', 'Build portfolio: {title}', {
-							title: portfolio.title || '',
-						})
-					}}
-				</h2>
+				<CnPageHeader :title="t('learniq', 'Build portfolio: {title}', { title: portfolio.title || '' })" />
 				<p class="portfolio-builder__meta">
 					{{
 						t('learniq', 'Kind: {kind}', { kind: portfolio.kind || '' })
@@ -293,12 +287,14 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'PortfolioBuilder',
+	components: { CnPageHeader },
 
 	props: {
 		/**

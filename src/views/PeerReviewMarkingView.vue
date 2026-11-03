@@ -38,7 +38,7 @@
 -->
 
 <template>
-	<div class="peer-review-marking-view">
+	<div class="peer-review-marking-view lq-board-page">
 		<!-- Loading -->
 		<div
 			v-if="loading"
@@ -61,7 +61,7 @@
 			role="status"
 			aria-live="polite">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<h2>{{ t('learniq', 'Peer review submitted') }}</h2>
+			<CnPageHeader :title="t('learniq', 'Peer review submitted')" />
 			<p>
 				{{
 					t('learniq', 'Score: {score} / {max}', {
@@ -75,7 +75,7 @@
 		<!-- Marking form -->
 		<template v-else-if="peerReview">
 			<header class="peer-review-marking-view__header">
-				<h2>{{ t('learniq', 'Complete peer review') }}</h2>
+				<CnPageHeader :title="t('learniq', 'Complete peer review')" />
 				<p class="peer-review-marking-view__meta">
 					{{
 						t('learniq', 'Assignment: {title}', {
@@ -108,8 +108,9 @@
 				</p>
 			</header>
 
-			<section class="peer-review-marking-view__work">
-				<h3>{{ t('learniq', 'Work to review') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Work to review')"
+				class="peer-review-marking-view__work">
 				<p
 					v-if="work && work.submittedAt"
 					class="peer-review-marking-view__meta">
@@ -129,15 +130,12 @@
 				<p v-else class="peer-review-marking-view__meta">
 					{{ t('learniq', 'No files were handed in.') }}
 				</p>
-			</section>
+			</CnDetailCard>
 
-			<section
+			<CnDetailCard
 				v-if="rubric && rubric.criteria && rubric.criteria.length > 0"
+				:title="t('learniq', 'Rubric: {name}', { name: rubric.name || '' })"
 				class="peer-review-marking-view__rubric">
-				<h3>
-					{{ t('learniq', 'Rubric: {name}', { name: rubric.name || '' }) }}
-				</h3>
-
 				<div
 					v-for="criterion in rubric.criteria"
 					:key="criterion.criterionId"
@@ -187,21 +185,20 @@
 						})
 					}}</strong>
 				</div>
-			</section>
+			</CnDetailCard>
 
-			<section class="peer-review-marking-view__comments">
-				<h3 id="peer-review-comments-label">
-					{{ t('learniq', 'Comments for the author') }}
-				</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Comments for the author')"
+				class="peer-review-marking-view__comments">
 				<textarea
 					id="peer-review-comments"
 					v-model="comments"
 					class="peer-review-marking-view__comments-input"
-					aria-labelledby="peer-review-comments-label"
+					:aria-label="t('learniq', 'Comments for the author')"
 					:placeholder="t('learniq', 'Write feedback for the author...')"
 					:disabled="saving"
 					rows="5" />
-			</section>
+			</CnDetailCard>
 
 			<div class="peer-review-marking-view__actions">
 				<button
@@ -223,12 +220,14 @@
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getRequestToken } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'PeerReviewMarkingView',
+	components: { CnDetailCard, CnPageHeader },
 
 	props: {
 		/**
@@ -628,13 +627,6 @@ export default {
 </script>
 
 <style scoped>
-.peer-review-marking-view {
-	max-width: 860px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
 .peer-review-marking-view__loading,
 .peer-review-marking-view__error {
 	display: flex;
@@ -643,20 +635,11 @@ export default {
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
-.peer-review-marking-view__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
 .peer-review-marking-view__meta,
 .peer-review-marking-view__learners,
 .peer-review-marking-view__anonymity-note {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9em;
-}
-
-.peer-review-marking-view__rubric,
-.peer-review-marking-view__comments {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
 }
 
 .peer-review-marking-view__criterion {
@@ -724,7 +707,6 @@ export default {
 .peer-review-marking-view__actions {
 	display: flex;
 	justify-content: flex-end;
-	margin-top: calc(var(--default-grid-baseline, 8px) * 3);
 }
 
 .peer-review-marking-view__save-error {

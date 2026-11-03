@@ -50,9 +50,7 @@
 
 		<template v-else>
 			<header class="item-author__header">
-				<h2 class="item-author__heading">
-					{{ id ? t('learniq', 'Edit item') : t('learniq', 'New item') }}
-				</h2>
+				<CnPageHeader :title="id ? t('learniq', 'Edit item') : t('learniq', 'New item')" />
 				<router-link
 					v-if="id"
 					class="item-author__analysis-link"
@@ -250,11 +248,13 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import { buildItemXml } from '../utils/qtiItemXml.js'
 
 export default {
 	name: 'ItemAuthorView',
+	components: { CnPageHeader },
 
 	props: {
 		/**
@@ -521,12 +521,6 @@ export default {
 	align-items: baseline;
 	justify-content: space-between;
 	gap: calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.item-author__heading {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .item-author__analysis-link {

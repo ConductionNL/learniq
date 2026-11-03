@@ -10,7 +10,7 @@
 -->
 <template>
 	<div class="forecast">
-		<h2>{{ t('learniq', 'Enrolment forecast') }}</h2>
+		<CnPageHeader :title="t('learniq', 'Enrolment forecast')" />
 		<NcNoteCard v-if="error" type="error">
 			{{ error }}
 		</NcNoteCard>
@@ -174,6 +174,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
@@ -185,6 +186,7 @@ export default {
 	name: 'EnrolmentForecastView',
 
 	components: {
+		CnPageHeader,
 		NcButton,
 		NcNoteCard,
 		NcSelect,

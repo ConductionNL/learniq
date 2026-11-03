@@ -26,14 +26,14 @@
 -->
 
 <template>
-	<div class="ai-processing-disclosure">
+	<div class="ai-processing-disclosure lq-board-page">
 		<NcLoadingIcon
 			v-if="loading"
 			:size="44"
 			class="ai-processing-disclosure__loading" />
 
 		<template v-else>
-			<h2>{{ t('learniq', 'AI processing disclosure') }}</h2>
+			<CnPageHeader :title="t('learniq', 'AI processing disclosure')" />
 			<p class="ai-processing-disclosure__intro">
 				{{
 					t(
@@ -44,8 +44,9 @@
 			</p>
 
 			<!-- Sovereignty policy tier — editable. -->
-			<section class="ai-processing-disclosure__policy">
-				<h3>{{ t('learniq', 'Locality policy') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Locality policy')"
+				class="ai-processing-disclosure__policy">
 				<NcSelect
 					v-model="policyForm.policy"
 					:options="policyOptions"
@@ -83,11 +84,12 @@
 						})
 					}}
 				</p>
-			</section>
+			</CnDetailCard>
 
 			<!-- Hermiq-governed AI features + locality verdicts. -->
-			<section class="ai-processing-disclosure__features">
-				<h3>{{ t('learniq', 'AI features') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'AI features')"
+				class="ai-processing-disclosure__features">
 
 				<NcNoteCard v-if="!hermiqInstalled" type="warning">
 					{{
@@ -139,13 +141,13 @@
 						</tr>
 					</tbody>
 				</table>
-			</section>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
-import { useObjectStore } from '@conduction/nextcloud-vue'
+import { CnDetailCard, CnPageHeader, useObjectStore } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcLoadingIcon, NcNoteCard, NcSelect } from '@nextcloud/vue'
 
@@ -162,6 +164,8 @@ export default {
 	name: 'LearniqAiProcessingDisclosure',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcButton,
 		NcLoadingIcon,
 		NcNoteCard,
@@ -386,8 +390,6 @@ export default {
 
 <style scoped lang="scss">
 .ai-processing-disclosure {
-	padding: calc(var(--default-grid-baseline, 4px) * 4);
-	max-width: 960px;
 
 	&__loading {
 		margin: calc(var(--default-grid-baseline, 4px) * 8) auto;
@@ -395,11 +397,6 @@ export default {
 
 	&__intro {
 		color: var(--color-text-maxcontrast);
-		margin-bottom: calc(var(--default-grid-baseline, 4px) * 4);
-	}
-
-	&__policy {
-		margin-bottom: calc(var(--default-grid-baseline, 4px) * 8);
 	}
 
 	&__field-label {

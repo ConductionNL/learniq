@@ -52,7 +52,7 @@
 -->
 
 <template>
-	<div class="lesson-composer">
+	<div class="lesson-composer lq-board-page">
 		<div v-if="loading" class="lesson-composer__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
 			<span>{{ t('learniq', 'Loading lesson…') }}</span>
@@ -69,13 +69,7 @@
 			</p>
 
 			<header class="lesson-composer__header">
-				<h2>
-					{{
-						t('learniq', 'Compose lesson: {name}', {
-							name: lesson.name || '',
-						})
-					}}
-				</h2>
+				<CnPageHeader :title="t('learniq', 'Compose lesson: {name}', { name: lesson.name || '' })" />
 				<div class="lesson-composer__header-actions">
 					<button class="button-vue" @click="goBack">
 						{{ t('learniq', 'Back to builder') }}
@@ -114,308 +108,312 @@
 				{{ t('learniq', 'Lesson saved.') }}
 			</p>
 
-			<!-- vuedraggable 4 (Vue 3) renders its rows through the REQUIRED
-			     `#item` scoped slot and computes each key from `itemKey`. A
-			     `v-for` in the default slot is the Vue 2 API: v4 throws
-			     "draggable element must have an item slot" from computeNodes(),
-			     which kills this whole section's render. -->
-			<Draggable
-				v-model="blocks"
-				tag="ul"
-				class="lesson-composer__block-list"
-				handle=".lesson-composer__handle"
-				itemKey="blockId"
-				@end="onBlocksDragEnd">
-				<template #item="{ element: block, index: idx }">
-					<li class="lesson-composer__block">
-						<div class="lesson-composer__block-row">
-							<span
-								class="lesson-composer__handle icon-menu"
-								aria-hidden="true" />
-							<span class="lesson-composer__block-type">{{
-								/**
-								 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
-								 */
-								blockTypeLabel(block.type)
-							}}</span>
-							<!-- The position is part of the accessible name, not
-							     decoration. A block has no name of its own, so a
-							     type-only label ("Move Rich text block up") is
-							     IDENTICAL for every block of that type: a lesson
-							     with two rich-text blocks gave a screen-reader
-							     user the same three names twice, with nothing to
-							     tell the pairs apart (WCAG 2.2 SC 4.1.2 / 2.4.6).
-							     The module and lesson controls in CourseBuilder
-							     already disambiguate by naming the item; blocks
-							     were the one list that did not. `position` is
-							     1-based to match what the reader counts. -->
-							<button
-								type="button"
-								class="lesson-composer__icon-btn"
-								:disabled="idx === 0"
-								:aria-label="
-									t('learniq', 'Move {type} block {position} up', {
-										type: blockTypeLabel(block.type),
-										position: idx + 1,
-									})
-								"
-								@click="moveBlockUp(idx)">
-								<ChevronUp :size="18" />
-							</button>
-							<button
-								type="button"
-								class="lesson-composer__icon-btn"
-								:disabled="idx === blocks.length - 1"
-								:aria-label="
-									t(
-										'learniq',
-										'Move {type} block {position} down',
-										{
+			<CnDetailCard
+				:title="t('learniq', 'Lesson blocks')"
+				class="lesson-composer__blocks">
+				<!-- vuedraggable 4 (Vue 3) renders its rows through the REQUIRED
+				     `#item` scoped slot and computes each key from `itemKey`. A
+				     `v-for` in the default slot is the Vue 2 API: v4 throws
+				     "draggable element must have an item slot" from computeNodes(),
+				     which kills this whole section's render. -->
+				<Draggable
+					v-model="blocks"
+					tag="ul"
+					class="lesson-composer__block-list"
+					handle=".lesson-composer__handle"
+					itemKey="blockId"
+					@end="onBlocksDragEnd">
+					<template #item="{ element: block, index: idx }">
+						<li class="lesson-composer__block">
+							<div class="lesson-composer__block-row">
+								<span
+									class="lesson-composer__handle icon-menu"
+									aria-hidden="true" />
+								<span class="lesson-composer__block-type">{{
+									/**
+									 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+									 */
+									blockTypeLabel(block.type)
+								}}</span>
+								<!-- The position is part of the accessible name, not
+								     decoration. A block has no name of its own, so a
+								     type-only label ("Move Rich text block up") is
+								     IDENTICAL for every block of that type: a lesson
+								     with two rich-text blocks gave a screen-reader
+								     user the same three names twice, with nothing to
+								     tell the pairs apart (WCAG 2.2 SC 4.1.2 / 2.4.6).
+								     The module and lesson controls in CourseBuilder
+								     already disambiguate by naming the item; blocks
+								     were the one list that did not. `position` is
+								     1-based to match what the reader counts. -->
+								<button
+									type="button"
+									class="lesson-composer__icon-btn"
+									:disabled="idx === 0"
+									:aria-label="
+										t('learniq', 'Move {type} block {position} up', {
 											type: blockTypeLabel(block.type),
 											position: idx + 1,
-										},
-									)
-								"
-								@click="moveBlockDown(idx)">
-								<ChevronDown :size="18" />
-							</button>
-							<button
-								v-if="
-									assistAvailable
-									&& block.type === 'richText'
-									&& !block.assistDraft
-								"
-								type="button"
-								class="lesson-composer__icon-btn"
-								:disabled="!(block.text || '').trim()"
-								:title="t('learniq', 'Rewrite in simpler words')"
-								:aria-label="
-									t(
-										'learniq',
-										'Rewrite {type} block {position} in simpler words',
-										{
+										})
+									"
+									@click="moveBlockUp(idx)">
+									<ChevronUp :size="18" />
+								</button>
+								<button
+									type="button"
+									class="lesson-composer__icon-btn"
+									:disabled="idx === blocks.length - 1"
+									:aria-label="
+										t(
+											'learniq',
+											'Move {type} block {position} down',
+											{
+												type: blockTypeLabel(block.type),
+												position: idx + 1,
+											},
+										)
+									"
+									@click="moveBlockDown(idx)">
+									<ChevronDown :size="18" />
+								</button>
+								<button
+									v-if="
+										assistAvailable
+										&& block.type === 'richText'
+										&& !block.assistDraft
+									"
+									type="button"
+									class="lesson-composer__icon-btn"
+									:disabled="!(block.text || '').trim()"
+									:title="t('learniq', 'Rewrite in simpler words')"
+									:aria-label="
+										t(
+											'learniq',
+											'Rewrite {type} block {position} in simpler words',
+											{
+												type: blockTypeLabel(block.type),
+												position: idx + 1,
+											},
+										)
+									"
+									@click="simplifyBlock(block)">
+									<AutoFix :size="18" />
+								</button>
+								<button
+									type="button"
+									class="lesson-composer__icon-btn"
+									:aria-label="
+										t('learniq', 'Remove {type} block {position}', {
 											type: blockTypeLabel(block.type),
 											position: idx + 1,
-										},
-									)
-								"
-								@click="simplifyBlock(block)">
-								<AutoFix :size="18" />
-							</button>
-							<button
-								type="button"
-								class="lesson-composer__icon-btn"
-								:aria-label="
-									t('learniq', 'Remove {type} block {position}', {
-										type: blockTypeLabel(block.type),
-										position: idx + 1,
-									})
-								"
-								@click="removeBlock(idx)">
-								<DeleteOutline :size="18" />
-							</button>
-						</div>
+										})
+									"
+									@click="removeBlock(idx)">
+									<DeleteOutline :size="18" />
+								</button>
+							</div>
 
-						<!-- richText -->
-						<div
-							v-if="block.type === 'richText'"
-							class="lesson-composer__block-body">
+							<!-- richText -->
 							<div
-								v-if="block.assistDraft"
-								class="lesson-composer__draft"
-								role="group"
-								:aria-label="
-									t('learniq', 'AI draft in block {position}', {
-										position: idx + 1,
-									})
-								">
-								<p class="lesson-composer__draft-label">
-									<strong>{{ t('learniq', 'AI draft') }}</strong>
+								v-if="block.type === 'richText'"
+								class="lesson-composer__block-body">
+								<div
+									v-if="block.assistDraft"
+									class="lesson-composer__draft"
+									role="group"
+									:aria-label="
+										t('learniq', 'AI draft in block {position}', {
+											position: idx + 1,
+										})
+									">
+									<p class="lesson-composer__draft-label">
+										<strong>{{ t('learniq', 'AI draft') }}</strong>
+										{{
+											t(
+												'learniq',
+												'Check and edit it before you keep it. Model service: {provider}',
+												{
+													provider:
+														block.assistDraft.provider
+														|| t('learniq', 'unknown'),
+												},
+											)
+										}}
+									</p>
+									<div class="lesson-composer__draft-actions">
+										<button
+											type="button"
+											class="button-vue button-vue--primary"
+											:aria-label="
+												t(
+													'learniq',
+													'Keep AI draft in block {position}',
+													{
+														position: idx + 1,
+													},
+												)
+											"
+											@click="keepDraft(block)">
+											{{ t('learniq', 'Keep') }}
+										</button>
+										<button
+											type="button"
+											class="button-vue"
+											:aria-label="
+												t(
+													'learniq',
+													'Discard AI draft in block {position}',
+													{ position: idx + 1 },
+												)
+											"
+											@click="discardDraft(idx)">
+											{{ t('learniq', 'Discard') }}
+										</button>
+									</div>
+								</div>
+								<CnMarkdownEditor
+									:value="block.text || ''"
+									:aria-label="t('learniq', 'Rich text content')"
+									:rows="6"
+									@input="
+										(v) => onBlockFieldInput(block, 'text', v)
+									" />
+							</div>
+
+							<!-- teacherNote (office-file-lesson-onboarding) -->
+							<div
+								v-else-if="block.type === 'teacherNote'"
+								class="lesson-composer__block-body">
+								<p class="lesson-composer__teacher-note-label">
 									{{
 										t(
 											'learniq',
-											'Check and edit it before you keep it. Model service: {provider}',
-											{
-												provider:
-													block.assistDraft.provider
-													|| t('learniq', 'unknown'),
-											},
+											'Only staff can read this note. Learners and parents never see it.',
 										)
 									}}
 								</p>
-								<div class="lesson-composer__draft-actions">
-									<button
-										type="button"
-										class="button-vue button-vue--primary"
-										:aria-label="
-											t(
-												'learniq',
-												'Keep AI draft in block {position}',
-												{
-													position: idx + 1,
-												},
-											)
-										"
-										@click="keepDraft(block)">
-										{{ t('learniq', 'Keep') }}
-									</button>
-									<button
-										type="button"
-										class="button-vue"
-										:aria-label="
-											t(
-												'learniq',
-												'Discard AI draft in block {position}',
-												{ position: idx + 1 },
-											)
-										"
-										@click="discardDraft(idx)">
-										{{ t('learniq', 'Discard') }}
-									</button>
-								</div>
+								<CnMarkdownEditor
+									:value="block.text || ''"
+									:aria-label="
+										t(
+											'learniq',
+											'Teacher note in block {position}',
+											{
+												position: idx + 1,
+											},
+										)
+									"
+									:rows="4"
+									@input="
+										(v) => onBlockFieldInput(block, 'text', v)
+									" />
 							</div>
-							<CnMarkdownEditor
-								:value="block.text || ''"
-								:aria-label="t('learniq', 'Rich text content')"
-								:rows="6"
-								@input="
-									(v) => onBlockFieldInput(block, 'text', v)
-								" />
-						</div>
 
-						<!-- teacherNote (office-file-lesson-onboarding) -->
-						<div
-							v-else-if="block.type === 'teacherNote'"
-							class="lesson-composer__block-body">
-							<p class="lesson-composer__teacher-note-label">
-								{{
-									t(
-										'learniq',
-										'Only staff can read this note. Learners and parents never see it.',
-									)
-								}}
-							</p>
-							<CnMarkdownEditor
-								:value="block.text || ''"
-								:aria-label="
-									t(
-										'learniq',
-										'Teacher note in block {position}',
-										{
-											position: idx + 1,
-										},
-									)
-								"
-								:rows="4"
-								@input="
-									(v) => onBlockFieldInput(block, 'text', v)
-								" />
-						</div>
+							<!-- media -->
+							<div
+								v-else-if="block.type === 'media'"
+								class="lesson-composer__block-body">
+								<NcSelect
+									v-model="block.materialId"
+									:options="materialOptions"
+									:reduce="(opt) => opt.id"
+									:inputLabel="t('learniq', 'Material')"
+									:aria-label-combobox="t('learniq', 'Material')" />
+								<button
+									type="button"
+									class="button-vue"
+									:disabled="pickingFile"
+									@click="pickAndCreateMaterial(block)">
+									<span
+										v-if="pickingFile"
+										class="icon-loading"
+										aria-hidden="true" />
+									{{ t('learniq', 'Upload a new file…') }}
+								</button>
+							</div>
 
-						<!-- media -->
-						<div
-							v-else-if="block.type === 'media'"
-							class="lesson-composer__block-body">
-							<NcSelect
-								v-model="block.materialId"
-								:options="materialOptions"
-								:reduce="(opt) => opt.id"
-								:inputLabel="t('learniq', 'Material')"
-								:aria-label-combobox="t('learniq', 'Material')" />
-							<button
-								type="button"
-								class="button-vue"
-								:disabled="pickingFile"
-								@click="pickAndCreateMaterial(block)">
-								<span
-									v-if="pickingFile"
-									class="icon-loading"
-									aria-hidden="true" />
-								{{ t('learniq', 'Upload a new file…') }}
-							</button>
-						</div>
+							<!-- quiz -->
+							<div
+								v-else-if="block.type === 'quiz'"
+								class="lesson-composer__block-body">
+								<NcSelect
+									v-model="block.assessmentId"
+									:options="assessmentOptions"
+									:reduce="(opt) => opt.id"
+									:inputLabel="t('learniq', 'Assessment')"
+									:aria-label-combobox="t('learniq', 'Assessment')" />
+							</div>
 
-						<!-- quiz -->
-						<div
-							v-else-if="block.type === 'quiz'"
-							class="lesson-composer__block-body">
-							<NcSelect
-								v-model="block.assessmentId"
-								:options="assessmentOptions"
-								:reduce="(opt) => opt.id"
-								:inputLabel="t('learniq', 'Assessment')"
-								:aria-label-combobox="t('learniq', 'Assessment')" />
-						</div>
+							<!-- assignment -->
+							<div
+								v-else-if="block.type === 'assignment'"
+								class="lesson-composer__block-body">
+								<NcSelect
+									v-model="block.assignmentId"
+									:options="assignmentOptions"
+									:reduce="(opt) => opt.id"
+									:inputLabel="t('learniq', 'Assignment')"
+									:aria-label-combobox="t('learniq', 'Assignment')" />
+							</div>
 
-						<!-- assignment -->
-						<div
-							v-else-if="block.type === 'assignment'"
-							class="lesson-composer__block-body">
-							<NcSelect
-								v-model="block.assignmentId"
-								:options="assignmentOptions"
-								:reduce="(opt) => opt.id"
-								:inputLabel="t('learniq', 'Assignment')"
-								:aria-label-combobox="t('learniq', 'Assignment')" />
-						</div>
+							<!-- ltiTool -->
+							<div
+								v-else-if="block.type === 'ltiTool'"
+								class="lesson-composer__block-body">
+								<NcSelect
+									v-model="block.ltiToolPlacementId"
+									:options="ltiToolPlacementOptions"
+									:reduce="(opt) => opt.id"
+									:inputLabel="t('learniq', 'LTI tool placement')"
+									:aria-label-combobox="
+										t('learniq', 'LTI tool placement')
+									" />
+							</div>
+						</li>
+					</template>
+				</Draggable>
 
-						<!-- ltiTool -->
-						<div
-							v-else-if="block.type === 'ltiTool'"
-							class="lesson-composer__block-body">
-							<NcSelect
-								v-model="block.ltiToolPlacementId"
-								:options="ltiToolPlacementOptions"
-								:reduce="(opt) => opt.id"
-								:inputLabel="t('learniq', 'LTI tool placement')"
-								:aria-label-combobox="
-									t('learniq', 'LTI tool placement')
-								" />
-						</div>
-					</li>
-				</template>
-			</Draggable>
-
-			<section class="lesson-composer__add-block">
-				<label class="lesson-composer__field-label" for="lc-add-block-type">
-					{{ t('learniq', 'Block type') }}
-				</label>
-				<select
-					id="lc-add-block-type"
-					v-model="addBlockType"
-					class="lesson-composer__select">
-					<option value="richText">
-						{{ t('learniq', 'Rich text') }}
-					</option>
-					<option value="media">
-						{{
-							t(
-								'learniq',
-								'Media (image / video / file / SCORM-cmi5 reference)',
-							)
-						}}
-					</option>
-					<option value="quiz">
-						{{ t('learniq', 'Quiz') }}
-					</option>
-					<option value="assignment">
-						{{ t('learniq', 'Assignment') }}
-					</option>
-					<option value="ltiTool">
-						{{ t('learniq', 'External tool (LTI)') }}
-					</option>
-					<option value="teacherNote">
-						{{ t('learniq', 'Teacher note (not shown to learners)') }}
-					</option>
-				</select>
-				<button
-					type="button"
-					class="button-vue button-vue--secondary"
-					@click="addBlock">
-					<PlusIcon :size="16" />
-					{{ t('learniq', 'Add block') }}
-				</button>
-			</section>
+				<section class="lesson-composer__add-block">
+					<label class="lesson-composer__field-label" for="lc-add-block-type">
+						{{ t('learniq', 'Block type') }}
+					</label>
+					<select
+						id="lc-add-block-type"
+						v-model="addBlockType"
+						class="lesson-composer__select">
+						<option value="richText">
+							{{ t('learniq', 'Rich text') }}
+						</option>
+						<option value="media">
+							{{
+								t(
+									'learniq',
+									'Media (image / video / file / SCORM-cmi5 reference)',
+								)
+							}}
+						</option>
+						<option value="quiz">
+							{{ t('learniq', 'Quiz') }}
+						</option>
+						<option value="assignment">
+							{{ t('learniq', 'Assignment') }}
+						</option>
+						<option value="ltiTool">
+							{{ t('learniq', 'External tool (LTI)') }}
+						</option>
+						<option value="teacherNote">
+							{{ t('learniq', 'Teacher note (not shown to learners)') }}
+						</option>
+					</select>
+					<button
+						type="button"
+						class="button-vue button-vue--secondary"
+						@click="addBlock">
+						<PlusIcon :size="16" />
+						{{ t('learniq', 'Add block') }}
+					</button>
+				</section>
+			</CnDetailCard>
 
 			<LessonNextStepEditor
 				v-if="lesson"
@@ -441,7 +439,7 @@
 </template>
 
 <script>
-import { CnMarkdownEditor } from '@conduction/nextcloud-vue'
+import { CnDetailCard, CnMarkdownEditor, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getFilePickerBuilder } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
 import { NcSelect } from '@nextcloud/vue'
@@ -486,15 +484,17 @@ export default {
 	name: 'LessonComposer',
 
 	components: {
-		NcSelect,
+		CnDetailCard,
+		AutoFix,
+		ChevronDown,
+		ChevronUp,
 		CnMarkdownEditor,
+		CnPageHeader,
+		DeleteOutline,
 		Draggable: draggable,
 		LessonAssistPanel,
 		LessonNextStepEditor,
-		AutoFix,
-		ChevronUp,
-		ChevronDown,
-		DeleteOutline,
+		NcSelect,
 		PlusIcon,
 	},
 
@@ -1344,13 +1344,6 @@ export default {
 </script>
 
 <style scoped>
-.lesson-composer {
-	max-width: 860px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
 .lesson-composer__loading,
 .lesson-composer__error {
 	display: flex;

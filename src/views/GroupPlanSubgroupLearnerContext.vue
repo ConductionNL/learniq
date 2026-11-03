@@ -44,9 +44,7 @@
 <template>
 	<div class="gp-subgroup-learner-context">
 		<header class="gp-subgroup-learner-context__header">
-			<h2 class="gp-subgroup-learner-context__title">
-				{{ t('learniq', 'Subgroup learner context') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Subgroup learner context')" />
 			<p class="gp-subgroup-learner-context__subtitle">
 				{{
 					t(
@@ -168,10 +166,12 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'GroupPlanSubgroupLearnerContext',
+	components: { CnPageHeader },
 
 	data() {
 		return {
@@ -348,11 +348,6 @@ export default {
 
 .gp-subgroup-learner-context__header {
 	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.gp-subgroup-learner-context__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
 }
 
 .gp-subgroup-learner-context__subtitle {

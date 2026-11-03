@@ -14,8 +14,8 @@
  @spec openspec/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
 -->
 <template>
-	<div class="allocate-markers">
-		<h2>{{ t('learniq', 'Allocate markers') }}</h2>
+	<div class="allocate-markers lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Allocate markers')" />
 		<NcNoteCard v-if="assignment && maxMarkers < 2" type="info">
 			{{
 				t(
@@ -24,75 +24,78 @@
 				)
 			}}
 		</NcNoteCard>
-		<form
+		<CnDetailCard
 			v-else-if="assignment"
-			class="allocate-markers__form"
-			@submit.prevent="allocate">
-			<p class="allocate-markers__intro">
-				{{
-					t(
-						'learniq',
-						'Each hand-in of {title} is marked by up to {max} markers on their own.',
-						{ title: assignment.title || '', max: maxMarkers },
-					)
-				}}
-			</p>
-			<NcSelect
-				v-model="markers"
-				:options="userOptions"
-				:multiple="true"
-				:filterable="false"
-				:loading="searching"
-				:getOptionLabel="(u) => u.label || u.id"
-				:inputLabel="t('learniq', 'Markers')"
-				:placeholder="t('learniq', 'Search by name')"
-				@search="searchUsers" />
-			<NcSelect
-				v-model="submission"
-				:options="submissionOptions"
-				:getOptionLabel="submissionLabel"
-				:inputLabel="
-					t('learniq', 'Hand-in (leave empty for every hand-in)')
-				" />
+			:title="t('learniq', 'Allocate')"
+			class="allocate-markers__card">
+			<form class="allocate-markers__form" @submit.prevent="allocate">
+				<p class="allocate-markers__intro">
+					{{
+						t(
+							'learniq',
+							'Each hand-in of {title} is marked by up to {max} markers on their own.',
+							{ title: assignment.title || '', max: maxMarkers },
+						)
+					}}
+				</p>
+				<NcSelect
+					v-model="markers"
+					:options="userOptions"
+					:multiple="true"
+					:filterable="false"
+					:loading="searching"
+					:getOptionLabel="(u) => u.label || u.id"
+					:inputLabel="t('learniq', 'Markers')"
+					:placeholder="t('learniq', 'Search by name')"
+					@search="searchUsers" />
+				<NcSelect
+					v-model="submission"
+					:options="submissionOptions"
+					:getOptionLabel="submissionLabel"
+					:inputLabel="
+						t('learniq', 'Hand-in (leave empty for every hand-in)')
+					" />
 
-			<NcNoteCard v-if="error" type="error">
-				{{ error }}
-			</NcNoteCard>
-			<NcNoteCard v-if="result" type="success">
-				{{
-					n(
-						'learniq',
-						'%n mark allocated.',
-						'%n marks allocated.',
-						result.createdCount,
-					)
-				}}
-			</NcNoteCard>
-			<NcNoteCard v-if="result && result.refused.length > 0" type="warning">
-				<ul>
-					<li
-						v-for="item in result.refused"
-						:key="item.submissionId + item.markerId">
-						{{ refusalText(item) }}
-					</li>
-				</ul>
-			</NcNoteCard>
+				<NcNoteCard v-if="error" type="error">
+					{{ error }}
+				</NcNoteCard>
+				<NcNoteCard v-if="result" type="success">
+					{{
+						n(
+							'learniq',
+							'%n mark allocated.',
+							'%n marks allocated.',
+							result.createdCount,
+						)
+					}}
+				</NcNoteCard>
+				<NcNoteCard v-if="result && result.refused.length > 0" type="warning">
+					<ul>
+						<li
+							v-for="item in result.refused"
+							:key="item.submissionId + item.markerId">
+							{{ refusalText(item) }}
+						</li>
+					</ul>
+				</NcNoteCard>
 
-			<div class="allocate-markers__actions">
-				<NcButton
-					type="submit"
-					variant="primary"
-					:disabled="
-						saving || markers.length === 0 || markers.length > maxMarkers
-					">
-					{{ t('learniq', 'Allocate') }}
-				</NcButton>
-			</div>
-		</form>
+				<div class="allocate-markers__actions">
+					<NcButton
+						type="submit"
+						variant="primary"
+						:disabled="
+							saving || markers.length === 0 || markers.length > maxMarkers
+						">
+						{{ t('learniq', 'Allocate') }}
+					</NcButton>
+				</div>
+			</form>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl, generateUrl } from '@nextcloud/router'
 import { NcButton, NcNoteCard, NcSelect } from '@nextcloud/vue'
@@ -101,7 +104,7 @@ import { listRows, objectId, objectsUrl, oneObject } from '../utils/customPages.
 export default {
 	name: 'AllocateMarkersView',
 
-	components: { NcButton, NcNoteCard, NcSelect },
+	components: { CnDetailCard, CnPageHeader, NcButton, NcNoteCard, NcSelect },
 
 	props: {
 		/** Assignment UUID from the route. */
@@ -270,10 +273,8 @@ export default {
 </script>
 
 <style scoped>
-.allocate-markers {
+.allocate-markers__card {
 	max-width: 720px;
-	margin: 0 auto;
-	padding: calc(var(--default-grid-baseline, 4px) * 4);
 }
 
 .allocate-markers__form {

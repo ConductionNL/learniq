@@ -13,10 +13,13 @@
  @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
 -->
 <template>
-	<div class="check-in-page">
-		<h2>{{ t('learniq', 'Check in to a lesson') }}</h2>
+	<div class="check-in-page lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Check in to a lesson')" />
 		<NcLoadingIcon v-if="loading" :size="32" />
-		<template v-else>
+		<CnDetailCard
+			v-else
+			:title="t('learniq', 'Lessons you can check in to now')"
+			class="check-in-page__card">
 			<ul v-if="open.length > 0" class="check-in-page__lessons">
 				<li v-for="item in open" :key="item.windowId">
 					{{ item.title }} · {{ formatTime(item.startsAt) }}
@@ -51,11 +54,12 @@
 			<NcNoteCard v-if="result" :type="result.ok ? 'success' : 'error'">
 				{{ result.message }}
 			</NcNoteCard>
-		</template>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
@@ -63,7 +67,7 @@ import { NcButton, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
 export default {
 	name: 'CheckInPage',
 
-	components: { NcButton, NcLoadingIcon, NcNoteCard },
+	components: { CnDetailCard, CnPageHeader, NcButton, NcLoadingIcon, NcNoteCard },
 
 	data() {
 		return {
@@ -148,10 +152,8 @@ export default {
 </script>
 
 <style scoped>
-.check-in-page {
-	max-width: 480px;
-	margin: 0 auto;
-	padding: calc(var(--default-grid-baseline, 4px) * 4);
+.check-in-page__card {
+	max-width: 720px;
 }
 
 .check-in-page__form {

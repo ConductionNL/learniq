@@ -19,7 +19,7 @@
 -->
 <template>
 	<div class="rollover-wizard">
-		<h2>{{ t('learniq', 'School-year rollover') }}</h2>
+		<CnPageHeader :title="t('learniq', 'School-year rollover')" />
 
 		<div class="rollover-wizard__years">
 			<label for="rollover-from">{{
@@ -136,6 +136,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { showConfirmation } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
@@ -156,6 +157,7 @@ export default {
 	name: 'RolloverWizard',
 
 	components: {
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,

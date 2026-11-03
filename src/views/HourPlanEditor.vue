@@ -23,9 +23,7 @@
 		<template v-else>
 			<header class="hour-plan-editor__header">
 				<div>
-					<h2 class="hour-plan-editor__title">
-						{{ plan.name || t('learniq', 'Hour plan') }}
-					</h2>
+					<CnPageHeader :title="plan.name || t('learniq', 'Hour plan')" />
 					<p class="hour-plan-editor__meta">
 						{{
 							t('learniq', '{programme}, intake {year}, {status}', {
@@ -201,6 +199,7 @@
 </template>
 
 <script>
+import { CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
@@ -221,7 +220,7 @@ import {
 export default {
 	name: 'HourPlanEditor',
 
-	components: { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard },
+	components: { CnPageHeader, NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard },
 
 	props: {
 		/** Hour plan UUID from the route. */
@@ -552,10 +551,6 @@ export default {
 	flex-wrap: wrap;
 	justify-content: space-between;
 	gap: 12px;
-}
-
-.hour-plan-editor__title {
-	margin: 0;
 }
 
 .hour-plan-editor__meta {

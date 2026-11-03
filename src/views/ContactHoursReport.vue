@@ -8,43 +8,45 @@
  @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
 -->
 <template>
-	<div class="contact-hours">
-		<h2>{{ t('learniq', 'Contact hours') }}</h2>
-		<form class="contact-hours__filters" @submit.prevent="load">
-			<label>
-				{{ t('learniq', 'From') }}
-				<input v-model="from" type="date" required />
-			</label>
-			<label>
-				{{ t('learniq', 'To') }}
-				<input v-model="to" type="date" required />
-			</label>
-			<label>
-				{{ t('learniq', 'Group (optional)') }}
-				<input
-					v-model="cohortId"
-					type="text"
-					:placeholder="t('learniq', 'All groups')" />
-			</label>
-			<NcButton type="submit" variant="primary" :disabled="loading">
-				{{ t('learniq', 'Show') }}
-			</NcButton>
-			<NcButton v-if="report" :disabled="loading" @click="exportCsv">
-				{{ t('learniq', 'Export CSV') }}
-			</NcButton>
-		</form>
+	<div class="contact-hours lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Contact hours')" />
+		<CnDetailCard>
+			<form class="contact-hours__filters" @submit.prevent="load">
+				<label>
+					{{ t('learniq', 'From') }}
+					<input v-model="from" type="date" required />
+				</label>
+				<label>
+					{{ t('learniq', 'To') }}
+					<input v-model="to" type="date" required />
+				</label>
+				<label>
+					{{ t('learniq', 'Group (optional)') }}
+					<input
+						v-model="cohortId"
+						type="text"
+						:placeholder="t('learniq', 'All groups')" />
+				</label>
+				<NcButton type="submit" variant="primary" :disabled="loading">
+					{{ t('learniq', 'Show') }}
+				</NcButton>
+				<NcButton v-if="report" :disabled="loading" @click="exportCsv">
+					{{ t('learniq', 'Export CSV') }}
+				</NcButton>
+			</form>
+		</CnDetailCard>
 		<NcNoteCard v-if="error" type="error">
 			{{ error }}
 		</NcNoteCard>
 		<p v-if="loading">
 			{{ t('learniq', 'Loading…') }}
 		</p>
-		<section
+		<CnDetailCard
 			v-for="cohort in report?.cohorts || []"
 			:key="cohort.cohortId"
+			:title="cohort.cohortName"
 			class="contact-hours__cohort"
 			data-testid="contact-hours-cohort">
-			<h3>{{ cohort.cohortName }}</h3>
 			<p v-if="!cohort.hasHourPlan" class="contact-hours__note">
 				{{
 					t(
@@ -144,11 +146,12 @@
 					</template>
 				</tbody>
 			</table>
-		</section>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
@@ -158,6 +161,8 @@ export default {
 	name: 'ContactHoursReport',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcButton,
 		NcNoteCard,
 	},
@@ -307,27 +312,17 @@ export default {
 </script>
 
 <style scoped>
-.contact-hours {
-	padding: 16px;
-	max-width: 1100px;
-}
-
 .contact-hours__filters {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: end;
 	gap: 12px;
-	margin-bottom: 16px;
 }
 
 .contact-hours__filters label {
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
-}
-
-.contact-hours__cohort {
-	margin-bottom: 24px;
 }
 
 .contact-hours__table {

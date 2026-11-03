@@ -115,7 +115,7 @@ async function resolveAppBase(page: Page): Promise<string> {
 		)
 		.catch(async () => {
 			const heading = await page
-				.locator('h2')
+				.locator('h1, h2')
 				.first()
 				.textContent()
 				.catch(() => null)
@@ -305,7 +305,7 @@ authed.describe('gate-26 — every page component renders its own screen', () =>
 		)
 		const errors = collectFatalErrors(page)
 		await openPage(page, '/course-packages/import', '.course-package-import')
-		await expect(page.locator('.course-package-import__heading')).toHaveText(
+		await expect(page.locator('.course-package-import h1')).toHaveText(
 			/Import course package/i,
 		)
 		await expect(page.getByText(/IMS Common Cartridge 1\.3/i)).toBeVisible()
@@ -322,7 +322,7 @@ authed.describe('gate-26 — every page component renders its own screen', () =>
 			'/timetable-conflict-queue',
 			'.timetable-conflict-queue',
 		)
-		await expect(page.locator('.timetable-conflict-queue__title')).toHaveText(
+		await expect(page.locator('.timetable-conflict-queue h1')).toHaveText(
 			/Timetable conflicts/i,
 		)
 		await expect(
@@ -395,7 +395,7 @@ authed.describe('gate-26 — every page component renders its own screen', () =>
 		const errors = collectFatalErrors(page)
 		const itemId = await ensureItem(page)
 		await openPage(page, `/assessments/items/${itemId}/author`, '.item-author')
-		await expect(page.locator('.item-author__heading')).toHaveText(/Edit item/i)
+		await expect(page.locator('.item-author h1')).toHaveText(/Edit item/i)
 		await expect(page.locator('label[for="item-title"]')).toHaveText(
 			/Item title/i,
 		)
@@ -413,9 +413,9 @@ authed.describe('gate-26 — every page component renders its own screen', () =>
 			`/assessments/items/${itemId}/analysis`,
 			'.item-analysis',
 		)
-		await expect(page.locator('.item-analysis__sub-heading').first()).toHaveText(
-			/Statistics per assessment/i,
-		)
+		await expect(
+			page.locator('.item-analysis__section .cn-detail-card__title').first(),
+		).toHaveText(/Statistics per assessment/i)
 		assertNoFatalErrors(errors)
 	})
 
@@ -426,7 +426,7 @@ authed.describe('gate-26 — every page component renders its own screen', () =>
 		const errors = collectFatalErrors(page)
 		const entryId = await ensureGradeEntry(page)
 		await openPage(page, `/grades/entries/${entryId}/impact`, '.grade-impact')
-		await expect(page.locator('.grade-impact__header h2')).toHaveText(
+		await expect(page.locator('.grade-impact__header h1')).toHaveText(
 			/Grade impact/i,
 		)
 		await expect(
@@ -449,7 +449,7 @@ authed.describe('gate-26 — every page component renders its own screen', () =>
 			`/exam-board/exemptions/${caseId}`,
 			'.exam-case-dossier',
 		)
-		await expect(page.locator('.exam-case-dossier__header h2')).toHaveText(
+		await expect(page.locator('.exam-case-dossier__header h1')).toHaveText(
 			/Exemption request/i,
 		)
 		await expect(page.getByText(/Case not found/i)).toHaveCount(0)

@@ -22,8 +22,8 @@
  @spec openspec/specs/report-card/spec.md#requirement-publishtoparents-must-not-surface-a-grade-before-its-own-scheduled-visibility-window
 -->
 <template>
-	<div class="rapportvergadering-review">
-		<h2>{{ t('learniq', 'Rapportvergadering review') }}</h2>
+	<div class="rapportvergadering-review lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Rapportvergadering review')" />
 
 		<NcLoadingIcon v-if="loadingPeriod" :size="32" />
 
@@ -63,7 +63,7 @@
 						)
 					" />
 
-				<div v-else class="rapportvergadering-review__table-wrap">
+				<CnDetailCard v-else flush class="rapportvergadering-review__table-wrap">
 					<table class="rapportvergadering-review__table">
 						<thead>
 							<tr>
@@ -202,7 +202,7 @@
 							</tr>
 						</tbody>
 					</table>
-				</div>
+				</CnDetailCard>
 			</template>
 		</template>
 
@@ -219,6 +219,7 @@
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
@@ -229,6 +230,8 @@ export default {
 	name: 'RapportvergaderingReviewView',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		ComposeReportPeriodModal,
 		NcButton,
 		NcEmptyContent,
@@ -518,13 +521,8 @@ export default {
 </script>
 
 <style scoped>
-.rapportvergadering-review {
-	padding: 1rem;
-}
-
 .rapportvergadering-review__meta {
 	color: var(--color-text-maxcontrast);
-	margin-bottom: 1rem;
 }
 
 .rapportvergadering-review__compose {

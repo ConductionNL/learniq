@@ -50,7 +50,7 @@
 -->
 
 <template>
-	<div class="mark-submission-view">
+	<div class="mark-submission-view lq-board-page">
 		<!-- Loading -->
 		<div v-if="loading" class="mark-submission-view__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
@@ -70,7 +70,7 @@
 			role="status"
 			aria-live="polite">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<h2>{{ t('learniq', 'Submission returned to learner') }}</h2>
+			<CnPageHeader :title="t('learniq', 'Submission returned to learner')" />
 			<p>
 				{{
 					t('learniq', 'Grade: {grade} / {max}', {
@@ -85,7 +85,7 @@
 		<template v-else-if="submission">
 			<!-- Header -->
 			<header class="mark-submission-view__header">
-				<h2>{{ t('learniq', 'Mark submission') }}</h2>
+				<CnPageHeader :title="t('learniq', 'Mark submission')" />
 				<p class="mark-submission-view__meta">
 					{{
 						t('learniq', 'Assignment: {title}', {
@@ -112,8 +112,9 @@
 			</header>
 
 			<!-- Attachments -->
-			<section class="mark-submission-view__attachments">
-				<h3>{{ t('learniq', 'Submitted files') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Submitted files')"
+				class="mark-submission-view__attachments">
 				<ul
 					v-if="(submission.attachmentRefs || []).length > 0"
 					class="mark-submission-view__file-list">
@@ -128,7 +129,7 @@
 				<p v-else class="mark-submission-view__no-files">
 					{{ t('learniq', 'No files attached.') }}
 				</p>
-			</section>
+			</CnDetailCard>
 
 			<!-- Double marking: waiting for the other marks, or not allocated -->
 			<p
@@ -155,8 +156,10 @@
 			</p>
 
 			<!-- Double marking: every mark side by side, then the final grade -->
-			<section v-if="mode === 'final'" class="mark-submission-view__final">
-				<h3>{{ t('learniq', 'Marks of the markers') }}</h3>
+			<CnDetailCard
+				v-if="mode === 'final'"
+				:title="t('learniq', 'Marks of the markers')"
+				class="mark-submission-view__final">
 				<table class="mark-submission-view__marks-table">
 					<thead>
 						<tr>
@@ -217,20 +220,14 @@
 								)
 					}}
 				</p>
-			</section>
+			</CnDetailCard>
 
 			<template v-if="showsMarkingForm">
 				<!-- Rubric marking (shown only when a Rubric is attached) -->
-				<section
+				<CnDetailCard
 					v-if="rubric && rubric.criteria && rubric.criteria.length > 0"
+					:title="t('learniq', 'Rubric: {name}', { name: rubric.name || '' })"
 					class="mark-submission-view__rubric">
-					<h3>
-						{{
-							t('learniq', 'Rubric: {name}', {
-								name: rubric.name || '',
-							})
-						}}
-					</h3>
 
 					<div
 						v-for="criterion in rubric.criteria"
@@ -295,11 +292,13 @@
 							}}
 						</span>
 					</div>
-				</section>
+				</CnDetailCard>
 
 				<!-- No rubric — manual score entry -->
-				<section v-else class="mark-submission-view__manual-score">
-					<h3>{{ t('learniq', 'Manual score') }}</h3>
+				<CnDetailCard
+					v-else
+					:title="t('learniq', 'Manual score')"
+					class="mark-submission-view__manual-score">
 					<label
 						for="manual-grade"
 						class="mark-submission-view__score-label">
@@ -317,39 +316,36 @@
 						:max="assignment.maxPoints || undefined"
 						class="mark-submission-view__score-input"
 						:disabled="saving" />
-				</section>
+				</CnDetailCard>
 
 				<!-- Feedback text -->
-				<section class="mark-submission-view__feedback">
-					<h3 id="mark-submission-feedback-label">
-						{{
-							mode === 'marker'
-								? t('learniq', 'Notes for the teacher in charge')
-								: t('learniq', 'Teacher feedback')
-						}}
-					</h3>
+				<CnDetailCard
+					:title="mode === 'marker' ? t('learniq', 'Notes for the teacher in charge') : t('learniq', 'Teacher feedback')"
+					class="mark-submission-view__feedback">
 					<textarea
 						id="mark-submission-feedback"
 						v-model="feedbackText"
 						class="mark-submission-view__feedback-input"
-						aria-labelledby="mark-submission-feedback-label"
+						:aria-label="
+							mode === 'marker'
+								? t('learniq', 'Notes for the teacher in charge')
+								: t('learniq', 'Teacher feedback')
+						"
 						:placeholder="
 							t('learniq', 'Write feedback for the learner...')
 						"
 						:disabled="saving"
 						rows="5" />
-				</section>
+				</CnDetailCard>
 
 				<!--
 				Peer/self-assessment read-only context (peer-and-self-assessment).
 				Never editable here — grade authority stays with the teacher.
 			-->
-				<section
+				<CnDetailCard
 					v-if="peerFeedbackSummary || selfAssessment"
-					class="mark-submission-view__peer-context"
-					aria-label="Peer and self-assessment context">
-					<h3>{{ t('learniq', 'Peer & self-assessment context') }}</h3>
-
+					:title="t('learniq', 'Peer & self-assessment context')"
+					class="mark-submission-view__peer-context">
 					<div
 						v-if="peerFeedbackSummary"
 						class="mark-submission-view__peer-summary">
@@ -439,7 +435,7 @@
 							)
 						}}
 					</p>
-				</section>
+				</CnDetailCard>
 			</template>
 
 			<!-- Actions -->
@@ -480,6 +476,7 @@
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 import { resolveGradePlan } from '../utils/assignmentGradePlan.js'
@@ -488,6 +485,7 @@ import { markingMode, prefillFinalGrade } from '../utils/doubleMarking.js'
 
 export default {
 	name: 'MarkSubmissionView',
+	components: { CnDetailCard, CnPageHeader },
 
 	props: {
 		/**
@@ -1157,10 +1155,6 @@ export default {
 	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
-.mark-submission-view__final {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
 .mark-submission-view__marks-table {
 	width: 100%;
 	border-collapse: collapse;
@@ -1172,13 +1166,6 @@ export default {
 	text-align: left;
 	padding: 4px var(--default-grid-baseline, 8px);
 	border-bottom: 1px solid var(--color-border);
-}
-
-.mark-submission-view {
-	max-width: 860px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .mark-submission-view__loading,
@@ -1207,13 +1194,6 @@ export default {
 	color: var(--color-main-background);
 	border-radius: 3px;
 	font-size: 0.85em;
-}
-
-.mark-submission-view__attachments,
-.mark-submission-view__rubric,
-.mark-submission-view__manual-score,
-.mark-submission-view__feedback {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
 }
 
 .mark-submission-view__file-list {
@@ -1314,14 +1294,6 @@ export default {
 	padding: 8px;
 	resize: vertical;
 	font-family: inherit;
-}
-
-.mark-submission-view__peer-context {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-	padding: var(--default-grid-baseline, 8px);
-	border: 1px dashed var(--color-border);
-	border-radius: 4px;
-	background: var(--color-background-hover);
 }
 
 .mark-submission-view__peer-items {
