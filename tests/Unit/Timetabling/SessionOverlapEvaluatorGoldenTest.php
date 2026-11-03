@@ -98,6 +98,11 @@ class SessionOverlapEvaluatorGoldenTest extends TestCase {
 			'learners without a second group id' => [['cohortId' => 'c-1'], [], ['learnerIds' => ['a']], ['learnerIds' => ['a']]],
 			'learners without a first group id' => [[], ['cohortId' => 'c-2'], ['learnerIds' => ['a']], ['learnerIds' => ['a']]],
 			'odd learner lists' => [['cohortId' => 'c-1'], ['cohortId' => 'c-2'], ['learnerIds' => 'a'], ['learnerIds' => ['a', 7, '']]],
+			'all-digit teacher ids through the groups' => [['cohortId' => 'c-1'], ['cohortId' => 'c-2'], ['teacherIds' => ['123']], ['teacherIds' => ['123']]],
+			'an all-digit own teacher against a group' => [['cohortId' => 'c-1', 'teacherUserId' => '123'], ['cohortId' => 'c-2'], null, ['teacherIds' => ['123']]],
+			'all-digit learner ids' => [['cohortId' => 'c-1'], ['cohortId' => 'c-2'], ['learnerIds' => ['123']], ['learnerIds' => ['123']]],
+			'all-digit group ids' => [['cohortId' => '7'], ['cohortId' => '7'], null, null],
+			'all-digit room ids' => [['roomId' => '7'], ['roomId' => '7'], null, null],
 			'everything' => [
 				['cohortId' => 'c-1', 'roomId' => 'r-1', 'teacherUserId' => 'jan'],
 				['cohortId' => 'c-1', 'roomId' => 'r-1', 'teacherUserId' => 'jan'],

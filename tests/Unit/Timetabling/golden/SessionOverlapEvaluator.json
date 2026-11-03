@@ -82,6 +82,21 @@
     "kinds: learners without a second group id": [],
     "kinds: learners without a first group id": [],
     "kinds: odd learner lists": [],
+    "kinds: all-digit teacher ids through the groups": {
+        "teacher-double-booking": 123
+    },
+    "kinds: an all-digit own teacher against a group": {
+        "teacher-double-booking": "123"
+    },
+    "kinds: all-digit learner ids": {
+        "learner-double-booking": "123"
+    },
+    "kinds: all-digit group ids": {
+        "cohort-double-booking": "7"
+    },
+    "kinds: all-digit room ids": {
+        "room-double-booking": "7"
+    },
     "kinds: everything": {
         "teacher-double-booking": "jan",
         "room-double-booking": "r-1",

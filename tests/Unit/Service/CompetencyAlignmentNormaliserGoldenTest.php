@@ -52,6 +52,7 @@ class CompetencyAlignmentNormaliserGoldenTest extends TestCase {
 		$goals = [
 			'g-1' => ['code' => 'K1', 'levels' => ['basis', 'gevorderd']],
 			'g-2' => ['code' => 'K2', 'levels' => []],
+			'123' => ['code' => 'K3', 'levels' => ['basis']],
 		];
 		$row = static fn (string $goal, ?string $depth): array => ['competencyId' => $goal, 'depth' => $depth];
 		$lists = [
@@ -60,6 +61,7 @@ class CompetencyAlignmentNormaliserGoldenTest extends TestCase {
 			'blank goal' => [$row('', null)],
 			'unknown goal' => [$row('g-1', null), $row('g-9', null)],
 			'twice' => [$row('g-1', 'basis'), $row('g-1', 'gevorderd')],
+			'all-digit goal' => [['competencyId' => '123', 'depth' => null]],
 			'unknown depth' => [$row('g-1', 'expert')],
 			'depth on a goal without levels' => [$row('g-2', 'basis')],
 		];
@@ -73,6 +75,7 @@ class CompetencyAlignmentNormaliserGoldenTest extends TestCase {
 			'only blank alignments fall back to the list' => [['competencyAlignments' => [$row('', 'basis')], 'competencyIds' => ['g-1', 'g-1', ' g-2 ', 7, '']], []],
 			'flat list' => [['competencyIds' => ['g-1', 'g-2']], []],
 			'twice keeps the first' => [['competencyAlignments' => [$row('g-1', 'basis'), $row('g-1', 'gevorderd')]], []],
+			'all-digit goal' => [['competencyAlignments' => [$row('123', 'oud'), $row('123', 'basis')]], ['123' => ['basis']]],
 			'known depth' => [['competencyAlignments' => [$row('g-1', 'basis')]], ['g-1' => ['basis']]],
 			'depth no longer known' => [['competencyAlignments' => [$row('g-1', 'oud')]], ['g-1' => ['basis']]],
 			'goal without known levels keeps its depth' => [['competencyAlignments' => [$row('g-1', 'oud')]], ['g-2' => ['basis']]],

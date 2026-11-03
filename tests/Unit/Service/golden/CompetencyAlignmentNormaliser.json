@@ -63,6 +63,7 @@
     "problem: blank goal": "A goal alignment points at a goal that does not exist. Pick an existing goal.",
     "problem: unknown goal": "A goal alignment points at a goal that does not exist. Pick an existing goal.",
     "problem: twice": "Goal K1 is aligned twice. Keep one alignment per goal.",
+    "problem: all-digit goal": null,
     "problem: unknown depth": "Depth \"expert\" is not a level of the framework of goal K1. Use one of: basis, gevorderd, or leave it empty.",
     "problem: depth on a goal without levels": "Depth \"basis\" is not a level of the framework of goal K2. Use one of: , or leave it empty.",
     "effective: nothing": [],
@@ -100,6 +101,12 @@
         {
             "competencyId": "g-1",
             "depth": "basis"
+        }
+    ],
+    "effective: all-digit goal": [
+        {
+            "competencyId": "123",
+            "depth": null
         }
     ],
     "effective: known depth": [

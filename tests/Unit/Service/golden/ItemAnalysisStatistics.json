@@ -20,6 +20,13 @@
         "distractorAnalysis": null,
         "insufficientData": false
     },
+    "full marks by the draw": {
+        "sampleSize": 30,
+        "pValue": 0.2,
+        "itemTotalCorrelation": 0.0,
+        "distractorAnalysis": null,
+        "insufficientData": false
+    },
     "draw without points": {
         "sampleSize": 30,
         "pValue": 0.0,

@@ -20,6 +20,7 @@ use PHPUnit\Framework\TestCase;
  * built by a fixed formula.
  *
  * @covers \OCA\Learniq\Service\ItemAnalysisService
+ * @uses   \OCA\Learniq\Service\ItemDistractorAnalysis
  */
 class ItemAnalysisStatisticsGoldenTest extends TestCase {
 	use GoldenFile;
@@ -36,6 +37,7 @@ class ItemAnalysisStatisticsGoldenTest extends TestCase {
 			'scores vary' => static fn (int $i): array => self::attempt(score: $i % 3, other: ($i * 7) % 5),
 			'manual score wins' => static fn (int $i): array => self::attempt(score: 0, other: $i % 4, extra: ['manualScore' => $i % 2]),
 			'points from the draw' => static fn (int $i): array => self::attempt(score: $i % 3, other: $i % 2) + ['drawnItemRefs' => [['itemId' => 'other', 'points' => 9], ['itemId' => 'item-x', 'points' => 4]]],
+			'full marks by the draw' => static fn (int $i): array => self::attempt(score: $i % 5, other: $i % 2) + ['drawnItemRefs' => [['itemId' => 'other', 'points' => 9], ['itemId' => 'item-x', 'points' => 4]]],
 			'draw without points' => static fn (int $i): array => self::attempt(score: $i % 2, other: $i % 2) + ['drawnItemRefs' => [['itemId' => 'item-x']]],
 			'draw names another item' => static fn (int $i): array => self::attempt(score: $i % 2, other: $i % 3) + ['drawnItemRefs' => [['itemId' => 'other', 'points' => 9]]],
 			'some attempts skip the item' => static fn (int $i): array => $i % 4 === 0 ? ['responses' => [['itemId' => 'other', 'autoScore' => 1]]] : self::attempt(score: $i % 2, other: $i % 3),
