@@ -40,6 +40,8 @@ use RuntimeException;
 
 /**
  * Resolves and projects one user's own lessons for a window.
+ *
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
  */
 class PersonalTimetableService {
 	/**
@@ -124,10 +126,7 @@ class PersonalTimetableService {
 		// Each lesson carries the notes the caller may read, and whether the
 		// caller may add one (timetabling-lesson-note).
 		$sessions = $this->projector->personalSessions(
-			rawSessions: $rawSessions,
-			windowFrom: $windowFrom,
-			windowTo: $windowTo,
-			roomCache: $roomCache,
+			lessons: ['sessions' => $rawSessions, 'window' => [$windowFrom, $windowTo], 'roomCache' => $roomCache],
 			uid: $uid,
 			taughtCohortIds: $taughtCohortIds
 		);
