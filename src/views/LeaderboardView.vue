@@ -22,7 +22,7 @@
 -->
 
 <template>
-	<div class="leaderboard-view">
+	<div class="leaderboard-view lq-board-page">
 		<header class="leaderboard-view__header">
 			<CnPageHeader :title="t('learniq', 'Leaderboard')" />
 			<p class="leaderboard-view__subtitle">
@@ -54,7 +54,7 @@
 				)
 			" />
 
-		<template v-else>
+		<CnDetailCard v-else class="leaderboard-view__board">
 			<div class="leaderboard-view__field">
 				<label for="leaderboard-cohort-select">{{
 					t('learniq', 'Leaderboard')
@@ -120,12 +120,12 @@
 					}}</span>
 				</li>
 			</ol>
-		</template>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
-import { CnPageHeader } from '@conduction/nextcloud-vue'
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import {
@@ -141,6 +141,7 @@ export default {
 	name: 'LeaderboardView',
 
 	components: {
+		CnDetailCard,
 		CnPageHeader,
 		NcCheckboxRadioSwitch,
 		NcEmptyContent,
@@ -290,17 +291,6 @@ export default {
 </script>
 
 <style scoped>
-.leaderboard-view {
-	max-width: 900px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.leaderboard-view__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
 .leaderboard-view__subtitle {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9em;

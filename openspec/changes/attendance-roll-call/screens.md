@@ -1,4 +1,4 @@
 # Screens
 
-- LqVandaag https://identity.conduction.nl/screens/board?id=wilgenboom/LqVandaag
-- LqBord https://identity.conduction.nl/screens/board?id=wilgenboom/LqBord
+- wilgenboom/LqVandaag vandaag (leerkracht) https://identity.conduction.nl/screens/board?id=wilgenboom/LqVandaag
+- wilgenboom/LqBord register van vandaag https://identity.conduction.nl/screens/board?id=wilgenboom/LqBord
