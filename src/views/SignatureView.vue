@@ -17,7 +17,7 @@
  @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
 -->
 <template>
-	<div class="signature-view">
+	<div class="signature-view lq-board-page">
 		<NcLoadingIcon v-if="loading" :size="32" />
 		<NcNoteCard v-else-if="loadError" type="error">
 			{{ loadError }}
@@ -48,56 +48,58 @@
 				{{ t('learniq', 'You are not one of the people who sign this document.') }}
 			</NcNoteCard>
 
-			<NcSelect
-				v-if="signable && roleOptions.length"
-				v-model="signerRole"
-				:options="roleOptions"
-				:reduce="(option) => option.id"
-				:clearable="false"
-				:inputLabel="t('learniq', 'I sign as')" />
+			<CnDetailCard class="signature-view__card">
+				<NcSelect
+					v-if="signable && roleOptions.length"
+					v-model="signerRole"
+					:options="roleOptions"
+					:reduce="(option) => option.id"
+					:clearable="false"
+					:inputLabel="t('learniq', 'I sign as')" />
 
-			<CnSignatureCapture
-				:affirmation="
-					t('learniq', 'I have read this document and agree with it.')
-				"
-				:typedPlaceholder="t('learniq', 'Type your full name')"
-				:typedAriaLabel="t('learniq', 'Typed signature')"
-				:drawnAriaLabel="t('learniq', 'Signature drawing area')"
-				:drawnHint="
-					t(
-						'learniq',
-						'Draw your signature with the mouse, a finger or a pen.',
-					)
-				"
-				:typedModeLabel="t('learniq', 'Type')"
-				:drawnModeLabel="t('learniq', 'Draw')"
-				:clearLabel="t('learniq', 'Clear')"
-				@change="capture = $event" />
+				<CnSignatureCapture
+					:affirmation="
+						t('learniq', 'I have read this document and agree with it.')
+					"
+					:typedPlaceholder="t('learniq', 'Type your full name')"
+					:typedAriaLabel="t('learniq', 'Typed signature')"
+					:drawnAriaLabel="t('learniq', 'Signature drawing area')"
+					:drawnHint="
+						t(
+							'learniq',
+							'Draw your signature with the mouse, a finger or a pen.',
+						)
+					"
+					:typedModeLabel="t('learniq', 'Type')"
+					:drawnModeLabel="t('learniq', 'Draw')"
+					:clearLabel="t('learniq', 'Clear')"
+					@change="capture = $event" />
 
-			<NcNoteCard v-if="error" type="error">
-				{{ error }}
-			</NcNoteCard>
-			<NcNoteCard v-if="signed" type="success">
-				{{ t('learniq', 'Your signature is saved.') }}
-			</NcNoteCard>
+				<NcNoteCard v-if="error" type="error">
+					{{ error }}
+				</NcNoteCard>
+				<NcNoteCard v-if="signed" type="success">
+					{{ t('learniq', 'Your signature is saved.') }}
+				</NcNoteCard>
 
-			<div class="signature-view__actions">
-				<NcButton
-					variant="primary"
-					:disabled="saving || signed || !signable || !canSign"
-					@click="sign">
-					{{ t('learniq', 'Sign') }}
-				</NcButton>
-				<NcButton variant="tertiary" @click="back">
-					{{ t('learniq', 'Back') }}
-				</NcButton>
-			</div>
+				<div class="signature-view__actions">
+					<NcButton
+						variant="primary"
+						:disabled="saving || signed || !signable || !canSign"
+						@click="sign">
+						{{ t('learniq', 'Sign') }}
+					</NcButton>
+					<NcButton variant="tertiary" @click="back">
+						{{ t('learniq', 'Back') }}
+					</NcButton>
+				</div>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
-import { CnPageHeader, CnSignatureCapture } from '@conduction/nextcloud-vue'
+import { CnDetailCard, CnPageHeader, CnSignatureCapture } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcLoadingIcon, NcNoteCard, NcSelect } from '@nextcloud/vue'
@@ -113,6 +115,7 @@ export default {
 	name: 'SignatureView',
 
 	components: {
+		CnDetailCard,
 		CnPageHeader,
 		CnSignatureCapture,
 		NcButton,
@@ -303,9 +306,7 @@ export default {
 </script>
 
 <style scoped>
-.signature-view {
-	padding: calc(var(--default-grid-baseline, 4px) * 4);
-	max-inline-size: 40rem;
+.signature-view__card :deep(.cn-detail-card__content) {
 	display: flex;
 	flex-direction: column;
 	gap: calc(var(--default-grid-baseline, 4px) * 3);
