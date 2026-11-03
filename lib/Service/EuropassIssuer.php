@@ -35,8 +35,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IAppConfig;
 
 /**
@@ -45,6 +45,7 @@ use OCP\IAppConfig;
  * @spec openspec/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
  */
 class EuropassIssuer {
+	use FindOrNull;
 
 	private const REGISTER = 'learniq';
 
@@ -254,19 +255,7 @@ class EuropassIssuer {
 			return null;
 		}
 
-		try {
-			$object = $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false, _render: false);
-		} catch (DoesNotExistException) {
-			return null;
-		}
-
-		$row = $object?->jsonSerialize();
-		if (is_array($row) === false) {
-			return null;
-		}
-
-		$row['id'] = (string)($row['id'] ?? ($row['@self']['id'] ?? $id));
-
-		return $row;
+		$find = fn () => $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false, _render: false);
+		return $this->findRowWithIdOrNull(find: $find, id: $id);
 	}//end read()
 }//end class

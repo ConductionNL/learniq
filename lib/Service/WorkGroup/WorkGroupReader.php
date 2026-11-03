@@ -31,8 +31,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\WorkGroup;
 
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IUserManager;
 
 /**
@@ -41,6 +41,7 @@ use OCP\IUserManager;
  * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
  */
 class WorkGroupReader {
+	use FindOrNull;
 
 	private const REGISTER = 'learniq';
 	private const SCHEMA = 'work-group';
@@ -209,19 +210,7 @@ class WorkGroupReader {
 			return null;
 		}
 
-		try {
-			$object = $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false, _render: false);
-		} catch (DoesNotExistException) {
-			return null;
-		}
-
-		$row = $object?->jsonSerialize();
-		if (is_array($row) === false) {
-			return null;
-		}
-
-		$row['id'] = (string)($row['id'] ?? ($row['@self']['id'] ?? $id));
-
-		return $row;
+		$find = fn () => $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false, _render: false);
+		return $this->findRowWithIdOrNull(find: $find, id: $id);
 	}//end read()
 }//end class

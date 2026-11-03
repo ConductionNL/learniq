@@ -87,35 +87,24 @@ class CoursePackageObjectWriter {
 	}//end createCourse()
 
 	/**
-	 * Create a `Lesson` object.
+	 * Create a draft Lesson.
 	 *
-	 * @param string|null $courseId Enclosing Course UUID.
-	 * @param string $title Lesson title.
-	 * @param int $order Manifest order.
-	 * @param string $contentType Lesson content type.
-	 * @param string $contentRef Material UUID (nc:files-resolved content lives on the Material).
-	 * @param string $tenantId Tenant UUID.
+	 * @param array{courseId: string|null, title: string, order: int, contentType: string, contentRef: string} $lesson   The lesson.
+	 * @param string                                                                                            $tenantId Tenant id.
 	 *
-	 * @return string|null Created Lesson UUID.
+	 * @return string|null The new Lesson's UUID, or null when it was not created.
 	 *
 	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#data-model
 	 */
-	public function createLesson(
-		?string $courseId,
-		string $title,
-		int $order,
-		string $contentType,
-		string $contentRef,
-		string $tenantId,
-	): ?string {
+	public function createLesson(array $lesson, string $tenantId): ?string {
 		return $this->create(
 			schema: 'lesson',
 			object: [
-				'courseId' => $courseId,
-				'name' => $title,
-				'order' => $order,
-				'contentType' => $contentType,
-				'contentRef' => $contentRef,
+				'courseId' => $lesson['courseId'],
+				'name' => $lesson['title'],
+				'order' => $lesson['order'],
+				'contentType' => $lesson['contentType'],
+				'contentRef' => $lesson['contentRef'],
 				'lifecycle' => 'draft',
 				'tenant_id' => $tenantId,
 			]
@@ -123,28 +112,24 @@ class CoursePackageObjectWriter {
 	}//end createLesson()
 
 	/**
-	 * Create a `Material` object.
+	 * Create a Material.
 	 *
-	 * @param string $title Material title.
-	 * @param string $kind One of Material's `kind` enum values.
-	 * @param string|null $fileRef nc:files path, when `kind` carries file bytes.
-	 * @param string|null $url External URL, when `kind: link`.
-	 * @param string|null $courseId Enclosing Course UUID.
-	 * @param string $tenantId Tenant UUID.
+	 * @param array{title: string, kind: string, fileRef: string|null, url: string|null, courseId: string|null} $material The material.
+	 * @param string                                                                                              $tenantId Tenant id.
 	 *
-	 * @return string|null Created Material UUID.
+	 * @return string|null The new Material's UUID, or null when it was not created.
 	 *
 	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
-	public function createMaterial(string $title, string $kind, ?string $fileRef, ?string $url, ?string $courseId, string $tenantId): ?string {
+	public function createMaterial(array $material, string $tenantId): ?string {
 		return $this->create(
 			schema: 'material',
 			object: [
-				'title' => $title,
-				'kind' => $kind,
-				'fileRef' => $fileRef ?? '',
-				'url' => $url,
-				'courseId' => $courseId,
+				'title' => $material['title'],
+				'kind' => $material['kind'],
+				'fileRef' => $material['fileRef'] ?? '',
+				'url' => $material['url'],
+				'courseId' => $material['courseId'],
 				'tenant_id' => $tenantId,
 			]
 		);

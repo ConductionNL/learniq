@@ -73,17 +73,60 @@ class SessionSeries {
 			return null;
 		}
 
-		$tz = new DateTimeZone(self::TIMEZONE);
-		$anchorStart = $this->localTime(value: (string)($anchor['startsAt'] ?? ''), tz: $tz);
-		if ($anchorStart === null) {
+		$slot = $this->slotOf(anchor: $anchor, until: $until);
+		if ($slot === null) {
 			return [];
 		}
 
-		$untilDate = $anchorStart->modify('+8 weeks')->format('Y-m-d');
-		if ($until !== null && preg_match('/^\d{4}-\d{2}-\d{2}$/', $until) === 1) {
-			$untilDate = $until;
+		$rows = $this->objectService->findAll(['filters' => self::seriesFilters(anchor: $anchor), 'sort' => ['startsAt' => 'ASC']]);
+		$series = $this->slotRows(rows: $rows, slot: $slot);
+		usort($series, static fn (array $left, array $right): int => strcmp($left['startsAt'], $right['startsAt']));
+
+		return $series;
+	}//end series()
+
+	/**
+	 * The anchor's weekly slot: the anchor, its local start, the last day and the time zone; null when its start is unreadable.
+	 *
+	 * @param array<string,mixed> $anchor The anchor session.
+	 * @param string|null         $until  The requested last day.
+	 *
+	 * @return array{anchor: array<string,mixed>, anchorStart: DateTimeImmutable, untilDate: string, tz: DateTimeZone}|null
+	 */
+	private function slotOf(array $anchor, ?string $until): ?array {
+		$tz = new DateTimeZone(self::TIMEZONE);
+		$anchorStart = $this->localTime(value: (string)($anchor['startsAt'] ?? ''), tz: $tz);
+		if ($anchorStart === null) {
+			return null;
 		}
 
+		return ['anchor' => $anchor, 'anchorStart' => $anchorStart, 'untilDate' => self::untilDate(anchorStart: $anchorStart, until: $until), 'tz' => $tz];
+	}//end slotOf()
+
+	/**
+	 * The last day of the series: the requested Y-m-d day, else eight weeks after the anchor.
+	 *
+	 * @param DateTimeImmutable $anchorStart The anchor's local start.
+	 * @param string|null       $until       The requested last day.
+	 *
+	 * @return string
+	 */
+	private static function untilDate(DateTimeImmutable $anchorStart, ?string $until): string {
+		if ($until !== null && preg_match('/^\d{4}-\d{2}-\d{2}$/', $until) === 1) {
+			return $until;
+		}
+
+		return $anchorStart->modify('+8 weeks')->format('Y-m-d');
+	}//end untilDate()
+
+	/**
+	 * The filters for the anchor's cohort, and its course when it has one.
+	 *
+	 * @param array<string,mixed> $anchor The anchor session.
+	 *
+	 * @return array<string,string>
+	 */
+	private static function seriesFilters(array $anchor): array {
 		$filters = [
 			'register' => self::REGISTER,
 			'schema' => self::SESSION_SCHEMA,
@@ -93,55 +136,71 @@ class SessionSeries {
 			$filters['courseId'] = (string)$anchor['courseId'];
 		}
 
-		$rows = $this->objectService->findAll(['filters' => $filters, 'sort' => ['startsAt' => 'ASC']]);
+		return $filters;
+	}//end seriesFilters()
 
+	/**
+	 * The rows that share the anchor's weekly slot, as series entries.
+	 *
+	 * @param iterable<mixed>     $rows The cohort's sessions.
+	 * @param array<string,mixed> $slot The anchor, its local start, the last day and the time zone.
+	 *
+	 * @return list<array<string,mixed>>
+	 */
+	private function slotRows(iterable $rows, array $slot): array {
 		$series = [];
 		foreach ($rows as $row) {
 			$data = $this->toArray(row: $row);
-			if ($this->sameSlot(anchor: $anchor, anchorStart: $anchorStart, candidate: $data, untilDate: $untilDate, tz: $tz) === false) {
-				continue;
+			if ($this->sameSlot(slot: $slot, candidate: $data) === true) {
+				$series[] = self::seriesEntry(data: $data);
 			}
-
-			$series[] = [
-				'id' => (string)($data['id'] ?? ''),
-				'title' => (string)($data['title'] ?? ''),
-				'startsAt' => (string)($data['startsAt'] ?? ''),
-				'endsAt' => (string)($data['endsAt'] ?? ''),
-				'lifecycle' => (string)($data['lifecycle'] ?? 'scheduled'),
-				'changeable' => in_array((string)($data['lifecycle'] ?? 'scheduled'), self::OPEN_STATES, true),
-			];
 		}
 
-		usort($series, static fn (array $left, array $right): int => strcmp($left['startsAt'], $right['startsAt']));
-
 		return $series;
-	}//end series()
+	}//end slotRows()
+
+	/**
+	 * One series entry.
+	 *
+	 * @param array<string,mixed> $data The session.
+	 *
+	 * @return array{id: string, title: string, startsAt: string, endsAt: string, lifecycle: string, changeable: bool}
+	 */
+	private static function seriesEntry(array $data): array {
+		return [
+			'id' => (string)($data['id'] ?? ''),
+			'title' => (string)($data['title'] ?? ''),
+			'startsAt' => (string)($data['startsAt'] ?? ''),
+			'endsAt' => (string)($data['endsAt'] ?? ''),
+			'lifecycle' => (string)($data['lifecycle'] ?? 'scheduled'),
+			'changeable' => in_array((string)($data['lifecycle'] ?? 'scheduled'), self::OPEN_STATES, true),
+		];
+	}//end seriesEntry()
 
 	/**
 	 * Whether a candidate lesson is in the anchor's weekly slot, not before it
 	 * and not after the until date.
 	 *
-	 * @param array<string, mixed> $anchor      The lesson the dialog opened on.
-	 * @param DateTimeImmutable    $anchorStart Its local start.
-	 * @param array<string, mixed> $candidate   Another lesson of the group.
-	 * @param string               $untilDate   Last date (Y-m-d).
-	 * @param DateTimeZone         $tz          The school's time zone.
+	 * @param array<string, mixed> $slot      The lesson the dialog opened on, its local start, the last date (Y-m-d) and the school's time zone.
+	 * @param array<string, mixed> $candidate Another lesson of the group.
 	 *
 	 * @return bool
 	 */
-	private function sameSlot(array $anchor, DateTimeImmutable $anchorStart, array $candidate, string $untilDate, DateTimeZone $tz): bool {
+	private function sameSlot(array $slot, array $candidate): bool {
+		$anchor = $slot['anchor'];
+		$anchorStart = $slot['anchorStart'];
 		if ((string)($candidate['cohortId'] ?? '') !== (string)($anchor['cohortId'] ?? '')
 			|| (string)($candidate['courseId'] ?? '') !== (string)($anchor['courseId'] ?? '')
 		) {
 			return false;
 		}
 
-		$start = $this->localTime(value: (string)($candidate['startsAt'] ?? ''), tz: $tz);
+		$start = $this->localTime(value: (string)($candidate['startsAt'] ?? ''), tz: $slot['tz']);
 		if ($start === null || $start < $anchorStart) {
 			return false;
 		}
 
-		return $start->format('N H:i') === $anchorStart->format('N H:i') && $start->format('Y-m-d') <= $untilDate;
+		return $start->format('N H:i') === $anchorStart->format('N H:i') && $start->format('Y-m-d') <= $slot['untilDate'];
 	}//end sameSlot()
 
 	/**

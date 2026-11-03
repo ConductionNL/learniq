@@ -47,8 +47,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Db\DoesNotExistException;
 
 /**
  * Resolves a Nextcloud user id to the UUID of its LearnerProfile.
@@ -56,6 +56,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
  * @spec openspec/specs/grading/spec.md#requirement-every-gradeentry-carries-a-server-stamped-learnerref
  */
 class LearnerRefResolver {
+	use FindOrNull;
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const PROFILE_SCHEMA = 'learner-profile';
@@ -236,18 +237,9 @@ class LearnerRefResolver {
 			return null;
 		}
 
-		try {
-			$object = $this->objectService->find(
-				id: $learnerRef,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::PROFILE_SCHEMA,
-				_rbac: false,
-				_multitenancy: false
-			);
-		} catch (DoesNotExistException $exception) {
-			return null;
-		}
-
+		$find = fn () => $this->objectService
+			->find(id: $learnerRef, register: self::LEARNIQ_REGISTER, schema: self::PROFILE_SCHEMA, _rbac: false, _multitenancy: false);
+		$object = $this->findOrNull(find: $find);
 		if ($object === null) {
 			return null;
 		}

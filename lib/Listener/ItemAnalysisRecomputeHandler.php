@@ -68,6 +68,8 @@ use OCP\EventDispatcher\IEventListener;
  */
 class ItemAnalysisRecomputeHandler implements IEventListener {
 
+	use PicksFields;
+
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const ASSESSMENT_SCHEMA = 'exam';
 	private const ASSESSMENT_RESULT_SCHEMA = 'assessment-result';
@@ -82,6 +84,24 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	 * @var string[]
 	 */
 	private const OPEN_FLAG_STATES = ['open', 'acknowledged'];
+
+	/**
+	 * The ItemStatistics fields copied from ItemAnalysisService::computeItemStatistics().
+	 */
+	private const STATISTICS_FIELDS = ['sampleSize', 'pValue', 'itemTotalCorrelation', 'distractorAnalysis', 'insufficientData', 'computedAt'];
+
+	/**
+	 * The AssessmentReliability fields copied from ItemAnalysisService::computeReliability().
+	 */
+	private const RELIABILITY_FIELDS = ['sampleSize', 'itemCount', 'cronbachAlpha', 'insufficientData', 'computedAt'];
+
+	/**
+	 * The fields that identify an analysis row, per schema.
+	 */
+	private const UPSERT_KEYS = [
+		self::ITEM_STATISTICS_SCHEMA => ['itemId', 'assessmentId'],
+		self::ASSESSMENT_RELIABILITY_SCHEMA => ['assessmentId'],
+	];
 
 	/**
 	 * Constructor.
@@ -212,48 +232,10 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	 * @return string|null The saved row's id/uuid, or null when the save did not return one.
 	 */
 	private function upsertItemStatistics(string $itemId, string $assessmentId, string $tenantId, array $statistics): ?string {
-		$existing = $this->objectService->findAll(
-			[
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::ITEM_STATISTICS_SCHEMA,
-					'itemId' => $itemId,
-					'assessmentId' => $assessmentId,
-				],
-				'limit' => 1,
-			]
-		);
+		$fields = ['itemId' => $itemId, 'assessmentId' => $assessmentId] + self::pick(row: $statistics, keys: self::STATISTICS_FIELDS);
+		$saved = $this->upsert(schema: self::ITEM_STATISTICS_SCHEMA, fields: $fields + ['tenant_id' => $tenantId]);
 
-		$existingData = [];
-		if (empty($existing) === false) {
-			$existingData = $this->toArrayData(object: $existing[0]);
-		}
-
-		// System context (item-statistics): the grade transition is granted by the teacherIds match,
-		// not the instructors group, and ItemStatistics is written by staff groups only.
-		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ITEM_STATISTICS_SCHEMA,
-			object: array_merge(
-				$existingData,
-				[
-					'itemId' => $itemId,
-					'assessmentId' => $assessmentId,
-					'sampleSize' => $statistics['sampleSize'],
-					'pValue' => $statistics['pValue'],
-					'itemTotalCorrelation' => $statistics['itemTotalCorrelation'],
-					'distractorAnalysis' => $statistics['distractorAnalysis'],
-					'insufficientData' => $statistics['insufficientData'],
-					'computedAt' => $statistics['computedAt'],
-					'tenant_id' => $tenantId,
-				]
-			),
-			_rbac: false
-		);
-
-		$savedData = $this->toArrayData(object: $saved);
-
-		return ($savedData['id'] ?? ($savedData['uuid'] ?? null));
+		return ($saved['id'] ?? ($saved['uuid'] ?? null));
 	}//end upsertItemStatistics()
 
 	/**
@@ -266,42 +248,52 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	 * @return void
 	 */
 	private function upsertAssessmentReliability(string $assessmentId, string $tenantId, array $reliability): void {
-		$existing = $this->objectService->findAll(
-			[
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::ASSESSMENT_RELIABILITY_SCHEMA,
-					'assessmentId' => $assessmentId,
-				],
-				'limit' => 1,
-			]
-		);
+		$fields = ['assessmentId' => $assessmentId] + self::pick(row: $reliability, keys: self::RELIABILITY_FIELDS);
+		$this->upsert(schema: self::ASSESSMENT_RELIABILITY_SCHEMA, fields: $fields + ['tenant_id' => $tenantId]);
+	}//end upsertAssessmentReliability()
 
-		$existingData = [];
-		if (empty($existing) === false) {
-			$existingData = $this->toArrayData(object: $existing[0]);
-		}
-
-		// System context (assessment-reliability): as above.
-		$this->objectService->saveObject(
+	/**
+	 * Save the fields over the existing row that has the same key fields, or as a new row.
+	 *
+	 * The row is written as the system: the grade transition is granted by the
+	 * teacherIds match, not the instructors group, and analysis rows are
+	 * written by staff groups only.
+	 *
+	 * @param string              $schema The analysis schema: item-statistics or assessment-reliability.
+	 * @param array<string,mixed> $fields The fields to save.
+	 *
+	 * @return array<string,mixed> The saved row.
+	 */
+	private function upsert(string $schema, array $fields): array {
+		$existingData = $this->existingRow(schema: $schema, keys: array_intersect_key($fields, array_flip(self::UPSERT_KEYS[$schema])));
+		$saved = $this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
-			schema: self::ASSESSMENT_RELIABILITY_SCHEMA,
-			object: array_merge(
-				$existingData,
-				[
-					'assessmentId' => $assessmentId,
-					'sampleSize' => $reliability['sampleSize'],
-					'itemCount' => $reliability['itemCount'],
-					'cronbachAlpha' => $reliability['cronbachAlpha'],
-					'insufficientData' => $reliability['insufficientData'],
-					'computedAt' => $reliability['computedAt'],
-					'tenant_id' => $tenantId,
-				]
-			),
+			schema: $schema,
+			object: array_merge($existingData, $fields),
 			_rbac: false
 		);
 
-	}//end upsertAssessmentReliability()
+		return $this->toArrayData(object: $saved);
+	}//end upsert()
+
+	/**
+	 * The first row of the schema with the given key fields, or [] when there is none.
+	 *
+	 * @param string              $schema The schema.
+	 * @param array<string,mixed> $keys   The key fields.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function existingRow(string $schema, array $keys): array {
+		$existing = $this->objectService->findAll(
+			['filters' => array_merge(['register' => self::LEARNIQ_REGISTER, 'schema' => $schema], $keys), 'limit' => 1]
+		);
+		if (empty($existing) === true) {
+			return [];
+		}
+
+		return $this->toArrayData(object: $existing[0]);
+	}//end existingRow()
 
 	/**
 	 * Evaluate an ItemStatistics row against the configured quality

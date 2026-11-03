@@ -38,13 +38,14 @@ declare(strict_types=1);
 namespace OCA\Learniq\Grading;
 
 use DateTimeImmutable;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Db\DoesNotExistException;
 
 /**
  * Evaluates CurriculumPlan formulas over a learner's published GradeEntries.
  */
 class GradeFormulaEvaluator {
+	use FindOrNull;
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
@@ -166,16 +167,7 @@ class GradeFormulaEvaluator {
 	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
 	 */
 	private function systemRead(string $id, string $schema): ?\OCA\OpenRegister\Db\ObjectEntity {
-		try {
-			return $this->objectService->find(
-				id: $id,
-				register: self::LEARNIQ_REGISTER,
-				schema: $schema,
-				_rbac: false
-			);
-		} catch (DoesNotExistException) {
-			return null;
-		}
+		return $this->findOrNull(find: fn () => $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema, _rbac: false));
 	}//end systemRead()
 
 	/**

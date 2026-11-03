@@ -53,8 +53,8 @@ use DateTimeInterface;
 use OCA\Learniq\Service\Portal\PortalLearner;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCA\Learniq\Service\Programme\ProgrammeRequirements;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use Throwable;
 
@@ -64,6 +64,7 @@ use Throwable;
  * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
  */
 class CatalogueSignUpService {
+	use FindOrNull;
 
 	private const REGISTER = 'learniq';
 	private const ENROLMENT = 'enrolment';
@@ -363,19 +364,7 @@ class CatalogueSignUpService {
 			return null;
 		}
 
-		try {
-			$object = $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false, _render: false);
-		} catch (DoesNotExistException) {
-			return null;
-		}
-
-		$row = $object?->jsonSerialize();
-		if (is_array($row) === false) {
-			return null;
-		}
-
-		$row['id'] = (string)($row['id'] ?? ($row['@self']['id'] ?? $id));
-
-		return $row;
+		$find = fn () => $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false, _render: false);
+		return $this->findRowWithIdOrNull(find: $find, id: $id);
 	}//end read()
 }//end class

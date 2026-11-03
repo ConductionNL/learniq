@@ -67,6 +67,13 @@ class LessonOnboardingImporter {
 	private readonly TeacherNoteSplitter $noteSplitter;
 
 	/**
+	 * Stores the lesson's images and the original file as materials.
+	 *
+	 * @var LessonMaterialWriter
+	 */
+	private readonly LessonMaterialWriter $materials;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService Reads the row, the course and its lessons; updates the lesson.
@@ -82,7 +89,7 @@ class LessonOnboardingImporter {
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly CoursePackageObjectWriter $objectWriter,
-		private readonly CoursePackageFileWriter $fileWriter,
+		CoursePackageFileWriter $fileWriter,
 		private readonly OfficeLessonExtractor $extractor,
 		private readonly LessonDraftBuilder $draftBuilder,
 		private readonly TransitionEngine $transitionEngine,
@@ -91,6 +98,7 @@ class LessonOnboardingImporter {
 		private readonly LoggerInterface $logger,
 	) {
 		$this->noteSplitter = new TeacherNoteSplitter();
+		$this->materials = new LessonMaterialWriter(objectWriter: $objectWriter, fileWriter: $fileWriter);
 	}//end __construct()
 
 	/**
@@ -110,8 +118,33 @@ class LessonOnboardingImporter {
 		$row = $this->loadRow(userId: $userId, rowId: $rowId);
 		$course = $this->loadCourse(courseId: $courseId);
 		$file = $this->resolveFile(userId: $userId, fileId: (int)($row['fileId'] ?? 0));
+		$run = [
+			'userId' => $userId,
+			'rowId' => $rowId,
+			'courseId' => $courseId,
+			'format' => (string)($row['format'] ?? ''),
+			'lesson' => $this->readLesson(file: $file, format: (string)($row['format'] ?? '')),
+		];
+		$run['tenantId'] = $this->tenantFor(course: $course, userId: $userId);
+		$run['fileName'] = (string)$file->getName();
 
-		$read = $this->extractor->extract(file: $file, format: (string)($row['format'] ?? ''));
+		$run = $this->attachImages(run: $this->createDraftLesson(run: $run), file: $file);
+
+		return $this->finishImport(run: $run, file: $file);
+	}//end import()
+
+	/**
+	 * The lesson the extractor reads from the file.
+	 *
+	 * @param File   $file   The file.
+	 * @param string $format The row's format.
+	 *
+	 * @return array<string,mixed> The lesson: title, sections and notes.
+	 *
+	 * @throws OnboardingImportException When the reader is unavailable or the file holds no lesson.
+	 */
+	private function readLesson(File $file, string $format): array {
+		$read = $this->extractor->extract(file: $file, format: $format);
 		if ($read['status'] === 'unavailable') {
 			throw new OnboardingImportException(
 				'PowerPoint import needs a newer OpenRegister. The file stays in your list.',
@@ -124,67 +157,178 @@ class LessonOnboardingImporter {
 			throw new OnboardingImportException('This file holds no lesson content learniq can read.', 422, 'unreadable');
 		}
 
-		$lesson = $read['lesson'];
+		return $read['lesson'];
+	}//end readLesson()
+
+	/**
+	 * The tenant of the course, else the tenant of the teacher's onboarding folder.
+	 *
+	 * @param array<string,mixed> $course The course.
+	 * @param string              $userId The teacher.
+	 *
+	 * @return string
+	 */
+	private function tenantFor(array $course, string $userId): string {
 		$tenantId = (string)($course['tenant_id'] ?? '');
 		if ($tenantId === '') {
-			$tenantId = $this->folderSetting->tenantOf(userId: $userId);
+			return $this->folderSetting->tenantOf(userId: $userId);
 		}
 
-		$fileName = (string)$file->getName();
-		// Slide notes never enter the lesson: every signed-in user reads a
-		// Lesson. They are written to the staff-only note schema once the
-		// final blocks, and so their ids, are known (teacher-notes-protection).
-		$draft = $this->noteSplitter->split(blocks: $this->draftBuilder->build(sections: $lesson['sections']));
-		$payload = [
-			'courseId' => $courseId,
-			'name' => $this->lessonName(title: (string)$lesson['title'], fileName: $fileName),
-			'order' => $this->nextOrder(courseId: $courseId),
-			'contentType' => 'text',
-			'blocks' => $draft['blocks'],
-			'tenant_id' => $tenantId,
-		];
+		return $tenantId;
+	}//end tenantFor()
 
-		$lessonId = $this->objectWriter->create(schema: 'lesson', object: $payload);
-		if ($lessonId === null) {
+	/**
+	 * Create the draft lesson. Slide notes never enter the lesson: every
+	 * signed-in user reads a Lesson. They are kept on the run and written to
+	 * the staff-only note schema once the final blocks, and so their ids, are
+	 * known (teacher-notes-protection).
+	 *
+	 * @param array<string,mixed> $run The import so far.
+	 *
+	 * @return array<string,mixed> The run with its payload, lessonId and teacher notes.
+	 *
+	 * @throws OnboardingImportException When the lesson could not be created.
+	 */
+	private function createDraftLesson(array $run): array {
+		$draft = $this->noteSplitter->split(blocks: $this->draftBuilder->build(sections: $run['lesson']['sections']));
+		$run['payload'] = $this->lessonPayload(run: $run, blocks: $draft['blocks']);
+		$run['lessonId'] = $this->objectWriter->create(schema: 'lesson', object: $run['payload']);
+		if ($run['lessonId'] === null) {
 			throw new OnboardingImportException('The lesson draft could not be created.', 500, 'lesson-not-created');
 		}
 
-		$context = ['userId' => $userId, 'courseId' => $courseId, 'lessonId' => $lessonId, 'tenantId' => $tenantId];
-		$materialIds = $this->imageMaterials(sections: $lesson['sections'], file: $file, context: $context);
-		if ($materialIds !== []) {
-			$draft = $this->noteSplitter->split(blocks: $this->draftBuilder->build(sections: $lesson['sections'], materialIds: $materialIds));
-			$payload['blocks'] = $draft['blocks'];
-			$this->objectService->saveObject(object: $payload, register: self::REGISTER, schema: 'lesson', uuid: $lessonId);
+		$run['notes'] = $draft['notes'];
+
+		return $run;
+	}//end createDraftLesson()
+
+	/**
+	 * The draft lesson's fields.
+	 *
+	 * @param array<string,mixed>            $run    The import so far.
+	 * @param array<int,array<string,mixed>> $blocks The lesson's blocks.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function lessonPayload(array $run, array $blocks): array {
+		return [
+			'courseId' => $run['courseId'],
+			'name' => $this->lessonName(title: (string)$run['lesson']['title'], fileName: $run['fileName']),
+			'order' => $this->nextOrder(courseId: $run['courseId']),
+			'contentType' => 'text',
+			'blocks' => $blocks,
+			'tenant_id' => $run['tenantId'],
+		];
+	}//end lessonPayload()
+
+	/**
+	 * Store the lesson's images as materials and, when there are any, rebuild
+	 * the lesson's blocks around them and save the lesson again.
+	 *
+	 * @param array<string,mixed> $run  The import so far.
+	 * @param File                $file The imported file.
+	 *
+	 * @return array<string,mixed> The run with its materialIds, and its final payload and teacher notes.
+	 */
+	private function attachImages(array $run, File $file): array {
+		$run['materialIds'] = $this->materials->images(sections: $run['lesson']['sections'], file: $file, context: self::context(run: $run));
+		if ($run['materialIds'] === []) {
+			return $run;
 		}
 
-		$notesLost = $this->writeTeacherNotes(notes: $draft['notes'], lessonId: $lessonId, tenantId: $tenantId);
+		$draft = $this->noteSplitter->split(blocks: $this->draftBuilder->build(sections: $run['lesson']['sections'], materialIds: $run['materialIds']));
+		$run['payload']['blocks'] = $draft['blocks'];
+		$run['notes'] = $draft['notes'];
+		$this->objectService->saveObject(object: $run['payload'], register: self::REGISTER, schema: 'lesson', uuid: $run['lessonId']);
 
-		$materials = array_sum(array_map('count', $materialIds));
-		if ($this->originalMaterial(file: $file, format: (string)$row['format'], context: $context) !== null) {
+		return $run;
+	}//end attachImages()
+
+	/**
+	 * Write the teacher notes and the original file's material, mark the row
+	 * imported, log, and report.
+	 *
+	 * @param array<string,mixed> $run  The import so far.
+	 * @param File                $file The imported file.
+	 *
+	 * @return array{lessonId: string, lessonName: string, courseId: string, blocks: int, materials: int, notes: list<string>}
+	 */
+	private function finishImport(array $run, File $file): array {
+		$notesLost = $this->writeTeacherNotes(notes: $run['notes'], lessonId: $run['lessonId'], tenantId: $run['tenantId']);
+		$run['materials'] = $this->materialCount(run: $run, file: $file);
+		$notes = self::importNotes(notes: $run['lesson']['notes'], notesLost: $notesLost);
+		$notes = $this->markImported(rowId: $run['rowId'], context: self::context(run: $run), notes: $notes);
+
+		$this->logImport(run: $run, file: $file);
+
+		return [
+			'lessonId' => $run['lessonId'],
+			'lessonName' => $run['payload']['name'],
+			'courseId' => $run['courseId'],
+			'blocks' => count($run['payload']['blocks']),
+			'materials' => $run['materials'],
+			'notes' => $notes,
+		];
+	}//end finishImport()
+
+	/**
+	 * Log the finished import.
+	 *
+	 * @param array<string,mixed> $run  The import.
+	 * @param File                $file The imported file.
+	 *
+	 * @return void
+	 */
+	private function logImport(array $run, File $file): void {
+		$this->logger->info(
+			'[LessonOnboardingImporter] File {fileId} imported as lesson {lessonId} ({blocks} blocks, {materials} materials)',
+			['fileId' => $file->getId(), 'lessonId' => $run['lessonId'], 'blocks' => count($run['payload']['blocks']), 'materials' => $run['materials']]
+		);
+	}//end logImport()
+
+	/**
+	 * The image materials plus the original file's material, when that was created.
+	 *
+	 * @param array<string,mixed> $run  The import so far.
+	 * @param File                $file The imported file.
+	 *
+	 * @return int
+	 */
+	private function materialCount(array $run, File $file): int {
+		$materials = array_sum(array_map('count', $run['materialIds']));
+		if ($this->materials->original(file: $file, format: $run['format'], context: self::context(run: $run)) !== null) {
 			$materials++;
 		}
 
-		$notes = $lesson['notes'];
+		return $materials;
+	}//end materialCount()
+
+	/**
+	 * The reader's notes, plus one when teacher notes were lost.
+	 *
+	 * @param list<string> $notes     The reader's notes.
+	 * @param int          $notesLost The teacher notes that could not be saved.
+	 *
+	 * @return list<string>
+	 */
+	private static function importNotes(array $notes, int $notesLost): array {
 		if ($notesLost > 0) {
 			$notes[] = sprintf('%d teacher note(s) could not be saved', $notesLost);
 		}
 
-		$notes = $this->markImported(rowId: $rowId, context: $context, notes: $notes);
+		return $notes;
+	}//end importNotes()
 
-		$this->logger->info(
-			'[LessonOnboardingImporter] File {fileId} imported as lesson {lessonId} ({blocks} blocks, {materials} materials)',
-			['fileId' => $file->getId(), 'lessonId' => $lessonId, 'blocks' => count($payload['blocks']), 'materials' => $materials]
-		);
-
-		return [
-			'lessonId' => $lessonId,
-			'lessonName' => $payload['name'],
-			'courseId' => $courseId,
-			'blocks' => count($payload['blocks']),
-			'materials' => $materials,
-			'notes' => $notes,
-		];
-	}//end import()
+	/**
+	 * The ids the materials and the row transition need.
+	 *
+	 * @param array<string,mixed> $run The import so far.
+	 *
+	 * @return array{userId: string, courseId: string, lessonId: string, tenantId: string}
+	 */
+	private static function context(array $run): array {
+		return ['userId' => $run['userId'], 'courseId' => $run['courseId'], 'lessonId' => $run['lessonId'], 'tenantId' => $run['tenantId']];
+	}//end context()
 
 	/**
 	 * Write the lesson's teacher notes to the staff-only note schema, as the
@@ -355,85 +499,6 @@ class LessonOnboardingImporter {
 
 		return (string)pathinfo($fileName, PATHINFO_FILENAME);
 	}//end lessonName()
-
-	/**
-	 * Write each section's images to the teacher's files and record them as Materials.
-	 *
-	 * @param list<array<string, mixed>> $sections The sections.
-	 * @param File $file The source document (names the image files).
-	 * @param array{userId: string, courseId: string, lessonId: string, tenantId: string} $context Where they belong.
-	 *
-	 * @return array<int, list<string>> Per section index, the Material ids.
-	 */
-	private function imageMaterials(array $sections, File $file, array $context): array {
-		$base = preg_replace('/[^A-Za-z0-9_.-]+/', '-', (string)pathinfo((string)$file->getName(), PATHINFO_FILENAME));
-		$materialIds = [];
-		foreach ($sections as $index => $section) {
-			foreach (($section['images'] ?? []) as $image) {
-				$name = preg_replace('/[^A-Za-z0-9_.-]+/', '-', (string)$image['name']);
-				$fileRef = $this->fileWriter->writeBytesToFiles(
-					content: (string)$image['bytes'],
-					filename: trim((string)$base, '-') . '-' . (int)$file->getId() . '-' . $name,
-					importedBy: $context['userId'],
-					tenantId: $context['tenantId'],
-				);
-				if ($fileRef === null) {
-					continue;
-				}
-
-				$materialId = $this->objectWriter->create(
-					schema: 'material',
-					object: [
-						'title' => (string)$image['name'],
-						'kind' => 'other',
-						'fileRef' => $fileRef,
-						'courseId' => $context['courseId'],
-						'lessonId' => $context['lessonId'],
-						'tenant_id' => $context['tenantId'],
-					]
-				);
-				if ($materialId !== null) {
-					$materialIds[$index][] = $materialId;
-				}
-			}//end foreach
-		}//end foreach
-
-		return $materialIds;
-	}//end imageMaterials()
-
-	/**
-	 * Link the original file to the lesson as a Material.
-	 *
-	 * @param File $file The document or deck.
-	 * @param string $format `docx` or `pptx`.
-	 * @param array{userId: string, courseId: string, lessonId: string, tenantId: string} $context Where it belongs.
-	 *
-	 * @return string|null The Material id.
-	 */
-	private function originalMaterial(File $file, string $format, array $context): ?string {
-		$prefix = '/' . $context['userId'] . '/files';
-		$path = (string)$file->getPath();
-		if (str_starts_with($path, $prefix . '/') === true) {
-			$path = substr($path, strlen($prefix));
-		}
-
-		$kind = 'document';
-		if ($format === 'pptx') {
-			$kind = 'slides';
-		}
-
-		return $this->objectWriter->create(
-			schema: 'material',
-			object: [
-				'title' => (string)$file->getName(),
-				'kind' => $kind,
-				'fileRef' => $path,
-				'courseId' => $context['courseId'],
-				'lessonId' => $context['lessonId'],
-				'tenant_id' => $context['tenantId'],
-			]
-		);
-	}//end originalMaterial()
 
 	/**
 	 * Move the row to imported with its lesson and course. A failure here leaves

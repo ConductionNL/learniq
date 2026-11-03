@@ -45,6 +45,22 @@ The `load-example-set` action MUST import the set stored in `example_profile` th
 - **WHEN** the answer is saved
 - **THEN** it is refused with HTTP 400
 
+### Requirement: Example-set rows carry the instance's organisation
+Every row a shipped example set writes MUST carry the instance's default organisation (OpenRegister's `OrganisationService::ensureDefaultOrganisation()`), as a normal write does. The loader MUST resolve the organisation before it writes anything; when none resolves it MUST refuse the load with a message that names the default organisation, and write no row. A row of the set that already carries an organisation MUST keep it, so loading a set again gives the organisation to rows an earlier load wrote without one. A row that cannot be given it MUST make the load fail.
+
+#### Scenario: A loaded row carries the instance's organisation
+- **GIVEN** the instance's default organisation
+- **WHEN** `occ learniq:example-set:load po` runs
+- **THEN** every row of `po.json` carries that organisation
+- @e2e exclude backend loader behaviour without a DOM surface; covered by SeedProfileServiceTest and ExampleSetOrganisationTest
+
+#### Scenario: No default organisation stops the load
+- **GIVEN** OpenRegister cannot resolve a default organisation
+- **WHEN** `occ learniq:example-set:load po` runs
+- **THEN** the command fails with a message naming the default organisation
+- **AND** no row is written
+- @e2e exclude backend loader behaviour without a DOM surface; covered by SeedProfileServiceTest and ExampleSetOrganisationTest
+
 ### Requirement: A loaded set can be removed exactly
 `occ learniq:example-set:remove <id>` MUST hand exactly the fixed uuids that `<id>.json` declares, in reverse load order, to OpenRegister's `openregister:objects:purge` with `--force`, and MUST pass `--apply` only when it was given `--apply` itself (dry run by default). It MUST NOT delete anything itself and MUST NOT offer an HTTP route: three school schemas are archival, and OpenRegister keeps the shell as the one deliberate exit for them. The generated set has no fixed uuids and MUST be refused with an explanation, as MUST an unknown id and an instance without OpenRegister's purge command.
 

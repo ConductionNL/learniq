@@ -32,9 +32,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Portal;
 
 use OCA\Learniq\Lifecycle\SubmissionWindowGuard;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -45,6 +45,7 @@ use Throwable;
  * @spec openspec/specs/assignments/spec.md#requirement-a-pupil-hands-in-a-portal-draft-through-learniqs-own-endpoint
  */
 class PortalSubmissionHandIn {
+	use FindOrNull;
 
 	private const REGISTER = 'learniq';
 	private const SCHEMA = 'submission';
@@ -220,26 +221,8 @@ class PortalSubmissionHandIn {
 			return null;
 		}
 
-		try {
-			$object = $this->objectService->find(
-				id: $id,
-				register: self::REGISTER,
-				schema: self::SCHEMA,
-				_rbac: false,
-				_multitenancy: false,
-				_render: false
-			);
-		} catch (DoesNotExistException) {
-			return null;
-		}
-
-		$row = $object?->jsonSerialize();
-		if (is_array($row) === false) {
-			return null;
-		}
-
-		$row['id'] = (string)($row['id'] ?? ($row['@self']['id'] ?? $id));
-
-		return $row;
+		$find = fn () => $this->objectService
+			->find(id: $id, register: self::REGISTER, schema: self::SCHEMA, _rbac: false, _multitenancy: false, _render: false);
+		return $this->findRowWithIdOrNull(find: $find, id: $id);
 	}//end submission()
 }//end class

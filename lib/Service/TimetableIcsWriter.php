@@ -97,19 +97,39 @@ class TimetableIcsWriter {
 			return [];
 		}
 
-		$lines = [
-			'BEGIN:VEVENT',
-			'UID:' . $this->text(value: (string)($event['uid'] ?? '')),
-			'DTSTAMP:' . $stamp,
-			'DTSTART:' . $start,
-		];
+		return array_merge(
+			['BEGIN:VEVENT', 'UID:' . $this->text(value: (string)($event['uid'] ?? '')), 'DTSTAMP:' . $stamp, 'DTSTART:' . $start],
+			$this->endLine(event: $event),
+			$this->detailLines(event: $event),
+			self::statusLines(event: $event)
+		);
+	}//end event()
 
+	/**
+	 * The DTEND line, when the event has a readable end.
+	 *
+	 * @param array<string,mixed> $event The event.
+	 *
+	 * @return list<string>
+	 */
+	private function endLine(array $event): array {
 		$end = $this->utc(value: (string)($event['end'] ?? ''));
-		if ($end !== null) {
-			$lines[] = 'DTEND:' . $end;
+		if ($end === null) {
+			return [];
 		}
 
-		$lines[] = 'SUMMARY:' . $this->text(value: (string)($event['summary'] ?? ''));
+		return ['DTEND:' . $end];
+	}//end endLine()
+
+	/**
+	 * The SUMMARY line, the LOCATION and DESCRIPTION lines that have a value, and an https URL line.
+	 *
+	 * @param array<string,mixed> $event The event.
+	 *
+	 * @return list<string>
+	 */
+	private function detailLines(array $event): array {
+		$lines = ['SUMMARY:' . $this->text(value: (string)($event['summary'] ?? ''))];
 		foreach (['location' => 'LOCATION', 'description' => 'DESCRIPTION'] as $field => $property) {
 			$value = (string)($event[$field] ?? '');
 			if ($value !== '') {
@@ -123,17 +143,24 @@ class TimetableIcsWriter {
 			$lines[] = 'URL:' . $url;
 		}
 
+		return $lines;
+	}//end detailLines()
+
+	/**
+	 * The STATUS, TRANSP and END lines.
+	 *
+	 * @param array<string,mixed> $event The event.
+	 *
+	 * @return list<string>
+	 */
+	private static function statusLines(array $event): array {
 		$status = 'CONFIRMED';
 		if (($event['cancelled'] ?? false) === true) {
 			$status = 'CANCELLED';
 		}
 
-		$lines[] = 'STATUS:' . $status;
-		$lines[] = 'TRANSP:OPAQUE';
-		$lines[] = 'END:VEVENT';
-
-		return $lines;
-	}//end event()
+		return ['STATUS:' . $status, 'TRANSP:OPAQUE', 'END:VEVENT'];
+	}//end statusLines()
 
 	/**
 	 * An ISO 8601 time in the iCalendar UTC form, or null.

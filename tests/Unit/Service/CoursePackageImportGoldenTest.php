@@ -61,6 +61,7 @@ use ReflectionMethod;
  * @covers \OCA\Learniq\Service\CoursePackage\ImportReportOutcome
  * @covers \OCA\Learniq\Service\CoursePackage\ArchivePackage
  * @uses   \OCA\Learniq\Service\CommonCartridgeParser
+ * @uses   \OCA\Learniq\Service\CoursePackage\CommonCartridgeItemTree
  * @uses   \OCA\Learniq\Service\CoursePackage\CommonCartridgeCourseImporter
  * @uses   \OCA\Learniq\Service\CoursePackage\CommonCartridgeResourceRouter
  * @uses   \OCA\Learniq\Service\CoursePackage\CourseMetadataFilter
