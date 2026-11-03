@@ -1,3 +1,3 @@
 # Screens
 
-- LqCertificaten https://identity.conduction.nl/screens/board?id=learniq/LqCertificaten
+- learniq/LqCertificaten certificaten https://identity.conduction.nl/screens/board?id=learniq/LqCertificaten

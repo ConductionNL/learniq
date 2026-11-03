@@ -1,4 +1,4 @@
 # Screens
 
-- LqCfPartners https://identity.conduction.nl/screens/board?id=learniq/LqCfPartners
-- LqAppInstellingen https://identity.conduction.nl/screens/board?id=learniq/LqAppInstellingen
+- learniq/LqCfPartners koppelpartners https://identity.conduction.nl/screens/board?id=learniq/LqCfPartners
+- learniq/LqAppInstellingen app-instellingen https://identity.conduction.nl/screens/board?id=learniq/LqAppInstellingen

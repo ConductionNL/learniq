@@ -20,7 +20,7 @@
  @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 -->
 <template>
-	<div class="cohort-gradebook">
+	<div class="cohort-gradebook lq-board-page">
 		<NcLoadingIcon v-if="loading" :size="32" />
 		<NcNoteCard v-else-if="loadError" type="error">
 			{{ loadError }}
@@ -40,13 +40,10 @@
 				{{ message }}
 			</NcNoteCard>
 
-			<section
+			<CnDetailCard
 				v-if="grid.columns.length > 0"
-				class="cohort-gradebook__publish"
-				aria-labelledby="cohort-gradebook-publish-title">
-				<h3 id="cohort-gradebook-publish-title">
-					{{ t('learniq', 'Publish marks') }}
-				</h3>
+				:title="t('learniq', 'Publish marks')"
+				class="cohort-gradebook__publish">
 				<label for="cohort-gradebook-scope">{{
 					t('learniq', 'Column')
 				}}</label>
@@ -187,13 +184,13 @@
 						</ul>
 					</template>
 				</NcNoteCard>
-			</section>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
-import { CnDataMatrix } from '@conduction/nextcloud-vue'
+import { CnDataMatrix, CnDetailCard } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -219,7 +216,7 @@ import {
 export default {
 	name: 'CohortGradebookView',
 
-	components: { CnDataMatrix, NcButton, NcLoadingIcon, NcNoteCard },
+	components: { CnDetailCard, CnDataMatrix, NcButton, NcLoadingIcon, NcNoteCard },
 
 	props: {
 		/** Cohort UUID from the route. */
@@ -579,15 +576,6 @@ export default {
 </script>
 
 <style scoped>
-.cohort-gradebook {
-	padding: calc(var(--default-grid-baseline, 4px) * 4);
-}
-
-.cohort-gradebook__publish {
-	margin-block-start: calc(var(--default-grid-baseline, 4px) * 6);
-	max-inline-size: 48rem;
-}
-
 .cohort-gradebook__publish select {
 	display: block;
 	margin-block: calc(var(--default-grid-baseline, 4px) * 1)
