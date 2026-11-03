@@ -1,0 +1,79 @@
+{
+    "scores vary": {
+        "sampleSize": 30,
+        "pValue": 0.3333333333333333,
+        "itemTotalCorrelation": 0.0,
+        "distractorAnalysis": null,
+        "insufficientData": false
+    },
+    "manual score wins": {
+        "sampleSize": 30,
+        "pValue": 0.0,
+        "itemTotalCorrelation": 0.44801076831712416,
+        "distractorAnalysis": null,
+        "insufficientData": false
+    },
+    "points from the draw": {
+        "sampleSize": 30,
+        "pValue": 0.0,
+        "itemTotalCorrelation": 0.0,
+        "distractorAnalysis": null,
+        "insufficientData": false
+    },
+    "draw without points": {
+        "sampleSize": 30,
+        "pValue": 0.0,
+        "itemTotalCorrelation": 1.0,
+        "distractorAnalysis": null,
+        "insufficientData": false
+    },
+    "draw names another item": {
+        "sampleSize": 30,
+        "pValue": 0.0,
+        "itemTotalCorrelation": 0.0,
+        "distractorAnalysis": null,
+        "insufficientData": false
+    },
+    "some attempts skip the item": {
+        "sampleSize": 22,
+        "pValue": 0.0,
+        "itemTotalCorrelation": -0.08070466898086177,
+        "distractorAnalysis": null,
+        "insufficientData": false
+    },
+    "some attempts are not scored": {
+        "sampleSize": 22,
+        "pValue": 0.0,
+        "itemTotalCorrelation": -0.08070466898086177,
+        "distractorAnalysis": null,
+        "insufficientData": false
+    },
+    "everyone the same item score": {
+        "sampleSize": 30,
+        "pValue": 0.0,
+        "itemTotalCorrelation": 0.0,
+        "distractorAnalysis": null,
+        "insufficientData": false
+    },
+    "everyone the same rest score": {
+        "sampleSize": 30,
+        "pValue": 0.0,
+        "itemTotalCorrelation": 0.0,
+        "distractorAnalysis": null,
+        "insufficientData": false
+    },
+    "answers not text": {
+        "sampleSize": 30,
+        "pValue": 0.0,
+        "itemTotalCorrelation": 0.0,
+        "distractorAnalysis": null,
+        "insufficientData": false
+    },
+    "too few": {
+        "sampleSize": 5,
+        "pValue": null,
+        "itemTotalCorrelation": null,
+        "distractorAnalysis": null,
+        "insufficientData": true
+    }
+}

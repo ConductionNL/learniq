@@ -1,0 +1,90 @@
+{
+    "overlaps: apart": [
+        false,
+        false
+    ],
+    "overlaps: touching": [
+        false,
+        false
+    ],
+    "overlaps: partly": [
+        true,
+        true
+    ],
+    "overlaps: inside": [
+        true,
+        true
+    ],
+    "overlaps: the same": [
+        true,
+        true
+    ],
+    "overlaps: other offset": [
+        true,
+        true
+    ],
+    "overlaps: first start missing": [
+        false,
+        false
+    ],
+    "overlaps: first end missing": [
+        false,
+        false
+    ],
+    "overlaps: second start unreadable": [
+        false,
+        false
+    ],
+    "overlaps: second end unreadable": [
+        false,
+        false
+    ],
+    "kinds: nothing shared": [],
+    "kinds: no groups": [],
+    "kinds: one group unknown": [],
+    "kinds: other group unknown": [],
+    "kinds: teachers through the groups": {
+        "teacher-double-booking": "jan",
+        "learner-double-booking": "a"
+    },
+    "kinds: own teachers": {
+        "teacher-double-booking": "jan",
+        "learner-double-booking": "x"
+    },
+    "kinds: own teacher over the group": {
+        "teacher-double-booking": "kees"
+    },
+    "kinds: substitute over own teacher": {
+        "teacher-double-booking": "sub"
+    },
+    "kinds: substitute takes the teacher away": [],
+    "kinds: the same room": {
+        "room-double-booking": "r-1"
+    },
+    "kinds: one room id only": [],
+    "kinds: the other room id only": [],
+    "kinds: room ids differ, codes match": [],
+    "kinds: the same code": {
+        "room-double-booking": "A1"
+    },
+    "kinds: other codes": [],
+    "kinds: blank codes": [],
+    "kinds: the same group": {
+        "teacher-double-booking": "jan",
+        "cohort-double-booking": "c-1"
+    },
+    "kinds: blank groups": {
+        "teacher-double-booking": "jan"
+    },
+    "kinds: a shared learner": {
+        "learner-double-booking": "a"
+    },
+    "kinds: learners without a second group id": [],
+    "kinds: learners without a first group id": [],
+    "kinds: odd learner lists": [],
+    "kinds: everything": {
+        "teacher-double-booking": "jan",
+        "room-double-booking": "r-1",
+        "cohort-double-booking": "c-1"
+    }
+}
