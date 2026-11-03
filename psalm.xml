@@ -33,6 +33,9 @@
              container. Real classes live in openregister/lib/Service/. -->
         <file name="tests/Stubs/Service/TenantKeyService.php" preloadClasses="true" />
         <file name="tests/Stubs/Service/TalkLinkService.php" preloadClasses="true" />
+        <file name="tests/Stubs/Service/OrganisationService.php" preloadClasses="true" />
+        <file name="tests/Stubs/Db/Organisation.php" preloadClasses="true" />
+        <file name="tests/Stubs/Db/MagicMapper.php" preloadClasses="true" />
         <file name="tests/Stubs/Service/FileService.php" preloadClasses="true" />
         <!-- OpenRegister's RBAC refusal, caught to answer 403 instead of 500. -->
         <file name="tests/Stubs/Exception/NotAuthorizedException.php" preloadClasses="true" />
