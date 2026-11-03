@@ -301,6 +301,48 @@
             }
         ]
     },
+    "lessonsOf teacher 7": {
+        "lessons": {
+            "sessions": [
+                {
+                    "id": "s-c-1",
+                    "cover": true
+                },
+                {
+                    "id": "s-cover-7",
+                    "cover": true
+                },
+                {
+                    "title": "zonder id"
+                }
+            ],
+            "source": "fake"
+        },
+        "calls": [
+            "current",
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "cohort"
+                },
+                "rbac": false
+            },
+            {
+                "sessionsForCohorts": [],
+                "window": [
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            },
+            {
+                "sessionsForTeacher": "7",
+                "window": [
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            }
+        ]
+    },
     "lessonsOf room r-1": {
         "lessons": {
             "sessions": [

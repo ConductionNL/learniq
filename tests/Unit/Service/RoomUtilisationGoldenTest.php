@@ -74,6 +74,7 @@ class RoomUtilisationGoldenTest extends TestCase {
 			'not a date' => ['', ['2026-02-30', '2026-03-05', null, null]],
 			'loose format' => ['', ['2026-4-20', '2026-04-27', null, null]],
 			'one day' => ['', ['2026-04-21', '2026-04-22', null, null]],
+			'odd hours' => [(string)json_encode(['weekdays' => ['monday' => ['opens' => '07:45', 'closes' => '13'], 'wednesday' => ['opens' => '9:05', 'closes' => '08:00'], 'thursday' => 'closed']]), ['2026-04-20', '2026-04-27', null, null]],
 		];
 
 		$actual = [];
@@ -82,10 +83,6 @@ class RoomUtilisationGoldenTest extends TestCase {
 		}
 
 		$service = $this->service(hours: '');
-		foreach ([['2026-04-20', '2026-04-23'], ['2026-04-23', '2026-04-23'], ['2026-13-01', '2026-13-02'], ['x', 'y']] as [$from, $to]) {
-			$actual['teachingDays ' . $from . ' ' . $to] = $service->teachingDays(from: $from, to: $to, settings: ['weekdays' => ['monday' => ['opens' => '07:45', 'closes' => '13'], 'wednesday' => ['opens' => '9:05', 'closes' => '08:00'], 'thursday' => 'closed']]);
-		}
-
 		foreach (['2026-04-20', '2026-02-29', '2024-02-29', '2026-4-2', ' 2026-04-20', '2026-04-20T10:00'] as $day) {
 			$parsed = $service->parseDay(day: $day);
 			$actual['parseDay ' . $day] = $parsed?->format('Y-m-d H:i:s');
@@ -182,6 +179,8 @@ class RoomUtilisationGoldenTest extends TestCase {
 				['id' => 's-18', 'cohortId' => 'c-1', 'startsAt' => '2026-04-20T08:00:00Z', 'endsAt' => '2026-04-20T09:00:00Z', 'roomId' => 'r-lab'],
 				['id' => 's-19', 'cohortId' => 'c-2', 'startsAt' => '2026-04-30T09:00:00+02:00', 'endsAt' => '2026-04-30T10:00:00+02:00', 'roomId' => 'r-lab'],
 				['id' => 's-20', 'cohortId' => 'c-2', 'startsAt' => '2026-04-22T11:20', 'endsAt' => '2026-04-22T12:40', 'roomId' => 'r-small'],
+				['id' => 's-21', 'cohortId' => 'c-2', 'startsAt' => '2026-04-21T08:00:00+02:00', 'endsAt' => '2026-04-22T15:00:00+02:00', 'roomId' => 'r-small'],
+				['id' => 's-22', 'cohortId' => 'c-2', 'startsAt' => '2026-04-21T07:00:00+02:00', 'endsAt' => '2026-04-21T08:00:00+02:00', 'roomId' => 'r-lab'],
 			],
 		];
 	}//end store()

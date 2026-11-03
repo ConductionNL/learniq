@@ -60,6 +60,7 @@ class SegmentGoldenTest extends TestCase {
 				['segment' => 'vo', '@self' => $at('2026-10-01T10:00:00+00:00'), 'setBy' => 'anna'],
 				['segment' => 'po'],
 			],
+			'a chooser that is no text' => [['segment' => 'vo', 'setBy' => 42]],
 			'uuid order' => [['segment' => 'vo', '@self' => ['id' => ''], 'id' => 5, 'uuid' => 'u-last']],
 			'entities' => 'entities',
 			'read fails' => 'throw',

@@ -83,6 +83,18 @@
         ],
         "log": []
     },
+    "a chooser that is no text": {
+        "current": "vo",
+        "workspace": {
+            "segment": "vo",
+            "chosenSegment": null
+        },
+        "has": true,
+        "saved uuid": [
+            "missing"
+        ],
+        "log": []
+    },
     "uuid order": {
         "current": "vo",
         "workspace": {

@@ -47,7 +47,7 @@ class TimetableDirectoryGoldenTest extends TestCase {
 		$directory = $this->directory(failing: false);
 		$actual = [];
 		$lookups = [
-			['cohort', 'c-1'], ['cohort', ''], ['teacher', 'jan'], ['teacher', 'piet'], ['teacher', 'nobody'],
+			['cohort', 'c-1'], ['cohort', ''], ['teacher', 'jan'], ['teacher', 'piet'], ['teacher', 'nobody'], ['teacher', '7'],
 			['room', 'r-1'], ['room', 'r-2'], ['room', 'r-nocode'], ['room', 'r-none'], ['other', 'r-1'],
 		];
 		foreach ($lookups as [$kind, $id]) {
