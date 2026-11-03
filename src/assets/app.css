@@ -32,15 +32,3 @@
 .lq-board-page > .cn-page-header {
 	margin-bottom: 0;
 }
-
-/* A card without a title keeps the board card's full inset: the board look
- * starts a card's body just below its title, which a header-less card has
- * not got. A flush card (a list or table edge to edge) keeps no inset; the
- * board look's card padding outranks CnDetailCard's own flush rule. */
-.cn-look-board .lq-board-page .cn-detail-card:not(:has(> .cn-detail-card__header)) > .cn-detail-card__content:not(.cn-detail-card__content--flush) {
-	padding: var(--cn-board-card-padding);
-}
-
-.cn-look-board .lq-board-page .cn-detail-card .cn-detail-card__content--flush {
-	padding: 0;
-}
