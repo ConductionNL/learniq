@@ -662,6 +662,7 @@
 			"type": "index",
 			"title": "Courses",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Course"
 			}
@@ -1260,6 +1261,7 @@
 			"title": "Course package import reports",
 			"_note": "course-package-import-export: the anti-Canvas promise made structural — one CoursePackageImportReport per course-package import attempt, listing every source-package resource's outcome (imported/degraded/dropped). Index lists every attempt; CoursePackageImportReportDetail renders the full entries table.",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "course-package-import-report"
 			}
@@ -1383,6 +1385,7 @@
 			"type": "index",
 			"title": "Lessons",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Lesson",
 				"filter": {
@@ -1583,6 +1586,7 @@
 			"type": "index",
 			"title": "Programmes",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Programme"
 			}
@@ -1969,6 +1973,7 @@
 			"type": "index",
 			"title": "Curriculum plans",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "curriculum-plan"
 			}
@@ -2215,6 +2220,7 @@
 			"type": "index",
 			"title": "Cohorts",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Cohort",
 				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly so the platform's built-in mass import/export/copy/delete is a documented capability of this index, not an implicit default (findings 12.6/14.7).",
@@ -2238,6 +2244,7 @@
 			"type": "index",
 			"title": "Subject teacher assignments",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "SubjectTeacherAssignment"
 			}
@@ -2748,6 +2755,7 @@
 			"type": "index",
 			"title": "Work groups",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "work-group"
 			}
@@ -2836,6 +2844,7 @@
 			"type": "index",
 			"title": "Sessions",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Session",
 				"columns": [
@@ -2891,6 +2900,7 @@
 			"type": "index",
 			"title": "Today's sessions",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Session",
 				"filter": {
@@ -2950,6 +2960,7 @@
 			"type": "index",
 			"title": "This week's sessions",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Session",
 				"filter": {
@@ -3348,6 +3359,7 @@
 			"type": "index",
 			"title": "Materials",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Material"
 			}
@@ -3438,6 +3450,7 @@
 			"type": "index",
 			"title": "Rooms",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "room"
 			}
@@ -3592,6 +3605,7 @@
 			"type": "index",
 			"title": "Display screens",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "display-screen"
 			}
@@ -3683,6 +3697,7 @@
 			"type": "index",
 			"title": "Optional lessons",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "elective-offer"
 			}
@@ -3782,6 +3797,7 @@
 			"type": "index",
 			"title": "Timetable conflicts",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "timetable-conflict"
 			}
@@ -3859,6 +3875,7 @@
 			"type": "index",
 			"title": "Exam accommodations",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "exam-accommodation",
 				"columns": [
@@ -3963,6 +3980,7 @@
 			"type": "index",
 			"title": "Rubrics",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Rubric"
 			}
@@ -4120,6 +4138,7 @@
 			"type": "index",
 			"title": "Assignments",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Assignment"
 			}
@@ -4364,6 +4383,7 @@
 			"type": "index",
 			"title": "Submissions",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Submission",
 				"filter": {
@@ -4527,6 +4547,7 @@
 			"type": "index",
 			"title": "Peer reviews",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "peer-review",
 				"filter": {
@@ -4615,6 +4636,7 @@
 			"type": "index",
 			"title": "Self-assessments",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "self-assessment",
 				"filter": {
@@ -4717,6 +4739,7 @@
 			"type": "index",
 			"title": "Peer feedback summaries",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "peer-feedback-summary",
 				"readOnly": true,
@@ -4785,6 +4808,7 @@
 			"type": "index",
 			"title": "Item banks",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "item-bank"
 			}
@@ -4951,6 +4975,7 @@
 			"type": "index",
 			"title": "Items",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Item"
 			}
@@ -5028,6 +5053,7 @@
 			"type": "index",
 			"title": "Assessments",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "exam"
 			}
@@ -5236,6 +5262,7 @@
 			"type": "index",
 			"title": "Assessment results",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "assessment-result",
 				"columns": [
@@ -5438,6 +5465,7 @@
 			"type": "index",
 			"title": "Item statistics",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "item-statistics",
 				"readOnly": true
@@ -5514,6 +5542,7 @@
 			"type": "index",
 			"title": "Assessment reliability",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "assessment-reliability",
 				"readOnly": true
@@ -5598,6 +5627,7 @@
 			"type": "index",
 			"title": "Proctoring sessions",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "proctoring-session",
 				"readOnly": true,
@@ -5736,6 +5766,7 @@
 			"type": "index",
 			"title": "Grade scales",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "grade-scale"
 			}
@@ -5895,6 +5926,7 @@
 			"type": "index",
 			"title": "LTI tool placements",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "lti-tool-placement"
 			}
@@ -5972,6 +6004,7 @@
 			"type": "index",
 			"title": "Grade entries",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "grade-entry",
 				"columns": [
@@ -6082,6 +6115,7 @@
 			"type": "index",
 			"title": "Grade corrections",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "data-correction-request",
 				"_note": "governance-four-eyes: a grade in a locked report period changes only on a correction a second person approved. A teacher asks here (the grade, the new value, the reason); team leads, administration managers and admins see every request and approve or reject it on the detail page. The read rule gives a teacher their own requests only. Reached from the Grades menu and from the Ask for a correction action on a grade entry."
@@ -6160,6 +6194,7 @@
 			"type": "index",
 			"title": "Final grades",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "final-grade",
 				"columns": [
@@ -6360,6 +6395,7 @@
 			"type": "index",
 			"title": "Course templates",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "course-template"
 			}
@@ -6437,6 +6473,7 @@
 			"type": "index",
 			"title": "Learning plan templates",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "learning-plan-template"
 			}
@@ -6595,6 +6632,7 @@
 			"type": "index",
 			"title": "Learning plans",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "learning-plan",
 				"_note": "care-and-support-index: columns[] added so the care team's own read (learner, kind, coordinator, lifecycle, next review date) does not need a second index page over the same schema (ADR-097 Decision 5, ratchet gate-68 duplicate-index-pages). The CareTeamOverviewMenu nav entry deep-links here with a lifecycle=active query preset (menu[].query, the documented role-lens mechanism) rather than duplicating this page.",
@@ -6835,6 +6873,7 @@
 			"type": "index",
 			"title": "Learning plan evaluations",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "learning-plan-evaluation",
 				"filter": {
@@ -6938,6 +6977,7 @@
 			"type": "index",
 			"title": "Signatures",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Signature",
 				"filter": {
@@ -7061,6 +7101,7 @@
 			"type": "index",
 			"title": "Group plans",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "group-plan"
 			}
@@ -7269,6 +7310,7 @@
 			"type": "index",
 			"title": "Group plan subgroups",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "group-plan-subgroup",
 				"filter": {
@@ -7452,6 +7494,7 @@
 			"type": "index",
 			"title": "Group plan evaluations",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "group-plan-evaluation",
 				"filter": {
@@ -7551,6 +7594,7 @@
 			"type": "index",
 			"title": "Support requests",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "support-request",
 				"columns": [
@@ -7774,6 +7818,7 @@
 			"type": "index",
 			"title": "TLV applications",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "tlv-application"
 			}
@@ -7851,6 +7896,7 @@
 			"type": "index",
 			"title": "Deliberation records",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "deliberation-record"
 			}
@@ -7929,6 +7975,7 @@
 			"type": "index",
 			"title": "Trajectories",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "trajectory",
 				"columns": [
@@ -8065,6 +8112,7 @@
 			"type": "index",
 			"title": "Trajectory status updates",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "trajectory-status-update",
 				"filter": {
@@ -8137,6 +8185,7 @@
 			"type": "index",
 			"title": "Observation instruments",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "observation-instrument",
 				"columns": [
@@ -8225,6 +8274,7 @@
 			"type": "index",
 			"title": "Report periods",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "report-period"
 			}
@@ -8351,6 +8401,7 @@
 			"type": "index",
 			"title": "Report cards",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "report-card",
 				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly, see Cohorts' note.",
@@ -8453,6 +8504,7 @@
 			"type": "index",
 			"title": "Report card templates",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "report-card-template"
 			}
@@ -8538,6 +8590,7 @@
 			"type": "index",
 			"title": "Subject choices",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "subject-choice",
 				"columns": [

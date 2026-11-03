@@ -460,6 +460,7 @@
       "type": "index",
       "title": "xAPI statements",
       "config": {
+        "showTitle": true,
         "register": "learniq",
         "schema": "xapi-statement",
         "readOnly": true
@@ -544,6 +545,7 @@
       "type": "index",
       "title": "Flows",
       "config": {
+        "showTitle": true,
         "entitySource": "flows",
         "app": "learniq"
       },
