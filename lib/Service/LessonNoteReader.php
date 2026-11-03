@@ -91,36 +91,68 @@ class LessonNoteReader {
 		$notes = $this->notesOfCohorts(cohortIds: $this->cohortsOf(sessions: $sessions));
 
 		$out = [];
-		foreach ($sessions as $session) {
-			$sessionId = (string)($session['id'] ?? ($session['uuid'] ?? ''));
-			if ($sessionId === '') {
-				continue;
-			}
-
+		foreach ($this->identified(sessions: $sessions) as [$sessionId, $session]) {
 			$seesCover = $staff === true || $this->teachesOrCovers(session: $session, uid: $uid, taughtCohortIds: $taughtCohortIds) === true;
-
-			foreach ($notes as $note) {
-				if ($this->belongsTo(note: $note, session: $session) === false) {
-					continue;
-				}
-
-				$audience = (string)($note['audience'] ?? 'learners');
-				if ($audience !== 'learners' && $seesCover === false) {
-					continue;
-				}
-
-				$out[$sessionId][] = [
-					'id' => (string)($note['id'] ?? ($note['uuid'] ?? '')),
-					'topic' => $note['topic'] ?? null,
-					'text' => (string)($note['text'] ?? ''),
-					'audience' => $audience,
-					'authorId' => (string)($note['authorId'] ?? ''),
-				];
+			$visible = $this->visibleNotes(session: $session, scope: ['notes' => $notes, 'seesCover' => $seesCover]);
+			if ($visible !== []) {
+				$out[$sessionId] = array_merge(($out[$sessionId] ?? []), $visible);
 			}
-		}//end foreach
+		}
 
 		return $out;
 	}//end forSessions()
+
+	/**
+	 * Each lesson that has an id, with that id, in order.
+	 *
+	 * @param array<int,array<string,mixed>> $sessions Lessons.
+	 *
+	 * @return array<int,array{0:string,1:array<string,mixed>}>
+	 */
+	private function identified(array $sessions): array {
+		$out = [];
+		foreach ($sessions as $session) {
+			$sessionId = (string)($session['id'] ?? ($session['uuid'] ?? ''));
+			if ($sessionId !== '') {
+				$out[] = [$sessionId, $session];
+			}
+		}
+
+		return $out;
+	}//end identified()
+
+	/**
+	 * The notes of one lesson the caller may read: every learners' note, and
+	 * the other notes only when the caller sees cover notes for it.
+	 *
+	 * @param array<string,mixed>                                          $session The lesson.
+	 * @param array{notes:array<int,array<string,mixed>>,seesCover:bool} $scope   The notes read and whether the caller sees cover notes here.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function visibleNotes(array $session, array $scope): array {
+		$out = [];
+		foreach ($scope['notes'] as $note) {
+			if ($this->belongsTo(note: $note, session: $session) === false) {
+				continue;
+			}
+
+			$audience = (string)($note['audience'] ?? 'learners');
+			if ($audience !== 'learners' && $scope['seesCover'] === false) {
+				continue;
+			}
+
+			$out[] = [
+				'id' => (string)($note['id'] ?? ($note['uuid'] ?? '')),
+				'topic' => $note['topic'] ?? null,
+				'text' => (string)($note['text'] ?? ''),
+				'audience' => $audience,
+				'authorId' => (string)($note['authorId'] ?? ''),
+			];
+		}
+
+		return $out;
+	}//end visibleNotes()
 
 	/**
 	 * Mark each projected lesson with whether the caller may add a note to it:
@@ -185,7 +217,19 @@ class LessonNoteReader {
 			return $noteSession === (string)($session['id'] ?? ($session['uuid'] ?? ''));
 		}
 
-		$ref = $note['timetableSessionRef'] ?? null;
+		return $this->sameExternalLesson(ref: ($note['timetableSessionRef'] ?? null), session: $session);
+	}//end belongsTo()
+
+	/**
+	 * Whether a note's timetable reference names this lesson: the same
+	 * external reference, from the same source system when it names one.
+	 *
+	 * @param mixed               $ref     The note's `timetableSessionRef`.
+	 * @param array<string,mixed> $session The lesson.
+	 *
+	 * @return bool
+	 */
+	private function sameExternalLesson(mixed $ref, array $session): bool {
 		if (is_array($ref) === false || (string)($ref['externalRef'] ?? '') === '') {
 			return false;
 		}
@@ -196,7 +240,7 @@ class LessonNoteReader {
 
 		$system = (string)($ref['sourceSystem'] ?? '');
 		return $system === '' || $system === (string)($session['sourceSystem'] ?? '');
-	}//end belongsTo()
+	}//end sameExternalLesson()
 
 	/**
 	 * The distinct cohorts of a set of lessons.
@@ -229,37 +273,62 @@ class LessonNoteReader {
 	private function notesOfCohorts(array $cohortIds): array {
 		$notes = [];
 		foreach ($cohortIds as $cohortId) {
-			try {
-				$rows = $this->objectService->findAll(
-					[
-						'filters' => [
-							'register' => self::REGISTER,
-							'schema' => self::SCHEMA,
-							'cohortId' => $cohortId,
-						],
-					],
-					_rbac: false
-				);
-			} catch (Throwable $exception) {
-				// A timetable without its notes beats no timetable.
-				$this->logger->warning('[LessonNoteReader] Notes of cohort {id} not readable: {msg}', ['id' => $cohortId, 'msg' => $exception->getMessage()]);
-				continue;
-			}
-
-			foreach ($rows as $row) {
-				$note = $row;
-				if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-					$note = (array)$row->jsonSerialize();
-				}
-
-				if (is_array($note) === true && (string)($note['cohortId'] ?? '') === $cohortId) {
-					$notes[] = $note;
-				}
-			}
-		}//end foreach
+			$notes = array_merge($notes, $this->notesOfCohort(cohortId: $cohortId));
+		}
 
 		return $notes;
 	}//end notesOfCohorts()
+
+	/**
+	 * Every note on the lessons of one cohort; none (logged) when they cannot be read.
+	 *
+	 * @param string $cohortId Cohort uuid.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function notesOfCohort(string $cohortId): array {
+		try {
+			$rows = $this->objectService->findAll(
+				[
+					'filters' => [
+						'register' => self::REGISTER,
+						'schema' => self::SCHEMA,
+						'cohortId' => $cohortId,
+					],
+				],
+				_rbac: false
+			);
+		} catch (Throwable $exception) {
+			// A timetable without its notes beats no timetable.
+			$this->logger->warning('[LessonNoteReader] Notes of cohort {id} not readable: {msg}', ['id' => $cohortId, 'msg' => $exception->getMessage()]);
+			return [];
+		}
+
+		$notes = [];
+		foreach ($rows as $row) {
+			$note = $this->asArray(row: $row);
+			if (is_array($note) === true && (string)($note['cohortId'] ?? '') === $cohortId) {
+				$notes[] = $note;
+			}
+		}
+
+		return $notes;
+	}//end notesOfCohort()
+
+	/**
+	 * A row as an array when it serialises to one; otherwise the row itself.
+	 *
+	 * @param mixed $row The row.
+	 *
+	 * @return mixed
+	 */
+	private function asArray(mixed $row): mixed {
+		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
+			return (array)$row->jsonSerialize();
+		}
+
+		return $row;
+	}//end asArray()
 
 	/**
 	 * Whether the caller reads every note (admin or a staff group).
