@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Tests that the employer invite reads the company with the caller's rights and tenant.
+ * Tests that an employer invite only names a company of the portal's own organisation.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Controller
@@ -26,6 +26,7 @@ require_once __DIR__ . '/../Portal/EmployerSitePagesTest.php';
 use OCA\Learniq\Controller\PortalEmployerInviteController;
 use OCA\Learniq\Portal\CallerOrganisations;
 use OCA\Learniq\Portal\EmployerPortalInvitation;
+use OCA\Learniq\Portal\PortalTenant;
 use OCA\Learniq\Tests\Unit\Portal\FakeEmployerClaimEvent;
 use OCA\Learniq\Tests\Unit\Portal\FakeEmployerProvisionEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -40,8 +41,13 @@ use Psr\Log\NullLogger;
 /**
  * Another tenant's company answers like an unknown one; the caller's own company is invited.
  *
+ * The store answers the way OpenRegister does for `client-organisation`: its
+ * read rule is a plain group rule, which lifts the organisation filter, so a
+ * tenant-scoped read still returns another tenant's company.
+ *
  * @covers \OCA\Learniq\Controller\PortalEmployerInviteController
  * @covers \OCA\Learniq\Portal\EmployerPortalInvitation
+ * @covers \OCA\Learniq\Portal\PortalTenant
  */
 class PortalEmployerInviteTenantTest extends TestCase {
 
@@ -62,36 +68,74 @@ class PortalEmployerInviteTenantTest extends TestCase {
 
 		$other   = $controller->invite('co-tenant-b', 'org', 'probe@elsewhere.example');
 		$unknown = $controller->invite('co-none', 'org', 'probe@elsewhere.example');
-		self::assertSame($unknown->getStatus(), $other->getStatus());
-		self::assertSame($unknown->getData(), $other->getData());
-		self::assertSame(['status' => 'refused', 'reason' => 'company-unknown'], $other->getData());
+		self::assertSame(expected: $unknown->getStatus(), actual: $other->getStatus());
+		self::assertSame(expected: $unknown->getData(), actual: $other->getData());
+		self::assertSame(expected: ['status' => 'refused', 'reason' => 'company-unknown'], actual: $other->getData());
 
 		$own = $controller->invite('co-tenant-a', 'org');
-		self::assertSame(['status' => 'invited', 'subjectRef' => 'linda-account'], $own->getData());
-		self::assertSame([[true, true], [true, true], [true, true]], $this->reads, 'every company read runs with the caller\'s rights and tenant');
+		self::assertSame(expected: ['status' => 'invited', 'subjectRef' => 'linda-account'], actual: $own->getData());
+		self::assertSame(
+			expected: [[true, true], [true, true], [true, true]],
+			actual: $this->reads,
+			message: 'every company read runs with the caller\'s rights'
+		);
 	}//end testAnotherTenantsCompanyAnswersLikeAnUnknownOne()
 
 	/**
-	 * The occ path has no caller and reads as the system, so it still finds every tenant's company.
+	 * A company without an organisation belongs to no portal.
 	 *
 	 * @return void
 	 */
-	public function testTheCommandPathReadsAsTheSystem(): void {
-		self::assertSame(['status' => 'invited', 'subjectRef' => 'linda-account'], $this->invitation()->invite(organisationRef: 'co-tenant-b', organisation: 'org'));
-		self::assertSame([[false, false]], $this->reads);
-	}//end testTheCommandPathReadsAsTheSystem()
+	public function testACompanyWithoutAnOrganisationIsRefused(): void {
+		self::assertSame(
+			expected: ['status' => 'refused', 'reason' => 'company-unknown'],
+			actual: $this->controller()->invite('co-no-tenant', 'org')->getData()
+		);
+	}//end testACompanyWithoutAnOrganisationIsRefused()
 
 	/**
-	 * The invitation over a store that holds a company in tenants A and B; a tenant-scoped read sees tenant A only.
+	 * The occ path reads as the system and still refuses another organisation's company.
+	 *
+	 * @return void
+	 */
+	public function testTheCommandPathReadsAsTheSystemWithinThePortalsOrganisation(): void {
+		$invitation = $this->invitation();
+		$tenant     = new PortalTenant(slug: 'org', uuid: 'uuid-a');
+		self::assertSame(
+			expected: ['status' => 'refused', 'reason' => 'company-unknown'],
+			actual: $invitation->invite(organisationRef: 'co-tenant-b', tenant: $tenant)
+		);
+		self::assertSame(
+			expected: ['status' => 'invited', 'subjectRef' => 'linda-account'],
+			actual: $invitation->invite(organisationRef: 'co-tenant-a', tenant: $tenant)
+		);
+		self::assertSame(expected: [[false, false], [false, false]], actual: $this->reads);
+	}//end testTheCommandPathReadsAsTheSystemWithinThePortalsOrganisation()
+
+	/**
+	 * The invitation over a store that holds a company in tenants A and B and one in none; every read sees them all.
 	 *
 	 * @return EmployerPortalInvitation
 	 */
 	private function invitation(): EmployerPortalInvitation {
 		$companies = [
-			['id' => 'co-tenant-a', 'name' => 'Eigen BV', 'contactEmail' => 'linda@eigen.example', 'lifecycle' => 'active', 'tenant' => 'A'],
-			['id' => 'co-tenant-b', 'name' => 'Ander BV', 'contactEmail' => 'piet@ander.example', 'lifecycle' => 'active', 'tenant' => 'B'],
+			[
+				'id' => 'co-tenant-a',
+				'name' => 'Eigen BV',
+				'contactEmail' => 'linda@eigen.example',
+				'lifecycle' => 'active',
+				'@self' => ['organisation' => 'uuid-a']
+			],
+			[
+				'id' => 'co-tenant-b',
+				'name' => 'Ander BV',
+				'contactEmail' => 'piet@ander.example',
+				'lifecycle' => 'active',
+				'@self' => ['organisation' => 'uuid-b']
+			],
+			['id' => 'co-no-tenant', 'name' => 'Los BV', 'contactEmail' => 'kees@los.example', 'lifecycle' => 'active', '@self' => ['organisation' => '']],
 		];
-		$objects = $this->createMock(ObjectService::class);
+		$objects = $this->createMock(originalClassName: ObjectService::class);
 		$objects->method('findAll')->willReturnCallback(
 			function (array $config = [], bool $_rbac = true, bool $_multitenancy = true) use ($companies): array {
 				$this->reads[] = [$_rbac, $_multitenancy];
@@ -99,14 +143,14 @@ class PortalEmployerInviteTenantTest extends TestCase {
 				return array_values(
 					array_filter(
 						$companies,
-						static fn (array $row): bool => in_array($row['id'], $ids, true) && ($_multitenancy === false || $row['tenant'] === 'A')
+						static fn (array $row): bool => in_array($row['id'], $ids, true)
 					)
 				);
 			}
 		);
 		return new EmployerPortalInvitation(
 			objectService: $objects,
-			dispatcher: $this->createMock(IEventDispatcher::class),
+			dispatcher: $this->createMock(originalClassName: IEventDispatcher::class),
 			logger: new NullLogger(),
 			provisionEventClass: FakeEmployerProvisionEvent::class,
 			claimEventClass: FakeEmployerClaimEvent::class
@@ -121,17 +165,18 @@ class PortalEmployerInviteTenantTest extends TestCase {
 	private function controller(): PortalEmployerInviteController {
 		$invitations = $this->invitation();
 
-		$user = $this->createMock(IUser::class);
+		$user = $this->createMock(originalClassName: IUser::class);
 		$user->method('getUID')->willReturn('hr-a');
-		$session = $this->createMock(IUserSession::class);
+		$session = $this->createMock(originalClassName: IUserSession::class);
 		$session->method('getUser')->willReturn($user);
-		$groups = $this->createMock(IGroupManager::class);
+		$groups = $this->createMock(originalClassName: IGroupManager::class);
 		$groups->method('isInGroup')->willReturnCallback(static fn (string $uid, string $group): bool => $uid === 'hr-a' && $group === 'hr');
-		$organisations = $this->createMock(CallerOrganisations::class);
-		$organisations->method('includes')->willReturnCallback(static fn (string $slug): bool => $slug === 'org');
+		$organisations = $this->createMock(originalClassName: CallerOrganisations::class);
+		$own = ['org' => new PortalTenant(slug: 'org', uuid: 'uuid-a')];
+		$organisations->method('tenant')->willReturnCallback(static fn (string $slug): ?PortalTenant => ($own[$slug] ?? null));
 
 		$given = [
-			IRequest::class => $this->createMock(IRequest::class),
+			IRequest::class => $this->createMock(originalClassName: IRequest::class),
 			EmployerPortalInvitation::class => $invitations,
 			IUserSession::class => $session,
 			IGroupManager::class => $groups,
@@ -140,7 +185,7 @@ class PortalEmployerInviteTenantTest extends TestCase {
 		$arguments = [];
 		foreach ((new \ReflectionClass(PortalEmployerInviteController::class))->getConstructor()->getParameters() as $parameter) {
 			$type = $parameter->getType();
-			self::assertInstanceOf(\ReflectionNamedType::class, $type);
+			self::assertInstanceOf(expected: \ReflectionNamedType::class, actual: $type);
 			$arguments[] = $given[$type->getName()] ?? $this->bundle(class: $type->getName(), given: $given);
 		}
 
@@ -159,7 +204,7 @@ class PortalEmployerInviteTenantTest extends TestCase {
 		$arguments = [];
 		foreach ((new \ReflectionClass($class))->getConstructor()->getParameters() as $parameter) {
 			$type = $parameter->getType();
-			self::assertInstanceOf(\ReflectionNamedType::class, $type);
+			self::assertInstanceOf(expected: \ReflectionNamedType::class, actual: $type);
 			$arguments[] = $given[$type->getName()];
 		}
 

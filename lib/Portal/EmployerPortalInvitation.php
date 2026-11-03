@@ -92,53 +92,56 @@ class EmployerPortalInvitation {
 	}//end __construct()
 
 	/**
-	 * Invite one company's contact person.
+	 * Invite one company's contact person, reading the company as the system.
 	 *
-	 * @param string $organisationRef The client-organisation uuid.
-	 * @param string $organisation    The portal organisation slug.
-	 * @param string $email           An address to use instead of the one on the company.
+	 * For the occ commands, which run without a caller. The company must still
+	 * lie in the portal's organisation.
+	 *
+	 * @param string       $organisationRef The client-organisation uuid.
+	 * @param PortalTenant $tenant          The portal organisation.
+	 * @param string       $email           An address to use instead of the one on the company.
 	 *
 	 * @return array{status: string, reason?: string, subjectRef?: string}
 	 *
 	 * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
 	 */
-	public function invite(string $organisationRef, string $organisation, string $email=''): array {
-		return $this->inviteReading(request: [$organisationRef, $organisation, $email], scope: self::AS_SYSTEM);
+	public function invite(string $organisationRef, PortalTenant $tenant, string $email=''): array {
+		return $this->inviteReading(request: [$organisationRef, $tenant, $email], scope: self::AS_SYSTEM);
 	}//end invite()
 
 	/**
 	 * Invite one company's contact person for the signed-in caller.
 	 *
-	 * The company is read with the caller's rights and tenant, so a company
-	 * the caller cannot see answers exactly like an unknown one. invite()
-	 * reads as the system, for the occ commands that run without a caller.
+	 * The company is read with the caller's rights, and a company the caller
+	 * cannot see answers exactly like an unknown one. invite() reads as the
+	 * system, for the occ commands that run without a caller.
 	 *
-	 * @param string $organisationRef The client-organisation uuid.
-	 * @param string $organisation    The portal organisation slug.
-	 * @param string $email           An address to use instead of the one on the company.
+	 * @param string       $organisationRef The client-organisation uuid.
+	 * @param PortalTenant $tenant          The portal organisation, one of the caller's own.
+	 * @param string       $email           An address to use instead of the one on the company.
 	 *
 	 * @return array{status: string, reason?: string, subjectRef?: string}
 	 *
 	 * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
 	 */
-	public function inviteAsCaller(string $organisationRef, string $organisation, string $email=''): array {
-		return $this->inviteReading(request: [$organisationRef, $organisation, $email], scope: self::AS_CALLER);
+	public function inviteAsCaller(string $organisationRef, PortalTenant $tenant, string $email=''): array {
+		return $this->inviteReading(request: [$organisationRef, $tenant, $email], scope: self::AS_CALLER);
 	}//end inviteAsCaller()
 
 	/**
 	 * Invite one company's contact person, reading the company in the given scope.
 	 *
-	 * @param array{0: string, 1: string, 2: string}        $request The client-organisation uuid, the portal organisation slug and the address override.
-	 * @param array{_rbac: bool, _multitenancy: bool} $scope   How the company is read.
+	 * A company outside the portal's organisation answers exactly like an
+	 * unknown one. OpenRegister's read rules do not decide this: a plain group
+	 * rule on `client-organisation` lifts its organisation filter.
+	 *
+	 * @param array{0: string, 1: PortalTenant, 2: string} $request The client-organisation uuid, the portal organisation and the address override.
+	 * @param array{_rbac: bool, _multitenancy: bool}      $scope   How the company is read.
 	 *
 	 * @return array{status: string, reason?: string, subjectRef?: string}
 	 */
 	private function inviteReading(array $request, array $scope): array {
-		[$organisationRef, $organisation, $email] = $request;
-		$organisation = trim($organisation);
-		if ($organisation === '') {
-			return self::refused(reason: 'organisation-missing');
-		}
+		[$organisationRef, $tenant, $email] = $request;
 
 		try {
 			$company = $this->company(organisationRef: trim($organisationRef), scope: $scope);
@@ -150,7 +153,7 @@ class EmployerPortalInvitation {
 			return self::refused(reason: 'portal-unavailable');
 		}
 
-		if ($company === null) {
+		if ($company === null || $tenant->owns(row: $company) === false) {
 			return self::refused(reason: 'company-unknown');
 		}
 
@@ -163,7 +166,7 @@ class EmployerPortalInvitation {
 			return self::refused(reason: 'email-invalid');
 		}
 
-		return $this->provisionAndClaim(company: $company, email: $address, organisation: $organisation);
+		return $this->provisionAndClaim(company: $company, email: $address, organisation: $tenant->slug);
 	}//end inviteReading()
 
 	/**
