@@ -11,7 +11,7 @@
  @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
 -->
 <template>
-	<div class="standby-planning">
+	<div class="standby-planning lq-board-page">
 		<header class="standby-planning__header">
 			<div>
 				<CnPageHeader :title="t('learniq', 'Standby hours')" />
@@ -37,56 +37,58 @@
 			v-else-if="rows.length === 0"
 			:name="t('learniq', 'No standby hours yet')"
 			:description="t('learniq', 'Add a teacher to a weekday and a time.')" />
-		<table v-else class="standby-planning__grid">
-			<caption class="hidden-visually">
-				{{
-					t('learniq', 'Teachers on standby per weekday and time')
-				}}
-			</caption>
-			<thead>
-				<tr>
-					<th scope="col">
-						{{ t('learniq', 'Time') }}
-					</th>
-					<th v-for="day in weekdays" :key="day.value" scope="col">
-						{{ day.label }}
-					</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr v-for="row in rows" :key="row.startsAt + row.endsAt">
-					<th scope="row">{{ row.startsAt }}–{{ row.endsAt }}</th>
-					<td v-for="day in weekdays" :key="day.value">
-						<ul class="standby-planning__cell">
-							<li v-for="slot in row.cells[day.value]" :key="slot.id">
-								{{ nameOf(slot.teacherId) }}
-								<NcButton
-									variant="tertiary"
-									:aria-label="
-										t('learniq', 'Remove {name} from standby', {
-											name: nameOf(slot.teacherId),
-										})
-									"
-									@click="remove(slot)">
-									×
-								</NcButton>
-							</li>
-						</ul>
-						<NcButton
-							variant="tertiary"
-							:aria-label="
-								t('learniq', 'Add standby on {day} {time}', {
-									day: day.label,
-									time: row.startsAt,
-								})
-							"
-							@click="openDialog(day.value, row.startsAt, row.endsAt)">
-							+
-						</NcButton>
-					</td>
-				</tr>
-			</tbody>
-		</table>
+		<CnDetailCard v-else flush>
+			<table class="standby-planning__grid">
+				<caption class="hidden-visually">
+					{{
+						t('learniq', 'Teachers on standby per weekday and time')
+					}}
+				</caption>
+				<thead>
+					<tr>
+						<th scope="col">
+							{{ t('learniq', 'Time') }}
+						</th>
+						<th v-for="day in weekdays" :key="day.value" scope="col">
+							{{ day.label }}
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="row in rows" :key="row.startsAt + row.endsAt">
+						<th scope="row">{{ row.startsAt }}–{{ row.endsAt }}</th>
+						<td v-for="day in weekdays" :key="day.value">
+							<ul class="standby-planning__cell">
+								<li v-for="slot in row.cells[day.value]" :key="slot.id">
+									{{ nameOf(slot.teacherId) }}
+									<NcButton
+										variant="tertiary"
+										:aria-label="
+											t('learniq', 'Remove {name} from standby', {
+												name: nameOf(slot.teacherId),
+											})
+										"
+										@click="remove(slot)">
+										×
+									</NcButton>
+								</li>
+							</ul>
+							<NcButton
+								variant="tertiary"
+								:aria-label="
+									t('learniq', 'Add standby on {day} {time}', {
+										day: day.label,
+										time: row.startsAt,
+									})
+								"
+								@click="openDialog(day.value, row.startsAt, row.endsAt)">
+								+
+							</NcButton>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</CnDetailCard>
 
 		<StandbySlotDialog
 			v-if="dialog"
@@ -100,7 +102,7 @@
 </template>
 
 <script>
-import { CnPageHeader } from '@conduction/nextcloud-vue'
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
@@ -112,6 +114,7 @@ export default {
 	name: 'StandbyPlanning',
 
 	components: {
+		CnDetailCard,
 		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
@@ -259,13 +262,6 @@ export default {
 </script>
 
 <style scoped>
-.standby-planning {
-	padding: 16px;
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-}
-
 .standby-planning__header {
 	display: flex;
 	flex-wrap: wrap;
@@ -280,6 +276,7 @@ export default {
 
 .standby-planning__grid {
 	border-collapse: collapse;
+	width: 100%;
 }
 
 .standby-planning__grid th,
