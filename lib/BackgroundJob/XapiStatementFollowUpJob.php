@@ -31,12 +31,7 @@ namespace OCA\Learniq\BackgroundJob;
 
 use OCA\Learniq\Service\LessonProgress;
 use OCA\Learniq\Service\XapiEnrolmentCompletion;
-use OCA\OpenRegister\BackgroundJob\ActorForwardedJob;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
-use OCA\OpenRegister\Service\OrganisationService;
-use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\IUserManager;
-use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -45,7 +40,7 @@ use Throwable;
  *
  * @spec openspec/specs/progress-tracking/spec.md#requirement-the-follow-up-of-an-xapi-statement-runs-outside-the-save-that-records-it
  */
-class XapiStatementFollowUpJob extends ActorForwardedJob {
+class XapiStatementFollowUpJob extends ForwardedJob {
 
 	/**
 	 * Record the lesson completion (LessonProgressHandler).
@@ -60,30 +55,18 @@ class XapiStatementFollowUpJob extends ActorForwardedJob {
 	/**
 	 * Constructor.
 	 *
-	 * @param ITimeFactory            $time         Time factory.
-	 * @param IUserSession            $userSession  User session, for the actor.
-	 * @param IUserManager            $userManager  User manager, for the actor.
-	 * @param OrganisationService     $organisation The actor's organisation.
+	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface         $logger       Logger.
 	 * @param LessonProgress          $progress     Records the lesson completion.
 	 * @param XapiEnrolmentCompletion $completion   Completes the enrolment.
 	 */
 	public function __construct(
-		ITimeFactory $time,
-		IUserSession $userSession,
-		IUserManager $userManager,
-		OrganisationService $organisation,
+		ActorForwarding $forwarding,
 		LoggerInterface $logger,
 		private readonly LessonProgress $progress,
 		private readonly XapiEnrolmentCompletion $completion,
 	) {
-		parent::__construct(
-			time: $time,
-			userSession: $userSession,
-			userManager: $userManager,
-			organisation: $organisation,
-			logger: $logger
-		);
+		parent::__construct(forwarding: $forwarding, logger: $logger);
 	}//end __construct()
 
 	/**

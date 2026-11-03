@@ -22,13 +22,9 @@ namespace OCA\Learniq\BackgroundJob;
 
 use DateTimeImmutable;
 use OCA\Learniq\Service\PointEngagementEvaluator;
-use OCA\OpenRegister\BackgroundJob\ActorForwardedJob;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\OpenRegister\Service\OrganisationService;
 use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\IUserManager;
-use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -48,7 +44,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-suppress UnusedClass Enqueued by ListenerDeferralService at request
  *  shutdown, never constructed by name.
  */
-class LearnerEngagementRollupJob extends ActorForwardedJob {
+class LearnerEngagementRollupJob extends ForwardedJob {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const LEARNER_ENGAGEMENT_SCHEMA = 'learner-engagement';
@@ -57,32 +53,20 @@ class LearnerEngagementRollupJob extends ActorForwardedJob {
 	private const STREAK_MILESTONE_KIND = 'streak-milestone';
 
 	/**
-	 * @param ITimeFactory            $time          Clock, for the base job.
-	 * @param IUserSession            $userSession   Actor forwarding, for the base job.
-	 * @param IUserManager            $userManager   Actor forwarding, for the base job.
-	 * @param OrganisationService     $organisation  Tenant context, for the base job.
+	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface         $logger        Logger; the base declares it protected.
 	 * @param ObjectService           $objectService OR object access.
 	 * @param PointEngagementEvaluator $evaluator    Points/level/streak calculation engine.
 	 * @param ITimeFactory            $timeFactory   Clock for the written timestamps.
 	 */
 	public function __construct(
-		ITimeFactory $time,
-		IUserSession $userSession,
-		IUserManager $userManager,
-		OrganisationService $organisation,
+		ActorForwarding $forwarding,
 		LoggerInterface $logger,
 		private readonly ObjectService $objectService,
 		private readonly PointEngagementEvaluator $evaluator,
 		private readonly ITimeFactory $timeFactory,
 	) {
-		parent::__construct(
-			time: $time,
-			userSession: $userSession,
-			userManager: $userManager,
-			organisation: $organisation,
-			logger: $logger
-		);
+		parent::__construct(forwarding: $forwarding, logger: $logger);
 	}//end __construct()
 
 	/**
