@@ -110,6 +110,7 @@
 				"name": "Integriq"
 			},
 			"config": {
+				"showTitle": true,
 				"register": "integriq",
 				"schema": "job",
 				"filter": {
@@ -173,6 +174,7 @@
 				"name": "Integriq"
 			},
 			"config": {
+				"showTitle": true,
 				"register": "integriq",
 				"schema": "sync_item_dead_letter",
 				"filter": {
@@ -220,6 +222,7 @@
 			"type": "index",
 			"title": "Parent reviews",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "dossier-review",
 				"showAdd": false,
@@ -315,6 +318,7 @@
 			"type": "index",
 			"title": "Teldatum checks",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "teldatum-check"
 			}
