@@ -210,10 +210,13 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 
 			if ($statistics['insufficientData'] === false) {
 				$this->evaluateThresholds(
-					itemId: $itemId,
-					itemStatisticsId: $savedId,
-					tenantId: $tenantId,
-					statistics: $statistics,
+					flag: [
+						'itemId' => $itemId,
+						'itemStatisticsId' => $savedId,
+						'tenantId' => $tenantId,
+						'pValue' => $statistics['pValue'],
+						'itemTotalCorrelation' => $statistics['itemTotalCorrelation'],
+					],
 					config: $config
 				);
 			}
@@ -300,40 +303,23 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	 * thresholds and open a deduplicated ItemRevisionFlag per crossed
 	 * threshold. NEVER mutates the flagged Item.
 	 *
-	 * @param string $itemId UUID of the Item.
-	 * @param string|null $itemStatisticsId UUID of the triggering ItemStatistics row.
-	 * @param string $tenantId Tenant ID.
-	 * @param array<string,mixed> $statistics ItemAnalysisService::computeItemStatistics() result.
+	 * @param array{itemId: string, itemStatisticsId: string|null, tenantId: string, pValue: float|null, itemTotalCorrelation: float|null} $flag The
+	 *     Item, the triggering ItemStatistics row, the tenant and the computed pValue and itemTotalCorrelation.
 	 * @param array<string,int|float> $config ItemAnalysisService::resolveConfig() result.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/specs/assessment/spec.md#requirement-a-quality-threshold-breach-opens-an-itemrevisionflag-routed-to-the-exam-board
 	 */
-	private function evaluateThresholds(
-		string $itemId,
-		?string $itemStatisticsId,
-		string $tenantId,
-		array $statistics,
-		array $config,
-	): void {
-		$pValue = $statistics['pValue'];
-		$itemTotalCorrelation = $statistics['itemTotalCorrelation'];
+	private function evaluateThresholds(array $flag, array $config): void {
 		$reasons = $this->determineFlagReasons(
-			pValue: $pValue,
-			itemTotalCorrelation: $itemTotalCorrelation,
+			pValue: $flag['pValue'],
+			itemTotalCorrelation: $flag['itemTotalCorrelation'],
 			config: $config
 		);
 
 		foreach ($reasons as $reason) {
-			$this->createFlagIfNotOpen(
-				itemId: $itemId,
-				itemStatisticsId: $itemStatisticsId,
-				tenantId: $tenantId,
-				reason: $reason,
-				pValue: $pValue,
-				itemTotalCorrelation: $itemTotalCorrelation
-			);
+			$this->createFlagIfNotOpen(flag: $flag, reason: $reason);
 		}
 
 	}//end evaluateThresholds()
@@ -370,24 +356,14 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	 * Create an ItemRevisionFlag for one (itemId, reason), unless a
 	 * still-open one already exists.
 	 *
-	 * @param string $itemId UUID of the Item.
-	 * @param string|null $itemStatisticsId UUID of the triggering ItemStatistics row.
-	 * @param string $tenantId Tenant ID.
+	 * @param array{itemId: string, itemStatisticsId: string|null, tenantId: string, pValue: float|null, itemTotalCorrelation: float|null} $flag The
+	 *     Item, the triggering ItemStatistics row, the tenant and the snapshot of pValue and itemTotalCorrelation.
 	 * @param string $reason Threshold reason.
-	 * @param float|null $pValue Snapshot of ItemStatistics.pValue.
-	 * @param float|null $itemTotalCorrelation Snapshot of ItemStatistics.itemTotalCorrelation.
 	 *
 	 * @return void
 	 */
-	private function createFlagIfNotOpen(
-		string $itemId,
-		?string $itemStatisticsId,
-		string $tenantId,
-		string $reason,
-		?float $pValue,
-		?float $itemTotalCorrelation,
-	): void {
-		if ($this->hasOpenFlag(itemId: $itemId, reason: $reason) === true) {
+	private function createFlagIfNotOpen(array $flag, string $reason): void {
+		if ($this->hasOpenFlag(itemId: $flag['itemId'], reason: $reason) === true) {
 			return;
 		}
 
@@ -396,14 +372,14 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 			register: self::LEARNIQ_REGISTER,
 			schema: self::ITEM_REVISION_FLAG_SCHEMA,
 			object: [
-				'itemId' => $itemId,
-				'itemStatisticsId' => $itemStatisticsId,
+				'itemId' => $flag['itemId'],
+				'itemStatisticsId' => $flag['itemStatisticsId'],
 				'reason' => $reason,
-				'pValueAtFlag' => $pValue,
-				'itemTotalCorrelationAtFlag' => $itemTotalCorrelation,
+				'pValueAtFlag' => $flag['pValue'],
+				'itemTotalCorrelationAtFlag' => $flag['itemTotalCorrelation'],
 				'flaggedAt' => DateTimeImmutable::createFromMutable($this->timeFactory->getDateTime())->format(\DATE_ATOM),
 				'lifecycle' => 'open',
-				'tenant_id' => $tenantId,
+				'tenant_id' => $flag['tenantId'],
 			],
 			_rbac: false
 		);

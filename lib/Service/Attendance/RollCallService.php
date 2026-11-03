@@ -307,11 +307,8 @@ class RollCallService {
 		foreach ($learnerIds as $learnerId) {
 			$profile = ($profiles[$learnerId] ?? null);
 			$rows[] = $this->marks->pupilRow(
-				learnerId: $learnerId,
-				name: $this->nameOf(learnerId: $learnerId, profile: $profile),
-				profile: $profile,
-				record: ($records[$learnerId] ?? null),
-				report: ($reports[$learnerId] ?? null)
+				pupil: ['learnerId' => $learnerId, 'name' => $this->nameOf(learnerId: $learnerId, profile: $profile), 'profile' => $profile],
+				day: ['record' => ($records[$learnerId] ?? null), 'report' => ($reports[$learnerId] ?? null)]
 			);
 		}
 

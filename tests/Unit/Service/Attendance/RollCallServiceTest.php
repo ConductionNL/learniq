@@ -248,6 +248,7 @@ class RollCallServiceTest extends TestCase {
 		self::assertSame(['Daan Beekdal', 'Noor Weidehof', 'Vera Hulstkamp'], array_column($register['pupils'], 'name'));
 		self::assertSame(['present', 'present', 'present'], array_column($register['pupils'], 'status'));
 		self::assertSame([false, false, false], array_column($register['pupils'], 'saved'));
+		self::assertSame(['b0000000-0000-4000-8000-000000000002', 'b0000000-0000-4000-8000-000000000003', 'b0000000-0000-4000-8000-000000000001'], array_column($register['pupils'], 'learnerRef'));
 	}//end testATeacherOpensTodaysRegisterOfTheirGroup()
 
 	/**

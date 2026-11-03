@@ -1,0 +1,902 @@
+{
+    "source course-drama,course-art": {
+        "data": {
+            "courses": {
+                "course-drama": [
+                    {
+                        "weekday": 1,
+                        "start": "07:59",
+                        "end": "09:00",
+                        "label": "Drama last"
+                    },
+                    {
+                        "weekday": 1,
+                        "start": "08:00",
+                        "end": "09:00",
+                        "label": "Drama now"
+                    },
+                    {
+                        "weekday": 2,
+                        "start": "10:00",
+                        "end": "11:00",
+                        "label": "Drama"
+                    }
+                ],
+                "course-art": [
+                    {
+                        "weekday": 4,
+                        "start": "10:00",
+                        "end": "11:00",
+                        "label": "Art"
+                    }
+                ]
+            },
+            "core": [
+                {
+                    "weekday": 2,
+                    "start": "10:00",
+                    "end": "10:50",
+                    "label": "Robotics"
+                },
+                {
+                    "weekday": 2,
+                    "start": "10:00",
+                    "end": "11:00",
+                    "label": "Secret"
+                },
+                {
+                    "weekday": 2,
+                    "start": "10:30",
+                    "end": "11:30",
+                    "label": "Maths"
+                },
+                {
+                    "weekday": 5,
+                    "start": "14:00",
+                    "end": "15:00",
+                    "label": "Gym"
+                },
+                {
+                    "weekday": 5,
+                    "start": "16:00",
+                    "end": "16:30",
+                    "label": "Mentor"
+                }
+            ]
+        },
+        "queries": [
+            {
+                "sessionsForCourses": [
+                    [
+                        "course-drama",
+                        "course-art"
+                    ],
+                    "2026-01-05T07:00:00+00:00",
+                    "2026-02-02T07:00:00+00:00"
+                ]
+            },
+            {
+                "sessionsForCohorts": [
+                    [
+                        "c-1"
+                    ],
+                    "2026-01-05T07:00:00+00:00",
+                    "2026-02-02T07:00:00+00:00"
+                ]
+            },
+            {
+                "sessionsForTeacher": [
+                    "alice",
+                    "2026-01-05T07:00:00+00:00",
+                    "2026-02-02T07:00:00+00:00"
+                ]
+            }
+        ]
+    },
+    "source ": {
+        "data": {
+            "courses": [],
+            "core": [
+                {
+                    "weekday": 1,
+                    "start": "07:59",
+                    "end": "09:00",
+                    "label": "Drama before"
+                },
+                {
+                    "weekday": 1,
+                    "start": "07:59",
+                    "end": "09:00",
+                    "label": "Drama last"
+                },
+                {
+                    "weekday": 1,
+                    "start": "08:00",
+                    "end": "09:00",
+                    "label": "Drama now"
+                },
+                {
+                    "weekday": 2,
+                    "start": "10:00",
+                    "end": "10:50",
+                    "label": "Robotics"
+                },
+                {
+                    "weekday": 2,
+                    "start": "10:00",
+                    "end": "11:00",
+                    "label": "Drama"
+                },
+                {
+                    "weekday": 2,
+                    "start": "10:00",
+                    "end": "11:00",
+                    "label": "Secret"
+                },
+                {
+                    "weekday": 2,
+                    "start": "10:30",
+                    "end": "11:30",
+                    "label": "Maths"
+                },
+                {
+                    "weekday": 4,
+                    "start": "10:00",
+                    "end": "11:00",
+                    "label": "Art"
+                },
+                {
+                    "weekday": 5,
+                    "start": "14:00",
+                    "end": "15:00",
+                    "label": "Gym"
+                },
+                {
+                    "weekday": 5,
+                    "start": "16:00",
+                    "end": "16:30",
+                    "label": "Mentor"
+                }
+            ]
+        },
+        "queries": [
+            {
+                "sessionsForCohorts": [
+                    [
+                        "c-1"
+                    ],
+                    "2026-01-05T07:00:00+00:00",
+                    "2026-02-02T07:00:00+00:00"
+                ]
+            },
+            {
+                "sessionsForTeacher": [
+                    "alice",
+                    "2026-01-05T07:00:00+00:00",
+                    "2026-02-02T07:00:00+00:00"
+                ]
+            }
+        ]
+    },
+    "source course-secret": {
+        "data": {
+            "courses": [],
+            "core": [
+                {
+                    "weekday": 1,
+                    "start": "07:59",
+                    "end": "09:00",
+                    "label": "Drama before"
+                },
+                {
+                    "weekday": 1,
+                    "start": "07:59",
+                    "end": "09:00",
+                    "label": "Drama last"
+                },
+                {
+                    "weekday": 1,
+                    "start": "08:00",
+                    "end": "09:00",
+                    "label": "Drama now"
+                },
+                {
+                    "weekday": 2,
+                    "start": "10:00",
+                    "end": "10:50",
+                    "label": "Robotics"
+                },
+                {
+                    "weekday": 2,
+                    "start": "10:00",
+                    "end": "11:00",
+                    "label": "Drama"
+                },
+                {
+                    "weekday": 2,
+                    "start": "10:00",
+                    "end": "11:00",
+                    "label": "Secret"
+                },
+                {
+                    "weekday": 2,
+                    "start": "10:30",
+                    "end": "11:30",
+                    "label": "Maths"
+                },
+                {
+                    "weekday": 4,
+                    "start": "10:00",
+                    "end": "11:00",
+                    "label": "Art"
+                },
+                {
+                    "weekday": 5,
+                    "start": "14:00",
+                    "end": "15:00",
+                    "label": "Gym"
+                },
+                {
+                    "weekday": 5,
+                    "start": "16:00",
+                    "end": "16:30",
+                    "label": "Mentor"
+                }
+            ]
+        },
+        "queries": [
+            {
+                "sessionsForCohorts": [
+                    [
+                        "c-1"
+                    ],
+                    "2026-01-05T07:00:00+00:00",
+                    "2026-02-02T07:00:00+00:00"
+                ]
+            },
+            {
+                "sessionsForTeacher": [
+                    "alice",
+                    "2026-01-05T07:00:00+00:00",
+                    "2026-02-02T07:00:00+00:00"
+                ]
+            }
+        ]
+    },
+    "course-drama,course-robotics,course-art core=0": {
+        "data": {
+            "courses": {
+                "course-drama": [
+                    {
+                        "weekday": 1,
+                        "start": "07:59",
+                        "end": "09:00",
+                        "label": "Drama last"
+                    },
+                    {
+                        "weekday": 1,
+                        "start": "08:00",
+                        "end": "09:00",
+                        "label": "Drama now"
+                    },
+                    {
+                        "weekday": 2,
+                        "start": "10:00",
+                        "end": "11:00",
+                        "label": "Drama"
+                    }
+                ],
+                "course-robotics": [
+                    {
+                        "weekday": 2,
+                        "start": "10:00",
+                        "end": "10:50",
+                        "label": "Robotics"
+                    }
+                ],
+                "course-art": [
+                    {
+                        "weekday": 4,
+                        "start": "10:00",
+                        "end": "11:00",
+                        "label": "Art"
+                    }
+                ]
+            },
+            "core": []
+        },
+        "queries": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "courseId": "course-drama"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "courseId": "course-robotics"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "courseId": "course-art"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            }
+        ]
+    },
+    "course-drama,course-robotics,course-art core=1": {
+        "data": {
+            "courses": {
+                "course-drama": [
+                    {
+                        "weekday": 1,
+                        "start": "07:59",
+                        "end": "09:00",
+                        "label": "Drama last"
+                    },
+                    {
+                        "weekday": 1,
+                        "start": "08:00",
+                        "end": "09:00",
+                        "label": "Drama now"
+                    },
+                    {
+                        "weekday": 2,
+                        "start": "10:00",
+                        "end": "11:00",
+                        "label": "Drama"
+                    }
+                ],
+                "course-robotics": [
+                    {
+                        "weekday": 2,
+                        "start": "10:00",
+                        "end": "10:50",
+                        "label": "Robotics"
+                    }
+                ],
+                "course-art": [
+                    {
+                        "weekday": 4,
+                        "start": "10:00",
+                        "end": "11:00",
+                        "label": "Art"
+                    }
+                ]
+            },
+            "core": [
+                {
+                    "weekday": 2,
+                    "start": "10:30",
+                    "end": "11:30",
+                    "label": "Maths"
+                },
+                {
+                    "weekday": 5,
+                    "start": "14:00",
+                    "end": "15:00",
+                    "label": "Gym"
+                },
+                {
+                    "weekday": 5,
+                    "start": "16:00",
+                    "end": "16:30",
+                    "label": "Mentor"
+                }
+            ]
+        },
+        "queries": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "courseId": "course-drama"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "courseId": "course-robotics"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "courseId": "course-art"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "cohortId": "c-1"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "substituteTeacherId": "alice"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            }
+        ]
+    },
+    "course-secret,course-drama core=0": {
+        "data": {
+            "courses": {
+                "course-drama": [
+                    {
+                        "weekday": 1,
+                        "start": "07:59",
+                        "end": "09:00",
+                        "label": "Drama last"
+                    },
+                    {
+                        "weekday": 1,
+                        "start": "08:00",
+                        "end": "09:00",
+                        "label": "Drama now"
+                    },
+                    {
+                        "weekday": 2,
+                        "start": "10:00",
+                        "end": "11:00",
+                        "label": "Drama"
+                    }
+                ]
+            },
+            "core": []
+        },
+        "queries": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "courseId": "course-drama"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            }
+        ]
+    },
+    "course-secret,course-drama core=1": {
+        "data": {
+            "courses": {
+                "course-drama": [
+                    {
+                        "weekday": 1,
+                        "start": "07:59",
+                        "end": "09:00",
+                        "label": "Drama last"
+                    },
+                    {
+                        "weekday": 1,
+                        "start": "08:00",
+                        "end": "09:00",
+                        "label": "Drama now"
+                    },
+                    {
+                        "weekday": 2,
+                        "start": "10:00",
+                        "end": "11:00",
+                        "label": "Drama"
+                    }
+                ]
+            },
+            "core": [
+                {
+                    "weekday": 2,
+                    "start": "10:30",
+                    "end": "11:30",
+                    "label": "Maths"
+                },
+                {
+                    "weekday": 5,
+                    "start": "14:00",
+                    "end": "15:00",
+                    "label": "Gym"
+                },
+                {
+                    "weekday": 5,
+                    "start": "16:00",
+                    "end": "16:30",
+                    "label": "Mentor"
+                }
+            ]
+        },
+        "queries": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "courseId": "course-drama"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "cohortId": "c-1"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "substituteTeacherId": "alice"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            }
+        ]
+    },
+    " core=0": {
+        "data": {
+            "courses": [],
+            "core": []
+        },
+        "queries": []
+    },
+    " core=1": {
+        "data": {
+            "courses": [],
+            "core": [
+                {
+                    "weekday": 2,
+                    "start": "10:30",
+                    "end": "11:30",
+                    "label": "Maths"
+                },
+                {
+                    "weekday": 5,
+                    "start": "14:00",
+                    "end": "15:00",
+                    "label": "Gym"
+                },
+                {
+                    "weekday": 5,
+                    "start": "16:00",
+                    "end": "16:30",
+                    "label": "Mentor"
+                }
+            ]
+        },
+        "queries": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "cohortId": "c-1"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "substituteTeacherId": "alice"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            }
+        ]
+    },
+    "course-maths core=0": {
+        "data": {
+            "courses": {
+                "course-maths": [
+                    {
+                        "weekday": 2,
+                        "start": "10:30",
+                        "end": "11:30",
+                        "label": "Maths"
+                    },
+                    {
+                        "weekday": 3,
+                        "start": "10:30",
+                        "end": "11:30",
+                        "label": "Maths off"
+                    }
+                ]
+            },
+            "core": []
+        },
+        "queries": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "courseId": "course-maths"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            }
+        ]
+    },
+    "course-maths core=1": {
+        "data": {
+            "courses": {
+                "course-maths": [
+                    {
+                        "weekday": 2,
+                        "start": "10:30",
+                        "end": "11:30",
+                        "label": "Maths"
+                    },
+                    {
+                        "weekday": 3,
+                        "start": "10:30",
+                        "end": "11:30",
+                        "label": "Maths off"
+                    }
+                ]
+            },
+            "core": [
+                {
+                    "weekday": 5,
+                    "start": "14:00",
+                    "end": "15:00",
+                    "label": "Gym"
+                },
+                {
+                    "weekday": 5,
+                    "start": "16:00",
+                    "end": "16:30",
+                    "label": "Mentor"
+                }
+            ]
+        },
+        "queries": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "courseId": "course-maths"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "cohortId": "c-1"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "substituteTeacherId": "alice"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            }
+        ]
+    },
+    "course-art,course-art,course-gym core=0": {
+        "data": {
+            "courses": {
+                "course-art": [
+                    {
+                        "weekday": 4,
+                        "start": "10:00",
+                        "end": "11:00",
+                        "label": "Art"
+                    }
+                ],
+                "course-gym": [
+                    {
+                        "weekday": 5,
+                        "start": "14:00",
+                        "end": "15:00",
+                        "label": "Gym"
+                    }
+                ]
+            },
+            "core": []
+        },
+        "queries": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "courseId": "course-art"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "courseId": "course-gym"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            }
+        ]
+    },
+    "course-art,course-art,course-gym core=1": {
+        "data": {
+            "courses": {
+                "course-art": [
+                    {
+                        "weekday": 4,
+                        "start": "10:00",
+                        "end": "11:00",
+                        "label": "Art"
+                    }
+                ],
+                "course-gym": [
+                    {
+                        "weekday": 5,
+                        "start": "14:00",
+                        "end": "15:00",
+                        "label": "Gym"
+                    }
+                ]
+            },
+            "core": [
+                {
+                    "weekday": 2,
+                    "start": "10:30",
+                    "end": "11:30",
+                    "label": "Maths"
+                },
+                {
+                    "weekday": 5,
+                    "start": "16:00",
+                    "end": "16:30",
+                    "label": "Mentor"
+                }
+            ]
+        },
+        "queries": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "courseId": "course-art"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "courseId": "course-gym"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "cohortId": "c-1"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "substituteTeacherId": "alice"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            }
+        ]
+    },
+    "course-secret core=0": {
+        "data": {
+            "courses": [],
+            "core": []
+        },
+        "queries": []
+    },
+    "course-secret core=1": {
+        "data": {
+            "courses": [],
+            "core": [
+                {
+                    "weekday": 2,
+                    "start": "10:30",
+                    "end": "11:30",
+                    "label": "Maths"
+                },
+                {
+                    "weekday": 5,
+                    "start": "14:00",
+                    "end": "15:00",
+                    "label": "Gym"
+                },
+                {
+                    "weekday": 5,
+                    "start": "16:00",
+                    "end": "16:30",
+                    "label": "Mentor"
+                }
+            ]
+        },
+        "queries": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "cohortId": "c-1"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "substituteTeacherId": "alice"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            }
+        ]
+    }
+}

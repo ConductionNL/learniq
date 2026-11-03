@@ -109,10 +109,12 @@ class CurriculumCoverageRollup {
 			$goalIds  = array_values(array_filter(array_map(fn (array $goal): string => $this->idOf(row: $goal), $goals)));
 			$computed = $this->calculator->compute(
 				framework: array_merge($framework, ['id' => $frameworkId]),
-				goals: $goals,
-				planned: $this->rowsAligningTo(schemas: self::PLANNED_SCHEMAS, goalIds: $goalIds),
-				assessed: $this->rowsAligningTo(schemas: self::ASSESSED_SCHEMAS, goalIds: $goalIds),
-				now: (new DateTimeImmutable())->format(\DATE_ATOM)
+				evidence: [
+					'goals' => $goals,
+					'planned' => $this->rowsAligningTo(schemas: self::PLANNED_SCHEMAS, goalIds: $goalIds),
+					'assessed' => $this->rowsAligningTo(schemas: self::ASSESSED_SCHEMAS, goalIds: $goalIds),
+					'now' => (new DateTimeImmutable())->format(\DATE_ATOM),
+				]
 			);
 		}
 

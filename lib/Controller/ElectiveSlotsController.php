@@ -92,10 +92,7 @@ class ElectiveSlotsController extends Controller {
 		try {
 			$data = $this->slots->slots(
 				uid: $user->getUID(),
-				courseIds: $ids,
-				withCore: ($withCore === '1'),
-				zone: $this->zone->getTimeZone(),
-				now: $this->time->getTime()
+				query: ['courseIds' => $ids, 'withCore' => ($withCore === '1'), 'zone' => $this->zone->getTimeZone(), 'now' => $this->time->getTime()]
 			);
 		} catch (RuntimeException) {
 			return new JSONResponse(data: ['error' => 'The timetable could not be read.'], statusCode: Http::STATUS_SERVICE_UNAVAILABLE);

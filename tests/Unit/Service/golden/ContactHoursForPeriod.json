@@ -1,0 +1,2300 @@
+{
+    "2026-09-01..2027-01-29 plan margin 10": {
+        "report": {
+            "from": "2026-09-01",
+            "to": "2027-01-29",
+            "marginPercent": 10,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": true,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": 60.0,
+                            "given": 57.0,
+                            "difference": -3.0,
+                            "short": true
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": 40.0,
+                            "given": 40.0,
+                            "difference": 0.0,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": 100.0,
+                        "given": 97.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 28.0,
+                                    "given": 40.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 40.0,
+                                    "given": 40.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-09-01T00:00:00Z",
+                "2027-01-29T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-09-01..2027-01-29 plan margin 0": {
+        "report": {
+            "from": "2026-09-01",
+            "to": "2027-01-29",
+            "marginPercent": 0,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": true,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": 60.0,
+                            "given": 57.0,
+                            "difference": -3.0,
+                            "short": true
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": 40.0,
+                            "given": 40.0,
+                            "difference": 0.0,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": 100.0,
+                        "given": 97.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 28.0,
+                                    "given": 40.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 40.0,
+                                    "given": 40.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-09-01T00:00:00Z",
+                "2027-01-29T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-09-01..2027-01-29 plan margin 35": {
+        "report": {
+            "from": "2026-09-01",
+            "to": "2027-01-29",
+            "marginPercent": 35,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": true,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": 60.0,
+                            "given": 57.0,
+                            "difference": -3.0,
+                            "short": true
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": 40.0,
+                            "given": 40.0,
+                            "difference": 0.0,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": 100.0,
+                        "given": 97.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 28.0,
+                                    "given": 40.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 40.0,
+                                    "given": 40.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-09-01T00:00:00Z",
+                "2027-01-29T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-09-01..2027-01-29 no plan margin 10": {
+        "report": {
+            "from": "2026-09-01",
+            "to": "2027-01-29",
+            "marginPercent": 10,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": false,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": null,
+                            "given": 57.0,
+                            "difference": null,
+                            "short": false
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": null,
+                            "given": 40.0,
+                            "difference": null,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": null,
+                        "given": 97.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 28.0,
+                                    "given": 40.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 40.0,
+                                    "given": 40.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-09-01T00:00:00Z",
+                "2027-01-29T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-09-01..2027-01-29 no plan margin 0": {
+        "report": {
+            "from": "2026-09-01",
+            "to": "2027-01-29",
+            "marginPercent": 0,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": false,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": null,
+                            "given": 57.0,
+                            "difference": null,
+                            "short": false
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": null,
+                            "given": 40.0,
+                            "difference": null,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": null,
+                        "given": 97.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 28.0,
+                                    "given": 40.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 40.0,
+                                    "given": 40.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-09-01T00:00:00Z",
+                "2027-01-29T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-09-01..2027-01-29 no plan margin 35": {
+        "report": {
+            "from": "2026-09-01",
+            "to": "2027-01-29",
+            "marginPercent": 35,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": false,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": null,
+                            "given": 57.0,
+                            "difference": null,
+                            "short": false
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": null,
+                            "given": 40.0,
+                            "difference": null,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": null,
+                        "given": 97.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 28.0,
+                                    "given": 40.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 40.0,
+                                    "given": 40.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-09-01T00:00:00Z",
+                "2027-01-29T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-09-01..2026-11-06 plan margin 10": {
+        "report": {
+            "from": "2026-09-01",
+            "to": "2026-11-06",
+            "marginPercent": 10,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": true,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": 30.0,
+                            "given": 57.0,
+                            "difference": 27.0,
+                            "short": false
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": 40.0,
+                            "given": 40.0,
+                            "difference": 0.0,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": 70.0,
+                        "given": 97.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 28.0,
+                                    "given": 40.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 40.0,
+                                    "given": 40.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-09-01T00:00:00Z",
+                "2026-11-06T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-09-01..2026-11-06 plan margin 0": {
+        "report": {
+            "from": "2026-09-01",
+            "to": "2026-11-06",
+            "marginPercent": 0,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": true,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": 30.0,
+                            "given": 57.0,
+                            "difference": 27.0,
+                            "short": false
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": 40.0,
+                            "given": 40.0,
+                            "difference": 0.0,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": 70.0,
+                        "given": 97.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 28.0,
+                                    "given": 40.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 40.0,
+                                    "given": 40.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-09-01T00:00:00Z",
+                "2026-11-06T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-09-01..2026-11-06 plan margin 35": {
+        "report": {
+            "from": "2026-09-01",
+            "to": "2026-11-06",
+            "marginPercent": 35,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": true,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": 30.0,
+                            "given": 57.0,
+                            "difference": 27.0,
+                            "short": false
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": 40.0,
+                            "given": 40.0,
+                            "difference": 0.0,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": 70.0,
+                        "given": 97.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 28.0,
+                                    "given": 40.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 40.0,
+                                    "given": 40.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-09-01T00:00:00Z",
+                "2026-11-06T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-09-01..2026-11-06 no plan margin 10": {
+        "report": {
+            "from": "2026-09-01",
+            "to": "2026-11-06",
+            "marginPercent": 10,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": false,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": null,
+                            "given": 57.0,
+                            "difference": null,
+                            "short": false
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": null,
+                            "given": 40.0,
+                            "difference": null,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": null,
+                        "given": 97.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 28.0,
+                                    "given": 40.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 40.0,
+                                    "given": 40.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-09-01T00:00:00Z",
+                "2026-11-06T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-09-01..2026-11-06 no plan margin 0": {
+        "report": {
+            "from": "2026-09-01",
+            "to": "2026-11-06",
+            "marginPercent": 0,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": false,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": null,
+                            "given": 57.0,
+                            "difference": null,
+                            "short": false
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": null,
+                            "given": 40.0,
+                            "difference": null,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": null,
+                        "given": 97.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 28.0,
+                                    "given": 40.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 40.0,
+                                    "given": 40.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-09-01T00:00:00Z",
+                "2026-11-06T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-09-01..2026-11-06 no plan margin 35": {
+        "report": {
+            "from": "2026-09-01",
+            "to": "2026-11-06",
+            "marginPercent": 35,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": false,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": null,
+                            "given": 57.0,
+                            "difference": null,
+                            "short": false
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": null,
+                            "given": 40.0,
+                            "difference": null,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": null,
+                        "given": 97.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 28.0,
+                                    "given": 40.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 57.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 40.0,
+                                    "given": 40.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-09-01T00:00:00Z",
+                "2026-11-06T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-10-01..2026-10-31 plan margin 10": {
+        "report": {
+            "from": "2026-10-01",
+            "to": "2026-10-31",
+            "marginPercent": 10,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": true,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": 0.0,
+                            "given": 31.0,
+                            "difference": 31.0,
+                            "short": false
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": 0.0,
+                            "given": 16.0,
+                            "difference": 16.0,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": 0.0,
+                        "given": 47.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 31.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 4.0,
+                                    "given": 16.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 31.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 16.0,
+                                    "given": 16.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-10-01T00:00:00Z",
+                "2026-10-31T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-10-01..2026-10-31 plan margin 0": {
+        "report": {
+            "from": "2026-10-01",
+            "to": "2026-10-31",
+            "marginPercent": 0,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": true,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": 0.0,
+                            "given": 31.0,
+                            "difference": 31.0,
+                            "short": false
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": 0.0,
+                            "given": 16.0,
+                            "difference": 16.0,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": 0.0,
+                        "given": 47.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 31.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 4.0,
+                                    "given": 16.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 31.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 16.0,
+                                    "given": 16.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-10-01T00:00:00Z",
+                "2026-10-31T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-10-01..2026-10-31 plan margin 35": {
+        "report": {
+            "from": "2026-10-01",
+            "to": "2026-10-31",
+            "marginPercent": 35,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": true,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": 0.0,
+                            "given": 31.0,
+                            "difference": 31.0,
+                            "short": false
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": 0.0,
+                            "given": 16.0,
+                            "difference": 16.0,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": 0.0,
+                        "given": 47.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 31.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 4.0,
+                                    "given": 16.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 31.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 16.0,
+                                    "given": 16.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-10-01T00:00:00Z",
+                "2026-10-31T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-10-01..2026-10-31 no plan margin 10": {
+        "report": {
+            "from": "2026-10-01",
+            "to": "2026-10-31",
+            "marginPercent": 10,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": false,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": null,
+                            "given": 31.0,
+                            "difference": null,
+                            "short": false
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": null,
+                            "given": 16.0,
+                            "difference": null,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": null,
+                        "given": 47.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 31.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 4.0,
+                                    "given": 16.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 31.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 16.0,
+                                    "given": 16.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-10-01T00:00:00Z",
+                "2026-10-31T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-10-01..2026-10-31 no plan margin 0": {
+        "report": {
+            "from": "2026-10-01",
+            "to": "2026-10-31",
+            "marginPercent": 0,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": false,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": null,
+                            "given": 31.0,
+                            "difference": null,
+                            "short": false
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": null,
+                            "given": 16.0,
+                            "difference": null,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": null,
+                        "given": 47.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 31.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 4.0,
+                                    "given": 16.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 31.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 16.0,
+                                    "given": 16.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-10-01T00:00:00Z",
+                "2026-10-31T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-10-01..2026-10-31 no plan margin 35": {
+        "report": {
+            "from": "2026-10-01",
+            "to": "2026-10-31",
+            "marginPercent": 35,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": false,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": null,
+                            "given": 31.0,
+                            "difference": null,
+                            "short": false
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": null,
+                            "given": 16.0,
+                            "difference": null,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": null,
+                        "given": 47.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 31.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 4.0,
+                                    "given": 16.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 31.0,
+                                    "below": true
+                                },
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 16.0,
+                                    "given": 16.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-10-01T00:00:00Z",
+                "2026-10-31T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-09-07..2026-09-07 plan margin 10": {
+        "report": {
+            "from": "2026-09-07",
+            "to": "2026-09-07",
+            "marginPercent": 10,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": true,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": 0.0,
+                            "given": 0.0,
+                            "difference": 0.0,
+                            "short": false
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": 0.0,
+                            "given": 1.0,
+                            "difference": 1.0,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": 0.0,
+                        "given": 1.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 1.0,
+                                    "given": 1.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": false
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 1.0,
+                                    "given": 1.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": false
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-09-07T00:00:00Z",
+                "2026-09-07T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-09-07..2026-09-07 plan margin 0": {
+        "report": {
+            "from": "2026-09-07",
+            "to": "2026-09-07",
+            "marginPercent": 0,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": true,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": 0.0,
+                            "given": 0.0,
+                            "difference": 0.0,
+                            "short": false
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": 0.0,
+                            "given": 1.0,
+                            "difference": 1.0,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": 0.0,
+                        "given": 1.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 1.0,
+                                    "given": 1.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": false
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 1.0,
+                                    "given": 1.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": false
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-09-07T00:00:00Z",
+                "2026-09-07T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-09-07..2026-09-07 plan margin 35": {
+        "report": {
+            "from": "2026-09-07",
+            "to": "2026-09-07",
+            "marginPercent": 35,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": true,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": 0.0,
+                            "given": 0.0,
+                            "difference": 0.0,
+                            "short": false
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": 0.0,
+                            "given": 1.0,
+                            "difference": 1.0,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": 0.0,
+                        "given": 1.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 1.0,
+                                    "given": 1.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": false
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 1.0,
+                                    "given": 1.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": false
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-09-07T00:00:00Z",
+                "2026-09-07T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-09-07..2026-09-07 no plan margin 10": {
+        "report": {
+            "from": "2026-09-07",
+            "to": "2026-09-07",
+            "marginPercent": 10,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": false,
+                    "courses": [
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": null,
+                            "given": 1.0,
+                            "difference": null,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": null,
+                        "given": 1.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 1.0,
+                                    "given": 1.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": false
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 1.0,
+                                    "given": 1.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": false
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-09-07T00:00:00Z",
+                "2026-09-07T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-09-07..2026-09-07 no plan margin 0": {
+        "report": {
+            "from": "2026-09-07",
+            "to": "2026-09-07",
+            "marginPercent": 0,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": false,
+                    "courses": [
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": null,
+                            "given": 1.0,
+                            "difference": null,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": null,
+                        "given": 1.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 1.0,
+                                    "given": 1.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": false
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 1.0,
+                                    "given": 1.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": false
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-09-07T00:00:00Z",
+                "2026-09-07T23:59:59Z"
+            ]
+        ]
+    },
+    "2026-09-07..2026-09-07 no plan margin 35": {
+        "report": {
+            "from": "2026-09-07",
+            "to": "2026-09-07",
+            "marginPercent": 35,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": false,
+                    "courses": [
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": null,
+                            "given": 1.0,
+                            "difference": null,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": null,
+                        "given": 1.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 1.0,
+                                    "given": 1.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": false
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "mkt",
+                                    "attended": 1.0,
+                                    "given": 1.0,
+                                    "below": false
+                                }
+                            ],
+                            "below": false
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2026-09-07T00:00:00Z",
+                "2026-09-07T23:59:59Z"
+            ]
+        ]
+    },
+    "2027-02-01..2027-07-09 plan margin 10": {
+        "report": {
+            "from": "2027-02-01",
+            "to": "2027-07-09",
+            "marginPercent": 10,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": true,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": 30.0,
+                            "given": 1.0,
+                            "difference": -29.0,
+                            "short": true
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": 0.0,
+                            "given": 0.0,
+                            "difference": 0.0,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": 30.0,
+                        "given": 1.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 1.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 1.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2027-02-01T00:00:00Z",
+                "2027-07-09T23:59:59Z"
+            ]
+        ]
+    },
+    "2027-02-01..2027-07-09 plan margin 0": {
+        "report": {
+            "from": "2027-02-01",
+            "to": "2027-07-09",
+            "marginPercent": 0,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": true,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": 30.0,
+                            "given": 1.0,
+                            "difference": -29.0,
+                            "short": true
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": 0.0,
+                            "given": 0.0,
+                            "difference": 0.0,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": 30.0,
+                        "given": 1.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 1.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 1.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2027-02-01T00:00:00Z",
+                "2027-07-09T23:59:59Z"
+            ]
+        ]
+    },
+    "2027-02-01..2027-07-09 plan margin 35": {
+        "report": {
+            "from": "2027-02-01",
+            "to": "2027-07-09",
+            "marginPercent": 35,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": true,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": 30.0,
+                            "given": 1.0,
+                            "difference": -29.0,
+                            "short": true
+                        },
+                        {
+                            "courseId": "mkt",
+                            "courseName": "Marketing",
+                            "owed": 0.0,
+                            "given": 0.0,
+                            "difference": 0.0,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": 30.0,
+                        "given": 1.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 1.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 1.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2027-02-01T00:00:00Z",
+                "2027-07-09T23:59:59Z"
+            ]
+        ]
+    },
+    "2027-02-01..2027-07-09 no plan margin 10": {
+        "report": {
+            "from": "2027-02-01",
+            "to": "2027-07-09",
+            "marginPercent": 10,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": false,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": null,
+                            "given": 1.0,
+                            "difference": null,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": null,
+                        "given": 1.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 1.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 1.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2027-02-01T00:00:00Z",
+                "2027-07-09T23:59:59Z"
+            ]
+        ]
+    },
+    "2027-02-01..2027-07-09 no plan margin 0": {
+        "report": {
+            "from": "2027-02-01",
+            "to": "2027-07-09",
+            "marginPercent": 0,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": false,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": null,
+                            "given": 1.0,
+                            "difference": null,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": null,
+                        "given": 1.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 1.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 1.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2027-02-01T00:00:00Z",
+                "2027-07-09T23:59:59Z"
+            ]
+        ]
+    },
+    "2027-02-01..2027-07-09 no plan margin 35": {
+        "report": {
+            "from": "2027-02-01",
+            "to": "2027-07-09",
+            "marginPercent": 35,
+            "cohorts": [
+                {
+                    "cohortId": "mv2a",
+                    "cohortName": "MV2A",
+                    "hasHourPlan": false,
+                    "courses": [
+                        {
+                            "courseId": "eng",
+                            "courseName": "Engels",
+                            "owed": null,
+                            "given": 1.0,
+                            "difference": null,
+                            "short": false
+                        }
+                    ],
+                    "totals": {
+                        "owed": null,
+                        "given": 1.0
+                    },
+                    "learners": [
+                        {
+                            "learnerId": "r.visser",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 1.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        },
+                        {
+                            "learnerId": "s.bos",
+                            "courses": [
+                                {
+                                    "courseId": "eng",
+                                    "attended": 0.0,
+                                    "given": 1.0,
+                                    "below": true
+                                }
+                            ],
+                            "below": true
+                        }
+                    ]
+                }
+            ]
+        },
+        "queries": [
+            [
+                [
+                    "mv2a"
+                ],
+                "2027-02-01T00:00:00Z",
+                "2027-07-09T23:59:59Z"
+            ]
+        ]
+    }
+}

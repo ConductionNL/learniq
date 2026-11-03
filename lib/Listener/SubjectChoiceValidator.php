@@ -154,10 +154,12 @@ class SubjectChoiceValidator implements IEventListener {
 			$this->checkMutuallyExclusive(rules: $rules, selected: $selected),
 			$this->checkCapacity(
 				rules: $rules,
-				selected: $selected,
-				curriculumPlanId: $curriculumPlanId,
-				tenantId: $tenantId,
-				choiceId: (string)$choiceId
+				choice: [
+					'selected' => $selected,
+					'curriculumPlanId' => $curriculumPlanId,
+					'tenantId' => $tenantId,
+					'choiceId' => (string)$choiceId,
+				]
 			)
 		);
 
@@ -270,21 +272,21 @@ class SubjectChoiceValidator implements IEventListener {
 	 * CapacityByCourseId check — counts sibling approved/locked SubjectChoice rows.
 	 *
 	 * @param array<string,mixed> $rules electiveRules block.
-	 * @param array<int,mixed> $selected selectedElectiveCourseIds.
-	 * @param string $curriculumPlanId The governing CurriculumPlan UUID.
-	 * @param string $tenantId Tenant ID.
-	 * @param string $choiceId The SubjectChoice being validated (excluded from occupancy).
+	 * @param array{selected: array<int,mixed>, curriculumPlanId: string, tenantId: string, choiceId: string} $choice The
+	 *     selectedElectiveCourseIds, the governing CurriculumPlan UUID, the tenant and the SubjectChoice being validated (excluded from
+	 *     occupancy).
 	 *
 	 * @return string[]
 	 */
-	private function checkCapacity(array $rules, array $selected, string $curriculumPlanId, string $tenantId, string $choiceId): array {
+	private function checkCapacity(array $rules, array $choice): array {
+		$selected = $choice['selected'];
 		$errors = [];
 		$capacityByCourseId = $rules['capacityByCourseId'] ?? null;
 		if (is_array($capacityByCourseId) === false || count($capacityByCourseId) === 0) {
 			return $errors;
 		}
 
-		$siblings = $this->fetchOccupyingSiblings(curriculumPlanId: $curriculumPlanId, tenantId: $tenantId, excludeId: $choiceId);
+		$siblings = $this->fetchOccupyingSiblings(choice: $choice);
 
 		foreach ($capacityByCourseId as $courseId => $limit) {
 			if (in_array($courseId, $selected, true) === false || is_int($limit) === false) {
@@ -325,13 +327,13 @@ class SubjectChoiceValidator implements IEventListener {
 	/**
 	 * Fetch sibling SubjectChoice rows in an occupying state for the same plan.
 	 *
-	 * @param string $curriculumPlanId Governing CurriculumPlan UUID.
-	 * @param string $tenantId Tenant ID.
-	 * @param string $excludeId The SubjectChoice id being validated, excluded from results.
+	 * @param array{curriculumPlanId: string, tenantId: string, choiceId: string} $choice The governing CurriculumPlan UUID, the tenant and
+	 *     the SubjectChoice id being validated, excluded from results.
 	 *
 	 * @return array<int,array<string,mixed>>
 	 */
-	private function fetchOccupyingSiblings(string $curriculumPlanId, string $tenantId, string $excludeId): array {
+	private function fetchOccupyingSiblings(array $choice): array {
+		['curriculumPlanId' => $curriculumPlanId, 'tenantId' => $tenantId, 'choiceId' => $excludeId] = $choice;
 		$siblings = [];
 
 		foreach (self::OCCUPYING_STATES as $lifecycle) {

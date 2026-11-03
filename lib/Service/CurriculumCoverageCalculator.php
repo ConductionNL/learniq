@@ -64,27 +64,26 @@ class CurriculumCoverageCalculator {
 	/**
 	 * Compute every coverage row of one framework.
 	 *
-	 * @param array<string, mixed>             $framework The CompetencyFramework row.
-	 * @param array<int, array<string, mixed>> $goals     The framework's Competency rows.
-	 * @param array<int, array<string, mixed>> $planned   Lesson and Course rows that may align to them.
-	 * @param array<int, array<string, mixed>> $assessed  Assignment and Assessment rows that may align to them.
-	 * @param string                           $now       ISO timestamp for lastRecomputedAt.
+	 * @param array<string, mixed> $framework The CompetencyFramework row.
+	 * @param array{goals: array<string, mixed>[], planned: array<string, mixed>[], assessed: array<string, mixed>[], now: string} $evidence The
+	 *     framework's Competency rows, the Lesson and Course rows and the Assignment and Assessment rows that may align to them, and
+	 *     the ISO timestamp for lastRecomputedAt.
 	 *
 	 * @return array<int, array<string, mixed>> Coverage rows without ids, total row first.
 	 *
 	 * @spec openspec/specs/competency/spec.md#requirement-coverage-is-bucketed-by-year-and-subject-with-totals
 	 */
-	public function compute(array $framework, array $goals, array $planned, array $assessed, string $now): array {
+	public function compute(array $framework, array $evidence): array {
 		$levels = $this->levelRanks(framework: $framework);
-		$tree   = $this->tree->build(goals: $goals);
+		$tree   = $this->tree->build(goals: $evidence['goals']);
 		$leaves = $this->tree->leaves(tree: $tree);
 		$status = $this->goalStatus(
 			leaves: $leaves,
-			planned: $this->tally(rows: $planned, leaves: $leaves, levels: $levels),
-			assessed: $this->tally(rows: $assessed, leaves: $leaves, levels: $levels)
+			planned: $this->tally(rows: $evidence['planned'], leaves: $leaves, levels: $levels),
+			assessed: $this->tally(rows: $evidence['assessed'], leaves: $leaves, levels: $levels)
 		);
 
-		$context = ['framework' => $framework, 'leaves' => $leaves, 'status' => $status, 'levels' => $levels, 'now' => $now];
+		$context = ['framework' => $framework, 'leaves' => $leaves, 'status' => $status, 'levels' => $levels, 'now' => $evidence['now']];
 
 		return $this->bucketRows(scope: $this->goalScope(tree: $tree, leaves: $leaves), context: $context);
 	}//end compute()
