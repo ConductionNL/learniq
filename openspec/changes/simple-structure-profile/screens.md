@@ -1,4 +1,4 @@
 # Screens
 
-- AppZijbalk https://identity.conduction.nl/screens/board?id=wilgenboom/AppZijbalk
-- AppZijbalk https://identity.conduction.nl/screens/board?id=vaartveld/AppZijbalk
+- wilgenboom/AppZijbalk app-zijbalk https://identity.conduction.nl/screens/board?id=wilgenboom/AppZijbalk
+- vaartveld/AppZijbalk app-zijbalk https://identity.conduction.nl/screens/board?id=vaartveld/AppZijbalk

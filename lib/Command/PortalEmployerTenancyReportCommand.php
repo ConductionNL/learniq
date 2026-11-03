@@ -112,6 +112,21 @@ class PortalEmployerTenancyReportCommand extends Command {
 		}
 
 		$output->writeln(sprintf('%d of %d employer accounts name a company outside their portal\'s organisation.', $affected, count($accounts)));
+		$this->noteTheCap(output: $output);
+
 		return self::SUCCESS;
 	}//end execute()
+
+	/**
+	 * Say so when the listing stopped at the account cap, so the count is not read as complete.
+	 *
+	 * @param OutputInterface $output The output.
+	 *
+	 * @return void
+	 */
+	private function noteTheCap(OutputInterface $output): void {
+		if ($this->accounts->stoppedAtCap() === true) {
+			$output->writeln(sprintf('The listing stopped at %d accounts; there may be more that this report did not check.', EmployerAccounts::CAP));
+		}
+	}//end noteTheCap()
 }//end class

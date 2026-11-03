@@ -1,3 +1,3 @@
 # Screens
 
-- LqCursus https://identity.conduction.nl/screens/board?id=learniq/LqCursus
+- learniq/LqCursus cursus https://identity.conduction.nl/screens/board?id=learniq/LqCursus

@@ -1,3 +1,3 @@
 # Screens
 
-- LqCfVerplichtingen https://identity.conduction.nl/screens/board?id=learniq/LqCfVerplichtingen
+- learniq/LqCfVerplichtingen verplichtingen https://identity.conduction.nl/screens/board?id=learniq/LqCfVerplichtingen
