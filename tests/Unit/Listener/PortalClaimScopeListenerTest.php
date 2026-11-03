@@ -38,9 +38,9 @@ use PHPUnit\Framework\TestCase;
 class PortalClaimScopeListenerTest extends TestCase {
 
 	/**
-	 * Every check the listener asked: company and portal organisation.
+	 * Every check the listener asked: company (or `location` and location) and portal organisation.
 	 *
-	 * @var list<array{0: string, 1: string}>
+	 * @var list<list<string>>
 	 */
 	private array $asked = [];
 
@@ -55,6 +55,12 @@ class PortalClaimScopeListenerTest extends TestCase {
 			function (string $organisationRef, string $organisation): bool {
 				$this->asked[] = [$organisationRef, $organisation];
 				return $organisationRef === 'co-a' && $organisation === 'school-a';
+			}
+		);
+		$tenancy->method('holdsLocation')->willReturnCallback(
+			function (string $locationRef, string $organisation): bool {
+				$this->asked[] = ['location', $locationRef, $organisation];
+				return $locationRef === 'loc-a' && $organisation === 'school-a';
 			}
 		);
 
@@ -93,6 +99,27 @@ class PortalClaimScopeListenerTest extends TestCase {
 	}//end testAnotherTenantsCompanyIsRefused()
 
 	/**
+	 * A location claim naming another tenant's location is refused; the portal's own is not.
+	 *
+	 * @return void
+	 */
+	public function testAnotherTenantsLocationIsRefused(): void {
+		$listener = $this->listener();
+
+		$foreign = self::check(appId: 'learniq', claimName: 'editionLocationRef', value: 'loc-b');
+		$listener->handle($foreign);
+		$own = self::check(appId: 'learniq', claimName: 'editionLocationRef', value: 'loc-a');
+		$listener->handle($own);
+		$otherApp = self::check(appId: 'pipelinq', claimName: 'editionLocationRef', value: 'loc-b');
+		$listener->handle($otherApp);
+
+		self::assertTrue(condition: $foreign->isRefused());
+		self::assertFalse(condition: $own->isRefused());
+		self::assertFalse(condition: $otherApp->isRefused());
+		self::assertSame(expected: [['location', 'loc-b', 'school-a'], ['location', 'loc-a', 'school-a']], actual: $this->asked);
+	}//end testAnotherTenantsLocationIsRefused()
+
+	/**
 	 * Other apps' claims, learniq's other claims and other events are left alone.
 	 *
 	 * @return void
@@ -102,7 +129,7 @@ class PortalClaimScopeListenerTest extends TestCase {
 
 		$otherApp = self::check(appId: 'pipelinq', claimName: 'organisationRef', value: 'co-b');
 		$listener->handle($otherApp);
-		$otherClaim = self::check(appId: 'learniq', claimName: 'editionLocationRef', value: 'loc-b');
+		$otherClaim = self::check(appId: 'learniq', claimName: 'organisationName', value: 'Ander BV');
 		$listener->handle($otherClaim);
 		$listener->handle(new Event());
 

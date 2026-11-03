@@ -1,4 +1,4 @@
 # Screens
 
-- LqRolC https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqRolC
-- LqDetail https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqDetail
+- warmtepompacademie/LqRolC vandaag voor de administratie https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqRolC
+- warmtepompacademie/LqDetail deelnemer Tom Verbeek https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqDetail

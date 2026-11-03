@@ -364,11 +364,12 @@ The check-in endpoint MUST NOT create a second record or change an existing `Att
 ### Requirement: A decision on an absence report records who decided and when
 When an `ExcuseRequest` moves to `approved` or `rejected`, the transition MUST stamp `decidedBy` with the signed-in user who made the decision and `decidedAt` with the time of the decision.
 
-#### Scenario: The guardian sees when the teacher approved the report
+#### Scenario: The guardian sees who approved the report and when
 - **GIVEN** a guardian's absence report in `submitted`
 - **WHEN** the group teacher approves it
 - **THEN** the report carries `decidedBy` = the teacher's user id and a `decidedAt`
-- **AND** the guardian's portal list shows the report as approved with that date
+- **AND** the guardian's portal list shows the report as "Goedgekeurd" with the teacher's name and the date and time of the decision, for example "Meester Daan, 1 oktober 8:20 uur"
+- **AND** the guardian's inbox names the teacher who approved it, for example "Meester Daan heeft de melding voor donderdag 1 oktober goedgekeurd"
 - @e2e tests/e2e/po-parent-flows.spec.ts
 
 ### Requirement: An absence report is read by the teachers of the pupil's group and by school-wide staff
