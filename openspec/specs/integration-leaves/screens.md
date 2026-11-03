@@ -1,9 +1,9 @@
 # Screens
 
-- LqGroep https://identity.conduction.nl/screens/board?id=learniq/LqGroep
-- LqLeerling https://identity.conduction.nl/screens/board?id=learniq/LqLeerling
-- LqLes https://identity.conduction.nl/screens/board?id=learniq/LqLes
-- LqOpdracht https://identity.conduction.nl/screens/board?id=learniq/LqOpdracht
-- LqLeerlingen https://identity.conduction.nl/screens/board?id=learniq/LqLeerlingen
-- LqRegistratie https://identity.conduction.nl/screens/board?id=learniq/LqRegistratie
-- LqLlRooster https://identity.conduction.nl/screens/board?id=learniq/LqLlRooster
+- learniq/LqGroep groep https://identity.conduction.nl/screens/board?id=learniq/LqGroep
+- learniq/LqLeerling leerling https://identity.conduction.nl/screens/board?id=learniq/LqLeerling
+- learniq/LqLes les https://identity.conduction.nl/screens/board?id=learniq/LqLes
+- learniq/LqOpdracht opdracht https://identity.conduction.nl/screens/board?id=learniq/LqOpdracht
+- learniq/LqLeerlingen leerlingen https://identity.conduction.nl/screens/board?id=learniq/LqLeerlingen
+- learniq/LqRegistratie aanwezigheidsregistratie https://identity.conduction.nl/screens/board?id=learniq/LqRegistratie
+- learniq/LqLlRooster mijn rooster (leerling) https://identity.conduction.nl/screens/board?id=learniq/LqLlRooster

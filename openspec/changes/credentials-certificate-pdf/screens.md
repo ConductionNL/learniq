@@ -1,7 +1,7 @@
 # Screens
 
-- LqCursus https://identity.conduction.nl/screens/board?id=learniq/LqCursus
-- Documenten https://identity.conduction.nl/screens/board?id=esdoornveen/Documenten
-- Documenten https://identity.conduction.nl/screens/board?id=warmtepompacademie/Documenten
-- LqRolC https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqRolC
+- learniq/LqCursus cursus https://identity.conduction.nl/screens/board?id=learniq/LqCursus
+- esdoornveen/Documenten documenten https://identity.conduction.nl/screens/board?id=esdoornveen/Documenten
+- warmtepompacademie/Documenten certificaten en documenten https://identity.conduction.nl/screens/board?id=warmtepompacademie/Documenten
+- warmtepompacademie/LqRolC vandaag voor de administratie https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqRolC
 - learniq/LqLlCertificaat mijn certificaat (leerling) https://identity.conduction.nl/screens/board?id=learniq/LqLlCertificaat
