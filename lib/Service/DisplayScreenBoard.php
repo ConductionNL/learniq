@@ -98,32 +98,17 @@ class DisplayScreenBoard {
 	 */
 	public function build(array $screen): array {
 		$tz = new DateTimeZone(self::TIMEZONE);
-		$today = new DateTimeImmutable('today', $tz);
-		$days = 1;
-		if (($screen['shows'] ?? 'today') === 'today-and-tomorrow') {
-			$days = 2;
-		}
-
-		$from = $today->format(DATE_ATOM);
-		$until = $today->modify('+'.$days.' days')->format(DATE_ATOM);
-
-		$cohorts = $this->cohorts(screen: $screen);
-		$rooms = $this->rooms(screen: $screen);
-		$rows = $this->sources->current()->sessionsForCohorts(cohortIds: array_keys($cohorts), from: $from, to: $until);
-
-		$lessons = [];
-		foreach ($rows as $row) {
-			if ($this->inWindow(row: $row, from: $from, until: $until) === false || $this->inRooms(row: $row, rooms: $rooms, screen: $screen) === false) {
-				continue;
-			}
-
-			$lesson = $this->project(row: $row, cohorts: $cohorts, rooms: $rooms, showTeacher: (($screen['showTeacherCodes'] ?? true) !== false));
-			if (($screen['shows'] ?? 'today') === 'changes-only' && $lesson['change'] === null) {
-				continue;
-			}
-
-			$lessons[] = $lesson;
-		}
+		$window = $this->window(screen: $screen, tz: $tz);
+		$view = [
+			'window' => $window,
+			'cohorts' => $this->cohorts(screen: $screen),
+			'rooms' => $this->rooms(screen: $screen),
+			'roomIds' => $this->listedIds(value: ($screen['roomIds'] ?? [])),
+			'showTeacher' => (($screen['showTeacherCodes'] ?? true) !== false),
+			'changesOnly' => (($screen['shows'] ?? 'today') === 'changes-only'),
+		];
+		$rows = $this->sources->current()->sessionsForCohorts(cohortIds: array_keys($view['cohorts']), from: $window[0], to: $window[1]);
+		$lessons = $this->lessonsOf(rows: $rows, view: $view);
 
 		usort($lessons, static fn (array $left, array $right): int => [$left['startsAt'], $left['group']] <=> [$right['startsAt'], $right['group']]);
 
@@ -135,101 +120,93 @@ class DisplayScreenBoard {
 	}//end build()
 
 	/**
-	 * Project one lesson onto the pinned public shape.
+	 * Today, or today and tomorrow, from midnight in the school's time zone.
 	 *
-	 * @param array<string, mixed>                $row         A lesson in learniq's session shape.
-	 * @param array<string, string>               $cohorts     Group names by cohort id.
-	 * @param array<string, array<string, mixed>> $rooms       Rooms by id.
-	 * @param bool                                $showTeacher Whether teacher codes are shown.
+	 * @param array<string, mixed> $screen The screen.
+	 * @param DateTimeZone         $tz     The school's time zone.
 	 *
-	 * @return array<string, mixed> Exactly the keys in KEYS.
+	 * @return array{0: string, 1: string} Start and exclusive end, ISO 8601.
 	 */
-	private function project(array $row, array $cohorts, array $rooms, bool $showTeacher): array {
-		$roomId = (string)($row['roomId'] ?? '');
-		$room = (string)($row['location'] ?? '');
-		if ($roomId !== '' && isset($rooms[$roomId]) === true) {
-			$room = (string)($rooms[$roomId]['name'] ?? $room);
+	private function window(array $screen, DateTimeZone $tz): array {
+		$today = new DateTimeImmutable('today', $tz);
+		$days = 1;
+		if (($screen['shows'] ?? 'today') === 'today-and-tomorrow') {
+			$days = 2;
 		}
 
-		$teacher = null;
-		if ($showTeacher === true && ($row['teacherReference'] ?? '') !== '') {
-			$teacher = (string)$row['teacherReference'];
-		}
-
-		$group = (string)($cohorts[(string)($row['cohortId'] ?? '')] ?? ($row['groupReference'] ?? ''));
-
-		return [
-			'startsAt' => (string)($row['startsAt'] ?? ''),
-			'endsAt' => (string)($row['endsAt'] ?? ''),
-			'group' => $group,
-			'subject' => (string)($row['subject'] ?? ($row['title'] ?? '')),
-			'room' => $room,
-			'teacherCode' => $teacher,
-			'change' => $this->change(row: $row),
-		];
-	}//end project()
+		return [$today->format(DATE_ATOM), $today->modify('+'.$days.' days')->format(DATE_ATOM)];
+	}//end window()
 
 	/**
-	 * The change a screen marks: cancelled, another teacher or another room.
+	 * The public shape of every lesson the screen shows.
 	 *
-	 * @param array<string, mixed> $row The lesson.
+	 * @param array<int, array<string, mixed>> $rows The lessons in learniq's session shape.
+	 * @param array<string, mixed>             $view `window`, `cohorts`, `rooms`, `roomIds`, `showTeacher` and `changesOnly`.
 	 *
-	 * @return string|null
+	 * @return array<int, array<string, mixed>>
 	 */
-	private function change(array $row): ?string {
-		if (($row['lifecycle'] ?? '') === 'cancelled') {
-			return 'cancelled';
+	private function lessonsOf(array $rows, array $view): array {
+		$lessonShape = new DisplayScreenLesson();
+		$lessons = [];
+		foreach ($rows as $row) {
+			if ($this->isOnScreen(row: $row, view: $view) === false) {
+				continue;
+			}
+
+			$lesson = $lessonShape->shape(row: $row, view: $view);
+			if ($view['changesOnly'] === true && $lesson['change'] === null) {
+				continue;
+			}
+
+			$lessons[] = $lesson;
 		}
 
-		if (is_string($row['substituteTeacherId'] ?? null) === true && $row['substituteTeacherId'] !== '') {
-			return 'other-teacher';
-		}
+		return $lessons;
+	}//end lessonsOf()
 
-		if (($row['changeReasonKind'] ?? null) === 'room-unavailable') {
-			return 'other-room';
-		}
-
-		return null;
-	}//end change()
+	/**
+	 * Whether a lesson starts in the screen's window and is in its rooms.
+	 *
+	 * @param array<string, mixed> $row  The lesson.
+	 * @param array<string, mixed> $view The screen's `window`, `roomIds` and `rooms`.
+	 *
+	 * @return bool
+	 */
+	private function isOnScreen(array $row, array $view): bool {
+		return $this->inWindow(row: $row, window: $view['window']) === true && $this->inRooms(row: $row, view: $view) === true;
+	}//end isOnScreen()
 
 	/**
 	 * Whether a lesson starts inside the window.
 	 *
-	 * @param array<string, mixed> $row   The lesson.
-	 * @param string               $from  Window start.
-	 * @param string               $until Window end (exclusive).
+	 * @param array<string, mixed>        $row    The lesson.
+	 * @param array{0: string, 1: string} $window Window start and end (exclusive).
 	 *
 	 * @return bool
 	 */
-	private function inWindow(array $row, string $from, string $until): bool {
+	private function inWindow(array $row, array $window): bool {
 		$start = strtotime((string)($row['startsAt'] ?? ''));
 
-		return $start !== false && $start >= strtotime($from) && $start < strtotime($until);
+		return $start !== false && $start >= strtotime($window[0]) && $start < strtotime($window[1]);
 	}//end inWindow()
 
 	/**
 	 * Whether a lesson is in the screen's rooms, when it names any.
 	 *
-	 * @param array<string, mixed>                $row    The lesson.
-	 * @param array<string, array<string, mixed>> $rooms  The screen's rooms by id.
-	 * @param array<string, mixed>                $screen The screen.
+	 * @param array<string, mixed> $row  The lesson.
+	 * @param array<string, mixed> $view The screen's `roomIds` and its `rooms` by id.
 	 *
 	 * @return bool
 	 */
-	private function inRooms(array $row, array $rooms, array $screen): bool {
-		$roomIds = $screen['roomIds'] ?? [];
-		if (is_array($roomIds) === false || $roomIds === []) {
-			return true;
-		}
-
-		if (isset($rooms[(string)($row['roomId'] ?? '')]) === true) {
+	private function inRooms(array $row, array $view): bool {
+		if ($view['roomIds'] === [] || isset($view['rooms'][(string)($row['roomId'] ?? '')]) === true) {
 			return true;
 		}
 
 		// A planninq lesson names its room by the school's code.
 		$reference = (string)($row['roomReference'] ?? '');
 
-		return $reference !== '' && in_array($reference, array_column($rooms, 'code'), true) === true;
+		return $reference !== '' && in_array($reference, array_column($view['rooms'], 'code'), true) === true;
 	}//end inRooms()
 
 	/**
@@ -264,9 +241,9 @@ class DisplayScreenBoard {
 	 */
 	private function cohortQuery(array $screen): ?array {
 		$config = ['filters' => ['register' => self::REGISTER, 'schema' => 'cohort']];
-		$ids = $screen['cohortIds'] ?? [];
-		if (is_array($ids) === true && $ids !== []) {
-			$config['ids'] = array_values($ids);
+		$ids = $this->listedIds(value: ($screen['cohortIds'] ?? []));
+		if ($ids !== []) {
+			$config['ids'] = $ids;
 			return $config;
 		}
 
@@ -289,9 +266,9 @@ class DisplayScreenBoard {
 	 */
 	private function rooms(array $screen): array {
 		$config = ['filters' => ['register' => self::REGISTER, 'schema' => 'room']];
-		$ids = $screen['roomIds'] ?? [];
-		if (is_array($ids) === true && $ids !== []) {
-			$config['ids'] = array_values($ids);
+		$ids = $this->listedIds(value: ($screen['roomIds'] ?? []));
+		if ($ids !== []) {
+			$config['ids'] = $ids;
 		}
 
 		$rooms = [];
@@ -303,6 +280,21 @@ class DisplayScreenBoard {
 
 		return $rooms;
 	}//end rooms()
+
+	/**
+	 * A screen's list of ids; none when it is not a list.
+	 *
+	 * @param mixed $value The screen's `cohortIds` or `roomIds`.
+	 *
+	 * @return array<int, mixed>
+	 */
+	private function listedIds(mixed $value): array {
+		if (is_array($value) === false) {
+			return [];
+		}
+
+		return array_values($value);
+	}//end listedIds()
 
 	/**
 	 * Read rows as arrays.
@@ -321,13 +313,31 @@ class DisplayScreenBoard {
 
 		$out = [];
 		foreach ($rows as $row) {
-			if (is_array($row) === true) {
-				$out[] = $row;
-			} else if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-				$out[] = (array)$row->jsonSerialize();
+			$data = $this->rowData(row: $row);
+			if ($data !== null) {
+				$out[] = $data;
 			}
 		}
 
 		return $out;
 	}//end read()
+
+	/**
+	 * A row as an array: as it is, or serialised; null when it is neither.
+	 *
+	 * @param mixed $row The row.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private function rowData(mixed $row): ?array {
+		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
+			return (array)$row->jsonSerialize();
+		}
+
+		if (is_array($row) === false) {
+			return null;
+		}
+
+		return $row;
+	}//end rowData()
 }//end class
