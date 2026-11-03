@@ -37,6 +37,7 @@ use OCP\IUser;
 use OCP\IUserSession;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Middleware;
 use OCP\AppFramework\OCS\OCSForbiddenException;
 use OCP\AppFramework\OCSController;
 use PHPUnit\Framework\TestCase;
@@ -117,6 +118,7 @@ class ActionForbiddenMiddlewareTest extends TestCase {
 		}
 
 		self::assertContains(ActionForbiddenMiddleware::class, $registered);
+		self::assertContains(\OCA\Learniq\Middleware\LookupIntegrityMiddleware::class, $registered);
 	}//end testTheAppRegistersIt()
 	/**
 	 * Live pass D7: a learner reads the by-regulation figures. The controller
@@ -169,7 +171,7 @@ class ActionForbiddenMiddlewareTest extends TestCase {
 			} catch (\Exception $exception) {
 				foreach (array_reverse($registered) as $middlewareClass) {
 					try {
-						$response = (new $middlewareClass())->afterException($controller, $method, $exception);
+						$response = $this->middleware(class: $middlewareClass)->afterException($controller, $method, $exception);
 						break;
 					} catch (\Exception $rethrown) {
 						$exception = $rethrown;
@@ -181,4 +183,23 @@ class ActionForbiddenMiddlewareTest extends TestCase {
 			self::assertSame(403, $response->getStatus(), $method);
 		}
 	}//end testALearnerReadingTheCoverageGets403()
+
+	/**
+	 * A registered middleware, built the way the container would, with a double for each constructor argument.
+	 *
+	 * @param class-string<Middleware> $class The middleware class.
+	 *
+	 * @return Middleware
+	 */
+	private function middleware(string $class): Middleware {
+		$constructor = (new \ReflectionClass($class))->getConstructor();
+		$arguments   = [];
+		foreach (($constructor?->getParameters() ?? []) as $parameter) {
+			$type = $parameter->getType();
+			self::assertInstanceOf(\ReflectionNamedType::class, $type);
+			$arguments[] = $this->createMock($type->getName());
+		}
+
+		return new $class(...$arguments);
+	}//end middleware()
 }//end class
