@@ -75,30 +75,21 @@ class TimetableProjector {
 	 * The caller's own lessons in the window, each with the notes the caller
 	 * may read and whether the caller may add one (timetabling-lesson-note).
 	 *
-	 * @param array<int,array<string,mixed>>    $rawSessions     Raw session data arrays.
-	 * @param string                            $windowFrom      Inclusive window start (ISO 8601).
-	 * @param string                            $windowTo        Exclusive window end (ISO 8601).
-	 * @param array<string,array<string,mixed>> $roomCache       Pre-loaded Room data keyed by UUID.
-	 * @param string                            $uid             The caller.
-	 * @param array<int,string>                 $taughtCohortIds Cohorts the caller teaches.
+	 * @param array<string,mixed> $lessons         `sessions` (raw lessons), `window` (inclusive start and exclusive
+	 *                                             end, ISO 8601) and `roomCache` (pre-loaded rooms keyed by UUID).
+	 * @param string              $uid             The caller.
+	 * @param array<int,string>   $taughtCohortIds Cohorts the caller teaches.
 	 *
 	 * @return array<int,array<string,mixed>> The ordered, projected sessions.
 	 *
 	 * @spec openspec/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
 	 */
-	public function personalSessions(
-		array $rawSessions,
-		string $windowFrom,
-		string $windowTo,
-		array $roomCache,
-		string $uid,
-		array $taughtCohortIds
-	): array {
+	public function personalSessions(array $lessons, string $uid, array $taughtCohortIds): array {
 		$sessions = $this->windowedSessions(
-			rawSessions: $rawSessions,
-			window: [$windowFrom, $windowTo],
-			roomCache: $roomCache,
-			notes: $this->noteReader->forSessions(sessions: $rawSessions, uid: $uid, taughtCohortIds: $taughtCohortIds)
+			rawSessions: $lessons['sessions'],
+			window: $lessons['window'],
+			roomCache: $lessons['roomCache'],
+			notes: $this->noteReader->forSessions(sessions: $lessons['sessions'], uid: $uid, taughtCohortIds: $taughtCohortIds)
 		);
 
 		return $this->noteReader->markWritable(sessions: $sessions, uid: $uid, taughtCohortIds: $taughtCohortIds);
