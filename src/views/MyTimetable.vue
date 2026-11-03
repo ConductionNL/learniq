@@ -363,6 +363,7 @@ export default {
 		 * Title of the card that lists today's changed sessions.
 		 *
 		 * @return {string}
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
 		 */
 		changesTitle() {
 			return t('learniq', "Today's changes")
