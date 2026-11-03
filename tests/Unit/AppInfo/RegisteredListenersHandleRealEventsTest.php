@@ -38,6 +38,7 @@ use OCA\OpenRegister\Event\ObjectEventSubscription;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
+use OCA\Portaliq\Event\PortalClaimScopeEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -239,6 +240,11 @@ class RegisteredListenersHandleRealEventsTest extends TestCase {
 			ExchangeJobConcludedEvent::class => new ExchangeJobConcludedEvent('learniq', 'job-1', 'swv', 'export', 'support-request/minimal-object', 'succeeded'),
 			ExchangeRecordsReceivedEvent::class => new ExchangeRecordsReceivedEvent('job-1', 'learniq', 'lvs-results', 'import', '', [], []),
 			HourPlanActivitiesQueryEvent::class => new HourPlanActivitiesQueryEvent(sourceApp: 'integriq', academicYear: '2026-2027'),
+			// Portaliq's claim scope check: learniq's employer claim, so the listener reaches its tenancy check.
+			PortalClaimScopeEvent::class => new PortalClaimScopeEvent(
+				claim: ['appId' => 'learniq', 'claimName' => 'organisationRef'],
+				holder: ['value' => 'company-1', 'organisation' => 'school-a'],
+			),
 			default => null,
 		};
 	}//end event()

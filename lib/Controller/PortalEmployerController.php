@@ -30,6 +30,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Portal\EmployerCompanyTenancy;
 use OCA\Learniq\Portal\PortalAssertionVerifier;
 use OCA\Learniq\Service\Portal\PortalEmployerBookings;
 use OCA\Learniq\Service\Portal\PortalOutcome;
@@ -70,6 +71,7 @@ class PortalEmployerController extends Controller {
 	 * @param IRequest                $request   The request.
 	 * @param PortalAssertionVerifier $verifier  Verifies X-Portal-Subject.
 	 * @param PortalEmployerBookings  $bookings  Checks and stores the writes.
+	 * @param EmployerCompanyTenancy  $tenancy   Checks the company lies in the portal's organisation.
 	 *
 	 * @return void
 	 */
@@ -77,6 +79,7 @@ class PortalEmployerController extends Controller {
 		IRequest $request,
 		private readonly PortalAssertionVerifier $verifier,
 		private readonly PortalEmployerBookings $bookings,
+		private readonly EmployerCompanyTenancy $tenancy,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -153,6 +156,11 @@ class PortalEmployerController extends Controller {
 
 		$company = $this->request->getParam(self::CLAIM);
 		if (($claims['audience'] ?? '') !== self::AUDIENCE || is_string($company) === false || trim($company) === '') {
+			return new JSONResponse(data: ['error' => 'forbidden'], statusCode: Http::STATUS_FORBIDDEN);
+		}
+
+		// The company must lie in the organisation of the portal the assertion was signed for.
+		if ($this->tenancy->holds(organisationRef: trim($company), organisation: (string)($claims['organisation'] ?? '')) === false) {
 			return new JSONResponse(data: ['error' => 'forbidden'], statusCode: Http::STATUS_FORBIDDEN);
 		}
 

@@ -98,11 +98,12 @@ class PortalEmployerInviteController extends Controller {
 		}
 
 		// The portal organisation is the caller's own, never a free parameter.
-		if ($this->organisations->includes(slug: $organisation) === false) {
+		$tenant = $this->organisations->tenant(slug: $organisation);
+		if ($tenant === null) {
 			return new JSONResponse(['error' => 'organisation-not-yours'], Http::STATUS_FORBIDDEN);
 		}
 
-		$result = $this->invitations->invite(organisationRef: $organisationRef, organisation: $organisation, email: $email);
+		$result = $this->invitations->inviteAsCaller(organisationRef: $organisationRef, tenant: $tenant, email: $email);
 		if ($result['status'] === 'invited') {
 			return new JSONResponse($result);
 		}
