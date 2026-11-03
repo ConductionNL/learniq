@@ -17,3 +17,4 @@
 - LqLijst https://identity.conduction.nl/screens/board?id=vaartveld/LqLijst
 - LqDetail https://identity.conduction.nl/screens/board?id=vaartveld/LqDetail
 - LqRolB https://identity.conduction.nl/screens/board?id=vaartveld/LqRolB
+- wilgenboom/Berichten berichten https://identity.conduction.nl/screens/board?id=wilgenboom/Berichten

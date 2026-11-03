@@ -15,3 +15,5 @@
 - LqRolC https://identity.conduction.nl/screens/board?id=vaartveld/LqRolC
 - LqVandaag https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqVandaag
 - LqBord https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqBord
+- learniq/LqKoppelingen integraties https://identity.conduction.nl/screens/board?id=learniq/LqKoppelingen
+- learniq/LqLesNotitie notitie toevoegen https://identity.conduction.nl/screens/board?id=learniq/LqLesNotitie

@@ -7,3 +7,4 @@
 - LqDossier https://identity.conduction.nl/screens/board?id=learniq/LqDossier
 - LqNotitie https://identity.conduction.nl/screens/board?id=learniq/LqNotitie
 - LqRolB https://identity.conduction.nl/screens/board?id=wilgenboom/LqRolB
+- learniq/LqAppInstellingen app-instellingen https://identity.conduction.nl/screens/board?id=learniq/LqAppInstellingen

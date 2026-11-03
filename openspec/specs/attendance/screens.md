@@ -28,3 +28,5 @@
 - LqVandaag https://identity.conduction.nl/screens/board?id=esdoornveen/LqVandaag
 - LqLijst https://identity.conduction.nl/screens/board?id=esdoornveen/LqLijst
 - LqRolB https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqRolB
+- learniq/LqVerzuimsignaal verzuimsignaal https://identity.conduction.nl/screens/board?id=learniq/LqVerzuimsignaal
+- wilgenboom/Berichten berichten https://identity.conduction.nl/screens/board?id=wilgenboom/Berichten

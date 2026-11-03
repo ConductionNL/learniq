@@ -9,3 +9,4 @@
 - Home https://identity.conduction.nl/screens/board?id=warmtepompacademie/Home
 - Zoeken https://identity.conduction.nl/screens/board?id=warmtepompacademie/Zoeken
 - Artikel https://identity.conduction.nl/screens/board?id=warmtepompacademie/Artikel
+- vaartveld/Editor pagina bewerken https://identity.conduction.nl/screens/board?id=vaartveld/Editor

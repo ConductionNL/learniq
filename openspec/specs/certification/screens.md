@@ -16,3 +16,4 @@
 - LqHrPersonen https://identity.conduction.nl/screens/board?id=learniq/LqHrPersonen
 - Documenten https://identity.conduction.nl/screens/board?id=esdoornveen/Documenten
 - LqDetail https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqDetail
+- learniq/LqCursusInstellingen cursus bewerken (docent) https://identity.conduction.nl/screens/board?id=learniq/LqCursusInstellingen
