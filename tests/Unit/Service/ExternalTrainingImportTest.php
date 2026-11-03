@@ -194,7 +194,7 @@ class ExternalTrainingImportTest extends TestCase {
 			$rows[] = self::row(learner: $n <= 37 ? 'learner' . $n . '@school.example' : 'stranger' . $n . '@elsewhere.example');
 		}
 
-		$preview = $this->import(profiles: $profiles)->import(rows: $rows, tenantId: self::TENANT, submittedBy: 'officer', dryRun: true, now: self::now());
+		$preview = $this->import(profiles: $profiles)->import(rows: $rows, tenantId: self::TENANT, submittedBy: 'officer', run: ['dryRun' => true, 'now' => self::now()]);
 		self::assertSame(['ready' => 37, 'created' => 0, 'skipped' => 0, 'failed' => 3, 'total' => 40], $preview['summary']);
 		self::assertNull($preview['batchId']);
 		self::assertSame([], $this->saved);
@@ -203,7 +203,7 @@ class ExternalTrainingImportTest extends TestCase {
 		self::assertSame(self::uuid(1), $preview['rows'][0]['learnerId']);
 		self::assertSame(40, $preview['rows'][39]['row']);
 
-		$result = $this->import(profiles: $profiles)->import(rows: $rows, tenantId: self::TENANT, submittedBy: 'officer', dryRun: false, now: self::now());
+		$result = $this->import(profiles: $profiles)->import(rows: $rows, tenantId: self::TENANT, submittedBy: 'officer', run: ['dryRun' => false, 'now' => self::now()]);
 		self::assertSame(['ready' => 0, 'created' => 37, 'skipped' => 0, 'failed' => 3, 'total' => 40], $result['summary']);
 		self::assertCount(37, $this->saved);
 		self::assertMatchesRegularExpression('/^[0-9a-f]{32}$/', (string)$result['batchId']);
@@ -233,8 +233,7 @@ class ExternalTrainingImportTest extends TestCase {
 			rows: [self::row(learner: 'P1', extra: ['completedAt' => '2026-12-01']), self::row(learner: 'P2')],
 			tenantId: self::TENANT,
 			submittedBy: 'officer',
-			dryRun: true,
-			now: self::now()
+			run: ['dryRun' => true, 'now' => self::now()]
 		);
 
 		self::assertSame('invalid', $report['rows'][0]['status']);
@@ -262,7 +261,7 @@ class ExternalTrainingImportTest extends TestCase {
 		$rows = array_map(static fn (array $case): array => self::row(learner: $case[0], extra: $case[1]), $cases);
 		$rows[] = self::row(learner: 'P1', extra: ['completedAt' => '15-09-2026', 'validUntil' => '15/09/2027', 'kind' => 'conference']);
 
-		$report = $this->import(profiles: [self::profile(1)])->import(rows: $rows, tenantId: self::TENANT, submittedBy: 'officer', dryRun: false, now: self::now());
+		$report = $this->import(profiles: [self::profile(1)])->import(rows: $rows, tenantId: self::TENANT, submittedBy: 'officer', run: ['dryRun' => false, 'now' => self::now()]);
 
 		foreach ($cases as $index => $case) {
 			self::assertSame(['invalid', $case[2]], [$report['rows'][$index]['status'], $report['rows'][$index]['reason']], (string)$index);
@@ -295,8 +294,7 @@ class ExternalTrainingImportTest extends TestCase {
 			],
 			tenantId: self::TENANT,
 			submittedBy: 'officer',
-			dryRun: true,
-			now: self::now()
+			run: ['dryRun' => true, 'now' => self::now()]
 		);
 
 		self::assertSame(['unmatched', 'unmatched', 'unmatched', 'ready', 'ready'], array_column($report['rows'], 'status'));
@@ -315,8 +313,7 @@ class ExternalTrainingImportTest extends TestCase {
 			rows: [self::row(learner: 'learner1@school.example')],
 			tenantId: self::TENANT,
 			submittedBy: 'officer',
-			dryRun: true,
-			now: self::now()
+			run: ['dryRun' => true, 'now' => self::now()]
 		);
 
 		self::assertSame('More than one learner matches; use the learner reference instead.', $report['rows'][0]['reason']);
@@ -342,8 +339,7 @@ class ExternalTrainingImportTest extends TestCase {
 			],
 			tenantId: self::TENANT,
 			submittedBy: 'officer',
-			dryRun: false,
-			now: self::now()
+			run: ['dryRun' => false, 'now' => self::now()]
 		);
 
 		self::assertSame(['skipped', 'created', 'created', 'duplicate'], array_column($report['rows'], 'status'));
@@ -365,8 +361,7 @@ class ExternalTrainingImportTest extends TestCase {
 			rows: [self::row(learner: 'P1'), 'not a row'],
 			tenantId: self::TENANT,
 			submittedBy: 'officer',
-			dryRun: false,
-			now: self::now()
+			run: ['dryRun' => false, 'now' => self::now()]
 		);
 
 		self::assertSame(['invalid', 'invalid'], array_column($report['rows'], 'status'));
