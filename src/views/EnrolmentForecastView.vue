@@ -31,16 +31,7 @@
 				<table class="forecast__table" data-testid="forecast-rates">
 					<thead>
 						<tr>
-							<th
-								v-for="label in [
-									t('learniq', 'Programme'),
-									t('learniq', 'Year'),
-									t('learniq', 'Moves up'),
-									t('learniq', 'Repeats'),
-									t('learniq', 'Leaves'),
-								]"
-								:key="label"
-								scope="col">
+							<th v-for="label in rateHeads" :key="label" scope="col">
 								{{ label }}
 							</th>
 						</tr>
@@ -103,15 +94,7 @@
 			<table class="forecast__table" data-testid="forecast-years">
 				<thead>
 					<tr>
-						<th
-							v-for="label in [
-								t('learniq', 'Programme'),
-								t('learniq', 'Year'),
-								t('learniq', 'Learners'),
-								t('learniq', 'Groups needed'),
-							]"
-							:key="label"
-							scope="col">
+						<th v-for="label in yearHeads" :key="label" scope="col">
 							{{ label }}
 						</th>
 					</tr>
@@ -133,16 +116,7 @@
 				data-testid="forecast-subjects">
 				<thead>
 					<tr>
-						<th
-							v-for="label in [
-								t('learniq', 'Programme'),
-								t('learniq', 'Year'),
-								t('learniq', 'Subject'),
-								t('learniq', 'Learners'),
-								t('learniq', 'Groups needed'),
-							]"
-							:key="label"
-							scope="col">
+						<th v-for="label in subjectHeads" :key="label" scope="col">
 							{{ label }}
 						</th>
 					</tr>
@@ -201,6 +175,53 @@ export default {
 	},
 
 	computed: {
+		/**
+		 * The head cells of the rates table.
+		 *
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @return {string[]} Translated column labels.
+		 */
+		rateHeads() {
+			return [
+				t('learniq', 'Programme'),
+				t('learniq', 'Year'),
+				t('learniq', 'Moves up'),
+				t('learniq', 'Repeats'),
+				t('learniq', 'Leaves'),
+			]
+		},
+
+		/**
+		 * The head cells of the forecast per programme year.
+		 *
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @return {string[]} Translated column labels.
+		 */
+		yearHeads() {
+			return [
+				t('learniq', 'Programme'),
+				t('learniq', 'Year'),
+				t('learniq', 'Learners'),
+				t('learniq', 'Groups needed'),
+			]
+		},
+
+		/**
+		 * The head cells of the forecast per subject.
+		 *
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @return {string[]} Translated column labels.
+		 */
+		subjectHeads() {
+			return [
+				t('learniq', 'Programme'),
+				t('learniq', 'Year'),
+				t('learniq', 'Subject'),
+				t('learniq', 'Learners'),
+				t('learniq', 'Groups needed'),
+			]
+		},
+
 		/**
 		 * The scenarios as select options.
 		 *
