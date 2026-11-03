@@ -3789,7 +3789,13 @@ OC.L10N.register(
         "Open evaluations": "Open evaluations",
         "Lessons you can check in to now": "Lessons you can check in to now",
         "Heat map of your groups": "Heat map of your groups",
-        "Your request": "Your request"
+        "Your request": "Your request",
+        "Waitlist": "Waitlist",
+        "Today's changes": "Today's changes",
+        "Timetable of {name}": "Timetable of {name}",
+        "Upload a package": "Upload a package",
+        "Lesson blocks": "Lesson blocks",
+        "_%n pupil_::_%n pupils_": ["%n pupil","%n pupils"]
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -4243,7 +4243,13 @@ OC.L10N.register(
         "Open evaluations": "Open evaluaties",
         "Lessons you can check in to now": "Lessen waar je nu kunt inchecken",
         "Heat map of your groups": "Heatmap van uw groepen",
-        "Your request": "Uw aanvraag"
+        "Your request": "Uw aanvraag",
+        "Waitlist": "Wachtlijst",
+        "Today's changes": "Wijzigingen vandaag",
+        "Timetable of {name}": "Rooster van {name}",
+        "Upload a package": "Een pakket uploaden",
+        "Lesson blocks": "Blokken van de les",
+        "_%n pupil_::_%n pupils_": ["%n leerling","%n leerlingen"]
     },
     "nplurals=2; plural=(n != 1);"
 )

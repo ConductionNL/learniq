@@ -1457,6 +1457,7 @@
         "The NL-LOM education levels, as one line for the store card.",
         "The NL-LOM education levels, for filtering.",
         "The NOAT/CUMI/NNCA culturele-achtergrond classification feeding the ROD/bekostiging funding weging (funding-and-teldatum-checks P-new-13), or null while unclassified.",
+        "The Nextcloud user id of the student on the placement. The server copies it from the placement on every save, so the student can read their own confirmed assessments.",
         "The PO/VO referentiekader band (e.g. '1F', '2F', '1S'), only populated where the toets maps to one.",
         "The Privacyconvenant verwerkersovereenkomst is signed",
         "The SAML attribute name or OIDC claim name carried by the authenticated user's attribute bag.",
@@ -2220,7 +2221,6 @@
         "{present} present, {late} late, {authorised} absent with permission, {unauthorised} absent without permission",
         "{programme}, intake {year}, {status}",
         "{revoked} revoked and {expired} expired certificates are left as they are. Learners keep their certificate number, issue date and expiry.",
-        "{shown} of {total} strings",
-        "The Nextcloud user id of the student on the placement. The server copies it from the placement on every save, so the student can read their own confirmed assessments."
+        "{shown} of {total} strings"
     ]
 }
