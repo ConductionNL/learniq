@@ -44,12 +44,12 @@ class PortalEmployerInviteControllerTest extends TestCase {
 	 */
 	public function testWhoMayInviteAndWhere(): void {
 		$never = $this->createMock(EmployerPortalInvitation::class);
-		$never->expects($this->never())->method('invite');
+		$never->expects($this->never())->method('inviteAsCaller');
 		self::assertSame(403, $this->controller(invitations: $never, groups: ['instructors'])->invite('co-1', 'org')->getStatus());
 		self::assertSame(403, $this->controller(invitations: $never, groups: ['hr'])->invite('co-1', 'elsewhere')->getStatus());
 
 		$invitations = $this->createMock(EmployerPortalInvitation::class);
-		$invitations->method('invite')->willReturnCallback(
+		$invitations->method('inviteAsCaller')->willReturnCallback(
 			static fn (string $organisationRef, string $organisation, string $email=''): array => match ($organisationRef) {
 				'co-1' => ['status' => 'invited', 'subjectRef' => 'linda'],
 				'co-gone' => ['status' => 'refused', 'reason' => 'company-unknown'],

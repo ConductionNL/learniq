@@ -102,7 +102,7 @@ class PortalEmployerInviteController extends Controller {
 			return new JSONResponse(['error' => 'organisation-not-yours'], Http::STATUS_FORBIDDEN);
 		}
 
-		$result = $this->invitations->invite(organisationRef: $organisationRef, organisation: $organisation, email: $email);
+		$result = $this->invitations->inviteAsCaller(organisationRef: $organisationRef, organisation: $organisation, email: $email);
 		if ($result['status'] === 'invited') {
 			return new JSONResponse($result);
 		}

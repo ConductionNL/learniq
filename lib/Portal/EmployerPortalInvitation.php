@@ -62,6 +62,16 @@ class EmployerPortalInvitation {
 	private const SCHEMA = 'client-organisation';
 
 	/**
+	 * Read as the system: every company of every tenant.
+	 */
+	private const AS_SYSTEM = ['_rbac' => false, '_multitenancy' => false];
+
+	/**
+	 * Read with the signed-in caller's rights and tenant.
+	 */
+	private const AS_CALLER = ['_rbac' => true, '_multitenancy' => true];
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService    $objectService       Reads the company.
@@ -93,13 +103,45 @@ class EmployerPortalInvitation {
 	 * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
 	 */
 	public function invite(string $organisationRef, string $organisation, string $email=''): array {
+		return $this->inviteReading(request: [$organisationRef, $organisation, $email], scope: self::AS_SYSTEM);
+	}//end invite()
+
+	/**
+	 * Invite one company's contact person for the signed-in caller.
+	 *
+	 * The company is read with the caller's rights and tenant, so a company
+	 * the caller cannot see answers exactly like an unknown one. invite()
+	 * reads as the system, for the occ commands that run without a caller.
+	 *
+	 * @param string $organisationRef The client-organisation uuid.
+	 * @param string $organisation    The portal organisation slug.
+	 * @param string $email           An address to use instead of the one on the company.
+	 *
+	 * @return array{status: string, reason?: string, subjectRef?: string}
+	 *
+	 * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+	 */
+	public function inviteAsCaller(string $organisationRef, string $organisation, string $email=''): array {
+		return $this->inviteReading(request: [$organisationRef, $organisation, $email], scope: self::AS_CALLER);
+	}//end inviteAsCaller()
+
+	/**
+	 * Invite one company's contact person, reading the company in the given scope.
+	 *
+	 * @param array{0: string, 1: string, 2: string}        $request The client-organisation uuid, the portal organisation slug and the address override.
+	 * @param array{_rbac: bool, _multitenancy: bool} $scope   How the company is read.
+	 *
+	 * @return array{status: string, reason?: string, subjectRef?: string}
+	 */
+	private function inviteReading(array $request, array $scope): array {
+		[$organisationRef, $organisation, $email] = $request;
 		$organisation = trim($organisation);
 		if ($organisation === '') {
 			return self::refused(reason: 'organisation-missing');
 		}
 
 		try {
-			$company = $this->company(organisationRef: trim($organisationRef));
+			$company = $this->company(organisationRef: trim($organisationRef), scope: $scope);
 		} catch (Throwable $exception) {
 			$this->logger->warning(
 				'[EmployerPortalInvitation] Could not read company {ref}: {msg}',
@@ -122,7 +164,7 @@ class EmployerPortalInvitation {
 		}
 
 		return $this->provisionAndClaim(company: $company, email: $address, organisation: $organisation);
-	}//end invite()
+	}//end inviteReading()
 
 	/**
 	 * Ask portaliq for the account, then write each claim on it.
@@ -185,21 +227,22 @@ class EmployerPortalInvitation {
 	/**
 	 * The active company with this uuid, or null.
 	 *
-	 * @param string $organisationRef The uuid.
+	 * @param string                                  $organisationRef The uuid.
+	 * @param array{_rbac: bool, _multitenancy: bool} $scope           How the company is read.
 	 *
 	 * @return array<string, mixed>|null
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read.
 	 */
-	private function company(string $organisationRef): ?array {
+	private function company(string $organisationRef, array $scope): ?array {
 		if ($organisationRef === '') {
 			return null;
 		}
 
 		$objects = $this->objectService->findAll(
 			config: ['filters' => ['register' => self::REGISTER, 'schema' => self::SCHEMA], 'ids' => [$organisationRef], 'limit' => 1],
-			_rbac: false,
-			_multitenancy: false
+			_rbac: $scope['_rbac'],
+			_multitenancy: $scope['_multitenancy']
 		);
 		foreach ($objects as $object) {
 			$row = $object;
