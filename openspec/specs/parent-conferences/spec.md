@@ -211,13 +211,25 @@ A `ConferenceRound` MUST carry `bookingMode`, `direct` or `preference`. A new ro
 - @e2e exclude covered by PHPUnit `ConferenceRoundBookingModeStampTest::testAnOldRoundWithoutAModeKeepsThePreferenceFlow` and `ConferenceScheduleGeneratorTest`
 
 ### Requirement: Teachers publish free times from their availability
-When a round with direct booking moves to `booking-open` (`open-booking`, or `create-free-slots` once open), every submitted or locked `TeacherAvailability` of the round MUST be cut into `free` slots of the round's `slotDurationMinutes` with `bufferMinutes` between them. A free slot MUST carry the pupils who may book it (`eligibleLearnerRefs`: the invited pupils of the teacher's own groups, or every invited pupil when the teacher has none in the round), the teacher's name and a label in the school's time zone. A time that overlaps a slot the teacher already holds in the round MUST be skipped.
+When a round with direct booking moves to `booking-open` (`open-booking`, or `create-free-slots` once open), every submitted or locked `TeacherAvailability` of the round MUST be cut into `free` slots of the round's `slotDurationMinutes` with `bufferMinutes` between them. A free slot MUST carry the pupils who may book it (`eligibleLearnerRefs`: the invited pupils of the teacher's own groups, or every invited pupil when the teacher teaches none of the round's groups), the teacher's name and a label in the school's time zone. A time that overlaps a slot the teacher already holds in the round MUST be skipped. A group of the round that cannot be read MUST NOT open a teacher's times to every invited pupil: when the teacher teaches none of the groups that can be read, no slot is written for that teacher and the failure is logged.
 
 #### Scenario: The teacher creates free times
 - **GIVEN** a direct round for Groep 7 and the group teacher's availability from 18:00 to 20:00
 - **WHEN** booking opens
 - **THEN** free slots of 10 minutes with 2 minutes between them exist for the group's pupils
 - @e2e tests/e2e/po-parent-flows.spec.ts
+
+#### Scenario: A group that cannot be read opens nothing
+- **GIVEN** a direct round with a group that cannot be read, and a teacher who teaches none of its other groups
+- **WHEN** booking opens
+- **THEN** no free slot is written for that teacher and the failure is logged
+- @e2e exclude covered by PHPUnit `ConferenceFreeSlotGeneratorTest::testAnUnreadableGroupRefusesInsteadOfOpeningToEveryInvitedPupil`
+
+#### Scenario: A teacher of a group without invited pupils offers nobody a time
+- **GIVEN** a direct round where none of the invited pupils is in the group the teacher teaches
+- **WHEN** booking opens
+- **THEN** the teacher's free slots name no pupil who may book them
+- @e2e exclude covered by PHPUnit `ConferenceFreeSlotGeneratorTest::testATaughtGroupWithoutInvitedPupilsOffersNobody`
 
 #### Scenario: Running it again adds only what is missing
 - **GIVEN** free slots that already exist
