@@ -4298,7 +4298,11 @@ OC.L10N.register(
         "Hide the lessons of {name}": "Lessen van {name} verbergen",
         "Show on the board": "Op het bord tonen",
         "Changes in {seconds} s": "Verandert over {seconds} s",
-        "This code holds until you close check-in.": "Deze code blijft geldig tot je het aanmelden sluit."
+        "This code holds until you close check-in.": "Deze code blijft geldig tot je het aanmelden sluit.",
+        "Add block": "Blok toevoegen",
+        "Block type": "Soort blok",
+        "This lesson has no blocks yet.": "Deze les heeft nog geen blokken.",
+        "Block moved to position {position} of {total}": "Blok verplaatst naar positie {position} van {total}"
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -26,7 +26,6 @@ import {
 } from '../../src/utils/lessonAssist.js'
 import {
 	countPendingDrafts,
-	keepDraftBlock,
 	makeDraftBlock,
 	serialiseLessonBlocks,
 } from '../../src/utils/lessonBlocks.js'
@@ -92,7 +91,7 @@ test('lesson text leaves out pending drafts and other block types, and respects 
 	const blocks = [
 		{ blockId: 'b1', type: 'richText', order: 1, text: 'Breuken met dezelfde noemer.' },
 		{ blockId: 'b2', type: 'media', order: 2, materialId: 'm1' },
-		{ blockId: 'b3', type: 'richText', order: 3, text: 'AI draft text', assistDraft: { action: 'outline' } },
+		{ blockId: 'b3', type: 'richText', order: 3, text: 'AI draft text', draft: { action: 'outline' } },
 		{ blockId: 'b4', type: 'richText', order: 4, text: '  Vergelijk de tellers.  ' },
 	]
 	assert.equal(lessonTextFromBlocks(blocks), 'Breuken met dezelfde noemer.\n\nVergelijk de tellers.')
@@ -203,17 +202,20 @@ test('draft text: questions become a numbered list, outlines and rewrites stay a
 test('drafts are marked, can be kept, and never reach OpenRegister with the marker', () => {
 	const blocks = [
 		{ blockId: 'b1', type: 'richText', order: 1, text: 'Eigen tekst', materialId: null },
-		makeDraftBlock({ blockId: 'b2', text: '1. Start', action: 'outline', provider: 'nextcloud' }),
+		makeDraftBlock({ blockId: 'b2', text: '1. Start', action: 'outline', provider: 'nextcloud', note: 'Check it.' }),
 	]
 	assert.equal(countPendingDrafts(blocks), 1)
-	assert.deepEqual(blocks[1].assistDraft, { action: 'outline', provider: 'nextcloud' })
+	assert.deepEqual(blocks[1].draft, { note: 'Check it.', action: 'outline', provider: 'nextcloud' })
 
 	const serialised = serialiseLessonBlocks(blocks)
 	assert.deepEqual(serialised[1], { blockId: 'b2', type: 'richText', order: 0, text: '1. Start' })
-	assert.ok(!JSON.stringify(serialised).includes('assistDraft'))
+	assert.ok(!JSON.stringify(serialised).includes('draft'))
 
-	keepDraftBlock(blocks[1])
-	assert.equal(countPendingDrafts(blocks), 0)
+	// CnBlockListEditor keeps a draft by emitting the block without `draft`.
+	const { draft, ...kept } = blocks[1]
+	assert.ok(draft)
+	assert.equal(countPendingDrafts([blocks[0], kept]), 0)
+	blocks[1] = kept
 	assert.equal(blocks[1].type, 'richText')
 })
 

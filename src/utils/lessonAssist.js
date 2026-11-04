@@ -124,7 +124,7 @@ export function clampLessonText(text) {
  */
 export function lessonTextFromBlocks(blocks) {
 	const parts = (blocks ?? [])
-		.filter((b) => b?.type === 'richText' && !b.assistDraft)
+		.filter((b) => b?.type === 'richText' && !b.draft)
 		.map((b) => String(b.text ?? '').trim())
 		.filter((t) => t !== '')
 	return clampLessonText(parts.join('\n\n'))

@@ -3821,7 +3821,11 @@ OC.L10N.register(
         "Hide the lessons of {name}": "Hide the lessons of {name}",
         "Show on the board": "Show on the board",
         "Changes in {seconds} s": "Changes in {seconds} s",
-        "This code holds until you close check-in.": "This code holds until you close check-in."
+        "This code holds until you close check-in.": "This code holds until you close check-in.",
+        "Add block": "Add block",
+        "Block type": "Block type",
+        "This lesson has no blocks yet.": "This lesson has no blocks yet.",
+        "Block moved to position {position} of {total}": "Block moved to position {position} of {total}"
     },
     "nplurals=2; plural=(n != 1);"
 )
