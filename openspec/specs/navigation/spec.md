@@ -201,22 +201,24 @@ The "Leerlingen" group MUST list its items one level deep, with no navigable par
 - **WHEN** the sidebar renders
 - **THEN** it shows the top block and the group "Onderwijs" only
 
-### Requirement: Features & roadmap lives in the footer beside Documentation
-The `FeaturesRoadmapMenu` entry MUST be removed from `src/menu-layout.json#settingsSection` so it falls back to its base-manifest `section:"footer"` placement beside `Documentation`, matching the fleet convention (pipelinq/opencatalogi/docudesk).
+### Requirement: Features & roadmap lives in the settings foldout, under Over de app
+The `FeaturesRoadmapMenu` entry MUST stay in `src/menu-layout.json#settingsSection`. The foldout MUST show it as "Functies en roadmap" under "Over de app", next to "Marktplaats". The footer of the sidebar MUST hold only "Hulp en uitleg".
 
-#### Scenario: Features & roadmap renders in the footer
-- **GIVEN** an authenticated user opens the Scholiq app
-- **WHEN** the left navigation renders
-- **THEN** `Features & roadmap` appears in the footer section next to `Documentation`
-- **AND** it is not present in the settings foldout
+#### Scenario: Features & roadmap renders in the foldout
+<!-- @e2e exclude Menu layout; pinned by the manifest unit test against the drawn foldout of learniq/LqSchooljaar, not a browser-observable behaviour of its own. -->
+- **GIVEN** an authenticated user opens the Learniq app
+- **WHEN** they open the settings foldout
+- **THEN** "Functies en roadmap" appears under "Over de app", next to "Marktplaats"
+- **AND** the footer of the sidebar shows only "Hulp en uitleg"
 
 ### Requirement: School-year rollover lives in the Settings foldout
-The `Rollover` entry (route `RolloverWizard`, admin-gated) MUST be added to `src/menu-layout.json#settingsSection` so it renders inside the Nextcloud settings foldout (gear icon) rather than as a top-level item.
+The `Rollover` entry (route `RolloverWizard`, admin-gated) MUST be added to `src/menu-layout.json#settingsSection` so it renders inside the settings foldout rather than as a top-level item. The foldout MUST show it as "Jaarovergang" under "De app inrichten".
 
 #### Scenario: Rollover renders in the settings foldout for an admin
-- **GIVEN** an authenticated admin user opens the Scholiq app
+<!-- @e2e exclude Menu layout; pinned by the manifest unit test against the drawn foldout of learniq/LqSchooljaar, not a browser-observable behaviour of its own. -->
+- **GIVEN** an authenticated admin user opens the Learniq app
 - **WHEN** they open the settings foldout
-- **THEN** `School-year rollover` appears inside the foldout
+- **THEN** "Jaarovergang" appears under "De app inrichten"
 - **AND** it is not present as a top-level navigation item
 
 ### Requirement: INVARIANT — all retained routes and deep links remain reachable after the restructure
@@ -355,13 +357,13 @@ The menu MUST offer the absence reports list (`ExcuseRequests`) exactly once to 
 #### Scenario: A group teacher opens the absence reports from the menu
 @e2e exclude Menu gating; pinned by tests/unit-js/absenceReportsMenu.test.mjs (every role that reads absence reports finds them in the menu, once), built with the library's buildManifest and visibleIf evaluator.
 - **GIVEN** `po-leerkracht-09` is a group teacher in a primary school
-- **WHEN** they open the People group in the menu
+- **WHEN** they open "Aanwezigheid" in the group "Leerlingen"
 - **THEN** it lists "Absence reports", which opens `/attendance/excuses`
 
 #### Scenario: A compliance officer finds the reports under Compliance
 @e2e exclude Menu gating; pinned by tests/unit-js/absenceReportsMenu.test.mjs (every role that reads absence reports finds them in the menu, once).
-- **GIVEN** a compliance officer, who does not see the People group
-- **WHEN** they open the Compliance group
+- **GIVEN** a compliance officer, whose group "Leerlingen" holds only "Compliance"
+- **WHEN** they open "Compliance"
 - **THEN** it lists "Absence reports"
 
 #### Scenario: Roles without read access get no entry
