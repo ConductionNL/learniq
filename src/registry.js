@@ -14,6 +14,7 @@
 import AssignmentHandInStatus from './components/sections/AssignmentHandInStatus.vue'
 import AssignmentPeerReviewAllocation from './components/sections/AssignmentPeerReviewAllocation.vue'
 import DeclineSignUpDialog from './dialogs/DeclineSignUpDialog.vue'
+import CredentialWalletOffer from './components/sections/CredentialWalletOffer.vue'
 import SelfCheckInDialog from './dialogs/SelfCheckInDialog.vue'
 // admissions-and-subject-choice: the two genuine new custom views this
 // change adds — the coordinator's admissions review board (queue of
@@ -301,6 +302,11 @@ export default {
 		kind: 'section',
 		component: AssignmentHandInStatus,
 		_note: 'Hand-in status on AssignmentDetail: the cohort roster minus the learners who handed in, split into started and not started, overdue after dueAt. Staff only; self-fetches assignment, cohort(s), submissions and learner names.',
+	},
+	CredentialWalletOffer: {
+		kind: 'section',
+		component: CredentialWalletOffer,
+		_note: 'The holder\'s wallet block on CredentialDetail: the open offer as a QR code with its link, the claim date, or a sentence. Only the holder (learnerUserId) sees it.',
 	},
 	AssignmentPeerReviewAllocation: {
 		kind: 'section',

@@ -91,63 +91,35 @@
 					)
 				}}
 			</p>
-			<table class="forecast__table" data-testid="forecast-years">
-				<thead>
-					<tr>
-						<th v-for="label in yearHeads" :key="label" scope="col">
-							{{ label }}
-						</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr
-						v-for="row in result.programmeYears"
-						:key="row.programmeId + row.programmeYear">
-						<td>{{ row.programmeName }}</td>
-						<td>{{ row.programmeYear }}</td>
-						<td>{{ row.learners }}</td>
-						<td>{{ row.groupsNeeded }}</td>
-					</tr>
-				</tbody>
-			</table>
-			<table
+			<CnDataMatrix
+				data-testid="forecast-years"
+				:rows="yearMatrixRows"
+				:columns="yearColumns"
+				:rowHeader="t('learniq', 'Programme')"
+				:emptyLabel="t('learniq', 'No programme years in this forecast.')"
+				:columnTotalsLabel="t('learniq', 'Total')"
+				readOnly
+				showColumnTotals />
+			<CnDataMatrix
 				v-if="result.subjects.length > 0"
-				class="forecast__table"
-				data-testid="forecast-subjects">
-				<thead>
-					<tr>
-						<th v-for="label in subjectHeads" :key="label" scope="col">
-							{{ label }}
-						</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr
-						v-for="row in result.subjects"
-						:key="row.programmeId + row.programmeYear + row.courseId">
-						<td>{{ row.programmeName }}</td>
-						<td>{{ row.programmeYear }}</td>
-						<td>{{ row.courseName }}</td>
-						<td>
-							{{ row.learners }}
-							<em v-if="row.isEstimated">{{
-								t('learniq', 'estimated')
-							}}</em>
-						</td>
-						<td>{{ row.groupsNeeded }}</td>
-					</tr>
-				</tbody>
-			</table>
+				data-testid="forecast-subjects"
+				:rows="subjectMatrixRows"
+				:columns="subjectColumns"
+				:rowHeader="t('learniq', 'Programme')"
+				:columnTotalsLabel="t('learniq', 'Total')"
+				readOnly
+				showColumnTotals />
 		</CnDetailCard>
 	</div>
 </template>
 
 <script>
-import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
+import { CnDataMatrix, CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcNoteCard, NcSelect } from '@nextcloud/vue'
+import { matrixColumns, subjectRows, yearRows } from '../utils/enrolmentForecastMatrix.js'
 
 const OBJECTS = '/apps/openregister/api/objects/learniq/'
 
@@ -155,6 +127,7 @@ export default {
 	name: 'EnrolmentForecastView',
 
 	components: {
+		CnDataMatrix,
 		CnDetailCard,
 		CnPageHeader,
 		NcButton,
@@ -192,34 +165,49 @@ export default {
 		},
 
 		/**
-		 * The head cells of the forecast per programme year.
+		 * The columns of the forecast per programme year.
 		 *
 		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
-		 * @return {string[]} Translated column labels.
+		 * @return {Array<object>} CnDataMatrix columns.
 		 */
-		yearHeads() {
-			return [
-				t('learniq', 'Programme'),
-				t('learniq', 'Year'),
-				t('learniq', 'Learners'),
-				t('learniq', 'Groups needed'),
-			]
+		yearColumns() {
+			return matrixColumns([
+				['programmeYear', t('learniq', 'Year'), 'string'],
+				['learners', t('learniq', 'Learners'), 'number'],
+				['groupsNeeded', t('learniq', 'Groups needed'), 'number'],
+			])
 		},
 
 		/**
-		 * The head cells of the forecast per subject.
+		 * The columns of the forecast per subject.
 		 *
 		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
-		 * @return {string[]} Translated column labels.
+		 * @return {Array<object>} CnDataMatrix columns.
 		 */
-		subjectHeads() {
-			return [
-				t('learniq', 'Programme'),
-				t('learniq', 'Year'),
-				t('learniq', 'Subject'),
-				t('learniq', 'Learners'),
-				t('learniq', 'Groups needed'),
-			]
+		subjectColumns() {
+			return matrixColumns([
+				['programmeYear', t('learniq', 'Year'), 'string'],
+				['courseName', t('learniq', 'Subject'), 'string'],
+				['learners', t('learniq', 'Learners'), 'number'],
+				['estimate', t('learniq', 'Estimate'), 'string'],
+				['groupsNeeded', t('learniq', 'Groups needed'), 'number'],
+			])
+		},
+
+		/**
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @return {Array<object>} The forecast per programme year as matrix rows.
+		 */
+		yearMatrixRows() {
+			return yearRows(this.result?.programmeYears)
+		},
+
+		/**
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @return {Array<object>} The forecast per subject as matrix rows.
+		 */
+		subjectMatrixRows() {
+			return subjectRows(this.result?.subjects, t('learniq', 'estimated'))
 		},
 
 		/**

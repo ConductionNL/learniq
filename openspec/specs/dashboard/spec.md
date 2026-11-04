@@ -13,7 +13,7 @@ openspec_changes:
 
 ## Purpose
 
-Present per-role dashboard surfaces (ADR-009 §6) as **three group-gated menu items** — Administration / Teaching / My learning — each routing to the shared dashboard component in its role view (admin / teacher / student); menu visibility follows `scholiq-{role}` Nextcloud group membership (admins see all three) and there is no in-page role switcher. Built exclusively on `@conduction/nextcloud-vue` dashboard primitives. Exactly one `CnDashboardPage` renders per route (no dashboard-in-dashboard nesting), and heavy cross-tenant analytics deep-link into launchpad rather than being reimplemented.
+Present per-role dashboard surfaces (ADR-009 §6) as **three group-gated menu items** — Administration / Teaching / My learning — each routing to the shared dashboard component in its role view (admin / teacher / student); menu visibility follows `scholiq-{role}` Nextcloud group membership (admins see all three). The one "Vandaag" item carries the role choice the board learniq/LqDashboard draws (Docent, Mentor) on the page. Built exclusively on `@conduction/nextcloud-vue` dashboard primitives. Exactly one `CnDashboardPage` renders per route (no dashboard-in-dashboard nesting), and heavy cross-tenant analytics deep-link into launchpad rather than being reimplemented.
 
 ## Why
 "Analytics dashboard" (#17, 39 demand) and "Student Analytics" (#18, 34 demand) score in the top 20 canonical features. Insight #16: OSS LMS leaders share dated UX — a modern Vue / NL-Design dashboard surface is the structural differentiator. Eight stories across six roles (mentor pattern view, manager team progress, board compliance %, board renewal report, principal Cito overview, parent grade digest, pupil grade-impact view, civil-servant RADIO progress) anchor this spec.
@@ -37,7 +37,7 @@ Per-role landing dashboards composed via `@conduction/nextcloud-vue` primitives 
 ## Requirements
 
 ### Requirement: Per-role group-gated dashboard menu items
-The system MUST present one dashboard menu item, "Vandaag", for every role (the boards learniq/LqDashboard and the Vandaag boards per role). A user with more than one role chooses the view on the page with the role choice the board draws (Docent, Mentor); a user with one role gets that view without a choice. Per ADR-009 §6 the view is still resolved per role. Each item MUST be visible only to users whose resolved dashboard-view set includes that role, derived server-side from `scholiq-{role}` Nextcloud group membership (with the NC admin group short-circuiting to all three); an admin therefore sees all three items, and the view set always includes `student` so every Scholiq user reaches their own My-learning view. The system MUST NOT render an in-page role switcher. Each menu item routes to the shared dashboard component rendering that role's view (exactly one `CnDashboardPage` per route). The application root route MUST land each user on the dashboard view matching their resolved `primaryRole`; when the role cannot be resolved the system MUST fall back to the least-privileged (student) view.
+The system MUST present one dashboard menu item, "Vandaag", for every role (the boards learniq/LqDashboard and the Vandaag boards per role). A user with more than one role chooses the view on the page with the role choice the board draws (Docent, Mentor); a user with one role gets that view without a choice. Per ADR-009 §6 the view is still resolved per role. Each item MUST be visible only to users whose resolved dashboard-view set includes that role, derived server-side from `scholiq-{role}` Nextcloud group membership (with the NC admin group short-circuiting to all three); an admin therefore sees all three items, and the view set always includes `student` so every Scholiq user reaches their own My-learning view. In the simple structure the role choice is the Today page's view switch: "Docent" holds the Today grid and "Mentor" the open attendance flags of the pupils the reader mentors (`AttendanceFlag.mentorId`), with their count. Each menu item routes to the shared dashboard component rendering that role's view (exactly one `CnDashboardPage` per route). The application root route MUST land each user on the dashboard view matching their resolved `primaryRole`; when the role cannot be resolved the system MUST fall back to the least-privileged (student) view.
 
 #### Scenario: Learner sees only the My learning item and lands on it
 - **GIVEN** a signed-in user in the `scholiq-student` group only
@@ -52,6 +52,12 @@ The system MUST present one dashboard menu item, "Vandaag", for every role (the 
 - **THEN** "Vandaag" opens the teacher view, with the role choice offering the views this user has (Docent, and Mentor when they mentor a group)
 - **AND** the Teaching item renders the teacher dashboard (my courses, assignments to grade, sessions to mark, my cohorts)
 <!-- @e2e exclude Requires a `scholiq-teacher` group member session (multi-user / per-test group membership) that the single-admin scholiq e2e harness cannot provision. Verified live instead. -->
+
+#### Scenario: A teacher switches Today to the mentor view
+<!-- @e2e exclude The Today overlay applies to the teaching roles only, and the learniq e2e harness runs a single admin session on the full structure; covered by tests/unit-js/structureProfile.test.mjs ("Today offers the role choice", "the Mentor view counts and lists the same signals"). -->
+- **GIVEN** a teacher who mentors 3B, on "Vandaag" in the simple structure
+- **WHEN** they choose "Mentor" in the role choice
+- **THEN** the page shows the open attendance flags of the pupils whose mentor they are, with their count, and the choice is kept for their next visit
 
 #### Scenario: Admin sees all three dashboard items
 - **GIVEN** a signed-in user in the Nextcloud admin group

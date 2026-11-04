@@ -292,23 +292,17 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		// drivable without seeded Material/Assessment fixtures).
 		await page.getByRole('button', { name: 'Add block' }).click()
 		await page.getByRole('button', { name: 'Add block' }).click()
-		const blockRows = page.locator('.lesson-composer__block')
+		const blockRows = page.getByTestId('cn-block-list-block')
 		await expect(blockRows).toHaveCount(2)
 
 		const textareas = page.locator('[data-testid="cn-markdown-textarea"]')
 		await textareas.nth(0).fill('First block text')
 		await textareas.nth(1).fill('Second block text')
 
-		// Keyboard-only block reorder: move the SECOND block up.
-		//
-		// Addressed by position, which is now part of the button's accessible
-		// name. It previously read `/Move Rich text block up/`, which matched
-		// one control per block — two rich-text blocks, two identical names,
-		// strict-mode violation. That ambiguity was a real a11y defect rather
-		// than a test problem (a screen-reader user heard the same name twice
-		// with no way to tell the controls apart), so it is fixed in
-		// LessonComposer.vue and the locator simply names the block it means.
-		await page.getByRole('button', { name: 'Move Rich text block 2 up' }).click()
+		// Keyboard-only block reorder: move the SECOND block up. CnBlockListEditor
+		// names each control "{action}: {type} block {position}", so two blocks of
+		// one type never share a name.
+		await page.getByRole('button', { name: 'Up: Rich text block 2' }).click()
 		await expect(textareas.nth(0)).toHaveValue('Second block text')
 
 		await page.getByRole('button', { name: 'Save lesson' }).click()

@@ -81,13 +81,15 @@ class WalletClaimSyncService implements LifecycleGuardInterface {
 	 *
 	 * @param array<string,mixed> $credential The Credential data array.
 	 *
-	 * @return array<string,mixed> The Credential with `walletOfferStatus=claimed` and `walletClaimedAt=now`.
+	 * @return array<string,mixed> The Credential with `walletOfferStatus=claimed`, `walletClaimedAt=now` and no offer link.
 	 *
 	 * @spec openspec/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
+	 * @spec openspec/changes/credential-wallet-offer-for-the-learner/specs/certification/spec.md#requirement-the-credential-keeps-the-wallet-offer-link-while-the-offer-is-open
 	 */
 	public function claim(array $credential): array {
 		$credential['walletOfferStatus'] = 'claimed';
 		$credential['walletClaimedAt'] = gmdate('c');
+		$credential['walletOfferUri'] = null;
 
 		return $credential;
 	}//end claim()
