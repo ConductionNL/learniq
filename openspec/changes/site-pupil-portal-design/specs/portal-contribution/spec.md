@@ -7,7 +7,7 @@ The student audience MUST declare pages. The first MUST be `studentOverview`, "O
 #### Scenario: Noa opens the portal between classes
 - GIVEN pupil Noa with one assignment due today at 23.59 and one due in 7 days
 - WHEN she signs in on her phone
-- THEN "Dit moet u nog doen" on `/mijn` shows both, today's first, each with its date and time
+- THEN "Huiswerk en toetsen" on `/mijn` shows both, today's first, each with its date and time
 - AND below it today's lessons and her three newest grades
 - @e2e exclude planned: written with the build in tests/e2e/vo-pupil-flows.spec.ts (specs-only change)
 
@@ -73,7 +73,7 @@ The student audience MUST declare `studentHomework`, the published assignments w
 #### Scenario: A double-weight grade
 - GIVEN a published grade 7,2 for wiskunde, hoofdstuk 2, weight 2
 - WHEN Noa opens "Overzicht"
-- THEN she reads "Wiskunde, hoofdstuk 2", 7,2 and "Telt 2 keer mee"
+- THEN she reads "Wiskunde" with "Hoofdstuk 2", 7,2 and "Telt mee" with the weight 2 in that column
 - @e2e exclude planned: written with the build in tests/e2e/vo-pupil-flows.spec.ts (specs-only change)
 
 ### Requirement: Every pupil label on the site reads in Dutch

@@ -148,10 +148,10 @@ On upgrade, before the register import, learniq MUST write every `order`, `order
 
 ### Requirement: Learniq keeps FeeItem and Entitlement and no pay screen of its own
 
-Learniq MUST keep the `FeeItem` and `Entitlement` index and detail pages, listed under People. It MUST NOT ship an order, order line or payment transaction schema, page or route, nor a pay screen: the pay action is portaliq's, contributed by shillinq.
+Learniq MUST keep the `FeeItem` and `Entitlement` index and detail pages, as "Kostenposten" under "De app inrichten" with the breadcrumb "Betalingen / Schoolkosten" (learniq/LqSchoolkosten). It MUST NOT ship an order, order line or payment transaction schema, page or route, nor a pay screen: the pay action is portaliq's, contributed by shillinq.
 
 #### Scenario: An administrator looks for fee items
 
-- **GIVEN** an administrator opens the People menu
+- **GIVEN** an administrator opens "De app inrichten"
 - **WHEN** they look for fee items and entitlements
-- **THEN** both are listed there, and there is no Payments menu
+- **THEN** both are under "Kostenposten", with the breadcrumb "Betalingen / Schoolkosten", and there is no pay screen

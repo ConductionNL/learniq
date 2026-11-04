@@ -11,5 +11,6 @@
 - vaartveld/Documenten rapporten en documenten https://identity.conduction.nl/screens/board?id=vaartveld/Documenten
 - learniq/LqRapportperiode rapportperiode: vakken, groepen, venster en sluitdatum https://identity.conduction.nl/screens/board?id=learniq/LqRapportperiode
 - learniq/LqRapportsjabloon rapportsjabloon: secties, schaal en de koppeling van toetssoorten https://identity.conduction.nl/screens/board?id=learniq/LqRapportsjabloon
+- vaartveld/MijnOverzicht mijn overzicht, cijferregels https://identity.conduction.nl/screens/board?id=vaartveld/MijnOverzicht
 
 Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAppNav, CnBreadcrumbs, CnBuildiqEditButton, CnBulkJobProgress, CnCardGrid, CnDataMatrix, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnFileField, CnFilterBar, CnFormDialog, CnIndexPage, CnNextStepCard, CnNoteCard, CnNotesCard, CnObjectCard, CnPageHeader, CnPagination, CnQuickFilterBar, CnStatusBadge, CnTabs, CnTimelineStages

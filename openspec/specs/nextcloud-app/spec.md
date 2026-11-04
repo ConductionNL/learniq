@@ -110,18 +110,18 @@ The system MUST expose the app's persisted settings (the keys managed by `Settin
 - `isAdmin` is `false` when there is no logged-in user.
 
 ### Requirement: Configure default register and AI features via OpenRegister-backed pickers
-The default-register picker and the AI-features review table MUST live in the Nextcloud **Admin** settings panel, registered through `appinfo/info.xml` `<settings>` (an admin `IDelegatedSettings` class plus an admin `IIconSection`) and guarded so only administrators can reach the mutating endpoints. They MUST NOT be rendered in the per-user app "User settings" dialog. The register options MUST be loaded from OpenRegister's `/apps/openregister/api/registers` endpoint; the AI feature list MUST be read from the Scholiq Settings API response (`aiFeatures`). Selecting a default register MUST persist it via the Settings API. Loading failures MUST be caught and logged without breaking the panel.
+The default-register picker and the link to the AI settings in hermiq (the boards draw no AI-features table) MUST live in the Nextcloud **Admin** settings panel, registered through `appinfo/info.xml` `<settings>` (an admin `IDelegatedSettings` class plus an admin `IIconSection`) and guarded so only administrators can reach the mutating endpoints. They MUST NOT be rendered in the per-user app "User settings" dialog. The register options MUST be loaded from OpenRegister's `/apps/openregister/api/registers` endpoint; the AI feature list MUST be read from the Scholiq Settings API response (`aiFeatures`). Selecting a default register MUST persist it via the Settings API. Loading failures MUST be caught and logged without breaking the panel.
 
 #### Scenario: Admin panel hosts the pickers
 <!-- @e2e tests/e2e/spec-coverage/nextcloud-app.spec.ts -->
 - **WHEN** an administrator opens Nextcloud Settings → Administration → Scholiq
-- **THEN** the default-register picker and AI-features table are shown and the register/AI lists load from OpenRegister and the Settings API
+- **THEN** the default-register picker and the link to hermiq are shown and the register list loads from OpenRegister
 
 #### Scenario: Non-admin cannot reach the pickers
 <!-- @e2e exclude Negative admin-gating: the mutating endpoints carry #[AuthorizedAdminSetting(AdminSettings::class)] (asserted by reasoning + hydra route-auth/semantic-auth gates); the per-user dialog renders only ScholiqNotificationSettings (verified by App.vue #user-settings slot). No non-admin test user is provisioned in the e2e env. -->
 - **GIVEN** a signed-in non-admin user
 - **WHEN** they open the Scholiq app's per-user "User settings" dialog
-- **THEN** no register picker, AI-features table, or credential-signing control is present
+- **THEN** no register picker, hermiq link, or credential-signing control is present
 
 ### Requirement: Allow the credential signing key to be rotated from settings
 The credential-signing key rotation action MUST live in the Nextcloud **Admin** settings panel and MUST be invokable only by an administrator. It MUST rotate the tenant's RS256 credential signing key and surface a localized success/failure message.

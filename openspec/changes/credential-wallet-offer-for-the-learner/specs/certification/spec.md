@@ -24,13 +24,13 @@ When `offerToWallet` succeeds, `Credential.walletOfferUri` MUST hold the `creden
 
 ### Requirement: The holder sees the offer on their own certificate
 
-On `CredentialDetail`, a section MUST show the holder (the user whose id is `learnerUserId`) a QR code and an "Open in wallet app" link for `walletOfferUri` while the offer is open, the claim date once claimed, and a sentence to ask the school when there is no offer. The section MUST NOT render for any other user.
+On `CredentialDetail`, a section MUST show the holder (the user whose id is `learnerUserId`) a QR code and an "Naar wallet" link for `walletOfferUri` while the offer is open, the claim date once claimed, and a sentence to ask the school when there is no offer. The section MUST NOT render for any other user.
 
 #### Scenario: The learner scans the offer
 
 - **GIVEN** a learner whose certificate has an open wallet offer
 - **WHEN** the learner opens the certificate
-- **THEN** the page shows a QR code that encodes `walletOfferUri` and an "Open in wallet app" link to it
+- **THEN** the page shows a QR code that encodes `walletOfferUri` and an "Naar wallet" link to it
 
 #### Scenario: No offer yet
 
