@@ -175,6 +175,14 @@
 				:title="t('learniq', 'Modules')"
 				class="course-builder__modules">
 
+				<p class="course-builder__reorder-hint">
+					{{
+						t(
+							'learniq',
+							'Drag a chapter or lesson to another place, or use the Move up and Move down buttons. With the keyboard: Tab to the button, Enter moves it. The new order is saved at once and read out.',
+						)
+					}}
+				</p>
 				<!-- vuedraggable 4 (Vue 3) renders its rows through the REQUIRED
 				     `#item` scoped slot and computes each key from `itemKey`.
 				     A `v-for` in the default slot is the Vue 2 API: v4 throws
@@ -209,6 +217,7 @@
 									"
 									@click="moveModuleUp(mIdx)">
 									<ChevronUp :size="18" />
+									<span class="course-builder__move-label">{{ t('learniq', 'Move up') }}</span>
 								</button>
 								<button
 									type="button"
@@ -221,6 +230,7 @@
 									"
 									@click="moveModuleDown(mIdx)">
 									<ChevronDown :size="18" />
+									<span class="course-builder__move-label">{{ t('learniq', 'Move down') }}</span>
 								</button>
 								<button
 									type="button"
@@ -242,7 +252,7 @@
 								class="course-builder__lesson-list"
 								handle=".course-builder__handle"
 								itemKey="id"
-								@end="onLessonsDragEnd(module)">
+								@end="onLessonsDragEnd(module, $event)">
 								<template #item="{ element: lesson, index: lIdx }">
 									<li class="course-builder__lesson">
 										<span
@@ -269,6 +279,7 @@
 											"
 											@click="moveLessonUp(module, lIdx)">
 											<ChevronUp :size="16" />
+											<span class="course-builder__move-label">{{ t('learniq', 'Move up') }}</span>
 										</button>
 										<button
 											type="button"
@@ -287,6 +298,7 @@
 											"
 											@click="moveLessonDown(module, lIdx)">
 											<ChevronDown :size="16" />
+											<span class="course-builder__move-label">{{ t('learniq', 'Move down') }}</span>
 										</button>
 										<button
 											type="button"
@@ -670,31 +682,46 @@ export default {
 		},
 
 		/**
-		 * Move `list[fromIndex]` to `toIndex`, persist the resulting order,
-		 * and announce the result. Used by the keyboard move-up/move-down
-		 * controls; the drag-and-drop `@end` handlers reuse `persistOrder`
-		 * directly since vuedraggable's `v-model` has already spliced the
-		 * array by the time `@end` fires.
+		 * Move one item of a list, persist the resulting order, and announce
+		 * the result. Used by the keyboard move-up/move-down controls; the
+		 * drag-and-drop `@end` handlers reuse `persistOrder` directly since
+		 * vuedraggable's `v-model` has already spliced the array by the time
+		 * `@end` fires.
 		 *
-		 * @param {Array<object>} list Modules or lessons array.
-		 * @param {number} fromIndex Current index.
-		 * @param {number} toIndex Target index.
-		 * @param {string} schema 'Course' or 'Lesson'.
-		 * @param {string} noun Human-readable noun for the announcement ('Module' or 'Lesson').
+		 * @param {{list: Array<object>, from: number, to: number, schema: string}} move
+		 *   The list, the current and target index, and 'Course' or 'Lesson'.
 		 * @return {Promise<void>}
-		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
+		 * @spec openspec/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard
 		 */
-		async reorder(list, fromIndex, toIndex, schema, noun) {
-			if (fromIndex === toIndex || toIndex < 0 || toIndex >= list.length)
+		async reorder(move) {
+			const { list, from, to } = move
+			if (from === to || to < 0 || to >= list.length) {
 				return
-			const [moved] = list.splice(fromIndex, 1)
-			list.splice(toIndex, 0, moved)
-			await this.persistOrder(list, schema)
-			this.liveMessage = this.t(
-				'learniq',
-				'{noun} moved to position {pos} of {total}',
-				{ noun, pos: toIndex + 1, total: list.length },
-			)
+			}
+			const [moved] = list.splice(from, 1)
+			list.splice(to, 0, moved)
+			await this.persistOrder(list, move.schema)
+			this.announceMove(move)
+		},
+
+		/**
+		 * Read out where an item went and that the order is saved, as the
+		 * board LqCursus draws it: "Les Signaalwoorden verplaatst naar
+		 * positie 2 van 5. Opgeslagen."
+		 *
+		 * @param {{list: Array<object>, to: number, schema: string}} move The finished move.
+		 * @return {void}
+		 * @spec openspec/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard
+		 */
+		announceMove(move) {
+			const values = {
+				name: move.list[move.to]?.name ?? '',
+				pos: move.to + 1,
+				total: move.list.length,
+			}
+			this.liveMessage = move.schema === 'Course'
+				? this.t('learniq', 'Chapter {name} moved to position {pos} of {total}. Saved.', values)
+				: this.t('learniq', 'Lesson {name} moved to position {pos} of {total}. Saved.', values)
 		},
 
 		/**
@@ -705,13 +732,7 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		moveModuleUp(idx) {
-			return this.reorder(
-				this.modules,
-				idx,
-				idx - 1,
-				'Course',
-				this.t('learniq', 'Module'),
-			)
+			return this.reorder({ list: this.modules, from: idx, to: idx - 1, schema: 'Course' })
 		},
 
 		/**
@@ -722,13 +743,7 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		moveModuleDown(idx) {
-			return this.reorder(
-				this.modules,
-				idx,
-				idx + 1,
-				'Course',
-				this.t('learniq', 'Module'),
-			)
+			return this.reorder({ list: this.modules, from: idx, to: idx + 1, schema: 'Course' })
 		},
 
 		/**
@@ -738,13 +753,7 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		moveLessonUp(module, idx) {
-			return this.reorder(
-				module.lessons,
-				idx,
-				idx - 1,
-				'Lesson',
-				this.t('learniq', 'Lesson'),
-			)
+			return this.reorder({ list: module.lessons, from: idx, to: idx - 1, schema: 'Lesson' })
 		},
 
 		/**
@@ -754,37 +763,33 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		moveLessonDown(module, idx) {
-			return this.reorder(
-				module.lessons,
-				idx,
-				idx + 1,
-				'Lesson',
-				this.t('learniq', 'Lesson'),
-			)
+			return this.reorder({ list: module.lessons, from: idx, to: idx + 1, schema: 'Lesson' })
 		},
 
 		/**
 		 * vuedraggable `@end` handler for the modules list — the array is
 		 * already reordered by `v-model`; just persist + announce.
 		 *
+		 * @param {{newIndex: number}} event The drop, with the item's new index.
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
-		async onModulesDragEnd() {
+		async onModulesDragEnd(event) {
 			await this.persistOrder(this.modules, 'Course')
-			this.liveMessage = this.t('learniq', 'Module order updated.')
+			this.announceMove({ list: this.modules, to: event?.newIndex ?? 0, schema: 'Course' })
 		},
 
 		/**
 		 * vuedraggable `@end` handler for one module's lesson list.
 		 *
 		 * @param {object} module The module whose lessons were reordered.
+		 * @param {{newIndex: number}} event The drop, with the item's new index.
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
-		async onLessonsDragEnd(module) {
+		async onLessonsDragEnd(module, event) {
 			await this.persistOrder(module.lessons, 'Lesson')
-			this.liveMessage = this.t('learniq', 'Lesson order updated.')
+			this.announceMove({ list: module.lessons, to: event?.newIndex ?? 0, schema: 'Lesson' })
 		},
 
 		/**
@@ -1121,6 +1126,17 @@ export default {
 	color: var(--color-text-maxcontrast);
 	padding: 4px;
 	display: inline-flex;
+	align-items: center;
+}
+
+.course-builder__move-label {
+	margin-inline-start: calc(var(--default-grid-baseline) * 1);
+	font-size: var(--font-size-small, 13px);
+}
+
+.course-builder__reorder-hint {
+	color: var(--color-text-maxcontrast);
+	margin: 0 0 calc(var(--default-grid-baseline) * 3);
 }
 
 .course-builder__icon-btn:disabled {
