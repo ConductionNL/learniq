@@ -155,7 +155,7 @@ class CoursePackageImportService {
 					sourceFormat: $package->format,
 					courseId: null,
 					entries: [],
-					errorMessage: 'Could not extract or parse the package: ' . $e->getMessage(),
+					errorMessage: 'Could not extract or parse the package: ' . $package->withoutPaths(message: $e->getMessage()),
 				),
 			);
 		}
