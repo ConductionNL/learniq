@@ -108,8 +108,26 @@ class CoursePackageImportGoldenTest extends TestCase {
 			'unsafe moodle backup' => ['@malicious-path-traversal.tar.gz', 'backup.mbz'],
 			'json without course' => ['{"lessons": []}', 'export.json'],
 			'json export' => [json_encode($tree), 'export.json'],
+			'json export of every part' => [json_encode(self::fullTree()), 'export.json'],
 		];
 	}//end scenarios()
+
+	/**
+	 * An export with every part the importer knows, with and without ids and with and without optional fields.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function fullTree(): array {
+		return [
+			'course' => ['id' => 'source-course', 'name' => 'Physics 101'],
+			'childCourses' => [['id' => 'source-child', 'name' => 'Module 1'], ['uuid' => 'source-child-2'], []],
+			'lessons' => [['id' => 'source-lesson', 'name' => 'Intro', 'order' => 2, 'contentType' => 'video', 'contentRef' => 'ref'], []],
+			'materials' => [['id' => 'source-material', 'title' => 'Link', 'kind' => 'url', 'url' => 'https://example.org'], ['title' => 'Notes', 'contentBase64' => base64_encode('notes')], []],
+			'rubrics' => [['id' => 'source-rubric', 'name' => 'Rubric', 'criteria' => [['name' => 'c']], 'maxPoints' => 10], []],
+			'assessments' => [['id' => 'source-assessment', 'title' => 'Exam'], []],
+			'ltiPlacements' => [['id' => 'source-placement'], []],
+		];
+	}//end fullTree()
 
 	/**
 	 * Every scenario's calls and report equal the recorded golden.

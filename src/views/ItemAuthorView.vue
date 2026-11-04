@@ -25,11 +25,11 @@
 -->
 
 <template>
-	<div class="item-author">
+	<div class="item-author lq-board-page">
 		<!-- Loading -->
 		<div v-if="loading" class="item-author__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('learniq', 'Loading item...') }}</span>
+			<span>{{ t('learniq', 'Loading item…') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -50,9 +50,7 @@
 
 		<template v-else>
 			<header class="item-author__header">
-				<h2 class="item-author__heading">
-					{{ id ? t('learniq', 'Edit item') : t('learniq', 'New item') }}
-				</h2>
+				<CnPageHeader :title="id ? t('learniq', 'Edit item') : t('learniq', 'New item')" />
 				<router-link
 					v-if="id"
 					class="item-author__analysis-link"
@@ -61,119 +59,119 @@
 				</router-link>
 			</header>
 
-			<!-- Title -->
-			<div class="item-author__field">
-				<label class="item-author__label" for="item-title">
-					{{ t('learniq', 'Item title') }}
-				</label>
-				<input
-					id="item-title"
-					v-model="form.title"
-					class="item-author__input"
-					type="text"
-					:placeholder="t('learniq', 'Enter item title...')" />
-			</div>
+			<CnDetailCard class="item-author__form">
+				<!-- Title -->
+				<div class="item-author__field">
+					<label class="item-author__label" for="item-title">
+						{{ t('learniq', 'Item title') }}
+					</label>
+					<input
+						id="item-title"
+						v-model="form.title"
+						class="item-author__input"
+						type="text"
+						:placeholder="t('learniq', 'Enter item title…')" />
+				</div>
 
-			<!-- Interaction type -->
-			<div class="item-author__field">
-				<label class="item-author__label" for="item-type">
-					{{ t('learniq', 'Interaction type') }}
-				</label>
-				<select
-					id="item-type"
-					v-model="form.interactionType"
-					class="item-author__select">
-					<option value="choice">
-						{{ t('learniq', 'Multiple choice') }}
-					</option>
-					<option value="extendedText">
-						{{ t('learniq', 'Essay (extended text)') }}
-					</option>
-					<option disabled value="textEntry">
-						{{
-							t(
-								'learniq',
-								'Text entry (editor coming soon — use QTI import)',
-							)
-						}}
-					</option>
-					<option disabled value="hotspot">
-						{{
-							t(
-								'learniq',
-								'Hotspot (editor coming soon — use QTI import)',
-							)
-						}}
-					</option>
-					<option disabled value="order">
-						{{
-							t(
-								'learniq',
-								'Order (editor coming soon — use QTI import)',
-							)
-						}}
-					</option>
-					<option disabled value="match">
-						{{
-							t(
-								'learniq',
-								'Match (editor coming soon — use QTI import)',
-							)
-						}}
-					</option>
-					<option disabled value="gapMatch">
-						{{
-							t(
-								'learniq',
-								'Gap match (editor coming soon — use QTI import)',
-							)
-						}}
-					</option>
-					<option disabled value="inlineChoice">
-						{{
-							t(
-								'learniq',
-								'Inline choice (editor coming soon — use QTI import)',
-							)
-						}}
-					</option>
-				</select>
-			</div>
+				<!-- Interaction type -->
+				<div class="item-author__field">
+					<label class="item-author__label" for="item-type">
+						{{ t('learniq', 'Interaction type') }}
+					</label>
+					<select
+						id="item-type"
+						v-model="form.interactionType"
+						class="item-author__select">
+						<option value="choice">
+							{{ t('learniq', 'Multiple choice') }}
+						</option>
+						<option value="extendedText">
+							{{ t('learniq', 'Essay (extended text)') }}
+						</option>
+						<option disabled value="textEntry">
+							{{
+								t(
+									'learniq',
+									'Text entry (editor coming soon — use QTI import)',
+								)
+							}}
+						</option>
+						<option disabled value="hotspot">
+							{{
+								t(
+									'learniq',
+									'Hotspot (editor coming soon — use QTI import)',
+								)
+							}}
+						</option>
+						<option disabled value="order">
+							{{
+								t(
+									'learniq',
+									'Order (editor coming soon — use QTI import)',
+								)
+							}}
+						</option>
+						<option disabled value="match">
+							{{
+								t(
+									'learniq',
+									'Match (editor coming soon — use QTI import)',
+								)
+							}}
+						</option>
+						<option disabled value="gapMatch">
+							{{
+								t(
+									'learniq',
+									'Gap match (editor coming soon — use QTI import)',
+								)
+							}}
+						</option>
+						<option disabled value="inlineChoice">
+							{{
+								t(
+									'learniq',
+									'Inline choice (editor coming soon — use QTI import)',
+								)
+							}}
+						</option>
+					</select>
+				</div>
 
-			<!-- Max score -->
-			<div class="item-author__field">
-				<label class="item-author__label" for="item-max-score">
-					{{ t('learniq', 'Max score') }}
-				</label>
-				<input
-					id="item-max-score"
-					v-model.number="form.maxScore"
-					class="item-author__input item-author__input--narrow"
-					type="number"
-					min="0"
-					step="0.5" />
-			</div>
+				<!-- Max score -->
+				<div class="item-author__field">
+					<label class="item-author__label" for="item-max-score">
+						{{ t('learniq', 'Max score') }}
+					</label>
+					<input
+						id="item-max-score"
+						v-model.number="form.maxScore"
+						class="item-author__input item-author__input--narrow"
+						type="number"
+						min="0"
+						step="0.5" />
+				</div>
 
-			<!-- Prompt / stem -->
-			<div class="item-author__field">
-				<label class="item-author__label" for="item-prompt">
-					{{ t('learniq', 'Question prompt / stem') }}
-				</label>
-				<textarea
-					id="item-prompt"
-					v-model="form.prompt"
-					class="item-author__textarea"
-					rows="4"
-					:placeholder="t('learniq', 'Enter the question text...')" />
-			</div>
+				<!-- Prompt / stem -->
+				<div class="item-author__field">
+					<label class="item-author__label" for="item-prompt">
+						{{ t('learniq', 'Question prompt / stem') }}
+					</label>
+					<textarea
+						id="item-prompt"
+						v-model="form.prompt"
+						class="item-author__textarea"
+						rows="4"
+						:placeholder="t('learniq', 'Enter the question text…')" />
+				</div>
+			</CnDetailCard>
 
 			<!-- Choice-specific: answer options -->
-			<div
+			<CnDetailCard
 				v-if="form.interactionType === 'choice'"
+				:title="t('learniq', 'Answer options')"
 				class="item-author__choices">
-				<h3 class="item-author__sub-heading">
-					{{ t('learniq', 'Answer options') }}
-				</h3>
 				<ul class="item-author__choice-list">
 					<li
 						v-for="(choice, idx) in form.choices"
@@ -215,7 +213,7 @@
 						)
 					}}
 				</p>
-			</div>
+			</CnDetailCard>
 
 			<!-- extendedText note -->
 			<div
@@ -250,11 +248,13 @@
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import { buildItemXml } from '../utils/qtiItemXml.js'
 
 export default {
 	name: 'ItemAuthorView',
+	components: { CnDetailCard, CnPageHeader },
 
 	props: {
 		/**
@@ -501,13 +501,6 @@ export default {
 </script>
 
 <style scoped>
-.item-author {
-	max-width: 720px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
 .item-author__loading,
 .item-author__error {
 	display: flex;
@@ -521,12 +514,6 @@ export default {
 	align-items: baseline;
 	justify-content: space-between;
 	gap: calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.item-author__heading {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .item-author__analysis-link {
@@ -562,11 +549,6 @@ export default {
 
 .item-author__textarea {
 	resize: vertical;
-}
-
-.item-author__sub-heading {
-	font-weight: 600;
-	margin-bottom: var(--default-grid-baseline, 8px);
 }
 
 .item-author__choice-list {
