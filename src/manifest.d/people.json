@@ -820,6 +820,13 @@
 						"successMessage": "The Europass version was created.",
 						"errorMessage": "The Europass version could not be created. It exists already, the certificate is not issued, or only HR and compliance officers can create it."
 					}
+				],
+				"bodyWidgets": [
+					{
+						"id": "credential-wallet-offer",
+						"component": "CredentialWalletOffer",
+						"placement": "after-data"
+					}
 				]
 			}
 		},

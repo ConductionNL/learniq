@@ -9,9 +9,9 @@
 
 ## 2. Learner section
 
-- [ ] 2.1 `src/components/sections/CredentialWalletOffer.vue`: renders only when `getCurrentUser().uid === object.learnerUserId`; QR from `walletOfferUri` with a small QR library (add to package.json, licence checked), the link, the claimed date, the empty sentence. Register in `src/registry.js` as `kind: 'section'`. (UI waits: board LqLlCertificaat draws the learner starting a new code, "Naar wallet" and "Nieuwe code maken", against design D2; QUESTIONS)
-- [ ] 2.2 `src/manifest.d/people.json` CredentialDetail: `bodyWidgets` entry `credential-wallet-offer`. Verify: `npm run check:manifest`.
-- [ ] 2.3 Strings in English and Dutch (design). Verify: `npm run check:l10n`.
+- [x] 2.1 `src/components/sections/CredentialWalletOffer.vue`: renders only when `getCurrentUser().uid === object.learnerUserId`; the QR is nextcloud-vue's `CnQrCode` over `walletOfferUri` (no new library), the "Naar wallet" link, the claim date, a sentence after a failed offer and the empty sentence. Registered in `src/registry.js` as `kind: 'section'`. The learner does not start an offer: "Nieuwe code maken" and "Opnieuw proberen" on LqLlCertificaat stay with the school (design D2), so the failed and empty states ask the school. Verify: tests/unit-js/credentialWalletOffer.test.mjs.
+- [x] 2.2 `src/manifest.d/people.json` CredentialDetail: `bodyWidgets` entry `credential-wallet-offer`. Verify: `npm run check:manifest`.
+- [x] 2.3 Strings in English and Dutch (design). Verify: `npm run check:l10n`.
 
 ## 3. Portal
 
@@ -19,6 +19,6 @@
 
 ## 4. Tests and close out
 
-- [ ] 4.1 Vitest on the section: holder with offer, holder without, staff user.
+- [x] 4.1 Node test on the section's state (learniq has no vitest): holder with offer, claimed, failed, none, staff user (tests/unit-js/credentialWalletOffer.test.mjs).
 - [ ] 4.2 Playwright `tests/e2e/credential-wallet-offer.spec.ts`: as staff run "offer to wallet" against the integriq test double, sign in as the learner, see the QR and link. Tag the scenarios with `@e2e`.
 - [ ] 4.3 Set row `cred-push-to-eudi-wallet` to `built` once 4.2 passes live with integriq; archive this change. The portal QR stays with portaliq.

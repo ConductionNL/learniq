@@ -3869,7 +3869,15 @@
         "Hide the lessons of {name}": "Hide the lessons of {name}",
         "Show on the board": "Show on the board",
         "Changes in {seconds} s": "Changes in {seconds} s",
-        "This code holds until you close check-in.": "This code holds until you close check-in."
+        "This code holds until you close check-in.": "This code holds until you close check-in.",
+        "In your wallet": "In your wallet",
+        "With your EUDI wallet you show this certificate without paper. Scan the code with the wallet app on your phone.": "With your EUDI wallet you show this certificate without paper. Scan the code with the wallet app on your phone.",
+        "Wallet offer for this certificate": "Wallet offer for this certificate",
+        "Offered to your wallet on {date}. Not collected yet: scan the code with your wallet app.": "Offered to your wallet on {date}. Not collected yet: scan the code with your wallet app.",
+        "To wallet": "To wallet",
+        "In your wallet since {date}.": "In your wallet since {date}.",
+        "Putting this certificate in your wallet did not work. Your certificate stays valid; ask your school to try again.": "Putting this certificate in your wallet did not work. Your certificate stays valid; ask your school to try again.",
+        "Ask your school to put this certificate in your wallet.": "Ask your school to put this certificate in your wallet."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

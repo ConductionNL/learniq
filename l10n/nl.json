@@ -4361,7 +4361,15 @@
         "Hide the lessons of {name}": "Lessen van {name} verbergen",
         "Show on the board": "Op het bord tonen",
         "Changes in {seconds} s": "Verandert over {seconds} s",
-        "This code holds until you close check-in.": "Deze code blijft geldig tot je het aanmelden sluit."
+        "This code holds until you close check-in.": "Deze code blijft geldig tot je het aanmelden sluit.",
+        "In your wallet": "In je wallet",
+        "With your EUDI wallet you show this certificate without paper. Scan the code with the wallet app on your phone.": "Met je EUDI-wallet laat je dit certificaat zien zonder papier. Scan de code met de wallet-app op je telefoon.",
+        "Wallet offer for this certificate": "Wallet-aanbod voor dit certificaat",
+        "Offered to your wallet on {date}. Not collected yet: scan the code with your wallet app.": "Aangeboden aan je wallet op {date}. Nog niet opgehaald: scan de code met je wallet-app.",
+        "To wallet": "Naar wallet",
+        "In your wallet since {date}.": "In je wallet sinds {date}.",
+        "Putting this certificate in your wallet did not work. Your certificate stays valid; ask your school to try again.": "Naar wallet lukte niet. Je certificaat blijft gewoon geldig; vraag je school het opnieuw te proberen.",
+        "Ask your school to put this certificate in your wallet.": "Vraag je school om dit certificaat in je wallet te zetten."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

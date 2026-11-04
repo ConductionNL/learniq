@@ -38,25 +38,28 @@ The admin overview MUST name `learniq.openconnector_api_token` while it is empty
 
 ### Requirement: The holder sees the offer on their own certificate
 
-On `CredentialDetail`, a section MUST show the holder (the user whose id is `learnerUserId`) a QR code and an "Naar wallet" link for `walletOfferUri` while the offer is open, the claim date once claimed, and a sentence to ask the school when there is no offer. The section MUST NOT render for any other user.
+On `CredentialDetail`, a section MUST show the holder (the user whose id is `learnerUserId`) a QR code (`CnQrCode`) and an "Naar wallet" link for `walletOfferUri` while the offer is open, the claim date once claimed, a sentence that the certificate stays valid after a failed offer, and a sentence to ask the school when there is no offer (learniq/LqLlCertificaat, "In je wallet"). The holder MUST NOT start an offer from this section (design D2). The section MUST NOT render for any other user.
 
 #### Scenario: The learner scans the offer
 
 - **GIVEN** a learner whose certificate has an open wallet offer
 - **WHEN** the learner opens the certificate
 - **THEN** the page shows a QR code that encodes `walletOfferUri` and an "Naar wallet" link to it
+- @e2e exclude needs an integriq offer and a learner session; covered by tests/unit-js/credentialWalletOffer.test.mjs
 
 #### Scenario: No offer yet
 
 - **GIVEN** a learner whose certificate has no wallet offer
 - **WHEN** the learner opens it
 - **THEN** the section says "Ask your school to put this certificate in your wallet."
+- @e2e exclude needs a learner session; covered by tests/unit-js/credentialWalletOffer.test.mjs
 
 #### Scenario: Staff do not get the QR code
 
 - **GIVEN** a user in `hr` and a certificate with an open offer
 - **WHEN** that user opens the certificate
 - **THEN** the wallet section is not shown
+- @e2e exclude covered by tests/unit-js/credentialWalletOffer.test.mjs
 
 ### Requirement: The course participant finds the offer in the portal
 
