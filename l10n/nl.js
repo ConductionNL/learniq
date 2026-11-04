@@ -4298,7 +4298,10 @@ OC.L10N.register(
         "Hide the lessons of {name}": "Lessen van {name} verbergen",
         "Show on the board": "Op het bord tonen",
         "Changes in {seconds} s": "Verandert over {seconds} s",
-        "This code holds until you close check-in.": "Deze code blijft geldig tot je het aanmelden sluit."
+        "This code holds until you close check-in.": "Deze code blijft geldig tot je het aanmelden sluit.",
+        "Signals in my mentor group": "Signalen in mijn mentorgroep",
+        "No open signals for the pupils you mentor": "Geen open signalen voor de leerlingen van wie u mentor bent",
+        "Open signals": "Open signalen"
     },
     "nplurals=2; plural=(n != 1);"
 )

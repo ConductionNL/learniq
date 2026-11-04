@@ -3821,7 +3821,10 @@ OC.L10N.register(
         "Hide the lessons of {name}": "Hide the lessons of {name}",
         "Show on the board": "Show on the board",
         "Changes in {seconds} s": "Changes in {seconds} s",
-        "This code holds until you close check-in.": "This code holds until you close check-in."
+        "This code holds until you close check-in.": "This code holds until you close check-in.",
+        "Signals in my mentor group": "Signals in my mentor group",
+        "No open signals for the pupils you mentor": "No open signals for the pupils you mentor",
+        "Open signals": "Open signals"
     },
     "nplurals=2; plural=(n != 1);"
 )
