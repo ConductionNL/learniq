@@ -36,6 +36,7 @@ use ReflectionNamedType;
  * A forged `userId` request parameter naming a manager does not let a trainer invite.
  *
  * @covers \OCA\Learniq\Controller\PortalEmployerInviteController
+ * @uses   \OCA\Learniq\Service\CallerGroups
  */
 class PortalEmployerInviteForgedUserTest extends TestCase {
 
