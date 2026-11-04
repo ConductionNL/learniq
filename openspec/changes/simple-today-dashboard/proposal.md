@@ -14,8 +14,8 @@ Today shows, top to bottom:
 
 1. A greeting with the date.
 2. **First today**: a card that appears only when attendance flags are still open. Its button opens exactly those flags.
-3. Four counts: Lessons today, Lessons this week, Assignments due, Unexcused today. Each opens the list it counts, with the same filter.
-4. **Lessons this week**: the lessons per working day. A lesson opens its page.
+3. Six counters: Lessen vandaag, Deze week, In te leveren, Ongeoorloofd, Na te kijken, Aanwezig vandaag. The first four open the list they count, with the same filter. A school's own teacher boards draw their own counters.
+4. **Mijn lessen vandaag**: today's lessons, with a link to Weekrooster. A lesson opens its page.
 5. **Other dashboards**: the Teaching, Learner and Administration dashboards, one card each, for whoever may open them.
 
 The header holds one button: Today's register.
@@ -29,9 +29,9 @@ The profile file gains one overlay of a new kind on the `Dashboard` page. `src/u
 - `when`: a predicate on the manifest runtime. The overlay applies only for a signed-in user it passes for. It is judged by the library's own evaluator, which `src/main.js` hands in. Without an evaluator the overlay is skipped and the page stays what it was.
 - `page`: replaces the page's `type`, `title` or `component`. A `null` takes the key out.
 
-## What the design shows and this does not
+## What the design shows and the first build does not
 
-learniq has no data or no page for these, so they are left out and named here:
+The specs follow the boards (decision 130), so these are still to build. learniq has no data or no page for them yet:
 
 - **Na te kijken** and the marking progress bars: submissions are listed per assignment only.
 - **Aanwezig vandaag** as a percentage: there is no count of expected pupils to divide by. The count of unexcused absences marked today is shown instead.

@@ -1,7 +1,7 @@
 # parent-conferences Specification
 
 ## Purpose
-TBD - created by archiving change parent-evening-planner. Update Purpose after archive.
+Plan a parent evening: a round with its scope and slot length, digital invitations and a booking window that closes on schedule. Guardians choose times, the schedule is generated, and the talk is recorded in the pupil's dossier.
 
 ## Requirements
 
