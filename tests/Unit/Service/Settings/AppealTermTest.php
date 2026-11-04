@@ -50,9 +50,9 @@ class AppealTermTest extends TestCase {
 	 */
 	#[DataProvider('storedValues')]
 	public function testAStoredValueReadsAsItsTermOrTheDefault(string $stored, int $expected): void {
-		$config = $this->createMock(IAppConfig::class);
+		$config = $this->createMock(originalClassName: IAppConfig::class);
 		$config->method('getValueString')->with('learniq', 'examBoardAppealDays', '')->willReturn($stored);
 
-		self::assertSame($expected, (new AppealTerm($config))->days());
+		self::assertSame(expected: $expected, actual: (new AppealTerm(appConfig: $config))->days());
 	}//end testAStoredValueReadsAsItsTermOrTheDefault()
 }//end class

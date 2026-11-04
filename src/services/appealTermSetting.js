@@ -26,6 +26,7 @@ const DAY_MS = 24 * 60 * 60 * 1000
  *
  * @param {unknown} raw The value.
  * @return {number|null} The days, or null when the value is no term.
+ * @spec openspec/specs/exam-board/spec.md#scenario-the-school-sets-its-own-appeal-term
  */
 export function parseAppealDays(raw) {
 	const text = String(raw ?? '').trim()
@@ -42,6 +43,7 @@ export function parseAppealDays(raw) {
  * @param {Date} decided The day of the decision.
  * @param {number} days The appeal term.
  * @return {Date} The last day.
+ * @spec openspec/specs/exam-board/spec.md#scenario-the-school-sets-its-own-appeal-term
  */
 export function appealUntil(decided, days) {
 	return new Date(decided.getTime() + days * DAY_MS)
@@ -52,6 +54,7 @@ export function appealUntil(decided, days) {
  *
  * @param {{http: object, url: string}} endpoint The client and the settings address.
  * @return {Promise<number>} The days, the default when none is stored.
+ * @spec openspec/specs/exam-board/spec.md#scenario-the-school-sets-its-own-appeal-term
  */
 export async function loadAppealDays(endpoint) {
 	const { data } = await endpoint.http.get(endpoint.url)
@@ -64,6 +67,7 @@ export async function loadAppealDays(endpoint) {
  * @param {{http: object, url: string}} endpoint The client and the settings address.
  * @param {number} days The term.
  * @return {Promise<number>} The stored days.
+ * @spec openspec/specs/exam-board/spec.md#scenario-the-school-sets-its-own-appeal-term
  */
 export async function saveAppealDays(endpoint, days) {
 	const { data } = await endpoint.http.put(endpoint.url, {
