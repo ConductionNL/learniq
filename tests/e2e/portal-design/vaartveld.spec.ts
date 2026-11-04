@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2026 Conduction B.V.
 
 /**
- * Vaartveld College (vo), against school-design/vaartveld/preview. The
+ * Zuiddrecht College (vo), against school-design/vaartveld/preview. The
  * website boards run signed out; the pupil boards sign Fenna de Jong in with her
  * school account (`PORTAL_DESIGN_PASSWORD`). Today's timetable is not
  * checked: it waits for the pupil's sessions (site-pupil-portal-design T1).
@@ -36,7 +36,7 @@ const DESIGN = {
 }
 const FOOTER = [
 	'Een vraag? Bel of mail de school.',
-	'Vaartveld College is een voorbeeldschool.',
+	'Zuiddrecht College is een voorbeeldschool.',
 ]
 const NOOR = {
 	user: 'vo-leerling-121',
@@ -58,7 +58,7 @@ test.describe('vaartveld: the website', () => {
 			'Rooster en wijzigingen',
 			'Nieuws',
 			dated('Informatieavond profielkeuze op dinsdag 3 november'),
-			'Mijn Vaartveld',
+			'Mijn Zuiddrecht',
 			'Agenda',
 			'Mentorgesprekken',
 			'Toetsweek 1, bovenbouw',
@@ -129,7 +129,7 @@ test.describe('vaartveld: the website', () => {
 	})
 })
 
-test.describe('vaartveld: Mijn Vaartveld (Fenna de Jong)', () => {
+test.describe('vaartveld: Mijn Zuiddrecht (Fenna de Jong)', () => {
 	test('MijnOverzicht', async ({ browser }, info) => {
 		await ensurePortalAccount(
 			NOOR.user,

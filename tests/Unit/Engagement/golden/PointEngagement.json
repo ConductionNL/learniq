@@ -1,0 +1,762 @@
+{
+    "none / none": {
+        "result": {
+            "totalPoints": 0.0,
+            "levelId": null,
+            "currentStreakDays": 0,
+            "longestStreakDays": 0,
+            "lastActivityDate": null
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "none / ladder": {
+        "result": {
+            "totalPoints": 0.0,
+            "levelId": "bronze",
+            "currentStreakDays": 0,
+            "longestStreakDays": 0,
+            "lastActivityDate": null
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "none / only high": {
+        "result": {
+            "totalPoints": 0.0,
+            "levelId": null,
+            "currentStreakDays": 0,
+            "longestStreakDays": 0,
+            "lastActivityDate": null
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "none / no ids": {
+        "result": {
+            "totalPoints": 0.0,
+            "levelId": null,
+            "currentStreakDays": 0,
+            "longestStreakDays": 0,
+            "lastActivityDate": null
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "none / unset threshold first": {
+        "result": {
+            "totalPoints": 0.0,
+            "levelId": "bronze",
+            "currentStreakDays": 0,
+            "longestStreakDays": 0,
+            "lastActivityDate": null
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "today run / none": {
+        "result": {
+            "totalPoints": 13.5,
+            "levelId": null,
+            "currentStreakDays": 3,
+            "longestStreakDays": 3,
+            "lastActivityDate": "2026-11-03"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "today run / ladder": {
+        "result": {
+            "totalPoints": 13.5,
+            "levelId": "silver",
+            "currentStreakDays": 3,
+            "longestStreakDays": 3,
+            "lastActivityDate": "2026-11-03"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "today run / only high": {
+        "result": {
+            "totalPoints": 13.5,
+            "levelId": null,
+            "currentStreakDays": 3,
+            "longestStreakDays": 3,
+            "lastActivityDate": "2026-11-03"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "today run / no ids": {
+        "result": {
+            "totalPoints": 13.5,
+            "levelId": null,
+            "currentStreakDays": 3,
+            "longestStreakDays": 3,
+            "lastActivityDate": "2026-11-03"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "today run / unset threshold first": {
+        "result": {
+            "totalPoints": 13.5,
+            "levelId": "bronze",
+            "currentStreakDays": 3,
+            "longestStreakDays": 3,
+            "lastActivityDate": "2026-11-03"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "yesterday run / none": {
+        "result": {
+            "totalPoints": 26.0,
+            "levelId": null,
+            "currentStreakDays": 3,
+            "longestStreakDays": 3,
+            "lastActivityDate": "2026-11-02"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "yesterday run / ladder": {
+        "result": {
+            "totalPoints": 26.0,
+            "levelId": "gold-uuid",
+            "currentStreakDays": 3,
+            "longestStreakDays": 3,
+            "lastActivityDate": "2026-11-02"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "yesterday run / only high": {
+        "result": {
+            "totalPoints": 26.0,
+            "levelId": null,
+            "currentStreakDays": 3,
+            "longestStreakDays": 3,
+            "lastActivityDate": "2026-11-02"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "yesterday run / no ids": {
+        "result": {
+            "totalPoints": 26.0,
+            "levelId": null,
+            "currentStreakDays": 3,
+            "longestStreakDays": 3,
+            "lastActivityDate": "2026-11-02"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "yesterday run / unset threshold first": {
+        "result": {
+            "totalPoints": 26.0,
+            "levelId": "bronze",
+            "currentStreakDays": 3,
+            "longestStreakDays": 3,
+            "lastActivityDate": "2026-11-02"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "broken run / none": {
+        "result": {
+            "totalPoints": 33.0,
+            "levelId": null,
+            "currentStreakDays": 0,
+            "longestStreakDays": 3,
+            "lastActivityDate": "2026-10-31"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "broken run / ladder": {
+        "result": {
+            "totalPoints": 33.0,
+            "levelId": "gold-uuid",
+            "currentStreakDays": 0,
+            "longestStreakDays": 3,
+            "lastActivityDate": "2026-10-31"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "broken run / only high": {
+        "result": {
+            "totalPoints": 33.0,
+            "levelId": null,
+            "currentStreakDays": 0,
+            "longestStreakDays": 3,
+            "lastActivityDate": "2026-10-31"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "broken run / no ids": {
+        "result": {
+            "totalPoints": 33.0,
+            "levelId": null,
+            "currentStreakDays": 0,
+            "longestStreakDays": 3,
+            "lastActivityDate": "2026-10-31"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "broken run / unset threshold first": {
+        "result": {
+            "totalPoints": 33.0,
+            "levelId": "bronze",
+            "currentStreakDays": 0,
+            "longestStreakDays": 3,
+            "lastActivityDate": "2026-10-31"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "odd values / none": {
+        "result": {
+            "totalPoints": 3.0,
+            "levelId": null,
+            "currentStreakDays": 1,
+            "longestStreakDays": 1,
+            "lastActivityDate": "2026-11-03"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "odd values / ladder": {
+        "result": {
+            "totalPoints": 3.0,
+            "levelId": "bronze",
+            "currentStreakDays": 1,
+            "longestStreakDays": 1,
+            "lastActivityDate": "2026-11-03"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "odd values / only high": {
+        "result": {
+            "totalPoints": 3.0,
+            "levelId": null,
+            "currentStreakDays": 1,
+            "longestStreakDays": 1,
+            "lastActivityDate": "2026-11-03"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "odd values / no ids": {
+        "result": {
+            "totalPoints": 3.0,
+            "levelId": null,
+            "currentStreakDays": 1,
+            "longestStreakDays": 1,
+            "lastActivityDate": "2026-11-03"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "odd values / unset threshold first": {
+        "result": {
+            "totalPoints": 3.0,
+            "levelId": "bronze",
+            "currentStreakDays": 1,
+            "longestStreakDays": 1,
+            "lastActivityDate": "2026-11-03"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "odd values long ago / none": {
+        "result": {
+            "totalPoints": 6.0,
+            "levelId": null,
+            "currentStreakDays": 0,
+            "longestStreakDays": 1,
+            "lastActivityDate": "2026-10-15"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "odd values long ago / ladder": {
+        "result": {
+            "totalPoints": 6.0,
+            "levelId": "bronze",
+            "currentStreakDays": 0,
+            "longestStreakDays": 1,
+            "lastActivityDate": "2026-10-15"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "odd values long ago / only high": {
+        "result": {
+            "totalPoints": 6.0,
+            "levelId": null,
+            "currentStreakDays": 0,
+            "longestStreakDays": 1,
+            "lastActivityDate": "2026-10-15"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "odd values long ago / no ids": {
+        "result": {
+            "totalPoints": 6.0,
+            "levelId": null,
+            "currentStreakDays": 0,
+            "longestStreakDays": 1,
+            "lastActivityDate": "2026-10-15"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "odd values long ago / unset threshold first": {
+        "result": {
+            "totalPoints": 6.0,
+            "levelId": "bronze",
+            "currentStreakDays": 0,
+            "longestStreakDays": 1,
+            "lastActivityDate": "2026-10-15"
+        },
+        "reads": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "point-award",
+                    "learnerId": "lea"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "engagement-level",
+                    "tenant_id": "t-1"
+                }
+            }
+        ]
+    },
+    "no learner": {
+        "result": {
+            "totalPoints": 0.0,
+            "levelId": null,
+            "currentStreakDays": 0,
+            "longestStreakDays": 0,
+            "lastActivityDate": null
+        },
+        "reads": []
+    }
+}

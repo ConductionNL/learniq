@@ -512,10 +512,10 @@ schema is a role lens, not a page") and its enforcing ratchet, gate-68 `duplicat
 ### Requirement: Differentiation forms speak of support needs, level and goal
 The teacher-facing titles and property descriptions of `GroupPlan`, `GroupPlanSubgroup`, `SupportRequest` and `ExamAccommodation` MUST describe differentiation by level, goal, time or material and the recording of support needs, in plain sentences without engineering rationale. Engineering rationale MUST live in the property's `x-notes`, which the form does not show. Every rewritten title and description MUST have an English catalogue key and a Dutch value.
 
-#### Scenario: A teacher fills in an instruction group
-- **GIVEN** a Dutch-language teacher opens the form for a group within a group plan
+#### Scenario: A teacher fills in a subgroup
+- **GIVEN** a Dutch-language teacher chooses "Subgroep toevoegen" on a group plan
 - **WHEN** the form renders
-- **THEN** the title reads "Instructiegroep" and the approach field explains, in Dutch, how the group is taught to reach its goal
+- **THEN** the title reads "Subgroep" and the field "Aanpak" explains, in Dutch, how the group is taught to reach its goal
 
 #### Scenario: Engineering notes stay out of the form
 - **GIVEN** the `GroupPlan.supersedesId` property

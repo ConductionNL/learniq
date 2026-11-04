@@ -46,6 +46,26 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
  * @spec openspec/changes/support-confidential-concern-report/specs/confidential-counsel/spec.md#requirement-the-server-decides-who-filed-a-report
  */
 class SafeguardingListenerRegistrar {
+
+	use RegistersEventListeners;
+
+	/**
+	 * Event and listener class pairs registered by register(), in order.
+	 */
+	private const LISTENERS = [
+		// A pre-write rule, registered directly like the integrity owner
+		// stamps: ObjectEventSubscription's shared proxy does not consult
+		// isPropagationStopped() between subscriptions.
+		[ObjectCreatingEvent::class, ConcernReportReporterStamp::class],
+		[ObjectUpdatingEvent::class, ConcernReportReporterStamp::class],
+		[ObjectCreatingEvent::class, AccessibilityFeedbackReporterStamp::class],
+		[ObjectUpdatingEvent::class, AccessibilityFeedbackReporterStamp::class],
+		[ObjectCreatingEvent::class, RegulationExemptionRequestStamp::class],
+		[ObjectUpdatingEvent::class, RegulationExemptionRequestStamp::class],
+		[ObjectCreatingEvent::class, SovereigntyPolicySetByStamp::class],
+		[ObjectUpdatingEvent::class, SovereigntyPolicySetByStamp::class],
+	];
+
 	/**
 	 * Register the reporter stamp on create and update.
 	 *
@@ -56,41 +76,7 @@ class SafeguardingListenerRegistrar {
 	 * @spec openspec/changes/support-confidential-concern-report/specs/confidential-counsel/spec.md#requirement-the-server-decides-who-filed-a-report
 	 */
 	public function register(IRegistrationContext $context): void {
-		// A pre-write rule, registered directly like the integrity owner
-		// stamps: ObjectEventSubscription's shared proxy does not consult
-		// isPropagationStopped() between subscriptions.
-		$context->registerEventListener(
-			event: ObjectCreatingEvent::class,
-			listener: ConcernReportReporterStamp::class
-		);
-		$context->registerEventListener(
-			event: ObjectUpdatingEvent::class,
-			listener: ConcernReportReporterStamp::class
-		);
-		$context->registerEventListener(
-			event: ObjectCreatingEvent::class,
-			listener: AccessibilityFeedbackReporterStamp::class
-		);
-		$context->registerEventListener(
-			event: ObjectUpdatingEvent::class,
-			listener: AccessibilityFeedbackReporterStamp::class
-		);
-		$context->registerEventListener(
-			event: ObjectCreatingEvent::class,
-			listener: RegulationExemptionRequestStamp::class
-		);
-		$context->registerEventListener(
-			event: ObjectUpdatingEvent::class,
-			listener: RegulationExemptionRequestStamp::class
-		);
-		$context->registerEventListener(
-			event: ObjectCreatingEvent::class,
-			listener: SovereigntyPolicySetByStamp::class
-		);
-		$context->registerEventListener(
-			event: ObjectUpdatingEvent::class,
-			listener: SovereigntyPolicySetByStamp::class
-		);
+		$this->registerEventListeners(context: $context, listeners: self::LISTENERS);
 
 		// The four-eyes correction listeners (governance-four-eyes-on-approved-data),
 		// chained here for the same coupling reason this registrar is chained.

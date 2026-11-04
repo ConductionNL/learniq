@@ -124,6 +124,14 @@ SCHEMAS = [
     "fraud-case",
     "fee-item",
     "confidential-note",
+    # The pupil boards (add_board_pupils): appended for the same reason.
+    "submission",
+    "submission-mark",
+    "regulation",
+    # The lesson and store boards (add_lesson_and_store_boards): appended for the same reason.
+    "lesson",
+    "material",
+    "shared-course-package",
 ]
 
 # The same fictional region as the primary school set, so both sets agree.
@@ -294,7 +302,7 @@ TEACHERS = [
     ("vo-docent-12", "Wouter Mulder", ["AK"], 1, WEEKDAYS),
     ("vo-docent-13", "Thomas de Boer", ["EC"], 1, ["monday", "tuesday", "thursday", "friday"]),
     ("vo-docent-14", "Ellen Hendriks", ["BE", "EC"], 1, ["monday", "tuesday", "wednesday", "thursday"]),
-    ("vo-docent-15", "Judith Zeggeveld", ["BI"], 1, WEEKDAYS),
+    ("vo-docent-15", "Anouk Smit", ["BI"], 1, WEEKDAYS),
     ("vo-docent-16", "Niels Wederikdal", ["BI"], 2, ["tuesday", "wednesday", "thursday", "friday"]),
     ("vo-docent-17", "Mirjam Boekweitkamp", ["NA", "NASK"], 1, WEEKDAYS),
     ("vo-docent-18", "Ricardo Munthout", ["SK"], 1, ["monday", "tuesday", "wednesday", "thursday"]),
@@ -1486,6 +1494,8 @@ def build() -> dict:
 
     # --- the board layer, after the story ------------------------------------------------------------
     add_boards(b, courses)
+    add_board_pupils(b, courses)
+    add_lesson_and_store_boards(b, courses)
 
     # --- assemble ------------------------------------------------------------------------------------
     for rows in b.buckets.values():
@@ -1548,7 +1558,7 @@ STORY_TEACHERS = {
 }
 STORY_MENTOR = "vo-docent-01"
 # Rooms of the main building, numbered floor, then number.
-STORY_ROOMS = ["1.12", "2.14", "0.21", "1.08", "1.05", "2.03"]
+STORY_ROOMS = ["1.12", "2.14", "0.21", "1.08", "1.05", "2.03", "2.10", "2.04", "0.10"]
 # 3HV-B's Monday: lesson hour, subject (None for the mentor hour), room code.
 H4B_MONDAY = [(1, "NE", "1.12"), (2, "WA", "2.14"), (3, "EC", "1.08"), (4, "EN", "1.05"), (5, "GS", "2.03"),
               (6, None, "1.12"), (7, "LO", "H-GYM")]
@@ -1556,7 +1566,8 @@ H4B_MONDAY = [(1, "NE", "1.12"), (2, "WA", "2.14"), (3, "EC", "1.08"), (4, "EN",
 # first hour (economie) and eighth hour (steunles wiskunde) are written with the story's Tuesday.
 H4B_WEEK = {
     1: [(2, "NE", "1.12"), (3, "MA", "1.05"), (4, "WA", "2.14"), (5, "BE", "1.08"), (6, "EN", "1.05")],
-    2: [(1, "GS", "2.03"), (2, "AK", "1.05"), (3, "NE", "1.12"), (4, "CKV", "0.21"), (5, "EN", "1.05")],
+    # Wednesday as LqLlVandaag draws it; its 6th and 7th hour come with add_lesson_and_store_boards().
+    2: [(1, "NE", "1.12"), (2, "WA", "2.03"), (3, "BI", "2.10"), (4, "EN", "2.04"), (5, "GS", "1.08")],
     3: [(1, "WA", "2.14"), (2, "EC", "1.08"), (3, "BE", "1.08"), (4, "GS", "2.03"), (5, "LO", "H-GYM"), (6, "NE", "1.12")],
     4: [(1, "EN", "1.05"), (2, "AK", "1.05"), (3, "WA", "2.14"), (4, "MA", "1.05"), (5, "EC", "1.08")],
 }
@@ -1860,12 +1871,12 @@ def add_story(b: Builder, school: dict, locations: dict, rooms: dict, courses: d
     # --- the school calendar ---------------------------------------------------------------------------------
     events = [
         ("Mentorgesprekken", "2026-10-13", "2026-10-15", "event", None,
-         "Op dinsdag 13 oktober na school en donderdag 15 oktober in de avond. Kies een tijd in Mijn Vaartveld."),
+         "Op dinsdag 13 oktober na school en donderdag 15 oktober in de avond. Kies een tijd in Mijn Zuiddrecht."),
         ("Herfstvakantie", "2026-10-17", "2026-10-25", "other", None, "De school is dicht."),
         ("Informatieavond profielkeuze, klas 3", "2026-11-03T19:30:00+01:00", "2026-11-03T21:00:00+01:00", "event", None,
          "Voor leerlingen van klas 3 havo en vwo en hun ouders, in de aula. Je hoort hoe de profielkeuze gaat en wat je met elk profiel kunt."),
         ("Toetsweek 1, bovenbouw", "2026-11-09", "2026-11-13", "other", [h4b],
-         "Het toetsrooster staat in Mijn Vaartveld. Kijk goed welke toetsen meetellen voor je schoolexamen."),
+         "Het toetsrooster staat in Mijn Zuiddrecht. Kijk goed welke toetsen meetellen voor je schoolexamen."),
     ]
     for title, starts, ends, kind, groups, description in events:
         b.add("school-event", {
@@ -1979,6 +1990,366 @@ def add_boards(b: Builder, courses: dict) -> None:
         "authorId": counsellor["ncUserId"], "participantIds": ["vo-zorgcoordinator-01"], "status": "open",
         "destroyAfter": "2027-07-01",
     })
+
+
+# The 3HV-B pupils the boards draw, given to classmates of Fenna who carry no other story:
+# (pupil, given name, family name, the guardians' given names in the order the set holds them). Daan's
+# father is Jeroen Visser, as LqZoOndersteuning draws him.
+BOARD_PUPILS = [
+    ("vo-leerling-118", "Daan", "Visser", ["Samira", "Jeroen"]),
+    ("vo-leerling-126", "Lucas", "van Dijk", ["Esther", "Bas"]),
+    ("vo-leerling-129", "Julia", "Peters", ["Iris", "Hasan"]),
+]
+
+
+def add_board_pupils(b: Builder, courses: dict) -> None:
+    """The records the 3HV-B detail boards draw (identity.conduction.nl/screens):
+    Daan Visser's care note and support request (LqNotitie, LqDossierTijdlijn,
+    LqZoOndersteuning), Julia Peters's concept 8,2 for Nederlands (LqCijfer),
+    Lucas van Dijk's unexcused absence (LqRegistratie), the class's Biologie and
+    Nederlands tests (LqToetsInstellingen, LqLlToetsMaken, LqToetsNakijken),
+    Betoog schrijven with its submissions and marks (LqOpdracht,
+    LqBeoordelaars, LqInleveringNakijken), Emma de Vries after her intake in
+    the 2027-2028 round (LqCoAanmelding), the school's own 8-hour threshold
+    (LqVerzuimgrens), Biologie 3 tweetalig (LqCursusInstellingen) and the
+    Meldcode (LqCfVerplichting). Runs after the board layer and draws no random
+    number, so no earlier uuid moves; the only earlier values it edits are the
+    names of three classmates and their parents, and one component on the
+    Nederlands toetsplan of 3HV-B.
+
+    @spec openspec/changes/vo-board-records-for-the-pupil-boards/specs/example-sets/spec.md
+    """
+    h4b = next(c for c in b.buckets["cohort"] if c["name"] == "3HV-B")
+    profiles = {p["ncUserId"]: p for p in b.buckets["learner-profile"]}
+    by_ref = {p["uuid"]: p for p in b.buckets["learner-profile"]}
+    pupils = {}
+    for nc, given, family, guardians in BOARD_PUPILS:
+        profile = profiles[nc]
+        assert nc in h4b["learnerIds"] and not any(
+            q is not profile and set(q.get("guardianRefs") or []) & set(profile["guardianRefs"]) for q in profiles.values()
+        ), nc
+        old_given = profile["givenName"]
+        profile.update({"givenName": given, "familyName": family})
+        for ref, guardian_given in zip(profile["guardianRefs"], guardians, strict=True):
+            by_ref[ref].update({"givenName": guardian_given, "familyName": family})
+        for card in b.buckets["report-card"]:
+            if card["learnerId"] == nc:
+                card["mentorComment"] = card["mentorComment"].replace(old_given, given)
+        pupils[given] = profile
+    daan, lucas, julia = pupils["Daan"], pupils["Lucas"], pupils["Julia"]
+    fenna = next(p for p in b.buckets["learner-profile"] if (p.get("givenName"), p.get("familyName")) == ("Fenna", "de Jong"))
+    sessions = {(s["startsAt"], s["title"]): s for s in b.buckets["session"] if s["cohortId"] == h4b["uuid"]}
+    monday_ne = sessions[(stamp(TODAY, 8, 30), "Nederlands")]
+
+    # --- Daan: the mentor's notes and the zorgcoordinator's support request -------------------------------
+    care_team = [ZORG, STORY_MENTOR]
+    b.add("dossier-note", {
+        "learnerId": daan["ncUserId"], "authorId": STORY_MENTOR, "date": "2026-09-02", "category": "conversation",
+        "body": "Kennismaking mentor. Start leerjaar 3 goed verlopen, Daan wil havo halen.",
+        "confidentiality": "team-visible", "careTeamUserIds": care_team,
+    })
+    b.add("dossier-note", {
+        "learnerId": daan["ncUserId"], "authorId": STORY_MENTOR, "date": "2026-10-02", "category": "concern",
+        "body": ("Daan oogt al twee weken moe en teruggetrokken. Hij zit in de pauze alleen en levert zijn werk later in "
+                 "dan eerst. Vandaag besproken met de zorgcoördinator. Afgesproken: ik plan volgende week een gesprek "
+                 "met zijn ouders, zij sluit aan."),
+        "confidentiality": "care-team-only", "careTeamUserIds": care_team,
+    })
+    b.add("support-request", {
+        "learnerId": daan["ncUserId"], "raisedBy": ZORG, "supportDomain": "Gedrag en sociaal-emotionele ontwikkeling",
+        "description": ("Een kleinere groep met vaste begeleiding. Daan raakt in de klas snel overprikkeld en loopt dan "
+                        "weg uit de les, de laatste weken bijna dagelijks."),
+        "urgency": "high", "lifecycle": "in-deliberation",
+    })
+
+    # --- Lucas: absent without notice at Monday's Nederlands, and the call home --------------------------------
+    b.add("attendance-record", {
+        "sessionId": monday_ne["uuid"], "learnerId": lucas["ncUserId"], "learnerRef": lucas["uuid"], "cohortId": h4b["uuid"],
+        "status": "absent-unexcused", "minutesAttended": 0, "markedBy": STORY_MENTOR, "markedAt": stamp(TODAY, 13, 12),
+        "markedVia": "teacher", "absenceReasonKind": "other", "lesuren": 1,
+        "reason": "Niet gemeld. Moeder gebeld om 13:30: hij was bij de huisarts. Zij meldt het alsnog via het ouderportaal.",
+    })
+    b.add("dossier-note", {
+        "learnerId": lucas["ncUserId"], "authorId": STORY_MENTOR, "date": TODAY.isoformat(), "category": "phone-call-home",
+        "body": "Moeder gebeld over de afwezigheid bij Nederlands. Lucas was bij de huisarts; zij meldt het alsnog via het ouderportaal.",
+        "confidentiality": "team-visible", "careTeamUserIds": care_team,
+    })
+
+    # --- Julia: the grammar test's 8,2, entered as a concept on the Nederlands toetsplan ------------------------
+    plan = next(p for p in b.buckets["curriculum-plan"] if p["name"] == f"Toetsplan nederlands 3HV-B, {STORY_YEAR}")
+    plan["components"].append({"componentId": "toets-h1-grammatica", "label": "Toets hoofdstuk 1, grammatica", "weight": 2,
+                               "period": "1", "kind": "assessment"})
+    b.add("grade-entry", {
+        "learnerId": julia["ncUserId"], "learnerRef": julia["uuid"], "curriculumPlanId": plan["uuid"],
+        "componentId": "toets-h1-grammatica", "courseId": courses["NE"]["uuid"], "courseName": courses["NE"]["name"],
+        "cohortId": h4b["uuid"], "sourceKind": "manual", "value": 8.2, "gradeScaleId": b.buckets["grade-scale"][0]["uuid"],
+        "weight": 2, "period": "1", "grader": STORY_MENTOR, "gradedAt": stamp(TODAY, 15, 42), "visibleFrom": None,
+        "comment": "Sterk werk bij de zinsontleding. Let bij de werkwoordspelling op de voltooid deelwoorden.",
+        "lifecycle": "concept",
+    })
+
+    # --- tests of 3HV-B: Biologie open this week and next week, Monday's Nederlands test closed -----------------
+    b.add("exam", {
+        "title": "Toets hoofdstuk 2: cellen", "description": "Digitale toets over hoofdstuk 2. Maak hem deze week in de les of thuis.",
+        "courseId": courses["BI"]["uuid"], "cohortId": h4b["uuid"], "curriculumPlanComponentId": None, "itemSelectionMode": "fixed", "scoringScheme": "points",
+        "timeLimitMinutes": 45, "maxAttempts": 1, "keepScore": "best",
+        "availableFrom": stamp(TODAY, 8, 30), "availableUntil": stamp(dt.date(2026, 10, 9), 17, 0), "lifecycle": "published",
+    })
+    b.add("exam", {
+        "title": "Toets hoofdstuk 3: erfelijkheid", "description": "In het toetslokaal, met de toegangscode van de docent.",
+        "courseId": courses["BI"]["uuid"], "cohortId": h4b["uuid"], "curriculumPlanComponentId": None, "itemSelectionMode": "fixed", "shuffleItemOrder": True,
+        "scoringScheme": "passMark", "passMark": 55, "timeLimitMinutes": 50, "maxAttempts": 1, "accessCode": "4KX-27Q",
+        "availableFrom": stamp(dt.date(2026, 10, 13), 8, 30), "availableUntil": stamp(dt.date(2026, 10, 13), 10, 10),
+        "lifecycle": "published",
+    })
+    b.add("exam", {
+        "title": "Toets hoofdstuk 2, grammatica", "description": "Gemaakt in de les van maandag. De open vragen worden nagekeken.",
+        "courseId": courses["NE"]["uuid"], "sessionId": monday_ne["uuid"], "cohortId": h4b["uuid"], "curriculumPlanComponentId": None, "itemSelectionMode": "fixed",
+        "scoringScheme": "points", "timeLimitMinutes": 45, "maxAttempts": 1,
+        "availableFrom": monday_ne["startsAt"], "availableUntil": monday_ne["endsAt"], "lifecycle": "closed",
+    })
+
+    # --- Betoog schrijven: two markers per submission, 14 handed in and 2 drafts -------------------------------
+    learner_refs = [profiles[nc]["uuid"] for nc in h4b["learnerIds"]]
+    markers = [STORY_MENTOR, STORY_TEACHERS["EN"]]
+    betoog = b.add("assignment", {
+        "title": "Betoog schrijven",
+        "instructions": ("Schrijf een betoog van 600 tot 800 woorden over de stelling: de schooldag moet om 9:00 uur beginnen. "
+                         "Gebruik minstens drie argumenten en weerleg een tegenargument. Lever een Word- of pdf-bestand in."),
+        "courseId": courses["NE"]["uuid"], "sessionId": None, "cohortId": h4b["uuid"], "curriculumPlanComponentId": None,
+        "dueAt": stamp(dt.date(2026, 10, 9), 17, 0), "maxPoints": 10, "allowLateSubmission": True,
+        "markersPerSubmission": 2, "finalGradeRule": "manual", "peerReviewEnabled": True, "peerReviewersPerSubmission": 2,
+        "peerReviewAllocationStrategy": "round-robin", "lifecycle": "published",
+        # What AssignmentLearnerRefsStamp writes on a live save: the group's pupils.
+        "learnerRefs": learner_refs,
+    })
+    writers = [fenna, daan] + [profiles[nc] for nc in h4b["learnerIds"] if profiles[nc] not in (fenna, daan, lucas)][:14]
+    for i, writer in enumerate(writers):
+        draft = i >= 14
+        row = {"assignmentId": betoog["uuid"], "learnerIds": [writer["ncUserId"]], "learnerRefs": [writer["uuid"]],
+               "learnerRef": writer["uuid"], "attachmentRefs": []}
+        if writer is fenna:
+            row.update({"submittedAt": stamp(dt.date(2026, 10, 6), 21, 14)})
+        elif not draft:
+            row.update({"submittedAt": stamp(TODAY + dt.timedelta(days=i % 3), 15 + i % 6, (i * 7) % 60)})
+        row.update({"isLate": False, "markerIds": [] if draft else list(markers), "lifecycle": "draft" if draft else "submitted"})
+        submission = b.add("submission", row)
+        if writer is fenna:
+            b.add("submission-mark", {
+                "submissionId": submission["uuid"], "assignmentId": betoog["uuid"], "markerId": STORY_TEACHERS["EN"],
+                "proposedGrade": 7.6, "feedbackText": "Duidelijk standpunt en goede argumenten. Het slot mag krachtiger.",
+                "submittedAt": stamp(dt.date(2026, 10, 7), 10, 5), "submittedBy": STORY_TEACHERS["EN"], "lifecycle": "submitted",
+            })
+            b.add("submission-mark", {
+                "submissionId": submission["uuid"], "assignmentId": betoog["uuid"], "markerId": STORY_MENTOR, "proposedGrade": 8.0,
+                "feedbackText": ("Je standpunt is helder en je weerlegging over de bus is sterk. Let op je slot: vat samen in "
+                                 "plaats van te herhalen."),
+                "lifecycle": "draft",
+            })
+
+    # --- Emma de Vries: intake held in the 2027-2028 brugklas round ---------------------------------------------
+    brugklas = next(p for p in b.buckets["programme"] if p["name"] == "Brugklas havo/vwo")
+    round_ = b.add("admissions-round", {
+        "name": "Brugklas 2027-2028", "kind": "vo-schooladvies-doorstroomtoets", "programmeId": brugklas["uuid"], "level": "vo",
+        "academicYear": "2027-2028", "applicationDeadline": "2027-02-15", "mandatoryIntake": True, "capacity": 120,
+        "lifecycle": "open",
+    })
+    b.add("admission", {
+        "applicantGivenName": "Emma", "applicantFamilyName": "de Vries", "applicantBirthDate": "2015-05-14",
+        "priorSchool": "Voorbeeldschool De Regenboog", "admissionsRoundId": round_["uuid"], "programmeId": brugklas["uuid"],
+        "guardianGivenName": "Karin", "guardianFamilyName": "de Vries", "guardianEmail": "karin.devries@example.nl",
+        "guardianPhone": "06-00012345", "submittedAuthLevel": "substantial",
+        "intakeScheduledAt": "2027-02-16T11:00:00+01:00", "intakeConductedBy": STORY_MENTOR,
+        "intakeNotes": "Gemotiveerd, leest veel, wil graag naar het tweetalig onderwijs.", "intakeCompleted": True,
+        "schoolAdviceLevel": "havo", "progressionTestLevel": "vwo", "schoolAdviceAdjustedLevel": "vwo",
+        "adjustmentMotivation": "Opgehoogd na de doorstroomtoets.", "submittedAt": "2027-02-02T20:02:00+01:00",
+        "lifecycle": "intake-completed",
+    })
+
+    # --- the school's own threshold below the statutory 16 hours ----------------------------------------------
+    b.add("attendance-threshold", {
+        "name": "Vroeg signaal bij verzuim", "kind": "generic", "scope": "per-learner",
+        "window": {"type": "rolling-weeks", "weeks": 4, "termId": None}, "metric": "unexcused-lesuren", "limit": 8,
+        "lessonHourMinutes": LESSON,
+        "onCross": {"notify": True, "notifyRoles": ["mentor"], "createFlag": True, "dataExchangeTarget": None},
+        "active": True, "lifecycle": "active",
+    })
+
+    # --- the bilingual Biologie course, with its Dutch name beside the English one -----------------------------
+    b.add("course", {
+        "code": "BI-3TTO-2026", "name": "Biology 3 bilingual", "name_nl": "Biologie 3 tweetalig",
+        "description": "Biologie in leerjaar 3 van het tweetalig onderwijs, in het Engels gegeven.", "level": "vo",
+        "language": "en", "tags": ["voortgezet onderwijs", "tweetalig onderwijs"], "lifecycle": "published",
+    })
+
+    # --- the Meldcode: its own code is its slug, as in the company set ----------------------------------------
+    b.add("regulation", {
+        "slug": "MELDCODE", "name": "Meldcode huiselijk geweld en kindermishandeling",
+        "description": ("Wie met leerlingen werkt, kent de stappen van de meldcode bij een vermoeden van huiselijk geweld "
+                        "of kindermishandeling, en tekent elke twee jaar opnieuw."),
+        "applicabilityCriteria": "Alle medewerkers met leerlingcontact, elke 24 maanden opnieuw.",
+        "audienceScope": "all-employees", "requiresAnnualRenewal": False, "renewalCycleMonths": 24, "active": True,
+        "ragRedThreshold": 70, "ragAmberThreshold": 90, "lifecycle": "published",
+    })
+
+
+# --- the lesson and store boards: Fenna's Biologie lesson, her Wednesday and the course store ---------------------
+WEDNESDAY = TODAY + dt.timedelta(days=2)
+# Biologie leerjaar 3 havo/vwo, as LqLlLesVolgen draws it: ten lessons, the third one with its blocks.
+BIO_LESSONS = [
+    ("Les 1: wat is leven?", "Je noemt de kenmerken van leven."),
+    ("Les 2: de microscoop", "Je kent de onderdelen van een microscoop."),
+    ("Les 3: cellen onder de microscoop", "Je ziet het verschil tussen een plantencel en een dierlijke cel."),
+    ("Les 4: Celdeling", "Je beschrijft hoe een cel zich deelt."),
+    ("Les 5: weefsels en organen", "Je legt uit hoe cellen samen weefsels en organen vormen."),
+    ("Les 6: planten en fotosynthese", "Je legt uit wat bladgroenkorrels doen."),
+    ("Les 7: voeding en vertering", "Je volgt het voedsel door het verteringsstelsel."),
+    ("Les 8: ademhaling", "Je legt uit hoe zuurstof in je bloed komt."),
+    ("Les 9: bloedsomloop", "Je beschrijft de weg van het bloed door het lichaam."),
+    ("Les 10: herhaling en oefentoets", "Je oefent met de stof van les 1 tot en met 9."),
+]
+BIO_READING = (
+    "Alle levende wezens zijn opgebouwd uit cellen. Een plantencel heeft een celwand en bladgroenkorrels, "
+    "een dierlijke cel niet.\n\n"
+    "Je kijkt vandaag eerst naar een filmpje over de microscoop. Daarna maak je een korte quiz en lees je de "
+    "opdracht voor het practicum."
+)
+# The three cards LqStore draws: (title, subject, level line, level codes, licence, author, description).
+STORE_PACKAGES = [
+    ("Betoog schrijven, havo 4", "Nederlandse taal", "havo", ["havo"], "CC-BY-SA-4.0", "Sectie Nederlands, OSG De Vaart",
+     "Zes lessen over het betoog: een stelling kiezen, argumenten ordenen en een tegenargument weerleggen."),
+    ("Betogen en beschouwen", "Nederlandse taal", "vwo", ["vwo"], "CC-BY-4.0", "Lyceum Noorderhaven",
+     "Acht lessen over betogende en beschouwende teksten, met schrijfopdrachten en een rubric."),
+    ("Argumenteren in de onderbouw", "Nederlandse taal", "havo/vwo", ["havo", "vwo"], "CC0", "Sectie Nederlands, Zuiddrecht College",
+     "Vier lessen over mening, argument en bron, voor leerjaar 2 en 3."),
+]
+
+
+def add_lesson_and_store_boards(b: Builder, courses: dict) -> None:
+    """The records LqLlLesVolgen, LqLlVandaag, LqLlRooster and LqStore draw
+    (identity.conduction.nl/screens): the course Biologie leerjaar 3 havo/vwo
+    with ten lessons, the third one with a reading text, a video, a quiz and an
+    assignment; Fenna's Wednesday 7 October with Frans cancelled in the 6th
+    hour and the mentor hour in another room in the 7th; and three courses
+    shared through the course store. Runs last and draws no random number, so
+    no earlier uuid moves; the only earlier values it edits are the 3HV-B
+    Wednesday's Biologie lesson, which points at lesson 3, and the class's
+    teacher list.
+
+    @spec openspec/changes/vo-lesson-store-and-wednesday-records/specs/example-sets/spec.md
+    """
+    h4b = next(c for c in b.buckets["cohort"] if c["name"] == "3HV-B")
+    profiles = {p["ncUserId"]: p for p in b.buckets["learner-profile"]}
+    rooms = {r["code"]: r for r in b.buckets["room"]}
+    teacher = TEACHER_BY_ID[SUBJECT_TEACHER["BI"][1]]
+
+    # --- the course, its enrolments and its ten lessons ---------------------------------------------------------
+    course = b.add("course", {
+        "code": "BI-3HV-2026", "name": "Biologie leerjaar 3 havo/vwo", "name_nl": "Biologie leerjaar 3 havo/vwo",
+        "description": "Cellen, organen en het menselijk lichaam, in tien lessen voor leerjaar 3 havo/vwo.",
+        "level": "vo", "language": "nl", "tags": ["voortgezet onderwijs", "biologie"], "subject": "Biologie",
+        "author": teacher[1], "lessonCount": len(BIO_LESSONS), "isPublished": True, "lifecycle": "published",
+    })
+    # The course's own group, so an enrolment's course stays its group's course. Without an inschrijvingDate its
+    # enrolments never count as a pupil's newest (LearnerGroupLabel), so the pupils stay in 3HV-B.
+    group = b.add("cohort", {
+        "name": course["name"], "programmeId": h4b["programmeId"], "courseId": course["uuid"],
+        "teacherIds": [teacher[0]], "learnerIds": list(h4b["learnerIds"]), "period": "Schooljaar",
+        "academicYear": STORY_YEAR, "lifecycle": "active", "locationId": h4b["locationId"],
+        "teacherAssignments": [{"teacherId": teacher[0], "role": "primary", "days": list(WEEKDAYS)}],
+        "kind": "teaching", "programmeYear": 3,
+    })
+    for nc in h4b["learnerIds"]:
+        b.add("enrolment", {
+            "learnerId": nc, "learnerRef": profiles[nc]["uuid"], "courseId": course["uuid"], "source": "system",
+            "cohortId": group["uuid"], "cohortName": group["name"], "lifecycle": "active",
+        })
+    lessons = []
+    for order, (name, objective) in enumerate(BIO_LESSONS, start=1):
+        lessons.append(b.add("lesson", {
+            "courseId": course["uuid"], "name": name, "order": order, "contentType": "text", "durationMinutes": 50,
+            "learningObjectives": [objective], "author": teacher[1], "subject": "Biologie",
+            "blocks": [{"blockId": f"bi3-les{order}-lezen", "type": "richText", "order": 1, "text": objective}],
+            "lifecycle": "published",
+        }))
+    for current, following in zip(lessons, lessons[1:]):
+        current["defaultNextLessonId"] = following["uuid"]
+
+    # --- lesson 3: reading, video, quiz and assignment -----------------------------------------------------------
+    lesson = lessons[2]
+    video = b.add("material", {
+        "title": "Zo stel je een microscoop scherp", "kind": "video",
+        "fileRef": "Biologie/Leerjaar 3/microscoop-scherpstellen.mp4",
+        "url": "https://media.zuiddrecht-college.example/biologie/microscoop-scherpstellen.mp4",
+        "license": "CC-BY-4.0", "lomTags": ["biologie", "microscoop"], "order": 1, "lessonId": lesson["uuid"],
+    })
+    quiz = b.add("exam", {
+        "title": "Oefenquiz cellen", "description": "8 vragen, telt niet mee voor je cijfer",
+        "courseId": course["uuid"], "cohortId": None, "curriculumPlanComponentId": None,
+        "itemSelectionMode": "fixed", "scoringScheme": "points", "maxAttempts": 3, "keepScore": "best",
+        "availableFrom": stamp(WEDNESDAY, 8, 30), "availableUntil": stamp(dt.date(2026, 10, 16), 17, 0),
+        "lifecycle": "published",
+    })
+    report = b.add("assignment", {
+        "title": "Practicumverslag cellen",
+        "instructions": "Teken een plantencel en een dierlijke cel zoals je ze onder de microscoop ziet, en benoem de delen.",
+        "courseId": course["uuid"], "sessionId": None, "cohortId": h4b["uuid"], "curriculumPlanComponentId": None,
+        "dueAt": stamp(dt.date(2026, 10, 16), 17, 0), "maxPoints": 10, "allowLateSubmission": True,
+        "lifecycle": "published",
+        # What AssignmentLearnerRefsStamp writes on a live save: the group's pupils.
+        "learnerRefs": [profiles[nc]["uuid"] for nc in h4b["learnerIds"]],
+    })
+    lesson["blocks"] = [
+        {"blockId": "bi3-les3-lezen", "type": "richText", "order": 1, "text": BIO_READING},
+        {"blockId": "bi3-les3-video", "type": "media", "order": 2, "materialId": video["uuid"]},
+        {"blockId": "bi3-les3-quiz", "type": "quiz", "order": 3, "assessmentId": quiz["uuid"]},
+        {"blockId": "bi3-les3-opdracht", "type": "assignment", "order": 4, "assignmentId": report["uuid"]},
+    ]
+
+    # --- Wednesday 7 October: lesson 3 in the 3rd hour, Frans cancelled, the mentor hour moved -------------------
+    wednesday = [s for s in b.buckets["session"] if s["cohortId"] == h4b["uuid"] and s["startsAt"].startswith(WEDNESDAY.isoformat())]
+    biologie = next(s for s in wednesday if s["courseId"] == courses["BI"]["uuid"])
+    biologie["lessonId"] = lesson["uuid"]
+    monday_change = next(s for s in b.buckets["session"] if s["cohortId"] == h4b["uuid"] and s["lifecycle"] == "cancelled")
+    affected = {"affectedLearnerIds": list(monday_change["affectedLearnerIds"]),
+                "affectedParentIds": list(monday_change["affectedParentIds"])}
+    for hour, s, code, change in [
+        (6, "FA", "1.05", {"lifecycle": "cancelled", "changeReasonKind": "teacher-absence", "changeReason": "De docent is afwezig."}),
+        (7, None, "0.10", {"lifecycle": "scheduled", "changeReasonKind": "room-unavailable",
+                           "changeReason": "Lokaal 1.12 is vandaag niet beschikbaar; het mentoruur is in lokaal 0.10."}),
+    ]:
+        (sh, sm), (eh, em) = BELL[hour - 1]
+        b.add("session", {
+            "cohortId": h4b["uuid"], "courseId": courses[s]["uuid"] if s else None,
+            "title": SUBJECTS[s][0] if s else "Mentoruur",
+            "startsAt": stamp(WEDNESDAY, sh, sm), "endsAt": stamp(WEDNESDAY, eh, em),
+            "location": rooms[code]["name"], "roomId": rooms[code]["uuid"], **change, **affected,
+        })
+    for s in ("BI", "FA"):
+        b.add("subjectteacherassignment", {"cohortId": h4b["uuid"], "courseId": courses[s]["uuid"], "teacherId": SUBJECT_TEACHER[s][1]})
+        if SUBJECT_TEACHER[s][1] not in h4b["teacherIds"]:
+            h4b["teacherIds"].append(SUBJECT_TEACHER[s][1])
+
+    # --- the course store: three shared courses, read through the `local` registry -------------------------------
+    for title, subject, level, levels, licence, author, description in STORE_PACKAGES:
+        lesson_names = [f"Les {n}" for n in range(1, 5)]
+        sharing = {"title": title, "description": description, "subject": subject, "educationalLevels": levels,
+                   "language": "nl", "license": licence, "author": author, "lessonCount": len(lesson_names),
+                   "sharedAt": stamp(dt.date(2026, 9, 14), 10, 0)}
+        b.add("shared-course-package", {
+            "slug": f"{SET}-course-package-" + "-".join("".join(ch for ch in w if ch.isalnum()) for w in title.lower().split()),
+            "kind": "course-package", "title": title, "description": description, "subject": subject,
+            "level": level, "levels": levels, "goals": "", "goalsCovered": [], "language": "nl", "license": licence,
+            "author": author, "cardLine": f"{subject} · {level} · {licence}", "version": "1", "lessonCount": len(lesson_names),
+            "sharedAt": sharing["sharedAt"],
+            "package": {
+                "schemaVersion": "1.0", "sharing": sharing,
+                "course": {"name": title, "code": None, "level": "vo", "language": "nl", "description": description},
+                "childCourses": [],
+                "lessons": [{"name": n, "order": i, "contentType": "text", "blocks": []} for i, n in enumerate(lesson_names, start=1)],
+                "materials": [], "assessments": [], "rubrics": [], "ltiPlacements": [],
+            },
+        })
 
 
 def stamp_group_labels(b: Builder) -> None:

@@ -28,6 +28,6 @@ The subject choice picker MUST show the time slots of each elective and MUST war
 
 #### Scenario: Two electives overlap
 
-- **GIVEN** a learner choosing Drama and Robotics that meet on Tuesday at 10:00
+- **GIVEN** a learner choosing Scheikunde and Aardrijkskunde that meet on Tuesday in the third hour
 - **WHEN** the learner selects both
-- **THEN** the picker warns that they overlap and names the slot
+- **THEN** the picker warns "Scheikunde en Aardrijkskunde zijn op hetzelfde moment: dinsdag 3e uur."

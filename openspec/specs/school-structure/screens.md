@@ -1,15 +1,27 @@
 # Screens
 
-- planninq/PlRoosterwensen: https://identity.conduction.nl/screens/board?id=planninq/PlRoosterwensen, planninq rows tt-curriculum-to-activities, tt-multi-year-plan (planninq adopts this)
-- planninq/PlRoosterscenario: https://identity.conduction.nl/screens/board?id=planninq/PlRoosterscenario, planninq row tt-room-utilisation (planninq adopts this)
-- LqGroep https://identity.conduction.nl/screens/board?id=learniq/LqGroep
-- LqGroepen https://identity.conduction.nl/screens/board?id=learniq/LqGroepen
-- LqNieuweGroep https://identity.conduction.nl/screens/board?id=learniq/LqNieuweGroep
-- LqLlMijnLeren https://identity.conduction.nl/screens/board?id=learniq/LqLlMijnLeren
-- LqMijnLeren https://identity.conduction.nl/screens/board?id=learniq/LqMijnLeren
-- LqLlVakkenKiezen https://identity.conduction.nl/screens/board?id=learniq/LqLlVakkenKiezen
-- LqOuVakkenKiezen https://identity.conduction.nl/screens/board?id=learniq/LqOuVakkenKiezen
-- LqOuVandaag https://identity.conduction.nl/screens/board?id=learniq/LqOuVandaag
-- LqLijst https://identity.conduction.nl/screens/board?id=wilgenboom/LqLijst
-- LqLijst https://identity.conduction.nl/screens/board?id=vaartveld/LqLijst
-- LqLijst https://identity.conduction.nl/screens/board?id=esdoornveen/LqLijst
+- planninq/PlRoosterwensen roosterwensen (planninq adopts this: rows tt-curriculum-to-activities, tt-multi-year-plan) https://identity.conduction.nl/screens/board?id=planninq/PlRoosterwensen
+- planninq/PlRoosterscenario roosterscenario's (planninq adopts this: row tt-room-utilisation) https://identity.conduction.nl/screens/board?id=planninq/PlRoosterscenario
+- learniq/LqGroep groep https://identity.conduction.nl/screens/board?id=learniq/LqGroep
+- learniq/LqGroepen groepen https://identity.conduction.nl/screens/board?id=learniq/LqGroepen
+- learniq/LqNieuweGroep nieuwe groep https://identity.conduction.nl/screens/board?id=learniq/LqNieuweGroep
+- learniq/LqLlMijnLeren mijn leren (leerling) https://identity.conduction.nl/screens/board?id=learniq/LqLlMijnLeren
+- learniq/LqMijnLeren mijn leren https://identity.conduction.nl/screens/board?id=learniq/LqMijnLeren
+- learniq/LqLlVakkenKiezen vakken kiezen (leerling) https://identity.conduction.nl/screens/board?id=learniq/LqLlVakkenKiezen
+- learniq/LqOuVakkenKiezen vakken kiezen (ouder) https://identity.conduction.nl/screens/board?id=learniq/LqOuVakkenKiezen
+- learniq/LqOuVandaag vandaag (ouder) https://identity.conduction.nl/screens/board?id=learniq/LqOuVandaag
+- wilgenboom/LqLijst leerlingen https://identity.conduction.nl/screens/board?id=wilgenboom/LqLijst
+- vaartveld/LqLijst leerlingen https://identity.conduction.nl/screens/board?id=vaartveld/LqLijst
+- esdoornveen/LqLijst studenten https://identity.conduction.nl/screens/board?id=esdoornveen/LqLijst
+- learniq/LqAanwezigheidLijst aanwezigheid https://identity.conduction.nl/screens/board?id=learniq/LqAanwezigheidLijst
+- learniq/LqLeerlingInschrijvingen inschrijvingen van een leerling (docent) https://identity.conduction.nl/screens/board?id=learniq/LqLeerlingInschrijvingen
+- learniq/LqInstellingen beheerinstellingen: de begindatum van het schooljaar https://identity.conduction.nl/screens/board?id=learniq/LqInstellingen
+- learniq/LqLokaalbezetting lokaalbezetting: bezetting per lokaal, en lessen zonder lokaal https://identity.conduction.nl/screens/board?id=learniq/LqLokaalbezetting
+- learniq/LqLokalen lokalen: een lokaal als boekbare ruimte https://identity.conduction.nl/screens/board?id=learniq/LqLokalen
+- learniq/LqMedewerker medewerker: de leesbare naam van elke rol https://identity.conduction.nl/screens/board?id=learniq/LqMedewerker
+- learniq/LqPta pta: de onderdelen, de weging en de keuzeregels https://identity.conduction.nl/screens/board?id=learniq/LqPta
+- learniq/LqSchool school en locaties: de lijst onder Leerlingen, Scholen en het detail https://identity.conduction.nl/screens/board?id=learniq/LqSchool
+- learniq/LqUrenplan urenplan: uren per leerjaar tegen de norm, en de onderwijsactiviteiten https://identity.conduction.nl/screens/board?id=learniq/LqUrenplan
+- learniq/LqLes les https://identity.conduction.nl/screens/board?id=learniq/LqLes
+
+Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAdminSettingsShell, CnAppNav, CnAuditTrailCard, CnBreadcrumbs, CnBuildiqEditButton, CnCardGrid, CnChartWidget, CnChoicePickerWidget, CnDashboardPage, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnFilterBar, CnFormDialog, CnIndexPage, CnKpiGrid, CnMassActionBar, CnMassDeleteDialog, CnNoteCard, CnNotesCard, CnObjectCalendar, CnObjectCard, CnPageHeader, CnPagination, CnProgressBar, CnQuickFilterBar, CnRecordListWidget, CnRelatedCollections, CnRowActions, CnSettingsSection, CnStatsBlock, CnStatusBadge, CnSubObjectsField, CnTabs

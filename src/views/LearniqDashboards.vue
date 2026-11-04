@@ -25,6 +25,8 @@
 		<CnDashboardPage
 			:key="activeRole"
 			:title="pageTitle"
+			:greeting="greeting"
+			:description="pageSubtitle"
 			:widgets="widgets"
 			:layout="layout"
 			:headerActions="headerActions">
@@ -108,6 +110,7 @@ import {
 	rollCallRoute,
 	sessionsToMarkFilter,
 } from '../utils/rollCall.js'
+import { roleLine, soleSchoolName } from '../utils/schoolName.js'
 import {
 	appendFilter,
 	isScopedTeacher,
@@ -156,6 +159,54 @@ export default {
 			type: Array,
 			default: () => [],
 		},
+
+		/**
+		 * The page title, from the page's manifest `config`, in English; the
+		 * page translates it. The boards call every role's start page Today.
+		 *
+		 * @spec openspec/specs/dashboard/spec.md#requirement-per-role-group-gated-dashboard-menu-items
+		 */
+		title: {
+			type: String,
+			default: 'Today',
+		},
+
+		/**
+		 * What leads the subtitle under the title (CnDashboardPage
+		 * `greeting`), from the page's manifest `config`. `date` puts the
+		 * date there, as the boards do.
+		 *
+		 * @spec openspec/specs/dashboard/spec.md#requirement-per-role-group-gated-dashboard-menu-items
+		 */
+		greeting: {
+			type: [Boolean, String],
+			default: false,
+		},
+
+		/**
+		 * The subtitle after the date, per primary role, from the page's
+		 * manifest `config` (`{ "<primary role>": "<English text>" }`). A
+		 * role without a line gets the date alone.
+		 *
+		 * @spec openspec/specs/dashboard/spec.md#requirement-per-role-group-gated-dashboard-menu-items
+		 */
+		subtitleByRole: {
+			type: Object,
+			default: () => ({}),
+		},
+
+		/**
+		 * The subtitle per primary role that names the school (`{school}`),
+		 * from the page's manifest `config`. Used once the school is known;
+		 * until then, and on an instance with several schools, the role's
+		 * `subtitleByRole` line shows.
+		 *
+		 * @spec openspec/changes/vo-lesson-store-and-wednesday-records/specs/dashboard/spec.md#requirement-the-hr-today-subtitle-names-the-school
+		 */
+		subtitleOfSchoolByRole: {
+			type: Object,
+			default: () => ({}),
+		},
 	},
 
 	data() {
@@ -164,6 +215,8 @@ export default {
 			// The group teacher's cohorts and courses; null = school-wide.
 			scope: null,
 			scopePending: false,
+			// The name of the instance's one school; '' when not known.
+			schoolName: '',
 		}
 	},
 
@@ -206,17 +259,29 @@ export default {
 		},
 
 		/**
-		 * The dashboard page title for the active role view.
+		 * The dashboard page title, translated.
 		 *
 		 * @return {string}
 		 * @spec openspec/specs/dashboard/spec.md#requirement-per-role-group-gated-dashboard-menu-items
 		 */
 		pageTitle() {
-			return (
-				this.roleLabel(this.activeRole)
-				+ ' · '
-				+ this.t('learniq', 'Dashboard')
-			)
+			return this.t('learniq', this.title)
+		},
+
+		/**
+		 * The subtitle line for the reader's primary role, translated, or ''.
+		 *
+		 * @return {string}
+		 * @spec openspec/specs/dashboard/spec.md#requirement-per-role-group-gated-dashboard-menu-items
+		 */
+		pageSubtitle() {
+			const role = loadState('learniq', 'primaryRole', '')
+			const ofSchool = roleLine(this.subtitleOfSchoolByRole, role)
+			if (this.schoolName !== '' && ofSchool !== '') {
+				return this.t('learniq', ofSchool, { school: this.schoolName }, undefined, { escape: false })
+			}
+			const line = roleLine(this.subtitleByRole, role)
+			return line !== '' ? this.t('learniq', line) : ''
 		},
 
 		/**
@@ -662,8 +727,14 @@ export default {
 		},
 	},
 
+	/**
+	 * Load what the page's lists and subtitle read.
+	 *
+	 * @spec openspec/changes/vo-lesson-store-and-wednesday-records/specs/dashboard/spec.md#requirement-the-hr-today-subtitle-names-the-school
+	 */
 	created() {
 		this.loadTeacherScope()
+		this.loadSchoolName()
 	},
 
 	methods: {
@@ -736,6 +807,25 @@ export default {
 		},
 
 		/**
+		 * Read the school's name when the reader's subtitle names it. A failed
+		 * read leaves the subtitle without the name.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/vo-lesson-store-and-wednesday-records/specs/dashboard/spec.md#requirement-the-hr-today-subtitle-names-the-school
+		 */
+		async loadSchoolName() {
+			const role = loadState('learniq', 'primaryRole', '')
+			if (roleLine(this.subtitleOfSchoolByRole, role) === '') {
+				return
+			}
+			try {
+				this.schoolName = soleSchoolName(await this.listObjects('School', {}))
+			} catch {
+				this.schoolName = ''
+			}
+		},
+
+		/**
 		 * One page of learniq objects of a schema, filtered.
 		 *
 		 * @param {string} schema The schema.
@@ -758,23 +848,6 @@ export default {
 			)
 			const data = response.data ?? {}
 			return data.results ?? (Array.isArray(data) ? data : [])
-		},
-
-		/**
-		 * Localized human label for a dashboard role view.
-		 *
-		 * @param {string} role One of admin|teacher|student.
-		 * @return {string}
-		 * @spec exclude Presentation-only label map for the three fixed role names; the role-gating behaviour itself is covered by viewConfig/activeRole, not by this string lookup.
-		 */
-		roleLabel(role) {
-			if (role === 'admin') {
-				return this.t('learniq', 'Administrator')
-			}
-			if (role === 'teacher') {
-				return this.t('learniq', 'Teacher')
-			}
-			return this.t('learniq', 'Student')
 		},
 	},
 }

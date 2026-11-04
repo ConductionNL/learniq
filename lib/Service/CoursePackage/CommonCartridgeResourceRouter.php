@@ -151,10 +151,7 @@ class CommonCartridgeResourceRouter {
 			resourceIdentifier: $resource['identifier'],
 			resourceType: $resource['type'],
 			title: $resource['title'],
-			outcome: 'pending-qti',
-			targetType: null,
-			targetId: null,
-			reason: null,
+			result: ['outcome' => 'pending-qti', 'targetType' => null, 'targetId' => null, 'reason' => null]
 		);
 	}//end pendingQtiEntry()
 
@@ -171,24 +168,28 @@ class CommonCartridgeResourceRouter {
 	private function importWebContent(ResourceSlot $slot, PackageContext $package): array {
 		$resource = $slot->resource;
 		$materialId = $this->objectWriter->createMaterial(
-			title: $slot->lessonTitle ?? $resource['title'],
-			kind: 'document',
-			fileRef: $this->fileWriter->resolveFileRef(
+			material: [
+				'title' => $slot->lessonTitle ?? $resource['title'],
+				'kind' => 'document',
+				'fileRef' => $this->fileWriter->resolveFileRef(
 				dir: $package->dir,
 				href: $resource['href'],
 				importedBy: $package->importedBy,
 				tenantId: $package->tenantId
 			),
-			url: null,
-			courseId: $slot->courseId,
-			tenantId: $package->tenantId,
+				'url' => null,
+				'courseId' => $slot->courseId,
+			],
+			tenantId: $package->tenantId
 		);
 		$this->objectWriter->createLesson(
-			courseId: $slot->courseId,
-			title: $slot->lessonTitle ?? $resource['title'],
-			order: $slot->lessonOrder ?? 0,
-			contentType: 'text',
-			contentRef: (string)$materialId,
+			lesson: [
+				'courseId' => $slot->courseId,
+				'title' => $slot->lessonTitle ?? $resource['title'],
+				'order' => $slot->lessonOrder ?? 0,
+				'contentType' => 'text',
+				'contentRef' => (string)$materialId,
+			],
 			tenantId: $package->tenantId
 		);
 
@@ -196,10 +197,7 @@ class CommonCartridgeResourceRouter {
 			resourceIdentifier: $resource['identifier'],
 			resourceType: $resource['type'],
 			title: $resource['title'],
-			outcome: 'imported',
-			targetType: 'material',
-			targetId: $materialId,
-			reason: null,
+			result: ['outcome' => 'imported', 'targetType' => 'material', 'targetId' => $materialId, 'reason' => null]
 		);
 	}//end importWebContent()
 
@@ -216,22 +214,21 @@ class CommonCartridgeResourceRouter {
 	private function importWebLink(ResourceSlot $slot, PackageContext $package): array {
 		$resource = $slot->resource;
 		$materialId = $this->objectWriter->createMaterial(
-			title: $slot->lessonTitle ?? $resource['title'],
-			kind: 'link',
-			fileRef: null,
-			url: $this->resolveWeblinkUrl(dir: $package->dir, href: $resource['href']),
-			courseId: $slot->courseId,
-			tenantId: $package->tenantId,
+			material: [
+				'title' => $slot->lessonTitle ?? $resource['title'],
+				'kind' => 'link',
+				'fileRef' => null,
+				'url' => $this->resolveWeblinkUrl(dir: $package->dir, href: $resource['href']),
+				'courseId' => $slot->courseId,
+			],
+			tenantId: $package->tenantId
 		);
 
 		return $this->reporter->entry(
 			resourceIdentifier: $resource['identifier'],
 			resourceType: $resource['type'],
 			title: $resource['title'],
-			outcome: 'imported',
-			targetType: 'material',
-			targetId: $materialId,
-			reason: null,
+			result: ['outcome' => 'imported', 'targetType' => 'material', 'targetId' => $materialId, 'reason' => null]
 		);
 	}//end importWebLink()
 
@@ -253,11 +250,13 @@ class CommonCartridgeResourceRouter {
 			resourceIdentifier: $resource['identifier'],
 			resourceType: $resource['type'],
 			title: $resource['title'],
-			outcome: 'degraded',
-			targetType: 'lti-tool-placement',
-			targetId: $placementId,
-			reason: 'LTI placement created without a configured OpenConnector deployment; '
+			result: [
+				'outcome' => 'degraded',
+				'targetType' => 'lti-tool-placement',
+				'targetId' => $placementId,
+				'reason' => 'LTI placement created without a configured OpenConnector deployment; '
 				. 'an admin must bind a deployment before this tool can be launched.',
+			]
 		);
 	}//end importBasicLti()
 
@@ -276,10 +275,7 @@ class CommonCartridgeResourceRouter {
 			resourceIdentifier: $resource['identifier'],
 			resourceType: $resource['type'],
 			title: $resource['title'],
-			outcome: 'dropped',
-			targetType: null,
-			targetId: null,
-			reason: $reason,
+			result: ['outcome' => 'dropped', 'targetType' => null, 'targetId' => null, 'reason' => $reason]
 		);
 	}//end droppedEntry()
 

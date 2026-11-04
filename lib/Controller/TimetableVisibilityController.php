@@ -111,8 +111,7 @@ class TimetableVisibilityController extends Controller {
 
 		$sessions = $this->projector->windowedSessions(
 			rawSessions: $lessons['sessions'],
-			windowFrom: $windowFrom,
-			windowTo: $windowTo,
+			window: [$windowFrom, $windowTo],
 			roomCache: []
 		);
 

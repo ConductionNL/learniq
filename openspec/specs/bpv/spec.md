@@ -1,7 +1,7 @@
 # bpv Specification
 
 ## Purpose
-TBD - created by archiving change bpv-praktijkovereenkomst. Update Purpose after archive.
+Run a work placement (beroepspraktijkvorming, BPV) from a verified training company to a signed practice agreement. Assessments per work process become grades, visit reports link to the learner's dossier, and the workplace trainer follows along through the portal.
 
 ## Requirements
 

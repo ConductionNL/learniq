@@ -48,16 +48,13 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
  * Wires the admissions, subject-choice and session-change bridges.
  */
 class SchedulingListenerRegistrar {
+
+	use RegistersEventListeners;
+
 	/**
-	 * Register every intake/enrolment/session listener.
-	 *
-	 * @param IRegistrationContext $context Nextcloud registration context.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+	 * Event and listener class pairs registered by register(), in order.
 	 */
-	public function register(IRegistrationContext $context): void {
+	private const LISTENERS = [
 		// ADR-031 legitimate exception (adaptive-release-and-prerequisites):
 		// Enrolment prerequisite gate. Listens for OR's ObjectCreatingEvent on
 		// the enrolment schema and vetoes the create (stopPropagation) when the
@@ -74,25 +71,19 @@ class SchedulingListenerRegistrar {
 		// into a single dispatcher slot and does not consult
 		// isPropagationStopped() between them, which is precisely the signal
 		// this listener uses to block the create.
-		$context->registerEventListener(
-			event: ObjectCreatingEvent::class,
-			listener: EnrolmentPrerequisiteListener::class
-		);
-
+		[ObjectCreatingEvent::class, EnrolmentPrerequisiteListener::class],
 		// Assessment attempt gate (learniq#946): refuses an AssessmentResult
 		// create outside the Assessment's availableFrom/availableUntil window
 		// or without its access code. Same pre-write veto shape as the
 		// prerequisite gate above, and for the same reason not narrowed
 		// through ObjectEventSubscription.
-		$context->registerEventListener(
-			event: ObjectCreatingEvent::class,
-			listener: AssessmentAttemptGateListener::class
-		);
+		[ObjectCreatingEvent::class, AssessmentAttemptGateListener::class],
+	];
 
-		// The attempt's time limit (in-app-test-limits-server-side), in a
-		// registrar of its own so this one stays under the coupling limit.
-		(new AttemptLimitListenerRegistrar())->register(context: $context);
-
+	/**
+	 * Event and listener class pairs registered after the attempt-limit listeners, in order.
+	 */
+	private const LATER_LISTENERS = [
 		// ADR-031 legitimate exception (admissions-and-subject-choice):
 		// Application `withdrawn`/`rejected` FROM `placed` -> oldest-submittedAt
 		// waitlisted Application promotion bridge. Mirrors
@@ -100,41 +91,25 @@ class SchedulingListenerRegistrar {
 		// re-runs the normal `promote` transition (and therefore
 		// AdmissionsDecisionGuard's capacity branch) rather than writing the
 		// lifecycle field directly.
-		$context->registerEventListener(
-			event: ObjectTransitionedEvent::class,
-			listener: AdmissionsWaitlistPromoter::class
-		);
-
+		[ObjectTransitionedEvent::class, AdmissionsWaitlistPromoter::class],
 		// ADR-031 legitimate exception (admissions-and-subject-choice):
 		// Application `placed` -> LearnerProfile + Enrolment (source:
 		// admission) creation bridge, then drives the Application through its
 		// existing `convert` transition. NC user-account/LMS provisioning is
 		// explicitly NOT part of this bridge (design.md Non-Goals).
-		$context->registerEventListener(
-			event: ObjectTransitionedEvent::class,
-			listener: ApplicationConversionHandler::class
-		);
-
+		[ObjectTransitionedEvent::class, ApplicationConversionHandler::class],
 		// ADR-031 legitimate exception (admissions-and-subject-choice):
 		// SubjectChoice `submitted` -> electiveRules/capacity validation
 		// bridge, writing `validated`/`needs-revision` (+ validationErrors[])
 		// directly, mirroring ConferenceScheduleGenerator's
 		// route-to-one-of-two-states shape rather than a `requires` guard.
-		$context->registerEventListener(
-			event: ObjectTransitionedEvent::class,
-			listener: SubjectChoiceValidator::class
-		);
-
+		[ObjectTransitionedEvent::class, SubjectChoiceValidator::class],
 		// ADR-031 legitimate exception (admissions-and-subject-choice):
 		// SubjectChoice `approved -> locked` -> Enrolment (source:
 		// subject-choice) creation bridge, one per selected elective course
 		// not already enrolled. Mirrors ExcuseApprovalHandler's cross-schema
 		// write-bridge shape.
-		$context->registerEventListener(
-			event: ObjectTransitionedEvent::class,
-			listener: SubjectChoiceEnrolmentBridge::class
-		);
-
+		[ObjectTransitionedEvent::class, SubjectChoiceEnrolmentBridge::class],
 		// ADR-031 legitimate exception (timetabling-and-substitution): Session
 		// `cancel`/`substitute-teacher`/`substitute-teacher-in-progress` ->
 		// affectedLearnerIds/affectedParentIds/changedAt materialisation
@@ -142,10 +117,26 @@ class SchedulingListenerRegistrar {
 		// two-hop join shape (Cohort.learnerIds -> each LearnerProfile.
 		// parentIds), so the declared x-openregister-notifications rules'
 		// kind:field recipients can resolve without a runtime join.
-		$context->registerEventListener(
-			event: ObjectTransitionedEvent::class,
-			listener: SessionChangeNoticeHandler::class
-		);
+		[ObjectTransitionedEvent::class, SessionChangeNoticeHandler::class],
+	];
+
+	/**
+	 * Register every intake/enrolment/session listener.
+	 *
+	 * @param IRegistrationContext $context Nextcloud registration context.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+	 */
+	public function register(IRegistrationContext $context): void {
+		$this->registerEventListeners(context: $context, listeners: self::LISTENERS);
+
+		// The attempt's time limit (in-app-test-limits-server-side), in a
+		// registrar of its own so this one stays under the coupling limit.
+		(new AttemptLimitListenerRegistrar())->register(context: $context);
+
+		$this->registerEventListeners(context: $context, listeners: self::LATER_LISTENERS);
 
 		$this->registerWalletOfferConcludedListener(context: $context);
 
