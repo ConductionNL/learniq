@@ -48,6 +48,7 @@ use Psr\Log\NullLogger;
  * @covers \OCA\Learniq\Controller\PortalEmployerInviteController
  * @covers \OCA\Learniq\Portal\EmployerPortalInvitation
  * @covers \OCA\Learniq\Portal\PortalTenant
+ * @uses   \OCA\Learniq\Service\CallerGroups
  */
 class PortalEmployerInviteTenantTest extends TestCase {
 

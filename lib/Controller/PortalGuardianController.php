@@ -33,6 +33,7 @@ namespace OCA\Learniq\Controller;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Portal\CallerOrganisations;
 use OCA\Learniq\Portal\GuardianPortalInvitation;
+use OCA\Learniq\Service\CallerGroups;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -60,12 +61,25 @@ class PortalGuardianController extends Controller {
 	private const BAD_INPUT = ['email-invalid', 'organisation-missing', 'guardian-unknown', 'channel-unknown'];
 
 	/**
+	 * The signed-in user.
+	 *
+	 * @var IUserSession
+	 */
+	private readonly IUserSession $userSession;
+
+	/**
+	 * Checks who may invite.
+	 *
+	 * @var IGroupManager
+	 */
+	private readonly IGroupManager $groups;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IRequest $request The request.
 	 * @param GuardianPortalInvitation $invitations Provisions and links the account.
-	 * @param IUserSession $userSession The signed-in user.
-	 * @param IGroupManager $groups Checks who may invite.
+	 * @param CallerGroups $caller      The user session and the group manager.
 	 * @param CallerOrganisations $organisations The organisations the caller belongs to.
 	 *
 	 * @return void
@@ -73,10 +87,11 @@ class PortalGuardianController extends Controller {
 	public function __construct(
 		IRequest $request,
 		private readonly GuardianPortalInvitation $invitations,
-		private readonly IUserSession $userSession,
-		private readonly IGroupManager $groups,
+		CallerGroups $caller,
 		private readonly CallerOrganisations $organisations,
 	) {
+		$this->userSession = $caller->userSession;
+		$this->groups = $caller->groupManager;
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
 
