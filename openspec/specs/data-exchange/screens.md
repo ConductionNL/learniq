@@ -11,3 +11,5 @@
 - learniq/LqOsoDossier OSO-dossier beoordelen: accepteren of afwijzen met reden https://identity.conduction.nl/screens/board?id=learniq/LqOsoDossier
 - learniq/LqTeldatum teldatum bevestigen: de controle voor een uitwisseling start https://identity.conduction.nl/screens/board?id=learniq/LqTeldatum
 - learniq/LqUitwisselingen uitwisselingen: het leespaneel onder Geavanceerd, voor beheerders https://identity.conduction.nl/screens/board?id=learniq/LqUitwisselingen
+
+Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAdminSettingsShell, CnAppNav, CnAuditTrailCard, CnBreadcrumbs, CnBuildiqEditButton, CnCardGrid, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnFilterBar, CnIndexPage, CnIntegrationCard, CnKpiGrid, CnMassActionBar, CnMassDeleteDialog, CnNextStepCard, CnNoteCard, CnObjectCard, CnPageHeader, CnPagination, CnQuickFilterBar, CnRecordListWidget, CnRelatedCollections, CnRowActions, CnSettingsPage, CnSettingsSection, CnStatsBlock, CnStatusBadge, CnSubObjectsField, CnTabs, CnTimelineStages

@@ -14,3 +14,5 @@
 - learniq/LqKoppelingen integraties https://identity.conduction.nl/screens/board?id=learniq/LqKoppelingen
 - learniq/LqInstellingen beheerinstellingen: het Marktplaats-register koppelen https://identity.conduction.nl/screens/board?id=learniq/LqInstellingen
 - learniq/LqLes les: een LTI-les opent via integriq https://identity.conduction.nl/screens/board?id=learniq/LqLes
+
+Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAdminSettingsShell, CnAppNav, CnAuditTrailCard, CnBreadcrumbs, CnBuildiqEditButton, CnBulkJobProgress, CnCardGrid, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnFileField, CnFilesCard, CnFilterBar, CnIndexPage, CnIntegrationCard, CnKpiGrid, CnMarkdownWidget, CnMassDeleteDialog, CnMassImportDialog, CnNextStepCard, CnNoteCard, CnNotesCard, CnNoticeWidget, CnObjectCard, CnPageHeader, CnPagination, CnQuickFilterBar, CnRelatedCollections, CnRowActions, CnSectionsWidget, CnSettingsPage, CnSettingsSection, CnStatsBlock, CnStatusBadge, CnSubObjectsField, CnTabs, CnTimelineStages, CnVideoWidget

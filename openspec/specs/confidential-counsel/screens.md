@@ -12,3 +12,5 @@
 - learniq/LqLeerling leerling https://identity.conduction.nl/screens/board?id=learniq/LqLeerling
 - learniq/LqLlVandaag vandaag (leerling) https://identity.conduction.nl/screens/board?id=learniq/LqLlVandaag
 - learniq/LqOuVandaag vandaag (ouder) https://identity.conduction.nl/screens/board?id=learniq/LqOuVandaag
+
+Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAppNav, CnAuditTrailCard, CnBreadcrumbs, CnBuildiqEditButton, CnCardGrid, CnConfirmDialog, CnDashboardPage, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnFilterBar, CnFormDialog, CnIndexPage, CnKpiGrid, CnMassActionBar, CnObjectCard, CnPageHeader, CnPagination, CnProgressBar, CnQuickFilterBar, CnRowActions, CnStatsBlock, CnStatusBadge, CnTabs

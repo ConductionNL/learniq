@@ -18,3 +18,6 @@
 - vaartveld/LqDetail leerling Noor Bakker https://identity.conduction.nl/screens/board?id=vaartveld/LqDetail
 - vaartveld/LqRolB mentor van H4b https://identity.conduction.nl/screens/board?id=vaartveld/LqRolB
 - wilgenboom/Berichten berichten https://identity.conduction.nl/screens/board?id=wilgenboom/Berichten
+- learniq/LqGespreksboekingen boekingen voor oudergesprekken (docent) https://identity.conduction.nl/screens/board?id=learniq/LqGespreksboekingen
+
+Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAppNav, CnBreadcrumbs, CnBuildiqEditButton, CnCardGrid, CnConfirmDialog, CnDashboardPage, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnFilterBar, CnFormDialog, CnIndexPage, CnKpiGrid, CnMassActionBar, CnNextStepCard, CnNoteCard, CnNotesCard, CnObjectCalendar, CnObjectCard, CnObjectListWidget, CnPageHeader, CnPagination, CnQuickFilterBar, CnRowActions, CnSegmentedControl, CnSettingsPage, CnSettingsSection, CnStatWidget, CnStatsBlock, CnStatusBadge, CnTabs, CnWidgetWrapper

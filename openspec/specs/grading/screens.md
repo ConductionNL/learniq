@@ -16,3 +16,6 @@
 - vaartveld/MobielHome overzicht https://identity.conduction.nl/screens/board?id=vaartveld/MobielHome
 - vaartveld/LqLijst leerlingen https://identity.conduction.nl/screens/board?id=vaartveld/LqLijst
 - vaartveld/LqDetail leerling Noor Bakker https://identity.conduction.nl/screens/board?id=vaartveld/LqDetail
+- wilgenboom/Berichten berichten https://identity.conduction.nl/screens/board?id=wilgenboom/Berichten
+
+Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAppNav, CnAuditTrailCard, CnBreadcrumbs, CnBuildiqEditButton, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnFilterBar, CnFormDialog, CnIndexPage, CnLockedBanner, CnMassActionBar, CnNextStepCard, CnNotesCard, CnPageHeader, CnPagination, CnQuickFilterBar, CnRelatedCollections, CnRowActions, CnStatusBadge, CnTabs
