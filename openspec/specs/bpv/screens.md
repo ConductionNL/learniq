@@ -8,3 +8,5 @@
 - esdoornveen/LqDetail student Milan de Groot https://identity.conduction.nl/screens/board?id=esdoornveen/LqDetail
 - esdoornveen/LqBord BPV-plekken per fase https://identity.conduction.nl/screens/board?id=esdoornveen/LqBord
 - esdoornveen/LqRolB BPV-begeleider https://identity.conduction.nl/screens/board?id=esdoornveen/LqRolB
+
+Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAppNav, CnAuditTrailCard, CnBoardView, CnBreadcrumbs, CnBuildiqEditButton, CnDashboardPage, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnFilterBar, CnIndexPage, CnKpiGrid, CnMassActionBar, CnNextStepCard, CnNoteCard, CnObjectListWidget, CnPageHeader, CnPagination, CnProgressBar, CnQuickFilterBar, CnRelatedCollections, CnRowActions, CnSegmentedControl, CnSignatureCapture, CnStatsBlock, CnStatusBadge, CnTabs, CnTimelineStages, CnWidgetWrapper

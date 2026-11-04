@@ -22,3 +22,6 @@
 - learniq/LqPta pta: de onderdelen, de weging en de keuzeregels https://identity.conduction.nl/screens/board?id=learniq/LqPta
 - learniq/LqSchool school en locaties: de lijst onder Leerlingen, Scholen en het detail https://identity.conduction.nl/screens/board?id=learniq/LqSchool
 - learniq/LqUrenplan urenplan: uren per leerjaar tegen de norm, en de onderwijsactiviteiten https://identity.conduction.nl/screens/board?id=learniq/LqUrenplan
+- learniq/LqLes les https://identity.conduction.nl/screens/board?id=learniq/LqLes
+
+Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAdminSettingsShell, CnAppNav, CnAuditTrailCard, CnBreadcrumbs, CnBuildiqEditButton, CnCardGrid, CnChartWidget, CnChoicePickerWidget, CnDashboardPage, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnFilterBar, CnFormDialog, CnIndexPage, CnKpiGrid, CnMassActionBar, CnMassDeleteDialog, CnNoteCard, CnNotesCard, CnObjectCalendar, CnObjectCard, CnPageHeader, CnPagination, CnProgressBar, CnQuickFilterBar, CnRecordListWidget, CnRelatedCollections, CnRowActions, CnSettingsSection, CnStatsBlock, CnStatusBadge, CnSubObjectsField, CnTabs

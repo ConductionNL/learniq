@@ -13,3 +13,5 @@
 - vaartveld/LqRolB mentor van H4b https://identity.conduction.nl/screens/board?id=vaartveld/LqRolB
 - esdoornveen/LqDetail student Milan de Groot https://identity.conduction.nl/screens/board?id=esdoornveen/LqDetail
 - learniq/LqEhboIncident EHBO-melding: de melding, wie hem leest en hoe hij afloopt https://identity.conduction.nl/screens/board?id=learniq/LqEhboIncident
+
+Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAppNav, CnAuditTrailCard, CnBreadcrumbs, CnBuildiqEditButton, CnChoiceCards, CnConfirmDialog, CnDashboardPage, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnFilterBar, CnFormDialog, CnIndexPage, CnKpiGrid, CnMassActionBar, CnNextStepCard, CnNotesCard, CnObjectListWidget, CnPageHeader, CnPagination, CnProgressBar, CnQuickFilterBar, CnRadioCardsWidget, CnRelatedCollections, CnRowActions, CnSegmentedControl, CnStatsBlock, CnStatusBadge, CnTabs, CnTimelineStages, CnTimelineWidget, CnWidgetWrapper
