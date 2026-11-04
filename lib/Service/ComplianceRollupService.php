@@ -142,11 +142,8 @@ class ComplianceRollupService {
 		$keys = $this->learnerKeys(profile: $profile);
 		$excusedFrom = $this->runningExemptions->regulationsFor(keys: $keys, exemptions: $snapshot->exemptions, now: $snapshot->now);
 		$regulationFigures = $this->regulationFigures(
-			profile: $profile,
-			keys: $keys,
-			regulations: $snapshot->regulations,
-			excusedFrom: $excusedFrom,
-			now: $snapshot->now
+			learner: ['profile' => $profile, 'keys' => $keys, 'excusedFrom' => $excusedFrom],
+			snapshot: $snapshot
 		);
 		$deadlineFigures = $this->deadlineFigures(keys: $keys, snapshot: $snapshot);
 
@@ -167,30 +164,28 @@ class ComplianceRollupService {
 	 * rule the learner holds a running exemption from is not an obligation:
 	 * it is counted as excused, so an auditor sees it.
 	 *
-	 * @param array<string,mixed>            $profile     The learner.
-	 * @param array<int,string>              $keys        The learner's keys.
-	 * @param array<int,array<string,mixed>> $regulations Published regulations.
-	 * @param array<string,true>             $excusedFrom Regulation slugs the learner is exempt from today.
-	 * @param DateTimeImmutable              $now         Evaluation instant.
+	 * @param array{profile: array<string,mixed>, keys: array<int,string>, excusedFrom: array<string,true>} $learner The learner, the
+	 *     learner's keys and the regulation slugs the learner is exempt from today.
+	 * @param ComplianceSnapshot $snapshot The published regulations and the evaluation instant of this roll-up.
 	 *
 	 * @return array{obligations: int, covered: int, excused: int}
 	 *
 	 * @spec openspec/changes/compliance-exemption-record/specs/compliance-exemptions/spec.md#requirement-exemptions-in-the-roll-up
 	 */
-	private function regulationFigures(array $profile, array $keys, array $regulations, array $excusedFrom, DateTimeImmutable $now): array {
+	private function regulationFigures(array $learner, ComplianceSnapshot $snapshot): array {
 		$figures = ['obligations' => 0, 'covered' => 0, 'excused' => 0];
-		foreach ($regulations as $regulation) {
-			if ($this->audience->covers(regulation: $regulation, profile: $profile) === false) {
+		foreach ($snapshot->regulations as $regulation) {
+			if ($this->audience->covers(regulation: $regulation, profile: $learner['profile']) === false) {
 				continue;
 			}
 
-			if (isset($excusedFrom[(string)($regulation['slug'] ?? '')]) === true) {
+			if (isset($learner['excusedFrom'][(string)($regulation['slug'] ?? '')]) === true) {
 				$figures['excused']++;
 				continue;
 			}
 
 			$figures['obligations']++;
-			if ($this->isCovered(keys: $keys, regulationSlug: (string)($regulation['slug'] ?? ''), now: $now) === true) {
+			if ($this->isCovered(keys: $learner['keys'], regulationSlug: (string)($regulation['slug'] ?? ''), now: $snapshot->now) === true) {
 				$figures['covered']++;
 			}
 		}

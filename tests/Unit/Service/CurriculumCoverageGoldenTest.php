@@ -88,7 +88,7 @@ class CurriculumCoverageGoldenTest extends TestCase {
 		$goalRows = $this->goals(count: $goals);
 		$ids      = array_column($goalRows, 'id');
 		$actual   = (new CurriculumCoverageCalculator(new CompetencyAlignmentNormaliser(), new CompetencyTree()))
-			->compute($framework, $goalRows, $this->references(ids: $ids), $this->references(ids: $ids), '2026-05-06T07:08:09+00:00');
+			->compute($framework, ['goals' => $goalRows, 'planned' => $this->references(ids: $ids), 'assessed' => $this->references(ids: $ids), 'now' => '2026-05-06T07:08:09+00:00']);
 
 		$name   = (string)$this->dataName();
 		$golden = [];

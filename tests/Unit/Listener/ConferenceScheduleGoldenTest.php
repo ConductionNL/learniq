@@ -115,6 +115,13 @@ class ConferenceScheduleGoldenTest extends TestCase {
 				],
 				$round,
 			],
+			'a buffer separates the slots of one teacher' => [
+				[
+					'teacher-availability' => [$avail('teacher-a', [$block('09:00', '09:40')])],
+					'conference-signup' => [$signup('s1', ['teacher-a'], '2026-08-01T08:00'), $signup('s2', ['teacher-a'], '2026-08-01T08:05'), $signup('s3', ['teacher-a'], '2026-08-01T08:10')],
+				],
+				array_merge($round, ['bufferMinutes' => 5]),
+			],
 			'a round without an id writes nothing' => [['conference-signup' => [$signup('s1', ['teacher-a'], '2026-08-01T08:00')]], ['slotDurationMinutes' => 10]],
 		];
 	}//end scenarios()

@@ -32,6 +32,9 @@ use OCA\Learniq\Service\ExampleSetDates;
 use OCA\Learniq\Service\ExampleSetOrganisation;
 use OCA\Learniq\Service\SeedProfileService;
 use OCA\Learniq\Service\SharedCodeFilter;
+use OCA\Learniq\Tests\Support\DelegatingDouble;
+use OCA\OpenRegister\Db\MagicMapper;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\App\IAppManager;
 use OCP\IAppConfig;
 use PHPUnit\Framework\TestCase;
@@ -43,6 +46,7 @@ use RuntimeException;
  * Listing, loading and naming the uuids of the example sets.
  */
 class SeedProfileServiceTest extends TestCase {
+	use DelegatingDouble;
 
 	/**
 	 * A throwaway app directory.
@@ -147,6 +151,27 @@ class SeedProfileServiceTest extends TestCase {
 			logger: ($logger ?? $this->createMock(LoggerInterface::class))
 		);
 	}//end service()
+
+	/**
+	 * An organisation step that resolves one organisation and writes nothing.
+	 *
+	 * @return ExampleSetOrganisation
+	 */
+	/**
+	 * The organisation step over the seeding OpenRegister's organisation service, object service and mapper.
+	 *
+	 * @param ContainerInterface $container The seeding OpenRegister.
+	 *
+	 * @return ExampleSetOrganisation
+	 */
+	private function organisationOver(ContainerInterface $container): ExampleSetOrganisation {
+		return new ExampleSetOrganisation(
+			$this->organisationServiceOver($container->get('OCA\OpenRegister\Service\OrganisationService')),
+			$this->delegatingMock(ObjectService::class, [$container->get('OCA\OpenRegister\Service\ObjectService'), ['find']]),
+			$this->delegatingMock(MagicMapper::class, [$container->get('OCA\OpenRegister\Db\MagicMapper'), ['update']]),
+			$this->createMock(LoggerInterface::class)
+		);
+	}//end organisationOver()
 
 	/**
 	 * An organisation step that resolves one organisation and writes nothing.
@@ -721,7 +746,7 @@ class SeedProfileServiceTest extends TestCase {
 		$time->method('now')->willReturn((new \DateTimeImmutable('2026-10-07T10:00:00+02:00'))->modify('+' . $current . ' days'));
 
 		$dates = $this->getMockBuilder(ExampleSetDates::class)
-			->setConstructorArgs([$config, $time, $this->createMock(LoadedExampleSets::class), $this->createMock(ContainerInterface::class), $this->createMock(LoggerInterface::class)])
+			->setConstructorArgs([$config, $time, $this->createMock(LoadedExampleSets::class), $this->createMock(ObjectService::class), $this->createMock(LoggerInterface::class)])
 			->onlyMethods(['moveExisting'])
 			->getMock();
 		$dates->method('moveExisting')->willReturnCallback(
@@ -750,7 +775,7 @@ class SeedProfileServiceTest extends TestCase {
 
 		$this->service(
 			container: $openRegister['container'],
-			organisation: new ExampleSetOrganisation($openRegister['container'], $this->createMock(LoggerInterface::class))
+			organisation: $this->organisationOver(container: $openRegister['container'])
 		)->install('po');
 
 		$rows = $openRegister['store']->rows;
@@ -775,7 +800,7 @@ class SeedProfileServiceTest extends TestCase {
 		try {
 			$this->service(
 				container: $openRegister['container'],
-				organisation: new ExampleSetOrganisation($openRegister['container'], $this->createMock(LoggerInterface::class))
+				organisation: $this->organisationOver(container: $openRegister['container'])
 			)->install('po');
 		} catch (RuntimeException $exception) {
 			$refusal = $exception->getMessage();

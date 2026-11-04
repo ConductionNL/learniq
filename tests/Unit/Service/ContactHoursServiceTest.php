@@ -39,13 +39,28 @@ use PHPUnit\Framework\TestCase;
 class ContactHoursServiceTest extends TestCase {
 
 	/**
+	 * Recorded reports and cohort session queries.
+	 *
+	 * @var string
+	 */
+	private const GOLDEN = __DIR__ . '/golden/ContactHoursForPeriod.json';
+
+	/**
+	 * Every sessionsForCohorts call.
+	 *
+	 * @var list<array<int|string,mixed>>
+	 */
+	private array $cohortQueries = [];
+
+
+	/**
 	 * The service over MV2A.
 	 *
 	 * @param bool $withPlan Whether MV2A has an active hour plan.
 	 *
 	 * @return ContactHoursService
 	 */
-	private function service(bool $withPlan=true): ContactHoursService {
+	private function service(bool $withPlan=true, int $margin=10): ContactHoursService {
 		$reader = $this->createMock(ContactHoursReader::class);
 		$reader->method('cohorts')->willReturn([['id' => 'mv2a', 'name' => 'MV2A', 'academicYear' => '2026-2027', 'learnerIds' => ['r.visser', 's.bos']]]);
 		$reader->method('courseNames')->willReturn(['eng' => 'Engels', 'mkt' => 'Marketing']);
@@ -89,12 +104,17 @@ class ContactHoursServiceTest extends TestCase {
 		]);
 
 		$source = $this->createMock(TimetableSource::class);
-		$source->method('sessionsForCohorts')->willReturn($sessions);
+		$source->method('sessionsForCohorts')->willReturnCallback(
+			function (...$args) use ($sessions): array {
+				$this->cohortQueries[] = $args;
+				return $sessions;
+			}
+		);
 		$sources = $this->createMock(TimetableSourceResolver::class);
 		$sources->method('current')->willReturn($source);
 
 		$config = $this->createMock(IAppConfig::class);
-		$config->method('getValueInt')->willReturn(10);
+		$config->method('getValueInt')->willReturn($margin);
 
 		return new ContactHoursService($reader, $plans, $sources, new ContactHoursCalendar(), $config);
 	}//end service()
@@ -154,4 +174,31 @@ class ContactHoursServiceTest extends TestCase {
 
 		self::assertSame(30.0, $english['owed']);
 	}//end testPeriodProration()
+
+	/**
+	 * Whole reports and the session queries for several windows, with and without a plan, match the recorded set.
+	 *
+	 * @return void
+	 */
+	public function testReportsMatchGolden(): void {
+		$cases = [];
+		foreach ([['2026-09-01', '2027-01-29'], ['2026-09-01', '2026-11-06'], ['2026-10-01', '2026-10-31'], ['2026-09-07', '2026-09-07'], ['2027-02-01', '2027-07-09']] as [$from, $to]) {
+			foreach ([true, false] as $withPlan) {
+				foreach ([10, 0, 35] as $margin) {
+					$this->cohortQueries = [];
+					$report = $this->service($withPlan, $margin)->forPeriod($from, $to);
+					$cases[$from . '..' . $to . ($withPlan === true ? ' plan' : ' no plan') . ' margin ' . $margin] = ['report' => $report, 'queries' => $this->cohortQueries];
+				}
+			}
+		}
+
+		$actual = json_decode((string)json_encode($cases, JSON_PRESERVE_ZERO_FRACTION), true);
+		if (getenv('RECORD_GOLDEN') === '1') {
+			file_put_contents(self::GOLDEN, json_encode($actual, (JSON_PRETTY_PRINT | JSON_PRESERVE_ZERO_FRACTION)) . "\n");
+		}
+
+		foreach (json_decode((string)file_get_contents(self::GOLDEN), true) as $name => $expected) {
+			self::assertSame($expected, $actual[$name], $name);
+		}
+	}//end testReportsMatchGolden()
 }//end class
