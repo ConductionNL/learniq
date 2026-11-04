@@ -2259,6 +2259,12 @@
         "{present} present, {late} late, {authorised} absent with permission, {unauthorised} absent without permission",
         "{programme}, intake {year}, {status}",
         "{revoked} revoked and {expired} expired certificates are left as they are. Learners keep their certificate number, issue date and expiry.",
-        "{shown} of {total} strings"
+        "{shown} of {total} strings",
+        "Drag to reorder",
+        "{action}: {label}",
+        "{label} moved to position {position} of {total}.",
+        "This course has no chapters yet.",
+        "Show the lessons of {name}",
+        "Hide the lessons of {name}"
     ]
 }

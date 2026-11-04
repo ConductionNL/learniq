@@ -5,8 +5,8 @@
   course-authoring-ux: the Course/Module/Lesson tree editor. A module is a
   child Course (parentCourseId = this course); lessons live under each
   module. Supports create/delete of modules and lessons, dual-path reorder
-  (drag-and-drop via vuedraggable AND keyboard-operable Move up/down
-  controls — WCAG 2.1 AA SC 2.1.1, design.md D4), "Save as template" (writes
+  through CnTreeView `reorderable` (drag-and-drop AND keyboard-operable Move
+  up/down controls — WCAG 2.1 AA SC 2.1.1, design.md D4), "Save as template" (writes
   a CourseTemplate skeleton from the current tree) and "New course from
   template" (instantiates a CourseTemplate into a fresh, independent Course
   tree — the "Clone for next year" capability).
@@ -58,11 +58,6 @@
 		</div>
 
 		<template v-else>
-			<!-- Move/status announcements for assistive technology (design.md D4). -->
-			<p class="course-builder__sr-live" aria-live="polite" role="status">
-				{{ liveMessage }}
-			</p>
-
 			<header class="course-builder__header">
 				<CnPageHeader :title="t('learniq', 'Course builder: {name}', { name: course.name || '' })" />
 				<div class="course-builder__header-actions">
@@ -183,179 +178,68 @@
 						)
 					}}
 				</p>
-				<!-- vuedraggable 4 (Vue 3) renders its rows through the REQUIRED
-				     `#item` scoped slot and computes each key from `itemKey`.
-				     A `v-for` in the default slot is the Vue 2 API: v4 throws
-				     "draggable element must have an item slot" from
-				     computeNodes(), which kills the whole Modules section's
-				     render — the list never appears and neither does any module
-				     added through the form below it. -->
-				<Draggable
-					v-model="modules"
-					tag="ul"
-					class="course-builder__module-list"
-					handle=".course-builder__handle"
-					itemKey="id"
-					@end="onModulesDragEnd">
-					<template #item="{ element: module, index: mIdx }">
-						<li class="course-builder__module">
-							<div class="course-builder__module-row">
-								<span
-									class="course-builder__handle icon-menu"
-									aria-hidden="true" />
-								<span class="course-builder__module-name">{{
-									module.name
-								}}</span>
-								<button
-									type="button"
-									class="course-builder__icon-btn"
-									:disabled="mIdx === 0"
-									:aria-label="
-										t('learniq', 'Move module \'{name}\' up', {
-											name: module.name,
-										})
-									"
-									@click="moveModuleUp(mIdx)">
-									<ChevronUp :size="18" />
-									<span class="course-builder__move-label">{{ t('learniq', 'Move up') }}</span>
-								</button>
-								<button
-									type="button"
-									class="course-builder__icon-btn"
-									:disabled="mIdx === modules.length - 1"
-									:aria-label="
-										t('learniq', 'Move module \'{name}\' down', {
-											name: module.name,
-										})
-									"
-									@click="moveModuleDown(mIdx)">
-									<ChevronDown :size="18" />
-									<span class="course-builder__move-label">{{ t('learniq', 'Move down') }}</span>
-								</button>
-								<button
-									type="button"
-									class="course-builder__icon-btn"
-									:aria-label="
-										t('learniq', 'Delete module \'{name}\'', {
-											name: module.name,
-										})
-									"
-									@click="deleteModule(module, mIdx)">
-									<DeleteOutline :size="18" />
-								</button>
-							</div>
-
-							<!-- Same v4 `#item` contract as the modules list above. -->
-							<Draggable
-								v-model="module.lessons"
-								tag="ul"
-								class="course-builder__lesson-list"
-								handle=".course-builder__handle"
-								itemKey="id"
-								@end="onLessonsDragEnd(module, $event)">
-								<template #item="{ element: lesson, index: lIdx }">
-									<li class="course-builder__lesson">
-										<span
-											class="course-builder__handle icon-menu"
-											aria-hidden="true" />
-										<span class="course-builder__lesson-name">{{
-											lesson.name
-										}}</span>
-										<span class="course-builder__lesson-type">{{
-											lesson.contentType
-										}}</span>
-										<button
-											type="button"
-											class="course-builder__icon-btn"
-											:disabled="lIdx === 0"
-											:aria-label="
-												t(
-													'learniq',
-													'Move lesson \'{name}\' up',
-													{
-														name: lesson.name,
-													},
-												)
-											"
-											@click="moveLessonUp(module, lIdx)">
-											<ChevronUp :size="16" />
-											<span class="course-builder__move-label">{{ t('learniq', 'Move up') }}</span>
-										</button>
-										<button
-											type="button"
-											class="course-builder__icon-btn"
-											:disabled="
-												lIdx === module.lessons.length - 1
-											"
-											:aria-label="
-												t(
-													'learniq',
-													'Move lesson \'{name}\' down',
-													{
-														name: lesson.name,
-													},
-												)
-											"
-											@click="moveLessonDown(module, lIdx)">
-											<ChevronDown :size="16" />
-											<span class="course-builder__move-label">{{ t('learniq', 'Move down') }}</span>
-										</button>
-										<button
-											type="button"
-											class="button-vue"
-											@click="openComposer(lesson)">
-											{{ t('learniq', 'Compose') }}
-										</button>
-										<button
-											type="button"
-											class="button-vue"
-											@click="openPlayer(lesson)">
-											{{ t('learniq', 'Preview') }}
-										</button>
-										<button
-											type="button"
-											class="course-builder__icon-btn"
-											:aria-label="
-												t(
-													'learniq',
-													'Delete lesson \'{name}\'',
-													{
-														name: lesson.name,
-													},
-												)
-											"
-											@click="deleteLesson(module, lIdx)">
-											<DeleteOutline :size="16" />
-										</button>
-									</li>
-								</template>
-							</Draggable>
-
-							<div class="course-builder__add-row">
-								<input
-									v-model="newLessonNames[module.id]"
-									type="text"
-									class="course-builder__input"
-									:placeholder="t('learniq', 'New lesson name')"
-									:aria-label="
-										t(
-											'learniq',
-											'New lesson name for module {name}',
-											{ name: module.name },
-										)
-									" />
-								<button
-									type="button"
-									class="button-vue"
-									:disabled="!newLessonNames[module.id]"
-									@click="addLesson(module)">
-									<PlusIcon :size="16" />
-									{{ t('learniq', 'Add lesson') }}
-								</button>
-							</div>
-						</li>
+				<CnTreeView
+					v-model:nodes="modules"
+					v-model:expandedIds="expandedIds"
+					labelKey="name"
+					childrenKey="lessons"
+					reorderable
+					:moveStatus="liveMessage"
+					:emptyLabel="t('learniq', 'This course has no chapters yet.')"
+					:expandLabel="(node) => t('learniq', 'Show the lessons of {name}', { name: node.name })"
+					:collapseLabel="(node) => t('learniq', 'Hide the lessons of {name}', { name: node.name })"
+					:rowAttrs="rowAttrs"
+					:reorderLabels="reorderLabels"
+					@move="onTreeMove">
+					<template #actions="{ node, depth }">
+						<template v-if="depth === 0">
+							<input
+								v-model="newLessonNames[node.id]"
+								type="text"
+								class="course-builder__input"
+								:placeholder="t('learniq', 'New lesson name')"
+								:aria-label="t('learniq', 'New lesson name for module {name}', { name: node.name })"
+								@click.stop>
+							<button
+								type="button"
+								class="button-vue"
+								:disabled="!newLessonNames[node.id]"
+								@click.stop="addLesson(node)">
+								<PlusIcon :size="16" />
+								{{ t('learniq', 'Add lesson') }}
+							</button>
+							<button
+								type="button"
+								class="course-builder__icon-btn"
+								:aria-label="t('learniq', 'Delete module \'{name}\'', { name: node.name })"
+								@click.stop="deleteModule(node)">
+								<DeleteOutline :size="18" />
+							</button>
+						</template>
+						<template v-else>
+							<span class="course-builder__lesson-type">{{ node.contentType }}</span>
+							<button
+								type="button"
+								class="button-vue"
+								@click.stop="openComposer(node)">
+								{{ t('learniq', 'Compose') }}
+							</button>
+							<button
+								type="button"
+								class="button-vue"
+								@click.stop="openPlayer(node)">
+								{{ t('learniq', 'Preview') }}
+							</button>
+							<button
+								type="button"
+								class="course-builder__icon-btn"
+								:aria-label="t('learniq', 'Delete lesson \'{name}\'', { name: node.name })"
+								@click.stop="deleteLesson(node)">
+								<DeleteOutline :size="16" />
+							</button>
+						</template>
 					</template>
-				</Draggable>
+				</CnTreeView>
 
 				<div class="course-builder__add-row">
 					<input
@@ -379,26 +263,22 @@
 </template>
 
 <script>
-import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
+import { CnDetailCard, CnPageHeader, CnTreeView } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcSelect } from '@nextcloud/vue'
-import draggable from 'vuedraggable'
-import ChevronDown from 'vue-material-design-icons/ChevronDown.vue'
-import ChevronUp from 'vue-material-design-icons/ChevronUp.vue'
 import DeleteOutline from 'vue-material-design-icons/DeleteOutline.vue'
 import PlusIcon from 'vue-material-design-icons/Plus.vue'
+import { moduleHoldingLesson, schemaOfMove } from '../utils/courseTree.js'
 
 export default {
 	name: 'CourseBuilder',
 
 	components: {
 		CnDetailCard,
-		ChevronDown,
-		ChevronUp,
 		CnPageHeader,
+		CnTreeView,
 		DeleteOutline,
-		Draggable: draggable,
 		NcSelect,
 		PlusIcon,
 	},
@@ -418,6 +298,8 @@ export default {
 			course: null,
 			/** @type {Array<object>} Each entry: {...Course fields, lessons: Array<Lesson>}. */
 			modules: [],
+			/** @type {Array<string>} Module ids whose lessons show; every module starts open. */
+			expandedIds: [],
 			liveMessage: '',
 			newModuleName: '',
 			/** @type {Record<string, string>} Pending new-lesson-name input keyed by module id. */
@@ -445,6 +327,22 @@ export default {
 		 */
 		templateOptions() {
 			return this.templates.map((tpl) => ({ id: tpl.id, label: tpl.name }))
+		},
+
+		/**
+		 * The move controls' texts in learniq's own translations.
+		 *
+		 * @return {object} Texts for CnTreeView `reorderLabels`.
+		 * @spec openspec/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard
+		 */
+		reorderLabels() {
+			return {
+				moveUp: this.t('learniq', 'Move up'),
+				moveDown: this.t('learniq', 'Move down'),
+				drag: this.t('learniq', 'Drag to reorder'),
+				controlName: this.t('learniq', '{action}: {label}'),
+				moved: this.t('learniq', '{label} moved to position {position} of {total}.'),
+			}
 		},
 	},
 
@@ -475,6 +373,7 @@ export default {
 					...module,
 					lessons: module.lessons || [],
 				}))
+				this.expandedIds = this.modules.map((module) => module.id)
 			} catch (err) {
 				this.error = this.t(
 					'learniq',
@@ -682,26 +581,30 @@ export default {
 		},
 
 		/**
-		 * Move one item of a list, persist the resulting order, and announce
-		 * the result. Used by the keyboard move-up/move-down controls; the
-		 * drag-and-drop `@end` handlers reuse `persistOrder` directly since
-		 * vuedraggable's `v-model` has already spliced the array by the time
-		 * `@end` fires.
+		 * CnTreeView `move` handler: the tree already holds the new order, so
+		 * save the moved row's siblings and say where it went.
 		 *
-		 * @param {{list: Array<object>, from: number, to: number, schema: string}} move
-		 *   The list, the current and target index, and 'Course' or 'Lesson'.
+		 * @param {{parentId: string|null, to: number, siblings: Array<object>}} move The move.
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard
 		 */
-		async reorder(move) {
-			const { list, from, to } = move
-			if (from === to || to < 0 || to >= list.length) {
-				return
-			}
-			const [moved] = list.splice(from, 1)
-			list.splice(to, 0, moved)
-			await this.persistOrder(list, move.schema)
-			this.announceMove(move)
+		async onTreeMove(move) {
+			const schema = schemaOfMove(move.parentId)
+			this.liveMessage = ''
+			await this.persistOrder(move.siblings, schema)
+			this.announceMove({ list: move.siblings, to: move.to, schema })
+		},
+
+		/**
+		 * Row attributes per tree depth: chapters and lessons keep their own class.
+		 *
+		 * @param {object} node The row's node.
+		 * @param {number} depth 0 for a chapter, 1 for a lesson.
+		 * @return {object} Attributes for the row.
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
+		 */
+		rowAttrs(node, depth) {
+			return { class: depth === 0 ? 'course-builder__module' : 'course-builder__lesson' }
 		},
 
 		/**
@@ -725,74 +628,6 @@ export default {
 		},
 
 		/**
-		 * Move a module one position earlier.
-		 *
-		 * @param {number} idx Module index.
-		 * @return {Promise<void>}
-		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
-		 */
-		moveModuleUp(idx) {
-			return this.reorder({ list: this.modules, from: idx, to: idx - 1, schema: 'Course' })
-		},
-
-		/**
-		 * Move a module one position later.
-		 *
-		 * @param {number} idx Module index.
-		 * @return {Promise<void>}
-		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
-		 */
-		moveModuleDown(idx) {
-			return this.reorder({ list: this.modules, from: idx, to: idx + 1, schema: 'Course' })
-		},
-
-		/**
-		 * @param {object} module Parent module.
-		 * @param {number} idx Lesson index within module.lessons.
-		 * @return {Promise<void>}
-		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
-		 */
-		moveLessonUp(module, idx) {
-			return this.reorder({ list: module.lessons, from: idx, to: idx - 1, schema: 'Lesson' })
-		},
-
-		/**
-		 * @param {object} module Parent module.
-		 * @param {number} idx Lesson index within module.lessons.
-		 * @return {Promise<void>}
-		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
-		 */
-		moveLessonDown(module, idx) {
-			return this.reorder({ list: module.lessons, from: idx, to: idx + 1, schema: 'Lesson' })
-		},
-
-		/**
-		 * vuedraggable `@end` handler for the modules list — the array is
-		 * already reordered by `v-model`; just persist + announce.
-		 *
-		 * @param {{newIndex: number}} event The drop, with the item's new index.
-		 * @return {Promise<void>}
-		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
-		 */
-		async onModulesDragEnd(event) {
-			await this.persistOrder(this.modules, 'Course')
-			this.announceMove({ list: this.modules, to: event?.newIndex ?? 0, schema: 'Course' })
-		},
-
-		/**
-		 * vuedraggable `@end` handler for one module's lesson list.
-		 *
-		 * @param {object} module The module whose lessons were reordered.
-		 * @param {{newIndex: number}} event The drop, with the item's new index.
-		 * @return {Promise<void>}
-		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
-		 */
-		async onLessonsDragEnd(module, event) {
-			await this.persistOrder(module.lessons, 'Lesson')
-			this.announceMove({ list: module.lessons, to: event?.newIndex ?? 0, schema: 'Lesson' })
-		},
-
-		/**
 		 * Create a new module (child Course) at the end of the module list.
 		 *
 		 * @return {Promise<void>}
@@ -812,6 +647,7 @@ export default {
 				})
 				created.lessons = []
 				this.modules.push(created)
+				this.expandedIds.push(created.id)
 				this.newModuleName = ''
 			} catch (err) {
 				this.error = this.t(
@@ -828,14 +664,13 @@ export default {
 		 * from this tree — OpenRegister owns cascade/soft-delete behaviour).
 		 *
 		 * @param {object} module The module to delete.
-		 * @param {number} idx Its index in `modules`.
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
-		async deleteModule(module, idx) {
+		async deleteModule(module) {
 			try {
 				await this.deleteObject('Course', module.id)
-				this.modules.splice(idx, 1)
+				this.modules = this.modules.filter((item) => item.id !== module.id)
 				await this.persistOrder(this.modules, 'Course')
 			} catch (err) {
 				this.error = this.t(
@@ -883,16 +718,15 @@ export default {
 		/**
 		 * Delete a lesson from a module.
 		 *
-		 * @param {object} module The parent module.
-		 * @param {number} idx The lesson's index in module.lessons.
+		 * @param {object} lesson The lesson to delete.
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
-		async deleteLesson(module, idx) {
-			const lesson = module.lessons[idx]
+		async deleteLesson(lesson) {
+			const module = moduleHoldingLesson(this.modules, lesson.id)
 			try {
 				await this.deleteObject('Lesson', lesson.id)
-				module.lessons.splice(idx, 1)
+				module.lessons = module.lessons.filter((row) => row.id !== lesson.id)
 				await this.persistOrder(module.lessons, 'Lesson')
 			} catch (err) {
 				this.error = this.t(
@@ -1027,15 +861,6 @@ export default {
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
-.course-builder__sr-live {
-	position: absolute;
-	width: 1px;
-	height: 1px;
-	overflow: hidden;
-	clip-path: inset(50%);
-	white-space: nowrap;
-}
-
 .course-builder__header {
 	display: flex;
 	align-items: baseline;
@@ -1071,47 +896,18 @@ export default {
 	font-size: inherit;
 }
 
-.course-builder__module-list,
-.course-builder__lesson-list {
-	list-style: none;
-	margin: 0;
-	padding: 0;
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-}
-
-.course-builder__module {
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius, 4px);
-	padding: 8px;
-}
-
-.course-builder__module-row,
-.course-builder__lesson {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-}
-
-.course-builder__lesson-list {
-	margin: 8px 0 8px 24px;
-	padding-left: 8px;
-	border-left: 2px solid var(--color-border);
-}
-
-.course-builder__handle {
-	cursor: grab;
-	color: var(--color-text-maxcontrast);
-}
-
-.course-builder__module-name {
+.course-builder :deep(.course-builder__module) {
 	font-weight: 600;
+}
+
+.course-builder :deep(.cn-tree-node__label) {
 	flex: 1 1 auto;
 }
 
-.course-builder__lesson-name {
-	flex: 1 1 auto;
+.course-builder :deep(.cn-tree-node__row) .course-builder__input {
+	width: auto;
+	flex: 0 1 14em;
+	font-weight: normal;
 }
 
 .course-builder__lesson-type {
@@ -1127,11 +923,6 @@ export default {
 	padding: 4px;
 	display: inline-flex;
 	align-items: center;
-}
-
-.course-builder__move-label {
-	margin-inline-start: calc(var(--default-grid-baseline) * 1);
-	font-size: var(--font-size-small, 13px);
 }
 
 .course-builder__reorder-hint {

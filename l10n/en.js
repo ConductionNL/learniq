@@ -3812,7 +3812,13 @@ OC.L10N.register(
         "Menu": "Menu",
         "Timetable exchange": "Timetable exchange",
         "AI translations": "AI translations",
-        "Administration settings": "Administration settings"
+        "Administration settings": "Administration settings",
+        "Drag to reorder": "Drag to reorder",
+        "{action}: {label}": "{action}: {label}",
+        "{label} moved to position {position} of {total}.": "{label} moved to position {position} of {total}.",
+        "This course has no chapters yet.": "This course has no chapters yet.",
+        "Show the lessons of {name}": "Show the lessons of {name}",
+        "Hide the lessons of {name}": "Hide the lessons of {name}"
     },
     "nplurals=2; plural=(n != 1);"
 )
