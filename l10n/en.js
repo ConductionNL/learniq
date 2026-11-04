@@ -3812,7 +3812,10 @@ OC.L10N.register(
         "Menu": "Menu",
         "Timetable exchange": "Timetable exchange",
         "AI translations": "AI translations",
-        "Administration settings": "Administration settings"
+        "Administration settings": "Administration settings",
+        "Show on the board": "Show on the board",
+        "Changes in {seconds} s": "Changes in {seconds} s",
+        "This code holds until you close check-in.": "This code holds until you close check-in."
     },
     "nplurals=2; plural=(n != 1);"
 )

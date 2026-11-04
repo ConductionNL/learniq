@@ -4289,7 +4289,10 @@ OC.L10N.register(
         "Shared with you": "Gedeeld met u",
         "Read only": "Alleen lezen",
         "School costs": "Schoolkosten",
-        "Remove the example set \"{set}\"? Its {count} objects move to the trash of OpenRegister. Anything you made yourself stays.": "De voorbeeldset \"{set}\" verwijderen? De {count} objecten gaan naar de prullenbak van OpenRegister. Wat je zelf hebt gemaakt, blijft staan."
+        "Remove the example set \"{set}\"? Its {count} objects move to the trash of OpenRegister. Anything you made yourself stays.": "De voorbeeldset \"{set}\" verwijderen? De {count} objecten gaan naar de prullenbak van OpenRegister. Wat je zelf hebt gemaakt, blijft staan.",
+        "Show on the board": "Op het bord tonen",
+        "Changes in {seconds} s": "Verandert over {seconds} s",
+        "This code holds until you close check-in.": "Deze code blijft geldig tot je het aanmelden sluit."
     },
     "nplurals=2; plural=(n != 1);"
 )
