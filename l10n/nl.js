@@ -4295,7 +4295,10 @@ OC.L10N.register(
         "{label} moved to position {position} of {total}.": "{label} verplaatst naar positie {position} van {total}.",
         "This course has no chapters yet.": "Deze cursus heeft nog geen hoofdstukken.",
         "Show the lessons of {name}": "Lessen van {name} tonen",
-        "Hide the lessons of {name}": "Lessen van {name} verbergen"
+        "Hide the lessons of {name}": "Lessen van {name} verbergen",
+        "Show on the board": "Op het bord tonen",
+        "Changes in {seconds} s": "Verandert over {seconds} s",
+        "This code holds until you close check-in.": "Deze code blijft geldig tot je het aanmelden sluit."
     },
     "nplurals=2; plural=(n != 1);"
 )

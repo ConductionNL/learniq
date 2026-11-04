@@ -3818,7 +3818,10 @@ OC.L10N.register(
         "{label} moved to position {position} of {total}.": "{label} moved to position {position} of {total}.",
         "This course has no chapters yet.": "This course has no chapters yet.",
         "Show the lessons of {name}": "Show the lessons of {name}",
-        "Hide the lessons of {name}": "Hide the lessons of {name}"
+        "Hide the lessons of {name}": "Hide the lessons of {name}",
+        "Show on the board": "Show on the board",
+        "Changes in {seconds} s": "Changes in {seconds} s",
+        "This code holds until you close check-in.": "This code holds until you close check-in."
     },
     "nplurals=2; plural=(n != 1);"
 )
