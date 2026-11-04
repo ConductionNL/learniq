@@ -29,6 +29,7 @@ use OCA\Learniq\Service\CoursePackage\CommonCartridgeResourceRouter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
+use OCA\Learniq\Service\CoursePackage\CoursePackageOutput;
 use OCA\Learniq\Service\CoursePackage\PackageContext;
 use OCA\Learniq\Service\CoursePackage\PackageXmlValueReader;
 use OCA\Learniq\Service\QtiImportService;
@@ -55,6 +56,7 @@ use RuntimeException;
  * @covers \OCA\Learniq\Service\CoursePackage\PackageContext
  * @covers \OCA\Learniq\Service\CoursePackage\ResourceSlot
  * @uses   \OCA\Learniq\Service\CoursePackage\CourseMetadataFilter
+ * @uses   \OCA\Learniq\Service\CoursePackage\CoursePackageOutput
  * @uses   \OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter
  * @uses   \OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter
  * @uses   \OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter
@@ -232,9 +234,8 @@ class CommonCartridgeImportGoldenTest extends TestCase {
 		return new CommonCartridgeCourseImporter(
 			new QtiImportService($objectService, $logger),
 			new CommonCartridgeParser(),
-			new CommonCartridgeResourceRouter($objectWriter, $fileWriter, $reporter, new PackageXmlValueReader(), $logger),
-			$objectWriter,
-			$reporter,
+			new CommonCartridgeResourceRouter(new CoursePackageOutput($objectWriter, $fileWriter, $reporter), new PackageXmlValueReader(), $logger),
+			new CoursePackageOutput($objectWriter, $fileWriter, $reporter),
 		);
 	}//end importer()
 }//end class

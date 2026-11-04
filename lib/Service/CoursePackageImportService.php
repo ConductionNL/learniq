@@ -38,14 +38,11 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Service\CoursePackage\ArchivePackage;
-use OCA\Learniq\Service\CoursePackage\CommonCartridgeCourseImporter;
-use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
-use OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter;
+use OCA\Learniq\Service\CoursePackage\CoursePackageImporters;
+use OCA\Learniq\Service\CoursePackage\CoursePackageOutput;
 use OCA\Learniq\Service\CoursePackage\ImportOrigin;
 use OCA\Learniq\Service\CoursePackage\ImportReportOutcome;
-use OCA\Learniq\Service\CoursePackage\MoodleCourseImporter;
 use OCA\Learniq\Service\CoursePackage\PackageContext;
-use OCA\Learniq\Service\CoursePackage\LearniqJsonCourseImporter;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -61,21 +58,15 @@ class CoursePackageImportService {
 	/**
 	 * Constructor.
 	 *
-	 * @param CommonCartridgeCourseImporter $ccImporter Common Cartridge extraction + materialisation.
-	 * @param MoodleCourseImporter $moodleImporter Moodle backup extraction + materialisation.
-	 * @param LearniqJsonCourseImporter $jsonImporter Scholiq-native JSON round-trip import.
-	 * @param CoursePackageFileWriter $fileWriter Temp-directory cleanup after every import.
-	 * @param CoursePackageImportReporter $reporter Builds and persists the import report.
-	 * @param LoggerInterface $logger PSR logger.
+	 * @param CoursePackageImporters $importers The importer per package format.
+	 * @param CoursePackageOutput    $output    The file writer (temp-directory cleanup) and the report builder.
+	 * @param LoggerInterface        $logger    PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly CommonCartridgeCourseImporter $ccImporter,
-		private readonly MoodleCourseImporter $moodleImporter,
-		private readonly LearniqJsonCourseImporter $jsonImporter,
-		private readonly CoursePackageFileWriter $fileWriter,
-		private readonly CoursePackageImportReporter $reporter,
+		private readonly CoursePackageImporters $importers,
+		private readonly CoursePackageOutput $output,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -96,7 +87,7 @@ class CoursePackageImportService {
 		$origin = new ImportOrigin(
 			sourceFilename: $sourceFilename,
 			importedBy: $importedBy,
-			importedAt: $this->reporter->now(),
+			importedAt: $this->output->reporter->now(),
 			tenantId: $tenantId,
 		);
 		$tmpDir = sys_get_temp_dir() . '/learniq_coursepkg_' . bin2hex(random_bytes(8));
@@ -104,7 +95,7 @@ class CoursePackageImportService {
 		try {
 			$format = $this->detectFormat(packagePath: $packagePath, sourceFilename: $sourceFilename);
 			if ($format === null) {
-				return $this->reporter->persistReport(
+				return $this->output->reporter->persistReport(
 					origin: $origin,
 					outcome: new ImportReportOutcome(
 						sourceFormat: self::FORMAT_COMMON_CARTRIDGE,
@@ -120,7 +111,7 @@ class CoursePackageImportService {
 			// extract — it is this change's own lossless export target (design.md
 			// format-support matrix), read and walked directly.
 			if ($format === self::FORMAT_SCHOLIQ_JSON) {
-				return $this->jsonImporter->importPackage(packagePath: $packagePath, origin: $origin);
+				return $this->importers->learniqJson->importPackage(packagePath: $packagePath, origin: $origin);
 			}
 
 			mkdir(directory: $tmpDir, permissions: 0700, recursive: true);
@@ -130,7 +121,7 @@ class CoursePackageImportService {
 				origin: $origin,
 			);
 		} finally {
-			$this->fileWriter->removeDirectory(dir: $tmpDir);
+			$this->output->fileWriter->removeDirectory(dir: $tmpDir);
 		}//end try
 	}//end import()
 
@@ -149,7 +140,7 @@ class CoursePackageImportService {
 		try {
 			$manifest = $this->parseArchive(package: $package);
 		} catch (\Throwable $e) {
-			return $this->reporter->persistReport(
+			return $this->output->reporter->persistReport(
 				origin: $origin,
 				outcome: new ImportReportOutcome(
 					sourceFormat: $package->format,
@@ -168,7 +159,7 @@ class CoursePackageImportService {
 			entries: $entries,
 		);
 
-		return $this->reporter->persistReport(
+		return $this->output->reporter->persistReport(
 			origin: $origin,
 			outcome: new ImportReportOutcome(sourceFormat: $package->format, courseId: $courseId, entries: $entries, errorMessage: null),
 		);
@@ -186,10 +177,10 @@ class CoursePackageImportService {
 	 */
 	private function parseArchive(ArchivePackage $package): array {
 		if ($package->format === self::FORMAT_COMMON_CARTRIDGE) {
-			return $this->ccImporter->extractAndParse(packagePath: $package->packagePath, targetDir: $package->tmpDir);
+			return $this->importers->commonCartridge->extractAndParse(packagePath: $package->packagePath, targetDir: $package->tmpDir);
 		}
 
-		return $this->moodleImporter->extractAndParse(packagePath: $package->packagePath, targetDir: $package->tmpDir);
+		return $this->importers->moodle->extractAndParse(packagePath: $package->packagePath, targetDir: $package->tmpDir);
 	}//end parseArchive()
 
 	/**
@@ -206,10 +197,10 @@ class CoursePackageImportService {
 	 */
 	private function materialise(string $format, array $manifest, PackageContext $package, array &$entries): ?string {
 		if ($format === self::FORMAT_COMMON_CARTRIDGE) {
-			return $this->ccImporter->importManifest(manifest: $manifest, package: $package, entries: $entries);
+			return $this->importers->commonCartridge->importManifest(manifest: $manifest, package: $package, entries: $entries);
 		}
 
-		return $this->moodleImporter->importManifest(manifest: $manifest, package: $package, entries: $entries);
+		return $this->importers->moodle->importManifest(manifest: $manifest, package: $package, entries: $entries);
 	}//end materialise()
 
 	/**

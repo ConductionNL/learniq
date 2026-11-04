@@ -38,23 +38,43 @@ use Psr\Log\LoggerInterface;
  */
 class CommonCartridgeResourceRouter {
 	/**
+	 * Creates the Learniq objects the package materialises.
+	 *
+	 * @var CoursePackageObjectWriter
+	 */
+	private readonly CoursePackageObjectWriter $objectWriter;
+
+	/**
+	 * Resolves package-relative file bytes into nc:files.
+	 *
+	 * @var CoursePackageFileWriter
+	 */
+	private readonly CoursePackageFileWriter $fileWriter;
+
+	/**
+	 * Builds the report entry rows.
+	 *
+	 * @var CoursePackageImportReporter
+	 */
+	private readonly CoursePackageImportReporter $reporter;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param CoursePackageObjectWriter $objectWriter Creates the Learniq objects a resource materialises.
-	 * @param CoursePackageFileWriter $fileWriter Resolves package-relative file bytes into nc:files.
-	 * @param CoursePackageImportReporter $reporter Builds the report entry rows.
+	 * @param CoursePackageOutput $output The object writer, file writer and report entry builder.
 	 * @param PackageXmlValueReader $xmlReader Reads weblink side-car XML descriptors.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly CoursePackageObjectWriter $objectWriter,
-		private readonly CoursePackageFileWriter $fileWriter,
-		private readonly CoursePackageImportReporter $reporter,
+		CoursePackageOutput $output,
 		private readonly PackageXmlValueReader $xmlReader,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->objectWriter = $output->objectWriter;
+		$this->fileWriter = $output->fileWriter;
+		$this->reporter = $output->reporter;
 	}//end __construct()
 
 	/**
