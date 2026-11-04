@@ -15,3 +15,10 @@
 - esdoornveen/LqLijst studenten https://identity.conduction.nl/screens/board?id=esdoornveen/LqLijst
 - learniq/LqAanwezigheidLijst aanwezigheid https://identity.conduction.nl/screens/board?id=learniq/LqAanwezigheidLijst
 - learniq/LqLeerlingInschrijvingen inschrijvingen van een leerling (docent) https://identity.conduction.nl/screens/board?id=learniq/LqLeerlingInschrijvingen
+- learniq/LqInstellingen beheerinstellingen: de begindatum van het schooljaar https://identity.conduction.nl/screens/board?id=learniq/LqInstellingen
+- learniq/LqLokaalbezetting lokaalbezetting: bezetting per lokaal, en lessen zonder lokaal https://identity.conduction.nl/screens/board?id=learniq/LqLokaalbezetting
+- learniq/LqLokalen lokalen: een lokaal als boekbare ruimte https://identity.conduction.nl/screens/board?id=learniq/LqLokalen
+- learniq/LqMedewerker medewerker: de leesbare naam van elke rol https://identity.conduction.nl/screens/board?id=learniq/LqMedewerker
+- learniq/LqPta pta: de onderdelen, de weging en de keuzeregels https://identity.conduction.nl/screens/board?id=learniq/LqPta
+- learniq/LqSchool school en locaties: de lijst onder Leerlingen, Scholen en het detail https://identity.conduction.nl/screens/board?id=learniq/LqSchool
+- learniq/LqUrenplan urenplan: uren per leerjaar tegen de norm, en de onderwijsactiviteiten https://identity.conduction.nl/screens/board?id=learniq/LqUrenplan

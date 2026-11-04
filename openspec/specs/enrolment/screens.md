@@ -28,3 +28,6 @@
 - warmtepompacademie/LqLijst deelnemers https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqLijst
 - warmtepompacademie/LqDetail deelnemer Tom Verbeek https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqDetail
 - learniq/LqLlAanbod cursuscatalogus met externe aanbieders (leerling) https://identity.conduction.nl/screens/board?id=learniq/LqLlAanbod
+- learniq/LqCursusInstellingen cursusinstellingen: aanmelden door leerlingen, gesloten, open of op aanvraag https://identity.conduction.nl/screens/board?id=learniq/LqCursusInstellingen
+- learniq/LqKeuzelesIndelen keuzelessen indelen: de coördinator plaatst wie de periode miste https://identity.conduction.nl/screens/board?id=learniq/LqKeuzelesIndelen
+- learniq/LqLlInleveren inleveren (leerling): een groepsinlevering noemt de hele werkgroep https://identity.conduction.nl/screens/board?id=learniq/LqLlInleveren
