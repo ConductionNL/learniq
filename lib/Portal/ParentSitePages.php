@@ -64,9 +64,10 @@ class ParentSitePages {
 	 * The overview, in the order of the board (school-design wilgenboom,
 	 * MijnOverzicht): the greeting with today's date and the absence action,
 	 * what the guardian still has to do, the children as cards, the newest
-	 * school news and this month's calendar. Nothing else: the board has no
-	 * figures, absence reports, grades or messages here; those live on each
-	 * child's own pages (portal proof run 1, defect 11).
+	 * school news, this month's calendar and the latest grades with a link to
+	 * the reports. Nothing else: the board has no figures, absence reports or
+	 * messages here; those live on each child's own pages (portal proof run 1,
+	 * defect 11).
 	 *
 	 * The greeting, the highlight display, the cards keys and the calendar
 	 * tiles are the block contract of lane L2 (portaliq `site-school-blocks`);
@@ -132,9 +133,34 @@ class ParentSitePages {
 				['type' => 'news', 'label' => 'New from school', 'limit' => 3],
 				// "Deze maand": this month only (portaliq calendar `range`).
 				['type' => 'calendar', 'label' => 'This month', 'display' => 'tiles', 'range' => 'month', 'sources' => $sources],
+				self::latestGradesBlock(),
+				// "Rapporten": the report cards on each child's own page.
+				['type' => 'cta', 'page' => 'parentChildren', 'label' => 'Reports'],
 			],
 		];
 	}//end overviewPage()
+
+	/**
+	 * "Laatste cijfers": the newest grades of both children, each row named
+	 * by the child, the subject and the test, with the grade as its value.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/school-portals-match-their-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-holds-only-what-the-board-shows
+	 */
+	public static function latestGradesBlock(): array {
+		return [
+			'type' => 'collection',
+			'label' => 'Latest grades',
+			'collection' => 'parentGrades',
+			'display' => 'rows',
+			'titleFields' => ['childName', 'courseName', 'methodName'],
+			'lookups' => [self::childNameLookup()],
+			'statusField' => 'value',
+			'limit' => 6,
+			'sort' => ['field' => 'gradedAt', 'direction' => 'desc'],
+		];
+	}//end latestGradesBlock()
 
 	/**
 	 * The child's first name on a row that names the child in `learnerRef`
