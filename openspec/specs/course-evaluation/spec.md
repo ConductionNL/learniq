@@ -1,7 +1,7 @@
 # course-evaluation Specification
 
 ## Purpose
-TBD - created by archiving change course-evaluation. Update Purpose after archive.
+Let a school ask learners anonymously what they thought of a course, through campaigns with reminders for those who have not answered. Quality scores per course and teacher lead to recorded improvement actions, so the cycle closes.
 ## Requirements
 ### Requirement: Persist course-evaluation domain objects in OpenRegister
 

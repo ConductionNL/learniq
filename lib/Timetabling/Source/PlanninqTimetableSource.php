@@ -52,6 +52,30 @@ class PlanninqTimetableSource implements TimetableSource {
 	public const QUERY_EVENT = 'OCA\\Planninq\\Event\\TimetableSessionsQueryEvent';
 
 	/**
+	 * The session's fields, in order. Title, location, onlineMeetingUrl,
+	 * lifecycle and source are derived; the others are copied as strings.
+	 */
+	private const SESSION_FIELDS = [
+		'id',
+		'title',
+		'startsAt',
+		'endsAt',
+		'location',
+		'cohortId',
+		'courseId',
+		'onlineMeetingUrl',
+		'lifecycle',
+		'teacherUserId',
+		'roomReference',
+		'groupReference',
+		'subject',
+		'teacherReference',
+		'externalRef',
+		'sourceSystem',
+		'source',
+	];
+
+	/**
 	 * Planninq caps one read at this many lessons.
 	 */
 	private const LIMIT = 1000;
@@ -255,42 +279,43 @@ class PlanninqTimetableSource implements TimetableSource {
 	 * @return array<string,mixed>
 	 */
 	private function toSession(array $lesson): array {
-		$location = (string)($lesson['roomLabel'] ?? '');
-		if ($location === '') {
-			$location = (string)($lesson['roomReference'] ?? '');
+		$session = [];
+		foreach (self::SESSION_FIELDS as $field) {
+			$session[$field] = (string)($lesson[$field] ?? '');
 		}
 
-		$lifecycle = 'scheduled';
+		$session['title'] = self::firstFilled(lesson: $lesson, fields: ['title', 'subject']);
+		$session['location'] = self::firstFilled(lesson: $lesson, fields: ['roomLabel', 'roomReference']);
+		// The lesson's online link (contract v2); the projector shows only https.
+		$session['onlineMeetingUrl'] = $this->linkOf(lesson: $lesson);
+		$session['lifecycle'] = 'scheduled';
 		if (($lesson['status'] ?? '') === 'cancelled') {
-			$lifecycle = 'cancelled';
+			$session['lifecycle'] = 'cancelled';
 		}
 
-		$title = (string)($lesson['title'] ?? '');
-		if ($title === '') {
-			$title = (string)($lesson['subject'] ?? '');
-		}
+		$session['source'] = self::NAME;
 
-		return [
-			'id' => (string)($lesson['id'] ?? ''),
-			'title' => $title,
-			'startsAt' => (string)($lesson['startsAt'] ?? ''),
-			'endsAt' => (string)($lesson['endsAt'] ?? ''),
-			'location' => $location,
-			'cohortId' => (string)($lesson['cohortId'] ?? ''),
-			'courseId' => (string)($lesson['courseId'] ?? ''),
-			// The lesson's online link (contract v2); the projector shows only https.
-			'onlineMeetingUrl' => $this->linkOf(lesson: $lesson),
-			'lifecycle' => $lifecycle,
-			'teacherUserId' => (string)($lesson['teacherUserId'] ?? ''),
-			'roomReference' => (string)($lesson['roomReference'] ?? ''),
-			'groupReference' => (string)($lesson['groupReference'] ?? ''),
-			'subject' => (string)($lesson['subject'] ?? ''),
-			'teacherReference' => (string)($lesson['teacherReference'] ?? ''),
-			'externalRef' => (string)($lesson['externalRef'] ?? ''),
-			'sourceSystem' => (string)($lesson['sourceSystem'] ?? ''),
-			'source' => self::NAME,
-		];
+		return $session;
 	}//end toSession()
+
+	/**
+	 * The first of the fields that holds a non-empty value, as a string; '' when none does.
+	 *
+	 * @param array<string,mixed> $lesson The planninq lesson.
+	 * @param list<string>        $fields The fields, in order of preference.
+	 *
+	 * @return string
+	 */
+	private static function firstFilled(array $lesson, array $fields): string {
+		foreach ($fields as $field) {
+			$value = (string)($lesson[$field] ?? '');
+			if ($value !== '') {
+				return $value;
+			}
+		}
+
+		return '';
+	}//end firstFilled()
 
 	/**
 	 * A lesson's online link, or null when it has none.

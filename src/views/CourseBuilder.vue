@@ -46,7 +46,7 @@
 -->
 
 <template>
-	<div class="course-builder">
+	<div class="course-builder lq-board-page">
 		<div v-if="loading" class="course-builder__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
 			<span>{{ t('learniq', 'Loading course…') }}</span>
@@ -64,13 +64,7 @@
 			</p>
 
 			<header class="course-builder__header">
-				<h2>
-					{{
-						t('learniq', 'Course builder: {name}', {
-							name: course.name || '',
-						})
-					}}
-				</h2>
+				<CnPageHeader :title="t('learniq', 'Course builder: {name}', { name: course.name || '' })" />
 				<div class="course-builder__header-actions">
 					<button class="button-vue" @click="goBack">
 						{{ t('learniq', 'Back to course') }}
@@ -87,8 +81,10 @@
 			</header>
 
 			<!-- Save as template -->
-			<section v-if="showSaveTemplate" class="course-builder__panel">
-				<h3>{{ t('learniq', 'Save this course as a template') }}</h3>
+			<CnDetailCard
+				v-if="showSaveTemplate"
+				:title="t('learniq', 'Save this course as a template')"
+				class="course-builder__panel">
 				<label class="course-builder__field-label" for="cb-template-name">
 					{{ t('learniq', 'Template name') }}
 				</label>
@@ -129,11 +125,13 @@
 					class="course-builder__inline-success">
 					{{ t('learniq', 'Template saved.') }}
 				</p>
-			</section>
+			</CnDetailCard>
 
 			<!-- New course from template -->
-			<section v-if="showInstantiate" class="course-builder__panel">
-				<h3>{{ t('learniq', 'Create a new course from a template') }}</h3>
+			<CnDetailCard
+				v-if="showInstantiate"
+				:title="t('learniq', 'Create a new course from a template')"
+				class="course-builder__panel">
 				<NcSelect
 					v-model="instantiateForm.templateId"
 					:options="templateOptions"
@@ -170,11 +168,12 @@
 					class="course-builder__inline-error">
 					{{ instantiateError }}
 				</p>
-			</section>
+			</CnDetailCard>
 
 			<!-- Modules -->
-			<section class="course-builder__modules">
-				<h3>{{ t('learniq', 'Modules') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Modules')"
+				class="course-builder__modules">
 
 				<!-- vuedraggable 4 (Vue 3) renders its rows through the REQUIRED
 				     `#item` scoped slot and computes each key from `itemKey`.
@@ -362,12 +361,13 @@
 						{{ t('learniq', 'Add module') }}
 					</button>
 				</div>
-			</section>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcSelect } from '@nextcloud/vue'
@@ -381,11 +381,13 @@ export default {
 	name: 'CourseBuilder',
 
 	components: {
-		NcSelect,
-		Draggable: draggable,
-		ChevronUp,
+		CnDetailCard,
 		ChevronDown,
+		ChevronUp,
+		CnPageHeader,
 		DeleteOutline,
+		Draggable: draggable,
+		NcSelect,
 		PlusIcon,
 	},
 
@@ -1012,13 +1014,6 @@ export default {
 </script>
 
 <style scoped>
-.course-builder {
-	max-width: 960px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
 .course-builder__loading,
 .course-builder__error {
 	display: flex;
@@ -1042,20 +1037,12 @@ export default {
 	justify-content: space-between;
 	flex-wrap: wrap;
 	gap: var(--default-grid-baseline, 8px);
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .course-builder__header-actions {
 	display: flex;
 	gap: 8px;
 	flex-wrap: wrap;
-}
-
-.course-builder__panel {
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius, 4px);
-	padding: calc(var(--default-grid-baseline, 8px) * 2);
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .course-builder__panel-actions {

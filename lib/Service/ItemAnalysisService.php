@@ -54,7 +54,6 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
-use DOMDocument;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -97,11 +96,6 @@ class ItemAnalysisService {
 	private const DEFAULT_LOW_DISCRIMINATION_BELOW = 0.10;
 
 	/**
-	 * Kelley's 27% split for distractor-analysis upper/lower scoring groups.
-	 */
-	private const DISTRACTOR_SPLIT_FRACTION = 0.27;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
@@ -128,22 +122,30 @@ class ItemAnalysisService {
 	public function computeItemStatistics(string $itemId, string $assessmentId): array {
 		$assessment = $this->fetchOne(schema: self::ASSESSMENT_SCHEMA, uuid: $assessmentId);
 		$tenantId = $assessment['tenant_id'] ?? '';
-		$config = $this->resolveConfig(assessment: $assessment);
-
 		$item = $this->fetchOne(schema: self::ITEM_SCHEMA, uuid: $itemId, tenantId: $tenantId);
-
 		$gradedResults = $this->fetchGradedResults(assessmentId: $assessmentId, tenantId: $tenantId);
-		$vectors = $this->collectItemVectors(gradedResults: $gradedResults, itemId: $itemId, item: $item);
+		$vectors = $this->collectItemVectors(gradedResults: $gradedResults, target: ['itemId' => $itemId, 'item' => $item]);
 
-		$itemScores = $vectors['itemScores'];
-		$maxPointsList = $vectors['maxPointsList'];
-		$itemExcludedTotals = $vectors['itemExcludedTotals'];
-		$totalScores = $vectors['totalScores'];
-		$selections = $vectors['selections'];
+		$statistics = self::emptyStatistics(sampleSize: count($vectors['itemScores']));
+		if ($statistics['sampleSize'] < $this->resolveConfig(assessment: $assessment)['minSampleSize']) {
+			return $statistics;
+		}
 
-		$sampleSize = count($itemScores);
+		$statistics = $this->withScoreStatistics(statistics: $statistics, vectors: $vectors);
+		$statistics['distractorAnalysis'] = (new ItemDistractorAnalysis())->analyse(item: $item, vectors: $vectors);
 
-		$statistics = [
+		return $statistics;
+	}//end computeItemStatistics()
+
+	/**
+	 * The statistics of an item with too few scored responses to say anything.
+	 *
+	 * @param int $sampleSize The number of scored responses.
+	 *
+	 * @return array{sampleSize: int, pValue: null, itemTotalCorrelation: null, distractorAnalysis: null, insufficientData: true, computedAt: string}
+	 */
+	private static function emptyStatistics(int $sampleSize): array {
+		return [
 			'sampleSize' => $sampleSize,
 			'pValue' => null,
 			'itemTotalCorrelation' => null,
@@ -151,29 +153,23 @@ class ItemAnalysisService {
 			'insufficientData' => true,
 			'computedAt' => (new DateTimeImmutable())->format(\DATE_ATOM),
 		];
+	}//end emptyStatistics()
 
-		if ($sampleSize < $config['minSampleSize']) {
-			return $statistics;
-		}
-
+	/**
+	 * The statistics with the p-value and the item-total correlation filled in.
+	 *
+	 * @param array<string,mixed>            $statistics The statistics so far.
+	 * @param array<string,array<int,mixed>> $vectors    The item's response vectors.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function withScoreStatistics(array $statistics, array $vectors): array {
 		$statistics['insufficientData'] = false;
-		$statistics['pValue'] = $this->computePValue(itemScores: $itemScores, maxPointsList: $maxPointsList);
-		$statistics['itemTotalCorrelation'] = $this->pearsonCorrelation(vectorX: $itemScores, vectorY: $itemExcludedTotals);
-
-		$isChoiceWithKey = ($item !== null)
-			&& (($item['interactionType'] ?? null) === 'choice')
-			&& (($item['correctResponse'] ?? null) !== null);
-
-		if ($isChoiceWithKey === true) {
-			$statistics['distractorAnalysis'] = $this->computeDistractorAnalysis(
-				item: $item,
-				selections: $selections,
-				totalScores: $totalScores
-			);
-		}
+		$statistics['pValue'] = $this->computePValue(itemScores: $vectors['itemScores'], maxPointsList: $vectors['maxPointsList']);
+		$statistics['itemTotalCorrelation'] = $this->pearsonCorrelation(vectorX: $vectors['itemScores'], vectorY: $vectors['itemExcludedTotals']);
 
 		return $statistics;
-	}//end computeItemStatistics()
+	}//end withScoreStatistics()
 
 	/**
 	 * Compute AssessmentReliability (Cronbach's alpha) for an Assessment from
@@ -192,47 +188,61 @@ class ItemAnalysisService {
 	 */
 	public function computeReliability(string $assessmentId): array {
 		$assessment = $this->fetchOne(schema: self::ASSESSMENT_SCHEMA, uuid: $assessmentId);
-		$tenantId = $assessment['tenant_id'] ?? '';
-		$config = $this->resolveConfig(assessment: $assessment);
-
-		$gradedResults = $this->fetchGradedResults(assessmentId: $assessmentId, tenantId: $tenantId);
-
+		$gradedResults = $this->fetchGradedResults(assessmentId: $assessmentId, tenantId: $assessment['tenant_id'] ?? '');
 		$itemIds = $this->resolveScoredItemIds(gradedResults: $gradedResults);
-		$itemCount = count($itemIds);
-
 		$completeResults = $this->filterCompleteResults(gradedResults: $gradedResults, itemIds: $itemIds);
-		$sampleSize = count($completeResults);
 
-		$reliability = [
+		$reliability = self::emptyReliability(sampleSize: count($completeResults), itemCount: count($itemIds));
+		if ($reliability['sampleSize'] < $this->resolveConfig(assessment: $assessment)['reliabilityMinSampleSize'] || $reliability['itemCount'] < 2) {
+			return $reliability;
+		}
+
+		// With no variance in the total scores alpha is undefined and stays null,
+		// but the sample size gate was met, so the data is not insufficient.
+		$reliability['insufficientData'] = false;
+		$reliability['cronbachAlpha'] = $this->cronbachAlpha(completeResults: $completeResults, itemIds: $itemIds);
+
+		return $reliability;
+	}//end computeReliability()
+
+	/**
+	 * The reliability of an assessment with too few complete responses to say anything.
+	 *
+	 * @param int $sampleSize The number of respondents with a score for every item.
+	 * @param int $itemCount  The number of scored items.
+	 *
+	 * @return array{sampleSize: int, itemCount: int, cronbachAlpha: null, insufficientData: true, computedAt: string}
+	 */
+	private static function emptyReliability(int $sampleSize, int $itemCount): array {
+		return [
 			'sampleSize' => $sampleSize,
 			'itemCount' => $itemCount,
 			'cronbachAlpha' => null,
 			'insufficientData' => true,
 			'computedAt' => (new DateTimeImmutable())->format(\DATE_ATOM),
 		];
+	}//end emptyReliability()
 
-		if ($sampleSize < $config['reliabilityMinSampleSize'] || $itemCount < 2) {
-			return $reliability;
-		}
-
+	/**
+	 * Cronbach's alpha over the complete results, or null when the total scores do not vary.
+	 *
+	 * @param array<int,array<string,mixed>> $completeResults Results with a score for every item.
+	 * @param array<int,string>              $itemIds         The scored items.
+	 *
+	 * @return float|null
+	 */
+	private function cronbachAlpha(array $completeResults, array $itemIds): ?float {
 		$itemVariances = $this->computeItemVariances(completeResults: $completeResults, itemIds: $itemIds);
 		$totalScores = $this->computeTotalScores(completeResults: $completeResults, itemIds: $itemIds);
 		$totalVariance = $this->sampleVariance(values: $totalScores);
-
-		$reliability['insufficientData'] = false;
-
 		if ($totalVariance <= 0.0) {
-			// Undefined (no variance in total scores) — leave alpha null but
-			// do NOT report insufficientData (the sample size gate was met).
-			$reliability['cronbachAlpha'] = null;
-			return $reliability;
+			return null;
 		}
 
-		$k = $itemCount;
-		$reliability['cronbachAlpha'] = (($k / ($k - 1)) * (1 - (array_sum($itemVariances) / $totalVariance)));
+		$k = count($itemIds);
 
-		return $reliability;
-	}//end computeReliability()
+		return (($k / ($k - 1)) * (1 - (array_sum($itemVariances) / $totalVariance)));
+	}//end cronbachAlpha()
 
 	/**
 	 * Collect every distinct itemId with a scored response somewhere across
@@ -369,14 +379,13 @@ class ItemAnalysisService {
 	 * option) from every graded result that actually presented this item.
 	 *
 	 * @param array<int,array<string,mixed>> $gradedResults Graded AssessmentResult rows.
-	 * @param string $itemId UUID of the item.
-	 * @param array<string,mixed>|null $item Item data, or null when unresolvable.
+	 * @param array{itemId: string, item: array<string,mixed>|null} $target The item's UUID, and its data or null when unresolvable.
 	 *
 	 * @return array{itemScores: array<int,float>, maxPointsList: array<int,float>,
 	 *               itemExcludedTotals: array<int,float>, totalScores: array<int,float>,
 	 *               selections: array<int,string|null>}
 	 */
-	private function collectItemVectors(array $gradedResults, string $itemId, ?array $item): array {
+	private function collectItemVectors(array $gradedResults, array $target): array {
 		$vectors = [
 			'itemScores' => [],
 			'maxPointsList' => [],
@@ -387,7 +396,7 @@ class ItemAnalysisService {
 
 		foreach ($gradedResults as $result) {
 			$responses = $result['responses'] ?? [];
-			$response = $this->findResponseForItem(responses: $responses, itemId: $itemId);
+			$response = $this->findResponseForItem(responses: $responses, itemId: $target['itemId']);
 
 			if ($response === null) {
 				// This attempt never presented this item (e.g. a different
@@ -403,19 +412,29 @@ class ItemAnalysisService {
 			$vectors['itemScores'][] = $itemScore;
 			$vectors['itemExcludedTotals'][] = ($totalScore - $itemScore);
 			$vectors['totalScores'][] = $totalScore;
-			$vectors['maxPointsList'][] = (float)$this->resolveMaxPoints(result: $result, itemId: $itemId, item: $item);
+			$vectors['maxPointsList'][] = (float)$this->resolveMaxPoints(result: $result, target: $target);
 
-			$selectedOption = null;
-			$responseValue = $response['response']['value'] ?? null;
-			if (is_string($responseValue) === true) {
-				$selectedOption = $responseValue;
-			}
-
-			$vectors['selections'][] = $selectedOption;
+			$vectors['selections'][] = $this->selectedOption(response: $response);
 		}//end foreach
 
 		return $vectors;
 	}//end collectItemVectors()
+
+	/**
+	 * The option a response selected, when its value is text.
+	 *
+	 * @param array<string,mixed> $response The response.
+	 *
+	 * @return string|null
+	 */
+	private function selectedOption(array $response): ?string {
+		$value = ($response['response']['value'] ?? null);
+		if (is_string($value) === true) {
+			return $value;
+		}
+
+		return null;
+	}//end selectedOption()
 
 	/**
 	 * Find the scored response for one item within one result's responses[],
@@ -469,19 +488,18 @@ class ItemAnalysisService {
 	 * exists (pre-existing results created before this change shipped).
 	 *
 	 * @param array<string,mixed> $result AssessmentResult data.
-	 * @param string $itemId UUID of the item.
-	 * @param array<string,mixed>|null $item Item data, or null when unresolvable.
+	 * @param array{itemId: string, item: array<string,mixed>|null} $target The item's UUID, and its data or null when unresolvable.
 	 *
 	 * @return float
 	 */
-	private function resolveMaxPoints(array $result, string $itemId, ?array $item): float {
+	private function resolveMaxPoints(array $result, array $target): float {
 		foreach (($result['drawnItemRefs'] ?? []) as $ref) {
-			if (($ref['itemId'] ?? null) === $itemId) {
+			if (($ref['itemId'] ?? null) === $target['itemId']) {
 				return (float)($ref['points'] ?? 0);
 			}
 		}
 
-		return (float)($item['maxScore'] ?? 0);
+		return (float)($target['item']['maxScore'] ?? 0);
 	}//end resolveMaxPoints()
 
 	/**
@@ -526,121 +544,38 @@ class ItemAnalysisService {
 			return 0.0;
 		}
 
+		$sums = $this->deviationSums(vectorX: $vectorX, vectorY: $vectorY);
+		if ($sums['xx'] <= 0.0 || $sums['yy'] <= 0.0) {
+			return 0.0;
+		}
+
+		return ($sums['xy'] / sqrt($sums['xx'] * $sums['yy']));
+	}//end pearsonCorrelation()
+
+	/**
+	 * The sums of squared and multiplied deviations from the mean of two equally long vectors.
+	 *
+	 * @param array<int,float> $vectorX First vector.
+	 * @param array<int,float> $vectorY Second vector.
+	 *
+	 * @return array{xy: float, xx: float, yy: float}
+	 */
+	private function deviationSums(array $vectorX, array $vectorY): array {
+		$n = count($vectorX);
 		$meanX = (array_sum($vectorX) / $n);
 		$meanY = (array_sum($vectorY) / $n);
-
-		$numerator = 0.0;
-		$denomX = 0.0;
-		$denomY = 0.0;
+		$sums = ['xy' => 0.0, 'xx' => 0.0, 'yy' => 0.0];
 
 		for ($i = 0; $i < $n; $i++) {
 			$deviationX = ($vectorX[$i] - $meanX);
 			$deviationY = ($vectorY[$i] - $meanY);
-			$numerator += ($deviationX * $deviationY);
-			$denomX += ($deviationX * $deviationX);
-			$denomY += ($deviationY * $deviationY);
+			$sums['xy'] += ($deviationX * $deviationY);
+			$sums['xx'] += ($deviationX * $deviationX);
+			$sums['yy'] += ($deviationY * $deviationY);
 		}
 
-		if ($denomX <= 0.0 || $denomY <= 0.0) {
-			return 0.0;
-		}
-
-		return ($numerator / sqrt($denomX * $denomY));
-	}//end pearsonCorrelation()
-
-	/**
-	 * Kelley 27%-split distractor analysis: for every declared answer option,
-	 * count how many top-27%-by-total-score and bottom-27%-by-total-score
-	 * respondents selected it.
-	 *
-	 * @param array<string,mixed>|null $item Item data (qtiBody).
-	 * @param array<int,string|null> $selections Per-respondent selected option identifier (or null).
-	 * @param array<int,float> $totalScores Per-respondent total score (same index order as $selections).
-	 *
-	 * @return array<int,array{optionId:string,selectedByHighGroup:int,selectedByLowGroup:int}>|null
-	 */
-	private function computeDistractorAnalysis(?array $item, array $selections, array $totalScores): ?array {
-		$optionIds = $this->extractChoiceIdentifiers(qtiBody: (string)($item['qtiBody'] ?? ''));
-		if (empty($optionIds) === true) {
-			return null;
-		}
-
-		$n = count($totalScores);
-		if ($n === 0) {
-			return null;
-		}
-
-		$indices = range(0, ($n - 1));
-		usort($indices, static fn (int $a, int $b) => ($totalScores[$b] <=> $totalScores[$a]));
-
-		$groupSize = (int)round($n * self::DISTRACTOR_SPLIT_FRACTION);
-		$groupSize = max(1, $groupSize);
-		$groupSize = min($groupSize, (int)floor($n / 2));
-		if ($groupSize < 1) {
-			$groupSize = 1;
-		}
-
-		$highIndices = array_slice($indices, 0, $groupSize);
-		$lowIndices = array_slice($indices, -$groupSize);
-
-		$result = [];
-		foreach ($optionIds as $optionId) {
-			$highCount = 0;
-			foreach ($highIndices as $index) {
-				if (($selections[$index] ?? null) === $optionId) {
-					$highCount++;
-				}
-			}
-
-			$lowCount = 0;
-			foreach ($lowIndices as $index) {
-				if (($selections[$index] ?? null) === $optionId) {
-					$lowCount++;
-				}
-			}
-
-			$result[] = [
-				'optionId' => $optionId,
-				'selectedByHighGroup' => $highCount,
-				'selectedByLowGroup' => $lowCount,
-			];
-		}//end foreach
-
-		return $result;
-	}//end computeDistractorAnalysis()
-
-	/**
-	 * Extract QTI simpleChoice `identifier` values, in declared order.
-	 *
-	 * @param string $qtiBody Raw QTI 2.1 XML body.
-	 *
-	 * @return array<int,string>
-	 */
-	private function extractChoiceIdentifiers(string $qtiBody): array {
-		if (trim($qtiBody) === '') {
-			return [];
-		}
-
-		$previousSetting = libxml_use_internal_errors(true);
-		$doc = new DOMDocument();
-		$loaded = $doc->loadXML($qtiBody);
-		libxml_clear_errors();
-		libxml_use_internal_errors($previousSetting);
-
-		if ($loaded === false) {
-			return [];
-		}
-
-		$identifiers = [];
-		foreach ($doc->getElementsByTagName('simpleChoice') as $node) {
-			$identifier = $node->getAttribute('identifier');
-			if ($identifier !== '') {
-				$identifiers[] = $identifier;
-			}
-		}
-
-		return $identifiers;
-	}//end extractChoiceIdentifiers()
+		return $sums;
+	}//end deviationSums()
 
 	/**
 	 * Sample variance (N-1 denominator) — the conventional Cronbach's-alpha convention.
