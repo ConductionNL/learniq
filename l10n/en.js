@@ -3799,6 +3799,7 @@ OC.L10N.register(
         "School years": "School years",
         "Mapping per cohort": "Mapping per cohort",
         "HR employee · school-wide, all locations": "HR employee · school-wide, all locations",
+        "HR employee · school-wide, all locations of {school}": "HR employee · school-wide, all locations of {school}",
         "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups": "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups",
         "confidential adviser · your own mandatory training courses and points": "confidential adviser · your own mandatory training courses and points",
         "My courses": "My courses",

@@ -1213,6 +1213,13 @@
       ]
     },
     {
+      "userId": "vo-docent-15",
+      "displayName": "Anouk Smit",
+      "groups": [
+        "instructors"
+      ]
+    },
+    {
       "userId": "vo-teamleider-02",
       "displayName": "Jeroen Smit",
       "groups": [

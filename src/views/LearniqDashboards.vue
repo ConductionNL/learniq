@@ -110,6 +110,7 @@ import {
 	rollCallRoute,
 	sessionsToMarkFilter,
 } from '../utils/rollCall.js'
+import { roleLine, soleSchoolName } from '../utils/schoolName.js'
 import {
 	appendFilter,
 	isScopedTeacher,
@@ -193,6 +194,19 @@ export default {
 			type: Object,
 			default: () => ({}),
 		},
+
+		/**
+		 * The subtitle per primary role that names the school (`{school}`),
+		 * from the page's manifest `config`. Used once the school is known;
+		 * until then, and on an instance with several schools, the role's
+		 * `subtitleByRole` line shows.
+		 *
+		 * @spec openspec/changes/vo-lesson-store-and-wednesday-records/specs/dashboard/spec.md#requirement-the-hr-today-subtitle-names-the-school
+		 */
+		subtitleOfSchoolByRole: {
+			type: Object,
+			default: () => ({}),
+		},
 	},
 
 	data() {
@@ -201,6 +215,8 @@ export default {
 			// The group teacher's cohorts and courses; null = school-wide.
 			scope: null,
 			scopePending: false,
+			// The name of the instance's one school; '' when not known.
+			schoolName: '',
 		}
 	},
 
@@ -260,8 +276,12 @@ export default {
 		 */
 		pageSubtitle() {
 			const role = loadState('learniq', 'primaryRole', '')
-			const line = (this.subtitleByRole || {})[role]
-			return typeof line === 'string' && line !== '' ? this.t('learniq', line) : ''
+			const ofSchool = roleLine(this.subtitleOfSchoolByRole, role)
+			if (this.schoolName !== '' && ofSchool !== '') {
+				return this.t('learniq', ofSchool, { school: this.schoolName }, undefined, { escape: false })
+			}
+			const line = roleLine(this.subtitleByRole, role)
+			return line !== '' ? this.t('learniq', line) : ''
 		},
 
 		/**
@@ -707,8 +727,14 @@ export default {
 		},
 	},
 
+	/**
+	 * Load what the page's lists and subtitle read.
+	 *
+	 * @spec openspec/changes/vo-lesson-store-and-wednesday-records/specs/dashboard/spec.md#requirement-the-hr-today-subtitle-names-the-school
+	 */
 	created() {
 		this.loadTeacherScope()
+		this.loadSchoolName()
 	},
 
 	methods: {
@@ -777,6 +803,25 @@ export default {
 				}
 			} finally {
 				this.scopePending = false
+			}
+		},
+
+		/**
+		 * Read the school's name when the reader's subtitle names it. A failed
+		 * read leaves the subtitle without the name.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/vo-lesson-store-and-wednesday-records/specs/dashboard/spec.md#requirement-the-hr-today-subtitle-names-the-school
+		 */
+		async loadSchoolName() {
+			const role = loadState('learniq', 'primaryRole', '')
+			if (roleLine(this.subtitleOfSchoolByRole, role) === '') {
+				return
+			}
+			try {
+				this.schoolName = soleSchoolName(await this.listObjects('School', {}))
+			} catch {
+				this.schoolName = ''
 			}
 		},
 
