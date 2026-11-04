@@ -97,6 +97,20 @@
 					]
 				}
 			}
+		},
+		{
+			"id": "DataExchange",
+			"label": "Exchanges",
+			"icon": "DatabaseExportOutline",
+			"route": "ExchangeJobs",
+			"order": 45,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"admin"
+					]
+				}
+			}
 		}
 	],
 	"pages": [
@@ -111,6 +125,7 @@
 			},
 			"config": {
 				"showTitle": true,
+				"headerMeta": "Read only",
 				"register": "integriq",
 				"schema": "job",
 				"filter": {
@@ -175,6 +190,7 @@
 			},
 			"config": {
 				"showTitle": true,
+				"headerMeta": "Read only",
 				"register": "integriq",
 				"schema": "sync_item_dead_letter",
 				"filter": {
