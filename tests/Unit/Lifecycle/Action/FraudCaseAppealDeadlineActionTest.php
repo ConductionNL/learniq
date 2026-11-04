@@ -24,7 +24,9 @@ namespace OCA\Learniq\Tests\Unit\Lifecycle\Action;
 use DateTimeImmutable;
 use DateTimeInterface;
 use OCA\Learniq\Lifecycle\Action\FraudCaseAppealDeadlineAction;
+use OCA\Learniq\Service\Settings\AppealTerm;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
+use OCP\IAppConfig;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -72,4 +74,23 @@ class FraudCaseAppealDeadlineActionTest extends TestCase {
 		self::assertSame('fraud-proven', $result['verdict']);
 		self::assertSame('decided', $result['lifecycle']);
 	}//end testDecidedAtAndAppealDeadlineEndUpOnTheSavedObject()
+
+	/**
+	 * A school that set 28 days gets a deadline 28 days after the decision.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/exam-board/spec.md#scenario-the-school-sets-its-own-appeal-term
+	 */
+	public function testTheSchoolsOwnAppealTermSetsTheDeadline(): void {
+		$config = $this->createMock(IAppConfig::class);
+		$config->method('getValueString')->willReturn('28');
+		$action = new FraudCaseAppealDeadlineAction(new AppealTerm($config));
+
+		$result = $action->execute(['lifecycle' => 'decided'], [], [], FraudCaseAppealDeadlineAction::class);
+
+		$decidedAt = DateTimeImmutable::createFromFormat(DateTimeInterface::ATOM, $result['decidedAt']);
+		self::assertNotFalse($decidedAt);
+		self::assertSame($decidedAt->modify('+28 days')->format(DateTimeInterface::ATOM), $result['appealDeadline']);
+	}//end testTheSchoolsOwnAppealTermSetsTheDeadline()
 }//end class

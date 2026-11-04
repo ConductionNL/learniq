@@ -4322,7 +4322,15 @@
         "Menu": "Menu",
         "Timetable exchange": "Roosteruitwisseling",
         "AI translations": "AI-vertalingen",
-        "Administration settings": "Beheerinstellingen"
+        "Administration settings": "Beheerinstellingen",
+        "How long a learner can appeal a decision of the exam board. The term counts from the day of the decision and is on every fraud case and exemption case.": "Hoe lang een leerling in beroep kan tegen een besluit van de examencommissie. De termijn telt vanaf de dag van het besluit en staat op elke fraudezaak en vrijstellingszaak.",
+        "Loading the appeal term…": "De beroepstermijn wordt geladen…",
+        "Appeal term in days": "Beroepstermijn in dagen",
+        "Enter a whole number of days, from 1 to {max}.": "Vul een heel aantal dagen in, van 1 tot en met {max}.",
+        "Default {default} days. A decision of {decided} can then be appealed up to and including {until}.": "Standaard {default} dagen. Een besluit van {decided} is dan tot en met {until} aanvechtbaar.",
+        "The appeal term could not be loaded. Reload the page to try again.": "De beroepstermijn kon niet worden geladen. Laad de pagina opnieuw om het nog eens te proberen.",
+        "Appeal term saved": "Beroepstermijn opgeslagen",
+        "The appeal term could not be saved. Try again.": "De beroepstermijn kon niet worden opgeslagen. Probeer het opnieuw."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

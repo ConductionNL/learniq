@@ -25,6 +25,7 @@ namespace OCA\Learniq\Service;
 
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\Calendar\SchoolYear;
+use OCA\Learniq\Service\Settings\AppealTerm;
 use OCA\Learniq\Service\Settings\MenuStructure;
 use OCP\App\IAppManager;
 use OCP\IAppConfig;
@@ -53,6 +54,8 @@ class SettingsService {
 		MenuStructure::KEY,
 		// The first day of the school year, MM-DD (school-year-setting).
 		SchoolYear::KEY,
+		// The exam board's appeal term in days (exam-board, decision 333).
+		AppealTerm::KEY,
 	];
 
 	/**
