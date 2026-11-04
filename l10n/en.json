@@ -3878,7 +3878,9 @@
         "The course store could not take the course. Try again later.": "The course store could not take the course. Try again later.",
         "Signals in my mentor group": "Signals in my mentor group",
         "No open signals for the pupils you mentor": "No open signals for the pupils you mentor",
-        "Open signals": "Open signals"
+        "Open signals": "Open signals",
+        "Estimate": "Estimate",
+        "No programme years in this forecast.": "No programme years in this forecast."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

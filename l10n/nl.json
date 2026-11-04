@@ -4379,7 +4379,9 @@
         "The course store connection could not be saved.": "De koppeling met de cursuswinkel kon niet worden opgeslagen.",
         "Signals in my mentor group": "Signalen in mijn mentorgroep",
         "No open signals for the pupils you mentor": "Geen open signalen voor de leerlingen van wie u mentor bent",
-        "Open signals": "Open signalen"
+        "Open signals": "Open signalen",
+        "Estimate": "Schatting",
+        "No programme years in this forecast.": "Geen leerjaren in deze prognose."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
