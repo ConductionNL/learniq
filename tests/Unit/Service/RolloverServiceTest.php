@@ -31,9 +31,11 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\RolloverExecutionService;
 use OCA\Learniq\Service\RolloverService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IGroupManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 
 /**
  * Tests for RolloverService.
@@ -294,6 +296,94 @@ class RolloverServiceTest extends TestCase {
 		$progress = $svc->execute($plan);
 		$this->assertSame('done', $progress['c1']);
 	}//end testExecuteSkipsCompletedMappings()
+
+	/**
+	 * A from-cohort that no longer exists is skipped without writes, and the next mapping still runs.
+	 *
+	 * OpenRegister's find() throws DoesNotExistException for a missing object.
+	 *
+	 * @return void
+	 */
+	public function testExecuteSkipsAMissingFromCohort(): void {
+		$saved         = [];
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willReturnCallback(
+			function (int|string $id): ObjectEntity {
+				if ($id !== 'c1') {
+					throw new DoesNotExistException('Object not found');
+				}
+
+				return $this->cohortEntity(['id' => 'c1', 'name' => '2A', 'learnerIds' => ['l1'], 'lifecycle' => 'active']);
+			}
+		);
+		$objectService->method('findAll')->willReturn([]);
+		$objectService->method('saveObject')->willReturnCallback(
+			static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved) {
+				$saved[] = $object;
+				return OrEntityFactory::make($object, (string)$schema, (string)$register);
+			}
+		);
+
+		$progress = $this->makeExecutionService($objectService)->execute(
+			[
+				'toAcademicYear' => '2026/2027',
+				'tenant_id'      => 'tenant-a',
+				'mappings'       => [
+					['fromCohortId' => 'c-gone', 'action' => 'promote', 'toCohortName' => '9Z'],
+					['fromCohortId' => 'c-gone-too', 'action' => 'dissolve'],
+					['fromCohortId' => 'c1', 'action' => 'promote', 'toCohortName' => '3A'],
+				],
+			]
+		);
+
+		$this->assertSame(['c1' => 'done'], $progress);
+		$this->assertSame(
+			[['3A', null], ['2A', 'archived']],
+			array_map(static fn (array $o): array => [$o['name'] ?? null, $o['lifecycle'] ?? null], $saved),
+			'only the existing mapping writes'
+		);
+	}//end testExecuteSkipsAMissingFromCohort()
+
+	/**
+	 * The preview reads a missing from-cohort as empty instead of failing.
+	 *
+	 * @return void
+	 */
+	public function testPreviewReadsAMissingFromCohortAsEmpty(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willThrowException(new DoesNotExistException('Object not found'));
+		$objectService->method('findAll')->willReturn([]);
+
+		$this->assertSame([], $this->makeService($objectService)->loadCohort(cohortId: 'c-gone'));
+		$report = $this->makeService($objectService)->preview(
+			['toAcademicYear' => '2026/2027', 'mappings' => [['fromCohortId' => 'c-gone', 'action' => 'graduate']]]
+		);
+		$this->assertSame(0, $report['counts']['graduate']);
+	}//end testPreviewReadsAMissingFromCohortAsEmpty()
+
+	/**
+	 * Any other read failure is not read as a missing cohort: it stops the run and the preview.
+	 *
+	 * @return void
+	 */
+	public function testAReadFailureOtherThanAMissingCohortPropagates(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willThrowException(new RuntimeException('database gone'));
+		$objectService->method('findAll')->willReturn([]);
+		$objectService->expects($this->never())->method('saveObject');
+
+		try {
+			$this->makeService($objectService)->loadCohort(cohortId: 'c1');
+			$this->fail('loadCohort swallowed the failure');
+		} catch (RuntimeException $e) {
+			$this->assertSame('database gone', $e->getMessage());
+		}
+
+		$this->expectException(RuntimeException::class);
+		$this->makeExecutionService($objectService)->execute(
+			['toAcademicYear' => '2026/2027', 'mappings' => [['fromCohortId' => 'c1', 'action' => 'dissolve']]]
+		);
+	}//end testAReadFailureOtherThanAMissingCohortPropagates()
 
 	/**
 	 * groupName produces a stable, slugified identifier.

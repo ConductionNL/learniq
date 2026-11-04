@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Learniq\Service\CallerGroups;
 use OCA\Learniq\Controller\LeaderboardController;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Http;
@@ -126,10 +127,12 @@ class LeaderboardControllerTest extends TestCase {
 
 		return new LeaderboardController(
 			request: $this->createMock(IRequest::class),
-			userSession: $userSession,
-			groupManager: $groupManager,
+			caller: new CallerGroups(
+				userSession: $userSession,
+				groupManager: $groupManager
+			),
 			objectService: $objectService,
-			config: $config,
+			config: $config
 		);
 	}//end makeController()
 
@@ -352,10 +355,12 @@ class LeaderboardControllerTest extends TestCase {
 
 		$controller = new LeaderboardController(
 			request: $this->createMock(IRequest::class),
-			userSession: $userSession,
-			groupManager: $groupManager,
+			caller: new CallerGroups(
+				userSession: $userSession,
+				groupManager: $groupManager
+			),
 			objectService: $objectService,
-			config: $this->createMock(IConfig::class),
+			config: $this->createMock(IConfig::class)
 		);
 
 		$response = $controller->getRankings(self::COHORT_ID);

@@ -42,6 +42,13 @@ final class ObjectEventSubscription {
 	private static array $proxied = [];
 
 	/**
+	 * Every declaration with its register and schema filters, by event.
+	 *
+	 * @var array<string, list<array<string,mixed>>>
+	 */
+	private static array $declared = [];
+
+	/**
 	 * Record a boot-phase listener and put the shared proxy on the dispatcher once per event.
 	 *
 	 * @param IEventDispatcher       $dispatcher The live event dispatcher.
@@ -67,7 +74,19 @@ final class ObjectEventSubscription {
 		}
 
 		self::$subscriptions[$event][] = $listener;
+		self::$declared[$event][] = ['listener' => $listener, 'registers' => $registers, 'schemas' => $schemas];
 	}//end subscribe()
+
+	/**
+	 * Subscriptions declared for one event class, as the real class reports them.
+	 *
+	 * @param string $event Event class name.
+	 *
+	 * @return array<int, array{listener: string, registers: array<int, string>|null, schemas: array<int, string>|null}>
+	 */
+	public static function subscriptionsFor(string $event): array {
+		return (self::$declared[$event] ?? []);
+	}//end subscriptionsFor()
 
 	/**
 	 * Every recorded listener, keyed by event class.
@@ -86,5 +105,6 @@ final class ObjectEventSubscription {
 	public static function reset(): void {
 		self::$subscriptions = [];
 		self::$proxied = [];
+		self::$declared = [];
 	}//end reset()
 }//end class

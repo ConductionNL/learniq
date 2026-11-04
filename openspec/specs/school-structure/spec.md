@@ -516,9 +516,9 @@ The system MUST persist `School` (BRIN, name, pedagogical concept) and `Location
 `CohortDetail`'s header MUST show the cohort's own `name`, not the static page-type label. This is satisfied by the current `@conduction/nextcloud-vue` `CnDetailPage` component's `objectDisplayName`/`displayTitle` resolution (which prefers `obj.name` over the `title` prop) consuming `Cohort.name` (already a required property); no manifest change is needed.
 
 #### Scenario: A coordinator opens a cohort and sees its name in the header
-- **GIVEN** `CohortDetail` for a cohort named "Groep 5/6"
+- **GIVEN** `CohortDetail` for a cohort named "3HV-B"
 - **WHEN** the page renders and the object has loaded
-- **THEN** the header reads "Groep 5/6", not the literal string "Cohort"
+- **THEN** the header reads "3HV-B", not the literal string "Cohort"
 
 ### Requirement: A class x subject teacher join exists distinct from Cohort.teacherIds
 The system MUST persist `SubjectTeacherAssignment` (`cohortId`, `courseId`, `teacherId`) as an OpenRegister object, distinct from `Cohort.teacherIds`. `Cohort.teacherIds` names who teaches the cohort generally; `SubjectTeacherAssignment` names who teaches a specific subject (`Course`) within that cohort.

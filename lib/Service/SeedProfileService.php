@@ -38,8 +38,6 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Portal\ExamplePortalProvisioner;
-use OCP\App\IAppManager;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
@@ -87,28 +85,18 @@ class SeedProfileService {
 	/**
 	 * Constructor.
 	 *
-	 * @param IAppManager        $appManager Resolves this app's path and version.
-	 * @param ContainerInterface $container  Resolves OpenRegister's importer.
-	 * @param LoggerInterface    $logger     Records what was imported or skipped.
-	 * @param DemoDataService    $demoData   Lists and imports the generated set.
-	 * @param SharedCodeFilter   $sharedCodes Leaves out a regulation code another set already created.
-	 * @param LoadedExampleSets  $loadedSets Remembers which sets were loaded, for the wizard's removal steps.
-	 * @param ExamplePortalProvisioner $examplePortals Gives the set's school its themed portal when portaliq is installed.
-	 * @param ExampleSetDates          $dates          Moves the set's dates to the week of the load (demo-dates-follow-the-load-week).
-	 * @param ExampleSetOrganisation   $organisation   Gives the set's rows the instance's default organisation.
+	 * @param ExampleSetSources     $sources     The app manager, the generated set and the loaded sets record.
+	 * @param ExampleSetPreparation $preparation The shared code filter, dates, organisation stamp and portal provisioner.
+	 * @param ContainerInterface    $container   Resolves OpenRegister's importer.
+	 * @param LoggerInterface       $logger      Records what was imported or skipped.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly IAppManager $appManager,
+		private readonly ExampleSetSources $sources,
+		private readonly ExampleSetPreparation $preparation,
 		private readonly ContainerInterface $container,
 		private readonly LoggerInterface $logger,
-		private readonly DemoDataService $demoData,
-		private readonly SharedCodeFilter $sharedCodes,
-		private readonly LoadedExampleSets $loadedSets,
-		private readonly ExamplePortalProvisioner $examplePortals,
-		private readonly ExampleSetDates $dates,
-		private readonly ExampleSetOrganisation $organisation,
 	) {
 	}//end __construct()
 
@@ -140,7 +128,7 @@ class SeedProfileService {
 			$listed[] = $profile;
 		}
 
-		foreach ($this->demoData->listChoices() as $choice) {
+		foreach ($this->sources->demoData->listChoices() as $choice) {
 			if (($choice['id'] ?? null) === self::GENERATED_PROFILE) {
 				$listed[] = $choice;
 			}
@@ -185,7 +173,7 @@ class SeedProfileService {
 	 */
 	public function isKnown(string $profileId): bool {
 		if ($profileId === self::GENERATED_PROFILE) {
-			return $this->demoData->isAvailable();
+			return $this->sources->demoData->isAvailable();
 		}
 
 		return $this->pathFor(profileId: $profileId) !== null;
@@ -214,8 +202,8 @@ class SeedProfileService {
 	 */
 	public function install(string $profileId): array {
 		if ($profileId === self::GENERATED_PROFILE) {
-			$imported = $this->demoData->install();
-			$this->loadedSets->recordFromChoices(setId: $profileId, choices: $this->demoData->listChoices());
+			$imported = $this->sources->demoData->install();
+			$this->sources->loadedSets->recordFromChoices(setId: $profileId, choices: $this->sources->demoData->listChoices());
 			return [
 				'objects' => (int)($imported['objects'] ?? 0),
 				'skipped' => (int)($imported['skipped'] ?? 0),
@@ -228,12 +216,12 @@ class SeedProfileService {
 
 		// Resolved before anything is written, so a load never leaves rows without one.
 		$importer     = $this->configurationService();
-		$organisation = $this->organisation->resolve();
+		$organisation = $this->preparation->organisation->resolve();
 
 		// Every date moves to the week of this load (demo-dates-follow-the-load-week);
 		// what exists from a load in another week moves first, because the seed
 		// import skips an object that exists. A load in the same week moves nothing.
-		$dated = $this->dates->prepare(setId: $profileId, data: $data, objects: $this->objectsOf(data: $data));
+		$dated = $this->preparation->dates->prepare(setId: $profileId, data: $data, objects: $this->objectsOf(data: $data));
 
 		$data = $dated['data'];
 
@@ -242,21 +230,21 @@ class SeedProfileService {
 		// NIS2 in the company and training sets).
 		$result = $importer->importFromApp(
 			appId: $this->importAppId(profileId: $profileId),
-			data: $this->sharedCodes->withoutCodesHeldElsewhere(data: $data),
-			version: $this->appManager->getAppVersion(Application::APP_ID),
+			data: $this->preparation->sharedCodes->withoutCodesHeldElsewhere(data: $data),
+			version: $this->sources->appManager->getAppVersion(Application::APP_ID),
 			force: true
 		);
 
 		// The seed import writes rows without an organisation; each gets the
 		// instance's, which also fixes rows an earlier load left without one.
-		$this->organisation->stamp(objects: $this->objectsOf(data: $data), organisation: $organisation);
+		$this->preparation->organisation->stamp(objects: $this->objectsOf(data: $data), organisation: $organisation);
 
-		$this->loadedSets->recordFromChoices(setId: $profileId, choices: [$data['x-openregister']['profile']]);
+		$this->sources->loadedSets->recordFromChoices(setId: $profileId, choices: [$data['x-openregister']['profile']]);
 
 		// The school's portal, themed with the matching thematiq example set.
 		// A no-op without portaliq, and it never throws, so the set itself
 		// stays imported whatever the portal answers.
-		$portal = $this->examplePortals->provision(profileId: $profileId, days: $dated['offset'], previous: $dated['previous']);
+		$portal = $this->preparation->examplePortals->provision(profileId: $profileId, days: $dated['offset'], previous: $dated['previous']);
 
 		$this->logger->info(
 			'[SeedProfileService] imported example set "' . $profileId . '": ' . $objects . ' object(s).',
@@ -265,7 +253,7 @@ class SeedProfileService {
 
 		return [
 			'objects' => $objects,
-			'skipped' => $this->demoData->skippedIn(result: (array)$result),
+			'skipped' => $this->sources->demoData->skippedIn(result: (array)$result),
 			'profile' => $profileId,
 			'portal'  => $portal,
 		];
@@ -332,7 +320,7 @@ class SeedProfileService {
 		$answer['errors']      = count($errors);
 		$answer['failedJobs']  = array_values(array_unique(array_filter(array_map('strval', array_column($errors, 'importJobId')))));
 
-		$this->loadedSets->forgetIfRemoved(setId: $profileId, answer: $answer);
+		$this->sources->loadedSets->forgetIfRemoved(setId: $profileId, answer: $answer);
 
 		$this->logger->info(
 			'[SeedProfileService] removed example set "' . $profileId . '": ' . $answer['softDeleted'] . ' object(s) soft-deleted, '
@@ -351,7 +339,7 @@ class SeedProfileService {
 	 * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
 	 */
 	public function loadedSets(): LoadedExampleSets {
-		return $this->loadedSets;
+		return $this->sources->loadedSets;
 	}//end loadedSets()
 
 	/**
@@ -440,7 +428,7 @@ class SeedProfileService {
 	 * @return array<int, string> The paths.
 	 */
 	private function descriptorFiles(): array {
-		$dir = ($this->appManager->getAppPath(Application::APP_ID) . self::PROFILE_DIR);
+		$dir = ($this->sources->appManager->getAppPath(Application::APP_ID) . self::PROFILE_DIR);
 		if (is_dir($dir) === false) {
 			return [];
 		}
@@ -551,7 +539,7 @@ class SeedProfileService {
 	 * @throws RuntimeException When OpenRegister is not installed.
 	 */
 	private function configurationService(): object {
-		if (in_array('openregister', $this->appManager->getInstalledApps(), true) === false) {
+		if (in_array('openregister', $this->sources->appManager->getInstalledApps(), true) === false) {
 			throw new RuntimeException('Example data needs OpenRegister, which is not installed.');
 		}
 

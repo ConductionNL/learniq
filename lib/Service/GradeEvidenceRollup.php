@@ -196,8 +196,7 @@ class GradeEvidenceRollup {
 				learnerId: $entry['learnerId'] ?? '',
 				competencyId: $competencyId,
 				tenantId: $entry['tenant_id'] ?? '',
-				evidenceAppend: $evidenceAppend,
-				percent: $percent
+				evidence: new AttainmentEvidence(append: $evidenceAppend, percent: $percent)
 			);
 		}
 

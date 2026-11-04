@@ -250,6 +250,28 @@ class RegisteredListenersHandleRealEventsTest extends TestCase {
 	}//end event()
 
 	/**
+	 * A stub of a collaborator. A final bundle cannot be doubled, so it is
+	 * built from stubs of its own collaborators.
+	 *
+	 * @param class-string $type The collaborator type.
+	 *
+	 * @return object
+	 */
+	private function stubFor(string $type): object {
+		$class = new ReflectionClass($type);
+		if ($class->isFinal() === false) {
+			return $this->createStub($type);
+		}
+
+		$arguments = [];
+		foreach (($class->getConstructor()?->getParameters() ?? []) as $parameter) {
+			$arguments[] = $this->createStub((string)$parameter->getType());
+		}
+
+		return $class->newInstanceArgs($arguments);
+	}//end stubFor()
+
+	/**
 	 * Build a listener with a stub for every collaborator.
 	 *
 	 * @param string $listenerClass The listener class.
@@ -262,7 +284,7 @@ class RegisteredListenersHandleRealEventsTest extends TestCase {
 		foreach (($class->getConstructor()?->getParameters() ?? []) as $parameter) {
 			$type = $parameter->getType();
 			if ($type instanceof ReflectionNamedType && $type->isBuiltin() === false) {
-				$arguments[] = $this->createStub($type->getName());
+				$arguments[] = $this->stubFor(type: $type->getName());
 				continue;
 			}
 

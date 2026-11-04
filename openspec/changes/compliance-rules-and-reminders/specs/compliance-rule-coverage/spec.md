@@ -67,9 +67,9 @@ A learner's `department` SHALL be read as a path whose levels are separated by `
 #### Scenario: A directorate sees its departments added up
 
 - **GIVEN** 10 obligations in `Operations/Logistiek` with 8 covered, and 10 in `Operations/Inkoop` with 5 covered
-- **WHEN** the compliance officer opens the department roll-up
-- **THEN** `Operations` shows 20 obligations, 13 covered and 65%
-- **AND** each department shows its own figures one level below
+- **WHEN** the compliance officer chooses `Operations` on the obligations page (learniq/LqCfVerplichtingen)
+- **THEN** the header shows 20 obligations, 13 covered and 65%, and the page lists each obligation one by one
+- **AND** choosing `Operations/Logistiek` narrows the list to that department with its own figures
 
 #### Scenario: A learner may not read the roll-up
 

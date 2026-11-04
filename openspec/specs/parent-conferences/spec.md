@@ -37,7 +37,7 @@ configurable per-round), and a booking window (`bookingOpensAt`/`bookingClosesAt
 - **GIVEN** a coordinator creates a `ConferenceRound` for a report period
 - **WHEN** they set `slotDurationMinutes: 10` and `bufferMinutes: 2` for three cohorts
 - **THEN** the round persists that scope and timing, and every generated `ConferenceSlot` for the
-  round is exactly 10 minutes long with at least 2 minutes before the next slot for the same
+  round is exactly 10 minutes long with at least 5 minutes before the next slot for the same
   teacher
 
 ### Requirement: Booking window auto-closes on schedule, not by a PHP TimedJob
@@ -211,13 +211,25 @@ A `ConferenceRound` MUST carry `bookingMode`, `direct` or `preference`. A new ro
 - @e2e exclude covered by PHPUnit `ConferenceRoundBookingModeStampTest::testAnOldRoundWithoutAModeKeepsThePreferenceFlow` and `ConferenceScheduleGeneratorTest`
 
 ### Requirement: Teachers publish free times from their availability
-When a round with direct booking moves to `booking-open` (`open-booking`, or `create-free-slots` once open), every submitted or locked `TeacherAvailability` of the round MUST be cut into `free` slots of the round's `slotDurationMinutes` with `bufferMinutes` between them. A free slot MUST carry the pupils who may book it (`eligibleLearnerRefs`: the invited pupils of the teacher's own groups, or every invited pupil when the teacher has none in the round), the teacher's name and a label in the school's time zone. A time that overlaps a slot the teacher already holds in the round MUST be skipped.
+When a round with direct booking moves to `booking-open` (`open-booking`, or `create-free-slots` once open), every submitted or locked `TeacherAvailability` of the round MUST be cut into `free` slots of the round's `slotDurationMinutes` with `bufferMinutes` between them. A free slot MUST carry the pupils who may book it (`eligibleLearnerRefs`: the invited pupils of the teacher's own groups, or every invited pupil when the teacher teaches none of the round's groups), the teacher's name and a label in the school's time zone. A time that overlaps a slot the teacher already holds in the round MUST be skipped. A group of the round that cannot be read MUST NOT open a teacher's times to every invited pupil: when the teacher teaches none of the groups that can be read, no slot is written for that teacher and the failure is logged.
 
 #### Scenario: The teacher creates free times
 - **GIVEN** a direct round for Groep 7 and the group teacher's availability from 18:00 to 20:00
 - **WHEN** booking opens
-- **THEN** free slots of 10 minutes with 2 minutes between them exist for the group's pupils
+- **THEN** free slots of 10 minutes with 5 minutes between them exist for the group's pupils
 - @e2e tests/e2e/po-parent-flows.spec.ts
+
+#### Scenario: A group that cannot be read opens nothing
+- **GIVEN** a direct round with a group that cannot be read, and a teacher who teaches none of its other groups
+- **WHEN** booking opens
+- **THEN** no free slot is written for that teacher and the failure is logged
+- @e2e exclude covered by PHPUnit `ConferenceFreeSlotGeneratorTest::testAnUnreadableGroupRefusesInsteadOfOpeningToEveryInvitedPupil`
+
+#### Scenario: A teacher of a group without invited pupils offers nobody a time
+- **GIVEN** a direct round where none of the invited pupils is in the group the teacher teaches
+- **WHEN** booking opens
+- **THEN** the teacher's free slots name no pupil who may book them
+- @e2e exclude covered by PHPUnit `ConferenceFreeSlotGeneratorTest::testATaughtGroupWithoutInvitedPupilsOffersNobody`
 
 #### Scenario: Running it again adds only what is missing
 - **GIVEN** free slots that already exist
@@ -285,7 +297,7 @@ The parent portal contribution MUST declare a change rule on the bookings collec
 #### Scenario: The teacher acknowledges and Fatima reads it in her inbox
 - **GIVEN** a free time Fatima booked for her child in the portal
 - **WHEN** the teacher acknowledges it
-- **THEN** Fatima's inbox ("Berichten") holds "De leerkracht heeft uw gesprekstijd bevestigd" with the date, the time and the teacher's name
+- **THEN** Fatima's inbox ("Berichten") holds "De gesprekstijd is bevestigd" with the date, the time and the teacher's name
 - @e2e exclude Needs the portaliq change claim-addressed-change-notices on the same instance and a DigiD stub session; checked live on the primary-school instance (conference-answer-notice T02), and the rule's shape is pinned by PHPUnit `ParentConferenceDirectBookingTest::testTheGuardianHearsWhenTheTeacherAnswersABooking`; portaliq pins the delivery in `ClaimAddressedChangeNoticeTest`
 
 #### Scenario: A decline tells the guardian why
@@ -329,7 +341,7 @@ The teacher availability list MUST show the round by name, the teacher by displa
 @e2e exclude Manifest content and a list formatter. Pinned by tests/unit-js/teacherAvailabilityReadsWords.test.mjs; the live check on the primary-school instance is in the PR.
 - **GIVEN** Meester Daan submitted his availability for the autumn round, Thursday 15 October from 18:00 to 20:00
 - **WHEN** a coordinator opens Teacher availability in Dutch
-- **THEN** the row reads the round's name, "Meester Daan" and "do 15 okt, 18:00–20:00"
+- **THEN** the row reads the round's name, "Meester Daan" and "di 10 nov 18:30 tot 20:00"
 - **AND** no uuid, user id or JSON
 
 #### Scenario: A sent teacher name is replaced
@@ -366,7 +378,7 @@ The teacher availability detail page MUST show the free time blocks as days and 
 
 ### Requirement: A guardian books a free time or sends a preference in two forms
 
-The parent audience MUST offer two forms. "Kies een tijd" (`bookConferenceSlot`) MUST require the child and the time (`requiredFields: [learnerRef, slotId]`). "Stuur uw voorkeur" (`createConferenceSignup`) MUST require the round and the child (`requiredFields: [conferenceRoundId, learnerRef]`) and MUST NOT ask for a time. Neither form may mark a field it needs as "niet verplicht". The child's "Oudergesprekken" page MUST show both forms.
+The parent audience MUST offer two forms. "Kies een tijd" (`bookConferenceSlot`) MUST require the child and the time (`requiredFields: [learnerRef, slotId]`). "Een gesprek met de docenten van uw kind aanvragen" (`createConferenceSignup`) MUST require the round and the child (`requiredFields: [conferenceRoundId, learnerRef]`) and MUST NOT ask for a time. Neither form may mark a field it needs as "niet verplicht". The child's "Oudergesprekken" page MUST show both forms.
 
 #### Scenario: Book a free time
 - GIVEN a round with direct booking that invites Vera
@@ -382,6 +394,6 @@ The parent audience MUST offer two forms. "Kies een tijd" (`bookConferenceSlot`)
 
 #### Scenario: Send a preference
 - GIVEN a round where the school plans the times
-- WHEN the guardian opens "Stuur uw voorkeur", picks the round and Vera, and sends
+- WHEN the guardian opens "Een gesprek met de docenten van uw kind aanvragen", picks the round and Vera, and sends
 - THEN the request is stored without a time, and the form showed no time field
 - @e2e tests/e2e/po-parent-flows.spec.ts

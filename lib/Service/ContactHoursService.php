@@ -84,7 +84,7 @@ class ContactHoursService {
 
 		$report = [];
 		foreach ($cohorts as $cohort) {
-			$report[] = $this->forCohort(cohort: $cohort, from: $from, to: $to, courses: $courses, margin: $margin);
+			$report[] = $this->forCohort(cohort: $cohort, period: ['from' => $from, 'to' => $to, 'courses' => $courses, 'margin' => $margin]);
 		}
 
 		return ['from' => $from, 'to' => $to, 'marginPercent' => $margin, 'cohorts' => $report];
@@ -93,18 +93,17 @@ class ContactHoursService {
 	/**
 	 * One group's courses and learners.
 	 *
-	 * @param array<string, mixed>  $cohort  The group.
-	 * @param string                $from    First day.
-	 * @param string                $to      Last day.
-	 * @param array<string, string> $courses Course names by id.
-	 * @param int                   $margin  The margin in percent.
+	 * @param array<string, mixed>                                                            $cohort The group.
+	 * @param array{from: string, to: string, courses: array<string, string>, margin: int} $period First and last day, course names by id
+	 *     and the margin in percent.
 	 *
 	 * @return array<string, mixed>
 	 */
-	private function forCohort(array $cohort, string $from, string $to, array $courses, int $margin): array {
+	private function forCohort(array $cohort, array $period): array {
+		$courses = $period['courses'];
 		$cohortId = (string)($cohort['id'] ?? '');
-		$owed = $this->owed(cohort: $cohort, from: $from, to: $to);
-		[$given, $sessionCourses] = $this->given(cohortId: $cohortId, from: $from, to: $to, courses: $courses);
+		$owed = $this->owed(cohort: $cohort, period: $period);
+		[$given, $sessionCourses] = $this->given(cohortId: $cohortId, period: $period);
 		$attended = $this->attended(cohortId: $cohortId, sessionCourses: $sessionCourses);
 
 		$rows = [];
@@ -123,7 +122,7 @@ class ContactHoursService {
 				'owed' => $this->sumOrNull(rows: $rows, field: 'owed'),
 				'given' => round(array_sum(array_column($rows, 'given')), 2),
 			],
-			'learners' => $this->learnerRows(cohort: $cohort, attended: $attended, given: $given, margin: $margin),
+			'learners' => $this->learnerRows(cohort: $cohort, attended: $attended, given: $given, margin: $period['margin']),
 		];
 	}//end forCohort()
 
@@ -158,13 +157,12 @@ class ContactHoursService {
 	/**
 	 * Owed hours per course, prorated to the window; null without an active plan.
 	 *
-	 * @param array<string, mixed> $cohort The group.
-	 * @param string               $from   First day.
-	 * @param string               $to     Last day.
+	 * @param array<string, mixed>              $cohort The group.
+	 * @param array{from: string, to: string} $period First and last day.
 	 *
 	 * @return array<string, float>|null
 	 */
-	private function owed(array $cohort, string $from, string $to): ?array {
+	private function owed(array $cohort, array $period): ?array {
 		$academicYear = (string)($cohort['academicYear'] ?? '');
 		$cohortId = (string)($cohort['id'] ?? '');
 		$year = $this->plans->forYear(academicYear: $academicYear);
@@ -176,7 +174,12 @@ class ContactHoursService {
 		$periods = $this->reader->reportPeriods(academicYear: $academicYear);
 		$owed = [];
 		foreach ($lines as $line) {
-			$share = $this->calendar->share(periodCode: $line['periodCode'] ?? null, periods: $periods, academicYear: $academicYear, window: [$from, $to]);
+			$share = $this->calendar->share(
+				periodCode: $line['periodCode'] ?? null,
+				periods: $periods,
+				academicYear: $academicYear,
+				window: [$period['from'], $period['to']]
+			);
 			$courseId = (string)$line['courseId'];
 			$owed[$courseId] = ($owed[$courseId] ?? 0.0) + ((float)$line['contactHours'] * $share);
 		}
@@ -187,16 +190,15 @@ class ContactHoursService {
 	/**
 	 * Given hours per course from the group's lessons that were not cancelled.
 	 *
-	 * @param string                $cohortId The group.
-	 * @param string                $from     First day.
-	 * @param string                $to       Last day.
-	 * @param array<string, string> $courses  Course names by id.
+	 * @param string                                                     $cohortId The group.
+	 * @param array{from: string, to: string, courses: array<string, string>} $period   First and last day, and course names by id.
 	 *
 	 * @return array{0: array<string, float>, 1: array<string, array{courseId: string, hours: float}>}
 	 *     Hours by course, and each held lesson's course and hours.
 	 */
-	private function given(string $cohortId, string $from, string $to, array $courses): array {
-		$byName = array_flip(array_map('mb_strtolower', $courses));
+	private function given(string $cohortId, array $period): array {
+		['from' => $from, 'to' => $to] = $period;
+		$byName = array_flip(array_map('mb_strtolower', $period['courses']));
 		$rows = $this->sources->current()->sessionsForCohorts(cohortIds: [$cohortId], from: $from.'T00:00:00Z', to: $to.'T23:59:59Z');
 
 		$given = [];
