@@ -403,6 +403,8 @@ class LeaderboardController extends Controller {
 	 * @param string $schema Schema slug.
 	 *
 	 * @return array<string,mixed>|null Null when no such object exists.
+	 *
+	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException When the id matches more than one object; LookupIntegrityMiddleware answers it.
 	 */
 	private function fetchObject(string $id, string $schema): ?array {
 		$find = fn () => $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
