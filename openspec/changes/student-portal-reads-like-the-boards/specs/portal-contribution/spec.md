@@ -7,7 +7,7 @@ The student contribution MUST declare readable columns for `studentGrades` (subj
 #### Scenario: The grades table has readable headers
 - **GIVEN** a student signed in to her portal
 - **WHEN** she opens her grades
-- **THEN** the columns read Vak, Datum and Cijfer, and no field key is a header
+- **THEN** each row reads the subject, the date and the grade without column headers, as the vaartveld boards draw, and no field key is shown
 - @e2e exclude declaration only, covered by PHPUnit `PortalContributionProviderTest::testStudentGradesHaveReadableColumns`
 
 #### Scenario: A sent-back week says so

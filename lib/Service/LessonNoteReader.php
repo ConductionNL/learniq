@@ -191,8 +191,7 @@ class LessonNoteReader {
 	 * @return bool
 	 */
 	private function teachesOrCovers(array $session, string $uid, array $taughtCohortIds): bool {
-		return ($session['cover'] ?? false) === true
-			|| $this->isTeacherOrSubstitute(session: $session, uid: $uid) === true
+		return $this->isTeacherOrSubstitute(session: $session, uid: $uid) === true
 			|| in_array((string)($session['cohortId'] ?? ''), $taughtCohortIds, true) === true;
 	}//end teachesOrCovers()
 

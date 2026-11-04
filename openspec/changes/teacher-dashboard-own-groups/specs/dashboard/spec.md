@@ -7,7 +7,7 @@ When the user's primary role is `instructor`, the teacher dashboard's cohort lis
 @e2e exclude Dashboard list scoping; pinned by tests/unit-js/teacherScope.test.mjs (the scope is the cohorts the teacher teaches and the courses they run; each widget gets the filter of its schema), and checked live as po-leerkracht-09.
 - **GIVEN** `po-leerkracht-09` teaches Groep 7 and no other group
 - **WHEN** they open the teacher dashboard
-- **THEN** "My cohorts" lists Groep 7 only
+- **THEN** "Mijn groepen" lists Groep 7 only
 - **AND** the session and assignment lists show only Groep 7's rows
 - **AND** the course list shows only the courses Groep 7 runs
 

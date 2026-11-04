@@ -19,5 +19,6 @@
 - vaartveld/LqRolB mentor van H4b https://identity.conduction.nl/screens/board?id=vaartveld/LqRolB
 - wilgenboom/Berichten berichten https://identity.conduction.nl/screens/board?id=wilgenboom/Berichten
 - learniq/LqGespreksboekingen boekingen voor oudergesprekken (docent) https://identity.conduction.nl/screens/board?id=learniq/LqGespreksboekingen
+- wilgenboom/MijnLijst mijn gesprekken, afzeggen en de gesloten termijn https://identity.conduction.nl/screens/board?id=wilgenboom/MijnLijst
 
 Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAppNav, CnBreadcrumbs, CnBuildiqEditButton, CnCardGrid, CnConfirmDialog, CnDashboardPage, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnFilterBar, CnFormDialog, CnIndexPage, CnKpiGrid, CnMassActionBar, CnNextStepCard, CnNoteCard, CnNotesCard, CnObjectCalendar, CnObjectCard, CnObjectListWidget, CnPageHeader, CnPagination, CnQuickFilterBar, CnRowActions, CnSegmentedControl, CnSettingsPage, CnSettingsSection, CnStatWidget, CnStatsBlock, CnStatusBadge, CnTabs, CnWidgetWrapper

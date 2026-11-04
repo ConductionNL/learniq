@@ -92,6 +92,8 @@ class RolloverExecutionService {
 	 * archive the from-year Cohort, sync the NC group, carry over incomplete
 	 * mandatory enrolments, and queue OSO jobs for outflow learners. Per-mapping
 	 * completion is recorded so a re-run of a failed plan skips done mappings.
+	 * A mapping whose from-cohort no longer exists is skipped without writes and
+	 * left out of the progress map.
 	 *
 	 * Returns the updated perMappingProgress map. The caller persists the plan and
 	 * fires the terminal transition.
@@ -123,6 +125,12 @@ class RolloverExecutionService {
 			}
 
 			$cohort = $this->rolloverService->loadCohort(cohortId: $fromCohortId);
+			if ($cohort === []) {
+				// A from-cohort that no longer exists has nothing to move or archive.
+				$this->logger->warning('[RolloverExecutionService] From-cohort {c} not found; mapping skipped.', ['c' => $fromCohortId]);
+				continue;
+			}
+
 			$members = (array)($cohort['learnerIds'] ?? []);
 
 			if ($action === 'promote') {

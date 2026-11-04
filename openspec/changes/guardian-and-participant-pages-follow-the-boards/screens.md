@@ -4,3 +4,4 @@
 - wilgenboom/MijnLijst afwezigheid https://identity.conduction.nl/screens/board?id=wilgenboom/MijnLijst
 - vaartveld/MijnMenu menu Mijn Zuiddrecht https://identity.conduction.nl/screens/board?id=vaartveld/MijnMenu
 - warmtepompacademie/MobielHome overzicht van de deelnemer https://identity.conduction.nl/screens/board?id=warmtepompacademie/MobielHome
+- esdoornveen/Berichten berichten, bpv en uren https://identity.conduction.nl/screens/board?id=esdoornveen/Berichten

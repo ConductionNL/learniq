@@ -52,6 +52,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\AppFramework\Db\DoesNotExistException;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -167,11 +168,7 @@ class PeerReviewAllocationService {
 		$createdCount = 0;
 
 		foreach ($submissions as $submission) {
-			$submissionId = (string)($submission['id'] ?? '');
-			if ($submissionId === '') {
-				continue;
-			}
-
+			$submissionId = (string)$submission['id'];
 			$alreadyAssigned = $existingBySubmission[$submissionId] ?? [];
 			$needed = $rotation->reviewersPerSub - count($alreadyAssigned);
 			if ($needed <= 0) {
@@ -319,7 +316,10 @@ class PeerReviewAllocationService {
 		$submissions = [];
 		foreach ($results as $result) {
 			$submission = $this->toArray(value: $result);
-			if (in_array(($submission['lifecycle'] ?? null), self::HANDED_IN_STATES, true) === true) {
+			// A handed-in submission without an id can carry no review, so it neither counts nor lends reviewers.
+			if (in_array(($submission['lifecycle'] ?? null), self::HANDED_IN_STATES, true) === true
+				&& (string)($submission['id'] ?? '') !== ''
+			) {
 				$submissions[] = $submission;
 			}
 		}
@@ -450,14 +450,14 @@ class PeerReviewAllocationService {
 	 * @param string $id UUID of the object.
 	 * @param string $schema Schema slug.
 	 *
-	 * @return array<string,mixed>|null
+	 * @return array<string,mixed>|null Null when no such object exists.
 	 */
 	private function fetchObject(string $id, string $schema): ?array {
-		$obj = $this->objectService->find(
-			id: $id,
-			register: self::LEARNIQ_REGISTER,
-			schema: $schema
-		);
+		try {
+			$obj = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
+		} catch (DoesNotExistException) {
+			$obj = null;
+		}
 
 		if ($obj === null) {
 			return null;

@@ -19,5 +19,6 @@
 - vaartveld/Toets Mijn Zuiddrecht: toets met tijd https://identity.conduction.nl/screens/board?id=vaartveld/Toets
 - wilgenboom/Inloggen inloggen https://identity.conduction.nl/screens/board?id=wilgenboom/Inloggen
 - wilgenboom/Main Huisstijl en tokens https://identity.conduction.nl/screens/board?id=wilgenboom/Main
+- vaartveld/MijnOverzicht mijn overzicht, cijferregels https://identity.conduction.nl/screens/board?id=vaartveld/MijnOverzicht
 
 Components: CnActionButtons, CnActionsMenu, CnAppNav, CnBreadcrumbs, CnBuildiqEditButton, CnDashboardPage, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnNextStepCard, CnNotesCard, CnPageHeader, CnStatusBadge, CnTabs

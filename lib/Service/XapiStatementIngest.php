@@ -195,6 +195,8 @@ class XapiStatementIngest {
 			throw new InvalidArgumentException('Every statement needs an actor, a verb with an id, and an object');
 		}
 
+		self::checkScaledScore(statement: $statement);
+
 		$row = array_intersect_key($statement, array_flip(self::STATEMENT_KEYS));
 		$row['id']                = $this->statementId(candidate: $statement['id'] ?? null);
 		$row['stored']            = (new DateTimeImmutable())->format(DateTimeInterface::ATOM);
@@ -209,6 +211,24 @@ class XapiStatementIngest {
 
 		return $row;
 	}//end stamp()
+
+	/**
+	 * Refuse a result.score.scaled that is not a JSON number from -1 to 1 (xAPI 1.0.3 Data 2.4.5.1).
+	 *
+	 * @param array<string, mixed> $statement The incoming statement.
+	 *
+	 * @return void
+	 *
+	 * @throws InvalidArgumentException When the scaled score is out of range or not a number.
+	 *
+	 * @spec openspec/changes/archive/2026-09-30-cmi5-xapi-lrs-ingest/tasks.md#3-lrs-ingest-controller
+	 */
+	private static function checkScaledScore(array $statement): void {
+		$scaled = $statement['result']['score']['scaled'] ?? 0;
+		if ((is_int($scaled) === false && is_float($scaled) === false) || abs($scaled) > 1) {
+			throw new InvalidArgumentException('result.score.scaled must be a number from -1 to 1');
+		}
+	}//end checkScaledScore()
 
 	/**
 	 * Whether a statement with this id is already stored and matches (xAPI 1.0.3 Communication 2.1.3).

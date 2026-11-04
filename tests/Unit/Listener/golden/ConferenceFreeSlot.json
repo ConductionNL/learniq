@@ -171,33 +171,22 @@
             },
             {
                 "find": "c-missing"
-            },
-            {
-                "save": {
-                    "conferenceRoundId": "round-1",
-                    "teacherId": "kees",
-                    "teacherName": "kees",
-                    "startsAt": "2026-10-09T09:00:00+02:00",
-                    "endsAt": "2026-10-09T09:15:00+02:00",
-                    "slotLabel": "09-10-2026 09:00-09:15, kees",
-                    "eligibleLearnerRefs": [
-                        "ref-anna",
-                        "ref-bert",
-                        "ref-dirk"
-                    ],
-                    "location": null,
-                    "tenant_id": "t-1",
-                    "lifecycle": "free"
-                }
             }
         ],
         "log": [
+            [
+                "error",
+                "[ConferenceFreeSlotGenerator] Round {round}: a group could not be read, so a teacher with no other group gets no free slots.",
+                {
+                    "round": "round-1"
+                }
+            ],
             [
                 "info",
                 "[ConferenceFreeSlotGenerator] Round {round}: {count} free slot(s) written.",
                 {
                     "round": "round-1",
-                    "count": 5
+                    "count": 4
                 }
             ]
         ]
@@ -265,9 +254,7 @@
                     "startsAt": "2026-10-08T18:00:00+02:00",
                     "endsAt": "2026-10-08T18:10:00+02:00",
                     "slotLabel": "08-10-2026 18:00-18:10, Jan de Vries",
-                    "eligibleLearnerRefs": [
-                        "ref-anna"
-                    ],
+                    "eligibleLearnerRefs": [],
                     "location": null,
                     "tenant_id": "",
                     "lifecycle": "free"
@@ -281,9 +268,7 @@
                     "startsAt": "2026-10-08T18:10:00+02:00",
                     "endsAt": "2026-10-08T18:20:00+02:00",
                     "slotLabel": "08-10-2026 18:10-18:20, Jan de Vries",
-                    "eligibleLearnerRefs": [
-                        "ref-anna"
-                    ],
+                    "eligibleLearnerRefs": [],
                     "location": null,
                     "tenant_id": "",
                     "lifecycle": "free"

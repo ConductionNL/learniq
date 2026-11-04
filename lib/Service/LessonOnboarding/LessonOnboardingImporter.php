@@ -74,31 +74,69 @@ class LessonOnboardingImporter {
 	private readonly LessonMaterialWriter $materials;
 
 	/**
+	 * Reads the confirmed file.
+	 *
+	 * @var OfficeLessonExtractor
+	 */
+	private readonly OfficeLessonExtractor $extractor;
+
+	/**
+	 * Maps sections to blocks.
+	 *
+	 * @var LessonDraftBuilder
+	 */
+	private readonly LessonDraftBuilder $draftBuilder;
+
+	/**
+	 * Resolves the file inside the teacher's files.
+	 *
+	 * @var IRootFolder
+	 */
+	private readonly IRootFolder $rootFolder;
+
+	/**
+	 * Tenant fallback.
+	 *
+	 * @var OnboardingFolderSetting
+	 */
+	private readonly OnboardingFolderSetting $folderSetting;
+
+	/**
+	 * Creates the lesson and its materials.
+	 *
+	 * @var CoursePackageObjectWriter
+	 */
+	private readonly CoursePackageObjectWriter $objectWriter;
+
+	/**
+	 * Moves the row to imported.
+	 *
+	 * @var TransitionEngine
+	 */
+	private readonly TransitionEngine $transitionEngine;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param ObjectService $objectService Reads the row, the course and its lessons; updates the lesson.
-	 * @param CoursePackageObjectWriter $objectWriter Creates the lesson and its materials.
-	 * @param CoursePackageFileWriter $fileWriter Writes image bytes into the teacher's files.
-	 * @param OfficeLessonExtractor $extractor Reads the confirmed file.
-	 * @param LessonDraftBuilder $draftBuilder Maps sections to blocks.
-	 * @param TransitionEngine $transitionEngine Moves the row to imported.
-	 * @param IRootFolder $rootFolder Resolves the file inside the teacher's files.
-	 * @param OnboardingFolderSetting $folderSetting Tenant fallback.
-	 * @param LoggerInterface $logger Logs ids and counts, never document text.
+	 * @param ObjectService           $objectService Reads the row, the course and its lessons; updates the lesson.
+	 * @param LessonOnboardingReaders $readers       The extractor, draft builder, root folder and folder setting.
+	 * @param LessonOnboardingWriters $writers       The object writer, file writer and transition engine.
+	 * @param LoggerInterface         $logger        Logs ids and counts, never document text.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly CoursePackageObjectWriter $objectWriter,
-		CoursePackageFileWriter $fileWriter,
-		private readonly OfficeLessonExtractor $extractor,
-		private readonly LessonDraftBuilder $draftBuilder,
-		private readonly TransitionEngine $transitionEngine,
-		private readonly IRootFolder $rootFolder,
-		private readonly OnboardingFolderSetting $folderSetting,
+		LessonOnboardingReaders $readers,
+		LessonOnboardingWriters $writers,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->extractor = $readers->extractor;
+		$this->draftBuilder = $readers->draftBuilder;
+		$this->rootFolder = $readers->rootFolder;
+		$this->folderSetting = $readers->folderSetting;
+		$this->objectWriter = $writers->objectWriter;
+		$this->transitionEngine = $writers->transitionEngine;
 		$this->noteSplitter = new TeacherNoteSplitter();
-		$this->materials = new LessonMaterialWriter(objectWriter: $objectWriter, fileWriter: $fileWriter);
+		$this->materials = new LessonMaterialWriter(objectWriter: $writers->objectWriter, fileWriter: $writers->fileWriter);
 	}//end __construct()
 
 	/**

@@ -85,17 +85,13 @@ class ListenerRegistrarGoldenTest extends TestCase {
 			/**
 			 * Record the filtered registration instead of subscribing it.
 			 *
-			 * @param IEventDispatcher  $dispatcher The dispatcher.
-			 * @param string            $appId      The app id.
-			 * @param string            $event      The event class.
-			 * @param string            $listener   The listener class.
-			 * @param array<int,string> $registers  Register slugs.
-			 * @param array<int,string> $schemas    Schema slugs.
+			 * @param IEventDispatcher    $dispatcher   The dispatcher.
+			 * @param array<string,mixed> $subscription The app id, event class, listener class, register slugs and schema slugs.
 			 *
 			 * @return void
 			 */
-			public function registerFilteredObjectListener(IEventDispatcher $dispatcher, string $appId, string $event, string $listener, array $registers, array $schemas): void {
-				$this->filtered[] = [$appId, $event, $listener, $registers, $schemas];
+			public function registerFilteredObjectListener(IEventDispatcher $dispatcher, array $subscription): void {
+				$this->filtered[] = [$subscription['appId'], $subscription['event'], $subscription['listener'], $subscription['registers'], $subscription['schemas']];
 			}
 		};
 		$boot->register($dispatcher, 'learniq');

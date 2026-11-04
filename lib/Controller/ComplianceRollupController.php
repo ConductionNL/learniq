@@ -148,7 +148,7 @@ class ComplianceRollupController extends Controller {
 
 		$regulation = null;
 		if ($id !== '') {
-			$regulation = $this->findOrNull(find: fn () => $this->objectService->find(id: $id, register: 'learniq', schema: 'regulation'));
+			$regulation = $this->regulation(id: $id);
 		}
 
 		if ($regulation === null) {
@@ -162,4 +162,17 @@ class ComplianceRollupController extends Controller {
 
 		return new JSONResponse(data: $this->assignment->assign(regulation: $data));
 	}//end assignRegulation()
+
+	/**
+	 * The Regulation, read with the caller's rights, or null when it does not exist.
+	 *
+	 * @param string $id Regulation UUID.
+	 *
+	 * @return \OCA\OpenRegister\Db\ObjectEntity|null
+	 *
+	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException When the id matches more than one object; LookupIntegrityMiddleware answers it.
+	 */
+	private function regulation(string $id): ?\OCA\OpenRegister\Db\ObjectEntity {
+		return $this->findOrNull(find: fn () => $this->objectService->find(id: $id, register: 'learniq', schema: 'regulation'));
+	}//end regulation()
 }//end class
