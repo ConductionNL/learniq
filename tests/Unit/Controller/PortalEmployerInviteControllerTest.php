@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\PortalEmployerInviteController;
+use OCA\Learniq\Service\CallerGroups;
 use OCA\Learniq\Portal\CallerOrganisations;
 use OCA\Learniq\Portal\EmployerPortalInvitation;
 use OCA\Learniq\Portal\PortalTenant;
@@ -82,6 +83,14 @@ class PortalEmployerInviteControllerTest extends TestCase {
 		$own = ['org' => new PortalTenant(slug: 'org', uuid: 'uuid-org')];
 		$organisations->method('tenant')->willReturnCallback(static fn (string $slug): ?PortalTenant => ($own[$slug] ?? null));
 
-		return new PortalEmployerInviteController($this->createMock(IRequest::class), $invitations, $session, $groupManager, $organisations);
+		return new PortalEmployerInviteController(
+			request: $this->createMock(IRequest::class),
+			invitations: $invitations,
+			caller: new CallerGroups(
+				userSession: $session,
+				groupManager: $groupManager
+			),
+			organisations: $organisations
+		);
 	}//end controller()
 }//end class
