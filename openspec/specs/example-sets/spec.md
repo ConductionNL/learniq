@@ -610,7 +610,7 @@ learniq's admin settings page MUST show an Example data section that lists every
 - **GIVEN** the company and training sets are loaded
 - **WHEN** the administrator clicks Remove next to "Company" and confirms
 - **THEN** `POST /api/setup/action/remove-example-set-corporate` is sent
-- **AND** the section shows how many objects moved to the trash
+- **AND** the question before the confirmation named how many objects go to the trash
 - **AND** only the training set is still listed
 
 #### Scenario: The administrator changes their mind
