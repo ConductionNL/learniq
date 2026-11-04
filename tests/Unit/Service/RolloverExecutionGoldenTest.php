@@ -28,6 +28,7 @@ use OCA\Learniq\Service\RolloverExecutionService;
 use OCA\Learniq\Service\RolloverService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IGroupManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -93,6 +94,10 @@ class RolloverExecutionGoldenTest extends TestCase {
 			'no to-cohort name' => [['cohort' => [$from]], array_merge($plan, ['mappings' => [['fromCohortId' => 'c1', 'action' => 'promote']]])],
 			'mapping already done' => [['cohort' => [$from]], array_merge($plan, ['perMappingProgress' => ['c1' => 'done']])],
 			'duplicate from-cohort members are written once' => [['cohort' => [array_merge($from, ['learnerIds' => ['l1', 'l1', 'l2']])]], $plan],
+			'a missing from-cohort is skipped and the next mapping runs' => [
+				['cohort' => [$from]],
+				array_merge($plan, ['mappings' => [array_merge($mapping, ['fromCohortId' => 'c-gone']), ['fromCohortId' => 'c-gone-too', 'action' => 'dissolve'], $mapping]]),
+			],
 		];
 	}//end scenarios()
 
@@ -136,7 +141,7 @@ class RolloverExecutionGoldenTest extends TestCase {
 					}
 				}
 
-				return null;
+				throw new DoesNotExistException('Object not found');
 			}
 		);
 		$service->method('findAll')->willReturnCallback(
