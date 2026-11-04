@@ -319,7 +319,7 @@ The parent manifest MUST declare `valueLabels` on the status columns a guardian 
 #### Scenario: The absence form offers its kinds in Dutch
 @e2e exclude Manifest content; the select is portaliq's. Pinned by tests/Unit/Portal/PortalLabelTranslatorTest.php testStatusesAndAbsenceKindsArriveInDutch.
 - **WHEN** a guardian opens the absence form on a Dutch portal
-- **THEN** "Soort afwezigheid" offers "Ziekte", "Medische afspraak" and the other kinds in Dutch
+- **THEN** "Waarom?" offers "Ziek", "Dokter of tandarts" and the other reasons in Dutch
 - **AND** the report stores `illness` when she picks "Ziekte"
 
 #### Scenario: A renamed enum value fails the build
@@ -407,12 +407,12 @@ Every parent column that holds a staff Nextcloud user id MUST declare `render: u
 
 ### Requirement: The parent section is called School
 
-The parent contribution MUST carry the label "School" (Dutch "School"), not the app's name.
+The parent contribution MUST carry the label "Van school" (the menu group the board draws for messages, documents and news), not the app's name.
 
 #### Scenario: The site heads the parent sections with School
 - GIVEN the Wilgenboom site
 - WHEN Fatima opens her overview
-- THEN the group heading reads "School"
+- THEN the group heading reads "Van school"
 - @e2e exclude pinned by `ParentTeacherNamesTest::testTheParentSectionIsCalledSchool`
 
 ### Requirement: The figure cards count in singular and plural
@@ -486,7 +486,7 @@ The guardian's `createExcuseRequest` MUST declare a `summary` naming only its ow
 #### Scenario: Sami is ill today
 - **GIVEN** the guardian picks Sami, today and "Ziekte"
 - **WHEN** she looks above the send button
-- **THEN** she reads "U meldt" and "Sami is vandaag ziek."
+- **THEN** she reads "U meldt" and "Sami is de hele dag ziek"
 - @e2e tests/e2e/po-parent-flows.spec.ts
 
 ### Requirement: The latest report reads as one bar per subject
@@ -539,20 +539,20 @@ The overview MUST be a home page (`home: true`) and MUST declare a `tasks` block
 - THEN no task block shows
 - @e2e exclude planned: written with the build in tests/e2e/po-parent-flows.spec.ts (specs-only change)
 
-### Requirement: The overview offers four quick actions for the chosen child
+### Requirement: The child's page offers two quick actions
 
-The overview MUST declare four `cta` blocks, as in `Main.dc.html`: "{title} ziek of afwezig melden" on `createExcuseRequest` with `withRecord: true`; "Oudergesprek boeken" on the page `parentConferences` with `withRecord: true`; "Cijfers en rapport bekijken" on the page `parentChildren` with `withRecord: true`; "Bericht sturen aan de juf" on portaliq's conversations `route`. `createExcuseRequest` MUST declare `recordField: learnerRef`, so the tile presets the chosen child. The child cross-check of the action MUST stay as it is.
+The child's page (wilgenboom/Detail) MUST declare two `cta` blocks, as the board draws: "{title} ziek of afwezig melden" on `createExcuseRequest` with `withRecord: true`, and "Bericht aan {teacher}" on the message form with the child's teacher chosen. The overview (wilgenboom/MijnOverzicht) carries no quick actions; grades and conferences are reached from the menu.
 
 #### Scenario: Report Vera sick from the overview
-- GIVEN the guardian on "Overzicht" with Vera chosen
+- GIVEN the guardian on Vera's page (wilgenboom/Detail)
 - WHEN she taps "Vera ziek of afwezig melden"
 - THEN the absence form opens with Vera already chosen
 - @e2e exclude planned: written with the build in tests/e2e/po-parent-flows.spec.ts (specs-only change)
 
 #### Scenario: Grades for the chosen child
-- GIVEN the guardian on "Overzicht" with Sami chosen
-- WHEN she taps "Cijfers en rapport bekijken"
-- THEN Sami's record page opens
+- GIVEN the guardian on Sami's page
+- WHEN she taps "Bericht aan meester Daan"
+- THEN the message form opens with the teacher already chosen
 - @e2e exclude planned: written with the build in tests/e2e/po-parent-flows.spec.ts (specs-only change)
 
 ### Requirement: NEW: The child switcher shows the child's group
@@ -565,14 +565,15 @@ The overview MUST declare four `cta` blocks, as in `Main.dc.html`: "{title} ziek
 - THEN the switcher reads "Vera" with "Groep 6" under it
 - @e2e exclude planned: written with the build in tests/e2e/po-parent-flows.spec.ts (specs-only change)
 
-### Requirement: The guardian menu is grouped per child
+### Requirement: The guardian menu follows the board: Mijn Wilgenboom, Regelen and Van school
 
-"Overzicht" and "Agenda" MUST declare `group: Mijn omgeving`. "Afwezigheid", "Cijfers en rapporten" and "Oudergesprekken" MUST each be a record page on `parentChildren` with `perRecord: parentChildren`, so the menu lists them once per child under that child's name. The pages `ParentPortalCollections::pages()` builds today MUST keep their ids and routes and MUST declare `menu: false`. Design of record: the side navigation of `Main.dc.html`.
+The parent menu MUST have the three groups the board wilgenboom/MijnMenu draws: "Mijn Wilgenboom" (overview, agenda and the pages per child), "Regelen" (absence, conference times) and "Van school" (messages, documents, news). The child is chosen with the child switcher on the page, not with a menu group per child. "Overzicht" and "Agenda" MUST declare `group: Mijn Wilgenboom`. "Afwezigheid", "Cijfers en rapporten" and "Oudergesprekken" MUST each be a record page on `parentChildren` with `perRecord: parentChildren`, so the menu lists them once per child under that child's name. The pages `ParentPortalCollections::pages()` builds today MUST keep their ids and routes and MUST declare `menu: false`. Design of record: the side navigation of `Main.dc.html`.
 
 #### Scenario: The menu names each child
 - GIVEN a guardian with Vera and Sami
-- WHEN she opens any page under "Mijn omgeving"
-- THEN the menu shows a group "Vera" and a group "Sami", each with three entries
+- WHEN she opens any page under "Mijn Wilgenboom"
+- THEN the menu shows the groups "Mijn Wilgenboom", "Regelen" and "Van school", and no group per child
+- AND the child switcher on the page chooses between Vera and Sami
 - AND no entry reads "My child's grades" or "Your conference times"
 - @e2e exclude planned: written with the build in tests/e2e/po-parent-flows.spec.ts (specs-only change)
 
@@ -612,7 +613,7 @@ The parent audience MUST declare a record page on `parentChildren` with `perReco
 #### Scenario: A grade reads as a subject and a test
 - GIVEN a published grade 8,0 for Vera, course "Rekenen", method "toets breuken", weight 1
 - WHEN the guardian opens "Overzicht" for Vera
-- THEN the newest grades list reads "Rekenen, toets breuken" with 8,0 and its date
+- THEN the newest grades list reads "Breuken" under "Rekenen" with 8,0 and its date
 - @e2e exclude planned: written with the build in tests/e2e/po-parent-flows.spec.ts (specs-only change)
 
 #### Scenario: A client cannot set the course name

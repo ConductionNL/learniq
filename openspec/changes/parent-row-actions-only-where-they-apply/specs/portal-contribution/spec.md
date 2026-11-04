@@ -7,5 +7,5 @@
 #### Scenario: Fatima sees the cancel on her booked time only
 - GIVEN Fatima has a booked time, a completed time and a cancelled time for Vera
 - WHEN she opens "Uw gesprekstijden"
-- THEN only the booked time offers "Deze tijd annuleren"
+- THEN only the booked time offers "Deze tijd afzeggen"
 - @e2e exclude the hiding is portaliq's (`tests/row-action.spec.mjs`, update-row-action-condition); learniq's declaration is pinned by `PortalRowActionConditionsTest`, and the live check is in the PR
