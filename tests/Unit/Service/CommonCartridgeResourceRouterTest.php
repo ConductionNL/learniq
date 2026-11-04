@@ -27,6 +27,7 @@ use OCA\Learniq\Service\CoursePackage\CommonCartridgeResourceRouter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
+use OCA\Learniq\Service\CoursePackage\CoursePackageOutput;
 use OCA\Learniq\Service\CoursePackage\PackageContext;
 use OCA\Learniq\Service\CoursePackage\PackageXmlValueReader;
 use OCA\Learniq\Service\CoursePackage\ResourceSlot;
@@ -40,6 +41,7 @@ use RuntimeException;
  *
  * @covers \OCA\Learniq\Service\CoursePackage\CommonCartridgeResourceRouter
  * @uses   \OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter
+ * @uses   \OCA\Learniq\Service\CoursePackage\CoursePackageOutput
  * @uses   \OCA\Learniq\Service\CoursePackage\PackageContext
  * @uses   \OCA\Learniq\Service\CoursePackage\ResourceSlot
  */
@@ -61,9 +63,11 @@ class CommonCartridgeResourceRouterTest extends TestCase {
 		$files->method('resolveFileRef')->willReturn('/import/page.html');
 
 		$router = new CommonCartridgeResourceRouter(
-			objectWriter: $writer,
-			fileWriter: $files,
-			reporter: new CoursePackageImportReporter(objectService: $this->createMock(ObjectService::class)),
+			output: new CoursePackageOutput(
+				objectWriter: $writer,
+				fileWriter: $files,
+				reporter: new CoursePackageImportReporter(objectService: $this->createMock(ObjectService::class))
+			),
 			xmlReader: $this->createMock(PackageXmlValueReader::class),
 			logger: $logger
 		);
