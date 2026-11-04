@@ -12,3 +12,5 @@
 - learniq/LqProctoring proctoring beoordelen https://identity.conduction.nl/screens/board?id=learniq/LqProctoring
 - learniq/LqLlLesVolgen les volgen (leerling) https://identity.conduction.nl/screens/board?id=learniq/LqLlLesVolgen
 - esdoornveen/LqRolC examencommissie https://identity.conduction.nl/screens/board?id=esdoornveen/LqRolC
+- learniq/LqLlCijfers mijn cijfers: het referentieniveau door de jaren heen https://identity.conduction.nl/screens/board?id=learniq/LqLlCijfers
+- vaartveld/Toets Mijn Zuiddrecht: toets met tijd https://identity.conduction.nl/screens/board?id=vaartveld/Toets

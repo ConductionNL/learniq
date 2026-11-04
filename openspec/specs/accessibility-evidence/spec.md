@@ -1,13 +1,13 @@
 # accessibility-evidence Specification
 
 ## Purpose
-TBD - created by archiving change governance-wcag-evidence-report. Update Purpose after archive.
+Record per WCAG criterion what was tested, how and with what result. Anyone can download that evidence from the public statement.
 
 ## Requirements
 
 ### Requirement: Per criterion conformance record
 
-The system MUST let an accessibility owner record for each WCAG 2.1 A and AA success criterion a result, the test method, an evidence reference and the test date. A `fail` MUST link to an `AccessibilityLimitation` for the same criterion, and a statement MUST NOT be published while a `fail` has no limitation.
+The system MUST let an accessibility owner record for each WCAG 2.1 A and AA success criterion a result, the test method, an evidence reference and the test date. A `fail` MUST link to an `AccessibilityLimitation` for the same criterion, and a statement MUST NOT be published while a `fail` has no limitation. A solved limitation MUST stay on the statement as solved, with its date, and its criterion MUST read pass with the retest.
 
 #### Scenario: An owner records results
 
@@ -26,6 +26,15 @@ The system MUST let an accessibility owner record for each WCAG 2.1 A and AA suc
 - **GIVEN** a statement with 12 criteria not tested
 - **WHEN** the conformance table is read
 - **THEN** those criteria show not tested and the summary counts them
+
+#### Scenario: A solved limitation stays visible
+
+<!-- @e2e exclude Result and limitation rows are registered data; the reorder buttons it names are asserted under course-management. -->
+
+- **GIVEN** the limitation on 2.1.1 Toetsenbord, dragging lessons in the course builder, solved on 3 November 2026 with the buttons "Omhoog" and "Omlaag"
+- **WHEN** the conformance table and the statement are read
+- **THEN** 2.1.1 shows pass with the method manual and the retest of November 2026
+- **AND** the statement lists the limitation as "Opgelost" with that date
 
 ### Requirement: Evidence on request
 

@@ -12,3 +12,5 @@
 - learniq/LqLessen lessen en opdrachten https://identity.conduction.nl/screens/board?id=learniq/LqLessen
 - learniq/LqLlLesVolgen les volgen (leerling) https://identity.conduction.nl/screens/board?id=learniq/LqLlLesVolgen
 - learniq/LqKoppelingen integraties https://identity.conduction.nl/screens/board?id=learniq/LqKoppelingen
+- learniq/LqInstellingen beheerinstellingen: het Marktplaats-register koppelen https://identity.conduction.nl/screens/board?id=learniq/LqInstellingen
+- learniq/LqLes les: een LTI-les opent via integriq https://identity.conduction.nl/screens/board?id=learniq/LqLes

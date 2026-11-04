@@ -9,3 +9,5 @@
 - wilgenboom/Documenten rapporten en documenten https://identity.conduction.nl/screens/board?id=wilgenboom/Documenten
 - wilgenboom/LqDetail leerling Vera Hulstkamp https://identity.conduction.nl/screens/board?id=wilgenboom/LqDetail
 - vaartveld/Documenten rapporten en documenten https://identity.conduction.nl/screens/board?id=vaartveld/Documenten
+- learniq/LqRapportperiode rapportperiode: vakken, groepen, venster en sluitdatum https://identity.conduction.nl/screens/board?id=learniq/LqRapportperiode
+- learniq/LqRapportsjabloon rapportsjabloon: secties, schaal en de koppeling van toetssoorten https://identity.conduction.nl/screens/board?id=learniq/LqRapportsjabloon

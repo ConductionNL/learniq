@@ -11,3 +11,4 @@
 - vaartveld/MijnOverzicht overzicht https://identity.conduction.nl/screens/board?id=vaartveld/MijnOverzicht
 - vaartveld/MobielHome overzicht https://identity.conduction.nl/screens/board?id=vaartveld/MobielHome
 - vaartveld/LqVandaag vandaag voor de docent https://identity.conduction.nl/screens/board?id=vaartveld/LqVandaag
+- vaartveld/Inleveren Mijn Zuiddrecht: werk inleveren met een echt bestand https://identity.conduction.nl/screens/board?id=vaartveld/Inleveren
