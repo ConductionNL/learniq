@@ -33,11 +33,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\PeerReviewAllocationService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
@@ -52,6 +52,7 @@ use OCP\IUserSession;
  * @spec openspec/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
  */
 class PeerReviewController extends Controller {
+	use FindOrNull;
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const ASSIGNMENT_SCHEMA = 'assignment';
@@ -186,24 +187,7 @@ class PeerReviewController extends Controller {
 	 * @return array<string,mixed>|null Null when no such object exists.
 	 */
 	private function fetchObject(string $id, string $schema): ?array {
-		// ObjectService::find() THROWS DoesNotExistException for an unknown id —
-		// it does not return null — so without this catch the `=== null` check
-		// below was dead code and an unknown id escaped as a 500 instead of the
-		// 404 this resolver's nullable contract promises the caller.
-		try {
-			$obj = $this->objectService->find(
-				id: $id,
-				register: self::LEARNIQ_REGISTER,
-				schema: $schema
-			);
-		} catch (DoesNotExistException $e) {
-			return null;
-		}
-
-		if ($obj === null) {
-			return null;
-		}
-
-		return $obj->jsonSerialize();
+		$find = fn () => $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
+		return $this->findOrNull(find: $find)?->jsonSerialize();
 	}//end fetchObject()
 }//end class

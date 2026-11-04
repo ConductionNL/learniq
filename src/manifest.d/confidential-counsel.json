@@ -46,6 +46,7 @@
 			"type": "index",
 			"title": "Confidential notes",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "confidential-note"
 			}
@@ -105,6 +106,7 @@
 			"type": "index",
 			"title": "Report a concern",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "concern-report",
 				"excludeFields": [
@@ -118,6 +120,7 @@
 			"type": "index",
 			"title": "Concern reports",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "concern-report"
 			}

@@ -25,8 +25,8 @@
  @spec openspec/specs/school-structure/spec.md#requirement-guardian-consent-gates-a-minor-s-subject-choice-submission
 -->
 <template>
-	<div class="subject-choice-picker">
-		<h2>{{ t('learniq', 'Pick electives (vakkenpakket)') }}</h2>
+	<div class="subject-choice-picker lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Pick electives (vakkenpakket)')" />
 
 		<NcLoadingIcon v-if="loading" :size="32" />
 
@@ -40,7 +40,10 @@
 				)
 			" />
 
-		<template v-else>
+		<CnDetailCard
+			v-else
+			:title="selectedPlan ? selectedPlan.name || '' : ''"
+			class="subject-choice-picker__card">
 			<div class="subject-choice-picker__field">
 				<label for="scp-plan">{{ t('learniq', 'Curriculum plan') }}</label>
 				<NcSelect
@@ -171,11 +174,12 @@
 						: t('learniq', 'Submit subject choice')
 				}}
 			</NcButton>
-		</template>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { getLanguage } from '@nextcloud/l10n'
@@ -193,6 +197,8 @@ export default {
 	name: 'SubjectChoicePicker',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
@@ -617,9 +623,8 @@ export default {
 </script>
 
 <style scoped>
-.subject-choice-picker {
-	padding: 1rem;
-	max-width: 560px;
+.subject-choice-picker__card {
+	max-width: 860px;
 }
 
 .subject-choice-picker__field {

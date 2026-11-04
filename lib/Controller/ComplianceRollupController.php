@@ -37,9 +37,9 @@ use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\ComplianceRollupService;
 use OCA\Learniq\Service\RegulationAssignmentService;
 use OCA\Learniq\Service\RegulationCoverageService;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
@@ -50,6 +50,8 @@ use OCP\IUserSession;
  * Per-department compliance roll-up and audience-scoped regulation assignment.
  */
 class ComplianceRollupController extends Controller {
+	use FindOrNull;
+
 	/**
 	 * Constructor.
 	 *
@@ -146,12 +148,7 @@ class ComplianceRollupController extends Controller {
 
 		$regulation = null;
 		if ($id !== '') {
-			// ObjectService::find() THROWS for an unknown id; that is a 404, not a 500.
-			try {
-				$regulation = $this->objectService->find(id: $id, register: 'learniq', schema: 'regulation');
-			} catch (DoesNotExistException) {
-				$regulation = null;
-			}
+			$regulation = $this->findOrNull(find: fn () => $this->objectService->find(id: $id, register: 'learniq', schema: 'regulation'));
 		}
 
 		if ($regulation === null) {

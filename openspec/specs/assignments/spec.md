@@ -774,7 +774,7 @@ When a submission has allocated markers, the marking screen MUST save a marker's
 #### Scenario: The first marker hands in a mark
 
 - **GIVEN** j.devries is allocated to a submission of "Afstudeerverslag bedrijfskunde"
-- **WHEN** j.devries opens the submission's marking screen, scores the rubric to 7.5 and saves
+- **WHEN** j.devries opens the submission's marking screen, scores the rubric to 7,4 and saves
 - **THEN** j.devries's mark shows as submitted
 - **AND** the submission is still waiting for marks and has not been returned to the learner
 
@@ -796,17 +796,17 @@ When every allocated mark on a submission is `submitted`, the marking screen MUS
 
 #### Scenario: Two markers agree a grade
 
-- **GIVEN** a submission with marks of 7.5 from j.devries and 6.8 from a.bakker, both submitted, and the rule agreed by hand
-- **WHEN** the coordinator opens the marking screen, reads both marks side by side, enters 7.2 and saves
-- **THEN** the submission is returned to the learner with grade 7.2
-- **AND** the gradebook holds one concept grade of 7.2 for that learner
+- **GIVEN** a submission with marks of 7,4 from j.devries and 7,0 from a.bakker, both submitted, and the rule agreed by hand
+- **WHEN** the coordinator opens the marking screen, reads both marks side by side, enters 7,2 and saves
+- **THEN** the submission is returned to the learner with grade 7,2
+- **AND** the gradebook holds one concept grade of 7,2 for that learner
 - **AND** the submission records the coordinator as the person who set the final grade
 
 #### Scenario: The average rule proposes a grade and waits for a person
 
 - **GIVEN** the same two marks and the rule average
 - **WHEN** the coordinator opens the marking screen
-- **THEN** the final grade field shows 7.15
+- **THEN** the final grade field shows 7,2
 - **AND** nothing is saved or returned until the coordinator confirms
 
 ## Standards

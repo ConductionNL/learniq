@@ -1,0 +1,216 @@
+{
+    "course level, empty teacher": [
+        {
+            "evaluate": [
+                "c-1",
+                null,
+                "2026-2027",
+                "P1"
+            ]
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "courseId": "c-1",
+                    "academicYear": "2026-2027",
+                    "period": "P1",
+                    "teacherId": null,
+                    "register": "learniq",
+                    "schema": "course-quality-score"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "courseId": "c-1",
+                    "teacherId": null,
+                    "academicYear": "2026-2027",
+                    "period": "P1",
+                    "responseCount": 3,
+                    "invitationCount": 4,
+                    "averageOverallScore": 7.5,
+                    "responseRate": 0.75,
+                    "lastRecomputedAt": "2026-01-02T03:04:05+00:00",
+                    "tenant_id": "ten-1"
+                },
+                "register": "learniq",
+                "schema": "course-quality-score"
+            }
+        }
+    ],
+    "course level, no teacher, no tenant": [
+        {
+            "evaluate": [
+                "c-1",
+                null,
+                "2026-2027",
+                "P1"
+            ]
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "courseId": "c-1",
+                    "academicYear": "2026-2027",
+                    "period": "P1",
+                    "teacherId": null,
+                    "register": "learniq",
+                    "schema": "course-quality-score"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "courseId": "c-1",
+                    "teacherId": null,
+                    "academicYear": "2026-2027",
+                    "period": "P1",
+                    "responseCount": 3,
+                    "invitationCount": 4,
+                    "averageOverallScore": 7.5,
+                    "responseRate": 0.75,
+                    "lastRecomputedAt": "2026-01-02T03:04:05+00:00",
+                    "tenant_id": ""
+                },
+                "register": "learniq",
+                "schema": "course-quality-score"
+            }
+        }
+    ],
+    "existing row as an array": [
+        {
+            "evaluate": [
+                "c-1",
+                "t-9",
+                "2026-2027",
+                "P1"
+            ]
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "courseId": "c-1",
+                    "academicYear": "2026-2027",
+                    "period": "P1",
+                    "teacherId": "t-9",
+                    "register": "learniq",
+                    "schema": "course-quality-score"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "score-1",
+                    "courseId": "c-1",
+                    "note": "kept",
+                    "responseCount": 3,
+                    "teacherId": "t-9",
+                    "academicYear": "2026-2027",
+                    "period": "P1",
+                    "invitationCount": 4,
+                    "averageOverallScore": 7.5,
+                    "responseRate": 0.75,
+                    "lastRecomputedAt": "2026-01-02T03:04:05+00:00",
+                    "tenant_id": "ten-1"
+                },
+                "register": "learniq",
+                "schema": "course-quality-score"
+            }
+        }
+    ],
+    "existing row as an entity": [
+        {
+            "evaluate": [
+                "c-1",
+                "t-9",
+                "2026-2027",
+                "P1"
+            ]
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "courseId": "c-1",
+                    "academicYear": "2026-2027",
+                    "period": "P1",
+                    "teacherId": "t-9",
+                    "register": "learniq",
+                    "schema": "course-quality-score"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "score-1",
+                    "courseId": "c-1",
+                    "note": "kept",
+                    "responseCount": 3,
+                    "@self": "<entity metadata>",
+                    "teacherId": "t-9",
+                    "academicYear": "2026-2027",
+                    "period": "P1",
+                    "invitationCount": 4,
+                    "averageOverallScore": 7.5,
+                    "responseRate": 0.75,
+                    "lastRecomputedAt": "2026-01-02T03:04:05+00:00",
+                    "tenant_id": "ten-1"
+                },
+                "register": "learniq",
+                "schema": "course-quality-score"
+            }
+        }
+    ],
+    "first response, teacher scoped": [
+        {
+            "evaluate": [
+                "c-1",
+                "t-9",
+                "2026-2027",
+                "P1"
+            ]
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "courseId": "c-1",
+                    "academicYear": "2026-2027",
+                    "period": "P1",
+                    "teacherId": "t-9",
+                    "register": "learniq",
+                    "schema": "course-quality-score"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "courseId": "c-1",
+                    "teacherId": "t-9",
+                    "academicYear": "2026-2027",
+                    "period": "P1",
+                    "responseCount": 3,
+                    "invitationCount": 4,
+                    "averageOverallScore": 7.5,
+                    "responseRate": 0.75,
+                    "lastRecomputedAt": "2026-01-02T03:04:05+00:00",
+                    "tenant_id": "ten-1"
+                },
+                "register": "learniq",
+                "schema": "course-quality-score"
+            }
+        }
+    ],
+    "no course": [],
+    "no period": [],
+    "no year": [],
+    "not submitted": []
+}
