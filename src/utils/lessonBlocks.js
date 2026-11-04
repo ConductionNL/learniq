@@ -7,8 +7,8 @@
  * `serialiseLessonBlocks` is LessonComposer's former `serialisableBlocks()`,
  * moved here unchanged so a test can prove what reaches OpenRegister. The
  * draft helpers carry the AI assist drafts (lesson-ai-assist-actions): a
- * draft is a richText block with a local `assistDraft` marker that the
- * serialiser never writes.
+ * draft is a richText block with a local `draft` marker (CnBlockListEditor's,
+ * which offers Keep and Discard) that the serialiser never writes.
  *
  * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
  */
@@ -58,7 +58,7 @@ export const TEACHER_NOTE_SCHEMA = 'lesson-teacher-note'
  *
  * Applied at the save boundary so blocks LOADED from the server, which may
  * already carry nulls from earlier writes, are normalised too. Every other
- * key (such as the local `assistDraft` marker) is dropped, and so is every
+ * key (such as the local `draft` marker) is dropped, and so is every
  * teacher note block (teacher-notes-protection).
  *
  * @param {Array<object>} blocks The composer's blocks.
@@ -89,13 +89,14 @@ export function serialiseLessonBlocks(blocks) {
 
 /**
  * A richText block holding an AI draft, marked so the composer shows it as a
- * draft and refuses to save until the teacher keeps or discards it.
+ * draft and refuses to save until the teacher keeps or discards it. `note` is
+ * the line CnBlockListEditor shows beside Keep and Discard.
  *
- * @param {{blockId: string, text: string, action: string, provider: string|null}} draft The draft.
+ * @param {{blockId: string, text: string, action: string, provider: string|null, note: string}} draft The draft.
  * @return {object} The block.
  * @spec openspec/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
  */
-export function makeDraftBlock({ blockId, text, action, provider }) {
+export function makeDraftBlock({ blockId, text, action, provider, note }) {
 	return {
 		blockId,
 		type: 'richText',
@@ -105,23 +106,12 @@ export function makeDraftBlock({ blockId, text, action, provider }) {
 		assessmentId: null,
 		assignmentId: null,
 		ltiToolPlacementId: null,
-		assistDraft: {
+		draft: {
+			note: String(note ?? ''),
 			action: String(action ?? ''),
 			provider: provider ? String(provider) : null,
 		},
 	}
-}
-
-/**
- * Keep a draft: it becomes an ordinary richText block, in place.
- *
- * @param {object} block A draft block.
- * @return {object} The same block, without its draft marker.
- * @spec openspec/specs/course-management/spec.md#scenario-a-teacher-keeps-an-ai-outline
- */
-export function keepDraftBlock(block) {
-	delete block.assistDraft
-	return block
 }
 
 /**
@@ -132,7 +122,7 @@ export function keepDraftBlock(block) {
  * @spec openspec/specs/course-management/spec.md#scenario-a-pending-draft-blocks-the-save
  */
 export function countPendingDrafts(blocks) {
-	return (blocks ?? []).filter((b) => Boolean(b?.assistDraft)).length
+	return (blocks ?? []).filter((b) => Boolean(b?.draft)).length
 }
 
 /**
@@ -261,4 +251,40 @@ export function diffTeacherNotes(loaded, current) {
 	}
 	const remove = [...stored.values()].map(idOf).filter((id) => id)
 	return { create, update, remove }
+}
+
+/** The block types a teacher adds in the composer, in palette order. */
+export const BLOCK_TYPES = ['richText', 'media', 'quiz', 'assignment', 'ltiTool', 'teacherNote']
+
+/**
+ * A client-side block id: a UUID where the browser has one.
+ *
+ * @return {string} The id.
+ * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+ */
+export function newBlockId() {
+	if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+		return crypto.randomUUID()
+	}
+	return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+}
+
+/**
+ * The fields of a new, empty block of one type: text types start empty, the
+ * picker types without a choice.
+ *
+ * @param {string} type A BLOCK_TYPES value.
+ * @return {object} The block's fields, with a fresh `blockId`.
+ * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+ */
+export function emptyBlock(type) {
+	return {
+		blockId: newBlockId(),
+		order: 0,
+		text: ['richText', TEACHER_NOTE].includes(type) ? '' : null,
+		materialId: null,
+		assessmentId: null,
+		assignmentId: null,
+		ltiToolPlacementId: null,
+	}
 }

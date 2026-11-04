@@ -4381,7 +4381,11 @@
         "No open signals for the pupils you mentor": "Geen open signalen voor de leerlingen van wie u mentor bent",
         "Open signals": "Open signalen",
         "Estimate": "Schatting",
-        "No programme years in this forecast.": "Geen leerjaren in deze prognose."
+        "No programme years in this forecast.": "Geen leerjaren in deze prognose.",
+        "Add block": "Blok toevoegen",
+        "Block type": "Soort blok",
+        "This lesson has no blocks yet.": "Deze les heeft nog geen blokken.",
+        "Block moved to position {position} of {total}": "Blok verplaatst naar positie {position} van {total}"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

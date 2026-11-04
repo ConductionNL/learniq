@@ -3880,7 +3880,11 @@
         "No open signals for the pupils you mentor": "No open signals for the pupils you mentor",
         "Open signals": "Open signals",
         "Estimate": "Estimate",
-        "No programme years in this forecast.": "No programme years in this forecast."
+        "No programme years in this forecast.": "No programme years in this forecast.",
+        "Add block": "Add block",
+        "Block type": "Block type",
+        "This lesson has no blocks yet.": "This lesson has no blocks yet.",
+        "Block moved to position {position} of {total}": "Block moved to position {position} of {total}"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
