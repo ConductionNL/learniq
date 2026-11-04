@@ -16,11 +16,8 @@
  @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 -->
 <template>
-	<div class="roll-call">
-		<h2 class="roll-call__title">
-			{{ t('learniq', 'Attendance register') }}
-			<span v-if="register.cohortName">· {{ register.cohortName }}</span>
-		</h2>
+	<div class="roll-call lq-board-page">
+		<CnPageHeader :title="title" />
 
 		<NcLoadingIcon v-if="loading" :size="32" />
 		<NcNoteCard v-else-if="loadError" type="error">
@@ -93,191 +90,196 @@
 				}}
 			</p>
 
-			<p class="roll-call__counts" aria-live="polite">
-				{{ countsText }}
-			</p>
-			<p v-if="register.editable" :id="hintId" class="roll-call__hint">
-				{{
-					t(
-						'learniq',
-						'Everyone starts as present. Keys on a pupil: P present, L late, T absent with permission, O absent without permission. Arrow keys go to the next pupil.',
-					)
-				}}
-			</p>
+			<CnDetailCard
+				:title="n('learniq', '%n pupil', '%n pupils', pupils.length)"
+				class="roll-call__register">
+				<p class="roll-call__counts" aria-live="polite">
+					{{ countsText }}
+				</p>
+				<p v-if="register.editable" :id="hintId" class="roll-call__hint">
+					{{
+						t(
+							'learniq',
+							'Everyone starts as present. Keys on a pupil: P present, L late, T absent with permission, O absent without permission. Arrow keys go to the next pupil.',
+						)
+					}}
+				</p>
 
-			<NcEmptyContent
-				v-if="pupils.length === 0"
-				:name="t('learniq', 'No learners in this group')"
-				:description="
-					t('learniq', 'Add learners to the group of this lesson first.')
-				" />
+				<NcEmptyContent
+					v-if="pupils.length === 0"
+					:name="t('learniq', 'No learners in this group')"
+					:description="
+						t('learniq', 'Add learners to the group of this lesson first.')
+					" />
 
-			<form v-else @submit.prevent="save">
-				<ul class="roll-call__list">
-					<li
-						v-for="(pupil, index) in pupils"
-						:key="pupil.learnerId"
-						ref="rows"
-						class="roll-call__pupil"
-						:class="'roll-call__pupil--' + pupil.status"
-						tabindex="0"
-						:aria-label="pupilLabel(pupil)"
-						:aria-describedby="register.editable ? hintId : null"
-						@keydown="onKey($event, index)">
-						<div class="roll-call__who">
-							<span class="roll-call__name">{{ pupil.name }}</span>
-							<span
-								v-if="pupil.markedVia === 'self-check-in'"
-								class="roll-call__badge">
-								{{ t('learniq', 'checked in') }}
-							</span>
-							<span v-if="pupil.report" class="roll-call__report">
-								{{ reportText(pupil.report) }}
-							</span>
-						</div>
+				<form v-else @submit.prevent="save">
+					<ul class="roll-call__list">
+						<li
+							v-for="(pupil, index) in pupils"
+							:key="pupil.learnerId"
+							ref="rows"
+							class="roll-call__pupil"
+							:class="'roll-call__pupil--' + pupil.status"
+							tabindex="0"
+							:aria-label="pupilLabel(pupil)"
+							:aria-describedby="register.editable ? hintId : null"
+							@keydown="onKey($event, index)">
+							<div class="roll-call__who">
+								<span class="roll-call__name">{{ pupil.name }}</span>
+								<span
+									v-if="pupil.markedVia === 'self-check-in'"
+									class="roll-call__badge">
+									{{ t('learniq', 'checked in') }}
+								</span>
+								<span v-if="pupil.report" class="roll-call__report">
+									{{ reportText(pupil.report) }}
+								</span>
+							</div>
 
-						<div
-							class="roll-call__statuses"
-							role="group"
-							:aria-label="
-								t('learniq', 'Mark for {name}', { name: pupil.name })
-							">
-							<button
-								v-for="status in statuses"
-								:key="status"
-								type="button"
-								class="roll-call__status"
-								:class="{
-									'roll-call__status--on': pupil.status === status,
-								}"
-								:aria-pressed="
-									pupil.status === status ? 'true' : 'false'
-								"
-								:disabled="!register.editable"
-								@click="mark(index, status)">
-								{{ statusLabel(status) }}
-							</button>
-						</div>
+							<div
+								class="roll-call__statuses"
+								role="group"
+								:aria-label="
+									t('learniq', 'Mark for {name}', { name: pupil.name })
+								">
+								<button
+									v-for="status in statuses"
+									:key="status"
+									type="button"
+									class="roll-call__status"
+									:class="{
+										'roll-call__status--on': pupil.status === status,
+									}"
+									:aria-pressed="
+										pupil.status === status ? 'true' : 'false'
+									"
+									:disabled="!register.editable"
+									@click="mark(index, status)">
+									{{ statusLabel(status) }}
+								</button>
+							</div>
 
-						<div
-							v-if="pupil.status === 'late'"
-							class="roll-call__detail">
-							<span class="roll-call__detail-label">{{
-								t('learniq', 'Minutes late')
-							}}</span>
-							<button
-								v-for="minutes in quickMinutes"
-								:key="minutes"
-								type="button"
-								class="roll-call__chip"
-								:class="{
-									'roll-call__chip--on':
-										Number(pupil.lateMinutes) === minutes,
-								}"
-								:aria-pressed="
-									Number(pupil.lateMinutes) === minutes
-										? 'true'
-										: 'false'
-								"
-								:disabled="!register.editable"
-								@click="setField(index, 'lateMinutes', minutes)">
-								{{ minutes }}
-							</button>
-							<label class="roll-call__other">
-								<span>{{
-									t('learniq', 'Other number of minutes')
+							<div
+								v-if="pupil.status === 'late'"
+								class="roll-call__detail">
+								<span class="roll-call__detail-label">{{
+									t('learniq', 'Minutes late')
 								}}</span>
-								<input
-									type="number"
-									min="1"
-									max="600"
-									step="1"
-									inputmode="numeric"
-									:value="pupil.lateMinutes"
+								<button
+									v-for="minutes in quickMinutes"
+									:key="minutes"
+									type="button"
+									class="roll-call__chip"
+									:class="{
+										'roll-call__chip--on':
+											Number(pupil.lateMinutes) === minutes,
+									}"
+									:aria-pressed="
+										Number(pupil.lateMinutes) === minutes
+											? 'true'
+											: 'false'
+									"
 									:disabled="!register.editable"
-									@input="
-										setField(
-											index,
-											'lateMinutes',
-											$event.target.value === ''
-												? ''
-												: Number($event.target.value),
-										)
-									" />
-							</label>
-						</div>
+									@click="setField(index, 'lateMinutes', minutes)">
+									{{ minutes }}
+								</button>
+								<label class="roll-call__other">
+									<span>{{
+										t('learniq', 'Other number of minutes')
+									}}</span>
+									<input
+										type="number"
+										min="1"
+										max="600"
+										step="1"
+										inputmode="numeric"
+										:value="pupil.lateMinutes"
+										:disabled="!register.editable"
+										@input="
+											setField(
+												index,
+												'lateMinutes',
+												$event.target.value === ''
+													? ''
+													: Number($event.target.value),
+											)
+										" />
+								</label>
+							</div>
 
-						<div
-							v-if="pupil.status === 'absent-excused'"
-							class="roll-call__detail">
-							<label class="roll-call__reason">
-								<span>{{ t('learniq', 'Reason') }}</span>
-								<select
-									:value="pupil.absenceReasonKind"
-									:disabled="!register.editable"
-									@change="
-										setField(
-											index,
-											'absenceReasonKind',
-											$event.target.value,
-										)
-									">
-									<option
-										v-for="kind in reasonKinds"
-										:key="kind"
-										:value="kind">
-										{{ reasonLabel(kind) }}
-									</option>
-								</select>
-							</label>
-						</div>
+							<div
+								v-if="pupil.status === 'absent-excused'"
+								class="roll-call__detail">
+								<label class="roll-call__reason">
+									<span>{{ t('learniq', 'Reason') }}</span>
+									<select
+										:value="pupil.absenceReasonKind"
+										:disabled="!register.editable"
+										@change="
+											setField(
+												index,
+												'absenceReasonKind',
+												$event.target.value,
+											)
+										">
+										<option
+											v-for="kind in reasonKinds"
+											:key="kind"
+											:value="kind">
+											{{ reasonLabel(kind) }}
+										</option>
+									</select>
+								</label>
+							</div>
 
-						<div
-							v-if="pupil.status !== 'present'"
-							class="roll-call__detail">
-							<label class="roll-call__note">
-								<span>{{ t('learniq', 'Note (optional)') }}</span>
-								<input
-									type="text"
-									maxlength="500"
-									:value="pupil.reason"
-									:disabled="!register.editable"
-									@input="
-										setField(
-											index,
-											'reason',
-											$event.target.value,
-										)
-									" />
-							</label>
-						</div>
-					</li>
-				</ul>
+							<div
+								v-if="pupil.status !== 'present'"
+								class="roll-call__detail">
+								<label class="roll-call__note">
+									<span>{{ t('learniq', 'Note (optional)') }}</span>
+									<input
+										type="text"
+										maxlength="500"
+										:value="pupil.reason"
+										:disabled="!register.editable"
+										@input="
+											setField(
+												index,
+												'reason',
+												$event.target.value,
+											)
+										" />
+								</label>
+							</div>
+						</li>
+					</ul>
 
-				<div class="roll-call__save">
-					<NcNoteCard v-if="saveError" type="error">
-						{{ saveError }}
-					</NcNoteCard>
-					<NcNoteCard v-if="saved" type="success">
-						{{ t('learniq', 'The register is saved.') }}
-					</NcNoteCard>
-					<NcButton
-						type="submit"
-						variant="primary"
-						:disabled="!register.editable || saving">
-						{{
-							saving
-								? t('learniq', 'Saving…')
-								: t('learniq', 'Save the register')
-						}}
-					</NcButton>
-				</div>
-			</form>
+					<div class="roll-call__save">
+						<NcNoteCard v-if="saveError" type="error">
+							{{ saveError }}
+						</NcNoteCard>
+						<NcNoteCard v-if="saved" type="success">
+							{{ t('learniq', 'The register is saved.') }}
+						</NcNoteCard>
+						<NcButton
+							type="submit"
+							variant="primary"
+							:disabled="!register.editable || saving">
+							{{
+								saving
+									? t('learniq', 'Saving…')
+									: t('learniq', 'Save the register')
+							}}
+						</NcButton>
+					</div>
+				</form>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import {
@@ -311,6 +313,8 @@ export default {
 	name: 'RollCallView',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
@@ -342,6 +346,17 @@ export default {
 	},
 
 	computed: {
+		/**
+		 * The page title, naming the group once one is chosen.
+		 *
+		 * @return {string} The title.
+		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+		 */
+		title() {
+			const title = this.t('learniq', 'Attendance register')
+			return this.register.cohortName ? `${title} · ${this.register.cohortName}` : title
+		},
+
 		/**
 		 * @return {object|null} The open group, as an NcSelect option.
 		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
@@ -676,11 +691,6 @@ export default {
 </script>
 
 <style scoped>
-.roll-call {
-	padding: calc(var(--default-grid-baseline, 4px) * 4);
-	max-inline-size: 64rem;
-}
-
 .roll-call__controls {
 	display: flex;
 	flex-wrap: wrap;

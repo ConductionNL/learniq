@@ -56,17 +56,31 @@ class SessionOverlapEvaluator {
 	 * @spec openspec/specs/timetabling/spec.md#scenario-two-sessions-imported-for-the-same-room-at-overlapping-times-are-flagged-not-auto-moved
 	 */
 	public function overlaps(array $sessionA, array $sessionB): bool {
-		$startA = strtotime((string)($sessionA['startsAt'] ?? ''));
-		$endA = strtotime((string)($sessionA['endsAt'] ?? ''));
-		$startB = strtotime((string)($sessionB['startsAt'] ?? ''));
-		$endB = strtotime((string)($sessionB['endsAt'] ?? ''));
-
-		if ($startA === false || $endA === false || $startB === false || $endB === false) {
+		$first = $this->interval(session: $sessionA);
+		$second = $this->interval(session: $sessionB);
+		if ($first === null || $second === null) {
 			return false;
 		}
 
-		return ($startA < $endB && $startB < $endA);
+		return ($first[0] < $second[1] && $second[0] < $first[1]);
 	}//end overlaps()
+
+	/**
+	 * A Session's start and end as timestamps, or null when either cannot be read.
+	 *
+	 * @param array<string,mixed> $session The Session.
+	 *
+	 * @return array{0:int,1:int}|null
+	 */
+	private function interval(array $session): ?array {
+		$start = strtotime((string)($session['startsAt'] ?? ''));
+		$end = strtotime((string)($session['endsAt'] ?? ''));
+		if ($start === false || $end === false) {
+			return null;
+		}
+
+		return [$start, $end];
+	}//end interval()
 
 	/**
 	 * Determine which pairwise overlap kinds two Sessions exhibit.
@@ -85,43 +99,14 @@ class SessionOverlapEvaluator {
 	 * @spec openspec/specs/timetabling/spec.md#scenario-two-sessions-imported-for-the-same-room-at-overlapping-times-are-flagged-not-auto-moved
 	 */
 	public function overlapKinds(array $sessionA, array $sessionB, ?array $cohortA, ?array $cohortB): array {
-		$kinds = [];
+		$kinds = [
+			'teacher-double-booking' => $this->sharedTeacherRef(sessions: [$sessionA, $sessionB], cohorts: [$cohortA, $cohortB]),
+			'room-double-booking' => $this->sharedRoomRef(sessionA: $sessionA, sessionB: $sessionB),
+			'cohort-double-booking' => $this->sharedCohortRef(sessionA: $sessionA, sessionB: $sessionB),
+			'learner-double-booking' => $this->sharedLearnerRef(sessions: [$sessionA, $sessionB], cohorts: [$cohortA, $cohortB]),
+		];
 
-		// Teacher-double-booking.
-		$sharedTeachers = array_values(
-			array_intersect(
-				$this->assignedTeacherIds(session: $sessionA, cohort: $cohortA),
-				$this->assignedTeacherIds(session: $sessionB, cohort: $cohortB)
-			)
-		);
-		if (count($sharedTeachers) > 0) {
-			$kinds['teacher-double-booking'] = $sharedTeachers[0];
-		}
-
-		// Room-double-booking.
-		$sharedRoom = $this->sharedRoomRef(sessionA: $sessionA, sessionB: $sessionB);
-		if ($sharedRoom !== null) {
-			$kinds['room-double-booking'] = $sharedRoom;
-		}
-
-		// Cohort-double-booking.
-		$cohortIdA = (string)($sessionA['cohortId'] ?? '');
-		$cohortIdB = (string)($sessionB['cohortId'] ?? '');
-		if ($cohortIdA !== '' && $cohortIdA === $cohortIdB) {
-			$kinds['cohort-double-booking'] = $cohortIdA;
-		}
-
-		$sharedLearner = $this->sharedLearnerRef(
-			cohortIdA: $cohortIdA,
-			cohortIdB: $cohortIdB,
-			cohortA: $cohortA,
-			cohortB: $cohortB
-		);
-		if ($sharedLearner !== null) {
-			$kinds['learner-double-booking'] = $sharedLearner;
-		}
-
-		return $kinds;
+		return array_filter($kinds, static fn (mixed $reference): bool => $reference !== null);
 	}//end overlapKinds()
 
 	/**
@@ -149,36 +134,67 @@ class SessionOverlapEvaluator {
 	}//end exceedsCapacity()
 
 	/**
+	 * A teacher assigned to both Sessions.
+	 *
+	 * @param array{0:array<string,mixed>,1:array<string,mixed>}             $sessions The two Sessions.
+	 * @param array{0:array<string,mixed>|null,1:array<string,mixed>|null} $cohorts  Their Cohorts, when resolvable.
+	 *
+	 * @return int|string|null A teacher id (an all-digit id from a cohort's list is an int), or null.
+	 */
+	private function sharedTeacherRef(array $sessions, array $cohorts): int|string|null {
+		$shared = array_intersect(
+			$this->assignedTeacherIds(session: $sessions[0], cohort: $cohorts[0]),
+			$this->assignedTeacherIds(session: $sessions[1], cohort: $cohorts[1])
+		);
+
+		return (array_values($shared)[0] ?? null);
+	}//end sharedTeacherRef()
+
+	/**
+	 * The cohort two Sessions share, if any.
+	 *
+	 * @param array<string,mixed> $sessionA Session A.
+	 * @param array<string,mixed> $sessionB Session B.
+	 *
+	 * @return string|null The cohort id, or null.
+	 */
+	private function sharedCohortRef(array $sessionA, array $sessionB): ?string {
+		$cohortId = (string)($sessionA['cohortId'] ?? '');
+		if ($cohortId === '' || $cohortId !== (string)($sessionB['cohortId'] ?? '')) {
+			return null;
+		}
+
+		return $cohortId;
+	}//end sharedCohortRef()
+
+	/**
 	 * Find a learner enrolled in both Sessions' cohorts.
 	 *
 	 * Only meaningful across DIFFERENT cohorts: two Sessions on the same cohort
 	 * are already a cohort-double-booking, and reporting every one of their
 	 * learners again would be noise rather than a second finding.
 	 *
-	 * @param string $cohortIdA Session A's cohort id.
-	 * @param string $cohortIdB Session B's cohort id.
-	 * @param array<string,mixed>|null $cohortA Session A's Cohort, when resolvable.
-	 * @param array<string,mixed>|null $cohortB Session B's Cohort, when resolvable.
+	 * @param array{0:array<string,mixed>,1:array<string,mixed>}             $sessions The two Sessions.
+	 * @param array{0:array<string,mixed>|null,1:array<string,mixed>|null} $cohorts  Their Cohorts, when resolvable.
 	 *
 	 * @return string|null A learner id present in both cohorts, or null.
 	 */
-	private function sharedLearnerRef(string $cohortIdA, string $cohortIdB, ?array $cohortA, ?array $cohortB): ?string {
+	private function sharedLearnerRef(array $sessions, array $cohorts): ?string {
+		$cohortIdA = (string)($sessions[0]['cohortId'] ?? '');
+		$cohortIdB = (string)($sessions[1]['cohortId'] ?? '');
 		if ($cohortIdA === '' || $cohortIdB === '' || $cohortIdA === $cohortIdB) {
 			return null;
 		}
 
-		$sharedLearners = array_values(
-			array_intersect(
-				$this->stringList(value: ($cohortA['learnerIds'] ?? [])),
-				$this->stringList(value: ($cohortB['learnerIds'] ?? []))
-			)
+		$shared = array_intersect(
+			$this->stringList(value: ($cohorts[0]['learnerIds'] ?? [])),
+			$this->stringList(value: ($cohorts[1]['learnerIds'] ?? []))
 		);
-
-		if (count($sharedLearners) === 0) {
+		if ($shared === []) {
 			return null;
 		}
 
-		return (string)$sharedLearners[0];
+		return (string)array_values($shared)[0];
 	}//end sharedLearnerRef()
 
 	/**
@@ -196,21 +212,33 @@ class SessionOverlapEvaluator {
 	private function sharedRoomRef(array $sessionA, array $sessionB): ?string {
 		$roomA = (string)($sessionA['roomId'] ?? '');
 		$roomB = (string)($sessionB['roomId'] ?? '');
-		if ($roomA !== '' || $roomB !== '') {
-			if ($roomA === $roomB) {
-				return $roomA;
-			}
-
-			return null;
+		if ($roomA === '' && $roomB === '') {
+			return $this->sharedRoomCode(sessionA: $sessionA, sessionB: $sessionB);
 		}
 
-		$codeA = (string)($sessionA['roomReference'] ?? '');
-		if ($codeA !== '' && $codeA === (string)($sessionB['roomReference'] ?? '')) {
-			return $codeA;
+		if ($roomA === $roomB) {
+			return $roomA;
 		}
 
 		return null;
 	}//end sharedRoomRef()
+
+	/**
+	 * The school room code two Sessions share, if any.
+	 *
+	 * @param array<string,mixed> $sessionA Session A.
+	 * @param array<string,mixed> $sessionB Session B.
+	 *
+	 * @return string|null The code, or null.
+	 */
+	private function sharedRoomCode(array $sessionA, array $sessionB): ?string {
+		$code = (string)($sessionA['roomReference'] ?? '');
+		if ($code !== '' && $code === (string)($sessionB['roomReference'] ?? '')) {
+			return $code;
+		}
+
+		return null;
+	}//end sharedRoomCode()
 
 	/**
 	 * Resolve the "assigned teacher" identity set for a Session: the
@@ -221,7 +249,7 @@ class SessionOverlapEvaluator {
 	 * @param array<string,mixed> $session Session data.
 	 * @param array<string,mixed>|null $cohort The Session's Cohort data, or null.
 	 *
-	 * @return array<int,string> The assigned teacher Nextcloud user ids.
+	 * @return array<int,int|string> The assigned teacher Nextcloud user ids.
 	 */
 	private function assignedTeacherIds(array $session, ?array $cohort): array {
 		$substituteId = (string)($session['substituteTeacherId'] ?? '');
@@ -250,7 +278,7 @@ class SessionOverlapEvaluator {
 	 *
 	 * @param mixed $value The raw property value.
 	 *
-	 * @return array<int,string> The string list.
+	 * @return array<int,int|string> The list; an all-digit id comes back from array_keys() as an int.
 	 */
 	public function stringList(mixed $value): array {
 		if (is_array($value) === false) {

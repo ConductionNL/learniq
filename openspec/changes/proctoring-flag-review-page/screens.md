@@ -1,3 +1,5 @@
 # Screens
 
-- LqProctoring https://identity.conduction.nl/screens/board?id=learniq/LqProctoring
+- learniq/LqProctoring proctoring beoordelen https://identity.conduction.nl/screens/board?id=learniq/LqProctoring
+
+Components: CnAppNav, CnBreadcrumbs, CnBuildiqEditButton, CnDecisionListWidget, CnNextStepCard, CnPageHeader, CnStatusBadge

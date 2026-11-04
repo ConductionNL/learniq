@@ -96,6 +96,7 @@
 			"type": "index",
 			"title": "Dossier notes",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "dossier-note",
 				"columns": [
@@ -184,6 +185,7 @@
 			"type": "index",
 			"title": "Behaviour incidents",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "behaviour-incident",
 				"columns": [
@@ -278,6 +280,7 @@
 			"type": "index",
 			"title": "Wellbeing check-ins",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "wellbeing-check-in",
 				"columns": [
@@ -363,6 +366,7 @@
 			"type": "index",
 			"title": "First aid incidents",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "first-aid-incident",
 				"columns": [

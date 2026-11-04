@@ -14,66 +14,69 @@
  @spec openspec/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
 -->
 <template>
-	<div class="reissue-certificates">
-		<h2>{{ t('learniq', 'Reissue certificates') }}</h2>
+	<div class="reissue-certificates lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Reissue certificates')" />
 		<NcLoadingIcon v-if="loading" :size="32" />
 		<NcNoteCard v-else-if="error" type="error">
 			{{ error }}
 		</NcNoteCard>
-		<form v-else class="reissue-certificates__form" @submit.prevent="start">
-			<p>
-				{{
-					n(
-						'learniq',
-						'%n issued certificate will be rebuilt and signed again.',
-						'%n issued certificates will be rebuilt and signed again.',
-						counts.issued,
-					)
-				}}
-			</p>
-			<p class="reissue-certificates__meta">
-				{{
-					t(
-						'learniq',
-						'{revoked} revoked and {expired} expired certificates are left as they are. Learners keep their certificate number, issue date and expiry.',
-						{ revoked: counts.revoked, expired: counts.expired },
-					)
-				}}
-			</p>
-			<NcTextArea
-				v-model="reason"
-				:label="t('learniq', 'Reason for the reissue')"
-				:helperText="
-					t(
-						'learniq',
-						'Stored on every certificate and shown in its history.',
-					)
-				"
-				required />
-			<NcNoteCard v-if="lastRun" type="info">
-				{{ lastRunText }}
-			</NcNoteCard>
-			<NcNoteCard v-if="queued" type="success">
-				{{
-					t(
-						'learniq',
-						'The reissue has started. Learners get a notification when their certificate is ready.',
-					)
-				}}
-			</NcNoteCard>
-			<div class="reissue-certificates__actions">
-				<NcButton
-					type="submit"
-					variant="primary"
-					:disabled="busy || reason.trim() === '' || counts.issued === 0">
-					{{ t('learniq', 'Reissue certificates') }}
-				</NcButton>
-			</div>
-		</form>
+		<CnDetailCard v-else>
+			<form class="reissue-certificates__form" @submit.prevent="start">
+				<p>
+					{{
+						n(
+							'learniq',
+							'%n issued certificate will be rebuilt and signed again.',
+							'%n issued certificates will be rebuilt and signed again.',
+							counts.issued,
+						)
+					}}
+				</p>
+				<p class="reissue-certificates__meta">
+					{{
+						t(
+							'learniq',
+							'{revoked} revoked and {expired} expired certificates are left as they are. Learners keep their certificate number, issue date and expiry.',
+							{ revoked: counts.revoked, expired: counts.expired },
+						)
+					}}
+				</p>
+				<NcTextArea
+					v-model="reason"
+					:label="t('learniq', 'Reason for the reissue')"
+					:helperText="
+						t(
+							'learniq',
+							'Stored on every certificate and shown in its history.',
+						)
+					"
+					required />
+				<NcNoteCard v-if="lastRun" type="info">
+					{{ lastRunText }}
+				</NcNoteCard>
+				<NcNoteCard v-if="queued" type="success">
+					{{
+						t(
+							'learniq',
+							'The reissue has started. Learners get a notification when their certificate is ready.',
+						)
+					}}
+				</NcNoteCard>
+				<div class="reissue-certificates__actions">
+					<NcButton
+						type="submit"
+						variant="primary"
+						:disabled="busy || reason.trim() === '' || counts.issued === 0">
+						{{ t('learniq', 'Reissue certificates') }}
+					</NcButton>
+				</div>
+			</form>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcLoadingIcon, NcNoteCard, NcTextArea } from '@nextcloud/vue'
@@ -81,7 +84,7 @@ import { NcButton, NcLoadingIcon, NcNoteCard, NcTextArea } from '@nextcloud/vue'
 export default {
 	name: 'ReissueCertificatesView',
 
-	components: { NcButton, NcLoadingIcon, NcNoteCard, NcTextArea },
+	components: { CnDetailCard, CnPageHeader, NcButton, NcLoadingIcon, NcNoteCard, NcTextArea },
 
 	props: {
 		/** Course UUID from the route. */
@@ -188,12 +191,6 @@ export default {
 </script>
 
 <style scoped>
-.reissue-certificates {
-	max-width: 720px;
-	margin: 0 auto;
-	padding: calc(var(--default-grid-baseline, 4px) * 4);
-}
-
 .reissue-certificates__form {
 	display: flex;
 	flex-direction: column;

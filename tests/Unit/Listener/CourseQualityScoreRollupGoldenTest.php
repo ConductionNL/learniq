@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\PassedArguments;
 use OCA\Learniq\Listener\CourseQualityScoreRollupHandler;
 use OCA\Learniq\Service\CourseQualityScoreEvaluator;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -137,7 +138,7 @@ class CourseQualityScoreRollupGoldenTest extends TestCase {
 		);
 		$service->method('saveObject')->willReturnCallback(
 			function (...$args): ObjectEntity {
-				$this->calls[] = ['saveObject' => $args];
+				$this->calls[] = ['saveObject' => PassedArguments::of(method: [ObjectService::class, 'saveObject'], args: $args)];
 				return OrEntityFactory::make([], 'course-quality-score');
 			}
 		);
@@ -171,6 +172,7 @@ class CourseQualityScoreRollupGoldenTest extends TestCase {
 	 * @return void
 	 */
 	private function assertGolden(mixed $actual): void {
+		$actual = self::withoutEntityMetadata(value: $actual);
 		$name   = (string)$this->dataName();
 		$golden = [];
 		if (file_exists(self::GOLDEN) === true) {
@@ -186,4 +188,29 @@ class CourseQualityScoreRollupGoldenTest extends TestCase {
 		$this->assertArrayHasKey($name, $golden);
 		$this->assertSame($golden[$name], $actual);
 	}//end assertGolden()
+
+	/**
+	 * The value with every `@self` block replaced by a marker.
+	 *
+	 * The `@self` block is what the loaded ObjectEntity class serialises, so it
+	 * follows OpenRegister's field list rather than anything learniq decides.
+	 *
+	 * @param mixed $value The value.
+	 *
+	 * @return mixed
+	 */
+	private static function withoutEntityMetadata(mixed $value): mixed {
+		if (is_array($value) === false) {
+			return $value;
+		}
+
+		foreach ($value as $key => $inner) {
+			$value[$key] = self::withoutEntityMetadata(value: $inner);
+			if ($key === '@self' && is_array($inner) === true) {
+				$value[$key] = '<entity metadata>';
+			}
+		}
+
+		return $value;
+	}//end withoutEntityMetadata()
 }//end class

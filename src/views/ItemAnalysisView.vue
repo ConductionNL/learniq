@@ -25,7 +25,7 @@
 -->
 
 <template>
-	<div class="item-analysis">
+	<div class="item-analysis lq-board-page">
 		<div v-if="!isStaff" class="item-analysis__denied" role="alert">
 			<span class="icon-error" aria-hidden="true" />
 			<p>
@@ -51,15 +51,13 @@
 
 			<template v-else>
 				<header class="item-analysis__header">
-					<h2 class="item-analysis__heading">
-						{{ itemTitle || t('learniq', 'Item analysis') }}
-					</h2>
+					<CnPageHeader :title="itemTitle || t('learniq', 'Item analysis')" />
 				</header>
 
-				<section v-if="itemId" class="item-analysis__section">
-					<h3 class="item-analysis__sub-heading">
-						{{ t('learniq', 'Statistics per assessment') }}
-					</h3>
+				<CnDetailCard
+					v-if="itemId"
+					:title="t('learniq', 'Statistics per assessment')"
+					class="item-analysis__section">
 					<p
 						v-if="itemStatisticsList.length === 0"
 						class="item-analysis__empty">
@@ -136,12 +134,12 @@
 							</li>
 						</ul>
 					</div>
-				</section>
+				</CnDetailCard>
 
-				<section v-if="assessmentId" class="item-analysis__section">
-					<h3 class="item-analysis__sub-heading">
-						{{ t('learniq', 'Assessment reliability') }}
-					</h3>
+				<CnDetailCard
+					v-if="assessmentId"
+					:title="t('learniq', 'Assessment reliability')"
+					class="item-analysis__section">
 					<p v-if="!reliability" class="item-analysis__empty">
 						{{ t('learniq', 'No reliability figure computed yet.') }}
 					</p>
@@ -167,19 +165,21 @@
 						<dt>{{ t('learniq', 'Item count') }}</dt>
 						<dd>{{ reliability.itemCount }}</dd>
 					</dl>
-				</section>
+				</CnDetailCard>
 			</template>
 		</template>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
 import { canSeeHandInStatus } from '../utils/handInStatus.js'
 
 export default {
 	name: 'ItemAnalysisView',
+	components: { CnDetailCard, CnPageHeader },
 
 	props: {
 		/**
@@ -362,13 +362,6 @@ export default {
 </script>
 
 <style scoped>
-.item-analysis {
-	max-width: 800px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
 .item-analysis__loading,
 .item-analysis__error,
 .item-analysis__denied {
@@ -376,21 +369,6 @@ export default {
 	align-items: center;
 	gap: var(--default-grid-baseline, 8px);
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.item-analysis__heading {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.item-analysis__section {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.item-analysis__sub-heading {
-	font-weight: 600;
-	margin-bottom: var(--default-grid-baseline, 8px);
 }
 
 .item-analysis__stat-card {

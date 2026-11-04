@@ -69,41 +69,37 @@ class RoomUseTally {
 	/**
 	 * Constructor.
 	 *
-	 * @param array<string,array<string,mixed>>                                  $rooms The filtered rooms, keyed by id.
-	 * @param array<string,array{weekday:int,opens:int,closes:int,minutes:int}> $days  The teaching days, keyed by `Y-m-d`.
+	 * @param array<string,array<string,mixed>>                                  $rooms      The filtered rooms, keyed by id.
+	 * @param array<string,array{weekday:int,opens:int,closes:int,minutes:int}> $days       The teaching days, keyed by `Y-m-d`.
+	 * @param array<string,int>                                                  $groupSizes Group size per cohort id.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly array $rooms,
 		private readonly array $days,
+		private readonly array $groupSizes,
 	) {
 	}//end __construct()
 
 	/**
 	 * Count one lesson.
 	 *
-	 * @param array<string,mixed> $session    The lesson.
-	 * @param string              $roomId     Its learniq room, or ''.
-	 * @param array<string,int>   $groupSizes Group size per cohort id.
+	 * @param array<string,mixed> $session The lesson.
+	 * @param string              $roomId  Its learniq room, or ''.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 	 */
-	public function add(array $session, string $roomId, array $groupSizes): void {
-		$span = $this->openSpan(session: $session);
-		if ($span === null || ($session['lifecycle'] ?? '') === 'cancelled') {
+	public function add(array $session, string $roomId): void {
+		$span = $this->countableSpan(session: $session);
+		if ($span === null) {
 			return;
 		}
 
 		if ($roomId === '') {
-			$this->unassigned[] = [
-				'id' => (string)($session['id'] ?? ''),
-				'title' => (string)($session['title'] ?? ''),
-				'startsAt' => (string)($session['startsAt'] ?? ''),
-				'source' => (string)($session['source'] ?? 'learniq'),
-			];
+			$this->unassigned[] = $this->unassignedRow(session: $session);
 			return;
 		}
 
@@ -111,14 +107,30 @@ class RoomUseTally {
 			return;
 		}
 
-		[$weekday, $start, $end] = $span;
-		$this->minutes[$roomId] = ($this->minutes[$roomId] ?? 0) + ($end - $start);
-		$this->countFill(roomId: $roomId, groupSize: ($groupSizes[(string)($session['cohortId'] ?? '')] ?? null));
-		for ($hour = intdiv($start, 60); ($hour * 60) < $end; $hour++) {
-			$overlap = min($end, ($hour + 1) * 60) - max($start, $hour * 60);
-			$this->grid[$weekday][$hour] = ($this->grid[$weekday][$hour] ?? 0) + $overlap;
-		}
+		$this->book(roomId: $roomId, span: $span);
+		$this->countFill(roomId: $roomId, groupSize: ($this->groupSizes[(string)($session['cohortId'] ?? '')] ?? null));
 	}//end add()
+
+	/**
+	 * The report figures: teaching days, open hours per room, the rooms, the grid and the lessons without a room.
+	 *
+	 * @param int $unassignedLimit How many lessons without a room to list.
+	 *
+	 * @return array<string,mixed> `teachingDays`, `openHoursPerRoom`, `rooms`, `grid`, `unassigned`.
+	 *
+	 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
+	 */
+	public function report(int $unassignedLimit): array {
+		$openMinutes = array_sum(array_column($this->days, 'minutes'));
+
+		return [
+			'teachingDays' => count($this->days),
+			'openHoursPerRoom' => round($openMinutes / 60, 1),
+			'rooms' => $this->roomRows(openMinutes: $openMinutes),
+			'grid' => $this->grid(),
+			'unassigned' => $this->unassigned(limit: $unassignedLimit),
+		];
+	}//end report()
 
 	/**
 	 * One row per room.
@@ -133,16 +145,6 @@ class RoomUseTally {
 		$rows = [];
 		foreach ($this->rooms as $id => $room) {
 			$used = ($this->minutes[$id] ?? 0);
-			$fill = null;
-			if (isset($this->fill[$id]) === true && $this->fill[$id]['count'] > 0) {
-				$fill = round($this->fill[$id]['sum'] / $this->fill[$id]['count'], 3);
-			}
-
-			$occupancy = null;
-			if ($openMinutes > 0) {
-				$occupancy = round($used / $openMinutes, 3);
-			}
-
 			$rows[] = [
 				'roomId' => $id,
 				'name' => (string)($room['name'] ?? ''),
@@ -152,8 +154,8 @@ class RoomUseTally {
 				'capacity' => $room['capacity'] ?? null,
 				'hoursInUse' => round($used / 60, 1),
 				'hoursOpen' => round($openMinutes / 60, 1),
-				'occupancy' => $occupancy,
-				'fill' => $fill,
+				'occupancy' => $this->occupancy(used: $used, openMinutes: $openMinutes),
+				'fill' => $this->averageFill(roomId: (string)$id),
 			];
 		}//end foreach
 
@@ -203,6 +205,85 @@ class RoomUseTally {
 	}//end unassigned()
 
 	/**
+	 * The lessons without a room row of a lesson.
+	 *
+	 * @param array<string,mixed> $session The lesson.
+	 *
+	 * @return array{id:string,title:string,startsAt:string,source:string}
+	 */
+	private function unassignedRow(array $session): array {
+		return [
+			'id' => (string)($session['id'] ?? ''),
+			'title' => (string)($session['title'] ?? ''),
+			'startsAt' => (string)($session['startsAt'] ?? ''),
+			'source' => (string)($session['source'] ?? 'learniq'),
+		];
+	}//end unassignedRow()
+
+	/**
+	 * Add a lesson's minutes to its room and to the weekday and clock hours it covers.
+	 *
+	 * @param string                 $roomId The room.
+	 * @param array{0:int,1:int,2:int} $span   Weekday, start and end in minutes of the day.
+	 *
+	 * @return void
+	 */
+	private function book(string $roomId, array $span): void {
+		[$weekday, $start, $end] = $span;
+		$this->minutes[$roomId] = ($this->minutes[$roomId] ?? 0) + ($end - $start);
+		for ($hour = intdiv($start, 60); ($hour * 60) < $end; $hour++) {
+			$overlap = min($end, ($hour + 1) * 60) - max($start, $hour * 60);
+			$this->grid[$weekday][$hour] = ($this->grid[$weekday][$hour] ?? 0) + $overlap;
+		}
+	}//end book()
+
+	/**
+	 * The share of the open minutes a room was in use, or null when the window has none.
+	 *
+	 * @param int $used        Minutes in use.
+	 * @param int $openMinutes Minutes open.
+	 *
+	 * @return float|null
+	 */
+	private function occupancy(int $used, int $openMinutes): ?float {
+		if ($openMinutes > 0) {
+			return round($used / $openMinutes, 3);
+		}
+
+		return null;
+	}//end occupancy()
+
+	/**
+	 * The average fill of a room's lessons, or null when none had a known group size.
+	 *
+	 * @param string $roomId The room.
+	 *
+	 * @return float|null
+	 */
+	private function averageFill(string $roomId): ?float {
+		if (isset($this->fill[$roomId]) === true && $this->fill[$roomId]['count'] > 0) {
+			return round($this->fill[$roomId]['sum'] / $this->fill[$roomId]['count'], 3);
+		}
+
+		return null;
+	}//end averageFill()
+
+	/**
+	 * The open span of a lesson that was not cancelled; null otherwise.
+	 *
+	 * @param array<string,mixed> $session The lesson.
+	 *
+	 * @return array{0:int,1:int,2:int}|null
+	 */
+	private function countableSpan(array $session): ?array {
+		if (($session['lifecycle'] ?? '') === 'cancelled') {
+			return null;
+		}
+
+		return $this->openSpan(session: $session);
+	}//end countableSpan()
+
+	/**
 	 * The weekday, start and end (minutes of the day) of a lesson, clipped to
 	 * the opening hours of its day; null when it falls outside them.
 	 *
@@ -211,19 +292,45 @@ class RoomUseTally {
 	 * @return array{0:int,1:int,2:int}|null
 	 */
 	private function openSpan(array $session): ?array {
-		if ((string)($session['startsAt'] ?? '') === '' || (string)($session['endsAt'] ?? '') === '') {
+		$start = $this->instant(text: (string)($session['startsAt'] ?? ''));
+		$end = $this->instant(text: (string)($session['endsAt'] ?? ''));
+		if ($start === null || $end === null) {
+			return null;
+		}
+
+		return $this->clip(start: $start, end: $end);
+	}//end openSpan()
+
+	/**
+	 * A lesson time, or null when it is empty or not a time.
+	 *
+	 * @param string $text The time as written.
+	 *
+	 * @return DateTimeImmutable|null
+	 */
+	private function instant(string $text): ?DateTimeImmutable {
+		if ($text === '') {
 			return null;
 		}
 
 		try {
-			$start = new DateTimeImmutable((string)($session['startsAt'] ?? ''));
-			$end = new DateTimeImmutable((string)($session['endsAt'] ?? ''));
+			return new DateTimeImmutable($text);
 		} catch (Throwable $exception) {
 			return null;
 		}
+	}//end instant()
 
-		$day = ($this->days[$start->format('Y-m-d')] ?? null);
-		if ($day === null || $end <= $start || $end->format('Y-m-d') !== $start->format('Y-m-d')) {
+	/**
+	 * A lesson clipped to the opening hours of its teaching day; null when nothing is left.
+	 *
+	 * @param DateTimeImmutable $start Lesson start.
+	 * @param DateTimeImmutable $end   Lesson end.
+	 *
+	 * @return array{0:int,1:int,2:int}|null
+	 */
+	private function clip(DateTimeImmutable $start, DateTimeImmutable $end): ?array {
+		$day = $this->dayOf(start: $start, end: $end);
+		if ($day === null) {
 			return null;
 		}
 
@@ -234,7 +341,25 @@ class RoomUseTally {
 		}
 
 		return [$day['weekday'], $from, $to];
-	}//end openSpan()
+	}//end clip()
+
+	/**
+	 * The teaching day a lesson falls on, or null when it is no teaching day,
+	 * ends before it starts, or runs into the next day.
+	 *
+	 * @param DateTimeImmutable $start Lesson start.
+	 * @param DateTimeImmutable $end   Lesson end.
+	 *
+	 * @return array{weekday:int,opens:int,closes:int,minutes:int}|null
+	 */
+	private function dayOf(DateTimeImmutable $start, DateTimeImmutable $end): ?array {
+		$day = ($this->days[$start->format('Y-m-d')] ?? null);
+		if ($end <= $start || $end->format('Y-m-d') !== $start->format('Y-m-d')) {
+			return null;
+		}
+
+		return $day;
+	}//end dayOf()
 
 	/**
 	 * Add one lesson's fill to a room.

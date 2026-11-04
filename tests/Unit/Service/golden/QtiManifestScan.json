@@ -1,0 +1,213 @@
+{
+    "no manifest": {
+        "type": "unknown",
+        "paths": {
+            "qti3": [
+                "<dir>/sub/b.xml"
+            ],
+            "qti2": [
+                "<dir>/sub/b.xml"
+            ],
+            "cc": [
+                "<dir>/sub/b.xml"
+            ],
+            "unknown": [
+                "<dir>/sub/b.xml"
+            ]
+        }
+    },
+    "no manifest, nothing nested": {
+        "type": "unknown",
+        "paths": {
+            "qti3": [],
+            "qti2": [],
+            "cc": [],
+            "unknown": []
+        }
+    },
+    "qti3 by asi": {
+        "type": "qti3",
+        "paths": {
+            "qti3": [
+                "<dir>/i1.xml"
+            ],
+            "qti2": [
+                "<dir>/i1.xml"
+            ],
+            "cc": [
+                "<dir>/i1.xml"
+            ],
+            "unknown": [
+                "<dir>/i1.xml"
+            ]
+        }
+    },
+    "qti3 by qti": {
+        "type": "qti3",
+        "paths": {
+            "qti3": [
+                "<dir>/t.xml"
+            ],
+            "qti2": [
+                "<dir>/t.xml"
+            ],
+            "cc": [
+                "<dir>/t.xml"
+            ],
+            "unknown": [
+                "<dir>/t.xml"
+            ]
+        }
+    },
+    "qti2": {
+        "type": "qti2",
+        "paths": {
+            "qti3": [
+                "<dir>/i.xml"
+            ],
+            "qti2": [
+                "<dir>/i.xml"
+            ],
+            "cc": [
+                "<dir>/i.xml"
+            ],
+            "unknown": [
+                "<dir>/i.xml"
+            ]
+        }
+    },
+    "qti3 and qti2": {
+        "type": "qti3",
+        "paths": {
+            "qti3": [],
+            "qti2": [],
+            "cc": [],
+            "unknown": []
+        }
+    },
+    "untyped namespaced and plain typed": {
+        "type": "unknown",
+        "paths": {
+            "qti3": [
+                "<dir>/p.xml"
+            ],
+            "qti2": [
+                "<dir>/p.xml"
+            ],
+            "cc": [
+                "<dir>/p.xml"
+            ],
+            "unknown": [
+                "<dir>/p.xml"
+            ]
+        }
+    },
+    "qti21": {
+        "type": "qti2",
+        "paths": {
+            "qti3": [],
+            "qti2": [],
+            "cc": [],
+            "unknown": []
+        }
+    },
+    "cc by xmlv1": {
+        "type": "cc",
+        "paths": {
+            "qti3": [
+                "<dir>/f.xml",
+                "<dir>/g.xml"
+            ],
+            "qti2": [
+                "<dir>/f.xml",
+                "<dir>/g.xml"
+            ],
+            "cc": [
+                "<dir>/q.xml",
+                "<dir>/f.xml",
+                "<dir>/g.xml"
+            ],
+            "unknown": [
+                "<dir>/f.xml",
+                "<dir>/g.xml"
+            ]
+        }
+    },
+    "cc by ccv1": {
+        "type": "cc",
+        "paths": {
+            "qti3": [
+                "<dir>/q.xml"
+            ],
+            "qti2": [
+                "<dir>/q.xml"
+            ],
+            "cc": [
+                "<dir>/q.xml"
+            ],
+            "unknown": [
+                "<dir>/q.xml"
+            ]
+        }
+    },
+    "plain manifest, scan finds items": {
+        "type": "unknown",
+        "paths": {
+            "qti3": [
+                "<dir>/one.xml"
+            ],
+            "qti2": [
+                "<dir>/one.xml"
+            ],
+            "cc": [
+                "<dir>/one.xml"
+            ],
+            "unknown": [
+                "<dir>/one.xml"
+            ]
+        }
+    },
+    "broken manifest": {
+        "type": "unknown",
+        "paths": {
+            "qti3": [],
+            "qti2": [],
+            "cc": [],
+            "unknown": []
+        }
+    },
+    "untyped namespaced resource": {
+        "type": "unknown",
+        "paths": {
+            "qti3": [
+                "<dir>/u.xml"
+            ],
+            "qti2": [
+                "<dir>/u.xml"
+            ],
+            "cc": [
+                "<dir>/u.xml"
+            ],
+            "unknown": [
+                "<dir>/u.xml"
+            ]
+        }
+    },
+    "namespaced typed and plain": {
+        "type": "unknown",
+        "paths": {
+            "qti3": [
+                "<dir>/n.xml"
+            ],
+            "qti2": [
+                "<dir>/n.xml"
+            ],
+            "cc": [
+                "<dir>/n.xml"
+            ],
+            "unknown": [
+                "<dir>/n.xml"
+            ]
+        }
+    }
+}
