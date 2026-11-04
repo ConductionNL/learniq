@@ -37,6 +37,23 @@ class ParentInboxCollections {
 
 	private const REGISTER = 'learniq';
 
+	private const PARENT_INBOX_FIELDS = [
+		'learnerRef',
+		'event',
+		'subject',
+		'visibleFrom',
+	];
+
+	private const PARENT_INBOX_MESSAGE_FIELDS = [
+		'subject' => 'subject',
+		'receivedAt' => 'visibleFrom',
+	];
+
+	private const PARENT_GRADE_INBOX_MESSAGE_FIELDS = [
+		'subject' => 'courseName',
+		'receivedAt' => 'visibleFrom',
+	];
+
 	/**
 	 * Both inbox collections, report cards first.
 	 *
@@ -82,16 +99,8 @@ class ParentInboxCollections {
 			'label' => 'Messages from school',
 			'listable' => true,
 			'minTrust' => 'substantial',
-			'fields' => [
-				'learnerRef',
-				'event',
-				'subject',
-				'visibleFrom',
-			],
-			'messageFields' => [
-				'subject' => 'subject',
-				'receivedAt' => 'visibleFrom',
-			],
+			'fields' => self::PARENT_INBOX_FIELDS,
+			'messageFields' => self::PARENT_INBOX_MESSAGE_FIELDS,
 			// A notice waits until its moment has come (lane L2, portaliq #1198).
 			'visibleFromField' => 'visibleFrom',
 		];
@@ -124,10 +133,7 @@ class ParentInboxCollections {
 			'listable' => true,
 			'minTrust' => 'substantial',
 			'fields' => ['learnerRef', 'event', 'courseName', 'visibleFrom'],
-			'messageFields' => [
-				'subject' => 'courseName',
-				'receivedAt' => 'visibleFrom',
-			],
+			'messageFields' => self::PARENT_GRADE_INBOX_MESSAGE_FIELDS,
 			'visibleFromField' => 'visibleFrom',
 		];
 

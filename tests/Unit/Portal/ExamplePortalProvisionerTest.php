@@ -173,7 +173,7 @@ class ExamplePortalProvisionerTest extends TestCase {
 		$expected = [
 			// `public` first: portaliq serves no site content to a visitor on a portal without it (lane L2, live).
 			'po'       => ['wilgenboom', 'wilgenboom', 'example-basisschool', 'Mijn Wilgenboom', ['public', 'digid']],
-			'vo'       => ['vaartveld', 'vaartveld', 'example-voortgezet', 'Mijn Vaartveld', ['public', 'nextcloud', 'digid']],
+			'vo'       => ['vaartveld', 'vaartveld', 'example-voortgezet', 'Mijn Zuiddrecht', ['public', 'nextcloud', 'digid']],
 			'mbo'      => ['esdoornveen', 'esdoornveen', 'example-college', 'Mijn Esdoornveen', ['public', 'nextcloud', 'eherkenning']],
 			'training' => ['warmtepompacademie', 'warmtepompacademie', 'example-opleider', 'Mijn academie', ['public', 'nextcloud', 'eherkenning']],
 		];

@@ -1,0 +1,56 @@
+{
+    "apply": {
+        "exit": 0,
+        "display": "Example set \"po\": 3 object(s), handed to openregister:objects:purge --force --apply.\n",
+        "purge": {
+            "uuid": [
+                "u-1",
+                "u-2",
+                "u-3"
+            ],
+            "force": true,
+            "apply": true
+        }
+    },
+    "dry run": {
+        "exit": 0,
+        "display": "Example set \"po\": 3 object(s), handed to openregister:objects:purge --force (dry run).\n",
+        "purge": {
+            "uuid": [
+                "u-1",
+                "u-2",
+                "u-3"
+            ],
+            "force": true,
+            "apply": false
+        }
+    },
+    "purge fails": {
+        "exit": 3,
+        "display": "Example set \"po\": 3 object(s), handed to openregister:objects:purge --force --apply.\n",
+        "purge": {
+            "uuid": [
+                "u-1",
+                "u-2",
+                "u-3"
+            ],
+            "force": true,
+            "apply": true
+        }
+    },
+    "generated set": {
+        "exit": 1,
+        "display": "The generated set has no fixed uuids.\n",
+        "purge": []
+    },
+    "empty set": {
+        "exit": 0,
+        "display": "The example set \"empty\" declares no objects; nothing to remove.\n",
+        "purge": []
+    },
+    "no purge command": {
+        "exit": 1,
+        "display": "OpenRegister's openregister:objects:purge command is not available; is OpenRegister installed and up to date?\n",
+        "purge": null
+    }
+}

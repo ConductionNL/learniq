@@ -105,59 +105,66 @@ class MoodleQuizQuestionMapper {
 	private function mapOne(DOMElement $questionEl, string $itemBankId, string $tenantId): array {
 		$type = $questionEl->getAttribute('type');
 		$title = $this->childText(element: $questionEl, tagName: 'name') ?? 'Untitled question';
-
+		$outcome = ['outcome' => 'imported', 'title' => $title, 'moodleQuestionType' => $type, 'itemData' => null, 'reason' => null];
 		if (in_array($type, self::SUPPORTED_TYPES, strict: true) === false) {
-			return [
-				'outcome' => 'dropped',
-				'title' => $title,
-				'moodleQuestionType' => $type,
-				'itemData' => null,
-				'reason' => "Moodle question type not supported: {$type}.",
-			];
+			return array_replace($outcome, ['outcome' => 'dropped', 'reason' => "Moodle question type not supported: {$type}."]);
 		}
 
-		$questionText = $this->childText(element: $questionEl, tagName: 'questiontext') ?? '';
-		$maxScore = (float)($this->childText(element: $questionEl, tagName: 'defaultgrade') ?? '1.0');
+		$item = ['itemBankId' => $itemBankId, 'title' => $title, 'tenant_id' => $tenantId];
+		$outcome['itemData'] = $this->itemData(questionEl: $questionEl, item: $item);
 
-		$answers = [];
-		foreach ($questionEl->childNodes as $child) {
-			if ($child instanceof DOMElement && $child->tagName === 'answer') {
-				$fraction = (float)$child->getAttribute('fraction');
-				$text = trim((string)$this->childText(element: $child, tagName: 'text'));
-				$answers[] = ['fraction' => $fraction, 'text' => $text];
-			}
-		}
+		return $outcome;
+	}//end mapOne()
 
+	/**
+	 * The draft Item for a supported question.
+	 *
+	 * @param DOMElement          $questionEl The <question> element.
+	 * @param array<string,mixed> $item       The item bank, title and tenant.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function itemData(DOMElement $questionEl, array $item): array {
+		$answers = $this->answers(questionEl: $questionEl);
+		$type = $questionEl->getAttribute('type');
 		[$interactionType, $correctResponse] = $this->deriveInteraction(type: $type, questionEl: $questionEl, answers: $answers);
 
-		$qtiBody = $this->buildQtiLikeBody(
-			title: $title,
-			questionText: $questionText,
-			interactionType: $interactionType,
-			answers: $answers,
-		);
-
-		$itemData = [
-			'itemBankId' => $itemBankId,
-			'title' => $title,
+		return [
+			'itemBankId' => $item['itemBankId'],
+			'title' => $item['title'],
 			'interactionType' => $interactionType,
-			'qtiBody' => $qtiBody,
+			'qtiBody' => $this->buildQtiLikeBody(
+				title: $item['title'],
+				questionText: $this->childText(element: $questionEl, tagName: 'questiontext') ?? '',
+				interactionType: $interactionType,
+				answers: $answers,
+			),
 			'correctResponse' => $correctResponse,
-			'maxScore' => $maxScore,
+			'maxScore' => (float)($this->childText(element: $questionEl, tagName: 'defaultgrade') ?? '1.0'),
 			'subjectTags' => [],
 			'difficulty' => null,
 			'lifecycle' => 'draft',
-			'tenant_id' => $tenantId,
+			'tenant_id' => $item['tenant_id'],
 		];
+	}//end itemData()
 
-		return [
-			'outcome' => 'imported',
-			'title' => $title,
-			'moodleQuestionType' => $type,
-			'itemData' => $itemData,
-			'reason' => null,
-		];
-	}//end mapOne()
+	/**
+	 * The question's answers: each fraction and trimmed text, in order.
+	 *
+	 * @param DOMElement $questionEl The <question> element.
+	 *
+	 * @return array<int, array{fraction: float, text: string}>
+	 */
+	private function answers(DOMElement $questionEl): array {
+		$answers = [];
+		foreach ($questionEl->childNodes as $child) {
+			if ($child instanceof DOMElement && $child->tagName === 'answer') {
+				$answers[] = ['fraction' => (float)$child->getAttribute('fraction'), 'text' => trim((string)$this->childText(element: $child, tagName: 'text'))];
+			}
+		}
+
+		return $answers;
+	}//end answers()
 
 	/**
 	 * Derive the learniq `interactionType` + `correctResponse` for a supported Moodle question type.

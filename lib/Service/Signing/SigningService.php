@@ -34,8 +34,8 @@ namespace OCA\Learniq\Service\Signing;
 use DateTimeZone;
 use OCA\Learniq\Exception\SigningRefusedException;
 use OCA\Learniq\Service\PokParentSignatureRule;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IGroupManager;
@@ -46,6 +46,7 @@ use OCP\IGroupManager;
  * @spec openspec/specs/learning-plan/spec.md#requirement-a-signature-is-recorded-by-the-server-in-a-role-the-signer-holds
  */
 class SigningService {
+	use FindOrNull;
 
 	private const REGISTER = 'learniq';
 
@@ -271,12 +272,8 @@ class SigningService {
 	 * @throws SigningRefusedException When the record does not exist.
 	 */
 	private function load(string $schema, string $id): array {
-		try {
-			$record = $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _render: false)?->jsonSerialize();
-		} catch (DoesNotExistException) {
-			$record = null;
-		}
-
+		$find = fn () => $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _render: false);
+		$record = $this->findRowOrNull(find: $find);
 		if (is_array($record) === false) {
 			throw new SigningRefusedException(status: Http::STATUS_NOT_FOUND, reason: 'not-found', message: 'This document could not be found.');
 		}
@@ -375,17 +372,8 @@ class SigningService {
 			return [];
 		}
 
-		try {
-			$placement = $this->objects->find(id: $placementId, register: self::REGISTER, schema: 'bpv-placement', _rbac: false, _render: false);
-		} catch (DoesNotExistException) {
-			return [];
-		}
-
-		if ($placement === null) {
-			return [];
-		}
-
-		return $placement->jsonSerialize();
+		$find = fn () => $this->objects->find(id: $placementId, register: self::REGISTER, schema: 'bpv-placement', _rbac: false, _render: false);
+		return $this->findRowOrNull(find: $find) ?? [];
 	}//end findPlacement()
 
 	/**

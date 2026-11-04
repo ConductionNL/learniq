@@ -16,11 +16,9 @@
  @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
 -->
 <template>
-	<div class="my-timetable">
+	<div class="my-timetable lq-board-page">
 		<div class="my-timetable__header">
-			<h2 class="my-timetable__title">
-				{{ t('learniq', 'My timetable') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'My timetable')" />
 			<div class="my-timetable__controls">
 				<NcButton
 					variant="tertiary"
@@ -83,13 +81,11 @@
 			}}
 		</NcNoteCard>
 
-		<section
+		<CnDetailCard
 			v-if="!loading && !error && changes.length > 0"
+			:title="changesTitle"
 			class="my-timetable__changes"
 			aria-live="polite">
-			<h3 class="my-timetable__changes-title">
-				{{ t('learniq', "Today's changes") }}
-			</h3>
 			<ul class="my-timetable__changes-list">
 				<li
 					v-for="session in changes"
@@ -110,167 +106,168 @@
 					>
 				</li>
 			</ul>
-		</section>
+		</CnDetailCard>
 
-		<NcEmptyContent
-			v-if="
-				!loading && !error && sessions.length === 0 && standby.length === 0
-			"
-			:name="t('learniq', 'No sessions')"
-			:description="emptyDescription">
-			<template #icon>
-				<span class="icon-calendar" />
-			</template>
-		</NcEmptyContent>
-
-		<div
-			v-if="!loading && !error && (sessions.length > 0 || standby.length > 0)"
-			class="my-timetable__grid"
-			:class="{ 'my-timetable__grid--single': mode === 'today' }">
-			<section
-				v-for="day in visibleDays"
-				:key="day.iso"
-				class="my-timetable__day"
-				:class="{ 'my-timetable__day--today': day.isToday }">
-				<header class="my-timetable__day-head">
-					<span class="my-timetable__day-name">{{ day.weekday }}</span>
-					<span class="my-timetable__day-date">{{ day.dateLabel }}</span>
-				</header>
-				<ul class="my-timetable__sessions">
-					<li
-						v-for="block in day.standby"
-						:key="'standby-' + block.slotId + block.date"
-						class="my-timetable__standby">
-						<span class="my-timetable__session-time"
-							>{{ block.startsAt }}–{{ block.endsAt }}</span
-						>
-						<span class="my-timetable__session-name">{{
-							t('learniq', 'Standby')
-						}}</span>
-					</li>
-					<li
-						v-if="day.sessions.length === 0 && day.standby.length === 0"
-						class="my-timetable__none">
-						{{ t('learniq', 'No sessions') }}
-					</li>
-					<li
-						v-for="session in day.sessions"
-						:key="session.id"
-						class="my-timetable__session"
-						:class="{
-							'my-timetable__session--cancelled':
-								session.lifecycle === 'cancelled',
-						}">
-						<div
-							:tabindex="isLearniqSession(session) ? 0 : undefined"
-							:role="isLearniqSession(session) ? 'button' : undefined"
-							class="my-timetable__session-main"
-							:aria-label="sessionAria(session)"
-							@click="openSession(session)"
-							@keyup.enter="openSession(session)">
-							<span class="my-timetable__session-time">{{
-								timeRange(session)
-							}}</span>
+		<CnDetailCard
+			v-if="!loading && !error"
+			class="my-timetable__week">
+			<NcEmptyContent
+				v-if="sessions.length === 0 && standby.length === 0"
+				:name="t('learniq', 'No sessions')"
+				:description="emptyDescription">
+				<template #icon>
+					<span class="icon-calendar" />
+				</template>
+			</NcEmptyContent>
+			<div
+				v-else
+				class="my-timetable__grid"
+				:class="{ 'my-timetable__grid--single': mode === 'today' }">
+				<section
+					v-for="day in visibleDays"
+					:key="day.iso"
+					class="my-timetable__day"
+					:class="{ 'my-timetable__day--today': day.isToday }">
+					<header class="my-timetable__day-head">
+						<span class="my-timetable__day-name">{{ day.weekday }}</span>
+						<span class="my-timetable__day-date">{{ day.dateLabel }}</span>
+					</header>
+					<ul class="my-timetable__sessions">
+						<li
+							v-for="block in day.standby"
+							:key="'standby-' + block.slotId + block.date"
+							class="my-timetable__standby">
+							<span class="my-timetable__session-time"
+								>{{ block.startsAt }}–{{ block.endsAt }}</span
+							>
 							<span class="my-timetable__session-name">{{
-								session.title || t('learniq', 'Untitled session')
+								t('learniq', 'Standby')
 							}}</span>
-							<span
-								v-if="session.room"
-								class="my-timetable__session-loc"
-								>{{ session.room.name }}</span
-							>
-							<span
-								v-else-if="session.location"
-								class="my-timetable__session-loc"
-								>{{ session.location }}</span
-							>
-							<span
+						</li>
+						<li
+							v-if="day.sessions.length === 0 && day.standby.length === 0"
+							class="my-timetable__none">
+							{{ t('learniq', 'No sessions') }}
+						</li>
+						<li
+							v-for="session in day.sessions"
+							:key="session.id"
+							class="my-timetable__session"
+							:class="{
+								'my-timetable__session--cancelled':
+									session.lifecycle === 'cancelled',
+							}">
+							<div
+								:tabindex="isLearniqSession(session) ? 0 : undefined"
+								:role="isLearniqSession(session) ? 'button' : undefined"
+								class="my-timetable__session-main"
+								:aria-label="sessionAria(session)"
+								@click="openSession(session)"
+								@keyup.enter="openSession(session)">
+								<span class="my-timetable__session-time">{{
+									timeRange(session)
+								}}</span>
+								<span class="my-timetable__session-name">{{
+									session.title || t('learniq', 'Untitled session')
+								}}</span>
+								<span
+									v-if="session.room"
+									class="my-timetable__session-loc"
+									>{{ session.room.name }}</span
+								>
+								<span
+									v-else-if="session.location"
+									class="my-timetable__session-loc"
+									>{{ session.location }}</span
+								>
+								<span
+									v-if="
+										session.lifecycle
+										&& session.lifecycle !== 'scheduled'
+									"
+									class="my-timetable__session-badge"
+									:class="
+										'my-timetable__session-badge--'
+										+ session.lifecycle
+									">
+									{{ statusLabel(session) }}
+								</span>
+								<span
+									v-if="session.cover"
+									class="my-timetable__session-badge my-timetable__session-badge--cover">
+									{{ t('learniq', 'Cover') }}
+								</span>
+								<span
+									v-if="noteTopic(session)"
+									class="my-timetable__session-topic">
+									{{ noteTopic(session) }}
+								</span>
+							</div>
+							<details
+								v-if="session.notes && session.notes.length > 0"
+								class="my-timetable__notes">
+								<summary>
+									<NoteTextOutline :size="14" />
+									{{ notesSummary(session) }}
+								</summary>
+								<ul class="my-timetable__notes-list">
+									<li
+										v-for="note in session.notes"
+										:key="note.id"
+										class="my-timetable__note">
+										<strong v-if="note.topic">{{
+											note.topic
+										}}</strong>
+										<span>{{ note.text }}</span>
+										<em
+											v-if="note.audience === 'cover'"
+											class="my-timetable__note-audience">
+											{{
+												t('learniq', 'For the covering teacher')
+											}}
+										</em>
+									</li>
+								</ul>
+							</details>
+							<NcButton
 								v-if="
-									session.lifecycle
-									&& session.lifecycle !== 'scheduled'
+									joinUrl(session) && session.lifecycle !== 'cancelled'
 								"
-								class="my-timetable__session-badge"
-								:class="
-									'my-timetable__session-badge--'
-									+ session.lifecycle
-								">
-								{{ statusLabel(session) }}
-							</span>
-							<span
-								v-if="session.cover"
-								class="my-timetable__session-badge my-timetable__session-badge--cover">
-								{{ t('learniq', 'Cover') }}
-							</span>
-							<span
-								v-if="noteTopic(session)"
-								class="my-timetable__session-topic">
-								{{ noteTopic(session) }}
-							</span>
-						</div>
-						<details
-							v-if="session.notes && session.notes.length > 0"
-							class="my-timetable__notes">
-							<summary>
-								<NoteTextOutline :size="14" />
-								{{ notesSummary(session) }}
-							</summary>
-							<ul class="my-timetable__notes-list">
-								<li
-									v-for="note in session.notes"
-									:key="note.id"
-									class="my-timetable__note">
-									<strong v-if="note.topic">{{
-										note.topic
-									}}</strong>
-									<span>{{ note.text }}</span>
-									<em
-										v-if="note.audience === 'cover'"
-										class="my-timetable__note-audience">
-										{{
-											t('learniq', 'For the covering teacher')
-										}}
-									</em>
-								</li>
-							</ul>
-						</details>
-						<NcButton
-							v-if="
-								joinUrl(session) && session.lifecycle !== 'cancelled'
-							"
-							class="my-timetable__session-manage"
-							variant="secondary"
-							:href="joinUrl(session)"
-							target="_blank"
-							rel="noopener noreferrer"
-							:aria-label="
-								t(
-									'learniq',
-									'Join this lesson online (opens in a new tab)',
-								)
-							"
-							data-testid="session-join">
-							{{ t('learniq', 'Join') }}
-						</NcButton>
-						<NcButton
-							v-if="session.canAddNote"
-							class="my-timetable__session-manage"
-							variant="tertiary"
-							:aria-label="t('learniq', 'Add a note to this lesson')"
-							@click="notingSession = session">
-							{{ t('learniq', 'Add note') }}
-						</NcButton>
-						<NcButton
-							v-if="isLearniqSession(session)"
-							class="my-timetable__session-manage"
-							variant="tertiary"
-							:aria-label="t('learniq', 'Manage this session')"
-							@click="manage(session)">
-							{{ t('learniq', 'Manage') }}
-						</NcButton>
-					</li>
-				</ul>
-			</section>
-		</div>
+								class="my-timetable__session-manage"
+								variant="secondary"
+								:href="joinUrl(session)"
+								target="_blank"
+								rel="noopener noreferrer"
+								:aria-label="
+									t(
+										'learniq',
+										'Join this lesson online (opens in a new tab)',
+									)
+								"
+								data-testid="session-join">
+								{{ t('learniq', 'Join') }}
+							</NcButton>
+							<NcButton
+								v-if="session.canAddNote"
+								class="my-timetable__session-manage"
+								variant="tertiary"
+								:aria-label="t('learniq', 'Add a note to this lesson')"
+								@click="notingSession = session">
+								{{ t('learniq', 'Add note') }}
+							</NcButton>
+							<NcButton
+								v-if="isLearniqSession(session)"
+								class="my-timetable__session-manage"
+								variant="tertiary"
+								:aria-label="t('learniq', 'Manage this session')"
+								@click="manage(session)">
+								{{ t('learniq', 'Manage') }}
+							</NcButton>
+						</li>
+					</ul>
+				</section>
+			</div>
+		</CnDetailCard>
 
 		<SubstitutionModal
 			v-if="managingSession"
@@ -291,6 +288,7 @@
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
 import NoteTextOutline from 'vue-material-design-icons/NoteTextOutline.vue'
 import LessonNoteDialog from '../dialogs/LessonNoteDialog.vue'
@@ -321,11 +319,13 @@ function mondayOf(date) {
 export default {
 	name: 'MyTimetable',
 	components: {
+		CnDetailCard,
+		CnPageHeader,
+		LessonNoteDialog,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
 		NcNoteCard,
-		LessonNoteDialog,
 		NoteTextOutline,
 		SubstitutionModal,
 		TimetableCalendarFeedDialog,
@@ -357,6 +357,16 @@ export default {
 	},
 
 	computed: {
+		/**
+		 * Title of the card that lists today's changed sessions.
+		 *
+		 * @return {string}
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
+		 */
+		changesTitle() {
+			return t('learniq', "Today's changes")
+		},
+
 		/**
 		 * Exclusive end of the current week (next Monday 00:00).
 		 *
@@ -709,15 +719,12 @@ export default {
 
 <style scoped lang="scss">
 .my-timetable {
-	padding: 16px;
-
 	&__header {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
 		justify-content: space-between;
 		gap: 12px;
-		margin-bottom: 16px;
 	}
 
 	&__title {
@@ -907,20 +914,6 @@ export default {
 			background: var(--color-primary-element);
 			color: var(--color-primary-element-text);
 		}
-	}
-
-	&__changes {
-		margin-bottom: 16px;
-		padding: 12px;
-		border: 1px solid var(--color-warning);
-		border-radius: var(--border-radius-large, 8px);
-		background: var(--color-background-hover);
-	}
-
-	&__changes-title {
-		margin: 0 0 8px;
-		font-size: 0.95em;
-		font-weight: 600;
 	}
 
 	&__changes-list {

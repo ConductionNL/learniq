@@ -3,8 +3,8 @@
 # Copyright (C) 2026 Conduction B.V.
 """Build lib/Settings/profiles/he.json, the higher education example set.
 
-One fictional university of applied sciences, Voorbeeldhogeschool Esdoornstad
-in the fictional town of Esdoornstad, through one complete academic year
+One fictional university of applied sciences, Hogeschool Zuiddrecht in the
+fictional town of Zuiddrecht, through one complete academic year
 (2025-2026): two faculties as locations, four bachelor programmes with learning
 outcomes on the Dublin descriptors, courses with ECTS credits, a cohort per
 programme per study year, 400 students with their course enrolments, a digital
@@ -188,7 +188,19 @@ STREETS = [
     "Esdoornlaan", "Beukenhof", "Populierenweg", "Zwaluwstraat", "Reigerpad", "Kievitlaan", "Zilverschoon", "Tarweveld",
     "Klaproosstraat", "Vlinderhof", "Distelweg", "Korenbloemlaan", "Stationsplein Voorbeeldhoven", "Campuslaan",
 ]
-TOWNS = ["Esdoornstad", "Esdoornstad", "Esdoornstad", "Voorbeeldhoven", "Voorbeeldveen"]
+TOWNS = ["Zuiddrecht", "Zuiddrecht", "Zuiddrecht", "Voorbeeldhoven", "Voorbeeldveen"]
+# The students the learniq boards LqBsaBesluit and LqStudievoortgang draw, on the
+# user ids of the first-year HBO-V students flagged at the interim BSA check:
+# he-student-008 holds the negative decision. Set after numbering, so the order,
+# every draw and every uuid stay the same.
+BOARD_NAMES = {
+    "he-student-004": ("Lucas", "Peters"),
+    "he-student-006": ("Ravi", "Doekhie"),
+    "he-student-007": ("Sara", "El Khatib"),
+    "he-student-008": ("Femke", "de Boer"),
+    "he-student-017": ("Zoë", "Vermeulen"),
+    "he-student-022": ("Milan", "de Jong"),
+}
 
 # --- the four programmes ------------------------------------------------------
 # key, short name, name, code, faculty key, werkgroep weekday (0 = Monday),
@@ -638,7 +650,7 @@ PROFILE = {
     "info": {
         "title": "Learniq example set: Higher education",
         "version": "1.0.0",
-        "description": "Voorbeeldhogeschool Esdoornstad, a fictional university of applied sciences in the fictional town of Esdoornstad, through the 2025-2026 academic year.",
+        "description": "Hogeschool Zuiddrecht, a fictional university of applied sciences in the fictional town of Zuiddrecht, through the 2025-2026 academic year.",
     },
     "x-openregister": {
         "type": "profile",
@@ -722,12 +734,12 @@ class AcademicYear:
 
     # --- institution, faculties, rooms --------------------------------------
     def add_institution(self) -> None:
-        self.school = self.b.add("school", {"brin": "00X4", "name": "Voorbeeldhogeschool Esdoornstad", "pedagogicalConcept": "regular"})
+        self.school = self.b.add("school", {"brin": "00X4", "name": "Hogeschool Zuiddrecht", "pedagogicalConcept": "regular"})
         self.faculties = {}
         for key, code, name, street, postcode in FACULTIES:
             self.faculties[key] = self.b.add("vestiging", {
                 "schoolId": self.school["uuid"], "vestigingscode": code, "onderwijslocatiecode": f"{code}-A",
-                "name": name, "street": street, "postalCode": postcode, "city": "Esdoornstad",
+                "name": name, "street": street, "postalCode": postcode, "city": "Zuiddrecht",
             })
 
     def add_rooms(self) -> None:
@@ -852,6 +864,7 @@ class AcademicYear:
         students.sort(key=lambda s: ([p[0] for p in PROGRAMMES].index(s["programme"]), s["year"], s["family"], s["given"]))
         for n, s in enumerate(students, start=1):
             s["nc"] = f"he-student-{n:03d}"
+            s["given"], s["family"] = BOARD_NAMES.get(s["nc"], (s["given"], s["family"]))
             s["profile"] = self.add_learner_profile(s)
         self.students = students
         self.student_by_nc = {s["nc"]: s for s in students}

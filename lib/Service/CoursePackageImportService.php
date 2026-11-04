@@ -44,6 +44,7 @@ use OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter;
 use OCA\Learniq\Service\CoursePackage\ImportOrigin;
 use OCA\Learniq\Service\CoursePackage\ImportReportOutcome;
 use OCA\Learniq\Service\CoursePackage\MoodleCourseImporter;
+use OCA\Learniq\Service\CoursePackage\PackageContext;
 use OCA\Learniq\Service\CoursePackage\LearniqJsonCourseImporter;
 use Psr\Log\LoggerInterface;
 
@@ -162,10 +163,8 @@ class CoursePackageImportService {
 		$entries = [];
 		$courseId = $this->materialise(
 			format: $package->format,
-			dir: $package->tmpDir,
 			manifest: $manifest,
-			importedBy: $origin->importedBy,
-			tenantId: $origin->tenantId,
+			package: new PackageContext(dir: $package->tmpDir, importedBy: $origin->importedBy, tenantId: $origin->tenantId),
 			entries: $entries,
 		);
 
@@ -197,41 +196,20 @@ class CoursePackageImportService {
 	 * Materialise a parsed manifest with the format's own importer.
 	 *
 	 * @param string $format Detected source format.
-	 * @param string $dir Extracted package directory.
 	 * @param array<string, mixed> $manifest The parsed manifest.
-	 * @param string $importedBy NC user id of the caller.
-	 * @param string $tenantId Tenant UUID.
+	 * @param PackageContext $package The extracted package: its directory, the importing user (nc:files owner) and the tenant.
 	 * @param array<int, array<string,mixed>> $entries Report entries accumulator (by reference).
 	 *
 	 * @return string|null UUID of the top-level Course, or null if none was created.
 	 *
 	 * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
 	 */
-	private function materialise(
-		string $format,
-		string $dir,
-		array $manifest,
-		string $importedBy,
-		string $tenantId,
-		array &$entries,
-	): ?string {
+	private function materialise(string $format, array $manifest, PackageContext $package, array &$entries): ?string {
 		if ($format === self::FORMAT_COMMON_CARTRIDGE) {
-			return $this->ccImporter->importManifest(
-				dir: $dir,
-				manifest: $manifest,
-				importedBy: $importedBy,
-				tenantId: $tenantId,
-				entries: $entries
-			);
+			return $this->ccImporter->importManifest(manifest: $manifest, package: $package, entries: $entries);
 		}
 
-		return $this->moodleImporter->importManifest(
-			dir: $dir,
-			manifest: $manifest,
-			importedBy: $importedBy,
-			tenantId: $tenantId,
-			entries: $entries
-		);
+		return $this->moodleImporter->importManifest(manifest: $manifest, package: $package, entries: $entries);
 	}//end materialise()
 
 	/**

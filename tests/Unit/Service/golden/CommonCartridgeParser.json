@@ -1,0 +1,231 @@
+{
+    "empty manifest": {
+        "organizationNodes": [],
+        "resources": []
+    },
+    "namespaced resources, organizations outside the namespace": {
+        "organizationNodes": [
+            {
+                "identifier": "I1",
+                "title": "Only",
+                "order": 0,
+                "parentIdentifier": null,
+                "isFolder": false,
+                "resourceIdentifier": "R1"
+            }
+        ],
+        "resources": [
+            {
+                "identifier": "R1",
+                "type": "webcontent",
+                "classification": "webcontent",
+                "href": "p.html",
+                "title": "p.html"
+            }
+        ]
+    },
+    "namespaced tree over two organizations": {
+        "organizationNodes": [
+            {
+                "identifier": "F1",
+                "title": "Folder one",
+                "order": 0,
+                "parentIdentifier": null,
+                "isFolder": true,
+                "resourceIdentifier": null
+            },
+            {
+                "identifier": "F2",
+                "title": "Inner",
+                "order": 1,
+                "parentIdentifier": "F1",
+                "isFolder": true,
+                "resourceIdentifier": null
+            },
+            {
+                "identifier": "L1",
+                "title": "Leaf",
+                "order": 2,
+                "parentIdentifier": "F2",
+                "isFolder": false,
+                "resourceIdentifier": "R1"
+            },
+            {
+                "identifier": "L2",
+                "title": "L2",
+                "order": 3,
+                "parentIdentifier": "F1",
+                "isFolder": false,
+                "resourceIdentifier": null
+            },
+            {
+                "identifier": "L3",
+                "title": "L3",
+                "order": 4,
+                "parentIdentifier": null,
+                "isFolder": false,
+                "resourceIdentifier": "R2"
+            },
+            {
+                "identifier": "L4",
+                "title": "Next org",
+                "order": 5,
+                "parentIdentifier": null,
+                "isFolder": false,
+                "resourceIdentifier": "R3"
+            }
+        ],
+        "resources": [
+            {
+                "identifier": "R1",
+                "type": "webcontent",
+                "classification": "webcontent",
+                "href": "dir/page.html",
+                "title": "page.html"
+            },
+            {
+                "identifier": "R2",
+                "type": "imsqti_xmlv1p2/imscc_xmlv1p1/assessment",
+                "classification": "imsqti_item",
+                "href": "tests/t.xml",
+                "title": "t.xml"
+            },
+            {
+                "identifier": "R3",
+                "type": "IMSQTI_XMLV1P2",
+                "classification": "imsqti_item",
+                "href": null,
+                "title": "R3"
+            },
+            {
+                "identifier": "R4",
+                "type": "imsbasiclti_xmlv1p0",
+                "classification": "basiclti",
+                "href": null,
+                "title": "R4"
+            },
+            {
+                "identifier": "R5",
+                "type": "imswl_xmlv1p1",
+                "classification": "weblink",
+                "href": "link.xml",
+                "title": "link.xml"
+            },
+            {
+                "identifier": "R6",
+                "type": "imsdt_xmlv1p1",
+                "classification": "discussion",
+                "href": null,
+                "title": "R6"
+            },
+            {
+                "identifier": "R7",
+                "type": "associatedcontent/imscc_xmlv1p1/learning-application-resource",
+                "classification": "webcontent",
+                "href": "a/b/c.pdf",
+                "title": "c.pdf"
+            },
+            {
+                "identifier": "R8",
+                "type": "WebContent",
+                "classification": "webcontent",
+                "href": null,
+                "title": "R8"
+            },
+            {
+                "identifier": "R9",
+                "type": "vendor/thing",
+                "classification": "other",
+                "href": "x.bin",
+                "title": "x.bin"
+            },
+            {
+                "identifier": "R10",
+                "type": "imsdt_webcontent",
+                "classification": "discussion",
+                "href": null,
+                "title": "R10"
+            },
+            {
+                "identifier": "R11",
+                "type": "",
+                "classification": "other",
+                "href": null,
+                "title": "R11"
+            },
+            {
+                "identifier": "R12",
+                "type": "imsqti_test_xmlv1p2",
+                "classification": "imsqti_test",
+                "href": "test.xml",
+                "title": "test.xml"
+            }
+        ]
+    },
+    "no namespace falls back to plain tag names": {
+        "organizationNodes": [
+            {
+                "identifier": "A",
+                "title": "A",
+                "order": 0,
+                "parentIdentifier": null,
+                "isFolder": true,
+                "resourceIdentifier": null
+            },
+            {
+                "identifier": "B",
+                "title": "B",
+                "order": 1,
+                "parentIdentifier": "A",
+                "isFolder": false,
+                "resourceIdentifier": "X"
+            },
+            {
+                "identifier": "C",
+                "title": "C",
+                "order": 2,
+                "parentIdentifier": null,
+                "isFolder": false,
+                "resourceIdentifier": null
+            }
+        ],
+        "resources": [
+            {
+                "identifier": "X",
+                "type": "imsbasiclti_xmlv1p3",
+                "classification": "basiclti",
+                "href": "lti.xml",
+                "title": "lti.xml"
+            }
+        ]
+    },
+    "organization with text and comments between items": {
+        "organizationNodes": [
+            {
+                "identifier": "I1",
+                "title": "T",
+                "order": 0,
+                "parentIdentifier": null,
+                "isFolder": false,
+                "resourceIdentifier": null
+            },
+            {
+                "identifier": "I2",
+                "title": "I2",
+                "order": 1,
+                "parentIdentifier": null,
+                "isFolder": true,
+                "resourceIdentifier": null
+            },
+            {
+                "identifier": "I3",
+                "title": "I3",
+                "order": 2,
+                "parentIdentifier": "I2",
+                "isFolder": false,
+                "resourceIdentifier": null
+            }
+        ],
+        "resources": []
+    }
+}

@@ -42,11 +42,9 @@
 -->
 
 <template>
-	<div class="gp-subgroup-learner-context">
+	<div class="gp-subgroup-learner-context lq-board-page">
 		<header class="gp-subgroup-learner-context__header">
-			<h2 class="gp-subgroup-learner-context__title">
-				{{ t('learniq', 'Subgroup learner context') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Subgroup learner context')" />
 			<p class="gp-subgroup-learner-context__subtitle">
 				{{
 					t(
@@ -58,7 +56,7 @@
 		</header>
 
 		<!-- No subgroup selected: inline picker. -->
-		<div
+		<CnDetailCard
 			v-if="!subgroupId"
 			class="gp-subgroup-learner-context__picker"
 			role="form">
@@ -88,7 +86,7 @@
 					)
 				}}
 			</p>
-		</div>
+		</CnDetailCard>
 
 		<template v-else>
 			<!-- Loading -->
@@ -97,7 +95,7 @@
 				class="gp-subgroup-learner-context__loading"
 				aria-live="polite">
 				<span class="icon-loading" aria-hidden="true" />
-				<span>{{ t('learniq', 'Loading learner context...') }}</span>
+				<span>{{ t('learniq', 'Loading learner context…') }}</span>
 			</div>
 
 			<!-- Error -->
@@ -126,10 +124,7 @@
 			</div>
 
 			<!-- Learner list -->
-			<template v-else>
-				<h3 class="gp-subgroup-learner-context__subgroup-name">
-					{{ subgroup.name }}
-				</h3>
+			<CnDetailCard v-else :title="subgroup.name">
 				<ul class="gp-subgroup-learner-context__members">
 					<li
 						v-for="member in members"
@@ -162,16 +157,18 @@
 						</span>
 					</li>
 				</ul>
-			</template>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'GroupPlanSubgroupLearnerContext',
+	components: { CnDetailCard, CnPageHeader },
 
 	data() {
 		return {
@@ -339,22 +336,6 @@ export default {
 </script>
 
 <style scoped>
-.gp-subgroup-learner-context {
-	max-width: 900px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.gp-subgroup-learner-context__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.gp-subgroup-learner-context__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-}
-
 .gp-subgroup-learner-context__subtitle {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9em;
@@ -365,9 +346,6 @@ export default {
 	display: flex;
 	flex-direction: column;
 	gap: var(--default-grid-baseline, 8px);
-	padding: calc(var(--default-grid-baseline, 8px) * 2);
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius, 4px);
 }
 
 .gp-subgroup-learner-context__picker-row {
@@ -388,11 +366,6 @@ export default {
 	align-items: center;
 	gap: var(--default-grid-baseline, 8px);
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.gp-subgroup-learner-context__subgroup-name {
-	font-weight: bold;
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .gp-subgroup-learner-context__members {

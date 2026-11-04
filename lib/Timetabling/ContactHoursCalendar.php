@@ -59,14 +59,14 @@ class ContactHoursCalendar {
 	 * @param string|null                      $periodCode   The line's period, or null for the whole year.
 	 * @param array<int, array<string, mixed>> $periods      The school year's report periods.
 	 * @param string                           $academicYear The school year (YYYY-YYYY).
-	 * @param string                           $from         First day of the window (Y-m-d).
-	 * @param string                           $to           Last day of the window (Y-m-d).
+	 * @param array{0: string, 1: string}      $window       First and last day of the window (Y-m-d).
 	 *
 	 * @return float
 	 *
 	 * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
 	 */
-	public function share(?string $periodCode, array $periods, string $academicYear, string $from, string $to): float {
+	public function share(?string $periodCode, array $periods, string $academicYear, array $window): float {
+		[$from, $to] = $window;
 		if ($periodCode !== null && $periodCode !== '') {
 			foreach ($periods as $period) {
 				if ((string)($period['periodCode'] ?? '') === $periodCode) {
