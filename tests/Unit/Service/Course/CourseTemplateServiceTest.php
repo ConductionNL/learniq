@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service\Course;
 
 use OCA\Learniq\Exception\CourseTemplateRefusedException;
+use OCA\Learniq\Service\Course\CourseTemplateObjects;
 use OCA\Learniq\Service\Course\CourseTemplateService;
 use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -64,6 +65,13 @@ class CourseTemplateServiceTest extends TestCase {
 	private array $deleted = [];
 
 	/**
+	 * The `_rbac` flag of every OpenRegister read and delete, in order.
+	 *
+	 * @var list<array{0: string, 1: bool}>
+	 */
+	private array $rbac = [];
+
+	/**
 	 * A service over fixed records.
 	 *
 	 * @param array<string, array<string, mixed>> $records  Records by uuid.
@@ -83,7 +91,8 @@ class CourseTemplateServiceTest extends TestCase {
 	): CourseTemplateService {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
-			static function (int|string $id) use ($records) {
+			function (int|string $id, ?array $_extend = [], bool $files = false, mixed $register = null, mixed $schema = null, bool $_rbac = false) use ($records) {
+				$this->rbac[] = ['find', $_rbac];
 				if (isset($records[$id]) === false) {
 					throw new DoesNotExistException('missing');
 				}
@@ -92,8 +101,9 @@ class CourseTemplateServiceTest extends TestCase {
 			}
 		);
 		$objects->method('findAll')->willReturnCallback(
-			function (array $config) use ($modules, $lessons): array {
+			function (array $config, bool $_rbac = false) use ($modules, $lessons): array {
 				$this->queries[] = $config;
+				$this->rbac[]    = ['findAll', $_rbac];
 				$rows = $modules;
 				if ($config['filters']['schema'] === 'lesson') {
 					$rows = $lessons;
@@ -103,8 +113,9 @@ class CourseTemplateServiceTest extends TestCase {
 			}
 		);
 		$objects->method('deleteObject')->willReturnCallback(
-			function (string $uuid, mixed $register = null, mixed $schema = null): bool {
+			function (string $uuid, mixed $register = null, mixed $schema = null, bool $_rbac = false): bool {
 				$this->deleted[] = ['schema' => (string)$schema, 'id' => $uuid];
+				$this->rbac[]    = ['deleteObject', $_rbac];
 
 				return true;
 			}
@@ -131,8 +142,7 @@ class CourseTemplateServiceTest extends TestCase {
 		$time->method('getTime')->willReturn(1790000000);
 
 		return new CourseTemplateService(
-			objectService: $objects,
-			writer: $writer,
+			objects: new CourseTemplateObjects(objectService: $objects, writer: $writer),
 			l10n: $l10n,
 			timeFactory: $time,
 			logger: $this->createMock(LoggerInterface::class)
@@ -398,6 +408,24 @@ class CourseTemplateServiceTest extends TestCase {
 			$this->deleted
 		);
 	}//end testAFailedInstantiationRemovesWhatItCreated()
+
+	/**
+	 * Every OpenRegister read and every rollback delete runs under the caller's rights.
+	 *
+	 * @return void
+	 */
+	public function testEveryReadAndDeleteRunsUnderTheCallersRights(): void {
+		[$records, $modules, $lessons] = $this->tree();
+		$this->service(records: $records, modules: $modules, lessons: $lessons)->structure(courseId: 'c-1');
+		try {
+			$this->service(records: $this->templateRecords(withPlan: true), failAt: 5)->instantiate(templateId: 'tpl-1', name: 'Biology 2027', language: '');
+			self::fail('Expected a refusal.');
+		} catch (CourseTemplateRefusedException) {
+		}
+
+		self::assertSame(['find', 'findAll', 'deleteObject'], array_values(array_unique(array_column($this->rbac, 0))));
+		self::assertSame([true], array_values(array_unique(array_column($this->rbac, 1))));
+	}//end testEveryReadAndDeleteRunsUnderTheCallersRights()
 
 	/**
 	 * A user who may not create courses gets a 403 and nothing is left.

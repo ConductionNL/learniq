@@ -39,6 +39,7 @@ use OCA\Learniq\Timetabling\Source\LocalSessionTimetableSource;
 use OCA\Learniq\Timetabling\Source\PlanninqTimetableSource;
 use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
 use OCA\Learniq\Timetabling\TimetableConflictDetector;
+use OCA\Learniq\Timetabling\TimetableImportCollaborators;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Planninq\Event\TimetableSessionsQueryEvent;
 use OCP\App\IAppManager;
@@ -167,7 +168,8 @@ class PlanninqTimetableImportTest extends TestCase {
 		$settingsConfig = $this->createMock(IAppConfig::class);
 		$settingsConfig->method('getValueString')->willReturn($keptMaps);
 
-		return new PlanninqTimetableImport($resolver, $dispatcher, $this->detector, new NullLogger(), new TimetableExchangeSettings($settingsConfig), $integriqEvent);
+		$collaborators = new TimetableImportCollaborators(sources: $resolver, groupMaps: new TimetableExchangeSettings(appConfig: $settingsConfig), conflictDetector: $this->detector);
+		return new PlanninqTimetableImport(collaborators: $collaborators, dispatcher: $dispatcher, logger: new NullLogger(), eventClass: $integriqEvent);
 
 	}//end import()
 
