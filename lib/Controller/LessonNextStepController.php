@@ -268,6 +268,8 @@ class LessonNextStepController extends Controller {
 	 * @param string $id     The uuid.
 	 *
 	 * @return array<string, mixed>|null
+	 *
+	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException When the id matches more than one object; LookupIntegrityMiddleware answers it.
 	 */
 	private function read(string $schema, string $id): ?array {
 		$object = $this->findOrNull(find: fn () => $this->objectService->find(id: $id, register: self::REGISTER, schema: $schema));

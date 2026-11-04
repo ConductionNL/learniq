@@ -158,11 +158,7 @@ class BootListenerRegistrar {
 		foreach ([...self::BOOT_LISTENERS, ...self::ANALYTICS_LISTENERS] as [$event, $listener, $registers, $schemas]) {
 			$this->registerFilteredObjectListener(
 				dispatcher: $dispatcher,
-				appId: $appId,
-				event: $event,
-				listener: $listener,
-				registers: $registers,
-				schemas: $schemas
+				subscription: ['appId' => $appId, 'event' => $event, 'listener' => $listener, 'registers' => $registers, 'schemas' => $schemas]
 			);
 		}
 
@@ -192,11 +188,13 @@ class BootListenerRegistrar {
 	private function registerPaymentListeners(IEventDispatcher $dispatcher, string $appId): void {
 		$this->registerFilteredObjectListener(
 			dispatcher: $dispatcher,
-			appId: $appId,
-			event: ObjectUpdatedEvent::class,
-			listener: ShillinqContributionSettledListener::class,
-			registers: ['shillinq'],
-			schemas: ['PaymentRequest']
+			subscription: [
+				'appId' => $appId,
+				'event' => ObjectUpdatedEvent::class,
+				'listener' => ShillinqContributionSettledListener::class,
+				'registers' => ['shillinq'],
+				'schemas' => ['PaymentRequest'],
+			]
 		);
 	}//end registerPaymentListeners()
 
@@ -218,11 +216,13 @@ class BootListenerRegistrar {
 		foreach ([ObjectCreatedEvent::class, ObjectUpdatedEvent::class, ObjectDeletedEvent::class] as $event) {
 			$this->registerFilteredObjectListener(
 				dispatcher: $dispatcher,
-				appId: $appId,
-				event: $event,
-				listener: AttendanceSummaryListener::class,
-				registers: ['learniq'],
-				schemas: ['attendance-record']
+				subscription: [
+					'appId' => $appId,
+					'event' => $event,
+					'listener' => AttendanceSummaryListener::class,
+					'registers' => ['learniq'],
+					'schemas' => ['attendance-record'],
+				]
 			);
 		}
 	}//end registerAttendanceListeners()
@@ -241,32 +241,25 @@ class BootListenerRegistrar {
 	 * is exactly the behaviour every listener had before.
 	 *
 	 * @param IEventDispatcher $dispatcher The live event dispatcher.
-	 * @param string $appId The Learniq app id (log context only).
-	 * @param string $event OpenRegister event class name.
-	 * @param string $listener Listener class name.
-	 * @param array<int,string> $registers Register slugs the listener reacts to.
-	 * @param array<int,string> $schemas Schema slugs the listener reacts to.
+	 * @param array{appId: string, event: string, listener: string, registers: array<int,string>, schemas: array<int,string>} $subscription The
+	 *     Learniq app id (log context only), the OpenRegister event class name, the listener class name, and the register and schema
+	 *     slugs the listener reacts to.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
 	 */
-	public function registerFilteredObjectListener(
-		IEventDispatcher $dispatcher,
-		string $appId,
-		string $event,
-		string $listener,
-		array $registers,
-		array $schemas,
-	): void {
-		$subscription = '\\OCA\\OpenRegister\\Event\\ObjectEventSubscription';
-		if (class_exists($subscription) === true) {
-			$subscription::subscribe(
+	public function registerFilteredObjectListener(IEventDispatcher $dispatcher, array $subscription): void {
+		$event = $subscription['event'];
+		$listener = $subscription['listener'];
+		$subscriber = '\\OCA\\OpenRegister\\Event\\ObjectEventSubscription';
+		if (class_exists($subscriber) === true) {
+			$subscriber::subscribe(
 				dispatcher: $dispatcher,
 				event: $event,
 				listener: $listener,
-				registers: $registers,
-				schemas: $schemas
+				registers: $subscription['registers'],
+				schemas: $subscription['schemas']
 			);
 			return;
 		}
@@ -277,7 +270,7 @@ class BootListenerRegistrar {
 			'OpenRegister ObjectEventSubscription unavailable: ' . $listener
 			. ' fell back to an UNFILTERED registration for ' . $event
 			. ' and will be invoked on every object write instance-wide.',
-			['app' => $appId]
+			['app' => $subscription['appId']]
 		);
 
 		$dispatcher->addServiceListener($event, $listener);

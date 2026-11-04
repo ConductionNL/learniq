@@ -75,11 +75,7 @@ class CompetencyAttainmentWriter {
 	 * @param string $learnerId NC user id of the learner.
 	 * @param string $competencyId UUID of the aligned Competency.
 	 * @param string $tenantId Tenant UUID scope.
-	 * @param array<string,string|null> $evidenceAppend Map of evidence-array field name to the id to append.
-	 * @param float|null $percent Evidence percentage for threshold-based level resolution,
-	 *                            or null when not applicable (e.g. the WerkprocesAssessment path).
-	 * @param string|null $levelId An already-resolved levelId (WerkprocesAssessment path);
-	 *                             when null, percent-based resolution is attempted instead.
+	 * @param AttainmentEvidence $evidence The ids to append, and the percentage or the resolved level.
 	 *
 	 * @return void
 	 *
@@ -89,9 +85,7 @@ class CompetencyAttainmentWriter {
 		string $learnerId,
 		string $competencyId,
 		string $tenantId,
-		array $evidenceAppend,
-		?float $percent = null,
-		?string $levelId = null,
+		AttainmentEvidence $evidence,
 	): void {
 		if ($learnerId === '' || $competencyId === '') {
 			return;
@@ -113,12 +107,12 @@ class CompetencyAttainmentWriter {
 			tenantId: $tenantId
 		);
 
-		$data = $this->appendEvidence(data: $data, evidenceAppend: $evidenceAppend);
+		$data = $this->appendEvidence(data: $data, evidenceAppend: $evidence->append);
 
 		$resolvedLevelId = $this->effectiveLevelId(
-			levelId: $levelId,
+			levelId: $evidence->levelId,
 			frameworkId: (string)$frameworkId,
-			percent: $percent
+			percent: $evidence->percent
 		);
 		if ($resolvedLevelId !== null) {
 			$data['proficiencyLevelId'] = $resolvedLevelId;

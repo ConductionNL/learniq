@@ -358,13 +358,13 @@ The menu MUST offer the absence reports list (`ExcuseRequests`) exactly once to 
 @e2e exclude Menu gating; pinned by tests/unit-js/absenceReportsMenu.test.mjs (every role that reads absence reports finds them in the menu, once), built with the library's buildManifest and visibleIf evaluator.
 - **GIVEN** `po-leerkracht-09` is a group teacher in a primary school
 - **WHEN** they open "Aanwezigheid" in the group "Leerlingen"
-- **THEN** it lists "Absence reports", which opens `/attendance/excuses`
+- **THEN** it lists "Afwezigheidsmeldingen", which opens `/attendance/excuses`
 
 #### Scenario: A compliance officer finds the reports under Compliance
 @e2e exclude Menu gating; pinned by tests/unit-js/absenceReportsMenu.test.mjs (every role that reads absence reports finds them in the menu, once).
 - **GIVEN** a compliance officer, whose group "Leerlingen" holds only "Compliance"
 - **WHEN** they open "Compliance"
-- **THEN** it lists "Absence reports"
+- **THEN** it lists "Afwezigheidsmeldingen"
 
 #### Scenario: Roles without read access get no entry
 @e2e exclude Menu gating; pinned by tests/unit-js/absenceReportsMenu.test.mjs (roles the register does not let read a report get no entry; every school segment shows the entry).

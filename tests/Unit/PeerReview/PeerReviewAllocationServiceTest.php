@@ -26,8 +26,10 @@ namespace OCA\Learniq\Tests\Unit\PeerReview;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\PeerReviewAllocationService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCP\AppFramework\Db\DoesNotExistException;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 
 /**
  * Tests for PeerReviewAllocationService::allocate().
@@ -368,4 +370,26 @@ class PeerReviewAllocationServiceTest extends TestCase {
 			self::assertNotSame('learner-e', $saved['object']['reviewerId']);
 		}
 	}//end testDraftsAreNeitherReviewedNorReviewers()
+
+	/**
+	 * A missing assignment allocates nothing; any other read failure is not read as missing.
+	 *
+	 * @return void
+	 */
+	public function testOnlyAMissingAssignmentReadsAsNothingToAllocate(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willThrowException(new DoesNotExistException('Object not found'));
+		$objectService->expects($this->never())->method('saveObject');
+		$service = new PeerReviewAllocationService($objectService, $this->createMock(LoggerInterface::class));
+
+		self::assertSame(
+			['strategy' => 'round-robin', 'submissionsProcessed' => 0, 'createdCount' => 0],
+			$service->allocate(assignmentId: self::ASSIGNMENT_ID)
+		);
+
+		$failing = $this->createMock(ObjectService::class);
+		$failing->method('find')->willThrowException(new RuntimeException('database gone'));
+		$this->expectExceptionMessage('database gone');
+		(new PeerReviewAllocationService($failing, $this->createMock(LoggerInterface::class)))->allocate(assignmentId: self::ASSIGNMENT_ID);
+	}//end testOnlyAMissingAssignmentReadsAsNothingToAllocate()
 }//end class

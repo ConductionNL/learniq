@@ -6,7 +6,7 @@ The employer audience MUST offer `substituteParticipant` as "Collega in zijn pla
 
 #### Scenario: Sanne goes instead of Tom
 - **GIVEN** Linda's booking I-2026-0412 for Thursday 8 October, deadline Wednesday 12.00
-- **WHEN** she replaces Tom by Sanne Kok on Monday
+- **WHEN** she replaces Tom by Bram de Wit on Monday
 - **THEN** the booking still holds three places, Tom's enrolment reads "vervangen door collega" and Sanne is enrolled
 - @e2e tests/e2e/portal-design/warmtepompacademie.spec.ts
 

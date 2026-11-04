@@ -25,12 +25,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\BackgroundJob;
 
 use OCA\Learniq\Service\LearnerGroupLabelRestamp;
-use OCA\OpenRegister\BackgroundJob\ActorForwardedJob;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
-use OCA\OpenRegister\Service\OrganisationService;
-use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\IUserManager;
-use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -39,35 +34,23 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
  */
-class LearnerGroupLabelRestampJob extends ActorForwardedJob {
+class LearnerGroupLabelRestampJob extends ForwardedJob {
 
 	/**
 	 * Constructor.
 	 *
-	 * @param ITimeFactory             $time         Clock.
-	 * @param IUserSession             $userSession  The acting user, forwarded.
-	 * @param IUserManager             $userManager  Resolves the forwarded user.
-	 * @param OrganisationService      $organisation The acting organisation, forwarded.
+	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface          $logger       Logger.
 	 * @param LearnerGroupLabelRestamp $restamp      Writes one profile's line.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		ITimeFactory $time,
-		IUserSession $userSession,
-		IUserManager $userManager,
-		OrganisationService $organisation,
+		ActorForwarding $forwarding,
 		LoggerInterface $logger,
 		private readonly LearnerGroupLabelRestamp $restamp,
 	) {
-		parent::__construct(
-			time: $time,
-			userSession: $userSession,
-			userManager: $userManager,
-			organisation: $organisation,
-			logger: $logger
-		);
+		parent::__construct(forwarding: $forwarding, logger: $logger);
 	}//end __construct()
 
 	/**

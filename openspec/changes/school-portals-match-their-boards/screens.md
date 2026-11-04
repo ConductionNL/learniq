@@ -10,3 +10,4 @@
 - warmtepompacademie/Voet voettekst https://identity.conduction.nl/screens/board?id=warmtepompacademie/Voet
 - warmtepompacademie/Nodig wat is er nodig https://identity.conduction.nl/screens/board?id=warmtepompacademie/Nodig
 - wilgenboom/MijnOverzicht overzicht https://identity.conduction.nl/screens/board?id=wilgenboom/MijnOverzicht
+- wilgenboom/Contentpagina contentpagina, uw kind afwezig melden https://identity.conduction.nl/screens/board?id=wilgenboom/Contentpagina

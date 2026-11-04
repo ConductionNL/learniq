@@ -175,7 +175,7 @@ class ExternalTrainingController extends Controller {
 			rows: $rows,
 			tenantId: $this->callerTenant->resolve(user: $user),
 			submittedBy: $user->getUID(),
-			dryRun: $dryRun
+			run: ['dryRun' => $dryRun]
 		);
 
 		return new JSONResponse(data: $report, statusCode: Http::STATUS_OK);

@@ -29,6 +29,8 @@ use OCA\Learniq\Service\CoursePackage\CommonCartridgeResourceRouter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
+use OCA\Learniq\Service\CoursePackage\CoursePackageImporters;
+use OCA\Learniq\Service\CoursePackage\CoursePackageOutput;
 use OCA\Learniq\Service\CoursePackage\LearniqJsonCourseImporter;
 use OCA\Learniq\Service\CoursePackage\MoodleActivityRouter;
 use OCA\Learniq\Service\CoursePackage\MoodleCourseImporter;
@@ -65,6 +67,8 @@ use ReflectionMethod;
  * @uses   \OCA\Learniq\Service\CoursePackage\CommonCartridgeCourseImporter
  * @uses   \OCA\Learniq\Service\CoursePackage\CommonCartridgeResourceRouter
  * @uses   \OCA\Learniq\Service\CoursePackage\CourseMetadataFilter
+ * @uses   \OCA\Learniq\Service\CoursePackage\CoursePackageOutput
+ * @uses   \OCA\Learniq\Service\CoursePackage\CoursePackageImporters
  * @uses   \OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter
  * @uses   \OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter
  * @uses   \OCA\Learniq\Service\CoursePackage\MoodleActivityRouter
@@ -224,23 +228,18 @@ class CoursePackageImportGoldenTest extends TestCase {
 		$ccImporter   = new CommonCartridgeCourseImporter(
 			new QtiImportService($objectService, $logger),
 			new CommonCartridgeParser(),
-			new CommonCartridgeResourceRouter($objectWriter, $fileWriter, $reporter, $xmlReader, $logger),
-			$objectWriter,
-			$reporter,
+			new CommonCartridgeResourceRouter(new CoursePackageOutput($objectWriter, $fileWriter, $reporter), $xmlReader, $logger),
+			new CoursePackageOutput($objectWriter, $fileWriter, $reporter),
 		);
 		$moodle       = new MoodleCourseImporter(
 			new MbzExtractor(),
 			new MoodleBackupParser(),
-			new MoodleActivityRouter(new MoodleQuizQuestionMapper(), $objectWriter, $fileWriter, $reporter, $xmlReader, $logger),
-			$objectWriter,
-			$reporter,
+			new MoodleActivityRouter(new MoodleQuizQuestionMapper(), new CoursePackageOutput($objectWriter, $fileWriter, $reporter), $xmlReader, $logger),
+			new CoursePackageOutput($objectWriter, $fileWriter, $reporter),
 		);
 		return new CoursePackageImportService(
-			$ccImporter,
-			$moodle,
-			new LearniqJsonCourseImporter($objectWriter, $fileWriter, $reporter),
-			$fileWriter,
-			$reporter,
+			new CoursePackageImporters($ccImporter, $moodle, new LearniqJsonCourseImporter($objectWriter, $fileWriter, $reporter)),
+			new CoursePackageOutput($objectWriter, $fileWriter, $reporter),
 			$logger,
 		);
 	}//end importService()
