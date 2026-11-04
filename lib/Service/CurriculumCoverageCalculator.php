@@ -84,6 +84,20 @@ class CurriculumCoverageCalculator {
 			assessed: $this->tally(rows: $assessed, leaves: $leaves, levels: $levels)
 		);
 
+		$context = ['framework' => $framework, 'leaves' => $leaves, 'status' => $status, 'levels' => $levels, 'now' => $now];
+
+		return $this->bucketRows(scope: $this->goalScope(tree: $tree, leaves: $leaves), context: $context);
+	}//end compute()
+
+	/**
+	 * Each leaf goal's effective years and subject.
+	 *
+	 * @param array<string,mixed> $tree   The goal tree.
+	 * @param list<string>        $leaves The leaf goal ids.
+	 *
+	 * @return array<string,array{years: list<string>, subject: string|null}>
+	 */
+	private function goalScope(array $tree, array $leaves): array {
 		$scope = [];
 		foreach ($leaves as $goalId) {
 			$scope[$goalId] = [
@@ -92,23 +106,36 @@ class CurriculumCoverageCalculator {
 			];
 		}
 
+		return $scope;
+	}//end goalScope()
+
+	/**
+	 * One coverage row per bucket that holds a goal, plus the total row.
+	 *
+	 * @param array<string,array{years: list<string>, subject: string|null}> $scope   Each leaf goal's years and subject.
+	 * @param array<string,mixed>                                           $context The framework, leaves, goal status, level ranks and time.
+	 *
+	 * @return list<array<string,mixed>>
+	 */
+	private function bucketRows(array $scope, array $context): array {
 		$rows = [];
-		foreach ($this->buckets(scope: $scope) as $bucket) {
+		$buckets = new CoverageBuckets();
+		foreach ($buckets->forScope(scope: $scope) as $bucket) {
 			$inScope = array_values(
 				array_filter(
-					$leaves,
-					fn (string $goalId): bool => $this->inBucket(goal: $scope[$goalId], bucket: $bucket)
+					$context['leaves'],
+					fn (string $goalId): bool => $buckets->contains(goal: $scope[$goalId], bucket: $bucket)
 				)
 			);
-			if ($inScope === [] && $this->isTotal(bucket: $bucket) === false) {
+			if ($inScope === [] && $buckets->isTotal(bucket: $bucket) === false) {
 				continue;
 			}
 
-			$rows[] = $this->row(framework: $framework, bucket: $bucket, goalIds: $inScope, status: $status, levels: $levels, now: $now);
+			$rows[] = $this->row(bucket: $bucket, context: $context + ['goalIds' => $inScope]);
 		}
 
 		return $rows;
-	}//end compute()
+	}//end bucketRows()
 
 	/**
 	 * The key that identifies a coverage row within its framework.
@@ -236,100 +263,17 @@ class CurriculumCoverageCalculator {
 	}//end goalStatus()
 
 	/**
-	 * Every year × subject bucket, total first.
-	 *
-	 * @param array<string, array{years: array<int, string>, subject: string|null}> $scope Per goal scope.
-	 *
-	 * @return array<int, array{year: string|null, subjectScope: string, subjectId: string|null}>
-	 */
-	private function buckets(array $scope): array {
-		$years    = [];
-		$subjects = [];
-		$hasNone  = false;
-		foreach ($scope as $goal) {
-			$years = array_merge($years, $goal['years']);
-			if ($goal['subject'] === null) {
-				$hasNone = true;
-				continue;
-			}
-
-			$subjects[] = $goal['subject'];
-		}
-
-		$years = array_values(array_unique($years));
-		usort($years, 'strnatcasecmp');
-		$subjects = array_values(array_unique($subjects));
-		sort($subjects);
-
-		$subjectScopes = [['subjectScope' => 'all', 'subjectId' => null]];
-		foreach ($subjects as $subject) {
-			$subjectScopes[] = ['subjectScope' => 'subject', 'subjectId' => $subject];
-		}
-
-		if ($hasNone === true) {
-			$subjectScopes[] = ['subjectScope' => 'none', 'subjectId' => null];
-		}
-
-		$buckets = [];
-		foreach (array_merge([null], $years) as $year) {
-			foreach ($subjectScopes as $subjectScope) {
-				$buckets[] = array_merge(['year' => $year], $subjectScope);
-			}
-		}
-
-		return $buckets;
-	}//end buckets()
-
-	/**
-	 * Whether a goal falls in a bucket.
-	 *
-	 * @param array{years: array<int, string>, subject: string|null}                  $goal   The goal's scope.
-	 * @param array{year: string|null, subjectScope: string, subjectId: string|null} $bucket The bucket.
-	 *
-	 * @return bool
-	 */
-	private function inBucket(array $goal, array $bucket): bool {
-		$inYear = ($bucket['year'] === null || $goal['years'] === [] || in_array(needle: $bucket['year'], haystack: $goal['years'], strict: true) === true);
-		if ($inYear === false) {
-			return false;
-		}
-
-		if ($bucket['subjectScope'] === 'all') {
-			return true;
-		}
-
-		if ($bucket['subjectScope'] === 'none') {
-			return $goal['subject'] === null;
-		}
-
-		return $goal['subject'] === $bucket['subjectId'];
-	}//end inBucket()
-
-	/**
-	 * Whether a bucket is the all-years, all-subjects total.
-	 *
-	 * @param array{year: string|null, subjectScope: string, subjectId: string|null} $bucket The bucket.
-	 *
-	 * @return bool
-	 */
-	private function isTotal(array $bucket): bool {
-		return $bucket['year'] === null && $bucket['subjectScope'] === 'all';
-	}//end isTotal()
-
-	/**
 	 * Build one coverage row.
 	 *
-	 * @param array<string, mixed>                                                   $framework The framework row.
-	 * @param array{year: string|null, subjectScope: string, subjectId: string|null} $bucket    The bucket.
-	 * @param array<int, string>                                                     $goalIds   Goals in scope, tree order.
-	 * @param array<string, array<string, mixed>>                                    $status    Per goal status.
-	 * @param array<string, int>                                                     $levels    Level ranks.
-	 * @param string                                                                 $now       Timestamp.
+	 * @param array{year: string|null, subjectScope: string, subjectId: string|null} $bucket  The bucket.
+	 * @param array<string, mixed>                                                   $context Framework, goal status, level ranks, time, goalIds.
 	 *
 	 * @return array<string, mixed>
 	 */
-	private function row(array $framework, array $bucket, array $goalIds, array $status, array $levels, string $now): array {
-		$goals    = array_map(static fn (string $goalId): array => $status[$goalId], $goalIds);
+	private function row(array $bucket, array $context): array {
+		$framework = $context['framework'];
+		$levels    = $context['levels'];
+		$goals     = array_map(static fn (string $goalId): array => $context['status'][$goalId], $context['goalIds']);
 		$planned  = array_values(array_filter($goals, static fn (array $goal): bool => $goal['planned']));
 		$assessed = array_values(array_filter($goals, static fn (array $goal): bool => $goal['assessed']));
 		$gap      = array_values(array_filter($goals, static fn (array $goal): bool => $goal['planned'] && $goal['assessed'] === false));
@@ -352,7 +296,7 @@ class CurriculumCoverageCalculator {
 			'uncoveredIds'            => array_column($none, 'competencyId'),
 			'plannedNotAssessedIds'   => array_column($gap, 'competencyId'),
 			'goals'                   => $goals,
-			'lastRecomputedAt'        => $now,
+			'lastRecomputedAt'        => $context['now'],
 			'tenant_id'               => ($framework['tenant_id'] ?? null),
 		];
 	}//end row()

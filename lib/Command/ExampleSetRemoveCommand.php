@@ -119,43 +119,71 @@ class ExampleSetRemoveCommand extends Command {
 			return 0;
 		}
 
+		$purge = $this->purgeCommand(output: $output);
+		if ($purge === null) {
+			return 1;
+		}
+
+		$output->writeln(self::handOver(profileId: $profileId, uuids: $uuids, apply: $apply));
+
+		return $purge->run(new ArrayInput(self::purgeArguments(uuids: $uuids, apply: $apply)), $output);
+	}//end execute()
+
+	/**
+	 * OpenRegister's purge command, or null (reported) when it is not available.
+	 *
+	 * @param OutputInterface $output The output.
+	 *
+	 * @return Command|null
+	 */
+	private function purgeCommand(OutputInterface $output): ?Command {
 		$application = $this->getApplication();
 		try {
 			if ($application === null) {
 				throw new CommandNotFoundException(self::PURGE_COMMAND);
 			}
 
-			$purge = $application->find(self::PURGE_COMMAND);
+			return $application->find(self::PURGE_COMMAND);
 		} catch (CommandNotFoundException $e) {
 			$output->writeln(
 				'<error>OpenRegister\'s ' . self::PURGE_COMMAND . ' command is not available; is OpenRegister installed and up to date?</error>'
 			);
-			return 1;
+			return null;
 		}
+	}//end purgeCommand()
 
+	/**
+	 * The line that says what is handed to the purge command.
+	 *
+	 * @param string       $profileId The example set.
+	 * @param list<string> $uuids     Its objects.
+	 * @param bool         $apply     Whether the purge applies or is a dry run.
+	 *
+	 * @return string
+	 */
+	private static function handOver(string $profileId, array $uuids, bool $apply): string {
 		$mode = ' (dry run)';
 		if ($apply === true) {
 			$mode = ' --apply';
 		}
 
-		$output->writeln(
-			sprintf(
-				'Example set "%s": %d object(s), handed to %s --force%s.',
-				$profileId,
-				count($uuids),
-				self::PURGE_COMMAND,
-				$mode
-			)
-		);
+		return sprintf('Example set "%s": %d object(s), handed to %s --force%s.', $profileId, count($uuids), self::PURGE_COMMAND, $mode);
+	}//end handOver()
 
-		$arguments = [
-			'uuid'    => $uuids,
-			'--force' => true,
-		];
+	/**
+	 * The purge command's arguments.
+	 *
+	 * @param list<string> $uuids The objects.
+	 * @param bool         $apply Whether the purge applies.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private static function purgeArguments(array $uuids, bool $apply): array {
+		$arguments = ['uuid' => $uuids, '--force' => true];
 		if ($apply === true) {
 			$arguments['--apply'] = true;
 		}
 
-		return $purge->run(new ArrayInput($arguments), $output);
-	}//end execute()
+		return $arguments;
+	}//end purgeArguments()
 }//end class

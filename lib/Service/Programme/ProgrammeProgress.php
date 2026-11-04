@@ -33,8 +33,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Programme;
 
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Db\DoesNotExistException;
 
 /**
  * Programme progress per learner, counting mandatory parts only.
@@ -51,6 +51,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
  * }
  */
 class ProgrammeProgress {
+	use FindOrNull;
 
 	/**
 	 * The register every row lives in.
@@ -193,18 +194,8 @@ class ProgrammeProgress {
 			return null;
 		}
 
-		try {
-			$object = $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false, _render: false);
-		} catch (DoesNotExistException) {
-			return null;
-		}
-
-		$row = $object?->jsonSerialize();
-		if (is_array($row) === false) {
-			return null;
-		}
-
-		return $row;
+		$find = fn () => $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false, _render: false);
+		return $this->findRowOrNull(find: $find);
 	}//end read()
 
 	/**

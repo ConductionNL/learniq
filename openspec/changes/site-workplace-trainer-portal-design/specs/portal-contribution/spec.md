@@ -48,7 +48,7 @@ The assessment form MUST let the trainer pick the student by name from her own p
 
 #### Scenario: Saving halfway
 - GIVEN Karin halfway through the assessment for Lotte
-- WHEN she taps "Opslaan en later verdergaan" and leaves
+- WHEN she taps "Bewaren voor later" and leaves
 - THEN no assessment exists yet in learniq
 - AND opening the form later continues with her answers
 - @e2e exclude planned: written with the build in tests/e2e/mbo-trainer-flows.spec.ts (specs-only change)

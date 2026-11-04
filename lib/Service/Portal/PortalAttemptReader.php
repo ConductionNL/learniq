@@ -32,8 +32,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Db\DoesNotExistException;
 
 /**
  * Reads for portal attempts, filtered by the pupil.
@@ -41,6 +41,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
  * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
  */
 class PortalAttemptReader {
+	use FindOrNull;
 
 	private const REGISTER = 'learniq';
 	private const RESULT_SCHEMA = 'assessment-result';
@@ -185,20 +186,9 @@ class PortalAttemptReader {
 			return null;
 		}
 
-		try {
-			$object = $this->objectService->find(
-				id: $id,
-				register: self::REGISTER,
-				schema: $schema,
-				_rbac: false,
-				_multitenancy: false,
-				_render: false
-			);
-		} catch (DoesNotExistException $exception) {
-			return null;
-		}
-
-		return $object?->jsonSerialize();
+		$find = fn () => $this->objectService
+			->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false, _render: false);
+		return $this->findOrNull(find: $find)?->jsonSerialize();
 	}//end one()
 
 	/**

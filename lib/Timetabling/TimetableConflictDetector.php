@@ -110,9 +110,7 @@ class TimetableConflictDetector {
 		}
 
 		$tenantId = (string)($sessions[0]['tenant_id'] ?? '');
-		$buckets = $this->loader->dayBuckets(sessions: $sessions);
-
-		$window = $this->loader->loadWindow(sessions: $sessions, buckets: $buckets, tenantId: $tenantId);
+		$window = $this->loader->loadWindow(sessions: $sessions, tenantId: $tenantId);
 		if (count($window) < 1) {
 			return;
 		}
@@ -214,12 +212,27 @@ class TimetableConflictDetector {
 	 * @return void
 	 */
 	private function evaluatePair(ConflictScan $scan, SessionPair $pair): void {
-		$idA = (string)($pair->sessionA['id'] ?? ($pair->sessionA['uuid'] ?? ''));
-		$idB = (string)($pair->sessionB['id'] ?? ($pair->sessionB['uuid'] ?? ''));
-		if ($idA === '' || $idB === '' || $idA === $idB) {
+		$ids = [self::sessionId(session: $pair->sessionA), self::sessionId(session: $pair->sessionB)];
+		if (in_array('', $ids, true) === true || $ids[0] === $ids[1]) {
 			return;
 		}
 
+		foreach ($this->pairKinds(scan: $scan, pair: $pair) as $kind => $scopeRef) {
+			$this->queueConflict(scan: $scan, finding: new ConflictFinding(sessionIds: $ids, kind: (string)$kind, scopeRef: $scopeRef));
+		}
+
+	}//end evaluatePair()
+
+	/**
+	 * The overlap kinds of one Session pair, plus exam-clash when there is an
+	 * overlap and at least one Session has a linked Assessment.
+	 *
+	 * @param ConflictScan $scan The running scan (caches mutated).
+	 * @param SessionPair  $pair The overlapping Sessions.
+	 *
+	 * @return array<string,string|null> Kind to scope reference.
+	 */
+	private function pairKinds(ConflictScan $scan, SessionPair $pair): array {
 		$kinds = $this->evaluator->overlapKinds(
 			sessionA: $pair->sessionA,
 			sessionB: $pair->sessionB,
@@ -227,22 +240,25 @@ class TimetableConflictDetector {
 			cohortB: $this->cohortFor(scan: $scan, session: $pair->sessionB),
 		);
 
-		if (empty($kinds) === true) {
-			return;
-		}
-
-		// Exam-clash: any overlap kind above, when at least one Session has a linked Assessment.
-		$hasAssessment = $this->loader->hasLinkedAssessment(sessionId: $idA, tenantId: $scan->tenantId, cache: $scan->assessmentCache)
-			|| $this->loader->hasLinkedAssessment(sessionId: $idB, tenantId: $scan->tenantId, cache: $scan->assessmentCache);
-		if ($hasAssessment === true) {
+		if (empty($kinds) === false && $this->eitherHasAssessment(scan: $scan, pair: $pair) === true) {
 			$kinds['exam-clash'] = null;
 		}
 
-		foreach ($kinds as $kind => $scopeRef) {
-			$this->queueConflict(scan: $scan, finding: new ConflictFinding(sessionIds: [$idA, $idB], kind: (string)$kind, scopeRef: $scopeRef));
-		}
+		return $kinds;
+	}//end pairKinds()
 
-	}//end evaluatePair()
+	/**
+	 * Whether either Session of the pair has a linked Assessment.
+	 *
+	 * @param ConflictScan $scan The running scan (assessment cache mutated).
+	 * @param SessionPair  $pair The Sessions.
+	 *
+	 * @return bool
+	 */
+	private function eitherHasAssessment(ConflictScan $scan, SessionPair $pair): bool {
+		return $this->loader->hasLinkedAssessment(sessionId: self::sessionId(session: $pair->sessionA), scan: $scan)
+			|| $this->loader->hasLinkedAssessment(sessionId: self::sessionId(session: $pair->sessionB), scan: $scan);
+	}//end eitherHasAssessment()
 
 	/**
 	 * Evaluate the single-Session room-capacity-exceeded kind.
@@ -253,30 +269,65 @@ class TimetableConflictDetector {
 	 * @return void
 	 */
 	private function evaluateCapacity(ConflictScan $scan, array $session): void {
-		$sessionId = (string)($session['id'] ?? ($session['uuid'] ?? ''));
-		$roomId = (string)($session['roomId'] ?? '');
-		if ($sessionId === '' || $roomId === '') {
+		if ($this->exceedsRoomCapacity(scan: $scan, session: $session) === false) {
 			return;
 		}
 
-		$linked = $this->loader->hasLinkedAssessment(sessionId: $sessionId, tenantId: $scan->tenantId, cache: $scan->assessmentCache);
-		if ($linked === false) {
-			return;
-		}
-
-		$room = $this->loader->loadRoom(roomId: $roomId, tenantId: $scan->tenantId, cache: $scan->roomCache);
-		if ($room === null) {
-			return;
-		}
-
-		$cohort = $this->cohortFor(scan: $scan, session: $session);
-		if ($this->evaluator->exceedsCapacity(cohort: $cohort, room: $room) === false) {
-			return;
-		}
-
-		$this->queueConflict(scan: $scan, finding: new ConflictFinding(sessionIds: [$sessionId], kind: 'room-capacity-exceeded', scopeRef: $roomId));
+		$this->queueConflict(
+			scan: $scan,
+			finding: new ConflictFinding(
+				sessionIds: [self::sessionId(session: $session)],
+				kind: 'room-capacity-exceeded',
+				scopeRef: self::roomId(session: $session)
+			)
+		);
 
 	}//end evaluateCapacity()
+
+	/**
+	 * Whether a Session with a linked Assessment holds more learners than its Room's capacity.
+	 *
+	 * @param ConflictScan        $scan    The running scan (caches mutated).
+	 * @param array<string,mixed> $session The Session.
+	 *
+	 * @return bool
+	 */
+	private function exceedsRoomCapacity(ConflictScan $scan, array $session): bool {
+		$sessionId = self::sessionId(session: $session);
+		$roomId    = self::roomId(session: $session);
+		if ($sessionId === '' || $roomId === '' || $this->loader->hasLinkedAssessment(sessionId: $sessionId, scan: $scan) === false) {
+			return false;
+		}
+
+		$room = $this->loader->loadRoom(roomId: $roomId, scan: $scan);
+		if ($room === null) {
+			return false;
+		}
+
+		return $this->evaluator->exceedsCapacity(cohort: $this->cohortFor(scan: $scan, session: $session), room: $room);
+	}//end exceedsRoomCapacity()
+
+	/**
+	 * A Session's id, else its uuid, else ''.
+	 *
+	 * @param array<string,mixed> $session The Session.
+	 *
+	 * @return string
+	 */
+	private static function sessionId(array $session): string {
+		return (string)($session['id'] ?? ($session['uuid'] ?? ''));
+	}//end sessionId()
+
+	/**
+	 * A Session's room id, or ''.
+	 *
+	 * @param array<string,mixed> $session The Session.
+	 *
+	 * @return string
+	 */
+	private static function roomId(array $session): string {
+		return (string)($session['roomId'] ?? '');
+	}//end roomId()
 
 	/**
 	 * Resolve a Session's Cohort through the scan's cache.
@@ -287,11 +338,7 @@ class TimetableConflictDetector {
 	 * @return array<string,mixed>|null The cohort data, or null.
 	 */
 	private function cohortFor(ConflictScan $scan, array $session): ?array {
-		return $this->loader->loadCohort(
-			cohortId: (string)($session['cohortId'] ?? ''),
-			tenantId: $scan->tenantId,
-			cache: $scan->cohortCache
-		);
+		return $this->loader->loadCohort(cohortId: (string)($session['cohortId'] ?? ''), scan: $scan);
 
 	}//end cohortFor()
 
