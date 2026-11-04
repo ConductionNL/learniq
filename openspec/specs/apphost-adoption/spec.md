@@ -1,7 +1,7 @@
 # apphost-adoption Specification
 
 ## Purpose
-TBD - created by archiving change adopt-apphost. Update Purpose after archive.
+Serve health, metrics, preferences, settings and deep links through OpenRegister's AppHost instead of local code, with the same behaviour as before. OpenRegister's autoloader is registered first, so this works in any app order.
 ## Requirements
 ### Requirement: Standard Public Health Endpoint
 

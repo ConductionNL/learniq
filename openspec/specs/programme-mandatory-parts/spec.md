@@ -1,7 +1,7 @@
 # programme-mandatory-parts Specification
 
 ## Purpose
-TBD - created by archiving change enrolment-programme-mandatory-per-person. Update Purpose after archive.
+Mark each course of a programme as mandatory or optional, per programme and per person. Progress and completion count the mandatory parts only.
 
 ## Requirements
 

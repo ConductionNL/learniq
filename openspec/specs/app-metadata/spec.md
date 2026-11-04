@@ -1,7 +1,7 @@
 # app-metadata Specification
 
 ## Purpose
-TBD - created by archiving change fix-manifest-licence-eupl. Update Purpose after archive.
+Keep the licence in the app manifest equal to the licence the code is distributed under.
 ## Requirements
 ### Requirement: The manifest licence matches the repository's actual licence
 

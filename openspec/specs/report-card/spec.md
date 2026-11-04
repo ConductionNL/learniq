@@ -1,7 +1,7 @@
 # report-card Specification
 
 ## Purpose
-TBD - created by archiving change report-card-composer. Update Purpose after archive.
+Compose report cards per period from a group's grades and template, review them in the report meeting (rapportvergadering) and publish them to parents once finalised. A grade never reaches a parent before its own visibility date.
 
 ## Requirements
 
