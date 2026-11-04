@@ -3862,7 +3862,9 @@
         "Hide the lessons of {name}": "Hide the lessons of {name}",
         "Show on the board": "Show on the board",
         "Changes in {seconds} s": "Changes in {seconds} s",
-        "This code holds until you close check-in.": "This code holds until you close check-in."
+        "This code holds until you close check-in.": "This code holds until you close check-in.",
+        "Estimate": "Estimate",
+        "No programme years in this forecast.": "No programme years in this forecast."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

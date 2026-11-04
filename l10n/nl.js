@@ -4298,7 +4298,9 @@ OC.L10N.register(
         "Hide the lessons of {name}": "Lessen van {name} verbergen",
         "Show on the board": "Op het bord tonen",
         "Changes in {seconds} s": "Verandert over {seconds} s",
-        "This code holds until you close check-in.": "Deze code blijft geldig tot je het aanmelden sluit."
+        "This code holds until you close check-in.": "Deze code blijft geldig tot je het aanmelden sluit.",
+        "Estimate": "Schatting",
+        "No programme years in this forecast.": "Geen leerjaren in deze prognose."
     },
     "nplurals=2; plural=(n != 1);"
 )
