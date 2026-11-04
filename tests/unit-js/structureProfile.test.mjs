@@ -360,6 +360,7 @@ const KNOWN_UNLINKED = {
 		'GradeCorrectionsMenu',
 		'GroupPlans',
 		'HourPlanActivitiesMenu',
+		'ImportExportToolsMenu',
 		'MyElectivesMenu',
 		'MyEvaluationsMenu',
 		'MyWorkGroupsMenu',
@@ -394,6 +395,7 @@ const KNOWN_UNLINKED = {
 		'ExchangeRejectionsMenu',
 		'GradeCorrectionsMenu',
 		'GroupPlans',
+		'ImportExportToolsMenu',
 		'SchoolAdviezenMenu',
 		'SchoolEventsMenu',
 		'StandbyPlanningMenu',
@@ -591,11 +593,11 @@ test('the full profile is exactly the plain manifest build', () => {
 	const entries = flat(plain.menu)
 	const count = (section) =>
 		entries.filter((item) => sectionOf(item) === section).length
-	assert.equal(entries.length, 108)
+	assert.equal(entries.length, 109)
 	assert.equal(plain.menu.length, 26)
 	assert.deepEqual(
 		[count('main'), count('footer'), count('settings')],
-		[99, 2, 7],
+		[100, 2, 7],
 	)
 	// 347 since the four unreached pages (BulkEnrol, CohortTimetable,
 	// MarkAttendanceView, SubmitExcuseModal) became actions.
@@ -1890,6 +1892,7 @@ test('Exchanges is one admin-only foldout entry that opens the jobs and links th
 		assert.ok(layout.settingsSection.includes('DataExchange'))
 		assert.ok(!layout.settingsSection.includes('ImportExportToolsMenu'))
 	}
+	assert.ok(SIMPLE.removals.includes('ImportExportToolsMenu'))
 	for (const role of ROLES) {
 		const entry = shown(build(SIMPLE, role)).find((item) => item.id === 'DataExchange')
 		assert.equal(!!entry, role === 'admin', role)

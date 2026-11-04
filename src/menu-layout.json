@@ -73,7 +73,6 @@
 		"ExternalTraining",
 		"FraudCasesMenu",
 		"GroupTrendHeatmapMenu",
-		"ImportExportToolsMenu",
 		"ImprovementActionsMenu",
 		"ItemRevisionFlagsMenu",
 		"LeaderboardViewMenu",
@@ -97,5 +96,5 @@
 		"DataExchange",
 		"FeaturesRoadmapMenu"
 	],
-	"_settingsSectionNote": "XapiStatementsMenu carries section:'settings' in the base manifest; Rollover (Jaarovergang) is admin-gated structural config lifted here so the foldout is the single authoritative home for settings-adjacent leaves. FeaturesRoadmapMenu (Functies en roadmap) sits in the foldout under Over de app, as the AppZijbalk fold of the learniq boards draws it. DataExchange (Uitwisselingen) is the one admin-only entry to the data-exchange panel, under Geavanceerd (learniq/LqUitwisselingen); the Admin Settings page also links it (AdminRoot.vue, DataExchangeSettingsSection). ImportExportToolsMenu is retired from the menu; its page stays routable. AssistantMenu was removed entirely by relocate-dataexchange-remove-assistant."
+	"_settingsSectionNote": "XapiStatementsMenu carries section:'settings' in the base manifest; Rollover (Jaarovergang) is admin-gated structural config lifted here so the foldout is the single authoritative home for settings-adjacent leaves. FeaturesRoadmapMenu (Functies en roadmap) sits in the foldout under Over de app, as the AppZijbalk fold of the learniq boards draws it. DataExchange (Uitwisselingen) is the one admin-only entry to the data-exchange panel, under Geavanceerd (learniq/LqUitwisselingen); the Admin Settings page also links it (AdminRoot.vue, DataExchangeSettingsSection). The simple profile leaves ImportExportToolsMenu out of its foldout. AssistantMenu was removed entirely by relocate-dataexchange-remove-assistant."
 }
