@@ -97,6 +97,20 @@
 					]
 				}
 			}
+		},
+		{
+			"id": "DataExchange",
+			"label": "Exchanges",
+			"icon": "DatabaseExportOutline",
+			"route": "ExchangeJobs",
+			"order": 45,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"admin"
+					]
+				}
+			}
 		}
 	],
 	"pages": [

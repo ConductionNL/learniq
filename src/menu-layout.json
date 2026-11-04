@@ -73,6 +73,7 @@
 		"ExternalTraining",
 		"FraudCasesMenu",
 		"GroupTrendHeatmapMenu",
+		"ImportExportToolsMenu",
 		"ImprovementActionsMenu",
 		"ItemRevisionFlagsMenu",
 		"LeaderboardViewMenu",
@@ -92,7 +93,9 @@
 	],
 	"settingsSection": [
 		"XapiStatementsMenu",
-		"Rollover"
+		"Rollover",
+		"DataExchange",
+		"FeaturesRoadmapMenu"
 	],
-	"_settingsSectionNote": "XapiStatementsMenu carries section:'settings' in the base manifest; Rollover (School-year rollover) is admin-gated structural config lifted here so the foldout is the single authoritative home for settings-adjacent leaves. FeaturesRoadmapMenu was removed by nav-restructure-dashboards (Phase A) — it renders in the footer beside Documentation. AssistantMenu was removed entirely by relocate-dataexchange-remove-assistant (Phase B) — the inherited AI chat is gone. DataExchange was also removed from the in-app foldout by Phase B: the data-exchange BACKEND + OSO are kept intact and its management UI now lives in the Nextcloud Admin Settings page (AdminRoot.vue → DataExchangeSettingsSection), which deep-links into the still-routable data-exchange pages."
+	"_settingsSectionNote": "XapiStatementsMenu carries section:'settings' in the base manifest; Rollover (Jaarovergang) is admin-gated structural config lifted here so the foldout is the single authoritative home for settings-adjacent leaves. FeaturesRoadmapMenu (Functies en roadmap) sits in the foldout under Over de app, as the AppZijbalk fold of the learniq boards draws it. DataExchange (Uitwisselingen) is the one admin-only entry to the data-exchange panel, under Geavanceerd (learniq/LqUitwisselingen); the Admin Settings page also links it (AdminRoot.vue, DataExchangeSettingsSection). ImportExportToolsMenu is retired from the menu; its page stays routable. AssistantMenu was removed entirely by relocate-dataexchange-remove-assistant."
 }

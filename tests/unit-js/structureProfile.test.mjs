@@ -325,21 +325,43 @@ const PLANNING = [
 	'InvigilatorAssignmentsMenu',
 	'InvigilatorAvailabilityMenu',
 ]
+/**
+ * The teaching doors an administrator and the administration lose: the boards
+ * draw their sidebar as hr's (specs/navigation, "The sidebar shows the items
+ * drawn for the signed-in role"), so Lessons, Grades, Progress and Timetables
+ * are no longer in their simple menu.
+ */
+const TEACHING = [
+	'Assessments',
+	'CareTeamOverviewMenu',
+	'Courses',
+	'Curriculum',
+	'Grades',
+	'GroupLearning',
+	'GroupProgress',
+	'ImportedCoursesMenu',
+	'LearningPlans',
+	'ReportCardsMenu',
+	'TimetablesMenu',
+]
 const KNOWN_UNLINKED = {
 	admin: [
 		...CONCERN,
 		...PLANNING,
+		...TEACHING,
 		'AdmissionsReviewBoardMenu',
+		'BehaviourIncidentsMenu',
 		'BookConferenceSlotsMenu',
-		'CatalogueMenu',
 		'CheckInMenu',
 		'ConferenceScheduleBoardMenu',
+		'DossierNotesMenu',
 		'ExamAccommodationsMenu',
-		'GroupPeople',
+		'FirstAidIncidentsMenu',
+		'GradeCorrectionsMenu',
+		'GroupPlans',
 		'HourPlanActivitiesMenu',
 		'MyElectivesMenu',
 		'MyEvaluationsMenu',
-		'MyLearningRecordMenu',
 		'MyWorkGroupsMenu',
 		'RegulationExemptionsMenu',
 		'SchoolAdviezenMenu',
@@ -347,8 +369,11 @@ const KNOWN_UNLINKED = {
 		'StandbyPlanningMenu',
 		'SubjectChoicePickerMenu',
 		'SubjectChoicesMenu',
+		'SupportRequests',
 		'TeacherAvailabilitiesMenu',
 		'TimetableConflictQueueMenu',
+		'TrajectoriesMenu',
+		'WellbeingCheckInsMenu',
 	],
 	'compliance-officer': [
 		...CONCERN,
@@ -360,19 +385,22 @@ const KNOWN_UNLINKED = {
 	'administration-manager': [
 		...CONCERN,
 		...PLANNING,
+		...TEACHING,
 		'AdmissionsReviewBoardMenu',
-		'CatalogueMenu',
 		'ConferenceScheduleBoardMenu',
+		'DossierReviewsMenu',
 		'ExamAccommodationsMenu',
+		'ExchangeJobsMenu',
+		'ExchangeRejectionsMenu',
 		'GradeCorrectionsMenu',
 		'GroupPlans',
-		'MyLearningRecordMenu',
 		'SchoolAdviezenMenu',
 		'SchoolEventsMenu',
 		'StandbyPlanningMenu',
 		'SubjectChoicesMenu',
 		'SupportRequests',
 		'TeacherAvailabilitiesMenu',
+		'TeldatumChecksMenu',
 		'TrajectoriesMenu',
 	],
 	'team-lead': [
@@ -484,13 +512,11 @@ const SIMPLE_MAIN_BY_ROLE = {
 	'administration-manager': [
 		'Dashboard',
 		'GroupMyLearning',
-		'GroupsSimple',
 		'MyTimetableMenu',
-		'TimetablesMenu',
-		'GroupLearning',
+		'CatalogueMenu',
+		'MyLearningRecordMenu',
 		'LearnersSimple',
 		'AttendanceSimple',
-		'GroupProgress',
 		'GroupPeople',
 	],
 	learner: [
@@ -516,15 +542,12 @@ const SIMPLE_MAIN_BY_ROLE = {
 	admin: [
 		'Dashboard',
 		'GroupMyLearning',
-		'GroupsSimple',
 		'MyTimetableMenu',
-		'TimetablesMenu',
-		'GroupLearning',
-		'GradesSimple',
+		'CatalogueMenu',
+		'MyLearningRecordMenu',
 		'LearnersSimple',
 		'AttendanceSimple',
-		'GroupProgress',
-		'CareSimple',
+		'GroupPeople',
 		'GroupCompliance',
 	],
 }
@@ -569,10 +592,10 @@ test('the full profile is exactly the plain manifest build', () => {
 	const count = (section) =>
 		entries.filter((item) => sectionOf(item) === section).length
 	assert.equal(entries.length, 108)
-	assert.equal(plain.menu.length, 25)
+	assert.equal(plain.menu.length, 26)
 	assert.deepEqual(
 		[count('main'), count('footer'), count('settings')],
-		[100, 3, 5],
+		[99, 2, 7],
 	)
 	// 347 since the four unreached pages (BulkEnrol, CohortTimetable,
 	// MarkAttendanceView, SubmitExcuseModal) became actions.
@@ -688,8 +711,8 @@ test('the simple menu is flat, in order, and under two captions', () => {
 	assert.deepEqual(
 		main.filter(isCaption).map((item) => item.label),
 		// LqDashboard: Today, My learning and Groups sit at the top with no
-		// caption above them; the board's first caption is Onderwijs.
-		['Teaching', 'Learners'],
+		// caption above them; the captions read Onderwijs and Leerlingen.
+		['Learning', 'Learners'],
 	)
 	const orders = main.map((item) => item.order)
 	assert.equal(new Set(orders).size, orders.length, 'two entries share an order')
@@ -794,13 +817,12 @@ test('the simple menu never shows a role a page the full menu does not show it',
 
 test('the new door opens for the roles that already had the pages next to it', () => {
 	// Cohorts had no menu entry. It borrows the gate of Learning, the entry
-	// its lists sit under in the full menu.
+	// its lists sit under in the full menu, narrowed to the roles whose
+	// sidebar the boards draw with Groepen.
 	const entry = SIMPLE.menu.find((item) => item.id === 'GroupsSimple')
 	assert.deepEqual(entry.visibleIf['user.primaryRole'].in, [
 		'instructor',
 		'coordinator',
-		'administration-manager',
-		'admin',
 	])
 })
 
@@ -1834,4 +1856,57 @@ test('pupils and guardians get Report a concern as a button on their start page,
 	// The start page hands the buttons to its dashboard.
 	const source = readText('src/views/LearniqDashboards.vue')
 	assert.match(source, /:headerActions="headerActions"/)
+})
+
+/**
+ * The foldout of one role in the order CnAppNav draws it: the settings
+ * section by order, then the footer entries a declared footer leaves out.
+ *
+ * @param {string} role The primary role.
+ * @return {Array<string>} Labels, captions prefixed with `#`.
+ */
+function foldoutOf(role) {
+	const items = shown(build(SIMPLE, role)).sort((a, b) => a.order - b.order)
+	const label = (item) => (isCaption(item) ? '#' : '') + item.label
+	return [
+		...items.filter((item) => sectionOf(item) === 'settings'),
+		...items.filter((item) => sectionOf(item) === 'footer'),
+	].map(label)
+}
+
+test('the foldout groups as the board draws it: roadmap and marketplace under About the app', () => {
+	const fold = foldoutOf('admin')
+	const about = fold.indexOf('#About the app')
+	assert.deepEqual(fold.slice(0, 4), ['#Reports and automation', 'Reports', 'Flows', 'xAPI statements'])
+	assert.equal(fold[4], '#Set up the app')
+	assert.ok(fold.indexOf('School-year rollover') > 4 && fold.indexOf('School-year rollover') < about)
+	assert.deepEqual(fold.slice(about, about + 3), ['#About the app', 'Store', 'Features & roadmap'])
+	assert.deepEqual(SIMPLE.nav.footer, ['settings', 'help'])
+	assert.ok(FULL.settingsSection.includes('FeaturesRoadmapMenu'))
+})
+
+test('Exchanges is one admin-only foldout entry that opens the jobs and links the gate pages', () => {
+	for (const layout of [FULL, SIMPLE]) {
+		assert.ok(layout.settingsSection.includes('DataExchange'))
+		assert.ok(!layout.settingsSection.includes('ImportExportToolsMenu'))
+	}
+	for (const role of ROLES) {
+		const entry = shown(build(SIMPLE, role)).find((item) => item.id === 'DataExchange')
+		assert.equal(!!entry, role === 'admin', role)
+		assert.equal(entry?.section ?? 'settings', 'settings', role)
+	}
+	const jobs = build(SIMPLE, 'admin').pages.find((page) => page.id === 'ExchangeJobs')
+	assert.equal(jobs.route, '/data-exchange/jobs')
+	assert.deepEqual(
+		jobs.config.headerActions.map((action) => action.route),
+		['ExchangeRejections', 'TeldatumChecks', 'DossierReviews'],
+	)
+})
+
+test('learners and guardians get no Learners caption', () => {
+	for (const role of ['learner', 'guardian']) {
+		const captions = shown(build(SIMPLE, role)).filter(isCaption).map((item) => item.id)
+		assert.ok(!captions.includes('LearnersCaption'), role)
+		assert.ok(captions.includes('TeachingCaption'), role)
+	}
 })
