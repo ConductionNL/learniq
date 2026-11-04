@@ -35,6 +35,7 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\CallerActions;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CoursePackageImportService;
 use OCP\AppFramework\Controller;
@@ -56,12 +57,25 @@ use OCP\IUserSession;
  */
 class CoursePackageImportController extends Controller {
 	/**
+	 * Nextcloud user session.
+	 *
+	 * @var IUserSession
+	 */
+	private readonly IUserSession $userSession;
+
+	/**
+	 * ADR-023 action authorization service.
+	 *
+	 * @var ActionAuthService
+	 */
+	private readonly ActionAuthService $actionAuth;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IRequest $request HTTP request.
 	 * @param CoursePackageImportService $importService Course-package import service.
-	 * @param IUserSession $userSession Nextcloud user session.
-	 * @param ActionAuthService $actionAuth ADR-023 action authorization service.
+	 * @param CallerActions $caller The user session and the ADR-023 action matrix.
 	 * @param CallerTenantResolver $tenants Resolves the tenant: the per-user binding, else the default tenant.
 	 *
 	 * @return void
@@ -69,10 +83,11 @@ class CoursePackageImportController extends Controller {
 	public function __construct(
 		IRequest $request,
 		private readonly CoursePackageImportService $importService,
-		private readonly IUserSession $userSession,
-		private readonly ActionAuthService $actionAuth,
+		CallerActions $caller,
 		private readonly CallerTenantResolver $tenants,
 	) {
+		$this->userSession = $caller->userSession;
+		$this->actionAuth = $caller->actionAuth;
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
 
