@@ -17,3 +17,5 @@
 - esdoornveen/Documenten documenten https://identity.conduction.nl/screens/board?id=esdoornveen/Documenten
 - warmtepompacademie/LqDetail deelnemer Tom Verbeek https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqDetail
 - learniq/LqCursusInstellingen cursus bewerken (docent) https://identity.conduction.nl/screens/board?id=learniq/LqCursusInstellingen
+
+Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAppNav, CnAuditTrailCard, CnBreadcrumbs, CnBuildiqEditButton, CnBulkJobProgress, CnConfirmDialog, CnConversationThread, CnDashboardPage, CnDataTable, CnDeleteDialog, CnDetailCard, CnDetailGrid, CnDetailPage, CnFileField, CnFilterBar, CnFormDialog, CnIndexPage, CnJsonViewer, CnKpiGrid, CnMassActionBar, CnMassImportDialog, CnNextStepCard, CnNoteCard, CnObjectListWidget, CnPageHeader, CnPagination, CnProgressBar, CnQuickFilterBar, CnRelatedCollections, CnRowActions, CnSettingsPage, CnSettingsSection, CnStatsBlock, CnStatusBadge, CnSubObjectsField, CnTableWidget, CnTabs, CnTimelineStages, CnWidgetWrapper

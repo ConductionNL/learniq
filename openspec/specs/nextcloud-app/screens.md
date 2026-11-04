@@ -7,3 +7,5 @@
 - vaartveld/AppZijbalk app-zijbalk https://identity.conduction.nl/screens/board?id=vaartveld/AppZijbalk
 - warmtepompacademie/AppZijbalk app-zijbalk https://identity.conduction.nl/screens/board?id=warmtepompacademie/AppZijbalk
 - wilgenboom/AppZijbalk app-zijbalk https://identity.conduction.nl/screens/board?id=wilgenboom/AppZijbalk
+
+Components: CnActionButtons, CnAppNav, CnBreadcrumbs, CnBuildiqEditButton, CnDashboardGrid, CnDashboardPage, CnDataTable, CnDetailGrid, CnJsonViewer, CnKpiGrid, CnNextStepCard, CnNoteCard, CnObjectListWidget, CnPageHeader, CnRelatedCollections, CnSegmentedControl, CnSettingsPage, CnSettingsSection, CnSetupWizard, CnStatsBlock, CnStatusBadge, CnSubObjectsField, CnWidgetWrapper, CnWizardDialog

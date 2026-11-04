@@ -14,3 +14,5 @@
 - esdoornveen/LqRolC examencommissie https://identity.conduction.nl/screens/board?id=esdoornveen/LqRolC
 - learniq/LqLlCijfers mijn cijfers: het referentieniveau door de jaren heen https://identity.conduction.nl/screens/board?id=learniq/LqLlCijfers
 - vaartveld/Toets Mijn Zuiddrecht: toets met tijd https://identity.conduction.nl/screens/board?id=vaartveld/Toets
+
+Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAppNav, CnAuditTrailCard, CnBreadcrumbs, CnBuildiqEditButton, CnChartWidget, CnChoiceCards, CnDashboardPage, CnDataTable, CnDecisionListWidget, CnDetailCard, CnDetailGrid, CnDetailPage, CnFactsWidget, CnFileField, CnFilterBar, CnFormDialog, CnIndexPage, CnKpiGrid, CnMarkdownWidget, CnNextStepCard, CnNoteCard, CnNoticeWidget, CnObjectListWidget, CnPageHeader, CnPagination, CnProgressBar, CnQuickFilterBar, CnRelatedCollections, CnRowActions, CnSectionsWidget, CnStatGridWidget, CnStatsBlock, CnStatusBadge, CnTabs, CnVideoWidget, CnWidgetWrapper

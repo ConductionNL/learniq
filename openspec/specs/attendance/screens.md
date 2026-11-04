@@ -32,3 +32,5 @@
 - wilgenboom/Berichten berichten https://identity.conduction.nl/screens/board?id=wilgenboom/Berichten
 - learniq/LqVerzuimsignalen verzuimsignalen: de lijst met per signaal de status en de volgende stap https://identity.conduction.nl/screens/board?id=learniq/LqVerzuimsignalen
 - wilgenboom/Verlofaanvraag verlofaanvraag beslissen: toestaan of afwijzen, en doorsturen boven tien schooldagen https://identity.conduction.nl/screens/board?id=wilgenboom/Verlofaanvraag
+
+Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAppNav, CnAuditTrailCard, CnBreadcrumbs, CnBuildiqEditButton, CnChartWidget, CnChoiceCards, CnDashboardGrid, CnDashboardPage, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnFilterBar, CnFormDialog, CnIndexPage, CnKpiGrid, CnMassActionBar, CnNextStepCard, CnNoteCard, CnNotesCard, CnObjectCalendar, CnObjectListWidget, CnPageHeader, CnPagination, CnQuickFilterBar, CnRecordListWidget, CnRelatedCollections, CnRowActions, CnRowMarkList, CnSegmentedControl, CnSettingsPage, CnSettingsSection, CnStatWidget, CnStatsBlock, CnStatusBadge, CnTableWidget, CnTabs, CnTimelineStages, CnWidgetWrapper
