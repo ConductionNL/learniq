@@ -26,6 +26,7 @@ namespace OCA\Learniq\Tests\Unit\PeerReview;
 use OCA\Learniq\Service\PeerReviewAllocationService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\AppFramework\Db\DoesNotExistException;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use ReflectionMethod;
@@ -130,7 +131,7 @@ class PeerReviewAllocationGoldenTest extends TestCase {
 		$service->method('find')->willReturnCallback(
 			static function (...$args) use ($assignment) {
 				if ($assignment === null) {
-					return null;
+					throw new DoesNotExistException('Object not found');
 				}
 
 				return OrEntityFactory::make($assignment, 'assignment');

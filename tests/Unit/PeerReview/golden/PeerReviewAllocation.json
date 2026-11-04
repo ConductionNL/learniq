@@ -76,7 +76,7 @@
                 "object": {
                     "assignmentId": "a1",
                     "submissionId": "s2",
-                    "reviewerId": "gina",
+                    "reviewerId": "hank",
                     "rubricScores": [],
                     "lifecycle": "assigned",
                     "tenant_id": ""
@@ -134,7 +134,7 @@
         {
             "result": {
                 "strategy": "round-robin",
-                "submissionsProcessed": 6,
+                "submissionsProcessed": 5,
                 "createdCount": 7
             }
         }
@@ -216,21 +216,6 @@
                 "object": {
                     "assignmentId": "a1",
                     "submissionId": "s2",
-                    "reviewerId": "gina",
-                    "rubricScores": [],
-                    "lifecycle": "assigned",
-                    "tenant_id": ""
-                },
-                "register": "learniq",
-                "schema": "peer-review",
-                "_rbac": false
-            }
-        },
-        {
-            "saveObject": {
-                "object": {
-                    "assignmentId": "a1",
-                    "submissionId": "s2",
                     "reviewerId": "hank",
                     "rubricScores": [],
                     "lifecycle": "assigned",
@@ -260,11 +245,11 @@
             "saveObject": {
                 "object": {
                     "assignmentId": "a1",
-                    "submissionId": "s6",
+                    "submissionId": "s2",
                     "reviewerId": "bob",
                     "rubricScores": [],
                     "lifecycle": "assigned",
-                    "tenant_id": "t1"
+                    "tenant_id": ""
                 },
                 "register": "learniq",
                 "schema": "peer-review",
@@ -305,23 +290,8 @@
             "saveObject": {
                 "object": {
                     "assignmentId": "a1",
-                    "submissionId": "s3",
+                    "submissionId": "s6",
                     "reviewerId": "erin",
-                    "rubricScores": [],
-                    "lifecycle": "assigned",
-                    "tenant_id": "t1"
-                },
-                "register": "learniq",
-                "schema": "peer-review",
-                "_rbac": false
-            }
-        },
-        {
-            "saveObject": {
-                "object": {
-                    "assignmentId": "a1",
-                    "submissionId": "s3",
-                    "reviewerId": "gina",
                     "rubricScores": [],
                     "lifecycle": "assigned",
                     "tenant_id": "t1"
@@ -350,7 +320,7 @@
             "saveObject": {
                 "object": {
                     "assignmentId": "a1",
-                    "submissionId": "s4",
+                    "submissionId": "s3",
                     "reviewerId": "ann",
                     "rubricScores": [],
                     "lifecycle": "assigned",
@@ -365,7 +335,7 @@
             "saveObject": {
                 "object": {
                     "assignmentId": "a1",
-                    "submissionId": "s4",
+                    "submissionId": "s3",
                     "reviewerId": "bob",
                     "rubricScores": [],
                     "lifecycle": "assigned",
@@ -392,9 +362,39 @@
             }
         },
         {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s4",
+                    "reviewerId": "dave",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s4",
+                    "reviewerId": "hank",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
             "result": {
                 "strategy": "round-robin",
-                "submissionsProcessed": 6,
+                "submissionsProcessed": 5,
                 "createdCount": 15
             }
         }
@@ -431,7 +431,7 @@
                 "object": {
                     "assignmentId": "a1",
                     "submissionId": "s1",
-                    "reviewerId": "dave",
+                    "reviewerId": "erin",
                     "rubricScores": [],
                     "lifecycle": "assigned",
                     "tenant_id": "t1"
@@ -446,7 +446,7 @@
                 "object": {
                     "assignmentId": "a1",
                     "submissionId": "s2",
-                    "reviewerId": "erin",
+                    "reviewerId": "bob",
                     "rubricScores": [],
                     "lifecycle": "assigned",
                     "tenant_id": ""
@@ -461,7 +461,7 @@
                 "object": {
                     "assignmentId": "a1",
                     "submissionId": "s6",
-                    "reviewerId": "ann",
+                    "reviewerId": "carol",
                     "rubricScores": [],
                     "lifecycle": "assigned",
                     "tenant_id": "t1"
@@ -474,7 +474,7 @@
         {
             "result": {
                 "strategy": "random",
-                "submissionsProcessed": 6,
+                "submissionsProcessed": 5,
                 "createdCount": 3
             }
         }
