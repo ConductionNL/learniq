@@ -234,18 +234,13 @@ class EngagementSignalJob extends ForwardedJob {
 			]
 		);
 
+		$scope = ['learnerId' => $learnerId, 'courseId' => $courseId, 'tenantId' => $tenantId, 'engagementScore' => $engagementScore];
 		foreach ($thresholds as $threshold) {
 			if (is_array($threshold) === false) {
 				$threshold = $threshold->jsonSerialize();
 			}
 
-			$this->checkThreshold(
-				threshold: $threshold,
-				learnerId: $learnerId,
-				courseId: $courseId,
-				tenantId: $tenantId,
-				engagementScore: $engagementScore
-			);
+			$this->checkThreshold(threshold: $threshold, scope: $scope);
 		}
 
 	}//end checkThresholds()
@@ -256,22 +251,15 @@ class EngagementSignalJob extends ForwardedJob {
 	 * exists for this learner+threshold.
 	 *
 	 * @param array<string, mixed> $threshold EngagementRiskThreshold data.
-	 * @param string $learnerId NC user ID of the learner.
-	 * @param string $courseId UUID of the Course in context.
-	 * @param string $tenantId Tenant identifier.
-	 * @param array<string, mixed> $engagementScore The just-recomputed EngagementScore data.
+	 * @param array<string, mixed> $scope     `learnerId` (NC user ID), `courseId` (the Course in context),
+	 *                                        `tenantId` and `engagementScore` (the just-recomputed EngagementScore data).
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/specs/student-analytics/spec.md#scenario-a-resolved-flag-does-not-block-re-flagging-on-a-later-relapse
 	 */
-	private function checkThreshold(
-		array $threshold,
-		string $learnerId,
-		string $courseId,
-		string $tenantId,
-		array $engagementScore,
-	): void {
+	private function checkThreshold(array $threshold, array $scope): void {
+		['learnerId' => $learnerId, 'courseId' => $courseId, 'tenantId' => $tenantId, 'engagementScore' => $engagementScore] = $scope;
 		$cohortId = $threshold['cohortId'] ?? null;
 		if ($cohortId !== null && $this->learnerInCohort(learnerId: $learnerId, cohortId: $cohortId) === false) {
 			// Threshold is scoped to a Cohort the learner does not belong to.

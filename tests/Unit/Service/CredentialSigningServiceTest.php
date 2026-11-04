@@ -154,14 +154,18 @@ class CredentialSigningServiceTest extends TestCase {
 		$service = $this->makeService('tenant-1');
 
 		$payload = $service->buildOb3Payload(
-			credentialId: 'cred-001',
-			learnerId: 'learner-42',
-			courseId: null,
-			issuedAt: '2026-01-01T00:00:00+00:00',
-			expiresAt: null,
-			issuerDid: 'did:web:learniq:tenant-1:aabbcc',
-			issuedBy: 'Test School',
-			verificationUrl: 'https://example.test/api/credentials/cred-001/verify',
+			credential: [
+				'credentialId' => 'cred-001',
+				'learnerId' => 'learner-42',
+				'courseId' => null,
+				'issuedAt' => '2026-01-01T00:00:00+00:00',
+				'expiresAt' => null,
+			],
+			issuer: [
+				'issuerDid' => 'did:web:learniq:tenant-1:aabbcc',
+				'issuedBy' => 'Test School',
+				'verificationUrl' => 'https://example.test/api/credentials/cred-001/verify',
+			],
 		);
 
 		$jws = $service->signPayload($payload, 'tenant-1');
@@ -186,14 +190,18 @@ class CredentialSigningServiceTest extends TestCase {
 		$service = $this->makeService('tenant-1');
 
 		$payload = $service->buildOb3Payload(
-			credentialId: 'cred-001',
-			learnerId: 'learner-42',
-			courseId: null,
-			issuedAt: '2026-01-01T00:00:00+00:00',
-			expiresAt: null,
-			issuerDid: 'did:web:learniq:tenant-1:aabbcc',
-			issuedBy: 'Test School',
-			verificationUrl: 'https://example.test/api/credentials/cred-001/verify',
+			credential: [
+				'credentialId' => 'cred-001',
+				'learnerId' => 'learner-42',
+				'courseId' => null,
+				'issuedAt' => '2026-01-01T00:00:00+00:00',
+				'expiresAt' => null,
+			],
+			issuer: [
+				'issuerDid' => 'did:web:learniq:tenant-1:aabbcc',
+				'issuedBy' => 'Test School',
+				'verificationUrl' => 'https://example.test/api/credentials/cred-001/verify',
+			],
 		);
 
 		$jws = $service->signPayload($payload, 'tenant-1');
@@ -221,14 +229,18 @@ class CredentialSigningServiceTest extends TestCase {
 		$service = $this->makeService('tenant-1');
 
 		$payload = $service->buildOb3Payload(
-			credentialId: 'cred-001',
-			learnerId: 'learner-42',
-			courseId: null,
-			issuedAt: '2026-01-01T00:00:00+00:00',
-			expiresAt: null,
-			issuerDid: 'did:web:learniq:tenant-1:aabbcc',
-			issuedBy: 'Test School',
-			verificationUrl: 'https://example.test/api/credentials/cred-001/verify',
+			credential: [
+				'credentialId' => 'cred-001',
+				'learnerId' => 'learner-42',
+				'courseId' => null,
+				'issuedAt' => '2026-01-01T00:00:00+00:00',
+				'expiresAt' => null,
+			],
+			issuer: [
+				'issuerDid' => 'did:web:learniq:tenant-1:aabbcc',
+				'issuedBy' => 'Test School',
+				'verificationUrl' => 'https://example.test/api/credentials/cred-001/verify',
+			],
 		);
 
 		$jws = $service->signPayload($payload, 'tenant-1');
@@ -264,14 +276,18 @@ class CredentialSigningServiceTest extends TestCase {
 		$service = $this->makeService('tenant-1');
 
 		$payload = $service->buildOb3Payload(
-			credentialId: 'cred-rtrip',
-			learnerId: 'learner-99',
-			courseId: 'course-77',
-			issuedAt: '2026-06-01T00:00:00+00:00',
-			expiresAt: '2027-06-01T00:00:00+00:00',
-			issuerDid: 'did:web:learniq:tenant-1:aabbcc',
-			issuedBy: 'Round-Trip School',
-			verificationUrl: 'https://example.test/api/credentials/cred-rtrip/verify',
+			credential: [
+				'credentialId' => 'cred-rtrip',
+				'learnerId' => 'learner-99',
+				'courseId' => 'course-77',
+				'issuedAt' => '2026-06-01T00:00:00+00:00',
+				'expiresAt' => '2027-06-01T00:00:00+00:00',
+			],
+			issuer: [
+				'issuerDid' => 'did:web:learniq:tenant-1:aabbcc',
+				'issuedBy' => 'Round-Trip School',
+				'verificationUrl' => 'https://example.test/api/credentials/cred-rtrip/verify',
+			],
 		);
 
 		$jws = $service->signPayload($payload, 'tenant-1');

@@ -371,6 +371,7 @@ class EngagementSignalJobTest extends TestCase {
 		self::assertSame('threshold-1', $flags[0]['engagementRiskThresholdId']);
 		self::assertSame('open', $flags[0]['lifecycle']);
 		self::assertSame(20.0, $flags[0]['metricValueAtFlag']);
+		self::assertSame(['course-1', 'tenant-a'], [$flags[0]['courseId'], $flags[0]['tenant_id']]);
 
 	}//end testFlagCreatedOnFirstCrossing()
 
