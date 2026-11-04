@@ -20,11 +20,9 @@
 -->
 
 <template>
-	<div class="timetable-conflict-queue">
+	<div class="timetable-conflict-queue lq-board-page">
 		<header class="timetable-conflict-queue__header">
-			<h2 class="timetable-conflict-queue__title">
-				{{ t('learniq', 'Timetable conflicts') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Timetable conflicts')" />
 			<p class="timetable-conflict-queue__subtitle">
 				{{
 					t(
@@ -81,65 +79,68 @@
 			</template>
 		</NcEmptyContent>
 
-		<ul v-else class="timetable-conflict-queue__list">
-			<li
-				v-for="conflict in visibleConflicts"
-				:key="conflict.id"
-				class="timetable-conflict-queue__item"
-				:class="'timetable-conflict-queue__item--' + conflict.severity">
-				<div class="timetable-conflict-queue__info">
-					<span class="timetable-conflict-queue__kind">{{
-						/**
-						 * @spec openspec/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
-						 */
-						kindLabel(conflict.kind)
-					}}</span>
-					<span class="timetable-conflict-queue__severity">{{
-						conflict.severity
-					}}</span>
-					<span class="timetable-conflict-queue__sessions">
-						{{
-							t('learniq', 'Sessions: {ids}', {
-								ids: (conflict.sessionIds || []).join(', '),
-							})
-						}}
-					</span>
-					<span class="timetable-conflict-queue__detected">{{
-						/**
-						 * @spec openspec/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
-						 */
-						formatDate(conflict.detectedAt)
-					}}</span>
-				</div>
+		<CnDetailCard v-else flush>
+			<ul class="timetable-conflict-queue__list">
+				<li
+					v-for="conflict in visibleConflicts"
+					:key="conflict.id"
+					class="timetable-conflict-queue__item"
+					:class="'timetable-conflict-queue__item--' + conflict.severity">
+					<div class="timetable-conflict-queue__info">
+						<span class="timetable-conflict-queue__kind">{{
+							/**
+							 * @spec openspec/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
+							 */
+							kindLabel(conflict.kind)
+						}}</span>
+						<span class="timetable-conflict-queue__severity">{{
+							conflict.severity
+						}}</span>
+						<span class="timetable-conflict-queue__sessions">
+							{{
+								t('learniq', 'Sessions: {ids}', {
+									ids: (conflict.sessionIds || []).join(', '),
+								})
+							}}
+						</span>
+						<span class="timetable-conflict-queue__detected">{{
+							/**
+							 * @spec openspec/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
+							 */
+							formatDate(conflict.detectedAt)
+						}}</span>
+					</div>
 
-				<div class="timetable-conflict-queue__actions">
-					<template v-if="conflict.lifecycle === 'open'">
+					<div class="timetable-conflict-queue__actions">
+						<template v-if="conflict.lifecycle === 'open'">
+							<NcButton
+								:disabled="savingId === conflict.id"
+								@click="transition(conflict, 'acknowledged')">
+								{{ t('learniq', 'Acknowledge') }}
+							</NcButton>
+						</template>
 						<NcButton
+							variant="primary"
 							:disabled="savingId === conflict.id"
-							@click="transition(conflict, 'acknowledged')">
-							{{ t('learniq', 'Acknowledge') }}
+							@click="transition(conflict, 'resolved')">
+							{{ t('learniq', 'Resolve') }}
 						</NcButton>
-					</template>
-					<NcButton
-						variant="primary"
-						:disabled="savingId === conflict.id"
-						@click="transition(conflict, 'resolved')">
-						{{ t('learniq', 'Resolve') }}
-					</NcButton>
-				</div>
+					</div>
 
-				<p
-					v-if="itemError[conflict.id]"
-					role="alert"
-					class="timetable-conflict-queue__error-inline">
-					{{ itemError[conflict.id] }}
-				</p>
-			</li>
-		</ul>
+					<p
+						v-if="itemError[conflict.id]"
+						role="alert"
+						class="timetable-conflict-queue__error-inline">
+						{{ itemError[conflict.id] }}
+					</p>
+				</li>
+			</ul>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
@@ -150,6 +151,8 @@ export default {
 	name: 'TimetableConflictQueue',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
@@ -340,22 +343,6 @@ export default {
 </script>
 
 <style scoped>
-.timetable-conflict-queue {
-	max-width: 900px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.timetable-conflict-queue__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.timetable-conflict-queue__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-}
-
 .timetable-conflict-queue__subtitle {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9em;
@@ -370,6 +357,7 @@ export default {
 }
 
 .timetable-conflict-queue__list {
+	margin: 0;
 	list-style: none;
 	padding: 0;
 }
@@ -379,11 +367,12 @@ export default {
 	flex-wrap: wrap;
 	align-items: center;
 	gap: calc(var(--default-grid-baseline, 8px) * 2);
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-	margin-bottom: var(--default-grid-baseline, 8px);
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius, 4px);
+	padding: 16px 18px;
+	border-top: 1px solid var(--color-border);
+}
+
+.timetable-conflict-queue__item:first-child {
+	border-top: none;
 }
 
 .timetable-conflict-queue__item--error {

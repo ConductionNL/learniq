@@ -37,27 +37,12 @@
       "count": 3
     }
   },
-  "src/views/BsaRiskDashboard.vue": {
-    "@nextcloud/l10n-enforce-ellipsis": {
-      "count": 1
-    }
-  },
   "src/views/ConferenceScheduleBoard.vue": {
     "no-console": {
       "count": 4
     }
   },
   "src/views/ExamCaseDossierView.vue": {
-    "@nextcloud/l10n-enforce-ellipsis": {
-      "count": 1
-    }
-  },
-  "src/views/GradeImpactDetail.vue": {
-    "@nextcloud/l10n-enforce-ellipsis": {
-      "count": 1
-    }
-  },
-  "src/views/GroupPlanSubgroupLearnerContext.vue": {
     "@nextcloud/l10n-enforce-ellipsis": {
       "count": 1
     }
@@ -70,11 +55,6 @@
   "src/views/ItemAnalysisView.vue": {
     "@nextcloud/l10n-enforce-ellipsis": {
       "count": 1
-    }
-  },
-  "src/views/ItemAuthorView.vue": {
-    "@nextcloud/l10n-enforce-ellipsis": {
-      "count": 3
     }
   },
   "src/views/MarkSubmissionView.vue": {
@@ -95,11 +75,6 @@
       "count": 2
     },
     "eqeqeq": {
-      "count": 1
-    }
-  },
-  "src/views/PortfolioBuilder.vue": {
-    "@nextcloud/l10n-enforce-ellipsis": {
       "count": 1
     }
   },
@@ -124,16 +99,8 @@
     }
   },
   "src/views/SelfAssessmentView.vue": {
-    "@nextcloud/l10n-enforce-ellipsis": {
-      "count": 2
-    },
     "eqeqeq": {
       "count": 2
-    }
-  },
-  "src/views/SkillsGapDashboard.vue": {
-    "@nextcloud/l10n-enforce-ellipsis": {
-      "count": 1
     }
   },
   "src/views/TakeAssessmentView.vue": {
@@ -150,14 +117,6 @@
   "src/views/TimetableConflictQueue.vue": {
     "no-console": {
       "count": 2
-    }
-  },
-  "src/views/settings/Settings.vue": {
-    "@nextcloud/l10n-enforce-ellipsis": {
-      "count": 1
-    },
-    "vue/multi-word-component-names": {
-      "count": 1
     }
   }
 }

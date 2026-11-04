@@ -1,3 +1,3 @@
 # Screens
 
-- MijnOverzicht https://identity.conduction.nl/screens/board?id=esdoornveen/MijnOverzicht
+- esdoornveen/MijnOverzicht overzicht https://identity.conduction.nl/screens/board?id=esdoornveen/MijnOverzicht

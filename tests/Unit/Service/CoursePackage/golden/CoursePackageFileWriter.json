@@ -1,0 +1,321 @@
+{
+    "href null": {
+        "ref": null,
+        "calls": [],
+        "log": []
+    },
+    "href a directory": {
+        "ref": null,
+        "calls": [],
+        "log": []
+    },
+    "href missing": {
+        "ref": null,
+        "calls": [],
+        "log": []
+    },
+    "href a file, new folders": {
+        "ref": "/Learniq/t-1/course-imports/sheet.pdf",
+        "calls": [
+            {
+                "getUserFolder": "anna"
+            },
+            {
+                "get": "Learniq"
+            },
+            {
+                "newFolder": "Learniq"
+            },
+            {
+                "get": "Learniq/t-1"
+            },
+            {
+                "newFolder": "Learniq/t-1"
+            },
+            {
+                "get": "Learniq/t-1/course-imports"
+            },
+            {
+                "newFolder": "Learniq/t-1/course-imports"
+            },
+            {
+                "nodeExists": "Learniq/t-1/course-imports/sheet.pdf"
+            },
+            {
+                "newFile": [
+                    "Learniq/t-1/course-imports/sheet.pdf",
+                    "PDF bytes"
+                ]
+            }
+        ],
+        "log": []
+    },
+    "href a file again, existing": {
+        "ref": "/Learniq/t-1/course-imports/sheet.pdf",
+        "calls": [
+            {
+                "getUserFolder": "anna"
+            },
+            {
+                "get": "Learniq"
+            },
+            {
+                "get": "Learniq/t-1"
+            },
+            {
+                "get": "Learniq/t-1/course-imports"
+            },
+            {
+                "nodeExists": "Learniq/t-1/course-imports/sheet.pdf"
+            },
+            {
+                "get": "Learniq/t-1/course-imports/sheet.pdf"
+            },
+            {
+                "putContent": [
+                    "Learniq/t-1/course-imports/sheet.pdf",
+                    "PDF bytes"
+                ]
+            }
+        ],
+        "log": []
+    },
+    "href nested, no tenant": {
+        "ref": "/Learniq/default/course-imports/inner.txt",
+        "calls": [
+            {
+                "getUserFolder": "anna"
+            },
+            {
+                "get": "Learniq"
+            },
+            {
+                "get": "Learniq/default"
+            },
+            {
+                "newFolder": "Learniq/default"
+            },
+            {
+                "get": "Learniq/default/course-imports"
+            },
+            {
+                "newFolder": "Learniq/default/course-imports"
+            },
+            {
+                "nodeExists": "Learniq/default/course-imports/inner.txt"
+            },
+            {
+                "newFile": [
+                    "Learniq/default/course-imports/inner.txt",
+                    "inner"
+                ]
+            }
+        ],
+        "log": []
+    },
+    "base64 invalid": {
+        "ref": null,
+        "calls": [],
+        "log": []
+    },
+    "base64 title cleaned": {
+        "ref": "/Learniq/t-2/course-imports/Les-1-Breuken-delen-.png",
+        "calls": [
+            {
+                "getUserFolder": "bert"
+            },
+            {
+                "get": "Learniq"
+            },
+            {
+                "newFolder": "Learniq"
+            },
+            {
+                "get": "Learniq/t-2"
+            },
+            {
+                "newFolder": "Learniq/t-2"
+            },
+            {
+                "get": "Learniq/t-2/course-imports"
+            },
+            {
+                "newFolder": "Learniq/t-2/course-imports"
+            },
+            {
+                "nodeExists": "Learniq/t-2/course-imports/Les-1-Breuken-delen-.png"
+            },
+            {
+                "newFile": [
+                    "Learniq/t-2/course-imports/Les-1-Breuken-delen-.png",
+                    "abc"
+                ]
+            }
+        ],
+        "log": []
+    },
+    "base64 title empty": {
+        "ref": "/Learniq/t-2/course-imports/material",
+        "calls": [
+            {
+                "getUserFolder": "bert"
+            },
+            {
+                "get": "Learniq"
+            },
+            {
+                "get": "Learniq/t-2"
+            },
+            {
+                "get": "Learniq/t-2/course-imports"
+            },
+            {
+                "nodeExists": "Learniq/t-2/course-imports/material"
+            },
+            {
+                "newFile": [
+                    "Learniq/t-2/course-imports/material",
+                    "abc"
+                ]
+            }
+        ],
+        "log": []
+    },
+    "base64 title all dashes": {
+        "ref": "/Learniq/t-2/course-imports/-",
+        "calls": [
+            {
+                "getUserFolder": "bert"
+            },
+            {
+                "get": "Learniq"
+            },
+            {
+                "get": "Learniq/t-2"
+            },
+            {
+                "get": "Learniq/t-2/course-imports"
+            },
+            {
+                "nodeExists": "Learniq/t-2/course-imports/-"
+            },
+            {
+                "newFile": [
+                    "Learniq/t-2/course-imports/-",
+                    ""
+                ]
+            }
+        ],
+        "log": []
+    },
+    "bytes over a folder node": {
+        "ref": "/Learniq/t-2/course-imports/folder-node",
+        "calls": [
+            {
+                "getUserFolder": "bert"
+            },
+            {
+                "get": "Learniq"
+            },
+            {
+                "get": "Learniq/t-2"
+            },
+            {
+                "get": "Learniq/t-2/course-imports"
+            },
+            {
+                "nodeExists": "Learniq/t-2/course-imports/folder-node"
+            },
+            {
+                "get": "Learniq/t-2/course-imports/folder-node"
+            }
+        ],
+        "log": []
+    },
+    "bytes for an unknown user": {
+        "ref": null,
+        "calls": [
+            {
+                "getUserFolder": "ghost"
+            }
+        ],
+        "log": [
+            {
+                "level": "warning",
+                "message": "[CoursePackageFileWriter] Could not write resolved file \"{filename}\": {msg}",
+                "context": {
+                    "filename": "a.txt",
+                    "msg": "no such user"
+                }
+            }
+        ]
+    },
+    "bytes when the file cannot be made": {
+        "ref": null,
+        "calls": [
+            {
+                "getUserFolder": "bert"
+            },
+            {
+                "get": "Learniq"
+            },
+            {
+                "get": "Learniq/t-2"
+            },
+            {
+                "get": "Learniq/t-2/course-imports"
+            },
+            {
+                "nodeExists": "Learniq/t-2/course-imports/b.txt"
+            },
+            {
+                "newFile": [
+                    "Learniq/t-2/course-imports/b.txt",
+                    "boom"
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "warning",
+                "message": "[CoursePackageFileWriter] Could not write resolved file \"{filename}\": {msg}",
+                "context": {
+                    "filename": "b.txt",
+                    "msg": "disk full"
+                }
+            }
+        ]
+    },
+    "bytes when a folder cannot be made": {
+        "ref": null,
+        "calls": [
+            {
+                "getUserFolder": "locked"
+            },
+            {
+                "get": "Learniq"
+            },
+            {
+                "newFolder": "Learniq"
+            }
+        ],
+        "log": [
+            {
+                "level": "warning",
+                "message": "[CoursePackageFileWriter] Could not write resolved file \"{filename}\": {msg}",
+                "context": {
+                    "filename": "a.txt",
+                    "msg": "read only"
+                }
+            }
+        ]
+    },
+    "remove a file path keeps it": true,
+    "remove the tree": [
+        false,
+        false,
+        false,
+        false,
+        false
+    ]
+}
