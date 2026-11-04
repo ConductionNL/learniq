@@ -35,6 +35,9 @@
 		<template #tab-store>
 			<StoreRegistrySettingsSection />
 		</template>
+		<template #tab-exam-board>
+			<ExamBoardSettingsSection />
+		</template>
 		<template #tab-ai-translations>
 			<AiTranslationReviewSection />
 		</template>
@@ -49,6 +52,7 @@ import ActionAuthMatrix from '../../components/admin/ActionAuthMatrix.vue'
 import LearniqSettings from '../LearniqSettings.vue'
 import AiTranslationReviewSection from './AiTranslationReviewSection.vue'
 import DataExchangeSettingsSection from './DataExchangeSettingsSection.vue'
+import ExamBoardSettingsSection from './ExamBoardSettingsSection.vue'
 import ExampleDataSettingsSection from './ExampleDataSettingsSection.vue'
 import LtiSettingsSection from './LtiSettingsSection.vue'
 import MenuStructureSection from './MenuStructureSection.vue'
@@ -62,6 +66,7 @@ export default {
 		CnAdminSettingsShell,
 		LearniqSettings,
 		DataExchangeSettingsSection,
+		ExamBoardSettingsSection,
 		ExampleDataSettingsSection,
 		StoreRegistrySettingsSection,
 		TimetableExchangeSettingsSection,
@@ -97,6 +102,7 @@ export default {
 				{ id: 'timetable-exchange', label: this.t('learniq', 'Timetable exchange') },
 				{ id: 'lti', label: this.t('learniq', 'LTI tools') },
 				{ id: 'store', label: this.t('learniq', 'Store') },
+				{ id: 'exam-board', label: this.t('learniq', 'Exam board') },
 				{ id: 'ai-translations', label: this.t('learniq', 'AI translations') },
 			]
 		},

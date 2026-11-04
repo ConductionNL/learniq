@@ -10,7 +10,7 @@
  * `sanctionScope`) — "up to one-year exclusion" per Universiteit Leiden's
  * fraud process (source 6597) and story 10070.
  *
- * `decidedAt` (now) and `appealDeadline` (`decidedAt` + 42 days, the CBE
+ * `decidedAt` (now) and `appealDeadline` (`decidedAt` + the school's appeal term, 42 days by default, the CBE
  * 6-week appeal window named in journey 1745) are stamped by
  * FraudCaseAppealDeadlineAction on the same transition (learniq#983).
  *
@@ -31,7 +31,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-decisions-require-a-verdict-rationale-and-when-fraud-is-proven-a-capped-sanction
- * @spec openspec/specs/exam-board/spec.md#requirement-a-decided-fraudcase-stamps-a-42-day-appeal-deadline
+ * @spec openspec/specs/exam-board/spec.md#requirement-a-decided-fraudcase-stamps-the-appeal-deadline-from-the-schools-appeal-term
  */
 
 declare(strict_types=1);
