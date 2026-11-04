@@ -108,7 +108,8 @@ class PortalEmployerInviteController extends Controller {
 	 */
 	#[NoAdminRequired]
 	public function invite(string $organisationRef, string $organisation='', string $email=''): JSONResponse {
-		if ($this->mayInvite() === false) {
+		$uid = $this->userSession->getUser()?->getUID();
+		if ($uid === null || $this->mayInvite(uid: $uid) === false) {
 			return new JSONResponse(['error' => 'forbidden'], Http::STATUS_FORBIDDEN);
 		}
 
@@ -134,14 +135,11 @@ class PortalEmployerInviteController extends Controller {
 	/**
 	 * Whether the signed-in user may invite an employer.
 	 *
+	 * @param string $uid The signed-in user.
+	 *
 	 * @return bool
 	 */
-	private function mayInvite(): bool {
-		$uid = $this->userSession->getUser()?->getUID();
-		if ($uid === null) {
-			return false;
-		}
-
+	private function mayInvite(string $uid): bool {
 		foreach (self::INVITE_GROUPS as $group) {
 			if ($this->groups->isInGroup($uid, $group) === true) {
 				return true;
