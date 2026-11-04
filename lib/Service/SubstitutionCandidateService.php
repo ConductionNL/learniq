@@ -80,8 +80,8 @@ class SubstitutionCandidateService {
 	 * @spec openspec/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
 	 */
 	public function forSession(array $session, array $cohort): array {
-		$start = $this->parse(value: (string)($session['startsAt'] ?? ''));
-		$end = $this->parse(value: (string)($session['endsAt'] ?? ''));
+		$start = $this->time(row: $session, field: 'startsAt');
+		$end = $this->time(row: $session, field: 'endsAt');
 		if ($start === null || $end === null || $end <= $start) {
 			return [];
 		}
@@ -94,9 +94,9 @@ class SubstitutionCandidateService {
 			'location' => (string)($cohort['locationId'] ?? ''),
 		];
 		$absent = array_map('strval', (array)($cohort['teacherIds'] ?? []));
-		$busy = $this->busyTeachers(start: $start, end: $end, exceptSessionId: (string)($session['id'] ?? ($session['uuid'] ?? '')));
+		$busy = $this->busyTeachers(window: ['start' => $start, 'end' => $end, 'except' => (string)($session['id'] ?? ($session['uuid'] ?? ''))]);
 
-		[$standby, $busyStandby] = $this->standbyCandidates(lesson: $lesson, absent: $absent, busy: $busy);
+		[$standby, $busyStandby] = $this->standbyCandidates(slots: $this->coveringSlots(lesson: $lesson, absent: $absent), busy: $busy);
 		$skip = array_merge(array_keys($standby), array_keys($busyStandby), array_keys($busy), $absent);
 		$free = $this->freeCandidates(weekday: $lesson['weekday'], skip: $skip);
 
@@ -104,30 +104,45 @@ class SubstitutionCandidateService {
 	}//end forSession()
 
 	/**
-	 * The teachers on standby during the lesson: free ones, and those who teach then.
+	 * The standby slots covering the lesson, by teacher; the lesson's own teachers are left out.
 	 *
 	 * @param array<string,string> $lesson The lesson's date, weekday, from, to and location.
 	 * @param array<int,string>    $absent The lesson's own teachers.
-	 * @param array<string,true>   $busy   Teachers with a lesson then.
+	 *
+	 * @return array<string,array<string,mixed>> The last covering slot per uid.
+	 */
+	private function coveringSlots(array $lesson, array $absent): array {
+		$slots = [];
+		foreach ($this->read(schema: 'standby-slot', filters: []) as $slot) {
+			$uid = (string)($slot['teacherId'] ?? '');
+			if ($uid !== '' && in_array($uid, $absent, true) === false && $this->calendar->covers(slot: $slot, lesson: $lesson) === true) {
+				$slots[$uid] = $slot;
+			}
+		}
+
+		return $slots;
+	}//end coveringSlots()
+
+	/**
+	 * The teachers on standby during the lesson: free ones, and those who teach then.
+	 *
+	 * @param array<string,array<string,mixed>> $slots The covering slot per uid.
+	 * @param array<string,true>                $busy  Teachers with a lesson then.
 	 *
 	 * @return array{0:array<string,array<string,mixed>>,1:array<string,array<string,mixed>>} Standby, and busy standby, by uid.
 	 */
-	private function standbyCandidates(array $lesson, array $absent, array $busy): array {
+	private function standbyCandidates(array $slots, array $busy): array {
 		$standby = [];
 		$busyStandby = [];
-		foreach ($this->read(schema: 'standby-slot', filters: []) as $slot) {
-			$uid = (string)($slot['teacherId'] ?? '');
-			if ($uid === '' || in_array($uid, $absent, true) === true || $this->calendar->covers(slot: $slot, lesson: $lesson) === false) {
-				continue;
-			}
-
+		foreach ($slots as $uid => $slot) {
+			$uid = (string)$uid;
 			if (isset($busy[$uid]) === true) {
-				$busyStandby[$uid] = $this->candidate(uid: $uid, group: 'busy', reason: 'Has a lesson then');
+				$busyStandby[$uid] = $this->candidate(uid: $uid, why: ['busy', 'Has a lesson then']);
 				continue;
 			}
 
 			$window = ['startsAt' => (string)$slot['startsAt'], 'endsAt' => (string)$slot['endsAt']];
-			$standby[$uid] = $this->candidate(uid: $uid, group: 'standby', reason: sprintf('On standby %s to %s', $window['startsAt'], $window['endsAt']));
+			$standby[$uid] = $this->candidate(uid: $uid, why: ['standby', sprintf('On standby %s to %s', $window['startsAt'], $window['endsAt'])]);
 			$standby[$uid]['slot'] = $window;
 		}
 
@@ -148,7 +163,7 @@ class SubstitutionCandidateService {
 			$uid = (string)($staff['ncUserId'] ?? '');
 			$works = in_array($weekday, (array)($staff['workingDays'] ?? []), true);
 			if ($uid !== '' && $works === true && in_array($uid, $skip, true) === false) {
-				$free[$uid] = $this->candidate(uid: $uid, group: 'free', reason: 'Free then');
+				$free[$uid] = $this->candidate(uid: $uid, why: ['free', 'Free then']);
 			}
 		}
 
@@ -158,45 +173,21 @@ class SubstitutionCandidateService {
 	/**
 	 * The teachers who teach or cover a lesson overlapping the window.
 	 *
-	 * @param DateTimeImmutable $start           Window start.
-	 * @param DateTimeImmutable $end             Window end.
-	 * @param string            $exceptSessionId The lesson being covered.
+	 * @param array{start: DateTimeImmutable, end: DateTimeImmutable, except: string} $window The window, and the lesson being covered.
 	 *
 	 * @return array<string,true>
 	 */
-	private function busyTeachers(DateTimeImmutable $start, DateTimeImmutable $end, string $exceptSessionId): array {
-		$teachersByCohort = [];
-		foreach ($this->read(schema: 'cohort', filters: []) as $cohort) {
-			$id = (string)($cohort['id'] ?? ($cohort['uuid'] ?? ''));
-			if ($id !== '') {
-				$teachersByCohort[$id] = array_map('strval', (array)($cohort['teacherIds'] ?? []));
-			}
-		}
-
-		$dayStart = $start->setTime(0, 0);
-		$dayEnd = $dayStart->modify('+1 day');
-		try {
-			$lessons = $this->sources->current()->sessionsForCohorts(
-				cohortIds: array_keys($teachersByCohort),
-				from: $dayStart->format(DATE_ATOM),
-				to: $dayEnd->format(DATE_ATOM)
-			);
-		} catch (Throwable $exception) {
-			// Without the timetable nobody is known to be busy; the list says
-			// who is on standby and who works that day, and a person chooses.
-			return [];
-		}
+	private function busyTeachers(array $window): array {
+		$teachersByCohort = $this->teachersByCohort();
+		$lessons = $this->dayLessons(cohortIds: array_keys($teachersByCohort), start: $window['start']);
 
 		$busy = [];
 		foreach ($lessons as $lesson) {
-			if ($this->overlaps(lesson: $lesson, start: $start, end: $end, exceptSessionId: $exceptSessionId) === false) {
+			if ($this->overlaps(lesson: $lesson, window: $window) === false) {
 				continue;
 			}
 
-			$teachers = ($teachersByCohort[(string)($lesson['cohortId'] ?? '')] ?? []);
-			$teachers[] = (string)($lesson['substituteTeacherId'] ?? '');
-			$teachers[] = (string)($lesson['teacherUserId'] ?? '');
-			foreach ($teachers as $uid) {
+			foreach (self::teachersOf(lesson: $lesson, teachersByCohort: $teachersByCohort) as $uid) {
 				if ($uid !== '') {
 					$busy[$uid] = true;
 				}
@@ -207,43 +198,109 @@ class SubstitutionCandidateService {
 	}//end busyTeachers()
 
 	/**
-	 * Whether a lesson that is not cancelled overlaps the window.
+	 * Every cohort's teachers, by cohort id.
 	 *
-	 * @param array<string,mixed> $lesson          The lesson.
-	 * @param DateTimeImmutable   $start           Window start.
-	 * @param DateTimeImmutable   $end             Window end.
-	 * @param string              $exceptSessionId A lesson to ignore.
+	 * @return array<string,list<string>>
+	 */
+	private function teachersByCohort(): array {
+		$teachersByCohort = [];
+		foreach ($this->read(schema: 'cohort', filters: []) as $cohort) {
+			$id = (string)($cohort['id'] ?? ($cohort['uuid'] ?? ''));
+			if ($id !== '') {
+				$teachersByCohort[$id] = array_map('strval', (array)($cohort['teacherIds'] ?? []));
+			}
+		}
+
+		return $teachersByCohort;
+	}//end teachersByCohort()
+
+	/**
+	 * The lessons of these cohorts on the day the window starts; none when the timetable cannot be read.
+	 *
+	 * @param array<int,string|int> $cohortIds The cohorts.
+	 * @param DateTimeImmutable     $start     The window start.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function dayLessons(array $cohortIds, DateTimeImmutable $start): array {
+		$dayStart = $start->setTime(0, 0);
+		$dayEnd = $dayStart->modify('+1 day');
+		try {
+			return $this->sources->current()->sessionsForCohorts(
+				cohortIds: $cohortIds,
+				from: $dayStart->format(DATE_ATOM),
+				to: $dayEnd->format(DATE_ATOM)
+			);
+		} catch (Throwable $exception) {
+			// Without the timetable nobody is known to be busy; the list says
+			// who is on standby and who works that day, and a person chooses.
+			return [];
+		}
+	}//end dayLessons()
+
+	/**
+	 * Who teaches a lesson: its cohort's teachers, its substitute and its own teacher (may be '').
+	 *
+	 * @param array<string,mixed>        $lesson           The lesson.
+	 * @param array<string,list<string>> $teachersByCohort Every cohort's teachers.
+	 *
+	 * @return list<string>
+	 */
+	private static function teachersOf(array $lesson, array $teachersByCohort): array {
+		$teachers = ($teachersByCohort[(string)($lesson['cohortId'] ?? '')] ?? []);
+		$teachers[] = (string)($lesson['substituteTeacherId'] ?? '');
+		$teachers[] = (string)($lesson['teacherUserId'] ?? '');
+
+		return $teachers;
+	}//end teachersOf()
+
+	/**
+	 * Whether a lesson that is not cancelled, and not the one being covered, overlaps the window.
+	 *
+	 * @param array<string,mixed>                                                      $lesson The lesson.
+	 * @param array{start: DateTimeImmutable, end: DateTimeImmutable, except: string} $window The window, and the lesson to ignore.
 	 *
 	 * @return bool
 	 */
-	private function overlaps(array $lesson, DateTimeImmutable $start, DateTimeImmutable $end, string $exceptSessionId): bool {
-		if ((string)($lesson['id'] ?? '') === $exceptSessionId || ($lesson['lifecycle'] ?? '') === 'cancelled') {
+	private function overlaps(array $lesson, array $window): bool {
+		if (self::ignored(lesson: $lesson, except: $window['except']) === true) {
 			return false;
 		}
 
-		$lessonStart = $this->parse(value: (string)($lesson['startsAt'] ?? ''));
-		$lessonEnd = $this->parse(value: (string)($lesson['endsAt'] ?? ''));
+		$lessonStart = $this->time(row: $lesson, field: 'startsAt');
+		$lessonEnd = $this->time(row: $lesson, field: 'endsAt');
 
-		return $lessonStart !== null && $lessonEnd !== null && $lessonStart < $end && $start < $lessonEnd;
+		return $lessonStart !== null && $lessonEnd !== null && $lessonStart < $window['end'] && $window['start'] < $lessonEnd;
 	}//end overlaps()
+
+	/**
+	 * Whether a lesson does not count: it is the one being covered, or it is cancelled.
+	 *
+	 * @param array<string,mixed> $lesson The lesson.
+	 * @param string              $except The lesson being covered.
+	 *
+	 * @return bool
+	 */
+	private static function ignored(array $lesson, string $except): bool {
+		return (string)($lesson['id'] ?? '') === $except || ($lesson['lifecycle'] ?? '') === 'cancelled';
+	}//end ignored()
 
 	/**
 	 * A candidate row with the teacher's display name.
 	 *
-	 * @param string $uid    The teacher.
-	 * @param string $group  `standby`, `free` or `busy`.
-	 * @param string $reason Why they are listed.
+	 * @param string                    $uid The teacher.
+	 * @param array{0: string, 1: string} $why Its group (`standby`, `free` or `busy`) and why they are listed.
 	 *
 	 * @return array<string,mixed>
 	 */
-	private function candidate(string $uid, string $group, string $reason): array {
+	private function candidate(string $uid, array $why): array {
 		$user = $this->userManager->get($uid);
 		$name = $uid;
 		if ($user !== null) {
 			$name = $user->getDisplayName();
 		}
 
-		return ['userId' => $uid, 'displayName' => $name, 'group' => $group, 'reason' => $reason];
+		return ['userId' => $uid, 'displayName' => $name, 'group' => $why[0], 'reason' => $why[1]];
 	}//end candidate()
 
 	/**
@@ -260,13 +317,15 @@ class SubstitutionCandidateService {
 	}//end sorted()
 
 	/**
-	 * An ISO timestamp, or null.
+	 * A row's ISO timestamp field, or null when it is missing, empty or unreadable.
 	 *
-	 * @param string $value The timestamp.
+	 * @param array<string,mixed> $row   The session or lesson.
+	 * @param string              $field `startsAt` or `endsAt`.
 	 *
 	 * @return DateTimeImmutable|null
 	 */
-	private function parse(string $value): ?DateTimeImmutable {
+	private function time(array $row, string $field): ?DateTimeImmutable {
+		$value = (string)($row[$field] ?? '');
 		if ($value === '') {
 			return null;
 		}
@@ -276,7 +335,7 @@ class SubstitutionCandidateService {
 		} catch (Throwable $exception) {
 			return null;
 		}
-	}//end parse()
+	}//end time()
 
 	/**
 	 * Read learniq objects as plain arrays.

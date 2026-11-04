@@ -13,34 +13,37 @@
  @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-campaign-results-for-staff
 -->
 <template>
-	<div class="campaign-results">
-		<h2>{{ t('learniq', 'Evaluation results') }}</h2>
+	<div class="campaign-results lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Evaluation results')" />
 		<NcLoadingIcon v-if="loading" :size="32" />
 		<NcNoteCard v-else-if="error" type="error">
 			{{ error }}
 		</NcNoteCard>
-		<dl v-else class="campaign-results__figures">
-			<dt>{{ t('learniq', 'Invited') }}</dt>
-			<dd>{{ figures.invitations }}</dd>
-			<dt>{{ t('learniq', 'Answered') }}</dt>
-			<dd>{{ figures.responses }}</dd>
-			<dt>{{ t('learniq', 'Average overall score') }}</dt>
-			<dd v-if="figures.hidden">
-				{{
-					t(
-						'learniq',
-						'Shown from 5 answers, so nobody can be recognised.',
-					)
-				}}
-			</dd>
-			<dd v-else>
-				{{ figures.mean }}
-			</dd>
-		</dl>
+		<CnDetailCard v-else>
+			<dl class="campaign-results__figures">
+				<dt>{{ t('learniq', 'Invited') }}</dt>
+				<dd>{{ figures.invitations }}</dd>
+				<dt>{{ t('learniq', 'Answered') }}</dt>
+				<dd>{{ figures.responses }}</dd>
+				<dt>{{ t('learniq', 'Average overall score') }}</dt>
+				<dd v-if="figures.hidden">
+					{{
+						t(
+							'learniq',
+							'Shown from 5 answers, so nobody can be recognised.',
+						)
+					}}
+				</dd>
+				<dd v-else>
+					{{ figures.mean }}
+				</dd>
+			</dl>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
@@ -49,7 +52,7 @@ import { resultFigures } from '../utils/evaluationAnswers.js'
 export default {
 	name: 'EvaluationCampaignResultsView',
 
-	components: { NcLoadingIcon, NcNoteCard },
+	components: { CnDetailCard, CnPageHeader, NcLoadingIcon, NcNoteCard },
 
 	props: {
 		/** Campaign UUID from the route :campaignId param. */
@@ -106,11 +109,6 @@ export default {
 </script>
 
 <style scoped>
-.campaign-results {
-	padding: calc(var(--default-grid-baseline) * 4);
-	max-width: 720px;
-}
-
 .campaign-results__figures {
 	display: grid;
 	grid-template-columns: max-content 1fr;

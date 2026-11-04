@@ -8,8 +8,15 @@ In the simple structure the page at `/` MUST be a typed dashboard titled Today f
 - **GIVEN** `menu_structure` is unset or `simple`
 - **WHEN** a Nextcloud administrator opens learniq
 - **THEN** the page MUST be titled Today
-- **AND** it MUST show the week of lessons and the counts Lessons today, Lessons this week, Assignments due and Unexcused today
+- **AND** it MUST show "Mijn lessen vandaag" with a link to "Weekrooster", and the counters "Lessen vandaag", "Deze week", "In te leveren", "Ongeoorloofd", "Na te kijken" and "Aanwezig vandaag"
 - **AND** the Teaching dashboard MUST be one card away
+
+#### Scenario: A school's teacher reads the counters of her own day
+@e2e exclude Example-set wording; the boards wilgenboom/LqVandaag and vaartveld/LqVandaag are the reference.
+- **GIVEN** a teacher in an example school set
+- **WHEN** she opens Today
+- **THEN** in the primary school she reads "Verwacht in de klas" and "Wacht op u"
+- **AND** in the secondary school she reads "Na te kijken" and "Afwezig gemeld"
 
 #### Scenario: A learner keeps the role dashboard
 @e2e exclude A comparison of built pages per role; asserted in tests/unit-js/structureProfile.test.mjs with the library's buildManifest and visibleIf evaluator.
@@ -31,7 +38,7 @@ In the simple structure the page at `/` MUST be a typed dashboard titled Today f
 
 ### Requirement: REQ-STD-002 Every number on Today opens the list it counts
 
-Each count on Today MUST be a filter on fields the schema has, and MUST open a list of the same schema with the same filter: either a list that carries that filter itself, or a list opened with the filter in the address. A tile label MUST be at most eighteen characters. The First today card MUST show only when its count is above zero, and its button MUST open exactly the records it counts.
+Each of the four counts "Lessen vandaag", "Deze week", "In te leveren" and "Ongeoorloofd" MUST be a filter on fields the schema has, and MUST open a list of the same schema with the same filter: either a list that carries that filter itself, or a list opened with the filter in the address. "Na te kijken" and "Aanwezig vandaag" are figures and open nothing. A tile label MUST be at most eighteen characters. The First today card MUST show only when its count is above zero, and its button MUST open exactly the records it counts.
 
 #### Scenario: A tile and its list agree
 @e2e exclude A comparison of each tile's filter with its list's filter or address; asserted in tests/unit-js/structureProfile.test.mjs against the register.
@@ -58,7 +65,7 @@ Every page Today links for a role MUST be a page the full menu puts within one s
 
 ### Requirement: REQ-STD-004 Today is laid out in two columns as the board draws it
 
-Under the attention card, Today MUST show a main column eight of twelve wide with the lessons of today, the week strip and the open attendance flags, and a side column four wide with the four counters one under the other, so no label is cut. The lessons list MUST read sessions that start today and open a lesson and the Lessons today list; the flags list MUST read open flags and open a flag and the Attendance flags list with the same filter. Both lists MUST be library widgets. Other dashboards MUST follow below at full width.
+Under the attention card, Today MUST show a main column with "Mijn lessen vandaag" and "Signalen in mijn groepen", and a side column with the six counters in two columns, then "Nakijken" and "Berichten van ouders", so no label is cut. The lessons list MUST read sessions that start today and open a lesson and the Lessons today list; the flags list MUST read open flags and open a flag and the Attendance flags list with the same filter. Both lists MUST be library widgets. Other dashboards MUST follow below at full width.
 
 #### Scenario: The two lists open what they show
 @e2e exclude A reading of the two widgets against the pages, asserted in structureProfile.test.mjs.
@@ -71,6 +78,6 @@ Under the attention card, Today MUST show a main column eight of twelve wide wit
 @e2e exclude A reading of the layout, asserted in structureProfile.test.mjs.
 - **GIVEN** the Today dashboard
 - **WHEN** its layout is read
-- **THEN** the lessons, the week strip and the flags sit at the left, eight wide
-- **AND** the four counters sit at the right, four wide each, one under the other
+- **THEN** the lessons and the signals sit at the left
+- **AND** the six counters sit at the right in two columns, with "Nakijken" and "Berichten van ouders" under them
 

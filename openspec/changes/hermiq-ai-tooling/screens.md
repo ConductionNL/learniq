@@ -1,3 +1,5 @@
 # Screens
 
-- No screen: AI tools an agent in hermiq calls through the tool surface; learniq draws no page for them.
+- learniq/LqCijfers cijfers https://identity.conduction.nl/screens/board?id=learniq/LqCijfers
+
+Components: CnActionsBar, CnAppNav, CnBuildiqEditButton, CnDataTable, CnFilterBar, CnIndexPage, CnPagination, CnQuickFilterBar

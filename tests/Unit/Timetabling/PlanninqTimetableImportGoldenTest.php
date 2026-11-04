@@ -55,6 +55,7 @@ use RuntimeException;
  * With RECORD_GOLDEN=1 the file is written instead of compared.
  *
  * @covers \OCA\Learniq\Timetabling\PlanninqTimetableImport
+ * @uses   \OCA\Learniq\AppInfo\OpenRegisterAutoloader
  * @uses   \OCA\Learniq\Service\TimetableExchangeSettings
  * @uses   \OCA\Learniq\Timetabling\Source\LocalSessionTimetableSource
  * @uses   \OCA\Learniq\Timetabling\Source\PlanninqTimetableSource
