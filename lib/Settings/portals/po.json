@@ -74,6 +74,7 @@
       "route": "/zoeken",
       "placeholder": "Zoeken"
     },
+    "breadcrumb": "page",
     "footer": {
       "description": "Heeft u een vraag? Loop binnen, bel of mail ons. De deur staat open.",
       "colophon": "Basisschool De Wilgenboom is een voorbeeldschool. Deze website laat zien hoe portaliq, learniq en Nextcloud samen werken.",
@@ -284,7 +285,7 @@
                 {
                   "label": "Verlof aanvragen",
                   "href": "/praktisch/afwezig-melden",
-                  "icon": "pencil"
+                  "icon": "document"
                 },
                 {
                   "label": "Overblijven en opvang",
@@ -375,8 +376,7 @@
                 {
                   "date": "2026-10-29",
                   "title": "Ouderavond",
-                  "meta": "Donderdag, kies een tijd in Mijn Wilgenboom",
-                  "href": "/mijn"
+                  "meta": "Donderdag, kies een tijd in Mijn Wilgenboom"
                 }
               ],
               "moreLabel": "De hele schoolkalender",
@@ -520,7 +520,11 @@
             "props": {
               "kind": "info",
               "heading": "Online melden",
-              "text": "Het snelst. U logt in met DigiD, kiest uw kind en de dag, en u bent klaar. U ziet daarna of de leerkracht het heeft gezien."
+              "text": "Het snelst. U logt in met DigiD, kiest uw kind en de dag, en u bent klaar. U ziet daarna of de leerkracht het heeft gezien.",
+              "action": {
+                "label": "Afwezig melden",
+                "href": "/mijn"
+              }
             }
           },
           {
@@ -531,29 +535,16 @@
             "gridWidth": 4,
             "gridHeight": 2,
             "props": {
-              "kind": "info",
+              "kind": "plain",
               "heading": "Liever bellen?",
-              "text": "Dat kan op schooldagen tussen 8.00 en 8.30 uur. De administratie zet uw melding dan voor u in het systeem. [telefoonnummer]"
-            }
-          },
-          {
-            "id": "wb-afwezig-05-nlbuttonlink",
-            "widgetKey": "nlButtonLink",
-            "gridX": 0,
-            "gridY": 4,
-            "gridWidth": 3,
-            "gridHeight": 1,
-            "props": {
-              "label": "Afwezig melden",
-              "href": "/mijn",
-              "kind": "primary"
+              "text": "Dat kan op schooldagen tussen 8.00 en 8.30 uur. De administratie zet uw melding dan voor u in het systeem. **[telefoonnummer]**"
             }
           },
           {
             "id": "wb-afwezig-06a-nlheading",
             "widgetKey": "nlHeading",
             "gridX": 0,
-            "gridY": 5,
+            "gridY": 4,
             "gridWidth": 8,
             "gridHeight": 1,
             "props": {
@@ -565,7 +556,7 @@
             "id": "wb-afwezig-06-nltable",
             "widgetKey": "nlTable",
             "gridX": 0,
-            "gridY": 6,
+            "gridY": 5,
             "gridWidth": 8,
             "gridHeight": 4,
             "props": {
@@ -598,18 +589,31 @@
                 ]
               ],
               "display": "boxed",
-              "captionVisible": false
+              "captionVisible": false,
+              "rowHeaders": true
             }
           },
           {
             "id": "wb-afwezig-07-markdown",
             "widgetKey": "markdown",
             "gridX": 0,
-            "gridY": 10,
+            "gridY": 9,
             "gridWidth": 8,
-            "gridHeight": 5,
+            "gridHeight": 4,
             "props": {
-              "markdown": "## Verlof buiten de vakanties\n\nKinderen vanaf 5 jaar zijn leerplichtig. Vrij buiten de schoolvakanties mag alleen bij een bijzondere reden, zoals een bruiloft of een begrafenis in de familie. Vakantie buiten de schoolvakanties mag bijna nooit.\n\nU vraagt verlof aan bij de directeur, Hanneke Postma. Zij beslist binnen vijf schooldagen. Bent u het niet eens met het besluit, dan leest u in de schoolgids wat u kunt doen.\n\nIs uw kind afwezig zonder melding? Dan belt de leerkracht u dezelfde ochtend. Blijft uw kind vaker weg zonder reden, dan moet de school dat melden bij de leerplichtambtenaar van Zuiddrecht."
+              "markdown": "## Verlof buiten de vakanties\n\nKinderen vanaf 5 jaar zijn leerplichtig. Vrij buiten de schoolvakanties mag alleen bij een bijzondere reden, zoals een bruiloft of een begrafenis in de familie. Vakantie buiten de schoolvakanties mag bijna nooit.\n\nU vraagt verlof aan bij de directeur, Hanneke Postma. Zij beslist binnen vijf schooldagen. Bent u het niet eens met het besluit, dan leest u in de schoolgids wat u kunt doen."
+            }
+          },
+          {
+            "id": "wb-afwezig-09-nlalert",
+            "widgetKey": "nlAlert",
+            "gridX": 0,
+            "gridY": 13,
+            "gridWidth": 8,
+            "gridHeight": 2,
+            "props": {
+              "kind": "warning",
+              "text": "Is uw kind afwezig zonder melding? Dan belt de leerkracht u dezelfde ochtend. Blijft uw kind vaker weg zonder reden, dan moet de school dat melden bij de leerplichtambtenaar van Zuiddrecht."
             }
           }
         ]
@@ -630,14 +634,32 @@
             "gridWidth": 8,
             "gridHeight": 8,
             "props": {
-              "backLabel": "Terug naar het nieuws"
+              "backLabel": "Terug naar het nieuws",
+              "kindLabel": "Nieuws",
+              "sectionHref": "/zoeken",
+              "sectionLabel": "Nieuws en documenten"
+            }
+          },
+          {
+            "id": "wb-nieuws-03-nlsignin",
+            "widgetKey": "nlSignIn",
+            "gridX": 8,
+            "gridY": 0,
+            "gridWidth": 4,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Nieuws uit de groep van uw kind",
+              "display": "card",
+              "intro": "De leerkracht schrijft ook nieuws voor alleen de eigen groep. Dat leest u na het inloggen.",
+              "buttonLabel": "Inloggen bij Mijn Wilgenboom",
+              "tone": "light"
             }
           },
           {
             "id": "wb-nieuws-02-nlnewslist",
             "widgetKey": "nlNewsList",
             "gridX": 8,
-            "gridY": 0,
+            "gridY": 3,
             "gridWidth": 4,
             "gridHeight": 8,
             "props": {
@@ -648,21 +670,6 @@
               "moreLabel": "Al het nieuws",
               "moreHref": "/zoeken",
               "articleRoute": "/nieuws"
-            }
-          },
-          {
-            "id": "wb-nieuws-03-nlsignin",
-            "widgetKey": "nlSignIn",
-            "gridX": 0,
-            "gridY": 8,
-            "gridWidth": 12,
-            "gridHeight": 3,
-            "props": {
-              "heading": "Nieuws uit de groep van uw kind",
-              "display": "card",
-              "intro": "De leerkracht schrijft ook nieuws voor alleen de eigen groep. Dat leest u na het inloggen.",
-              "buttonLabel": "Inloggen bij Mijn Wilgenboom",
-              "tone": "plain"
             }
           }
         ]
@@ -695,7 +702,7 @@
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
-              "text": "Het nieuws van school, de nieuwsbrieven, de schoolgids en de formulieren. Nieuws uit de groep van uw kind leest u in Mijn Wilgenboom."
+              "text": "Zoek in het nieuws van school, de nieuwsbrieven, de schoolgids en de formulieren. Nieuws uit de groep van uw kind leest u in Mijn Wilgenboom."
             }
           },
           {
@@ -711,8 +718,14 @@
               ],
               "newsRoute": "/nieuws",
               "sort": "dateDesc",
-              "searchLabel": "Zoek in het nieuws en de documenten",
-              "placeholder": "Bijvoorbeeld studiedag"
+              "searchLabel": "Zoekterm",
+              "placeholder": "Bijvoorbeeld studiedag",
+              "labelHidden": true,
+              "kindFacet": "Soort",
+              "audienceFacet": "Voor wie",
+              "facetDisplay": {
+                "Voor wie": "radio"
+              }
             }
           }
         ]
@@ -1166,7 +1179,7 @@
         "schoolRef": "ee010001-0000-4000-8000-000000000001"
       },
       "authorRef": "po-directeur-01",
-      "body": "Groep 8 las voor aan de kleuters, en de hal hangt vol tekeningen van lievelingsboeken. Tot en met vrijdag 16 oktober staat de school in het teken van lezen.\n\nWoensdagochtend opende juf Hanneke de Kinderboekenweek op het plein. Daarna ging groep 8 naar de kleuterklassen. Elk kind uit groep 8 las een eigen gekozen prentenboek voor aan een groepje kleuters.\n\nDe komende twee weken leest elke groep elke dag een kwartier langer. In de hal staat een leestafel met nieuwe boeken uit de bibliotheek van Zuiddrecht. Kinderen mogen daar in de pauze lezen.\n\n## Boekenmarkt op het plein\n\nOp woensdag 14 oktober is de boekenmarkt. Kinderen verkopen en ruilen boeken die ze uit hebben. Heeft u thuis kinderboeken over? Uw kind mag ze die dag meenemen.\n\n- **Wanneer:** woensdag 14 oktober, 12.30 tot 14.00 uur\n- **Waar:** op het grote plein. Bij regen in de hal\n- **Meenemen:** boeken om te ruilen, en een kleed om op te zitten\n- **Helpen:** we zoeken nog vier ouders. Meld u aan bij de leerkracht",
+      "body": "Groep 8 las voor aan de kleuters, en de hal hangt vol tekeningen van lievelingsboeken. Tot en met vrijdag 16 oktober staat de school in het teken van lezen.\n\nWoensdagochtend opende juf Hanneke de Kinderboekenweek op het plein. Daarna ging groep 8 naar de kleuterklassen. Elk kind uit groep 8 las een eigen gekozen prentenboek voor aan een groepje kleuters.\n\nDe komende twee weken leest elke groep elke dag een kwartier langer. In de hal staat een leestafel met nieuwe boeken uit de bibliotheek van Zuiddrecht. Kinderen mogen daar in de pauze lezen.\n\n## Boekenmarkt op het plein\n\nOp woensdag 14 oktober is de boekenmarkt. Kinderen verkopen en ruilen boeken die ze uit hebben. Heeft u thuis kinderboeken over? Uw kind mag ze die dag meenemen.\n\n- **Wanneer:** woensdag 14 oktober, 12.30 tot 14.00 uur\n- **Waar:** op het grote plein. Bij regen in de hal\n- **Meenemen:** boeken om te ruilen, en een kleed om op te zitten\n- **Helpen:** we zoeken nog vier ouders. Meld u aan bij de leerkracht\n\nHeeft u een vraag over de Kinderboekenweek? Stuur de leerkracht van uw kind een bericht in Mijn Wilgenboom.",
       "audienceLabel": "hele school"
     },
     {
