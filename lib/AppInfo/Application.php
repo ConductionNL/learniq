@@ -27,6 +27,7 @@ use OCA\OpenRegister\AppHost\Bootstrap;
 use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
 use OCA\Learniq\Middleware\ActionForbiddenMiddleware;
 use OCA\Learniq\Middleware\LookupIntegrityMiddleware;
+use OCA\Learniq\SetupCheck\WalletOfferTokenCheck;
 use OCA\Learniq\AppInfo\Registrar\ServiceOverrideRegistrar;
 use OCA\Learniq\Mcp\LearniqScannableServices;
 use OCP\AppFramework\App;
@@ -92,6 +93,10 @@ class Application extends App implements IBootstrap {
 		$context->registerMiddleware(ActionForbiddenMiddleware::class);
 		// A lookup by id that matches more than one object is a generic 500, logged with the ids.
 		$context->registerMiddleware(LookupIntegrityMiddleware::class);
+
+		// The admin overview names a missing integriq token, which makes every
+		// wallet offer fail (credential-wallet-offer-for-the-learner).
+		$context->registerSetupCheck(WalletOfferTokenCheck::class);
 
 		// ADR-040: adopt the OpenRegister AppHost. One call wires the generic
 		// SPA/settings/preferences/health/metrics controllers, the settings +

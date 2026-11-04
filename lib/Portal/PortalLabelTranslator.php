@@ -74,6 +74,8 @@ class PortalLabelTranslator {
 		'composeHint',
 		// A task's title sentence; its `{field}` places stay as they are (portaliq lookup-by-row-field).
 		'titleTemplate',
+		// A link or QR column's words for its link (portaliq link-field-qr-code).
+		'linkLabel',
 	];
 
 	/**

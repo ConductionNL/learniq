@@ -4385,7 +4385,22 @@
         "Add block": "Blok toevoegen",
         "Block type": "Soort blok",
         "This lesson has no blocks yet.": "Deze les heeft nog geen blokken.",
-        "Block moved to position {position} of {total}": "Blok verplaatst naar positie {position} van {total}"
+        "Block moved to position {position} of {total}": "Blok verplaatst naar positie {position} van {total}",
+        "Wallet": "Wallet",
+        "Add to wallet": "In wallet zetten",
+        "Wallet offer link": "Wallet-link",
+        "The link a wallet app opens to collect this certificate, while the offer is open. Cleared once it is collected, revoked or the offer fails.": "De link die een wallet-app opent om dit certificaat op te halen, zolang het aanbod openstaat. Wordt leeggemaakt zodra het is opgehaald, ingetrokken of het aanbod mislukt.",
+        "Learniq wallet offers": "Learniq-walletaanbiedingen",
+        "Certificates can be offered to a wallet through integriq.": "Certificaten kunnen via integriq in een wallet worden aangeboden.",
+        "No integriq API token is set (%s), so a certificate cannot be offered to a wallet.": "Er is geen integriq-API-token ingesteld (%s), dus een certificaat kan niet in een wallet worden aangeboden.",
+        "In your wallet": "In je wallet",
+        "With your EUDI wallet you show this certificate without paper. Scan the code with the wallet app on your phone.": "Met je EUDI-wallet laat je dit certificaat zien zonder papier. Scan de code met de wallet-app op je telefoon.",
+        "Wallet offer for this certificate": "Wallet-aanbod voor dit certificaat",
+        "Offered to your wallet on {date}. Not collected yet: scan the code with your wallet app.": "Aangeboden aan je wallet op {date}. Nog niet opgehaald: scan de code met je wallet-app.",
+        "To wallet": "Naar wallet",
+        "In your wallet since {date}.": "In je wallet sinds {date}.",
+        "Putting this certificate in your wallet did not work. Your certificate stays valid; ask your school to try again.": "Naar wallet lukte niet. Je certificaat blijft gewoon geldig; vraag je school het opnieuw te proberen.",
+        "Ask your school to put this certificate in your wallet.": "Vraag je school om dit certificaat in je wallet te zetten."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
