@@ -1,0 +1,119 @@
+{
+    "course only": {
+        "score": {
+            "responseCount": 3,
+            "invitationCount": 3,
+            "averageOverallScore": 3.75,
+            "responseRate": 1.0
+        },
+        "calls": [
+            {
+                "filters": {
+                    "courseId": "c-1",
+                    "academicYear": "2026-2027",
+                    "period": "Q1",
+                    "lifecycle": "submitted",
+                    "register": "learniq",
+                    "schema": "course-evaluation-response"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "evaluation-invitation",
+                    "courseId": "c-1",
+                    "academicYear": "2026-2027",
+                    "period": "Q1"
+                }
+            }
+        ]
+    },
+    "blank teacher": {
+        "score": {
+            "responseCount": 3,
+            "invitationCount": 3,
+            "averageOverallScore": 3.75,
+            "responseRate": 1.0
+        },
+        "calls": [
+            {
+                "filters": {
+                    "courseId": "c-1",
+                    "academicYear": "2026-2027",
+                    "period": "Q1",
+                    "lifecycle": "submitted",
+                    "register": "learniq",
+                    "schema": "course-evaluation-response"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "evaluation-invitation",
+                    "courseId": "c-1",
+                    "academicYear": "2026-2027",
+                    "period": "Q1"
+                }
+            }
+        ]
+    },
+    "one teacher": {
+        "score": {
+            "responseCount": 3,
+            "invitationCount": 3,
+            "averageOverallScore": 3.75,
+            "responseRate": 1.0
+        },
+        "calls": [
+            {
+                "filters": {
+                    "courseId": "c-1",
+                    "academicYear": "2026-2027",
+                    "period": "Q2",
+                    "lifecycle": "submitted",
+                    "teacherId": "jan",
+                    "register": "learniq",
+                    "schema": "course-evaluation-response"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "evaluation-invitation",
+                    "courseId": "c-1",
+                    "academicYear": "2026-2027",
+                    "period": "Q2"
+                }
+            }
+        ]
+    },
+    "nothing found": {
+        "score": {
+            "responseCount": 0,
+            "invitationCount": 0,
+            "averageOverallScore": null,
+            "responseRate": 0.0
+        },
+        "calls": [
+            {
+                "filters": {
+                    "courseId": "c-9",
+                    "academicYear": "2026-2027",
+                    "period": "Q1",
+                    "lifecycle": "submitted",
+                    "register": "learniq",
+                    "schema": "course-evaluation-response"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "evaluation-invitation",
+                    "courseId": "c-9",
+                    "academicYear": "2026-2027",
+                    "period": "Q1"
+                }
+            }
+        ]
+    }
+}

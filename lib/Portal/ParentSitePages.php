@@ -53,6 +53,13 @@ class ParentSitePages {
 	 */
 	private const INVITATIONS = 'parentConferenceInvitations';
 
+	private const PARENT_CONFERENCES_BLOCKS = [
+		['type' => 'action', 'action' => 'bookConferenceSlot'],
+		['type' => 'action', 'action' => 'createConferenceSignup'],
+		['type' => 'collection', 'collection' => 'parentConferenceSlots', 'recordField' => 'learnerRef'],
+		['type' => 'collection', 'collection' => 'parentConferenceSignups', 'recordField' => 'learnerRef'],
+	];
+
 	/**
 	 * The overview, in the order of the board (school-design wilgenboom,
 	 * MijnOverzicht): the greeting with today's date and the absence action,
@@ -254,12 +261,7 @@ class ParentSitePages {
 			'badge' => ['collection' => 'parentConferenceRounds', 'label' => '{count} to choose'],
 			'record' => ['collection' => self::CHILDREN, 'titleFields' => ['givenName', 'familyName']],
 			'perRecord' => self::CHILDREN,
-			'blocks' => [
-				['type' => 'action', 'action' => 'bookConferenceSlot'],
-				['type' => 'action', 'action' => 'createConferenceSignup'],
-				['type' => 'collection', 'collection' => 'parentConferenceSlots', 'recordField' => 'learnerRef'],
-				['type' => 'collection', 'collection' => 'parentConferenceSignups', 'recordField' => 'learnerRef'],
-			],
+			'blocks' => self::PARENT_CONFERENCES_BLOCKS,
 		];
 	}//end conferencesPage()
 

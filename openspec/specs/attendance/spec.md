@@ -364,11 +364,12 @@ The check-in endpoint MUST NOT create a second record or change an existing `Att
 ### Requirement: A decision on an absence report records who decided and when
 When an `ExcuseRequest` moves to `approved` or `rejected`, the transition MUST stamp `decidedBy` with the signed-in user who made the decision and `decidedAt` with the time of the decision.
 
-#### Scenario: The guardian sees when the teacher approved the report
+#### Scenario: The guardian sees who approved the report and when
 - **GIVEN** a guardian's absence report in `submitted`
 - **WHEN** the group teacher approves it
 - **THEN** the report carries `decidedBy` = the teacher's user id and a `decidedAt`
-- **AND** the guardian's portal list shows the report as approved with that date
+- **AND** the guardian's portal list shows the report as "Goedgekeurd" with the teacher's name and the date and time of the decision, for example "Meester Daan, 1 oktober 8:20 uur"
+- **AND** the guardian's inbox names the teacher who approved it, for example "Meester Daan heeft de melding voor donderdag 1 oktober goedgekeurd"
 - @e2e tests/e2e/po-parent-flows.spec.ts
 
 ### Requirement: An absence report is read by the teachers of the pupil's group and by school-wide staff
@@ -426,10 +427,11 @@ A repair step MUST stamp `teacherIds` on every existing `ExcuseRequest` the same
 - THEN it is refused, and the same report with the pupil's `learnerRef` is accepted
 - @e2e exclude schema contract; covered by tests/Unit/Settings/RequiredLearnerRefRegisterTest.php (testTheFragmentsAcceptThePupilAndRefuseItsAbsence)
 
-#### Scenario: The guardian reads "Kind" without "niet verplicht"
-- GIVEN the guardian's absence form on the Wilgenboom site
+#### Scenario: The guardian picks her child from cards, never a free field
+- GIVEN the guardian's absence form on the Wilgenboom site, Fatima with Vera and Sami
 - WHEN she opens it
-- THEN the child field is labelled "Kind", required, and the dates are groups of Dag, Maand and Jaar
+- THEN "Wie is er afwezig?" offers one card per child of hers, with group and teacher, and no "niet verplicht"; a report without a child is not sent
+- AND "Wanneer?" offers day cards: "Vandaag", "Morgen", "Een paar lessen vandaag", "Tot ... weer beter is" and "Een andere dag of een deel van de dag", the last one opening a date and time
 - @e2e tests/e2e/po-parent-flows.spec.ts
 
 ### Requirement: Stored rows get the pupil's learner profile before it is required
