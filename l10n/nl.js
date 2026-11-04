@@ -2256,7 +2256,7 @@ OC.L10N.register(
         "How much instruction this group gets: intensive, basic, extended, or your school's own level.": "Hoeveel instructie deze groep krijgt: intensief, basis, verdiept, of een eigen niveau van je school.",
         "How much, where that applies: for example 25 for 25% extra time.": "Hoeveel, waar dat van toepassing is: bijvoorbeeld 25 voor 25% extra tijd.",
         "How you teach this group to reach its goal: more instruction time, other material, or a different grouping.": "Hoe je deze groep lesgeeft om het doel te halen: meer instructietijd, ander materiaal of een andere groepering.",
-        "Instruction group": "Instructiegroep",
+        "Instruction group": "Subgroep",
         "Instruction level": "Instructieniveau",
         "Intensive": "Intensief",
         "Previous plan": "Vorig plan",
@@ -3368,7 +3368,7 @@ OC.L10N.register(
         "The courses everyone in this programme must complete. The other courses are optional. Each new enrolment starts from this list. A manager can change it for one person. Leave empty to keep every course optional.": "De cursussen die iedereen in deze opleiding moet afronden. De andere cursussen zijn keuzevrij. Elke nieuwe inschrijving neemt deze lijst over. Een manager kan dit per persoon aanpassen. Laat de lijst leeg om alle cursussen keuzevrij te houden.",
         "You are not enrolled in a programme": "Je bent niet ingeschreven voor een opleiding",
         "Mandatory courses done: {percent}%": "Verplichte cursussen afgerond: {percent}%",
-        "{done} of {total} mandatory courses done": "{done} van {total} verplichte cursussen afgerond",
+        "{done} of {total} mandatory courses done": "{done} van {total} verplichte cursussen klaar",
         "Optional courses": "Keuzecursussen",
         "Started": "Gestart",
         "Done": "Afgerond",
@@ -3550,7 +3550,7 @@ OC.L10N.register(
         "The calendar address could not be removed.": "Het agenda-adres kon niet worden verwijderd.",
         "Copying did not work. Select the address and copy it yourself.": "Kopiëren lukte niet. Selecteer het adres en kopieer het zelf.",
         "no lessons planned yet": "nog geen lessen gepland",
-        "{first} and {second} meet at the same time: {slot}.": "{first} en {second} vallen op hetzelfde moment: {slot}.",
+        "{first} and {second} meet at the same time: {slot}.": "{first} en {second} zijn op hetzelfde moment: {slot}.",
         "The lesson times of these electives could not be read.": "De lestijden van deze keuzevakken konden niet worden gelezen.",
         "Absence reports": "Verzuimmeldingen",
         "My child's report card grades": "Rapportcijfers van mijn kind",
@@ -4267,11 +4267,9 @@ OC.L10N.register(
         "Timetable exchange": "Roosteruitwisseling",
         "AI translations": "AI-vertalingen",
         "Administration settings": "Beheerinstellingen",
-        "Move up": "Omhoog",
-        "Move down": "Omlaag",
-        "Drag a chapter or lesson to another place, or use the Move up and Move down buttons. With the keyboard: Tab to the button, Enter moves it. The new order is saved at once and read out.": "Sleep een hoofdstuk of les naar een andere plek, of gebruik de knoppen Omhoog en Omlaag. Met het toetsenbord: Tab naar de knop, Enter verplaatst. De nieuwe volgorde wordt meteen bewaard en voorgelezen.",
-        "Chapter {name} moved to position {pos} of {total}. Saved.": "Hoofdstuk {name} verplaatst naar positie {pos} van {total}. Opgeslagen.",
-        "Lesson {name} moved to position {pos} of {total}. Saved.": "Les {name} verplaatst naar positie {pos} van {total}. Opgeslagen."
+        "{done} of {total} mandatory subjects done": "{done} van {total} verplichte vakken klaar",
+        "Optional subjects": "Keuzevakken",
+        "Shared with you": "Gedeeld met u"
     },
     "nplurals=2; plural=(n != 1);"
 )
