@@ -3870,7 +3870,15 @@
         "Sign-up approved.": "Sign-up approved.",
         "Reject sign-up": "Reject sign-up",
         "The learner reads this reason.": "The learner reads this reason.",
-        "The sign-up could not be rejected.": "The sign-up could not be rejected."
+        "The sign-up could not be rejected.": "The sign-up could not be rejected.",
+        "Publish to the course store": "Publish to the course store",
+        "Published to the course store.": "Published to the course store.",
+        "No course store is set up yet. Ask your administrator.": "No course store is set up yet. Ask your administrator.",
+        "This course is too large for the store.": "This course is too large for the store.",
+        "The course store could not take the course. Try again later.": "The course store could not take the course. Try again later.",
+        "Signals in my mentor group": "Signals in my mentor group",
+        "No open signals for the pupils you mentor": "No open signals for the pupils you mentor",
+        "Open signals": "Open signals"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
