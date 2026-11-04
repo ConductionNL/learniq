@@ -6,12 +6,12 @@
 // writing the failed rows back out.
 
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import test from 'node:test'
 import {
 	failedRowsCsv,
 	isFailed,
 	parseCsv,
-	previewCounts,
 	reasonText,
 	rowsFromCsv,
 } from '../../src/utils/externalTrainingUpload.js'
@@ -125,17 +125,16 @@ test('reasonText fills the placeholders and leaves unknown ones', () => {
 	assert.equal(reasonText(null), '')
 })
 
-test('previewCounts and isFailed sort the rows by what happens to them', () => {
-	const report = [
-		{ status: 'ready' },
-		{ status: 'created' },
-		{ status: 'unmatched' },
-		{ status: 'invalid' },
-		{ status: 'duplicate' },
-		{ status: 'skipped' },
-	]
-	assert.deepEqual(previewCounts(report), { ready: 2, skipped: 2, failed: 2 })
+test('isFailed counts unmatched and invalid rows, not duplicates or skipped ones', () => {
+	assert.equal(isFailed({ status: 'unmatched' }), true)
+	assert.equal(isFailed({ status: 'invalid' }), true)
 	assert.equal(isFailed({ status: 'duplicate' }), false)
+	assert.equal(isFailed({ status: 'skipped' }), false)
 	assert.equal(isFailed(null), false)
-	assert.deepEqual(previewCounts(null), { ready: 0, skipped: 0, failed: 0 })
+})
+
+test('the upload dialog records in one post, without a dry run', () => {
+	const dialog = readFileSync(new URL('../../src/dialogs/ExternalTrainingUploadDialog.vue', import.meta.url), 'utf8')
+	assert.ok(!dialog.includes('dryRun'))
+	assert.ok(!dialog.includes('training-upload-confirm'))
 })
