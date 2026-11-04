@@ -97,8 +97,8 @@ class ExamplePortalProvisioner {
 		'vo'        => [
 			'slug'    => 'vaartveld',
 			'theme'   => 'example-voortgezet',
-			'title'   => 'Mijn Vaartveld',
-			'tagline' => 'Vaartveld College',
+			'title'   => 'Mijn Zuiddrecht',
+			'tagline' => 'Zuiddrecht College',
 		],
 		'mbo'       => [
 			'slug'    => 'esdoornveen',

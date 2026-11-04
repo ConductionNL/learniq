@@ -43,6 +43,7 @@ use Throwable;
  * @spec openspec/changes/portal-guardian-invitation-letter/specs/portal-identity/spec.md
  */
 class CallerOrganisations {
+	use ReadsOrganisationTenant;
 
 	/**
 	 * OpenRegister's organisation service, by class name.
@@ -83,12 +84,49 @@ class CallerOrganisations {
 	}//end includes()
 
 	/**
+	 * The signed-in user's organisation with this slug, with its OpenRegister uuid.
+	 *
+	 * @param string $slug The portal organisation slug.
+	 *
+	 * @return PortalTenant|null Null for an empty slug, a slug the user does not
+	 *                           belong to, and when OpenRegister cannot answer.
+	 *
+	 * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+	 */
+	public function tenant(string $slug): ?PortalTenant {
+		$slug = trim($slug);
+		if ($slug === '') {
+			return null;
+		}
+
+		foreach ($this->organisations() as $organisation) {
+			$tenant = $this->tenantOf(organisation: $organisation);
+			if ($tenant !== null && $tenant->slug === $slug) {
+				return $tenant;
+			}
+		}
+
+		return null;
+	}//end tenant()
+
+	/**
 	 * The slugs of the signed-in user's organisations, or [] when
 	 * OpenRegister cannot answer.
 	 *
 	 * @return array<int, string>
 	 */
 	private function slugs(): array {
+		// OpenRegister's Organisation is an Entity: getSlug() is answered by
+		// __call, which method_exists() does not see.
+		return array_map(static fn (object $organisation): string => (string)$organisation->getSlug(), $this->organisations());
+	}//end slugs()
+
+	/**
+	 * The signed-in user's OpenRegister organisations, or [] when OpenRegister cannot answer.
+	 *
+	 * @return array<int, object>
+	 */
+	private function organisations(): array {
 		try {
 			$service = $this->container->get(self::ORGANISATION_SERVICE);
 			$organisations = $service->getUserOrganisations();
@@ -97,15 +135,11 @@ class CallerOrganisations {
 			return [];
 		}
 
-		$slugs = [];
-		foreach ((array)$organisations as $organisation) {
-			// OpenRegister's Organisation is an Entity: getSlug() is answered by
-			// __call, which method_exists() does not see.
-			if (is_object($organisation) === true && is_callable([$organisation, 'getSlug']) === true) {
-				$slugs[] = (string)$organisation->getSlug();
-			}
-		}
-
-		return $slugs;
-	}//end slugs()
+		return array_values(
+			array_filter(
+				(array)$organisations,
+				static fn (mixed $organisation): bool => is_object($organisation) === true && is_callable([$organisation, 'getSlug']) === true
+			)
+		);
+	}//end organisations()
 }//end class

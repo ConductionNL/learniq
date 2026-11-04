@@ -109,7 +109,7 @@ The command hands the set's ids to OpenRegister's `openregister:objects:purge --
 
 ## Example portals: load a set from the command line
 
-Each school set also brings its portal website: po builds De Wilgenboom, vo Vaartveld College, mbo Esdoornveen and training the Warmtepompacademie. You need portaliq and thematiq next to learniq. Load the sets one at a time:
+Each school set also brings its portal website: po builds De Wilgenboom, vo Zuiddrecht College, mbo Esdoornveen and training the Warmtepompacademie. You need portaliq and thematiq next to learniq. Load the sets one at a time:
 
 ```bash
 php -d memory_limit=4G occ learniq:example-set:load po
@@ -166,7 +166,7 @@ php occ config:app:set portaliq oidc_secret_<organisation uuid>_digid --value=<s
 php occ config:app:set portaliq oidc_secret_<organisation uuid>_eherkenning --value=<secret> --sensitive
 ```
 
-Leave out a mode the organisation does not use. De Wilgenboom and Vaartveld use DigiD; Esdoornveen and the Warmtepompacademie use eHerkenning for companies.
+Leave out a mode the organisation does not use. De Wilgenboom and Zuiddrecht College use DigiD; Esdoornveen and the Warmtepompacademie use eHerkenning for companies.
 
 Do not leave out `loaClaim` and `loaMap`. They tell the portal which assurance level the broker reported. Without them every sign-in counts as level low, and a guardian sees none of her children: their records ask for level substantial.
 

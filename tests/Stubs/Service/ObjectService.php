@@ -165,4 +165,17 @@ abstract class ObjectService {
 	 */
 	abstract public function runAsSystem(callable $operation);
 
+	/**
+	 * Run a callable acting for an organisation, with no user: the
+	 * organisation filter stays on and creates get that organisation.
+	 *
+	 * Mirrors the real signature exactly: no return type.
+	 *
+	 * @param string   $organisationUuid The organisation to act for.
+	 * @param callable $operation        The operation to run.
+	 *
+	 * @return mixed
+	 */
+	abstract public function runForOrganisation(string $organisationUuid, callable $operation);
+
 }//end class
