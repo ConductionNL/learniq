@@ -93,52 +93,87 @@ class ParentSitePages {
 			'home' => true,
 			// No child switcher: the board's overview is about both children at
 			// once, the cards and the calendar included (REPORT-2, item 4).
-			'blocks' => [
-				// The greeting's one button opens the absence form (lane L2: `label` plus one target).
-				['type' => 'greeting', 'label' => 'Report absent', 'action' => 'createExcuseRequest'],
-				[
-					'type' => 'tasks',
-					'label' => 'Still to do',
-					'display' => 'highlight',
-					// One row per child per open round (ConferenceInvitations): a
-					// child who already has a time has no open row, so Vera's
-					// booked round asks nothing and Sami's asks for a time.
-					'collection' => self::INVITATIONS,
-					'dueField' => 'bookingClosesAt',
-					'titleFields' => ['roundName'],
-					// "Kies een tijd voor het oudergesprek van Sami": the child's
-					// first name through a lookup on the row's own learnerRef
-					// (portaliq lookup-by-row-field). Without a name the title
-					// falls back to the round's name.
-					'titleTemplate' => 'Pick a time for the parent-teacher conversation of {childName}',
-					'lookups' => [self::childNameLookup()],
-					'buttonLabel' => 'Pick a time',
-					// "Kiezen kan tot en met vrijdag 16 oktober" in the card's line.
-					'dueInLine' => true,
-				],
-				[
-					'type' => 'collection',
-					'label' => 'My children',
-					'collection' => self::CHILDREN,
-					'display' => 'cards',
-					'titleFields' => ['givenName'],
-					'subtitleFields' => ['groupLabel'],
-					'avatar' => true,
-					// The chip on each card (board: "Op school", "Ziek gemeld"),
-					// derived, never stored: a report of this child that covers
-					// today reads "Reported sick", a school day without one
-					// "At school", a weekend or holiday neither.
-					'status' => self::childStatus(),
-				],
-				['type' => 'news', 'label' => 'New from school', 'limit' => 3],
-				// "Deze maand": this month only (portaliq calendar `range`).
-				['type' => 'calendar', 'label' => 'This month', 'display' => 'tiles', 'range' => 'month', 'sources' => $sources],
-				self::latestGradesBlock(),
-				// "Rapporten": the report cards on each child's own page.
-				['type' => 'cta', 'page' => 'parentChildren', 'label' => 'Reports'],
-			],
+			'blocks' => self::overviewBlocks(sources: $sources),
 		];
 	}//end overviewPage()
+
+	/**
+	 * The blocks of the overview, in the order of the board.
+	 *
+	 * @param array<int, array<string, mixed>> $sources The child's calendar sources.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/school-portals-match-their-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-holds-only-what-the-board-shows
+	 */
+	private static function overviewBlocks(array $sources): array {
+		return [
+			// The greeting's one button opens the absence form (lane L2: `label` plus one target).
+			['type' => 'greeting', 'label' => 'Report absent', 'action' => 'createExcuseRequest'],
+			self::tasksBlock(),
+			self::childrenBlock(),
+			['type' => 'news', 'label' => 'New from school', 'limit' => 3],
+			// "Deze maand": this month only (portaliq calendar `range`).
+			['type' => 'calendar', 'label' => 'This month', 'display' => 'tiles', 'range' => 'month', 'sources' => $sources],
+			self::latestGradesBlock(),
+			// "Rapporten": the report cards on each child's own page.
+			['type' => 'cta', 'page' => 'parentChildren', 'label' => 'Reports'],
+		];
+	}//end overviewBlocks()
+
+	/**
+	 * "Wat u nog moet doen": one row per child per open round.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/guardian-tasks-per-child-and-self-assessment/specs/portal-contribution/spec.md#requirement-the-guardian-reads-one-task-per-child-with-the-childs-name
+	 */
+	private static function tasksBlock(): array {
+		return [
+			'type' => 'tasks',
+			'label' => 'Still to do',
+			'display' => 'highlight',
+			// One row per child per open round (ConferenceInvitations): a
+			// child who already has a time has no open row, so Vera's
+			// booked round asks nothing and Sami's asks for a time.
+			'collection' => self::INVITATIONS,
+			'dueField' => 'bookingClosesAt',
+			'titleFields' => ['roundName'],
+			// "Kies een tijd voor het oudergesprek van Sami": the child's
+			// first name through a lookup on the row's own learnerRef
+			// (portaliq lookup-by-row-field). Without a name the title
+			// falls back to the round's name.
+			'titleTemplate' => 'Pick a time for the parent-teacher conversation of {childName}',
+			'lookups' => [self::childNameLookup()],
+			'buttonLabel' => 'Pick a time',
+			// "Kiezen kan tot en met vrijdag 16 oktober" in the card's line.
+			'dueInLine' => true,
+		];
+	}//end tasksBlock()
+
+	/**
+	 * "Mijn kinderen": the children as cards, each with where the child is today.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/school-portals-match-their-boards/specs/portal-contribution/spec.md#requirement-a-childs-card-says-where-the-child-is-today
+	 */
+	private static function childrenBlock(): array {
+		return [
+			'type' => 'collection',
+			'label' => 'My children',
+			'collection' => self::CHILDREN,
+			'display' => 'cards',
+			'titleFields' => ['givenName'],
+			'subtitleFields' => ['groupLabel'],
+			'avatar' => true,
+			// The chip on each card (board: "Op school", "Ziek gemeld"),
+			// derived, never stored: a report of this child that covers
+			// today reads "Reported sick", a school day without one
+			// "At school", a weekend or holiday neither.
+			'status' => self::childStatus(),
+		];
+	}//end childrenBlock()
 
 	/**
 	 * "Laatste cijfers": the newest grades of both children, each row named
