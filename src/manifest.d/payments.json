@@ -43,6 +43,7 @@
 			"type": "index",
 			"title": "Fee items",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "fee-item"
 			}
@@ -135,6 +136,7 @@
 			"type": "index",
 			"title": "Entitlements",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "entitlement",
 				"columns": [

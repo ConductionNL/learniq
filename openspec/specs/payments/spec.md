@@ -1,7 +1,7 @@
 # payments Specification
 
 ## Purpose
-TBD - created by archiving change school-payments. Update Purpose after archive.
+Define school fees and voluntary contributions in learniq, and collect them through shillinq. A settled payment grants the learner's entitlement, and a voluntary fee never blocks enrolment or participation.
 
 ## Requirements
 

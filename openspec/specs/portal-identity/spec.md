@@ -113,10 +113,10 @@ valid JSON.
 
 Learniq MUST let the school's administration (members of `admin` or `administration-managers`) invite a guardian to the portal with an email address the school verified. The invitation MUST provision a pending portal account (audience `parent`) through portaliq's `PortalAccountProvisionRequestedEvent` with that address marked verified, and MUST then write the claim `learniq.guardianRef` = the guardian's LearnerProfile uuid through `PortalAccountClaimRequestedEvent`. Only a LearnerProfile with the role `parent` MAY be invited. Without portaliq the invitation MUST dispatch nothing and answer `portal-unavailable`. Any other caller MUST get 403.
 
-#### Scenario: An invited guardian sees their own child after signing in
-- **GIVEN** the po example set, and guardian Fatima Hulstkamp invited with a verified address
+#### Scenario: An invited guardian sees her own children after signing in
+- **GIVEN** the po example set, where Fatima Hulstkamp is the guardian of Vera (groep 7) and Sami (groep 4), invited with a verified address
 - **WHEN** she signs in to the portal with DigiD at level substantial using that address
-- **THEN** "My children" lists Vera Hulstkamp and no other child
+- **THEN** "Overzicht" shows "Mijn kinderen" with Vera and Sami, one card each with group and teacher, and no other child
 - @e2e tests/e2e/po-parent-flows.spec.ts
 
 #### Scenario: A teacher cannot invite a guardian

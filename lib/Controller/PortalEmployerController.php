@@ -6,8 +6,9 @@
  * Receives portaliq's forwards when an employer books places on a course
  * edition, names a participant for a place, or supplies a participant's
  * missing birth date. The signed `X-Portal-Subject` assertion is the only
- * credential; the company is the `organisationRef` claim portaliq stamps into
- * the body over anything the form sent (employer-portal-audience).
+ * credential; the company is the `organisationRef` claim portaliq signs into
+ * the assertion and stamps into the body over anything the form sent, and the
+ * two must agree (employer-portal-audience).
  *
  * @category Controller
  * @package  OCA\Learniq\Controller
@@ -30,6 +31,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Portal\EmployerCompanyTenancy;
 use OCA\Learniq\Portal\PortalAssertionVerifier;
 use OCA\Learniq\Service\Portal\PortalEmployerBookings;
 use OCA\Learniq\Service\Portal\PortalOutcome;
@@ -55,7 +57,7 @@ class PortalEmployerController extends Controller {
 	public const AUDIENCE = 'employer';
 
 	/**
-	 * The scope claim, stamped by portaliq into the body.
+	 * The scope claim, signed by portaliq into the assertion and stamped into the body.
 	 */
 	public const CLAIM = 'organisationRef';
 
@@ -70,6 +72,7 @@ class PortalEmployerController extends Controller {
 	 * @param IRequest                $request   The request.
 	 * @param PortalAssertionVerifier $verifier  Verifies X-Portal-Subject.
 	 * @param PortalEmployerBookings  $bookings  Checks and stores the writes.
+	 * @param EmployerCompanyTenancy  $tenancy   Checks the company lies in the portal's organisation.
 	 *
 	 * @return void
 	 */
@@ -77,6 +80,7 @@ class PortalEmployerController extends Controller {
 		IRequest $request,
 		private readonly PortalAssertionVerifier $verifier,
 		private readonly PortalEmployerBookings $bookings,
+		private readonly EmployerCompanyTenancy $tenancy,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -151,8 +155,13 @@ class PortalEmployerController extends Controller {
 			return $response;
 		}
 
-		$company = $this->request->getParam(self::CLAIM);
-		if (($claims['audience'] ?? '') !== self::AUDIENCE || is_string($company) === false || trim($company) === '') {
+		$company = $this->company(claims: $claims);
+		if ($company === null) {
+			return new JSONResponse(data: ['error' => 'forbidden'], statusCode: Http::STATUS_FORBIDDEN);
+		}
+
+		// The company must lie in the organisation of the portal the assertion was signed for.
+		if ($this->tenancy->holds(organisationRef: $company, organisation: (string)($claims['organisation'] ?? '')) === false) {
 			return new JSONResponse(data: ['error' => 'forbidden'], statusCode: Http::STATUS_FORBIDDEN);
 		}
 
@@ -164,8 +173,48 @@ class PortalEmployerController extends Controller {
 			}
 		}
 
-		$outcome = $work(trim($company), $body);
+		$outcome = $work($company, $body);
 
 		return new JSONResponse(data: $outcome->body, statusCode: $outcome->status);
 	}//end answer()
+
+	/**
+	 * The company of an employer assertion, trimmed, or null.
+	 *
+	 * The body's company must be the one the assertion itself was signed for,
+	 * so a valid assertion cannot be replayed with another company.
+	 *
+	 * @param array<string, mixed> $claims The verified assertion claims.
+	 *
+	 * @return string|null
+	 */
+	private function company(array $claims): ?string {
+		$signed = ($claims[self::CLAIM] ?? null);
+		if (($claims['audience'] ?? '') !== self::AUDIENCE) {
+			return null;
+		}
+
+		return self::sameCompany(body: $this->request->getParam(self::CLAIM), signed: $signed);
+	}//end company()
+
+	/**
+	 * The trimmed company when the body and the signed claim are the same non-empty string, or null.
+	 *
+	 * @param mixed $body   The body's organisationRef.
+	 * @param mixed $signed The assertion's organisationRef claim.
+	 *
+	 * @return string|null
+	 */
+	private static function sameCompany(mixed $body, mixed $signed): ?string {
+		if (is_string($body) === false || is_string($signed) === false) {
+			return null;
+		}
+
+		$company = trim($body);
+		if ($company === '' || $company !== trim($signed)) {
+			return null;
+		}
+
+		return $company;
+	}//end sameCompany()
 }//end class

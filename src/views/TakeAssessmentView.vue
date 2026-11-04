@@ -24,7 +24,7 @@
 -->
 
 <template>
-	<div class="take-assessment">
+	<div class="take-assessment lq-board-page">
 		<!-- Loading -->
 		<div v-if="loading" class="take-assessment__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
@@ -186,51 +186,43 @@
 
 		<!-- Assessment header + item view -->
 		<template v-else-if="assessment && resultId">
-			<header class="take-assessment__header">
-				<h2 class="take-assessment__title">
-					{{ assessment.title }}
-				</h2>
-				<div class="take-assessment__meta">
-					<span
-						v-if="assessment.timeLimitMinutes"
-						class="take-assessment__timer"
-						:class="{ 'take-assessment__timer--warning': timeWarning }">
-						{{
-							t('learniq', 'Time remaining: {time}', {
-								time: formattedTimeRemaining,
-							})
-						}}
-					</span>
-					<span
-						v-if="autosaveState"
-						class="take-assessment__autosave"
-						role="status"
-						aria-live="polite">
-						{{ autosaveMessage }}
-					</span>
-					<span class="take-assessment__progress">
-						{{
-							t('learniq', 'Item {current} of {total}', {
-								current: currentItemIndex + 1,
-								total: items.length,
-							})
-						}}
-					</span>
-				</div>
-			</header>
+			<CnPageHeader :title="assessment.title" />
+			<div class="take-assessment__meta">
+				<span
+					v-if="assessment.timeLimitMinutes"
+					class="take-assessment__timer"
+					:class="{ 'take-assessment__timer--warning': timeWarning }">
+					{{
+						t('learniq', 'Time remaining: {time}', {
+							time: formattedTimeRemaining,
+						})
+					}}
+				</span>
+				<span
+					v-if="autosaveState"
+					class="take-assessment__autosave"
+					role="status"
+					aria-live="polite">
+					{{ autosaveMessage }}
+				</span>
+				<span class="take-assessment__progress">
+					{{
+						t('learniq', 'Item {current} of {total}', {
+							current: currentItemIndex + 1,
+							total: items.length,
+						})
+					}}
+				</span>
+			</div>
 
 			<!-- Item display -->
-			<section
-				v-if="currentItem"
+			<CnDetailCard
+				:title="currentItem ? currentItem.title : ''"
 				class="take-assessment__item"
 				aria-live="polite">
-				<h3 class="take-assessment__item-title">
-					{{ currentItem.title }}
-				</h3>
-
 				<!-- Choice interaction -->
 				<div
-					v-if="currentItem.interactionType === 'choice'"
+					v-if="currentItem && currentItem.interactionType === 'choice'"
 					class="take-assessment__choice">
 					<p
 						class="take-assessment__qti-body"
@@ -258,7 +250,7 @@
 
 				<!-- Extended text (essay) interaction -->
 				<div
-					v-else-if="currentItem.interactionType === 'extendedText'"
+					v-else-if="currentItem && currentItem.interactionType === 'extendedText'"
 					class="take-assessment__essay">
 					<p
 						id="take-assessment-essay-prompt"
@@ -280,7 +272,7 @@
 				</div>
 
 				<!-- Other interaction types — no in-browser editor yet -->
-				<div v-else class="take-assessment__other-interaction">
+				<div v-else-if="currentItem" class="take-assessment__other-interaction">
 					<p
 						id="take-assessment-other-prompt"
 						class="take-assessment__qti-body"
@@ -303,42 +295,43 @@
 						:value="currentResponse || ''"
 						@input="setResponse($event.target.value)" />
 				</div>
-			</section>
 
-			<!-- Navigation -->
-			<nav class="take-assessment__nav">
-				<button
-					class="button-vue"
-					:disabled="currentItemIndex === 0"
-					@click="prevItem">
-					{{ t('learniq', 'Previous') }}
-				</button>
-				<button
-					v-if="currentItemIndex < items.length - 1"
-					class="button-vue button-vue--primary"
-					@click="nextItem">
-					{{ t('learniq', 'Next') }}
-				</button>
-				<button
-					v-else
-					class="button-vue button-vue--primary"
-					:disabled="submitting"
-					@click="submitAssessment">
-					<span
-						v-if="submitting"
-						class="icon-loading"
-						aria-hidden="true" />
-					{{ t('learniq', 'Submit assessment') }}
-				</button>
-			</nav>
-			<p v-if="submitError" role="alert" class="take-assessment__error-inline">
-				{{ submitError }}
-			</p>
+				<!-- Navigation -->
+				<nav class="take-assessment__nav">
+					<button
+						class="button-vue"
+						:disabled="currentItemIndex === 0"
+						@click="prevItem">
+						{{ t('learniq', 'Previous') }}
+					</button>
+					<button
+						v-if="currentItemIndex < items.length - 1"
+						class="button-vue button-vue--primary"
+						@click="nextItem">
+						{{ t('learniq', 'Next') }}
+					</button>
+					<button
+						v-else
+						class="button-vue button-vue--primary"
+						:disabled="submitting"
+						@click="submitAssessment">
+						<span
+							v-if="submitting"
+							class="icon-loading"
+							aria-hidden="true" />
+						{{ t('learniq', 'Submit assessment') }}
+					</button>
+				</nav>
+				<p v-if="submitError" role="alert" class="take-assessment__error-inline">
+					{{ submitError }}
+				</p>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 import {
@@ -351,6 +344,11 @@ import { transitionUrl } from '../utils/manualScoring.js'
 
 export default {
 	name: 'TakeAssessmentView',
+
+	components: {
+		CnDetailCard,
+		CnPageHeader,
+	},
 
 	props: {
 		/**
@@ -1729,13 +1727,6 @@ export default {
 </script>
 
 <style scoped>
-.take-assessment {
-	max-width: 800px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
 .take-assessment__loading,
 .take-assessment__error {
 	display: flex;
@@ -1759,17 +1750,6 @@ export default {
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
-.take-assessment__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-	border-bottom: 1px solid var(--color-border);
-	padding-bottom: var(--default-grid-baseline, 8px);
-}
-
-.take-assessment__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-}
-
 .take-assessment__meta {
 	display: flex;
 	gap: calc(var(--default-grid-baseline, 8px) * 2);
@@ -1788,18 +1768,6 @@ export default {
 
 .take-assessment__timer--warning {
 	color: var(--color-error);
-}
-
-.take-assessment__item {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-	padding: calc(var(--default-grid-baseline, 8px) * 2);
-	background: var(--color-background-hover);
-	border-radius: var(--border-radius, 4px);
-}
-
-.take-assessment__item-title {
-	font-weight: bold;
-	margin-bottom: var(--default-grid-baseline, 8px);
 }
 
 .take-assessment__options {

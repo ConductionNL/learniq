@@ -20,8 +20,8 @@
  @spec openspec/specs/external-training-recording/spec.md
 -->
 <template>
-	<div class="external-training-bulk">
-		<h2>{{ t('learniq', 'Record training for a group') }}</h2>
+	<div class="external-training-bulk lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Record training for a group')" />
 		<p class="external-training-bulk__intro">
 			{{
 				t(
@@ -45,77 +45,87 @@
 			@imported="onImported" />
 
 		<form class="external-training-bulk__form" @submit.prevent="submit">
-			<NcSelect
-				v-model="learners"
-				:options="learnerOptions"
-				:multiple="true"
-				:loading="searchingLearners"
-				:filterable="false"
-				:getOptionLabel="learnerLabel"
-				:inputLabel="t('learniq', 'Learners')"
-				:placeholder="t('learniq', 'Search by name')"
-				@search="searchLearners" />
+			<CnDetailCard
+				:title="t('learniq', 'Training')"
+				class="external-training-bulk__card">
+				<label for="etb-title">{{ t('learniq', 'Training title') }}</label>
+				<input id="etb-title" v-model="training.title" type="text" required />
 
-			<label for="etb-title">{{ t('learniq', 'Training title') }}</label>
-			<input id="etb-title" v-model="training.title" type="text" required />
+				<label for="etb-provider">{{ t('learniq', 'Provider') }}</label>
+				<input
+					id="etb-provider"
+					v-model="training.provider"
+					type="text"
+					required />
 
-			<label for="etb-provider">{{ t('learniq', 'Provider') }}</label>
-			<input
-				id="etb-provider"
-				v-model="training.provider"
-				type="text"
-				required />
+				<NcSelect
+					v-model="training.kind"
+					:options="kindOptions"
+					:reduce="(option) => option.id"
+					:clearable="false"
+					:inputLabel="t('learniq', 'Kind of training')" />
 
-			<NcSelect
-				v-model="training.kind"
-				:options="kindOptions"
-				:reduce="(option) => option.id"
-				:clearable="false"
-				:inputLabel="t('learniq', 'Kind of training')" />
+				<label for="etb-completed">{{ t('learniq', 'Completed on') }}</label>
+				<input
+					id="etb-completed"
+					v-model="training.completedAt"
+					type="date"
+					required />
 
-			<label for="etb-completed">{{ t('learniq', 'Completed on') }}</label>
-			<input
-				id="etb-completed"
-				v-model="training.completedAt"
-				type="date"
-				required />
+				<label for="etb-valid">{{
+					t('learniq', 'Valid until (optional)')
+				}}</label>
+				<input id="etb-valid" v-model="training.validUntil" type="date" />
 
-			<label for="etb-valid">{{
-				t('learniq', 'Valid until (optional)')
-			}}</label>
-			<input id="etb-valid" v-model="training.validUntil" type="date" />
+				<NcSelect
+					v-model="training.regulationSlug"
+					:options="regulationOptions"
+					:reduce="(option) => option.id"
+					:inputLabel="t('learniq', 'Regulation it covers (optional)')" />
 
-			<NcSelect
-				v-model="training.regulationSlug"
-				:options="regulationOptions"
-				:reduce="(option) => option.id"
-				:inputLabel="t('learniq', 'Regulation it covers (optional)')" />
+				<label for="etb-evidence">{{
+					t('learniq', 'Evidence note (optional)')
+				}}</label>
+				<textarea id="etb-evidence" v-model="training.evidenceNote" rows="3" />
+			</CnDetailCard>
 
-			<label for="etb-evidence">{{
-				t('learniq', 'Evidence note (optional)')
-			}}</label>
-			<textarea id="etb-evidence" v-model="training.evidenceNote" rows="3" />
+			<CnDetailCard
+				:title="t('learniq', 'Learners')"
+				class="external-training-bulk__card">
+				<NcSelect
+					v-model="learners"
+					:options="learnerOptions"
+					:multiple="true"
+					:loading="searchingLearners"
+					:filterable="false"
+					:getOptionLabel="learnerLabel"
+					:inputLabel="t('learniq', 'Learners')"
+					:placeholder="t('learniq', 'Search by name')"
+					@search="searchLearners" />
 
-			<NcNoteCard v-if="error" type="error">
-				{{ error }}
-			</NcNoteCard>
+				<NcNoteCard v-if="error" type="error">
+					{{ error }}
+				</NcNoteCard>
 
-			<div class="external-training-bulk__actions">
-				<NcButton type="submit" variant="primary" :disabled="submitting">
-					{{
-						n(
-							'learniq',
-							'Record for %n learner',
-							'Record for %n learners',
-							learners.length,
-						)
-					}}
-				</NcButton>
-			</div>
+				<div class="external-training-bulk__actions">
+					<NcButton type="submit" variant="primary" :disabled="submitting">
+						{{
+							n(
+								'learniq',
+								'Record for %n learner',
+								'Record for %n learners',
+								learners.length,
+							)
+						}}
+					</NcButton>
+				</div>
+			</CnDetailCard>
 		</form>
 
-		<section v-if="batchId" class="external-training-bulk__batch">
-			<h3>{{ t('learniq', 'Recorded batch') }}</h3>
+		<CnDetailCard
+			v-if="batchId"
+			:title="t('learniq', 'Recorded batch')"
+			class="external-training-bulk__batch">
 			<NcNoteCard v-if="createdCount > 0" type="success">
 				{{
 					n(
@@ -181,11 +191,12 @@
 					{{ t('learniq', 'Check coverage') }}
 				</NcButton>
 			</div>
-		</section>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcLoadingIcon, NcNoteCard, NcSelect } from '@nextcloud/vue'
@@ -216,6 +227,8 @@ export default {
 	name: 'ExternalTrainingBulkRecordView',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		ExternalTrainingUploadDialog,
 		NcButton,
 		NcLoadingIcon,
@@ -535,12 +548,13 @@ export default {
 	gap: calc(var(--default-grid-baseline) * 2);
 }
 
-.external-training-bulk {
-	padding: 1rem;
-	max-width: 48rem;
+.external-training-bulk__form {
+	display: flex;
+	flex-direction: column;
+	gap: var(--cn-board-section-gap, 16px);
 }
 
-.external-training-bulk__form {
+.external-training-bulk__card :deep(.cn-detail-card__content) {
 	display: flex;
 	flex-direction: column;
 	gap: 0.5rem;
@@ -550,10 +564,6 @@ export default {
 	display: flex;
 	gap: 0.5rem;
 	margin-top: 1rem;
-}
-
-.external-training-bulk__batch {
-	margin-top: 2rem;
 }
 
 .external-training-bulk__table {

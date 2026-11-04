@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\PassedArguments;
 use OCA\Learniq\Listener\AssessmentDrawResolver;
 use OCA\Learniq\Service\ItemPoolFilter;
 use OCA\Learniq\Service\ListenerSchemaResolver;
@@ -130,7 +131,7 @@ class AssessmentDrawGoldenTest extends TestCase {
 		$resolver = new AssessmentDrawResolver($this->objectService(assessment: $assessment), $this->choices(), new ItemPoolFilter(), $this->schemas(schema: 'assessment-result'), new CapturingLogger());
 		$resolver->handle($this->created(data: ['id' => 'r-1', 'assessmentId' => 'a-1', 'tenant_id' => 't-1']));
 		$saves = array_values(array_filter($this->calls, static fn (array $call): bool => isset($call['saveObject'])));
-		$ids = array_column($saves[0]['saveObject'][0]['drawnItemRefs'], 'itemId');
+		$ids = array_column($saves[0]['saveObject']['object']['drawnItemRefs'], 'itemId');
 		$this->assertCount(3, $ids);
 		$this->assertCount(3, array_unique($ids));
 	}//end testARandomDrawTakesDrawCountItems()
@@ -144,7 +145,7 @@ class AssessmentDrawGoldenTest extends TestCase {
 	 * @return array<string,mixed>
 	 */
 	private static function comparable(array $args, bool $random): array {
-		$refs = $args[0]['drawnItemRefs'];
+		$refs = $args['object']['drawnItemRefs'];
 		foreach ($refs as $index => $ref) {
 			if (is_array($ref['optionOrder']) === true) {
 				sort($ref['optionOrder']);
@@ -156,7 +157,7 @@ class AssessmentDrawGoldenTest extends TestCase {
 			usort($refs, static fn (array $a, array $b): int => strcmp($a['itemId'], $b['itemId']));
 		}
 
-		$args[0]['drawnItemRefs'] = $refs;
+		$args['object']['drawnItemRefs'] = $refs;
 		return $args;
 	}//end comparable()
 
@@ -193,7 +194,7 @@ class AssessmentDrawGoldenTest extends TestCase {
 		);
 		$service->method('saveObject')->willReturnCallback(
 			function (...$args): ObjectEntity {
-				$this->calls[] = ['saveObject' => $args];
+				$this->calls[] = ['saveObject' => PassedArguments::of(method: [ObjectService::class, 'saveObject'], args: $args)];
 				return OrEntityFactory::make([], 'assessment-result');
 			}
 		);
