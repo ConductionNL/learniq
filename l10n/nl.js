@@ -4266,7 +4266,9 @@ OC.L10N.register(
         "Menu": "Menu",
         "Timetable exchange": "Roosteruitwisseling",
         "AI translations": "AI-vertalingen",
-        "Administration settings": "Beheerinstellingen"
+        "Administration settings": "Beheerinstellingen",
+        "Read only": "Alleen lezen",
+        "School costs": "Schoolkosten"
     },
     "nplurals=2; plural=(n != 1);"
 )

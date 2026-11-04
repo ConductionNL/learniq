@@ -44,6 +44,14 @@
 			"title": "Fee items",
 			"config": {
 				"showTitle": true,
+				"breadcrumb": [
+					{
+						"label": "Payments"
+					},
+					{
+						"label": "School costs"
+					}
+				],
 				"register": "learniq",
 				"schema": "fee-item"
 			}
@@ -137,6 +145,14 @@
 			"title": "Entitlements",
 			"config": {
 				"showTitle": true,
+				"breadcrumb": [
+					{
+						"label": "Payments"
+					},
+					{
+						"label": "School costs"
+					}
+				],
 				"register": "learniq",
 				"schema": "entitlement",
 				"columns": [

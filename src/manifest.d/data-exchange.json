@@ -111,6 +111,7 @@
 			},
 			"config": {
 				"showTitle": true,
+				"headerMeta": "Read only",
 				"register": "integriq",
 				"schema": "job",
 				"filter": {
@@ -175,6 +176,7 @@
 			},
 			"config": {
 				"showTitle": true,
+				"headerMeta": "Read only",
 				"register": "integriq",
 				"schema": "sync_item_dead_letter",
 				"filter": {

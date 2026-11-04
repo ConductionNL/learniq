@@ -4322,7 +4322,9 @@
         "Menu": "Menu",
         "Timetable exchange": "Roosteruitwisseling",
         "AI translations": "AI-vertalingen",
-        "Administration settings": "Beheerinstellingen"
+        "Administration settings": "Beheerinstellingen",
+        "Read only": "Alleen lezen",
+        "School costs": "Schoolkosten"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
