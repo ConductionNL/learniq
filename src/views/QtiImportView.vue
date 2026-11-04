@@ -12,47 +12,50 @@
  @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
 -->
 <template>
-	<div class="qti-import">
-		<h2>{{ t('learniq', 'Import a QTI package') }}</h2>
-		<form class="qti-import__form" @submit.prevent="upload">
-			<label for="qti-file">{{
-				t('learniq', 'QTI package (.zip or .xml)')
-			}}</label>
-			<input
-				id="qti-file"
-				type="file"
-				accept=".zip,.xml"
-				required
-				@change="file = $event.target.files[0] || null" />
+	<div class="qti-import lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Import a QTI package')" />
+		<CnDetailCard>
+			<form class="qti-import__form" @submit.prevent="upload">
+				<label for="qti-file">{{
+					t('learniq', 'QTI package (.zip or .xml)')
+				}}</label>
+				<input
+					id="qti-file"
+					type="file"
+					accept=".zip,.xml"
+					required
+					@change="file = $event.target.files[0] || null" />
 
-			<NcNoteCard v-if="error" type="error">
-				{{ error }}
-			</NcNoteCard>
-			<NcNoteCard v-if="result" type="success">
-				{{ summary }}
-			</NcNoteCard>
-			<ul v-if="result && warnings.length > 0" class="qti-import__warnings">
-				<li v-for="(warning, index) in warnings" :key="index">
-					{{ warning }}
-				</li>
-			</ul>
+				<NcNoteCard v-if="error" type="error">
+					{{ error }}
+				</NcNoteCard>
+				<NcNoteCard v-if="result" type="success">
+					{{ summary }}
+				</NcNoteCard>
+				<ul v-if="result && warnings.length > 0" class="qti-import__warnings">
+					<li v-for="(warning, index) in warnings" :key="index">
+						{{ warning }}
+					</li>
+				</ul>
 
-			<div class="qti-import__actions">
-				<NcButton
-					type="submit"
-					variant="primary"
-					:disabled="uploading || !file">
-					{{ t('learniq', 'Import') }}
-				</NcButton>
-				<NcButton variant="tertiary" @click="back">
-					{{ t('learniq', 'Back to the item bank') }}
-				</NcButton>
-			</div>
-		</form>
+				<div class="qti-import__actions">
+					<NcButton
+						type="submit"
+						variant="primary"
+						:disabled="uploading || !file">
+						{{ t('learniq', 'Import') }}
+					</NcButton>
+					<NcButton variant="tertiary" @click="back">
+						{{ t('learniq', 'Back to the item bank') }}
+					</NcButton>
+				</div>
+			</form>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcNoteCard } from '@nextcloud/vue'
@@ -60,7 +63,7 @@ import { NcButton, NcNoteCard } from '@nextcloud/vue'
 export default {
 	name: 'QtiImportView',
 
-	components: { NcButton, NcNoteCard },
+	components: { CnDetailCard, CnPageHeader, NcButton, NcNoteCard },
 
 	props: {
 		/** ItemBank UUID from the route. */
@@ -145,11 +148,6 @@ export default {
 </script>
 
 <style scoped>
-.qti-import {
-	padding: calc(var(--default-grid-baseline, 4px) * 4);
-	max-inline-size: 40rem;
-}
-
 .qti-import__form {
 	display: flex;
 	flex-direction: column;

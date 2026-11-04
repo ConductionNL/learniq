@@ -1,3 +1,5 @@
 # Screens
 
-- No screen: these are properties of the app (hosting, licence, running without AI), not a page in it.
+- learniq/LqCfAiVerwerking toelichting AI-verwerking: the AI processing disclosure on an install without hermiq (REQ-PLAT-003) https://identity.conduction.nl/screens/board?id=learniq/LqCfAiVerwerking
+
+Components: CnAppNav, CnBreadcrumbs, CnBuildiqEditButton, CnDataTable, CnNoteCard, CnPageHeader, CnStatusBadge

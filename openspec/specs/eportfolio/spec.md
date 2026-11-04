@@ -1,7 +1,7 @@
 # eportfolio Specification
 
 ## Purpose
-TBD - created by archiving change eportfolio. Update Purpose after archive.
+Let a learner collect evidence in a personal or course-bound portfolio and hand it in once the required sections are filled. A graded portfolio goes through the normal grades, and teachers, workplace trainers and external assessors read it through a share.
 ## Requirements
 ### Requirement: Persist e-portfolio domain objects in OpenRegister
 

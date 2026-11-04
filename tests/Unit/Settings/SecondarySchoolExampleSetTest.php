@@ -258,6 +258,12 @@ class SecondarySchoolExampleSetTest extends TestCase {
 
 		$assignments = self::groupBy(self::of('subjectteacherassignment'), ['cohortId']);
 		foreach (self::of('cohort') as $class) {
+			// The one course's own group has its one teacher, not a class's subject teachers.
+			if ($class['name'] === 'Biologie leerjaar 3 havo/vwo') {
+				self::assertSame(expected: ['vo-docent-15'], actual: $class['teacherIds']);
+				continue;
+			}
+
 			$mentor   = $class['teacherAssignments'][0]['teacherId'];
 			$teachers = array_column($assignments[$class['uuid']] ?? [], 'teacherId');
 			self::assertGreaterThanOrEqual(8, count($teachers), $class['name'] . ' has subject teachers');
@@ -706,8 +712,16 @@ class SecondarySchoolExampleSetTest extends TestCase {
 		self::assertSame('2026-2027', $h4b['academicYear']);
 		self::assertCount(27, $h4b['learnerIds']);
 		self::assertContains($noor['ncUserId'], $h4b['learnerIds']);
-		$enrolment = array_values(array_filter(self::of('enrolment'), static fn (array $e): bool => $e['learnerId'] === $noor['ncUserId'] && $e['lifecycle'] === 'active'));
-		self::assertCount(1, $enrolment);
+		$enrolment = array_values(
+			array: array_filter(
+				array: self::of(schema: 'enrolment'),
+				callback: static fn (array $e): bool => $e['learnerId'] === $noor['ncUserId'] && $e['lifecycle'] === 'active'
+			)
+		);
+		self::assertSame(
+			expected: ['3HV-B', 'Biologie leerjaar 3 havo/vwo'],
+			actual: array_column(array: $enrolment, column_key: 'cohortName')
+		);
 		self::assertSame($h4b['uuid'], $enrolment[0]['cohortId']);
 		self::assertSame(expected: 3, actual: $enrolment[0]['leerjaar']);
 
@@ -839,6 +853,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 				'Paragraaf 3.3, opgave 23 tot en met 31 2026-10-08',
 				'Toets hoofdstuk 3 en 4 2026-11-10',
 				'Betoog schrijven 2026-10-09',
+				'Practicumverslag cellen 2026-10-16',
 			],
 			array_map(static fn (array $a): string => $a['title'] . ' ' . substr($a['dueAt'], 0, 10), $homework)
 		);

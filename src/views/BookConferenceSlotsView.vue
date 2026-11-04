@@ -23,8 +23,8 @@
  @spec openspec/specs/parent-conferences/spec.md#requirement-a-guardian-or-self-signup-submission-is-gated-by-a-per-object-authorization-guard
 -->
 <template>
-	<div class="book-conference-slots">
-		<h2>{{ t('learniq', 'Book a parent-teacher conversation') }}</h2>
+	<div class="book-conference-slots lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Book a parent-teacher conversation')" />
 
 		<NcLoadingIcon v-if="loading" :size="32" />
 
@@ -38,7 +38,10 @@
 				)
 			" />
 
-		<template v-else>
+		<CnDetailCard
+			v-else
+			:title="t('learniq', 'Your request')"
+			class="book-conference-slots__card">
 			<div class="book-conference-slots__field">
 				<label for="bcs-round">{{ t('learniq', 'Conference round') }}</label>
 				<NcSelect
@@ -110,11 +113,12 @@
 						: t('learniq', 'Submit request')
 				}}
 			</NcButton>
-		</template>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -131,6 +135,8 @@ export default {
 	name: 'BookConferenceSlotsView',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
@@ -360,9 +366,8 @@ export default {
 </script>
 
 <style scoped>
-.book-conference-slots {
-	padding: 1rem;
-	max-width: 480px;
+.book-conference-slots__card {
+	max-width: 860px;
 }
 
 .book-conference-slots__field {

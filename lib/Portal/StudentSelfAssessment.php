@@ -49,6 +49,24 @@ class StudentSelfAssessment {
 	 */
 	public const PAGE = 'studentSelfAssessment';
 
+	private const SELF_ASSESSMENT_FIELD_CONFIGS = [
+		'selfAssessment' => [
+			'label' => 'Your estimate',
+			'required' => true,
+			'widget' => 'choices',
+			'valueLabels' => PortalValueLabels::SELF_ASSESSMENT,
+		],
+	];
+
+	private const SELF_ASSESSMENT_PAGE_BLOCKS = [
+		[
+			'type' => 'collection',
+			'label' => 'For each work process, how do you rate yourself?',
+			'collection' => 'studentWorkProcesses',
+			'recordField' => 'bpvPlacementId',
+		],
+	];
+
 	/**
 	 * "Nu invullen": she fills in her own estimate on one of her own work
 	 * process rows (board Detail, "Werkprocessen").
@@ -85,14 +103,7 @@ class StudentSelfAssessment {
 					),
 				],
 			],
-			'fieldConfigs' => [
-				'selfAssessment' => [
-					'label' => 'Your estimate',
-					'required' => true,
-					'widget' => 'choices',
-					'valueLabels' => PortalValueLabels::SELF_ASSESSMENT,
-				],
-			],
+			'fieldConfigs' => self::SELF_ASSESSMENT_FIELD_CONFIGS,
 			'submitLabel' => 'Save my estimate',
 			'successMessage' => 'Your estimate is saved. Your workplace trainer and your coach see it at the interim assessment.',
 		];
@@ -115,14 +126,7 @@ class StudentSelfAssessment {
 			'label' => 'Self-assessment',
 			'menu' => false,
 			'record' => ['collection' => 'studentBpvPlacements', 'titleFields' => ['trainingCompanyName']],
-			'blocks' => [
-				[
-					'type' => 'collection',
-					'label' => 'For each work process, how do you rate yourself?',
-					'collection' => 'studentWorkProcesses',
-					'recordField' => 'bpvPlacementId',
-				],
-			],
+			'blocks' => self::SELF_ASSESSMENT_PAGE_BLOCKS,
 		];
 	}//end page()
 }//end class

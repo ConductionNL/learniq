@@ -58,6 +58,10 @@
              (ADR-041). Declaration-only stub, so psalm sees the constructor the
              service builds instead of reading the guarded branch as dead. -->
         <file name="tests/Stubs/Integriq/Event/ConnectionStatusReportedEvent.php" preloadClasses="true" />
+        <!-- Portaliq's claim scope event. PortalClaimScopeListener matches it by
+             class name (ADR-041). Declaration-only stub; the real class lives in
+             portaliq/lib/Event/. -->
+        <file name="tests/Stubs/Portaliq/Event/PortalClaimScopeEvent.php" preloadClasses="true" />
     </stubs>
     <issueHandlers>
         <UndefinedDocblockClass errorLevel="suppress"/>
