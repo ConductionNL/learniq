@@ -4267,8 +4267,7 @@ OC.L10N.register(
         "Timetable exchange": "Roosteruitwisseling",
         "AI translations": "AI-vertalingen",
         "Administration settings": "Beheerinstellingen",
-        "Read only": "Alleen lezen",
-        "School costs": "Schoolkosten"
+        "Remove the example set \"{set}\"? Its {count} objects move to the trash of OpenRegister. Anything you made yourself stays.": "De voorbeeldset \"{set}\" verwijderen? De {count} objecten gaan naar de prullenbak van OpenRegister. Wat je zelf hebt gemaakt, blijft staan."
     },
     "nplurals=2; plural=(n != 1);"
 )

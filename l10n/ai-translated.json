@@ -1208,6 +1208,7 @@
         "Remove",
         "Remove the example data",
         "Remove the example set \"{set}\"",
+        "Remove the example set \"{set}\"? Its {count} objects move to the trash of OpenRegister. Anything you made yourself stays.",
         "Remove the stored token",
         "Remove this group",
         "Remove {name} from standby",
