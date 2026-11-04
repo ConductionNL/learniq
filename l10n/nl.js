@@ -1056,7 +1056,7 @@ OC.L10N.register(
         "Course templates": "Cursussjablonen",
         "Support requests": "Ondersteuningsverzoeken",
         "Subject choices": "Vakkenkeuzes",
-        "Pick electives": "Keuzevakken kiezen",
+        "Pick electives": "Vakken kiezen",
         "LTI tools": "LTI-tools",
         "Timetabling": "Roostering",
         "Rooms": "Lokalen",
@@ -3017,7 +3017,7 @@ OC.L10N.register(
         "Whether learners can still check in.": "Of leerlingen zich nog kunnen aanmelden.",
         "Check in to a lesson": "Aanmelden voor een les",
         "None of your lessons has an open check-in right now.": "Bij geen van je lessen staat het aanmelden nu open.",
-        "Check in": "Aanmelden",
+        "Check in": "Inchecken",
         "You are checked in. You were late.": "Je bent aangemeld. Je was te laat.",
         "You are checked in.": "Je bent aangemeld.",
         "Checking in did not work. Try again.": "Aanmelden is niet gelukt. Probeer het opnieuw.",
@@ -4266,7 +4266,11 @@ OC.L10N.register(
         "Menu": "Menu",
         "Timetable exchange": "Roosteruitwisseling",
         "AI translations": "AI-vertalingen",
-        "Administration settings": "Beheerinstellingen"
+        "Administration settings": "Beheerinstellingen",
+        "Reports and automation": "Rapportages en automatisering",
+        "Set up the app": "De app inrichten",
+        "About the app": "Over de app",
+        "Exchanges": "Uitwisselingen"
     },
     "nplurals=2; plural=(n != 1);"
 )

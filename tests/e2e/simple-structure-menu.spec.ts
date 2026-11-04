@@ -15,8 +15,9 @@
  * holds on an empty navigation. So the entries are asserted PRESENT and in
  * order first, and absence is only read after that.
  *
- * The signed-in user is the Nextcloud administrator, whose menu is the
- * teacher's menu plus Timetables and Compliance. The menus of the other roles
+ * The signed-in user is the Nextcloud administrator, whose menu the boards
+ * draw as hr's: Onderwijs with their own timetable, catalogue and record,
+ * Leerlingen with pupils, attendance, people and compliance. The menus of the other roles
  * are held by tests/unit-js/structureProfile.test.mjs, which builds the menu
  * for every role with the library's own evaluator.
  */
@@ -30,25 +31,21 @@ const SETTINGS_API = '/index.php/apps/learniq/api/settings'
 
 /** The administrator's main menu in the simple structure, captions included, in order. */
 const MAIN = [
-	'cn-nav-caption-HomeCaption',
 	'cn-nav-entry-Dashboard',
 	'cn-nav-entry-GroupMyLearning',
-	'cn-nav-entry-GroupsSimple',
 	'cn-nav-caption-TeachingCaption',
 	'cn-nav-entry-MyTimetableMenu',
-	'cn-nav-entry-TimetablesMenu',
-	'cn-nav-entry-GroupLearning',
-	'cn-nav-entry-GradesSimple',
+	'cn-nav-entry-CatalogueMenu',
+	'cn-nav-entry-MyLearningRecordMenu',
 	'cn-nav-caption-LearnersCaption',
 	'cn-nav-entry-LearnersSimple',
 	'cn-nav-entry-AttendanceSimple',
-	'cn-nav-entry-GroupProgress',
-	'cn-nav-entry-CareSimple',
+	'cn-nav-entry-GroupPeople',
 	'cn-nav-entry-GroupCompliance',
 ]
 
-/** Entries the full structure nests under Learning and People. The simple one links to them. */
-const NESTED = ['Courses', 'Assignments', 'RollCallMenu', 'Enrolments']
+/** Entries the full structure nests under Learning and People, and the teaching entries an administrator no longer has. */
+const NESTED = ['Courses', 'Assignments', 'RollCallMenu', 'Enrolments', 'GroupLearning', 'GroupsSimple']
 
 /**
  * The CSRF token for a write.
