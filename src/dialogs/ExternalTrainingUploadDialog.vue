@@ -5,11 +5,10 @@
  ExternalTrainingUploadDialog (compliance-external-training-spreadsheet-upload).
 
  A compliance officer uploads a provider's attendance list as CSV, one row
- per person. The dialog posts the rows with dryRun first and shows every row
- as ready, unmatched, invalid or already recorded, with the reason. Confirming
- posts the same rows again without dryRun: the server records the ready rows
- under one batch and reports per row. The failed rows download as a CSV that
- can be corrected and uploaded again.
+ per person. The dialog posts the rows once: the server checks every row,
+ records the valid ones under one batch and reports per row as recorded,
+ unmatched, invalid or already recorded, with the reason (learniq/LqCfTrainingVastleggen).
+ The failed rows download as a CSV that can be corrected and uploaded again.
 
  @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#requirement-spreadsheet-import-of-external-training
  @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#requirement-import-result-report
@@ -64,7 +63,7 @@
 					{{ summaryText }}
 				</p>
 				<NcButton
-					v-if="!report.dryRun && report.summary.failed > 0"
+					v-if="report.summary.failed > 0"
 					variant="secondary"
 					data-testid="training-upload-failed-download"
 					@click="downloadFailed">
@@ -97,14 +96,6 @@
 			<NcButton variant="tertiary" @click="$emit('close')">
 				{{ t('learniq', 'Close') }}
 			</NcButton>
-			<NcButton
-				v-if="report && report.dryRun"
-				variant="primary"
-				:disabled="busy || counts.ready === 0"
-				data-testid="training-upload-confirm"
-				@click="send(false)">
-				{{ t('learniq', 'Record {count} rows', { count: counts.ready }) }}
-			</NcButton>
 		</template>
 	</NcDialog>
 </template>
@@ -116,12 +107,10 @@ import { NcButton, NcDialog, NcNoteCard } from '@nextcloud/vue'
 import {
 	failedRowsCsv,
 	IMPORT_URL,
-	previewCounts,
 	rowsFromCsv,
 } from '../utils/externalTrainingUpload.js'
 
 const STATUS_LABELS = {
-	ready: 'Ready',
 	created: 'Recorded',
 	unmatched: 'No learner found',
 	invalid: 'Not valid',
@@ -152,29 +141,12 @@ export default {
 
 	computed: {
 		/**
-		 * Rows by what will happen to them.
-		 *
-		 * @return {{ready: number, skipped: number, failed: number}}
-		 * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#scenario-an-officer-uploads-a-providers-attendance-list
-		 */
-		counts() {
-			return previewCounts(this.report?.rows)
-		},
-
-		/**
-		 * The line above the table: the preview counts, or the import result.
+		 * The line above the table: the import result.
 		 *
 		 * @return {string}
 		 * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#requirement-import-result-report
 		 */
 		summaryText() {
-			if (this.report.dryRun) {
-				return this.t(
-					'learniq',
-					'{ready} ready, {skipped} already recorded, {failed} cannot be recorded.',
-					this.counts,
-				)
-			}
 			return this.t(
 				'learniq',
 				'{created} recorded, {skipped} skipped, {failed} failed.',
@@ -185,7 +157,7 @@ export default {
 
 	methods: {
 		/**
-		 * Read the chosen file and ask the server for the preview.
+		 * Read the chosen file and record it.
 		 *
 		 * @param {Event} event The file input's change event.
 		 * @return {Promise<void>}
@@ -214,26 +186,24 @@ export default {
 				return
 			}
 			this.rows = parsed.rows
-			await this.send(true)
+			await this.send()
 		},
 
 		/**
-		 * Post the rows: the preview (dry run) or the import.
+		 * Post the rows; the server stores every valid row straight away.
 		 *
-		 * @param {boolean} dryRun True for the preview.
 		 * @return {Promise<void>}
 		 * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#requirement-spreadsheet-import-of-external-training
 		 */
-		async send(dryRun) {
+		async send() {
 			this.busy = true
 			this.error = ''
 			try {
 				const response = await axios.post(generateUrl(IMPORT_URL), {
 					rows: this.rows,
-					dryRun,
 				})
 				this.report = response.data
-				if (!dryRun && response.data.batchId) {
+				if (response.data.batchId) {
 					this.$emit(
 						'imported',
 						response.data.batchId,

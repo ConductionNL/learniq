@@ -252,24 +252,3 @@ export function failedRowsCsv(rows, report) {
 	}
 	return lines.join('\r\n') + '\r\n'
 }
-
-/**
- * Counts for the preview header: rows by what will happen to them.
- *
- * @param {object[]} report The server's per-row report.
- * @return {{ready: number, skipped: number, failed: number}}
- * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#scenario-an-officer-uploads-a-providers-attendance-list
- */
-export function previewCounts(report) {
-	const counts = { ready: 0, skipped: 0, failed: 0 }
-	for (const line of Array.isArray(report) ? report : []) {
-		if (line?.status === 'ready' || line?.status === 'created') {
-			counts.ready++
-		} else if (isFailed(line)) {
-			counts.failed++
-		} else {
-			counts.skipped++
-		}
-	}
-	return counts
-}

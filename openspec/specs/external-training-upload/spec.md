@@ -1,13 +1,13 @@
 # external-training-upload Specification
 
 ## Purpose
-A compliance officer records outside training for many people at once by uploading a provider's attendance list as CSV. Each row is matched to a learner of the officer's own organisation by email, learner reference or personal number, checked before anything is stored, and recorded in one batch that waits for verification.
+A compliance officer records outside training for many people at once by uploading a provider's attendance list as CSV. Each row is matched to a learner of the officer's own organisation by email, learner reference or personal number, checked before it is stored, and the valid rows are recorded in one batch that waits for verification. There is no preview step: the upload stores the valid rows straight away and reports every row.
 
 ## Requirements
 
 ### Requirement: Spreadsheet import of external training
 
-The system MUST let a compliance officer upload a CSV file of external training records (a spreadsheet saved as CSV) and MUST store every valid row straight away and show the result of the upload ("Resultaat van de upload", learniq/LqCfTrainingVastleggen) per row: stored, unmatched or invalid with the reason. Nothing is stored. Confirming MUST create one `ExternalTrainingRecord` for each ready row and MUST leave the other rows untouched. Learners MUST be matched by learner reference or email within the caller's tenant only.
+The system MUST let a compliance officer upload a CSV file of external training records (a spreadsheet saved as CSV) and MUST store every valid row straight away and show the result of the upload ("Resultaat van de upload", learniq/LqCfTrainingVastleggen) per row: stored, unmatched or invalid with the reason. The upload MUST create one `ExternalTrainingRecord` for each valid row, all in one batch, and MUST store nothing for the other rows. There MUST NOT be a separate confirm step. Learners MUST be matched by learner reference or email within the caller's tenant only.
 
 #### Scenario: An officer uploads a provider's attendance list
 
