@@ -35,18 +35,15 @@
 				{{ t('learniq', 'Save') }}
 			</NcButton>
 		</form>
-		<NcNoteCard v-if="error" type="error">
-			{{ error }}
-		</NcNoteCard>
 	</NcSettingsSection>
 </template>
 
 <script>
 import axios from '@nextcloud/axios'
-import { showSuccess } from '@nextcloud/dialogs'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
-import { NcButton, NcNoteCard, NcSettingsSection, NcTextField } from '@nextcloud/vue'
+import { NcButton, NcSettingsSection, NcTextField } from '@nextcloud/vue'
 import {
 	appealUntil,
 	DEFAULT_APPEAL_DAYS,
@@ -65,7 +62,7 @@ const ENDPOINT = { http: axios, url: generateUrl('/apps/learniq/api/settings') }
  */
 export default {
 	name: 'ExamBoardSettingsSection',
-	components: { NcButton, NcNoteCard, NcSettingsSection, NcTextField },
+	components: { NcButton, NcSettingsSection, NcTextField },
 
 	data() {
 		return {
@@ -73,7 +70,6 @@ export default {
 			maxDays: MAX_APPEAL_DAYS,
 			loading: true,
 			saving: false,
-			error: '',
 		}
 	},
 
@@ -127,7 +123,7 @@ export default {
 		try {
 			this.days = String(await loadAppealDays(ENDPOINT))
 		} catch {
-			this.error = t('learniq', 'The appeal term could not be loaded. Reload the page to try again.')
+			showError(t('learniq', 'The appeal term could not be loaded. Reload the page to try again.'))
 		} finally {
 			this.loading = false
 		}
@@ -143,12 +139,11 @@ export default {
 		 */
 		async save() {
 			this.saving = true
-			this.error = ''
 			try {
 				await saveAppealDays(ENDPOINT, parseAppealDays(this.days))
 				showSuccess(t('learniq', 'Appeal term saved'))
 			} catch {
-				this.error = t('learniq', 'The appeal term could not be saved. Try again.')
+				showError(t('learniq', 'The appeal term could not be saved. Try again.'))
 			} finally {
 				this.saving = false
 			}
