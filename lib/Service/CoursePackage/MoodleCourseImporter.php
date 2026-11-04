@@ -38,13 +38,26 @@ use OCA\Learniq\Service\MoodleBackupParser;
  */
 class MoodleCourseImporter {
 	/**
+	 * Creates the Learniq objects the package materialises.
+	 *
+	 * @var CoursePackageObjectWriter
+	 */
+	private readonly CoursePackageObjectWriter $objectWriter;
+
+	/**
+	 * Builds the report entry rows.
+	 *
+	 * @var CoursePackageImportReporter
+	 */
+	private readonly CoursePackageImportReporter $reporter;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param MbzExtractor $mbzExtractor Moodle `.mbz` (gzipped tar) extractor.
 	 * @param MoodleBackupParser $moodleParser Moodle backup manifest parser.
 	 * @param MoodleActivityRouter $activityRouter Per-activity routing to Learniq targets.
-	 * @param CoursePackageObjectWriter $objectWriter Creates the Learniq objects the backup materialises.
-	 * @param CoursePackageImportReporter $reporter Builds the report entry rows.
+	 * @param CoursePackageOutput $output The object writer, file writer and report entry builder.
 	 *
 	 * @return void
 	 */
@@ -52,9 +65,10 @@ class MoodleCourseImporter {
 		private readonly MbzExtractor $mbzExtractor,
 		private readonly MoodleBackupParser $moodleParser,
 		private readonly MoodleActivityRouter $activityRouter,
-		private readonly CoursePackageObjectWriter $objectWriter,
-		private readonly CoursePackageImportReporter $reporter,
+		CoursePackageOutput $output,
 	) {
+		$this->objectWriter = $output->objectWriter;
+		$this->reporter = $output->reporter;
 	}//end __construct()
 
 	/**

@@ -36,6 +36,8 @@ use OCA\Learniq\Service\CoursePackage\CommonCartridgeResourceRouter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
+use OCA\Learniq\Service\CoursePackage\CoursePackageImporters;
+use OCA\Learniq\Service\CoursePackage\CoursePackageOutput;
 use OCA\Learniq\Service\CoursePackage\MoodleActivityRouter;
 use OCA\Learniq\Service\CoursePackage\MoodleCourseImporter;
 use OCA\Learniq\Service\CoursePackage\PackageXmlValueReader;
@@ -119,32 +121,24 @@ class CoursePackageImportServiceTest extends TestCase {
 		$ccImporter = new CommonCartridgeCourseImporter(
 			$qtiImportService,
 			new CommonCartridgeParser(),
-			new CommonCartridgeResourceRouter($objectWriter, $fileWriter, $reporter, $xmlReader, $logger),
-			$objectWriter,
-			$reporter,
+			new CommonCartridgeResourceRouter(new CoursePackageOutput($objectWriter, $fileWriter, $reporter), $xmlReader, $logger),
+			new CoursePackageOutput($objectWriter, $fileWriter, $reporter),
 		);
 
 		$moodleImporter = new MoodleCourseImporter(
 			new MbzExtractor(),
 			new MoodleBackupParser(),
 			new MoodleActivityRouter(
-				new MoodleQuizQuestionMapper(),
-				$objectWriter,
-				$fileWriter,
-				$reporter,
+				new MoodleQuizQuestionMapper(), new CoursePackageOutput($objectWriter, $fileWriter, $reporter),
 				$xmlReader,
 				$logger
 			),
-			$objectWriter,
-			$reporter,
+			new CoursePackageOutput($objectWriter, $fileWriter, $reporter),
 		);
 
 		return new CoursePackageImportService(
-			$ccImporter,
-			$moodleImporter,
-			new LearniqJsonCourseImporter($objectWriter, $fileWriter, $reporter),
-			$fileWriter,
-			$reporter,
+			new CoursePackageImporters($ccImporter, $moodleImporter, new LearniqJsonCourseImporter($objectWriter, $fileWriter, $reporter)),
+			new CoursePackageOutput($objectWriter, $fileWriter, $reporter),
 			$logger,
 		);
 	}//end service()
