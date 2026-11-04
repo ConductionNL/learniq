@@ -3,8 +3,8 @@
 /**
  * Learniq FraudCaseAppealDeadlineAction
  *
- * Transition action that stamps `decidedAt` and the 42-day `appealDeadline`
- * onto a FraudCase on its decide transition.
+ * Transition action that stamps `decidedAt` and `appealDeadline` (the school's
+ * appeal term, 42 days by default) onto a FraudCase on its decide transition.
  *
  * @category Lifecycle
  * @package  OCA\Learniq\Lifecycle\Action
@@ -27,11 +27,13 @@ namespace OCA\Learniq\Lifecycle\Action;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\Learniq\Service\Settings\AppealTerm;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 
 /**
  * Writes `decidedAt` (server UTC time) and `appealDeadline` (decidedAt plus the
- * 42-day CBE appeal window) onto a deciding FraudCase.
+ * school's appeal term, app setting `examBoardAppealDays`, 42 days by default)
+ * onto a deciding FraudCase.
  *
  * The stamp used to be written by FraudCaseDecisionGuard into a mutable
  * payload. OpenRegister calls guards by value and its guard interface forbids
@@ -40,14 +42,19 @@ use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
  * (learniq#983). The register's calculation DSL has no date arithmetic, which
  * is why this is PHP and not a declared calculation.
  *
- * @spec openspec/specs/exam-board/spec.md#requirement-a-decided-fraudcase-stamps-a-42-day-appeal-deadline
+ * @spec openspec/specs/exam-board/spec.md#requirement-a-decided-fraudcase-stamps-the-appeal-deadline-from-the-schools-appeal-term
  */
 class FraudCaseAppealDeadlineAction implements LifecycleActionInterface {
 
 	/**
-	 * Days between decidedAt and the stamped appealDeadline (the CBE 6-week window).
+	 * Constructor.
+	 *
+	 * @param AppealTerm|null $appealTerm The school's appeal term; without it, 42 days.
 	 */
-	private const APPEAL_WINDOW_DAYS = 42;
+	public function __construct(
+		private readonly ?AppealTerm $appealTerm = null,
+	) {
+	}//end __construct()
 
 	/**
 	 * Stamp decidedAt and appealDeadline onto the object.
@@ -59,7 +66,7 @@ class FraudCaseAppealDeadlineAction implements LifecycleActionInterface {
 	 *
 	 * @return array<string,mixed> The FraudCase with decidedAt and appealDeadline set.
 	 *
-	 * @spec openspec/specs/exam-board/spec.md#requirement-a-decided-fraudcase-stamps-a-42-day-appeal-deadline
+	 * @spec openspec/specs/exam-board/spec.md#requirement-a-decided-fraudcase-stamps-the-appeal-deadline-from-the-schools-appeal-term
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleActionInterface's.
 	 */
@@ -67,7 +74,8 @@ class FraudCaseAppealDeadlineAction implements LifecycleActionInterface {
 		$now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
 
 		$objectData['decidedAt'] = $now->format(DateTimeInterface::ATOM);
-		$objectData['appealDeadline'] = $now->modify('+' . self::APPEAL_WINDOW_DAYS . ' days')->format(DateTimeInterface::ATOM);
+		$days = ($this->appealTerm?->days() ?? AppealTerm::DEFAULT_DAYS);
+		$objectData['appealDeadline'] = $now->modify('+' . $days . ' days')->format(DateTimeInterface::ATOM);
 
 		return $objectData;
 	}//end execute()

@@ -94,8 +94,21 @@ class GuardianSitePagesTest extends TestCase {
 		$events = array_values(array_filter($overview['blocks'][4]['sources'], static fn (array $src): bool => $src['collection'] === 'parentSchoolEvents'))[0];
 		self::assertSame('description', $events['metaField'], 'the line under each tile');
 		self::assertSame('parentOverview', $manifest['pages'][0]['id']);
-		// The board's order (school-design wilgenboom MijnOverzicht): greeting, the task, the children, news, this month, and nothing else.
-		self::assertSame(['greeting', 'tasks', 'collection', 'news', 'calendar'], array_column($overview['blocks'], 'type'));
+		// The board's order (school-design wilgenboom MijnOverzicht): greeting, the task, the children, news, this month,
+		// the latest grades with the link to the reports, and nothing else.
+		self::assertSame(
+			expected: ['greeting', 'tasks', 'collection', 'news', 'calendar', 'collection', 'cta'],
+			actual: array_column(array: $overview['blocks'], column_key: 'type')
+		);
+		$grades = $overview['blocks'][5];
+		self::assertSame(expected: ParentSitePages::latestGradesBlock(), actual: $grades);
+		self::assertSame(expected: ['parentGrades', 'Latest grades', 'value'], actual: [$grades['collection'], $grades['label'], $grades['statusField']]);
+		$projected = array_column(array: $manifest['collections'], column_key: null, index_key: 'id')['parentGrades']['fields'];
+		foreach (['learnerRef', 'courseName', 'methodName', 'value', 'gradedAt'] as $field) {
+			self::assertContains(needle: $field, haystack: $projected, message: $field);
+		}
+
+		self::assertSame(expected: ['type' => 'cta', 'page' => 'parentChildren', 'label' => 'Reports'], actual: $overview['blocks'][6]);
 		// Lane L2's greeting: `label` plus exactly one target.
 		self::assertSame(['type' => 'greeting', 'label' => 'Report absent', 'action' => 'createExcuseRequest'], $overview['blocks'][0]);
 		self::assertSame(['groupLabel'], $overview['blocks'][2]['subtitleFields']);
@@ -547,6 +560,7 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertTrue($overview['home']);
 		self::assertSame(['collection', 'inbox'], array_column($overview['blocks'], 'type'));
 		self::assertSame(['field' => 'expiresAt', 'direction' => 'desc'], $overview['blocks'][0]['sort']);
+		self::assertSame(expected: 'Shared with you', actual: $overview['blocks'][0]['label']);
 		self::assertSame(['eaOverview', 'eaSharedPortfolios'], array_keys($pages));
 
 		$shares = $manifest['collections'][0];
