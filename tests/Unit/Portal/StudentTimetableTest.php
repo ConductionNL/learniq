@@ -190,9 +190,12 @@ class StudentTimetableTest extends TestCase {
 			}
 		}
 
-		// A course enrolment names no group, and portaliq's join grants nothing through it.
-		$groups = array_values(array: array_filter(array: $groups));
-		self::assertCount(expectedCount: 1, haystack: $groups, message: 'only her active 3HV-B enrolment counts; 3HV-A is completed');
+		$names = array_column(array: $objects['cohort'], column_key: 'name', index_key: 'uuid');
+		self::assertSame(
+			expected: ['3HV-B', 'Biologie leerjaar 3 havo/vwo'],
+			actual: array_map(callback: static fn (string $group): string => $names[$group], array: $groups),
+			message: 'only her active enrolments count; 3HV-A is completed'
+		);
 
 		$monday = array_values(
 			array_filter(

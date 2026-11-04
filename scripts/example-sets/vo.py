@@ -2250,10 +2250,19 @@ def add_lesson_and_store_boards(b: Builder, courses: dict) -> None:
         "level": "vo", "language": "nl", "tags": ["voortgezet onderwijs", "biologie"], "subject": "Biologie",
         "author": teacher[1], "lessonCount": len(BIO_LESSONS), "isPublished": True, "lifecycle": "published",
     })
+    # The course's own group, so an enrolment's course stays its group's course. Without an inschrijvingDate its
+    # enrolments never count as a pupil's newest (LearnerGroupLabel), so the pupils stay in 3HV-B.
+    group = b.add("cohort", {
+        "name": course["name"], "programmeId": h4b["programmeId"], "courseId": course["uuid"],
+        "teacherIds": [teacher[0]], "learnerIds": list(h4b["learnerIds"]), "period": "Schooljaar",
+        "academicYear": STORY_YEAR, "lifecycle": "active", "locationId": h4b["locationId"],
+        "teacherAssignments": [{"teacherId": teacher[0], "role": "primary", "days": list(WEEKDAYS)}],
+        "kind": "teaching", "programmeYear": 3,
+    })
     for nc in h4b["learnerIds"]:
         b.add("enrolment", {
             "learnerId": nc, "learnerRef": profiles[nc]["uuid"], "courseId": course["uuid"], "source": "system",
-            "cohortId": None, "lifecycle": "active",
+            "cohortId": group["uuid"], "cohortName": group["name"], "lifecycle": "active",
         })
     lessons = []
     for order, (name, objective) in enumerate(BIO_LESSONS, start=1):

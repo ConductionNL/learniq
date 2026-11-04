@@ -128,6 +128,34 @@ class SecondarySchoolLessonAndStoreRecordsTest extends TestCase {
 	}//end testEveryPupilOfTheClassIsEnrolledInTheCourse()
 
 	/**
+	 * The course's enrolments keep the set's shape: each names a group that runs
+	 * this course, and none can pass for a pupil's newest, so she stays in 3HV-B.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/vo-lesson-store-and-wednesday-records/specs/example-sets/spec.md
+	 */
+	public function testTheCourseEnrolmentsKeepTheShapeOfTheSet(): void {
+		$objects = self::objects();
+		$cohorts = array_column(array: $objects['cohort'], column_key: null, index_key: 'uuid');
+		foreach ($objects['enrolment'] as $enrolment) {
+			self::assertArrayHasKey(key: (string)($enrolment['cohortId'] ?? ''), array: $cohorts, message: $enrolment['slug']);
+		}
+
+		$course = self::one(rows: $objects['course'], field: 'name', value: 'Biologie leerjaar 3 havo/vwo');
+		$group  = self::one(rows: $objects['cohort'], field: 'courseId', value: $course['uuid']);
+		$own    = array_filter(array: $objects['enrolment'], callback: static fn (array $e): bool => $e['cohortId'] === $group['uuid']);
+		self::assertCount(expectedCount: 27, haystack: $own);
+		foreach ($own as $enrolment) {
+			self::assertSame(expected: $course['uuid'], actual: $enrolment['courseId']);
+			self::assertArrayNotHasKey(key: 'inschrijvingDate', array: $enrolment);
+		}
+
+		$fenna = self::one(rows: $objects['learner-profile'], field: 'ncUserId', value: 'vo-leerling-121');
+		self::assertSame(expected: '3HV-B · Pieter Jansen', actual: $fenna['groupLabel']);
+	}//end testTheCourseEnrolmentsKeepTheShapeOfTheSet()
+
+	/**
 	 * LqLlVandaag and LqLlRooster: the Wednesday has seven hours, Frans cancelled
 	 * and the mentor hour in lokaal 0.10, and Biologie points at lesson 3.
 	 *
