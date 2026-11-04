@@ -1,7 +1,7 @@
 # engagement Specification
 
 ## Purpose
-TBD - created by archiving change engagement-gamification. Update Purpose after archive.
+Award learners points, levels and streaks for things they really did, shown in a private widget. A ranked leaderboard is opt-in per cohort or course and off by default, and each learner can leave it.
 ## Requirements
 ### Requirement: Persist engagement domain objects in OpenRegister
 

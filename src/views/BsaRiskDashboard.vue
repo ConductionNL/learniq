@@ -21,11 +21,9 @@
 -->
 
 <template>
-	<div class="bsa-risk-dashboard">
+	<div class="bsa-risk-dashboard lq-board-page">
 		<header class="bsa-risk-dashboard__header">
-			<h2 class="bsa-risk-dashboard__title">
-				{{ t('learniq', 'BSA risk dashboard') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'BSA risk dashboard')" />
 			<p class="bsa-risk-dashboard__subtitle">
 				{{
 					t(
@@ -39,7 +37,7 @@
 		<!-- Loading -->
 		<div v-if="loading" class="bsa-risk-dashboard__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('learniq', 'Loading at-risk learners...') }}</span>
+			<span>{{ t('learniq', 'Loading at-risk learners…') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -58,56 +56,60 @@
 		</div>
 
 		<!-- Flag list -->
-		<ul v-else class="bsa-risk-dashboard__flags">
-			<li
-				v-for="flag in openFlags"
-				:key="flag.id || flag.uuid"
-				class="bsa-risk-dashboard__flag">
-				<div class="bsa-risk-dashboard__flag-info">
-					<span class="bsa-risk-dashboard__learner">
-						{{ t('learniq', 'Learner: {id}', { id: flag.learnerId }) }}
-					</span>
-					<span class="bsa-risk-dashboard__academic-year">
-						{{ flag.academicYear }}
-					</span>
-					<span class="bsa-risk-dashboard__progress">
-						{{
-							t(
-								'learniq',
-								'{earned} EC earned / {required} EC required at check',
-								{
-									earned: formatEcts(flag.ectsEarned),
-									required: formatEcts(flag.ectsRequiredAtCheck),
-								},
-							)
-						}}
-					</span>
-					<span class="bsa-risk-dashboard__flagged-at">
-						{{
-							t('learniq', 'Flagged {when}', {
-								when: formatDate(flag.flaggedAt),
-							})
-						}}
-					</span>
-				</div>
+		<CnDetailCard v-else flush>
+			<ul class="bsa-risk-dashboard__flags">
+				<li
+					v-for="flag in openFlags"
+					:key="flag.id || flag.uuid"
+					class="bsa-risk-dashboard__flag">
+					<div class="bsa-risk-dashboard__flag-info">
+						<span class="bsa-risk-dashboard__learner">
+							{{ t('learniq', 'Learner: {id}', { id: flag.learnerId }) }}
+						</span>
+						<span class="bsa-risk-dashboard__academic-year">
+							{{ flag.academicYear }}
+						</span>
+						<span class="bsa-risk-dashboard__progress">
+							{{
+								t(
+									'learniq',
+									'{earned} EC earned / {required} EC required at check',
+									{
+										earned: formatEcts(flag.ectsEarned),
+										required: formatEcts(flag.ectsRequiredAtCheck),
+									},
+								)
+							}}
+						</span>
+						<span class="bsa-risk-dashboard__flagged-at">
+							{{
+								t('learniq', 'Flagged {when}', {
+									when: formatDate(flag.flaggedAt),
+								})
+							}}
+						</span>
+					</div>
 
-				<div class="bsa-risk-dashboard__actions">
-					<a
-						class="button-vue button-vue--vue-primary"
-						:href="draftWarningHref(flag)">
-						{{ t('learniq', 'Draft warning') }}
-					</a>
-				</div>
-			</li>
-		</ul>
+					<div class="bsa-risk-dashboard__actions">
+						<a
+							class="button-vue button-vue--vue-primary"
+							:href="draftWarningHref(flag)">
+							{{ t('learniq', 'Draft warning') }}
+						</a>
+					</div>
+				</li>
+			</ul>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'BsaRiskDashboard',
+	components: { CnDetailCard, CnPageHeader },
 
 	data() {
 		return {
@@ -227,22 +229,6 @@ export default {
 </script>
 
 <style scoped>
-.bsa-risk-dashboard {
-	max-width: 900px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.bsa-risk-dashboard__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.bsa-risk-dashboard__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-}
-
 .bsa-risk-dashboard__subtitle {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9em;
@@ -260,6 +246,7 @@ export default {
 
 .bsa-risk-dashboard__flags {
 	list-style: none;
+	margin: 0;
 	padding: 0;
 }
 
@@ -268,12 +255,13 @@ export default {
 	align-items: center;
 	justify-content: space-between;
 	gap: calc(var(--default-grid-baseline, 8px) * 2);
-	margin-bottom: var(--default-grid-baseline, 8px);
 	padding: var(--default-grid-baseline, 8px)
 		calc(var(--default-grid-baseline, 8px) * 2);
-	border: 1px solid var(--color-border);
 	border-left: 4px solid var(--color-warning);
-	border-radius: var(--border-radius, 4px);
+}
+
+.bsa-risk-dashboard__flag + .bsa-risk-dashboard__flag {
+	border-top: 1px solid var(--color-border);
 }
 
 .bsa-risk-dashboard__flag-info {

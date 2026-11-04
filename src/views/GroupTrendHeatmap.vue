@@ -25,11 +25,9 @@
 -->
 
 <template>
-	<div class="group-trend-heatmap">
+	<div class="group-trend-heatmap lq-board-page">
 		<header class="group-trend-heatmap__header">
-			<h2 class="group-trend-heatmap__title">
-				{{ t('learniq', 'Group trend heat map') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Group trend heat map')" />
 			<p class="group-trend-heatmap__subtitle">
 				{{
 					t(
@@ -69,47 +67,51 @@
 		</div>
 
 		<!-- Heat map grid -->
-		<div v-else class="group-trend-heatmap__table-wrap">
-			<table class="group-trend-heatmap__table">
-				<thead>
-					<tr>
-						<th scope="col">
-							{{ t('learniq', 'Cohort') }}
-						</th>
-						<th v-for="period in periods" :key="period" scope="col">
-							{{ t('learniq', 'Period {period}', { period }) }}
-						</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr v-for="row in cohortRows" :key="row.cohortId">
-						<th scope="row" class="group-trend-heatmap__cohort-name">
-							{{ row.cohortName }}
-						</th>
-						<td
-							v-for="period in periods"
-							:key="period"
-							class="group-trend-heatmap__cell"
-							:class="cellClass(row.averagesByPeriod[period])">
-							<span v-if="row.averagesByPeriod[period] !== undefined">
-								{{ formatAverage(row.averagesByPeriod[period]) }}
-							</span>
-							<span v-else class="group-trend-heatmap__cell-empty"
-								>—</span
-							>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
+		<CnDetailCard v-else :title="t('learniq', 'Heat map of your groups')">
+			<div class="group-trend-heatmap__table-wrap">
+				<table class="group-trend-heatmap__table">
+					<thead>
+						<tr>
+							<th scope="col">
+								{{ t('learniq', 'Cohort') }}
+							</th>
+							<th v-for="period in periods" :key="period" scope="col">
+								{{ t('learniq', 'Period {period}', { period }) }}
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="row in cohortRows" :key="row.cohortId">
+							<th scope="row" class="group-trend-heatmap__cohort-name">
+								{{ row.cohortName }}
+							</th>
+							<td
+								v-for="period in periods"
+								:key="period"
+								class="group-trend-heatmap__cell"
+								:class="cellClass(row.averagesByPeriod[period])">
+								<span v-if="row.averagesByPeriod[period] !== undefined">
+									{{ formatAverage(row.averagesByPeriod[period]) }}
+								</span>
+								<span v-else class="group-trend-heatmap__cell-empty"
+									>—</span
+								>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'GroupTrendHeatmap',
+	components: { CnDetailCard, CnPageHeader },
 
 	data() {
 		return {
@@ -309,22 +311,6 @@ export default {
 </script>
 
 <style scoped>
-.group-trend-heatmap {
-	max-width: 1100px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.group-trend-heatmap__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.group-trend-heatmap__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-}
-
 .group-trend-heatmap__subtitle {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9em;

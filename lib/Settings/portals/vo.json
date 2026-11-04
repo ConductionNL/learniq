@@ -3,8 +3,8 @@
   "set": "vo",
   "portal": {
     "slug": "vaartveld",
-    "title": "Mijn Vaartveld",
-    "tagline": "Vaartveld College",
+    "title": "Mijn Zuiddrecht",
+    "tagline": "Zuiddrecht College",
     "theme": "vaartveld",
     "themeFallback": "example-voortgezet",
     "headerVariant": "double",
@@ -35,7 +35,7 @@
         }
       },
       "signInPage": {
-        "title": "Inloggen op Mijn Vaartveld",
+        "title": "Inloggen op Mijn Zuiddrecht",
         "intro": "Kies wie je bent. Leerlingen loggen in met hun schoolaccount, ouders en verzorgers met DigiD.",
         "notice": {
           "text": "Wachtwoord vergeten? Vraag bij de receptie een nieuw wachtwoord aan. Geen DigiD? Bel [telefoonnummer], dan helpen wij u op een andere manier."
@@ -49,7 +49,7 @@
     },
     "footer": {
       "description": "Een vraag? Bel of mail de school. Op schooldagen zijn we bereikbaar van 08.00 tot 16.30 uur.",
-      "colophon": "Vaartveld College is een voorbeeldschool. Deze website laat zien hoe portaliq, learniq en Nextcloud samen werken.",
+      "colophon": "Zuiddrecht College is een voorbeeldschool. Deze website laat zien hoe portaliq, learniq en Nextcloud samen werken.",
       "cta": {
         "label": "Contact en lestijden",
         "href": "/contact"
@@ -70,7 +70,7 @@
         ]
       }
     },
-    "accountLabel": "Mijn Vaartveld",
+    "accountLabel": "Mijn Zuiddrecht",
     "residentMenu": {
       "leaveOut": [
         "cases",
@@ -182,7 +182,7 @@
     {
       "route": "/",
       "title": "Home",
-      "summary": "Vaartveld College, havo en vwo aan de vaart in Zuiddrecht.",
+      "summary": "Zuiddrecht College, havo en vwo aan de vaart.",
       "body": {
         "type": "grid",
         "widgets": [
@@ -211,7 +211,7 @@
             "gridHeight": 4,
             "props": {
               "title": "Kijk ver vooruit.",
-              "subtitle": "Vaartveld College is de school voor havo en vwo aan de vaart in Zuiddrecht. Hier leer je kiezen, proberen en doorzetten.",
+              "subtitle": "Zuiddrecht College is de school voor havo en vwo aan de vaart. Hier leer je kiezen, proberen en doorzetten.",
               "actions": [
                 {
                   "label": "Kom kennismaken",
@@ -313,7 +313,7 @@
             "gridWidth": 4,
             "gridHeight": 4,
             "props": {
-              "heading": "Mijn Vaartveld",
+              "heading": "Mijn Zuiddrecht",
               "display": "card",
               "points": [
                 "Je rooster en wat er vandaag wijzigt",
@@ -419,7 +419,7 @@
     {
       "route": "/praktisch/ziek-melden",
       "title": "Ziek melden en verlof",
-      "summary": "Meld uw kind voor 08.15 uur ziek in Mijn Vaartveld.",
+      "summary": "Meld uw kind voor 08.15 uur ziek in Mijn Zuiddrecht.",
       "body": {
         "type": "grid",
         "widgets": [
@@ -473,7 +473,7 @@
             "gridWidth": 8,
             "gridHeight": 1,
             "props": {
-              "text": "Is uw kind ziek? Meld het voor 08.15 uur. Dat gaat het snelst in Mijn Vaartveld: de mentor en de docenten zien uw melding meteen."
+              "text": "Is uw kind ziek? Meld het voor 08.15 uur. Dat gaat het snelst in Mijn Zuiddrecht: de mentor en de docenten zien uw melding meteen."
             }
           },
           {
@@ -531,17 +531,17 @@
               "rows": [
                 [
                   "Uw kind is ziek",
-                  "Ziek melden in Mijn Vaartveld of bellen",
+                  "Ziek melden in Mijn Zuiddrecht of bellen",
                   "Op de eerste dag, voor 08.15 uur"
                 ],
                 [
                   "Uw kind is weer beter",
-                  "Beter melden in Mijn Vaartveld",
+                  "Beter melden in Mijn Zuiddrecht",
                   "Op de dag dat uw kind weer naar school gaat"
                 ],
                 [
                   "Dokter, tandarts of orthodontist",
-                  "De afspraak doorgeven in Mijn Vaartveld",
+                  "De afspraak doorgeven in Mijn Zuiddrecht",
                   "Minstens een dag van tevoren"
                 ],
                 [
@@ -562,7 +562,7 @@
             "gridWidth": 8,
             "gridHeight": 6,
             "props": {
-              "markdown": "## Ziek op de dag van een toets\n\nMeld uw kind ziek voordat de toets begint. Dan mag uw kind de toets inhalen. De docent spreekt daarvoor een moment af. Zonder melding telt de toets als gemist.\n\n## Afwezig zonder melding\n\nStaat uw kind afwezig en hebben wij geen melding? Dan krijgt u dezelfde dag een bericht in Mijn Vaartveld. De mentor neemt contact op als het vaker gebeurt. Bij 16 uur afwezigheid zonder geldige reden in vier weken moet de school dit melden bij de leerplichtambtenaar van de gemeente Zuiddrecht.\n\n## 18 jaar of ouder?\n\nDan meld je jezelf ziek, met je schoolaccount in Mijn Vaartveld.\n\n## Is uw kind lang ziek?\n\nDan denkt de zorgcoördinator, Anouk Visser, met u mee over schoolwerk en terugkomen."
+              "markdown": "## Ziek op de dag van een toets\n\nMeld uw kind ziek voordat de toets begint. Dan mag uw kind de toets inhalen. De docent spreekt daarvoor een moment af. Zonder melding telt de toets als gemist.\n\n## Afwezig zonder melding\n\nStaat uw kind afwezig en hebben wij geen melding? Dan krijgt u dezelfde dag een bericht in Mijn Zuiddrecht. De mentor neemt contact op als het vaker gebeurt. Bij 16 uur afwezigheid zonder geldige reden in vier weken moet de school dit melden bij de leerplichtambtenaar van de gemeente Zuiddrecht.\n\n## 18 jaar of ouder?\n\nDan meld je jezelf ziek, met je schoolaccount in Mijn Zuiddrecht.\n\n## Is uw kind lang ziek?\n\nDan denkt de zorgcoördinator, Anouk Visser, met u mee over schoolwerk en terugkomen."
             }
           }
         ]
@@ -571,7 +571,7 @@
     {
       "route": "/nieuws",
       "title": "Nieuws",
-      "summary": "Nieuws van Vaartveld College.",
+      "summary": "Nieuws van Zuiddrecht College.",
       "body": {
         "type": "grid",
         "widgets": [
@@ -611,7 +611,7 @@
             "props": {
               "heading": "Kom je ook?",
               "display": "card",
-              "intro": "Meld je aan met je ouders, dan weten wij hoeveel stoelen er nodig zijn. Je logt eerst in bij Mijn Vaartveld.",
+              "intro": "Meld je aan met je ouders, dan weten wij hoeveel stoelen er nodig zijn. Je logt eerst in bij Mijn Zuiddrecht.",
               "buttonLabel": "Aanmelden voor de avond",
               "signInHref": "/mijn",
               "tone": "plain"
@@ -798,7 +798,7 @@
     {
       "route": "/onze-school",
       "title": "Onze school",
-      "summary": "Vaartveld College is de school voor havo en vwo aan de vaart in Zuiddrecht. Hier leer je kiezen, proberen en doorzetten.",
+      "summary": "Zuiddrecht College is de school voor havo en vwo aan de vaart. Hier leer je kiezen, proberen en doorzetten.",
       "body": {
         "type": "grid",
         "widgets": [
@@ -822,7 +822,7 @@
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
-              "text": "Vaartveld College is de school voor havo en vwo aan de vaart in Zuiddrecht. Hier leer je kiezen, proberen en doorzetten."
+              "text": "Zuiddrecht College is de school voor havo en vwo aan de vaart. Hier leer je kiezen, proberen en doorzetten."
             }
           }
         ]
@@ -980,7 +980,7 @@
     {
       "route": "/privacy",
       "title": "Privacy",
-      "summary": "Vaartveld College is een voorbeeldschool. Op deze website staan geen echte gegevens van leerlingen of ouders.",
+      "summary": "Zuiddrecht College is een voorbeeldschool. Op deze website staan geen echte gegevens van leerlingen of ouders.",
       "body": {
         "type": "grid",
         "widgets": [
@@ -1004,7 +1004,7 @@
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
-              "text": "Vaartveld College is een voorbeeldschool. Op deze website staan geen echte gegevens van leerlingen of ouders."
+              "text": "Zuiddrecht College is een voorbeeldschool. Op deze website staan geen echte gegevens van leerlingen of ouders."
             }
           }
         ]
@@ -1086,7 +1086,7 @@
       "target": {
         "schoolRef": "ee020001-0000-4000-8000-000000000001"
       },
-      "body": "In klas 3 kies je een profiel: de vakken waarin je examen doet. Op deze avond hoor je met je ouders hoe dat gaat en wat je met elk profiel kunt.\n\n- **Wanneer:** dinsdag 3 november 2026, 19.30 tot 21.00 uur\n- **Waar:** aula van Vaartveld College, Vaartlaan 40\n- **Voor wie:** leerlingen van 3 havo en 3 vwo en hun ouders\n- **Aanmelden:** tot en met vrijdag 30 oktober\n\nDe decaan legt uit wat een profiel is en wanneer je kiest. Daarna loop je langs de vier profielen. Je kiest niet op deze avond. In december en januari praat je met je mentor en de decaan. Je voorlopige keuze geef je door in februari. Een vraag? Mail de decaan, Marloes Peters, via [e-mailadres decaan].",
+      "body": "In klas 3 kies je een profiel: de vakken waarin je examen doet. Op deze avond hoor je met je ouders hoe dat gaat en wat je met elk profiel kunt.\n\n- **Wanneer:** dinsdag 3 november 2026, 19.30 tot 21.00 uur\n- **Waar:** aula van Zuiddrecht College, Vaartlaan 40\n- **Voor wie:** leerlingen van 3 havo en 3 vwo en hun ouders\n- **Aanmelden:** tot en met vrijdag 30 oktober\n\nDe decaan legt uit wat een profiel is en wanneer je kiest. Daarna loop je langs de vier profielen. Je kiest niet op deze avond. In december en januari praat je met je mentor en de decaan. Je voorlopige keuze geef je door in februari. Een vraag? Mail de decaan, Marloes Peters, via [e-mailadres decaan].",
       "audienceLabel": "klas 3 havo en vwo"
     },
     {
@@ -1097,7 +1097,7 @@
       "target": {
         "schoolRef": "ee020001-0000-4000-8000-000000000001"
       },
-      "body": "De eerste toetsweek is van 9 tot en met 13 november. Je vindt je eigen rooster in Mijn Vaartveld.",
+      "body": "De eerste toetsweek is van 9 tot en met 13 november. Je vindt je eigen rooster in Mijn Zuiddrecht.",
       "audienceLabel": "klas 4, 5 en 6"
     },
     {
@@ -1128,7 +1128,7 @@
       "target": {
         "schoolRef": "ee020001-0000-4000-8000-000000000001"
       },
-      "body": "Elke week is er steunles voor wiskunde, Engels en Nederlands. Je schrijft je in via Mijn Vaartveld."
+      "body": "Elke week is er steunles voor wiskunde, Engels en Nederlands. Je schrijft je in via Mijn Zuiddrecht."
     },
     {
       "title": "Welkom terug: de eerste schoolweek in het kort",
@@ -1208,6 +1208,13 @@
     {
       "userId": "vo-docent-21",
       "displayName": "Youssef El Idrissi",
+      "groups": [
+        "instructors"
+      ]
+    },
+    {
+      "userId": "vo-docent-15",
+      "displayName": "Anouk Smit",
       "groups": [
         "instructors"
       ]

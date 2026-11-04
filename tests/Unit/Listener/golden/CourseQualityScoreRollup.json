@@ -22,8 +22,8 @@
             }
         },
         {
-            "saveObject": [
-                {
+            "saveObject": {
+                "object": {
                     "courseId": "c-1",
                     "teacherId": null,
                     "academicYear": "2026-2027",
@@ -35,18 +35,9 @@
                     "lastRecomputedAt": "2026-01-02T03:04:05+00:00",
                     "tenant_id": "ten-1"
                 },
-                [],
-                "learniq",
-                "course-quality-score",
-                null,
-                true,
-                true,
-                false,
-                null,
-                null,
-                false,
-                false
-            ]
+                "register": "learniq",
+                "schema": "course-quality-score"
+            }
         }
     ],
     "course level, no teacher, no tenant": [
@@ -72,8 +63,8 @@
             }
         },
         {
-            "saveObject": [
-                {
+            "saveObject": {
+                "object": {
                     "courseId": "c-1",
                     "teacherId": null,
                     "academicYear": "2026-2027",
@@ -85,18 +76,9 @@
                     "lastRecomputedAt": "2026-01-02T03:04:05+00:00",
                     "tenant_id": ""
                 },
-                [],
-                "learniq",
-                "course-quality-score",
-                null,
-                true,
-                true,
-                false,
-                null,
-                null,
-                false,
-                false
-            ]
+                "register": "learniq",
+                "schema": "course-quality-score"
+            }
         }
     ],
     "existing row as an array": [
@@ -122,8 +104,8 @@
             }
         },
         {
-            "saveObject": [
-                {
+            "saveObject": {
+                "object": {
                     "id": "score-1",
                     "courseId": "c-1",
                     "note": "kept",
@@ -137,18 +119,9 @@
                     "lastRecomputedAt": "2026-01-02T03:04:05+00:00",
                     "tenant_id": "ten-1"
                 },
-                [],
-                "learniq",
-                "course-quality-score",
-                null,
-                true,
-                true,
-                false,
-                null,
-                null,
-                false,
-                false
-            ]
+                "register": "learniq",
+                "schema": "course-quality-score"
+            }
         }
     ],
     "existing row as an entity": [
@@ -174,43 +147,13 @@
             }
         },
         {
-            "saveObject": [
-                {
+            "saveObject": {
+                "object": {
                     "id": "score-1",
                     "courseId": "c-1",
                     "note": "kept",
                     "responseCount": 3,
-                    "@self": {
-                        "id": "score-1",
-                        "slug": null,
-                        "name": "score-1",
-                        "description": null,
-                        "summary": null,
-                        "image": null,
-                        "uri": null,
-                        "version": null,
-                        "register": "learniq",
-                        "schema": "course-quality-score",
-                        "schemaVersion": null,
-                        "files": [],
-                        "relations": [],
-                        "locked": null,
-                        "owner": null,
-                        "organisation": null,
-                        "groups": [],
-                        "authorization": [],
-                        "folder": null,
-                        "application": null,
-                        "validation": [],
-                        "geo": [],
-                        "retention": [],
-                        "tmlo": [],
-                        "size": null,
-                        "updated": null,
-                        "created": null,
-                        "deleted": [],
-                        "source": null
-                    },
+                    "@self": "<entity metadata>",
                     "teacherId": "t-9",
                     "academicYear": "2026-2027",
                     "period": "P1",
@@ -220,18 +163,9 @@
                     "lastRecomputedAt": "2026-01-02T03:04:05+00:00",
                     "tenant_id": "ten-1"
                 },
-                [],
-                "learniq",
-                "course-quality-score",
-                null,
-                true,
-                true,
-                false,
-                null,
-                null,
-                false,
-                false
-            ]
+                "register": "learniq",
+                "schema": "course-quality-score"
+            }
         }
     ],
     "first response, teacher scoped": [
@@ -257,8 +191,8 @@
             }
         },
         {
-            "saveObject": [
-                {
+            "saveObject": {
+                "object": {
                     "courseId": "c-1",
                     "teacherId": "t-9",
                     "academicYear": "2026-2027",
@@ -270,18 +204,9 @@
                     "lastRecomputedAt": "2026-01-02T03:04:05+00:00",
                     "tenant_id": "ten-1"
                 },
-                [],
-                "learniq",
-                "course-quality-score",
-                null,
-                true,
-                true,
-                false,
-                null,
-                null,
-                false,
-                false
-            ]
+                "register": "learniq",
+                "schema": "course-quality-score"
+            }
         }
     ],
     "no course": [],

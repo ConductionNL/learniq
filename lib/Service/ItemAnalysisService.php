@@ -124,7 +124,7 @@ class ItemAnalysisService {
 		$tenantId = $assessment['tenant_id'] ?? '';
 		$item = $this->fetchOne(schema: self::ITEM_SCHEMA, uuid: $itemId, tenantId: $tenantId);
 		$gradedResults = $this->fetchGradedResults(assessmentId: $assessmentId, tenantId: $tenantId);
-		$vectors = $this->collectItemVectors(gradedResults: $gradedResults, itemId: $itemId, item: $item);
+		$vectors = $this->collectItemVectors(gradedResults: $gradedResults, target: ['itemId' => $itemId, 'item' => $item]);
 
 		$statistics = self::emptyStatistics(sampleSize: count($vectors['itemScores']));
 		if ($statistics['sampleSize'] < $this->resolveConfig(assessment: $assessment)['minSampleSize']) {
@@ -379,14 +379,13 @@ class ItemAnalysisService {
 	 * option) from every graded result that actually presented this item.
 	 *
 	 * @param array<int,array<string,mixed>> $gradedResults Graded AssessmentResult rows.
-	 * @param string $itemId UUID of the item.
-	 * @param array<string,mixed>|null $item Item data, or null when unresolvable.
+	 * @param array{itemId: string, item: array<string,mixed>|null} $target The item's UUID, and its data or null when unresolvable.
 	 *
 	 * @return array{itemScores: array<int,float>, maxPointsList: array<int,float>,
 	 *               itemExcludedTotals: array<int,float>, totalScores: array<int,float>,
 	 *               selections: array<int,string|null>}
 	 */
-	private function collectItemVectors(array $gradedResults, string $itemId, ?array $item): array {
+	private function collectItemVectors(array $gradedResults, array $target): array {
 		$vectors = [
 			'itemScores' => [],
 			'maxPointsList' => [],
@@ -397,7 +396,7 @@ class ItemAnalysisService {
 
 		foreach ($gradedResults as $result) {
 			$responses = $result['responses'] ?? [];
-			$response = $this->findResponseForItem(responses: $responses, itemId: $itemId);
+			$response = $this->findResponseForItem(responses: $responses, itemId: $target['itemId']);
 
 			if ($response === null) {
 				// This attempt never presented this item (e.g. a different
@@ -413,19 +412,29 @@ class ItemAnalysisService {
 			$vectors['itemScores'][] = $itemScore;
 			$vectors['itemExcludedTotals'][] = ($totalScore - $itemScore);
 			$vectors['totalScores'][] = $totalScore;
-			$vectors['maxPointsList'][] = (float)$this->resolveMaxPoints(result: $result, itemId: $itemId, item: $item);
+			$vectors['maxPointsList'][] = (float)$this->resolveMaxPoints(result: $result, target: $target);
 
-			$selectedOption = null;
-			$responseValue = $response['response']['value'] ?? null;
-			if (is_string($responseValue) === true) {
-				$selectedOption = $responseValue;
-			}
-
-			$vectors['selections'][] = $selectedOption;
+			$vectors['selections'][] = $this->selectedOption(response: $response);
 		}//end foreach
 
 		return $vectors;
 	}//end collectItemVectors()
+
+	/**
+	 * The option a response selected, when its value is text.
+	 *
+	 * @param array<string,mixed> $response The response.
+	 *
+	 * @return string|null
+	 */
+	private function selectedOption(array $response): ?string {
+		$value = ($response['response']['value'] ?? null);
+		if (is_string($value) === true) {
+			return $value;
+		}
+
+		return null;
+	}//end selectedOption()
 
 	/**
 	 * Find the scored response for one item within one result's responses[],
@@ -479,19 +488,18 @@ class ItemAnalysisService {
 	 * exists (pre-existing results created before this change shipped).
 	 *
 	 * @param array<string,mixed> $result AssessmentResult data.
-	 * @param string $itemId UUID of the item.
-	 * @param array<string,mixed>|null $item Item data, or null when unresolvable.
+	 * @param array{itemId: string, item: array<string,mixed>|null} $target The item's UUID, and its data or null when unresolvable.
 	 *
 	 * @return float
 	 */
-	private function resolveMaxPoints(array $result, string $itemId, ?array $item): float {
+	private function resolveMaxPoints(array $result, array $target): float {
 		foreach (($result['drawnItemRefs'] ?? []) as $ref) {
-			if (($ref['itemId'] ?? null) === $itemId) {
+			if (($ref['itemId'] ?? null) === $target['itemId']) {
 				return (float)($ref['points'] ?? 0);
 			}
 		}
 
-		return (float)($item['maxScore'] ?? 0);
+		return (float)($target['item']['maxScore'] ?? 0);
 	}//end resolveMaxPoints()
 
 	/**
@@ -536,27 +544,38 @@ class ItemAnalysisService {
 			return 0.0;
 		}
 
+		$sums = $this->deviationSums(vectorX: $vectorX, vectorY: $vectorY);
+		if ($sums['xx'] <= 0.0 || $sums['yy'] <= 0.0) {
+			return 0.0;
+		}
+
+		return ($sums['xy'] / sqrt($sums['xx'] * $sums['yy']));
+	}//end pearsonCorrelation()
+
+	/**
+	 * The sums of squared and multiplied deviations from the mean of two equally long vectors.
+	 *
+	 * @param array<int,float> $vectorX First vector.
+	 * @param array<int,float> $vectorY Second vector.
+	 *
+	 * @return array{xy: float, xx: float, yy: float}
+	 */
+	private function deviationSums(array $vectorX, array $vectorY): array {
+		$n = count($vectorX);
 		$meanX = (array_sum($vectorX) / $n);
 		$meanY = (array_sum($vectorY) / $n);
-
-		$numerator = 0.0;
-		$denomX = 0.0;
-		$denomY = 0.0;
+		$sums = ['xy' => 0.0, 'xx' => 0.0, 'yy' => 0.0];
 
 		for ($i = 0; $i < $n; $i++) {
 			$deviationX = ($vectorX[$i] - $meanX);
 			$deviationY = ($vectorY[$i] - $meanY);
-			$numerator += ($deviationX * $deviationY);
-			$denomX += ($deviationX * $deviationX);
-			$denomY += ($deviationY * $deviationY);
+			$sums['xy'] += ($deviationX * $deviationY);
+			$sums['xx'] += ($deviationX * $deviationX);
+			$sums['yy'] += ($deviationY * $deviationY);
 		}
 
-		if ($denomX <= 0.0 || $denomY <= 0.0) {
-			return 0.0;
-		}
-
-		return ($numerator / sqrt($denomX * $denomY));
-	}//end pearsonCorrelation()
+		return $sums;
+	}//end deviationSums()
 
 	/**
 	 * Sample variance (N-1 denominator) — the conventional Cronbach's-alpha convention.
