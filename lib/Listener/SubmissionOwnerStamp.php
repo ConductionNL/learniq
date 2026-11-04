@@ -42,11 +42,11 @@ namespace OCA\Learniq\Listener;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\Portal\PortalWriteSubject;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
@@ -60,6 +60,7 @@ use Throwable;
  * @spec openspec/specs/assignments/spec.md#requirement-the-server-stamps-who-a-submission-belongs-to
  */
 class SubmissionOwnerStamp implements IEventListener {
+	use FindOrNull;
 
 	private const SUBMISSION_SCHEMA = 'submission';
 	private const LEARNIQ_REGISTER = 'learniq';
@@ -288,23 +289,9 @@ class SubmissionOwnerStamp implements IEventListener {
 			return null;
 		}
 
-		try {
-			$object = $this->objectService->find(
-				id: $id,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::ASSIGNMENT_SCHEMA,
-				_rbac: false,
-				_multitenancy: false
-			);
-		} catch (DoesNotExistException $exception) {
-			return null;
-		}
-
-		if ($object === null) {
-			return null;
-		}
-
-		return $object->jsonSerialize();
+		$find = fn () => $this->objectService
+			->find(id: $id, register: self::LEARNIQ_REGISTER, schema: self::ASSIGNMENT_SCHEMA, _rbac: false, _multitenancy: false);
+		return $this->findOrNull(find: $find)?->jsonSerialize();
 	}//end assignment()
 
 	/**

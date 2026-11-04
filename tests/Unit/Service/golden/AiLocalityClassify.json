@@ -1,0 +1,949 @@
+[
+    [
+        "",
+        null,
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "No Hermiq chat provider is configured."
+        },
+        [],
+        []
+    ],
+    [
+        "",
+        "",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "No Hermiq chat provider is configured."
+        },
+        [],
+        []
+    ],
+    [
+        "",
+        "cred-openai",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "No Hermiq chat provider is configured."
+        },
+        [],
+        []
+    ],
+    [
+        "",
+        "cred-oauth",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "No Hermiq chat provider is configured."
+        },
+        [],
+        []
+    ],
+    [
+        "",
+        "cred-azure",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "No Hermiq chat provider is configured."
+        },
+        [],
+        []
+    ],
+    [
+        "",
+        "cred-empty",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "No Hermiq chat provider is configured."
+        },
+        [],
+        []
+    ],
+    [
+        "",
+        "cred-missing",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "No Hermiq chat provider is configured."
+        },
+        [],
+        []
+    ],
+    [
+        "",
+        "cred-denied",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "No Hermiq chat provider is configured."
+        },
+        [],
+        []
+    ],
+    [
+        "  ",
+        null,
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "No Hermiq chat provider is configured."
+        },
+        [],
+        []
+    ],
+    [
+        "  ",
+        "",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "No Hermiq chat provider is configured."
+        },
+        [],
+        []
+    ],
+    [
+        "  ",
+        "cred-openai",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "No Hermiq chat provider is configured."
+        },
+        [],
+        []
+    ],
+    [
+        "  ",
+        "cred-oauth",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "No Hermiq chat provider is configured."
+        },
+        [],
+        []
+    ],
+    [
+        "  ",
+        "cred-azure",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "No Hermiq chat provider is configured."
+        },
+        [],
+        []
+    ],
+    [
+        "  ",
+        "cred-empty",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "No Hermiq chat provider is configured."
+        },
+        [],
+        []
+    ],
+    [
+        "  ",
+        "cred-missing",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "No Hermiq chat provider is configured."
+        },
+        [],
+        []
+    ],
+    [
+        "  ",
+        "cred-denied",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "No Hermiq chat provider is configured."
+        },
+        [],
+        []
+    ],
+    [
+        "ollama",
+        null,
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"ollama\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        "ollama",
+        "",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"ollama\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        "ollama",
+        "cred-openai",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"ollama\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        "ollama",
+        "cred-oauth",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"ollama\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        "ollama",
+        "cred-azure",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"ollama\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        "ollama",
+        "cred-empty",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"ollama\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        "ollama",
+        "cred-missing",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"ollama\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        "ollama",
+        "cred-denied",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"ollama\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        "nextcloud",
+        null,
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"nextcloud\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        "nextcloud",
+        "",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"nextcloud\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        "nextcloud",
+        "cred-openai",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"nextcloud\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        "nextcloud",
+        "cred-oauth",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"nextcloud\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        "nextcloud",
+        "cred-azure",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"nextcloud\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        "nextcloud",
+        "cred-empty",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"nextcloud\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        "nextcloud",
+        "cred-missing",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"nextcloud\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        "nextcloud",
+        "cred-denied",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"nextcloud\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        " openai ",
+        null,
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"openai\" is broker-mediated but no credential is configured for it."
+        },
+        [],
+        []
+    ],
+    [
+        " openai ",
+        "",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"openai\" is broker-mediated but no credential is configured for it."
+        },
+        [],
+        []
+    ],
+    [
+        " openai ",
+        "cred-openai",
+        {
+            "locality": "third-country",
+            "verified": true,
+            "evidence": "Hermiq's active chat provider \"openai\" is broker-mediated via OpenRegister credential \"cred-openai\", whose catalogue provider \"openai\" is host-locked by CredentialBrokerService's Guard 4 to a fixed, US-domiciled baseUrl (credential-providers.json) — the resolved network destination cannot be redirected elsewhere."
+        },
+        [
+            [
+                "cred-openai",
+                [],
+                false,
+                "credential-broker",
+                "brokeredcredential",
+                true,
+                true,
+                true,
+                true
+            ]
+        ],
+        []
+    ],
+    [
+        " openai ",
+        "cred-oauth",
+        {
+            "locality": "third-country",
+            "verified": true,
+            "evidence": "Hermiq's active chat provider \"openai\" is broker-mediated via OpenRegister credential \"cred-oauth\", whose catalogue provider \"anthropic-oauth\" is host-locked by CredentialBrokerService's Guard 4 to a fixed, US-domiciled baseUrl (credential-providers.json) — the resolved network destination cannot be redirected elsewhere."
+        },
+        [
+            [
+                "cred-oauth",
+                [],
+                false,
+                "credential-broker",
+                "brokeredcredential",
+                true,
+                true,
+                true,
+                true
+            ]
+        ],
+        []
+    ],
+    [
+        " openai ",
+        "cred-azure",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Credential \"cred-azure\" targets catalogue provider \"azure-openai\" — an inject-only, non-host-locked path (CredentialBrokerService Guard 4 does not apply to it). The actual destination could be anywhere, including genuinely on-premises or EU-hosted, but nothing code-enforces it."
+        },
+        [
+            [
+                "cred-azure",
+                [],
+                false,
+                "credential-broker",
+                "brokeredcredential",
+                true,
+                true,
+                true,
+                true
+            ]
+        ],
+        []
+    ],
+    [
+        " openai ",
+        "cred-empty",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Credential \"cred-empty\" targets catalogue provider \"\" — an inject-only, non-host-locked path (CredentialBrokerService Guard 4 does not apply to it). The actual destination could be anywhere, including genuinely on-premises or EU-hosted, but nothing code-enforces it."
+        },
+        [
+            [
+                "cred-empty",
+                [],
+                false,
+                "credential-broker",
+                "brokeredcredential",
+                true,
+                true,
+                true,
+                true
+            ]
+        ],
+        []
+    ],
+    [
+        " openai ",
+        "cred-missing",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "The brokered credential \"cred-missing\" referenced by chat provider \"openai\" could not be read (not found, or not readable under this calling identity's RBAC) — degrading to unverified rather than assuming compliant."
+        },
+        [
+            [
+                "cred-missing",
+                [],
+                false,
+                "credential-broker",
+                "brokeredcredential",
+                true,
+                true,
+                true,
+                true
+            ]
+        ],
+        []
+    ],
+    [
+        " openai ",
+        "cred-denied",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "The brokered credential \"cred-denied\" referenced by chat provider \"openai\" could not be read (not found, or not readable under this calling identity's RBAC) — degrading to unverified rather than assuming compliant."
+        },
+        [
+            [
+                "cred-denied",
+                [],
+                false,
+                "credential-broker",
+                "brokeredcredential",
+                true,
+                true,
+                true,
+                true
+            ]
+        ],
+        [
+            {
+                "level": "info",
+                "message": "[AiLocalityClassifier] brokeredcredential \"{id}\" read denied or failed ({message}); degrading to unverified.",
+                "context": {
+                    "id": "cred-denied",
+                    "message": "not allowed"
+                }
+            }
+        ]
+    ],
+    [
+        "fireworks",
+        null,
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"fireworks\" is broker-mediated but no credential is configured for it."
+        },
+        [],
+        []
+    ],
+    [
+        "fireworks",
+        "",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"fireworks\" is broker-mediated but no credential is configured for it."
+        },
+        [],
+        []
+    ],
+    [
+        "fireworks",
+        "cred-openai",
+        {
+            "locality": "third-country",
+            "verified": true,
+            "evidence": "Hermiq's active chat provider \"fireworks\" is broker-mediated via OpenRegister credential \"cred-openai\", whose catalogue provider \"openai\" is host-locked by CredentialBrokerService's Guard 4 to a fixed, US-domiciled baseUrl (credential-providers.json) — the resolved network destination cannot be redirected elsewhere."
+        },
+        [
+            [
+                "cred-openai",
+                [],
+                false,
+                "credential-broker",
+                "brokeredcredential",
+                true,
+                true,
+                true,
+                true
+            ]
+        ],
+        []
+    ],
+    [
+        "fireworks",
+        "cred-oauth",
+        {
+            "locality": "third-country",
+            "verified": true,
+            "evidence": "Hermiq's active chat provider \"fireworks\" is broker-mediated via OpenRegister credential \"cred-oauth\", whose catalogue provider \"anthropic-oauth\" is host-locked by CredentialBrokerService's Guard 4 to a fixed, US-domiciled baseUrl (credential-providers.json) — the resolved network destination cannot be redirected elsewhere."
+        },
+        [
+            [
+                "cred-oauth",
+                [],
+                false,
+                "credential-broker",
+                "brokeredcredential",
+                true,
+                true,
+                true,
+                true
+            ]
+        ],
+        []
+    ],
+    [
+        "fireworks",
+        "cred-azure",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Credential \"cred-azure\" targets catalogue provider \"azure-openai\" — an inject-only, non-host-locked path (CredentialBrokerService Guard 4 does not apply to it). The actual destination could be anywhere, including genuinely on-premises or EU-hosted, but nothing code-enforces it."
+        },
+        [
+            [
+                "cred-azure",
+                [],
+                false,
+                "credential-broker",
+                "brokeredcredential",
+                true,
+                true,
+                true,
+                true
+            ]
+        ],
+        []
+    ],
+    [
+        "fireworks",
+        "cred-empty",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Credential \"cred-empty\" targets catalogue provider \"\" — an inject-only, non-host-locked path (CredentialBrokerService Guard 4 does not apply to it). The actual destination could be anywhere, including genuinely on-premises or EU-hosted, but nothing code-enforces it."
+        },
+        [
+            [
+                "cred-empty",
+                [],
+                false,
+                "credential-broker",
+                "brokeredcredential",
+                true,
+                true,
+                true,
+                true
+            ]
+        ],
+        []
+    ],
+    [
+        "fireworks",
+        "cred-missing",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "The brokered credential \"cred-missing\" referenced by chat provider \"fireworks\" could not be read (not found, or not readable under this calling identity's RBAC) — degrading to unverified rather than assuming compliant."
+        },
+        [
+            [
+                "cred-missing",
+                [],
+                false,
+                "credential-broker",
+                "brokeredcredential",
+                true,
+                true,
+                true,
+                true
+            ]
+        ],
+        []
+    ],
+    [
+        "fireworks",
+        "cred-denied",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "The brokered credential \"cred-denied\" referenced by chat provider \"fireworks\" could not be read (not found, or not readable under this calling identity's RBAC) — degrading to unverified rather than assuming compliant."
+        },
+        [
+            [
+                "cred-denied",
+                [],
+                false,
+                "credential-broker",
+                "brokeredcredential",
+                true,
+                true,
+                true,
+                true
+            ]
+        ],
+        [
+            {
+                "level": "info",
+                "message": "[AiLocalityClassifier] brokeredcredential \"{id}\" read denied or failed ({message}); degrading to unverified.",
+                "context": {
+                    "id": "cred-denied",
+                    "message": "not allowed"
+                }
+            }
+        ]
+    ],
+    [
+        "anthropic",
+        null,
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"anthropic\" is broker-mediated but no credential is configured for it."
+        },
+        [],
+        []
+    ],
+    [
+        "anthropic",
+        "",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"anthropic\" is broker-mediated but no credential is configured for it."
+        },
+        [],
+        []
+    ],
+    [
+        "anthropic",
+        "cred-openai",
+        {
+            "locality": "third-country",
+            "verified": true,
+            "evidence": "Hermiq's active chat provider \"anthropic\" is broker-mediated via OpenRegister credential \"cred-openai\", whose catalogue provider \"openai\" is host-locked by CredentialBrokerService's Guard 4 to a fixed, US-domiciled baseUrl (credential-providers.json) — the resolved network destination cannot be redirected elsewhere."
+        },
+        [
+            [
+                "cred-openai",
+                [],
+                false,
+                "credential-broker",
+                "brokeredcredential",
+                true,
+                true,
+                true,
+                true
+            ]
+        ],
+        []
+    ],
+    [
+        "anthropic",
+        "cred-oauth",
+        {
+            "locality": "third-country",
+            "verified": true,
+            "evidence": "Hermiq's active chat provider \"anthropic\" is broker-mediated via OpenRegister credential \"cred-oauth\", whose catalogue provider \"anthropic-oauth\" is host-locked by CredentialBrokerService's Guard 4 to a fixed, US-domiciled baseUrl (credential-providers.json) — the resolved network destination cannot be redirected elsewhere."
+        },
+        [
+            [
+                "cred-oauth",
+                [],
+                false,
+                "credential-broker",
+                "brokeredcredential",
+                true,
+                true,
+                true,
+                true
+            ]
+        ],
+        []
+    ],
+    [
+        "anthropic",
+        "cred-azure",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Credential \"cred-azure\" targets catalogue provider \"azure-openai\" — an inject-only, non-host-locked path (CredentialBrokerService Guard 4 does not apply to it). The actual destination could be anywhere, including genuinely on-premises or EU-hosted, but nothing code-enforces it."
+        },
+        [
+            [
+                "cred-azure",
+                [],
+                false,
+                "credential-broker",
+                "brokeredcredential",
+                true,
+                true,
+                true,
+                true
+            ]
+        ],
+        []
+    ],
+    [
+        "anthropic",
+        "cred-empty",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Credential \"cred-empty\" targets catalogue provider \"\" — an inject-only, non-host-locked path (CredentialBrokerService Guard 4 does not apply to it). The actual destination could be anywhere, including genuinely on-premises or EU-hosted, but nothing code-enforces it."
+        },
+        [
+            [
+                "cred-empty",
+                [],
+                false,
+                "credential-broker",
+                "brokeredcredential",
+                true,
+                true,
+                true,
+                true
+            ]
+        ],
+        []
+    ],
+    [
+        "anthropic",
+        "cred-missing",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "The brokered credential \"cred-missing\" referenced by chat provider \"anthropic\" could not be read (not found, or not readable under this calling identity's RBAC) — degrading to unverified rather than assuming compliant."
+        },
+        [
+            [
+                "cred-missing",
+                [],
+                false,
+                "credential-broker",
+                "brokeredcredential",
+                true,
+                true,
+                true,
+                true
+            ]
+        ],
+        []
+    ],
+    [
+        "anthropic",
+        "cred-denied",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "The brokered credential \"cred-denied\" referenced by chat provider \"anthropic\" could not be read (not found, or not readable under this calling identity's RBAC) — degrading to unverified rather than assuming compliant."
+        },
+        [
+            [
+                "cred-denied",
+                [],
+                false,
+                "credential-broker",
+                "brokeredcredential",
+                true,
+                true,
+                true,
+                true
+            ]
+        ],
+        [
+            {
+                "level": "info",
+                "message": "[AiLocalityClassifier] brokeredcredential \"{id}\" read denied or failed ({message}); degrading to unverified.",
+                "context": {
+                    "id": "cred-denied",
+                    "message": "not allowed"
+                }
+            }
+        ]
+    ],
+    [
+        "Anthropic",
+        null,
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"Anthropic\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        "Anthropic",
+        "",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"Anthropic\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        "Anthropic",
+        "cred-openai",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"Anthropic\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        "Anthropic",
+        "cred-oauth",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"Anthropic\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        "Anthropic",
+        "cred-azure",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"Anthropic\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        "Anthropic",
+        "cred-empty",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"Anthropic\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        "Anthropic",
+        "cred-missing",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"Anthropic\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ],
+    [
+        "Anthropic",
+        "cred-denied",
+        {
+            "locality": "unverified",
+            "verified": false,
+            "evidence": "Chat provider \"Anthropic\" is never broker-mediated (ProviderFactory.php), so its network destination is not code-enforced — it could be anywhere, including genuinely on-premises or EU-hosted, but nothing proves it."
+        },
+        [],
+        []
+    ]
+]

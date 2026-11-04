@@ -1,7 +1,7 @@
 # compliance-rule-coverage Specification
 
 ## Purpose
-TBD - created by archiving change compliance-rule-coverage-table. Update Purpose after archive.
+Show per active regulation how many learners are in scope and covered, as a percentage with a red, amber or green state. Sort by percentage, filter by department and open the regulation from its row.
 
 ## Requirements
 

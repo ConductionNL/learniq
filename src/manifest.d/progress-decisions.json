@@ -145,6 +145,7 @@
 			"type": "index",
 			"title": "BSA trajectories",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "bsa-trajectory"
 			}
@@ -304,6 +305,7 @@
 			"type": "index",
 			"title": "BSA progress flags",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "bsa-progress-flag",
 				"readOnly": true,
@@ -401,6 +403,7 @@
 			"type": "index",
 			"title": "BSA warnings",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "bsa-warning",
 				"columns": [
@@ -496,6 +499,7 @@
 			"type": "index",
 			"title": "BSA decisions",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "bsa-decision",
 				"columns": [

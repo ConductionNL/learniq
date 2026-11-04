@@ -71,32 +71,23 @@ class CoursePackageImportReporter {
 	 * @param string $resourceIdentifier Source resource identifier.
 	 * @param string $resourceType Source resource/module type string.
 	 * @param string $title Resource title.
-	 * @param string $outcome `imported`|`degraded`|`dropped` (or the internal `pending-qti` marker, resolved before persisting).
-	 * @param string|null $targetType Created Learniq schema name, when applicable.
-	 * @param string|null $targetId Created object UUID, when applicable.
-	 * @param string|null $reason Human-readable reason, required for non-`imported` outcomes.
+	 * @param array{outcome: string, targetType: string|null, targetId: string|null, reason: string|null} $result The outcome
+	 *        (`imported`|`degraded`|`dropped`, or the internal `pending-qti` marker, resolved before persisting), the created
+	 *        Learniq schema and object UUID when applicable, and the human-readable reason, required for non-`imported` outcomes.
 	 *
 	 * @return array<string, mixed>
 	 *
 	 * @spec openspec/specs/course-management/spec.md#requirement-every-course-package-import-produces-a-coursepackageimportreport-naming-every-resources-outcome
 	 */
-	public function entry(
-		string $resourceIdentifier,
-		string $resourceType,
-		string $title,
-		string $outcome,
-		?string $targetType,
-		?string $targetId,
-		?string $reason,
-	): array {
+	public function entry(string $resourceIdentifier, string $resourceType, string $title, array $result): array {
 		return [
 			'resourceIdentifier' => $resourceIdentifier,
 			'resourceType' => $resourceType,
 			'title' => $title,
-			'outcome' => $outcome,
-			'targetType' => $targetType,
-			'targetId' => $targetId,
-			'reason' => $reason,
+			'outcome' => $result['outcome'],
+			'targetType' => $result['targetType'],
+			'targetId' => $result['targetId'],
+			'reason' => $result['reason'],
 		];
 	}//end entry()
 

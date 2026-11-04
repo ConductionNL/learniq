@@ -1,0 +1,5784 @@
+{
+    "another large tree": [
+        {
+            "frameworkId": "fw-6",
+            "year": null,
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 16,
+            "plannedCount": 12,
+            "assessedCount": 15,
+            "plannedNotAssessedCount": 1,
+            "uncoveredCount": 0,
+            "plannedPercent": 75.0,
+            "assessedPercent": 93.8,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 6
+                },
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 4
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 4
+                },
+                {
+                    "depth": "practise",
+                    "count": 3
+                },
+                {
+                    "depth": "master",
+                    "count": 5
+                },
+                {
+                    "depth": null,
+                    "count": 3
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-28"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-4",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-6",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 0,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-20",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 3,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-28",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": "master",
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-7",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 2,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-26",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-17",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "practise",
+                    "plannedRefs": 3,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-3",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-5",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-25",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-19",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-27",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 2,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-24",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "practise",
+                    "plannedRefs": 3,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-13",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-29",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-21",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "practise",
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-6"
+        },
+        {
+            "frameworkId": "fw-6",
+            "year": null,
+            "subjectScope": "subject",
+            "subjectId": "Engels",
+            "goalCount": 6,
+            "plannedCount": 5,
+            "assessedCount": 6,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 83.3,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 3
+                },
+                {
+                    "depth": "master",
+                    "count": 2
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 2
+                },
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 3
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-20",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 3,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-26",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-3",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-27",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 2,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-13",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-21",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "practise",
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-6"
+        },
+        {
+            "frameworkId": "fw-6",
+            "year": null,
+            "subjectScope": "subject",
+            "subjectId": "rekenen",
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 0,
+            "plannedNotAssessedCount": 1,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 0.0,
+            "plannedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-28"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-28",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": "master",
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-6"
+        },
+        {
+            "frameworkId": "fw-6",
+            "year": null,
+            "subjectScope": "subject",
+            "subjectId": "taal",
+            "goalCount": 7,
+            "plannedCount": 4,
+            "assessedCount": 7,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 57.1,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "practise",
+                    "count": 2
+                },
+                {
+                    "depth": "master",
+                    "count": 2
+                },
+                {
+                    "depth": null,
+                    "count": 2
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-4",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-6",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 0,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-7",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 2,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-17",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "practise",
+                    "plannedRefs": 3,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-5",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-25",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-24",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "practise",
+                    "plannedRefs": 3,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-6"
+        },
+        {
+            "frameworkId": "fw-6",
+            "year": null,
+            "subjectScope": "none",
+            "subjectId": null,
+            "goalCount": 2,
+            "plannedCount": 2,
+            "assessedCount": 2,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 2
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-19",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-29",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-6"
+        },
+        {
+            "frameworkId": "fw-6",
+            "year": "1",
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 7,
+            "plannedCount": 5,
+            "assessedCount": 6,
+            "plannedNotAssessedCount": 1,
+            "uncoveredCount": 0,
+            "plannedPercent": 71.4,
+            "assessedPercent": 85.7,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 3
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 3
+                },
+                {
+                    "depth": null,
+                    "count": 2
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-28"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-4",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-6",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 0,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-28",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": "master",
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-7",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 2,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-25",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-13",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-29",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-6"
+        },
+        {
+            "frameworkId": "fw-6",
+            "year": "1",
+            "subjectScope": "subject",
+            "subjectId": "Engels",
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-13",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 2
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-6"
+        },
+        {
+            "frameworkId": "fw-6",
+            "year": "1",
+            "subjectScope": "subject",
+            "subjectId": "rekenen",
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 0,
+            "plannedNotAssessedCount": 1,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 0.0,
+            "plannedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-28"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-28",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": "master",
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-6"
+        },
+        {
+            "frameworkId": "fw-6",
+            "year": "1",
+            "subjectScope": "subject",
+            "subjectId": "taal",
+            "goalCount": 4,
+            "plannedCount": 2,
+            "assessedCount": 4,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 50.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 2
+                },
+                {
+                    "depth": null,
+                    "count": 2
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-4",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-6",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 0,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-7",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 2,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-25",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 3
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-6"
+        },
+        {
+            "frameworkId": "fw-6",
+            "year": "1",
+            "subjectScope": "none",
+            "subjectId": null,
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-29",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-6"
+        },
+        {
+            "frameworkId": "fw-6",
+            "year": "groep 5",
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 10,
+            "plannedCount": 6,
+            "assessedCount": 10,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 60.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 3
+                },
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 2
+                },
+                {
+                    "depth": "practise",
+                    "count": 2
+                },
+                {
+                    "depth": "master",
+                    "count": 3
+                },
+                {
+                    "depth": null,
+                    "count": 3
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-4",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-6",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 0,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-26",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-17",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "practise",
+                    "plannedRefs": 3,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-3",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-5",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-25",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-19",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-24",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "practise",
+                    "plannedRefs": 3,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-13",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 2
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-6"
+        },
+        {
+            "frameworkId": "fw-6",
+            "year": "groep 5",
+            "subjectScope": "subject",
+            "subjectId": "Engels",
+            "goalCount": 3,
+            "plannedCount": 2,
+            "assessedCount": 3,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 66.7,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 2
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 2
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-26",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-3",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-13",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 2
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-6"
+        },
+        {
+            "frameworkId": "fw-6",
+            "year": "groep 5",
+            "subjectScope": "subject",
+            "subjectId": "taal",
+            "goalCount": 6,
+            "plannedCount": 3,
+            "assessedCount": 6,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 50.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "practise",
+                    "count": 2
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 2
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-4",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-6",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 0,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-17",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "practise",
+                    "plannedRefs": 3,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-5",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-25",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-24",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "practise",
+                    "plannedRefs": 3,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-6"
+        },
+        {
+            "frameworkId": "fw-6",
+            "year": "groep 5",
+            "subjectScope": "none",
+            "subjectId": null,
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-19",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-6"
+        },
+        {
+            "frameworkId": "fw-6",
+            "year": "groep 6",
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 9,
+            "plannedCount": 6,
+            "assessedCount": 8,
+            "plannedNotAssessedCount": 1,
+            "uncoveredCount": 0,
+            "plannedPercent": 66.7,
+            "assessedPercent": 88.9,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 3
+                },
+                {
+                    "depth": "master",
+                    "count": 3
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 2
+                },
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 3
+                },
+                {
+                    "depth": null,
+                    "count": 2
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-28"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-4",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-6",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 0,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-20",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 3,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-28",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": "master",
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-17",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "practise",
+                    "plannedRefs": 3,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-3",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-5",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-27",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 2,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-13",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 2
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-6"
+        },
+        {
+            "frameworkId": "fw-6",
+            "year": "groep 6",
+            "subjectScope": "subject",
+            "subjectId": "Engels",
+            "goalCount": 4,
+            "plannedCount": 4,
+            "assessedCount": 4,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 3
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 3
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-20",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 3,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-3",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-27",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 2,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-13",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 2
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-6"
+        },
+        {
+            "frameworkId": "fw-6",
+            "year": "groep 6",
+            "subjectScope": "subject",
+            "subjectId": "rekenen",
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 0,
+            "plannedNotAssessedCount": 1,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 0.0,
+            "plannedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-28"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-28",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": "master",
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-6"
+        },
+        {
+            "frameworkId": "fw-6",
+            "year": "groep 6",
+            "subjectScope": "subject",
+            "subjectId": "taal",
+            "goalCount": 4,
+            "plannedCount": 1,
+            "assessedCount": 4,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 25.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 2
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-4",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-6",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 0,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-17",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "practise",
+                    "plannedRefs": 3,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-5",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-6"
+        },
+        {
+            "frameworkId": "fw-6",
+            "year": "groep 10",
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 8,
+            "plannedCount": 5,
+            "assessedCount": 8,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 62.5,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 4
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 2
+                },
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 2
+                },
+                {
+                    "depth": null,
+                    "count": 3
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-4",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-6",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 0,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-26",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-19",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-27",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 2,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-13",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-29",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-21",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "practise",
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-6"
+        },
+        {
+            "frameworkId": "fw-6",
+            "year": "groep 10",
+            "subjectScope": "subject",
+            "subjectId": "Engels",
+            "goalCount": 4,
+            "plannedCount": 3,
+            "assessedCount": 4,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 75.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 2
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 2
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-26",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-27",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 2,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-13",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-21",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "practise",
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-6"
+        },
+        {
+            "frameworkId": "fw-6",
+            "year": "groep 10",
+            "subjectScope": "subject",
+            "subjectId": "taal",
+            "goalCount": 2,
+            "plannedCount": 0,
+            "assessedCount": 2,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 0.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [],
+            "assessedByDepth": [
+                {
+                    "depth": null,
+                    "count": 2
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-4",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-6",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 0,
+                    "assessedRefs": 3
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-6"
+        },
+        {
+            "frameworkId": "fw-6",
+            "year": "groep 10",
+            "subjectScope": "none",
+            "subjectId": null,
+            "goalCount": 2,
+            "plannedCount": 2,
+            "assessedCount": 2,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 2
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-19",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-29",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-6"
+        }
+    ],
+    "large tree": [
+        {
+            "frameworkId": "fw-5",
+            "year": null,
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 18,
+            "plannedCount": 15,
+            "assessedCount": 12,
+            "plannedNotAssessedCount": 6,
+            "uncoveredCount": 0,
+            "plannedPercent": 83.3,
+            "assessedPercent": 66.7,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "practise",
+                    "count": 6
+                },
+                {
+                    "depth": "master",
+                    "count": 2
+                },
+                {
+                    "depth": null,
+                    "count": 6
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "practise",
+                    "count": 4
+                },
+                {
+                    "depth": "master",
+                    "count": 3
+                },
+                {
+                    "depth": null,
+                    "count": 4
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-27",
+                "g-17",
+                "g-14",
+                "g-23",
+                "g-26",
+                "g-22"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-16",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "practise",
+                    "plannedRefs": 2,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-7",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-18",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-27",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 3,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-21",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "practise",
+                    "plannedRefs": 0,
+                    "assessedRefs": 4
+                },
+                {
+                    "competencyId": "g-15",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 0,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-17",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-20",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 4,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-14",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-23",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-2",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "practise",
+                    "plannedRefs": 2,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-26",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": "master",
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-12",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-28",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": null,
+                    "plannedRefs": 3,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-3",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-29",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "practise",
+                    "plannedRefs": 0,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-22",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-24",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "master",
+                    "plannedRefs": 2,
+                    "assessedRefs": 3
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": null,
+            "subjectScope": "subject",
+            "subjectId": "Engels",
+            "goalCount": 6,
+            "plannedCount": 6,
+            "assessedCount": 3,
+            "plannedNotAssessedCount": 3,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 50.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 2
+                },
+                {
+                    "depth": "master",
+                    "count": 2
+                },
+                {
+                    "depth": null,
+                    "count": 2
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-27",
+                "g-14",
+                "g-26"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-27",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 3,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-20",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 4,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-14",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-26",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": "master",
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-12",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-24",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "master",
+                    "plannedRefs": 2,
+                    "assessedRefs": 3
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": null,
+            "subjectScope": "subject",
+            "subjectId": "rekenen",
+            "goalCount": 3,
+            "plannedCount": 2,
+            "assessedCount": 3,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 66.7,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 2
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-7",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-15",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 0,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-2",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "practise",
+                    "plannedRefs": 2,
+                    "assessedRefs": 2
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": null,
+            "subjectScope": "subject",
+            "subjectId": "taal",
+            "goalCount": 8,
+            "plannedCount": 6,
+            "assessedCount": 5,
+            "plannedNotAssessedCount": 3,
+            "uncoveredCount": 0,
+            "plannedPercent": 75.0,
+            "assessedPercent": 62.5,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 2
+                },
+                {
+                    "depth": null,
+                    "count": 4
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 3
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-17",
+                "g-23",
+                "g-22"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-16",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "practise",
+                    "plannedRefs": 2,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-18",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-21",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "practise",
+                    "plannedRefs": 0,
+                    "assessedRefs": 4
+                },
+                {
+                    "competencyId": "g-17",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-23",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-3",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-29",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "practise",
+                    "plannedRefs": 0,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-22",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": null,
+            "subjectScope": "none",
+            "subjectId": null,
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-28",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": null,
+                    "plannedRefs": 3,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": "1",
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 8,
+            "plannedCount": 7,
+            "assessedCount": 5,
+            "plannedNotAssessedCount": 3,
+            "uncoveredCount": 0,
+            "plannedPercent": 87.5,
+            "assessedPercent": 62.5,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "practise",
+                    "count": 2
+                },
+                {
+                    "depth": null,
+                    "count": 4
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 3
+                },
+                {
+                    "depth": null,
+                    "count": 2
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-17",
+                "g-14",
+                "g-23"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-16",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "practise",
+                    "plannedRefs": 2,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-21",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "practise",
+                    "plannedRefs": 0,
+                    "assessedRefs": 4
+                },
+                {
+                    "competencyId": "g-17",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-14",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-23",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-2",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "practise",
+                    "plannedRefs": 2,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-12",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-28",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": null,
+                    "plannedRefs": 3,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": "1",
+            "subjectScope": "subject",
+            "subjectId": "Engels",
+            "goalCount": 2,
+            "plannedCount": 2,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 1,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 50.0,
+            "plannedByDepth": [
+                {
+                    "depth": null,
+                    "count": 2
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-14"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-14",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-12",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": "1",
+            "subjectScope": "subject",
+            "subjectId": "rekenen",
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-2",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "practise",
+                    "plannedRefs": 2,
+                    "assessedRefs": 2
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": "1",
+            "subjectScope": "subject",
+            "subjectId": "taal",
+            "goalCount": 4,
+            "plannedCount": 3,
+            "assessedCount": 2,
+            "plannedNotAssessedCount": 2,
+            "uncoveredCount": 0,
+            "plannedPercent": 75.0,
+            "assessedPercent": 50.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 2
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 2
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-17",
+                "g-23"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-16",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "practise",
+                    "plannedRefs": 2,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-21",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "practise",
+                    "plannedRefs": 0,
+                    "assessedRefs": 4
+                },
+                {
+                    "competencyId": "g-17",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-23",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": "1",
+            "subjectScope": "none",
+            "subjectId": null,
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-28",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": null,
+                    "plannedRefs": 3,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": "groep 5",
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 13,
+            "plannedCount": 12,
+            "assessedCount": 9,
+            "plannedNotAssessedCount": 4,
+            "uncoveredCount": 0,
+            "plannedPercent": 92.3,
+            "assessedPercent": 69.2,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "practise",
+                    "count": 6
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 4
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "practise",
+                    "count": 2
+                },
+                {
+                    "depth": "master",
+                    "count": 2
+                },
+                {
+                    "depth": null,
+                    "count": 4
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-27",
+                "g-17",
+                "g-23",
+                "g-22"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-16",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "practise",
+                    "plannedRefs": 2,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-7",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-18",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-27",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 3,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-15",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 0,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-17",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-20",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 4,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-23",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-2",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "practise",
+                    "plannedRefs": 2,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-12",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-28",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": null,
+                    "plannedRefs": 3,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-22",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-24",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "master",
+                    "plannedRefs": 2,
+                    "assessedRefs": 3
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": "groep 5",
+            "subjectScope": "subject",
+            "subjectId": "Engels",
+            "goalCount": 4,
+            "plannedCount": 4,
+            "assessedCount": 3,
+            "plannedNotAssessedCount": 1,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 75.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 2
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-27"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-27",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 3,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-20",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 4,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-12",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-24",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "master",
+                    "plannedRefs": 2,
+                    "assessedRefs": 3
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": "groep 5",
+            "subjectScope": "subject",
+            "subjectId": "rekenen",
+            "goalCount": 3,
+            "plannedCount": 2,
+            "assessedCount": 3,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 66.7,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 2
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-7",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-15",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 0,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-2",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "practise",
+                    "plannedRefs": 2,
+                    "assessedRefs": 2
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": "groep 5",
+            "subjectScope": "subject",
+            "subjectId": "taal",
+            "goalCount": 5,
+            "plannedCount": 5,
+            "assessedCount": 2,
+            "plannedNotAssessedCount": 3,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 40.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 2
+                },
+                {
+                    "depth": null,
+                    "count": 3
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-17",
+                "g-23",
+                "g-22"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-16",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "practise",
+                    "plannedRefs": 2,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-18",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-17",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-23",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-22",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": "groep 5",
+            "subjectScope": "none",
+            "subjectId": null,
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-28",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": null,
+                    "plannedRefs": 3,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": "groep 6",
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 6,
+            "plannedCount": 5,
+            "assessedCount": 4,
+            "plannedNotAssessedCount": 2,
+            "uncoveredCount": 0,
+            "plannedPercent": 83.3,
+            "assessedPercent": 66.7,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 3
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 2
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-27",
+                "g-17"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-27",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 3,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-17",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-12",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-28",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": null,
+                    "plannedRefs": 3,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-3",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-29",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "practise",
+                    "plannedRefs": 0,
+                    "assessedRefs": 2
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": "groep 6",
+            "subjectScope": "subject",
+            "subjectId": "Engels",
+            "goalCount": 2,
+            "plannedCount": 2,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 1,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 50.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-27"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-27",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 3,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-12",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": "groep 6",
+            "subjectScope": "subject",
+            "subjectId": "taal",
+            "goalCount": 3,
+            "plannedCount": 2,
+            "assessedCount": 2,
+            "plannedNotAssessedCount": 1,
+            "uncoveredCount": 0,
+            "plannedPercent": 66.7,
+            "assessedPercent": 66.7,
+            "plannedByDepth": [
+                {
+                    "depth": null,
+                    "count": 2
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-17"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-17",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-3",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-29",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "practise",
+                    "plannedRefs": 0,
+                    "assessedRefs": 2
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": "groep 6",
+            "subjectScope": "none",
+            "subjectId": null,
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-28",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": null,
+                    "plannedRefs": 3,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": "groep 10",
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 6,
+            "plannedCount": 5,
+            "assessedCount": 4,
+            "plannedNotAssessedCount": 2,
+            "uncoveredCount": 0,
+            "plannedPercent": 83.3,
+            "assessedPercent": 66.7,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 2
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 2
+                },
+                {
+                    "depth": null,
+                    "count": 2
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-17",
+                "g-26"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-15",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 0,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-17",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-26",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": "master",
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-12",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-28",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": null,
+                    "plannedRefs": 3,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-24",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "master",
+                    "plannedRefs": 2,
+                    "assessedRefs": 3
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": "groep 10",
+            "subjectScope": "subject",
+            "subjectId": "Engels",
+            "goalCount": 3,
+            "plannedCount": 3,
+            "assessedCount": 2,
+            "plannedNotAssessedCount": 1,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 66.7,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-26"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-26",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": "master",
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-12",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-24",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "master",
+                    "plannedRefs": 2,
+                    "assessedRefs": 3
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": "groep 10",
+            "subjectScope": "subject",
+            "subjectId": "rekenen",
+            "goalCount": 1,
+            "plannedCount": 0,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 0.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [],
+            "assessedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-15",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 0,
+                    "assessedRefs": 2
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": "groep 10",
+            "subjectScope": "subject",
+            "subjectId": "taal",
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 0,
+            "plannedNotAssessedCount": 1,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 0.0,
+            "plannedByDepth": [
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-17"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-17",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 1,
+                    "assessedRefs": 0
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-5",
+            "year": "groep 10",
+            "subjectScope": "none",
+            "subjectId": null,
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-28",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": null,
+                    "plannedRefs": 3,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        }
+    ],
+    "medium tree": [
+        {
+            "frameworkId": "fw-4",
+            "year": null,
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 8,
+            "plannedCount": 7,
+            "assessedCount": 7,
+            "plannedNotAssessedCount": 1,
+            "uncoveredCount": 0,
+            "plannedPercent": 87.5,
+            "assessedPercent": 87.5,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "practise",
+                    "count": 2
+                },
+                {
+                    "depth": null,
+                    "count": 4
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 2
+                },
+                {
+                    "depth": "master",
+                    "count": 3
+                },
+                {
+                    "depth": null,
+                    "count": 2
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-12"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-7",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-13",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-8",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 2,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-12",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-10",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "master",
+                    "plannedRefs": 5,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-4",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": null,
+                    "plannedRefs": 3,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-9",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-2",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-4"
+        },
+        {
+            "frameworkId": "fw-4",
+            "year": null,
+            "subjectScope": "subject",
+            "subjectId": "Engels",
+            "goalCount": 3,
+            "plannedCount": 3,
+            "assessedCount": 3,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 2
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-8",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 2,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-10",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "master",
+                    "plannedRefs": 5,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-4",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": null,
+                    "plannedRefs": 3,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-4"
+        },
+        {
+            "frameworkId": "fw-4",
+            "year": null,
+            "subjectScope": "subject",
+            "subjectId": "rekenen",
+            "goalCount": 2,
+            "plannedCount": 2,
+            "assessedCount": 2,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": null,
+                    "count": 2
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-7",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-9",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-4"
+        },
+        {
+            "frameworkId": "fw-4",
+            "year": null,
+            "subjectScope": "subject",
+            "subjectId": "taal",
+            "goalCount": 2,
+            "plannedCount": 2,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 1,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 50.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-12"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-12",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-2",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-4"
+        },
+        {
+            "frameworkId": "fw-4",
+            "year": null,
+            "subjectScope": "none",
+            "subjectId": null,
+            "goalCount": 1,
+            "plannedCount": 0,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 0.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-13",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-4"
+        },
+        {
+            "frameworkId": "fw-4",
+            "year": "1",
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 4,
+            "plannedCount": 4,
+            "assessedCount": 3,
+            "plannedNotAssessedCount": 1,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 75.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 3
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 2
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-12"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-7",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-12",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-10",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "master",
+                    "plannedRefs": 5,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-9",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-4"
+        },
+        {
+            "frameworkId": "fw-4",
+            "year": "1",
+            "subjectScope": "subject",
+            "subjectId": "Engels",
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-10",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "master",
+                    "plannedRefs": 5,
+                    "assessedRefs": 3
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-4"
+        },
+        {
+            "frameworkId": "fw-4",
+            "year": "1",
+            "subjectScope": "subject",
+            "subjectId": "rekenen",
+            "goalCount": 2,
+            "plannedCount": 2,
+            "assessedCount": 2,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": null,
+                    "count": 2
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-7",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-9",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-4"
+        },
+        {
+            "frameworkId": "fw-4",
+            "year": "1",
+            "subjectScope": "subject",
+            "subjectId": "taal",
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 0,
+            "plannedNotAssessedCount": 1,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 0.0,
+            "plannedByDepth": [
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-12"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-12",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 0
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-4"
+        },
+        {
+            "frameworkId": "fw-4",
+            "year": "groep 5",
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 5,
+            "plannedCount": 5,
+            "assessedCount": 5,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "practise",
+                    "count": 2
+                },
+                {
+                    "depth": null,
+                    "count": 2
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 2
+                },
+                {
+                    "depth": null,
+                    "count": 2
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-7",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-10",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "master",
+                    "plannedRefs": 5,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-4",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": null,
+                    "plannedRefs": 3,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-9",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-2",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-4"
+        },
+        {
+            "frameworkId": "fw-4",
+            "year": "groep 5",
+            "subjectScope": "subject",
+            "subjectId": "Engels",
+            "goalCount": 2,
+            "plannedCount": 2,
+            "assessedCount": 2,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "practise",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-10",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "master",
+                    "plannedRefs": 5,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-4",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": null,
+                    "plannedRefs": 3,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-4"
+        },
+        {
+            "frameworkId": "fw-4",
+            "year": "groep 5",
+            "subjectScope": "subject",
+            "subjectId": "rekenen",
+            "goalCount": 2,
+            "plannedCount": 2,
+            "assessedCount": 2,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": null,
+                    "count": 2
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-7",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-9",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-4"
+        },
+        {
+            "frameworkId": "fw-4",
+            "year": "groep 5",
+            "subjectScope": "subject",
+            "subjectId": "taal",
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-2",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-4"
+        },
+        {
+            "frameworkId": "fw-4",
+            "year": "groep 6",
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 2,
+            "plannedCount": 1,
+            "assessedCount": 2,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 50.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 2
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-13",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-9",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-4"
+        },
+        {
+            "frameworkId": "fw-4",
+            "year": "groep 6",
+            "subjectScope": "subject",
+            "subjectId": "rekenen",
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-9",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-4"
+        },
+        {
+            "frameworkId": "fw-4",
+            "year": "groep 6",
+            "subjectScope": "none",
+            "subjectId": null,
+            "goalCount": 1,
+            "plannedCount": 0,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 0.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-13",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-4"
+        },
+        {
+            "frameworkId": "fw-4",
+            "year": "groep 10",
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 4,
+            "plannedCount": 3,
+            "assessedCount": 3,
+            "plannedNotAssessedCount": 1,
+            "uncoveredCount": 0,
+            "plannedPercent": 75.0,
+            "assessedPercent": 75.0,
+            "plannedByDepth": [
+                {
+                    "depth": null,
+                    "count": 3
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 2
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-12"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-13",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-8",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 2,
+                    "assessedRefs": 3
+                },
+                {
+                    "competencyId": "g-12",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 0
+                },
+                {
+                    "competencyId": "g-9",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-4"
+        },
+        {
+            "frameworkId": "fw-4",
+            "year": "groep 10",
+            "subjectScope": "subject",
+            "subjectId": "Engels",
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-8",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "master",
+                    "plannedRefs": 2,
+                    "assessedRefs": 3
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-4"
+        },
+        {
+            "frameworkId": "fw-4",
+            "year": "groep 10",
+            "subjectScope": "subject",
+            "subjectId": "rekenen",
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-9",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 1,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-4"
+        },
+        {
+            "frameworkId": "fw-4",
+            "year": "groep 10",
+            "subjectScope": "subject",
+            "subjectId": "taal",
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 0,
+            "plannedNotAssessedCount": 1,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 0.0,
+            "plannedByDepth": [
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [
+                "g-12"
+            ],
+            "goals": [
+                {
+                    "competencyId": "g-12",
+                    "planned": true,
+                    "assessed": false,
+                    "plannedDepth": null,
+                    "assessedDepth": null,
+                    "plannedRefs": 2,
+                    "assessedRefs": 0
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-4"
+        },
+        {
+            "frameworkId": "fw-4",
+            "year": "groep 10",
+            "subjectScope": "none",
+            "subjectId": null,
+            "goalCount": 1,
+            "plannedCount": 0,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 0.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-13",
+                    "planned": false,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 0,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-4"
+        }
+    ],
+    "no goals": [
+        {
+            "frameworkId": "fw-1",
+            "year": null,
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 0,
+            "plannedCount": 0,
+            "assessedCount": 0,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 0.0,
+            "assessedPercent": 0.0,
+            "plannedByDepth": [],
+            "assessedByDepth": [],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        }
+    ],
+    "one goal": [
+        {
+            "frameworkId": "fw-2",
+            "year": null,
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-0",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 3
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-2"
+        },
+        {
+            "frameworkId": "fw-2",
+            "year": null,
+            "subjectScope": "none",
+            "subjectId": null,
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-0",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 3
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-2"
+        },
+        {
+            "frameworkId": "fw-2",
+            "year": "groep 5",
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-0",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 3
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-2"
+        },
+        {
+            "frameworkId": "fw-2",
+            "year": "groep 5",
+            "subjectScope": "none",
+            "subjectId": null,
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-0",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 3
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-2"
+        },
+        {
+            "frameworkId": "fw-2",
+            "year": "groep 10",
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-0",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 3
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-2"
+        },
+        {
+            "frameworkId": "fw-2",
+            "year": "groep 10",
+            "subjectScope": "none",
+            "subjectId": null,
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-0",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "introduce",
+                    "assessedDepth": "master",
+                    "plannedRefs": 1,
+                    "assessedRefs": 3
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": "t-2"
+        }
+    ],
+    "small tree": [
+        {
+            "frameworkId": "fw-3",
+            "year": null,
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 3,
+            "plannedCount": 3,
+            "assessedCount": 3,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-5",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "master",
+                    "plannedRefs": 3,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-1",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-4",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "practise",
+                    "plannedRefs": 1,
+                    "assessedRefs": 2
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-3",
+            "year": null,
+            "subjectScope": "subject",
+            "subjectId": "rekenen",
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-5",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "master",
+                    "plannedRefs": 3,
+                    "assessedRefs": 2
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-3",
+            "year": null,
+            "subjectScope": "subject",
+            "subjectId": "taal",
+            "goalCount": 2,
+            "plannedCount": 2,
+            "assessedCount": 2,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "practise",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-1",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                },
+                {
+                    "competencyId": "g-4",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "practise",
+                    "plannedRefs": 1,
+                    "assessedRefs": 2
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-3",
+            "year": "1",
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 2,
+            "plannedCount": 2,
+            "assessedCount": 2,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-5",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "master",
+                    "plannedRefs": 3,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-4",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "practise",
+                    "plannedRefs": 1,
+                    "assessedRefs": 2
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-3",
+            "year": "1",
+            "subjectScope": "subject",
+            "subjectId": "rekenen",
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-5",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "master",
+                    "plannedRefs": 3,
+                    "assessedRefs": 2
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-3",
+            "year": "1",
+            "subjectScope": "subject",
+            "subjectId": "taal",
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-4",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "practise",
+                    "plannedRefs": 1,
+                    "assessedRefs": 2
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-3",
+            "year": "groep 5",
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 2,
+            "plannedCount": 2,
+            "assessedCount": 2,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-5",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "master",
+                    "plannedRefs": 3,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-4",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "practise",
+                    "plannedRefs": 1,
+                    "assessedRefs": 2
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-3",
+            "year": "groep 5",
+            "subjectScope": "subject",
+            "subjectId": "rekenen",
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-5",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "master",
+                    "plannedRefs": 3,
+                    "assessedRefs": 2
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-3",
+            "year": "groep 5",
+            "subjectScope": "subject",
+            "subjectId": "taal",
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": null,
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-4",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": null,
+                    "assessedDepth": "practise",
+                    "plannedRefs": 1,
+                    "assessedRefs": 2
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-3",
+            "year": "groep 6",
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 2,
+            "plannedCount": 2,
+            "assessedCount": 2,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-5",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "master",
+                    "plannedRefs": 3,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-1",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-3",
+            "year": "groep 6",
+            "subjectScope": "subject",
+            "subjectId": "rekenen",
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-5",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "master",
+                    "plannedRefs": 3,
+                    "assessedRefs": 2
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-3",
+            "year": "groep 6",
+            "subjectScope": "subject",
+            "subjectId": "taal",
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-1",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-3",
+            "year": "groep 10",
+            "subjectScope": "all",
+            "subjectId": null,
+            "goalCount": 2,
+            "plannedCount": 2,
+            "assessedCount": 2,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                },
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-5",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "master",
+                    "plannedRefs": 3,
+                    "assessedRefs": 2
+                },
+                {
+                    "competencyId": "g-1",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-3",
+            "year": "groep 10",
+            "subjectScope": "subject",
+            "subjectId": "rekenen",
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "practise",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-5",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "practise",
+                    "assessedDepth": "master",
+                    "plannedRefs": 3,
+                    "assessedRefs": 2
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        },
+        {
+            "frameworkId": "fw-3",
+            "year": "groep 10",
+            "subjectScope": "subject",
+            "subjectId": "taal",
+            "goalCount": 1,
+            "plannedCount": 1,
+            "assessedCount": 1,
+            "plannedNotAssessedCount": 0,
+            "uncoveredCount": 0,
+            "plannedPercent": 100.0,
+            "assessedPercent": 100.0,
+            "plannedByDepth": [
+                {
+                    "depth": "master",
+                    "count": 1
+                }
+            ],
+            "assessedByDepth": [
+                {
+                    "depth": "introduce",
+                    "count": 1
+                }
+            ],
+            "uncoveredIds": [],
+            "plannedNotAssessedIds": [],
+            "goals": [
+                {
+                    "competencyId": "g-1",
+                    "planned": true,
+                    "assessed": true,
+                    "plannedDepth": "master",
+                    "assessedDepth": "introduce",
+                    "plannedRefs": 2,
+                    "assessedRefs": 1
+                }
+            ],
+            "lastRecomputedAt": "2026-05-06T07:08:09+00:00",
+            "tenant_id": null
+        }
+    ]
+}

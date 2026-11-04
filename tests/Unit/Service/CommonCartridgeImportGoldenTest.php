@@ -29,6 +29,7 @@ use OCA\Learniq\Service\CoursePackage\CommonCartridgeResourceRouter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
+use OCA\Learniq\Service\CoursePackage\PackageContext;
 use OCA\Learniq\Service\CoursePackage\PackageXmlValueReader;
 use OCA\Learniq\Service\QtiImportService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -201,7 +202,7 @@ class CommonCartridgeImportGoldenTest extends TestCase {
 		);
 
 		$entries  = [];
-		$courseId = $this->importer($service, $calls)->importManifest($dir, $manifest, 'teacher1', 't1', $entries);
+		$courseId = $this->importer($service, $calls)->importManifest($manifest, new PackageContext($dir, 'teacher1', 't1'), $entries);
 		$calls[]  = ['courseId' => $courseId];
 		$calls[]  = ['entries' => $entries];
 		return $calls;

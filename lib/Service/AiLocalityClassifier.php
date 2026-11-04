@@ -199,59 +199,112 @@ class AiLocalityClassifier {
 	 */
 	public function classify(string $chatProvider, ?string $credentialId): array {
 		$chatProvider = trim($chatProvider);
-
-		if ($chatProvider === '') {
-			return $this->unverified(evidence: 'No Hermiq chat provider is configured.');
+		$refusal = self::providerRefusal(chatProvider: $chatProvider) ?? self::credentialRefusal(chatProvider: $chatProvider, credentialId: $credentialId);
+		if ($refusal !== null) {
+			return $this->unverified(evidence: $refusal);
 		}
 
-		if (in_array($chatProvider, self::BROKER_MEDIATED_CHAT_PROVIDERS, true) === false) {
-			// Ollama (bare, unverified config URL), Nextcloud (opaque
-			// TaskProcessing backend), or any provider this classifier does
-			// not recognise — none of these carry a host-lock guarantee.
-			return $this->unverified(
-				evidence: sprintf(
-					'Chat provider "%s" is never broker-mediated (ProviderFactory.php), so its network '
-					. 'destination is not code-enforced — it could be anywhere, including genuinely '
-					. 'on-premises or EU-hosted, but nothing proves it.',
-					$chatProvider
-				)
-			);
-		}
-
-		if ($credentialId === null || $credentialId === '') {
-			return $this->unverified(
-				evidence: sprintf('Chat provider "%s" is broker-mediated but no credential is configured for it.', $chatProvider)
-			);
-		}
-
-		$credential = $this->findBrokeredCredential(credentialId: $credentialId);
+		$ids = ['chatProvider' => $chatProvider, 'credentialId' => (string)$credentialId];
+		$credential = $this->findBrokeredCredential(credentialId: $ids['credentialId']);
 		if ($credential === null) {
-			return $this->unverified(
-				evidence: sprintf(
-					'The brokered credential "%s" referenced by chat provider "%s" could not be read '
-					. '(not found, or not readable under this calling identity\'s RBAC) — degrading to '
-					. 'unverified rather than assuming compliant.',
-					$credentialId,
-					$chatProvider
-				)
-			);
+			return $this->unverified(evidence: self::unreadableCredential(ids: $ids));
 		}
 
-		$catalogueProvider = (string)($credential['provider'] ?? '');
+		return $this->catalogueVerdict(ids: $ids + ['catalogueProvider' => (string)($credential['provider'] ?? '')]);
+	}//end classify()
 
-		if (in_array($catalogueProvider, self::HOST_LOCKED_THIRD_COUNTRY_PROVIDERS, true) === false) {
+	/**
+	 * Why the chat provider alone rules out a verified locality, or null when it is broker-mediated.
+	 *
+	 * @param string $chatProvider The trimmed chat provider.
+	 *
+	 * @return string|null The evidence, or null.
+	 */
+	private static function providerRefusal(string $chatProvider): ?string {
+		if ($chatProvider === '') {
+			return 'No Hermiq chat provider is configured.';
+		}
+
+		if (in_array($chatProvider, self::BROKER_MEDIATED_CHAT_PROVIDERS, true) === true) {
+			return null;
+		}
+
+		// Ollama (bare, unverified config URL), Nextcloud (opaque
+		// TaskProcessing backend), or any provider this classifier does
+		// not recognise — none of these carry a host-lock guarantee.
+		return sprintf(
+			'Chat provider "%s" is never broker-mediated (ProviderFactory.php), so its network '
+			. 'destination is not code-enforced — it could be anywhere, including genuinely '
+			. 'on-premises or EU-hosted, but nothing proves it.',
+			$chatProvider
+		);
+	}//end providerRefusal()
+
+	/**
+	 * Why a broker-mediated provider without a credential cannot be verified, or null when it has one.
+	 *
+	 * @param string      $chatProvider The chat provider.
+	 * @param string|null $credentialId The configured credential id.
+	 *
+	 * @return string|null The evidence, or null.
+	 */
+	private static function credentialRefusal(string $chatProvider, ?string $credentialId): ?string {
+		if ($credentialId === null || $credentialId === '') {
+			return sprintf('Chat provider "%s" is broker-mediated but no credential is configured for it.', $chatProvider);
+		}
+
+		return null;
+	}//end credentialRefusal()
+
+	/**
+	 * The evidence for a brokered credential that could not be read.
+	 *
+	 * @param array{chatProvider: string, credentialId: string} $ids The chat provider and credential id.
+	 *
+	 * @return string
+	 */
+	private static function unreadableCredential(array $ids): string {
+		return sprintf(
+			'The brokered credential "%s" referenced by chat provider "%s" could not be read '
+			. '(not found, or not readable under this calling identity\'s RBAC) — degrading to '
+			. 'unverified rather than assuming compliant.',
+			$ids['credentialId'],
+			$ids['chatProvider']
+		);
+	}//end unreadableCredential()
+
+	/**
+	 * The verdict for a readable credential: third-country when its catalogue provider is host-locked, else unverified.
+	 *
+	 * @param array{chatProvider: string, credentialId: string, catalogueProvider: string} $ids The provider, credential and catalogue provider.
+	 *
+	 * @return array{locality: string, verified: bool, evidence: string}
+	 */
+	private function catalogueVerdict(array $ids): array {
+		if (in_array($ids['catalogueProvider'], self::HOST_LOCKED_THIRD_COUNTRY_PROVIDERS, true) === false) {
 			return $this->unverified(
 				evidence: sprintf(
 					'Credential "%s" targets catalogue provider "%s" — an inject-only, non-host-locked '
 					. 'path (CredentialBrokerService Guard 4 does not apply to it). The actual destination '
 					. 'could be anywhere, including genuinely on-premises or EU-hosted, but nothing code-'
 					. 'enforces it.',
-					$credentialId,
-					$catalogueProvider
+					$ids['credentialId'],
+					$ids['catalogueProvider']
 				)
 			);
 		}
 
+		return self::thirdCountry(ids: $ids);
+	}//end catalogueVerdict()
+
+	/**
+	 * The verified third-country verdict for a host-locked catalogue provider.
+	 *
+	 * @param array{chatProvider: string, credentialId: string, catalogueProvider: string} $ids The provider, credential and catalogue provider.
+	 *
+	 * @return array{locality: string, verified: bool, evidence: string}
+	 */
+	private static function thirdCountry(array $ids): array {
 		return [
 			'locality' => 'third-country',
 			'verified' => true,
@@ -260,13 +313,12 @@ class AiLocalityClassifier {
 				. 'whose catalogue provider "%s" is host-locked by CredentialBrokerService\'s Guard 4 to a '
 				. 'fixed, US-domiciled baseUrl (credential-providers.json) — the resolved network '
 				. 'destination cannot be redirected elsewhere.',
-				$chatProvider,
-				$credentialId,
-				$catalogueProvider
+				$ids['chatProvider'],
+				$ids['credentialId'],
+				$ids['catalogueProvider']
 			),
 		];
-
-	}//end classify()
+	}//end thirdCountry()
 
 	/**
 	 * Build the `unverified` verdict shape.

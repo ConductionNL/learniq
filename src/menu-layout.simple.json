@@ -499,7 +499,6 @@
 			},
 			"config": {
 				"allowEdit": false,
-				"description": "Your lessons and what needs you today",
 				"headerActions": [
 					{
 						"id": "open-roll-call",
@@ -510,16 +509,6 @@
 					}
 				],
 				"widgets": [
-					{
-						"id": "today-greeting",
-						"type": "header",
-						"title": "Greeting",
-						"content": {
-							"title": "Today",
-							"showDate": true,
-							"ground": true
-						}
-					},
 					{
 						"id": "today-first",
 						"type": "banner",
@@ -824,16 +813,6 @@
 				],
 				"layout": [
 					{
-						"id": "t1",
-						"widgetId": "today-greeting",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 12,
-						"gridHeight": 1,
-						"showTitle": false,
-						"sizeToContent": true
-					},
-					{
 						"id": "t2",
 						"widgetId": "today-first",
 						"gridX": 0,
@@ -920,7 +899,10 @@
 						"showActions": false
 					}
 				],
-				"showHeader": false,
+				"title": "Today",
+				"greeting": "date",
+				"subtitleByRole": null,
+				"subtitleOfSchoolByRole": null,
 				"showWidgetActions": false
 			}
 		},
