@@ -888,6 +888,11 @@
             }
         }
     ],
+    "a mapping without an action or a from-cohort id is skipped": [
+        {
+            "result": []
+        }
+    ],
     "a missing from-cohort is skipped and the next mapping runs": [
         {
             "find": {

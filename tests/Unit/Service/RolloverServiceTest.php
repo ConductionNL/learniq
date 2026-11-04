@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Exception\RolloverInterruptedException;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\RolloverExecutionService;
@@ -343,6 +344,52 @@ class RolloverServiceTest extends TestCase {
 			'only the existing mapping writes'
 		);
 	}//end testExecuteSkipsAMissingFromCohort()
+
+	/**
+	 * A save that fails mid-plan keeps the progress of the mappings finished before it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/school-year-rollover/spec.md#scenario-resume-after-mid-run-failure
+	 */
+	public function testAFailureMidPlanKeepsTheProgressSoFar(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willReturnCallback(
+			fn (int|string $id): ObjectEntity => $this->cohortEntity(['id' => (string)$id, 'name' => 'G-' . $id, 'learnerIds' => [], 'lifecycle' => 'active'])
+		);
+		$objectService->method('findAll')->willReturn([]);
+		$objectService->method('saveObject')->willReturnCallback(
+			static function (array $object, ?array $extend = [], $register = null, $schema = null) {
+				if (($object['id'] ?? '') === 'c3') {
+					throw new RuntimeException('database gone');
+				}
+
+				return OrEntityFactory::make($object, (string)$schema, (string)$register);
+			}
+		);
+
+		$plan = [
+			'toAcademicYear'     => '2026/2027',
+			'tenant_id'          => 'tenant-a',
+			'mappings'           => [
+				['fromCohortId' => 'c0', 'action' => 'dissolve'],
+				['fromCohortId' => 'c1', 'action' => 'dissolve'],
+				['fromCohortId' => 'c2', 'action' => 'dissolve'],
+				['fromCohortId' => 'c3', 'action' => 'dissolve'],
+				['fromCohortId' => 'c4', 'action' => 'dissolve'],
+			],
+			'perMappingProgress' => ['c0' => 'done'],
+		];
+
+		try {
+			$this->makeExecutionService($objectService)->execute($plan);
+			$this->fail('no failure');
+		} catch (RolloverInterruptedException $e) {
+			$this->assertSame(['c0' => 'done', 'c1' => 'done', 'c2' => 'done'], $e->getProgress());
+			$this->assertSame('database gone', $e->getMessage());
+			$this->assertInstanceOf(RuntimeException::class, $e->getPrevious());
+		}
+	}//end testAFailureMidPlanKeepsTheProgressSoFar()
 
 	/**
 	 * The preview reads a missing from-cohort as empty instead of failing.
