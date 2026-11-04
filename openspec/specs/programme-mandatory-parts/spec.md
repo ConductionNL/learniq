@@ -23,10 +23,16 @@ The system MUST let a programme author mark each course of a programme as mandat
 
 ### Requirement: Progress counts mandatory parts
 
-Programme progress and completion MUST be computed from mandatory enrolments only, and the learner home widget MUST list optional parts under their own heading without counting them toward completion.
+Programme progress and completion MUST be computed from mandatory enrolments only. Mijn leren MUST read the progress as "{done} van {total} verplichte cursussen klaar", or "verplichte vakken" for a pupil, and MUST list optional parts under "Keuzecursussen" or "Keuzevakken" without counting them toward completion.
+
+#### Scenario: Optional parts do not count
+
+- **GIVEN** a person who finished three of the five mandatory courses of "Basiskwalificatie didactische bekwaamheid" and did not start the optional one
+- **WHEN** the person opens Mijn leren
+- **THEN** the programme reads "3 van 5 verplichte cursussen klaar" and lists "Formatief evalueren in de les" under "Keuzecursussen" as "Niet gestart"
 
 #### Scenario: Optional parts do not block completion
 
-- **GIVEN** a person who completed both mandatory courses and none of the optional one
+- **GIVEN** a person who finished all five mandatory courses and did not start the optional one
 - **WHEN** the programme progress is read
-- **THEN** it shows 100 percent complete and lists the optional course as optional
+- **THEN** it reads "5 van 5 verplichte cursussen klaar", the programme is complete, and the optional course stays under "Keuzecursussen"
