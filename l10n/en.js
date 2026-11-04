@@ -3739,6 +3739,7 @@ OC.L10N.register(
         "Round name": "Round name",
         "The invited child's profile, the key the parent portal reads this row by.": "The invited child's profile, the key the parent portal reads this row by.",
         "The round the child is invited to.": "The round the child is invited to.",
+        "Stage of the booking": "Stage of the booking",
         "Changed": "Changed",
         "A message to the teacher": "A message to the teacher",
         "The teacher usually answers within two school days. Is it urgent? Call the school.": "The teacher usually answers within two school days. Is it urgent? Call the school.",
