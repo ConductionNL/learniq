@@ -4334,7 +4334,12 @@
         "Default {default} days. A decision of {decided} can then be appealed up to and including {until}.": "Standaard {default} dagen. Een besluit van {decided} is dan tot en met {until} aanvechtbaar.",
         "The appeal term could not be loaded. Reload the page to try again.": "De beroepstermijn kon niet worden geladen. Laad de pagina opnieuw om het nog eens te proberen.",
         "Appeal term saved": "Beroepstermijn opgeslagen",
-        "The appeal term could not be saved. Try again.": "De beroepstermijn kon niet worden opgeslagen. Probeer het opnieuw."
+        "The appeal term could not be saved. Try again.": "De beroepstermijn kon niet worden opgeslagen. Probeer het opnieuw.",
+        "Move up": "Omhoog",
+        "Move down": "Omlaag",
+        "Drag a chapter or lesson to another place, or use the Move up and Move down buttons. With the keyboard: Tab to the button, Enter moves it. The new order is saved at once and read out.": "Sleep een hoofdstuk of les naar een andere plek, of gebruik de knoppen Omhoog en Omlaag. Met het toetsenbord: Tab naar de knop, Enter verplaatst. De nieuwe volgorde wordt meteen bewaard en voorgelezen.",
+        "Chapter {name} moved to position {pos} of {total}. Saved.": "Hoofdstuk {name} verplaatst naar positie {pos} van {total}. Opgeslagen.",
+        "Lesson {name} moved to position {pos} of {total}. Saved.": "Les {name} verplaatst naar positie {pos} van {total}. Opgeslagen."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

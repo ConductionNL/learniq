@@ -4267,14 +4267,11 @@ OC.L10N.register(
         "Timetable exchange": "Roosteruitwisseling",
         "AI translations": "AI-vertalingen",
         "Administration settings": "Beheerinstellingen",
-        "How long a learner can appeal a decision of the exam board. The term counts from the day of the decision and is on every fraud case and exemption case.": "Hoe lang een leerling in beroep kan tegen een besluit van de examencommissie. De termijn telt vanaf de dag van het besluit en staat op elke fraudezaak en vrijstellingszaak.",
-        "Loading the appeal term…": "De beroepstermijn wordt geladen…",
-        "Appeal term in days": "Beroepstermijn in dagen",
-        "Enter a whole number of days, from 1 to {max}.": "Vul een heel aantal dagen in, van 1 tot en met {max}.",
-        "Default {default} days. A decision of {decided} can then be appealed up to and including {until}.": "Standaard {default} dagen. Een besluit van {decided} is dan tot en met {until} aanvechtbaar.",
-        "The appeal term could not be loaded. Reload the page to try again.": "De beroepstermijn kon niet worden geladen. Laad de pagina opnieuw om het nog eens te proberen.",
-        "Appeal term saved": "Beroepstermijn opgeslagen",
-        "The appeal term could not be saved. Try again.": "De beroepstermijn kon niet worden opgeslagen. Probeer het opnieuw."
+        "Move up": "Omhoog",
+        "Move down": "Omlaag",
+        "Drag a chapter or lesson to another place, or use the Move up and Move down buttons. With the keyboard: Tab to the button, Enter moves it. The new order is saved at once and read out.": "Sleep een hoofdstuk of les naar een andere plek, of gebruik de knoppen Omhoog en Omlaag. Met het toetsenbord: Tab naar de knop, Enter verplaatst. De nieuwe volgorde wordt meteen bewaard en voorgelezen.",
+        "Chapter {name} moved to position {pos} of {total}. Saved.": "Hoofdstuk {name} verplaatst naar positie {pos} van {total}. Opgeslagen.",
+        "Lesson {name} moved to position {pos} of {total}. Saved.": "Les {name} verplaatst naar positie {pos} van {total}. Opgeslagen."
     },
     "nplurals=2; plural=(n != 1);"
 )

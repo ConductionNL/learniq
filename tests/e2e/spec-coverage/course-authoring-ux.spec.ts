@@ -225,6 +225,10 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 			.getByRole('button', { name: /Move lesson 'e2e Lesson 2' up/ })
 			.click()
 		await expect(lessonRows.first()).toContainText('e2e Lesson 2')
+		// The move is read out with the new position and that it is saved.
+		await expect(page.locator('.course-builder__sr-live')).toHaveText(
+			/(Lesson e2e Lesson 2 moved to position 1 of 2\. Saved\.|Les e2e Lesson 2 verplaatst naar positie 1 van 2\. Opgeslagen\.)/,
+		)
 
 		// Drag-and-drop reorder: drag the (now first) lesson's handle onto the
 		// second row — exercises vuedraggable/SortableJS's pointer-driven drag.
