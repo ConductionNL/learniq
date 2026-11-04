@@ -188,6 +188,21 @@ class CommonCartridgeImportGoldenTest extends TestCase {
 			}
 		);
 
+		$deleteParams = (new ReflectionMethod(ObjectService::class, 'deleteObject'))->getParameters();
+		$service->method('deleteObject')->willReturnCallback(
+			static function (...$args) use ($deleteParams, &$calls): bool {
+				$named = [];
+				foreach ($args as $i => $value) {
+					if ($deleteParams[$i]->isDefaultValueAvailable() === false || $deleteParams[$i]->getDefaultValue() !== $value) {
+						$named[$deleteParams[$i]->getName()] = $value;
+					}
+				}
+
+				$calls[] = ['deleteObject' => $named];
+				return true;
+			}
+		);
+
 		$entries  = [];
 		$courseId = $this->importer($service, $calls)->importManifest($manifest, new PackageContext($dir, 'teacher1', 't1'), $entries);
 		$calls[]  = ['courseId' => $courseId];

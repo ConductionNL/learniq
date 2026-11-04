@@ -202,16 +202,22 @@ class CommonCartridgeResourceRouter {
 			],
 			tenantId: $package->tenantId
 		);
-		$this->objectWriter->createLesson(
-			lesson: [
-				'courseId' => $slot->courseId,
-				'title' => $slot->lessonTitle ?? $resource['title'],
-				'order' => $slot->lessonOrder ?? 0,
-				'contentType' => 'text',
-				'contentRef' => (string)$materialId,
-			],
-			tenantId: $package->tenantId
-		);
+		try {
+			$this->objectWriter->createLesson(
+				lesson: [
+					'courseId' => $slot->courseId,
+					'title' => $slot->lessonTitle ?? $resource['title'],
+					'order' => $slot->lessonOrder ?? 0,
+					'contentType' => 'text',
+					'contentRef' => (string)$materialId,
+				],
+				tenantId: $package->tenantId
+			);
+		} catch (\Throwable $e) {
+			// The resource is reported dropped, so its Material must not stay behind.
+			$this->discardMaterial(materialId: $materialId);
+			throw $e;
+		}
 
 		return $this->reporter->entry(
 			resourceIdentifier: $resource['identifier'],
@@ -220,6 +226,30 @@ class CommonCartridgeResourceRouter {
 			result: ['outcome' => 'imported', 'targetType' => 'material', 'targetId' => $materialId, 'reason' => null]
 		);
 	}//end importWebContent()
+
+	/**
+	 * Remove a Material whose Lesson could not be created; a failed removal is logged.
+	 *
+	 * @param string|null $materialId The created Material UUID.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
+	 */
+	private function discardMaterial(?string $materialId): void {
+		if ($materialId === null) {
+			return;
+		}
+
+		try {
+			$this->objectWriter->delete(schema: 'material', uuid: $materialId);
+		} catch (\Throwable $e) {
+			$this->logger->warning(
+				'[CommonCartridgeResourceRouter] Material {id} of a dropped resource could not be removed: {msg}',
+				['id' => $materialId, 'msg' => $e->getMessage()]
+			);
+		}
+	}//end discardMaterial()
 
 	/**
 	 * Materialise a `weblink` resource as a `link`-kind Material.

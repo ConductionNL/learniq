@@ -199,6 +199,20 @@ class CoursePackageObjectWriter {
 	}//end create()
 
 	/**
+	 * Delete a Learniq object from the `learniq` register.
+	 *
+	 * @param string $schema Schema slug.
+	 * @param string $uuid   Object UUID.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#data-model
+	 */
+	public function delete(string $schema, string $uuid): void {
+		$this->objectService->deleteObject(uuid: $uuid, register: self::LEARNIQ_REGISTER, schema: $schema);
+	}//end delete()
+
+	/**
 	 * Extract a created object's UUID from an `ObjectService::saveObject()` return value.
 	 *
 	 * @param mixed $saved Return value of `saveObject()` (array or an ObjectEntity-like object).
