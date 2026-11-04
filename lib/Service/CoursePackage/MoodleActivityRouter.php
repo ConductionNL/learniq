@@ -48,12 +48,31 @@ class MoodleActivityRouter {
 	private const LESSON_CONTENT_TYPES = ['scorm', 'cmi5'];
 
 	/**
+	 * Creates the Learniq objects the package materialises.
+	 *
+	 * @var CoursePackageObjectWriter
+	 */
+	private readonly CoursePackageObjectWriter $objectWriter;
+
+	/**
+	 * Resolves package-relative file bytes into nc:files.
+	 *
+	 * @var CoursePackageFileWriter
+	 */
+	private readonly CoursePackageFileWriter $fileWriter;
+
+	/**
+	 * Builds the report entry rows.
+	 *
+	 * @var CoursePackageImportReporter
+	 */
+	private readonly CoursePackageImportReporter $reporter;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param MoodleQuizQuestionMapper $quizMapper Moodle quiz question-bank mapper.
-	 * @param CoursePackageObjectWriter $objectWriter Creates the Learniq objects an activity materialises.
-	 * @param CoursePackageFileWriter $fileWriter Resolves package-relative file bytes into nc:files.
-	 * @param CoursePackageImportReporter $reporter Builds the report entry rows.
+	 * @param CoursePackageOutput $output The object writer, file writer and report entry builder.
 	 * @param PackageXmlValueReader $xmlReader Reads `url.xml` side-car module descriptors.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
@@ -61,29 +80,28 @@ class MoodleActivityRouter {
 	 */
 	public function __construct(
 		private readonly MoodleQuizQuestionMapper $quizMapper,
-		private readonly CoursePackageObjectWriter $objectWriter,
-		private readonly CoursePackageFileWriter $fileWriter,
-		private readonly CoursePackageImportReporter $reporter,
+		CoursePackageOutput $output,
 		private readonly PackageXmlValueReader $xmlReader,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->objectWriter = $output->objectWriter;
+		$this->fileWriter = $output->fileWriter;
+		$this->reporter = $output->reporter;
 	}//end __construct()
 
 	/**
 	 * Route one Moodle activity/module to its Learniq target.
 	 *
 	 * @param array<string, mixed> $activity One `MoodleBackupParser` activity row.
-	 * @param string $dir Extracted backup directory (for question-bank resolution).
 	 * @param string $courseId Enclosing Course UUID.
-	 * @param string $importedBy NC user id (nc:files owner for resolved Material bytes).
-	 * @param string $tenantId Tenant UUID.
+	 * @param PackageContext $package The extracted backup: its directory, the importing user and the tenant.
 	 * @param array<int, array<string,mixed>> $entries Report entries accumulator (by reference).
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
-	public function routeActivity(array $activity, string $dir, string $courseId, string $importedBy, string $tenantId, array &$entries): void {
+	public function routeActivity(array $activity, string $courseId, PackageContext $package, array &$entries): void {
 		$classification = $activity['classification'];
 
 		try {
@@ -96,17 +114,11 @@ class MoodleActivityRouter {
 			}
 
 			if ($classification === 'quiz') {
-				$this->routeMoodleQuiz(activity: $activity, dir: $dir, tenantId: $tenantId, entries: $entries);
+				$this->routeMoodleQuiz(activity: $activity, dir: $package->dir, tenantId: $package->tenantId, entries: $entries);
 				return;
 			}
 
-			$entries[] = $this->buildActivityEntry(
-				activity: $activity,
-				dir: $dir,
-				courseId: $courseId,
-				importedBy: $importedBy,
-				tenantId: $tenantId,
-			);
+			$entries[] = $this->buildActivityEntry(activity: $activity, courseId: $courseId, package: $package);
 		} catch (\Throwable $e) {
 			$this->logger->warning(
 				'[MoodleActivityRouter] Moodle activity {id} failed to import: {msg}',
@@ -120,28 +132,20 @@ class MoodleActivityRouter {
 	 * Materialise one non-quiz activity by its classification and return its report entry.
 	 *
 	 * @param array<string, mixed> $activity One `MoodleBackupParser` activity row.
-	 * @param string $dir Extracted backup directory.
 	 * @param string $courseId Enclosing Course UUID.
-	 * @param string $importedBy NC user id.
-	 * @param string $tenantId Tenant UUID.
+	 * @param PackageContext $package The extracted backup: its directory, the importing user and the tenant.
 	 *
 	 * @return array<string, mixed> The report entry for this activity.
 	 *
 	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
-	private function buildActivityEntry(array $activity, string $dir, string $courseId, string $importedBy, string $tenantId): array {
+	private function buildActivityEntry(array $activity, string $courseId, PackageContext $package): array {
 		$unsupportedReason = "No Learniq schema represents Moodle's {$activity['moduleType']} module — migrate manually.";
 
 		return match ($activity['classification']) {
-			'resource', 'page' => $this->importResourceActivity(
-				activity: $activity,
-				dir: $dir,
-				courseId: $courseId,
-				importedBy: $importedBy,
-				tenantId: $tenantId,
-			),
-			'url' => $this->importUrlActivity(activity: $activity, dir: $dir, courseId: $courseId, tenantId: $tenantId),
-			'assign' => $this->importAssignActivity(activity: $activity, courseId: $courseId, tenantId: $tenantId),
+			'resource', 'page' => $this->importResourceActivity(activity: $activity, courseId: $courseId, package: $package),
+			'url' => $this->importUrlActivity(activity: $activity, dir: $package->dir, courseId: $courseId, tenantId: $package->tenantId),
+			'assign' => $this->importAssignActivity(activity: $activity, courseId: $courseId, tenantId: $package->tenantId),
 			'forum', 'wiki', 'glossary' => $this->droppedEntry(activity: $activity, reason: $unsupportedReason),
 			default => $this->droppedEntry(
 				activity: $activity,
@@ -159,46 +163,50 @@ class MoodleActivityRouter {
 	 * inside the activity's own backup directory, when present.
 	 *
 	 * @param array<string, mixed> $activity One `MoodleBackupParser` activity row.
-	 * @param string $dir Extracted backup directory.
 	 * @param string $courseId Enclosing Course UUID.
-	 * @param string $importedBy NC user id.
-	 * @param string $tenantId Tenant UUID.
+	 * @param PackageContext $package The extracted backup: its directory, the importing user and the tenant.
 	 *
 	 * @return array<string, mixed> The report entry for this activity.
 	 *
 	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
-	private function importResourceActivity(array $activity, string $dir, string $courseId, string $importedBy, string $tenantId): array {
+	private function importResourceActivity(array $activity, string $courseId, PackageContext $package): array {
 		$contentHref = null;
 		if ($activity['directory'] !== null) {
 			$contentHref = $activity['directory'] . '/content.html';
 		}
 
 		$materialId = $this->objectWriter->createMaterial(
-			title: $activity['title'],
-			kind: 'document',
-			fileRef: $this->fileWriter->resolveFileRef(dir: $dir, href: $contentHref, importedBy: $importedBy, tenantId: $tenantId),
-			url: null,
-			courseId: $courseId,
-			tenantId: $tenantId,
+			material: [
+				'title' => $activity['title'],
+				'kind' => 'document',
+				'fileRef' => $this->fileWriter->resolveFileRef(
+					dir: $package->dir,
+					href: $contentHref,
+					importedBy: $package->importedBy,
+					tenantId: $package->tenantId
+				),
+				'url' => null,
+				'courseId' => $courseId,
+			],
+			tenantId: $package->tenantId
 		);
 		$this->objectWriter->createLesson(
-			courseId: $courseId,
-			title: $activity['title'],
-			order: $activity['order'],
-			contentType: 'text',
-			contentRef: (string)$materialId,
-			tenantId: $tenantId
+			lesson: [
+				'courseId' => $courseId,
+				'title' => $activity['title'],
+				'order' => $activity['order'],
+				'contentType' => 'text',
+				'contentRef' => (string)$materialId,
+			],
+			tenantId: $package->tenantId
 		);
 
 		return $this->reporter->entry(
 			resourceIdentifier: $activity['identifier'],
 			resourceType: $activity['moduleType'],
 			title: $activity['title'],
-			outcome: 'imported',
-			targetType: 'material',
-			targetId: $materialId,
-			reason: null,
+			result: ['outcome' => 'imported', 'targetType' => 'material', 'targetId' => $materialId, 'reason' => null]
 		);
 	}//end importResourceActivity()
 
@@ -216,22 +224,21 @@ class MoodleActivityRouter {
 	 */
 	private function importUrlActivity(array $activity, string $dir, string $courseId, string $tenantId): array {
 		$materialId = $this->objectWriter->createMaterial(
-			title: $activity['title'],
-			kind: 'link',
-			fileRef: null,
-			url: $this->resolveMoodleUrlModuleTarget(dir: $dir, directory: $activity['directory'], fallback: $activity['title']),
-			courseId: $courseId,
-			tenantId: $tenantId,
+			material: [
+				'title' => $activity['title'],
+				'kind' => 'link',
+				'fileRef' => null,
+				'url' => $this->resolveMoodleUrlModuleTarget(dir: $dir, directory: $activity['directory'], fallback: $activity['title']),
+				'courseId' => $courseId,
+			],
+			tenantId: $tenantId
 		);
 
 		return $this->reporter->entry(
 			resourceIdentifier: $activity['identifier'],
 			resourceType: $activity['moduleType'],
 			title: $activity['title'],
-			outcome: 'imported',
-			targetType: 'material',
-			targetId: $materialId,
-			reason: null,
+			result: ['outcome' => 'imported', 'targetType' => 'material', 'targetId' => $materialId, 'reason' => null]
 		);
 	}//end importUrlActivity()
 
@@ -263,10 +270,12 @@ class MoodleActivityRouter {
 			resourceIdentifier: $activity['identifier'],
 			resourceType: $activity['moduleType'],
 			title: $activity['title'],
-			outcome: 'degraded',
-			targetType: 'assignment',
-			targetId: $assignmentId,
-			reason: 'Moodle-specific grading-workflow configuration (peer review, group config) was not carried over.',
+			result: [
+				'outcome' => 'degraded',
+				'targetType' => 'assignment',
+				'targetId' => $assignmentId,
+				'reason' => 'Moodle-specific grading-workflow configuration (peer review, group config) was not carried over.',
+			]
 		);
 	}//end importAssignActivity()
 
@@ -294,10 +303,12 @@ class MoodleActivityRouter {
 				resourceIdentifier: $activity['identifier'],
 				resourceType: 'quiz',
 				title: $activity['title'],
-				outcome: 'dropped',
-				targetType: null,
-				targetId: null,
-				reason: 'Quiz activity has no readable question bank in the package.',
+				result: [
+					'outcome' => 'dropped',
+					'targetType' => null,
+					'targetId' => null,
+					'reason' => 'Quiz activity has no readable question bank in the package.',
+				]
 			);
 			return;
 		}
@@ -335,10 +346,7 @@ class MoodleActivityRouter {
 				resourceIdentifier: $resourceIdentifier,
 				resourceType: $resourceType,
 				title: $question['title'],
-				outcome: 'dropped',
-				targetType: null,
-				targetId: null,
-				reason: $question['reason'],
+				result: ['outcome' => 'dropped', 'targetType' => null, 'targetId' => null, 'reason' => $question['reason']]
 			);
 		}
 
@@ -348,10 +356,12 @@ class MoodleActivityRouter {
 			resourceIdentifier: $resourceIdentifier,
 			resourceType: $resourceType,
 			title: $question['title'],
-			outcome: 'degraded',
-			targetType: 'item',
-			targetId: $itemId,
-			reason: 'Mapped from Moodle question XML, not QTI — verify correctResponse before publishing.',
+			result: [
+				'outcome' => 'degraded',
+				'targetType' => 'item',
+				'targetId' => $itemId,
+				'reason' => 'Mapped from Moodle question XML, not QTI — verify correctResponse before publishing.',
+			]
 		);
 	}//end quizQuestionEntry()
 
@@ -370,10 +380,7 @@ class MoodleActivityRouter {
 			resourceIdentifier: $activity['identifier'],
 			resourceType: $activity['moduleType'],
 			title: $activity['title'],
-			outcome: 'dropped',
-			targetType: null,
-			targetId: null,
-			reason: $reason,
+			result: ['outcome' => 'dropped', 'targetType' => null, 'targetId' => null, 'reason' => $reason]
 		);
 	}//end droppedEntry()
 

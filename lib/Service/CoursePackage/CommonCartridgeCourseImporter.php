@@ -39,13 +39,26 @@ use OCA\Learniq\Service\QtiImportService;
  */
 class CommonCartridgeCourseImporter {
 	/**
+	 * Creates the Learniq objects the package materialises.
+	 *
+	 * @var CoursePackageObjectWriter
+	 */
+	private readonly CoursePackageObjectWriter $objectWriter;
+
+	/**
+	 * Builds the report entry rows.
+	 *
+	 * @var CoursePackageImportReporter
+	 */
+	private readonly CoursePackageImportReporter $reporter;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param QtiImportService $qtiImportService QTI/CC assessment-item import (shared extraction + item parsing).
 	 * @param CommonCartridgeParser $ccParser Common Cartridge manifest parser.
 	 * @param CommonCartridgeResourceRouter $resourceRouter Per-resource routing to learniq targets.
-	 * @param CoursePackageObjectWriter $objectWriter Creates the learniq objects the package materialises.
-	 * @param CoursePackageImportReporter $reporter Builds the report entry rows.
+	 * @param CoursePackageOutput $output The object writer, file writer and report entry builder.
 	 *
 	 * @return void
 	 */
@@ -53,9 +66,10 @@ class CommonCartridgeCourseImporter {
 		private readonly QtiImportService $qtiImportService,
 		private readonly CommonCartridgeParser $ccParser,
 		private readonly CommonCartridgeResourceRouter $resourceRouter,
-		private readonly CoursePackageObjectWriter $objectWriter,
-		private readonly CoursePackageImportReporter $reporter,
+		CoursePackageOutput $output,
 	) {
+		$this->objectWriter = $output->objectWriter;
+		$this->reporter = $output->reporter;
 	}//end __construct()
 
 	/**
@@ -77,47 +91,32 @@ class CommonCartridgeCourseImporter {
 	/**
 	 * Materialise a parsed Common Cartridge manifest.
 	 *
-	 * @param string $dir Extracted CC package directory.
 	 * @param array<string, mixed> $manifest `CommonCartridgeParser::parseManifest()` result.
-	 * @param string $importedBy NC user id (used as the nc:files owner for resolved Material bytes).
-	 * @param string $tenantId Tenant UUID stamped on every created object.
+	 * @param PackageContext $package The extracted package: its directory, the importing user (nc:files owner) and the tenant.
 	 * @param array<int, array<string,mixed>> $entries Report entries accumulator (by reference).
 	 *
 	 * @return string|null UUID of the top-level Course, or null if none was created.
 	 *
 	 * @spec openspec/specs/course-management/spec.md#scenario-a-common-cartridge-package-materialises-its-course-structure
 	 */
-	public function importManifest(string $dir, array $manifest, string $importedBy, string $tenantId, array &$entries): ?string {
-		$resourcesById = $this->indexResources(resources: $manifest['resources']);
+	public function importManifest(array $manifest, PackageContext $package, array &$entries): ?string {
+		$walk = new OrganizationWalk(
+			resourcesById: $this->indexResources(resources: $manifest['resources']),
+			package: $package,
+		);
+		$walk->entries = $entries;
 
 		// Organization nodes -> Course (folders) / Lesson (leaf items referencing a resource).
-		$courseIdByOrgId = [];
-		$topCourseId = null;
 		foreach ($manifest['organizationNodes'] as $node) {
-			$this->importOrganizationNode(
-				node: $node,
-				resourcesById: $resourcesById,
-				dir: $dir,
-				importedBy: $importedBy,
-				tenantId: $tenantId,
-				courseIdByOrgId: $courseIdByOrgId,
-				topCourseId: $topCourseId,
-				entries: $entries,
-			);
+			$this->importOrganizationNode(node: $node, walk: $walk);
 		}
 
-		$this->routeUnreferencedResources(
-			resources: $manifest['resources'],
-			dir: $dir,
-			topCourseId: $topCourseId,
-			importedBy: $importedBy,
-			tenantId: $tenantId,
-			entries: $entries,
-		);
+		$this->routeUnreferencedResources(resources: $manifest['resources'], walk: $walk);
+		$entries = $walk->entries;
 
-		$this->importQtiResources(dir: $dir, tenantId: $tenantId, entries: $entries);
+		$this->importQtiResources(dir: $package->dir, tenantId: $package->tenantId, entries: $entries);
 
-		return $topCourseId;
+		return $walk->topCourseId;
 	}//end importManifest()
 
 	/**
@@ -143,61 +142,32 @@ class CommonCartridgeCourseImporter {
 	 * leaf item referencing a resource routes that resource into a Lesson slot.
 	 *
 	 * @param array<string, mixed> $node One organization node row.
-	 * @param array<string, array<string, mixed>> $resourcesById Resources keyed by identifier.
-	 * @param string $dir Extracted CC package directory.
-	 * @param string $importedBy NC user id.
-	 * @param string $tenantId Tenant UUID.
-	 * @param array<string, string|null> $courseIdByOrgId Organization-identifier -> created Course UUID (by reference).
-	 * @param string|null $topCourseId Top-level Course UUID (by reference).
-	 * @param array<int, array<string,mixed>> $entries Report entries accumulator (by reference).
+	 * @param OrganizationWalk     $walk The walk's resources, package, Courses and entries.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/specs/course-management/spec.md#scenario-a-common-cartridge-package-materialises-its-course-structure
 	 */
-	private function importOrganizationNode(
-		array $node,
-		array $resourcesById,
-		string $dir,
-		string $importedBy,
-		string $tenantId,
-		array &$courseIdByOrgId,
-		?string &$topCourseId,
-		array &$entries,
-	): void {
+	private function importOrganizationNode(array $node, OrganizationWalk $walk): void {
 		$resource = null;
 		if ($node['resourceIdentifier'] !== null) {
-			$resource = ($resourcesById[$node['resourceIdentifier']] ?? null);
+			$resource = ($walk->resourcesById[$node['resourceIdentifier']] ?? null);
 		}
 
 		if ($node['isFolder'] === true || $resource === null) {
-			$this->importFolderNode(
-				node: $node,
-				tenantId: $tenantId,
-				courseIdByOrgId: $courseIdByOrgId,
-				topCourseId: $topCourseId,
-				entries: $entries,
-			);
+			$this->importFolderNode(node: $node, walk: $walk);
 			return;
 		}
 
 		// Leaf item referencing a resource -> Lesson, then route the underlying resource.
-		$parentCourseId = $this->resolveParentCourseId(
-			node: $node,
-			courseIdByOrgId: $courseIdByOrgId,
-			topCourseId: $topCourseId,
-			tenantId: $tenantId,
-		);
-
-		$this->resourceRouter->routeResource(
-			resource: $resource,
-			dir: $dir,
-			courseId: $parentCourseId,
-			lessonOrder: $node['order'],
-			lessonTitle: $node['title'],
-			importedBy: $importedBy,
-			tenantId: $tenantId,
-			entries: $entries,
+		$walk->entries[] = $this->resourceRouter->routeResource(
+			slot: new ResourceSlot(
+				resource: $resource,
+				courseId: $this->resolveParentCourseId(node: $node, walk: $walk),
+				lessonOrder: $node['order'],
+				lessonTitle: $node['title'],
+			),
+			package: $walk->package,
 		);
 	}//end importOrganizationNode()
 
@@ -206,44 +176,31 @@ class CommonCartridgeCourseImporter {
 	 * (module-as-a-course recursion).
 	 *
 	 * @param array<string, mixed> $node One organization node row.
-	 * @param string $tenantId Tenant UUID.
-	 * @param array<string, string|null> $courseIdByOrgId Organization-identifier -> created Course UUID (by reference).
-	 * @param string|null $topCourseId Top-level Course UUID (by reference).
-	 * @param array<int, array<string,mixed>> $entries Report entries accumulator (by reference).
+	 * @param OrganizationWalk     $walk The walk's resources, package, Courses and entries.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/specs/course-management/spec.md#scenario-a-common-cartridge-package-materialises-its-course-structure
 	 */
-	private function importFolderNode(
-		array $node,
-		string $tenantId,
-		array &$courseIdByOrgId,
-		?string &$topCourseId,
-		array &$entries,
-	): void {
+	private function importFolderNode(array $node, OrganizationWalk $walk): void {
 		$parentCourseId = null;
 		if ($node['parentIdentifier'] !== null) {
-			$parentCourseId = ($courseIdByOrgId[$node['parentIdentifier']] ?? null);
+			$parentCourseId = ($walk->courseIdByOrgId[$node['parentIdentifier']] ?? null);
 		}
 
-		$courseId = $this->objectWriter->createCourse(title: $node['title'], parentCourseId: $parentCourseId, tenantId: $tenantId);
-		// Cast the key: this map is declared array<string, string|null> and
-		// passed BY REFERENCE, so a mixed key from $node degrades it to
-		// array<string|null> at the call boundary.
-		$courseIdByOrgId[(string)$node['identifier']] = $courseId;
-		if ($topCourseId === null) {
-			$topCourseId = $courseId;
+		$courseId = $this->objectWriter->createCourse(title: $node['title'], parentCourseId: $parentCourseId, tenantId: $walk->package->tenantId);
+		// Cast the key: the map is declared array<string, string|null>, and a
+		// mixed key from $node would widen it.
+		$walk->courseIdByOrgId[(string)$node['identifier']] = $courseId;
+		if ($walk->topCourseId === null) {
+			$walk->topCourseId = $courseId;
 		}
 
-		$entries[] = $this->reporter->entry(
+		$walk->entries[] = $this->reporter->entry(
 			resourceIdentifier: $node['identifier'],
 			resourceType: 'organization',
 			title: $node['title'],
-			outcome: 'imported',
-			targetType: 'course',
-			targetId: $courseId,
-			reason: null,
+			result: ['outcome' => 'imported', 'targetType' => 'course', 'targetId' => $courseId, 'reason' => null]
 		);
 	}//end importFolderNode()
 
@@ -253,24 +210,22 @@ class CommonCartridgeCourseImporter {
 	 * enclosing folder.
 	 *
 	 * @param array<string, mixed> $node One organization node row.
-	 * @param array<string, string|null> $courseIdByOrgId Organization-identifier -> created Course UUID.
-	 * @param string|null $topCourseId Top-level Course UUID (by reference).
-	 * @param string $tenantId Tenant UUID.
+	 * @param OrganizationWalk     $walk The walk's Courses; its top-level Course is set when implicit.
 	 *
 	 * @return string|null The enclosing Course UUID.
 	 *
 	 * @spec openspec/specs/course-management/spec.md#scenario-a-common-cartridge-package-materialises-its-course-structure
 	 */
-	private function resolveParentCourseId(array $node, array $courseIdByOrgId, ?string &$topCourseId, string $tenantId): ?string {
-		$parentCourseId = $topCourseId;
+	private function resolveParentCourseId(array $node, OrganizationWalk $walk): ?string {
+		$parentCourseId = $walk->topCourseId;
 		if ($node['parentIdentifier'] !== null) {
-			$parentCourseId = ($courseIdByOrgId[$node['parentIdentifier']] ?? $topCourseId);
+			$parentCourseId = ($walk->courseIdByOrgId[$node['parentIdentifier']] ?? $walk->topCourseId);
 		}
 
 		if ($parentCourseId === null) {
 			// A leaf item with no enclosing folder — materialise an implicit top-level Course first.
-			$parentCourseId = $this->objectWriter->createCourse(title: 'Imported course', parentCourseId: null, tenantId: $tenantId);
-			$topCourseId = $parentCourseId;
+			$parentCourseId = $this->objectWriter->createCourse(title: 'Imported course', parentCourseId: null, tenantId: $walk->package->tenantId);
+			$walk->topCourseId = $parentCourseId;
 		}
 
 		return $parentCourseId;
@@ -282,39 +237,22 @@ class CommonCartridgeCourseImporter {
 	 * or an orphan resource with no manifest organization entry).
 	 *
 	 * @param array<int, array<string, mixed>> $resources Manifest resource rows.
-	 * @param string $dir Extracted CC package directory.
-	 * @param string|null $topCourseId Top-level Course UUID.
-	 * @param string $importedBy NC user id.
-	 * @param string $tenantId Tenant UUID.
-	 * @param array<int, array<string,mixed>> $entries Report entries accumulator (by reference).
+	 * @param OrganizationWalk                 $walk      The walk's package, top-level Course and entries.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
-	private function routeUnreferencedResources(
-		array $resources,
-		string $dir,
-		?string $topCourseId,
-		string $importedBy,
-		string $tenantId,
-		array &$entries,
-	): void {
-		$routedResourceIds = array_column($entries, 'resourceIdentifier');
+	private function routeUnreferencedResources(array $resources, OrganizationWalk $walk): void {
+		$routedResourceIds = array_column($walk->entries, 'resourceIdentifier');
 		foreach ($resources as $resource) {
 			if (in_array($resource['identifier'], $routedResourceIds, strict: true) === true) {
 				continue;
 			}
 
-			$this->resourceRouter->routeResource(
-				resource: $resource,
-				dir: $dir,
-				courseId: $topCourseId,
-				lessonOrder: null,
-				lessonTitle: null,
-				importedBy: $importedBy,
-				tenantId: $tenantId,
-				entries: $entries,
+			$walk->entries[] = $this->resourceRouter->routeResource(
+				slot: new ResourceSlot(resource: $resource, courseId: $walk->topCourseId, lessonOrder: null, lessonTitle: null),
+				package: $walk->package,
 			);
 		}
 	}//end routeUnreferencedResources()

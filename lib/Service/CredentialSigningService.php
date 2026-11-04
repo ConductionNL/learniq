@@ -102,14 +102,18 @@ class CredentialSigningService {
 		);
 
 		$payload = $this->buildOb3Payload(
-			credentialId: $credentialId,
-			learnerId: $learnerId,
-			courseId: $courseId,
-			issuedAt: $issuedAt,
-			expiresAt: $expiresAt,
-			issuerDid: $issuerDid,
-			issuedBy: $issuedBy,
-			verificationUrl: $verificationUrl,
+			credential: [
+				'credentialId' => $credentialId,
+				'learnerId' => $learnerId,
+				'courseId' => $courseId,
+				'issuedAt' => $issuedAt,
+				'expiresAt' => $expiresAt,
+			],
+			issuer: [
+				'issuerDid' => $issuerDid,
+				'issuedBy' => $issuedBy,
+				'verificationUrl' => $verificationUrl,
+			],
 		);
 
 		$proof = $this->proofFor(payload: $payload, tenantId: $tenantId, issuerDid: $issuerDid);
@@ -217,29 +221,24 @@ class CredentialSigningService {
 	/**
 	 * Assemble the Open Badges 3.0 JSON-LD assertion (without proof).
 	 *
-	 * @param string $credentialId UUID of the credential being issued.
-	 * @param string $learnerId Opaque learner UUID (never BSN).
-	 * @param string|null $courseId UUID of the associated course, or null.
-	 * @param string $issuedAt ISO 8601 issuance timestamp.
-	 * @param string|null $expiresAt ISO 8601 expiry timestamp, or null.
-	 * @param string $issuerDid DID of the issuing organisation.
-	 * @param string $issuedBy Display name of the issuing organisation.
-	 * @param string $verificationUrl Public URL for unauthenticated verification.
+	 * The credential names `credentialId` (UUID of the credential being issued),
+	 * `learnerId` (opaque learner UUID, never BSN), `courseId` (UUID of the
+	 * associated course, or null), `issuedAt` (ISO 8601) and `expiresAt` (ISO
+	 * 8601, or null). The issuer names `issuerDid` (DID of the issuing
+	 * organisation), `issuedBy` (its display name) and `verificationUrl` (the
+	 * public URL for unauthenticated verification).
+	 *
+	 * @param array{credentialId: string, learnerId: string, courseId: ?string, issuedAt: string, expiresAt: ?string} $credential The credential.
+	 * @param array{issuerDid: string, issuedBy: string, verificationUrl: string}                                       $issuer     The issuer.
 	 *
 	 * @return array<string,mixed> OB3 JSON-LD array (without proof).
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
 	 */
-	public function buildOb3Payload(
-		string $credentialId,
-		string $learnerId,
-		?string $courseId,
-		string $issuedAt,
-		?string $expiresAt,
-		string $issuerDid,
-		string $issuedBy,
-		string $verificationUrl,
-	): array {
+	public function buildOb3Payload(array $credential, array $issuer): array {
+		['credentialId' => $credentialId, 'learnerId' => $learnerId, 'courseId' => $courseId] = $credential;
+		['issuedAt' => $issuedAt, 'expiresAt' => $expiresAt] = $credential;
+		['issuerDid' => $issuerDid, 'issuedBy' => $issuedBy, 'verificationUrl' => $verificationUrl] = $issuer;
 		$payload = [
 			'@context' => [
 				'https://www.w3.org/2018/credentials/v1',

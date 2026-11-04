@@ -1,0 +1,36 @@
+# Screens
+
+- learniq/LqAanwezigheid aanwezigheid (planninq adopts this: rows sib-learniq-att-late-and-excused-marks, sib-learniq-att-take-the-register) https://identity.conduction.nl/screens/board?id=learniq/LqAanwezigheid
+- learniq/LqAanwezigheidLijst aanwezigheid (planninq adopts this: row sib-learniq-att-learner-submits-an-excuse) https://identity.conduction.nl/screens/board?id=learniq/LqAanwezigheidLijst
+- learniq/LqLlInchecken inchecken (leerling) (planninq adopts this: row sib-learniq-att-learner-checks-in-with-qr) https://identity.conduction.nl/screens/board?id=learniq/LqLlInchecken
+- learniq/LqGroep groep (planninq adopts this: row sib-learniq-att-flag-when-limit-crossed) https://identity.conduction.nl/screens/board?id=learniq/LqGroep
+- learniq/LqDashboard vandaag (planninq adopts this: row sib-learniq-att-flag-when-limit-crossed) https://identity.conduction.nl/screens/board?id=learniq/LqDashboard
+- learniq/LqCoContacturen contacturen (planninq adopts this: row tt-contact-hours) https://identity.conduction.nl/screens/board?id=learniq/LqCoContacturen
+- learniq/LqLes les https://identity.conduction.nl/screens/board?id=learniq/LqLes
+- learniq/LqRegistratie aanwezigheidsregistratie https://identity.conduction.nl/screens/board?id=learniq/LqRegistratie
+- wilgenboom/MobielDetail afwezig melden https://identity.conduction.nl/screens/board?id=wilgenboom/MobielDetail
+- learniq/LqVerzuimgrens verzuimgrens https://identity.conduction.nl/screens/board?id=learniq/LqVerzuimgrens
+- vaartveld/LqRolB mentor van H4b https://identity.conduction.nl/screens/board?id=vaartveld/LqRolB
+- learniq/LqCfPartners koppelpartners https://identity.conduction.nl/screens/board?id=learniq/LqCfPartners
+- wilgenboom/LqBord register van vandaag https://identity.conduction.nl/screens/board?id=wilgenboom/LqBord
+- learniq/LqHrPersonen personen https://identity.conduction.nl/screens/board?id=learniq/LqHrPersonen
+- wilgenboom/Contentpagina uw kind afwezig melden https://identity.conduction.nl/screens/board?id=wilgenboom/Contentpagina
+- wilgenboom/MijnLijst afwezigheid https://identity.conduction.nl/screens/board?id=wilgenboom/MijnLijst
+- wilgenboom/LqVandaag vandaag (leerkracht) https://identity.conduction.nl/screens/board?id=wilgenboom/LqVandaag
+- wilgenboom/LqLijst leerlingen https://identity.conduction.nl/screens/board?id=wilgenboom/LqLijst
+- wilgenboom/LqDetail leerling Vera Hulstkamp https://identity.conduction.nl/screens/board?id=wilgenboom/LqDetail
+- wilgenboom/LqRolC directeur https://identity.conduction.nl/screens/board?id=wilgenboom/LqRolC
+- vaartveld/Contentpagina ziek melden en verlof https://identity.conduction.nl/screens/board?id=vaartveld/Contentpagina
+- vaartveld/LqVandaag vandaag voor de docent https://identity.conduction.nl/screens/board?id=vaartveld/LqVandaag
+- vaartveld/LqLijst leerlingen https://identity.conduction.nl/screens/board?id=vaartveld/LqLijst
+- vaartveld/LqDetail leerling Noor Bakker https://identity.conduction.nl/screens/board?id=vaartveld/LqDetail
+- vaartveld/LqBord weekrooster https://identity.conduction.nl/screens/board?id=vaartveld/LqBord
+- esdoornveen/LqVandaag vandaag https://identity.conduction.nl/screens/board?id=esdoornveen/LqVandaag
+- esdoornveen/LqLijst studenten https://identity.conduction.nl/screens/board?id=esdoornveen/LqLijst
+- warmtepompacademie/LqRolB vandaag voor de trainer https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqRolB
+- learniq/LqVerzuimsignaal verzuimsignaal https://identity.conduction.nl/screens/board?id=learniq/LqVerzuimsignaal
+- wilgenboom/Berichten berichten https://identity.conduction.nl/screens/board?id=wilgenboom/Berichten
+- learniq/LqVerzuimsignalen verzuimsignalen: de lijst met per signaal de status en de volgende stap https://identity.conduction.nl/screens/board?id=learniq/LqVerzuimsignalen
+- wilgenboom/Verlofaanvraag verlofaanvraag beslissen: toestaan of afwijzen, en doorsturen boven tien schooldagen https://identity.conduction.nl/screens/board?id=wilgenboom/Verlofaanvraag
+
+Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAppNav, CnAuditTrailCard, CnBreadcrumbs, CnBuildiqEditButton, CnChartWidget, CnChoiceCards, CnDashboardGrid, CnDashboardPage, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnFilterBar, CnFormDialog, CnIndexPage, CnKpiGrid, CnMassActionBar, CnNextStepCard, CnNoteCard, CnNotesCard, CnObjectCalendar, CnObjectListWidget, CnPageHeader, CnPagination, CnQuickFilterBar, CnRecordListWidget, CnRelatedCollections, CnRowActions, CnRowMarkList, CnSegmentedControl, CnSettingsPage, CnSettingsSection, CnStatWidget, CnStatsBlock, CnStatusBadge, CnTableWidget, CnTabs, CnTimelineStages, CnWidgetWrapper

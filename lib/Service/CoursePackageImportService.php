@@ -37,11 +37,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\Service\CoursePackage\CommonCartridgeCourseImporter;
-use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
-use OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter;
-use OCA\Learniq\Service\CoursePackage\MoodleCourseImporter;
-use OCA\Learniq\Service\CoursePackage\LearniqJsonCourseImporter;
+use OCA\Learniq\Service\CoursePackage\ArchivePackage;
+use OCA\Learniq\Service\CoursePackage\CoursePackageImporters;
+use OCA\Learniq\Service\CoursePackage\CoursePackageOutput;
+use OCA\Learniq\Service\CoursePackage\ImportOrigin;
+use OCA\Learniq\Service\CoursePackage\ImportReportOutcome;
+use OCA\Learniq\Service\CoursePackage\PackageContext;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -57,21 +58,15 @@ class CoursePackageImportService {
 	/**
 	 * Constructor.
 	 *
-	 * @param CommonCartridgeCourseImporter $ccImporter Common Cartridge extraction + materialisation.
-	 * @param MoodleCourseImporter $moodleImporter Moodle backup extraction + materialisation.
-	 * @param LearniqJsonCourseImporter $jsonImporter Scholiq-native JSON round-trip import.
-	 * @param CoursePackageFileWriter $fileWriter Temp-directory cleanup after every import.
-	 * @param CoursePackageImportReporter $reporter Builds and persists the import report.
-	 * @param LoggerInterface $logger PSR logger.
+	 * @param CoursePackageImporters $importers The importer per package format.
+	 * @param CoursePackageOutput    $output    The file writer (temp-directory cleanup) and the report builder.
+	 * @param LoggerInterface        $logger    PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly CommonCartridgeCourseImporter $ccImporter,
-		private readonly MoodleCourseImporter $moodleImporter,
-		private readonly LearniqJsonCourseImporter $jsonImporter,
-		private readonly CoursePackageFileWriter $fileWriter,
-		private readonly CoursePackageImportReporter $reporter,
+		private readonly CoursePackageImporters $importers,
+		private readonly CoursePackageOutput $output,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -89,23 +84,26 @@ class CoursePackageImportService {
 	 * @spec openspec/specs/course-management/spec.md#requirement-every-course-package-import-produces-a-coursepackageimportreport-naming-every-resources-outcome
 	 */
 	public function import(string $packagePath, string $sourceFilename, string $importedBy, string $tenantId = ''): array {
-		$importedAt = $this->reporter->now();
+		$origin = new ImportOrigin(
+			sourceFilename: $sourceFilename,
+			importedBy: $importedBy,
+			importedAt: $this->output->reporter->now(),
+			tenantId: $tenantId,
+		);
 		$tmpDir = sys_get_temp_dir() . '/learniq_coursepkg_' . bin2hex(random_bytes(8));
 
 		try {
 			$format = $this->detectFormat(packagePath: $packagePath, sourceFilename: $sourceFilename);
 			if ($format === null) {
-				return $this->reporter->persistReport(
-					sourceFormat: self::FORMAT_COMMON_CARTRIDGE,
-					sourceFilename: $sourceFilename,
-					importedBy: $importedBy,
-					importedAt: $importedAt,
-					tenantId: $tenantId,
-					courseId: null,
-					lifecycle: 'failed',
-					entries: [],
-					errorMessage: 'Archive is not a recognised IMS Common Cartridge (ZIP), Moodle backup '
-						. '(.mbz / gzipped tar), or scholiq-native JSON package.',
+				return $this->output->reporter->persistReport(
+					origin: $origin,
+					outcome: new ImportReportOutcome(
+						sourceFormat: self::FORMAT_COMMON_CARTRIDGE,
+						courseId: null,
+						entries: [],
+						errorMessage: 'Archive is not a recognised IMS Common Cartridge (ZIP), Moodle backup '
+							. '(.mbz / gzipped tar), or scholiq-native JSON package.',
+					),
 				);
 			}
 
@@ -113,28 +111,17 @@ class CoursePackageImportService {
 			// extract — it is this change's own lossless export target (design.md
 			// format-support matrix), read and walked directly.
 			if ($format === self::FORMAT_SCHOLIQ_JSON) {
-				return $this->jsonImporter->importPackage(
-					packagePath: $packagePath,
-					sourceFilename: $sourceFilename,
-					importedBy: $importedBy,
-					importedAt: $importedAt,
-					tenantId: $tenantId,
-				);
+				return $this->importers->learniqJson->importPackage(packagePath: $packagePath, origin: $origin);
 			}
 
 			mkdir(directory: $tmpDir, permissions: 0700, recursive: true);
 
 			return $this->importArchive(
-				format: $format,
-				packagePath: $packagePath,
-				tmpDir: $tmpDir,
-				sourceFilename: $sourceFilename,
-				importedBy: $importedBy,
-				importedAt: $importedAt,
-				tenantId: $tenantId,
+				package: new ArchivePackage(format: $format, packagePath: $packagePath, tmpDir: $tmpDir),
+				origin: $origin,
 			);
 		} finally {
-			$this->fileWriter->removeDirectory(dir: $tmpDir);
+			$this->output->fileWriter->removeDirectory(dir: $tmpDir);
 		}//end try
 	}//end import()
 
@@ -142,125 +129,78 @@ class CoursePackageImportService {
 	 * Extract, parse and materialise an archive-shaped package (Common
 	 * Cartridge or Moodle backup), then persist its report.
 	 *
-	 * @param string $format Detected source format.
-	 * @param string $packagePath Absolute path to the uploaded archive.
-	 * @param string $tmpDir Extraction directory.
-	 * @param string $sourceFilename Original filename.
-	 * @param string $importedBy NC user id of the caller.
-	 * @param string $importedAt ISO-8601 timestamp resolved by `import()`.
-	 * @param string $tenantId Tenant UUID.
+	 * @param ArchivePackage $package The archive, its format and its extraction directory.
+	 * @param ImportOrigin   $origin  Who imported which file, when, for which tenant.
 	 *
 	 * @return array<string, mixed> The persisted `CoursePackageImportReport`.
 	 *
 	 * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
 	 */
-	private function importArchive(
-		string $format,
-		string $packagePath,
-		string $tmpDir,
-		string $sourceFilename,
-		string $importedBy,
-		string $importedAt,
-		string $tenantId,
-	): array {
+	private function importArchive(ArchivePackage $package, ImportOrigin $origin): array {
 		try {
-			$manifest = $this->parseArchive(format: $format, packagePath: $packagePath, tmpDir: $tmpDir);
+			$manifest = $this->parseArchive(package: $package);
 		} catch (\Throwable $e) {
-			return $this->reporter->persistReport(
-				sourceFormat: $format,
-				sourceFilename: $sourceFilename,
-				importedBy: $importedBy,
-				importedAt: $importedAt,
-				tenantId: $tenantId,
-				courseId: null,
-				lifecycle: 'failed',
-				entries: [],
-				errorMessage: 'Could not extract or parse the package: ' . $e->getMessage(),
+			return $this->output->reporter->persistReport(
+				origin: $origin,
+				outcome: new ImportReportOutcome(
+					sourceFormat: $package->format,
+					courseId: null,
+					entries: [],
+					errorMessage: 'Could not extract or parse the package: ' . $package->withoutPaths(message: $e->getMessage()),
+				),
 			);
 		}
 
 		$entries = [];
 		$courseId = $this->materialise(
-			format: $format,
-			dir: $tmpDir,
+			format: $package->format,
 			manifest: $manifest,
-			importedBy: $importedBy,
-			tenantId: $tenantId,
+			package: new PackageContext(dir: $package->tmpDir, importedBy: $origin->importedBy, tenantId: $origin->tenantId),
 			entries: $entries,
 		);
 
-		return $this->reporter->persistReport(
-			sourceFormat: $format,
-			sourceFilename: $sourceFilename,
-			importedBy: $importedBy,
-			importedAt: $importedAt,
-			tenantId: $tenantId,
-			courseId: $courseId,
-			lifecycle: $this->reporter->resolveLifecycle(entries: $entries),
-			entries: $entries,
-			errorMessage: null,
+		return $this->output->reporter->persistReport(
+			origin: $origin,
+			outcome: new ImportReportOutcome(sourceFormat: $package->format, courseId: $courseId, entries: $entries, errorMessage: null),
 		);
 	}//end importArchive()
 
 	/**
-	 * Extract the archive into `$tmpDir` and parse its manifest with the
-	 * format's own parser.
+	 * Extract the archive into its extraction directory and parse its
+	 * manifest with the format's own parser.
 	 *
-	 * @param string $format Detected source format.
-	 * @param string $packagePath Absolute path to the uploaded archive.
-	 * @param string $tmpDir Extraction directory.
+	 * @param ArchivePackage $package The archive, its format and its extraction directory.
 	 *
 	 * @return array<string, mixed> The parsed manifest.
 	 *
 	 * @spec openspec/specs/course-management/spec.md#scenario-a-corrupt-or-unrecognised-archive-fails-loudly-not-silently
 	 */
-	private function parseArchive(string $format, string $packagePath, string $tmpDir): array {
-		if ($format === self::FORMAT_COMMON_CARTRIDGE) {
-			return $this->ccImporter->extractAndParse(packagePath: $packagePath, targetDir: $tmpDir);
+	private function parseArchive(ArchivePackage $package): array {
+		if ($package->format === self::FORMAT_COMMON_CARTRIDGE) {
+			return $this->importers->commonCartridge->extractAndParse(packagePath: $package->packagePath, targetDir: $package->tmpDir);
 		}
 
-		return $this->moodleImporter->extractAndParse(packagePath: $packagePath, targetDir: $tmpDir);
+		return $this->importers->moodle->extractAndParse(packagePath: $package->packagePath, targetDir: $package->tmpDir);
 	}//end parseArchive()
 
 	/**
 	 * Materialise a parsed manifest with the format's own importer.
 	 *
 	 * @param string $format Detected source format.
-	 * @param string $dir Extracted package directory.
 	 * @param array<string, mixed> $manifest The parsed manifest.
-	 * @param string $importedBy NC user id of the caller.
-	 * @param string $tenantId Tenant UUID.
+	 * @param PackageContext $package The extracted package: its directory, the importing user (nc:files owner) and the tenant.
 	 * @param array<int, array<string,mixed>> $entries Report entries accumulator (by reference).
 	 *
 	 * @return string|null UUID of the top-level Course, or null if none was created.
 	 *
 	 * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
 	 */
-	private function materialise(
-		string $format,
-		string $dir,
-		array $manifest,
-		string $importedBy,
-		string $tenantId,
-		array &$entries,
-	): ?string {
+	private function materialise(string $format, array $manifest, PackageContext $package, array &$entries): ?string {
 		if ($format === self::FORMAT_COMMON_CARTRIDGE) {
-			return $this->ccImporter->importManifest(
-				dir: $dir,
-				manifest: $manifest,
-				importedBy: $importedBy,
-				tenantId: $tenantId,
-				entries: $entries
-			);
+			return $this->importers->commonCartridge->importManifest(manifest: $manifest, package: $package, entries: $entries);
 		}
 
-		return $this->moodleImporter->importManifest(
-			dir: $dir,
-			manifest: $manifest,
-			importedBy: $importedBy,
-			tenantId: $tenantId,
-			entries: $entries
-		);
+		return $this->importers->moodle->importManifest(manifest: $manifest, package: $package, entries: $entries);
 	}//end materialise()
 
 	/**

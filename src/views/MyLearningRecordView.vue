@@ -20,11 +20,9 @@
 -->
 
 <template>
-	<div class="my-learning-record">
+	<div class="my-learning-record lq-board-page">
 		<header class="my-learning-record__header">
-			<h2 class="my-learning-record__heading">
-				{{ t('learniq', 'My learning record') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'My learning record')" />
 			<p class="my-learning-record__intro">
 				{{
 					t(
@@ -44,12 +42,9 @@
 
 		<template v-else-if="record">
 			<!-- Composed, read-only sections -->
-			<section class="my-learning-record__section">
-				<h3>
-					{{ t('learniq', 'Credentials') }} ({{
-						record.credentials.length
-					}})
-				</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Credentials') + ' (' + record.credentials.length + ')'"
+				class="my-learning-record__section">
 				<ul class="my-learning-record__list">
 					<li v-for="c in record.credentials" :key="c.id">
 						{{ c.kind }} — {{ c.issuedAt }}
@@ -60,14 +55,11 @@
 						{{ t('learniq', 'None yet.') }}
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 
-			<section class="my-learning-record__section">
-				<h3>
-					{{ t('learniq', 'Final grades') }} ({{
-						record.finalGrades.length
-					}})
-				</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Final grades') + ' (' + record.finalGrades.length + ')'"
+				class="my-learning-record__section">
 				<ul class="my-learning-record__list">
 					<li v-for="g in record.finalGrades" :key="g.id">
 						{{ g.value ?? '—' }} —
@@ -78,65 +70,51 @@
 						}}
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 
-			<section class="my-learning-record__section">
-				<h3>
-					{{ t('learniq', 'Competency attainments') }} ({{
-						record.competencyAttainments.length
-					}})
-				</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Competency attainments') + ' (' + record.competencyAttainments.length + ')'"
+				class="my-learning-record__section">
 				<ul class="my-learning-record__list">
 					<li v-for="ca in record.competencyAttainments" :key="ca.id">
 						{{ ca.proficiencyLevelId ?? t('learniq', 'in progress') }}
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 
-			<section class="my-learning-record__section">
-				<h3>
-					{{ t('learniq', 'Portfolios') }} ({{ record.portfolios.length }})
-				</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Portfolios') + ' (' + record.portfolios.length + ')'"
+				class="my-learning-record__section">
 				<ul class="my-learning-record__list">
 					<li v-for="p in record.portfolios" :key="p.id">
 						{{ p.title }} ({{ p.lifecycle }})
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 
-			<section class="my-learning-record__section">
-				<h3>
-					{{ t('learniq', 'Verified external training') }} ({{
-						record.externalTrainingRecords.length
-					}})
-				</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Verified external training') + ' (' + record.externalTrainingRecords.length + ')'"
+				class="my-learning-record__section">
 				<ul class="my-learning-record__list">
 					<li v-for="e in record.externalTrainingRecords" :key="e.id">
 						{{ e.title }} — {{ e.provider }}
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 
-			<section class="my-learning-record__section">
-				<h3>
-					{{ t('learniq', 'Work-placement (BPV)') }} ({{
-						record.bpvPlacements.length
-					}})
-				</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Work-placement (BPV)') + ' (' + record.bpvPlacements.length + ')'"
+				class="my-learning-record__section">
 				<ul class="my-learning-record__list">
 					<li v-for="b in record.bpvPlacements" :key="b.id">
 						{{ b.trainingCompanyName }} — {{ b.lifecycle }}
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 
-			<section class="my-learning-record__section">
-				<h3>
-					{{ t('learniq', 'Lesson completion') }} ({{
-						record.lessonCompletions.length
-					}}
-					{{ t('learniq', 'courses') }})
-				</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Lesson completion') + ' (' + record.lessonCompletions.length + ' ' + t('learniq', 'courses') + ')'"
+				class="my-learning-record__section">
 				<ul class="my-learning-record__list">
 					<li v-for="(l, idx) in record.lessonCompletions" :key="idx">
 						{{ l.courseId }} — {{ l.completedCount }}
@@ -146,19 +124,16 @@
 						>
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 
-			<section class="my-learning-record__section">
-				<h3>
-					{{ t('learniq', 'Report cards') }} ({{
-						record.reportCards.length
-					}})
-				</h3>
-			</section>
+			<CnDetailCard
+				:title="t('learniq', 'Report cards') + ' (' + record.reportCards.length + ')'"
+				class="my-learning-record__section" />
 
 			<!-- Export -->
-			<section class="my-learning-record__section my-learning-record__export">
-				<h3>{{ t('learniq', 'Export my record') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Export my record')"
+				class="my-learning-record__section my-learning-record__export">
 				<p class="my-learning-record__hint">
 					{{
 						t(
@@ -246,13 +221,13 @@
 						</tbody>
 					</table>
 				</div>
-			</section>
+			</CnDetailCard>
 
 			<!-- Share -->
-			<section
+			<CnDetailCard
 				v-if="latestExport && latestExport.lifecycle === 'generated'"
+				:title="t('learniq', 'Share my export')"
 				class="my-learning-record__section my-learning-record__share">
-				<h3>{{ t('learniq', 'Share my export') }}</h3>
 				<p class="my-learning-record__hint">
 					{{
 						t(
@@ -355,18 +330,19 @@
 						</tr>
 					</tbody>
 				</table>
-			</section>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
-import { getCurrentUser } from '@nextcloud/auth'
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'MyLearningRecordView',
+	components: { CnDetailCard, CnPageHeader },
 
 	data() {
 		return {
@@ -448,8 +424,8 @@ export default {
 		},
 
 		/**
-		 * Create a LearningRecordExport in `requested`, then fire its `generate`
-		 * transition, then re-fetch the resulting object.
+		 * Create a LearningRecordExport, which the server generates in the same
+		 * request, then re-fetch it and fail unless it is generated.
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
@@ -459,9 +435,6 @@ export default {
 
 			this.generating = true
 			this.exportError = null
-
-			const uid = getCurrentUser()?.uid ?? ''
-			const nowIso = new Date().toISOString()
 
 			try {
 				const createUrl = generateUrl(
@@ -475,13 +448,8 @@ export default {
 						'Content-Type': 'application/json',
 					},
 					body: JSON.stringify({
-						learnerId: uid,
-						learnerRef: this.record.learnerRef,
-						requestedBy: uid,
-						requestedAt: nowIso,
 						periodFrom: this.periodFrom || null,
 						periodTo: this.periodTo || null,
-						tenant_id: this.record.tenant_id ?? '',
 					}),
 				})
 
@@ -494,17 +462,6 @@ export default {
 				const created = await createResp.json()
 				const exportId = created.id ?? created.uuid
 
-				const transitionUrl = generateUrl(objectTransitionUrl(exportId))
-				await fetch(transitionUrl, {
-					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ action: 'generate' }),
-				})
-
 				const finalUrl = generateUrl(
 					`/apps/openregister/api/objects/learniq/learning-record-export/${exportId}`,
 				)
@@ -515,7 +472,13 @@ export default {
 					},
 				})
 				const finalJson = await finalResp.json()
-				this.latestExport = finalJson.object ?? finalJson
+				const generated = finalJson.object ?? finalJson
+				if (!finalResp.ok || generated.lifecycle !== 'generated') {
+					throw new Error(
+						`LearningRecordExport ${exportId} was not generated`,
+					)
+				}
+				this.latestExport = generated
 
 				this.shares = []
 			} catch (err) {
@@ -531,8 +494,9 @@ export default {
 		},
 
 		/**
-		 * Create a LearningRecordShare for the latest generated export, then
-		 * fire its `grant` transition. Blocked until an expiry date is set.
+		 * Create a LearningRecordShare for the latest generated export, which
+		 * the server grants in the same request, then fail unless it is
+		 * active. Blocked until an expiry date is set.
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-learner-creates-a-share-with-a-mandatory-expiry
@@ -550,8 +514,6 @@ export default {
 			this.creatingShare = true
 			this.shareError = null
 
-			const uid = getCurrentUser()?.uid ?? ''
-
 			try {
 				const createUrl = generateUrl(
 					'/apps/openregister/api/objects/learniq/learning-record-share',
@@ -566,13 +528,9 @@ export default {
 					body: JSON.stringify({
 						learningRecordExportId:
 							this.latestExport.id ?? this.latestExport.uuid,
-						learnerId: uid,
-						learnerRef: this.record.learnerRef,
 						recipientName: this.newShare.recipientName,
 						recipientEmail: this.newShare.recipientEmail || null,
-						sharedBy: uid,
 						expiresAt: new Date(this.newShare.expiresAt).toISOString(),
-						tenant_id: this.record.tenant_id ?? '',
 					}),
 				})
 
@@ -585,18 +543,13 @@ export default {
 				const created = await createResp.json()
 				const shareId = created.id ?? created.uuid
 
-				const transitionUrl = generateUrl(objectTransitionUrl(shareId))
-				await fetch(transitionUrl, {
-					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ action: 'grant' }),
-				})
-
 				await this.loadShares()
+				const granted = this.shares.find(
+					(share) => (share.id ?? share.uuid) === shareId,
+				)
+				if (granted?.lifecycle !== 'active') {
+					throw new Error(`LearningRecordShare ${shareId} was not granted`)
+				}
 				this.newShare = {
 					recipientName: '',
 					recipientEmail: '',
@@ -623,9 +576,10 @@ export default {
 		 * @spec openspec/specs/portable-learning-record/spec.md#scenario-revoking-a-share-immediately-invalidates-its-verification-link
 		 */
 		async revokeShare(shareId) {
+			this.shareError = null
 			try {
 				const url = generateUrl(objectTransitionUrl(shareId))
-				await fetch(url, {
+				const resp = await fetch(url, {
 					method: 'POST',
 					headers: {
 						'OCS-APIREQUEST': 'true',
@@ -635,7 +589,14 @@ export default {
 					body: JSON.stringify({ action: 'revoke' }),
 				})
 				await this.loadShares()
+				if (!resp.ok) {
+					throw new Error(`LearningRecordShare revoke failed: ${resp.status}`)
+				}
 			} catch (err) {
+				this.shareError = this.t(
+					'learniq',
+					'Could not revoke the share. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[MyLearningRecordView] revokeShare error', err)
 			}
@@ -683,26 +644,9 @@ export default {
 </script>
 
 <style scoped>
-.my-learning-record {
-	max-width: 1080px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.my-learning-record__heading {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-	margin-bottom: calc(var(--default-grid-baseline, 8px));
-}
-
 .my-learning-record__intro {
 	color: var(--color-text-maxcontrast);
 	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.my-learning-record__section {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
 }
 
 .my-learning-record__list {

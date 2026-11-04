@@ -24,11 +24,9 @@
 -->
 
 <template>
-	<div class="admissions-review-board">
+	<div class="admissions-review-board lq-board-page">
 		<header class="admissions-review-board__header">
-			<h2 class="admissions-review-board__title">
-				{{ t('learniq', 'Admissions review board') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Admissions review board')" />
 			<p class="admissions-review-board__subtitle">
 				{{
 					t(
@@ -71,60 +69,65 @@
 		</div>
 
 		<!-- Application list -->
-		<ul v-else class="admissions-review-board__list">
-			<li
-				v-for="application in pendingApplications"
-				:key="application.id || application.uuid"
-				class="admissions-review-board__item">
-				<div class="admissions-review-board__info">
-					<span class="admissions-review-board__applicant">
-						{{ applicantName(application) }}
-					</span>
-					<span class="admissions-review-board__round-kind">
-						{{ roundKindLabel(application) }}
-					</span>
-					<span class="admissions-review-board__deadline">
-						{{
-							t('learniq', 'Deadline: {deadline}', {
-								deadline: formatDate(
-									/**
-									 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
-									 */
-									roundFor(application)
-										&& roundFor(application).applicationDeadline,
-								),
-							})
-						}}
-					</span>
-					<span class="admissions-review-board__capacity">
-						{{ capacityLabel(application) }}
-					</span>
-					<span class="admissions-review-board__submitted">
-						{{
-							t('learniq', 'Submitted {when}', {
-								when: formatDate(application.submittedAt),
-							})
-						}}
-					</span>
-				</div>
+		<CnDetailCard v-else flush>
+			<ul class="admissions-review-board__list">
+				<li
+					v-for="application in pendingApplications"
+					:key="application.id || application.uuid"
+					class="admissions-review-board__item">
+					<div class="admissions-review-board__info">
+						<span class="admissions-review-board__applicant">
+							{{ applicantName(application) }}
+						</span>
+						<span class="admissions-review-board__round-kind">
+							{{ roundKindLabel(application) }}
+						</span>
+						<span class="admissions-review-board__deadline">
+							{{
+								t('learniq', 'Deadline: {deadline}', {
+									deadline: formatDate(
+										/**
+										 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+										 */
+										roundFor(application)
+											&& roundFor(application).applicationDeadline,
+									),
+								})
+							}}
+						</span>
+						<span class="admissions-review-board__capacity">
+							{{ capacityLabel(application) }}
+						</span>
+						<span class="admissions-review-board__submitted">
+							{{
+								t('learniq', 'Submitted {when}', {
+									when: formatDate(application.submittedAt),
+								})
+							}}
+						</span>
+					</div>
 
-				<div class="admissions-review-board__actions">
-					<a
-						class="button-vue button-vue--vue-primary"
-						:href="decisionHref(application)">
-						{{ t('learniq', 'Record decision') }}
-					</a>
-				</div>
-			</li>
-		</ul>
+					<div class="admissions-review-board__actions">
+						<RouterLink
+							class="button-vue button-vue--vue-primary"
+							:to="decisionRoute(application)">
+							{{ t('learniq', 'Record decision') }}
+						</RouterLink>
+					</div>
+				</li>
+			</ul>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
+import { getCanonicalLocale } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'AdmissionsReviewBoard',
+	components: { CnDetailCard, CnPageHeader },
 
 	data() {
 		return {
@@ -301,15 +304,15 @@ export default {
 		},
 
 		/**
-		 * Build the href to record a decision for this application on its detail page.
+		 * The application's detail page, where the decision is recorded.
 		 *
 		 * @param {object} application Application object
 		 * @return {string}
 		 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
-		decisionHref(application) {
+		decisionRoute(application) {
 			const id = application.id || application.uuid
-			return `#/admissions/applications/${id}`
+			return `/admissions/applications/${encodeURIComponent(id)}`
 		},
 
 		/**
@@ -322,7 +325,7 @@ export default {
 		formatDate(dt) {
 			if (!dt) return this.t('learniq', 'not set')
 			try {
-				return new Intl.DateTimeFormat(navigator.language, {
+				return new Intl.DateTimeFormat(getCanonicalLocale(), {
 					year: 'numeric',
 					month: 'short',
 					day: 'numeric',
@@ -336,22 +339,6 @@ export default {
 </script>
 
 <style scoped>
-.admissions-review-board {
-	max-width: 960px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.admissions-review-board__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.admissions-review-board__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-}
-
 .admissions-review-board__subtitle {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9em;
@@ -368,6 +355,7 @@ export default {
 }
 
 .admissions-review-board__list {
+	margin: 0;
 	list-style: none;
 	padding: 0;
 }
@@ -377,12 +365,12 @@ export default {
 	align-items: center;
 	justify-content: space-between;
 	gap: calc(var(--default-grid-baseline, 8px) * 2);
-	margin-bottom: var(--default-grid-baseline, 8px);
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-	border: 1px solid var(--color-border);
-	border-left: 4px solid var(--color-primary-element);
-	border-radius: var(--border-radius, 4px);
+	padding: 16px 18px;
+	border-top: 1px solid var(--color-border);
+}
+
+.admissions-review-board__item:first-child {
+	border-top: none;
 }
 
 .admissions-review-board__info {

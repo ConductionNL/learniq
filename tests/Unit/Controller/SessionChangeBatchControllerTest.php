@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use InvalidArgumentException;
+use OCA\Learniq\Service\CallerActions;
 use OCA\Learniq\Controller\SessionChangeBatchController;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\SessionChangeBatchService;
@@ -66,7 +67,15 @@ class SessionChangeBatchControllerTest extends TestCase {
 			$call->willThrowException(new OCSForbiddenException('Not allowed.'));
 		}
 
-		return new SessionChangeBatchController($request, $session, $auth, $service, $series ?? $this->createMock(SessionSeries::class));
+		return new SessionChangeBatchController(
+			request: $request,
+			caller: new CallerActions(
+				userSession: $session,
+				actionAuth: $auth
+			),
+			batches: $service,
+			series: $series ?? $this->createMock(SessionSeries::class)
+		);
 	}//end controller()
 
 	/**

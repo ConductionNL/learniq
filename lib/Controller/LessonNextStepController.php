@@ -35,9 +35,9 @@ namespace OCA\Learniq\Controller;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\DashboardRoleService;
 use OCA\Learniq\Service\NextStepResolver;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -52,6 +52,7 @@ use OCP\IUserSession;
  * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
  */
 class LessonNextStepController extends Controller {
+	use FindOrNull;
 
 	private const REGISTER = 'learniq';
 
@@ -267,14 +268,11 @@ class LessonNextStepController extends Controller {
 	 * @param string $id     The uuid.
 	 *
 	 * @return array<string, mixed>|null
+	 *
+	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException When the id matches more than one object; LookupIntegrityMiddleware answers it.
 	 */
 	private function read(string $schema, string $id): ?array {
-		try {
-			$object = $this->objectService->find(id: $id, register: self::REGISTER, schema: $schema);
-		} catch (DoesNotExistException) {
-			return null;
-		}
-
+		$object = $this->findOrNull(find: fn () => $this->objectService->find(id: $id, register: self::REGISTER, schema: $schema));
 		if ($object === null) {
 			return null;
 		}

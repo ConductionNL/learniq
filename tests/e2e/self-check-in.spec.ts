@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: EUPL-1.2
  *
  * attendance-self-check-in, Task 4: the teacher opens a check-in window from
- * the register, a learner of the lesson's group checks in with the code on the
- * board, and the teacher sees the row.
+ * the lesson's page, a learner of the lesson's group checks in with the code on
+ * the board, and the teacher's board counts the check-in.
  *
- * Actors: admin as the teacher (the register is staff-only), and a temporary
+ * Actors: admin as the teacher (check-in windows are staff-only), and a temporary
  * learner in learniq's `learners` group who is in the cohort's `learnerIds`
  * (CheckInService::context() refuses anyone else with not_in_group).
  *
@@ -30,7 +30,7 @@ test.describe('self check-in', () => {
 		await fx.teardown()
 	})
 
-	test('the teacher opens a window, a learner checks in, the teacher sees the row', async ({
+	test('the teacher opens a window, a learner checks in, the board counts it', async ({
 		loggedInPage: teacher,
 		browser,
 	}) => {
@@ -51,18 +51,27 @@ test.describe('self check-in', () => {
 			endsAt: new Date(now + 60 * 60_000).toISOString(),
 		})
 
-		// Teacher: open self check-in from the register.
-		await teacher.goto(`${APP}/sessions/${sessionId}/attendance`, {
+		// Teacher: open self check-in from the lesson's Actions menu.
+		await teacher.goto(`${APP}/sessions/${sessionId}`, {
 			waitUntil: 'domcontentloaded',
 		})
 		await teacher
-			.getByRole('button', { name: 'Open self check-in', exact: true })
+			.getByRole('button', { name: 'Actions' })
+			.first()
 			.click({ timeout: 60_000 })
+		await teacher
+			.getByRole('menuitem', { name: 'Open self check-in' })
+			.click({ timeout: 30_000 })
+		await teacher
+			.getByRole('dialog')
+			.getByRole('button', { name: 'Open self check-in', exact: true })
+			.click({ timeout: 30_000 })
 		const codeCell = teacher.locator('.self-check-in__code')
 		await expect(codeCell).toHaveText(/\S+/, { timeout: 30_000 })
 
 		const windows = await fx.find('check-in-window', { sessionId })
-		expect(windows, 'the register created no check-in window').toHaveLength(1)
+		expect(windows, 'the dialog created no check-in window').toHaveLength(1)
+		expect(windows[0].openedBy, 'the server names the teacher who opened it').toBe('admin')
 		fx.adopt('check-in-window', String(windows[0].id))
 
 		// Learner: the lesson is listed as open, and the code checks them in.
@@ -108,12 +117,10 @@ test.describe('self check-in', () => {
 		expect(records[0].markedVia).toBe('self-check-in')
 		expect(records[0].status).toBe('present')
 
-		// Teacher: the row now carries the "checked in" badge.
-		await teacher.reload({ waitUntil: 'domcontentloaded' })
-		await expect(
-			teacher
-				.locator('.attendance-register__table tr', { hasText: learner.id })
-				.locator('.attendance-register__self'),
-		).toBeVisible({ timeout: 60_000 })
+		// Teacher: the open board counts the check-in.
+		await expect(teacher.locator('.self-check-in__count')).toHaveText(
+			'1 learner checked in',
+			{ timeout: 60_000 },
+		)
 	})
 })

@@ -38,13 +38,26 @@ use OCA\Learniq\Service\MoodleBackupParser;
  */
 class MoodleCourseImporter {
 	/**
+	 * Creates the Learniq objects the package materialises.
+	 *
+	 * @var CoursePackageObjectWriter
+	 */
+	private readonly CoursePackageObjectWriter $objectWriter;
+
+	/**
+	 * Builds the report entry rows.
+	 *
+	 * @var CoursePackageImportReporter
+	 */
+	private readonly CoursePackageImportReporter $reporter;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param MbzExtractor $mbzExtractor Moodle `.mbz` (gzipped tar) extractor.
 	 * @param MoodleBackupParser $moodleParser Moodle backup manifest parser.
 	 * @param MoodleActivityRouter $activityRouter Per-activity routing to Learniq targets.
-	 * @param CoursePackageObjectWriter $objectWriter Creates the Learniq objects the backup materialises.
-	 * @param CoursePackageImportReporter $reporter Builds the report entry rows.
+	 * @param CoursePackageOutput $output The object writer, file writer and report entry builder.
 	 *
 	 * @return void
 	 */
@@ -52,9 +65,10 @@ class MoodleCourseImporter {
 		private readonly MbzExtractor $mbzExtractor,
 		private readonly MoodleBackupParser $moodleParser,
 		private readonly MoodleActivityRouter $activityRouter,
-		private readonly CoursePackageObjectWriter $objectWriter,
-		private readonly CoursePackageImportReporter $reporter,
+		CoursePackageOutput $output,
 	) {
+		$this->objectWriter = $output->objectWriter;
+		$this->reporter = $output->reporter;
 	}//end __construct()
 
 	/**
@@ -76,40 +90,28 @@ class MoodleCourseImporter {
 	/**
 	 * Materialise a parsed Moodle backup manifest.
 	 *
-	 * @param string $dir Extracted Moodle backup directory.
 	 * @param array<string, mixed> $manifest `MoodleBackupParser::parseManifest()` result.
-	 * @param string $importedBy NC user id (used for Assignment ownership context only).
-	 * @param string $tenantId Tenant UUID.
+	 * @param PackageContext $package The extracted package: its directory, the importing user (nc:files owner) and the tenant.
 	 * @param array<int, array<string,mixed>> $entries Report entries accumulator (by reference).
 	 *
 	 * @return string|null UUID of the top-level Course, or null if none was created.
 	 *
 	 * @spec openspec/specs/course-management/spec.md#scenario-a-moodle-backup-materialises-the-same-structural-shapes
 	 */
-	public function importManifest(string $dir, array $manifest, string $importedBy, string $tenantId, array &$entries): ?string {
-		$courseId = $this->objectWriter->createCourse(title: 'Imported Moodle course', parentCourseId: null, tenantId: $tenantId);
+	public function importManifest(array $manifest, PackageContext $package, array &$entries): ?string {
+		$courseId = $this->objectWriter->createCourse(title: 'Imported Moodle course', parentCourseId: null, tenantId: $package->tenantId);
 
 		foreach ($manifest['sectionNodes'] as $section) {
 			$entries[] = $this->reporter->entry(
 				resourceIdentifier: $section['identifier'],
 				resourceType: 'section',
 				title: $section['title'],
-				outcome: 'imported',
-				targetType: 'course',
-				targetId: $courseId,
-				reason: null,
+				result: ['outcome' => 'imported', 'targetType' => 'course', 'targetId' => $courseId, 'reason' => null]
 			);
 		}
 
 		foreach ($manifest['activities'] as $activity) {
-			$this->activityRouter->routeActivity(
-				activity: $activity,
-				dir: $dir,
-				courseId: $courseId,
-				importedBy: $importedBy,
-				tenantId: $tenantId,
-				entries: $entries
-			);
+			$this->activityRouter->routeActivity(activity: $activity, courseId: $courseId, package: $package, entries: $entries);
 		}
 
 		return $courseId;

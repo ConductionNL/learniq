@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-a-guardian-lands-on-an-overview-of-one-child-at-a-time
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-guardian-lands-on-an-overview-of-one-child-at-a-time
  */
 
 declare(strict_types=1);
@@ -94,8 +94,21 @@ class GuardianSitePagesTest extends TestCase {
 		$events = array_values(array_filter($overview['blocks'][4]['sources'], static fn (array $src): bool => $src['collection'] === 'parentSchoolEvents'))[0];
 		self::assertSame('description', $events['metaField'], 'the line under each tile');
 		self::assertSame('parentOverview', $manifest['pages'][0]['id']);
-		// The board's order (school-design wilgenboom MijnOverzicht): greeting, the task, the children, news, this month, and nothing else.
-		self::assertSame(['greeting', 'tasks', 'collection', 'news', 'calendar'], array_column($overview['blocks'], 'type'));
+		// The board's order (school-design wilgenboom MijnOverzicht): greeting, the task, the children, news, this month,
+		// the latest grades with the link to the reports, and nothing else.
+		self::assertSame(
+			expected: ['greeting', 'tasks', 'collection', 'news', 'calendar', 'collection', 'cta'],
+			actual: array_column(array: $overview['blocks'], column_key: 'type')
+		);
+		$grades = $overview['blocks'][5];
+		self::assertSame(expected: ParentSitePages::latestGradesBlock(), actual: $grades);
+		self::assertSame(expected: ['parentGrades', 'Latest grades', 'value'], actual: [$grades['collection'], $grades['label'], $grades['statusField']]);
+		$projected = array_column(array: $manifest['collections'], column_key: null, index_key: 'id')['parentGrades']['fields'];
+		foreach (['learnerRef', 'courseName', 'methodName', 'value', 'gradedAt'] as $field) {
+			self::assertContains(needle: $field, haystack: $projected, message: $field);
+		}
+
+		self::assertSame(expected: ['type' => 'cta', 'page' => 'parentChildren', 'label' => 'Reports'], actual: $overview['blocks'][6]);
 		// Lane L2's greeting: `label` plus exactly one target.
 		self::assertSame(['type' => 'greeting', 'label' => 'Report absent', 'action' => 'createExcuseRequest'], $overview['blocks'][0]);
 		self::assertSame(['groupLabel'], $overview['blocks'][2]['subtitleFields']);
@@ -219,7 +232,7 @@ class GuardianSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-latest-report-reads-as-one-bar-per-subject
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-latest-report-reads-as-one-bar-per-subject
 	 */
 	public function testTheChildPageDrawsTheLatestReportAsBars(): void {
 		$manifest = self::manifest(audience: 'parent');
@@ -243,7 +256,7 @@ class GuardianSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-absence-form-says-in-one-sentence-what-the-guardian-reports
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-absence-form-says-in-one-sentence-what-the-guardian-reports
 	 */
 	public function testTheAbsenceFormSumsUpAndConfirms(): void {
 		$action = self::actions(audience: 'parent')['createExcuseRequest'];
@@ -354,7 +367,7 @@ class GuardianSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
+	 * @spec openspec/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
 	 */
 	public function testTheTrainerOverviewAndMenu(): void {
 		$manifest = self::manifest(audience: 'praktijkopleider');
@@ -402,7 +415,7 @@ class GuardianSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-the-hours-bar-shows-approved-waiting-and-returned-hours
+	 * @spec openspec/specs/bpv/spec.md#requirement-the-hours-bar-shows-approved-waiting-and-returned-hours
 	 */
 	public function testTheStudentHoursPageOpensWithTheBar(): void {
 		$manifest = self::manifest(audience: 'student');
@@ -430,7 +443,7 @@ class GuardianSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
+	 * @spec openspec/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
 	 */
 	public function testTheTrainerSeesHoursAgainstTheAgreedTotal(): void {
 		$manifest = self::manifest(audience: 'praktijkopleider');
@@ -475,7 +488,7 @@ class GuardianSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
 	 */
 	public function testThePupilReadsWhenSheSentAWeekAndNotWhoSentIt(): void {
 		$weeks = array_column(self::manifest(audience: 'student')['collections'], null, 'id')['studentHourWeeks'];
@@ -498,7 +511,7 @@ class GuardianSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
 	 */
 	public function testTheHourFormsPickFromACollection(): void {
 		$trainer = array_column(self::manifest(audience: 'praktijkopleider')['actions'], null, 'id');
@@ -547,6 +560,7 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertTrue($overview['home']);
 		self::assertSame(['collection', 'inbox'], array_column($overview['blocks'], 'type'));
 		self::assertSame(['field' => 'expiresAt', 'direction' => 'desc'], $overview['blocks'][0]['sort']);
+		self::assertSame(expected: 'Shared with you', actual: $overview['blocks'][0]['label']);
 		self::assertSame(['eaOverview', 'eaSharedPortfolios'], array_keys($pages));
 
 		$shares = $manifest['collections'][0];

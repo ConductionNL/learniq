@@ -52,6 +52,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\AppFramework\Db\DoesNotExistException;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -138,10 +139,12 @@ class PeerReviewAllocationService {
 		}
 
 		$createdCount = $this->allocateAcrossSubmissions(
-			assignmentId: $assignmentId,
 			submissions: $submissions,
-			pool: $pool,
-			reviewersPerSub: $this->resolveReviewersPerSub(assignment: $assignment)
+			rotation: new PeerReviewRotation(
+				assignmentId: $assignmentId,
+				pool: $pool,
+				reviewersPerSub: $this->resolveReviewersPerSub(assignment: $assignment)
+			)
 		);
 
 		return $this->result(strategy: $strategy, submissionsProcessed: count($submissions), createdCount: $createdCount);
@@ -152,34 +155,22 @@ class PeerReviewAllocationService {
 	 * The reviewer-pool cursor is shared and advances across submissions
 	 * (round-robin cycling), never resetting per submission.
 	 *
-	 * @param string $assignmentId UUID of the Assignment.
 	 * @param array<int,array<string,mixed>> $submissions Ordered Submissions.
-	 * @param array<int,string> $pool The reviewer pool.
-	 * @param int $reviewersPerSub Target reviewer count per Submission.
+	 * @param PeerReviewRotation             $rotation    The pool, quota and shared cursor.
 	 *
 	 * @return int Total PeerReview rows created.
 	 */
-	private function allocateAcrossSubmissions(
-		string $assignmentId,
-		array $submissions,
-		array $pool,
-		int $reviewersPerSub,
-	): int {
+	private function allocateAcrossSubmissions(array $submissions, PeerReviewRotation $rotation): int {
 		$existingBySubmission = $this->indexExistingBySubmission(
-			existingReviews: $this->fetchExistingReviews(assignmentId: $assignmentId)
+			existingReviews: $this->fetchExistingReviews(assignmentId: $rotation->assignmentId)
 		);
 
-		$cursor = 0;
 		$createdCount = 0;
 
 		foreach ($submissions as $submission) {
-			$submissionId = (string)($submission['id'] ?? '');
-			if ($submissionId === '') {
-				continue;
-			}
-
+			$submissionId = (string)$submission['id'];
 			$alreadyAssigned = $existingBySubmission[$submissionId] ?? [];
-			$needed = $reviewersPerSub - count($alreadyAssigned);
+			$needed = $rotation->reviewersPerSub - count($alreadyAssigned);
 			if ($needed <= 0) {
 				continue;
 			}
@@ -189,60 +180,40 @@ class PeerReviewAllocationService {
 				$alreadyAssigned
 			);
 
-			$outcome = $this->assignReviewersToSubmission(
-				assignmentId: $assignmentId,
-				submission: $submission,
-				submissionId: $submissionId,
-				needed: $needed,
-				excluded: $excluded,
-				pool: $pool,
-				cursor: $cursor
+			$createdCount += $this->assignReviewersToSubmission(
+				need: new PeerReviewNeed(submission: $submission, submissionId: $submissionId, needed: $needed, excluded: $excluded),
+				rotation: $rotation
 			);
-
-			$cursor = $outcome['cursor'];
-			$createdCount += $outcome['created'];
 		}//end foreach
 
 		return $createdCount;
 	}//end allocateAcrossSubmissions()
 
 	/**
-	 * Assign up to `$needed` reviewers to one Submission, cycling through the pool
-	 * from `$cursor`, skipping excluded and already-picked-this-round candidates.
+	 * Assign up to the needed reviewers to one Submission, cycling through the
+	 * pool from the rotation's cursor (advanced in place), skipping excluded and
+	 * already-picked-this-round candidates.
 	 *
-	 * @param string $assignmentId UUID of the Assignment.
-	 * @param array<string,mixed> $submission The Submission data array.
-	 * @param string $submissionId UUID of the Submission.
-	 * @param int $needed Reviewers still needed.
-	 * @param array<int,string> $excluded Reviewer ids that must not be picked.
-	 * @param array<int,string> $pool The reviewer pool.
-	 * @param int $cursor Starting pool cursor (shared across submissions).
+	 * @param PeerReviewNeed     $need     The Submission, its shortfall and its excluded reviewers.
+	 * @param PeerReviewRotation $rotation The pool and shared cursor.
 	 *
-	 * @return array{created: int, cursor: int}
+	 * @return int PeerReview rows created.
 	 *
 	 * @spec openspec/specs/assignments/spec.md#scenario-round-robin-allocates-the-configured-reviewer-count-while-excluding-self
 	 */
-	private function assignReviewersToSubmission(
-		string $assignmentId,
-		array $submission,
-		string $submissionId,
-		int $needed,
-		array $excluded,
-		array $pool,
-		int $cursor,
-	): array {
-		$poolSize = count($pool);
+	private function assignReviewersToSubmission(PeerReviewNeed $need, PeerReviewRotation $rotation): int {
+		$poolSize = count($rotation->pool);
 		$maxAttempts = $poolSize * 2;
 		$assignedIds = [];
 		$assignedCount = 0;
 		$attempts = 0;
 
-		while ($assignedCount < $needed && $attempts < $maxAttempts) {
-			$candidate = $pool[$cursor % $poolSize];
-			$cursor++;
+		while ($assignedCount < $need->needed && $attempts < $maxAttempts) {
+			$candidate = $rotation->pool[$rotation->cursor % $poolSize];
+			$rotation->cursor++;
 			$attempts++;
 
-			$isExcluded = in_array($candidate, $excluded, true) === true;
+			$isExcluded = in_array($candidate, $need->excluded, true) === true;
 			$isDuplicate = in_array($candidate, $assignedIds, true) === true;
 			if ($isExcluded === true || $isDuplicate === true) {
 				continue;
@@ -255,18 +226,18 @@ class PeerReviewAllocationService {
 				register: self::LEARNIQ_REGISTER,
 				schema: self::PEER_REVIEW_SCHEMA,
 				object: [
-					'assignmentId' => $assignmentId,
-					'submissionId' => $submissionId,
+					'assignmentId' => $rotation->assignmentId,
+					'submissionId' => $need->submissionId,
 					'reviewerId' => $candidate,
 					'rubricScores' => [],
 					'lifecycle' => 'assigned',
-					'tenant_id' => $submission['tenant_id'] ?? '',
+					'tenant_id' => $need->submission['tenant_id'] ?? '',
 				],
 				_rbac: false
 			);
 		}//end while
 
-		return ['created' => $assignedCount, 'cursor' => $cursor];
+		return $assignedCount;
 	}//end assignReviewersToSubmission()
 
 	/**
@@ -345,7 +316,10 @@ class PeerReviewAllocationService {
 		$submissions = [];
 		foreach ($results as $result) {
 			$submission = $this->toArray(value: $result);
-			if (in_array(($submission['lifecycle'] ?? null), self::HANDED_IN_STATES, true) === true) {
+			// A handed-in submission without an id can carry no review, so it neither counts nor lends reviewers.
+			if (in_array(($submission['lifecycle'] ?? null), self::HANDED_IN_STATES, true) === true
+				&& (string)($submission['id'] ?? '') !== ''
+			) {
 				$submissions[] = $submission;
 			}
 		}
@@ -476,14 +450,14 @@ class PeerReviewAllocationService {
 	 * @param string $id UUID of the object.
 	 * @param string $schema Schema slug.
 	 *
-	 * @return array<string,mixed>|null
+	 * @return array<string,mixed>|null Null when no such object exists.
 	 */
 	private function fetchObject(string $id, string $schema): ?array {
-		$obj = $this->objectService->find(
-			id: $id,
-			register: self::LEARNIQ_REGISTER,
-			schema: $schema
-		);
+		try {
+			$obj = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
+		} catch (DoesNotExistException) {
+			$obj = null;
+		}
 
 		if ($obj === null) {
 			return null;

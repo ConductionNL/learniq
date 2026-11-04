@@ -3,7 +3,7 @@
 /**
  * The pupil's timetable on the portal: `studentSessions` reads the lessons of
  * the groups she is actively enrolled in, projects nothing that names another
- * person, and the vo example set gives Noor Bakker the Monday of the board
+ * person, and the vo example set gives Fenna de Jong the Monday of the board
  * (site-pupil-portal-design T1, T2, T5b).
  *
  * @category Test
@@ -159,13 +159,13 @@ class StudentTimetableTest extends TestCase {
 	}//end testTheTimetableBlocksReadProjectedFields()
 
 	/**
-	 * The vo example set gives Noor Bakker the Monday of the board: seven
-	 * lessons through her active H4b enrolment, the economics room change and
-	 * the cancelled last hour. Her completed H3b enrolment adds nothing.
+	 * The vo example set gives Fenna de Jong the Monday of the board: seven
+	 * lessons through her active 3HV-B enrolment, the economics room change and
+	 * the cancelled last hour. Her completed 3HV-A enrolment adds nothing.
 	 *
 	 * @return void
 	 */
-	public function testNoorGetsTheMondayOfTheBoardThroughTheJoin(): void {
+	public function testFennaGetsTheMondayOfTheBoardThroughTheJoin(): void {
 		$profile = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/profiles/vo.json'), true);
 		$objects = $profile['x-openregister']['seedData']['objects'];
 
@@ -177,7 +177,7 @@ class StudentTimetableTest extends TestCase {
 		}
 
 		self::assertNotNull($noor);
-		self::assertSame(['Noor', 'Bakker'], [$noor['givenName'], $noor['familyName']]);
+		self::assertSame(expected: ['Fenna', 'de Jong'], actual: [$noor['givenName'], $noor['familyName']]);
 
 		// The join exactly as portaliq walks it: her enrolments, live rows only, their groups.
 		$via = self::sessions()['via'];
@@ -190,7 +190,12 @@ class StudentTimetableTest extends TestCase {
 			}
 		}
 
-		self::assertCount(1, $groups, 'only her active H4b enrolment counts; H3b is completed');
+		$names = array_column(array: $objects['cohort'], column_key: 'name', index_key: 'uuid');
+		self::assertSame(
+			expected: ['3HV-B', 'Biologie leerjaar 3 havo/vwo'],
+			actual: array_map(callback: static fn (string $group): string => $names[$group], array: $groups),
+			message: 'only her active enrolments count; 3HV-A is completed'
+		);
 
 		$monday = array_values(
 			array_filter(
@@ -205,10 +210,10 @@ class StudentTimetableTest extends TestCase {
 		self::assertArrayHasKey('room-unavailable', StudentPortalPages::LESSON_CHANGE);
 		self::assertSame('cancelled', $byTitle['Lichamelijke opvoeding']['lifecycle']);
 		self::assertSame('Lokaal 0.21', $byTitle['Economie']['location']);
-	}//end testNoorGetsTheMondayOfTheBoardThroughTheJoin()
+	}//end testFennaGetsTheMondayOfTheBoardThroughTheJoin()
 
 	/**
-	 * Every school day of the story week has lessons for H4b, so "Je rooster
+	 * Every school day of the story week has lessons for 3HV-B, so "Je rooster
 	 * vandaag" is never empty from Monday to Friday after the load moves the
 	 * week (portal proof run 3). No two lessons of a day share an hour, and
 	 * no lesson falls on the weekend.
@@ -217,10 +222,10 @@ class StudentTimetableTest extends TestCase {
 	 *
 	 * @spec openspec/changes/vo-timetable-every-school-day/specs/example-sets/spec.md#requirement-noor-has-a-timetable-on-every-school-day-of-the-story-week
 	 */
-	public function testNoorHasLessonsOnEverySchoolDayOfTheStoryWeek(): void {
+	public function testFennaHasLessonsOnEverySchoolDayOfTheStoryWeek(): void {
 		$profile = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/profiles/vo.json'), true);
 		$objects = $profile['x-openregister']['seedData']['objects'];
-		$h4b = array_values(array_filter($objects['cohort'], static fn (array $c): bool => ($c['name'] ?? '') === 'H4b'))[0];
+		$h4b = array_values(array_filter($objects['cohort'], static fn (array $c): bool => ($c['name'] ?? '') === '3HV-B'))[0];
 
 		$perDay = [];
 		foreach ($objects['session'] as $session) {
@@ -236,5 +241,5 @@ class StudentTimetableTest extends TestCase {
 			self::assertGreaterThanOrEqual(5, count($starts), $day);
 			self::assertSame(count($starts), count(array_unique($starts)), $day.' has no two lessons in one hour');
 		}
-	}//end testNoorHasLessonsOnEverySchoolDayOfTheStoryWeek()
+	}//end testFennaHasLessonsOnEverySchoolDayOfTheStoryWeek()
 }//end class

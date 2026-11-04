@@ -92,6 +92,7 @@
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcDialog, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
+import { transitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'ComposeReportPeriodModal',
@@ -217,8 +218,9 @@ export default {
 		},
 
 		/**
-		 * Trigger the ReportPeriod's `compose` transition
-		 * (open -> composed, requires ReportPeriodComposeGuard).
+		 * Run the ReportPeriod's `compose` transition (open -> composed,
+		 * requires ReportPeriodComposeGuard) through OR's transition
+		 * endpoint; ReportCardComposer builds the report cards on it.
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
@@ -229,11 +231,9 @@ export default {
 			this.composing = true
 			this.error = ''
 			try {
-				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/report-period/{id}',
-					{ id: this.reportPeriodId },
-				)
-				await axios.patch(url, { lifecycle: 'composed' })
+				await axios.post(generateUrl(transitionUrl(this.reportPeriodId)), {
+					action: 'compose',
+				})
 				this.$emit('composed')
 				this.$emit('close')
 			} catch (e) {

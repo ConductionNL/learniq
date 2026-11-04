@@ -53,8 +53,8 @@ use DateTimeInterface;
 use OCA\Learniq\Service\Portal\PortalLearner;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCA\Learniq\Service\Programme\ProgrammeRequirements;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use Throwable;
 
@@ -64,6 +64,7 @@ use Throwable;
  * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
  */
 class CatalogueSignUpService {
+	use FindOrNull;
 
 	private const REGISTER = 'learniq';
 	private const ENROLMENT = 'enrolment';
@@ -122,11 +123,13 @@ class CatalogueSignUpService {
 
 		return $this->create(
 			learner: $learner,
-			courseId: $courseId,
-			mode: (string)$course['selfEnrolment'],
-			programmeId: null,
-			mandatory: false,
-			tenantId: (string)($course['tenant_id'] ?? '')
+			target: [
+				'courseId' => $courseId,
+				'mode' => (string)$course['selfEnrolment'],
+				'programmeId' => null,
+				'mandatory' => false,
+				'tenantId' => (string)($course['tenant_id'] ?? ''),
+			]
 		);
 	}//end signUpCourse()
 
@@ -156,11 +159,13 @@ class CatalogueSignUpService {
 
 			$outcome = $this->create(
 				learner: $learner,
-				courseId: $courseId,
-				mode: (string)$programme['selfEnrolment'],
-				programmeId: $programmeId,
-				mandatory: $this->requirements->mandatoryFor(programme: $programme, courseId: $courseId),
-				tenantId: (string)($programme['tenant_id'] ?? '')
+				target: [
+					'courseId' => $courseId,
+					'mode' => (string)$programme['selfEnrolment'],
+					'programmeId' => $programmeId,
+					'mandatory' => $this->requirements->mandatoryFor(programme: $programme, courseId: $courseId),
+					'tenantId' => (string)($programme['tenant_id'] ?? ''),
+				]
 			);
 			if ($outcome->status === Http::STATUS_OK) {
 				$created[] = $outcome->body;
@@ -243,25 +248,21 @@ class CatalogueSignUpService {
 	/**
 	 * Create one self enrolment, active for `open`, pending for `on-request`.
 	 *
-	 * @param PortalLearner $learner     The learner.
-	 * @param string        $courseId    The course uuid.
-	 * @param string        $mode        `open` or `on-request`.
-	 * @param string|null   $programmeId The programme it came from, if any.
-	 * @param bool          $mandatory   The part's default from the programme; false for a single course.
-	 * @param string        $tenantId    The tenant of the course or programme.
+	 * The target names the course uuid, the mode (`open` or `on-request`), the
+	 * programme it came from (null for a single course), the part's default
+	 * from the programme (false for a single course) and the tenant of the
+	 * course or programme.
+	 *
+	 * @param PortalLearner                                                                                    $learner The learner.
+	 * @param array{courseId: string, mode: string, programmeId: ?string, mandatory: bool, tenantId: string} $target  What to enrol in.
 	 *
 	 * @return PortalOutcome
 	 */
-	private function create(
-		PortalLearner $learner,
-		string $courseId,
-		string $mode,
-		?string $programmeId,
-		bool $mandatory,
-		string $tenantId
-	): PortalOutcome {
+	private function create(PortalLearner $learner, array $target): PortalOutcome {
+		$courseId = $target['courseId'];
+		$tenantId = $target['tenantId'];
 		$lifecycle = 'pending';
-		if ($mode === 'open') {
+		if ($target['mode'] === 'open') {
 			$lifecycle = 'active';
 		}
 
@@ -275,9 +276,9 @@ class CatalogueSignUpService {
 				'learnerId' => $learner->ncUserId,
 				'learnerRef' => $profile['id'] ?? null,
 				'courseId' => $courseId,
-				'programmeId' => $programmeId,
+				'programmeId' => $target['programmeId'],
 				'source' => 'self',
-				'mandatory' => $mandatory,
+				'mandatory' => $target['mandatory'],
 				'managerId' => $profile['managerId'] ?? null,
 				'requestedAt' => (new DateTimeImmutable())->format(DateTimeInterface::ATOM),
 				'lifecycle' => $lifecycle,
@@ -363,19 +364,7 @@ class CatalogueSignUpService {
 			return null;
 		}
 
-		try {
-			$object = $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false, _render: false);
-		} catch (DoesNotExistException) {
-			return null;
-		}
-
-		$row = $object?->jsonSerialize();
-		if (is_array($row) === false) {
-			return null;
-		}
-
-		$row['id'] = (string)($row['id'] ?? ($row['@self']['id'] ?? $id));
-
-		return $row;
+		$find = fn () => $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false, _render: false);
+		return $this->findRowWithIdOrNull(find: $find, id: $id);
 	}//end read()
 }//end class

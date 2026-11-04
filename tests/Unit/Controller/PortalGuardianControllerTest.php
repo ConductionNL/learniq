@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\PortalGuardianController;
+use OCA\Learniq\Service\CallerGroups;
 use OCA\Learniq\Portal\CallerOrganisations;
 use OCA\Learniq\Portal\GuardianPortalInvitation;
 use OCP\IGroupManager;
@@ -126,6 +127,14 @@ class PortalGuardianControllerTest extends TestCase {
 			static fn (string $slug): bool => in_array($slug, $organisations, true)
 		);
 
-		return new PortalGuardianController($this->createMock(IRequest::class), $invitations, $session, $groupManager, $callerOrganisations);
+		return new PortalGuardianController(
+			request: $this->createMock(IRequest::class),
+			invitations: $invitations,
+			caller: new CallerGroups(
+				userSession: $session,
+				groupManager: $groupManager
+			),
+			organisations: $callerOrganisations
+		);
 	}//end controller()
 }//end class

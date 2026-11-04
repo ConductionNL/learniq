@@ -3,8 +3,8 @@
 # Copyright (C) 2026 Conduction B.V.
 """Build lib/Settings/profiles/he.json, the higher education example set.
 
-One fictional university of applied sciences, Voorbeeldhogeschool Esdoornstad
-in the fictional town of Esdoornstad, through one complete academic year
+One fictional university of applied sciences, Hogeschool Zuiddrecht in the
+fictional town of Zuiddrecht, through one complete academic year
 (2025-2026): two faculties as locations, four bachelor programmes with learning
 outcomes on the Dublin descriptors, courses with ECTS credits, a cohort per
 programme per study year, 400 students with their course enrolments, a digital
@@ -40,21 +40,19 @@ assigns; e-mail addresses use the reserved .example domain.
 
 from __future__ import annotations
 
-import argparse
 import datetime as dt
-import json
 import math
-import os
 import random
 import sys
+from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
+from typing import cast
 from xml.sax.saxutils import escape
 from zoneinfo import ZoneInfo
 
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-OUT = os.path.join(ROOT, "lib", "Settings", "profiles", "he.json")
+from example_set import Builder, Script, SetIdentity, document, main
+
 AMS = ZoneInfo("Europe/Amsterdam")
-TENANT = "00000000-0000-4000-8000-000000000000"
 SET = "he"
 SET_NUMBER = "04"
 YEAR = "2025-2026"
@@ -117,6 +115,7 @@ SCHEMAS = [
     "bsa-decision",
     "learning-record-export",
 ]
+IDENTITY = SetIdentity(SET, SET_NUMBER, SCHEMAS)
 
 HOLIDAYS = [
     ("Herfstvakantie", dt.date(2025, 10, 20), dt.date(2025, 10, 24)),
@@ -189,7 +188,19 @@ STREETS = [
     "Esdoornlaan", "Beukenhof", "Populierenweg", "Zwaluwstraat", "Reigerpad", "Kievitlaan", "Zilverschoon", "Tarweveld",
     "Klaproosstraat", "Vlinderhof", "Distelweg", "Korenbloemlaan", "Stationsplein Voorbeeldhoven", "Campuslaan",
 ]
-TOWNS = ["Esdoornstad", "Esdoornstad", "Esdoornstad", "Voorbeeldhoven", "Voorbeeldveen"]
+TOWNS = ["Zuiddrecht", "Zuiddrecht", "Zuiddrecht", "Voorbeeldhoven", "Voorbeeldveen"]
+# The students the learniq boards LqBsaBesluit and LqStudievoortgang draw, on the
+# user ids of the first-year HBO-V students flagged at the interim BSA check:
+# he-student-008 holds the negative decision. Set after numbering, so the order,
+# every draw and every uuid stay the same.
+BOARD_NAMES = {
+    "he-student-004": ("Lucas", "Peters"),
+    "he-student-006": ("Ravi", "Doekhie"),
+    "he-student-007": ("Sara", "El Khatib"),
+    "he-student-008": ("Femke", "de Boer"),
+    "he-student-017": ("Zoë", "Vermeulen"),
+    "he-student-022": ("Milan", "de Jong"),
+}
 
 # --- the four programmes ------------------------------------------------------
 # key, short name, name, code, faculty key, werkgroep weekday (0 = Monday),
@@ -422,29 +433,6 @@ WORKPLACES = {
 }
 
 
-class Builder:
-    """Collects objects per bucket and hands out uuids and slugs."""
-
-    def __init__(self) -> None:
-        self.buckets: dict[str, list[dict]] = {name: [] for name in SCHEMAS}
-        self.counters: dict[str, int] = {name: 0 for name in SCHEMAS}
-
-    def add(self, schema: str, fields: dict) -> dict:
-        self.counters[schema] += 1
-        n = self.counters[schema]
-        number = SCHEMAS.index(schema) + 1
-        obj = {
-            "@self": {"configuration": "learniq", "register": "learniq", "schema": schema},
-            "uuid": f"ee{SET_NUMBER}{number:04x}-0000-4000-8000-{n:012d}",
-            "slug": f"{SET}-{schema}-{n:03d}",
-        }
-        obj.update(fields)
-        if "tenant_id" not in obj:
-            obj["tenant_id"] = TENANT
-        self.buckets[schema].append(obj)
-        return obj
-
-
 def stamp(day: dt.date, hour: int, minute: int = 0) -> str:
     """A local Amsterdam timestamp with its offset, e.g. 2025-09-01T08:30:00+02:00."""
     return dt.datetime(day.year, day.month, day.day, hour, minute, tzinfo=AMS).isoformat()
@@ -523,1053 +511,1444 @@ def aggregate(entries: list[dict], components: dict[str, dict]) -> tuple[float |
     Best published entry per component, then the weighted average; an
     exemption entry satisfies its component without counting.
     """
+    tally = WeightedTally()
+    for entry in best_per_component(entries).values():
+        tally.add(entry, components)
+    if tally.total == 0.0:
+        return None, tally.parts
+    breakdown = {
+        "periods": {p: (php_round(s / w, 4) if w > 0 else None) for p, (s, w) in tally.periods.items()},
+        "components": tally.parts,
+    }
+    return php_round(tally.weighted / tally.total, 4), breakdown
+
+
+def best_per_component(entries: list[dict]) -> dict[str, dict]:
     best: dict[str, dict] = {}
     for entry in entries:
         cid = entry["componentId"]
-        if cid not in best or float(entry.get("value") or 0) > float(best[cid].get("value") or 0):
+        if cid not in best or entry_value(entry) > entry_value(best[cid]):
             best[cid] = entry
-    weighted, total = 0.0, 0.0
-    periods: dict[str, list[float]] = {}
-    parts: dict[str, dict] = {}
-    for entry in best.values():
+    return best
+
+
+def entry_value(entry: dict) -> float:
+    return float(entry.get("value") or 0)
+
+
+class WeightedTally:
+    """The running sums of one aggregation: weighted overall, per period and per component."""
+
+    def __init__(self) -> None:
+        self.weighted, self.total = 0.0, 0.0
+        self.periods: dict[str, list[float]] = {}
+        self.parts: dict[str, dict] = {}
+
+    def add(self, entry: dict, components: dict[str, dict]) -> None:
         cid = entry["componentId"]
         if entry.get("sourceKind") == "exemption":
-            parts[cid] = {"exempt": True}
-            continue
+            self.parts[cid] = {"exempt": True}
+            return
         value = float(entry["value"])
         weight = float(components[cid]["weight"])
-        weighted += value * weight
-        total += weight
-        period = str(entry.get("period") or "unknown")
-        periods.setdefault(period, [0.0, 0.0])
-        periods[period][0] += value * weight
-        periods[period][1] += weight
-        parts[cid] = {"value": value, "weight": weight, "contribution": value * weight}
-    if total == 0.0:
-        return None, parts
-    breakdown = {
-        "periods": {p: (php_round(s / w, 4) if w > 0 else None) for p, (s, w) in periods.items()},
-        "components": parts,
-    }
-    return php_round(weighted / total, 4), breakdown
+        self.weighted += value * weight
+        self.total += weight
+        sums = self.periods.setdefault(str(entry.get("period") or "unknown"), [0.0, 0.0])
+        sums[0] += value * weight
+        sums[1] += weight
+        self.parts[cid] = {"value": value, "weight": weight, "contribution": value * weight}
+
+
+PROGRAMME_OF = {p[0]: p for p in PROGRAMMES}
+COURSE_META = {(key, c[0]): c for key in COURSES for c in COURSES[key]}
+PERIOD_META = {bl[0]: (bl[1], bl[2], bl[3]) for bl in BLOCKS} | {s[0]: (s[1], s[2], s[3]) for s in SEMESTERS}
+RESULTS_DAY = {bl[0]: bl[5] for bl in BLOCKS} | {s[0]: s[4] for s in SEMESTERS}
+RESIT_DAY = {bl[0]: bl[6] for bl in BLOCKS} | {s[0]: s[5] for s in SEMESTERS}
+CHECK_UNTIL = BSA_CHECK - dt.timedelta(days=1)
+B1_WEIGHTS = {c[0]: {"weight": c[3]} for c in Y1_COMPONENTS}
+
+FACULTIES = [
+    ("zuid", "00X400", "Faculteit Gezondheid en Welzijn, Campus Zuid", "Campuslaan 10", "0611 CZ"),
+    ("noord", "00X401", "Faculteit Techniek en ICT, Campus Noord", "Ingenieursweg 3", "0614 CN"),
+]
+ROOMS = [
+    ("skillslab", "Skillslab verpleegkunde Z1.02", "Z1.02", 24, "lab", ["oefenbedden", "simulatiepop"], "zuid", "1"),
+    ("z112", "Werkgroepruimte Z1.12", "Z1.12", 32, "classroom", ["beamer", "whiteboard"], "zuid", "1"),
+    ("z114", "Werkgroepruimte Z1.14", "Z1.14", 32, "classroom", ["beamer", "whiteboard"], "zuid", "1"),
+    ("collegezuid", "Collegezaal Z0.01", "Z0.01", 180, "auditorium", ["beamer", "microfoon"], "zuid", "0"),
+    ("tentamenzuid", "Tentamenzaal Z0.20", "Z0.20", 120, "other", ["toetslaptops", "surveillance"], "zuid", "0"),
+    ("ictlab", "ICT-lab N2.05", "N2.05", 30, "lab", ["werkstations", "testnetwerk"], "noord", "2"),
+    ("werkplaats", "Werkplaats N0.10", "N0.10", 20, "lab", ["draaibanken", "3D-printers"], "noord", "0"),
+    ("n108", "Werkgroepruimte N1.08", "N1.08", 32, "classroom", ["beamer", "whiteboard"], "noord", "1"),
+    ("collegenoord", "Collegezaal N0.02", "N0.02", 160, "auditorium", ["beamer", "microfoon"], "noord", "0"),
+    ("tentamennoord", "Tentamenzaal N0.30", "N0.30", 100, "other", ["toetslaptops", "surveillance"], "noord", "0"),
+    ("stilte", "Stilteruimte N1.01", "N1.01", 4, "other", ["toetslaptop", "geluiddempend"], "noord", "1"),
+]
+DOCENT_TASKS = ["Studieloopbaanbegeleider propedeuse", "Studieloopbaanbegeleider jaar 2", "Stagecoördinator", "Afstudeercoördinator"]
+CHAIRS = {"zuid": "he-examencommissie-01", "noord": "he-examencommissie-02"}
+OTHER_STAFF = [
+    (CHAIRS["zuid"], ["coordinator"], ["Voorzitter examencommissie Gezondheid en Welzijn", "Seniorkwalificatie examinering (SKE)"], ["tuesday", "thursday"]),
+    (CHAIRS["noord"], ["coordinator"], ["Voorzitter examencommissie Techniek en ICT", "Seniorkwalificatie examinering (SKE)"], ["monday", "wednesday"]),
+    ("he-directeur-01", ["administrator"], ["Faculteitsdirecteur Gezondheid en Welzijn"], WEEKDAYS),
+    ("he-directeur-02", ["administrator"], ["Faculteitsdirecteur Techniek en ICT"], WEEKDAYS),
+    ("he-decaan-01", ["coordinator"], ["Studentendecaan, studeren met een functiebeperking"], ["monday", "wednesday", "thursday"]),
+    ("he-administratie-01", ["administrator"], ["Studentenadministratie"], WEEKDAYS),
+    ("he-toetsbureau-01", ["support-staff"], ["Toetscoördinator digitale toetsing en itembanken"], ["tuesday", "wednesday", "thursday"]),
+    ("he-surveillant-01", ["support-staff"], ["Surveillant digitale toetsing"], ["monday", "tuesday", "wednesday", "thursday"]),
+]
+PERIOD_LABEL = {1: "Studiejaar 1 (propedeuse)", 2: "Studiejaar 2", 3: "Studiejaar 3", 4: "Studiejaar 4"}
+COHORT_NOTES = {
+    1: "Propedeuse met bindend studieadvies. Werkgroepen hebben aanwezigheidsplicht.",
+    3: "Eerste semester stage, tweede semester minor.",
+}
+SICK_NOTES = ["Ziek gemeld", "Ziek gemeld via het studentportaal", "Huisartsbezoek"]
+# Per sitting of the knowledge test: title, the PROGRAMMES column with its day, start and end.
+EXAM_SITTINGS = {
+    "main": ("Kennistoets {}", 7, (9, 30), (11, 30)),
+    "resit": ("Herkansing kennistoets {}", 8, (13, 30), (15, 30)),
+    "adapted": ("Kennistoets {}, aangepaste afname", 7, (9, 30), (12, 0)),
+}
+INTERACTION = {"choice": "choice", "text": "textEntry", "open": "extendedText"}
+FLAG_STATES = ["revised", "acknowledged", "dismissed", "open"]
+RUBRIC_LEVELS = [("onvoldoende", "Onvoldoende", 2.0), ("voldoende", "Voldoende", 6.0), ("goed", "Goed", 8.0), ("uitstekend", "Uitstekend", 10.0)]
+RUBRIC_CRITERIA = [("probleemanalyse", "Probleemanalyse"), ("onderbouwing", "Onderbouwing van keuzes"), ("resultaat", "Resultaat voor de opdrachtgever"), ("samenwerking", "Samenwerking en planning")]
+PEER_COMMENTS = [
+    "Duidelijke opbouw. De keuzes in hoofdstuk drie mogen beter onderbouwd.",
+    "Goed dat jullie de opdrachtgever hebben gesproken. De planning ontbreekt nog.",
+    "Het resultaat is bruikbaar. Voeg bronnen toe bij de analyse.",
+    "Prettig leesbaar verslag. De conclusie herhaalt vooral de inleiding.",
+]
+# Per portfolio reflection: title, section, criterion, the learning outcome it shows and the texts drawn from.
+REFLECTIONS = [
+    ("Reflectie: beroepshandelen in de praktijk", "praktijk", "praktijk-1", 2, [
+        "Bij {org} nam ik vanaf week zes zelfstandig taken over. Ik leerde vooraf te plannen en achteraf te controleren wat ik had afgesproken.",
+        "In mijn stage bij {org} merkte ik dat overleg met collega's mijn werk beter maakte. Ik vraag nu eerder feedback.",
+        "Bij {org} kreeg ik een eigen opdracht. Het lastigste was kiezen wat eerst moest; een weekplanning hielp.",
+    ]),
+    ("Reflectie: professionele ontwikkeling", "ontwikkeling", "ontwikkeling-1", 8, [
+        "Mijn leerdoel was duidelijker communiceren. In de laatste evaluatie gaf mijn begeleider aan dat dat gelukt is. Mijn volgende doel is leiding nemen in overleg.",
+        "Ik heb geleerd mijn eigen grenzen aan te geven. Voor de minor wil ik verder werken aan het onderbouwen van keuzes met literatuur.",
+        "Ik ben zelfstandiger geworden. Ik wil nog beter leren omgaan met onverwachte situaties.",
+    ]),
+]
+# Exam board exemption cases: whose case, course, component, grounds, description, decision day, granted, rationale.
+EXEMPTIONS = [
+    ("ICT", "B1", "kennistoets", "prior-diploma", "Mbo-diploma Software developer (niveau 4) met de onderdelen programmeren en testen.",
+     dt.date(2025, 10, 2), True, "Het mbo-diploma dekt de leerdoelen van de kennistoets programmeren aantoonbaar. Vrijstelling voor dit onderdeel; het beroepsproduct blijft verplicht."),
+    ("WTB", "B2", "kennistoets", "certificate", "Certificaat technisch tekenen en CAD van een eerdere hbo-opleiding, behaald in 2024.",
+     dt.date(2025, 11, 27), True, "Het certificaat dekt de normen en aanzichten van de kennistoets. Vrijstelling voor dit onderdeel."),
+    ("SW", "B3", "beroepsproduct", "work-experience", "Twee jaar werkervaring als ambulant begeleider bij een zorgaanbieder.",
+     dt.date(2026, 3, 5), False, "Werkervaring alleen toont de juridische kennis van dit beroepsproduct niet aan. De student kan het beroepsproduct maken."),
+]
+# Grade entry reference field per source the raw grade names.
+SOURCE_FIELDS = [("submissionId", "submission"), ("assessmentResultId", "result"), ("exemptionCaseId", "case"),
+                 ("fraudCaseId", "fraud"), ("portfolioId", "portfolio")]
+# The field on each source that points back at its grade entry.
+ENTRY_LINKS = [("result", "gradeEntryId"), ("portfolio", "gradeEntryId"), ("case", "resultingGradeEntryId"), ("fraud", "contestedGradeEntryId")]
+PROFILE = {
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Learniq example set: Higher education",
+        "version": "1.0.0",
+        "description": "Hogeschool Zuiddrecht, a fictional university of applied sciences in the fictional town of Zuiddrecht, through the 2025-2026 academic year.",
+    },
+    "x-openregister": {
+        "type": "profile",
+        "app": "learniq",
+        "profile": {
+            "id": SET,
+            "segment": SET,
+            "label": "Higher education (HBO or university)",
+            "description": "A fictional university of applied sciences with programmes, students, study credits and one full academic year.",
+            "order": 4,
+            "objectCount": 0,
+            "icon": "CertificateOutline",
+        },
+        "description": (
+            "An example set an operator picks in the first-time setup wizard (ADR-042, decision D21). NEVER imported on install. "
+            "Every object carries @self.configuration/register/schema and a fixed uuid in the ee04 namespace, so the import resolves "
+            "the live learniq register without this descriptor declaring components.registers (which would re-point the register at "
+            "this profile config id and overwrite its authorization block), a second load adds nothing, and occ "
+            "learniq:example-set:remove he removes exactly these objects. Generated by scripts/example-sets/he.py; the contract is "
+            "openspec/changes/archive/2026-09-28-segment-wizard-choice/contract.md. Every person, address, institution, company and code in it is fictional."
+        ),
+        "seedData": {
+            "description": (
+                "One university of applied sciences with two faculties, four bachelor programmes with learning outcomes on the Dublin "
+                "descriptors, courses with ECTS credits, a cohort per programme per study year, 400 students with their enrolments, "
+                "item bank exams with item statistics, grade entries and final grades, binding study advice with flags and warnings, "
+                "study advisers, a peer reviewed group project, internship portfolios, a proctoring session and learning record exports."
+            ),
+            "objects": {},
+        },
+    },
+    "paths": {},
+    "components": {},
+}
+
+
+# The steps of one run, in the order they draw random numbers and add objects.
+STEPS = (
+    "add_institution", "add_rooms", "add_learning_outcomes", "add_programmes", "add_courses", "add_curriculum_plans",
+    "add_staff", "add_students", "group_students", "add_cohorts", "add_course_grades", "add_enrolments",
+    "add_teacher_assignments", "add_werkgroep_sessions", "add_exam_sessions", "draw_attendance_marks", "add_excuses",
+    "add_attendance_records", "add_attendance_flags", "pick_accommodated", "add_item_banks", "add_exams",
+    "add_accommodations", "sit_main_exams", "add_proctoring", "add_item_statistics", "sit_knowledge_resits",
+    "add_resit_reliability", "add_revision_flags", "add_group_projects", "add_peer_reviews", "add_project_grades",
+    "add_assessors", "add_portfolio_templates", "add_portfolios", "add_exemption_cases", "add_fraud_case",
+    "add_resits", "settle_first_years", "add_grade_entries", "settle_enrolments", "add_bsa_trajectories",
+    "count_final_ects", "add_bsa_warnings", "pick_bsa_exceptions", "add_bsa_decisions", "add_record_exports",
+)
+
+
+@dataclass(frozen=True)
+class ExamSample:
+    """The main sittings of one exam: the exam, its result rows, each row's total and the high and low groups."""
+
+    exam: dict
+    rows: list
+    totals: list[float]
+    groups: tuple[list[int], list[int]]
 
 
 def build() -> dict:
-    rng = random.Random(20250901)
-    b = Builder()
-    off = closed_days()
+    return AcademicYear().build()
+
+
+class AcademicYear:
+    """One run of the set. The steps run in a fixed order and share one random
+    generator, so every draw, and therefore the file, is the same on each run."""
+
+    def __init__(self) -> None:
+        self.rng = random.Random(20250901)
+        self.b = Builder(IDENTITY)
+        self.off = closed_days()
+        self.raw: dict[tuple[str, str, str], list[dict]] = {}
+        self.results_by_exam: dict[tuple[str, str], list] = {}
+        self.flag_n = 0
+
+    def build(self) -> dict:
+        for step in STEPS:
+            getattr(self, step)()
+        return document(PROFILE, self.b)
 
     # --- institution, faculties, rooms --------------------------------------
-    school = b.add("school", {"brin": "00X4", "name": "Voorbeeldhogeschool Esdoornstad", "pedagogicalConcept": "regular"})
-    faculties = {
-        "zuid": b.add("vestiging", {
-            "schoolId": school["uuid"], "vestigingscode": "00X400", "onderwijslocatiecode": "00X400-A",
-            "name": "Faculteit Gezondheid en Welzijn, Campus Zuid", "street": "Campuslaan 10", "postalCode": "0611 CZ", "city": "Esdoornstad",
-        }),
-        "noord": b.add("vestiging", {
-            "schoolId": school["uuid"], "vestigingscode": "00X401", "onderwijslocatiecode": "00X401-A",
-            "name": "Faculteit Techniek en ICT, Campus Noord", "street": "Ingenieursweg 3", "postalCode": "0614 CN", "city": "Esdoornstad",
-        }),
-    }
-    room_rows = [
-        ("skillslab", "Skillslab verpleegkunde Z1.02", "Z1.02", 24, "lab", ["oefenbedden", "simulatiepop"], "zuid", "1"),
-        ("z112", "Werkgroepruimte Z1.12", "Z1.12", 32, "classroom", ["beamer", "whiteboard"], "zuid", "1"),
-        ("z114", "Werkgroepruimte Z1.14", "Z1.14", 32, "classroom", ["beamer", "whiteboard"], "zuid", "1"),
-        ("collegezuid", "Collegezaal Z0.01", "Z0.01", 180, "auditorium", ["beamer", "microfoon"], "zuid", "0"),
-        ("tentamenzuid", "Tentamenzaal Z0.20", "Z0.20", 120, "other", ["toetslaptops", "surveillance"], "zuid", "0"),
-        ("ictlab", "ICT-lab N2.05", "N2.05", 30, "lab", ["werkstations", "testnetwerk"], "noord", "2"),
-        ("werkplaats", "Werkplaats N0.10", "N0.10", 20, "lab", ["draaibanken", "3D-printers"], "noord", "0"),
-        ("n108", "Werkgroepruimte N1.08", "N1.08", 32, "classroom", ["beamer", "whiteboard"], "noord", "1"),
-        ("collegenoord", "Collegezaal N0.02", "N0.02", 160, "auditorium", ["beamer", "microfoon"], "noord", "0"),
-        ("tentamennoord", "Tentamenzaal N0.30", "N0.30", 100, "other", ["toetslaptops", "surveillance"], "noord", "0"),
-        ("stilte", "Stilteruimte N1.01", "N1.01", 4, "other", ["toetslaptop", "geluiddempend"], "noord", "1"),
-    ]
-    rooms = {}
-    for key, name, code, capacity, kind, facilities, fac, floor in room_rows:
-        rooms[key] = b.add("room", {"name": name, "code": code, "capacity": capacity, "kind": kind, "facilities": facilities,
-                                    "buildingCode": faculties[fac]["vestigingscode"], "floor": floor})
+    def add_institution(self) -> None:
+        self.school = self.b.add("school", {"brin": "00X4", "name": "Hogeschool Zuiddrecht", "pedagogicalConcept": "regular"})
+        self.faculties = {}
+        for key, code, name, street, postcode in FACULTIES:
+            self.faculties[key] = self.b.add("vestiging", {
+                "schoolId": self.school["uuid"], "vestigingscode": code, "onderwijslocatiecode": f"{code}-A",
+                "name": name, "street": street, "postalCode": postcode, "city": "Zuiddrecht",
+            })
 
-    scale = b.add("grade-scale", {"name": "Nederlandse cijferschaal 1 tot 10", "kind": "numeric", "min": 1.0, "max": 10.0,
-                                  "passThreshold": PASS, "roundingRule": "half-up-1dp", "lifecycle": "active"})
+    def add_rooms(self) -> None:
+        self.rooms = {}
+        for key, name, code, capacity, kind, facilities, fac, floor in ROOMS:
+            self.rooms[key] = self.b.add("room", {"name": name, "code": code, "capacity": capacity, "kind": kind, "facilities": facilities,
+                                                  "buildingCode": self.faculties[fac]["vestigingscode"], "floor": floor})
+        self.scale = self.b.add("grade-scale", {"name": "Nederlandse cijferschaal 1 tot 10", "kind": "numeric", "min": 1.0, "max": 10.0,
+                                                "passThreshold": PASS, "roundingRule": "half-up-1dp", "lifecycle": "active"})
 
     # --- learning outcomes (Dublin descriptors) ------------------------------
-    frameworks, outcomes = {}, {}
-    for key, short, name, *_rest in PROGRAMMES:
-        frameworks[key] = b.add("competency-framework", {
-            "name": f"Leeruitkomsten {short}", "sourceAuthority": "school-defined", "sourceRef": "Dublin-descriptoren, bachelor",
-            "edition": "2025", "level": "hbo",
-            "description": f"De tien leeruitkomsten van {name}, geordend onder de vijf Dublin-descriptoren.",
-            "proficiencyLevels": LEVELS, "lifecycle": "published",
-        })
-    for key, *_rest in PROGRAMMES:
+    def add_learning_outcomes(self) -> None:
+        self.frameworks: dict[str, dict] = {}
+        self.outcomes: dict[str, list[dict]] = {}
+        for key, short, name, *_rest in PROGRAMMES:
+            self.frameworks[key] = self.b.add("competency-framework", {
+                "name": f"Leeruitkomsten {short}", "sourceAuthority": "school-defined", "sourceRef": "Dublin-descriptoren, bachelor",
+                "edition": "2025", "level": "hbo",
+                "description": f"De tien leeruitkomsten van {name}, geordend onder de vijf Dublin-descriptoren.",
+                "proficiencyLevels": LEVELS, "lifecycle": "published",
+            })
+        for key, *_rest in PROGRAMMES:
+            self.add_outcomes_of(key)
+
+    def add_outcomes_of(self, key: str) -> None:
+        framework = self.frameworks[key]["uuid"]
         descriptors = []
         for order, (code, title) in enumerate(DUBLIN, start=1):
-            descriptors.append(b.add("competency", {
-                "frameworkId": frameworks[key]["uuid"], "parentId": None, "code": f"{key}-{code}", "title": title,
+            descriptors.append(self.b.add("competency", {
+                "frameworkId": framework, "parentId": None, "code": f"{key}-{code}", "title": title,
                 "description": f"Dublin-descriptor {order} voor de bachelor {key}.", "order": order, "lifecycle": "published",
             }))
-        outcomes[key] = []
+        self.outcomes[key] = []
         for n, text in enumerate(OUTCOMES[key], start=1):
-            outcomes[key].append(b.add("competency", {
-                "frameworkId": frameworks[key]["uuid"], "parentId": descriptors[(n - 1) // 2]["uuid"], "code": f"{key}-LU{n:02d}",
+            self.outcomes[key].append(self.b.add("competency", {
+                "frameworkId": framework, "parentId": descriptors[(n - 1) // 2]["uuid"], "code": f"{key}-LU{n:02d}",
                 "title": f"Leeruitkomst {n}", "description": text, "order": n, "requiredForRoles": ["learner"], "lifecycle": "published",
             }))
 
     # --- programmes, courses, curriculum plans -------------------------------
-    programmes, courses, plans = {}, {}, {}
-    for key, short, name, code, fac, *_rest in PROGRAMMES:
-        programmes[key] = b.add("programme", {
-            "name": name, "code": code, "level": "hbo", "description": PROGRAMME_DESCRIPTION[key],
-            "curriculumPlanId": None, "courseIds": [], "credentialTemplateId": None,
-            "requiredCompetencyIds": [o["uuid"] for o in outcomes[key]], "lifecycle": "published",
-        })
-    period_meta = {bl[0]: (bl[1], bl[2], bl[3]) for bl in BLOCKS} | {s[0]: (s[1], s[2], s[3]) for s in SEMESTERS}
-    for key, short, name, code, fac, *_rest in PROGRAMMES:
-        for ckey, year, period, ects, cname, desc, comps, lus, _docent in COURSES[key]:
-            courses[(key, ckey)] = b.add("course", {
-                "code": f"{key}-{ckey}-2526", "name": cname, "name_nl": cname, "description": desc, "level": "hbo", "language": "nl",
-                "tags": [short, f"jaar {year}"], "lifecycle": "published", "curriculumPlanId": None,
-                "programmeIds": [programmes[key]["uuid"]], "ectsCredits": ects,
-                "competencyIds": [outcomes[key][n - 1]["uuid"] for n in lus],
+    def add_programmes(self) -> None:
+        self.programmes = {}
+        for key, _short, name, code, *_rest in PROGRAMMES:
+            self.programmes[key] = self.b.add("programme", {
+                "name": name, "code": code, "level": "hbo", "description": PROGRAMME_DESCRIPTION[key],
+                "curriculumPlanId": None, "courseIds": [], "credentialTemplateId": None,
+                "requiredCompetencyIds": [o["uuid"] for o in self.outcomes[key]], "lifecycle": "published",
             })
-        programmes[key]["courseIds"] = [courses[(key, c[0])]["uuid"] for c in COURSES[key]]
-    for key, short, name, *_rest in PROGRAMMES:
-        oer = b.add("curriculum-plan", {
-            "name": f"Onderwijs- en examenregeling {short} {YEAR}", "kind": "oer", "formula": "all-must-pass",
-            "requiredCourseIds": programmes[key]["courseIds"], "electiveCourseIds": [], "components": [],
-            "gradeScaleId": scale["uuid"], "passRules": [{"componentId": None, "minValue": PASS}],
+
+    def add_courses(self) -> None:
+        self.courses: dict[tuple[str, str], dict] = {}
+        for key, *_rest in PROGRAMMES:
+            for course in COURSES[key]:
+                self.add_course(key, course)
+            self.programmes[key]["courseIds"] = [self.courses[(key, c[0])]["uuid"] for c in COURSES[key]]
+
+    def add_course(self, key: str, course: tuple) -> None:
+        ckey, year, _period, ects, cname, desc, _comps, lus, _docent = course
+        self.courses[(key, ckey)] = self.b.add("course", {
+            "code": f"{key}-{ckey}-2526", "name": cname, "name_nl": cname, "description": desc, "level": "hbo", "language": "nl",
+            "tags": [PROGRAMME_OF[key][1], f"jaar {year}"], "lifecycle": "published", "curriculumPlanId": None,
+            "programmeIds": [self.programmes[key]["uuid"]], "ectsCredits": ects,
+            "competencyIds": [self.outcomes[key][n - 1]["uuid"] for n in lus],
+        })
+
+    def add_curriculum_plans(self) -> None:
+        self.plans: dict[tuple[str, str], dict] = {}
+        for key, *_rest in PROGRAMMES:
+            oer = self.b.add("curriculum-plan", self.examination_rules(key))
+            self.programmes[key]["curriculumPlanId"] = oer["uuid"]
+            for course in COURSES[key]:
+                self.add_course_plan(key, course)
+
+    def examination_rules(self, key: str) -> dict:
+        return {
+            "name": f"Onderwijs- en examenregeling {PROGRAMME_OF[key][1]} {YEAR}", "kind": "oer", "formula": "all-must-pass",
+            "requiredCourseIds": self.programmes[key]["courseIds"], "electiveCourseIds": [], "components": [],
+            "gradeScaleId": self.scale["uuid"], "passRules": [{"componentId": None, "minValue": PASS}],
             "periods": [{"periodId": bl[0], "label": bl[1], "startDate": bl[2].isoformat(), "endDate": bl[3].isoformat()} for bl in BLOCKS],
             "lifecycle": "published",
+        }
+
+    def add_course_plan(self, key: str, course: tuple) -> None:
+        ckey, _year, period, _ects, cname, _desc, comps, *_rest = course
+        label, start, end = PERIOD_META[period]
+        self.plans[(key, ckey)] = self.b.add("curriculum-plan", {
+            "name": f"Toetsplan {cname} {YEAR}", "kind": "oer", "formula": "best-of-n",
+            "requiredCourseIds": [self.courses[(key, ckey)]["uuid"]], "electiveCourseIds": [],
+            "components": [{"componentId": cid, "label": lab, "weight": w, "period": period, "kind": kind} for cid, lab, kind, w in comps],
+            "gradeScaleId": self.scale["uuid"], "passRules": [{"componentId": None, "minValue": PASS}],
+            "periods": [{"periodId": period, "label": label, "startDate": start.isoformat(), "endDate": end.isoformat()}],
+            "lifecycle": "published",
         })
-        programmes[key]["curriculumPlanId"] = oer["uuid"]
-        for ckey, year, period, ects, cname, desc, comps, lus, _docent in COURSES[key]:
-            label, start, end = period_meta[period]
-            plans[(key, ckey)] = b.add("curriculum-plan", {
-                "name": f"Toetsplan {cname} {YEAR}", "kind": "oer", "formula": "best-of-n",
-                "requiredCourseIds": [courses[(key, ckey)]["uuid"]], "electiveCourseIds": [],
-                "components": [{"componentId": cid, "label": lab, "weight": w, "period": period, "kind": kind} for cid, lab, kind, w in comps],
-                "gradeScaleId": scale["uuid"], "passRules": [{"componentId": None, "minValue": PASS}],
-                "periods": [{"periodId": period, "label": label, "startDate": start.isoformat(), "endDate": end.isoformat()}],
-                "lifecycle": "published",
-            })
-            courses[(key, ckey)]["curriculumPlanId"] = plans[(key, ckey)]["uuid"]
-    course_meta = {(key, c[0]): c for key in COURSES for c in COURSES[key]}
+        self.courses[(key, ckey)]["curriculumPlanId"] = self.plans[(key, ckey)]["uuid"]
 
     # --- staff ----------------------------------------------------------------
-    docents: dict[str, list[str]] = {}
-    staff_rows = []
-    n = 0
-    for key, *_rest in PROGRAMMES:
-        docents[key] = []
-        for i in range(6):
-            n += 1
-            nc = f"he-docent-{n:02d}"
-            docents[key].append(nc)
-            roles = ["teacher", "mentor"] if i < 4 else ["teacher"]
-            qual = ["Basiskwalificatie didactische bekwaamheid (BDB)", "Basiskwalificatie examinering (BKE)"]
-            if i == 3:
-                qual.append("Seniorkwalificatie examinering (SKE)")
-            if i < 4:
-                qual.append(["Studieloopbaanbegeleider propedeuse", "Studieloopbaanbegeleider jaar 2", "Stagecoördinator", "Afstudeercoördinator"][i])
-            staff_rows.append((nc, roles, qual, WEEKDAYS if i % 2 == 0 else WEEKDAYS[:4]))
-    advisers = {}
-    for i, (key, short, *_rest) in enumerate(PROGRAMMES, start=1):
-        advisers[key] = f"he-studieadviseur-{i:02d}"
-        staff_rows.append((advisers[key], ["coordinator"], [f"Studieadviseur {short}"], ["monday", "tuesday", "thursday", "friday"]))
-    chairs = {"zuid": "he-examencommissie-01", "noord": "he-examencommissie-02"}
-    staff_rows += [
-        (chairs["zuid"], ["coordinator"], ["Voorzitter examencommissie Gezondheid en Welzijn", "Seniorkwalificatie examinering (SKE)"], ["tuesday", "thursday"]),
-        (chairs["noord"], ["coordinator"], ["Voorzitter examencommissie Techniek en ICT", "Seniorkwalificatie examinering (SKE)"], ["monday", "wednesday"]),
-        ("he-directeur-01", ["administrator"], ["Faculteitsdirecteur Gezondheid en Welzijn"], WEEKDAYS),
-        ("he-directeur-02", ["administrator"], ["Faculteitsdirecteur Techniek en ICT"], WEEKDAYS),
-        ("he-decaan-01", ["coordinator"], ["Studentendecaan, studeren met een functiebeperking"], ["monday", "wednesday", "thursday"]),
-        ("he-administratie-01", ["administrator"], ["Studentenadministratie"], WEEKDAYS),
-        ("he-toetsbureau-01", ["support-staff"], ["Toetscoördinator digitale toetsing en itembanken"], ["tuesday", "wednesday", "thursday"]),
-        ("he-surveillant-01", ["support-staff"], ["Surveillant digitale toetsing"], ["monday", "tuesday", "wednesday", "thursday"]),
-    ]
-    for nc, roles, qual, work in staff_rows:
-        b.add("staff", {"ncUserId": nc, "roles": roles, "qualifications": qual, "workingDays": work})
+    def add_staff(self) -> None:
+        self.docents: dict[str, list[str]] = {}
+        rows: list[tuple] = []
+        for index, (key, *_rest) in enumerate(PROGRAMMES):
+            self.docents[key] = [f"he-docent-{index * 6 + i + 1:02d}" for i in range(6)]
+            rows.extend(docent_row(nc, i) for i, nc in enumerate(self.docents[key]))
+        for nc, roles, qual, work in rows + adviser_rows() + OTHER_STAFF:
+            self.b.add("staff", {"ncUserId": nc, "roles": roles, "qualifications": qual, "workingDays": work})
 
-    def teacher_of(key: str, ckey: str) -> str:
-        return docents[key][course_meta[(key, ckey)][8]]
+    def teacher_of(self, key: str, ckey: str) -> str:
+        return self.docents[key][COURSE_META[(key, ckey)][8]]
 
-    def slb_of(key: str, year: int) -> str:
-        return docents[key][year - 1]
+    def slb_of(self, key: str, year: int) -> str:
+        return self.docents[key][year - 1]
 
     # --- students ---------------------------------------------------------------
-    used_names = set()
-    students = []
-    for key, short, name, code, fac, *_rest in PROGRAMMES:
-        offset = PROGRAMMES[[p[0] for p in PROGRAMMES].index(key)][9]
-        for year, count in STUDENTS_PER_YEAR.items():
-            for _ in range(count):
-                man = rng.random() < (0.35 if key in ("VPK", "SW") else 0.8)
-                while True:
-                    given = rng.choice(MEN if man else WOMEN)
-                    family = rng.choice(SURNAME_HEAD) + rng.choice(SURNAME_TAIL)
-                    if (given, family) not in used_names:
-                        used_names.add((given, family))
-                        break
-                older = rng.random() < 0.18
-                birth_year = 2007 - year + 1 - (rng.randint(2, 5) if older else rng.randint(0, 1))
-                birth = dt.date(birth_year, 1, 1) + dt.timedelta(days=rng.randrange(365))
-                students.append({"programme": key, "year": year, "man": man, "given": given, "family": family, "birth": birth,
-                                 "mbo": older, "ability": rng.gauss(0, 1) + offset, "absence": rng.random()})
-    students.sort(key=lambda s: ([p[0] for p in PROGRAMMES].index(s["programme"]), s["year"], s["family"], s["given"]))
-    for n, s in enumerate(students, start=1):
-        s["nc"] = f"he-student-{n:03d}"
+    def add_students(self) -> None:
+        self.used_names: set[tuple[str, str]] = set()
+        students: list[dict] = []
+        for key, *_rest in PROGRAMMES:
+            for year, count in STUDENTS_PER_YEAR.items():
+                students.extend(self.new_student(key, year) for _ in range(count))
+        self.number_students(students)
+
+    def number_students(self, students: list[dict]) -> None:
+        students.sort(key=lambda s: ([p[0] for p in PROGRAMMES].index(s["programme"]), s["year"], s["family"], s["given"]))
+        for n, s in enumerate(students, start=1):
+            s["nc"] = f"he-student-{n:03d}"
+            s["given"], s["family"] = BOARD_NAMES.get(s["nc"], (s["given"], s["family"]))
+            s["profile"] = self.add_learner_profile(s)
+        self.students = students
+        self.student_by_nc = {s["nc"]: s for s in students}
+
+    def new_student(self, key: str, year: int) -> dict:
+        rng = self.rng
+        man = rng.random() < (0.35 if key in ("VPK", "SW") else 0.8)
+        given, family = self.unused_name(man)
+        older = rng.random() < 0.18
+        birth_year = 2007 - year + 1 - (rng.randint(2, 5) if older else rng.randint(0, 1))
+        birth = dt.date(birth_year, 1, 1) + dt.timedelta(days=rng.randrange(365))
+        return {"programme": key, "year": year, "man": man, "given": given, "family": family, "birth": birth,
+                "mbo": older, "ability": rng.gauss(0, 1) + PROGRAMME_OF[key][9], "absence": rng.random()}
+
+    def unused_name(self, man: bool) -> tuple[str, str]:
+        while True:
+            given = self.rng.choice(MEN if man else WOMEN)
+            family = self.rng.choice(SURNAME_HEAD) + self.rng.choice(SURNAME_TAIL)
+            if (given, family) not in self.used_names:
+                self.used_names.add((given, family))
+                return given, family
+
+    def add_learner_profile(self, s: dict) -> dict:
+        rng = self.rng
         emergency = []
         if rng.random() < 0.3:
             emergency = [{"name": f"{rng.choice(PARENTS)} {s['family']}", "relationship": "ouder", "phone": f"06-0000{rng.randint(1000, 9999)}", "priority": 1}]
-        s["profile"] = b.add("learner-profile", {
+        return self.b.add("learner-profile", {
             "ncUserId": s["nc"], "givenName": s["given"], "familyName": s["family"], "birthDate": s["birth"].isoformat(),
-            "schoolId": school["uuid"], "eduPersonAffiliation": ["student"], "roles": ["learner"],
+            "schoolId": self.school["uuid"], "eduPersonAffiliation": ["student"], "roles": ["learner"],
             "parentIds": [], "guardianRefs": [],
             "address": {"street": rng.choice(STREETS), "houseNumber": str(rng.randint(1, 180)),
                         "postalCode": f"06{rng.randint(10, 39)} {rng.choice('ABDEGHKLMNPRSTWZ')}{rng.choice('ABDEGHKLMNPRSTWZ')}",
                         "city": rng.choice(TOWNS), "country": "NL"},
             "emergencyContacts": emergency, "lifecycle": "active",
         })
-    by_group: dict[tuple[str, int], list[dict]] = {}
-    for s in students:
-        by_group.setdefault((s["programme"], s["year"]), []).append(s)
-    # One first-year student per programme stops in January, before the BSA
-    # applies: the weakest one.
-    for key, *_rest in PROGRAMMES:
-        weakest = min(by_group[(key, 1)], key=lambda s: s["ability"])
-        weakest["withdrawn"] = True
+
+    def group_students(self) -> None:
+        self.by_group: dict[tuple[str, int], list[dict]] = {}
+        for s in self.students:
+            self.by_group.setdefault((s["programme"], s["year"]), []).append(s)
+        # One first-year student per programme stops in January, before the BSA
+        # applies: the weakest one.
+        for key, *_rest in PROGRAMMES:
+            weakest = min(self.by_group[(key, 1)], key=lambda s: s["ability"])
+            weakest["withdrawn"] = True
 
     # --- cohorts ------------------------------------------------------------------
-    cohorts = {}
-    period_label = {1: "Studiejaar 1 (propedeuse)", 2: "Studiejaar 2", 3: "Studiejaar 3", 4: "Studiejaar 4"}
-    for key, short, name, code, fac, *_rest in PROGRAMMES:
-        for year in (1, 2, 3, 4):
-            intake = 2026 - year
-            notes = None
-            if year == 1:
-                notes = "Propedeuse met bindend studieadvies. Werkgroepen hebben aanwezigheidsplicht."
-            if year == 3:
-                notes = "Eerste semester stage, tweede semester minor."
-            cohorts[(key, year)] = b.add("cohort", {
-                "name": f"{short} cohort {intake}", "programmeId": programmes[key]["uuid"], "teacherIds": [slb_of(key, year)],
-                "learnerIds": [s["nc"] for s in by_group[(key, year)]], "period": period_label[year], "academicYear": YEAR,
-                "lifecycle": "active", "locationId": faculties[fac]["uuid"], "notes": notes, "kind": "teaching",
-            })
+    def add_cohorts(self) -> None:
+        self.cohorts: dict[tuple[str, int], dict] = {}
+        for key, *_rest in PROGRAMMES:
+            for year in (1, 2, 3, 4):
+                self.cohorts[(key, year)] = self.add_cohort(key, year)
+
+    def add_cohort(self, key: str, year: int) -> dict:
+        return self.b.add("cohort", {
+            "name": f"{PROGRAMME_OF[key][1]} cohort {2026 - year}", "programmeId": self.programmes[key]["uuid"],
+            "teacherIds": [self.slb_of(key, year)], "learnerIds": [s["nc"] for s in self.by_group[(key, year)]],
+            "period": PERIOD_LABEL[year], "academicYear": YEAR, "lifecycle": "active",
+            "locationId": self.faculties[PROGRAMME_OF[key][4]]["uuid"], "notes": COHORT_NOTES.get(year), "kind": "teaching",
+        })
 
     # --- grades, simulated first so enrolments can carry their outcome ---------
-    # Each entry spec: (student, course key, component, value, gradedAt, source).
-    raw: dict[tuple[str, str, str], list[dict]] = {}
-
-    def add_raw(s: dict, ckey: str, cid: str, value: float | None, when: dt.date, kind: str, **extra) -> dict:
-        spec = {"student": s, "ckey": ckey, "cid": cid, "value": value, "when": when, "kind": kind} | extra
-        raw.setdefault((s["nc"], ckey, cid), []).append(spec)
+    def add_raw(self, spec: dict) -> dict:
+        """Files one raw grade: student, course key, component, value, day, source kind and any source object."""
+        self.raw.setdefault((spec["student"]["nc"], spec["ckey"], spec["cid"]), []).append(spec)
         return spec
 
-    blocks = {bl[0]: bl for bl in BLOCKS}
-    semesters = {sm[0]: sm for sm in SEMESTERS}
-    results_day = {k: v[5] for k, v in blocks.items()} | {k: v[4] for k, v in semesters.items()}
-    resit_day = {k: v[6] for k, v in blocks.items()} | {k: v[5] for k, v in semesters.items()}
+    def draw(self, s: dict, base: float) -> float:
+        return clamp_grade(base + 0.9 * s["ability"] + self.rng.gauss(0, 0.75))
 
-    def draw(s: dict, base: float, spread: float = 0.75) -> float:
-        return clamp_grade(base + 0.9 * s["ability"] + rng.gauss(0, spread))
+    def draw_portfolio(self, s: dict) -> float:
+        return clamp_grade(7.2 + 0.9 * s["ability"] + self.rng.gauss(0, 0.6))
 
     # Components graded by the item bank exam (block 1 kennistoets) and the
-    # group project are simulated below; the rest here.
-    for s in students:
-        key = s["programme"]
-        for ckey, year, period, ects, cname, desc, comps, lus, _docent in COURSES[key]:
-            if year != s["year"]:
+    # group project are simulated further on; the rest here.
+    def add_course_grades(self) -> None:
+        for s in self.students:
+            for course in COURSES[s["programme"]]:
+                if graded_by_component(s, course):
+                    self.add_component_grades(s, course)
+
+    def add_component_grades(self, s: dict, course: tuple) -> None:
+        ckey, year, period = course[0], course[1], course[2]
+        for cid, _label, _kind, _w in course[6]:
+            if (ckey, cid) in (("B1", "kennistoets"), ("B4", "projectverslag")):
                 continue
-            if s.get("withdrawn") and ckey != "B1":
-                continue
-            for cid, _label, _kind, _w in comps:
-                if (ckey, cid) in (("B1", "kennistoets"), ("B4", "projectverslag")):
-                    continue
-                if ckey == "STAGE":
-                    add_raw(s, ckey, cid, draw(s, 7.2, 0.6), results_day[period], "portfolio")
-                    continue
-                add_raw(s, ckey, cid, draw(s, 6.7 if year == 1 else 7.0), results_day[period], "manual")
+            if ckey == "STAGE":
+                value, kind = self.draw_portfolio(s), "portfolio"
+            else:
+                value, kind = self.draw(s, 6.7 if year == 1 else 7.0), "manual"
+            self.add_raw({"student": s, "ckey": ckey, "cid": cid, "value": value, "when": RESULTS_DAY[period], "kind": kind})
 
     # --- enrolments ---------------------------------------------------------------
     # Placeholders now, outcome filled in once final grades are known.
-    enrolments = {}
-    for s in students:
-        key = s["programme"]
-        cohort = cohorts[(key, s["year"])]
-        for ckey, year, *_rest in COURSES[key]:
-            if year != s["year"]:
-                continue
-            enrolments[(s["nc"], ckey)] = b.add("enrolment", {
-                "learnerId": s["nc"], "learnerRef": s["profile"]["uuid"], "courseId": courses[(key, ckey)]["uuid"],
-                "source": "admission" if year == 1 else "bulk", "cohortId": cohort["uuid"], "lifecycle": "active",
-                "locationId": cohort["locationId"], "reason": None,
-            })
+    def add_enrolments(self) -> None:
+        self.enrolments: dict[tuple[str, str], dict] = {}
+        for s in self.students:
+            cohort = self.cohorts[(s["programme"], s["year"])]
+            for ckey, year, *_rest in COURSES[s["programme"]]:
+                if year == s["year"]:
+                    self.enrolments[(s["nc"], ckey)] = self.b.add("enrolment", {
+                        "learnerId": s["nc"], "learnerRef": s["profile"]["uuid"], "courseId": self.courses[(s["programme"], ckey)]["uuid"],
+                        "source": "admission" if year == 1 else "bulk", "cohortId": cohort["uuid"], "lifecycle": "active",
+                        "locationId": cohort["locationId"], "reason": None,
+                    })
 
-    for key, *_rest in PROGRAMMES:
-        for ckey, year, *_rest2 in COURSES[key]:
-            b.add("subjectteacherassignment", {"cohortId": cohorts[(key, year)]["uuid"], "courseId": courses[(key, ckey)]["uuid"],
-                                               "teacherId": teacher_of(key, ckey)})
+    def add_teacher_assignments(self) -> None:
+        for key, *_rest in PROGRAMMES:
+            for ckey, year, *_rest2 in COURSES[key]:
+                self.b.add("subjectteacherassignment", {"cohortId": self.cohorts[(key, year)]["uuid"], "courseId": self.courses[(key, ckey)]["uuid"],
+                                                        "teacherId": self.teacher_of(key, ckey)})
 
     # --- werkgroep sessions and attendance (first year) -----------------------
-    sessions = []
-    for key, short, name, code, fac, weekday, room_key, *_rest in PROGRAMMES:
-        cohort = cohorts[(key, 1)]
-        for bid, _label, _start, _end, weeks, *_r in BLOCKS:
-            for monday in weeks:
-                day = monday + dt.timedelta(days=weekday)
-                if day in off:
-                    continue
-                course = courses[(key, bid)]
-                sessions.append((key, bid, day, b.add("session", {
-                    "cohortId": cohort["uuid"], "courseId": course["uuid"],
-                    "title": f"Werkgroep {course['name']}, {DAG[day.weekday()]} {day.day} {MAAND[day.month - 1]} {day.year}",
-                    "startsAt": stamp(day, 9, 0), "endsAt": stamp(day, 12, 0),
-                    "location": rooms[room_key]["name"], "roomId": rooms[room_key]["uuid"], "lifecycle": "completed",
-                })))
-    exam_sessions = {}
-    for key, short, name, code, fac, weekday, room_key, exam_day, resit_date, _off in PROGRAMMES:
-        hall = rooms["tentamenzuid" if fac == "zuid" else "tentamennoord"]
-        course = courses[(key, "B1")]
-        cohort = cohorts[(key, 1)]
-        exam_sessions[(key, "main")] = b.add("session", {
-            "cohortId": cohort["uuid"], "courseId": course["uuid"], "title": f"Kennistoets {course['name']}",
-            "startsAt": stamp(exam_day, 9, 30), "endsAt": stamp(exam_day, 11, 30),
-            "location": hall["name"], "roomId": hall["uuid"], "lifecycle": "completed",
-        })
-        exam_sessions[(key, "resit")] = b.add("session", {
-            "cohortId": cohort["uuid"], "courseId": course["uuid"], "title": f"Herkansing kennistoets {course['name']}",
-            "startsAt": stamp(resit_date, 13, 30), "endsAt": stamp(resit_date, 15, 30),
-            "location": hall["name"], "roomId": hall["uuid"], "lifecycle": "completed",
-        })
-    ict_exam_day = PROGRAMMES[2][7]
-    exam_sessions[("ICT", "adapted")] = b.add("session", {
-        "cohortId": cohorts[("ICT", 1)]["uuid"], "courseId": courses[("ICT", "B1")]["uuid"],
-        "title": f"Kennistoets {courses[('ICT', 'B1')]['name']}, aangepaste afname",
-        "startsAt": stamp(ict_exam_day, 9, 30), "endsAt": stamp(ict_exam_day, 12, 0),
-        "location": rooms["stilte"]["name"], "roomId": rooms["stilte"]["uuid"], "lifecycle": "completed",
-    })
+    def add_werkgroep_sessions(self) -> None:
+        self.sessions: list[tuple[str, str, dt.date, dict]] = []
+        for key, *_rest in PROGRAMMES:
+            for bid, _label, _start, _end, weeks, *_r in BLOCKS:
+                self.sessions.extend((key, bid, day, self.add_werkgroep((key, bid, day))) for day in self.werkgroep_days(key, weeks))
 
-    session_by_cohort: dict[str, list[tuple[str, dt.date, dict]]] = {}
-    for key, bid, day, sess in sessions:
-        session_by_cohort.setdefault(key, []).append((bid, day, sess))
-    marks: dict[str, dict[str, tuple[str, str, int]]] = {}
-    for s in by_group_all(by_group, 1):
-        key = s["programme"]
-        own = [(bid, day, sess) for bid, day, sess in session_by_cohort[key] if not s.get("withdrawn") or day < WITHDRAWAL_DAY]
-        count = rng.choices([0, 1, 2, 3, 4], weights=[42, 32, 16, 7, 3])[0]
+    def werkgroep_days(self, key: str, weeks: list[dt.date]) -> list[dt.date]:
+        days = [monday + dt.timedelta(days=PROGRAMME_OF[key][5]) for monday in weeks]
+        return [day for day in days if day not in self.off]
+
+    def add_werkgroep(self, slot: tuple[str, str, dt.date]) -> dict:
+        key, bid, day = slot
+        course, room = self.courses[(key, bid)], self.rooms[PROGRAMME_OF[key][6]]
+        return self.b.add("session", {
+            "cohortId": self.cohorts[(key, 1)]["uuid"], "courseId": course["uuid"],
+            "title": f"Werkgroep {course['name']}, {DAG[day.weekday()]} {day.day} {MAAND[day.month - 1]} {day.year}",
+            "startsAt": stamp(day, 9, 0), "endsAt": stamp(day, 12, 0),
+            "location": room["name"], "roomId": room["uuid"], "lifecycle": "completed",
+        })
+
+    def add_exam_sessions(self) -> None:
+        self.exam_sessions: dict[tuple[str, str], dict] = {}
+        for key, *_rest in PROGRAMMES:
+            for variant in ("main", "resit"):
+                self.exam_sessions[(key, variant)] = self.add_exam_session((key, variant))
+        self.exam_sessions[("ICT", "adapted")] = self.add_exam_session(("ICT", "adapted"))
+
+    def add_exam_session(self, sitting: tuple[str, str]) -> dict:
+        key, variant = sitting
+        title, day_column, start, end = EXAM_SITTINGS[variant]
+        course, day = self.courses[(key, "B1")], cast(dt.date, PROGRAMME_OF[key][day_column])
+        hall = self.rooms[exam_room(key, variant)]
+        return self.b.add("session", {
+            "cohortId": self.cohorts[(key, 1)]["uuid"], "courseId": course["uuid"], "title": title.format(course["name"]),
+            "startsAt": stamp(day, *start), "endsAt": stamp(day, *end),
+            "location": hall["name"], "roomId": hall["uuid"], "lifecycle": "completed",
+        })
+
+    def draw_attendance_marks(self) -> None:
+        self.session_by_cohort: dict[str, list[tuple[str, dt.date, dict]]] = {}
+        for key, bid, day, sess in self.sessions:
+            self.session_by_cohort.setdefault(key, []).append((bid, day, sess))
+        self.marks: dict[str, dict[str, tuple[str, str, int]]] = {}
+        for s in by_group_all(self.by_group, 1):
+            self.marks[s["nc"]] = self.marks_of(s)
+
+    def marks_of(self, s: dict) -> dict[str, tuple[str, str, int]]:
+        own = self.attended_sessions(s)
+        count = self.rng.choices([0, 1, 2, 3, 4], weights=[42, 32, 16, 7, 3])[0]
         if s.get("withdrawn"):
             count = 5
         if s["absence"] > 0.93:
             count += 2
-        chosen = rng.sample(own, min(count, len(own)))
-        marks[s["nc"]] = {}
-        for bid, day, sess in chosen:
-            roll = rng.random()
-            if roll < 0.5:
-                marks[s["nc"]][sess["uuid"]] = ("absent-excused", rng.choice(["Ziek gemeld", "Ziek gemeld via het studentportaal", "Huisartsbezoek"]), 0)
-            elif roll < 0.62:
-                marks[s["nc"]][sess["uuid"]] = ("absent-unexcused", "Afwezig zonder bericht", 0)
-            else:
-                late = rng.choice([10, 15, 20, 30])
-                marks[s["nc"]][sess["uuid"]] = ("late", f"{late} minuten te laat", 180 - late)
+        chosen = self.rng.sample(own, min(count, len(own)))
+        return {sess["uuid"]: self.mark() for _bid, _day, sess in chosen}
 
-    session_info = {sess["uuid"]: (key, bid, day, sess) for key, bid, day, sess in sessions}
-    excuses: dict[tuple[str, str], dict] = {}
-    excused = [(nc, su) for nc in sorted(marks) for su, m in sorted(marks[nc].items()) if m[0] == "absent-excused"]
-    student_by_nc = {s["nc"]: s for s in students}
-    for nc, su in rng.sample(excused, min(24, len(excused))):
-        s = student_by_nc[nc]
-        key, bid, day, _sess = session_info[su]
-        excuses[(nc, su)] = b.add("excuse-request", {
+    def attended_sessions(self, s: dict) -> list[tuple[str, dt.date, dict]]:
+        return [(bid, day, sess) for bid, day, sess in self.session_by_cohort[s["programme"]] if attends(s, day)]
+
+    def mark(self) -> tuple[str, str, int]:
+        roll = self.rng.random()
+        if roll < 0.5:
+            return ("absent-excused", self.rng.choice(SICK_NOTES), 0)
+        if roll < 0.62:
+            return ("absent-unexcused", "Afwezig zonder bericht", 0)
+        late = self.rng.choice([10, 15, 20, 30])
+        return ("late", f"{late} minuten te laat", 180 - late)
+
+    def add_excuses(self) -> None:
+        self.session_info = {sess["uuid"]: (key, bid, day, sess) for key, bid, day, sess in self.sessions}
+        self.excuses: dict[tuple[str, str], dict] = {}
+        excused = self.excused_marks()
+        for nc, su in self.rng.sample(excused, min(24, len(excused))):
+            self.excuses[(nc, su)] = self.add_excuse(nc, su)
+
+    def excused_marks(self) -> list[tuple[str, str]]:
+        return [(nc, su) for nc in sorted(self.marks) for su, m in sorted(self.marks[nc].items()) if m[0] == "absent-excused"]
+
+    def add_excuse(self, nc: str, su: str) -> dict:
+        s = self.student_by_nc[nc]
+        key, _bid, day, _sess = self.session_info[su]
+        return self.b.add("excuse-request", {
             "learnerId": nc, "learnerRef": s["profile"]["uuid"], "submittedBy": nc, "submittedByRef": s["profile"]["uuid"],
-            "dateFrom": day.isoformat(), "dateTo": day.isoformat(), "reason": rng.choice(["Griep", "Koorts", "Migraine", "Buikgriep"]),
-            "reasonKind": "illness", "submittedAuthLevel": "basic", "decidedBy": slb_of(key, 1),
+            "dateFrom": day.isoformat(), "dateTo": day.isoformat(), "reason": self.rng.choice(["Griep", "Koorts", "Migraine", "Buikgriep"]),
+            "reasonKind": "illness", "submittedAuthLevel": "basic", "decidedBy": self.slb_of(key, 1),
             "decidedAt": stamp(day, 14, 0), "decisionNote": None, "lifecycle": "approved",
         })
-    records: dict[str, list[dict]] = {}
-    for nc in sorted(marks, key=lambda x: int(x.rsplit("-", 1)[1])):
-        s = student_by_nc[nc]
-        for su in sorted(marks[nc], key=lambda u: session_info[u][2]):
-            key, bid, day, sess = session_info[su]
-            status, reason, minutes = marks[nc][su]
-            rec = b.add("attendance-record", {
-                "sessionId": su, "learnerId": nc, "learnerRef": s["profile"]["uuid"], "cohortId": cohorts[(key, 1)]["uuid"],
-                "status": status, "minutesAttended": minutes, "markedBy": teacher_of(key, bid),
-                "markedAt": stamp(day, 9, 20 if status == "late" else 10), "reason": reason,
-                "excuseRequestId": excuses[(nc, su)]["uuid"] if (nc, su) in excuses else None,
-            })
-            records.setdefault(nc, []).append(rec | {"_block": bid})
-    threshold = b.add("attendance-threshold", {
-        "name": "Aanwezigheidsplicht werkgroepen: minimaal 80 procent per blok", "kind": "college-aanwezigheid", "scope": "per-learner",
-        "cohortId": None, "window": {"type": "fixed-term", "weeks": None, "termId": "blok"}, "metric": "attendance-percent-below",
-        "limit": 80, "onCross": {"notify": True, "notifyRoles": ["mentor", "coordinator"], "createFlag": True, "dataExchangeTarget": None},
-        "active": True, "lifecycle": "active",
-    })
-    for s in by_group_all(by_group, 1):
-        key = s["programme"]
-        for bid, _label, start, end, *_r in BLOCKS:
-            held = [sess for b_, day, sess in session_by_cohort[key] if b_ == bid and (not s.get("withdrawn") or day < WITHDRAWAL_DAY)]
-            if not held:
-                continue
-            absent = [r for r in records.get(s["nc"], []) if r["_block"] == bid and r["status"].startswith("absent")]
-            percent = php_round(100 * (len(held) - len(absent)) / len(held), 1)
-            if percent >= 80:
-                continue
-            last = max(session_info[r["sessionId"]][2] for r in absent)
-            b.add("attendance-flag", {
-                "learnerId": s["nc"], "attendanceThresholdId": threshold["uuid"], "cohortId": cohorts[(key, 1)]["uuid"],
-                "windowStart": start.isoformat(), "windowEnd": end.isoformat(), "metricValue": percent,
-                "breachingRecordIds": [r["uuid"] for r in absent], "mentorId": slb_of(key, 1),
-                "flagKind": "attendance-requirement",
-                "interventions": [{"recordedBy": slb_of(key, 1), "recordedAt": stamp(last + dt.timedelta(days=2), 15, 0),
-                                   "note": "Gesprek over de gemiste werkgroepen; de student maakt een vervangende opdracht.",
-                                   "lifecycleAtRecording": "open"}],
-                "lifecycle": "in-handling" if s.get("withdrawn") else "resolved",
-            })
+
+    def add_attendance_records(self) -> None:
+        self.records: dict[str, list[dict]] = {}
+        for nc in sorted(self.marks, key=lambda x: int(x.rsplit("-", 1)[1])):
+            for su in sorted(self.marks[nc], key=lambda u: self.session_info[u][2]):
+                self.records.setdefault(nc, []).append(self.add_attendance_record(nc, su) | {"_block": self.session_info[su][1]})
+
+    def add_attendance_record(self, nc: str, su: str) -> dict:
+        key, bid, day, _sess = self.session_info[su]
+        status, reason, minutes = self.marks[nc][su]
+        return self.b.add("attendance-record", {
+            "sessionId": su, "learnerId": nc, "learnerRef": self.student_by_nc[nc]["profile"]["uuid"], "cohortId": self.cohorts[(key, 1)]["uuid"],
+            "status": status, "minutesAttended": minutes, "markedBy": self.teacher_of(key, bid),
+            "markedAt": stamp(day, 9, 20 if status == "late" else 10), "reason": reason,
+            "excuseRequestId": self.excuses[(nc, su)]["uuid"] if (nc, su) in self.excuses else None,
+        })
+
+    def add_attendance_flags(self) -> None:
+        self.threshold = self.b.add("attendance-threshold", {
+            "name": "Aanwezigheidsplicht werkgroepen: minimaal 80 procent per blok", "kind": "college-aanwezigheid", "scope": "per-learner",
+            "cohortId": None, "window": {"type": "fixed-term", "weeks": None, "termId": "blok"}, "metric": "attendance-percent-below",
+            "limit": 80, "onCross": {"notify": True, "notifyRoles": ["mentor", "coordinator"], "createFlag": True, "dataExchangeTarget": None},
+            "active": True, "lifecycle": "active",
+        })
+        for s in by_group_all(self.by_group, 1):
+            for block in BLOCKS:
+                self.flag_block(s, block)
+
+    def flag_block(self, s: dict, block: tuple) -> None:
+        held = self.held_sessions(s, block[0])
+        if not held:
+            return
+        absent = self.absences(s, block[0])
+        percent = php_round(100 * (len(held) - len(absent)) / len(held), 1)
+        if percent < 80:
+            self.add_attendance_flag(s, {"block": block, "percent": percent, "absent": absent})
+
+    def held_sessions(self, s: dict, bid: str) -> list[dict]:
+        return [sess for b_, day, sess in self.session_by_cohort[s["programme"]] if b_ == bid and attends(s, day)]
+
+    def absences(self, s: dict, bid: str) -> list[dict]:
+        return [r for r in self.records.get(s["nc"], []) if r["_block"] == bid and r["status"].startswith("absent")]
+
+    def add_attendance_flag(self, s: dict, breach: dict) -> None:
+        key, (_bid, _label, start, end, *_r) = s["programme"], breach["block"]
+        last = max(self.session_info[r["sessionId"]][2] for r in breach["absent"])
+        self.b.add("attendance-flag", {
+            "learnerId": s["nc"], "attendanceThresholdId": self.threshold["uuid"], "cohortId": self.cohorts[(key, 1)]["uuid"],
+            "windowStart": start.isoformat(), "windowEnd": end.isoformat(), "metricValue": breach["percent"],
+            "breachingRecordIds": [r["uuid"] for r in breach["absent"]], "mentorId": self.slb_of(key, 1),
+            "flagKind": "attendance-requirement",
+            "interventions": [{"recordedBy": self.slb_of(key, 1), "recordedAt": stamp(last + dt.timedelta(days=2), 15, 0),
+                               "note": "Gesprek over de gemiste werkgroepen; de student maakt een vervangende opdracht.",
+                               "lifecycleAtRecording": "open"}],
+            "lifecycle": "in-handling" if s.get("withdrawn") else "resolved",
+        })
 
     # --- item banks, the block 1 knowledge test, statistics --------------------
-    accommodations = {}
-    extra_time_pool = [s for s in by_group_all(by_group, 1) if not s.get("withdrawn")]
-    rng.shuffle(extra_time_pool)
-    exempt_ict = next(s for s in by_group[("ICT", 1)] if s["mbo"] and not s.get("withdrawn"))
-    adapted_ict = next(s for s in by_group[("ICT", 1)] if s is not exempt_ict and not s.get("withdrawn") and not s["mbo"])
-    extra_time = [s for s in extra_time_pool if s is not exempt_ict and s is not adapted_ict][:9]
+    def pick_accommodated(self) -> None:
+        pool = self.extra_time_pool()
+        self.exempt_ict = first_with_mbo(self.by_group[("ICT", 1)])
+        self.adapted_ict = next(s for s in self.by_group[("ICT", 1)] if takes_adapted_exam(s, self.exempt_ict))
+        self.extra_time = self.without_ict_exceptions(pool)[:9]
 
-    bank_items, exams, results_by_exam = {}, {}, {}
-    for key, short, name, code, fac, *_rest in PROGRAMMES:
-        course = courses[(key, "B1")]
-        bank = b.add("item-bank", {"name": f"Itembank {course['name']}", "description": f"Kennisvragen voor de kennistoets van {course['name']} in {short}.",
-                                   "subject": course["name"], "itemIds": [], "lifecycle": "published"})
-        items = []
-        for k, (itype, stem, options, answer, difficulty) in enumerate(ITEMS[key], start=1):
-            open_q = itype == "open"
-            item = b.add("item", {
-                "itemBankId": bank["uuid"], "title": f"Kennistoets {short}, vraag {k}",
-                "interactionType": {"choice": "choice", "text": "textEntry", "open": "extendedText"}[itype], "qtiBody": "",
-                "correctResponse": None if open_q else {"value": answer}, "maxScore": 4.0 if open_q else 1.0,
-                "subjectTags": [short, course["name"]],
-                "competencyIds": [outcomes[key][4]["uuid"]] if open_q else [outcomes[key][0]["uuid"]],
-                "difficulty": None if difficulty is None else php_round(logistic(difficulty), 2),
-                "variantGroupId": None, "lifecycle": "published",
+    def without_ict_exceptions(self, pool: list[dict]) -> list[dict]:
+        return [s for s in pool if s is not self.exempt_ict and s is not self.adapted_ict]
+
+    def extra_time_pool(self) -> list[dict]:
+        pool = [s for s in by_group_all(self.by_group, 1) if not s.get("withdrawn")]
+        self.rng.shuffle(pool)
+        return pool
+
+    def add_item_banks(self) -> None:
+        self.bank_items: dict[str, list[dict]] = {}
+        for key, short, *_rest in PROGRAMMES:
+            course = self.courses[(key, "B1")]
+            bank = self.b.add("item-bank", {"name": f"Itembank {course['name']}", "description": f"Kennisvragen voor de kennistoets van {course['name']} in {short}.",
+                                            "subject": course["name"], "itemIds": [], "lifecycle": "published"})
+            items = [self.add_item(bank, (key, k)) for k in range(1, len(ITEMS[key]) + 1)]
+            bank["itemIds"] = [i["obj"]["uuid"] for i in items]
+            self.bank_items[key] = items
+
+    def add_item(self, bank: dict, ref: tuple[str, int]) -> dict:
+        key, k = ref
+        itype, _stem, options, answer, difficulty = ITEMS[key][k - 1]
+        item = self.b.add("item", self.item_fields(bank, ref))
+        item["qtiBody"] = qti(item, ITEMS[key][k - 1])
+        return {"obj": item, "type": itype, "options": options, "answer": answer,
+                "b": difficulty, "max": 4.0 if itype == "open" else 1.0}
+
+    def item_fields(self, bank: dict, ref: tuple[str, int]) -> dict:
+        key, k = ref
+        itype, _stem, _options, answer, difficulty = ITEMS[key][k - 1]
+        open_q, short = itype == "open", PROGRAMME_OF[key][1]
+        return {
+            "itemBankId": bank["uuid"], "title": f"Kennistoets {short}, vraag {k}",
+            "interactionType": INTERACTION[itype], "qtiBody": "",
+            "correctResponse": None if open_q else {"value": answer}, "maxScore": 4.0 if open_q else 1.0,
+            "subjectTags": [short, self.courses[(key, "B1")]["name"]],
+            "competencyIds": [self.outcomes[key][4]["uuid"]] if open_q else [self.outcomes[key][0]["uuid"]],
+            "difficulty": None if difficulty is None else php_round(logistic(difficulty), 2),
+            "variantGroupId": None, "lifecycle": "published",
+        }
+
+    def add_exams(self) -> None:
+        self.exams: dict[tuple[str, str], dict] = {}
+        for key, *_rest in PROGRAMMES:
+            items = self.bank_items[key]
+            sets = {"main": items[0:11] + [items[16]], "resit": items[5:16] + [items[17]]}
+            sets["adapted"] = sets["main"]
+            for variant in ("main", "resit") + (("adapted",) if key == "ICT" else ()):
+                self.exams[(key, variant)] = {"items": sets[variant], "obj": self.b.add("exam", self.exam_fields((key, variant), sets[variant]))}
+
+    def exam_fields(self, sitting: tuple[str, str], item_set: list[dict]) -> dict:
+        key, variant = sitting
+        course, sess, adapted = self.courses[(key, "B1")], self.exam_sessions[sitting], variant == "adapted"
+        return {
+            "title": EXAM_SITTINGS[variant][0].format(course["name"]), "description": "Digitale kennistoets met gesloten vragen en een open vraag. Cesuur 55 procent.",
+            "courseId": course["uuid"], "sessionId": sess["uuid"], "cohortId": self.cohorts[(key, 1)]["uuid"],
+            "curriculumPlanComponentId": "kennistoets", "itemRefs": [{"itemId": i["obj"]["uuid"], "points": i["max"]} for i in item_set],
+            "itemSelectionMode": "fixed", "shuffleItemOrder": False, "shuffleAnswerOptions": False,
+            "scoringScheme": "passMark", "passMark": 8.25, "timeLimitMinutes": 120 if adapted else 90,
+            "maxAttempts": 1, "keepScore": "best", "availableFrom": sess["startsAt"], "availableUntil": sess["endsAt"],
+            "accessCode": None,
+            "proctoring": {"nativeTestMode": True, "navigationLock": True, "flagReviewMode": "manual", "lockdownBrowser": False, "recordWebcam": False} if adapted else None,
+            "gradeEntryComponentId": "kennistoets", "competencyIds": [self.outcomes[key][0]["uuid"], self.outcomes[key][4]["uuid"]],
+            "lifecycle": "closed",
+        }
+
+    def add_accommodations(self) -> None:
+        self.accommodations = {}
+        for s in self.extra_time:
+            self.accommodations[s["nc"]] = self.b.add("exam-accommodation", {
+                "learnerId": s["nc"], "submittedBy": s["nc"], "assessmentId": None, "accommodationKind": "extra-time-percentage", "value": 25,
+                "evidenceRef": None, "approvedBy": "he-decaan-01", "lifecycle": "active",
             })
-            item["qtiBody"] = qti(item["slug"], item["title"], itype, stem, options, answer, item["maxScore"])
-            items.append({"obj": item, "type": itype, "options": options, "answer": answer,
-                          "b": difficulty, "max": 4.0 if open_q else 1.0})
-        bank["itemIds"] = [i["obj"]["uuid"] for i in items]
-        bank_items[key] = items
-    for key, short, name, code, fac, weekday, room_key, exam_day, resit_date, _off in PROGRAMMES:
-        course = courses[(key, "B1")]
-        cohort = cohorts[(key, 1)]
-        items = bank_items[key]
-        main_set = items[0:11] + [items[16]]
-        resit_set = items[5:16] + [items[17]]
-        for variant, item_set, when, title in (
-            ("main", main_set, exam_day, f"Kennistoets {course['name']}"),
-            ("resit", resit_set, resit_date, f"Herkansing kennistoets {course['name']}"),
-        ) + ((("adapted", main_set, exam_day, f"Kennistoets {course['name']}, aangepaste afname"),) if key == "ICT" else ()):
-            sess = exam_sessions[(key, variant)]
-            exams[(key, variant)] = {"items": item_set, "obj": b.add("exam", {
-                "title": title, "description": "Digitale kennistoets met gesloten vragen en een open vraag. Cesuur 55 procent.",
-                "courseId": course["uuid"], "sessionId": sess["uuid"], "cohortId": cohort["uuid"],
-                "curriculumPlanComponentId": "kennistoets", "itemRefs": [{"itemId": i["obj"]["uuid"], "points": i["max"]} for i in item_set],
-                "itemSelectionMode": "fixed", "shuffleItemOrder": False, "shuffleAnswerOptions": False,
-                "scoringScheme": "passMark", "passMark": 8.25, "timeLimitMinutes": 120 if variant == "adapted" else 90,
-                "maxAttempts": 1, "keepScore": "best", "availableFrom": sess["startsAt"], "availableUntil": sess["endsAt"],
-                "accessCode": None,
-                "proctoring": {"nativeTestMode": True, "navigationLock": True, "flagReviewMode": "manual", "lockdownBrowser": False, "recordWebcam": False} if variant == "adapted" else None,
-                "gradeEntryComponentId": "kennistoets", "competencyIds": [outcomes[key][0]["uuid"], outcomes[key][4]["uuid"]],
-                "lifecycle": "closed",
-            })}
-    for s in extra_time:
-        accommodations[s["nc"]] = b.add("exam-accommodation", {
-            "learnerId": s["nc"], "submittedBy": s["nc"], "assessmentId": None, "accommodationKind": "extra-time-percentage", "value": 25,
-            "evidenceRef": None, "approvedBy": "he-decaan-01", "lifecycle": "active",
+        self.b.add("exam-accommodation", {
+            "learnerId": self.adapted_ict["nc"], "submittedBy": self.adapted_ict["nc"], "assessmentId": self.exams[("ICT", "adapted")]["obj"]["uuid"],
+            "accommodationKind": "separate-room", "value": None, "evidenceRef": None, "approvedBy": "he-decaan-01", "lifecycle": "active",
         })
-    b.add("exam-accommodation", {
-        "learnerId": adapted_ict["nc"], "submittedBy": adapted_ict["nc"], "assessmentId": exams[("ICT", "adapted")]["obj"]["uuid"],
-        "accommodationKind": "separate-room", "value": None, "evidenceRef": None, "approvedBy": "he-decaan-01", "lifecycle": "active",
-    })
 
-    def sit(s: dict, key: str, variant: str, boost: float) -> dict:
-        exam = exams[(key, variant)]
-        sess_start = dt.datetime.fromisoformat(exam["obj"]["availableFrom"])
-        responses, score, drawn = [], 0.0, []
-        for i in exam["items"]:
-            item = i["obj"]
-            drawn.append({"itemId": item["uuid"], "points": i["max"]})
-            if i["type"] == "open":
-                points = float(max(0, min(4, round(2.6 + 1.1 * (s["ability"] + boost) + rng.gauss(0, 0.8)))))
-                responses.append({"itemId": item["uuid"], "response": {"value": rng.choice(OPEN_ANSWERS)}, "autoScore": None, "manualScore": points})
-                score += points
-                continue
-            if i["b"] is None:
-                p = logistic(-0.9 * (s["ability"] + boost))
-            else:
-                p = logistic(1.7 * (s["ability"] + boost - i["b"]))
-            correct = rng.random() < p
-            if i["type"] == "choice":
-                wrong = [letter for letter in "ABCD" if letter != i["answer"]]
-                value = i["answer"] if correct else rng.choice(wrong)
-            else:
-                value = i["answer"] if correct else rng.choice(["weet ik niet", "", i["answer"] + "0"])
-            responses.append({"itemId": item["uuid"], "response": {"value": value}, "autoScore": 1.0 if correct else 0.0, "manualScore": None})
-            score += 1.0 if correct else 0.0
-        minutes = rng.randint(45, 88) if s["nc"] not in accommodations else rng.randint(70, 110)
-        result = b.add("assessment-result", {
-            "assessmentId": exam["obj"]["uuid"], "learnerId": s["nc"], "attemptNumber": 1, "responses": responses, "drawnItemRefs": drawn,
-            "startedAt": sess_start.isoformat(), "submittedAt": (sess_start + dt.timedelta(minutes=minutes)).isoformat(),
-            "proctoringSessionId": None, "teacherIds": [teacher_of(key, "B1")], "gradeEntryId": None, "lifecycle": "graded",
-        })
-        results_by_exam.setdefault((key, variant), []).append((s, result, score))
+    def sit(self, s: dict, sitting: tuple[str, str, float]) -> dict:
+        """One sitting of the knowledge test: sitting is the programme, the exam variant and the ability boost."""
+        key, variant, boost = sitting
+        exam = self.exams[(key, variant)]
+        ability = s["ability"] + boost
+        responses = [self.respond(i, ability) for i in exam["items"]]
+        score = sum(scored(r) for r in responses)
+        result = self.b.add("assessment-result", self.result_fields(s, (exam, responses)))
+        self.results_by_exam.setdefault((key, variant), []).append((s, result, score))
         return {"result": result, "score": score, "grade": exam_grade(score, 15.0, 8.25)}
 
-    for key, *_rest in PROGRAMMES:
-        for s in by_group[(key, 1)]:
-            if s is exempt_ict:
-                continue
-            variant = "adapted" if s is adapted_ict else "main"
-            sitting = sit(s, key, variant, 0.5)
-            add_raw(s, "B1", "kennistoets", sitting["grade"], results_day["B1"], "assessment-result", result=sitting["result"])
-    proctored = results_by_exam[("ICT", "adapted")][0][1]
-    started = dt.datetime.fromisoformat(proctored["startedAt"])
-    proctoring = b.add("proctoring-session", {
-        "assessmentResultId": proctored["uuid"], "learnerId": adapted_ict["nc"], "provider": "native-test-mode", "providerSessionId": None,
-        "status": "ended", "recordedArtefactRefs": [],
-        "flags": [{"flagId": "flag-1", "kind": "window-blur", "occurredAt": (started + dt.timedelta(minutes=41)).isoformat(),
-                   "severity": "low", "reviewDecision": "allowed", "reviewedBy": "he-surveillant-01",
-                   "reviewedAt": stamp(ict_exam_day, 12, 30)}],
-        "lifecycle": "ended",
-    })
-    proctored["proctoringSessionId"] = proctoring["uuid"]
+    def result_fields(self, s: dict, answered: tuple[dict, list[dict]]) -> dict:
+        exam, responses = answered
+        sess_start = dt.datetime.fromisoformat(exam["obj"]["availableFrom"])
+        minutes = self.rng.randint(45, 88) if s["nc"] not in self.accommodations else self.rng.randint(70, 110)
+        return {
+            "assessmentId": exam["obj"]["uuid"], "learnerId": s["nc"], "attemptNumber": 1, "responses": responses,
+            "drawnItemRefs": [{"itemId": i["obj"]["uuid"], "points": i["max"]} for i in exam["items"]],
+            "startedAt": sess_start.isoformat(), "submittedAt": (sess_start + dt.timedelta(minutes=minutes)).isoformat(),
+            "proctoringSessionId": None, "teacherIds": [self.teacher_of(s["programme"], "B1")], "gradeEntryId": None, "lifecycle": "graded",
+        }
+
+    def respond(self, i: dict, ability: float) -> dict:
+        item = i["obj"]
+        if i["type"] == "open":
+            points = float(max(0, min(4, round(2.6 + 1.1 * ability + self.rng.gauss(0, 0.8)))))
+            return {"itemId": item["uuid"], "response": {"value": self.rng.choice(OPEN_ANSWERS)}, "autoScore": None, "manualScore": points}
+        p = logistic(-0.9 * ability) if i["b"] is None else logistic(1.7 * (ability - i["b"]))
+        correct = self.rng.random() < p
+        value = i["answer"] if correct else self.wrong_answer(i)
+        return {"itemId": item["uuid"], "response": {"value": value}, "autoScore": 1.0 if correct else 0.0, "manualScore": None}
+
+    def wrong_answer(self, i: dict) -> str:
+        if i["type"] == "choice":
+            return self.rng.choice([letter for letter in "ABCD" if letter != i["answer"]])
+        return self.rng.choice(["weet ik niet", "", i["answer"] + "0"])
+
+    def record_sitting(self, s: dict, sitting: tuple[str, str, float]) -> None:
+        taken = self.sit(s, sitting)
+        when = RESIT_DAY["B1"] if sitting[1] == "resit" else RESULTS_DAY["B1"]
+        self.add_raw({"student": s, "ckey": "B1", "cid": "kennistoets", "value": taken["grade"], "when": when,
+                      "kind": "assessment-result", "result": taken["result"]})
+
+    def sit_main_exams(self) -> None:
+        for key, *_rest in PROGRAMMES:
+            for s in self.by_group[(key, 1)]:
+                if s is not self.exempt_ict:
+                    self.record_sitting(s, (key, "adapted" if s is self.adapted_ict else "main", 0.5))
+
+    def add_proctoring(self) -> None:
+        proctored = self.results_by_exam[("ICT", "adapted")][0][1]
+        started = dt.datetime.fromisoformat(proctored["startedAt"])
+        proctoring = self.b.add("proctoring-session", {
+            "assessmentResultId": proctored["uuid"], "learnerId": self.adapted_ict["nc"], "provider": "native-test-mode", "providerSessionId": None,
+            "status": "ended", "recordedArtefactRefs": [],
+            "flags": [{"flagId": "flag-1", "kind": "window-blur", "occurredAt": (started + dt.timedelta(minutes=41)).isoformat(),
+                       "severity": "low", "reviewDecision": "allowed", "reviewedBy": "he-surveillant-01",
+                       "reviewedAt": stamp(PROGRAMME_OF["ICT"][7], 12, 30)}],
+            "lifecycle": "ended",
+        })
+        proctored["proctoringSessionId"] = proctoring["uuid"]
 
     # Item statistics and reliability for the main sittings, computed from the
     # stored responses the way ItemAnalysisService does (no rounding; a
     # degenerate correlation is 0.0; the top and bottom 27 percent by total).
-    flag_states = ["revised", "acknowledged", "dismissed", "open"]
-    flag_n = 0
-    for key, *_rest in PROGRAMMES:
-        exam = exams[(key, "main")]
-        rows = results_by_exam[(key, "main")]
+    def add_item_statistics(self) -> None:
+        for key, *_rest in PROGRAMMES:
+            self.analyse_exam(key)
 
-        def scored(response: dict) -> float:
-            return response["manualScore"] if response["manualScore"] is not None else response["autoScore"]
-
+    def analyse_exam(self, key: str) -> None:
+        exam, rows = self.exams[(key, "main")], self.results_by_exam[(key, "main")]
         totals = [sum(scored(r) for r in res["responses"]) for _s, res, _sc in rows]
-        n_rows = len(rows)
-        group = min(max(1, int(php_round(n_rows * 0.27, 0))), n_rows // 2)
-        order = sorted(range(n_rows), key=lambda i: -totals[i])
-        high, low = order[:group], order[-group:]
-        matrix = []
-        computed = stamp(results_day["B1"], 8, 0)
-        for idx, i in enumerate(exam["items"]):
-            scores = [scored(res["responses"][idx]) for _s, res, _sc in rows]
-            matrix.append(scores)
-            corr = pearson(scores, [t - sc for t, sc in zip(totals, scores)])
-            p_value = sum(1 for sc in scores if sc >= i["max"] - 1e-9) / n_rows
-            distractors = None
-            if i["type"] == "choice":
-                picks = [res["responses"][idx]["response"]["value"] for _s, res, _sc in rows]
-                distractors = [{"optionId": letter,
-                                "selectedByHighGroup": sum(1 for j in high if picks[j] == letter),
-                                "selectedByLowGroup": sum(1 for j in low if picks[j] == letter)}
-                               for letter in "ABCD"]
-            stat = b.add("item-statistics", {
-                "itemId": i["obj"]["uuid"], "assessmentId": exam["obj"]["uuid"], "sampleSize": n_rows, "pValue": p_value,
-                "itemTotalCorrelation": corr, "distractorAnalysis": distractors, "insufficientData": n_rows < 20, "computedAt": computed,
-            })
-            flags_for = []
-            for reason in flag_reasons(p_value, corr):
-                flags_for.append((reason, flag_states[flag_n % len(flag_states)]))
-                flag_n += 1
-            if flags_for:
-                stat["_flags"] = flags_for
+        sample = ExamSample(exam, rows, totals, high_and_low(totals))
+        matrix = [self.add_item_statistic(sample, idx) for idx in range(len(exam["items"]))]
         k = len(exam["items"])
         alpha = (k / (k - 1)) * (1 - sum(variance(col) for col in matrix) / variance(totals))
-        b.add("assessment-reliability", {"assessmentId": exam["obj"]["uuid"], "sampleSize": n_rows, "itemCount": k,
-                                         "cronbachAlpha": alpha, "insufficientData": False, "computedAt": computed})
+        self.b.add("assessment-reliability", {"assessmentId": exam["obj"]["uuid"], "sampleSize": len(rows), "itemCount": k,
+                                              "cronbachAlpha": alpha, "insufficientData": False, "computedAt": stamp(RESULTS_DAY["B1"], 8, 0)})
+
+    def add_item_statistic(self, sample: ExamSample, idx: int) -> list[float]:
+        i, n_rows = sample.exam["items"][idx], len(sample.rows)
+        scores = [scored(res["responses"][idx]) for _s, res, _sc in sample.rows]
+        corr = pearson(scores, [t - sc for t, sc in zip(sample.totals, scores)])
+        p_value = full_marks_share(scores, i["max"])
+        stat = self.b.add("item-statistics", {
+            "itemId": i["obj"]["uuid"], "assessmentId": sample.exam["obj"]["uuid"], "sampleSize": n_rows, "pValue": p_value,
+            "itemTotalCorrelation": corr, "distractorAnalysis": distractors(sample, idx), "insufficientData": n_rows < 20,
+            "computedAt": stamp(RESULTS_DAY["B1"], 8, 0),
+        })
+        flags_for = self.revision_flags(p_value, corr)
+        if flags_for:
+            stat["_flags"] = flags_for
+        return scores
+
+    def revision_flags(self, p_value: float, correlation: float) -> list[tuple[str, str]]:
+        flags_for = []
+        for reason in flag_reasons(p_value, correlation):
+            flags_for.append((reason, FLAG_STATES[self.flag_n % len(FLAG_STATES)]))
+            self.flag_n += 1
+        return flags_for
 
     # Resits of the knowledge test for everyone whose block 1 course would fail.
-    b1_components = {c[0]: {"weight": c[3]} for c in Y1_COMPONENTS}
-    for key, short, name, code, fac, weekday, room_key, exam_day, resit_date, _off in PROGRAMMES:
-        for s in by_group[(key, 1)]:
-            if s.get("withdrawn") or s is exempt_ict:
-                continue
-            first = raw[(s["nc"], "B1", "kennistoets")][0]
-            other = raw[(s["nc"], "B1", "beroepsproduct")][0]
-            value, _bd = aggregate([{"componentId": "kennistoets", "value": first["value"]}, {"componentId": "beroepsproduct", "value": other["value"]}], b1_components)
-            if value >= PASS or first["value"] >= PASS or rng.random() > 0.9:
-                continue
-            sitting = sit(s, key, "resit", 0.8)
-            add_raw(s, "B1", "kennistoets", sitting["grade"], resit_day["B1"], "assessment-result", result=sitting["result"])
-    for key, *_rest in PROGRAMMES:
-        exam = exams[(key, "resit")]
-        rows = results_by_exam.get((key, "resit"), [])
-        b.add("assessment-reliability", {"assessmentId": exam["obj"]["uuid"], "sampleSize": len(rows), "itemCount": len(exam["items"]),
-                                         "cronbachAlpha": None, "insufficientData": True, "computedAt": stamp(resit_day["B1"], 8, 0)})
-    for stat in b.buckets["item-statistics"]:
-        for reason, state in stat.pop("_flags", []):
-            b.add("item-revision-flag", {"itemId": stat["itemId"], "itemStatisticsId": stat["uuid"], "reason": reason,
-                                         "pValueAtFlag": stat["pValue"], "itemTotalCorrelationAtFlag": stat["itemTotalCorrelation"],
-                                         "flaggedAt": stat["computedAt"], "lifecycle": state})
+    def sit_knowledge_resits(self) -> None:
+        for key, *_rest in PROGRAMMES:
+            for s in self.by_group[(key, 1)]:
+                if self.needs_knowledge_resit(s):
+                    self.record_sitting(s, (key, "resit", 0.8))
+
+    def needs_knowledge_resit(self, s: dict) -> bool:
+        if s.get("withdrawn") or s is self.exempt_ict:
+            return False
+        first = self.raw[(s["nc"], "B1", "kennistoets")][0]
+        other = self.raw[(s["nc"], "B1", "beroepsproduct")][0]
+        value, _bd = aggregate([{"componentId": "kennistoets", "value": first["value"]}, {"componentId": "beroepsproduct", "value": other["value"]}], B1_WEIGHTS)
+        return not (value >= PASS or first["value"] >= PASS or self.rng.random() > 0.9)
+
+    def add_resit_reliability(self) -> None:
+        for key, *_rest in PROGRAMMES:
+            exam = self.exams[(key, "resit")]
+            rows = self.results_by_exam.get((key, "resit"), [])
+            self.b.add("assessment-reliability", {"assessmentId": exam["obj"]["uuid"], "sampleSize": len(rows), "itemCount": len(exam["items"]),
+                                                  "cronbachAlpha": None, "insufficientData": True, "computedAt": stamp(RESIT_DAY["B1"], 8, 0)})
+
+    def add_revision_flags(self) -> None:
+        for stat in self.b.buckets["item-statistics"]:
+            for reason, state in stat.pop("_flags", []):
+                self.b.add("item-revision-flag", {"itemId": stat["itemId"], "itemStatisticsId": stat["uuid"], "reason": reason,
+                                                  "pValueAtFlag": stat["pValue"], "itemTotalCorrelationAtFlag": stat["itemTotalCorrelation"],
+                                                  "flaggedAt": stat["computedAt"], "lifecycle": state})
 
     # --- the peer reviewed group project (block 4) -------------------------------
-    project_grade: dict[str, tuple[float, dict]] = {}
-    submissions_by_key = {}
-    for key, short, *_rest in PROGRAMMES:
-        course = courses[(key, "B4")]
-        levels = [("onvoldoende", "Onvoldoende", 2.0), ("voldoende", "Voldoende", 6.0), ("goed", "Goed", 8.0), ("uitstekend", "Uitstekend", 10.0)]
-        criteria = [("probleemanalyse", "Probleemanalyse"), ("onderbouwing", "Onderbouwing van keuzes"), ("resultaat", "Resultaat voor de opdrachtgever"), ("samenwerking", "Samenwerking en planning")]
-        rubric = b.add("rubric", {
-            "name": f"Beoordelingsrubric {course['name']}", "description": "Vier criteria, elk op vier niveaus.",
-            "criteria": [{"criterionId": cid, "label": lab, "weight": 1, "levels": [{"levelId": lid, "label": ll, "points": pts} for lid, ll, pts in levels]} for cid, lab in criteria],
-            "maxPoints": 40, "lifecycle": "active",
-        })
-        assignment = b.add("assignment", {
+    def add_group_projects(self) -> None:
+        self.project_grade: dict[str, tuple[float, dict]] = {}
+        self.submissions_by_key: dict[str, tuple[dict, list]] = {}
+        for key, *_rest in PROGRAMMES:
+            rubric = self.b.add("rubric", project_rubric(self.courses[(key, "B4")]))
+            assignment = self.b.add("assignment", self.project_assignment(key, rubric))
+            subs = [self.add_group_submission(assignment, group) for group in self.project_groups(key)]
+            self.submissions_by_key[key] = (assignment, subs)
+
+    def project_assignment(self, key: str, rubric: dict) -> dict:
+        course = self.courses[(key, "B4")]
+        return {
             "title": f"Projectverslag {course['name']}",
             "instructions": "Lever als projectgroep één verslag in. Beoordeel daarna de verslagen van twee andere groepen met dezelfde rubric.",
-            "courseId": course["uuid"], "cohortId": cohorts[(key, 1)]["uuid"], "curriculumPlanComponentId": "projectverslag",
+            "courseId": course["uuid"], "cohortId": self.cohorts[(key, 1)]["uuid"], "curriculumPlanComponentId": "projectverslag",
             "dueAt": stamp(dt.date(2026, 6, 12), 17, 0), "maxPoints": 40, "allowLateSubmission": False, "latePenaltyPercent": 0,
             "rubricId": rubric["uuid"], "groupSubmission": True, "visibleFrom": stamp(dt.date(2026, 5, 4), 8, 0),
-            "competencyIds": [outcomes[key][6]["uuid"], outcomes[key][7]["uuid"]], "peerReviewEnabled": True, "selfAssessmentEnabled": False,
+            "competencyIds": [self.outcomes[key][6]["uuid"], self.outcomes[key][7]["uuid"]], "peerReviewEnabled": True, "selfAssessmentEnabled": False,
             "peerReviewersPerSubmission": 2, "peerReviewAnonymity": "blind", "peerReviewAllocationStrategy": "round-robin",
             "peerReviewDueAt": stamp(dt.date(2026, 6, 19), 17, 0), "peerReviewWeightPercent": 20, "lifecycle": "closed",
-        })
-        members = [s for s in by_group[(key, 1)] if not s.get("withdrawn")]
-        members = sorted(members, key=lambda s: s["nc"])
-        rng.shuffle(members)
+        }
+
+    def project_groups(self, key: str) -> list[list[dict]]:
+        members = sorted(still_enrolled(self.by_group[(key, 1)]), key=lambda s: s["nc"])
+        self.rng.shuffle(members)
         groups = [members[i:i + 4] for i in range(0, len(members), 4)]
         if len(groups) > 1 and len(groups[-1]) < 3:
             groups[-2].extend(groups.pop())
-        subs = []
-        for g_index, group in enumerate(groups):
-            mean = sum(s["ability"] for s in group) / len(group)
-            scores = []
-            for cid, _lab in criteria:
-                q = mean + rng.gauss(0.3, 0.7)
-                lid, _ll, pts = levels[0 if q < -1.2 else 1 if q < 0.2 else 2 if q < 1.2 else 3]
-                scores.append({"criterionId": cid, "levelId": lid, "points": pts})
-            total = sum(x["points"] for x in scores)
-            sub = b.add("submission", {
-                "assignmentId": assignment["uuid"], "learnerIds": [s["nc"] for s in group], "learnerRefs": [s["profile"]["uuid"] for s in group],
-                "attachmentRefs": [], "submittedAt": stamp(dt.date(2026, 6, 12), rng.randint(9, 16), rng.choice([5, 20, 35, 50])),
-                "feedbackText": ("Sterk verslag met een heldere analyse." if total >= 30 else "Voldoende verslag; werk de onderbouwing verder uit." if total >= 22 else "De analyse is te dun. Werk het verslag om in de herkansing."),
-                "gradeEntryId": None, "rubricScores": scores, "proposedGrade": total, "lifecycle": "returned", "plagiarismStatus": "not-requested",
-            })
-            subs.append((group, sub))
-            for s in group:
-                project_grade[s["nc"]] = (clamp_grade(max(1.0, total / 4)), sub)
-        submissions_by_key[key] = (assignment, rubric, subs)
-    for key, *_rest in PROGRAMMES:
-        assignment, rubric, subs = submissions_by_key[key]
-        reviews_for = {}
-        for g_index, (group, sub) in enumerate(subs):
-            for step in (1, 2):
-                reviewer_group = subs[(g_index + step) % len(subs)][0]
-                reviewer = reviewer_group[(g_index + step) % len(reviewer_group)]
-                scores = []
-                for criterion in sub["rubricScores"]:
-                    shift = rng.choice([-1, 0, 0, 1])
-                    points = [2.0, 6.0, 8.0, 10.0]
-                    idx = max(0, min(3, points.index(criterion["points"]) + shift))
-                    scores.append({"criterionId": criterion["criterionId"], "levelId": ["onvoldoende", "voldoende", "goed", "uitstekend"][idx], "points": points[idx]})
-                review = b.add("peer-review", {
-                    "assignmentId": assignment["uuid"], "submissionId": sub["uuid"], "reviewerId": reviewer["nc"], "rubricScores": scores,
-                    "totalScore": sum(x["points"] for x in scores),
-                    "comments": rng.choice([
-                        "Duidelijke opbouw. De keuzes in hoofdstuk drie mogen beter onderbouwd.",
-                        "Goed dat jullie de opdrachtgever hebben gesproken. De planning ontbreekt nog.",
-                        "Het resultaat is bruikbaar. Voeg bronnen toe bij de analyse.",
-                        "Prettig leesbaar verslag. De conclusie herhaalt vooral de inleiding.",
-                    ]),
-                    "lifecycle": "released",
-                })
-                reviews_for.setdefault(sub["uuid"], []).append(review)
-        for group, sub in subs:
-            reviews = reviews_for[sub["uuid"]]
-            b.add("peer-feedback-summary", {
-                "submissionId": sub["uuid"], "assignmentId": assignment["uuid"], "reviewCount": len(reviews),
-                "averageScore": sum(r["totalScore"] for r in reviews) / len(reviews),
-                "feedbackItems": [{"comments": r["comments"], "rubricScores": r["rubricScores"], "reviewerId": None} for r in reviews],
-                "lastComputedAt": assignment["peerReviewDueAt"],
-            })
-    for s in by_group_all(by_group, 1):
-        if s["nc"] in project_grade:
-            value, sub = project_grade[s["nc"]]
-            add_raw(s, "B4", "projectverslag", value, results_day["B4"], "assignment-submission", submission=sub)
+        return groups
+
+    def add_group_submission(self, assignment: dict, group: list[dict]) -> tuple[list[dict], dict]:
+        scores = self.score_group(group)
+        total = sum(x["points"] for x in scores)
+        sub = self.b.add("submission", {
+            "assignmentId": assignment["uuid"], "learnerIds": nc_ids(group), "learnerRefs": profile_refs(group),
+            "attachmentRefs": [], "submittedAt": stamp(dt.date(2026, 6, 12), self.rng.randint(9, 16), self.rng.choice([5, 20, 35, 50])),
+            "feedbackText": project_feedback(total),
+            "gradeEntryId": None, "rubricScores": scores, "proposedGrade": total, "lifecycle": "returned", "plagiarismStatus": "not-requested",
+        })
+        for s in group:
+            self.project_grade[s["nc"]] = (clamp_grade(max(1.0, total / 4)), sub)
+        return (group, sub)
+
+    def score_group(self, group: list[dict]) -> list[dict]:
+        mean = sum(s["ability"] for s in group) / len(group)
+        return [self.criterion_score(mean, cid) for cid, _lab in RUBRIC_CRITERIA]
+
+    def criterion_score(self, mean: float, cid: str) -> dict:
+        q = mean + self.rng.gauss(0.3, 0.7)
+        lid, _ll, pts = RUBRIC_LEVELS[0 if q < -1.2 else 1 if q < 0.2 else 2 if q < 1.2 else 3]
+        return {"criterionId": cid, "levelId": lid, "points": pts}
+
+    def add_peer_reviews(self) -> None:
+        for key, *_rest in PROGRAMMES:
+            assignment, subs = self.submissions_by_key[key]
+            reviews_for = {}
+            for g_index, (_group, sub) in enumerate(subs):
+                reviews_for[sub["uuid"]] = [self.add_peer_review(assignment, (subs, g_index, step)) for step in (1, 2)]
+            for _group, sub in subs:
+                self.add_feedback_summary(assignment, (sub, reviews_for[sub["uuid"]]))
+
+    def add_peer_review(self, assignment: dict, pairing: tuple[list, int, int]) -> dict:
+        subs, g_index, step = pairing
+        sub = subs[g_index][1]
+        reviewer_group = subs[(g_index + step) % len(subs)][0]
+        reviewer = reviewer_group[(g_index + step) % len(reviewer_group)]
+        scores = [self.reviewed_score(criterion) for criterion in sub["rubricScores"]]
+        return self.b.add("peer-review", {
+            "assignmentId": assignment["uuid"], "submissionId": sub["uuid"], "reviewerId": reviewer["nc"], "rubricScores": scores,
+            "totalScore": sum(x["points"] for x in scores), "comments": self.rng.choice(PEER_COMMENTS), "lifecycle": "released",
+        })
+
+    def reviewed_score(self, criterion: dict) -> dict:
+        shift = self.rng.choice([-1, 0, 0, 1])
+        points = [level[2] for level in RUBRIC_LEVELS]
+        idx = max(0, min(3, points.index(criterion["points"]) + shift))
+        return {"criterionId": criterion["criterionId"], "levelId": RUBRIC_LEVELS[idx][0], "points": points[idx]}
+
+    def add_feedback_summary(self, assignment: dict, reviewed: tuple[dict, list[dict]]) -> None:
+        sub, reviews = reviewed
+        self.b.add("peer-feedback-summary", {
+            "submissionId": sub["uuid"], "assignmentId": assignment["uuid"], "reviewCount": len(reviews),
+            "averageScore": sum(r["totalScore"] for r in reviews) / len(reviews),
+            "feedbackItems": [{"comments": r["comments"], "rubricScores": r["rubricScores"], "reviewerId": None} for r in reviews],
+            "lastComputedAt": assignment["peerReviewDueAt"],
+        })
+
+    def add_project_grades(self) -> None:
+        for s in by_group_all(self.by_group, 1):
+            if s["nc"] in self.project_grade:
+                value, sub = self.project_grade[s["nc"]]
+                self.add_raw({"student": s, "ckey": "B4", "cid": "projectverslag", "value": value, "when": RESULTS_DAY["B4"],
+                              "kind": "assignment-submission", "submission": sub})
 
     # --- internship portfolios (third year, semester 1) -----------------------
-    assessors = {}
-    for key, short, *_rest in PROGRAMMES:
-        assessors[key] = []
-        for org, domain, given, family in WORKPLACES[key]:
-            assessors[key].append((org, b.add("external-assessor", {
+    def add_assessors(self) -> None:
+        self.assessors: dict[str, list[tuple[str, dict]]] = {}
+        for key, *_rest in PROGRAMMES:
+            self.assessors[key] = [(org, self.b.add("external-assessor", {
                 "givenName": given, "familyName": family, "email": f"{given.lower()}.{family.lower()}@{domain}",
                 "organisationName": org, "active": True,
-            })))
-    templates = {}
-    for key, short, *_rest in PROGRAMMES:
-        lus = outcomes[key]
-        templates[key] = b.add("portfolio-template", {
-            "name": f"Stageportfolio {short} {YEAR}", "kind": "course-bound",
-            "description": "Laat met bewijs en reflectie zien hoe je in de praktijk aan je leeruitkomsten werkte.",
-            "sections": [
-                {"sectionId": "praktijk", "label": "Beroepshandelen in de praktijk", "order": 1,
-                 "helpText": "Beschrijf twee situaties waarin je zelfstandig handelde.",
-                 "criteria": [{"criterionId": "praktijk-1", "label": "Plannen en uitvoeren", "description": lus[2]["description"], "competencyId": lus[2]["uuid"]},
-                              {"criterionId": "praktijk-2", "label": "Samenwerken en communiceren", "description": lus[6]["description"], "competencyId": lus[6]["uuid"]}]},
-                {"sectionId": "ontwikkeling", "label": "Professionele ontwikkeling", "order": 2,
-                 "helpText": "Laat zien wat je leerde en wat je volgende stap is.",
-                 "criteria": [{"criterionId": "ontwikkeling-1", "label": "Reflectie en leerdoelen", "description": lus[8]["description"], "competencyId": lus[8]["uuid"]}]},
-            ],
-            "rubricId": None, "lifecycle": "active",
-        })
-    portfolios = {}
-    for s in by_group_all(by_group, 3):
+            })) for org, domain, given, family in WORKPLACES[key]]
+
+    def add_portfolio_templates(self) -> None:
+        self.templates = {}
+        for key, short, *_rest in PROGRAMMES:
+            self.templates[key] = self.b.add("portfolio-template", {
+                "name": f"Stageportfolio {short} {YEAR}", "kind": "course-bound",
+                "description": "Laat met bewijs en reflectie zien hoe je in de praktijk aan je leeruitkomsten werkte.",
+                "sections": portfolio_sections(self.outcomes[key]), "rubricId": None, "lifecycle": "active",
+            })
+
+    def add_portfolios(self) -> None:
+        for s in by_group_all(self.by_group, 3):
+            org, assessor = self.assessors[s["programme"]][int(s["nc"].rsplit("-", 1)[1]) % 2]
+            portfolio = self.add_portfolio(s, org)
+            for reflection in REFLECTIONS:
+                self.add_reflection(s, (portfolio, org, reflection))
+            self.b.add("portfolio-share", {
+                "portfolioId": portfolio["uuid"], "entryIds": None, "sharedWithKind": "external-assessor", "sharedWithTeacherId": None,
+                "sharedWithPracticalTrainerId": None, "sharedWithExternalAssessorId": assessor["uuid"], "sharedBy": s["nc"],
+                "expiresAt": stamp(dt.date(2026, 2, 27), 23, 59), "lifecycle": "active",
+            })
+
+    def add_portfolio(self, s: dict, org: str) -> dict:
         key = s["programme"]
-        org, assessor = assessors[key][int(s["nc"].rsplit("-", 1)[1]) % 2]
-        spec = raw[(s["nc"], "STAGE", "stageportfolio")][0]
-        portfolio = b.add("portfolio", {
-            "learnerId": s["nc"], "learnerRef": s["profile"]["uuid"], "kind": "course-bound", "templateId": templates[key]["uuid"],
-            "courseId": courses[(key, "STAGE")]["uuid"], "curriculumPlanId": plans[(key, "STAGE")]["uuid"],
+        spec = self.raw[(s["nc"], "STAGE", "stageportfolio")][0]
+        spec["portfolio"] = self.b.add("portfolio", {
+            "learnerId": s["nc"], "learnerRef": s["profile"]["uuid"], "kind": "course-bound", "templateId": self.templates[key]["uuid"],
+            "courseId": self.courses[(key, "STAGE")]["uuid"], "curriculumPlanId": self.plans[(key, "STAGE")]["uuid"],
             "curriculumPlanComponentId": "stageportfolio", "title": f"Stageportfolio {s['given']} {s['family']}",
             "description": f"Stage bij {org}.", "dueAt": stamp(dt.date(2026, 1, 23), 17, 0), "gradeValue": spec["value"],
             "gradeEntryId": None, "lifecycle": "graded",
         })
-        portfolios[s["nc"]] = portfolio
-        spec["portfolio"] = portfolio
-        lus = outcomes[key]
-        b.add("portfolio-entry", {
-            "portfolioId": portfolio["uuid"], "learnerId": s["nc"], "title": "Reflectie: beroepshandelen in de praktijk", "evidenceKind": "reflection",
-            "reflectionText": rng.choice([
-                f"Bij {org} nam ik vanaf week zes zelfstandig taken over. Ik leerde vooraf te plannen en achteraf te controleren wat ik had afgesproken.",
-                f"In mijn stage bij {org} merkte ik dat overleg met collega's mijn werk beter maakte. Ik vraag nu eerder feedback.",
-                f"Bij {org} kreeg ik een eigen opdracht. Het lastigste was kiezen wat eerst moest; een weekplanning hielp.",
-            ]),
-            "sectionId": "praktijk", "criterionId": "praktijk-1", "competencyId": lus[2]["uuid"],
-        })
-        b.add("portfolio-entry", {
-            "portfolioId": portfolio["uuid"], "learnerId": s["nc"], "title": "Reflectie: professionele ontwikkeling", "evidenceKind": "reflection",
-            "reflectionText": rng.choice([
-                "Mijn leerdoel was duidelijker communiceren. In de laatste evaluatie gaf mijn begeleider aan dat dat gelukt is. Mijn volgende doel is leiding nemen in overleg.",
-                "Ik heb geleerd mijn eigen grenzen aan te geven. Voor de minor wil ik verder werken aan het onderbouwen van keuzes met literatuur.",
-                "Ik ben zelfstandiger geworden. Ik wil nog beter leren omgaan met onverwachte situaties.",
-            ]),
-            "sectionId": "ontwikkeling", "criterionId": "ontwikkeling-1", "competencyId": lus[8]["uuid"],
-        })
-        b.add("portfolio-share", {
-            "portfolioId": portfolio["uuid"], "entryIds": None, "sharedWithKind": "external-assessor", "sharedWithTeacherId": None,
-            "sharedWithPracticalTrainerId": None, "sharedWithExternalAssessorId": assessor["uuid"], "sharedBy": s["nc"],
-            "expiresAt": stamp(dt.date(2026, 2, 27), 23, 59), "lifecycle": "active",
+        return spec["portfolio"]
+
+    def add_reflection(self, s: dict, entry: tuple) -> None:
+        portfolio, org, (title, section, criterion, outcome, texts) = entry
+        self.b.add("portfolio-entry", {
+            "portfolioId": portfolio["uuid"], "learnerId": s["nc"], "title": title, "evidenceKind": "reflection",
+            "reflectionText": self.rng.choice(texts).format(org=org),
+            "sectionId": section, "criterionId": criterion, "competencyId": self.outcomes[s["programme"]][outcome]["uuid"],
         })
 
     # --- exam board cases -------------------------------------------------------
-    exemption_granted = []
-    wtb_exempt = next(s for s in by_group[("WTB", 1)] if s["mbo"] and not s.get("withdrawn"))
-    sw_rejected = next(s for s in by_group[("SW", 1)] if s["mbo"] and not s.get("withdrawn"))
-    for s, ckey, cid, grounds, desc, decided, granted, rationale in (
-        (exempt_ict, "B1", "kennistoets", "prior-diploma", "Mbo-diploma Software developer (niveau 4) met de onderdelen programmeren en testen.",
-         dt.date(2025, 10, 2), True, "Het mbo-diploma dekt de leerdoelen van de kennistoets programmeren aantoonbaar. Vrijstelling voor dit onderdeel; het beroepsproduct blijft verplicht."),
-        (wtb_exempt, "B2", "kennistoets", "certificate", "Certificaat technisch tekenen en CAD van een eerdere hbo-opleiding, behaald in 2024.",
-         dt.date(2025, 11, 27), True, "Het certificaat dekt de normen en aanzichten van de kennistoets. Vrijstelling voor dit onderdeel."),
-        (sw_rejected, "B3", "beroepsproduct", "work-experience", "Twee jaar werkervaring als ambulant begeleider bij een zorgaanbieder.",
-         dt.date(2026, 3, 5), False, "Werkervaring alleen toont de juridische kennis van dit beroepsproduct niet aan. De student kan het beroepsproduct maken."),
-    ):
+    def add_exemption_cases(self) -> None:
+        applicants = {"ICT": self.exempt_ict, "WTB": first_with_mbo(self.by_group[("WTB", 1)]), "SW": first_with_mbo(self.by_group[("SW", 1)])}
+        for who, *case in EXEMPTIONS:
+            self.add_exemption_case(applicants[who], tuple(case))
+
+    def add_exemption_case(self, s: dict, case: tuple) -> None:
+        ckey, cid, grounds, desc, decided, granted, rationale = case
         key = s["programme"]
-        case = b.add("exemption-case", {
-            "learnerId": s["profile"]["uuid"], "learnerUserId": s["profile"]["ncUserId"], "curriculumPlanId": plans[(key, ckey)]["uuid"], "componentId": cid, "groundsKind": grounds,
+        decision = self.b.add("exemption-case", {
+            "learnerId": s["profile"]["uuid"], "learnerUserId": s["profile"]["ncUserId"], "curriculumPlanId": self.plans[(key, ckey)]["uuid"], "componentId": cid, "groundsKind": grounds,
             "groundsDescription": desc, "submittedAt": stamp(decided - dt.timedelta(days=21), 11, 0), "decisionRationale": rationale,
-            "policyReference": f"Onderwijs- en examenregeling {YEAR}, paragraaf vrijstellingen", "decidedBy": chairs[PROGRAMMES[[p[0] for p in PROGRAMMES].index(key)][4]],
+            "policyReference": f"Onderwijs- en examenregeling {YEAR}, paragraaf vrijstellingen", "decidedBy": CHAIRS[PROGRAMME_OF[key][4]],
             "decidedAt": stamp(decided, 16, 0), "resultingGradeEntryId": None, "lifecycle": "granted" if granted else "rejected",
         })
         if granted:
-            raw.pop((s["nc"], ckey, cid), None)
-            exemption_granted.append(add_raw(s, ckey, cid, None, decided, "exemption", case=case))
+            self.raw.pop((s["nc"], ckey, cid), None)
+            self.add_raw({"student": s, "ckey": ckey, "cid": cid, "value": None, "when": decided, "kind": "exemption", "case": decision})
 
     # Fraud: an ICT student copied part of a block 2 report without citing it.
-    fraud_student = sorted((s for s in by_group[("ICT", 1)] if not s.get("withdrawn") and s is not exempt_ict and s is not adapted_ict),
-                           key=lambda s: s["nc"])[3]
-    contested = raw[(fraud_student["nc"], "B2", "beroepsproduct")][0]
-    contested["value"] = max(contested["value"], 6.8)
-    fraud = b.add("fraud-case", {
-        "reporterId": teacher_of("ICT", "B2"), "accusedLearnerId": fraud_student["profile"]["uuid"], "accusedLearnerUserId": fraud_student["profile"]["ncUserId"], "sourceKind": "manual",
-        "allegation": "Twee pagina's van het individuele verslag over het datamodel zijn letterlijk overgenomen van een openbare website, zonder bronvermelding.",
-        "reportedAt": stamp(dt.date(2026, 2, 2), 10, 0), "hearingDate": stamp(dt.date(2026, 2, 19), 14, 0),
-        "hearingRecords": [{"heldAt": stamp(dt.date(2026, 2, 19), 14, 0), "attendees": [fraud_student["nc"], teacher_of("ICT", "B2"), chairs["noord"]],
-                            "notes": "De student erkent dat de passage is overgenomen en zegt de bronvermelding vergeten te zijn.", "evidenceRefs": []}],
-        "verdict": "fraud-proven",
-        "decisionRationale": "De overgenomen passage is omvangrijk en vormt de kern van het verslag. De examencommissie verklaart het beroepsproduct ongeldig; de student levert in de herkansing een nieuw verslag in.",
-        "decidedBy": chairs["noord"], "decidedAt": stamp(dt.date(2026, 3, 2), 16, 0), "sanctionType": "resubmission-required",
-        "sanctionDurationMonths": None, "sanctionScope": "single-assessment", "appealDeadline": stamp(dt.date(2026, 4, 13), 16, 0),
-        "appealLodged": False, "appealOutcome": None, "lifecycle": "decided",
-    })
-    contested["kind"] = "manual"
-    contested["lifecycle"] = "invalidated"
-    contested["fraud"] = fraud
-    add_raw(fraud_student, "B2", "beroepsproduct", clamp_grade(6.4 + 0.5 * fraud_student["ability"]), resit_day["B2"], "manual",
-            comment="Nieuw verslag na het besluit van de examencommissie.")
+    def add_fraud_case(self) -> None:
+        student = self.fraud_student()
+        contested = self.raw[(student["nc"], "B2", "beroepsproduct")][0]
+        contested["value"] = max(contested["value"], 6.8)
+        fraud = self.b.add("fraud-case", fraud_case(student, self.teacher_of("ICT", "B2")))
+        contested["kind"] = "manual"
+        contested["lifecycle"] = "invalidated"
+        contested["fraud"] = fraud
+        self.add_raw({"student": student, "ckey": "B2", "cid": "beroepsproduct", "value": clamp_grade(6.4 + 0.5 * student["ability"]),
+                      "when": RESIT_DAY["B2"], "kind": "manual", "comment": "Nieuw verslag na het besluit van de examencommissie."})
+
+    def fraud_student(self) -> dict:
+        candidates = (s for s in self.by_group[("ICT", 1)] if not s.get("withdrawn") and s is not self.exempt_ict and s is not self.adapted_ict)
+        return sorted(candidates, key=lambda s: s["nc"])[3]
 
     # --- resits and the outcome of every course ------------------------------
-    def published(specs: list[dict], until: dt.date | None = None) -> list[dict]:
-        rows = [x for x in specs if x.get("lifecycle", "published") == "published" and (until is None or x["when"] <= until)]
-        return [{"componentId": x["cid"], "value": x["value"], "sourceKind": x["kind"], "period": course_meta[(x["student"]["programme"], x["ckey"])][2]} for x in rows]
-
-    def course_specs(nc: str, key: str, ckey: str) -> list[dict]:
+    def course_specs(self, s: dict, ckey: str) -> list[dict]:
         out = []
-        for cid, *_rest in course_meta[(key, ckey)][6]:
-            out.extend(raw.get((nc, ckey, cid), []))
+        for cid, *_rest in COURSE_META[(s["programme"], ckey)][6]:
+            out.extend(self.raw.get((s["nc"], ckey, cid), []))
         return out
 
-    def components_of(key: str, ckey: str) -> dict[str, dict]:
-        return {c[0]: {"weight": c[3]} for c in course_meta[(key, ckey)][6]}
+    def published_raw(self, grade_key: tuple[str, str, str]) -> list[dict]:
+        return [x for x in self.raw.get(grade_key, []) if is_published(x)]
 
-    for s in students:
-        key = s["programme"]
-        for ckey, year, period, *_rest in COURSES[key]:
-            if year != s["year"] or s.get("withdrawn") or ckey == "STAGE":
-                continue
-            specs = course_specs(s["nc"], key, ckey)
-            value, _bd = aggregate(published(specs), components_of(key, ckey))
-            if value is None or value >= PASS or rng.random() > 0.9:
-                continue
-            for cid, *_c in course_meta[(key, ckey)][6]:
-                if (ckey, cid) == ("B1", "kennistoets"):
-                    continue  # the knowledge test resit ran through the item bank above
-                firsts = [x for x in raw.get((s["nc"], ckey, cid), []) if x.get("lifecycle", "published") == "published"]
-                if firsts and all(x["value"] < PASS for x in firsts):
-                    add_raw(s, ckey, cid, clamp_grade(6.1 + 0.6 * s["ability"] + rng.gauss(0.2, 0.7)), resit_day[period], "manual")
+    def add_resits(self) -> None:
+        for s in self.students:
+            for course in COURSES[s["programme"]]:
+                if self.needs_resit(s, course):
+                    self.add_course_resits(s, course)
 
-    def passed_by(s: dict, ckey: str, until: dt.date | None) -> bool:
-        """Passed at a moment: every component graded by then, and the engine's value at least 5.5."""
-        key = s["programme"]
-        pub = published(course_specs(s["nc"], key, ckey), until)
-        if {row["componentId"] for row in pub} != set(components_of(key, ckey)):
+    def needs_resit(self, s: dict, course: tuple) -> bool:
+        if not graded_this_year(s, course):
             return False
-        value, _bd = aggregate(pub, components_of(key, ckey))
+        value, _bd = aggregate(published(self.course_specs(s, course[0])), components_of(s["programme"], course[0]))
+        return not (value is None or value >= PASS or self.rng.random() > 0.9)
+
+    def add_course_resits(self, s: dict, course: tuple) -> None:
+        ckey, period = course[0], course[2]
+        for cid, *_c in course[6]:
+            if (ckey, cid) == ("B1", "kennistoets"):
+                continue  # the knowledge test resit ran through the item bank above
+            firsts = self.published_raw((s["nc"], ckey, cid))
+            if all_failed(firsts):
+                self.add_raw({"student": s, "ckey": ckey, "cid": cid, "value": clamp_grade(6.1 + 0.6 * s["ability"] + self.rng.gauss(0.2, 0.7)),
+                              "when": RESIT_DAY[period], "kind": "manual"})
+
+    def passed_by(self, s: dict, moment: tuple[str, dt.date | None]) -> bool:
+        """Passed a course by a day: every component graded by then, and the engine's value at least 5.5."""
+        ckey, until = moment
+        pub = published(self.course_specs(s, ckey), until)
+        if {row["componentId"] for row in pub} != set(components_of(s["programme"], ckey)):
+            return False
+        value, _bd = aggregate(pub, components_of(s["programme"], ckey))
         return value is not None and value >= PASS
 
-    def ects(s: dict, until: dt.date | None = None) -> float:
-        key = s["programme"]
-        return float(sum(c[3] for c in COURSES[key] if c[1] == 1 and passed_by(s, c[0], until)))
+    def ects(self, s: dict, until: dt.date | None = None) -> float:
+        return float(sum(c[3] for c in COURSES[s["programme"]] if c[1] == 1 and self.passed_by(s, (c[0], until))))
 
-    first_years = [s for s in by_group_all(by_group, 1) if not s.get("withdrawn")]
-    check_until = BSA_CHECK - dt.timedelta(days=1)
-    warned = {s["nc"] for s in first_years if ects(s, check_until) < BSA_INTERIM_NORM}
-    # A negative advice needs an earlier warning. A student who was on track in
-    # February but ends below the norm passes the resit of the last block they
-    # failed, so the set never shows an unwarned negative advice.
-    for s in first_years:
-        if s["nc"] in warned or ects(s) >= BSA_NORM:
-            continue
-        key = s["programme"]
+    def settle_first_years(self) -> None:
+        self.first_years = still_enrolled(by_group_all(self.by_group, 1))
+        self.warned = self.warned_in_february()
+        # A negative advice needs an earlier warning. A student who was on track in
+        # February but ends below the norm passes the resit of the last block they
+        # failed, so the set never shows an unwarned negative advice.
+        for s in self.first_years:
+            if s["nc"] not in self.warned and self.ects(s) < BSA_NORM:
+                self.pass_last_failed_block(s)
+
+    def warned_in_february(self) -> set[str]:
+        return {s["nc"] for s in self.first_years if self.ects(s, CHECK_UNTIL) < BSA_INTERIM_NORM}
+
+    def pass_last_failed_block(self, s: dict) -> None:
         for ckey in ("B4", "B3"):
-            if passed_by(s, ckey, None):
+            if not self.passed_by(s, (ckey, None)):
+                self.pass_failed_components(s, ckey)
+                return
+
+    def pass_failed_components(self, s: dict, ckey: str) -> None:
+        for cid, *_c in COURSE_META[(s["programme"], ckey)][6]:
+            specs = self.published_raw((s["nc"], ckey, cid))
+            if not all_failed(specs):
                 continue
-            for cid, *_c in course_meta[(key, ckey)][6]:
-                specs = [x for x in raw[(s["nc"], ckey, cid)] if x.get("lifecycle", "published") == "published"]
-                if max(x["value"] for x in specs) >= PASS:
-                    continue
-                resits = [x for x in specs if x["when"] == resit_day[ckey]]
-                if resits:
-                    resits[-1]["value"] = 7.0
-                else:
-                    add_raw(s, ckey, cid, 7.0, resit_day[ckey], "manual")
-            break
+            resits = graded_on(specs, RESIT_DAY[ckey])
+            if resits:
+                resits[-1]["value"] = 7.0
+            else:
+                self.add_raw({"student": s, "ckey": ckey, "cid": cid, "value": 7.0, "when": RESIT_DAY[ckey], "kind": "manual"})
 
     # --- grade entries and final grades ------------------------------------------
-    entry_of_result, entry_of_portfolio = {}, {}
-    finals: dict[tuple[str, str], dict] = {}
-    for s in students:
-        key = s["programme"]
-        cohort = cohorts[(key, s["year"])]
-        for ckey, year, period, *_rest in COURSES[key]:
-            if year != s["year"]:
-                continue
-            specs = sorted(course_specs(s["nc"], key, ckey), key=lambda x: (x["when"], x["cid"]))
-            for x in specs:
-                source = x["kind"]
-                # Only the reference that names this entry's source is written;
-                # the others stay unset rather than carrying four nulls each.
-                sources = {"submissionId": x.get("submission"), "assessmentResultId": x.get("result"), "exemptionCaseId": x.get("case"),
-                           "fraudCaseId": x.get("fraud"), "portfolioId": x.get("portfolio")}
-                fields = {
-                    "learnerId": s["nc"], "learnerRef": s["profile"]["uuid"], "curriculumPlanId": plans[(key, ckey)]["uuid"],
-                    "componentId": x["cid"], "courseId": courses[(key, ckey)]["uuid"], "cohortId": cohort["uuid"], "sourceKind": source,
-                } | {field: ref["uuid"] for field, ref in sources.items() if ref is not None} | {
-                    "value": x["value"], "gradeScaleId": scale["uuid"], "period": period,
-                    "grader": chairs[PROGRAMMES[[p[0] for p in PROGRAMMES].index(key)][4]] if source == "exemption" else teacher_of(key, ckey),
-                    "gradedAt": stamp(x["when"], 16, 0) if source == "exemption" else stamp(x["when"], 10, 0),
-                    "lifecycle": x.get("lifecycle", "published"),
-                }
-                if x.get("comment"):
-                    fields["comment"] = x["comment"]
-                entry = b.add("grade-entry", fields)
-                if "result" in x:
-                    x["result"]["gradeEntryId"] = entry["uuid"]
-                if "portfolio" in x:
-                    x["portfolio"]["gradeEntryId"] = entry["uuid"]
-                if "case" in x:
-                    x["case"]["resultingGradeEntryId"] = entry["uuid"]
-                if "fraud" in x:
-                    x["fraud"]["contestedGradeEntryId"] = entry["uuid"]
-            pub = published(specs)
-            if not pub:
-                continue
-            value, breakdown = aggregate(pub, components_of(key, ckey))
-            last = max(x["when"] for x in specs if x.get("lifecycle", "published") == "published")
-            finals[(s["nc"], ckey)] = b.add("final-grade", {
-                "learnerId": s["nc"], "learnerRef": s["profile"]["uuid"], "courseId": courses[(key, ckey)]["uuid"],
-                "curriculumPlanId": plans[(key, ckey)]["uuid"], "gradeScaleId": scale["uuid"], "value": value,
-                "passed": value is not None and value >= PASS, "breakdown": breakdown, "lastRecomputedAt": stamp(last, 10, 0),
-            })
+    def add_grade_entries(self) -> None:
+        self.finals: dict[tuple[str, str], dict] = {}
+        for s in self.students:
+            for course in COURSES[s["programme"]]:
+                if course[1] == s["year"]:
+                    self.grade_course(s, course)
 
-    # Enrolment outcomes.
-    for (nc, ckey), enrolment in enrolments.items():
-        s = student_by_nc[nc]
-        final = finals.get((nc, ckey))
-        if s.get("withdrawn") and final is None:
-            enrolment["lifecycle"] = "withdrawn"
-            enrolment["reason"] = f"Uitgeschreven per {WITHDRAWAL_DAY.day} januari 2026, voor de BSA-peildatum."
-        elif final is not None and final["passed"]:
-            enrolment["lifecycle"] = "completed"
-        else:
-            enrolment["lifecycle"] = "failed"
-            enrolment["reason"] = "Onderdeel niet behaald, ook niet na de herkansing."
+    def grade_course(self, s: dict, course: tuple) -> None:
+        specs = sorted(self.course_specs(s, course[0]), key=lambda x: (x["when"], x["cid"]))
+        for x in specs:
+            link_entry(x, self.b.add("grade-entry", self.grade_entry_fields(s, x)))
+        if published(specs):
+            self.add_final_grade(s, (course[0], specs))
+
+    def grade_entry_fields(self, s: dict, x: dict) -> dict:
+        key, ckey, exempt = s["programme"], x["ckey"], x["kind"] == "exemption"
+        fields = {
+            "learnerId": s["nc"], "learnerRef": s["profile"]["uuid"], "curriculumPlanId": self.plans[(key, ckey)]["uuid"],
+            "componentId": x["cid"], "courseId": self.courses[(key, ckey)]["uuid"], "cohortId": self.cohorts[(key, s["year"])]["uuid"],
+            "sourceKind": x["kind"],
+        } | source_refs(x) | {
+            "value": x["value"], "gradeScaleId": self.scale["uuid"], "period": COURSE_META[(key, ckey)][2],
+            "grader": CHAIRS[PROGRAMME_OF[key][4]] if exempt else self.teacher_of(key, ckey),
+            "gradedAt": stamp(x["when"], 16, 0) if exempt else stamp(x["when"], 10, 0),
+            "lifecycle": x.get("lifecycle", "published"),
+        }
+        if x.get("comment"):
+            fields["comment"] = x["comment"]
+        return fields
+
+    def add_final_grade(self, s: dict, graded: tuple[str, list[dict]]) -> None:
+        ckey, specs = graded
+        key = s["programme"]
+        value, breakdown = aggregate(published(specs), components_of(key, ckey))
+        last = max(x["when"] for x in specs if is_published(x))
+        self.finals[(s["nc"], ckey)] = self.b.add("final-grade", {
+            "learnerId": s["nc"], "learnerRef": s["profile"]["uuid"], "courseId": self.courses[(key, ckey)]["uuid"],
+            "curriculumPlanId": self.plans[(key, ckey)]["uuid"], "gradeScaleId": self.scale["uuid"], "value": value,
+            "passed": value is not None and value >= PASS, "breakdown": breakdown, "lastRecomputedAt": stamp(last, 10, 0),
+        })
+
+    def settle_enrolments(self) -> None:
+        for (nc, ckey), enrolment in self.enrolments.items():
+            enrolment.update(enrolment_outcome(self.student_by_nc[nc], self.finals.get((nc, ckey))))
 
     # --- binding study advice ------------------------------------------------------
-    trajectories, flags, warnings = {}, {}, {}
-    for key, *_rest in PROGRAMMES:
-        trajectories[key] = b.add("bsa-trajectory", {
-            "programmeId": programmes[key]["uuid"], "academicYear": YEAR, "kind": "he-eerstejaar-bsa", "cohortId": cohorts[(key, 1)]["uuid"],
-            "normEcts": BSA_NORM, "window": {"mode": "fixed-date", "date": BSA_CHECK.isoformat()}, "interimNormEcts": BSA_INTERIM_NORM,
-            "onAtRisk": {"notify": True, "notifyRoles": ["study-advisor", "exam-board"], "createFlag": True}, "lifecycle": "active",
-        })
-    final_ects = {s["nc"]: ects(s) for s in first_years}
-    for s in first_years:
-        if s["nc"] not in warned:
-            continue
+    def add_bsa_trajectories(self) -> None:
+        self.trajectories = {}
+        for key, *_rest in PROGRAMMES:
+            self.trajectories[key] = self.b.add("bsa-trajectory", {
+                "programmeId": self.programmes[key]["uuid"], "academicYear": YEAR, "kind": "he-eerstejaar-bsa", "cohortId": self.cohorts[(key, 1)]["uuid"],
+                "normEcts": BSA_NORM, "window": {"mode": "fixed-date", "date": BSA_CHECK.isoformat()}, "interimNormEcts": BSA_INTERIM_NORM,
+                "onAtRisk": {"notify": True, "notifyRoles": ["study-advisor", "exam-board"], "createFlag": True}, "lifecycle": "active",
+            })
+
+    def count_final_ects(self) -> None:
+        self.final_ects = {s["nc"]: self.ects(s) for s in self.first_years}
+
+    def add_bsa_warnings(self) -> None:
+        warned = [s for s in self.first_years if s["nc"] in self.warned]
+        self.flags = {s["nc"]: self.add_bsa_flag(s) for s in warned}
+        self.warnings = {s["nc"]: self.add_bsa_warning(s) for s in warned}
+
+    def add_bsa_flag(self, s: dict) -> dict:
         key = s["programme"]
-        flags[s["nc"]] = b.add("bsa-progress-flag", {
-            "learnerId": s["nc"], "programmeId": programmes[key]["uuid"], "bsaTrajectoryId": trajectories[key]["uuid"], "academicYear": YEAR,
-            "ectsEarned": ects(s, check_until), "ectsRequiredAtCheck": BSA_INTERIM_NORM, "flaggedAt": stamp(BSA_CHECK, 8, 0),
-            "lifecycle": "resolved" if final_ects[s["nc"]] >= BSA_NORM else "warned",
+        return self.b.add("bsa-progress-flag", {
+            "learnerId": s["nc"], "programmeId": self.programmes[key]["uuid"], "bsaTrajectoryId": self.trajectories[key]["uuid"], "academicYear": YEAR,
+            "ectsEarned": self.ects(s, CHECK_UNTIL), "ectsRequiredAtCheck": BSA_INTERIM_NORM, "flaggedAt": stamp(BSA_CHECK, 8, 0),
+            "lifecycle": "resolved" if self.final_ects[s["nc"]] >= BSA_NORM else "warned",
         })
-    for s in first_years:
-        if s["nc"] not in warned:
-            continue
-        key = s["programme"]
-        warnings[s["nc"]] = b.add("bsa-warning", {
-            "learnerId": s["nc"], "programmeId": programmes[key]["uuid"], "academicYear": YEAR, "bsaProgressFlagId": flags[s["nc"]]["uuid"],
-            "warningDate": dt.date(2026, 2, 13).isoformat(), "ectsEarnedAtWarning": ects(s, check_until), "ectsNormAtWarning": BSA_NORM,
+
+    def add_bsa_warning(self, s: dict) -> dict:
+        return self.b.add("bsa-warning", {
+            "learnerId": s["nc"], "programmeId": self.programmes[s["programme"]]["uuid"], "academicYear": YEAR, "bsaProgressFlagId": self.flags[s["nc"]]["uuid"],
+            "warningDate": dt.date(2026, 2, 13).isoformat(), "ectsEarnedAtWarning": self.ects(s, CHECK_UNTIL), "ectsNormAtWarning": BSA_NORM,
             "improvementPeriod": {"startDate": "2026-02-16", "endDate": "2026-07-03"},
             "offeredGuidance": "Maandelijks gesprek met de studieadviseur, een studieplan voor de herkansingen en een training plannen en studeren.",
             "personalCircumstancesNote": None, "signature": None, "signingKeyId": None,
-            "lifecycle": rng.choice(["issued", "acknowledged", "acknowledged"]),
+            "lifecycle": self.rng.choice(["issued", "acknowledged", "acknowledged"]),
         })
-    below = [s for s in first_years if final_ects[s["nc"]] < BSA_NORM]
-    postponed = {max(below, key=lambda s: sum(1 for r in records.get(s["nc"], []) if r["status"] == "absent-excused"))["nc"]} if below else set()
-    recommended = set()
-    for fac in ("zuid", "noord"):
-        pool = [s for s in below if s["nc"] not in postponed and PROGRAMMES[[p[0] for p in PROGRAMMES].index(s["programme"])][4] == fac]
-        if pool:
-            recommended.add(pool[0]["nc"])
-    appealed = next((s["nc"] for s in below if s["nc"] not in postponed and s["nc"] not in recommended), None)
-    for s in first_years:
-        key = s["programme"]
-        fac = PROGRAMMES[[p[0] for p in PROGRAMMES].index(key)][4]
-        earned = final_ects[s["nc"]]
-        warning = warnings.get(s["nc"])
-        fields = {
-            "learnerId": s["nc"], "programmeId": programmes[key]["uuid"], "academicYear": YEAR, "ectsAchieved": earned,
+
+    def pick_bsa_exceptions(self) -> None:
+        below = [s for s in self.first_years if self.final_ects[s["nc"]] < BSA_NORM]
+        self.postponed = self.postponed_advice(below)
+        self.recommended = self.recommended_per_faculty(below)
+        self.appealed = next((s["nc"] for s in below if s["nc"] not in self.postponed | self.recommended), None)
+
+    def postponed_advice(self, below: list[dict]) -> set[str]:
+        """The student below the norm with the most excused absences gets a postponed advice."""
+        return {max(below, key=self.excused_count)["nc"]} if below else set()
+
+    def excused_count(self, s: dict) -> int:
+        return sum(1 for r in self.records.get(s["nc"], []) if r["status"] == "absent-excused")
+
+    def recommended_per_faculty(self, below: list[dict]) -> set[str]:
+        recommended = set()
+        for fac in ("zuid", "noord"):
+            pool = self.faculty_pool(below, fac)
+            if pool:
+                recommended.add(pool[0]["nc"])
+        return recommended
+
+    def faculty_pool(self, below: list[dict], fac: str) -> list[dict]:
+        return [s for s in below if s["nc"] not in self.postponed and PROGRAMME_OF[s["programme"]][4] == fac]
+
+    def add_bsa_decisions(self) -> None:
+        for s in self.first_years:
+            self.b.add("bsa-decision", self.bsa_decision(s) | self.bsa_verdict(s))
+
+    def bsa_decision(self, s: dict) -> dict:
+        warning = self.warnings.get(s["nc"])
+        return {
+            "learnerId": s["nc"], "programmeId": self.programmes[s["programme"]]["uuid"], "academicYear": YEAR, "ectsAchieved": self.final_ects[s["nc"]],
             "ectsNormRequired": BSA_NORM, "warningIds": [warning["uuid"]] if warning else [], "personalCircumstancesConsidered": False,
             "personalCircumstancesNote": None, "studentHeardAt": None, "studentResponse": None, "rationale": None,
-            "decidedBy": chairs[fac], "decisionDate": stamp(dt.date(2026, 7, 8), 10, 0), "signature": None, "signingKeyId": None,
+            "decidedBy": CHAIRS[PROGRAMME_OF[s["programme"]][4]], "decisionDate": stamp(dt.date(2026, 7, 8), 10, 0), "signature": None, "signingKeyId": None,
             "lifecycle": "decided",
         }
+
+    def bsa_verdict(self, s: dict) -> dict:
+        earned = self.final_ects[s["nc"]]
         if earned >= BSA_NORM:
-            fields["decisionType"] = "positive"
-        elif s["nc"] in postponed:
-            fields |= {
-                "decisionType": "postponed", "personalCircumstancesConsidered": True,
-                "personalCircumstancesNote": "Langdurige ziekte in blok 2 en 3, gemeld bij de studentendecaan.",
-                "studentHeardAt": stamp(dt.date(2026, 7, 1), 11, 0),
-                "studentResponse": "De student wil het tweede jaar gebruiken om de ontbrekende blokken te halen.",
-                "rationale": f"Behaald: {earned:g} van de {BSA_NORM:g} studiepunten. Door de gemelde ziekte stelt de examencommissie het advies een jaar uit.",
-            }
-        else:
-            kind = "negative-with-recommendation" if s["nc"] in recommended else "negative"
-            fields |= {
-                "decisionType": kind, "personalCircumstancesConsidered": True,
-                "personalCircumstancesNote": "Geen persoonlijke omstandigheden gemeld bij de studentendecaan.",
-                "studentHeardAt": stamp(dt.date(2026, 7, 1), 11, 0),
-                "studentResponse": "De student geeft aan dat de combinatie met een bijbaan te zwaar was.",
-                "rationale": f"Behaald: {earned:g} van de {BSA_NORM:g} studiepunten. De student is in februari gewaarschuwd en kreeg begeleiding van de studieadviseur."
-                + (" De examencommissie adviseert de associate degree binnen dezelfde faculteit." if kind == "negative-with-recommendation" else ""),
-            }
-            if s["nc"] == appealed:
-                fields["lifecycle"] = "appealed"
-        b.add("bsa-decision", fields)
+            return {"decisionType": "positive"}
+        if s["nc"] in self.postponed:
+            return postponed_verdict(earned)
+        kind = "negative-with-recommendation" if s["nc"] in self.recommended else "negative"
+        verdict = negative_verdict(earned, kind)
+        if s["nc"] == self.appealed:
+            verdict["lifecycle"] = "appealed"
+        return verdict
 
     # --- learning record exports (graduates) ---------------------------------------
-    for key, *_rest in PROGRAMMES:
-        graduates = [s for s in by_group[(key, 4)] if finals.get((s["nc"], "AFST")) and finals[(s["nc"], "AFST")]["passed"]]
-        for i, s in enumerate(graduates[:2]):
-            requested = dt.date(2026, 7, 6) + dt.timedelta(days=i)
-            coverage = []
-            for ckey in ("VERD", "AFST"):
-                final = finals[(s["nc"], ckey)]
-                coverage.append({"sourceSchema": "final-grade", "sourceId": final["uuid"], "sourceTitle": courses[(key, ckey)]["name"],
-                                 "outcome": "included", "reason": None})
-            generated = i == 0 or key in ("VPK", "ICT")
-            b.add("learning-record-export", {
-                "learnerId": s["nc"], "learnerRef": s["profile"]["uuid"], "requestedBy": s["nc"], "requestedAt": stamp(requested, 20, 15),
-                "generatedAt": stamp(requested, 20, 16) if generated else None, "periodFrom": None, "periodTo": None,
-                "coverageReport": coverage if generated else [],
-                "bundleRef": f"Leerdossier/leerdossier-{requested.isoformat()}.json" if generated else None,
-                "bundleSignature": None, "issuerDid": None, "errorMessage": None, "lifecycle": "generated" if generated else "requested",
-            })
+    def add_record_exports(self) -> None:
+        for key, *_rest in PROGRAMMES:
+            graduates = [s for s in self.by_group[(key, 4)] if self.graduated(s)]
+            for i, s in enumerate(graduates[:2]):
+                self.add_record_export(s, i)
 
-    # --- assemble -------------------------------------------------------------------
-    objects = {name: rows for name, rows in b.buckets.items() if rows}
-    total = sum(len(rows) for rows in objects.values())
+    def graduated(self, s: dict) -> bool:
+        final = self.finals.get((s["nc"], "AFST"))
+        return final is not None and final["passed"]
+
+    def add_record_export(self, s: dict, i: int) -> None:
+        key = s["programme"]
+        requested = dt.date(2026, 7, 6) + dt.timedelta(days=i)
+        coverage = self.export_coverage(s)
+        fields = {
+            "learnerId": s["nc"], "learnerRef": s["profile"]["uuid"], "requestedBy": s["nc"], "requestedAt": stamp(requested, 20, 15),
+            "generatedAt": None, "periodFrom": None, "periodTo": None, "coverageReport": [], "bundleRef": None,
+            "bundleSignature": None, "issuerDid": None, "errorMessage": None, "lifecycle": "requested",
+        }
+        if i == 0 or key in ("VPK", "ICT"):
+            fields.update({"generatedAt": stamp(requested, 20, 16), "coverageReport": coverage,
+                           "bundleRef": f"Leerdossier/leerdossier-{requested.isoformat()}.json", "lifecycle": "generated"})
+        self.b.add("learning-record-export", fields)
+
+
+    def export_coverage(self, s: dict) -> list[dict]:
+        return [{"sourceSchema": "final-grade", "sourceId": self.finals[(s["nc"], ckey)]["uuid"], "sourceTitle": self.courses[(s["programme"], ckey)]["name"],
+                 "outcome": "included", "reason": None} for ckey in ("VERD", "AFST")]
+
+
+def docent_row(nc: str, i: int) -> tuple:
+    """A docent's staff row: the first four mentor a study year or coordinate, the fourth also examines senior."""
+    roles = ["teacher", "mentor"] if i < 4 else ["teacher"]
+    qual = ["Basiskwalificatie didactische bekwaamheid (BDB)", "Basiskwalificatie examinering (BKE)"]
+    if i == 3:
+        qual.append("Seniorkwalificatie examinering (SKE)")
+    if i < 4:
+        qual.append(DOCENT_TASKS[i])
+    return (nc, roles, qual, WEEKDAYS if i % 2 == 0 else WEEKDAYS[:4])
+
+
+def adviser_rows() -> list[tuple]:
+    return [(f"he-studieadviseur-{i:02d}", ["coordinator"], [f"Studieadviseur {short}"], ["monday", "tuesday", "thursday", "friday"])
+            for i, (_key, short, *_rest) in enumerate(PROGRAMMES, start=1)]
+
+
+def graded_by_component(s: dict, course: tuple) -> bool:
+    """A course of the student's year; a withdrawn student is only graded in block 1."""
+    return course[1] == s["year"] and not (s.get("withdrawn") and course[0] != "B1")
+
+
+def attends(s: dict, day: dt.date) -> bool:
+    """A withdrawn student only attends before the withdrawal day."""
+    return not s.get("withdrawn") or day < WITHDRAWAL_DAY
+
+
+def exam_room(key: str, variant: str) -> str:
+    if variant == "adapted":
+        return "stilte"
+    return "tentamenzuid" if PROGRAMME_OF[key][4] == "zuid" else "tentamennoord"
+
+
+def still_enrolled(group: list[dict]) -> list[dict]:
+    return [s for s in group if not s.get("withdrawn")]
+
+
+def nc_ids(group: list[dict]) -> list[str]:
+    return [s["nc"] for s in group]
+
+
+def profile_refs(group: list[dict]) -> list[str]:
+    return [s["profile"]["uuid"] for s in group]
+
+
+def first_with_mbo(group: list[dict]) -> dict:
+    return next(s for s in group if s["mbo"] and not s.get("withdrawn"))
+
+
+def takes_adapted_exam(s: dict, exempt: dict) -> bool:
+    return s is not exempt and not s.get("withdrawn") and not s["mbo"]
+
+
+def scored(response: dict) -> float:
+    return response["manualScore"] if response["manualScore"] is not None else response["autoScore"]
+
+
+def full_marks_share(scores: list[float], max_score: float) -> float:
+    return sum(1 for sc in scores if sc >= max_score - 1e-9) / len(scores)
+
+
+def high_and_low(totals: list[float]) -> tuple[list[int], list[int]]:
+    """Row indexes of the top and bottom 27 percent by total."""
+    n_rows = len(totals)
+    group = min(max(1, int(php_round(n_rows * 0.27, 0))), n_rows // 2)
+    order = sorted(range(n_rows), key=lambda i: -totals[i])
+    return order[:group], order[-group:]
+
+
+def distractors(sample: ExamSample, idx: int) -> list[dict] | None:
+    """How often the high and the low group picked each option of a choice item."""
+    if sample.exam["items"][idx]["type"] != "choice":
+        return None
+    picks = [res["responses"][idx]["response"]["value"] for _s, res, _sc in sample.rows]
+    return [option_row(letter, (picks, sample.groups)) for letter in "ABCD"]
+
+
+def option_row(letter: str, picked: tuple[list[str], tuple[list[int], list[int]]]) -> dict:
+    picks, (high, low) = picked
+    return {"optionId": letter,
+            "selectedByHighGroup": sum(1 for j in high if picks[j] == letter),
+            "selectedByLowGroup": sum(1 for j in low if picks[j] == letter)}
+
+
+def project_rubric(course: dict) -> dict:
     return {
-        "openapi": "3.0.0",
-        "info": {
-            "title": "Learniq example set: Higher education",
-            "version": "1.0.0",
-            "description": "Voorbeeldhogeschool Esdoornstad, a fictional university of applied sciences in the fictional town of Esdoornstad, through the 2025-2026 academic year.",
-        },
-        "x-openregister": {
-            "type": "profile",
-            "app": "learniq",
-            "profile": {
-                "id": SET,
-                "segment": SET,
-                "label": "Higher education (HBO or university)",
-                "description": "A fictional university of applied sciences with programmes, students, study credits and one full academic year.",
-                "order": 4,
-                "objectCount": total,
-                "icon": "CertificateOutline",
-            },
-            "description": (
-                "An example set an operator picks in the first-time setup wizard (ADR-042, decision D21). NEVER imported on install. "
-                "Every object carries @self.configuration/register/schema and a fixed uuid in the ee04 namespace, so the import resolves "
-                "the live learniq register without this descriptor declaring components.registers (which would re-point the register at "
-                "this profile config id and overwrite its authorization block), a second load adds nothing, and occ "
-                "learniq:example-set:remove he removes exactly these objects. Generated by scripts/example-sets/he.py; the contract is "
-                "openspec/changes/archive/2026-09-28-segment-wizard-choice/contract.md. Every person, address, institution, company and code in it is fictional."
-            ),
-            "seedData": {
-                "description": (
-                    "One university of applied sciences with two faculties, four bachelor programmes with learning outcomes on the Dublin "
-                    "descriptors, courses with ECTS credits, a cohort per programme per study year, 400 students with their enrolments, "
-                    "item bank exams with item statistics, grade entries and final grades, binding study advice with flags and warnings, "
-                    "study advisers, a peer reviewed group project, internship portfolios, a proctoring session and learning record exports."
-                ),
-                "objects": objects,
-            },
-        },
-        "paths": {},
-        "components": {},
+        "name": f"Beoordelingsrubric {course['name']}", "description": "Vier criteria, elk op vier niveaus.",
+        "criteria": [{"criterionId": cid, "label": lab, "weight": 1, "levels": [{"levelId": lid, "label": ll, "points": pts} for lid, ll, pts in RUBRIC_LEVELS]}
+                     for cid, lab in RUBRIC_CRITERIA],
+        "maxPoints": 40, "lifecycle": "active",
+    }
+
+
+def project_feedback(total: float) -> str:
+    if total >= 30:
+        return "Sterk verslag met een heldere analyse."
+    if total >= 22:
+        return "Voldoende verslag; werk de onderbouwing verder uit."
+    return "De analyse is te dun. Werk het verslag om in de herkansing."
+
+
+def portfolio_sections(lus: list[dict]) -> list[dict]:
+    return [
+        {"sectionId": "praktijk", "label": "Beroepshandelen in de praktijk", "order": 1,
+         "helpText": "Beschrijf twee situaties waarin je zelfstandig handelde.",
+         "criteria": [{"criterionId": "praktijk-1", "label": "Plannen en uitvoeren", "description": lus[2]["description"], "competencyId": lus[2]["uuid"]},
+                      {"criterionId": "praktijk-2", "label": "Samenwerken en communiceren", "description": lus[6]["description"], "competencyId": lus[6]["uuid"]}]},
+        {"sectionId": "ontwikkeling", "label": "Professionele ontwikkeling", "order": 2,
+         "helpText": "Laat zien wat je leerde en wat je volgende stap is.",
+         "criteria": [{"criterionId": "ontwikkeling-1", "label": "Reflectie en leerdoelen", "description": lus[8]["description"], "competencyId": lus[8]["uuid"]}]},
+    ]
+
+
+def fraud_case(student: dict, reporter: str) -> dict:
+    return {
+        "reporterId": reporter, "accusedLearnerId": student["profile"]["uuid"], "accusedLearnerUserId": student["profile"]["ncUserId"], "sourceKind": "manual",
+        "allegation": "Twee pagina's van het individuele verslag over het datamodel zijn letterlijk overgenomen van een openbare website, zonder bronvermelding.",
+        "reportedAt": stamp(dt.date(2026, 2, 2), 10, 0), "hearingDate": stamp(dt.date(2026, 2, 19), 14, 0),
+        "hearingRecords": [{"heldAt": stamp(dt.date(2026, 2, 19), 14, 0), "attendees": [student["nc"], reporter, CHAIRS["noord"]],
+                            "notes": "De student erkent dat de passage is overgenomen en zegt de bronvermelding vergeten te zijn.", "evidenceRefs": []}],
+        "verdict": "fraud-proven",
+        "decisionRationale": "De overgenomen passage is omvangrijk en vormt de kern van het verslag. De examencommissie verklaart het beroepsproduct ongeldig; de student levert in de herkansing een nieuw verslag in.",
+        "decidedBy": CHAIRS["noord"], "decidedAt": stamp(dt.date(2026, 3, 2), 16, 0), "sanctionType": "resubmission-required",
+        "sanctionDurationMonths": None, "sanctionScope": "single-assessment", "appealDeadline": stamp(dt.date(2026, 4, 13), 16, 0),
+        "appealLodged": False, "appealOutcome": None, "lifecycle": "decided",
+    }
+
+
+def all_failed(specs: list[dict]) -> bool:
+    return bool(specs) and all(x["value"] < PASS for x in specs)
+
+
+def graded_on(specs: list[dict], day: dt.date) -> list[dict]:
+    return [x for x in specs if x["when"] == day]
+
+
+def is_published(spec: dict) -> bool:
+    return spec.get("lifecycle", "published") == "published"
+
+
+def published(specs: list[dict], until: dt.date | None = None) -> list[dict]:
+    """The published raw grades (up to a day) as the aggregation engine reads them."""
+    rows = published_until(specs, until)
+    return [{"componentId": x["cid"], "value": x["value"], "sourceKind": x["kind"], "period": COURSE_META[(x["student"]["programme"], x["ckey"])][2]} for x in rows]
+
+
+def published_until(specs: list[dict], until: dt.date | None) -> list[dict]:
+    return [x for x in specs if is_published(x) and (until is None or x["when"] <= until)]
+
+
+def components_of(key: str, ckey: str) -> dict[str, dict]:
+    return {c[0]: {"weight": c[3]} for c in COURSE_META[(key, ckey)][6]}
+
+
+def graded_this_year(s: dict, course: tuple) -> bool:
+    """A course the student follows this year and is still graded in (the internship is graded by portfolio)."""
+    return course[1] == s["year"] and not s.get("withdrawn") and course[0] != "STAGE"
+
+
+def source_refs(x: dict) -> dict[str, str]:
+    """Only the reference that names a grade entry's source is written; the others stay unset."""
+    return {field: x[name]["uuid"] for field, name in SOURCE_FIELDS if x.get(name) is not None}
+
+
+def link_entry(x: dict, entry: dict) -> None:
+    for name, field in ENTRY_LINKS:
+        if name in x:
+            x[name][field] = entry["uuid"]
+
+
+def enrolment_outcome(s: dict, final: dict | None) -> dict:
+    if s.get("withdrawn") and final is None:
+        return {"lifecycle": "withdrawn", "reason": f"Uitgeschreven per {WITHDRAWAL_DAY.day} januari 2026, voor de BSA-peildatum."}
+    if final is not None and final["passed"]:
+        return {"lifecycle": "completed"}
+    return {"lifecycle": "failed", "reason": "Onderdeel niet behaald, ook niet na de herkansing."}
+
+
+def postponed_verdict(earned: float) -> dict:
+    return {
+        "decisionType": "postponed", "personalCircumstancesConsidered": True,
+        "personalCircumstancesNote": "Langdurige ziekte in blok 2 en 3, gemeld bij de studentendecaan.",
+        "studentHeardAt": stamp(dt.date(2026, 7, 1), 11, 0),
+        "studentResponse": "De student wil het tweede jaar gebruiken om de ontbrekende blokken te halen.",
+        "rationale": f"Behaald: {earned:g} van de {BSA_NORM:g} studiepunten. Door de gemelde ziekte stelt de examencommissie het advies een jaar uit.",
+    }
+
+
+def negative_verdict(earned: float, kind: str) -> dict:
+    return {
+        "decisionType": kind, "personalCircumstancesConsidered": True,
+        "personalCircumstancesNote": "Geen persoonlijke omstandigheden gemeld bij de studentendecaan.",
+        "studentHeardAt": stamp(dt.date(2026, 7, 1), 11, 0),
+        "studentResponse": "De student geeft aan dat de combinatie met een bijbaan te zwaar was.",
+        "rationale": f"Behaald: {earned:g} van de {BSA_NORM:g} studiepunten. De student is in februari gewaarschuwd en kreeg begeleiding van de studieadviseur."
+        + (" De examencommissie adviseert de associate degree binnen dezelfde faculteit." if kind == "negative-with-recommendation" else ""),
     }
 
 
@@ -1581,71 +1960,41 @@ def by_group_all(by_group: dict[tuple[str, int], list[dict]], year: int) -> list
     return out
 
 
-def qti(identifier: str, title: str, itype: str, stem: str, options: list[str] | None, answer: str | None, max_score: float) -> str:
+def qti(item: dict, row: tuple) -> str:
     """The QTI item XML the app's own item editor writes (src/views/ItemAuthorView.vue buildQtiBody).
 
     The take view, the draw resolver and the item analysis all read
     `simpleChoice` elements, so an item in any other dialect would render as
     two placeholder options and never get a distractor analysis.
     """
-    def attr(text: str) -> str:
-        return escape(text, {'"': "&quot;"})
-
     head = ('<?xml version="1.0" encoding="UTF-8"?><assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1" '
-            f'identifier="{attr(identifier)}" title="{attr(title)}" adaptive="false" timeDependent="false">')
-    score = f'<outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float"><defaultValue><value>{max_score:g}</value></defaultValue></outcomeDeclaration>'
-    if itype == "choice":
-        declaration = f'<responseDeclaration identifier="RESPONSE" cardinality="single" baseType="identifier"><correctResponse><value>{escape(answer or "")}</value></correctResponse></responseDeclaration>'
-        choices = "".join(f'<simpleChoice identifier="{letter}">{escape(text)}</simpleChoice>' for letter, text in zip("ABCD", options or []))
-        body = f'<p>{escape(stem)}</p><choiceInteraction responseIdentifier="RESPONSE" shuffle="false" maxChoices="1">{choices}</choiceInteraction>'
-    elif itype == "text":
-        declaration = f'<responseDeclaration identifier="RESPONSE" cardinality="single" baseType="string"><correctResponse><value>{escape(answer or "")}</value></correctResponse></responseDeclaration>'
-        body = f'<p>{escape(stem)}</p><textEntryInteraction responseIdentifier="RESPONSE" expectedLength="20" />'
-    else:
-        declaration = ""
-        body = f'<p>{escape(stem)}</p><extendedTextInteraction responseIdentifier="RESPONSE" expectedLength="500" />'
+            f'identifier="{xml_attr(item["slug"])}" title="{xml_attr(item["title"])}" adaptive="false" timeDependent="false">')
+    score = f'<outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float"><defaultValue><value>{item["maxScore"]:g}</value></defaultValue></outcomeDeclaration>'
+    declaration, body = qti_interaction(row)
     return head + declaration + score + "<itemBody>" + body + "</itemBody></assessmentItem>"
 
 
-def render(data: dict) -> str:
-    """Pretty JSON with one compact object per line in each seed bucket.
-
-    Thousands of objects pretty-printed field by field make a file nobody can
-    review; one object per line keeps a diff to the objects that changed.
-    Still strict JSON.
-    """
-    buckets = data["x-openregister"]["seedData"]["objects"]
-    data["x-openregister"]["seedData"]["objects"] = "__OBJECTS__"
-    text = json.dumps(data, indent=2, ensure_ascii=False)
-    parts = []
-    for name, rows in buckets.items():
-        lines = ",\n".join("          " + json.dumps(row, ensure_ascii=False, separators=(", ", ": ")) for row in rows)
-        parts.append(f"        {json.dumps(name)}: [\n{lines}\n        ]")
-    return text.replace('"__OBJECTS__"', "{\n" + ",\n".join(parts) + "\n      }") + "\n"
+def qti_choice(row: tuple) -> tuple[str, str]:
+    _itype, stem, options, answer, _difficulty = row
+    declaration = f'<responseDeclaration identifier="RESPONSE" cardinality="single" baseType="identifier"><correctResponse><value>{escape(answer or "")}</value></correctResponse></responseDeclaration>'
+    choices = "".join(f'<simpleChoice identifier="{letter}">{escape(text)}</simpleChoice>' for letter, text in zip("ABCD", options or []))
+    return declaration, f'<p>{escape(stem)}</p><choiceInteraction responseIdentifier="RESPONSE" shuffle="false" maxChoices="1">{choices}</choiceInteraction>'
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--check", action="store_true", help="exit 1 when the file on disk differs")
-    args = parser.parse_args()
-    text = render(build())
-    if args.check:
-        current = open(OUT, encoding="utf-8").read() if os.path.exists(OUT) else ""
-        if current != text:
-            print(f"{OUT} is out of date; run python3 scripts/example-sets/he.py", file=sys.stderr)
-            return 1
-        print(f"{OUT} is up to date")
-        return 0
-    os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    with open(OUT, "w", encoding="utf-8") as handle:
-        handle.write(text)
-    data = json.loads(text)
-    counts = {k: len(v) for k, v in data["x-openregister"]["seedData"]["objects"].items()}
-    print(f"wrote {OUT}: {data['x-openregister']['profile']['objectCount']} objects")
-    for name, n in counts.items():
-        print(f"  {name}: {n}")
-    return 0
+def xml_attr(text: str) -> str:
+    return escape(text, {'"': "&quot;"})
+
+
+def qti_interaction(row: tuple) -> tuple[str, str]:
+    """The response declaration and the item body for one item type."""
+    itype, stem, _options, answer, _difficulty = row
+    if itype == "choice":
+        return qti_choice(row)
+    if itype == "text":
+        declaration = f'<responseDeclaration identifier="RESPONSE" cardinality="single" baseType="string"><correctResponse><value>{escape(answer or "")}</value></correctResponse></responseDeclaration>'
+        return declaration, f'<p>{escape(stem)}</p><textEntryInteraction responseIdentifier="RESPONSE" expectedLength="20" />'
+    return "", f'<p>{escape(stem)}</p><extendedTextInteraction responseIdentifier="RESPONSE" expectedLength="500" />'
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(Script(SET, __doc__, build)))

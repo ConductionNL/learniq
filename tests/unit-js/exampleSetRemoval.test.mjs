@@ -12,6 +12,7 @@ import { test } from 'node:test'
 import {
 	EXAMPLE_SETS_URL,
 	loadedSetsOf,
+	removalQuestion,
 	removeActionUrl,
 	removeExampleSet,
 } from '../../src/utils/exampleSetRemoval.js'
@@ -56,6 +57,17 @@ test('a removal posts the per-set setup action, not the occ hard delete', async 
 		status: 'removed',
 		message: 'Moved 12 example object(s) to the trash.',
 	})
+})
+
+test('the question names how many objects go to the trash when the list says so', () => {
+	assert.equal(
+		removalQuestion({ ...company, objects: 412 }, t),
+		'Remove the example set "Company"? Its 412 objects move to the trash of OpenRegister. Anything you made yourself stays.',
+	)
+	assert.equal(
+		removalQuestion(company, t),
+		'Remove the example set "Company"? Its objects move to the trash of OpenRegister. Anything you made yourself stays.',
+	)
 })
 
 test('nothing is posted when the admin cancels or closes the question', async () => {

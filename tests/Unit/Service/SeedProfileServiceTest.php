@@ -24,11 +24,17 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\Learniq\Portal\ExamplePortalProvisioner;
+use OCA\Learniq\Service\ExampleSetPreparation;
+use OCA\Learniq\Service\ExampleSetSources;
 use OCA\Learniq\Service\DemoDataService;
 use OCA\Learniq\Service\LoadedExampleSets;
 use OCA\Learniq\Service\ExampleSetDates;
+use OCA\Learniq\Service\ExampleSetOrganisation;
 use OCA\Learniq\Service\SeedProfileService;
 use OCA\Learniq\Service\SharedCodeFilter;
+use OCA\Learniq\Tests\Support\DelegatingDouble;
+use OCA\OpenRegister\Db\MagicMapper;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\App\IAppManager;
 use OCP\IAppConfig;
 use PHPUnit\Framework\TestCase;
@@ -40,6 +46,7 @@ use RuntimeException;
  * Listing, loading and naming the uuids of the example sets.
  */
 class SeedProfileServiceTest extends TestCase {
+	use DelegatingDouble;
 
 	/**
 	 * A throwaway app directory.
@@ -113,10 +120,11 @@ class SeedProfileServiceTest extends TestCase {
 	 * @param LoadedExampleSets|null  $loaded    The loaded-set list, when a test reads it.
 	 * @param ExamplePortalProvisioner|null $portals The portal provisioner, when a test asserts on it.
 	 * @param ExampleSetDates|null          $dates   The date offsets, when a test asserts on them.
+	 * @param ExampleSetOrganisation|null   $organisation The organisation step, when a test runs it for real.
 	 *
 	 * @return SeedProfileService
 	 */
-	private function service(?ContainerInterface $container = null, ?LoggerInterface $logger = null, bool $generated = true, ?LoadedExampleSets $loaded = null, ?ExamplePortalProvisioner $portals = null, ?ExampleSetDates $dates = null): SeedProfileService {
+	private function service(?ContainerInterface $container = null, ?LoggerInterface $logger = null, bool $generated = true, ?LoadedExampleSets $loaded = null, ?ExamplePortalProvisioner $portals = null, ?ExampleSetDates $dates = null, ?ExampleSetOrganisation $organisation = null): SeedProfileService {
 		$demo = $this->createMock(DemoDataService::class);
 		$demo->method('isAvailable')->willReturn($generated);
 		$choices = [['id' => 'none', 'label' => 'None', 'description' => '', 'objectCount' => 0, 'icon' => 'CloseCircleOutline']];
@@ -128,16 +136,54 @@ class SeedProfileServiceTest extends TestCase {
 		$demo->method('install')->willReturn(['objects' => 405, 'registers' => 0, 'schemas' => 0]);
 
 		return new SeedProfileService(
-			$this->appManager,
-			($container ?? $this->createMock(ContainerInterface::class)),
-			($logger ?? $this->createMock(LoggerInterface::class)),
-			$demo,
-			$this->passThroughFilter(),
-			($loaded ?? $this->createMock(LoadedExampleSets::class)),
-			($portals ?? $this->createMock(ExamplePortalProvisioner::class)),
-			($dates ?? $this->passThroughDates())
+			sources: new ExampleSetSources(
+				appManager: $this->appManager,
+				demoData: $demo,
+				loadedSets: ($loaded ?? $this->createMock(LoadedExampleSets::class))
+			),
+			preparation: new ExampleSetPreparation(
+				sharedCodes: $this->passThroughFilter(),
+				dates: ($dates ?? $this->passThroughDates()),
+				organisation: ($organisation ?? $this->quietOrganisation()),
+				examplePortals: ($portals ?? $this->createMock(ExamplePortalProvisioner::class))
+			),
+			container: ($container ?? $this->createMock(ContainerInterface::class)),
+			logger: ($logger ?? $this->createMock(LoggerInterface::class))
 		);
 	}//end service()
+
+	/**
+	 * An organisation step that resolves one organisation and writes nothing.
+	 *
+	 * @return ExampleSetOrganisation
+	 */
+	/**
+	 * The organisation step over the seeding OpenRegister's organisation service, object service and mapper.
+	 *
+	 * @param ContainerInterface $container The seeding OpenRegister.
+	 *
+	 * @return ExampleSetOrganisation
+	 */
+	private function organisationOver(ContainerInterface $container): ExampleSetOrganisation {
+		return new ExampleSetOrganisation(
+			$this->organisationServiceOver($container->get('OCA\OpenRegister\Service\OrganisationService')),
+			$this->delegatingMock(ObjectService::class, [$container->get('OCA\OpenRegister\Service\ObjectService'), ['find']]),
+			$this->delegatingMock(MagicMapper::class, [$container->get('OCA\OpenRegister\Db\MagicMapper'), ['update']]),
+			$this->createMock(LoggerInterface::class)
+		);
+	}//end organisationOver()
+
+	/**
+	 * An organisation step that resolves one organisation and writes nothing.
+	 *
+	 * @return ExampleSetOrganisation
+	 */
+	private function quietOrganisation(): ExampleSetOrganisation {
+		$organisation = $this->createMock(ExampleSetOrganisation::class);
+		$organisation->method('resolve')->willReturn('00000000-0000-4000-8000-0000000000aa');
+		$organisation->method('stamp')->willReturn(['given' => 0, 'kept' => 0, 'missing' => 0]);
+		return $organisation;
+	}//end quietOrganisation()
 
 	/**
 	 * Date offsets that leave every descriptor as it is (offset 0, never loaded).
@@ -294,14 +340,19 @@ class SeedProfileServiceTest extends TestCase {
 		$noOr->method('getAppPath')->willReturn($this->appPath);
 		$noOr->method('getInstalledApps')->willReturn([]);
 		$service = new SeedProfileService(
-			$noOr,
-			$this->createMock(ContainerInterface::class),
-			$this->createMock(LoggerInterface::class),
-			$this->createMock(DemoDataService::class),
-			$this->passThroughFilter(),
-			$this->createMock(LoadedExampleSets::class),
-			$this->createMock(ExamplePortalProvisioner::class),
-			$this->passThroughDates()
+			sources: new ExampleSetSources(
+				appManager: $noOr,
+				demoData: $this->createMock(DemoDataService::class),
+				loadedSets: $this->createMock(LoadedExampleSets::class)
+			),
+			preparation: new ExampleSetPreparation(
+				sharedCodes: $this->passThroughFilter(),
+				dates: $this->passThroughDates(),
+				organisation: $this->quietOrganisation(),
+				examplePortals: $this->createMock(ExamplePortalProvisioner::class)
+			),
+			container: $this->createMock(ContainerInterface::class),
+			logger: $this->createMock(LoggerInterface::class)
 		);
 
 		$this->expectExceptionMessage('OpenRegister');
@@ -695,7 +746,7 @@ class SeedProfileServiceTest extends TestCase {
 		$time->method('now')->willReturn((new \DateTimeImmutable('2026-10-07T10:00:00+02:00'))->modify('+' . $current . ' days'));
 
 		$dates = $this->getMockBuilder(ExampleSetDates::class)
-			->setConstructorArgs([$config, $time, $this->createMock(LoadedExampleSets::class), $this->createMock(ContainerInterface::class), $this->createMock(LoggerInterface::class)])
+			->setConstructorArgs([$config, $time, $this->createMock(LoadedExampleSets::class), $this->createMock(ObjectService::class), $this->createMock(LoggerInterface::class)])
 			->onlyMethods(['moveExisting'])
 			->getMock();
 		$dates->method('moveExisting')->willReturnCallback(
@@ -707,4 +758,204 @@ class SeedProfileServiceTest extends TestCase {
 
 		return $dates;
 	}//end realDates()
+
+	/**
+	 * Every row the load writes carries the instance's default organisation.
+	 *
+	 * The fake importer writes the set's rows the way OpenRegister's seed
+	 * import does, without an organisation; the load gives each its organisation.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/example-sets/spec.md#scenario-a-loaded-row-carries-the-instances-organisation
+	 */
+	public function testEveryRowTheLoadWritesGetsTheInstanceOrganisation(): void {
+		$this->writeProfile('po.json', 'po', 1);
+		$openRegister = $this->seedingOpenRegister(defaultOrganisation: 'org-instance');
+
+		$this->service(
+			container: $openRegister['container'],
+			organisation: $this->organisationOver(container: $openRegister['container'])
+		)->install('po');
+
+		$rows = $openRegister['store']->rows;
+		self::assertCount(3, $rows);
+		foreach ($rows as $uuid => $row) {
+			self::assertSame('org-instance', $row->getOrganisation(), $uuid . ' carries the instance organisation');
+		}
+	}//end testEveryRowTheLoadWritesGetsTheInstanceOrganisation()
+
+	/**
+	 * Without a default organisation the load refuses before it writes a row.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/example-sets/spec.md#scenario-no-default-organisation-stops-the-load
+	 */
+	public function testALoadWithoutADefaultOrganisationFailsBeforeWriting(): void {
+		$this->writeProfile('po.json', 'po', 1);
+		$openRegister = $this->seedingOpenRegister(defaultOrganisation: null);
+
+		$refusal = null;
+		try {
+			$this->service(
+				container: $openRegister['container'],
+				organisation: $this->organisationOver(container: $openRegister['container'])
+			)->install('po');
+		} catch (RuntimeException $exception) {
+			$refusal = $exception->getMessage();
+		}
+
+		self::assertNotNull($refusal, 'the load went on without an organisation');
+		self::assertStringContainsString('default organisation', (string)$refusal);
+		self::assertSame([], $openRegister['store']->rows, 'no row was written');
+	}//end testALoadWithoutADefaultOrganisationFailsBeforeWriting()
+
+	/**
+	 * An OpenRegister double whose importer writes seed rows without an
+	 * organisation, with the object lookup, mapper and organisation service
+	 * the load uses.
+	 *
+	 * @param string|null $defaultOrganisation The default organisation uuid, or null when it cannot be resolved.
+	 *
+	 * @return array{container: ContainerInterface, store: object}
+	 */
+	private function seedingOpenRegister(?string $defaultOrganisation): array {
+		$store = new class {
+			/**
+			 * The written rows by uuid.
+			 *
+			 * @var array<string, \OCA\OpenRegister\Db\ObjectEntity>
+			 */
+			public array $rows = [];
+		};
+
+		$importer = new class ($store) {
+			/**
+			 * Constructor.
+			 *
+			 * @param object $store The row store.
+			 */
+			public function __construct(private object $store) {
+			}
+
+			/**
+			 * Write every seed row, without an organisation.
+			 *
+			 * @param string               $appId   Config id.
+			 * @param array<string, mixed> $data    Descriptor.
+			 * @param string               $version App version.
+			 * @param bool                 $force   Force flag.
+			 *
+			 * @return array<string, mixed>
+			 */
+			public function importFromApp(string $appId, array $data, string $version, bool $force): array {
+				foreach ((array)($data['x-openregister']['seedData']['objects'] ?? []) as $rows) {
+					foreach ((array)$rows as $row) {
+						$entity = new \OCA\OpenRegister\Db\ObjectEntity();
+						$entity->setUuid((string)$row['uuid']);
+						$this->store->rows[(string)$row['uuid']] = $entity;
+					}
+				}
+
+				return [];
+			}//end importFromApp()
+		};
+
+		$finder = new class ($store) {
+			/**
+			 * Constructor.
+			 *
+			 * @param object $store The row store.
+			 */
+			public function __construct(private object $store) {
+			}
+
+			/**
+			 * The stored row, or an exception when there is none.
+			 *
+			 * @param int|string $id            Uuid.
+			 * @param mixed      $register      Register.
+			 * @param mixed      $schema        Schema.
+			 * @param bool       $_rbac         Rbac.
+			 * @param bool       $_multitenancy Multitenancy.
+			 * @param bool       $_render       Render.
+			 * @param bool       $_audit        Audit.
+			 *
+			 * @return \OCA\OpenRegister\Db\ObjectEntity
+			 */
+			public function find(int|string $id, mixed $register=null, mixed $schema=null, bool $_rbac=true, bool $_multitenancy=true, bool $_render=true, bool $_audit=true): \OCA\OpenRegister\Db\ObjectEntity {
+				if (isset($this->store->rows[(string)$id]) === false) {
+					throw new \Exception('Object not found');
+				}
+
+				return $this->store->rows[(string)$id];
+			}//end find()
+		};
+
+		$mapper = new class {
+			/**
+			 * Store the entity as it is.
+			 *
+			 * @param \OCA\OpenRegister\Db\ObjectEntity $entity The entity.
+			 *
+			 * @return \OCA\OpenRegister\Db\ObjectEntity
+			 */
+			public function update(\OCA\OpenRegister\Db\ObjectEntity $entity): \OCA\OpenRegister\Db\ObjectEntity {
+				return $entity;
+			}//end update()
+		};
+
+		$organisations = new class ($defaultOrganisation) {
+			/**
+			 * Constructor.
+			 *
+			 * @param string|null $uuid The default organisation uuid.
+			 */
+			public function __construct(private ?string $uuid) {
+			}
+
+			/**
+			 * The default organisation.
+			 *
+			 * @return object
+			 */
+			public function ensureDefaultOrganisation(): object {
+				if ($this->uuid === null) {
+					throw new \Exception('no organisation could be created');
+				}
+
+				$uuid = $this->uuid;
+				return new class ($uuid) {
+					/**
+					 * Constructor.
+					 *
+					 * @param string $uuid The uuid.
+					 */
+					public function __construct(private string $uuid) {
+					}
+
+					/**
+					 * The uuid.
+					 *
+					 * @return string
+					 */
+					public function getUuid(): string {
+						return $this->uuid;
+					}
+				};
+			}//end ensureDefaultOrganisation()
+		};
+
+		$services = [
+			'OCA\OpenRegister\Service\ConfigurationService' => $importer,
+			'OCA\OpenRegister\Service\ObjectService'        => $finder,
+			'OCA\OpenRegister\Db\MagicMapper'               => $mapper,
+			'OCA\OpenRegister\Service\OrganisationService'  => $organisations,
+		];
+		$container = $this->createMock(ContainerInterface::class);
+		$container->method('get')->willReturnCallback(static fn (string $id): object => $services[$id]);
+
+		return ['container' => $container, 'store' => $store];
+	}//end seedingOpenRegister()
 }//end class

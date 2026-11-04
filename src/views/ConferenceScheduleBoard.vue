@@ -23,35 +23,40 @@
  @spec openspec/specs/parent-conferences/spec.md#scenario-republish-after-a-last-minute-cancellation-does-not-disturb-confirmed-slots
 -->
 <template>
-	<div class="conference-schedule-board">
-		<h2>{{ t('learniq', 'Conference schedule board') }}</h2>
+	<div class="conference-schedule-board lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Conference schedule board')" />
 
-		<div class="conference-schedule-board__toolbar">
-			<NcSelect
-				id="csb-round"
-				v-model="selectedRoundId"
-				:options="roundOptions"
-				:reduce="(o) => o.id"
-				label="label"
-				:loading="loadingRounds"
-				:inputLabel="t('learniq', 'Conference round')"
-				:aria-label-combobox="t('learniq', 'Conference round')"
-				@update:modelValue="loadWaitlisted" />
+		<CnDetailCard>
+			<div class="conference-schedule-board__toolbar">
+				<NcSelect
+					id="csb-round"
+					v-model="selectedRoundId"
+					:options="roundOptions"
+					:reduce="(o) => o.id"
+					label="label"
+					:loading="loadingRounds"
+					:inputLabel="t('learniq', 'Conference round')"
+					:aria-label-combobox="t('learniq', 'Conference round')"
+					@update:modelValue="loadWaitlisted" />
 
-			<NcButton
-				variant="secondary"
-				:disabled="!selectedRoundId || regenerating"
-				@click="regenerate">
-				{{
-					regenerating
-						? t('learniq', 'Regenerating…')
-						: t('learniq', 'Regenerate schedule')
-				}}
-			</NcButton>
-		</div>
+				<NcButton
+					variant="secondary"
+					:disabled="!selectedRoundId || regenerating"
+					@click="regenerate">
+					{{
+						regenerating
+							? t('learniq', 'Regenerating…')
+							: t('learniq', 'Regenerate schedule')
+					}}
+				</NcButton>
+			</div>
+		</CnDetailCard>
 
 		<NcNoteCard v-if="regenerateError" type="error">
 			{{ regenerateError }}
+		</NcNoteCard>
+		<NcNoteCard v-if="placeError" type="error">
+			{{ placeError }}
 		</NcNoteCard>
 		<NcNoteCard v-if="regenerateSuccess" type="success">
 			{{
@@ -62,70 +67,76 @@
 			}}
 		</NcNoteCard>
 
-		<NcLoadingIcon v-if="loadingSignups" :size="32" />
+		<CnDetailCard
+			v-if="selectedRoundId"
+			:title="t('learniq', 'Waitlist')"
+			class="conference-schedule-board__waitlist">
+			<NcLoadingIcon v-if="loadingSignups" :size="32" />
 
-		<NcEmptyContent
-			v-else-if="selectedRoundId && waitlisted.length === 0"
-			:name="t('learniq', 'Nothing waitlisted')"
-			:description="
-				t(
-					'learniq',
-					'Every submitted signup for this round has a full schedule.',
-				)
-			" />
+			<NcEmptyContent
+				v-else-if="selectedRoundId && waitlisted.length === 0"
+				:name="t('learniq', 'Nothing waitlisted')"
+				:description="
+					t(
+						'learniq',
+						'Every submitted signup for this round has a full schedule.',
+					)
+				" />
 
-		<table
-			v-else-if="waitlisted.length > 0"
-			class="conference-schedule-board__table">
-			<thead>
-				<tr>
-					<th scope="col">{{ t('learniq', 'Learner') }}</th>
-					<th scope="col">{{ t('learniq', 'Requested teachers') }}</th>
-					<th scope="col">{{ t('learniq', 'Unmet') }}</th>
-					<th scope="col">{{ t('learniq', 'Manual placement') }}</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr v-for="signup in waitlisted" :key="signup.id || signup.uuid">
-					<td>{{ signup.learnerId }}</td>
-					<td>{{ (signup.requestedTeacherIds || []).join(', ') }}</td>
-					<td>{{ signup.notes || '—' }}</td>
-					<td>
-						<div class="conference-schedule-board__manual">
-							<NcSelect
-								v-model="manualForm[signup.id].teacherId"
-								:options="teacherOptions(signup)"
-								:reduce="(o) => o.id"
-								label="label"
-								:inputLabel="t('learniq', 'Teacher')"
-								:aria-label-combobox="t('learniq', 'Teacher')" />
-							<input
-								v-model="manualForm[signup.id].startsAt"
-								type="datetime-local"
-								:aria-label="t('learniq', 'Start time')" />
-							<input
-								v-model="manualForm[signup.id].endsAt"
-								type="datetime-local"
-								:aria-label="t('learniq', 'End time')" />
-							<NcButton
-								variant="tertiary"
-								:disabled="
-									!manualForm[signup.id].teacherId
-									|| !manualForm[signup.id].startsAt
-									|| !manualForm[signup.id].endsAt
-								"
-								@click="createManualSlot(signup)">
-								{{ t('learniq', 'Create slot') }}
-							</NcButton>
-						</div>
-					</td>
-				</tr>
-			</tbody>
-		</table>
+			<table
+				v-else-if="waitlisted.length > 0"
+				class="conference-schedule-board__table">
+				<thead>
+					<tr>
+						<th scope="col">{{ t('learniq', 'Learner') }}</th>
+						<th scope="col">{{ t('learniq', 'Requested teachers') }}</th>
+						<th scope="col">{{ t('learniq', 'Unmet') }}</th>
+						<th scope="col">{{ t('learniq', 'Manual placement') }}</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="signup in waitlisted" :key="signup.id || signup.uuid">
+						<td>{{ signup.learnerId }}</td>
+						<td>{{ (signup.requestedTeacherIds || []).join(', ') }}</td>
+						<td>{{ signup.notes || '—' }}</td>
+						<td>
+							<div class="conference-schedule-board__manual">
+								<NcSelect
+									v-model="manualForm[signup.id].teacherId"
+									:options="teacherOptions(signup)"
+									:reduce="(o) => o.id"
+									label="label"
+									:inputLabel="t('learniq', 'Teacher')"
+									:aria-label-combobox="t('learniq', 'Teacher')" />
+								<input
+									v-model="manualForm[signup.id].startsAt"
+									type="datetime-local"
+									:aria-label="t('learniq', 'Start time')" />
+								<input
+									v-model="manualForm[signup.id].endsAt"
+									type="datetime-local"
+									:aria-label="t('learniq', 'End time')" />
+								<NcButton
+									variant="tertiary"
+									:disabled="
+										!manualForm[signup.id].teacherId
+										|| !manualForm[signup.id].startsAt
+										|| !manualForm[signup.id].endsAt
+									"
+									@click="createManualSlot(signup)">
+									{{ t('learniq', 'Create slot') }}
+								</NcButton>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import {
@@ -140,6 +151,8 @@ export default {
 	name: 'ConferenceScheduleBoard',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
@@ -157,6 +170,7 @@ export default {
 			manualForm: {},
 			regenerating: false,
 			regenerateError: '',
+			placeError: '',
 			regenerateSuccess: false,
 		}
 	},
@@ -289,6 +303,7 @@ export default {
 			const form = this.manualForm[signupId]
 			if (!form || !form.teacherId || !form.startsAt || !form.endsAt) return
 
+			this.placeError = ''
 			try {
 				const body = {
 					conferenceRoundId: this.selectedRoundId,
@@ -308,11 +323,15 @@ export default {
 				)
 				await axios.post(url, body)
 
-				// Reflect the manual placement on the signup itself so the board
-				// stops listing it as waitlisted once every request is met.
+				// The server schedules the signup once every requested teacher
+				// has a slot, so a reload drops it from the waitlist.
 				await this.loadWaitlisted()
 			} catch (e) {
 				console.error('[ConferenceScheduleBoard] createManualSlot failed', e)
+				this.placeError = t(
+					'learniq',
+					'The time could not be placed. Check the teacher and the times, and try again.',
+				)
 			}
 		},
 
@@ -353,16 +372,10 @@ export default {
 </script>
 
 <style scoped>
-.conference-schedule-board {
-	padding: 1rem;
-}
-
 .conference-schedule-board__toolbar {
 	display: flex;
 	align-items: center;
 	gap: 0.75rem;
-	margin-bottom: 1rem;
-	max-width: 640px;
 }
 
 .conference-schedule-board__table {

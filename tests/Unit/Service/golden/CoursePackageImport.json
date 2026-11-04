@@ -1,0 +1,1491 @@
+{
+    "common cartridge": [
+        {
+            "saveObject": {
+                "object": {
+                    "code": "IMPORT-(random)",
+                    "name": "Imported course",
+                    "level": "other",
+                    "language": "en",
+                    "parentCourseId": null,
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "course"
+            }
+        },
+        {
+            "getUserFolder": "teacher1"
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "title": "Welcome page",
+                    "kind": "document",
+                    "fileRef": "/Learniq/t1/course-imports/page1.html",
+                    "url": null,
+                    "courseId": "saved-1",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "material"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "courseId": "saved-1",
+                    "name": "Welcome page",
+                    "order": 0,
+                    "contentType": "text",
+                    "contentRef": "saved-3",
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lesson"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "code": "IMPORT-(random)",
+                    "name": "Module A",
+                    "level": "other",
+                    "language": "en",
+                    "parentCourseId": null,
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "course"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "openconnectorDeploymentId": "",
+                    "launchMode": "resource-link",
+                    "courseId": "saved-1",
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lti-tool-placement"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "title": "Useful link",
+                    "kind": "link",
+                    "fileRef": "",
+                    "url": "https://example.org/resource",
+                    "courseId": "saved-1",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "material"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "name": "Imported items",
+                    "tenant_id": "t1",
+                    "lifecycle": "draft"
+                },
+                "register": "learniq",
+                "schema": "item-bank"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "itemBankId": "saved-8",
+                    "title": "Quiz item 1",
+                    "interactionType": "choice",
+                    "qtiBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\" identifier=\"item1\" title=\"Quiz item 1\" adaptive=\"false\" timeDependent=\"false\">\n  <responseDeclaration identifier=\"RESPONSE\" cardinality=\"single\" baseType=\"identifier\">\n    <correctResponse>\n      <value>ChoiceA</value>\n    </correctResponse>\n  </responseDeclaration>\n  <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"float\">\n    <defaultValue><value>1</value></defaultValue>\n  </outcomeDeclaration>\n  <itemBody>\n    <p>What is 2 + 2?</p>\n    <choiceInteraction responseIdentifier=\"RESPONSE\" shuffle=\"false\" maxChoices=\"1\">\n      <simpleChoice identifier=\"ChoiceA\">4</simpleChoice>\n      <simpleChoice identifier=\"ChoiceB\">5</simpleChoice>\n    </choiceInteraction>\n  </itemBody>\n</assessmentItem>\n",
+                    "correctResponse": "ChoiceA",
+                    "maxScore": 1.0,
+                    "subjectTags": [],
+                    "difficulty": null,
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "item"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "sourceFormat": "common-cartridge-1.3",
+                    "sourceFilename": "minimal-cc.imscc",
+                    "courseId": "saved-1",
+                    "importedBy": "teacher1",
+                    "importedAt": "(now)",
+                    "lifecycle": "partial",
+                    "resourcesTotal": 6,
+                    "resourcesImported": 4,
+                    "resourcesDegraded": 1,
+                    "resourcesDropped": 1,
+                    "errorMessage": null,
+                    "entries": [
+                        {
+                            "resourceIdentifier": "RES_WEB",
+                            "resourceType": "webcontent",
+                            "title": "page1.html",
+                            "outcome": "imported",
+                            "targetType": "material",
+                            "targetId": "saved-3",
+                            "reason": null
+                        },
+                        {
+                            "resourceIdentifier": "I2",
+                            "resourceType": "organization",
+                            "title": "Module A",
+                            "outcome": "imported",
+                            "targetType": "course",
+                            "targetId": "saved-5",
+                            "reason": null
+                        },
+                        {
+                            "resourceIdentifier": "RES_QTI",
+                            "resourceType": "imsqti_item_xmlv2p1",
+                            "title": "item1.xml",
+                            "outcome": "imported",
+                            "targetType": "item",
+                            "targetId": "saved-9",
+                            "reason": null
+                        },
+                        {
+                            "resourceIdentifier": "RES_LTI",
+                            "resourceType": "imsbasiclti_xmlv1p3",
+                            "title": "lti1.xml",
+                            "outcome": "degraded",
+                            "targetType": "lti-tool-placement",
+                            "targetId": "saved-6",
+                            "reason": "LTI placement created without a configured OpenConnector deployment; an admin must bind a deployment before this tool can be launched."
+                        },
+                        {
+                            "resourceIdentifier": "RES_WL",
+                            "resourceType": "imswl_xmlv1p3",
+                            "title": "weblink1.xml",
+                            "outcome": "imported",
+                            "targetType": "material",
+                            "targetId": "saved-7",
+                            "reason": null
+                        },
+                        {
+                            "resourceIdentifier": "RES_FORUM",
+                            "resourceType": "imsdt_xmlv1p3",
+                            "title": "forum1.xml",
+                            "outcome": "dropped",
+                            "targetType": null,
+                            "targetId": null,
+                            "reason": "No Learniq schema represents discussion/forum content \u2014 migrate manually."
+                        }
+                    ],
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "course-package-import-report"
+            }
+        },
+        {
+            "report": {
+                "sourceFormat": "common-cartridge-1.3",
+                "sourceFilename": "minimal-cc.imscc",
+                "courseId": "saved-1",
+                "importedBy": "teacher1",
+                "importedAt": "(now)",
+                "lifecycle": "partial",
+                "resourcesTotal": 6,
+                "resourcesImported": 4,
+                "resourcesDegraded": 1,
+                "resourcesDropped": 1,
+                "errorMessage": null,
+                "entries": [
+                    {
+                        "resourceIdentifier": "RES_WEB",
+                        "resourceType": "webcontent",
+                        "title": "page1.html",
+                        "outcome": "imported",
+                        "targetType": "material",
+                        "targetId": "saved-3",
+                        "reason": null
+                    },
+                    {
+                        "resourceIdentifier": "I2",
+                        "resourceType": "organization",
+                        "title": "Module A",
+                        "outcome": "imported",
+                        "targetType": "course",
+                        "targetId": "saved-5",
+                        "reason": null
+                    },
+                    {
+                        "resourceIdentifier": "RES_QTI",
+                        "resourceType": "imsqti_item_xmlv2p1",
+                        "title": "item1.xml",
+                        "outcome": "imported",
+                        "targetType": "item",
+                        "targetId": "saved-9",
+                        "reason": null
+                    },
+                    {
+                        "resourceIdentifier": "RES_LTI",
+                        "resourceType": "imsbasiclti_xmlv1p3",
+                        "title": "lti1.xml",
+                        "outcome": "degraded",
+                        "targetType": "lti-tool-placement",
+                        "targetId": "saved-6",
+                        "reason": "LTI placement created without a configured OpenConnector deployment; an admin must bind a deployment before this tool can be launched."
+                    },
+                    {
+                        "resourceIdentifier": "RES_WL",
+                        "resourceType": "imswl_xmlv1p3",
+                        "title": "weblink1.xml",
+                        "outcome": "imported",
+                        "targetType": "material",
+                        "targetId": "saved-7",
+                        "reason": null
+                    },
+                    {
+                        "resourceIdentifier": "RES_FORUM",
+                        "resourceType": "imsdt_xmlv1p3",
+                        "title": "forum1.xml",
+                        "outcome": "dropped",
+                        "targetType": null,
+                        "targetId": null,
+                        "reason": "No Learniq schema represents discussion/forum content \u2014 migrate manually."
+                    }
+                ],
+                "tenant_id": "t1",
+                "id": "saved-10"
+            }
+        }
+    ],
+    "moodle backup": [
+        {
+            "saveObject": {
+                "object": {
+                    "code": "IMPORT-(random)",
+                    "name": "Imported Moodle course",
+                    "level": "other",
+                    "language": "en",
+                    "parentCourseId": null,
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "course"
+            }
+        },
+        {
+            "getUserFolder": "teacher1"
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "title": "Syllabus",
+                    "kind": "document",
+                    "fileRef": "/Learniq/t1/course-imports/content.html",
+                    "url": null,
+                    "courseId": "saved-1",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "material"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "courseId": "saved-1",
+                    "name": "Syllabus",
+                    "order": 0,
+                    "contentType": "text",
+                    "contentRef": "saved-3",
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lesson"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "name": "Quiz 1",
+                    "tenant_id": "t1",
+                    "lifecycle": "draft"
+                },
+                "register": "learniq",
+                "schema": "item-bank"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "itemBankId": "saved-5",
+                    "title": "Single answer question",
+                    "interactionType": "choice",
+                    "qtiBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\" identifier=\"moodle-f1d54cb6cd3b45b351e087f6d9a38c7c\" title=\"Single answer question\" adaptive=\"false\" timeDependent=\"false\"><itemBody><p>What is 2 + 2?</p><simpleChoice identifier=\"A0\">4</simpleChoice><simpleChoice identifier=\"A1\">5</simpleChoice></itemBody></assessmentItem>",
+                    "correctResponse": "4",
+                    "maxScore": 1.0,
+                    "subjectTags": [],
+                    "difficulty": null,
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "item"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "itemBankId": "saved-5",
+                    "title": "Multi answer question",
+                    "interactionType": "choice",
+                    "qtiBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\" identifier=\"moodle-c8abe2f58efe5efca604e00e7d0143ee\" title=\"Multi answer question\" adaptive=\"false\" timeDependent=\"false\"><itemBody><p>Select the prime numbers.</p><simpleChoice identifier=\"A0\">2</simpleChoice><simpleChoice identifier=\"A1\">3</simpleChoice><simpleChoice identifier=\"A2\">4</simpleChoice></itemBody></assessmentItem>",
+                    "correctResponse": [
+                        "2",
+                        "3"
+                    ],
+                    "maxScore": 2.0,
+                    "subjectTags": [],
+                    "difficulty": null,
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "item"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "itemBankId": "saved-5",
+                    "title": "Short answer question",
+                    "interactionType": "textEntry",
+                    "qtiBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\" identifier=\"moodle-02b56923315342fa4f4d5a42a103e1ee\" title=\"Short answer question\" adaptive=\"false\" timeDependent=\"false\"><itemBody><p>Capital of France?</p></itemBody></assessmentItem>",
+                    "correctResponse": "Paris",
+                    "maxScore": 1.0,
+                    "subjectTags": [],
+                    "difficulty": null,
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "item"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "itemBankId": "saved-5",
+                    "title": "Essay question",
+                    "interactionType": "extendedText",
+                    "qtiBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\" identifier=\"moodle-eaf81a84f94be328464a4029d65a0713\" title=\"Essay question\" adaptive=\"false\" timeDependent=\"false\"><itemBody><p>Discuss the causes of climate change.</p></itemBody></assessmentItem>",
+                    "correctResponse": null,
+                    "maxScore": 5.0,
+                    "subjectTags": [],
+                    "difficulty": null,
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "item"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "title": "Course website",
+                    "kind": "link",
+                    "fileRef": "",
+                    "url": "https://example.org/course-website",
+                    "courseId": "saved-1",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "material"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "title": "Essay assignment",
+                    "instructions": "",
+                    "courseId": "saved-1",
+                    "maxPoints": 100,
+                    "tenant_id": "t1",
+                    "lifecycle": "draft"
+                },
+                "register": "learniq",
+                "schema": "assignment"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "sourceFormat": "moodle-backup",
+                    "sourceFilename": "minimal-moodle.mbz",
+                    "courseId": "saved-1",
+                    "importedBy": "teacher1",
+                    "importedAt": "(now)",
+                    "lifecycle": "partial",
+                    "resourcesTotal": 10,
+                    "resourcesImported": 3,
+                    "resourcesDegraded": 5,
+                    "resourcesDropped": 2,
+                    "errorMessage": null,
+                    "entries": [
+                        {
+                            "resourceIdentifier": "2",
+                            "resourceType": "section",
+                            "title": "Week 1",
+                            "outcome": "imported",
+                            "targetType": "course",
+                            "targetId": "saved-1",
+                            "reason": null
+                        },
+                        {
+                            "resourceIdentifier": "5",
+                            "resourceType": "resource",
+                            "title": "Syllabus",
+                            "outcome": "imported",
+                            "targetType": "material",
+                            "targetId": "saved-3",
+                            "reason": null
+                        },
+                        {
+                            "resourceIdentifier": "6-q0",
+                            "resourceType": "quiz-question:multichoice",
+                            "title": "Single answer question",
+                            "outcome": "degraded",
+                            "targetType": "item",
+                            "targetId": "saved-6",
+                            "reason": "Mapped from Moodle question XML, not QTI \u2014 verify correctResponse before publishing."
+                        },
+                        {
+                            "resourceIdentifier": "6-q1",
+                            "resourceType": "quiz-question:multichoice",
+                            "title": "Multi answer question",
+                            "outcome": "degraded",
+                            "targetType": "item",
+                            "targetId": "saved-7",
+                            "reason": "Mapped from Moodle question XML, not QTI \u2014 verify correctResponse before publishing."
+                        },
+                        {
+                            "resourceIdentifier": "6-q2",
+                            "resourceType": "quiz-question:shortanswer",
+                            "title": "Short answer question",
+                            "outcome": "degraded",
+                            "targetType": "item",
+                            "targetId": "saved-8",
+                            "reason": "Mapped from Moodle question XML, not QTI \u2014 verify correctResponse before publishing."
+                        },
+                        {
+                            "resourceIdentifier": "6-q3",
+                            "resourceType": "quiz-question:essay",
+                            "title": "Essay question",
+                            "outcome": "degraded",
+                            "targetType": "item",
+                            "targetId": "saved-9",
+                            "reason": "Mapped from Moodle question XML, not QTI \u2014 verify correctResponse before publishing."
+                        },
+                        {
+                            "resourceIdentifier": "6-q4",
+                            "resourceType": "quiz-question:ddwtos",
+                            "title": "Drag and drop question",
+                            "outcome": "dropped",
+                            "targetType": null,
+                            "targetId": null,
+                            "reason": "Moodle question type not supported: ddwtos."
+                        },
+                        {
+                            "resourceIdentifier": "7",
+                            "resourceType": "forum",
+                            "title": "General discussion",
+                            "outcome": "dropped",
+                            "targetType": null,
+                            "targetId": null,
+                            "reason": "No Learniq schema represents Moodle's forum module \u2014 migrate manually."
+                        },
+                        {
+                            "resourceIdentifier": "8",
+                            "resourceType": "url",
+                            "title": "Course website",
+                            "outcome": "imported",
+                            "targetType": "material",
+                            "targetId": "saved-10",
+                            "reason": null
+                        },
+                        {
+                            "resourceIdentifier": "9",
+                            "resourceType": "assign",
+                            "title": "Essay assignment",
+                            "outcome": "degraded",
+                            "targetType": "assignment",
+                            "targetId": "saved-11",
+                            "reason": "Moodle-specific grading-workflow configuration (peer review, group config) was not carried over."
+                        }
+                    ],
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "course-package-import-report"
+            }
+        },
+        {
+            "report": {
+                "sourceFormat": "moodle-backup",
+                "sourceFilename": "minimal-moodle.mbz",
+                "courseId": "saved-1",
+                "importedBy": "teacher1",
+                "importedAt": "(now)",
+                "lifecycle": "partial",
+                "resourcesTotal": 10,
+                "resourcesImported": 3,
+                "resourcesDegraded": 5,
+                "resourcesDropped": 2,
+                "errorMessage": null,
+                "entries": [
+                    {
+                        "resourceIdentifier": "2",
+                        "resourceType": "section",
+                        "title": "Week 1",
+                        "outcome": "imported",
+                        "targetType": "course",
+                        "targetId": "saved-1",
+                        "reason": null
+                    },
+                    {
+                        "resourceIdentifier": "5",
+                        "resourceType": "resource",
+                        "title": "Syllabus",
+                        "outcome": "imported",
+                        "targetType": "material",
+                        "targetId": "saved-3",
+                        "reason": null
+                    },
+                    {
+                        "resourceIdentifier": "6-q0",
+                        "resourceType": "quiz-question:multichoice",
+                        "title": "Single answer question",
+                        "outcome": "degraded",
+                        "targetType": "item",
+                        "targetId": "saved-6",
+                        "reason": "Mapped from Moodle question XML, not QTI \u2014 verify correctResponse before publishing."
+                    },
+                    {
+                        "resourceIdentifier": "6-q1",
+                        "resourceType": "quiz-question:multichoice",
+                        "title": "Multi answer question",
+                        "outcome": "degraded",
+                        "targetType": "item",
+                        "targetId": "saved-7",
+                        "reason": "Mapped from Moodle question XML, not QTI \u2014 verify correctResponse before publishing."
+                    },
+                    {
+                        "resourceIdentifier": "6-q2",
+                        "resourceType": "quiz-question:shortanswer",
+                        "title": "Short answer question",
+                        "outcome": "degraded",
+                        "targetType": "item",
+                        "targetId": "saved-8",
+                        "reason": "Mapped from Moodle question XML, not QTI \u2014 verify correctResponse before publishing."
+                    },
+                    {
+                        "resourceIdentifier": "6-q3",
+                        "resourceType": "quiz-question:essay",
+                        "title": "Essay question",
+                        "outcome": "degraded",
+                        "targetType": "item",
+                        "targetId": "saved-9",
+                        "reason": "Mapped from Moodle question XML, not QTI \u2014 verify correctResponse before publishing."
+                    },
+                    {
+                        "resourceIdentifier": "6-q4",
+                        "resourceType": "quiz-question:ddwtos",
+                        "title": "Drag and drop question",
+                        "outcome": "dropped",
+                        "targetType": null,
+                        "targetId": null,
+                        "reason": "Moodle question type not supported: ddwtos."
+                    },
+                    {
+                        "resourceIdentifier": "7",
+                        "resourceType": "forum",
+                        "title": "General discussion",
+                        "outcome": "dropped",
+                        "targetType": null,
+                        "targetId": null,
+                        "reason": "No Learniq schema represents Moodle's forum module \u2014 migrate manually."
+                    },
+                    {
+                        "resourceIdentifier": "8",
+                        "resourceType": "url",
+                        "title": "Course website",
+                        "outcome": "imported",
+                        "targetType": "material",
+                        "targetId": "saved-10",
+                        "reason": null
+                    },
+                    {
+                        "resourceIdentifier": "9",
+                        "resourceType": "assign",
+                        "title": "Essay assignment",
+                        "outcome": "degraded",
+                        "targetType": "assignment",
+                        "targetId": "saved-11",
+                        "reason": "Moodle-specific grading-workflow configuration (peer review, group config) was not carried over."
+                    }
+                ],
+                "tenant_id": "t1",
+                "id": "saved-12"
+            }
+        }
+    ],
+    "unrecognised archive": [
+        {
+            "saveObject": {
+                "object": {
+                    "sourceFormat": "common-cartridge-1.3",
+                    "sourceFilename": "corrupt.bin",
+                    "courseId": null,
+                    "importedBy": "teacher1",
+                    "importedAt": "(now)",
+                    "lifecycle": "failed",
+                    "resourcesTotal": 0,
+                    "resourcesImported": 0,
+                    "resourcesDegraded": 0,
+                    "resourcesDropped": 0,
+                    "errorMessage": "Archive is not a recognised IMS Common Cartridge (ZIP), Moodle backup (.mbz / gzipped tar), or scholiq-native JSON package.",
+                    "entries": [],
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "course-package-import-report"
+            }
+        },
+        {
+            "report": {
+                "sourceFormat": "common-cartridge-1.3",
+                "sourceFilename": "corrupt.bin",
+                "courseId": null,
+                "importedBy": "teacher1",
+                "importedAt": "(now)",
+                "lifecycle": "failed",
+                "resourcesTotal": 0,
+                "resourcesImported": 0,
+                "resourcesDegraded": 0,
+                "resourcesDropped": 0,
+                "errorMessage": "Archive is not a recognised IMS Common Cartridge (ZIP), Moodle backup (.mbz / gzipped tar), or scholiq-native JSON package.",
+                "entries": [],
+                "tenant_id": "t1",
+                "id": "saved-1"
+            }
+        }
+    ],
+    "zip without manifest": [
+        {
+            "saveObject": {
+                "object": {
+                    "sourceFormat": "common-cartridge-1.3",
+                    "sourceFilename": "no-manifest.imscc",
+                    "courseId": null,
+                    "importedBy": "teacher1",
+                    "importedAt": "(now)",
+                    "lifecycle": "failed",
+                    "resourcesTotal": 0,
+                    "resourcesImported": 0,
+                    "resourcesDegraded": 0,
+                    "resourcesDropped": 0,
+                    "errorMessage": "Could not extract or parse the package: No imsmanifest.xml found in the package \u2014 not a recognisable Common Cartridge package.",
+                    "entries": [],
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "course-package-import-report"
+            }
+        },
+        {
+            "report": {
+                "sourceFormat": "common-cartridge-1.3",
+                "sourceFilename": "no-manifest.imscc",
+                "courseId": null,
+                "importedBy": "teacher1",
+                "importedAt": "(now)",
+                "lifecycle": "failed",
+                "resourcesTotal": 0,
+                "resourcesImported": 0,
+                "resourcesDegraded": 0,
+                "resourcesDropped": 0,
+                "errorMessage": "Could not extract or parse the package: No imsmanifest.xml found in the package \u2014 not a recognisable Common Cartridge package.",
+                "entries": [],
+                "tenant_id": "t1",
+                "id": "saved-1"
+            }
+        }
+    ],
+    "unsafe moodle backup": [
+        {
+            "saveObject": {
+                "object": {
+                    "sourceFormat": "moodle-backup",
+                    "sourceFilename": "backup.mbz",
+                    "courseId": null,
+                    "importedBy": "teacher1",
+                    "importedAt": "(now)",
+                    "lifecycle": "failed",
+                    "resourcesTotal": 0,
+                    "resourcesImported": 0,
+                    "resourcesDegraded": 0,
+                    "resourcesDropped": 0,
+                    "errorMessage": "Could not extract or parse the package: No moodle_backup.xml found in the package \u2014 not a recognisable Moodle backup archive.",
+                    "entries": [],
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "course-package-import-report"
+            }
+        },
+        {
+            "report": {
+                "sourceFormat": "moodle-backup",
+                "sourceFilename": "backup.mbz",
+                "courseId": null,
+                "importedBy": "teacher1",
+                "importedAt": "(now)",
+                "lifecycle": "failed",
+                "resourcesTotal": 0,
+                "resourcesImported": 0,
+                "resourcesDegraded": 0,
+                "resourcesDropped": 0,
+                "errorMessage": "Could not extract or parse the package: No moodle_backup.xml found in the package \u2014 not a recognisable Moodle backup archive.",
+                "entries": [],
+                "tenant_id": "t1",
+                "id": "saved-1"
+            }
+        }
+    ],
+    "json without course": [
+        {
+            "saveObject": {
+                "object": {
+                    "sourceFormat": "scholiq-json",
+                    "sourceFilename": "export.json",
+                    "courseId": null,
+                    "importedBy": "teacher1",
+                    "importedAt": "(now)",
+                    "lifecycle": "failed",
+                    "resourcesTotal": 0,
+                    "resourcesImported": 0,
+                    "resourcesDegraded": 0,
+                    "resourcesDropped": 0,
+                    "errorMessage": "File is not a valid scholiq-native course export (missing top-level \"course\" object).",
+                    "entries": [],
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "course-package-import-report"
+            }
+        },
+        {
+            "report": {
+                "sourceFormat": "scholiq-json",
+                "sourceFilename": "export.json",
+                "courseId": null,
+                "importedBy": "teacher1",
+                "importedAt": "(now)",
+                "lifecycle": "failed",
+                "resourcesTotal": 0,
+                "resourcesImported": 0,
+                "resourcesDegraded": 0,
+                "resourcesDropped": 0,
+                "errorMessage": "File is not a valid scholiq-native course export (missing top-level \"course\" object).",
+                "entries": [],
+                "tenant_id": "t1",
+                "id": "saved-1"
+            }
+        }
+    ],
+    "json export": [
+        {
+            "saveObject": {
+                "object": {
+                    "code": "IMPORT-(random)",
+                    "name": "Physics 101",
+                    "level": "other",
+                    "language": "en",
+                    "parentCourseId": null,
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "course"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "courseId": "saved-1",
+                    "name": "Intro",
+                    "order": 1,
+                    "contentType": "text",
+                    "contentRef": "",
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lesson"
+            }
+        },
+        {
+            "getUserFolder": "teacher1"
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "title": "Notes",
+                    "kind": "document",
+                    "fileRef": "/Learniq/t1/course-imports/Notes",
+                    "url": null,
+                    "courseId": "saved-1",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "material"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "sourceFormat": "scholiq-json",
+                    "sourceFilename": "export.json",
+                    "courseId": "saved-1",
+                    "importedBy": "teacher1",
+                    "importedAt": "(now)",
+                    "lifecycle": "succeeded",
+                    "resourcesTotal": 3,
+                    "resourcesImported": 3,
+                    "resourcesDegraded": 0,
+                    "resourcesDropped": 0,
+                    "errorMessage": null,
+                    "entries": [
+                        {
+                            "resourceIdentifier": "course",
+                            "resourceType": "course",
+                            "title": "Physics 101",
+                            "outcome": "imported",
+                            "targetType": "course",
+                            "targetId": "saved-1",
+                            "reason": null
+                        },
+                        {
+                            "resourceIdentifier": "lesson",
+                            "resourceType": "lesson",
+                            "title": "Intro",
+                            "outcome": "imported",
+                            "targetType": "lesson",
+                            "targetId": "saved-2",
+                            "reason": null
+                        },
+                        {
+                            "resourceIdentifier": "material",
+                            "resourceType": "material",
+                            "title": "Notes",
+                            "outcome": "imported",
+                            "targetType": "material",
+                            "targetId": "saved-4",
+                            "reason": null
+                        }
+                    ],
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "course-package-import-report"
+            }
+        },
+        {
+            "report": {
+                "sourceFormat": "scholiq-json",
+                "sourceFilename": "export.json",
+                "courseId": "saved-1",
+                "importedBy": "teacher1",
+                "importedAt": "(now)",
+                "lifecycle": "succeeded",
+                "resourcesTotal": 3,
+                "resourcesImported": 3,
+                "resourcesDegraded": 0,
+                "resourcesDropped": 0,
+                "errorMessage": null,
+                "entries": [
+                    {
+                        "resourceIdentifier": "course",
+                        "resourceType": "course",
+                        "title": "Physics 101",
+                        "outcome": "imported",
+                        "targetType": "course",
+                        "targetId": "saved-1",
+                        "reason": null
+                    },
+                    {
+                        "resourceIdentifier": "lesson",
+                        "resourceType": "lesson",
+                        "title": "Intro",
+                        "outcome": "imported",
+                        "targetType": "lesson",
+                        "targetId": "saved-2",
+                        "reason": null
+                    },
+                    {
+                        "resourceIdentifier": "material",
+                        "resourceType": "material",
+                        "title": "Notes",
+                        "outcome": "imported",
+                        "targetType": "material",
+                        "targetId": "saved-4",
+                        "reason": null
+                    }
+                ],
+                "tenant_id": "t1",
+                "id": "saved-5"
+            }
+        }
+    ],
+    "json export of every part": [
+        {
+            "saveObject": {
+                "object": {
+                    "code": "IMPORT-(random)",
+                    "name": "Physics 101",
+                    "level": "other",
+                    "language": "en",
+                    "parentCourseId": null,
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "course"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "code": "IMPORT-(random)",
+                    "name": "Module 1",
+                    "level": "other",
+                    "language": "en",
+                    "parentCourseId": "saved-1",
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "course"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "code": "IMPORT-(random)",
+                    "name": "Imported module",
+                    "level": "other",
+                    "language": "en",
+                    "parentCourseId": "saved-1",
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "course"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "code": "IMPORT-(random)",
+                    "name": "Imported module",
+                    "level": "other",
+                    "language": "en",
+                    "parentCourseId": "saved-1",
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "course"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "courseId": "saved-1",
+                    "name": "Intro",
+                    "order": 2,
+                    "contentType": "video",
+                    "contentRef": "ref",
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lesson"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "courseId": "saved-1",
+                    "name": "",
+                    "order": 0,
+                    "contentType": "text",
+                    "contentRef": "",
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lesson"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "title": "Link",
+                    "kind": "url",
+                    "fileRef": "",
+                    "url": "https://example.org",
+                    "courseId": "saved-1",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "material"
+            }
+        },
+        {
+            "getUserFolder": "teacher1"
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "title": "Notes",
+                    "kind": "document",
+                    "fileRef": "/Learniq/t1/course-imports/Notes",
+                    "url": null,
+                    "courseId": "saved-1",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "material"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "title": "",
+                    "kind": "document",
+                    "fileRef": "",
+                    "url": null,
+                    "courseId": "saved-1",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "material"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "name": "Rubric",
+                    "criteria": [
+                        {
+                            "name": "c"
+                        }
+                    ],
+                    "maxPoints": 10,
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "rubric"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "name": "",
+                    "criteria": [],
+                    "maxPoints": 100,
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "rubric"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "title": "Exam",
+                    "courseId": "saved-1",
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "exam"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "title": "",
+                    "courseId": "saved-1",
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "exam"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "openconnectorDeploymentId": "",
+                    "launchMode": "resource-link",
+                    "courseId": "saved-1",
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lti-tool-placement"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "openconnectorDeploymentId": "",
+                    "launchMode": "resource-link",
+                    "courseId": "saved-1",
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lti-tool-placement"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "sourceFormat": "scholiq-json",
+                    "sourceFilename": "export.json",
+                    "courseId": "saved-1",
+                    "importedBy": "teacher1",
+                    "importedAt": "(now)",
+                    "lifecycle": "partial",
+                    "resourcesTotal": 15,
+                    "resourcesImported": 11,
+                    "resourcesDegraded": 4,
+                    "resourcesDropped": 0,
+                    "errorMessage": null,
+                    "entries": [
+                        {
+                            "resourceIdentifier": "source-course",
+                            "resourceType": "course",
+                            "title": "Physics 101",
+                            "outcome": "imported",
+                            "targetType": "course",
+                            "targetId": "saved-1",
+                            "reason": null
+                        },
+                        {
+                            "resourceIdentifier": "source-child",
+                            "resourceType": "course",
+                            "title": "Module 1",
+                            "outcome": "imported",
+                            "targetType": "course",
+                            "targetId": "saved-2",
+                            "reason": null
+                        },
+                        {
+                            "resourceIdentifier": "source-child-2",
+                            "resourceType": "course",
+                            "title": "",
+                            "outcome": "imported",
+                            "targetType": "course",
+                            "targetId": "saved-3",
+                            "reason": null
+                        },
+                        {
+                            "resourceIdentifier": "child-course",
+                            "resourceType": "course",
+                            "title": "",
+                            "outcome": "imported",
+                            "targetType": "course",
+                            "targetId": "saved-4",
+                            "reason": null
+                        },
+                        {
+                            "resourceIdentifier": "source-lesson",
+                            "resourceType": "lesson",
+                            "title": "Intro",
+                            "outcome": "imported",
+                            "targetType": "lesson",
+                            "targetId": "saved-5",
+                            "reason": null
+                        },
+                        {
+                            "resourceIdentifier": "lesson",
+                            "resourceType": "lesson",
+                            "title": "",
+                            "outcome": "imported",
+                            "targetType": "lesson",
+                            "targetId": "saved-6",
+                            "reason": null
+                        },
+                        {
+                            "resourceIdentifier": "source-material",
+                            "resourceType": "material",
+                            "title": "Link",
+                            "outcome": "imported",
+                            "targetType": "material",
+                            "targetId": "saved-7",
+                            "reason": null
+                        },
+                        {
+                            "resourceIdentifier": "material",
+                            "resourceType": "material",
+                            "title": "Notes",
+                            "outcome": "imported",
+                            "targetType": "material",
+                            "targetId": "saved-9",
+                            "reason": null
+                        },
+                        {
+                            "resourceIdentifier": "material",
+                            "resourceType": "material",
+                            "title": "",
+                            "outcome": "imported",
+                            "targetType": "material",
+                            "targetId": "saved-10",
+                            "reason": null
+                        },
+                        {
+                            "resourceIdentifier": "source-rubric",
+                            "resourceType": "rubric",
+                            "title": "Rubric",
+                            "outcome": "imported",
+                            "targetType": "rubric",
+                            "targetId": "saved-11",
+                            "reason": null
+                        },
+                        {
+                            "resourceIdentifier": "rubric",
+                            "resourceType": "rubric",
+                            "title": "",
+                            "outcome": "imported",
+                            "targetType": "rubric",
+                            "targetId": "saved-12",
+                            "reason": null
+                        },
+                        {
+                            "resourceIdentifier": "source-assessment",
+                            "resourceType": "assessment",
+                            "title": "Exam",
+                            "outcome": "degraded",
+                            "targetType": "assessment",
+                            "targetId": "saved-13",
+                            "reason": "Item references are source-tenant UUIDs and do not resolve here; re-import the ItemBank via QTI package import to relink."
+                        },
+                        {
+                            "resourceIdentifier": "assessment",
+                            "resourceType": "assessment",
+                            "title": "",
+                            "outcome": "degraded",
+                            "targetType": "assessment",
+                            "targetId": "saved-14",
+                            "reason": "Item references are source-tenant UUIDs and do not resolve here; re-import the ItemBank via QTI package import to relink."
+                        },
+                        {
+                            "resourceIdentifier": "source-placement",
+                            "resourceType": "lti-tool-placement",
+                            "title": "LTI tool placement",
+                            "outcome": "degraded",
+                            "targetType": "lti-tool-placement",
+                            "targetId": "saved-15",
+                            "reason": "LTI placement re-created without a configured OpenConnector deployment; an admin must bind a deployment before this tool can be launched."
+                        },
+                        {
+                            "resourceIdentifier": "lti-placement",
+                            "resourceType": "lti-tool-placement",
+                            "title": "LTI tool placement",
+                            "outcome": "degraded",
+                            "targetType": "lti-tool-placement",
+                            "targetId": "saved-16",
+                            "reason": "LTI placement re-created without a configured OpenConnector deployment; an admin must bind a deployment before this tool can be launched."
+                        }
+                    ],
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "course-package-import-report"
+            }
+        },
+        {
+            "report": {
+                "sourceFormat": "scholiq-json",
+                "sourceFilename": "export.json",
+                "courseId": "saved-1",
+                "importedBy": "teacher1",
+                "importedAt": "(now)",
+                "lifecycle": "partial",
+                "resourcesTotal": 15,
+                "resourcesImported": 11,
+                "resourcesDegraded": 4,
+                "resourcesDropped": 0,
+                "errorMessage": null,
+                "entries": [
+                    {
+                        "resourceIdentifier": "source-course",
+                        "resourceType": "course",
+                        "title": "Physics 101",
+                        "outcome": "imported",
+                        "targetType": "course",
+                        "targetId": "saved-1",
+                        "reason": null
+                    },
+                    {
+                        "resourceIdentifier": "source-child",
+                        "resourceType": "course",
+                        "title": "Module 1",
+                        "outcome": "imported",
+                        "targetType": "course",
+                        "targetId": "saved-2",
+                        "reason": null
+                    },
+                    {
+                        "resourceIdentifier": "source-child-2",
+                        "resourceType": "course",
+                        "title": "",
+                        "outcome": "imported",
+                        "targetType": "course",
+                        "targetId": "saved-3",
+                        "reason": null
+                    },
+                    {
+                        "resourceIdentifier": "child-course",
+                        "resourceType": "course",
+                        "title": "",
+                        "outcome": "imported",
+                        "targetType": "course",
+                        "targetId": "saved-4",
+                        "reason": null
+                    },
+                    {
+                        "resourceIdentifier": "source-lesson",
+                        "resourceType": "lesson",
+                        "title": "Intro",
+                        "outcome": "imported",
+                        "targetType": "lesson",
+                        "targetId": "saved-5",
+                        "reason": null
+                    },
+                    {
+                        "resourceIdentifier": "lesson",
+                        "resourceType": "lesson",
+                        "title": "",
+                        "outcome": "imported",
+                        "targetType": "lesson",
+                        "targetId": "saved-6",
+                        "reason": null
+                    },
+                    {
+                        "resourceIdentifier": "source-material",
+                        "resourceType": "material",
+                        "title": "Link",
+                        "outcome": "imported",
+                        "targetType": "material",
+                        "targetId": "saved-7",
+                        "reason": null
+                    },
+                    {
+                        "resourceIdentifier": "material",
+                        "resourceType": "material",
+                        "title": "Notes",
+                        "outcome": "imported",
+                        "targetType": "material",
+                        "targetId": "saved-9",
+                        "reason": null
+                    },
+                    {
+                        "resourceIdentifier": "material",
+                        "resourceType": "material",
+                        "title": "",
+                        "outcome": "imported",
+                        "targetType": "material",
+                        "targetId": "saved-10",
+                        "reason": null
+                    },
+                    {
+                        "resourceIdentifier": "source-rubric",
+                        "resourceType": "rubric",
+                        "title": "Rubric",
+                        "outcome": "imported",
+                        "targetType": "rubric",
+                        "targetId": "saved-11",
+                        "reason": null
+                    },
+                    {
+                        "resourceIdentifier": "rubric",
+                        "resourceType": "rubric",
+                        "title": "",
+                        "outcome": "imported",
+                        "targetType": "rubric",
+                        "targetId": "saved-12",
+                        "reason": null
+                    },
+                    {
+                        "resourceIdentifier": "source-assessment",
+                        "resourceType": "assessment",
+                        "title": "Exam",
+                        "outcome": "degraded",
+                        "targetType": "assessment",
+                        "targetId": "saved-13",
+                        "reason": "Item references are source-tenant UUIDs and do not resolve here; re-import the ItemBank via QTI package import to relink."
+                    },
+                    {
+                        "resourceIdentifier": "assessment",
+                        "resourceType": "assessment",
+                        "title": "",
+                        "outcome": "degraded",
+                        "targetType": "assessment",
+                        "targetId": "saved-14",
+                        "reason": "Item references are source-tenant UUIDs and do not resolve here; re-import the ItemBank via QTI package import to relink."
+                    },
+                    {
+                        "resourceIdentifier": "source-placement",
+                        "resourceType": "lti-tool-placement",
+                        "title": "LTI tool placement",
+                        "outcome": "degraded",
+                        "targetType": "lti-tool-placement",
+                        "targetId": "saved-15",
+                        "reason": "LTI placement re-created without a configured OpenConnector deployment; an admin must bind a deployment before this tool can be launched."
+                    },
+                    {
+                        "resourceIdentifier": "lti-placement",
+                        "resourceType": "lti-tool-placement",
+                        "title": "LTI tool placement",
+                        "outcome": "degraded",
+                        "targetType": "lti-tool-placement",
+                        "targetId": "saved-16",
+                        "reason": "LTI placement re-created without a configured OpenConnector deployment; an admin must bind a deployment before this tool can be launched."
+                    }
+                ],
+                "tenant_id": "t1",
+                "id": "saved-17"
+            }
+        }
+    ]
+}

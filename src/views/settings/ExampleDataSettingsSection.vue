@@ -74,6 +74,7 @@ import { NcButton, NcNoteCard, NcSettingsSection } from '@nextcloud/vue'
 import {
 	EXAMPLE_SETS_URL,
 	loadedSetsOf,
+	removalQuestion,
 	removeExampleSet,
 } from '../../utils/exampleSetRemoval.js'
 
@@ -151,10 +152,8 @@ export default {
 					confirm: (chosen) =>
 						showConfirmation({
 							name: this.t('learniq', 'Remove example data'),
-							text: this.t(
-								'learniq',
-								'Remove the example set "{set}"? Its objects move to the trash of OpenRegister. Anything you made yourself stays.',
-								{ set: this.t('learniq', chosen.label) },
+							text: removalQuestion(chosen, (text, vars) =>
+								this.t('learniq', text, vars),
 							),
 							labelConfirm: this.t('learniq', 'Remove'),
 							labelReject: this.t('learniq', 'Cancel'),

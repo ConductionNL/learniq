@@ -2,8 +2,8 @@
 // SPDX-FileCopyrightText: 2026 Conduction B.V.
 
 /**
- * Vaartveld College (vo), against school-design/vaartveld/preview. The
- * website boards run signed out; Noor Bakker's boards sign her in with her
+ * Zuiddrecht College (vo), against school-design/vaartveld/preview. The
+ * website boards run signed out; the pupil boards sign Fenna de Jong in with her
  * school account (`PORTAL_DESIGN_PASSWORD`). Today's timetable is not
  * checked: it waits for the pupil's sessions (site-pupil-portal-design T1).
  *
@@ -36,12 +36,12 @@ const DESIGN = {
 }
 const FOOTER = [
 	'Een vraag? Bel of mail de school.',
-	'Vaartveld College is een voorbeeldschool.',
+	'Zuiddrecht College is een voorbeeldschool.',
 ]
 const NOOR = {
 	user: 'vo-leerling-121',
 	ref: 'ee02000a-0000-4000-8000-000000000534',
-	name: 'Noor Bakker',
+	name: 'Fenna de Jong',
 }
 
 test.describe('vaartveld: the website', () => {
@@ -58,7 +58,7 @@ test.describe('vaartveld: the website', () => {
 			'Rooster en wijzigingen',
 			'Nieuws',
 			dated('Informatieavond profielkeuze op dinsdag 3 november'),
-			'Mijn Vaartveld',
+			'Mijn Zuiddrecht',
 			'Agenda',
 			'Mentorgesprekken',
 			'Toetsweek 1, bovenbouw',
@@ -129,7 +129,7 @@ test.describe('vaartveld: the website', () => {
 	})
 })
 
-test.describe('vaartveld: Mijn Vaartveld (Noor Bakker)', () => {
+test.describe('vaartveld: Mijn Zuiddrecht (Fenna de Jong)', () => {
 	test('MijnOverzicht', async ({ browser }, info) => {
 		await ensurePortalAccount(
 			NOOR.user,
@@ -144,7 +144,7 @@ test.describe('vaartveld: Mijn Vaartveld (Noor Bakker)', () => {
 			info.project.use.viewport ?? { width: 1440, height: 1000 },
 		)
 		await expect(
-			page.getByText(/Goede(morgen|middag|navond), Noor/).first(),
+			page.getByText(/Goede(morgen|middag|navond), Fenna/).first(),
 		).toBeVisible()
 		await expectTexts(page, [
 			'Huiswerk en toetsen',

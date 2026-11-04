@@ -55,19 +55,16 @@ so the set uses 00X6, which ends in a digit and is never assigned.
 
 from __future__ import annotations
 
-import argparse
 import datetime as dt
-import json
-import os
 import random
 import sys
+from dataclasses import dataclass
 from xml.sax.saxutils import escape
 from zoneinfo import ZoneInfo
 
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-OUT = os.path.join(ROOT, "lib", "Settings", "profiles", "training.json")
+from example_set import Builder, Script, SetIdentity, main, stamp_group_labels
+
 AMS = ZoneInfo("Europe/Amsterdam")
-TENANT = "00000000-0000-4000-8000-000000000000"
 SET = "training"
 SET_NUMBER = "06"
 YEAR = "2025-2026"
@@ -123,6 +120,7 @@ SCHEMAS = [
     "client-organisation",
     "course-booking",
 ]
+IDENTITY = SetIdentity(SET, SET_NUMBER, SCHEMAS)
 
 CLOSED = [
     ("Kerstsluiting", dt.date(2025, 12, 22), dt.date(2026, 1, 2)),
@@ -463,29 +461,6 @@ IMPROVEMENTS = [
 ]
 
 
-class Builder:
-    """Collects objects per bucket and hands out uuids and slugs."""
-
-    def __init__(self) -> None:
-        self.buckets: dict[str, list[dict]] = {name: [] for name in SCHEMAS}
-        self.counters: dict[str, int] = {name: 0 for name in SCHEMAS}
-
-    def add(self, schema: str, fields: dict) -> dict:
-        self.counters[schema] += 1
-        n = self.counters[schema]
-        number = SCHEMAS.index(schema) + 1
-        obj = {
-            "@self": {"configuration": "learniq", "register": "learniq", "schema": schema},
-            "uuid": f"ee{SET_NUMBER}{number:04x}-0000-4000-8000-{n:012d}",
-            "slug": f"{SET}-{schema}-{n:03d}",
-        }
-        obj.update(fields)
-        if "tenant_id" not in obj:
-            obj["tenant_id"] = TENANT
-        self.buckets[schema].append(obj)
-        return obj
-
-
 def stamp(day: dt.date, hour: int, minute: int) -> str:
     """A local Amsterdam timestamp with its offset, e.g. 2025-09-01T09:00:00+02:00."""
     return dt.datetime(day.year, day.month, day.day, hour, minute, tzinfo=AMS).isoformat()
@@ -697,9 +672,29 @@ STORY_CAPACITY = {
 }
 
 
-def story_credential(b: Builder, profile: dict, course: dict, kind: str, issued: str, issuer: tuple[str, str], fields: dict) -> dict:
+@dataclass(frozen=True)
+class AwardTerms:
+    """What a story credential is (badge or certificate), when it was issued and by whom (name, did)."""
+
+    kind: str
+    issued: str
+    issuer: tuple[str, str]
+
+
+@dataclass(frozen=True)
+class StoryAward:
+    """A story credential: its holder's profile, its course, its terms and the extra fields it carries."""
+
+    profile: dict
+    course: dict
+    terms: AwardTerms
+    fields: dict
+
+
+def story_credential(b: Builder, award: StoryAward) -> dict:
     """A credential in the shape the set's own credential() writes, for a story course and any issuer."""
-    name, did = issuer
+    profile, course, fields = award.profile, award.course, award.fields
+    kind, issued, (name, did) = award.terms.kind, award.terms.issued, award.terms.issuer
     domain = did.removeprefix("did:web:")
     obj = b.add("credential", {
         "learnerId": profile["uuid"], "learnerUserId": profile["ncUserId"], "courseId": course["uuid"], "kind": kind,
@@ -720,14 +715,52 @@ def story_credential(b: Builder, profile: dict, course: dict, kind: str, issued:
     return obj
 
 
+@dataclass(frozen=True)
+class Applicant:
+    """The person in an admission: given name, family name and birth date."""
+
+    given: str
+    family: str
+    birth: dt.date
+
+
+@dataclass(frozen=True)
+class Application:
+    """An admission to write: its round, its applicant, the day it came in and its lifecycle."""
+
+    round: dict
+    person: Applicant
+    submitted: dt.date
+    lifecycle: str
+
+
 NL_WEEKDAYS = ["maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag", "zondag"]
 EXAM_TAGS = {"examen", "certificaat"}
 
 
-def employer_booking_facts(booking: dict, course: dict, sessions: list[dict], participants: list[tuple[dict, dict]],
-                           renewed: dict, trainer: str | None, place: str | None) -> dict:
+@dataclass(frozen=True)
+class Booking:
+    """An employer's booking with its course, its sessions and its (enrolment, profile) participants."""
+
+    record: dict
+    course: dict
+    sessions: list[dict]
+    participants: list[tuple[dict, dict]]
+
+
+@dataclass(frozen=True)
+class BookingContext:
+    """What a booking's facts read besides the booking: credentials by renewal enrolment, trainer name and place."""
+
+    renewed: dict
+    trainer: str | None
+    place: str | None
+
+
+def employer_booking_facts(order: Booking, context: BookingContext) -> dict:
     """A port of lib/Service/Portal/EmployerBookingFacts.php::derive(); EmployerBookingFactsTest checks the two agree
     on the seeded bookings (employer-portal-audience)."""
+    booking, course, sessions, participants = order.record, order.course, order.sessions, order.participants
     def parse(value):
         return dt.datetime.fromisoformat(value).astimezone(AMS) if value else None
 
@@ -759,7 +792,7 @@ def employer_booking_facts(booking: dict, course: dict, sessions: list[dict], pa
     enrolments, names, refs, missing = {}, [], [], 0
     for e, p in participants:
         name = f"{p.get('givenName', '')} {p.get('familyName', '')}".strip()
-        credential = renewed.get(e["uuid"])
+        credential = context.renewed.get(e["uuid"])
         line = None
         if credential and credential.get("expiresAt"):
             x = parse(credential["expiresAt"])
@@ -815,8 +848,8 @@ def employer_booking_facts(booking: dict, course: dict, sessions: list[dict], pa
         time_label = (min(parse(x["startsAt"]).strftime("%H.%M") for x in first_sessions) + " tot "
                       + max(parse(x["endsAt"]).strftime("%H.%M") for x in first_sessions) + " uur")
     course_name = (course.get("name") or "").strip() or None
-    day = {"firstDay": first.isoformat() if first else None, "dayLabel": label, "timeLabel": time_label, "placeLabel": place,
-           "trainerName": trainer, "upcoming": lifecycle in ("received", "confirmed")}
+    day = {"firstDay": first.isoformat() if first else None, "dayLabel": label, "timeLabel": time_label, "placeLabel": context.place,
+           "trainerName": context.trainer, "upcoming": lifecycle in ("received", "confirmed")}
     for key in enrolments:
         enrolments[key].update(day)
     return {
@@ -825,7 +858,7 @@ def employer_booking_facts(booking: dict, course: dict, sessions: list[dict], pa
             "bookingLabel": ", ".join(x for x in [course.get("name", "").strip(), label or ""] if x) or None,
             "upcoming": lifecycle in ("received", "confirmed"),
             "firstDay": first.isoformat() if first else None, "dayLabel": label, "timeLabel": time_label,
-            "placeLabel": place, "trainerName": trainer, "participantRefs": refs, "participantNames": ", ".join(names) or None,
+            "placeLabel": context.place, "trainerName": context.trainer, "participantRefs": refs, "participantNames": ", ".join(names) or None,
             "missingDetailsCount": missing, "lifecycle": lifecycle, "employerStatus": status, "statusNote": note,
             "detailsDueAt": due(first),
         },
@@ -1019,18 +1052,18 @@ def add_story(b: Builder, school: dict, location: dict) -> None:
                 })
 
     # Sanne's proof of participation for Waterzijdig inregelen, ready on Thursday 1 October at 16.52.
-    story_credential(b, people["sanne"], courses["WZI"], "badge", stamp(dt.date(2026, 10, 1), 16, 52), (INSTITUTE, ISSUER_DID),
-                     {"source": "auto", "enrolmentId": enrolments[(377, "sanne")]["uuid"], "lifecycle": "issued"})
+    story_credential(b, StoryAward(people["sanne"], courses["WZI"], AwardTerms("badge", stamp(dt.date(2026, 10, 1), 16, 52), (INSTITUTE, ISSUER_DID)),
+                                   {"source": "auto", "enrolmentId": enrolments[(377, "sanne")]["uuid"], "lifecycle": "issued"}))
     # The certificates the company holds. F-gassen categorie 1 runs out on 30 November 2026, eight weeks after
     # today; the herhaling on 8 October is its renewal. OpenRegister computes expiryStatus from expiresAt.
     for p in ("tom", "youssef", "sanne"):
-        story_credential(b, people[p], courses["FGAS-1"], "certificate", stamp(dt.date(2021, 11, 30), 10, 0), EXAM_COOLING, {
+        story_credential(b, StoryAward(people[p], courses["FGAS-1"], AwardTerms("certificate", stamp(dt.date(2021, 11, 30), 10, 0), EXAM_COOLING), {
             "expiresAt": stamp(dt.date(2026, 11, 30), 23, 59), "source": "manual",
             "renewalEnrolmentId": enrolments[(412, p)]["uuid"], "lifecycle": "issued",
-        })
-    story_credential(b, people["sanne"], courses["BRL6000"], "certificate", stamp(dt.date(2023, 3, 12), 10, 0), EXAM_COOLING, {
+        }))
+    story_credential(b, StoryAward(people["sanne"], courses["BRL6000"], AwardTerms("certificate", stamp(dt.date(2023, 3, 12), 10, 0), EXAM_COOLING), {
         "expiresAt": stamp(dt.date(2028, 3, 12), 23, 59), "source": "manual", "lifecycle": "issued",
-    })
+    }))
 
     # What each booking says to Linda, as EmployerBookingProjection writes it.
     renewed = {c["renewalEnrolmentId"]: c for c in b.buckets["credential"] if c.get("renewalEnrolmentId")}
@@ -1038,8 +1071,8 @@ def add_story(b: Builder, school: dict, location: dict) -> None:
     cohorts = {c["uuid"]: c for c in b.buckets["cohort"]}
     for booking, course, sessions, rows in bookings:
         cohort = cohorts[booking["cohortId"]]
-        facts = employer_booking_facts(booking, course, sessions, [(e, next(p for p in people.values() if p["uuid"] == e["learnerRef"])) for e in rows],
-                                       renewed, trainers.get(cohort["teacherIds"][0]), f"{location['name']}, {location['street']}")
+        facts = employer_booking_facts(Booking(booking, course, sessions, [(e, next(p for p in people.values() if p["uuid"] == e["learnerRef"])) for e in rows]),
+                                       BookingContext(renewed, trainers.get(cohort["teacherIds"][0]), f"{location['name']}, {location['street']}"))
         booking.update(facts["booking"])
         for e in rows:
             e.update(facts["enrolments"][e["uuid"]])
@@ -1047,7 +1080,7 @@ def add_story(b: Builder, school: dict, location: dict) -> None:
 
 def build() -> dict:
     rng = random.Random(20250901)
-    b = Builder()
+    b = Builder(IDENTITY)
     sched = Scheduler()
 
     # --- institute, location, rooms -------------------------------------------
@@ -1460,15 +1493,21 @@ def build() -> dict:
             "applicationDeadline": deadline.isoformat(), "mandatoryIntake": True, "capacity": 12, "lifecycle": lifecycle,
         }))
 
-    def applicant(round_obj: dict, given: str, family: str, birth: dt.date, submitted: dt.date, lifecycle: str, **extra) -> dict:
+    def applicant(application: Application, **extra) -> dict:
+        person = application.person
         fields = {
-            "applicantGivenName": given, "applicantFamilyName": family, "applicantBirthDate": birth.isoformat(),
-            "priorSchool": rng.choice(PRIOR_EDUCATION), "admissionsRoundId": round_obj["uuid"], "programmeId": programme["uuid"],
-            "submittedAuthLevel": "basic", "submittedAt": stamp(submitted, rng.randint(8, 21), rng.choice([5, 20, 35, 50])),
-            "lifecycle": lifecycle,
+            "applicantGivenName": person.given, "applicantFamilyName": person.family, "applicantBirthDate": person.birth.isoformat(),
+            "priorSchool": rng.choice(PRIOR_EDUCATION), "admissionsRoundId": application.round["uuid"], "programmeId": programme["uuid"],
+            "submittedAuthLevel": "basic", "submittedAt": stamp(application.submitted, rng.randint(8, 21), rng.choice([5, 20, 35, 50])),
+            "lifecycle": application.lifecycle,
         }
         fields.update(extra)
         return b.add("admission", fields)
+
+    def stranger(female: bool) -> Applicant:
+        """An applicant who is not one of the set's learners, with a drawn name and birth date."""
+        return Applicant(rng.choice(ADULT_F if female else ADULT_M), surname(rng, used_names),
+                         dt.date(1970, 1, 1) + dt.timedelta(days=rng.randrange(365 * 30)))
 
     def intake(submitted: dt.date) -> dict:
         day = next_office_day(submitted + dt.timedelta(days=rng.randint(3, 7)))
@@ -1492,13 +1531,13 @@ def build() -> dict:
             meet = intake(submitted)
             decided = next_office_day(meet["_day"] + dt.timedelta(days=2))
             if start_index == 0 and any(p is m for m in moved):
-                applicant(round_obj, p["given"], p["family"], p["birth"], submitted, "withdrawn",
+                applicant(Application(round_obj, Applicant(p["given"], p["family"], p["birth"]), submitted, "withdrawn"),
                           intakeScheduledAt=meet["intakeScheduledAt"], intakeConductedBy=meet["intakeConductedBy"], intakeCompleted=True,
                           intakeNotes="Geschikt; de groep is vol.", decisionType="waitlisted",
                           decisionReason="Groep vol; doorgeschoven naar de start in februari 2026.", decidedBy=PLANNER, decidedAt=stamp(decided, 16, 0))
                 continue
             converted = [r["obj"]["uuid"] for r in sorted(lg_rows[id(p)], key=lambda r: first_of(r["edition"]))]
-            applicant(round_obj, p["given"], p["family"], p["birth"], submitted, "converted",
+            applicant(Application(round_obj, Applicant(p["given"], p["family"], p["birth"]), submitted, "converted"),
                       intakeScheduledAt=meet["intakeScheduledAt"], intakeConductedBy=meet["intakeConductedBy"], intakeCompleted=True,
                       intakeNotes=rng.choice(notes_ok), decisionType="placed", decidedBy=PLANNER, decidedAt=stamp(decided, 16, 0),
                       convertedLearnerProfileId=p["profile"]["uuid"], convertedEnrolmentIds=converted)
@@ -1508,14 +1547,12 @@ def build() -> dict:
                 meet = intake(submitted)
                 decided = next_office_day(meet["_day"] + dt.timedelta(days=2))
                 female = rng.random() < 0.5
-                applicant(round_obj, rng.choice(ADULT_F if female else ADULT_M), surname(rng, used_names),
-                          dt.date(1970, 1, 1) + dt.timedelta(days=rng.randrange(365 * 30)), submitted, "waitlisted",
+                applicant(Application(round_obj, stranger(female), submitted, "waitlisted"),
                           intakeScheduledAt=meet["intakeScheduledAt"], intakeConductedBy=meet["intakeConductedBy"], intakeCompleted=True,
                           intakeNotes="Geschikt; wacht op een plek.", decisionType="waitlisted",
                           decisionReason="Groep vol; eerste keus voor de start in september 2026.", decidedBy=PLANNER, decidedAt=stamp(decided, 16, 0))
             female = rng.random() < 0.5
-            applicant(round_obj, rng.choice(ADULT_F if female else ADULT_M), surname(rng, used_names),
-                      dt.date(1970, 1, 1) + dt.timedelta(days=rng.randrange(365 * 30)), deadline - dt.timedelta(days=20), "withdrawn",
+            applicant(Application(round_obj, stranger(female), deadline - dt.timedelta(days=20), "withdrawn"),
                       decisionReason="Zelf afgemeld voor het intakegesprek: andere functie aangenomen.")
     for n in range(4):
         submitted = dt.date(2026, 6, 1) + dt.timedelta(days=rng.randint(0, 25))
@@ -1526,8 +1563,7 @@ def build() -> dict:
             lifecycle = "intake-scheduled"
             extra = {"intakeScheduledAt": stamp(next_office_day(min(submitted + dt.timedelta(days=7), dt.date(2026, 7, 9))), 14, 0),
                      "intakeConductedBy": "training-trainer-05"}
-        applicant(rounds[2], rng.choice(ADULT_F if female else ADULT_M), surname(rng, used_names),
-                  dt.date(1970, 1, 1) + dt.timedelta(days=rng.randrange(365 * 30)), submitted, lifecycle, **extra)
+        applicant(Application(rounds[2], stranger(female), submitted, lifecycle), **extra)
 
     # --- who teaches what, per cohort ------------------------------------------
     for e in editions:
@@ -1894,68 +1930,5 @@ def build() -> dict:
     }
 
 
-def stamp_group_labels(b: Builder) -> None:
-    """Every pupil's group line, as LearnerGroupLabel writes it on a live save
-    (school-portals-use-the-new-blocks): the group of the newest active enrolment,
-    and " · " with the first teacher's display name when the portal declaration
-    names that teacher (lib/Settings/portals/<set>.json accounts; the load command
-    gives those accounts that name). Runs last and draws no random number."""
-    declaration = os.path.join(ROOT, "lib", "Settings", "portals", f"{SET}.json")
-    names = {}
-    if os.path.exists(declaration):
-        with open(declaration, encoding="utf-8") as handle:
-            names = {a["userId"]: a["displayName"] for a in json.load(handle).get("accounts", [])}
-    cohorts = {c["uuid"]: c for c in b.buckets.get("cohort", [])}
-    newest: dict[str, dict] = {}
-    for enrolment in b.buckets.get("enrolment", []):
-        ref = enrolment.get("learnerRef")
-        if enrolment.get("lifecycle") != "active" or not ref or enrolment.get("cohortId") not in cohorts:
-            continue
-        if ref not in newest or str(enrolment.get("inschrijvingDate", "")) > str(newest[ref].get("inschrijvingDate", "")):
-            newest[ref] = enrolment
-    for profile in b.buckets.get("learner-profile", []):
-        enrolment = newest.get(profile["uuid"])
-        if "learner" not in (profile.get("roles") or []) or enrolment is None:
-            continue
-        cohort = cohorts[enrolment["cohortId"]]
-        teacher = names.get(((cohort.get("teacherIds") or [None])[0]) or "")
-        profile["groupLabel"] = cohort["name"] + (" · " + teacher if teacher else "")
-
-
-def render(data: dict) -> str:
-    """Pretty JSON with one compact object per line in each seed bucket (see po.py)."""
-    buckets = data["x-openregister"]["seedData"]["objects"]
-    data["x-openregister"]["seedData"]["objects"] = "__OBJECTS__"
-    text = json.dumps(data, indent=2, ensure_ascii=False)
-    parts = []
-    for name, rows in buckets.items():
-        lines = ",\n".join("          " + json.dumps(row, ensure_ascii=False, separators=(", ", ": ")) for row in rows)
-        parts.append(f"        {json.dumps(name)}: [\n{lines}\n        ]")
-    return text.replace('"__OBJECTS__"', "{\n" + ",\n".join(parts) + "\n      }") + "\n"
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--check", action="store_true", help="exit 1 when the file on disk differs")
-    args = parser.parse_args()
-    text = render(build())
-    if args.check:
-        current = open(OUT, encoding="utf-8").read() if os.path.exists(OUT) else ""
-        if current != text:
-            print(f"{OUT} is out of date; run python3 scripts/example-sets/training.py", file=sys.stderr)
-            return 1
-        print(f"{OUT} is up to date")
-        return 0
-    os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    with open(OUT, "w", encoding="utf-8") as handle:
-        handle.write(text)
-    data = json.loads(text)
-    counts = {k: len(v) for k, v in data["x-openregister"]["seedData"]["objects"].items()}
-    print(f"wrote {OUT}: {data['x-openregister']['profile']['objectCount']} objects")
-    for name, n in counts.items():
-        print(f"  {name}: {n}")
-    return 0
-
-
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(Script(SET, __doc__, build)))

@@ -41,6 +41,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Exception\RolloverInterruptedException;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IGroupManager;
 use Psr\Log\LoggerInterface;
@@ -92,6 +93,8 @@ class RolloverExecutionService {
 	 * archive the from-year Cohort, sync the NC group, carry over incomplete
 	 * mandatory enrolments, and queue OSO jobs for outflow learners. Per-mapping
 	 * completion is recorded so a re-run of a failed plan skips done mappings.
+	 * A mapping whose from-cohort no longer exists is skipped without writes and
+	 * left out of the progress map.
 	 *
 	 * Returns the updated perMappingProgress map. The caller persists the plan and
 	 * fires the terminal transition.
@@ -99,6 +102,8 @@ class RolloverExecutionService {
 	 * @param array<string,mixed> $plan The RolloverPlan object (lifecycle executing).
 	 *
 	 * @return array<string,string> Map of fromCohortId => 'done'.
+	 *
+	 * @throws RolloverInterruptedException When a mapping fails; it carries the progress so far.
 	 *
 	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
 	 */
@@ -109,48 +114,82 @@ class RolloverExecutionService {
 		$overrides = $this->rolloverService->indexOverrides(overrides: (array)($plan['learnerOverrides'] ?? []));
 		$progress = (array)($plan['perMappingProgress'] ?? []);
 
-		foreach ($mappings as $mapping) {
-			$fromCohortId = (string)($mapping['fromCohortId'] ?? '');
-			$action = ($mapping['action'] ?? null);
-
-			if ($fromCohortId === '' || $action === null) {
-				continue;
-			}
-
-			// Idempotency: skip mappings already completed in a prior run.
-			if (($progress[$fromCohortId] ?? '') === 'done') {
-				continue;
-			}
-
-			$cohort = $this->rolloverService->loadCohort(cohortId: $fromCohortId);
-			$members = (array)($cohort['learnerIds'] ?? []);
-
-			if ($action === 'promote') {
-				// The group moves up a year of its programme
-				// (timetabling-multi-year-hour-plan).
-				$mapping['toProgrammeYear'] = $this->nextProgrammeYear(fromCohort: $cohort, mapping: $mapping);
-				if ((string)($mapping['toProgrammeId'] ?? '') === '' && $mapping['toProgrammeYear'] !== null) {
-					// The group stays in its programme.
-					$mapping['toProgrammeId'] = ($cohort['programmeId'] ?? null);
+		try {
+			foreach ($mappings as $mapping) {
+				$fromCohortId = self::pendingCohortId(mapping: $mapping, progress: $progress);
+				if ($fromCohortId === '') {
+					continue;
 				}
 
-				$this->executePromotion(
-					mapping: $mapping,
-					members: $members,
-					overrides: $overrides,
-					toAcademicYear: $toAcademicYear,
-					tenantId: $tenantId
-				);
-			}
+				$action = $mapping['action'];
 
-			// Archive the from-year cohort (historical learnerIds preserved).
-			$this->archiveCohort(cohort: $cohort);
+				$cohort = $this->rolloverService->loadCohort(cohortId: $fromCohortId);
+				if ($cohort === []) {
+					// A from-cohort that no longer exists has nothing to move or archive.
+					$this->logger->warning('[RolloverExecutionService] From-cohort {c} not found; mapping skipped.', ['c' => $fromCohortId]);
+					continue;
+				}
 
-			$progress[$fromCohortId] = 'done';
-		}//end foreach
+				$members = (array)($cohort['learnerIds'] ?? []);
+
+				if ($action === 'promote') {
+					$this->executePromotion(
+						mapping: $this->withProgrammeTarget(mapping: $mapping, fromCohort: $cohort),
+						members: $members,
+						overrides: $overrides,
+						toAcademicYear: $toAcademicYear,
+						tenantId: $tenantId
+					);
+				}
+
+				// Archive the from-year cohort (historical learnerIds preserved).
+				$this->archiveCohort(cohort: $cohort);
+
+				$progress[$fromCohortId] = 'done';
+			}//end foreach
+		} catch (Throwable $e) {
+			// The mappings finished so far stay done, so a re-run skips them.
+			throw new RolloverInterruptedException(progress: $progress, cause: $e);
+		}
 
 		return $progress;
 	}//end execute()
+
+	/**
+	 * The mapping with the group's to-year programme and year of it (timetabling-multi-year-hour-plan).
+	 *
+	 * The group moves up a year of its programme, and stays in it unless the mapping names another.
+	 *
+	 * @param array<string,mixed> $mapping    The promote mapping.
+	 * @param array<string,mixed> $fromCohort The from-year cohort.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function withProgrammeTarget(array $mapping, array $fromCohort): array {
+		$mapping['toProgrammeYear'] = $this->nextProgrammeYear(fromCohort: $fromCohort, mapping: $mapping);
+		if ((string)($mapping['toProgrammeId'] ?? '') === '' && $mapping['toProgrammeYear'] !== null) {
+			$mapping['toProgrammeId'] = ($fromCohort['programmeId'] ?? null);
+		}
+
+		return $mapping;
+	}//end withProgrammeTarget()
+
+	/**
+	 * The from-cohort id of a mapping still to run, or '' for one without an id or action, or already done.
+	 *
+	 * @param array<string,mixed>  $mapping  The mapping.
+	 * @param array<string,string> $progress Map of fromCohortId => 'done'.
+	 *
+	 * @return string
+	 */
+	private static function pendingCohortId(array $mapping, array $progress): string {
+		$fromCohortId = (string)($mapping['fromCohortId'] ?? '');
+		if (($mapping['action'] ?? null) === null || ($progress[$fromCohortId] ?? '') === 'done') {
+			return '';
+		}
+
+		return $fromCohortId;
+	}//end pendingCohortId()
 
 	/**
 	 * Execute a single promote mapping: create cohort, move members, sync group,
@@ -187,13 +226,15 @@ class RolloverExecutionService {
 		}
 
 		$toCohort = $this->createOrFindToCohort(
-			toCohortName: $toCohortName,
-			toAcademicYear: $toAcademicYear,
-			programmeId: ($mapping['toProgrammeId'] ?? null),
-			courseId: ($mapping['toCourseId'] ?? null),
-			learnerIds: $movingMembers,
-			tenantId: $tenantId,
-			programmeYear: ($mapping['toProgrammeYear'] ?? null)
+			target: [
+				'name' => $toCohortName,
+				'academicYear' => $toAcademicYear,
+				'tenant_id' => $tenantId,
+				'programmeId' => ($mapping['toProgrammeId'] ?? null),
+				'courseId' => ($mapping['toCourseId'] ?? null),
+				'programmeYear' => ($mapping['toProgrammeYear'] ?? null),
+			],
+			learnerIds: $movingMembers
 		);
 
 		// Sync the backing NC group to the moving members.
@@ -222,33 +263,22 @@ class RolloverExecutionService {
 	/**
 	 * Create the to-year cohort, or find an existing one (idempotent).
 	 *
-	 * @param string $toCohortName To-year cohort name.
-	 * @param string $toAcademicYear To-year academic year.
-	 * @param mixed $programmeId Optional programme.
-	 * @param mixed $courseId Optional course.
-	 * @param array<int,string> $learnerIds Members.
-	 * @param string $tenantId Tenant ID.
-	 * @param int|null $programmeYear The group's year of its programme in the to-year, when known.
+	 * @param array<string,mixed> $target     The to-year cohort: name, academicYear and tenant_id (strings),
+	 *                                        programmeId and courseId (optional), and programmeYear (the
+	 *                                        group's year of its programme in the to-year, or null).
+	 * @param array<int,string>   $learnerIds Members.
 	 *
 	 * @return array<string,mixed> The created/found cohort.
 	 */
-	private function createOrFindToCohort(
-		string $toCohortName,
-		string $toAcademicYear,
-		mixed $programmeId,
-		mixed $courseId,
-		array $learnerIds,
-		string $tenantId,
-		?int $programmeYear = null,
-	): array {
+	private function createOrFindToCohort(array $target, array $learnerIds): array {
 		$existing = $this->objectService->findAll(
 			[
 				'filters' => [
 					'register' => self::LEARNIQ_REGISTER,
 					'schema' => 'cohort',
-					'name' => $toCohortName,
-					'academicYear' => $toAcademicYear,
-					'tenant_id' => $tenantId,
+					'name' => $target['name'],
+					'academicYear' => $target['academicYear'],
+					'tenant_id' => $target['tenant_id'],
 				],
 				'limit' => 1,
 			]
@@ -263,22 +293,22 @@ class RolloverExecutionService {
 		}
 
 		$cohort = [
-			'name' => $toCohortName,
-			'academicYear' => $toAcademicYear,
+			'name' => $target['name'],
+			'academicYear' => $target['academicYear'],
 			'learnerIds' => array_values(array_unique($learnerIds)),
-			'ncGroupId' => $this->rolloverService->groupName(academicYear: $toAcademicYear, cohortName: $toCohortName),
-			'tenant_id' => $tenantId,
+			'ncGroupId' => $this->rolloverService->groupName(academicYear: $target['academicYear'], cohortName: $target['name']),
+			'tenant_id' => $target['tenant_id'],
 		];
-		if ($programmeId !== null && $programmeId !== '') {
-			$cohort['programmeId'] = $programmeId;
+		if ($target['programmeId'] !== null && $target['programmeId'] !== '') {
+			$cohort['programmeId'] = $target['programmeId'];
 		}
 
-		if ($courseId !== null && $courseId !== '') {
-			$cohort['courseId'] = $courseId;
+		if ($target['courseId'] !== null && $target['courseId'] !== '') {
+			$cohort['courseId'] = $target['courseId'];
 		}
 
-		if ($programmeYear !== null) {
-			$cohort['programmeYear'] = $programmeYear;
+		if ($target['programmeYear'] !== null) {
+			$cohort['programmeYear'] = $target['programmeYear'];
 		}
 
 		$saved = $this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: 'cohort', object: $cohort);

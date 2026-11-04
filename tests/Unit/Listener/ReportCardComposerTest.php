@@ -32,6 +32,7 @@ namespace OCA\Learniq\Tests\Unit\Listener;
 use DateTime;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Listener\ReportCardComposer;
 use OCA\Learniq\Service\AttendanceWindowAggregator;
@@ -267,6 +268,35 @@ class ReportCardComposerTest extends TestCase {
 		self::assertFalse($byLearner['learner-2']['subjectGrades'][0]['passed']);
 
 	}//end testComposeCreatesOneReportCardPerCohortLearnerWithQualifyingSubjectsOnly()
+
+	/**
+	 * Writing `lifecycle: composed` on the period is an update, not the
+	 * compose transition, and builds no report card. The compose dialog must
+	 * run the transition.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
+	 */
+	public function testALifecycleWriteComposesNothing(): void {
+		$composer = $this->makeComposer(
+			cohorts: ['cohort-a' => ['id' => 'cohort-a', 'learnerIds' => ['learner-1']]],
+			plans: ['plan-bio' => ['id' => 'plan-bio', 'components' => [['componentId' => 'c1', 'period' => '1', 'weight' => 1, 'kind' => 'assessment']]]],
+			finalGrades: ['learner-1|plan-bio' => ['learnerId' => 'learner-1', 'curriculumPlanId' => 'plan-bio', 'courseId' => 'course-1', 'passed' => true, 'breakdown' => ['periods' => ['1' => 7.5]]]],
+			gradeEntries: ['learner-1|plan-bio|1' => [['id' => 'entry-1']]],
+		);
+		$period = ['id' => 'period-1', 'periodCode' => '1', 'curriculumPlanIds' => ['plan-bio'], 'cohortIds' => ['cohort-a'], 'attendanceIncluded' => false, 'lifecycle' => 'composed', 'tenant_id' => 'tenant-a'];
+
+		$entity = $this->createMock(ObjectEntity::class);
+		$entity->method('jsonSerialize')->willReturn($period);
+		$update = $this->createMock(ObjectUpdatedEvent::class);
+		$update->method('getNewObject')->willReturn($entity);
+		$composer->handle($update);
+		self::assertSame([], array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'report-card'));
+
+		$composer->handle($this->makeEvent($period, 'report-period', 'compose', 'composed'));
+		self::assertCount(1, array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'report-card'));
+	}//end testALifecycleWriteComposesNothing()
 
 	/**
 	 * Each card carries the learner's LearnerProfile UUID as learnerRef, found

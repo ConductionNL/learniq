@@ -34,9 +34,9 @@ namespace OCA\Learniq\Controller;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\SubmissionMarkAllocationService;
 use OCA\Learniq\Service\SubmissionMarkReader;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
@@ -50,6 +50,7 @@ use OCP\IUserSession;
  * @spec openspec/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
  */
 class SubmissionMarkController extends Controller {
+	use FindOrNull;
 
 	private const REGISTER = 'learniq';
 
@@ -209,25 +210,15 @@ class SubmissionMarkController extends Controller {
 	 * @param string $id     The uuid.
 	 *
 	 * @return array<string, mixed>|null
+	 *
+	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException When the id matches more than one object; LookupIntegrityMiddleware answers it.
 	 */
 	private function read(string $schema, string $id): ?array {
 		if ($id === '') {
 			return null;
 		}
 
-		try {
-			$object = $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _render: false);
-		} catch (DoesNotExistException) {
-			return null;
-		}
-
-		$row = $object?->jsonSerialize();
-		if (is_array($row) === false) {
-			return null;
-		}
-
-		$row['id'] = (string)($row['id'] ?? ($row['@self']['id'] ?? $id));
-
-		return $row;
+		$find = fn () => $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _render: false);
+		return $this->findRowWithIdOrNull(find: $find, id: $id);
 	}//end read()
 }//end class

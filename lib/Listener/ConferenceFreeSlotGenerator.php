@@ -115,13 +115,7 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 	 * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
 	 */
 	public function handle(Event $event): void {
-		if (($event instanceof ObjectTransitionedEvent) === false || $event->getTo() !== 'booking-open') {
-			return;
-		}
-
-		if ($this->schemas->eventRegister(event: $event) !== self::REGISTER
-			|| $this->schemas->eventSchema(event: $event) !== self::ROUND_SCHEMA
-		) {
+		if (($event instanceof ObjectTransitionedEvent) === false || $this->opensRoundBooking(event: $event) === false) {
 			return;
 		}
 
@@ -147,6 +141,19 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 	}//end handle()
 
 	/**
+	 * Whether the transition moves a learniq conference round to `booking-open`.
+	 *
+	 * @param ObjectTransitionedEvent $event The transition.
+	 *
+	 * @return bool
+	 */
+	private function opensRoundBooking(ObjectTransitionedEvent $event): bool {
+		return $event->getTo() === 'booking-open'
+			&& $this->schemas->eventRegister(event: $event) === self::REGISTER
+			&& $this->schemas->eventSchema(event: $event) === self::ROUND_SCHEMA;
+	}//end opensRoundBooking()
+
+	/**
 	 * Write the missing free slots of one round.
 	 *
 	 * @param array<string, mixed> $round The round.
@@ -162,7 +169,6 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 		}
 
 		$held = $this->heldIntervals(roundId: $roundId);
-		$slicer = new ConferenceSlotSlicer();
 		$eligible = [];
 		$written = 0;
 		foreach ($this->availabilities(roundId: $roundId) as $availability) {
@@ -171,28 +177,21 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 				continue;
 			}
 
-			if (isset($eligible[$teacherId]) === false) {
-				$eligible[$teacherId] = $this->eligibleRefs(round: $round, teacherId: $teacherId);
+			$eligible[$teacherId] ??= $this->eligibleRefs(round: $round, teacherId: $teacherId);
+			if ($eligible[$teacherId] === null) {
+				continue;
 			}
 
-			$candidates = $slicer->slice(
-				blocks: (array)($availability['blocks'] ?? []),
-				slotDurationMinutes: (int)($round['slotDurationMinutes'] ?? 10),
-				bufferMinutes: (int)($round['bufferMinutes'] ?? 0)
-			);
-			foreach ($candidates as $candidate) {
-				if ($slicer->overlaps(candidate: $candidate, intervals: ($held[$teacherId] ?? [])) === true) {
-					continue;
-				}
-
+			$free = $this->unheld(candidates: $this->candidates(round: $round, availability: $availability), held: ($held[$teacherId] ?? []));
+			$held[$teacherId] = array_merge(($held[$teacherId] ?? []), $free);
+			foreach ($free as $candidate) {
 				$this->objectService->saveObject(
-					object: $this->freeSlot(round: $round, teacherId: $teacherId, candidate: $candidate, eligible: $eligible[$teacherId]),
+					object: $this->freeSlot(slot: ['teacherId' => $teacherId, 'candidate' => $candidate, 'eligible' => $eligible[$teacherId]], round: $round),
 					register: self::REGISTER,
 					schema: self::SLOT_SCHEMA,
 					_rbac: false,
 					_multitenancy: false
 				);
-				$held[$teacherId][] = $candidate;
 				$written++;
 			}
 		}//end foreach
@@ -201,16 +200,55 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 	}//end generateForRound()
 
 	/**
+	 * The slot times one availability offers, sliced by the round's slot length and buffer.
+	 *
+	 * @param array<string, mixed> $round        The round.
+	 * @param array<string, mixed> $availability The teacher's availability.
+	 *
+	 * @return array<int, array{startsAt: string, endsAt: string}>
+	 */
+	private function candidates(array $round, array $availability): array {
+		return (new ConferenceSlotSlicer())->slice(
+			blocks: (array)($availability['blocks'] ?? []),
+			slotDurationMinutes: (int)($round['slotDurationMinutes'] ?? 10),
+			bufferMinutes: (int)($round['bufferMinutes'] ?? 0)
+		);
+	}//end candidates()
+
+	/**
+	 * The candidates that overlap neither a time the teacher holds nor an earlier candidate kept here.
+	 *
+	 * @param array<int, array{startsAt: string, endsAt: string}> $candidates The slot times, in order.
+	 * @param array<int, array{startsAt: string, endsAt: string}> $held       The teacher's held times.
+	 *
+	 * @return array<int, array{startsAt: string, endsAt: string}>
+	 */
+	private function unheld(array $candidates, array $held): array {
+		$slicer = new ConferenceSlotSlicer();
+		$free = [];
+		foreach ($candidates as $candidate) {
+			if ($slicer->overlaps(candidate: $candidate, intervals: $held) === true) {
+				continue;
+			}
+
+			$held[] = $candidate;
+			$free[] = $candidate;
+		}
+
+		return $free;
+	}//end unheld()
+
+	/**
 	 * One free slot.
 	 *
-	 * @param array<string, mixed> $round The round.
-	 * @param string $teacherId The teacher's Nextcloud uid.
-	 * @param array{startsAt: string, endsAt: string} $candidate The time.
-	 * @param array<int, string> $eligible Who may book it.
+	 * @param array{teacherId: string, candidate: array{startsAt: string, endsAt: string}, eligible: array<int, string>} $slot  The
+	 *        teacher's Nextcloud uid, the time and who may book it.
+	 * @param array<string, mixed>                                                                                $round The round.
 	 *
 	 * @return array<string, mixed>
 	 */
-	private function freeSlot(array $round, string $teacherId, array $candidate, array $eligible): array {
+	private function freeSlot(array $slot, array $round): array {
+		['teacherId' => $teacherId, 'candidate' => $candidate, 'eligible' => $eligible] = $slot;
 		$teacherName = $this->teacherName(teacherId: $teacherId);
 
 		return [
@@ -285,37 +323,78 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 	/**
 	 * The pupils whose parents may book this teacher: the invited pupils of
 	 * the round's groups the teacher teaches, or every invited pupil when the
-	 * teacher teaches none of them.
+	 * teacher teaches none of them. A group that cannot be read might be the
+	 * teacher's own, so it refuses the answer instead of opening the times to
+	 * every invited pupil.
 	 *
 	 * @param array<string, mixed> $round The round.
 	 * @param string $teacherId The teacher's uid.
 	 *
-	 * @return array<int, string> LearnerProfile uuids.
+	 * @return array<int, string>|null LearnerProfile uuids; null when a group cannot be read and the teacher teaches none of the others.
 	 */
-	private function eligibleRefs(array $round, string $teacherId): array {
+	private function eligibleRefs(array $round, string $teacherId): ?array {
 		$invited = array_values(array_filter((array)($round['invitedLearnerRefs'] ?? []), 'is_string'));
-		$tenantId = (string)($round['tenant_id'] ?? '');
 		$refs = [];
-		foreach ((array)($round['cohortIds'] ?? []) as $cohortId) {
-			$cohort = $this->row(id: (string)$cohortId, schema: self::COHORT_SCHEMA);
-			if ($cohort === null || in_array($teacherId, (array)($cohort['teacherIds'] ?? []), true) === false) {
+		$teaches = false;
+		$unread = false;
+		foreach ($this->namedCohortIds(round: $round) as $cohortId) {
+			$cohort = $this->row(id: $cohortId, schema: self::COHORT_SCHEMA);
+			if ($cohort === null) {
+				$unread = true;
 				continue;
 			}
 
-			foreach ((array)($cohort['learnerIds'] ?? []) as $learnerId) {
-				$ref = $this->profiles->resolveInTenant(learnerId: (string)$learnerId, tenantId: $tenantId);
-				if ($ref !== null && in_array($ref, $invited, true) === true) {
-					$refs[$ref] = true;
-				}
+			if (in_array($teacherId, (array)($cohort['teacherIds'] ?? []), true) === true) {
+				$teaches = true;
+				$refs += $this->invitedOfCohort(cohort: $cohort, round: ['invited' => $invited, 'tenantId' => (string)($round['tenant_id'] ?? '')]);
 			}
 		}
 
-		if ($refs === []) {
-			return $invited;
+		if ($teaches === true) {
+			return array_map('strval', array_keys($refs));
 		}
 
-		return array_map('strval', array_keys($refs));
+		if ($unread === true) {
+			$this->logger->error(
+				'[ConferenceFreeSlotGenerator] Round {round}: a group could not be read, so a teacher with no other group gets no free slots.',
+				['round' => ($round['id'] ?? '')]
+			);
+			return null;
+		}
+
+		return $invited;
 	}//end eligibleRefs()
+
+	/**
+	 * The ids of the round's groups, without blanks.
+	 *
+	 * @param array<string, mixed> $round The round.
+	 *
+	 * @return array<int, string>
+	 */
+	private function namedCohortIds(array $round): array {
+		return array_values(array_filter(array_map('strval', (array)($round['cohortIds'] ?? [])), static fn (string $id): bool => $id !== ''));
+	}//end namedCohortIds()
+
+	/**
+	 * The invited pupils of one group, as LearnerProfile uuids in the round's tenant.
+	 *
+	 * @param array<string, mixed>                                  $cohort The group.
+	 * @param array{invited: array<int, string>, tenantId: string} $round  The round's invited pupils and tenant.
+	 *
+	 * @return array<string, true> Keyed by LearnerProfile uuid.
+	 */
+	private function invitedOfCohort(array $cohort, array $round): array {
+		$refs = [];
+		foreach ((array)($cohort['learnerIds'] ?? []) as $learnerId) {
+			$ref = $this->profiles->resolveInTenant(learnerId: (string)$learnerId, tenantId: $round['tenantId']);
+			if ($ref !== null && in_array($ref, $round['invited'], true) === true) {
+				$refs[$ref] = true;
+			}
+		}
+
+		return $refs;
+	}//end invitedOfCohort()
 
 	/**
 	 * Submitted and locked availability of the round.

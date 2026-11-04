@@ -48,7 +48,7 @@
 				</div>
 				<span class="programme-progress-widget__label">
 					{{
-						t('learniq', '{done} of {total} mandatory courses done', {
+						t('learniq', words.progress, {
 							done: programme.mandatoryCompleted,
 							total: programme.mandatoryTotal,
 						})
@@ -70,7 +70,7 @@
 			</ul>
 			<template v-if="programme.optional.length > 0">
 				<h4 class="programme-progress-widget__optional-heading">
-					{{ t('learniq', 'Optional courses') }}
+					{{ t('learniq', words.optional) }}
 				</h4>
 				<ul class="programme-progress-widget__list">
 					<li
@@ -92,8 +92,10 @@
 
 <script>
 import axios from '@nextcloud/axios'
+import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
 import { NcLoadingIcon } from '@nextcloud/vue'
+import { programmeWords } from '../../utils/programmeWords.js'
 
 export default {
 	name: 'MyProgrammeProgressWidget',
@@ -106,6 +108,7 @@ export default {
 		return {
 			programmes: [],
 			loading: true,
+			words: programmeWords(loadState('learniq', 'segment', '')),
 		}
 	},
 
@@ -148,7 +151,7 @@ export default {
 				completed: this.t('learniq', 'Done'),
 				failed: this.t('learniq', 'Not passed'),
 			}
-			return labels[lifecycle] ?? lifecycle
+			return labels[lifecycle] ?? (lifecycle || this.t('learniq', 'Not started'))
 		},
 	},
 }

@@ -9,7 +9,7 @@
  * on the instance), and skip with that reason otherwise.
  *
  * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md
- * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-overview-follows-the-designed-board
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-the-overview-follows-the-designed-board
  * @spec openspec/changes/portal-board-checks-run-on-a-real-instance/specs/example-sets/spec.md#requirement-the-board-checks-run-against-any-instance-that-loaded-the-sets
  */
 

@@ -37,6 +37,7 @@ use OCA\Learniq\Listener\ConferenceInvitationSync;
 use OCA\Learniq\Listener\ConferenceRoundBookingModeStamp;
 use OCA\Learniq\Listener\ConferenceSlotBookingStamp;
 use OCA\Learniq\Listener\ConferenceSlotBookingSync;
+use OCA\Learniq\Listener\ConferenceWaitlistPlacement;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
@@ -74,6 +75,10 @@ class ConferenceListenerRegistrar {
 		// follows, a late portal cancel is refused, a released time is free again.
 		$context->registerEventListener(event: ObjectUpdatingEvent::class, listener: ConferenceSlotBookingSync::class);
 		$context->registerEventListener(event: ObjectUpdatedEvent::class, listener: ConferenceSlotBookingSync::class);
+
+		// A hand-placed slot for a waitlisted signup: once every requested
+		// teacher has a slot, the signup is scheduled.
+		$context->registerEventListener(event: ObjectCreatedEvent::class, listener: ConferenceWaitlistPlacement::class);
 
 		// One invitation row per invited child: a round or a child's time
 		// moves, the round's rows follow (guardian-tasks-per-child-and-self-assessment).

@@ -95,6 +95,15 @@ SCHEMAS = [
     "report-subject-grade",
     # Appended last (guardian-tasks-per-child-and-self-assessment): every earlier schema keeps its uuid namespace.
     "conference-invitation",
+    # Appended last (exset-po-records-for-detail-boards): one record each for the detail pages that had none.
+    "programme",
+    "admissions-round",
+    "admission",
+    "credential",
+    "item-bank",
+    "item",
+    "peer-review",
+    "lesson",
 ]
 
 # School events a parent sees in the portal calendar: (title, start, end, kind, groups or None for the whole
@@ -841,6 +850,7 @@ def build() -> dict:
     stamp_group_labels(b)
     add_report_subject_grades(b)
     add_conference_invitations(b)
+    add_detail_records(b, pupils, subject_courses)
 
     # --- assemble -----------------------------------------------------------
     for cohort in cohorts.values():
@@ -1215,6 +1225,75 @@ def add_conference_invitations(b: Builder) -> None:
             row["status"] = status
             row["tenant_id"] = round_.get("tenant_id", TENANT)
             b.add("conference-invitation", row)
+
+
+def add_detail_records(b: Builder, pupils: list[dict], subject_courses: dict) -> None:
+    """One record for each detail page the boards draw and the set had nothing
+    for (exset-po-records-for-detail-boards): an aanmelding for groep 1 in the
+    open round for 2026-2027, the verkeersdiploma of a groep 8 pupil, a rekenen
+    item in its bank, a peer review between two groep 7 pupils on the first
+    homework, and the e-learning lesson on fractions, delivered as cmi5."""
+    # Draft: a primary school publishes no programme on its portal (PortalPublicIndex lists published ones).
+    programme = b.add("programme", {
+        "name": "Basisonderwijs De Wilgenboom", "level": "po", "lifecycle": "draft",
+    })
+    round_ = b.add("admissions-round", {
+        "name": "Aanmelding groep 1, 2026-2027", "kind": "generic", "programmeId": programme["uuid"], "level": "po",
+        "academicYear": "2026-2027", "applicationDeadline": "2026-11-30", "mandatoryIntake": True, "capacity": 30,
+        "lifecycle": "open",
+    })
+    b.add("admission", {
+        "admissionsRoundId": round_["uuid"], "programmeId": programme["uuid"],
+        "applicantGivenName": "Noah", "applicantFamilyName": "Verhoeven", "applicantBirthDate": "2022-11-03",
+        "priorSchool": "Kinderopvang De Speeltuin", "guardianId": "po-ouder-901", "guardianGivenName": "Lotte",
+        "guardianFamilyName": "Verhoeven", "submittedAuthLevel": "substantial",
+        "submittedAt": "2026-09-15T10:12:00+02:00", "intakeScheduledAt": "2026-10-28T14:00:00+01:00",
+        "lifecycle": "intake-scheduled",
+    })
+    groep8 = sorted((p for p in pupils if p["class"] == "Groep 8"), key=lambda p: p["nc"])[0]
+    b.add("credential", {
+        "learnerId": groep8["profile"]["uuid"], "learnerUserId": groep8["nc"], "kind": "certificate",
+        "issuedAt": "2026-04-09T11:00:00+02:00", "issuerDid": "did:web:wilgenboom.zuiddrecht.example",
+        "signature": "eyJhbGciOiJSUzI1NiJ9.ZGVtby12ZXJrZWVyc2RpcGxvbWE.demo-signature-not-verifiable",
+        "openbadges3Payload": {
+            "@context": ["https://www.w3.org/ns/credentials/v2", "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json"],
+            "type": ["VerifiableCredential", "OpenBadgeCredential"],
+            "name": "Verkeersdiploma",
+            "credentialSubject": {"achievement": {"name": "Verkeersdiploma", "description": "Theorie en praktijk van het verkeersexamen gehaald."}},
+        },
+        "issuedBy": "po-leerkracht-08", "source": "manual", "lifecycle": "issued",
+    })
+    bank = b.add("item-bank", {
+        "name": "Rekenen groep 7: breuken", "subject": "Rekenen", "lifecycle": "published",
+    })
+    item = b.add("item", {
+        "itemBankId": bank["uuid"], "title": "Breuken optellen",
+        "interactionType": "choice",
+        "qtiBody": (
+            '<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1" identifier="breuken-optellen" '
+            'title="Breuken optellen" adaptive="false" timeDependent="false"><itemBody>'
+            '<choiceInteraction responseIdentifier="RESPONSE" maxChoices="1"><prompt>Hoeveel is 1/4 + 1/2?</prompt>'
+            '<simpleChoice identifier="A">2/6</simpleChoice><simpleChoice identifier="B">3/4</simpleChoice>'
+            '<simpleChoice identifier="C">1/8</simpleChoice></choiceInteraction></itemBody></assessmentItem>'
+        ),
+        "correctResponse": {"identifier": "B"}, "maxScore": 1, "difficulty": 0.4, "subjectTags": ["breuken"],
+        "lifecycle": "published",
+    })
+    bank["itemIds"] = [item["uuid"]]
+    groep7 = {p["profile"]["uuid"]: p for p in pupils if p["class"] == "Groep 7"}
+    assignment = next(a for a in b.buckets["assignment"]
+                      if any(r in groep7 for r in a.get("learnerRefs", [])) and a["title"] == HOMEWORK[0][1])
+    handed = [s for s in b.buckets["submission"] if s["assignmentId"] == assignment["uuid"]]
+    reviewed, reviewer = handed[0], groep7[handed[1]["learnerRef"]]
+    b.add("peer-review", {
+        "assignmentId": assignment["uuid"], "submissionId": reviewed["uuid"], "reviewerId": reviewer["nc"],
+        "totalScore": 8, "comments": "Netjes uitgewerkt. Bij opgave 4 mist de tussenstap.", "lifecycle": "submitted",
+    })
+    b.add("lesson", {
+        "courseId": subject_courses["PO-REK"]["uuid"], "name": "Breuken: e-learning", "order": 1,
+        "contentType": "cmi5", "contentRef": "https://leren.wilgenboom.zuiddrecht.example/cmi5/breuken/launch",
+        "durationMinutes": 30, "lifecycle": "published",
+    })
 
 
 def render(data: dict) -> str:

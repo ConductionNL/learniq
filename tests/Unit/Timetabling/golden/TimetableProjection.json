@@ -1,0 +1,353 @@
+{
+    "ics": [
+        "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Conduction//learniq timetable//EN\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\nX-WR-CALNAME:Rooster\r\nX-PUBLISHED-TTL:PT1H\r\nREFRESH-INTERVAL;VALUE=DURATION:PT1H\r\nBEGIN:VEVENT\r\nUID:u-1\r\nDTSTAMP:20260101T000000Z\r\nDTSTART:20260302T080000Z\r\nDTEND:20260302T085000Z\r\nSUMMARY:Wiskunde\\; H3\\, deel 2\r\nLOCATION:Lokaal 12\r\nDESCRIPTION:Regel 1\\nRegel 2\r\nURL:https://meet.example.nl/abc\r\nSTATUS:CONFIRMED\r\nTRANSP:OPAQUE\r\nEND:VEVENT\r\nBEGIN:VEVENT\r\nUID:u-2\r\nDTSTAMP:20260101T000000Z\r\nDTSTART:20260302T090000Z\r\nSUMMARY:Geen einde\r\nSTATUS:CANCELLED\r\nTRANSP:OPAQUE\r\nEND:VEVENT\r\nBEGIN:VEVENT\r\nUID:\r\nDTSTAMP:20260101T000000Z\r\nDTSTART:20260303T080000Z\r\nSUMMARY:Lange titel Lange titel Lange titel Lange titel Lange titel Lange t\r\n itel Lange titel Lange titel Lange titel Lange titel Lange titel Lange tit\r\n el \r\nSTATUS:CONFIRMED\r\nTRANSP:OPAQUE\r\nEND:VEVENT\r\nBEGIN:VEVENT\r\nUID:u-5\r\nDTSTAMP:20260101T000000Z\r\nDTSTART:20260304T080000Z\r\nSUMMARY:\r\nDESCRIPTION:Alleen beschrijving\r\nSTATUS:CONFIRMED\r\nTRANSP:OPAQUE\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n",
+        "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Conduction//learniq timetable//EN\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\nX-WR-CALNAME:Leeg\r\nX-PUBLISHED-TTL:PT1H\r\nREFRESH-INTERVAL;VALUE=DURATION:PT1H\r\nEND:VCALENDAR\r\n"
+    ],
+    "toSession": [
+        {
+            "id": "p-1",
+            "title": "Wiskunde",
+            "startsAt": "s",
+            "endsAt": "e",
+            "location": "Lokaal 1",
+            "cohortId": "c",
+            "courseId": "k",
+            "onlineMeetingUrl": "https://meet/1",
+            "lifecycle": "cancelled",
+            "teacherUserId": "jan",
+            "roomReference": "r-1",
+            "groupReference": "g",
+            "subject": "wi",
+            "teacherReference": "JAN",
+            "externalRef": "x",
+            "sourceSystem": "zermelo",
+            "source": "planninq"
+        },
+        {
+            "id": "7",
+            "title": "Engels",
+            "startsAt": "",
+            "endsAt": "",
+            "location": "r-2",
+            "cohortId": "",
+            "courseId": "",
+            "onlineMeetingUrl": "http://meet/2",
+            "lifecycle": "scheduled",
+            "teacherUserId": "",
+            "roomReference": "r-2",
+            "groupReference": "",
+            "subject": "Engels",
+            "teacherReference": "",
+            "externalRef": "",
+            "sourceSystem": "",
+            "source": "planninq"
+        },
+        {
+            "id": "",
+            "title": "",
+            "startsAt": "",
+            "endsAt": "",
+            "location": "",
+            "cohortId": "",
+            "courseId": "",
+            "onlineMeetingUrl": null,
+            "lifecycle": "scheduled",
+            "teacherUserId": "",
+            "roomReference": "",
+            "groupReference": "",
+            "subject": "",
+            "teacherReference": "",
+            "externalRef": "",
+            "sourceSystem": "",
+            "source": "planninq"
+        }
+    ],
+    "projectSession": [
+        {
+            "id": "s-1",
+            "title": "Les",
+            "startsAt": "a",
+            "endsAt": "b",
+            "location": "L",
+            "cohortId": "c",
+            "courseId": "k",
+            "lessonId": "l",
+            "lifecycle": "scheduled",
+            "roomId": "r-1",
+            "room": {
+                "id": "room-1",
+                "name": "Lokaal 1",
+                "capacity": 30,
+                "facilities": [
+                    "beamer"
+                ]
+            },
+            "substituteTeacherId": "t",
+            "teacherUserId": "jan",
+            "externalRef": "x",
+            "sourceSystem": "z",
+            "cover": true,
+            "changeReasonKind": "illness",
+            "changeReason": "ziek",
+            "changedAt": "now",
+            "source": "planninq",
+            "onlineMeetingUrl": "https://meet/1"
+        },
+        {
+            "id": "s-2",
+            "title": "",
+            "startsAt": "",
+            "endsAt": "",
+            "location": "",
+            "cohortId": "",
+            "courseId": "",
+            "lessonId": "",
+            "lifecycle": "",
+            "roomId": "r-2",
+            "room": {
+                "id": "room-2",
+                "name": "",
+                "capacity": null,
+                "facilities": []
+            },
+            "substituteTeacherId": null,
+            "teacherUserId": "",
+            "externalRef": "",
+            "sourceSystem": "",
+            "cover": false,
+            "changeReasonKind": null,
+            "changeReason": null,
+            "changedAt": null,
+            "source": "learniq",
+            "onlineMeetingUrl": null
+        },
+        {
+            "id": "",
+            "title": "",
+            "startsAt": "",
+            "endsAt": "",
+            "location": "",
+            "cohortId": "",
+            "courseId": "",
+            "lessonId": "",
+            "lifecycle": "",
+            "roomId": "r-3",
+            "room": {
+                "id": "r-3",
+                "name": "",
+                "capacity": null,
+                "facilities": []
+            },
+            "substituteTeacherId": null,
+            "teacherUserId": "",
+            "externalRef": "",
+            "sourceSystem": "",
+            "cover": false,
+            "changeReasonKind": null,
+            "changeReason": null,
+            "changedAt": null,
+            "source": "learniq",
+            "onlineMeetingUrl": null
+        },
+        {
+            "id": "",
+            "title": "",
+            "startsAt": "",
+            "endsAt": "",
+            "location": "",
+            "cohortId": "",
+            "courseId": "",
+            "lessonId": "",
+            "lifecycle": "",
+            "roomId": "r-missing",
+            "room": null,
+            "substituteTeacherId": null,
+            "teacherUserId": "",
+            "externalRef": "",
+            "sourceSystem": "",
+            "cover": false,
+            "changeReasonKind": null,
+            "changeReason": null,
+            "changedAt": null,
+            "source": "learniq",
+            "onlineMeetingUrl": null
+        },
+        {
+            "id": "",
+            "title": "",
+            "startsAt": "",
+            "endsAt": "",
+            "location": "",
+            "cohortId": "",
+            "courseId": "",
+            "lessonId": "",
+            "lifecycle": "",
+            "roomId": null,
+            "room": null,
+            "substituteTeacherId": null,
+            "teacherUserId": "",
+            "externalRef": "",
+            "sourceSystem": "",
+            "cover": false,
+            "changeReasonKind": null,
+            "changeReason": null,
+            "changedAt": null,
+            "source": "learniq",
+            "onlineMeetingUrl": null
+        }
+    ],
+    "series": {
+        "a-1|": [
+            {
+                "id": "a-1",
+                "title": "Ma 9u",
+                "startsAt": "2026-03-02T09:00:00+01:00",
+                "endsAt": "2026-03-02T09:50:00+01:00",
+                "lifecycle": "scheduled",
+                "changeable": true
+            },
+            {
+                "id": "a-2",
+                "title": "Ma 9u",
+                "startsAt": "2026-03-09T09:00:00+01:00",
+                "endsAt": "2026-03-09T09:50:00+01:00",
+                "lifecycle": "cancelled",
+                "changeable": false
+            },
+            {
+                "id": "a-6",
+                "title": "Ma 9u, zes weken later",
+                "startsAt": "2026-04-13T09:00:00+02:00",
+                "endsAt": "",
+                "lifecycle": "scheduled",
+                "changeable": true
+            }
+        ],
+        "a-1|2026-06-30": [
+            {
+                "id": "a-1",
+                "title": "Ma 9u",
+                "startsAt": "2026-03-02T09:00:00+01:00",
+                "endsAt": "2026-03-02T09:50:00+01:00",
+                "lifecycle": "scheduled",
+                "changeable": true
+            },
+            {
+                "id": "a-2",
+                "title": "Ma 9u",
+                "startsAt": "2026-03-09T09:00:00+01:00",
+                "endsAt": "2026-03-09T09:50:00+01:00",
+                "lifecycle": "cancelled",
+                "changeable": false
+            },
+            {
+                "id": "a-6",
+                "title": "Ma 9u, zes weken later",
+                "startsAt": "2026-04-13T09:00:00+02:00",
+                "endsAt": "",
+                "lifecycle": "scheduled",
+                "changeable": true
+            },
+            {
+                "id": "a-4",
+                "title": "Ma 9u laat",
+                "startsAt": "2026-05-25T09:00:00+02:00",
+                "endsAt": "",
+                "lifecycle": "in-progress",
+                "changeable": true
+            }
+        ],
+        "a-1|bad": [
+            {
+                "id": "a-1",
+                "title": "Ma 9u",
+                "startsAt": "2026-03-02T09:00:00+01:00",
+                "endsAt": "2026-03-02T09:50:00+01:00",
+                "lifecycle": "scheduled",
+                "changeable": true
+            },
+            {
+                "id": "a-2",
+                "title": "Ma 9u",
+                "startsAt": "2026-03-09T09:00:00+01:00",
+                "endsAt": "2026-03-09T09:50:00+01:00",
+                "lifecycle": "cancelled",
+                "changeable": false
+            },
+            {
+                "id": "a-6",
+                "title": "Ma 9u, zes weken later",
+                "startsAt": "2026-04-13T09:00:00+02:00",
+                "endsAt": "",
+                "lifecycle": "scheduled",
+                "changeable": true
+            }
+        ],
+        "b-1|": [
+            {
+                "id": "b-1",
+                "title": "",
+                "startsAt": "2026-03-02T09:00:00+01:00",
+                "endsAt": "",
+                "lifecycle": "scheduled",
+                "changeable": true
+            },
+            {
+                "id": "b-2",
+                "title": "",
+                "startsAt": "2026-03-16T09:00:00+01:00",
+                "endsAt": "",
+                "lifecycle": "scheduled",
+                "changeable": true
+            }
+        ],
+        "x-1|": [],
+        "missing|": null,
+        "boom|": null,
+        "queries": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "cohortId": "c-1",
+                    "courseId": "k-1"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "cohortId": "c-1",
+                    "courseId": "k-1"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "cohortId": "c-1",
+                    "courseId": "k-1"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "session",
+                    "cohortId": "c-2"
+                },
+                "sort": {
+                    "startsAt": "ASC"
+                }
+            }
+        ]
+    }
+}

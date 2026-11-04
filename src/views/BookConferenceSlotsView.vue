@@ -23,8 +23,8 @@
  @spec openspec/specs/parent-conferences/spec.md#requirement-a-guardian-or-self-signup-submission-is-gated-by-a-per-object-authorization-guard
 -->
 <template>
-	<div class="book-conference-slots">
-		<h2>{{ t('learniq', 'Book a parent-teacher conversation') }}</h2>
+	<div class="book-conference-slots lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Book a parent-teacher conversation')" />
 
 		<NcLoadingIcon v-if="loading" :size="32" />
 
@@ -38,7 +38,10 @@
 				)
 			" />
 
-		<template v-else>
+		<CnDetailCard
+			v-else
+			:title="t('learniq', 'Your request')"
+			class="book-conference-slots__card">
 			<div class="book-conference-slots__field">
 				<label for="bcs-round">{{ t('learniq', 'Conference round') }}</label>
 				<NcSelect
@@ -110,11 +113,12 @@
 						: t('learniq', 'Submit request')
 				}}
 			</NcButton>
-		</template>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -131,6 +135,8 @@ export default {
 	name: 'BookConferenceSlotsView',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
@@ -315,9 +321,10 @@ export default {
 		},
 
 		/**
-		 * Create the ConferenceSignup (draft) then trigger its submit transition.
-		 * A guard rejection (HTTP 4xx from OR's lifecycle engine) surfaces as a
-		 * user-facing error rather than a silent failure.
+		 * Submit the request in one server call, which creates it, takes the
+		 * tenant from the round and the pupil's profile from the pupil, and
+		 * fires the submit transition. A guard refusal comes back as a 403
+		 * and leaves no draft.
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/parent-conferences/spec.md#scenario-a-linked-guardian-can-submit-a-signup-for-their-own-child
@@ -331,33 +338,15 @@ export default {
 			this.submitSuccess = false
 
 			try {
-				const body = conferenceSignupBody({
-					roundId: this.selectedRoundId,
-					round: this.selectedRound,
-					learner:
-						this.learners.find(
-							(l) => l.ncUserId === this.selectedLearnerId,
-						) || null,
-					teacherIds: this.selectedTeacherIds,
-					notes: this.notes,
-				})
-
-				const createUrl = generateUrl(
-					'/apps/openregister/api/objects/learniq/conference-signup',
+				await axios.post(
+					generateUrl('/apps/learniq/api/conference-signups'),
+					conferenceSignupBody({
+						roundId: this.selectedRoundId,
+						learnerId: this.selectedLearnerId,
+						teacherIds: this.selectedTeacherIds,
+						notes: this.notes,
+					}),
 				)
-				const created = await axios.post(createUrl, body)
-				const signupId =
-					(created.data && (created.data.id || created.data.uuid)) || ''
-
-				if (signupId === '') {
-					throw new Error('No signup id returned')
-				}
-
-				const transitionUrl = generateUrl(
-					'/apps/openregister/api/objects/learniq/conference-signup/{id}',
-					{ id: signupId },
-				)
-				await axios.patch(transitionUrl, { lifecycle: 'submitted' })
 
 				this.submitSuccess = true
 				this.selectedTeacherIds = []
@@ -377,9 +366,8 @@ export default {
 </script>
 
 <style scoped>
-.book-conference-slots {
-	padding: 1rem;
-	max-width: 480px;
+.book-conference-slots__card {
+	max-width: 860px;
 }
 
 .book-conference-slots__field {

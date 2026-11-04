@@ -46,19 +46,16 @@ a real certificate.
 
 from __future__ import annotations
 
-import argparse
 import calendar
 import datetime as dt
-import json
-import os
 import random
 import sys
+from dataclasses import dataclass
 from zoneinfo import ZoneInfo
 
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-OUT = os.path.join(ROOT, "lib", "Settings", "profiles", "corporate.json")
+from example_set import Builder, Script, SetIdentity, main
+
 AMS = ZoneInfo("Europe/Amsterdam")
-TENANT = "00000000-0000-4000-8000-000000000000"
 SET = "corporate"
 SET_NUMBER = "05"
 YEAR = "2025-2026"
@@ -126,6 +123,7 @@ SCHEMAS = [
     # the set on an install that already has it (example-set-regulation-rows).
     "regulation",
 ]
+IDENTITY = SetIdentity(SET, SET_NUMBER, SCHEMAS)
 
 # Public holidays and the Christmas closure: no training, no toolbox meeting.
 CLOSED = {
@@ -193,28 +191,176 @@ SURNAME_HEAD = ["Reiger", "Kievit", "Merel", "Lijster", "Zwaluw", "Specht", "Hav
                 "Fazant", "Gors", "Kwartel", "Roerdomp", "Tureluur", "Plevier", "Sperwer", "Ijsvogel"]
 SURNAME_TAIL = ["hof", "kamp", "veld", "horst", "brink", "dal", "meer", "wijk", "berg", "stein", "gaard", "hout", "laar", "rode"]
 
+# code, title, description, parent code, order, and the roles that require it if any.
+COMPETENCIES: list[tuple] = [
+    ("VEI", "Veilig werken", "Veilig werken op locatie, in de werkplaats en in het magazijn.", None, 1),
+    ("VEI-01", "Veilig werken volgens VCA", "Risico's op de werkplek herkennen en de VCA-regels toepassen.", "VEI", 1),
+    ("VEI-02", "Bedrijfshulpverlening", "Eerste hulp verlenen, een beginnende brand blussen en een ontruiming leiden.", "VEI", 2),
+    ("VEI-03", "Elektrotechnisch veilig werken (NEN 3140)", "Veilig werken aan en nabij elektrische installaties als voldoend onderricht persoon.", "VEI", 3),
+    ("VEI-04", "Heftruck veilig bedienen", "Een heftruck veilig bedienen, laden en lossen.", "VEI", 4),
+    ("VAK", "Vakmanschap installatietechniek", "Het technische vak van de servicemonteur.", None, 2),
+    ("VAK-01", "Warmtepompen installeren en in bedrijf stellen", "Een warmtepomp plaatsen, aansluiten, inregelen en overdragen aan de klant.", "VAK", 1),
+    ("VAK-02", "Werken aan koelcircuits met F-gassen", "Gecertificeerd werken aan koelcircuits volgens de F-gassenregels.", "VAK", 2),
+    ("VAK-03", "Storingen analyseren en verhelpen", "Een storing systematisch opsporen en blijvend verhelpen.", "VAK", 3),
+    ("DIG", "Digitaal en veilig werken", "Veilig en handig werken met systemen en gegevens.", None, 3),
+    ("DIG-01", "Phishing en social engineering herkennen", "Verdachte berichten herkennen en een incident direct melden.", "DIG", 1, ["learner"]),
+    ("DIG-02", "Zorgvuldig omgaan met persoonsgegevens", "Gegevens van klanten en collega's verwerken volgens de AVG.", "DIG", 2, ["compliance-officer"]),
+    ("DIG-03", "Werken met spreadsheets", "Gegevens analyseren met draaitabellen, zoekfuncties en grafieken.", "DIG", 3),
+    ("LEI", "Leidinggeven en samenwerken", "Samenwerken met collega's en klanten, en een team leiden.", None, 4),
+    ("LEI-01", "Coachend leidinggeven", "Medewerkers helpen groeien met vragen, feedback en duidelijke afspraken.", "LEI", 1, ["manager"]),
+    ("LEI-02", "Verzuimgesprekken voeren", "Een verzuimgesprek voeren volgens de Wet verbetering poortwachter.", "LEI", 2, ["manager"]),
+    ("LEI-03", "Klantgericht communiceren", "Een klantvraag helder uitvragen en een verwachting waarmaken.", "LEI", 3),
+    ("LEI-04", "Integer handelen volgens de gedragscode", "Een dilemma herkennen, bespreekbaar maken en de gedragscode toepassen.", "LEI", 4),
+]
+# key, name, description, tags, mandatory, regulation slug, competency codes, and the parent course key if any.
+COURSES: list[tuple] = [
+    ("ONB", "Welkom bij Esdoorn Techniek", "Onboarding voor nieuwe medewerkers: wie we zijn, hoe we werken en hoe je veilig begint.",
+        ["onboarding"], True, None, ["VEI-01"]),
+    ("GED", "Gedragscode en integriteit", "Jaarlijkse e-learning over de gedragscode, met dilemma's uit de praktijk.",
+        ["compliance", "jaarlijks"], True, "GEDRAGSCODE", ["LEI-04"]),
+    ("IBV", "Informatiebeveiliging en phishing", "Jaarlijkse e-learning: phishing herkennen, veilig inloggen en een incident melden.",
+        ["compliance", "jaarlijks", "informatiebeveiliging"], True, "INFORMATIEBEVEILIGING", ["DIG-01"]),
+    ("AVG", "AVG in de praktijk", "Zorgvuldig omgaan met gegevens van klanten en collega's, voor iedereen op kantoor.",
+        ["compliance", "privacy"], True, "AVG", ["DIG-02"]),
+    ("BHV-B", "BHV basis", "Tweedaagse basisopleiding bedrijfshulpverlening: eerste hulp, brand blussen en ontruimen.",
+        ["veiligheid", "bhv"], True, "BHV", ["VEI-02"]),
+    ("BHV-H", "BHV herhaling", "Jaarlijkse herhalingsdag bedrijfshulpverlening.", ["veiligheid", "bhv", "jaarlijks"], True, "BHV", ["VEI-02"]),
+    ("LL-SM", "Leerlijn servicemonteur", "De leerlijn voor monteurs: veilig werken, elektrotechniek, F-gassen en warmtepompen.",
+        ["leerlijn", "techniek"], False, None, []),
+    ("VCA-B", "VCA Basis", "Eendaagse cursus met examen voor veilig werken op locatie.", ["veiligheid", "vca"], True, "VCA", ["VEI-01"], "LL-SM"),
+    ("VCA-V", "VCA VOL", "VCA voor operationeel leidinggevenden, met examen.", ["veiligheid", "vca"], True, "VCA", ["VEI-01"], "LL-SM"),
+    ("NEN-B", "NEN 3140 basis voldoend onderricht persoon", "Eendaagse opleiding tot voldoend onderricht persoon, met aanwijzing door de werkgever.",
+        ["veiligheid", "elektrotechniek"], True, "NEN3140", ["VEI-03"], "LL-SM"),
+    ("NEN-H", "NEN 3140 herinstructie", "Herinstructie voor voldoend onderricht personen, elke drie jaar.",
+        ["veiligheid", "elektrotechniek"], True, "NEN3140", ["VEI-03"], "LL-SM"),
+    ("FGAS", "F-gassen certificering", "Tweedaagse cursus met examen voor werken aan koelcircuits van warmtepompen.",
+        ["techniek", "f-gassen"], True, "FGASSEN", ["VAK-02"], "LL-SM"),
+    ("WP", "Praktijkcursus warmtepompen", "Tweedaagse praktijkcursus: plaatsen, inregelen en in bedrijf stellen van warmtepompen.",
+        ["techniek", "warmtepompen", "betaald"], False, None, ["VAK-01"], "LL-SM"),
+    ("HEF-B", "Heftruckcertificaat basis", "Eendaagse opleiding met praktijkexamen voor heftruckchauffeurs.",
+        ["veiligheid", "magazijn"], True, "HEFTRUCK", ["VEI-04"]),
+    ("HEF-H", "Heftruck herhaling", "Herhalingstraining heftruck, elke vijf jaar.", ["veiligheid", "magazijn"], True, "HEFTRUCK", ["VEI-04"]),
+    ("LEI", "Coachend leidinggeven", "Drie middagen over coachende gesprekken, feedback en verzuimbegeleiding.",
+        ["leidinggeven"], False, None, ["LEI-01", "LEI-02"]),
+    ("KLA", "Klantgericht communiceren", "Een voorbereidende les en een trainingsdag over het klantgesprek.",
+        ["verkoop", "klantenservice"], False, None, ["LEI-03"]),
+    ("EXC", "Excel gevorderd", "E-learning over draaitabellen, zoekfuncties en dashboards.", ["digitaal", "betaald"], False, None, ["DIG-03"]),
+    ("PRJ", "Projectmatig werken", "Driedaagse cursus met examen over plannen, risico's en projectoverleg.", ["projecten", "betaald"], False, None, []),
+]
 
-class Builder:
-    """Collects objects per bucket and hands out uuids and slugs."""
+# Per course key: the months a certificate stays valid (None: no expiry) and who issues it.
+AWARDS = {
+    "GED": (12, OWN), "IBV": (12, OWN), "AVG": (24, OWN), "BHV-B": (12, OWN), "BHV-H": (12, OWN),
+    "VCA-B": (120, EXAM_SAFETY), "VCA-V": (120, EXAM_SAFETY), "NEN-B": (36, OWN), "NEN-H": (36, OWN),
+    "HEF-B": (60, FORKLIFT_SCHOOL), "HEF-H": (60, FORKLIFT_SCHOOL), "FGAS": (60, EXAM_COOLING),
+    "WP": (None, HEAT_PUMP_ACADEMY), "PRJ": (None, PROJECT_ACADEMY),
+}
 
-    def __init__(self) -> None:
-        self.buckets: dict[str, list[dict]] = {name: [] for name in SCHEMAS}
-        self.counters: dict[str, int] = {name: 0 for name in SCHEMAS}
 
-    def add(self, schema: str, fields: dict) -> dict:
-        self.counters[schema] += 1
-        n = self.counters[schema]
-        number = SCHEMAS.index(schema) + 1
-        obj = {
-            "@self": {"configuration": "learniq", "register": "learniq", "schema": schema},
-            "uuid": f"ee{SET_NUMBER}{number:04x}-0000-4000-8000-{n:012d}",
-            "slug": f"{SET}-{schema}-{n:03d}",
-        }
-        obj.update(fields)
-        if "tenant_id" not in obj:
-            obj["tenant_id"] = TENANT
-        self.buckets[schema].append(obj)
-        return obj
+@dataclass(frozen=True)
+class Issue:
+    """One certificate to issue: who holds it, for which course key, when, and how it came in."""
+
+    person: dict
+    key: str
+    issued: dt.datetime
+    source: str
+
+
+@dataclass(frozen=True)
+class GroupSpec:
+    """A training group: its course key, its name, its (site, room) and its trainer (None: an outside trainer)."""
+
+    key: str
+    name: str
+    place: tuple[str, str]
+    trainer: str | None
+
+
+@dataclass(frozen=True)
+class Schedule:
+    """When a training group meets: its days, the (start, end) clock times of each day, a note and its lifecycle."""
+
+    days: list[dt.date]
+    hours: tuple[tuple[int, int], tuple[int, int]] = ((8, 30), (16, 30))
+    notes: str | None = None
+    lifecycle: str = "completed"
+
+
+@dataclass(frozen=True)
+class Activity:
+    """Training followed outside the company: its title, provider, kind and day."""
+
+    title: str
+    provider: str
+    kind: str
+    day: dt.date
+
+
+@dataclass(frozen=True)
+class Review:
+    """Who submitted an outside training record, who verified it, the evidence note and the record's lifecycle."""
+
+    submitted_by: str
+    verified_by: str | None
+    evidence: str | None
+    lifecycle: str = "verified"
+
+
+@dataclass(frozen=True)
+class RecordExtras:
+    """The optional parts of an outside training record."""
+
+    regulation: str | None = None
+    valid_months: int | None = None
+    batch: str | None = None
+    rejection: str | None = None
+
+
+@dataclass(frozen=True)
+class ExternalRecord:
+    """An outside training record, the same for each learner it is written for."""
+
+    activity: Activity
+    review: Review
+    extras: RecordExtras = RecordExtras()
+
+
+PATH_OF = {key: path for key, _name, path, _site, _size, _head in DEPARTMENTS}
+# code, name, description, applicability, audience scope, renewal months, annual renewal, and the audience
+# departments or roles if the scope names them.
+REGULATIONS: list[tuple] = [
+    ("GEDRAGSCODE", "Gedragscode Esdoorn Techniek",
+        "De gedragscode van het bedrijf: integriteit, omgang met klanten en collega's en het melden van misstanden.",
+        "Iedereen die bij Esdoorn Techniek werkt, elk jaar opnieuw.", "all-employees", 12, True),
+    ("INFORMATIEBEVEILIGING", "Informatiebeveiligingsbeleid",
+        "Het beleid voor veilig werken met systemen en gegevens: phishing herkennen, veilig inloggen en incidenten melden.",
+        "Iedereen met een account, elk jaar opnieuw.", "all-employees", 12, True),
+    ("VCA", "VCA, veiligheid, gezondheid en milieu",
+        "Veilig werken op locatie en in de werkplaats, met een VCA-diploma dat tien jaar geldig is.",
+        "Iedereen in de operatie: planning, installatie, magazijn en werkplaats.", "department", 120, False,
+        {"audienceDepartments": ["Operatie"]}),
+    ("NEN3140", "NEN 3140, veilig werken aan elektrische installaties",
+        "Voldoend onderricht personen die aan of bij elektrische installaties werken, met herinstructie elke drie jaar.",
+        "Monteurs in installatie en service en in de werkplaats.", "department", 36, False,
+        {"audienceDepartments": [PATH_OF["installatie"], PATH_OF["werkplaats"]]}),
+    ("HEFTRUCK", "Heftruckcertificaat",
+        "Een heftruck bedienen mag alleen met een geldig certificaat, dat vijf jaar geldig is.",
+        "Iedereen in het magazijn.", "department", 60, False, {"audienceDepartments": [PATH_OF["magazijn"]]}),
+    ("FGASSEN", "F-gassen, EU-verordening 2024/573",
+        "Werken aan koelcircuits van warmtepompen mag alleen met een F-gassencertificaat.",
+        "Aangewezen monteurs die koelcircuits openen; de leidinggevende houdt de lijst bij.", "role-specific", None, False,
+        {"audienceRoles": []}),
+    ("BHV", "Bedrijfshulpverlening (Arbowet artikel 15)",
+        "Genoeg opgeleide bedrijfshulpverleners op elke vestiging, met een herhaling elk jaar.",
+        "Aangewezen bedrijfshulpverleners op beide vestigingen, niet iedere medewerker.", "role-specific", 12, True,
+        {"audienceRoles": []}),
+    ("NIS2", "NIS2, cyberbeveiliging voor bestuurders",
+        "Bestuurders en leidinggevenden kennen de zorgplicht en meldplicht uit de NIS2-richtlijn.",
+        "De directie, de leidinggevenden en de compliance officer.", "board", 12, True,
+        {"audienceRoles": ["manager", "compliance-officer"]}),
+
+]
 
 
 def moment(day: dt.date, hour: int, minute: int) -> dt.datetime:
@@ -271,7 +417,7 @@ def first_tuesday(year: int, month: int) -> dt.date:
 
 def build() -> dict:
     rng = random.Random(20250901)
-    b = Builder()
+    b = Builder(IDENTITY)
 
     def pick_day(lo: dt.date, hi: dt.date) -> dt.date:
         return rng.choice(workdays(lo, hi))
@@ -318,80 +464,37 @@ def build() -> dict:
     })
     comp: dict[str, dict] = {}
 
-    def competency(code: str, title: str, description: str, parent: str | None, order: int, roles: list[str] | None = None) -> None:
-        fields = {"frameworkId": framework["uuid"]}
-        if parent is not None:
-            fields["parentId"] = comp[parent]["uuid"]
-        fields.update({"code": code, "title": title, "description": description, "order": order,
-                       "requiredForRoles": roles or [], "lifecycle": "published"})
-        comp[code] = b.add("competency", fields)
+    def add_competencies() -> None:
+        for row in COMPETENCIES:
+            code, title, description, parent, order, *rest = row
+            roles = rest[0] if rest else None
+            fields = {"frameworkId": framework["uuid"]}
+            if parent is not None:
+                fields["parentId"] = comp[parent]["uuid"]
+            fields.update({"code": code, "title": title, "description": description, "order": order,
+                           "requiredForRoles": roles or [], "lifecycle": "published"})
+            comp[code] = b.add("competency", fields)
 
-    competency("VEI", "Veilig werken", "Veilig werken op locatie, in de werkplaats en in het magazijn.", None, 1)
-    competency("VEI-01", "Veilig werken volgens VCA", "Risico's op de werkplek herkennen en de VCA-regels toepassen.", "VEI", 1)
-    competency("VEI-02", "Bedrijfshulpverlening", "Eerste hulp verlenen, een beginnende brand blussen en een ontruiming leiden.", "VEI", 2)
-    competency("VEI-03", "Elektrotechnisch veilig werken (NEN 3140)", "Veilig werken aan en nabij elektrische installaties als voldoend onderricht persoon.", "VEI", 3)
-    competency("VEI-04", "Heftruck veilig bedienen", "Een heftruck veilig bedienen, laden en lossen.", "VEI", 4)
-    competency("VAK", "Vakmanschap installatietechniek", "Het technische vak van de servicemonteur.", None, 2)
-    competency("VAK-01", "Warmtepompen installeren en in bedrijf stellen", "Een warmtepomp plaatsen, aansluiten, inregelen en overdragen aan de klant.", "VAK", 1)
-    competency("VAK-02", "Werken aan koelcircuits met F-gassen", "Gecertificeerd werken aan koelcircuits volgens de F-gassenregels.", "VAK", 2)
-    competency("VAK-03", "Storingen analyseren en verhelpen", "Een storing systematisch opsporen en blijvend verhelpen.", "VAK", 3)
-    competency("DIG", "Digitaal en veilig werken", "Veilig en handig werken met systemen en gegevens.", None, 3)
-    competency("DIG-01", "Phishing en social engineering herkennen", "Verdachte berichten herkennen en een incident direct melden.", "DIG", 1, ["learner"])
-    competency("DIG-02", "Zorgvuldig omgaan met persoonsgegevens", "Gegevens van klanten en collega's verwerken volgens de AVG.", "DIG", 2, ["compliance-officer"])
-    competency("DIG-03", "Werken met spreadsheets", "Gegevens analyseren met draaitabellen, zoekfuncties en grafieken.", "DIG", 3)
-    competency("LEI", "Leidinggeven en samenwerken", "Samenwerken met collega's en klanten, en een team leiden.", None, 4)
-    competency("LEI-01", "Coachend leidinggeven", "Medewerkers helpen groeien met vragen, feedback en duidelijke afspraken.", "LEI", 1, ["manager"])
-    competency("LEI-02", "Verzuimgesprekken voeren", "Een verzuimgesprek voeren volgens de Wet verbetering poortwachter.", "LEI", 2, ["manager"])
-    competency("LEI-03", "Klantgericht communiceren", "Een klantvraag helder uitvragen en een verwachting waarmaken.", "LEI", 3)
-    competency("LEI-04", "Integer handelen volgens de gedragscode", "Een dilemma herkennen, bespreekbaar maken en de gedragscode toepassen.", "LEI", 4)
+    add_competencies()
 
     # --- courses, lessons, programmes -------------------------------------------
     courses: dict[str, dict] = {}
 
-    def course(key: str, name: str, description: str, tags: list[str], mandatory: bool, regulation: str | None,
-               competencies: list[str], parent: str | None = None) -> None:
-        fields = {"code": "ESD-" + key, "name": name, "name_nl": name, "description": description, "level": "corporate",
-                  "language": "nl", "tags": tags, "mandatoryTraining": mandatory}
-        if regulation is not None:
-            fields["regulationSlug"] = regulation
-        fields["lifecycle"] = "published"
-        if parent is not None:
-            fields["parentCourseId"] = courses[parent]["uuid"]
-        fields["competencyIds"] = [comp[c]["uuid"] for c in competencies]
-        courses[key] = b.add("course", fields)
+    def add_courses() -> None:
+        for row in COURSES:
+            key, name, description, tags, mandatory, regulation, competencies, *parents = row
+            parent = parents[0] if parents else None
+            fields = {"code": "ESD-" + key, "name": name, "name_nl": name, "description": description, "level": "corporate",
+                      "language": "nl", "tags": tags, "mandatoryTraining": mandatory}
+            if regulation is not None:
+                fields["regulationSlug"] = regulation
+            fields["lifecycle"] = "published"
+            if parent is not None:
+                fields["parentCourseId"] = courses[parent]["uuid"]
+            fields["competencyIds"] = [comp[c]["uuid"] for c in competencies]
+            courses[key] = b.add("course", fields)
 
-    course("ONB", "Welkom bij Esdoorn Techniek", "Onboarding voor nieuwe medewerkers: wie we zijn, hoe we werken en hoe je veilig begint.",
-           ["onboarding"], True, None, ["VEI-01"])
-    course("GED", "Gedragscode en integriteit", "Jaarlijkse e-learning over de gedragscode, met dilemma's uit de praktijk.",
-           ["compliance", "jaarlijks"], True, "GEDRAGSCODE", ["LEI-04"])
-    course("IBV", "Informatiebeveiliging en phishing", "Jaarlijkse e-learning: phishing herkennen, veilig inloggen en een incident melden.",
-           ["compliance", "jaarlijks", "informatiebeveiliging"], True, "INFORMATIEBEVEILIGING", ["DIG-01"])
-    course("AVG", "AVG in de praktijk", "Zorgvuldig omgaan met gegevens van klanten en collega's, voor iedereen op kantoor.",
-           ["compliance", "privacy"], True, "AVG", ["DIG-02"])
-    course("BHV-B", "BHV basis", "Tweedaagse basisopleiding bedrijfshulpverlening: eerste hulp, brand blussen en ontruimen.",
-           ["veiligheid", "bhv"], True, "BHV", ["VEI-02"])
-    course("BHV-H", "BHV herhaling", "Jaarlijkse herhalingsdag bedrijfshulpverlening.", ["veiligheid", "bhv", "jaarlijks"], True, "BHV", ["VEI-02"])
-    course("LL-SM", "Leerlijn servicemonteur", "De leerlijn voor monteurs: veilig werken, elektrotechniek, F-gassen en warmtepompen.",
-           ["leerlijn", "techniek"], False, None, [])
-    course("VCA-B", "VCA Basis", "Eendaagse cursus met examen voor veilig werken op locatie.", ["veiligheid", "vca"], True, "VCA", ["VEI-01"], "LL-SM")
-    course("VCA-V", "VCA VOL", "VCA voor operationeel leidinggevenden, met examen.", ["veiligheid", "vca"], True, "VCA", ["VEI-01"], "LL-SM")
-    course("NEN-B", "NEN 3140 basis voldoend onderricht persoon", "Eendaagse opleiding tot voldoend onderricht persoon, met aanwijzing door de werkgever.",
-           ["veiligheid", "elektrotechniek"], True, "NEN3140", ["VEI-03"], "LL-SM")
-    course("NEN-H", "NEN 3140 herinstructie", "Herinstructie voor voldoend onderricht personen, elke drie jaar.",
-           ["veiligheid", "elektrotechniek"], True, "NEN3140", ["VEI-03"], "LL-SM")
-    course("FGAS", "F-gassen certificering", "Tweedaagse cursus met examen voor werken aan koelcircuits van warmtepompen.",
-           ["techniek", "f-gassen"], True, "FGASSEN", ["VAK-02"], "LL-SM")
-    course("WP", "Praktijkcursus warmtepompen", "Tweedaagse praktijkcursus: plaatsen, inregelen en in bedrijf stellen van warmtepompen.",
-           ["techniek", "warmtepompen", "betaald"], False, None, ["VAK-01"], "LL-SM")
-    course("HEF-B", "Heftruckcertificaat basis", "Eendaagse opleiding met praktijkexamen voor heftruckchauffeurs.",
-           ["veiligheid", "magazijn"], True, "HEFTRUCK", ["VEI-04"])
-    course("HEF-H", "Heftruck herhaling", "Herhalingstraining heftruck, elke vijf jaar.", ["veiligheid", "magazijn"], True, "HEFTRUCK", ["VEI-04"])
-    course("LEI", "Coachend leidinggeven", "Drie middagen over coachende gesprekken, feedback en verzuimbegeleiding.",
-           ["leidinggeven"], False, None, ["LEI-01", "LEI-02"])
-    course("KLA", "Klantgericht communiceren", "Een voorbereidende les en een trainingsdag over het klantgesprek.",
-           ["verkoop", "klantenservice"], False, None, ["LEI-03"])
-    course("EXC", "Excel gevorderd", "E-learning over draaitabellen, zoekfuncties en dashboards.", ["digitaal", "betaald"], False, None, ["DIG-03"])
-    course("PRJ", "Projectmatig werken", "Driedaagse cursus met examen over plannen, risico's en projectoverleg.", ["projecten", "betaald"], False, None, [])
+    add_courses()
     for key, renewal in (("GED", "GED"), ("IBV", "IBV"), ("AVG", "AVG"), ("BHV-B", "BHV-H"), ("BHV-H", "BHV-H"), ("VCA-B", "VCA-B"),
                          ("VCA-V", "VCA-V"), ("NEN-B", "NEN-H"), ("NEN-H", "NEN-H"), ("HEF-B", "HEF-H"), ("HEF-H", "HEF-H")):
         courses[key]["renewalCourseSlug"] = courses[renewal]["slug"]
@@ -585,8 +688,10 @@ def build() -> dict:
         if finish is not None:
             complete(e, e["_times"][-1][1])
 
-    def credential(p: dict, key: str, issued: dt.datetime, months: int | None, source: str, issuer: tuple[str, str] = OWN,
-                   enrolment: dict | None = None, renewal: dict | None = None) -> dict:
+    def credential(issue: Issue, link: tuple[str, dict] | None = None) -> dict:
+        """Issues the certificate; link names the enrolment field and the enrolment it points at."""
+        p, key, issued, source = issue.person, issue.key, issue.issued, issue.source
+        months, issuer = AWARDS[key]
         c = courses[key]
         expires = add_months(issued, months) if months else None
         payload = {"@context": OB3_CONTEXT, "type": ["VerifiableCredential", "OpenBadgeCredential"],
@@ -602,19 +707,17 @@ def build() -> dict:
         fields.update({"issuerDid": issuer[1], "signature": UNSIGNED, "openbadges3Payload": payload, "issuedBy": issuer[0], "source": source})
         if "regulationSlug" in c:
             fields["regulationSlug"] = c["regulationSlug"]
-        if enrolment is not None:
-            fields["enrolmentId"] = enrolment["uuid"]
-        if renewal is not None:
-            fields["renewalEnrolmentId"] = renewal["uuid"]
+        if link is not None:
+            fields[link[0]] = link[1]["uuid"]
         fields["competencyIds"] = c["competencyIds"]
         fields["lifecycle"] = "expired" if expires is not None and expires.date() <= LAST_DAY else "issued"
         cred = b.add("credential", fields)
         cred["_p"], cred["_key"], cred["_expires"] = p, key, expires
         return cred
 
-    def training_group(key: str, name: str, site: str, room: str, trainer: str | None, days: list[dt.date],
-                       start: tuple[int, int] = (8, 30), end: tuple[int, int] = (16, 30), notes: str | None = None,
-                       lifecycle: str = "completed") -> dict:
+    def training_group(spec: GroupSpec, plan: Schedule) -> dict:
+        key, name, (site, room), trainer = spec.key, spec.name, spec.place, spec.trainer
+        days, (start, end), notes, lifecycle = plan.days, plan.hours, plan.notes, plan.lifecycle
         c = courses[key]
         group = b.add("cohort", {
             "name": name, "period": "Opleidingsjaar", "academicYear": YEAR, "courseId": c["uuid"],
@@ -672,7 +775,7 @@ def build() -> dict:
             issued = moment(pick_day(lo, hi), *clock())
             expiry = add_months(issued, 12)
             e = enrol(p, "GED", "credential-renewal", cohorts[p["dept"]])
-            credential(p, "GED", issued, 12, "migrated", renewal=e)
+            credential(Issue(p, "GED", issued, "migrated"), ("renewalEnrolmentId", e))
             start = on_or_after(expiry.date() + dt.timedelta(days=1))
             if p["nc"] in ged_stuck_ids:
                 elearn(e, start, None, partial=1 if ged_stuck.index(p) < 2 else 0)
@@ -683,7 +786,7 @@ def build() -> dict:
             e = enrol(p, "GED", "hr", cohorts[p["dept"]], start + dt.timedelta(days=30))
             finish = plus_workdays(start, rng.randint(2, 18))
         elearn(e, start, finish)
-        credential(p, "GED", e["_done"], 12, "auto", enrolment=e)
+        credential(Issue(p, "GED", e["_done"], "auto"), ("enrolmentId", e))
 
     # --- informatiebeveiliging: new this year, bulk enrolment in October ------------
     ibv_campaign = dt.date(2025, 10, 6)
@@ -708,7 +811,7 @@ def build() -> dict:
         else:
             finish = pick_day(due + dt.timedelta(days=1), min(due + dt.timedelta(days=60), LAST_DAY))
         elearn(e, start, finish)
-        credential(p, "IBV", e["_done"], 12, "auto", enrolment=e)
+        credential(Issue(p, "IBV", e["_done"], "auto"), ("enrolmentId", e))
 
     # --- AVG for the office departments, campaign in March ------------------------------
     avg_campaign = dt.date(2026, 3, 2)
@@ -726,7 +829,7 @@ def build() -> dict:
             continue
         finish = pick_day(start, due) if rng.random() < 0.9 else pick_day(due + dt.timedelta(days=1), LAST_DAY)
         elearn(e, start, min(finish, LAST_DAY))
-        credential(p, "AVG", e["_done"], 24, "auto", enrolment=e)
+        credential(Issue(p, "AVG", e["_done"], "auto"), ("enrolmentId", e))
 
     # --- BHV: last September's certificates expire, herhaling in October and November --
     bhv_team = []
@@ -736,11 +839,12 @@ def build() -> dict:
     hoofd = [p for p in bhv_team if dept_of[p["dept"]][3] == "hoofd"]
     bhv_sets = [(haven[:8], dt.date(2024, 9, 10)), (haven[8:], dt.date(2024, 9, 12)), (hoofd, dt.date(2024, 9, 17))]
     bhv_groups = [
-        training_group("BHV-H", "BHV herhaling, groep 1", "haven", "praktijk", TRAINER_BHV, [dt.date(2025, 10, 7)]),
-        training_group("BHV-H", "BHV herhaling, groep 2", "haven", "praktijk", TRAINER_BHV, [dt.date(2025, 10, 21)]),
-        training_group("BHV-H", "BHV herhaling, groep 3", "hoofd", "training", TRAINER_BHV, [dt.date(2025, 11, 4)]),
+        training_group(GroupSpec("BHV-H", "BHV herhaling, groep 1", ("haven", "praktijk"), TRAINER_BHV), Schedule([dt.date(2025, 10, 7)])),
+        training_group(GroupSpec("BHV-H", "BHV herhaling, groep 2", ("haven", "praktijk"), TRAINER_BHV), Schedule([dt.date(2025, 10, 21)])),
+        training_group(GroupSpec("BHV-H", "BHV herhaling, groep 3", ("hoofd", "training"), TRAINER_BHV), Schedule([dt.date(2025, 11, 4)])),
     ]
-    catch_up = training_group("BHV-H", "BHV herhaling, inhaaldag", "hoofd", "training", TRAINER_BHV, [dt.date(2026, 1, 20)])
+    catch_up = training_group(GroupSpec("BHV-H", "BHV herhaling, inhaaldag", ("hoofd", "training"), TRAINER_BHV),
+                              Schedule([dt.date(2026, 1, 20)]))
     for (team, day), group in zip(bhv_sets, bhv_groups):
         for index, p in enumerate(team):
             issued = moment(day, 16, 30)
@@ -748,7 +852,7 @@ def build() -> dict:
             long_term = group is bhv_groups[2] and index == 0
             rescheduled = (group is bhv_groups[1] and index == 0) or (group is bhv_groups[0] and index == 1)
             e = enrol(p, "BHV-H", "credential-renewal", catch_up if rescheduled else group)
-            credential(p, "BHV-H", issued, 12, "migrated", renewal=e)
+            credential(Issue(p, "BHV-H", issued, "migrated"), ("renewalEnrolmentId", e))
             if long_term:
                 attend(group, e, absent=(0,))
                 continue
@@ -760,27 +864,30 @@ def build() -> dict:
                 attend(group, e)
                 done = group["_sessions"][-1]["_end"]
             complete(e, done)
-            credential(p, "BHV-H", done, 12, "manual", enrolment=e)
+            credential(Issue(p, "BHV-H", done, "manual"), ("enrolmentId", e))
     bhv_ids = {p["nc"] for p in bhv_team}
     new_bhv = []
     for dept, n in (("installatie", 2), ("magazijn", 1), ("verkoop", 1), ("financien", 1), ("planning", 1)):
         new_bhv += rng.sample([p for p in plain_existing(dept) if p["nc"] not in bhv_ids], n)
-    basis = training_group("BHV-B", "BHV basis, februari", "hoofd", "training", TRAINER_BHV, [dt.date(2026, 2, 10), dt.date(2026, 2, 11)])
+    basis = training_group(GroupSpec("BHV-B", "BHV basis, februari", ("hoofd", "training"), TRAINER_BHV),
+                           Schedule([dt.date(2026, 2, 10), dt.date(2026, 2, 11)]))
     for p in new_bhv:
         e = enrol(p, "BHV-B", "hr", basis)
         attend(basis, e)
         complete(e, basis["_sessions"][-1]["_end"])
-        credential(p, "BHV-B", e["_done"], 12, "manual", enrolment=e)
+        credential(Issue(p, "BHV-B", e["_done"], "manual"), ("enrolmentId", e))
 
     # --- VCA for everyone in Operatie -----------------------------------------------------
     vca_groups = [
-        training_group("VCA-B", "VCA Basis, groep 1", "hoofd", "training", None, [dt.date(2025, 10, 14)], end=(17, 0),
-                       notes="Externe docent; het examen neemt Voorbeeld Examencentrum Veiligheid af."),
-        training_group("VCA-B", "VCA Basis, groep 2", "hoofd", "training", None, [dt.date(2026, 3, 17)], end=(17, 0),
-                       notes="Externe docent; het examen neemt Voorbeeld Examencentrum Veiligheid af."),
+        training_group(GroupSpec("VCA-B", "VCA Basis, groep 1", ("hoofd", "training"), None),
+                       Schedule([dt.date(2025, 10, 14)], ((8, 30), (17, 0)),
+                                notes="Externe docent; het examen neemt Voorbeeld Examencentrum Veiligheid af.")),
+        training_group(GroupSpec("VCA-B", "VCA Basis, groep 2", ("hoofd", "training"), None),
+                       Schedule([dt.date(2026, 3, 17)], ((8, 30), (17, 0)),
+                                notes="Externe docent; het examen neemt Voorbeeld Examencentrum Veiligheid af.")),
     ]
-    vca_next = training_group("VCA-B", "VCA Basis, groep 3 (september 2026)", "hoofd", "training", None, [],
-                              notes="Gepland voor september 2026, voor wie na maart in dienst kwam.", lifecycle="planned")
+    vca_next = training_group(GroupSpec("VCA-B", "VCA Basis, groep 3 (september 2026)", ("hoofd", "training"), None),
+                              Schedule([], notes="Gepland voor september 2026, voor wie na maart in dienst kwam.", lifecycle="planned"))
     vol = [members[d][0] for d in ("installatie", "magazijn", "werkplaats")]
     vol += plain_existing("installatie")[:6] + plain_existing("magazijn")[:1] + [by_nc[TRAINER_BHV], by_nc[TRAINER_TECH]]
     vol_ids = {p["nc"] for p in vol}
@@ -796,13 +903,13 @@ def build() -> dict:
                     expiry = add_months(issued, 120)
                     group = first_group(vca_groups, expiry.date() + dt.timedelta(days=1))
                     e = enrol(p, "VCA-B", "credential-renewal", group)
-                    credential(p, key, issued, 120, "migrated", EXAM_SAFETY, renewal=e)
+                    credential(Issue(p, key, issued, "migrated"), ("renewalEnrolmentId", e))
                     attend(group, e)
                     complete(e, group["_sessions"][-1]["_end"])
-                    credential(p, "VCA-B", e["_done"], 120, "manual", EXAM_SAFETY, enrolment=e)
+                    credential(Issue(p, "VCA-B", e["_done"], "manual"), ("enrolmentId", e))
                 else:
                     issued = moment(pick_day(dt.date(2016, 8, 1), dt.date(2025, 6, 30)), 16, 45)
-                    credential(p, key, issued, 120, "migrated", EXAM_SAFETY)
+                    credential(Issue(p, key, issued, "migrated"))
                 continue
             group = first_group(vca_groups, p["start"] + dt.timedelta(days=7))
             if group is None:
@@ -818,12 +925,13 @@ def build() -> dict:
             e = enrol(p, "VCA-B", "hr", group, p["start"] + dt.timedelta(days=90) if p is not vca_failed_once else dt.date(2026, 3, 31))
             attend(group, e)
             complete(e, group["_sessions"][-1]["_end"])
-            credential(p, "VCA-B", e["_done"], 120, "manual", EXAM_SAFETY, enrolment=e)
+            credential(Issue(p, "VCA-B", e["_done"], "manual"), ("enrolmentId", e))
 
     # --- NEN 3140 for the technicians -------------------------------------------------------
-    nen_groups = [training_group("NEN-H", f"NEN 3140 herinstructie, groep {i}", "haven", "praktijk", TRAINER_TECH, [day], end=(12, 30))
+    nen_groups = [training_group(GroupSpec("NEN-H", f"NEN 3140 herinstructie, groep {i}", ("haven", "praktijk"), TRAINER_TECH),
+                                 Schedule([day], ((8, 30), (12, 30))))
                   for i, day in enumerate([dt.date(2025, 10, 2), dt.date(2026, 1, 15), dt.date(2026, 4, 9), dt.date(2026, 6, 11)], start=1)]
-    nen_basis = [training_group("NEN-B", f"NEN 3140 basis, groep {i}", "haven", "praktijk", TRAINER_TECH, [day])
+    nen_basis = [training_group(GroupSpec("NEN-B", f"NEN 3140 basis, groep {i}", ("haven", "praktijk"), TRAINER_TECH), Schedule([day]))
                  for i, day in enumerate([dt.date(2025, 11, 20), dt.date(2026, 5, 21)], start=1)]
     for dept in TECHNICIANS:
         for p in members[dept]:
@@ -832,16 +940,16 @@ def build() -> dict:
                 issued = moment(day, 12, 30)
                 expiry = add_months(issued, 36)
                 if expiry.date() > LAST_DAY:
-                    credential(p, "NEN-B", issued, 36, "migrated")
+                    credential(Issue(p, "NEN-B", issued, "migrated"))
                     continue
                 group = first_group(nen_groups, expiry.date() + dt.timedelta(days=1))
                 e = enrol(p, "NEN-H", "credential-renewal", group or cohorts[dept])
-                credential(p, "NEN-B", issued, 36, "migrated", renewal=e)
+                credential(Issue(p, "NEN-B", issued, "migrated"), ("renewalEnrolmentId", e))
                 if group is None:
                     continue
                 attend(group, e)
                 complete(e, group["_sessions"][-1]["_end"])
-                credential(p, "NEN-H", e["_done"], 36, "manual", enrolment=e)
+                credential(Issue(p, "NEN-H", e["_done"], "manual"), ("enrolmentId", e))
                 continue
             group = first_group(nen_basis, p["start"] + dt.timedelta(days=7))
             e = enrol(p, "NEN-B", "hr", group or cohorts[dept], p["start"] + dt.timedelta(days=90))
@@ -849,57 +957,60 @@ def build() -> dict:
                 continue
             attend(group, e)
             complete(e, group["_sessions"][-1]["_end"])
-            credential(p, "NEN-B", e["_done"], 36, "manual", enrolment=e)
+            credential(Issue(p, "NEN-B", e["_done"], "manual"), ("enrolmentId", e))
 
     # --- heftruck for the warehouse -----------------------------------------------------------
-    forklift_renew = [training_group("HEF-H", f"Heftruck herhaling, groep {i}", "haven", "kantine", None, [day], end=(12, 30),
-                                     notes="Externe instructeur van Voorbeeld Heftruckopleidingen.")
+    forklift_renew = [training_group(GroupSpec("HEF-H", f"Heftruck herhaling, groep {i}", ("haven", "kantine"), None),
+                                     Schedule([day], ((8, 30), (12, 30)), notes="Externe instructeur van Voorbeeld Heftruckopleidingen."))
                       for i, day in enumerate([dt.date(2026, 1, 22), dt.date(2026, 6, 4)], start=1)]
-    forklift_basis = [training_group("HEF-B", f"Heftruckcertificaat basis, groep {i}", "haven", "kantine", None, [day],
-                                     notes="Externe instructeur van Voorbeeld Heftruckopleidingen.")
+    forklift_basis = [training_group(GroupSpec("HEF-B", f"Heftruckcertificaat basis, groep {i}", ("haven", "kantine"), None),
+                                     Schedule([day], notes="Externe instructeur van Voorbeeld Heftruckopleidingen."))
                       for i, day in enumerate([dt.date(2025, 10, 23), dt.date(2026, 5, 28)], start=1)]
     for p in members["magazijn"]:
         if existing(p):
             issued = moment(pick_day(dt.date(2020, 8, 18), dt.date(2025, 7, 10)), 16, 0)
             expiry = add_months(issued, 60)
             if expiry.date() > LAST_DAY:
-                credential(p, "HEF-B", issued, 60, "migrated", FORKLIFT_SCHOOL)
+                credential(Issue(p, "HEF-B", issued, "migrated"))
                 continue
             group = first_group(forklift_renew, expiry.date() + dt.timedelta(days=1))
             e = enrol(p, "HEF-H", "credential-renewal", group or cohorts["magazijn"])
-            credential(p, "HEF-B", issued, 60, "migrated", FORKLIFT_SCHOOL, renewal=e)
+            credential(Issue(p, "HEF-B", issued, "migrated"), ("renewalEnrolmentId", e))
             if group is None:
                 continue
             attend(group, e)
             complete(e, group["_sessions"][-1]["_end"])
-            credential(p, "HEF-H", e["_done"], 60, "manual", FORKLIFT_SCHOOL, enrolment=e)
+            credential(Issue(p, "HEF-H", e["_done"], "manual"), ("enrolmentId", e))
             continue
         group = first_group(forklift_basis, p["start"] + dt.timedelta(days=7))
         e = enrol(p, "HEF-B", "hr", group, p["start"] + dt.timedelta(days=60))
         attend(group, e)
         complete(e, group["_sessions"][-1]["_end"])
-        credential(p, "HEF-B", e["_done"], 60, "manual", FORKLIFT_SCHOOL, enrolment=e)
+        credential(Issue(p, "HEF-B", e["_done"], "manual"), ("enrolmentId", e))
 
     # --- F-gassen, warmtepompen, and the technician leerlijn ------------------------------------
     installers = plain_existing("installatie")
     fgas_holders = rng.sample(installers[9:], 14)
     fgas_ids = {p["nc"] for p in fgas_holders}
     for p in fgas_holders:
-        credential(p, "FGAS", moment(pick_day(dt.date(2021, 9, 1), dt.date(2025, 6, 30)), 16, 0), 60, "migrated", EXAM_COOLING)
+        credential(Issue(p, "FGAS", moment(pick_day(dt.date(2021, 9, 1), dt.date(2025, 6, 30)), 16, 0), "migrated"))
     fgas_new = rng.sample([p for p in installers if p["nc"] not in fgas_ids], 6)
-    fgas_group = training_group("FGAS", "F-gassen certificering, november", "haven", "praktijk", None,
-                                [dt.date(2025, 11, 25), dt.date(2025, 11, 26)], notes="Externe docent en examen door Voorbeeld Examencentrum Koudetechniek.")
+    fgas_group = training_group(GroupSpec("FGAS", "F-gassen certificering, november", ("haven", "praktijk"), None),
+                                Schedule([dt.date(2025, 11, 25), dt.date(2025, 11, 26)],
+                                         notes="Externe docent en examen door Voorbeeld Examencentrum Koudetechniek."))
     for p in fgas_new:
         e = enrol(p, "FGAS", "manager", fgas_group)
         attend(fgas_group, e)
         complete(e, fgas_group["_sessions"][-1]["_end"])
-        credential(p, "FGAS", e["_done"], 60, "manual", EXAM_COOLING, enrolment=e)
+        credential(Issue(p, "FGAS", e["_done"], "manual"), ("enrolmentId", e))
     heat_pump = rng.sample(installers, 12)
     wp_groups = [
-        training_group("WP", "Praktijkcursus warmtepompen, januari", "haven", "praktijk", None, [dt.date(2026, 1, 27), dt.date(2026, 1, 28)],
-                       notes="Externe cursus van Voorbeeld Warmtepompacademie, in onze eigen praktijkhal."),
-        training_group("WP", "Praktijkcursus warmtepompen, april", "haven", "praktijk", None, [dt.date(2026, 4, 14), dt.date(2026, 4, 15)],
-                       notes="Externe cursus van Voorbeeld Warmtepompacademie, in onze eigen praktijkhal."),
+        training_group(GroupSpec("WP", "Praktijkcursus warmtepompen, januari", ("haven", "praktijk"), None),
+                       Schedule([dt.date(2026, 1, 27), dt.date(2026, 1, 28)],
+                                notes="Externe cursus van Voorbeeld Warmtepompacademie, in onze eigen praktijkhal.")),
+        training_group(GroupSpec("WP", "Praktijkcursus warmtepompen, april", ("haven", "praktijk"), None),
+                       Schedule([dt.date(2026, 4, 14), dt.date(2026, 4, 15)],
+                                notes="Externe cursus van Voorbeeld Warmtepompacademie, in onze eigen praktijkhal.")),
     ]
     paid: list[tuple[dict, str, dt.date]] = []  # (enrolment, fee key, order day)
     for index, p in enumerate(heat_pump):
@@ -907,16 +1018,16 @@ def build() -> dict:
         e = enrol(p, "WP", "manager", group)
         attend(group, e)
         complete(e, group["_sessions"][-1]["_end"])
-        credential(p, "WP", e["_done"], None, "manual", HEAT_PUMP_ACADEMY, enrolment=e)
+        credential(Issue(p, "WP", e["_done"], "manual"), ("enrolmentId", e))
         paid.append((e, "WP", dt.date(2026, 1, 5) if index < 6 else dt.date(2026, 3, 23)))
     for p in members["installatie"]:
         enrol(p, "LL-SM", "manager", cohorts["installatie"])
 
     # --- leadership, customer contact, paid courses ----------------------------------------------
     leaders = [members[d][0] for d in [d[0] for d in DEPARTMENTS] if d != "directie"]
-    lei = training_group("LEI", "Coachend leidinggeven", "hoofd", "vergader", None,
-                         [dt.date(2025, 10, 9), dt.date(2025, 12, 4), dt.date(2026, 2, 5)], start=(13, 0), end=(17, 0),
-                         notes="Drie middagen met een externe coach.")
+    lei = training_group(GroupSpec("LEI", "Coachend leidinggeven", ("hoofd", "vergader"), None),
+                         Schedule([dt.date(2025, 10, 9), dt.date(2025, 12, 4), dt.date(2026, 2, 5)], ((13, 0), (17, 0)),
+                                  notes="Drie middagen met een externe coach."))
     for p in leaders:
         e = enrol(p, "LEI", "hr", lei)
         attend(lei, e, absent=(1,) if p["nc"] == "corporate-manager-03" else ())
@@ -924,8 +1035,10 @@ def build() -> dict:
 
     sales = [p for p in members["verkoop"] if p["roles"] == ["learner"] and (existing(p) or p["start"] <= dt.date(2026, 1, 12))]
     kla_groups = [
-        training_group("KLA", "Klantgericht communiceren, groep 1", "hoofd", "training", None, [dt.date(2025, 11, 13)], start=(9, 0), end=(16, 0)),
-        training_group("KLA", "Klantgericht communiceren, groep 2", "hoofd", "training", None, [dt.date(2026, 1, 22)], start=(9, 0), end=(16, 0)),
+        training_group(GroupSpec("KLA", "Klantgericht communiceren, groep 1", ("hoofd", "training"), None),
+                       Schedule([dt.date(2025, 11, 13)], ((9, 0), (16, 0)))),
+        training_group(GroupSpec("KLA", "Klantgericht communiceren, groep 2", ("hoofd", "training"), None),
+                       Schedule([dt.date(2026, 1, 22)], ((9, 0), (16, 0)))),
     ]
     for index, p in enumerate(sales):
         group = kla_groups[0] if index < len(sales) // 2 and existing(p) else kla_groups[1]
@@ -957,9 +1070,9 @@ def build() -> dict:
             elearn(e, start, pick_day(plus_workdays(start, 10), plus_workdays(start, 40)))
 
     project = plain_existing("planning")[1:4] + plain_existing("ict")[-2:]
-    prj = training_group("PRJ", "Projectmatig werken, maart", "hoofd", "vergader", None,
-                         [dt.date(2026, 3, 3), dt.date(2026, 3, 10), dt.date(2026, 3, 17)], start=(9, 0), end=(16, 0),
-                         notes="Externe trainer en examen van Voorbeeld Projectacademie.")
+    prj = training_group(GroupSpec("PRJ", "Projectmatig werken, maart", ("hoofd", "vergader"), None),
+                         Schedule([dt.date(2026, 3, 3), dt.date(2026, 3, 10), dt.date(2026, 3, 17)], ((9, 0), (16, 0)),
+                                  notes="Externe trainer en examen van Voorbeeld Projectacademie."))
     for index, p in enumerate(project):
         e = enrol(p, "PRJ", "manager", prj)
         paid.append((e, "PRJ", dt.date(2026, 2, 9)))
@@ -969,7 +1082,7 @@ def build() -> dict:
             continue
         attend(prj, e)
         complete(e, prj["_sessions"][-1]["_end"])
-        credential(p, "PRJ", e["_done"], None, "manual", PROJECT_ACADEMY, enrolment=e)
+        credential(Issue(p, "PRJ", e["_done"], "manual"), ("enrolmentId", e))
 
     # --- toolbox meetings: sessions every month, marks only for exceptions -----------------------
     for dept, room, begin, finish in TOOLBOX:
@@ -1001,9 +1114,12 @@ def build() -> dict:
                 })
 
     # --- external training records (the promoted NIS2 seed row first) ----------------------------
-    def external(p: dict, title: str, provider: str, kind: str, day: dt.date, submitted_by: str, verified_by: str | None,
-                 evidence: str | None, regulation: str | None = None, valid_months: int | None = None, batch: str | None = None,
-                 lifecycle: str = "verified", rejection: str | None = None) -> None:
+    def external(p: dict, record: ExternalRecord) -> None:
+        title, provider, kind, day = record.activity.title, record.activity.provider, record.activity.kind, record.activity.day
+        submitted_by, verified_by, evidence, lifecycle = (record.review.submitted_by, record.review.verified_by,
+                                                          record.review.evidence, record.review.lifecycle)
+        regulation, valid_months, batch, rejection = (record.extras.regulation, record.extras.valid_months,
+                                                      record.extras.batch, record.extras.rejection)
         completed = moment(day, 17, 0)
         # learnerId is the LearnerProfile uuid; learnerUserId its Nextcloud user id, the read rule's key.
         fields = {"learnerId": p["profile"]["uuid"], "learnerUserId": p["profile"]["ncUserId"], "learnerRef": p["profile"]["uuid"],
@@ -1027,33 +1143,45 @@ def build() -> dict:
         b.add("external-training-record", fields)
 
     board = [by_nc[DIRECTOR]] + leaders + [by_nc[COMPLIANCE]]
+    nis2 = ExternalRecord(Activity("NIS2 board awareness session", "Voorbeeld SecureBoard B.V.", "classroom", dt.date(2026, 3, 10)),
+                          Review(COMPLIANCE, COMPLIANCE, "Getekende presentielijst bijgevoegd"),
+                          RecordExtras(regulation="NIS2", valid_months=12, batch="nis2-bestuur-2026-03"))
     for p in board:
-        external(p, "NIS2 board awareness session", "Voorbeeld SecureBoard B.V.", "classroom", dt.date(2026, 3, 10), COMPLIANCE, COMPLIANCE,
-                 "Getekende presentielijst bijgevoegd", "NIS2", 12, "nis2-bestuur-2026-03")
+        external(p, nis2)
     fair = [members["installatie"][0]] + rng.sample(installers, 5)
+    trade_fair = ExternalRecord(Activity("Vakbeurs installatietechniek", "Voorbeeld Beursorganisatie", "conference", dt.date(2025, 9, 25)),
+                                Review(members["installatie"][0]["nc"], COORDINATOR, "Toegangsbewijs en bezoekbevestiging"),
+                                RecordExtras(batch="vakbeurs-2025"))
     for p in fair:
-        external(p, "Vakbeurs installatietechniek", "Voorbeeld Beursorganisatie", "conference", dt.date(2025, 9, 25), members["installatie"][0]["nc"],
-                 COORDINATOR, "Toegangsbewijs en bezoekbevestiging", batch="vakbeurs-2025")
+        external(p, trade_fair)
+    congress = Activity("Congres duurzame inzetbaarheid", "Voorbeeld Congresbureau", "conference", dt.date(2025, 11, 20))
     for nc in (HR, COORDINATOR):
-        external(by_nc[nc], "Congres duurzame inzetbaarheid", "Voorbeeld Congresbureau", "conference", dt.date(2025, 11, 20), nc, DIRECTOR,
-                 "Deelnamebevestiging van de organisator")
-    external(by_nc[COMPLIANCE], "Webinar AVG-actualiteiten voor privacy officers", "Voorbeeld Privacyacademie", "external-elearning",
-             dt.date(2026, 1, 28), COMPLIANCE, HR, "Certificaat van deelname", "AVG", 24)
+        external(by_nc[nc], ExternalRecord(congress, Review(nc, DIRECTOR, "Deelnamebevestiging van de organisator")))
+    external(by_nc[COMPLIANCE], ExternalRecord(
+        Activity("Webinar AVG-actualiteiten voor privacy officers", "Voorbeeld Privacyacademie", "external-elearning", dt.date(2026, 1, 28)),
+        Review(COMPLIANCE, HR, "Certificaat van deelname"), RecordExtras(regulation="AVG", valid_months=24)))
+    cloud = ExternalRecord(Activity("Praktijkcursus cloudbeheer", "Voorbeeld IT-opleidingen", "classroom", dt.date(2026, 2, 12)),
+                           Review(members["ict"][0]["nc"], COORDINATOR, "Certificaat van deelname"),
+                           RecordExtras(batch="cloudbeheer-2026-02"))
     for p in plain_existing("ict")[1:3]:
-        external(p, "Praktijkcursus cloudbeheer", "Voorbeeld IT-opleidingen", "classroom", dt.date(2026, 2, 12), members["ict"][0]["nc"],
-                 COORDINATOR, "Certificaat van deelname", batch="cloudbeheer-2026-02")
+        external(p, cloud)
+    driving = ExternalRecord(Activity("Rijvaardigheidstraining bestelbus", "Voorbeeld Rijopleidingen Esdoornhaven", "other", dt.date(2026, 5, 12)),
+                             Review(COORDINATOR, COORDINATOR, "Presentielijst van de rijschool"), RecordExtras(batch="rijvaardigheid-2026-05"))
     for p in rng.sample(installers, 6):
-        external(p, "Rijvaardigheidstraining bestelbus", "Voorbeeld Rijopleidingen Esdoornhaven", "other", dt.date(2026, 5, 12),
-                 COORDINATOR, COORDINATOR, "Presentielijst van de rijschool", batch="rijvaardigheid-2026-05")
+        external(p, driving)
+    factory_day = ExternalRecord(Activity("Meeloopdag bij een warmtepompfabrikant", "Voorbeeld Warmtepompfabriek", "on-the-job", dt.date(2026, 3, 19)),
+                                 Review(members["installatie"][0]["nc"], COORDINATOR, "Verslag van de meeloopdag"),
+                                 RecordExtras(batch="meeloopdag-2026-03"))
     for p in heat_pump[:3]:
-        external(p, "Meeloopdag bij een warmtepompfabrikant", "Voorbeeld Warmtepompfabriek", "on-the-job", dt.date(2026, 3, 19),
-                 members["installatie"][0]["nc"], COORDINATOR, "Verslag van de meeloopdag", batch="meeloopdag-2026-03")
+        external(p, factory_day)
     rejected = plain_existing("verkoop")[2]
-    external(rejected, "Online cursus timemanagement", "Voorbeeld Online Leerplatform", "external-elearning", dt.date(2026, 2, 26),
-             rejected["nc"], None, None, lifecycle="rejected", rejection="Er is geen certificaat of deelnamebewijs aangeleverd.")
+    external(rejected, ExternalRecord(
+        Activity("Online cursus timemanagement", "Voorbeeld Online Leerplatform", "external-elearning", dt.date(2026, 2, 26)),
+        Review(rejected["nc"], None, None, "rejected"), RecordExtras(rejection="Er is geen certificaat of deelnamebewijs aangeleverd.")))
     waiting = plain_existing("financien")[5]
-    external(waiting, "Workshop werken met macro's", "Voorbeeld Rekenacademie", "external-elearning", dt.date(2026, 6, 25),
-             waiting["nc"], None, "Deelnamebewijs volgt per mail", lifecycle="submitted")
+    external(waiting, ExternalRecord(
+        Activity("Workshop werken met macro's", "Voorbeeld Rekenacademie", "external-elearning", dt.date(2026, 6, 25)),
+        Review(waiting["nc"], None, "Deelnamebewijs volgt per mail", "submitted")))
 
     # --- competency attainments: what the skills gap dashboard reads ---------------------------------
     def valid_at_year_end(p: dict, keys: tuple[str, ...]) -> dict | None:
@@ -1280,50 +1408,20 @@ def build() -> dict:
     # object for such a schema. AVG is left out: learniq_register.json seeds it, and a second row
     # with the same code would be a duplicate. Each audience follows who this script trains, so the
     # Compliance overview counts what the data shows (example-set-regulation-rows, design).
-    def regulation(code: str, name: str, description: str, criteria: str, scope: str, renewal: int | None, annual: bool,
-                   departments: list[str] | None = None, roles: list[str] | None = None) -> None:
-        fields = {"slug": code, "name": name, "description": description, "applicabilityCriteria": criteria,
-                  "audienceScope": scope}
-        if departments is not None:
-            fields["audienceDepartments"] = departments
-        if roles is not None:
-            fields["audienceRoles"] = roles
-        fields["requiresAnnualRenewal"] = annual
-        if renewal is not None:
-            fields["renewalCycleMonths"] = renewal
-        fields.update({"active": True, "ragRedThreshold": 70, "ragAmberThreshold": 90, "lifecycle": "published"})
-        b.add("regulation", fields)
+    def add_regulations() -> None:
+        for row in REGULATIONS:
+            code, name, description, criteria, scope, renewal, annual, *audience = row
+            fields = {"slug": code, "name": name, "description": description, "applicabilityCriteria": criteria,
+                      "audienceScope": scope}
+            for named in audience:
+                fields.update(named)
+            fields["requiresAnnualRenewal"] = annual
+            if renewal is not None:
+                fields["renewalCycleMonths"] = renewal
+            fields.update({"active": True, "ragRedThreshold": 70, "ragAmberThreshold": 90, "lifecycle": "published"})
+            b.add("regulation", fields)
 
-    path_of = {key: path for key, _name, path, _site, _size, _head in DEPARTMENTS}
-    regulation("GEDRAGSCODE", "Gedragscode Esdoorn Techniek",
-               "De gedragscode van het bedrijf: integriteit, omgang met klanten en collega's en het melden van misstanden.",
-               "Iedereen die bij Esdoorn Techniek werkt, elk jaar opnieuw.", "all-employees", 12, True)
-    regulation("INFORMATIEBEVEILIGING", "Informatiebeveiligingsbeleid",
-               "Het beleid voor veilig werken met systemen en gegevens: phishing herkennen, veilig inloggen en incidenten melden.",
-               "Iedereen met een account, elk jaar opnieuw.", "all-employees", 12, True)
-    regulation("VCA", "VCA, veiligheid, gezondheid en milieu",
-               "Veilig werken op locatie en in de werkplaats, met een VCA-diploma dat tien jaar geldig is.",
-               "Iedereen in de operatie: planning, installatie, magazijn en werkplaats.", "department", 120, False,
-               departments=["Operatie"])
-    regulation("NEN3140", "NEN 3140, veilig werken aan elektrische installaties",
-               "Voldoend onderricht personen die aan of bij elektrische installaties werken, met herinstructie elke drie jaar.",
-               "Monteurs in installatie en service en in de werkplaats.", "department", 36, False,
-               departments=[path_of["installatie"], path_of["werkplaats"]])
-    regulation("HEFTRUCK", "Heftruckcertificaat",
-               "Een heftruck bedienen mag alleen met een geldig certificaat, dat vijf jaar geldig is.",
-               "Iedereen in het magazijn.", "department", 60, False, departments=[path_of["magazijn"]])
-    regulation("FGASSEN", "F-gassen, EU-verordening 2024/573",
-               "Werken aan koelcircuits van warmtepompen mag alleen met een F-gassencertificaat.",
-               "Aangewezen monteurs die koelcircuits openen; de leidinggevende houdt de lijst bij.", "role-specific", None, False,
-               roles=[])
-    regulation("BHV", "Bedrijfshulpverlening (Arbowet artikel 15)",
-               "Genoeg opgeleide bedrijfshulpverleners op elke vestiging, met een herhaling elk jaar.",
-               "Aangewezen bedrijfshulpverleners op beide vestigingen, niet iedere medewerker.", "role-specific", 12, True,
-               roles=[])
-    regulation("NIS2", "NIS2, cyberbeveiliging voor bestuurders",
-               "Bestuurders en leidinggevenden kennen de zorgplicht en meldplicht uit de NIS2-richtlijn.",
-               "De directie, de leidinggevenden en de compliance officer.", "board", 12, True,
-               roles=["manager", "compliance-officer"])
+    add_regulations()
 
     shipped = {r["slug"] for r in b.buckets["regulation"]}
     for rows in b.buckets.values():
@@ -1377,40 +1475,5 @@ def build() -> dict:
     }
 
 
-def render(data: dict) -> str:
-    """Pretty JSON with one compact object per line in each seed bucket (see po.py)."""
-    buckets = data["x-openregister"]["seedData"]["objects"]
-    data["x-openregister"]["seedData"]["objects"] = "__OBJECTS__"
-    text = json.dumps(data, indent=2, ensure_ascii=False)
-    parts = []
-    for name, rows in buckets.items():
-        lines = ",\n".join("          " + json.dumps(row, ensure_ascii=False, separators=(", ", ": ")) for row in rows)
-        parts.append(f"        {json.dumps(name)}: [\n{lines}\n        ]")
-    return text.replace('"__OBJECTS__"', "{\n" + ",\n".join(parts) + "\n      }") + "\n"
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--check", action="store_true", help="exit 1 when the file on disk differs")
-    args = parser.parse_args()
-    text = render(build())
-    if args.check:
-        current = open(OUT, encoding="utf-8").read() if os.path.exists(OUT) else ""
-        if current != text:
-            print(f"{OUT} is out of date; run python3 scripts/example-sets/corporate.py", file=sys.stderr)
-            return 1
-        print(f"{OUT} is up to date")
-        return 0
-    os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    with open(OUT, "w", encoding="utf-8") as handle:
-        handle.write(text)
-    data = json.loads(text)
-    counts = {k: len(v) for k, v in data["x-openregister"]["seedData"]["objects"].items()}
-    print(f"wrote {OUT}: {data['x-openregister']['profile']['objectCount']} objects")
-    for name, n in counts.items():
-        print(f"  {name}: {n}")
-    return 0
-
-
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(Script(SET, __doc__, build)))

@@ -173,7 +173,7 @@ class ExamplePortalProvisionerTest extends TestCase {
 		$expected = [
 			// `public` first: portaliq serves no site content to a visitor on a portal without it (lane L2, live).
 			'po'       => ['wilgenboom', 'wilgenboom', 'example-basisschool', 'Mijn Wilgenboom', ['public', 'digid']],
-			'vo'       => ['vaartveld', 'vaartveld', 'example-voortgezet', 'Mijn Vaartveld', ['public', 'nextcloud', 'digid']],
+			'vo'       => ['vaartveld', 'vaartveld', 'example-voortgezet', 'Mijn Zuiddrecht', ['public', 'nextcloud', 'digid']],
 			'mbo'      => ['esdoornveen', 'esdoornveen', 'example-college', 'Mijn Esdoornveen', ['public', 'nextcloud', 'eherkenning']],
 			'training' => ['warmtepompacademie', 'warmtepompacademie', 'example-opleider', 'Mijn academie', ['public', 'nextcloud', 'eherkenning']],
 		];
@@ -199,7 +199,7 @@ class ExamplePortalProvisionerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-sets-themed-portal/specs/example-sets/spec.md#scenario-without-portaliq-loading-a-set-writes-no-portal
+	 * @spec openspec/specs/example-sets/spec.md#scenario-without-portaliq-loading-a-set-writes-no-portal
 	 */
 	public function testWithoutPortaliqNothingIsReadOrWritten(): void {
 		$objects = $this->createMock(ObjectService::class);
@@ -372,7 +372,7 @@ class ExamplePortalProvisionerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-sets-themed-portal/specs/example-sets/spec.md#scenario-a-set-whose-school-has-no-portal-gets-a-new-themed-one
+	 * @spec openspec/specs/example-sets/spec.md#scenario-a-set-whose-school-has-no-portal-gets-a-new-themed-one
 	 */
 	public function testASetWithoutADeclarationGetsThePlainThemedPortal(): void {
 		$result = $this->provisioner()->provision('he');
@@ -390,7 +390,7 @@ class ExamplePortalProvisionerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-sets-themed-portal/specs/example-sets/spec.md#requirement-loading-an-example-set-gives-its-school-a-themed-portal
+	 * @spec openspec/specs/example-sets/spec.md#requirement-loading-an-example-set-gives-its-school-a-themed-portal
 	 */
 	public function testARefusedWriteIsReportedNotThrown(): void {
 		$objects = $this->createMock(ObjectService::class);

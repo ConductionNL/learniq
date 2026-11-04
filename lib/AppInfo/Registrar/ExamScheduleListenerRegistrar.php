@@ -51,5 +51,8 @@ class ExamScheduleListenerRegistrar {
 		$context->registerEventListener(event: ObjectCreatingEvent::class, listener: ExamSittingPlacementCheck::class);
 		$context->registerEventListener(event: ObjectUpdatingEvent::class, listener: ExamSittingPlacementCheck::class);
 		$context->registerEventListener(event: ObjectCreatingEvent::class, listener: InvigilatorAssignmentCheck::class);
+
+		// The standby slot defaults of the timetable (timetabling-standby-slots).
+		(new StandbyListenerRegistrar())->register(context: $context);
 	}//end register()
 }//end class

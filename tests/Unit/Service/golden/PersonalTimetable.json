@@ -1,0 +1,499 @@
+{
+    "timetable of anna": {
+        "timetable": {
+            "sessions": [
+                {
+                    "id": "s-1",
+                    "title": "Wiskunde",
+                    "startsAt": "2026-11-03T09:00:00+00:00",
+                    "endsAt": "2026-11-03T09:50:00+00:00",
+                    "location": "",
+                    "cohortId": "c-1",
+                    "courseId": "",
+                    "lessonId": "",
+                    "lifecycle": "",
+                    "roomId": "r-1",
+                    "room": {
+                        "id": "r-1",
+                        "name": "Lokaal 1",
+                        "capacity": null,
+                        "facilities": []
+                    },
+                    "substituteTeacherId": null,
+                    "teacherUserId": "jan",
+                    "externalRef": "",
+                    "sourceSystem": "",
+                    "cover": false,
+                    "changeReasonKind": null,
+                    "changeReason": null,
+                    "changedAt": null,
+                    "source": "learniq",
+                    "onlineMeetingUrl": null,
+                    "notes": [
+                        {
+                            "id": "n-1",
+                            "topic": null,
+                            "text": "Boek mee",
+                            "audience": "learners",
+                            "authorId": ""
+                        }
+                    ],
+                    "canAddNote": false
+                },
+                {
+                    "id": "s-3",
+                    "title": "Engels",
+                    "startsAt": "2026-11-04T10:00:00+00:00",
+                    "endsAt": "2026-11-04T10:50:00+00:00",
+                    "location": "",
+                    "cohortId": "c-2",
+                    "courseId": "",
+                    "lessonId": "",
+                    "lifecycle": "changed",
+                    "roomId": null,
+                    "room": null,
+                    "substituteTeacherId": "sub",
+                    "teacherUserId": "",
+                    "externalRef": "",
+                    "sourceSystem": "",
+                    "cover": false,
+                    "changeReasonKind": null,
+                    "changeReason": null,
+                    "changedAt": null,
+                    "source": "learniq",
+                    "onlineMeetingUrl": null,
+                    "notes": [],
+                    "canAddNote": false
+                },
+                {
+                    "id": "s-9",
+                    "title": "Keuzevak",
+                    "startsAt": "2026-11-05T13:00:00+00:00",
+                    "endsAt": "2026-11-05T13:50:00+00:00",
+                    "location": "",
+                    "cohortId": "",
+                    "courseId": "k-9",
+                    "lessonId": "",
+                    "lifecycle": "",
+                    "roomId": null,
+                    "room": null,
+                    "substituteTeacherId": null,
+                    "teacherUserId": "",
+                    "externalRef": "",
+                    "sourceSystem": "",
+                    "cover": false,
+                    "changeReasonKind": null,
+                    "changeReason": null,
+                    "changedAt": null,
+                    "source": "learniq",
+                    "onlineMeetingUrl": null,
+                    "notes": [],
+                    "canAddNote": false
+                }
+            ],
+            "source": "fake"
+        },
+        "asked": [
+            {
+                "sessionsForCohorts": [
+                    [
+                        "c-1",
+                        "c-2"
+                    ],
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            },
+            {
+                "sessionsForTeacher": "anna"
+            },
+            {
+                "sessionsForCourses": [
+                    "k-9"
+                ]
+            },
+            {
+                "isAdmin": "anna"
+            },
+            {
+                "isInGroup": [
+                    "anna",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "anna",
+                    "compliance-officers"
+                ]
+            },
+            {
+                "isAdmin": "anna"
+            },
+            {
+                "isInGroup": [
+                    "anna",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "anna",
+                    "compliance-officers"
+                ]
+            }
+        ]
+    },
+    "timetable of jan": {
+        "timetable": {
+            "sessions": [
+                {
+                    "id": "s-1",
+                    "title": "Wiskunde",
+                    "startsAt": "2026-11-03T09:00:00+00:00",
+                    "endsAt": "2026-11-03T09:50:00+00:00",
+                    "location": "",
+                    "cohortId": "c-1",
+                    "courseId": "",
+                    "lessonId": "",
+                    "lifecycle": "",
+                    "roomId": "r-1",
+                    "room": {
+                        "id": "r-1",
+                        "name": "Lokaal 1",
+                        "capacity": null,
+                        "facilities": []
+                    },
+                    "substituteTeacherId": null,
+                    "teacherUserId": "jan",
+                    "externalRef": "",
+                    "sourceSystem": "",
+                    "cover": false,
+                    "changeReasonKind": null,
+                    "changeReason": null,
+                    "changedAt": null,
+                    "source": "learniq",
+                    "onlineMeetingUrl": null,
+                    "notes": [
+                        {
+                            "id": "n-1",
+                            "topic": null,
+                            "text": "Boek mee",
+                            "audience": "learners",
+                            "authorId": ""
+                        },
+                        {
+                            "id": "n-2",
+                            "topic": null,
+                            "text": "Toets in la",
+                            "audience": "cover",
+                            "authorId": ""
+                        }
+                    ],
+                    "canAddNote": true
+                }
+            ],
+            "source": "fake"
+        },
+        "asked": [
+            {
+                "sessionsForCohorts": [
+                    [
+                        "c-1"
+                    ],
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            },
+            {
+                "sessionsForTeacher": "jan"
+            },
+            {
+                "isAdmin": "jan"
+            },
+            {
+                "isInGroup": [
+                    "jan",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "jan",
+                    "compliance-officers"
+                ]
+            },
+            {
+                "isAdmin": "jan"
+            },
+            {
+                "isInGroup": [
+                    "jan",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "jan",
+                    "compliance-officers"
+                ]
+            }
+        ]
+    },
+    "timetable of piet": {
+        "timetable": {
+            "sessions": [
+                {
+                    "id": "s-3",
+                    "title": "Engels",
+                    "startsAt": "2026-11-04T10:00:00+00:00",
+                    "endsAt": "2026-11-04T10:50:00+00:00",
+                    "location": "",
+                    "cohortId": "c-2",
+                    "courseId": "",
+                    "lessonId": "",
+                    "lifecycle": "changed",
+                    "roomId": null,
+                    "room": null,
+                    "substituteTeacherId": "sub",
+                    "teacherUserId": "",
+                    "externalRef": "",
+                    "sourceSystem": "",
+                    "cover": false,
+                    "changeReasonKind": null,
+                    "changeReason": null,
+                    "changedAt": null,
+                    "source": "learniq",
+                    "onlineMeetingUrl": null,
+                    "notes": [
+                        {
+                            "id": "n-3",
+                            "topic": null,
+                            "text": "Invaller",
+                            "audience": "cover",
+                            "authorId": ""
+                        }
+                    ],
+                    "canAddNote": true
+                }
+            ],
+            "source": "fake"
+        },
+        "asked": [
+            {
+                "sessionsForCohorts": [
+                    [
+                        "c-2"
+                    ],
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            },
+            {
+                "sessionsForTeacher": "piet"
+            },
+            {
+                "isAdmin": "piet"
+            },
+            {
+                "isInGroup": [
+                    "piet",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "piet",
+                    "compliance-officers"
+                ]
+            },
+            {
+                "isAdmin": "piet"
+            },
+            {
+                "isInGroup": [
+                    "piet",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "piet",
+                    "compliance-officers"
+                ]
+            }
+        ]
+    },
+    "timetable of sub": {
+        "timetable": {
+            "sessions": [
+                {
+                    "id": "s-3",
+                    "title": "Engels",
+                    "startsAt": "2026-11-04T10:00:00+00:00",
+                    "endsAt": "2026-11-04T10:50:00+00:00",
+                    "location": "",
+                    "cohortId": "c-2",
+                    "courseId": "",
+                    "lessonId": "",
+                    "lifecycle": "changed",
+                    "roomId": null,
+                    "room": null,
+                    "substituteTeacherId": "sub",
+                    "teacherUserId": "",
+                    "externalRef": "",
+                    "sourceSystem": "",
+                    "cover": true,
+                    "changeReasonKind": null,
+                    "changeReason": null,
+                    "changedAt": null,
+                    "source": "learniq",
+                    "onlineMeetingUrl": null,
+                    "notes": [
+                        {
+                            "id": "n-3",
+                            "topic": null,
+                            "text": "Invaller",
+                            "audience": "cover",
+                            "authorId": ""
+                        }
+                    ],
+                    "canAddNote": true
+                }
+            ],
+            "source": "fake"
+        },
+        "asked": [
+            {
+                "sessionsForCohorts": [
+                    [],
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            },
+            {
+                "sessionsForTeacher": "sub"
+            },
+            {
+                "isAdmin": "sub"
+            },
+            {
+                "isInGroup": [
+                    "sub",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "sub",
+                    "compliance-officers"
+                ]
+            },
+            {
+                "isAdmin": "sub"
+            },
+            {
+                "isInGroup": [
+                    "sub",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "sub",
+                    "compliance-officers"
+                ]
+            }
+        ]
+    },
+    "timetable of lead": {
+        "timetable": {
+            "sessions": [
+                {
+                    "id": "s-3",
+                    "title": "Engels",
+                    "startsAt": "2026-11-04T10:00:00+00:00",
+                    "endsAt": "2026-11-04T10:50:00+00:00",
+                    "location": "",
+                    "cohortId": "c-2",
+                    "courseId": "",
+                    "lessonId": "",
+                    "lifecycle": "changed",
+                    "roomId": null,
+                    "room": null,
+                    "substituteTeacherId": "sub",
+                    "teacherUserId": "",
+                    "externalRef": "",
+                    "sourceSystem": "",
+                    "cover": false,
+                    "changeReasonKind": null,
+                    "changeReason": null,
+                    "changedAt": null,
+                    "source": "learniq",
+                    "onlineMeetingUrl": null,
+                    "notes": [
+                        {
+                            "id": "n-3",
+                            "topic": null,
+                            "text": "Invaller",
+                            "audience": "cover",
+                            "authorId": ""
+                        }
+                    ],
+                    "canAddNote": true
+                }
+            ],
+            "source": "fake"
+        },
+        "asked": [
+            {
+                "sessionsForCohorts": [
+                    [
+                        "c-2"
+                    ],
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            },
+            {
+                "sessionsForTeacher": "lead"
+            },
+            {
+                "isAdmin": "lead"
+            },
+            {
+                "isInGroup": [
+                    "lead",
+                    "team-leads"
+                ]
+            },
+            {
+                "isAdmin": "lead"
+            },
+            {
+                "isInGroup": [
+                    "lead",
+                    "team-leads"
+                ]
+            }
+        ]
+    },
+    "timetable of nobody": {
+        "timetable": {
+            "sessions": [],
+            "source": "fake"
+        },
+        "asked": [
+            {
+                "sessionsForCohorts": [
+                    [],
+                    "2026-11-02T00:00:00+00:00",
+                    "2026-11-09T00:00:00+00:00"
+                ]
+            },
+            {
+                "sessionsForTeacher": "nobody"
+            }
+        ]
+    }
+}

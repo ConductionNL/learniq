@@ -64,11 +64,13 @@ class CoverageListenerRegistrar {
 		foreach ([ObjectCreatedEvent::class, ObjectUpdatedEvent::class, ObjectDeletedEvent::class] as $event) {
 			$boot->registerFilteredObjectListener(
 				dispatcher: $dispatcher,
-				appId: $appId,
-				event: $event,
-				listener: CurriculumCoverageRollupHandler::class,
-				registers: ['learniq'],
-				schemas: self::SCHEMAS
+				subscription: [
+					'appId' => $appId,
+					'event' => $event,
+					'listener' => CurriculumCoverageRollupHandler::class,
+					'registers' => ['learniq'],
+					'schemas' => self::SCHEMAS,
+				]
 			);
 		}
 	}//end register()

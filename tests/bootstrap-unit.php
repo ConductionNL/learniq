@@ -169,6 +169,7 @@ require_once __DIR__ . '/Support/GuardVerdicts.php';
 require_once __DIR__ . '/Support/RegisterFaithfulStore.php';
 require_once __DIR__ . '/Support/CapturingLogger.php';
 require_once __DIR__ . '/Support/XapiDocumentsInMemory.php';
+require_once __DIR__ . '/Support/DelegatingDouble.php';
 
 // Integriq's connection-registry event (adopt-connection-registry).
 // ConnectionReportService sends it by string class name behind class_exists
@@ -177,4 +178,11 @@ require_once __DIR__ . '/Support/XapiDocumentsInMemory.php';
 // real class is absent.
 if (class_exists('\\OCA\\Integriq\\Event\\ConnectionStatusReportedEvent') === false) {
 	require_once __DIR__ . '/Stubs/Integriq/Event/ConnectionStatusReportedEvent.php';
+}
+
+// Portaliq's claim scope event. PortalClaimScopeListener matches it by class
+// name, so learniq stays installable without portaliq. The stub mirrors
+// portaliq's class and loads only when the real class is absent.
+if (class_exists('\\OCA\\Portaliq\\Event\\PortalClaimScopeEvent') === false) {
+	require_once __DIR__ . '/Stubs/Portaliq/Event/PortalClaimScopeEvent.php';
 }

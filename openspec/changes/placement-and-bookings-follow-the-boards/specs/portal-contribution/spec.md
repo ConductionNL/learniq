@@ -2,12 +2,12 @@
 
 ### Requirement: The placement page reads in words and shows the hours
 
-Every field the student's placement collection projects, except her own reference, MUST carry a label, and its state MUST read in words for every state of the schema. The placement page MUST show the hours bar under the steps. A step MUST NOT carry a date beside a line that names the same day.
+Every field the student's placement collection projects, except her own reference, MUST carry a label. The page MUST group the agreed terms under "Afspraken". The placement's state MUST read in words for every state of the schema, as the current step under "Waar sta je?", and MUST NOT be a separate status field. The placement page MUST show the hours bar under the steps, with the agreed hours as its total. A step MUST NOT carry a date beside a line that names the same day.
 
 #### Scenario: Milan opens his placement
 - **GIVEN** Milan's placement at Bakker Techniek BV
 - **WHEN** he opens it from "BPV en uren"
-- **THEN** the record reads "Van", "Tot en met", "Afgesproken uren" and "Status: Loopt", the hours bar shows under "Waar sta je?", and "27 augustus 2026" appears once
+- **THEN** "Afspraken" reads "Periode", "Werkdagen", "Adres" and "Opleiding", the hours bar under "Waar sta je?" reads "96 van 480 uur goedgekeurd", "Tussenbeoordeling" is the current step, and "27 augustus" appears once
 - @e2e exclude covered by PHPUnit `PortalContributionProviderTest::testThePlacementReadsInWordsAndShowsTheHours` and `BpvPlacementStepsTest`; the page by `tests/e2e/portal-design/esdoornveen.spec.ts`
 
 ### Requirement: A booking lists its participants, and the certificates group per certificate

@@ -33,6 +33,13 @@ use Psr\Log\LoggerInterface;
 abstract class ActorForwardedJob {
 
 	/**
+	 * The clock, kept the way OCP's Job keeps it (`protected ITimeFactory $time`), so a test can see what was forwarded.
+	 *
+	 * @var ITimeFactory
+	 */
+	protected ITimeFactory $time;
+
+	/**
 	 * @param ITimeFactory        $time         Clock.
 	 * @param IUserSession        $userSession  Actor forwarding.
 	 * @param IUserManager        $userManager  Actor forwarding.
@@ -46,6 +53,7 @@ abstract class ActorForwardedJob {
 		private readonly OrganisationService $organisation,
 		protected readonly LoggerInterface $logger,
 	) {
+		$this->time = $time;
 	}//end __construct()
 
 	/**

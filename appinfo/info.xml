@@ -68,7 +68,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
 
 **Ondersteuning:** support@conduction.nl
     ]]></description>
-    <version>0.3.9-beta.20261015200000</version>
+    <version>0.3.9-beta.20261105010000</version>
     <licence>EUPL-1.2</licence>
     <author mail="info@conduction.nl" homepage="https://www.conduction.nl/">Conduction</author>
     <namespace>Learniq</namespace>
@@ -388,6 +388,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
         <command>OCA\Learniq\Command\PortalInviteTrainerCommand</command>
         <command>OCA\Learniq\Command\PortalInviteAssessorCommand</command>
         <command>OCA\Learniq\Command\PortalInviteEmployerCommand</command>
+        <command>OCA\Learniq\Command\PortalEmployerTenancyReportCommand</command>
         <!-- example-sets-themed-portal: gives a loaded example set its themed portal
              without importing the set again. -->
         <command>OCA\Learniq\Command\ExampleSetPortalCommand</command>

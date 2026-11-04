@@ -3,8 +3,8 @@
 /**
  * Who a guardian or a pupil may write to on the portal, read over the real
  * example sets: Fatima writes to Meester Daan about Vera and to Juf Esra about
- * Sami; Noor writes to the teachers of H4b, Sanne Kramer (her mentor) first,
- * and her completed H3b enrolment names nobody (portal-message-contacts).
+ * Sami; Fenna writes to the teachers of 3HV-B, Pieter Jansen (her mentor) first,
+ * and her completed 3HV-A enrolment names nobody (portal-message-contacts).
  *
  * @category Test
  * @package  OCA\Learniq\Tests\Unit\Portal
@@ -135,8 +135,8 @@ class PortalMessageContactsTest extends TestCase {
 	}//end testAGuardianWritesToTheTeacherOfEachChildsGroup()
 
 	/**
-	 * Noor's active H4b enrolment names its teachers, her mentor first and as
-	 * a mentor; her completed H3b enrolment names nobody.
+	 * Fenna's active 3HV-B enrolment names its teachers, her mentor first and as
+	 * a mentor; her completed 3HV-A enrolment names nobody.
 	 *
 	 * @return void
 	 */
@@ -147,7 +147,7 @@ class PortalMessageContactsTest extends TestCase {
 		$done     = self::row(set: 'vo', schema: 'enrolment', match: ['learnerRef' => $noor['uuid'], 'lifecycle' => 'completed']);
 
 		$teachers = $contacts->ownContacts(enrolmentId: $active['uuid']);
-		self::assertSame(['staffRef' => 'vo-docent-01', 'name' => 'Sanne Kramer', 'role' => 'Mentor'], $teachers[0]);
+		self::assertSame(expected: ['staffRef' => 'vo-docent-01', 'name' => 'Pieter Jansen', 'role' => 'Mentor'], actual: $teachers[0]);
 		self::assertSame(array_unique(array_column($teachers, 'staffRef')), array_column($teachers, 'staffRef'), 'each teacher once');
 		foreach ($teachers as $teacher) {
 			self::assertNotSame($teacher['staffRef'], $teacher['name'], 'a teacher without a display name is left out');

@@ -29,13 +29,14 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\AssessmentAccessFacts;
 use OCA\Learniq\Service\LessonReleaseEvaluator;
 use OCA\Learniq\Service\DashboardRoleService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -52,6 +53,7 @@ use Throwable;
  * @spec openspec/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
  */
 class LessonReleaseController extends Controller {
+	use FindOrNull;
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const LESSON_SCHEMA = 'lesson';
@@ -135,13 +137,9 @@ class LessonReleaseController extends Controller {
 			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
 		}
 
-		try {
-			$item = $this->resolveObject(id: $itemId, schema: $itemSchema);
-		} catch (Throwable $exception) {
-			return new JSONResponse(
-				data: ['error' => 'Failed to resolve the requested item'],
-				statusCode: Http::STATUS_BAD_GATEWAY
-			);
+		$item = $this->itemOrBadGateway(itemId: $itemId, itemSchema: $itemSchema);
+		if ($item instanceof JSONResponse) {
+			return $item;
 		}
 
 		if ($item === null) {
@@ -243,18 +241,11 @@ class LessonReleaseController extends Controller {
 	 * @param string $schema Schema slug.
 	 *
 	 * @return array<string, mixed>|null Null when no such object exists.
+	 *
+	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException When the id matches more than one object; LookupIntegrityMiddleware answers it.
 	 */
 	private function resolveObject(string $id, string $schema): ?array {
-		// ObjectService::find() THROWS DoesNotExistException for an unknown id —
-		// it does not return null — so without this catch the `=== null` check
-		// below was dead code and an unknown id escaped as a 500 instead of the
-		// 404 this resolver's nullable contract promises the caller.
-		try {
-			$object = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
-		} catch (DoesNotExistException $e) {
-			return null;
-		}
-
+		$object = $this->findOrNull(find: fn () => $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema));
 		if ($object === null) {
 			return null;
 		}
@@ -276,4 +267,27 @@ class LessonReleaseController extends Controller {
 
 		return $object->jsonSerialize();
 	}//end toArray()
+
+	/**
+	 * The item, null when it does not exist, or a 502 when it could not be read.
+	 *
+	 * @param string $itemId     UUID of the Lesson or Assessment.
+	 * @param string $itemSchema 'lesson' or 'exam'.
+	 *
+	 * @return array<string, mixed>|JSONResponse|null
+	 *
+	 * @throws MultipleObjectsReturnedException When the id matches more than one object; LookupIntegrityMiddleware answers it.
+	 */
+	private function itemOrBadGateway(string $itemId, string $itemSchema): array|JSONResponse|null {
+		try {
+			return $this->resolveObject(id: $itemId, schema: $itemSchema);
+		} catch (MultipleObjectsReturnedException $exception) {
+			throw $exception;
+		} catch (Throwable) {
+			return new JSONResponse(
+				data: ['error' => 'Failed to resolve the requested item'],
+				statusCode: Http::STATUS_BAD_GATEWAY
+			);
+		}
+	}//end itemOrBadGateway()
 }//end class

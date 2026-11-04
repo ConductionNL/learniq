@@ -160,13 +160,13 @@ class PointAwardTriggerHandler implements IEventListener {
 		}
 
 		$this->tryAward(
-			kind: 'enrolment-completed',
-			learnerId: $learnerId,
-			sourceKind: 'enrolment',
-			sourceObjectId: $sourceId,
-			tenantId: $tenantId,
-			objectCohortId: $entry['cohortId'] ?? null,
-			objectCourseId: $entry['courseId'] ?? null
+			source: new PointAwardSource(
+				kind: 'enrolment-completed',
+				sourceKind: 'enrolment',
+				sourceObjectId: $sourceId,
+				scope: new PointAwardScope(tenantId: $tenantId, cohortId: $entry['cohortId'] ?? null, courseId: $entry['courseId'] ?? null)
+			),
+			learnerId: $learnerId
 		);
 
 	}//end handleEnrolmentCompleted()
@@ -202,13 +202,13 @@ class PointAwardTriggerHandler implements IEventListener {
 			}
 
 			$this->tryAward(
-				kind: 'submission-on-time',
-				learnerId: $learnerId,
-				sourceKind: 'submission',
-				sourceObjectId: $sourceId,
-				tenantId: $tenantId,
-				objectCohortId: null,
-				objectCourseId: null
+				source: new PointAwardSource(
+					kind: 'submission-on-time',
+					sourceKind: 'submission',
+					sourceObjectId: $sourceId,
+					scope: new PointAwardScope(tenantId: $tenantId, cohortId: null, courseId: null)
+				),
+				learnerId: $learnerId
 			);
 		}
 
@@ -240,13 +240,13 @@ class PointAwardTriggerHandler implements IEventListener {
 		}
 
 		$this->tryAward(
-			kind: 'finalgrade-passed',
-			learnerId: $learnerId,
-			sourceKind: 'grade-entry',
-			sourceObjectId: $curriculumPlanId,
-			tenantId: $tenantId,
-			objectCohortId: $entry['cohortId'] ?? null,
-			objectCourseId: $entry['courseId'] ?? null
+			source: new PointAwardSource(
+				kind: 'finalgrade-passed',
+				sourceKind: 'grade-entry',
+				sourceObjectId: $curriculumPlanId,
+				scope: new PointAwardScope(tenantId: $tenantId, cohortId: $entry['cohortId'] ?? null, courseId: $entry['courseId'] ?? null)
+			),
+			learnerId: $learnerId
 		);
 
 	}//end handleGradeEntryPublished()
@@ -255,31 +255,18 @@ class PointAwardTriggerHandler implements IEventListener {
 	 * Look up active, scope-matching PointRules of the given kind and create
 	 * an idempotency-keyed PointAward for each one not already awarded.
 	 *
-	 * @param string $kind PointRule.kind to match.
-	 * @param string $learnerId NC user ID of the learner to award.
-	 * @param string $sourceKind PointAward.sourceKind to stamp.
-	 * @param string $sourceObjectId The idempotency-key source object id.
-	 * @param string $tenantId Tenant identifier.
-	 * @param string|null $objectCohortId The transitioned object's own cohortId, if any.
-	 * @param string|null $objectCourseId The transitioned object's own courseId, if any.
+	 * @param PointAwardSource $source    The event the award is for, with its scope.
+	 * @param string           $learnerId NC user ID of the learner to award.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/specs/engagement/spec.md#requirement-pointaward-creation-is-idempotent-and-immutable
 	 */
-	private function tryAward(
-		string $kind,
-		string $learnerId,
-		string $sourceKind,
-		string $sourceObjectId,
-		string $tenantId,
-		?string $objectCohortId,
-		?string $objectCourseId,
-	): void {
-		$rules = $this->fetchActiveRules(kind: $kind, tenantId: $tenantId);
+	private function tryAward(PointAwardSource $source, string $learnerId): void {
+		$rules = $this->fetchActiveRules(kind: $source->kind, tenantId: $source->scope->tenantId);
 
 		foreach ($rules as $rule) {
-			if ($this->ruleScopeMatches(rule: $rule, objectCohortId: $objectCohortId, objectCourseId: $objectCourseId) === false) {
+			if ($this->ruleScopeMatches(rule: $rule, scope: $source->scope) === false) {
 				continue;
 			}
 
@@ -288,7 +275,7 @@ class PointAwardTriggerHandler implements IEventListener {
 				continue;
 			}
 
-			if ($this->hasExistingAward(learnerId: $learnerId, pointRuleId: $ruleId, sourceObjectId: $sourceObjectId) === true) {
+			if ($this->hasExistingAward(learnerId: $learnerId, pointRuleId: $ruleId, sourceObjectId: $source->sourceObjectId) === true) {
 				continue;
 			}
 
@@ -299,10 +286,10 @@ class PointAwardTriggerHandler implements IEventListener {
 					'learnerId' => $learnerId,
 					'pointRuleId' => $ruleId,
 					'points' => (float)($rule['points'] ?? 0),
-					'sourceKind' => $sourceKind,
-					'sourceObjectId' => $sourceObjectId,
+					'sourceKind' => $source->sourceKind,
+					'sourceObjectId' => $source->sourceObjectId,
 					'awardedAt' => DateTimeImmutable::createFromMutable($this->timeFactory->getDateTime())->format(\DATE_ATOM),
-					'tenant_id' => $tenantId,
+					'tenant_id' => $source->scope->tenantId,
 				]
 			);
 		}//end foreach
@@ -347,25 +334,24 @@ class PointAwardTriggerHandler implements IEventListener {
 	 * True when the rule's scope (if any) matches the transitioned object's
 	 * own cohortId/courseId. A null scope always matches (tenant-wide).
 	 *
-	 * @param array<string,mixed> $rule PointRule data.
-	 * @param string|null $objectCohortId The transitioned object's own cohortId, if any.
-	 * @param string|null $objectCourseId The transitioned object's own courseId, if any.
+	 * @param array<string,mixed> $rule  PointRule data.
+	 * @param PointAwardScope     $scope The transitioned object's own tenant, cohort and course.
 	 *
 	 * @return bool
 	 */
-	private function ruleScopeMatches(array $rule, ?string $objectCohortId, ?string $objectCourseId): bool {
-		$scope = $rule['scope'] ?? null;
-		if (is_array($scope) === false || empty($scope) === true) {
+	private function ruleScopeMatches(array $rule, PointAwardScope $scope): bool {
+		$ruleScope = $rule['scope'] ?? null;
+		if (is_array($ruleScope) === false || empty($ruleScope) === true) {
 			return true;
 		}
 
-		$scopeCohortId = $scope['cohortId'] ?? null;
-		if (is_string($scopeCohortId) === true && $scopeCohortId !== '' && $scopeCohortId !== $objectCohortId) {
+		$scopeCohortId = $ruleScope['cohortId'] ?? null;
+		if (is_string($scopeCohortId) === true && $scopeCohortId !== '' && $scopeCohortId !== $scope->cohortId) {
 			return false;
 		}
 
-		$scopeCourseId = $scope['courseId'] ?? null;
-		if (is_string($scopeCourseId) === true && $scopeCourseId !== '' && $scopeCourseId !== $objectCourseId) {
+		$scopeCourseId = $ruleScope['courseId'] ?? null;
+		if (is_string($scopeCourseId) === true && $scopeCourseId !== '' && $scopeCourseId !== $scope->courseId) {
 			return false;
 		}
 

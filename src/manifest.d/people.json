@@ -221,8 +221,37 @@
 			"type": "index",
 			"title": "Enrolments",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Enrolment",
+				"headerActions": [
+					{
+						"id": "enrol-group",
+						"label": "Enrol a group",
+						"icon": "AccountGroup",
+						"type": "open-form",
+						"register": "learniq",
+						"endpoint": {
+							"url": "/apps/learniq/api/enrolments/bulk",
+							"method": "POST"
+						},
+						"formProperties": {
+							"courseId": {
+								"type": "string",
+								"format": "uuid",
+								"$ref": "course",
+								"title": "Course"
+							},
+							"cohortId": {
+								"type": "string",
+								"format": "uuid",
+								"$ref": "cohort",
+								"title": "Group",
+								"description": "Everyone in the group without an open enrolment for the course is enrolled."
+							}
+						}
+					}
+				],
 				"columns": [
 					{
 						"key": "learnerId",
@@ -323,6 +352,7 @@
 			"type": "index",
 			"title": "Staff",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Staff"
 			}
@@ -333,6 +363,7 @@
 			"type": "index",
 			"title": "Schools",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "School"
 			}
@@ -343,6 +374,7 @@
 			"type": "index",
 			"title": "Locations",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Vestiging"
 			}
@@ -666,14 +698,6 @@
 					]
 				}
 			}
-		},
-		{
-			"id": "BulkEnrol",
-			"route": "/enrolments/bulk",
-			"type": "custom",
-			"title": "Bulk Enrol",
-			"component": "BulkEnrolView",
-			"_note": "Mounts BulkEnrolView (learniq#947): a course plus a cohort and/or picked learners; learners with an open enrolment are skipped."
 		},
 		{
 			"id": "CredentialDetail",
@@ -1051,6 +1075,7 @@
 			"type": "index",
 			"title": "Attendance records",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "attendance-record",
 				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly so the platform's built-in mass import/export/copy/delete (CnIndexPage showMass*) is a documented capability of this index, not an implicit default (findings 12.6/14.7).",
@@ -1185,8 +1210,26 @@
 			"type": "index",
 			"title": "Excuse requests",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "excuse-request",
+				"headerActions": [
+					{
+						"id": "report-absence",
+						"label": "Report an absence",
+						"icon": "Plus",
+						"type": "open-form",
+						"register": "learniq",
+						"schema": "excuse-request",
+						"includeFields": [
+							"learnerRef",
+							"dateFrom",
+							"dateTo",
+							"reasonKind",
+							"reason"
+						]
+					}
+				],
 				"columns": [
 					{
 						"key": "learnerRef",
@@ -1384,6 +1427,7 @@
 			"type": "index",
 			"title": "Attendance thresholds",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "attendance-threshold",
 				"columns": [
@@ -1578,6 +1622,7 @@
 			"type": "index",
 			"title": "Attendance flags",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "attendance-flag",
 				"readOnly": true,
@@ -1726,19 +1771,12 @@
 			}
 		},
 		{
-			"id": "SubmitExcuseModal",
-			"route": "/attendance/excuses/submit",
-			"type": "custom",
-			"title": "Submit excuse",
-			"component": "SubmitExcuseView",
-			"_note": "Mounts SubmitExcuseView (learniq#947): a staff form that records an ExcuseRequest for a learner."
-		},
-		{
 			"id": "LearnerProfiles",
 			"route": "/learner-profiles",
 			"type": "index",
 			"title": "Learners",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "learner-profile",
 				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly, see AttendanceRecords' note.",
@@ -1950,18 +1988,18 @@
 									"schema": "dossier-note",
 									"metric": "count",
 									"filter": {
-										"learnerId": "@objectId"
+										"learnerId": "@object.ncUserId"
 									},
 									"route": {
 										"name": "PupilDossierTimelineView",
 										"query": {
-											"learnerId": "@objectId"
+											"learnerId": "@object.ncUserId"
 										}
 									}
 								}
 							]
 						},
-						"_note": "pupil-dossier-notes: this KPI's route is the only token-resolved (@objectId) deep link from a detail page to another named route this manifest dialect supports (stats-block entry.route, resolved by CnStatsBlockWidget) — clicking it opens PupilDossierTimelineView pre-scoped to this learner. open-page/navigate header actions were considered but do NOT carry the current object id (verified against actionsDispatcher.js at HEAD)."
+						"_note": "The timeline sources store the learner's Nextcloud user id in learnerId, so the count and the deep link pass the profile's ncUserId, not its uuid."
 					},
 					{
 						"id": "lprof-enrol",
