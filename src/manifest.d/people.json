@@ -58,7 +58,7 @@
 					"id": "SignUpRequestsMenu",
 					"label": "Sign-up requests",
 					"icon": "AccountGroup",
-					"route": "Enrolments",
+					"route": "SignUpRequests",
 					"order": 21,
 					"visibleIf": {
 						"user.primaryRole": {
@@ -71,10 +71,6 @@
 								"admin"
 							]
 						}
-					},
-					"query": {
-						"source": "self",
-						"lifecycle": "pending"
 					}
 				},
 				{
@@ -283,6 +279,114 @@
 						"formatter": "date"
 					}
 				]
+			}
+		},
+		{
+			"id": "SignUpRequests",
+			"route": "/sign-up-requests",
+			"type": "index",
+			"title": "Sign-up requests",
+			"_note": "Aanmeldverzoeken (learniq/LqTlAanmeldverzoeken): the self sign-ups for a course on request. Two quick filters with their counts, 'Waiting for a decision' (pending, the default) and 'All sign-ups'; each pending row's Actions menu approves it (transition approve) or rejects it with a reason (DeclineSignUpDialog, transition decline). Who may decide is the Enrolment update rule (instructors, hr, compliance officers, team leads, and the learner's manager on a pending self sign-up); the server refuses anyone else.",
+			"config": {
+				"showTitle": true,
+				"register": "learniq",
+				"schema": "Enrolment",
+				"filter": {
+					"source": "self"
+				},
+				"countText": "{shown} of {total} requests · learners who signed up from the course catalogue for a course on request",
+				"quickFilters": [
+					{
+						"label": "Waiting for a decision",
+						"filter": {
+							"lifecycle": "pending"
+						},
+						"default": true,
+						"showCount": true
+					},
+					{
+						"label": "All sign-ups",
+						"filter": {},
+						"showCount": true
+					}
+				],
+				"defaultSort": {
+					"field": "requestedAt",
+					"direction": "asc"
+				},
+				"rowRoute": "EnrolmentDetail",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					{
+						"key": "cohortId",
+						"label": "Group",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "cohort"
+						}
+					},
+					{
+						"key": "requestedAt",
+						"label": "Requested",
+						"formatter": "date"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					}
+				],
+				"actions": [
+					{
+						"id": "approve",
+						"label": "Approve",
+						"icon": "CheckCircleOutline",
+						"type": "api-call",
+						"method": "POST",
+						"url": "/apps/openregister/api/objects/@objectId/transition",
+						"payload": {
+							"action": "approve"
+						},
+						"successMessage": "Sign-up approved.",
+						"visibleWhen": {
+							"field": "lifecycle",
+							"op": "eq",
+							"value": "pending"
+						}
+					},
+					{
+						"id": "reject",
+						"label": "Reject",
+						"icon": "CloseCircleOutline",
+						"type": "open-modal",
+						"target": "DeclineSignUpDialog",
+						"visibleWhen": {
+							"field": "lifecycle",
+							"op": "eq",
+							"value": "pending"
+						}
+					}
+				],
+				"showAdd": false,
+				"showEditAction": false,
+				"showCopyAction": false,
+				"showDeleteAction": false,
+				"showMassImport": false,
+				"showMassCopy": false,
+				"showMassDelete": false
 			}
 		},
 		{

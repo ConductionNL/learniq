@@ -13,6 +13,7 @@
 // assignment-missing-submissions-view: body section on AssignmentDetail.
 import AssignmentHandInStatus from './components/sections/AssignmentHandInStatus.vue'
 import AssignmentPeerReviewAllocation from './components/sections/AssignmentPeerReviewAllocation.vue'
+import DeclineSignUpDialog from './dialogs/DeclineSignUpDialog.vue'
 import SelfCheckInDialog from './dialogs/SelfCheckInDialog.vue'
 // admissions-and-subject-choice: the two genuine new custom views this
 // change adds — the coordinator's admissions review board (queue of
@@ -213,6 +214,12 @@ export default {
 		kind: 'modal',
 		component: SelfCheckInDialog,
 		propsSchema: { type: 'object', properties: { sessionId: { type: 'string' } }, required: ['sessionId'] },
+	},
+	// The "Reject" row action on Aanmeldverzoeken.
+	DeclineSignUpDialog: {
+		kind: 'modal',
+		component: DeclineSignUpDialog,
+		propsSchema: { type: 'object', properties: { objectId: { type: 'string' } }, required: ['objectId'] },
 	},
 	CheckInPage: page(CheckInPage),
 	CourseCatalogue: page(CourseCatalogue),

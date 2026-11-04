@@ -1028,6 +1028,13 @@
 						"route": "Enrolments"
 					},
 					{
+						"id": "open-sign-up-requests",
+						"label": "Sign-up requests",
+						"icon": "AccountClockOutline",
+						"handler": "navigate",
+						"route": "SignUpRequests"
+					},
+					{
 						"id": "open-credentials",
 						"label": "Credentials",
 						"icon": "Check",
