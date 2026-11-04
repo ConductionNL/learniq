@@ -1,7 +1,7 @@
 # exam-board Specification
 
 ## Purpose
-TBD - created by archiving change exam-board-case-handling. Update Purpose after archive.
+Let the exam board handle exemption requests and fraud cases, each decided with a rationale. A granted exemption feeds grading, a proven fraud carries a capped sanction and a 42-day appeal, and the accused learner does not see the hearing record.
 ## Requirements
 ### Requirement: Persist exam-board domain objects in OpenRegister
 The system MUST persist `ExemptionCase` and `FraudCase` as OpenRegister objects. `ExemptionCase` has

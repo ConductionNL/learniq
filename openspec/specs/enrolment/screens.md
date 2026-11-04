@@ -2,7 +2,7 @@
 
 - learniq/LqLlVakkenKiezen vakken kiezen (leerling) (planninq adopts this: row tt-subject-package-choice) https://identity.conduction.nl/screens/board?id=learniq/LqLlVakkenKiezen
 - learniq/LqOuVakkenKiezen vakken kiezen (ouder) (planninq adopts this: row tt-subject-package-choice) https://identity.conduction.nl/screens/board?id=learniq/LqOuVakkenKiezen
-- planninq/tt-api-enrolment-write: no planninq page; enrolment through the API from another system; it has no page (planninq adopts this)
+- planninq has no board of its own for row tt-api-enrolment-write: another system enrols through the API, and planninq adopts this.
 - learniq/LqLlKeuzelessen keuzelessen (leerling) (planninq adopts this: row tt-enrolment-deadline) https://identity.conduction.nl/screens/board?id=learniq/LqLlKeuzelessen
 - learniq/LqCfGroepInschrijven groep inschrijven https://identity.conduction.nl/screens/board?id=learniq/LqCfGroepInschrijven
 - learniq/LqLlMijnLeren mijn leren (leerling) https://identity.conduction.nl/screens/board?id=learniq/LqLlMijnLeren
@@ -31,3 +31,6 @@
 - learniq/LqCursusInstellingen cursusinstellingen: aanmelden door leerlingen, gesloten, open of op aanvraag https://identity.conduction.nl/screens/board?id=learniq/LqCursusInstellingen
 - learniq/LqKeuzelesIndelen keuzelessen indelen: de coördinator plaatst wie de periode miste https://identity.conduction.nl/screens/board?id=learniq/LqKeuzelesIndelen
 - learniq/LqLlInleveren inleveren (leerling): een groepsinlevering noemt de hele werkgroep https://identity.conduction.nl/screens/board?id=learniq/LqLlInleveren
+- learniq/LqSchooladvies schooladviezen groep 8 (coördinator) https://identity.conduction.nl/screens/board?id=learniq/LqSchooladvies
+
+Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAppNav, CnAuditTrailCard, CnBreadcrumbs, CnBuildiqEditButton, CnCardGrid, CnChartWidget, CnChoiceCards, CnChoicePickerWidget, CnConfirmDialog, CnConversationThread, CnDashboardGrid, CnDashboardPage, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnFileField, CnFilesCard, CnFilterBar, CnFormDialog, CnIndexPage, CnKpiGrid, CnMassActionBar, CnNextStepCard, CnNoteCard, CnNotesCard, CnObjectCalendar, CnObjectCard, CnObjectListWidget, CnPageHeader, CnPagination, CnProgressBar, CnQuickFilterBar, CnRelatedCollections, CnRowActions, CnSegmentedControl, CnStatsBlock, CnStatusBadge, CnTabs, CnTimelineStages, CnWeekStripWidget, CnWidgetWrapper

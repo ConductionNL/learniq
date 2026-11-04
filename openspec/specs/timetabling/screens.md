@@ -19,3 +19,7 @@
 - learniq/LqLesNotitie notitie toevoegen https://identity.conduction.nl/screens/board?id=learniq/LqLesNotitie
 - learniq/LqInstellingen beheerinstellingen: groepscodes per roostersysteem en de SWV-ontvanger https://identity.conduction.nl/screens/board?id=learniq/LqInstellingen
 - learniq/LqLeerling leerling: toetsaanpassingen aanvragen en goedkeuren https://identity.conduction.nl/screens/board?id=learniq/LqLeerling
+- learniq/LqStandbyUren stand-by uren plannen (teamleider) https://identity.conduction.nl/screens/board?id=learniq/LqStandbyUren
+- wilgenboom/Berichten berichten https://identity.conduction.nl/screens/board?id=wilgenboom/Berichten
+
+Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAdminSettingsShell, CnAppNav, CnBoardView, CnBreadcrumbs, CnBuildiqEditButton, CnConfirmDialog, CnDashboardGrid, CnDashboardPage, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnFilterBar, CnFormDialog, CnIndexPage, CnIntegrationCard, CnKpiGrid, CnMassDeleteDialog, CnMassImportDialog, CnNextStepCard, CnObjectCalendar, CnObjectListWidget, CnPageHeader, CnPagination, CnProgressBar, CnQuickFilterBar, CnRowActions, CnSegmentedControl, CnSettingsPage, CnSettingsSection, CnStatsBlock, CnStatusBadge, CnSubObjectsField, CnTableWidget, CnTabs, CnWeekStripWidget, CnWidgetWrapper

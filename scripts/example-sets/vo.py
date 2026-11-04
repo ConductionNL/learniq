@@ -128,6 +128,10 @@ SCHEMAS = [
     "submission",
     "submission-mark",
     "regulation",
+    # The lesson and store boards (add_lesson_and_store_boards): appended for the same reason.
+    "lesson",
+    "material",
+    "shared-course-package",
 ]
 
 # The same fictional region as the primary school set, so both sets agree.
@@ -298,7 +302,7 @@ TEACHERS = [
     ("vo-docent-12", "Wouter Mulder", ["AK"], 1, WEEKDAYS),
     ("vo-docent-13", "Thomas de Boer", ["EC"], 1, ["monday", "tuesday", "thursday", "friday"]),
     ("vo-docent-14", "Ellen Hendriks", ["BE", "EC"], 1, ["monday", "tuesday", "wednesday", "thursday"]),
-    ("vo-docent-15", "Judith Zeggeveld", ["BI"], 1, WEEKDAYS),
+    ("vo-docent-15", "Anouk Smit", ["BI"], 1, WEEKDAYS),
     ("vo-docent-16", "Niels Wederikdal", ["BI"], 2, ["tuesday", "wednesday", "thursday", "friday"]),
     ("vo-docent-17", "Mirjam Boekweitkamp", ["NA", "NASK"], 1, WEEKDAYS),
     ("vo-docent-18", "Ricardo Munthout", ["SK"], 1, ["monday", "tuesday", "wednesday", "thursday"]),
@@ -1491,6 +1495,7 @@ def build() -> dict:
     # --- the board layer, after the story ------------------------------------------------------------
     add_boards(b, courses)
     add_board_pupils(b, courses)
+    add_lesson_and_store_boards(b, courses)
 
     # --- assemble ------------------------------------------------------------------------------------
     for rows in b.buckets.values():
@@ -1553,7 +1558,7 @@ STORY_TEACHERS = {
 }
 STORY_MENTOR = "vo-docent-01"
 # Rooms of the main building, numbered floor, then number.
-STORY_ROOMS = ["1.12", "2.14", "0.21", "1.08", "1.05", "2.03"]
+STORY_ROOMS = ["1.12", "2.14", "0.21", "1.08", "1.05", "2.03", "2.10", "2.04", "0.10"]
 # 3HV-B's Monday: lesson hour, subject (None for the mentor hour), room code.
 H4B_MONDAY = [(1, "NE", "1.12"), (2, "WA", "2.14"), (3, "EC", "1.08"), (4, "EN", "1.05"), (5, "GS", "2.03"),
               (6, None, "1.12"), (7, "LO", "H-GYM")]
@@ -1561,7 +1566,8 @@ H4B_MONDAY = [(1, "NE", "1.12"), (2, "WA", "2.14"), (3, "EC", "1.08"), (4, "EN",
 # first hour (economie) and eighth hour (steunles wiskunde) are written with the story's Tuesday.
 H4B_WEEK = {
     1: [(2, "NE", "1.12"), (3, "MA", "1.05"), (4, "WA", "2.14"), (5, "BE", "1.08"), (6, "EN", "1.05")],
-    2: [(1, "GS", "2.03"), (2, "AK", "1.05"), (3, "NE", "1.12"), (4, "CKV", "0.21"), (5, "EN", "1.05")],
+    # Wednesday as LqLlVandaag draws it; its 6th and 7th hour come with add_lesson_and_store_boards().
+    2: [(1, "NE", "1.12"), (2, "WA", "2.03"), (3, "BI", "2.10"), (4, "EN", "2.04"), (5, "GS", "1.08")],
     3: [(1, "WA", "2.14"), (2, "EC", "1.08"), (3, "BE", "1.08"), (4, "GS", "2.03"), (5, "LO", "H-GYM"), (6, "NE", "1.12")],
     4: [(1, "EN", "1.05"), (2, "AK", "1.05"), (3, "WA", "2.14"), (4, "MA", "1.05"), (5, "EC", "1.08")],
 }
@@ -2185,6 +2191,165 @@ def add_board_pupils(b: Builder, courses: dict) -> None:
         "audienceScope": "all-employees", "requiresAnnualRenewal": False, "renewalCycleMonths": 24, "active": True,
         "ragRedThreshold": 70, "ragAmberThreshold": 90, "lifecycle": "published",
     })
+
+
+# --- the lesson and store boards: Fenna's Biologie lesson, her Wednesday and the course store ---------------------
+WEDNESDAY = TODAY + dt.timedelta(days=2)
+# Biologie leerjaar 3 havo/vwo, as LqLlLesVolgen draws it: ten lessons, the third one with its blocks.
+BIO_LESSONS = [
+    ("Les 1: wat is leven?", "Je noemt de kenmerken van leven."),
+    ("Les 2: de microscoop", "Je kent de onderdelen van een microscoop."),
+    ("Les 3: cellen onder de microscoop", "Je ziet het verschil tussen een plantencel en een dierlijke cel."),
+    ("Les 4: Celdeling", "Je beschrijft hoe een cel zich deelt."),
+    ("Les 5: weefsels en organen", "Je legt uit hoe cellen samen weefsels en organen vormen."),
+    ("Les 6: planten en fotosynthese", "Je legt uit wat bladgroenkorrels doen."),
+    ("Les 7: voeding en vertering", "Je volgt het voedsel door het verteringsstelsel."),
+    ("Les 8: ademhaling", "Je legt uit hoe zuurstof in je bloed komt."),
+    ("Les 9: bloedsomloop", "Je beschrijft de weg van het bloed door het lichaam."),
+    ("Les 10: herhaling en oefentoets", "Je oefent met de stof van les 1 tot en met 9."),
+]
+BIO_READING = (
+    "Alle levende wezens zijn opgebouwd uit cellen. Een plantencel heeft een celwand en bladgroenkorrels, "
+    "een dierlijke cel niet.\n\n"
+    "Je kijkt vandaag eerst naar een filmpje over de microscoop. Daarna maak je een korte quiz en lees je de "
+    "opdracht voor het practicum."
+)
+# The three cards LqStore draws: (title, subject, level line, level codes, licence, author, description).
+STORE_PACKAGES = [
+    ("Betoog schrijven, havo 4", "Nederlandse taal", "havo", ["havo"], "CC-BY-SA-4.0", "Sectie Nederlands, OSG De Vaart",
+     "Zes lessen over het betoog: een stelling kiezen, argumenten ordenen en een tegenargument weerleggen."),
+    ("Betogen en beschouwen", "Nederlandse taal", "vwo", ["vwo"], "CC-BY-4.0", "Lyceum Noorderhaven",
+     "Acht lessen over betogende en beschouwende teksten, met schrijfopdrachten en een rubric."),
+    ("Argumenteren in de onderbouw", "Nederlandse taal", "havo/vwo", ["havo", "vwo"], "CC0", "Sectie Nederlands, Zuiddrecht College",
+     "Vier lessen over mening, argument en bron, voor leerjaar 2 en 3."),
+]
+
+
+def add_lesson_and_store_boards(b: Builder, courses: dict) -> None:
+    """The records LqLlLesVolgen, LqLlVandaag, LqLlRooster and LqStore draw
+    (identity.conduction.nl/screens): the course Biologie leerjaar 3 havo/vwo
+    with ten lessons, the third one with a reading text, a video, a quiz and an
+    assignment; Fenna's Wednesday 7 October with Frans cancelled in the 6th
+    hour and the mentor hour in another room in the 7th; and three courses
+    shared through the course store. Runs last and draws no random number, so
+    no earlier uuid moves; the only earlier values it edits are the 3HV-B
+    Wednesday's Biologie lesson, which points at lesson 3, and the class's
+    teacher list.
+
+    @spec openspec/changes/vo-lesson-store-and-wednesday-records/specs/example-sets/spec.md
+    """
+    h4b = next(c for c in b.buckets["cohort"] if c["name"] == "3HV-B")
+    profiles = {p["ncUserId"]: p for p in b.buckets["learner-profile"]}
+    rooms = {r["code"]: r for r in b.buckets["room"]}
+    teacher = TEACHER_BY_ID[SUBJECT_TEACHER["BI"][1]]
+
+    # --- the course, its enrolments and its ten lessons ---------------------------------------------------------
+    course = b.add("course", {
+        "code": "BI-3HV-2026", "name": "Biologie leerjaar 3 havo/vwo", "name_nl": "Biologie leerjaar 3 havo/vwo",
+        "description": "Cellen, organen en het menselijk lichaam, in tien lessen voor leerjaar 3 havo/vwo.",
+        "level": "vo", "language": "nl", "tags": ["voortgezet onderwijs", "biologie"], "subject": "Biologie",
+        "author": teacher[1], "lessonCount": len(BIO_LESSONS), "isPublished": True, "lifecycle": "published",
+    })
+    # The course's own group, so an enrolment's course stays its group's course. Without an inschrijvingDate its
+    # enrolments never count as a pupil's newest (LearnerGroupLabel), so the pupils stay in 3HV-B.
+    group = b.add("cohort", {
+        "name": course["name"], "programmeId": h4b["programmeId"], "courseId": course["uuid"],
+        "teacherIds": [teacher[0]], "learnerIds": list(h4b["learnerIds"]), "period": "Schooljaar",
+        "academicYear": STORY_YEAR, "lifecycle": "active", "locationId": h4b["locationId"],
+        "teacherAssignments": [{"teacherId": teacher[0], "role": "primary", "days": list(WEEKDAYS)}],
+        "kind": "teaching", "programmeYear": 3,
+    })
+    for nc in h4b["learnerIds"]:
+        b.add("enrolment", {
+            "learnerId": nc, "learnerRef": profiles[nc]["uuid"], "courseId": course["uuid"], "source": "system",
+            "cohortId": group["uuid"], "cohortName": group["name"], "lifecycle": "active",
+        })
+    lessons = []
+    for order, (name, objective) in enumerate(BIO_LESSONS, start=1):
+        lessons.append(b.add("lesson", {
+            "courseId": course["uuid"], "name": name, "order": order, "contentType": "text", "durationMinutes": 50,
+            "learningObjectives": [objective], "author": teacher[1], "subject": "Biologie",
+            "blocks": [{"blockId": f"bi3-les{order}-lezen", "type": "richText", "order": 1, "text": objective}],
+            "lifecycle": "published",
+        }))
+    for current, following in zip(lessons, lessons[1:]):
+        current["defaultNextLessonId"] = following["uuid"]
+
+    # --- lesson 3: reading, video, quiz and assignment -----------------------------------------------------------
+    lesson = lessons[2]
+    video = b.add("material", {
+        "title": "Zo stel je een microscoop scherp", "kind": "video",
+        "fileRef": "Biologie/Leerjaar 3/microscoop-scherpstellen.mp4",
+        "url": "https://media.zuiddrecht-college.example/biologie/microscoop-scherpstellen.mp4",
+        "license": "CC-BY-4.0", "lomTags": ["biologie", "microscoop"], "order": 1, "lessonId": lesson["uuid"],
+    })
+    quiz = b.add("exam", {
+        "title": "Oefenquiz cellen", "description": "8 vragen, telt niet mee voor je cijfer",
+        "courseId": course["uuid"], "cohortId": None, "curriculumPlanComponentId": None,
+        "itemSelectionMode": "fixed", "scoringScheme": "points", "maxAttempts": 3, "keepScore": "best",
+        "availableFrom": stamp(WEDNESDAY, 8, 30), "availableUntil": stamp(dt.date(2026, 10, 16), 17, 0),
+        "lifecycle": "published",
+    })
+    report = b.add("assignment", {
+        "title": "Practicumverslag cellen",
+        "instructions": "Teken een plantencel en een dierlijke cel zoals je ze onder de microscoop ziet, en benoem de delen.",
+        "courseId": course["uuid"], "sessionId": None, "cohortId": h4b["uuid"], "curriculumPlanComponentId": None,
+        "dueAt": stamp(dt.date(2026, 10, 16), 17, 0), "maxPoints": 10, "allowLateSubmission": True,
+        "lifecycle": "published",
+        # What AssignmentLearnerRefsStamp writes on a live save: the group's pupils.
+        "learnerRefs": [profiles[nc]["uuid"] for nc in h4b["learnerIds"]],
+    })
+    lesson["blocks"] = [
+        {"blockId": "bi3-les3-lezen", "type": "richText", "order": 1, "text": BIO_READING},
+        {"blockId": "bi3-les3-video", "type": "media", "order": 2, "materialId": video["uuid"]},
+        {"blockId": "bi3-les3-quiz", "type": "quiz", "order": 3, "assessmentId": quiz["uuid"]},
+        {"blockId": "bi3-les3-opdracht", "type": "assignment", "order": 4, "assignmentId": report["uuid"]},
+    ]
+
+    # --- Wednesday 7 October: lesson 3 in the 3rd hour, Frans cancelled, the mentor hour moved -------------------
+    wednesday = [s for s in b.buckets["session"] if s["cohortId"] == h4b["uuid"] and s["startsAt"].startswith(WEDNESDAY.isoformat())]
+    biologie = next(s for s in wednesday if s["courseId"] == courses["BI"]["uuid"])
+    biologie["lessonId"] = lesson["uuid"]
+    monday_change = next(s for s in b.buckets["session"] if s["cohortId"] == h4b["uuid"] and s["lifecycle"] == "cancelled")
+    affected = {"affectedLearnerIds": list(monday_change["affectedLearnerIds"]),
+                "affectedParentIds": list(monday_change["affectedParentIds"])}
+    for hour, s, code, change in [
+        (6, "FA", "1.05", {"lifecycle": "cancelled", "changeReasonKind": "teacher-absence", "changeReason": "De docent is afwezig."}),
+        (7, None, "0.10", {"lifecycle": "scheduled", "changeReasonKind": "room-unavailable",
+                           "changeReason": "Lokaal 1.12 is vandaag niet beschikbaar; het mentoruur is in lokaal 0.10."}),
+    ]:
+        (sh, sm), (eh, em) = BELL[hour - 1]
+        b.add("session", {
+            "cohortId": h4b["uuid"], "courseId": courses[s]["uuid"] if s else None,
+            "title": SUBJECTS[s][0] if s else "Mentoruur",
+            "startsAt": stamp(WEDNESDAY, sh, sm), "endsAt": stamp(WEDNESDAY, eh, em),
+            "location": rooms[code]["name"], "roomId": rooms[code]["uuid"], **change, **affected,
+        })
+    for s in ("BI", "FA"):
+        b.add("subjectteacherassignment", {"cohortId": h4b["uuid"], "courseId": courses[s]["uuid"], "teacherId": SUBJECT_TEACHER[s][1]})
+        if SUBJECT_TEACHER[s][1] not in h4b["teacherIds"]:
+            h4b["teacherIds"].append(SUBJECT_TEACHER[s][1])
+
+    # --- the course store: three shared courses, read through the `local` registry -------------------------------
+    for title, subject, level, levels, licence, author, description in STORE_PACKAGES:
+        lesson_names = [f"Les {n}" for n in range(1, 5)]
+        sharing = {"title": title, "description": description, "subject": subject, "educationalLevels": levels,
+                   "language": "nl", "license": licence, "author": author, "lessonCount": len(lesson_names),
+                   "sharedAt": stamp(dt.date(2026, 9, 14), 10, 0)}
+        b.add("shared-course-package", {
+            "slug": f"{SET}-course-package-" + "-".join("".join(ch for ch in w if ch.isalnum()) for w in title.lower().split()),
+            "kind": "course-package", "title": title, "description": description, "subject": subject,
+            "level": level, "levels": levels, "goals": "", "goalsCovered": [], "language": "nl", "license": licence,
+            "author": author, "cardLine": f"{subject} · {level} · {licence}", "version": "1", "lessonCount": len(lesson_names),
+            "sharedAt": sharing["sharedAt"],
+            "package": {
+                "schemaVersion": "1.0", "sharing": sharing,
+                "course": {"name": title, "code": None, "level": "vo", "language": "nl", "description": description},
+                "childCourses": [],
+                "lessons": [{"name": n, "order": i, "contentType": "text", "blocks": []} for i, n in enumerate(lesson_names, start=1)],
+                "materials": [], "assessments": [], "rubrics": [], "ltiPlacements": [],
+            },
+        })
 
 
 def stamp_group_labels(b: Builder) -> None:

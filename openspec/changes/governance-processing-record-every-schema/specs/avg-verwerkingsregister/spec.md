@@ -22,9 +22,9 @@ The processing catalogue seed MUST contain each activity the register refers to,
 
 #### Scenario: The privacy officer reviews a new activity
 
-- **GIVEN** a fresh install
-- **WHEN** the privacy officer opens the processing activities
-- **THEN** "Care and support" is there as a draft with its purpose, legal basis and data categories filled in
+- **GIVEN** learniq has registered its ten processing activities
+- **WHEN** the privacy officer opens "Verwerkingen van learniq" in the app settings
+- **THEN** "Toetsing en beoordeling" is there with the status "Concept" and "aangemeld door learniq, nog te beoordelen", with its purpose, its legal basis "Publieke taak" and its schemas filled in
 
 ### Requirement: The build fails on a personal-data schema without a processing block
 

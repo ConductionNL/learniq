@@ -17,3 +17,5 @@
 - esdoornveen/LqVandaag vandaag https://identity.conduction.nl/screens/board?id=esdoornveen/LqVandaag
 - warmtepompacademie/LqRolB vandaag voor de trainer https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqRolB
 - learniq/LqInfoscherm infoscherm: het scherm zonder inloggen, en het eenmalige adres instellen https://identity.conduction.nl/screens/board?id=learniq/LqInfoscherm
+
+Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAdminSettingsShell, CnAppNav, CnAuditTrailCard, CnBreadcrumbs, CnBuildiqEditButton, CnDashboardPage, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnFilterBar, CnFormDialog, CnIndexPage, CnKpiGrid, CnNextStepCard, CnNoteCard, CnNotesCard, CnObjectCalendar, CnObjectListWidget, CnPageHeader, CnPagination, CnProgressBar, CnQuickFilterBar, CnRelatedCollections, CnRowActions, CnSecretAddressCard, CnSegmentedControl, CnSettingsSection, CnStatWidget, CnStatsBlock, CnStatusBadge, CnTableWidget, CnTabs, CnWidgetWrapper

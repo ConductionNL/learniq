@@ -227,6 +227,9 @@
 					"hr": "HR employee · school-wide, all locations",
 					"team-lead": "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups",
 					"confidential-counsellor": "confidential adviser · your own mandatory training courses and points"
+				},
+				"subtitleOfSchoolByRole": {
+					"hr": "HR employee · school-wide, all locations of {school}"
 				}
 			}
 		},
@@ -244,6 +247,9 @@
 					"hr": "HR employee · school-wide, all locations",
 					"team-lead": "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups",
 					"confidential-counsellor": "confidential adviser · your own mandatory training courses and points"
+				},
+				"subtitleOfSchoolByRole": {
+					"hr": "HR employee · school-wide, all locations of {school}"
 				}
 			}
 		},
@@ -261,6 +267,9 @@
 					"hr": "HR employee · school-wide, all locations",
 					"team-lead": "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups",
 					"confidential-counsellor": "confidential adviser · your own mandatory training courses and points"
+				},
+				"subtitleOfSchoolByRole": {
+					"hr": "HR employee · school-wide, all locations of {school}"
 				}
 			}
 		},
@@ -278,6 +287,9 @@
 					"hr": "HR employee · school-wide, all locations",
 					"team-lead": "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups",
 					"confidential-counsellor": "confidential adviser · your own mandatory training courses and points"
+				},
+				"subtitleOfSchoolByRole": {
+					"hr": "HR employee · school-wide, all locations of {school}"
 				}
 			}
 		},

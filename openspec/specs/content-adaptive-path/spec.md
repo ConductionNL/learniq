@@ -1,7 +1,7 @@
 # content-adaptive-path Specification
 
 ## Purpose
-TBD - created by archiving change content-adaptive-next-step-and-preview. Update Purpose after archive.
+Let a course author set rules that choose a learner's next lesson from that learner's own result. Without a matching rule the learner goes to the lesson's default next lesson.
 
 ## Requirements
 

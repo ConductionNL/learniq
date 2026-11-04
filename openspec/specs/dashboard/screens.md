@@ -17,3 +17,5 @@
 - esdoornveen/LqVandaag vandaag https://identity.conduction.nl/screens/board?id=esdoornveen/LqVandaag
 - esdoornveen/LqRolB BPV-begeleider https://identity.conduction.nl/screens/board?id=esdoornveen/LqRolB
 - warmtepompacademie/LqVandaag vandaag voor de planner https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqVandaag
+
+Components: CnActionButtons, CnAppNav, CnAuditTrailCard, CnBuildiqEditButton, CnDashboardGrid, CnDashboardPage, CnDataTable, CnFormDialog, CnKpiGrid, CnNextStepCard, CnObjectListWidget, CnPageHeader, CnProgressBar, CnSegmentedControl, CnStatWidget, CnStatsBlock, CnStatusBadge, CnTableWidget, CnTimelineStages, CnWeekStripWidget, CnWidgetWrapper

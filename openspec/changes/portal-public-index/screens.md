@@ -10,3 +10,5 @@
 - warmtepompacademie/Zoeken cursusaanbod https://identity.conduction.nl/screens/board?id=warmtepompacademie/Zoeken
 - warmtepompacademie/Artikel F-gassen, herhaling en examen https://identity.conduction.nl/screens/board?id=warmtepompacademie/Artikel
 - vaartveld/Editor pagina bewerken https://identity.conduction.nl/screens/board?id=vaartveld/Editor
+
+Components: CnSiteSearch

@@ -18,3 +18,5 @@
 - warmtepompacademie/Voet voettekst https://identity.conduction.nl/screens/board?id=warmtepompacademie/Voet
 - warmtepompacademie/Home home https://identity.conduction.nl/screens/board?id=warmtepompacademie/Home
 - warmtepompacademie/Contentpagina medewerkers inschrijven https://identity.conduction.nl/screens/board?id=warmtepompacademie/Contentpagina
+
+Components: CnSiteCard, CnSiteCardGrid, CnSiteSearch

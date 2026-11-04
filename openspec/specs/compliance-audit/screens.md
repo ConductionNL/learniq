@@ -5,3 +5,5 @@
 - learniq/LqCfTrainingVastleggen training vastleggen https://identity.conduction.nl/screens/board?id=learniq/LqCfTrainingVastleggen
 - learniq/LqCfAuditpakket auditpakket https://identity.conduction.nl/screens/board?id=learniq/LqCfAuditpakket
 - learniq/LqBeheerRechten actierechten https://identity.conduction.nl/screens/board?id=learniq/LqBeheerRechten
+
+Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAdminSettingsShell, CnAppNav, CnAuditTrailCard, CnBreadcrumbs, CnBuildiqEditButton, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnExportWizard, CnFilterBar, CnIndexPage, CnKpiGrid, CnMassImportDialog, CnNoteCard, CnPageHeader, CnPagination, CnQuickFilterBar, CnRelatedCollections, CnRowActions, CnSettingsSection, CnStatsBlock, CnStatusBadge, CnTabs
