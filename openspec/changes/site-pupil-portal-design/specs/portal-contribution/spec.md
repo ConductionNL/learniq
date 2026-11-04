@@ -13,12 +13,12 @@ The student audience MUST declare pages. The first MUST be `studentOverview`, "O
 
 ### Requirement: The pupil menu is short
 
-The student pages MUST declare `group: Mijn omgeving` and appear in the menu as: Overzicht, Rooster, Inleveren, Cijfers, Toetsen, Afwezig melden. Berichten is portaliq's own inbox entry. The default page of each student collection MUST keep its route and MUST declare `menu: false`.
+The student pages MUST appear in the menu as the board groups them: Overzicht under Mijn Zuiddrecht; Rooster, Huiswerk en toetsen, Cijfers and Afwezigheid under School; Mentorgesprek, Vakken en profiel and Documenten under Regelen; Mijn gegevens under Account. Berichten is portaliq's own inbox entry. The default page of each student collection MUST keep its route and MUST declare `menu: false`.
 
 #### Scenario: No collection names in the menu
 - GIVEN Noa signed in
 - WHEN she opens the menu
-- THEN she sees the six entries and Berichten, and no "My submissions" or "My enrolments"
+- THEN she sees the nine entries and Berichten, and no "My submissions" or "My enrolments"
 - @e2e exclude planned: written with the build in tests/e2e/vo-pupil-flows.spec.ts (specs-only change)
 
 ### Requirement: NEW: A pupil sees her own timetable
