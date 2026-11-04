@@ -547,6 +547,7 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertTrue($overview['home']);
 		self::assertSame(['collection', 'inbox'], array_column($overview['blocks'], 'type'));
 		self::assertSame(['field' => 'expiresAt', 'direction' => 'desc'], $overview['blocks'][0]['sort']);
+		self::assertSame(expected: 'Shared with you', actual: $overview['blocks'][0]['label']);
 		self::assertSame(['eaOverview', 'eaSharedPortfolios'], array_keys($pages));
 
 		$shares = $manifest['collections'][0];
