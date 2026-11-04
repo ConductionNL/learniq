@@ -1,43 +1,50 @@
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 <template>
-	<div class="learniq-admin">
-		<CnVersionInfoCard
-			appName="Learniq"
-			:appVersion="appVersion"
-			:isUpToDate="true"
-			:showUpdateButton="true"
-			:title="t('learniq', 'Version Information')"
-			:description="
-				t('learniq', 'Information about the current Learniq installation')
-			">
-			<template #footer>
-				<div class="cn-support-info">
-					<h4>{{ t('learniq', 'Support') }}</h4>
-					<p>
-						{{ t('learniq', 'For support, contact us at') }}
-						<a href="mailto:support@conduction.nl"
-							>support@conduction.nl</a
-						>
-					</p>
-				</div>
-			</template>
-		</CnVersionInfoCard>
-
+	<CnAdminSettingsShell
+		appId="learniq"
+		appName="Learniq"
+		look="board"
+		:title="t('learniq', 'Learniq administration')"
+		:tabs="tabs"
+		:breadcrumbs="breadcrumbs"
+		:breadcrumbNote="t('learniq', 'visible to instance administrators')"
+		:appVersion="appVersion"
+		:isUpToDate="true"
+		:versionTitle="t('learniq', 'Version Information')"
+		:versionDescription="
+			t('learniq', 'Information about the current Learniq installation')
+		"
+		docUrl="https://learniq.conduction.nl"
+		@tabChange="activeTab = $event">
 		<MenuStructureSection />
 		<LearniqSettings v-if="storesReady" />
-		<ExampleDataSettingsSection />
-		<DataExchangeSettingsSection />
-		<TimetableExchangeSettingsSection />
-		<LtiSettingsSection />
-		<StoreRegistrySettingsSection />
-		<AiTranslationReviewSection />
 		<ActionAuthMatrix />
-	</div>
+
+		<template #tab-example-data>
+			<ExampleDataSettingsSection />
+		</template>
+		<template #tab-data-exchange>
+			<DataExchangeSettingsSection />
+		</template>
+		<template #tab-timetable-exchange>
+			<TimetableExchangeSettingsSection />
+		</template>
+		<template #tab-lti>
+			<LtiSettingsSection />
+		</template>
+		<template #tab-store>
+			<StoreRegistrySettingsSection />
+		</template>
+		<template #tab-ai-translations>
+			<AiTranslationReviewSection />
+		</template>
+	</CnAdminSettingsShell>
 </template>
 
 <script>
-import { CnVersionInfoCard } from '@conduction/nextcloud-vue'
+import { CnAdminSettingsShell } from '@conduction/nextcloud-vue'
 import { loadState } from '@nextcloud/initial-state'
+import { generateUrl } from '@nextcloud/router'
 import ActionAuthMatrix from '../../components/admin/ActionAuthMatrix.vue'
 import LearniqSettings from '../LearniqSettings.vue'
 import AiTranslationReviewSection from './AiTranslationReviewSection.vue'
@@ -52,7 +59,7 @@ import { initializeStores } from '../../store/store.js'
 export default {
 	name: 'AdminRoot',
 	components: {
-		CnVersionInfoCard,
+		CnAdminSettingsShell,
 		LearniqSettings,
 		DataExchangeSettingsSection,
 		ExampleDataSettingsSection,
@@ -68,7 +75,51 @@ export default {
 		return {
 			storesReady: false,
 			appVersion: loadState('learniq', 'version', 'Unknown'),
+			activeTab:
+				new URLSearchParams(window.location.search).get('tab') || 'menu',
 		}
+	},
+
+	computed: {
+		/**
+		 * Board LqInstellingen's tab strip. Menu holds the version card, the
+		 * menu structure, the register and the action rights; every other tab
+		 * holds one settings section.
+		 *
+		 * @return {Array<{id: string, label: string}>}
+		 * @spec exclude board tab strip, display only
+		 */
+		tabs() {
+			return [
+				{ id: 'menu', label: this.t('learniq', 'Menu') },
+				{ id: 'example-data', label: this.t('learniq', 'Example data') },
+				{ id: 'data-exchange', label: this.t('learniq', 'Data exchange') },
+				{ id: 'timetable-exchange', label: this.t('learniq', 'Timetable exchange') },
+				{ id: 'lti', label: this.t('learniq', 'LTI tools') },
+				{ id: 'store', label: this.t('learniq', 'Store') },
+				{ id: 'ai-translations', label: this.t('learniq', 'AI translations') },
+			]
+		},
+
+		/**
+		 * Board LqInstellingen's path under the title: "Beheerinstellingen /
+		 * Learniq / <open tab>". The first crumb goes back to the server's
+		 * administration settings.
+		 *
+		 * @return {Array<{label: string, href?: string}>}
+		 * @spec exclude board header path, display only
+		 */
+		breadcrumbs() {
+			const open = this.tabs.find((tab) => tab.id === this.activeTab) || this.tabs[0]
+			return [
+				{
+					label: this.t('learniq', 'Administration settings'),
+					href: generateUrl('/settings/admin'),
+				},
+				{ label: 'Learniq' },
+				{ label: open.label },
+			]
+		},
 	},
 
 	/**
@@ -83,9 +134,3 @@ export default {
 	},
 }
 </script>
-
-<style scoped>
-.learniq-admin {
-	max-width: 900px;
-}
-</style>

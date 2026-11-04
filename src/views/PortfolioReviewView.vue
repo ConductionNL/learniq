@@ -34,7 +34,7 @@
 -->
 
 <template>
-	<div class="portfolio-review-view">
+	<div class="portfolio-review-view lq-board-page">
 		<!-- Loading -->
 		<div
 			v-if="loading"
@@ -52,13 +52,7 @@
 
 		<template v-else-if="portfolio">
 			<header class="portfolio-review-view__header">
-				<h2>
-					{{
-						t('learniq', 'Review portfolio: {title}', {
-							title: portfolio.title || '',
-						})
-					}}
-				</h2>
+				<CnPageHeader :title="t('learniq', 'Review portfolio: {title}', { title: portfolio.title || '' })" />
 				<p class="portfolio-review-view__meta">
 					{{
 						t('learniq', 'Kind: {kind}', { kind: portfolio.kind || '' })
@@ -74,8 +68,9 @@
 			</header>
 
 			<!-- Entries (read-only) -->
-			<section class="portfolio-review-view__entries">
-				<h3>{{ t('learniq', 'Evidence entries') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Evidence entries')"
+				class="portfolio-review-view__entries">
 				<ul
 					v-if="entries.length > 0"
 					class="portfolio-review-view__entry-list">
@@ -115,11 +110,13 @@
 				<p v-else class="portfolio-review-view__no-entries">
 					{{ t('learniq', 'No evidence entries.') }}
 				</p>
-			</section>
+			</CnDetailCard>
 
 			<!-- Teacher grading (course-bound + submitted only) -->
-			<section v-if="canGrade" class="portfolio-review-view__grading">
-				<h3>{{ t('learniq', 'Grade this portfolio') }}</h3>
+			<CnDetailCard
+				v-if="canGrade"
+				:title="t('learniq', 'Grade this portfolio')"
+				class="portfolio-review-view__grading">
 
 				<label
 					for="pr-grade-value"
@@ -153,7 +150,7 @@
 					class="portfolio-review-view__grade-error">
 					{{ gradeError }}
 				</p>
-			</section>
+			</CnDetailCard>
 
 			<p
 				v-if="portfolio.lifecycle === 'graded'"
@@ -170,6 +167,7 @@
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
@@ -197,6 +195,7 @@ const REFERENCE_SCHEMAS = {
 
 export default {
 	name: 'PortfolioReviewView',
+	components: { CnDetailCard, CnPageHeader },
 
 	props: {
 		/**
@@ -486,13 +485,6 @@ export default {
 </script>
 
 <style scoped>
-.portfolio-review-view {
-	max-width: 860px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
 .portfolio-review-view__loading,
 .portfolio-review-view__error {
 	display: flex;
@@ -512,11 +504,6 @@ export default {
 
 .portfolio-review-view__lifecycle {
 	margin-left: var(--default-grid-baseline, 8px);
-}
-
-.portfolio-review-view__entries,
-.portfolio-review-view__grading {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
 }
 
 .portfolio-review-view__entry-list {

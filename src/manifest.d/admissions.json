@@ -158,6 +158,7 @@
 			"type": "index",
 			"title": "Admissions rounds",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "admissions-round"
 			}
@@ -262,6 +263,7 @@
 			"type": "index",
 			"title": "Applications",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "admission"
 			}
@@ -366,6 +368,7 @@
 			"type": "index",
 			"title": "School advies",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "school-advies",
 				"columns": [
