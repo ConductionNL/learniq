@@ -41,10 +41,9 @@
 </template>
 
 <script>
-import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcDialog, NcNoteCard, NcTextArea } from '@nextcloud/vue'
-import { canDecline, declineBody, TRANSITION_URL } from '../utils/signUpDecision.js'
+import { canDecline } from '../utils/signUpDecision.js'
+import { declineSignUp } from '../utils/signUpDecisionRequest.js'
 
 export default {
 	name: 'DeclineSignUpDialog',
@@ -84,7 +83,7 @@ export default {
 			this.busy = true
 			this.error = ''
 			try {
-				await axios.post(generateUrl(TRANSITION_URL, { id: this.objectId }), declineBody(this.reason))
+				await declineSignUp(this.objectId, this.reason)
 				this.$emit('close')
 			} catch (e) {
 				this.error = e?.response?.data?.error || this.t('learniq', 'The sign-up could not be rejected.')
