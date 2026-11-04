@@ -1,7 +1,7 @@
 # student-analytics Specification
 
 ## Purpose
-TBD - created by archiving change learning-progress-and-analytics. Update Purpose after archive.
+Show teachers how learners and groups are doing through engagement scores, rule-based at-risk signals and test-score heat maps. Planners forecast next year's learners and the groups they need.
 
 ## Requirements
 

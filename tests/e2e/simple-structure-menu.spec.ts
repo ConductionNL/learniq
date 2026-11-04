@@ -161,11 +161,10 @@ test.describe('The simple structure', () => {
 		await dismissSetupWizard(page)
 
 		await expect(
-			page.getByRole('heading', { name: /^(Today|Vandaag)$/ }).first(),
+			page.getByRole('heading', { level: 1, name: /^(Today|Vandaag)$/ }),
 		).toBeVisible({ timeout: 60_000 })
-		// The greeting carries today's date. An empty header card is what a
-		// build against a library without the greeting looks like.
-		await expect(page.getByTestId('cn-header-widget-date')).toBeVisible({
+		// The page header's subtitle carries today's date.
+		await expect(page.getByTestId('cn-dashboard-page-subtitle')).toBeVisible({
 			timeout: 60_000,
 		})
 		await expect(page.locator('.cn-dashboard-page__unknown')).toHaveCount(0)

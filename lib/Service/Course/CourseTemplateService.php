@@ -194,169 +194,65 @@ class CourseTemplateService {
 	public function instantiate(string $templateId, string $name, string $language): array {
 		$name = $this->validName(name: $name);
 		$template = $this->load(schema: 'course-template', id: $templateId, what: 'template');
-		$tenantId = (string)($template['tenant_id'] ?? '');
-		$level = (string)($template['level'] ?? '');
-		$language = trim($language);
-		if ($language === '') {
-			$language = self::DEFAULT_LANGUAGE;
-		}
+		$draft = ['name' => $name, 'language' => self::languageOrDefault(language: $language)] + self::templateScope(template: $template);
+		$build = new CourseTemplateBuild(writer: $this->writer, draft: $draft);
 
-		$created = [];
-		$courseId = '';
 		try {
-			$curriculumPlanId = $this->createCurriculumPlan(template: $template, name: $name, tenantId: $tenantId, created: $created);
-
-			$code = $this->courseCode(name: $name);
-			$courseId = $this->createTracked(
-				schema: 'course',
-				object: array_filter(
-					[
-						'code' => $code,
-						'name' => $name,
-						'level' => $level,
-						'language' => $language,
-						'lifecycle' => 'draft',
-						'curriculumPlanId' => $curriculumPlanId,
-						'tenant_id' => $tenantId,
-					],
-					static fn ($value): bool => $value !== null
-				),
-				created: $created
-			);
-
-			foreach ($this->listOf(value: $template['moduleStructure'] ?? []) as $position => $module) {
-				$this->createModule(
-					module: $module,
-					position: $position,
-					parent: ['id' => $courseId, 'code' => $code, 'level' => $level, 'language' => $language, 'tenant_id' => $tenantId],
-					created: $created
-				);
-			}
+			$courseId = $this->buildFromTemplate(template: $template, build: $build);
 		} catch (Throwable $failure) {
-			$this->rollback(created: $created);
+			$this->rollback(created: $build->created);
 			throw $this->refusalFor(failure: $failure, fallback: 'The course could not be created from this template.');
-		}//end try
+		}
 
 		return ['id' => $courseId];
 	}//end instantiate()
 
 	/**
-	 * Create the template's curriculum plan, when it carries one.
+	 * Create the curriculum plan, the course and its modules from the template.
 	 *
-	 * @param array<string, mixed>                          $template The template.
-	 * @param string                                        $name     The new course name.
-	 * @param string                                        $tenantId The tenant.
-	 * @param list<array{schema: string, id: string}>       $created  Objects created so far, appended to.
+	 * @param array<string,mixed> $template The template.
+	 * @param CourseTemplateBuild $build    The instantiation.
 	 *
-	 * @return string|null The plan uuid, or null when the template has no plan.
+	 * @return string The new course's UUID.
 	 */
-	private function createCurriculumPlan(array $template, string $name, string $tenantId, array &$created): ?string {
-		$plan = $template['curriculumPlanSkeleton'] ?? null;
-		if (is_array($plan) === false || $plan === []) {
-			return null;
-		}
-
-		return $this->createTracked(
-			schema: 'curriculum-plan',
-			object: [
-				'name' => $this->l10n->t('Curriculum plan for %s', [$name]),
-				'kind' => $plan['kind'] ?? null,
-				'formula' => $plan['formula'] ?? null,
-				'components' => $this->listOf(value: $plan['components'] ?? []),
-				'periods' => $this->listOf(value: $plan['periods'] ?? []),
-				'passRules' => $this->listOf(value: $plan['passRules'] ?? []),
-				'tenant_id' => $tenantId,
-			],
-			created: $created
+	private function buildFromTemplate(array $template, CourseTemplateBuild $build): string {
+		$name   = $build->draft['name'];
+		$planId = $build->createCurriculumPlan(
+			skeleton: $template['curriculumPlanSkeleton'] ?? null,
+			name: $this->l10n->t('Curriculum plan for %s', [$name])
 		);
-	}//end createCurriculumPlan()
+		$courseId = $build->createCourse(code: $this->courseCode(name: $name), curriculumPlanId: $planId);
+		$build->createModules(modules: $template['moduleStructure'] ?? []);
+
+		return $courseId;
+	}//end buildFromTemplate()
 
 	/**
-	 * Create one module and its lessons.
+	 * The trimmed language, or the default language when it is empty.
 	 *
-	 * @param array<string, mixed>                    $module   The module entry.
-	 * @param int                                     $position Its index in the template.
-	 * @param array<string, string>                   $parent   The new course: id, code, level, language, tenant_id.
-	 * @param list<array{schema: string, id: string}> $created  Objects created so far, appended to.
+	 * @param string $language The requested language.
 	 *
-	 * @return void
+	 * @return string
 	 */
-	private function createModule(array $module, int $position, array $parent, array &$created): void {
-		$key = (string)($module['key'] ?? 'module-' . ($position + 1));
-		$moduleId = $this->createTracked(
-			schema: 'course',
-			object: array_filter(
-				[
-					'code' => $parent['code'] . '-' . $key,
-					'name' => (string)($module['name'] ?? ''),
-					'level' => $parent['level'],
-					'language' => $parent['language'],
-					'lifecycle' => 'draft',
-					'parentCourseId' => $parent['id'],
-					'order' => $module['order'] ?? ($position + 1),
-					'ectsCredits' => $module['ectsCredits'] ?? null,
-					'tenant_id' => $parent['tenant_id'],
-				],
-				static fn ($value): bool => $value !== null
-			),
-			created: $created
-		);
-
-		foreach ($this->listOf(value: $module['lessons'] ?? []) as $index => $lesson) {
-			$blocks = [];
-			foreach ($this->listOf(value: $lesson['blocksSkeleton'] ?? []) as $block) {
-				$blocks[] = [
-					'blockId' => $block['blockId'] ?? null,
-					'type' => $block['type'] ?? 'richText',
-					'order' => $block['order'] ?? null,
-					'text' => $block['text'] ?? null,
-				];
-			}
-
-			$this->createTracked(
-				schema: 'lesson',
-				object: array_filter(
-					[
-						'courseId' => $moduleId,
-						'name' => (string)($lesson['name'] ?? ''),
-						'order' => $lesson['order'] ?? ($index + 1),
-						'contentType' => $lesson['contentType'] ?? 'text',
-						'durationMinutes' => $lesson['durationMinutes'] ?? null,
-						'blocks' => $blocks,
-						'tenant_id' => $parent['tenant_id'],
-					],
-					static fn ($value): bool => $value !== null
-				),
-				created: $created
-			);
-		}//end foreach
-	}//end createModule()
-
-	/**
-	 * Create an object, record it for rollback, and return its uuid.
-	 *
-	 * @param string                                  $schema  The schema slug.
-	 * @param array<string, mixed>                    $object  The payload.
-	 * @param list<array{schema: string, id: string}> $created Objects created so far, appended to.
-	 *
-	 * @return string The uuid.
-	 *
-	 * @throws CourseTemplateRefusedException When the object was not created.
-	 */
-	private function createTracked(string $schema, array $object, array &$created): string {
-		$id = $this->writer->create(schema: $schema, object: $object);
-		if ($id === null) {
-			throw new CourseTemplateRefusedException(
-				status: Http::STATUS_INTERNAL_SERVER_ERROR,
-				reason: 'not-saved',
-				message: 'The course could not be created from this template.'
-			);
+	private static function languageOrDefault(string $language): string {
+		$language = trim($language);
+		if ($language === '') {
+			return self::DEFAULT_LANGUAGE;
 		}
 
-		$created[] = ['schema' => $schema, 'id' => $id];
+		return $language;
+	}//end languageOrDefault()
 
-		return $id;
-	}//end createTracked()
+	/**
+	 * The level and tenant a template's course gets.
+	 *
+	 * @param array<string,mixed> $template The template.
+	 *
+	 * @return array{level:string,tenant_id:string}
+	 */
+	private static function templateScope(array $template): array {
+		return ['level' => (string)($template['level'] ?? ''), 'tenant_id' => (string)($template['tenant_id'] ?? '')];
+	}//end templateScope()
 
 	/**
 	 * Create one object, answering a permission refusal with a 403.
@@ -527,21 +423,6 @@ class CourseTemplateService {
 
 		return $stem . '-' . $this->timeFactory->getTime() . '-' . bin2hex(random_bytes(2));
 	}//end courseCode()
-
-	/**
-	 * The array entries of a list value; anything else is an empty list.
-	 *
-	 * @param mixed $value The value.
-	 *
-	 * @return list<array<string, mixed>>
-	 */
-	private function listOf(mixed $value): array {
-		if (is_array($value) === false) {
-			return [];
-		}
-
-		return array_values(array_filter($value, 'is_array'));
-	}//end listOf()
 
 	/**
 	 * Order by `order`, a missing order last.
