@@ -30,7 +30,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use Psr\Container\ContainerInterface;
+use OCA\OpenRegister\Db\MagicMapper;
+use OCA\OpenRegister\Service\ObjectService;
+use OCA\OpenRegister\Service\OrganisationService;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Throwable;
@@ -45,13 +47,17 @@ class ExampleSetOrganisation {
 	/**
 	 * Constructor.
 	 *
-	 * @param ContainerInterface $container Resolves OpenRegister's organisation and object services.
-	 * @param LoggerInterface    $logger    Records rows that could not be given the organisation.
+	 * @param OrganisationService $organisations OpenRegister's organisation service.
+	 * @param ObjectService       $objects       OpenRegister's object service, to find a row.
+	 * @param MagicMapper         $mapper        OpenRegister's object mapper, to write a row.
+	 * @param LoggerInterface     $logger        Records rows that could not be given the organisation.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ContainerInterface $container,
+		private readonly OrganisationService $organisations,
+		private readonly ObjectService $objects,
+		private readonly MagicMapper $mapper,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -70,7 +76,7 @@ class ExampleSetOrganisation {
 	 */
 	public function resolve(): string {
 		try {
-			$organisation = $this->container->get('OCA\OpenRegister\Service\OrganisationService')->ensureDefaultOrganisation();
+			$organisation = $this->organisations->ensureDefaultOrganisation();
 			$uuid         = (string)$organisation->getUuid();
 		} catch (Throwable $exception) {
 			throw new RuntimeException(
@@ -107,10 +113,8 @@ class ExampleSetOrganisation {
 			return ['given' => 0, 'kept' => 0, 'missing' => 0];
 		}
 
-		$finder = $this->container->get('OCA\OpenRegister\Service\ObjectService');
-		$mapper = $this->container->get('OCA\OpenRegister\Db\MagicMapper');
 		foreach ($objects as $object) {
-			$outcome = $this->stampOne(finder: $finder, mapper: $mapper, object: $object, organisation: $organisation);
+			$outcome = $this->stampOne(object: $object, organisation: $organisation);
 			$counts[$outcome]++;
 		}
 
@@ -126,14 +130,12 @@ class ExampleSetOrganisation {
 	/**
 	 * Give one row the organisation.
 	 *
-	 * @param object               $finder       OpenRegister's object service.
-	 * @param object               $mapper       OpenRegister's object mapper.
 	 * @param array<string, mixed> $object       The descriptor object.
 	 * @param string               $organisation The organisation uuid.
 	 *
 	 * @return string `given`, `kept`, `missing` or `failed`.
 	 */
-	private function stampOne(object $finder, object $mapper, array $object, string $organisation): string {
+	private function stampOne(array $object, string $organisation): string {
 		$uuid     = (string)($object['uuid'] ?? '');
 		$register = (string)($object['@self']['register'] ?? '');
 		$schema   = (string)($object['@self']['schema'] ?? '');
@@ -143,7 +145,7 @@ class ExampleSetOrganisation {
 
 		// A row the import left out (a shared code another set holds) is not found.
 		try {
-			$entity = $finder->find(
+			$entity = $this->objects->find(
 				id: $uuid,
 				register: $register,
 				schema: $schema,
@@ -166,7 +168,7 @@ class ExampleSetOrganisation {
 
 		try {
 			$entity->setOrganisation($organisation);
-			$mapper->update(entity: $entity);
+			$this->mapper->update(entity: $entity);
 			return 'given';
 		} catch (Throwable $exception) {
 			$this->logger->warning(

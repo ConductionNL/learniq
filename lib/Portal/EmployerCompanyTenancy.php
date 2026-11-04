@@ -77,7 +77,12 @@ class EmployerCompanyTenancy {
 	private const SCHEMA = 'client-organisation';
 
 	/**
-	 * Verdicts already given in this request, by `organisationRef|slug`.
+	 * The schema of the institute locations an employer's editions are listed at.
+	 */
+	private const LOCATION_SCHEMA = 'vestiging';
+
+	/**
+	 * Verdicts already given in this request, by `schema|uuid|slug`.
 	 *
 	 * @var array<string, string>
 	 */
@@ -124,42 +129,68 @@ class EmployerCompanyTenancy {
 	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	public function verdict(string $organisationRef, string $organisation): string {
-		$key = trim($organisationRef).'|'.trim($organisation);
-		if (isset($this->verdicts[$key]) === false) {
-			$this->verdicts[$key] = $this->decide(organisationRef: trim($organisationRef), tenant: $this->tenants->bySlug(slug: $organisation));
-		}
-
-		return $this->verdicts[$key];
+		return $this->verdictFor(row: [self::SCHEMA, trim($organisationRef)], organisation: $organisation);
 	}//end verdict()
 
 	/**
-	 * Read the company and compare its organisation with the tenant's.
+	 * Whether the institute location lies in the portal organisation with this slug.
 	 *
-	 * @param string            $organisationRef The company uuid, trimmed.
-	 * @param PortalTenant|null $tenant          The portal's tenant.
+	 * @param string $locationRef  The location's `vestiging` uuid.
+	 * @param string $organisation The portal organisation slug.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+	 */
+	public function holdsLocation(string $locationRef, string $organisation): bool {
+		return $this->verdictFor(row: [self::LOCATION_SCHEMA, trim($locationRef)], organisation: $organisation) === self::HOLDS;
+	}//end holdsLocation()
+
+	/**
+	 * The verdict for one row, given once per request.
+	 *
+	 * @param array{0: string, 1: string} $row          The schema and the trimmed uuid.
+	 * @param string                      $organisation The portal organisation slug.
 	 *
 	 * @return string
 	 */
-	private function decide(string $organisationRef, ?PortalTenant $tenant): string {
+	private function verdictFor(array $row, string $organisation): string {
+		$key = $row[0].'|'.$row[1].'|'.trim($organisation);
+		if (isset($this->verdicts[$key]) === false) {
+			$this->verdicts[$key] = $this->decide(row: $row, tenant: $this->tenants->bySlug(slug: $organisation));
+		}
+
+		return $this->verdicts[$key];
+	}//end verdictFor()
+
+	/**
+	 * Read the row and compare its organisation with the tenant's.
+	 *
+	 * @param array{0: string, 1: string} $row    The schema and the trimmed uuid.
+	 * @param PortalTenant|null           $tenant The portal's tenant.
+	 *
+	 * @return string
+	 */
+	private function decide(array $row, ?PortalTenant $tenant): string {
 		if ($tenant === null) {
 			return self::ORGANISATION_UNKNOWN;
 		}
 
 		try {
-			$company = $this->company(organisationRef: $organisationRef);
+			$found = $this->row(row: $row);
 		} catch (Throwable $exception) {
 			$this->logger->warning(
-				'[EmployerCompanyTenancy] Could not read company {ref}: {msg}',
-				['ref' => $organisationRef, 'msg' => $exception->getMessage()]
+				'[EmployerCompanyTenancy] Could not read {schema} {ref}: {msg}',
+				['schema' => $row[0], 'ref' => $row[1], 'msg' => $exception->getMessage()]
 			);
 			return self::UNREADABLE;
 		}
 
-		if ($company === null) {
+		if ($found === null) {
 			return self::COMPANY_UNKNOWN;
 		}
 
-		if ($tenant->owns(row: $company) === false) {
+		if ($tenant->owns(row: $found) === false) {
 			return self::OTHER_TENANT;
 		}
 
@@ -167,35 +198,67 @@ class EmployerCompanyTenancy {
 	}//end decide()
 
 	/**
-	 * The company with this uuid as OpenRegister serialises it, or null.
+	 * The row with this uuid in this schema as OpenRegister serialises it, or null.
 	 *
-	 * @param string $organisationRef The uuid.
+	 * @param array{0: string, 1: string} $row The schema and the trimmed uuid.
 	 *
 	 * @return array<string, mixed>|null
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read.
 	 */
-	private function company(string $organisationRef): ?array {
-		if ($organisationRef === '') {
+	private function row(array $row): ?array {
+		[$schema, $uuid] = $row;
+		if ($uuid === '') {
 			return null;
 		}
 
 		$objects = $this->objectService->findAll(
-			config: ['filters' => ['register' => self::REGISTER, 'schema' => self::SCHEMA], 'ids' => [$organisationRef], 'limit' => 1],
+			config: ['filters' => ['register' => self::REGISTER, 'schema' => $schema], 'ids' => [$uuid], 'limit' => 1],
 			_rbac: false,
 			_multitenancy: false
 		);
 		foreach ($objects as $object) {
-			$row = $object;
-			if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-				$row = $object->jsonSerialize();
-			}
-
-			if (is_array($row) === true && ($row['id'] ?? null) === $organisationRef) {
-				return $row;
+			$found = self::serialised(object: $object);
+			if (self::idOf(row: $found) === $uuid) {
+				return $found;
 			}
 		}
 
 		return null;
-	}//end company()
+	}//end row()
+
+	/**
+	 * An OpenRegister object as its serialised array; anything else as an empty one.
+	 *
+	 * @param mixed $object What the store returned.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function serialised(mixed $object): array {
+		if (is_array($object) === true) {
+			return $object;
+		}
+
+		$serialised = [];
+		if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
+			$serialised = $object->jsonSerialize();
+		}
+
+		if (is_array($serialised) === false) {
+			return [];
+		}
+
+		return $serialised;
+	}//end serialised()
+
+	/**
+	 * The row's `id`, or null.
+	 *
+	 * @param array<string, mixed> $row The row.
+	 *
+	 * @return mixed
+	 */
+	private static function idOf(array $row): mixed {
+		return ($row['id'] ?? null);
+	}//end idOf()
 }//end class

@@ -228,70 +228,23 @@
 					v-if="rubric && rubric.criteria && rubric.criteria.length > 0"
 					:title="t('learniq', 'Rubric: {name}', { name: rubric.name || '' })"
 					class="mark-submission-view__rubric">
-
-					<div
-						v-for="criterion in rubric.criteria"
-						:key="criterion.criterionId"
-						class="mark-submission-view__criterion">
-						<h4 class="mark-submission-view__criterion-label">
-							{{ criterion.label }}
-							<span class="mark-submission-view__criterion-weight">
+					<RubricPicker
+						v-model:selectedLevels="selectedLevels"
+						:rubric="rubric"
+						:maxPoints="assignment.maxPoints || 0"
+						:disabled="saving">
+						<template v-if="submission.lifecycle === 'late'" #scoreNote>
+							<span class="mark-submission-view__effective-grade">
 								{{
-									t('learniq', '(weight: {w})', {
-										w: criterion.weight,
-									})
+									t(
+										'learniq',
+										'Effective grade after late penalty: {grade}',
+										{ grade: effectiveGrade },
+									)
 								}}
 							</span>
-						</h4>
-						<div class="mark-submission-view__levels">
-							<label
-								v-for="level in criterion.levels"
-								:key="level.levelId"
-								class="mark-submission-view__level">
-								<input
-									type="radio"
-									:name="criterion.criterionId"
-									:value="level.levelId"
-									:checked="
-										getSelectedLevel(criterion.criterionId)
-										=== level.levelId
-									"
-									:disabled="saving"
-									@change="selectLevel(criterion, level)" />
-								<span class="mark-submission-view__level-label">{{
-									level.label
-								}}</span>
-								<span class="mark-submission-view__level-points">
-									{{
-										t('learniq', '{pts} pts', {
-											pts: level.points,
-										})
-									}}
-								</span>
-							</label>
-						</div>
-					</div>
-
-					<!-- Running total -->
-					<div class="mark-submission-view__score-total">
-						<strong>{{
-							t('learniq', 'Score: {score} / {max}', {
-								score: computedScore,
-								max: assignment.maxPoints || '?',
-							})
-						}}</strong>
-						<span
-							v-if="submission.lifecycle === 'late'"
-							class="mark-submission-view__effective-grade">
-							{{
-								t(
-									'learniq',
-									'Effective grade after late penalty: {grade}',
-									{ grade: effectiveGrade },
-								)
-							}}
-						</span>
-					</div>
+						</template>
+					</RubricPicker>
 				</CnDetailCard>
 
 				<!-- No rubric — manual score entry -->
@@ -479,13 +432,14 @@
 import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
+import RubricPicker from '../components/RubricPicker.vue'
 import { resolveGradePlan } from '../utils/assignmentGradePlan.js'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 import { markingMode, prefillFinalGrade } from '../utils/doubleMarking.js'
 
 export default {
 	name: 'MarkSubmissionView',
-	components: { CnDetailCard, CnPageHeader },
+	components: { CnDetailCard, CnPageHeader, RubricPicker },
 
 	props: {
 		/**
@@ -959,34 +913,6 @@ export default {
 		},
 
 		/**
-		 * Get the currently selected levelId for a criterion.
-		 *
-		 * @param {string} criterionId Criterion identifier
-		 * @return {string|undefined}
-		 */
-		getSelectedLevel(criterionId) {
-			return this.selectedLevels[criterionId]?.levelId
-		},
-
-		/**
-		 * Record the teacher's level selection for a criterion.
-		 *
-		 * @param {object} criterion Rubric criterion object
-		 * @param {object} level     Selected level object
-		 * @return {void}
-		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-28
-		 */
-		selectLevel(criterion, level) {
-			this.selectedLevels = {
-				...this.selectedLevels,
-				[criterion.criterionId]: {
-					levelId: level.levelId,
-					points: level.points,
-				},
-			}
-		},
-
-		/**
 		 * Build the rubricScores array from current selections.
 		 *
 		 * @return {Array<{criterionId: string, levelId: string, points: number}>}
@@ -1214,61 +1140,13 @@ export default {
 	font-style: italic;
 }
 
-.mark-submission-view__criterion {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
-	padding: var(--default-grid-baseline, 8px);
-	border: 1px solid var(--color-border);
-	border-radius: 4px;
-}
 
-.mark-submission-view__criterion-label {
-	font-weight: bold;
-	margin-bottom: var(--default-grid-baseline, 8px);
-}
 
-.mark-submission-view__criterion-weight {
-	font-weight: normal;
-	color: var(--color-text-maxcontrast);
-	font-size: 0.85em;
-	margin-left: 4px;
-}
 
-.mark-submission-view__levels {
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--default-grid-baseline, 8px);
-}
 
-.mark-submission-view__level {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	cursor: pointer;
-	padding: 4px 8px;
-	border: 1px solid var(--color-border);
-	border-radius: 4px;
-	background: var(--color-main-background);
-}
 
-.mark-submission-view__level:has(input:checked) {
-	background: var(--color-primary-element-light);
-	border-color: var(--color-primary);
-}
 
-.mark-submission-view__level-points {
-	color: var(--color-text-maxcontrast);
-	font-size: 0.85em;
-}
 
-.mark-submission-view__score-total {
-	margin-top: calc(var(--default-grid-baseline, 8px) * 2);
-	padding: var(--default-grid-baseline, 8px);
-	background: var(--color-background-hover);
-	border-radius: 4px;
-	display: flex;
-	align-items: center;
-	gap: calc(var(--default-grid-baseline, 8px) * 2);
-}
 
 .mark-submission-view__effective-grade {
 	color: var(--color-warning);

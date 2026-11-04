@@ -219,7 +219,19 @@
 			"type": "custom",
 			"title": "Dashboards",
 			"component": "LearniqDashboards",
-			"_note": "Landing dashboard (ADR-009 §6): LearniqDashboards with no role prop resolves to the user's default view (initial state dashboardRole). The three explicit per-role pages below back the group-gated Administration/Teaching/My learning menu items — the in-page role switcher was removed."
+			"_note": "Landing dashboard (ADR-009 §6): LearniqDashboards with no role prop resolves to the user's default view (initial state dashboardRole). The three explicit per-role pages below back the group-gated Administration/Teaching/My learning menu items — the in-page role switcher was removed.",
+			"config": {
+				"title": "Today",
+				"greeting": "date",
+				"subtitleByRole": {
+					"hr": "HR employee · school-wide, all locations",
+					"team-lead": "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups",
+					"confidential-counsellor": "confidential adviser · your own mandatory training courses and points"
+				},
+				"subtitleOfSchoolByRole": {
+					"hr": "HR employee · school-wide, all locations of {school}"
+				}
+			}
 		},
 		{
 			"id": "DashboardAdmin",
@@ -227,7 +239,19 @@
 			"type": "custom",
 			"title": "Administration",
 			"component": "DashboardAdmin",
-			"_note": "Per-role dashboard (ADR-009 §6): DashboardAdmin renders LearniqDashboards in its admin view. Backs the group-gated Administration menu item (visibleIf user.canAdminDashboard)."
+			"_note": "Per-role dashboard (ADR-009 §6): DashboardAdmin renders LearniqDashboards in its admin view. Backs the group-gated Administration menu item (visibleIf user.canAdminDashboard).",
+			"config": {
+				"title": "Today",
+				"greeting": "date",
+				"subtitleByRole": {
+					"hr": "HR employee · school-wide, all locations",
+					"team-lead": "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups",
+					"confidential-counsellor": "confidential adviser · your own mandatory training courses and points"
+				},
+				"subtitleOfSchoolByRole": {
+					"hr": "HR employee · school-wide, all locations of {school}"
+				}
+			}
 		},
 		{
 			"id": "DashboardTeacher",
@@ -235,7 +259,19 @@
 			"type": "custom",
 			"title": "Teaching",
 			"component": "DashboardTeacher",
-			"_note": "Per-role dashboard (ADR-009 §6): DashboardTeacher renders LearniqDashboards in its teacher view. Backs the group-gated Teaching menu item (visibleIf user.canTeachDashboard)."
+			"_note": "Per-role dashboard (ADR-009 §6): DashboardTeacher renders LearniqDashboards in its teacher view. Backs the group-gated Teaching menu item (visibleIf user.canTeachDashboard).",
+			"config": {
+				"title": "Today",
+				"greeting": "date",
+				"subtitleByRole": {
+					"hr": "HR employee · school-wide, all locations",
+					"team-lead": "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups",
+					"confidential-counsellor": "confidential adviser · your own mandatory training courses and points"
+				},
+				"subtitleOfSchoolByRole": {
+					"hr": "HR employee · school-wide, all locations of {school}"
+				}
+			}
 		},
 		{
 			"id": "DashboardStudent",
@@ -243,7 +279,19 @@
 			"type": "custom",
 			"title": "My learning",
 			"component": "DashboardStudent",
-			"_note": "Per-role dashboard (ADR-009 §6): DashboardStudent renders LearniqDashboards in its student view. Backs the group-gated My learning menu item (visibleIf user.canLearnDashboard)."
+			"_note": "Per-role dashboard (ADR-009 §6): DashboardStudent renders LearniqDashboards in its student view. Backs the group-gated My learning menu item (visibleIf user.canLearnDashboard).",
+			"config": {
+				"title": "Today",
+				"greeting": "date",
+				"subtitleByRole": {
+					"hr": "HR employee · school-wide, all locations",
+					"team-lead": "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups",
+					"confidential-counsellor": "confidential adviser · your own mandatory training courses and points"
+				},
+				"subtitleOfSchoolByRole": {
+					"hr": "HR employee · school-wide, all locations of {school}"
+				}
+			}
 		},
 		{
 			"id": "Compliance",
@@ -414,6 +462,7 @@
 			"type": "index",
 			"title": "Accessibility limitations",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "accessibility-limitation",
 				"_note": "accessibility-conformance-statement: the known-limitations register index, compliance-officer/admin authoring surface (gated via the Accessibility limitations nav entry's visibleIf). Generic declarative index - no bespoke UI."
@@ -491,6 +540,7 @@
 			"type": "index",
 			"title": "Accessibility feedback",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "accessibility-feedback",
 				"_note": "accessibility-conformance-statement: the triage log of user-submitted AccessibilityFeedback, compliance-officer/admin surface (gated via the Accessibility feedback nav entry's visibleIf). Creation itself stays open to any authenticated user via AccessibilityFeedbackCreate, reached from the AccessibilityStatement page's 'Report an accessibility problem' entry point, not from this index."
@@ -579,6 +629,7 @@
 			"type": "index",
 			"title": "Regulations",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Regulation"
 			}
@@ -872,6 +923,7 @@
 			"type": "index",
 			"title": "Attestations",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Attestation",
 				"readOnly": true,

@@ -22,7 +22,7 @@
  @spec openspec/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 -->
 <template>
-	<div class="course-quality-report">
+	<div class="course-quality-report lq-board-page">
 		<header class="course-quality-report__header">
 			<CnPageHeader :title="t('learniq', 'Course quality report')" />
 			<p class="course-quality-report__subtitle">
@@ -80,8 +80,9 @@
 					" />
 
 				<template v-else>
-					<section class="course-quality-report__section">
-						<h3>{{ t('learniq', 'Score trend') }}</h3>
+					<CnDetailCard
+						:title="t('learniq', 'Score trend')"
+						class="course-quality-report__section">
 						<table class="course-quality-report__table">
 							<thead>
 								<tr>
@@ -116,10 +117,11 @@
 								</tr>
 							</tbody>
 						</table>
-					</section>
+					</CnDetailCard>
 
-					<section class="course-quality-report__section">
-						<h3>{{ t('learniq', 'Free-text answers') }}</h3>
+					<CnDetailCard
+						:title="t('learniq', 'Free-text answers')"
+						class="course-quality-report__section">
 						<ul
 							v-if="freeTextAnswers.length > 0"
 							class="course-quality-report__answers">
@@ -132,7 +134,7 @@
 						<p v-else class="course-quality-report__empty-text">
 							{{ t('learniq', 'No free-text answers submitted yet.') }}
 						</p>
-					</section>
+					</CnDetailCard>
 
 					<NcButton variant="secondary" @click="draftImprovementAction">
 						{{ t('learniq', 'Draft improvement action') }}
@@ -144,7 +146,7 @@
 </template>
 
 <script>
-import { CnPageHeader } from '@conduction/nextcloud-vue'
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcSelect } from '@nextcloud/vue'
 
@@ -152,6 +154,7 @@ export default {
 	name: 'CourseQualityReport',
 
 	components: {
+		CnDetailCard,
 		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
@@ -466,17 +469,6 @@ export default {
 </script>
 
 <style scoped>
-.course-quality-report {
-	max-width: 900px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.course-quality-report__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
 .course-quality-report__subtitle {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9em;
@@ -492,10 +484,6 @@ export default {
 	display: block;
 	font-weight: 600;
 	margin-bottom: 4px;
-}
-
-.course-quality-report__section {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
 }
 
 .course-quality-report__table {

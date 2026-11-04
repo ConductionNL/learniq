@@ -29,6 +29,7 @@
 			"type": "index",
 			"title": "App settings",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "LearniqSettings"
 			}

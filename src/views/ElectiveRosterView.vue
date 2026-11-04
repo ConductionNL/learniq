@@ -8,7 +8,7 @@
  @spec openspec/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
 -->
 <template>
-	<div class="elective-roster">
+	<div class="elective-roster lq-board-page">
 		<CnPageHeader :title="roster.name || t('learniq', 'Optional lessons')" />
 		<NcNoteCard v-if="error" type="error">
 			{{ error }}
@@ -16,12 +16,12 @@
 		<p v-if="loading">
 			{{ t('learniq', 'Loading…') }}
 		</p>
-		<section
+		<CnDetailCard
 			v-for="lesson in roster.lessons || []"
 			:key="lesson.key"
+			:title="formatDate(lesson.startsAt) + ' ' + lesson.title"
 			class="elective-roster__lesson"
 			data-testid="roster-lesson">
-			<h3>{{ formatDate(lesson.startsAt) }} {{ lesson.title }}</h3>
 			<p>
 				{{
 					n(
@@ -61,12 +61,12 @@
 					</ul>
 				</div>
 			</div>
-		</section>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
-import { CnPageHeader } from '@conduction/nextcloud-vue'
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { translatePlural as n, translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
@@ -76,6 +76,7 @@ export default {
 	name: 'ElectiveRosterView',
 
 	components: {
+		CnDetailCard,
 		CnPageHeader,
 		NcButton,
 		NcNoteCard,
@@ -198,16 +199,6 @@ export default {
 </script>
 
 <style scoped>
-.elective-roster {
-	padding: 16px;
-	max-width: 1000px;
-}
-
-.elective-roster__lesson {
-	padding-block: 12px;
-	border-bottom: 1px solid var(--color-border);
-}
-
 .elective-roster__columns {
 	display: grid;
 	grid-template-columns: 1fr 1fr;

@@ -159,6 +159,46 @@ class PortalEmployerCommandsTest extends TestCase {
 	}//end testTheListingPagesAndStops()
 
 	/**
+	 * A listing that stops at the page cap says so in the report; one that ends on a short page does not.
+	 *
+	 * @return void
+	 */
+	public function testTheReportSaysWhenTheListingStoppedAtTheCap(): void {
+		$account = ['subjectRef' => 's', 'audience' => 'employer', 'organisation' => 'school-a', 'claims' => ['learniq' => ['organisationRef' => 'co-a']]];
+		$pages = 40;
+		$objects = $this->createMock(originalClassName: ObjectService::class);
+		$objects->method('findAll')->willReturnCallback(
+			static function (array $config=[]) use ($account, &$pages): array {
+				if (intdiv((int)$config['offset'], 500) >= $pages) {
+					return [];
+				}
+
+				return array_fill(0, 500, $account);
+			}
+		);
+		$tenancy = $this->createMock(originalClassName: EmployerCompanyTenancy::class);
+		$tenancy->method('verdict')->willReturn(EmployerCompanyTenancy::HOLDS);
+		$accounts = new EmployerAccounts(objectService: $objects);
+		$command = new CommandTester(new PortalEmployerTenancyReportCommand(accounts: $accounts, tenancy: $tenancy));
+
+		self::assertSame(expected: 0, actual: $command->execute([]));
+		self::assertSame(
+			expected: "0 of 20000 employer accounts name a company outside their portal's organisation.\n"
+				. "The listing stopped at 20000 accounts; there may be more that this report did not check.\n",
+			actual: $command->getDisplay()
+		);
+		self::assertTrue(condition: $accounts->stoppedAtCap());
+
+		$pages = 39;
+		self::assertSame(expected: 0, actual: $command->execute([]));
+		self::assertSame(
+			expected: "0 of 19500 employer accounts name a company outside their portal's organisation.\n",
+			actual: $command->getDisplay()
+		);
+		self::assertFalse(condition: $accounts->stoppedAtCap(), message: 'a later complete listing clears the flag');
+	}//end testTheReportSaysWhenTheListingStoppedAtTheCap()
+
+	/**
 	 * A store that cannot be read fails the report.
 	 *
 	 * @return void

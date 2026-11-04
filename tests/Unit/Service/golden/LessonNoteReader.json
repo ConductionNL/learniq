@@ -1,0 +1,972 @@
+{
+    "notes for learner": {
+        "notes": {
+            "s-1": [
+                {
+                    "id": "n-1",
+                    "topic": "Breuken",
+                    "text": "Boek mee",
+                    "audience": "learners",
+                    "authorId": "jan"
+                },
+                {
+                    "id": "n-1",
+                    "topic": "Breuken",
+                    "text": "Boek mee",
+                    "audience": "learners",
+                    "authorId": "jan"
+                }
+            ],
+            "s-2": [
+                {
+                    "id": "n-3",
+                    "topic": null,
+                    "text": "Lokaal gewijzigd",
+                    "audience": "learners",
+                    "authorId": ""
+                },
+                {
+                    "id": "n-10",
+                    "topic": null,
+                    "text": "",
+                    "audience": "learners",
+                    "authorId": ""
+                }
+            ]
+        },
+        "asked": [
+            {
+                "isAdmin": "anna"
+            },
+            {
+                "isInGroup": [
+                    "anna",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "anna",
+                    "compliance-officers"
+                ]
+            }
+        ]
+    },
+    "writable for learner": {
+        "canAddNote": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        ],
+        "asked": [
+            {
+                "isAdmin": "anna"
+            },
+            {
+                "isInGroup": [
+                    "anna",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "anna",
+                    "compliance-officers"
+                ]
+            }
+        ]
+    },
+    "notes for the lesson teacher": {
+        "notes": {
+            "s-1": [
+                {
+                    "id": "n-1",
+                    "topic": "Breuken",
+                    "text": "Boek mee",
+                    "audience": "learners",
+                    "authorId": "jan"
+                },
+                {
+                    "id": "n-2",
+                    "topic": null,
+                    "text": "Toets ligt in la",
+                    "audience": "cover",
+                    "authorId": ""
+                },
+                {
+                    "id": "n-1",
+                    "topic": "Breuken",
+                    "text": "Boek mee",
+                    "audience": "learners",
+                    "authorId": "jan"
+                }
+            ],
+            "s-2": [
+                {
+                    "id": "n-3",
+                    "topic": null,
+                    "text": "Lokaal gewijzigd",
+                    "audience": "learners",
+                    "authorId": ""
+                },
+                {
+                    "id": "n-10",
+                    "topic": null,
+                    "text": "",
+                    "audience": "learners",
+                    "authorId": ""
+                }
+            ]
+        },
+        "asked": [
+            {
+                "isAdmin": "jan"
+            },
+            {
+                "isInGroup": [
+                    "jan",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "jan",
+                    "compliance-officers"
+                ]
+            }
+        ]
+    },
+    "writable for the lesson teacher": {
+        "canAddNote": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        ],
+        "asked": [
+            {
+                "isAdmin": "jan"
+            },
+            {
+                "isInGroup": [
+                    "jan",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "jan",
+                    "compliance-officers"
+                ]
+            }
+        ]
+    },
+    "notes for the substitute": {
+        "notes": {
+            "s-1": [
+                {
+                    "id": "n-1",
+                    "topic": "Breuken",
+                    "text": "Boek mee",
+                    "audience": "learners",
+                    "authorId": "jan"
+                },
+                {
+                    "id": "n-1",
+                    "topic": "Breuken",
+                    "text": "Boek mee",
+                    "audience": "learners",
+                    "authorId": "jan"
+                }
+            ],
+            "s-2": [
+                {
+                    "id": "n-3",
+                    "topic": null,
+                    "text": "Lokaal gewijzigd",
+                    "audience": "learners",
+                    "authorId": ""
+                },
+                {
+                    "id": "n-10",
+                    "topic": null,
+                    "text": "",
+                    "audience": "learners",
+                    "authorId": ""
+                }
+            ]
+        },
+        "asked": [
+            {
+                "isAdmin": "sub"
+            },
+            {
+                "isInGroup": [
+                    "sub",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "sub",
+                    "compliance-officers"
+                ]
+            }
+        ]
+    },
+    "writable for the substitute": {
+        "canAddNote": [
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        ],
+        "asked": [
+            {
+                "isAdmin": "sub"
+            },
+            {
+                "isInGroup": [
+                    "sub",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "sub",
+                    "compliance-officers"
+                ]
+            }
+        ]
+    },
+    "notes for a teacher of the cohort": {
+        "notes": {
+            "s-1": [
+                {
+                    "id": "n-1",
+                    "topic": "Breuken",
+                    "text": "Boek mee",
+                    "audience": "learners",
+                    "authorId": "jan"
+                },
+                {
+                    "id": "n-1",
+                    "topic": "Breuken",
+                    "text": "Boek mee",
+                    "audience": "learners",
+                    "authorId": "jan"
+                }
+            ],
+            "s-2": [
+                {
+                    "id": "n-3",
+                    "topic": null,
+                    "text": "Lokaal gewijzigd",
+                    "audience": "learners",
+                    "authorId": ""
+                },
+                {
+                    "id": "n-10",
+                    "topic": null,
+                    "text": "",
+                    "audience": "learners",
+                    "authorId": ""
+                }
+            ],
+            "s-3": [
+                {
+                    "id": "n-5",
+                    "topic": null,
+                    "text": "Alleen staf",
+                    "audience": "staff",
+                    "authorId": ""
+                }
+            ],
+            "s-4": [
+                {
+                    "id": "n-8",
+                    "topic": null,
+                    "text": "Invaller",
+                    "audience": "cover",
+                    "authorId": ""
+                }
+            ]
+        },
+        "asked": [
+            {
+                "isAdmin": "piet"
+            },
+            {
+                "isInGroup": [
+                    "piet",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "piet",
+                    "compliance-officers"
+                ]
+            }
+        ]
+    },
+    "writable for a teacher of the cohort": {
+        "canAddNote": [
+            false,
+            false,
+            true,
+            true,
+            false,
+            false,
+            false,
+            false
+        ],
+        "asked": [
+            {
+                "isAdmin": "piet"
+            },
+            {
+                "isInGroup": [
+                    "piet",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "piet",
+                    "compliance-officers"
+                ]
+            }
+        ]
+    },
+    "notes for a team lead": {
+        "notes": {
+            "s-1": [
+                {
+                    "id": "n-1",
+                    "topic": "Breuken",
+                    "text": "Boek mee",
+                    "audience": "learners",
+                    "authorId": "jan"
+                },
+                {
+                    "id": "n-2",
+                    "topic": null,
+                    "text": "Toets ligt in la",
+                    "audience": "cover",
+                    "authorId": ""
+                },
+                {
+                    "id": "n-1",
+                    "topic": "Breuken",
+                    "text": "Boek mee",
+                    "audience": "learners",
+                    "authorId": "jan"
+                },
+                {
+                    "id": "n-2",
+                    "topic": null,
+                    "text": "Toets ligt in la",
+                    "audience": "cover",
+                    "authorId": ""
+                }
+            ],
+            "s-2": [
+                {
+                    "id": "n-3",
+                    "topic": null,
+                    "text": "Lokaal gewijzigd",
+                    "audience": "learners",
+                    "authorId": ""
+                },
+                {
+                    "id": "n-10",
+                    "topic": null,
+                    "text": "",
+                    "audience": "learners",
+                    "authorId": ""
+                }
+            ],
+            "s-3": [
+                {
+                    "id": "n-5",
+                    "topic": null,
+                    "text": "Alleen staf",
+                    "audience": "staff",
+                    "authorId": ""
+                }
+            ],
+            "s-4": [
+                {
+                    "id": "n-8",
+                    "topic": null,
+                    "text": "Invaller",
+                    "audience": "cover",
+                    "authorId": ""
+                }
+            ],
+            "s-7": [
+                {
+                    "id": "n-11",
+                    "topic": null,
+                    "text": "Cover als tekst",
+                    "audience": "cover",
+                    "authorId": ""
+                }
+            ]
+        },
+        "asked": [
+            {
+                "isAdmin": "lead"
+            },
+            {
+                "isInGroup": [
+                    "lead",
+                    "team-leads"
+                ]
+            }
+        ]
+    },
+    "writable for a team lead": {
+        "canAddNote": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+        ],
+        "asked": [
+            {
+                "isAdmin": "lead"
+            },
+            {
+                "isInGroup": [
+                    "lead",
+                    "team-leads"
+                ]
+            }
+        ]
+    },
+    "notes for a compliance officer": {
+        "notes": {
+            "s-1": [
+                {
+                    "id": "n-1",
+                    "topic": "Breuken",
+                    "text": "Boek mee",
+                    "audience": "learners",
+                    "authorId": "jan"
+                },
+                {
+                    "id": "n-2",
+                    "topic": null,
+                    "text": "Toets ligt in la",
+                    "audience": "cover",
+                    "authorId": ""
+                },
+                {
+                    "id": "n-1",
+                    "topic": "Breuken",
+                    "text": "Boek mee",
+                    "audience": "learners",
+                    "authorId": "jan"
+                },
+                {
+                    "id": "n-2",
+                    "topic": null,
+                    "text": "Toets ligt in la",
+                    "audience": "cover",
+                    "authorId": ""
+                }
+            ],
+            "s-2": [
+                {
+                    "id": "n-3",
+                    "topic": null,
+                    "text": "Lokaal gewijzigd",
+                    "audience": "learners",
+                    "authorId": ""
+                },
+                {
+                    "id": "n-10",
+                    "topic": null,
+                    "text": "",
+                    "audience": "learners",
+                    "authorId": ""
+                }
+            ],
+            "s-3": [
+                {
+                    "id": "n-5",
+                    "topic": null,
+                    "text": "Alleen staf",
+                    "audience": "staff",
+                    "authorId": ""
+                }
+            ],
+            "s-4": [
+                {
+                    "id": "n-8",
+                    "topic": null,
+                    "text": "Invaller",
+                    "audience": "cover",
+                    "authorId": ""
+                }
+            ],
+            "s-7": [
+                {
+                    "id": "n-11",
+                    "topic": null,
+                    "text": "Cover als tekst",
+                    "audience": "cover",
+                    "authorId": ""
+                }
+            ]
+        },
+        "asked": [
+            {
+                "isAdmin": "officer"
+            },
+            {
+                "isInGroup": [
+                    "officer",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "officer",
+                    "compliance-officers"
+                ]
+            }
+        ]
+    },
+    "writable for a compliance officer": {
+        "canAddNote": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+        ],
+        "asked": [
+            {
+                "isAdmin": "officer"
+            },
+            {
+                "isInGroup": [
+                    "officer",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "officer",
+                    "compliance-officers"
+                ]
+            }
+        ]
+    },
+    "notes for an admin": {
+        "notes": {
+            "s-1": [
+                {
+                    "id": "n-1",
+                    "topic": "Breuken",
+                    "text": "Boek mee",
+                    "audience": "learners",
+                    "authorId": "jan"
+                },
+                {
+                    "id": "n-2",
+                    "topic": null,
+                    "text": "Toets ligt in la",
+                    "audience": "cover",
+                    "authorId": ""
+                },
+                {
+                    "id": "n-1",
+                    "topic": "Breuken",
+                    "text": "Boek mee",
+                    "audience": "learners",
+                    "authorId": "jan"
+                },
+                {
+                    "id": "n-2",
+                    "topic": null,
+                    "text": "Toets ligt in la",
+                    "audience": "cover",
+                    "authorId": ""
+                }
+            ],
+            "s-2": [
+                {
+                    "id": "n-3",
+                    "topic": null,
+                    "text": "Lokaal gewijzigd",
+                    "audience": "learners",
+                    "authorId": ""
+                },
+                {
+                    "id": "n-10",
+                    "topic": null,
+                    "text": "",
+                    "audience": "learners",
+                    "authorId": ""
+                }
+            ],
+            "s-3": [
+                {
+                    "id": "n-5",
+                    "topic": null,
+                    "text": "Alleen staf",
+                    "audience": "staff",
+                    "authorId": ""
+                }
+            ],
+            "s-4": [
+                {
+                    "id": "n-8",
+                    "topic": null,
+                    "text": "Invaller",
+                    "audience": "cover",
+                    "authorId": ""
+                }
+            ],
+            "s-7": [
+                {
+                    "id": "n-11",
+                    "topic": null,
+                    "text": "Cover als tekst",
+                    "audience": "cover",
+                    "authorId": ""
+                }
+            ]
+        },
+        "asked": [
+            {
+                "isAdmin": "root"
+            }
+        ]
+    },
+    "writable for an admin": {
+        "canAddNote": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+        ],
+        "asked": [
+            {
+                "isAdmin": "root"
+            }
+        ]
+    },
+    "notes for an empty uid": {
+        "notes": {
+            "s-1": [
+                {
+                    "id": "n-1",
+                    "topic": "Breuken",
+                    "text": "Boek mee",
+                    "audience": "learners",
+                    "authorId": "jan"
+                },
+                {
+                    "id": "n-1",
+                    "topic": "Breuken",
+                    "text": "Boek mee",
+                    "audience": "learners",
+                    "authorId": "jan"
+                }
+            ],
+            "s-2": [
+                {
+                    "id": "n-3",
+                    "topic": null,
+                    "text": "Lokaal gewijzigd",
+                    "audience": "learners",
+                    "authorId": ""
+                },
+                {
+                    "id": "n-10",
+                    "topic": null,
+                    "text": "",
+                    "audience": "learners",
+                    "authorId": ""
+                }
+            ]
+        },
+        "asked": [
+            {
+                "isAdmin": ""
+            },
+            {
+                "isInGroup": [
+                    "",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "",
+                    "compliance-officers"
+                ]
+            }
+        ]
+    },
+    "writable for an empty uid": {
+        "canAddNote": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        ],
+        "asked": [
+            {
+                "isAdmin": ""
+            },
+            {
+                "isInGroup": [
+                    "",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "",
+                    "compliance-officers"
+                ]
+            }
+        ]
+    },
+    "notes for a uid only a lesson names": {
+        "notes": {
+            "s-1": [
+                {
+                    "id": "n-1",
+                    "topic": "Breuken",
+                    "text": "Boek mee",
+                    "audience": "learners",
+                    "authorId": "jan"
+                },
+                {
+                    "id": "n-1",
+                    "topic": "Breuken",
+                    "text": "Boek mee",
+                    "audience": "learners",
+                    "authorId": "jan"
+                },
+                {
+                    "id": "n-2",
+                    "topic": null,
+                    "text": "Toets ligt in la",
+                    "audience": "cover",
+                    "authorId": ""
+                }
+            ],
+            "s-2": [
+                {
+                    "id": "n-3",
+                    "topic": null,
+                    "text": "Lokaal gewijzigd",
+                    "audience": "learners",
+                    "authorId": ""
+                },
+                {
+                    "id": "n-10",
+                    "topic": null,
+                    "text": "",
+                    "audience": "learners",
+                    "authorId": ""
+                }
+            ],
+            "s-4": [
+                {
+                    "id": "n-8",
+                    "topic": null,
+                    "text": "Invaller",
+                    "audience": "cover",
+                    "authorId": ""
+                }
+            ],
+            "s-7": [
+                {
+                    "id": "n-11",
+                    "topic": null,
+                    "text": "Cover als tekst",
+                    "audience": "cover",
+                    "authorId": ""
+                }
+            ]
+        },
+        "asked": [
+            {
+                "isAdmin": "forged"
+            },
+            {
+                "isInGroup": [
+                    "forged",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "forged",
+                    "compliance-officers"
+                ]
+            }
+        ]
+    },
+    "writable for a uid only a lesson names": {
+        "canAddNote": [
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            true,
+            true
+        ],
+        "asked": [
+            {
+                "isAdmin": "forged"
+            },
+            {
+                "isInGroup": [
+                    "forged",
+                    "team-leads"
+                ]
+            },
+            {
+                "isInGroup": [
+                    "forged",
+                    "compliance-officers"
+                ]
+            }
+        ]
+    },
+    "no lessons": [
+        [],
+        [],
+        []
+    ],
+    "belongsTo": [
+        "0>s-1=true",
+        "0>s-2=false",
+        "0>s-3=false",
+        "0>s-4=false",
+        "0>s-5=false",
+        "0>?=false",
+        "0>s-1=true",
+        "0>s-7=false",
+        "1>s-1=true",
+        "1>s-2=false",
+        "1>s-3=false",
+        "1>s-4=false",
+        "1>s-5=false",
+        "1>?=false",
+        "1>s-1=true",
+        "1>s-7=false",
+        "2>s-1=false",
+        "2>s-2=true",
+        "2>s-3=false",
+        "2>s-4=false",
+        "2>s-5=false",
+        "2>?=false",
+        "2>s-1=false",
+        "2>s-7=false",
+        "3>s-1=false",
+        "3>s-2=false",
+        "3>s-3=false",
+        "3>s-4=false",
+        "3>s-5=false",
+        "3>?=false",
+        "3>s-1=false",
+        "3>s-7=false",
+        "4>s-1=false",
+        "4>s-2=false",
+        "4>s-3=true",
+        "4>s-4=false",
+        "4>s-5=false",
+        "4>?=false",
+        "4>s-1=false",
+        "4>s-7=false",
+        "5>s-1=false",
+        "5>s-2=false",
+        "5>s-3=false",
+        "5>s-4=false",
+        "5>s-5=false",
+        "5>?=false",
+        "5>s-1=false",
+        "5>s-7=false",
+        "6>s-1=false",
+        "6>s-2=false",
+        "6>s-3=false",
+        "6>s-4=false",
+        "6>s-5=false",
+        "6>?=false",
+        "6>s-1=false",
+        "6>s-7=false",
+        "7>s-1=false",
+        "7>s-2=false",
+        "7>s-3=false",
+        "7>s-4=true",
+        "7>s-5=false",
+        "7>?=false",
+        "7>s-1=false",
+        "7>s-7=false",
+        "8>s-1=false",
+        "8>s-2=false",
+        "8>s-3=false",
+        "8>s-4=false",
+        "8>s-5=false",
+        "8>?=false",
+        "8>s-1=false",
+        "8>s-7=false",
+        "9>s-1=false",
+        "9>s-2=true",
+        "9>s-3=false",
+        "9>s-4=false",
+        "9>s-5=false",
+        "9>?=false",
+        "9>s-1=false",
+        "9>s-7=false",
+        "10>s-1=false",
+        "10>s-2=false",
+        "10>s-3=false",
+        "10>s-4=false",
+        "10>s-5=false",
+        "10>?=false",
+        "10>s-1=false",
+        "10>s-7=true"
+    ]
+}

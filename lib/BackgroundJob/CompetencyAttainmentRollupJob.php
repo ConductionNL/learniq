@@ -30,12 +30,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\BackgroundJob;
 
 use OCA\Learniq\Service\CompetencyAttainmentRollup;
-use OCA\OpenRegister\BackgroundJob\ActorForwardedJob;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
-use OCA\OpenRegister\Service\OrganisationService;
-use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\IUserManager;
-use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -44,33 +39,21 @@ use Throwable;
  *
  * @spec openspec/specs/competency/spec.md#requirement-the-competency-attainment-roll-up-runs-outside-the-save-that-triggers-it
  */
-class CompetencyAttainmentRollupJob extends ActorForwardedJob {
+class CompetencyAttainmentRollupJob extends ForwardedJob {
 
 	/**
 	 * Constructor.
 	 *
-	 * @param ITimeFactory $time Time factory.
-	 * @param IUserSession $userSession User session, for the actor.
-	 * @param IUserManager $userManager User manager, for the actor.
-	 * @param OrganisationService $organisation The actor's organisation.
+	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface $logger Logger.
 	 * @param CompetencyAttainmentRollup $rollup The roll-up work.
 	 */
 	public function __construct(
-		ITimeFactory $time,
-		IUserSession $userSession,
-		IUserManager $userManager,
-		OrganisationService $organisation,
+		ActorForwarding $forwarding,
 		LoggerInterface $logger,
 		private readonly CompetencyAttainmentRollup $rollup,
 	) {
-		parent::__construct(
-			time: $time,
-			userSession: $userSession,
-			userManager: $userManager,
-			organisation: $organisation,
-			logger: $logger
-		);
+		parent::__construct(forwarding: $forwarding, logger: $logger);
 	}//end __construct()
 
 	/**

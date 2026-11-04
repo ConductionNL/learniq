@@ -31,9 +31,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Course;
 
 use OCA\Learniq\Exception\CourseTemplateRefusedException;
-use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
 use OCA\OpenRegister\Exception\NotAuthorizedException;
-use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -68,17 +66,15 @@ class CourseTemplateService {
 	/**
 	 * Constructor.
 	 *
-	 * @param ObjectService             $objectService OpenRegister reads and deletes.
-	 * @param CoursePackageObjectWriter $writer      OpenRegister creates.
-	 * @param IL10N                     $l10n        Placeholder texts.
-	 * @param ITimeFactory              $timeFactory The suffix of a new course code.
-	 * @param LoggerInterface           $logger      Failed rollbacks.
+	 * @param CourseTemplateObjects $objects     OpenRegister reads, creates and deletes.
+	 * @param IL10N                 $l10n        Placeholder texts.
+	 * @param ITimeFactory          $timeFactory The suffix of a new course code.
+	 * @param LoggerInterface       $logger      Failed rollbacks.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ObjectService $objectService,
-		private readonly CoursePackageObjectWriter $writer,
+		private readonly CourseTemplateObjects $objects,
 		private readonly IL10N $l10n,
 		private readonly ITimeFactory $timeFactory,
 		private readonly LoggerInterface $logger,
@@ -195,7 +191,7 @@ class CourseTemplateService {
 		$name = $this->validName(name: $name);
 		$template = $this->load(schema: 'course-template', id: $templateId, what: 'template');
 		$draft = ['name' => $name, 'language' => self::languageOrDefault(language: $language)] + self::templateScope(template: $template);
-		$build = new CourseTemplateBuild(writer: $this->writer, draft: $draft);
+		$build = new CourseTemplateBuild(writer: $this->objects->writer, draft: $draft);
 
 		try {
 			$courseId = $this->buildFromTemplate(template: $template, build: $build);
@@ -266,7 +262,7 @@ class CourseTemplateService {
 	 */
 	private function guardedCreate(string $schema, array $object): ?string {
 		try {
-			return $this->writer->create(schema: $schema, object: $object);
+			return $this->objects->writer->create(schema: $schema, object: $object);
 		} catch (Throwable $failure) {
 			throw $this->refusalFor(failure: $failure, fallback: 'The template could not be saved.');
 		}
@@ -282,7 +278,7 @@ class CourseTemplateService {
 	private function rollback(array $created): void {
 		foreach (array_reverse($created) as $object) {
 			try {
-				$this->objectService->deleteObject(uuid: $object['id'], register: self::REGISTER, schema: $object['schema'], _rbac: true);
+				$this->objects->objectService->deleteObject(uuid: $object['id'], register: self::REGISTER, schema: $object['schema'], _rbac: true);
 			} catch (Throwable $failure) {
 				$this->logger->warning(
 					'[CourseTemplateService] Could not remove {schema} {id} after a failed instantiation: {error}',
@@ -337,7 +333,7 @@ class CourseTemplateService {
 		);
 
 		try {
-			$record = $this->objectService->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: true, _render: false)?->jsonSerialize();
+			$record = $this->objects->objectService->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: true, _render: false)?->jsonSerialize();
 		} catch (DoesNotExistException) {
 			throw $missing;
 		} catch (NotAuthorizedException) {
@@ -363,7 +359,7 @@ class CourseTemplateService {
 		$rows = [];
 		$offset = 0;
 		do {
-			$page = $this->objectService->findAll(
+			$page = $this->objects->objectService->findAll(
 				config: [
 					'filters' => array_merge(['register' => self::REGISTER, 'schema' => $schema], $filters),
 					'limit' => self::PAGE,

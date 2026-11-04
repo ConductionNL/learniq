@@ -88,3 +88,19 @@ export async function removeExampleSet(set, { confirm, post, t }) {
 		}
 	}
 }
+
+/**
+ * The question before removing a set, naming how many objects go to the trash
+ * when the list told how many the set holds.
+ *
+ * @param {{label: string, objects?: number}} set The set.
+ * @param {(text: string, vars?: object) => string} t Translates.
+ * @return {string} The question.
+ * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
+ */
+export function removalQuestion(set, t) {
+	const vars = { set: t(set.label), count: set.objects }
+	return Number.isInteger(set.objects) && set.objects > 0
+		? t('Remove the example set "{set}"? Its {count} objects move to the trash of OpenRegister. Anything you made yourself stays.', vars)
+		: t('Remove the example set "{set}"? Its objects move to the trash of OpenRegister. Anything you made yourself stays.', vars)
+}

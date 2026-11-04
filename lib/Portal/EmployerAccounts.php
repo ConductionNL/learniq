@@ -54,6 +54,18 @@ class EmployerAccounts {
 	private const MAX_PAGES = 40;
 
 	/**
+	 * The most accounts one listing reads.
+	 */
+	public const CAP = (self::MAX_PAGES * self::PAGE);
+
+	/**
+	 * Whether the last listing ended at the cap rather than on a short page.
+	 *
+	 * @var boolean
+	 */
+	private bool $stoppedAtCap = false;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService Reads the accounts.
@@ -75,6 +87,7 @@ class EmployerAccounts {
 	 * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
 	 */
 	public function withCompany(): array {
+		$this->stoppedAtCap = false;
 		$accounts = [];
 		for ($page = 0; $page < self::MAX_PAGES; $page++) {
 			$rows = $this->objectService->findAll(
@@ -94,12 +107,24 @@ class EmployerAccounts {
 			}
 
 			if (count($rows) < self::PAGE) {
-				break;
+				return $accounts;
 			}
 		}
 
+		$this->stoppedAtCap = true;
 		return $accounts;
 	}//end withCompany()
+
+	/**
+	 * Whether the last listing stopped at CAP accounts, so more may exist.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+	 */
+	public function stoppedAtCap(): bool {
+		return $this->stoppedAtCap;
+	}//end stoppedAtCap()
 
 	/**
 	 * The row as an employer account with a company claim, or null.

@@ -30,6 +30,7 @@ use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Exception\ExchangeRequestRefusedException;
 use OCA\Learniq\Exception\IntegriqUnavailableException;
 use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\CallerActions;
 use OCA\Learniq\Service\IntegriqExchangeClient;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
@@ -79,21 +80,35 @@ class ExchangeRequestController extends Controller {
 	private const REVIEWED_TARGETS = ['oso', 'swv'];
 
 	/**
+	 * Current user session.
+	 *
+	 * @var IUserSession
+	 */
+	private readonly IUserSession $userSession;
+
+	/**
+	 * ADR-023 action matrix.
+	 *
+	 * @var ActionAuthService
+	 */
+	private readonly ActionAuthService $actionAuth;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IRequest               $request       HTTP request.
-	 * @param IUserSession           $userSession   Current user session.
-	 * @param ActionAuthService      $actionAuth    ADR-023 action matrix.
+	 * @param CallerActions $caller The user session and the ADR-023 action matrix.
 	 * @param IntegriqExchangeClient $integriq      Asks integriq for the job.
 	 * @param ObjectService          $objectService Opens the parents' review.
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly IUserSession $userSession,
-		private readonly ActionAuthService $actionAuth,
+		CallerActions $caller,
 		private readonly IntegriqExchangeClient $integriq,
 		private readonly ObjectService $objectService,
 	) {
+		$this->userSession = $caller->userSession;
+		$this->actionAuth = $caller->actionAuth;
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
 

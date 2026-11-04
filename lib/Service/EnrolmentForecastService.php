@@ -80,6 +80,7 @@ class EnrolmentForecastService {
 		$durations = $this->reader->durations(current: $current);
 		$years = $this->progress(current: $current, rates: $rates, durations: $durations);
 		$years = $this->addIntake(years: $years, forecast: $forecast, targetYear: $targetYear);
+		$chosen = $this->chosenPerGroup(current: $current, targetYear: $targetYear);
 
 		return [
 			'computedAt' => (new DateTimeImmutable('now'))->format(DateTimeInterface::ATOM),
@@ -88,7 +89,7 @@ class EnrolmentForecastService {
 			'targetYear' => $targetYear,
 			'targetGroupSize' => $size,
 			'programmeYears' => $this->yearRows(years: $years, programmes: $programmes, size: $size),
-			'subjects' => $this->subjectRows(years: $years, current: $current, targetYear: $targetYear, programmes: $programmes, size: $size),
+			'subjects' => $this->subjectRows(years: $years, chosen: $chosen, programmes: $programmes, size: $size),
 		];
 	}//end compute()
 
@@ -137,9 +138,9 @@ class EnrolmentForecastService {
 			$count = count((array)($group['learnerIds'] ?? []));
 			$rate = ($rates[$programmeId.'|'.$year] ?? self::DEFAULT_RATES);
 
-			$this->add(years: $years, programmeId: $programmeId, programmeYear: $year, field: 'repeaters', amount: $count * $rate['repeatRate']);
+			$this->add(years: $years, slot: [$programmeId, $year], field: 'repeaters', amount: $count * $rate['repeatRate']);
 			if ($year < ($durations[$programmeId] ?? $year)) {
-				$this->add(years: $years, programmeId: $programmeId, programmeYear: $year + 1, field: 'fromMovingUp', amount: $count * $rate['upRate']);
+				$this->add(years: $years, slot: [$programmeId, $year + 1], field: 'fromMovingUp', amount: $count * $rate['upRate']);
 			}
 		}
 
@@ -167,7 +168,7 @@ class EnrolmentForecastService {
 		}
 
 		foreach ($intake as $programmeId => $expected) {
-			$this->add(years: $years, programmeId: (string)$programmeId, programmeYear: 1, field: 'intake', amount: (float)$expected);
+			$this->add(years: $years, slot: [(string)$programmeId, 1], field: 'intake', amount: (float)$expected);
 		}
 
 		return $years;
@@ -208,18 +209,15 @@ class EnrolmentForecastService {
 	}//end yearRows()
 
 	/**
-	 * The subject table: approved choices counted, the rest estimated from
-	 * the share of each subject among the choices made so far.
+	 * The approved choices counted per next year's programme year: learners
+	 * who chose, and how often each subject was chosen.
 	 *
-	 * @param array<string, array<string, mixed>> $years      The buckets.
-	 * @param array<int, array<string, mixed>>    $current    This year's groups.
-	 * @param string                              $targetYear The target school year.
-	 * @param array<string, array<string, mixed>> $programmes Programmes by id.
-	 * @param int                                 $size       Target group size.
+	 * @param array<int, array<string, mixed>> $current    This year's groups.
+	 * @param string                           $targetYear The target school year.
 	 *
-	 * @return array<int, array<string, mixed>>
+	 * @return array<string, array{learners: int, courses?: array<string, int>}> Keyed `programmeId|programmeYear`.
 	 */
-	private function subjectRows(array $years, array $current, string $targetYear, array $programmes, int $size): array {
+	private function chosenPerGroup(array $current, string $targetYear): array {
 		$nextYearOf = [];
 		foreach ($current as $group) {
 			foreach ((array)($group['learnerIds'] ?? []) as $learnerId) {
@@ -236,6 +234,21 @@ class EnrolmentForecastService {
 			}
 		}
 
+		return $chosen;
+	}//end chosenPerGroup()
+
+	/**
+	 * The subject table: approved choices counted, the rest estimated from
+	 * the share of each subject among the choices made so far.
+	 *
+	 * @param array<string, array<string, mixed>>                              $years      The buckets.
+	 * @param array<string, array{learners: int, courses?: array<string, int>}> $chosen     Choices counted per programme year.
+	 * @param array<string, array<string, mixed>>                              $programmes Programmes by id.
+	 * @param int                                                              $size       Target group size.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function subjectRows(array $years, array $chosen, array $programmes, int $size): array {
 		$courseNames = $this->reader->courseNames();
 		$rows = [];
 		foreach ($chosen as $key => $group) {
@@ -275,15 +288,15 @@ class EnrolmentForecastService {
 	/**
 	 * Add learners to a programme year's bucket, creating it when missing.
 	 *
-	 * @param array<string, array<string, mixed>> $years         The buckets.
-	 * @param string                              $programmeId   The programme.
-	 * @param int                                 $programmeYear The programme year.
-	 * @param string                              $field         `fromMovingUp`, `repeaters` or `intake`.
-	 * @param float                               $amount        Learners to add.
+	 * @param array<string, array<string, mixed>> $years  The buckets.
+	 * @param array{0: string, 1: int}            $slot   The programme and the programme year.
+	 * @param string                              $field  `fromMovingUp`, `repeaters` or `intake`.
+	 * @param float                               $amount Learners to add.
 	 *
 	 * @return void
 	 */
-	private function add(array &$years, string $programmeId, int $programmeYear, string $field, float $amount): void {
+	private function add(array &$years, array $slot, string $field, float $amount): void {
+		[$programmeId, $programmeYear] = $slot;
 		$key = $programmeId.'|'.$programmeYear;
 		if (isset($years[$key]) === false) {
 			$years[$key] = ['programmeId' => $programmeId, 'programmeYear' => $programmeYear, 'fromMovingUp' => 0.0, 'repeaters' => 0.0, 'intake' => 0.0];

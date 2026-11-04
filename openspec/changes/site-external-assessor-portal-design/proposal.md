@@ -25,7 +25,7 @@ So this change does two things. It designs the part of the mockup that today's d
 
 Existing data, new declarations:
 
-- **An overview** `eaOverview`, "Overzicht", with `home: true`: the access notice and the candidates whose work is shared with him.
+- **An overview** `eaOverview`, "Gedeeld met u", with `home: true`: the candidates whose work is shared with him, each with its end date. The board esdoornveen/Beoordelaar replaces the access notice and the short menu below (decision 130).
 - **The access sentence**, as in the mockup: "U heeft toegang tot en met {expiresAt}." with `whenEmpty: { expiresAt: "U heeft toegang zonder einddatum." }`, a `richText` `template` block (REQ-SMO-027) on each share's record page. The overview keeps a short "Uw toegang" list of his latest-ending share, plus the fixed line "U ziet alleen de kandidaten die u beoordeelt."
 - **A short menu** under `group: Mijn omgeving`: Overzicht, Gedeeld met mij. Berichten is portaliq's own inbox entry. The default collection pages get `menu: false`.
 - **Dutch labels** through `PortalLabelTranslator`, in the "u" form.

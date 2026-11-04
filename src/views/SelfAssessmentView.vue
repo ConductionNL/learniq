@@ -37,11 +37,11 @@
 -->
 
 <template>
-	<div class="self-assessment-view">
+	<div class="self-assessment-view lq-board-page">
 		<!-- Loading -->
 		<div v-if="loading" class="self-assessment-view__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('learniq', 'Loading self-assessment...') }}</span>
+			<span>{{ t('learniq', 'Loading self-assessment…') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -81,77 +81,29 @@
 				</p>
 			</header>
 
-			<section
+			<CnDetailCard
 				v-if="rubric && rubric.criteria && rubric.criteria.length > 0"
+				:title="t('learniq', 'Rubric: {name}', { name: rubric.name || '' })"
 				class="self-assessment-view__rubric">
-				<h3>
-					{{ t('learniq', 'Rubric: {name}', { name: rubric.name || '' }) }}
-				</h3>
+				<RubricPicker
+					v-model:selectedLevels="selectedLevels"
+					:rubric="rubric"
+					:maxPoints="assignment.maxPoints || 0"
+					:disabled="saving" />
+			</CnDetailCard>
 
-				<div
-					v-for="criterion in rubric.criteria"
-					:key="criterion.criterionId"
-					class="self-assessment-view__criterion">
-					<h4 class="self-assessment-view__criterion-label">
-						{{ criterion.label }}
-						<span class="self-assessment-view__criterion-weight">
-							{{
-								t('learniq', '(weight: {w})', {
-									w: criterion.weight,
-								})
-							}}
-						</span>
-					</h4>
-					<div class="self-assessment-view__levels">
-						<label
-							v-for="level in criterion.levels"
-							:key="level.levelId"
-							class="self-assessment-view__level">
-							<input
-								type="radio"
-								:name="criterion.criterionId"
-								:value="level.levelId"
-								:checked="
-									getSelectedLevel(criterion.criterionId)
-									=== level.levelId
-								"
-								:disabled="saving"
-								@change="selectLevel(criterion, level)" />
-							<span class="self-assessment-view__level-label">{{
-								level.label
-							}}</span>
-							<span class="self-assessment-view__level-points">
-								{{
-									t('learniq', '{pts} pts', { pts: level.points })
-								}}
-							</span>
-						</label>
-					</div>
-				</div>
-
-				<div class="self-assessment-view__score-total">
-					<strong>{{
-						t('learniq', 'Score: {score} / {max}', {
-							score: computedScore,
-							max: assignment.maxPoints || '?',
-						})
-					}}</strong>
-				</div>
-			</section>
-
-			<section class="self-assessment-view__comments">
-				<h3 id="self-assessment-comments-label">
-					{{ t('learniq', 'Your reflection') }}
-				</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Your reflection')"
+				class="self-assessment-view__comments">
 				<textarea
 					id="self-assessment-comments"
 					v-model="comments"
 					class="self-assessment-view__comments-input"
-					aria-labelledby="self-assessment-comments-label"
-					:placeholder="t('learniq', 'Reflect on your own work...')"
+					:aria-label="t('learniq', 'Your reflection')"
+					:placeholder="t('learniq', 'Reflect on your own work…')"
 					:disabled="saving"
 					rows="5" />
-			</section>
+			</CnDetailCard>
 
 			<div class="self-assessment-view__actions">
 				<button
@@ -173,14 +125,15 @@
 </template>
 
 <script>
-import { CnPageHeader } from '@conduction/nextcloud-vue'
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
+import RubricPicker from '../components/RubricPicker.vue'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'SelfAssessmentView',
-	components: { CnPageHeader },
+	components: { CnDetailCard, CnPageHeader, RubricPicker },
 
 	props: {
 		/**
@@ -429,34 +382,6 @@ export default {
 		},
 
 		/**
-		 * Get the currently selected levelId for a criterion.
-		 *
-		 * @param {string} criterionId Criterion identifier
-		 * @return {string|undefined}
-		 */
-		getSelectedLevel(criterionId) {
-			return this.selectedLevels[criterionId]?.levelId
-		},
-
-		/**
-		 * Record the learner's level selection for a criterion.
-		 *
-		 * @param {object} criterion Rubric criterion object
-		 * @param {object} level     Selected level object
-		 * @return {void}
-		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
-		 */
-		selectLevel(criterion, level) {
-			this.selectedLevels = {
-				...this.selectedLevels,
-				[criterion.criterionId]: {
-					levelId: level.levelId,
-					points: level.points,
-				},
-			}
-		},
-
-		/**
 		 * Build the rubricScores array from current selections.
 		 *
 		 * @return {Array<{criterionId: string, levelId: string, points: number}>}
@@ -568,13 +493,6 @@ export default {
 </script>
 
 <style scoped>
-.self-assessment-view {
-	max-width: 860px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
 .self-assessment-view__loading,
 .self-assessment-view__error {
 	display: flex;
@@ -583,72 +501,18 @@ export default {
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
-.self-assessment-view__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
 .self-assessment-view__meta {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9em;
 }
 
-.self-assessment-view__rubric,
-.self-assessment-view__comments {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
 
-.self-assessment-view__criterion {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
-	padding: var(--default-grid-baseline, 8px);
-	border: 1px solid var(--color-border);
-	border-radius: 4px;
-}
 
-.self-assessment-view__criterion-label {
-	font-weight: bold;
-	margin-bottom: var(--default-grid-baseline, 8px);
-}
 
-.self-assessment-view__criterion-weight {
-	font-weight: normal;
-	color: var(--color-text-maxcontrast);
-	font-size: 0.85em;
-	margin-left: 4px;
-}
 
-.self-assessment-view__levels {
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--default-grid-baseline, 8px);
-}
 
-.self-assessment-view__level {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	cursor: pointer;
-	padding: 4px 8px;
-	border: 1px solid var(--color-border);
-	border-radius: 4px;
-	background: var(--color-main-background);
-}
 
-.self-assessment-view__level:has(input:checked) {
-	background: var(--color-primary-element-light);
-	border-color: var(--color-primary);
-}
 
-.self-assessment-view__level-points {
-	color: var(--color-text-maxcontrast);
-	font-size: 0.85em;
-}
-
-.self-assessment-view__score-total {
-	margin-top: calc(var(--default-grid-baseline, 8px) * 2);
-	padding: var(--default-grid-baseline, 8px);
-	background: var(--color-background-hover);
-	border-radius: 4px;
-}
 
 .self-assessment-view__comments-input {
 	width: 100%;

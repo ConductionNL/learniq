@@ -73,25 +73,45 @@ class PlanninqTimetableImport {
 	private const SCAN_DAYS = 14;
 
 	/**
+	 * Says whether planninq is the source; reads its lessons.
+	 *
+	 * @var TimetableSourceResolver
+	 */
+	private readonly TimetableSourceResolver $sources;
+
+	/**
+	 * Scans the delivered lessons.
+	 *
+	 * @var TimetableConflictDetector
+	 */
+	private readonly TimetableConflictDetector $conflictDetector;
+
+	/**
+	 * The group code maps the administrator keeps per rostering system.
+	 *
+	 * @var TimetableExchangeSettings
+	 */
+	private readonly TimetableExchangeSettings $groupMaps;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param TimetableSourceResolver   $sources          Says whether planninq is the source; reads its lessons.
-	 * @param IEventDispatcher          $dispatcher       Dispatches integriq's event.
-	 * @param TimetableConflictDetector $conflictDetector Scans the delivered lessons.
-	 * @param LoggerInterface           $logger           PSR logger.
-	 * @param TimetableExchangeSettings $groupMaps        The group code maps the administrator keeps per rostering system.
-	 * @param string                    $eventClass       Integriq's event class name (tests only).
+	 * @param TimetableImportCollaborators $collaborators The source resolver, group code maps and conflict detector.
+	 * @param IEventDispatcher             $dispatcher    Dispatches integriq's event.
+	 * @param LoggerInterface              $logger        PSR logger.
+	 * @param string                       $eventClass    Integriq's event class name (tests only).
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly TimetableSourceResolver $sources,
+		TimetableImportCollaborators $collaborators,
 		private readonly IEventDispatcher $dispatcher,
-		private readonly TimetableConflictDetector $conflictDetector,
 		private readonly LoggerInterface $logger,
-		private readonly TimetableExchangeSettings $groupMaps,
 		private readonly string $eventClass = self::INTEGRIQ_EVENT,
 	) {
+		$this->sources = $collaborators->sources;
+		$this->conflictDetector = $collaborators->conflictDetector;
+		$this->groupMaps = $collaborators->groupMaps;
 	}//end __construct()
 
 	/**

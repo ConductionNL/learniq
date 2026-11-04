@@ -19,6 +19,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\ExampleSetSizes;
 use OCA\Learniq\Service\SeedProfileService;
 use OCA\Learniq\Settings\AdminSettings;
 use OCP\AppFramework\Controller;
@@ -50,10 +51,12 @@ class ExampleSetsController extends Controller {
 	 *
 	 * @param IRequest           $request      The request.
 	 * @param SeedProfileService $seedProfiles Reads which example sets are loaded.
+	 * @param ExampleSetSizes    $sizes        Counts the objects of each set.
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly SeedProfileService $seedProfiles,
+		private readonly ExampleSetSizes $sizes,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -66,12 +69,14 @@ class ExampleSetsController extends Controller {
 	 * the existing `remove-example-set-<id>` action. The page cannot read the
 	 * `loadedExampleSets` initial state: only the app page provides it.
 	 *
-	 * @return JSONResponse `{ sets: [{ id, label }] }`.
+	 * @return JSONResponse `{ sets: [{ id, label, objects? }] }`; `objects` is the set's object count.
 	 *
 	 * @spec openspec/changes/wizard-drops-the-removal-step/specs/example-sets/spec.md
 	 */
 	#[AuthorizedAdminSetting(AdminSettings::class)]
 	public function exampleSets(): JSONResponse {
-		return new JSONResponse(data: ['sets' => $this->seedProfiles->loadedSets()->all()]);
+		$sets = $this->seedProfiles->loadedSets()->all();
+
+		return new JSONResponse(data: ['sets' => $this->sizes->withSizes(sets: $sets)]);
 	}//end exampleSets()
 }//end class

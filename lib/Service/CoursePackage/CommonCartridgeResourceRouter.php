@@ -38,23 +38,43 @@ use Psr\Log\LoggerInterface;
  */
 class CommonCartridgeResourceRouter {
 	/**
+	 * Creates the Learniq objects the package materialises.
+	 *
+	 * @var CoursePackageObjectWriter
+	 */
+	private readonly CoursePackageObjectWriter $objectWriter;
+
+	/**
+	 * Resolves package-relative file bytes into nc:files.
+	 *
+	 * @var CoursePackageFileWriter
+	 */
+	private readonly CoursePackageFileWriter $fileWriter;
+
+	/**
+	 * Builds the report entry rows.
+	 *
+	 * @var CoursePackageImportReporter
+	 */
+	private readonly CoursePackageImportReporter $reporter;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param CoursePackageObjectWriter $objectWriter Creates the Learniq objects a resource materialises.
-	 * @param CoursePackageFileWriter $fileWriter Resolves package-relative file bytes into nc:files.
-	 * @param CoursePackageImportReporter $reporter Builds the report entry rows.
+	 * @param CoursePackageOutput $output The object writer, file writer and report entry builder.
 	 * @param PackageXmlValueReader $xmlReader Reads weblink side-car XML descriptors.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly CoursePackageObjectWriter $objectWriter,
-		private readonly CoursePackageFileWriter $fileWriter,
-		private readonly CoursePackageImportReporter $reporter,
+		CoursePackageOutput $output,
 		private readonly PackageXmlValueReader $xmlReader,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->objectWriter = $output->objectWriter;
+		$this->fileWriter = $output->fileWriter;
+		$this->reporter = $output->reporter;
 	}//end __construct()
 
 	/**
@@ -182,16 +202,22 @@ class CommonCartridgeResourceRouter {
 			],
 			tenantId: $package->tenantId
 		);
-		$this->objectWriter->createLesson(
-			lesson: [
-				'courseId' => $slot->courseId,
-				'title' => $slot->lessonTitle ?? $resource['title'],
-				'order' => $slot->lessonOrder ?? 0,
-				'contentType' => 'text',
-				'contentRef' => (string)$materialId,
-			],
-			tenantId: $package->tenantId
-		);
+		try {
+			$this->objectWriter->createLesson(
+				lesson: [
+					'courseId' => $slot->courseId,
+					'title' => $slot->lessonTitle ?? $resource['title'],
+					'order' => $slot->lessonOrder ?? 0,
+					'contentType' => 'text',
+					'contentRef' => (string)$materialId,
+				],
+				tenantId: $package->tenantId
+			);
+		} catch (\Throwable $e) {
+			// The resource is reported dropped, so its Material must not stay behind.
+			$this->discardMaterial(materialId: $materialId);
+			throw $e;
+		}
 
 		return $this->reporter->entry(
 			resourceIdentifier: $resource['identifier'],
@@ -200,6 +226,30 @@ class CommonCartridgeResourceRouter {
 			result: ['outcome' => 'imported', 'targetType' => 'material', 'targetId' => $materialId, 'reason' => null]
 		);
 	}//end importWebContent()
+
+	/**
+	 * Remove a Material whose Lesson could not be created; a failed removal is logged.
+	 *
+	 * @param string|null $materialId The created Material UUID.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
+	 */
+	private function discardMaterial(?string $materialId): void {
+		if ($materialId === null) {
+			return;
+		}
+
+		try {
+			$this->objectWriter->delete(schema: 'material', uuid: $materialId);
+		} catch (\Throwable $e) {
+			$this->logger->warning(
+				'[CommonCartridgeResourceRouter] Material {id} of a dropped resource could not be removed: {msg}',
+				['id' => $materialId, 'msg' => $e->getMessage()]
+			);
+		}
+	}//end discardMaterial()
 
 	/**
 	 * Materialise a `weblink` resource as a `link`-kind Material.

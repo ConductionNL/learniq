@@ -24,7 +24,7 @@
 -->
 
 <template>
-	<div class="skills-gap-dashboard">
+	<div class="skills-gap-dashboard lq-board-page">
 		<header class="skills-gap-dashboard__header">
 			<CnPageHeader :title="t('learniq', 'Skills gap dashboard')" />
 			<p class="skills-gap-dashboard__subtitle">
@@ -40,7 +40,7 @@
 		<!-- Loading -->
 		<div v-if="loading" class="skills-gap-dashboard__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('learniq', 'Loading skills gap...') }}</span>
+			<span>{{ t('learniq', 'Loading skills gap…') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -50,8 +50,9 @@
 		</div>
 
 		<template v-else>
-			<section class="skills-gap-dashboard__section">
-				<h3>{{ t('learniq', 'Required by programme') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Required by programme')"
+				class="skills-gap-dashboard__section">
 				<div
 					v-if="programmeGaps.length === 0"
 					class="skills-gap-dashboard__empty"
@@ -75,10 +76,11 @@
 						</span>
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 
-			<section class="skills-gap-dashboard__section">
-				<h3>{{ t('learniq', 'Required by role') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Required by role')"
+				class="skills-gap-dashboard__section">
 				<div
 					v-if="roleGaps.length === 0"
 					class="skills-gap-dashboard__empty"
@@ -102,10 +104,11 @@
 						</span>
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 
-			<section class="skills-gap-dashboard__section">
-				<h3>{{ t('learniq', 'Attained') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Attained')"
+				class="skills-gap-dashboard__section">
 				<div
 					v-if="attainedList.length === 0"
 					class="skills-gap-dashboard__empty"
@@ -128,20 +131,20 @@
 						</span>
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
-import { CnPageHeader } from '@conduction/nextcloud-vue'
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'SkillsGapDashboard',
-	components: { CnPageHeader },
+	components: { CnDetailCard, CnPageHeader },
 
 	data() {
 		return {
@@ -384,17 +387,6 @@ export default {
 </script>
 
 <style scoped>
-.skills-gap-dashboard {
-	max-width: 900px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.skills-gap-dashboard__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
 .skills-gap-dashboard__subtitle {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9em;
@@ -408,10 +400,6 @@ export default {
 	align-items: center;
 	gap: var(--default-grid-baseline, 8px);
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.skills-gap-dashboard__section {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
 }
 
 .skills-gap-dashboard__list {

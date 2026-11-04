@@ -41,6 +41,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Exception\RolloverInterruptedException;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IGroupManager;
 use Psr\Log\LoggerInterface;
@@ -92,6 +93,8 @@ class RolloverExecutionService {
 	 * archive the from-year Cohort, sync the NC group, carry over incomplete
 	 * mandatory enrolments, and queue OSO jobs for outflow learners. Per-mapping
 	 * completion is recorded so a re-run of a failed plan skips done mappings.
+	 * A mapping whose from-cohort no longer exists is skipped without writes and
+	 * left out of the progress map.
 	 *
 	 * Returns the updated perMappingProgress map. The caller persists the plan and
 	 * fires the terminal transition.
@@ -99,6 +102,8 @@ class RolloverExecutionService {
 	 * @param array<string,mixed> $plan The RolloverPlan object (lifecycle executing).
 	 *
 	 * @return array<string,string> Map of fromCohortId => 'done'.
+	 *
+	 * @throws RolloverInterruptedException When a mapping fails; it carries the progress so far.
 	 *
 	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
 	 */
@@ -109,48 +114,82 @@ class RolloverExecutionService {
 		$overrides = $this->rolloverService->indexOverrides(overrides: (array)($plan['learnerOverrides'] ?? []));
 		$progress = (array)($plan['perMappingProgress'] ?? []);
 
-		foreach ($mappings as $mapping) {
-			$fromCohortId = (string)($mapping['fromCohortId'] ?? '');
-			$action = ($mapping['action'] ?? null);
-
-			if ($fromCohortId === '' || $action === null) {
-				continue;
-			}
-
-			// Idempotency: skip mappings already completed in a prior run.
-			if (($progress[$fromCohortId] ?? '') === 'done') {
-				continue;
-			}
-
-			$cohort = $this->rolloverService->loadCohort(cohortId: $fromCohortId);
-			$members = (array)($cohort['learnerIds'] ?? []);
-
-			if ($action === 'promote') {
-				// The group moves up a year of its programme
-				// (timetabling-multi-year-hour-plan).
-				$mapping['toProgrammeYear'] = $this->nextProgrammeYear(fromCohort: $cohort, mapping: $mapping);
-				if ((string)($mapping['toProgrammeId'] ?? '') === '' && $mapping['toProgrammeYear'] !== null) {
-					// The group stays in its programme.
-					$mapping['toProgrammeId'] = ($cohort['programmeId'] ?? null);
+		try {
+			foreach ($mappings as $mapping) {
+				$fromCohortId = self::pendingCohortId(mapping: $mapping, progress: $progress);
+				if ($fromCohortId === '') {
+					continue;
 				}
 
-				$this->executePromotion(
-					mapping: $mapping,
-					members: $members,
-					overrides: $overrides,
-					toAcademicYear: $toAcademicYear,
-					tenantId: $tenantId
-				);
-			}
+				$action = $mapping['action'];
 
-			// Archive the from-year cohort (historical learnerIds preserved).
-			$this->archiveCohort(cohort: $cohort);
+				$cohort = $this->rolloverService->loadCohort(cohortId: $fromCohortId);
+				if ($cohort === []) {
+					// A from-cohort that no longer exists has nothing to move or archive.
+					$this->logger->warning('[RolloverExecutionService] From-cohort {c} not found; mapping skipped.', ['c' => $fromCohortId]);
+					continue;
+				}
 
-			$progress[$fromCohortId] = 'done';
-		}//end foreach
+				$members = (array)($cohort['learnerIds'] ?? []);
+
+				if ($action === 'promote') {
+					$this->executePromotion(
+						mapping: $this->withProgrammeTarget(mapping: $mapping, fromCohort: $cohort),
+						members: $members,
+						overrides: $overrides,
+						toAcademicYear: $toAcademicYear,
+						tenantId: $tenantId
+					);
+				}
+
+				// Archive the from-year cohort (historical learnerIds preserved).
+				$this->archiveCohort(cohort: $cohort);
+
+				$progress[$fromCohortId] = 'done';
+			}//end foreach
+		} catch (Throwable $e) {
+			// The mappings finished so far stay done, so a re-run skips them.
+			throw new RolloverInterruptedException(progress: $progress, cause: $e);
+		}
 
 		return $progress;
 	}//end execute()
+
+	/**
+	 * The mapping with the group's to-year programme and year of it (timetabling-multi-year-hour-plan).
+	 *
+	 * The group moves up a year of its programme, and stays in it unless the mapping names another.
+	 *
+	 * @param array<string,mixed> $mapping    The promote mapping.
+	 * @param array<string,mixed> $fromCohort The from-year cohort.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function withProgrammeTarget(array $mapping, array $fromCohort): array {
+		$mapping['toProgrammeYear'] = $this->nextProgrammeYear(fromCohort: $fromCohort, mapping: $mapping);
+		if ((string)($mapping['toProgrammeId'] ?? '') === '' && $mapping['toProgrammeYear'] !== null) {
+			$mapping['toProgrammeId'] = ($fromCohort['programmeId'] ?? null);
+		}
+
+		return $mapping;
+	}//end withProgrammeTarget()
+
+	/**
+	 * The from-cohort id of a mapping still to run, or '' for one without an id or action, or already done.
+	 *
+	 * @param array<string,mixed>  $mapping  The mapping.
+	 * @param array<string,string> $progress Map of fromCohortId => 'done'.
+	 *
+	 * @return string
+	 */
+	private static function pendingCohortId(array $mapping, array $progress): string {
+		$fromCohortId = (string)($mapping['fromCohortId'] ?? '');
+		if (($mapping['action'] ?? null) === null || ($progress[$fromCohortId] ?? '') === 'done') {
+			return '';
+		}
+
+		return $fromCohortId;
+	}//end pendingCohortId()
 
 	/**
 	 * Execute a single promote mapping: create cohort, move members, sync group,

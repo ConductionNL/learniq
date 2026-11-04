@@ -154,14 +154,18 @@ class CredentialSigningServiceTest extends TestCase {
 		$service = $this->makeService('tenant-1');
 
 		$payload = $service->buildOb3Payload(
-			credentialId: 'cred-001',
-			learnerId: 'learner-42',
-			courseId: null,
-			issuedAt: '2026-01-01T00:00:00+00:00',
-			expiresAt: null,
-			issuerDid: 'did:web:learniq:tenant-1:aabbcc',
-			issuedBy: 'Test School',
-			verificationUrl: 'https://example.test/api/credentials/cred-001/verify',
+			credential: [
+				'credentialId' => 'cred-001',
+				'learnerId' => 'learner-42',
+				'courseId' => null,
+				'issuedAt' => '2026-01-01T00:00:00+00:00',
+				'expiresAt' => null,
+			],
+			issuer: [
+				'issuerDid' => 'did:web:learniq:tenant-1:aabbcc',
+				'issuedBy' => 'Test School',
+				'verificationUrl' => 'https://example.test/api/credentials/cred-001/verify',
+			],
 		);
 
 		$jws = $service->signPayload($payload, 'tenant-1');
@@ -186,14 +190,18 @@ class CredentialSigningServiceTest extends TestCase {
 		$service = $this->makeService('tenant-1');
 
 		$payload = $service->buildOb3Payload(
-			credentialId: 'cred-001',
-			learnerId: 'learner-42',
-			courseId: null,
-			issuedAt: '2026-01-01T00:00:00+00:00',
-			expiresAt: null,
-			issuerDid: 'did:web:learniq:tenant-1:aabbcc',
-			issuedBy: 'Test School',
-			verificationUrl: 'https://example.test/api/credentials/cred-001/verify',
+			credential: [
+				'credentialId' => 'cred-001',
+				'learnerId' => 'learner-42',
+				'courseId' => null,
+				'issuedAt' => '2026-01-01T00:00:00+00:00',
+				'expiresAt' => null,
+			],
+			issuer: [
+				'issuerDid' => 'did:web:learniq:tenant-1:aabbcc',
+				'issuedBy' => 'Test School',
+				'verificationUrl' => 'https://example.test/api/credentials/cred-001/verify',
+			],
 		);
 
 		$jws = $service->signPayload($payload, 'tenant-1');
@@ -221,14 +229,18 @@ class CredentialSigningServiceTest extends TestCase {
 		$service = $this->makeService('tenant-1');
 
 		$payload = $service->buildOb3Payload(
-			credentialId: 'cred-001',
-			learnerId: 'learner-42',
-			courseId: null,
-			issuedAt: '2026-01-01T00:00:00+00:00',
-			expiresAt: null,
-			issuerDid: 'did:web:learniq:tenant-1:aabbcc',
-			issuedBy: 'Test School',
-			verificationUrl: 'https://example.test/api/credentials/cred-001/verify',
+			credential: [
+				'credentialId' => 'cred-001',
+				'learnerId' => 'learner-42',
+				'courseId' => null,
+				'issuedAt' => '2026-01-01T00:00:00+00:00',
+				'expiresAt' => null,
+			],
+			issuer: [
+				'issuerDid' => 'did:web:learniq:tenant-1:aabbcc',
+				'issuedBy' => 'Test School',
+				'verificationUrl' => 'https://example.test/api/credentials/cred-001/verify',
+			],
 		);
 
 		$jws = $service->signPayload($payload, 'tenant-1');
@@ -264,14 +276,18 @@ class CredentialSigningServiceTest extends TestCase {
 		$service = $this->makeService('tenant-1');
 
 		$payload = $service->buildOb3Payload(
-			credentialId: 'cred-rtrip',
-			learnerId: 'learner-99',
-			courseId: 'course-77',
-			issuedAt: '2026-06-01T00:00:00+00:00',
-			expiresAt: '2027-06-01T00:00:00+00:00',
-			issuerDid: 'did:web:learniq:tenant-1:aabbcc',
-			issuedBy: 'Round-Trip School',
-			verificationUrl: 'https://example.test/api/credentials/cred-rtrip/verify',
+			credential: [
+				'credentialId' => 'cred-rtrip',
+				'learnerId' => 'learner-99',
+				'courseId' => 'course-77',
+				'issuedAt' => '2026-06-01T00:00:00+00:00',
+				'expiresAt' => '2027-06-01T00:00:00+00:00',
+			],
+			issuer: [
+				'issuerDid' => 'did:web:learniq:tenant-1:aabbcc',
+				'issuedBy' => 'Round-Trip School',
+				'verificationUrl' => 'https://example.test/api/credentials/cred-rtrip/verify',
+			],
 		);
 
 		$jws = $service->signPayload($payload, 'tenant-1');
@@ -446,4 +462,58 @@ class CredentialSigningServiceTest extends TestCase {
 
 		self::assertNull($result);
 	}//end testSignPayloadReturnsNullWhenKeyAbsent()
+
+	/**
+	 * check() maps the credential onto the OB3 payload: issuer, validity, verification URL, course and issuer name.
+	 *
+	 * Tenants, course, expiry and issuedBy vary; the proof's jws and created are left out, the rest is
+	 * compared with golden/CredentialOb3Payload.json. With RECORD_GOLDEN=1 the file is written instead.
+	 *
+	 * @return void
+	 */
+	public function testCheckMapsTheCredentialOntoTheOb3Payload(): void {
+		$golden = __DIR__ . '/golden/CredentialOb3Payload.json';
+		$actual = [];
+		foreach (['t1', 't2'] as $tenant) {
+			foreach (['c-7', null] as $course) {
+				foreach (['2027-01-01T00:00:00+00:00', null] as $expiresAt) {
+					foreach (['Het Esdoornveen', ''] as $issuedBy) {
+						$object = ['id' => 'cred-' . $tenant, 'learnerId' => 'lea', 'issuedAt' => '2026-06-01T10:00:00+00:00', 'tenant_id' => $tenant, 'issuedBy' => $issuedBy];
+						if ($course !== null) {
+							$object['courseId'] = $course;
+						}
+
+						if ($expiresAt !== null) {
+							$object['expiresAt'] = $expiresAt;
+						}
+
+						$context = ['object' => $object];
+						$signed  = $this->makeService(tenantId: $tenant)->check(transitionContext: $context);
+						$payload = $context['object']['openbadges3Payload'] ?? null;
+						if (is_array($payload) === true) {
+							unset($payload['proof']['jws'], $payload['proof']['created']);
+						}
+
+						$name = $tenant . ' course=' . ($course ?? 'none') . ' expires=' . ($expiresAt ?? 'never') . ' by=' . ($issuedBy === '' ? '(empty)' : $issuedBy);
+						$actual[$name] = [
+							'signed' => $signed,
+							'payload' => $payload,
+							'issuerDid' => $context['object']['issuerDid'] ?? null,
+							'verificationUrl' => $context['object']['verificationUrl'] ?? null,
+						];
+					}
+				}
+			}
+		}
+
+		// The key pair, and so its fingerprint in the issuer DID, is new every run.
+		$actual = json_decode(str_replace(substr($this->fingerprint, 0, 32), '<fingerprint>', (string)json_encode($actual, JSON_UNESCAPED_SLASHES)), true);
+		if (getenv('RECORD_GOLDEN') === '1') {
+			file_put_contents($golden, json_encode($actual, (JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) . "\n");
+		}
+
+		foreach (json_decode((string)file_get_contents($golden), true) as $name => $expected) {
+			self::assertSame($expected, $actual[$name], $name);
+		}
+	}//end testCheckMapsTheCredentialOntoTheOb3Payload()
 }//end class

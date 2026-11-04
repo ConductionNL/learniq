@@ -123,6 +123,28 @@ class EmployerCompanyTenancyTest extends TestCase {
 	}//end testTheCompanyIsReadAsTheSystemOncePerRequest()
 
 	/**
+	 * A location holds only when it lies in the portal's organisation; it is read as the system from the location schema.
+	 *
+	 * @return void
+	 */
+	public function testOnlyALocationOfThePortalsOrganisationHolds(): void {
+		$tenancy = $this->tenancy();
+
+		self::assertTrue(condition: $tenancy->holdsLocation(locationRef: ' loc-a ', organisation: 'school-a'));
+		self::assertFalse(condition: $tenancy->holdsLocation(locationRef: 'loc-b', organisation: 'school-a'));
+		self::assertFalse(condition: $tenancy->holdsLocation(locationRef: 'loc-gone', organisation: 'school-a'));
+		self::assertFalse(condition: $tenancy->holdsLocation(locationRef: '', organisation: 'school-a'));
+		self::assertFalse(condition: $tenancy->holdsLocation(locationRef: 'loc-a', organisation: 'school-x'));
+		self::assertFalse(condition: $tenancy->holdsLocation(locationRef: 'co-a', organisation: 'school-a'), message: 'a company is no location');
+		self::assertFalse(condition: $tenancy->holds(organisationRef: 'loc-a', organisation: 'school-a'), message: 'a location is no company');
+
+		self::assertSame(
+			expected: [['filters' => ['register' => 'learniq', 'schema' => 'vestiging'], 'ids' => ['loc-a'], 'limit' => 1], false, false],
+			actual: $this->reads[0]
+		);
+	}//end testOnlyALocationOfThePortalsOrganisationHolds()
+
+	/**
 	 * A store that fails, and OpenRegister missing, refuse.
 	 *
 	 * @return void
@@ -193,15 +215,23 @@ class EmployerCompanyTenancyTest extends TestCase {
 			'co-none' => ['id' => 'co-none', 'name' => 'Los BV'],
 		];
 		$objects = $this->createMock(originalClassName: ObjectService::class);
+		$rows = [
+			'client-organisation' => $companies,
+			'vestiging' => [
+				'loc-a' => ['id' => 'loc-a', 'name' => 'Hal A', '@self' => ['organisation' => 'uuid-a']],
+				'loc-b' => ['id' => 'loc-b', 'name' => 'Hal B', '@self' => ['organisation' => 'uuid-b']],
+			],
+		];
 		$objects->method('findAll')->willReturnCallback(
-			function (array $config=[], bool $_rbac=true, bool $_multitenancy=true) use ($companies): array {
+			function (array $config=[], bool $_rbac=true, bool $_multitenancy=true) use ($rows): array {
 				$this->reads[] = [$config, $_rbac, $_multitenancy];
+				$schema = ($config['filters']['schema'] ?? '');
 				$id = ($config['ids'][0] ?? '');
-				if (isset($companies[$id]) === false) {
+				if (isset($rows[$schema][$id]) === false) {
 					return [];
 				}
 
-				return [OrEntityFactory::make(data: $companies[$id], schema: 'client-organisation')];
+				return [OrEntityFactory::make(data: $rows[$schema][$id], schema: $schema)];
 			}
 		);
 

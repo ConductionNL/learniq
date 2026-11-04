@@ -15,7 +15,7 @@
  @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
 -->
 <template>
-	<div class="hour-plan-editor">
+	<div class="hour-plan-editor lq-board-page">
 		<NcLoadingIcon v-if="loading" :size="32" />
 		<NcNoteCard v-else-if="loadError" type="error">
 			{{ loadError }}
@@ -73,7 +73,7 @@
 					)
 				" />
 
-			<div v-else class="hour-plan-editor__scroll">
+			<CnDetailCard v-else flush class="hour-plan-editor__scroll">
 				<table class="hour-plan-editor__grid">
 					<caption class="hidden-visually">
 						{{
@@ -114,10 +114,11 @@
 						</tr>
 					</tbody>
 				</table>
-			</div>
+			</CnDetailCard>
 
-			<section class="hour-plan-editor__totals">
-				<h3>{{ t('learniq', 'Totals per year') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Totals per year')"
+				class="hour-plan-editor__totals">
 				<table class="hour-plan-editor__totals-table">
 					<thead>
 						<tr>
@@ -193,13 +194,13 @@
 						</tr>
 					</tbody>
 				</table>
-			</section>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
-import { CnPageHeader } from '@conduction/nextcloud-vue'
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
@@ -220,7 +221,7 @@ import {
 export default {
 	name: 'HourPlanEditor',
 
-	components: { CnPageHeader, NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard },
+	components: { CnDetailCard, CnPageHeader, NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard },
 
 	props: {
 		/** Hour plan UUID from the route. */
@@ -539,13 +540,6 @@ export default {
 </script>
 
 <style scoped>
-.hour-plan-editor {
-	padding: 16px;
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-}
-
 .hour-plan-editor__header {
 	display: flex;
 	flex-wrap: wrap;

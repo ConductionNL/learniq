@@ -108,21 +108,19 @@
 			</ul>
 		</CnDetailCard>
 
-		<NcEmptyContent
-			v-if="
-				!loading && !error && sessions.length === 0 && standby.length === 0
-			"
-			:name="t('learniq', 'No sessions')"
-			:description="emptyDescription">
-			<template #icon>
-				<span class="icon-calendar" />
-			</template>
-		</NcEmptyContent>
-
 		<CnDetailCard
-			v-if="!loading && !error && (sessions.length > 0 || standby.length > 0)"
+			v-if="!loading && !error"
 			class="my-timetable__week">
+			<NcEmptyContent
+				v-if="sessions.length === 0 && standby.length === 0"
+				:name="t('learniq', 'No sessions')"
+				:description="emptyDescription">
+				<template #icon>
+					<span class="icon-calendar" />
+				</template>
+			</NcEmptyContent>
 			<div
+				v-else
 				class="my-timetable__grid"
 				:class="{ 'my-timetable__grid--single': mode === 'today' }">
 				<section

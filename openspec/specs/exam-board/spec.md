@@ -1,7 +1,7 @@
 # exam-board Specification
 
 ## Purpose
-TBD - created by archiving change exam-board-case-handling. Update Purpose after archive.
+Let the exam board handle exemption requests and fraud cases, each decided with a rationale. A granted exemption feeds grading, a proven fraud carries a capped sanction and an appeal term the school sets, 42 days by default, and the accused learner does not see the hearing record.
 ## Requirements
 ### Requirement: Persist exam-board domain objects in OpenRegister
 The system MUST persist `ExemptionCase` and `FraudCase` as OpenRegister objects. `ExemptionCase` has
@@ -84,9 +84,9 @@ Enforced by `FraudCaseDecisionGuard` (an ADR-031 lifecycle-guard exception).
 - **THEN** `FraudCaseDecisionGuard` blocks it until `sanctionType`, `sanctionScope`, and a
   `sanctionDurationMonths` of at most 12 are supplied
 
-### Requirement: A decided FraudCase stamps a 42-day appeal deadline
+### Requirement: A decided FraudCase stamps the appeal deadline from the school's appeal term
 When `FraudCase.decide` succeeds, `FraudCaseDecisionGuard` MUST stamp `appealDeadline` onto the transition
-payload as `decidedAt` + 42 days (the CBE 6-week appeal window, journey 1745) — a guard-stamped computed
+payload as `decidedAt` plus the school's appeal term in days (app setting `examBoardAppealDays`, default 42, the CBE 6-week appeal window, journey 1745; set on learniq/LqInstellingen under Examencommissie, decision 333) — a guard-stamped computed
 field, the same pattern `ExternalTrainingVerificationGuard` uses for `verifiedBy`/`verifiedAt`, not a
 declarative `x-openregister-calculations` expression (this register's calculation DSL has confirmed
 precedent only for `today()` comparisons, not date arithmetic).
@@ -94,7 +94,12 @@ precedent only for `today()` comparisons, not date arithmetic).
 #### Scenario: Deciding a case stamps the appeal deadline
 - **GIVEN** a `FraudCase` in `heard` with a valid decision payload
 - **WHEN** `decide` succeeds
-- **THEN** `decidedAt` is set to the current time and `appealDeadline` is stamped at `decidedAt + 42 days`
+- **THEN** `decidedAt` is set to the current time and `appealDeadline` is stamped at `decidedAt` plus the school's appeal term, 42 days by default
+
+#### Scenario: The school sets its own appeal term
+- **GIVEN** an administrator sets the appeal term to 28 days on the settings page under Examencommissie
+- **WHEN** a case is decided afterwards
+- **THEN** `appealDeadline` is `decidedAt + 28 days`, and the case page shows that date; cases decided earlier keep their deadline
 
 ### Requirement: A fraud-proven decision invalidates a still-concept contested GradeEntry
 The system MUST drive a linked, still-`concept` `GradeEntry` through its new `invalidate` transition

@@ -94,61 +94,89 @@ class HourPlanActivityService {
 	 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 	 */
 	public function forYear(string $academicYear): array {
-		$activities = [];
-		$withoutPlan = [];
-		$plans = [];
-		$courseNames = [];
-
+		$year = ['academicYear' => $academicYear, 'activities' => [], 'withoutPlan' => [], 'plans' => [], 'courseNames' => []];
 		foreach ($this->read(schema: 'cohort', filters: ['academicYear' => $academicYear]) as $cohort) {
-			$programmeId = (string)($cohort['programmeId'] ?? '');
-			$programmeYear = (int)($cohort['programmeYear'] ?? 0);
-			$intake = $this->intakeYearOf(academicYear: $academicYear, programmeYear: $programmeYear);
-			if ($programmeId === '' || $intake === null || (string)($cohort['academicYear'] ?? '') !== $academicYear) {
-				continue;
-			}
-
-			$key = $programmeId . '|' . $intake;
-			if (array_key_exists($key, $plans) === false) {
-				$plans[$key] = $this->activePlan(programmeId: $programmeId, intakeYear: $intake);
-			}
-
-			$cohortRow = [
-				'cohortId' => $this->idOf(row: $cohort),
-				'cohortName' => (string)($cohort['name'] ?? ''),
-				'programmeYear' => $programmeYear,
-			];
-			if ($plans[$key] === null) {
-				$withoutPlan[] = array_merge($cohortRow, ['programmeId' => $programmeId, 'intakeYear' => $intake]);
-				continue;
-			}
-
-			$teachers = $this->teachersOf(cohortId: $cohortRow['cohortId']);
-			foreach ($this->linesFor(plan: $plans[$key], programmeYear: $programmeYear) as $line) {
-				$courseId = (string)$line['courseId'];
-				$courseNames[$courseId] = true;
-				$activities[] = array_merge(
-					$cohortRow,
-					[
-						'hourPlanId' => $this->idOf(row: $plans[$key]),
-						'courseId' => $courseId,
-						'courseName' => '',
-						'periodCode' => $line['periodCode'] ?? null,
-						'contactHours' => (float)($line['contactHours'] ?? 0),
-						'otherHours' => (float)($line['otherHours'] ?? 0),
-						'activityKind' => (string)($line['activityKind'] ?? 'lesson'),
-						'teacherIds' => ($teachers[$courseId] ?? []),
-						'note' => $line['note'] ?? null,
-					]
-				);
-			}
-		}//end foreach
+			$year = $this->addCohort(year: $year, cohort: $cohort);
+		}
 
 		return [
 			'academicYear' => $academicYear,
-			'activities' => $this->withCourseNames(activities: $activities, courseIds: array_keys($courseNames)),
-			'cohortsWithoutPlan' => $withoutPlan,
+			'activities' => $this->withCourseNames(activities: $year['activities'], courseIds: array_keys($year['courseNames'])),
+			'cohortsWithoutPlan' => $year['withoutPlan'],
 		];
 	}//end forYear()
+
+	/**
+	 * Add one cohort to the school year: its activities, or a row without a plan.
+	 *
+	 * A cohort without a programme, with an unreadable programme year or of
+	 * another school year is skipped. Each plan is read once per programme
+	 * and intake year.
+	 *
+	 * @param array<string,mixed> $year   The school year so far: academicYear, activities, withoutPlan, plans and courseNames.
+	 * @param array<string,mixed> $cohort The cohort.
+	 *
+	 * @return array<string,mixed> The school year with the cohort added.
+	 */
+	private function addCohort(array $year, array $cohort): array {
+		$academicYear = $year['academicYear'];
+		$programmeId = (string)($cohort['programmeId'] ?? '');
+		$programmeYear = (int)($cohort['programmeYear'] ?? 0);
+		$intake = $this->intakeYearOf(academicYear: $academicYear, programmeYear: $programmeYear);
+		if ($programmeId === '' || $intake === null || (string)($cohort['academicYear'] ?? '') !== $academicYear) {
+			return $year;
+		}
+
+		$key = $programmeId . '|' . $intake;
+		if (array_key_exists($key, $year['plans']) === false) {
+			$year['plans'][$key] = $this->activePlan(programmeId: $programmeId, intakeYear: $intake);
+		}
+
+		$cohortRow = [
+			'cohortId' => $this->idOf(row: $cohort),
+			'cohortName' => (string)($cohort['name'] ?? ''),
+			'programmeYear' => $programmeYear,
+		];
+		if ($year['plans'][$key] === null) {
+			$year['withoutPlan'][] = array_merge($cohortRow, ['programmeId' => $programmeId, 'intakeYear' => $intake]);
+			return $year;
+		}
+
+		return $this->addActivities(year: $year, cohort: ['row' => $cohortRow, 'plan' => $year['plans'][$key]]);
+	}//end addCohort()
+
+	/**
+	 * Add the activities of one cohort's plan lines for its programme year.
+	 *
+	 * @param array<string,mixed>                                                    $year   The school year so far.
+	 * @param array{row: array{cohortId: string, cohortName: string, programmeYear: int}, plan: array<string,mixed>} $cohort The cohort row and its plan.
+	 *
+	 * @return array<string,mixed> The school year with the activities added.
+	 */
+	private function addActivities(array $year, array $cohort): array {
+		$cohortRow = $cohort['row'];
+		$teachers = $this->teachersOf(cohortId: $cohortRow['cohortId']);
+		foreach ($this->linesFor(plan: $cohort['plan'], programmeYear: $cohortRow['programmeYear']) as $line) {
+			$courseId = (string)$line['courseId'];
+			$year['courseNames'][$courseId] = true;
+			$year['activities'][] = array_merge(
+				$cohortRow,
+				[
+					'hourPlanId' => $this->idOf(row: $cohort['plan']),
+					'courseId' => $courseId,
+					'courseName' => '',
+					'periodCode' => $line['periodCode'] ?? null,
+					'contactHours' => (float)($line['contactHours'] ?? 0),
+					'otherHours' => (float)($line['otherHours'] ?? 0),
+					'activityKind' => (string)($line['activityKind'] ?? 'lesson'),
+					'teacherIds' => ($teachers[$courseId] ?? []),
+					'note' => $line['note'] ?? null,
+				]
+			);
+		}
+
+		return $year;
+	}//end addActivities()
 
 	/**
 	 * The plan lines of one programme year.

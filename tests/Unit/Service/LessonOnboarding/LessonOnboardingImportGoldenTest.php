@@ -25,6 +25,8 @@ namespace OCA\Learniq\Tests\Unit\Service\LessonOnboarding;
 
 use OCA\Learniq\Tests\Support\PassedArguments;
 use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
+use OCA\Learniq\Service\LessonOnboarding\LessonOnboardingWriters;
+use OCA\Learniq\Service\LessonOnboarding\LessonOnboardingReaders;
 use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
 use OCA\Learniq\Service\LessonOnboarding\LessonDraftBuilder;
 use OCA\Learniq\Service\LessonOnboarding\LessonOnboardingImporter;
@@ -53,6 +55,8 @@ use RuntimeException;
  * @covers \OCA\Learniq\Service\LessonOnboarding\LessonOnboardingImporter
  * @covers \OCA\Learniq\Service\LessonOnboarding\LessonMaterialWriter
  * @uses   \OCA\Learniq\Service\LessonOnboarding\LessonDraftBuilder
+ * @uses   \OCA\Learniq\Service\LessonOnboarding\LessonOnboardingReaders
+ * @uses   \OCA\Learniq\Service\LessonOnboarding\LessonOnboardingWriters
  * @uses   \OCA\Learniq\Service\LessonOnboarding\TeacherNoteSplitter
  * @uses   \OCA\Learniq\Service\LessonOnboarding\OnboardingImportException
  */
@@ -251,14 +255,18 @@ class LessonOnboardingImportGoldenTest extends TestCase {
 
 		return new LessonOnboardingImporter(
 			objectService: $objects,
-			objectWriter: $writer,
-			fileWriter: $files,
-			extractor: $extractor,
-			draftBuilder: new LessonDraftBuilder(),
-			transitionEngine: $engine,
-			rootFolder: $root,
-			folderSetting: $setting,
-			logger: $logger,
+			readers: new LessonOnboardingReaders(
+				extractor: $extractor,
+				draftBuilder: new LessonDraftBuilder(),
+				rootFolder: $root,
+				folderSetting: $setting
+			),
+			writers: new LessonOnboardingWriters(
+				objectWriter: $writer,
+				fileWriter: $files,
+				transitionEngine: $engine
+			),
+			logger: $logger
 		);
 	}//end importer()
 

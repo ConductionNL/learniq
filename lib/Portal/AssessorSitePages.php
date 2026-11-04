@@ -60,6 +60,8 @@ class AssessorSitePages {
 		// block from a record.
 		[
 			'type' => 'collection',
+			// "Gedeeld met u", as the board esdoornveen/Beoordelaar heads the list.
+			'label' => 'Shared with you',
 			'collection' => 'eaSharedPortfolios',
 			'sort' => ['field' => 'expiresAt', 'direction' => 'desc'],
 		],

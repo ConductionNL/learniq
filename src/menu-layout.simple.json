@@ -3,10 +3,10 @@
 		"spdx-license": "EUPL-1.2",
 		"spdx-copyright": "2026 Conduction B.V.",
 		"description": "The SIMPLE structure profile, and the default one (openspec/changes/simple-structure-profile). `menu-layout.json` is the FULL profile and is untouched: an administrator brings it back with the setting `menu_structure`. Both profiles are built from the same manifest and the same fragments, so nothing is deleted and every page stays routable; this file only decides what the navigation offers first. THE STANDARD KEYS (`removals`, `settingsSection`) go to the library's buildManifest exactly as the full file's do. `relocations` is ABSENT on purpose, and must stay absent rather than become `{}`: the simple menu is flat, and the library's relocation step ends by dropping every entry that has no route, no href, no action and no children, which is what a caption is. THE TWO PROFILE KEYS are read by src/utils/structureProfile.js. `menu` is merged BEFORE the manifest's own menu. buildManifest merges entries by id and the FIRST definition of a key wins, so an entry here that carries only `id` and `order` takes its label, icon, route and visibleIf from the manifest, and an entry the manifest does not know (the three captions, the entries whose id ends in Simple) is added as written. `pages` holds page overlays: `configAppend` appends header links and report cards to pages the simple menu opens. One overlay is of another kind: `Dashboard` carries `when`, `page` and `config`, and turns the page at `/` into the Today dashboard for the roles it names (see its own _note).",
-		"roleNote": "THE MENU FOLLOWS THE ROLE, with the signal learniq already has: `user.primaryRole`, resolved on the server by DashboardRoleService from the Nextcloud groups. A `visibleIf` written here may only NARROW the one the manifest has for that route, never widen it. tests/unit-js/structureProfile.test.mjs builds both profiles for every role and fails when an entry here shows to a role the full menu does not show that page to. The ceiling is ten main entries for every role, twelve for a Nextcloud administrator (who sees the teacher's menu plus Timetables and Compliance), and two more for somebody who is also the confidential counsellor or a line manager.",
+		"roleNote": "THE MENU FOLLOWS THE ROLE, with the signal learniq already has: `user.primaryRole`, resolved on the server by DashboardRoleService from the Nextcloud groups. A `visibleIf` written here may only NARROW the one the manifest has for that route, never widen it. tests/unit-js/structureProfile.test.mjs builds both profiles for every role and fails when an entry here shows to a role the full menu does not show that page to. The menus follow the per-role table of specs/navigation, read off the sidebars of the learniq boards: an administrator and the administration get hr's menu, without Groups, Lessons, Grades, Progress or Timetables. The ceiling is ten main entries for every role, twelve for a Nextcloud administrator, and two more for somebody who is also the confidential counsellor or a line manager.",
 		"simpleIdsNote": "Six entries end in `Simple`. Without a relocation step a child stays under its group, so Learners and Attendance (children of People), Grades (child of Learning), Dossier notes (child of the pupil dossier group), Pick electives and Book a conversation (children of groups this profile empties) cannot be lifted to the top level by id. Each gets a top-level twin here with its own id, and the original is removed by name. GroupsSimple opens a page that had no menu entry at all: Cohorts. The design's Nakijken has no entry: learniq lists submissions per assignment only (`/assignments/:assignmentId/submissions`), so there is no page a menu entry could open.",
 		"removalsNote": "Every leaf of the manifest menu that is not in this profile's main menu, footer or settings. A group with no route disappears once its children are gone. Removed is not unreachable: the header links and report cards in `pages`, the cards on Progress and Compliance and the lists on Lessons and assignments and People link most of them. The ones nothing links yet are listed by name in KNOWN_UNLINKED in the test, per role, waiting for the link-cards hub page.",
-		"settingsNote": "The full profile lifts two entries into the settings foldout. This profile adds the set-up lists (templates, periods, rooms, screens, locations, schools, staff, fees, rounds) and the import, export and exchange tools. Each keeps its own visibleIf."
+		"settingsNote": "The full profile lifts four entries into the settings foldout. This profile adds the set-up lists (templates, periods, rooms, screens, locations, schools, staff, fees, rounds), the course-package tools, the one Uitwisselingen entry (DataExchange, admin only; its page links the rejections, teldatum checks and parent reviews) and Marktplaats and Functies en roadmap. Three captions group the foldout as the AppZijbalk fold draws it: Rapportages en automatisering, De app inrichten, Over de app; the order values in `menu` put each entry under its caption. Each keeps its own visibleIf."
 	},
 	"removals": [
 		"AbsenceReportsComplianceMenu",
@@ -50,6 +50,7 @@
 		"DashboardStudent",
 		"DashboardTeacher",
 		"DossierNotesMenu",
+		"DossierReviewsMenu",
 		"ElectiveOffersMenu",
 		"EngagementLevelsMenu",
 		"EngagementRiskFlagsMenu",
@@ -59,6 +60,8 @@
 		"EvaluationCampaignsMenu",
 		"ExamAccommodationsMenu",
 		"ExamSittingsMenu",
+		"ExchangeJobsMenu",
+		"ExchangeRejectionsMenu",
 		"ExemptionCasesMenu",
 		"ExternalAssessorsMenu",
 		"ExternalTraining",
@@ -69,6 +72,7 @@
 		"GroupPlans",
 		"GroupTrendHeatmapMenu",
 		"HourPlanActivitiesMenu",
+		"ImportExportToolsMenu",
 		"ImportedCoursesMenu",
 		"ImprovementActionsMenu",
 		"InvigilatorAssignmentsMenu",
@@ -103,6 +107,7 @@
 		"SubjectChoicesMenu",
 		"SupportRequests",
 		"TeacherAvailabilitiesMenu",
+		"TeldatumChecksMenu",
 		"TimetableConflictQueueMenu",
 		"TrajectoriesMenu",
 		"WellbeingCheckInsMenu",
@@ -127,13 +132,11 @@
 		"AdmissionsRoundsMenu",
 		"ConferenceRoundsMenu",
 		"ExamPeriodsMenu",
-		"ExchangeJobsMenu",
-		"ExchangeRejectionsMenu",
-		"TeldatumChecksMenu",
-		"ImportExportToolsMenu",
-		"DossierReviewsMenu",
 		"CoursePackageImportMenu",
-		"CoursePackageExportMenu"
+		"CoursePackageExportMenu",
+		"DataExchange",
+		"StoreMenu",
+		"FeaturesRoadmapMenu"
 	],
 	"menu": [
 		{
@@ -156,9 +159,7 @@
 				"user.primaryRole": {
 					"in": [
 						"instructor",
-						"coordinator",
-						"administration-manager",
-						"admin"
+						"coordinator"
 					]
 				}
 			}
@@ -166,7 +167,7 @@
 		{
 			"id": "TeachingCaption",
 			"type": "caption",
-			"label": "Teaching",
+			"label": "Learning",
 			"order": 20
 		},
 		{
@@ -181,9 +182,7 @@
 					"in": [
 						"coordinator",
 						"team-lead",
-						"compliance-officer",
-						"administration-manager",
-						"admin"
+						"compliance-officer"
 					]
 				}
 			}
@@ -191,7 +190,15 @@
 		{
 			"id": "GroupLearning",
 			"label": "Lessons and assignments",
-			"order": 24
+			"order": 24,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator"
+					]
+				}
+			}
 		},
 		{
 			"id": "GradesSimple",
@@ -202,8 +209,7 @@
 			"visibleIf": {
 				"user.primaryRole": {
 					"in": [
-						"instructor",
-						"admin"
+						"instructor"
 					]
 				}
 			}
@@ -217,7 +223,9 @@
 						"learner",
 						"hr",
 						"team-lead",
-						"compliance-officer"
+						"compliance-officer",
+						"administration-manager",
+						"admin"
 					]
 				}
 			}
@@ -233,7 +241,9 @@
 						"hr",
 						"team-lead",
 						"compliance-officer",
-						"confidential-counsellor"
+						"confidential-counsellor",
+						"administration-manager",
+						"admin"
 					]
 				}
 			}
@@ -333,7 +343,15 @@
 			"id": "LearnersCaption",
 			"type": "caption",
 			"label": "Learners",
-			"order": 40
+			"order": 40,
+			"visibleIf": {
+				"user.primaryRole": {
+					"notIn": [
+						"learner",
+						"guardian"
+					]
+				}
+			}
 		},
 		{
 			"id": "LearnersSimple",
@@ -373,7 +391,16 @@
 		},
 		{
 			"id": "GroupProgress",
-			"order": 46
+			"order": 46,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator",
+						"team-lead"
+					]
+				}
+			}
 		},
 		{
 			"id": "CareSimple",
@@ -385,8 +412,7 @@
 				"user.primaryRole": {
 					"in": [
 						"instructor",
-						"coordinator",
-						"admin"
+						"coordinator"
 					]
 				}
 			}
@@ -398,7 +424,8 @@
 				"user.primaryRole": {
 					"in": [
 						"hr",
-						"administration-manager"
+						"administration-manager",
+						"admin"
 					]
 				}
 			}
@@ -444,6 +471,47 @@
 		{
 			"id": "ConcernReportsMenu",
 			"order": 61
+		},
+		{
+			"id": "ReportsCaption",
+			"type": "caption",
+			"label": "Reports and automation",
+			"section": "settings",
+			"order": -10
+		},
+		{
+			"id": "ReportsMenu",
+			"order": -9
+		},
+		{
+			"id": "FlowsMenu",
+			"order": -8
+		},
+		{
+			"id": "XapiStatementsMenu",
+			"order": -7
+		},
+		{
+			"id": "SetUpCaption",
+			"type": "caption",
+			"label": "Set up the app",
+			"section": "settings",
+			"order": 0
+		},
+		{
+			"id": "AboutCaption",
+			"type": "caption",
+			"label": "About the app",
+			"section": "settings",
+			"order": 990
+		},
+		{
+			"id": "StoreMenu",
+			"order": 991
+		},
+		{
+			"id": "FeaturesRoadmapMenu",
+			"order": 992
 		}
 	],
 	"nav": {
@@ -499,7 +567,6 @@
 			},
 			"config": {
 				"allowEdit": false,
-				"description": "Your lessons and what needs you today",
 				"headerActions": [
 					{
 						"id": "open-roll-call",
@@ -510,16 +577,6 @@
 					}
 				],
 				"widgets": [
-					{
-						"id": "today-greeting",
-						"type": "header",
-						"title": "Greeting",
-						"content": {
-							"title": "Today",
-							"showDate": true,
-							"ground": true
-						}
-					},
 					{
 						"id": "today-first",
 						"type": "banner",
@@ -824,16 +881,6 @@
 				],
 				"layout": [
 					{
-						"id": "t1",
-						"widgetId": "today-greeting",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 12,
-						"gridHeight": 1,
-						"showTitle": false,
-						"sizeToContent": true
-					},
-					{
 						"id": "t2",
 						"widgetId": "today-first",
 						"gridX": 0,
@@ -920,7 +967,10 @@
 						"showActions": false
 					}
 				],
-				"showHeader": false,
+				"title": "Today",
+				"greeting": "date",
+				"subtitleByRole": null,
+				"subtitleOfSchoolByRole": null,
 				"showWidgetActions": false
 			}
 		},
@@ -1178,6 +1228,34 @@
 							"learnerId"
 						],
 						"successMessage": "Your concern is sent to the confidential counsellor."
+					}
+				]
+			}
+		},
+		{
+			"id": "ExchangeJobs",
+			"configAppend": {
+				"headerActions": [
+					{
+						"id": "open-exchange-rejections",
+						"label": "Rejections",
+						"icon": "CloseCircleOutline",
+						"handler": "navigate",
+						"route": "ExchangeRejections"
+					},
+					{
+						"id": "open-teldatum-checks",
+						"label": "Teldatum checks",
+						"icon": "CalendarCheckOutline",
+						"handler": "navigate",
+						"route": "TeldatumChecks"
+					},
+					{
+						"id": "open-parent-reviews",
+						"label": "Parent reviews",
+						"icon": "AccountCheckOutline",
+						"handler": "navigate",
+						"route": "DossierReviews"
 					}
 				]
 			}

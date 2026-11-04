@@ -39,6 +39,7 @@ use OCA\Learniq\Timetabling\Source\LocalSessionTimetableSource;
 use OCA\Learniq\Timetabling\Source\PlanninqTimetableSource;
 use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
 use OCA\Learniq\Timetabling\TimetableConflictDetector;
+use OCA\Learniq\Timetabling\TimetableImportCollaborators;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Planninq\Event\TimetableSessionsQueryEvent;
 use OCP\App\IAppManager;
@@ -57,6 +58,7 @@ use RuntimeException;
  * @covers \OCA\Learniq\Timetabling\PlanninqTimetableImport
  * @uses   \OCA\Learniq\AppInfo\OpenRegisterAutoloader
  * @uses   \OCA\Learniq\Service\TimetableExchangeSettings
+ * @uses   \OCA\Learniq\Timetabling\TimetableImportCollaborators
  * @uses   \OCA\Learniq\Timetabling\Source\LocalSessionTimetableSource
  * @uses   \OCA\Learniq\Timetabling\Source\PlanninqTimetableSource
  * @uses   \OCA\Learniq\Timetabling\Source\TimetableSourceResolver
@@ -301,6 +303,7 @@ class PlanninqTimetableImportGoldenTest extends TestCase {
 			}
 		);
 
-		return new PlanninqTimetableImport($resolver, $dispatcher, $detector, $logger, new TimetableExchangeSettings($settingsConfig), $event);
+		$collaborators = new TimetableImportCollaborators(sources: $resolver, groupMaps: new TimetableExchangeSettings(appConfig: $settingsConfig), conflictDetector: $detector);
+		return new PlanninqTimetableImport(collaborators: $collaborators, dispatcher: $dispatcher, logger: $logger, eventClass: $event);
 	}//end import()
 }//end class
