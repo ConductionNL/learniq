@@ -21,6 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\BackgroundJob\ActorForwarding;
 use OCA\Learniq\BackgroundJob\CohortNameRestampJob;
 use OCA\Learniq\Listener\CohortNameCascade;
 use OCA\Learniq\Service\CohortNameRestamp;
@@ -162,10 +163,12 @@ class CohortNameCascadeTest extends TestCase {
 	 */
 	public function testTheJobRestampsTheGroupsEnrolments(): void {
 		$job = new CohortNameRestampJob(
-			time: $this->createMock(ITimeFactory::class),
-			userSession: $this->createMock(IUserSession::class),
-			userManager: $this->createMock(IUserManager::class),
-			organisation: $this->createMock(OrganisationService::class),
+			forwarding: new ActorForwarding(
+				time: $this->createMock(ITimeFactory::class),
+				userSession: $this->createMock(IUserSession::class),
+				userManager: $this->createMock(IUserManager::class),
+				organisation: $this->createMock(OrganisationService::class)
+			),
 			logger: new NullLogger(),
 			restamp: $this->makeRestamp()
 		);

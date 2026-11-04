@@ -27,12 +27,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\BackgroundJob;
 
 use OCA\Learniq\Service\Portal\EmployerBookingProjection;
-use OCA\OpenRegister\BackgroundJob\ActorForwardedJob;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
-use OCA\OpenRegister\Service\OrganisationService;
-use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\IUserManager;
-use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -41,35 +36,23 @@ use Throwable;
  *
  * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
  */
-class EmployerBookingRestampJob extends ActorForwardedJob {
+class EmployerBookingRestampJob extends ForwardedJob {
 
 	/**
 	 * Constructor.
 	 *
-	 * @param ITimeFactory              $time         Clock.
-	 * @param IUserSession              $userSession  The acting user, forwarded.
-	 * @param IUserManager              $userManager  Resolves the forwarded user.
-	 * @param OrganisationService       $organisation The acting organisation, forwarded.
+	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface           $log          Logger.
 	 * @param EmployerBookingProjection $projection   Re-derives one booking.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		ITimeFactory $time,
-		IUserSession $userSession,
-		IUserManager $userManager,
-		OrganisationService $organisation,
+		ActorForwarding $forwarding,
 		private readonly LoggerInterface $log,
 		private readonly EmployerBookingProjection $projection,
 	) {
-		parent::__construct(
-			time: $time,
-			userSession: $userSession,
-			userManager: $userManager,
-			organisation: $organisation,
-			logger: $log
-		);
+		parent::__construct(forwarding: $forwarding, logger: $log);
 	}//end __construct()
 
 	/**

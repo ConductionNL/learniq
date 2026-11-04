@@ -22,13 +22,9 @@ namespace OCA\Learniq\BackgroundJob;
 
 use DateTimeImmutable;
 use OCA\Learniq\Service\EngagementScoreEvaluator;
-use OCA\OpenRegister\BackgroundJob\ActorForwardedJob;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\OpenRegister\Service\OrganisationService;
 use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\IUserManager;
-use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -54,7 +50,7 @@ use Psr\Log\LoggerInterface;
  *  evaluation moved verbatim out of the listener; splitting it further is a
  *  separate change from moving it off the write path.
  */
-class EngagementSignalJob extends ActorForwardedJob {
+class EngagementSignalJob extends ForwardedJob {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const ENGAGEMENT_SCORE_SCHEMA = 'engagement-score';
@@ -72,32 +68,20 @@ class EngagementSignalJob extends ActorForwardedJob {
 
 
 	/**
-	 * @param ITimeFactory             $time          Clock, for the base job.
-	 * @param IUserSession             $userSession   Actor forwarding, for the base job.
-	 * @param IUserManager             $userManager   Actor forwarding, for the base job.
-	 * @param OrganisationService      $organisation  Tenant context, for the base job.
+	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface          $logger        Logger; the base declares it protected.
 	 * @param ObjectService            $objectService OR object access.
 	 * @param EngagementScoreEvaluator $evaluator     Score calculation engine.
 	 * @param ITimeFactory             $timeFactory   Clock for the written timestamps.
 	 */
 	public function __construct(
-		ITimeFactory $time,
-		IUserSession $userSession,
-		IUserManager $userManager,
-		OrganisationService $organisation,
+		ActorForwarding $forwarding,
 		LoggerInterface $logger,
 		private readonly ObjectService $objectService,
 		private readonly EngagementScoreEvaluator $evaluator,
 		private readonly ITimeFactory $timeFactory,
 	) {
-		parent::__construct(
-			time: $time,
-			userSession: $userSession,
-			userManager: $userManager,
-			organisation: $organisation,
-			logger: $logger
-		);
+		parent::__construct(forwarding: $forwarding, logger: $logger);
 	}//end __construct()
 
 	/**
