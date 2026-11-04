@@ -136,55 +136,11 @@
 				v-if="rubric && rubric.criteria && rubric.criteria.length > 0"
 				:title="t('learniq', 'Rubric: {name}', { name: rubric.name || '' })"
 				class="peer-review-marking-view__rubric">
-				<div
-					v-for="criterion in rubric.criteria"
-					:key="criterion.criterionId"
-					class="peer-review-marking-view__criterion">
-					<h4 class="peer-review-marking-view__criterion-label">
-						{{ criterion.label }}
-						<span class="peer-review-marking-view__criterion-weight">
-							{{
-								t('learniq', '(weight: {w})', {
-									w: criterion.weight,
-								})
-							}}
-						</span>
-					</h4>
-					<div class="peer-review-marking-view__levels">
-						<label
-							v-for="level in criterion.levels"
-							:key="level.levelId"
-							class="peer-review-marking-view__level">
-							<input
-								type="radio"
-								:name="criterion.criterionId"
-								:value="level.levelId"
-								:checked="
-									getSelectedLevel(criterion.criterionId)
-									=== level.levelId
-								"
-								:disabled="saving"
-								@change="selectLevel(criterion, level)" />
-							<span class="peer-review-marking-view__level-label">{{
-								level.label
-							}}</span>
-							<span class="peer-review-marking-view__level-points">
-								{{
-									t('learniq', '{pts} pts', { pts: level.points })
-								}}
-							</span>
-						</label>
-					</div>
-				</div>
-
-				<div class="peer-review-marking-view__score-total">
-					<strong>{{
-						t('learniq', 'Score: {score} / {max}', {
-							score: computedScore,
-							max: assignment.maxPoints || '?',
-						})
-					}}</strong>
-				</div>
+				<RubricPicker
+					v-model:selectedLevels="selectedLevels"
+					:rubric="rubric"
+					:maxPoints="assignment.maxPoints || 0"
+					:disabled="saving" />
 			</CnDetailCard>
 
 			<CnDetailCard
@@ -223,11 +179,12 @@
 import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getRequestToken } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
+import RubricPicker from '../components/RubricPicker.vue'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'PeerReviewMarkingView',
-	components: { CnDetailCard, CnPageHeader },
+	components: { CnDetailCard, CnPageHeader, RubricPicker },
 
 	props: {
 		/**
@@ -517,34 +474,6 @@ export default {
 		},
 
 		/**
-		 * Get the currently selected levelId for a criterion.
-		 *
-		 * @param {string} criterionId Criterion identifier
-		 * @return {string|undefined}
-		 */
-		getSelectedLevel(criterionId) {
-			return this.selectedLevels[criterionId]?.levelId
-		},
-
-		/**
-		 * Record the reviewer's level selection for a criterion.
-		 *
-		 * @param {object} criterion Rubric criterion object
-		 * @param {object} level     Selected level object
-		 * @return {void}
-		 * @spec openspec/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
-		 */
-		selectLevel(criterion, level) {
-			this.selectedLevels = {
-				...this.selectedLevels,
-				[criterion.criterionId]: {
-					levelId: level.levelId,
-					points: level.points,
-				},
-			}
-		},
-
-		/**
 		 * Build the rubricScores array from current selections.
 		 *
 		 * @return {Array<{criterionId: string, levelId: string, points: number}>}
@@ -642,58 +571,13 @@ export default {
 	font-size: 0.9em;
 }
 
-.peer-review-marking-view__criterion {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
-	padding: var(--default-grid-baseline, 8px);
-	border: 1px solid var(--color-border);
-	border-radius: 4px;
-}
 
-.peer-review-marking-view__criterion-label {
-	font-weight: bold;
-	margin-bottom: var(--default-grid-baseline, 8px);
-}
 
-.peer-review-marking-view__criterion-weight {
-	font-weight: normal;
-	color: var(--color-text-maxcontrast);
-	font-size: 0.85em;
-	margin-left: 4px;
-}
 
-.peer-review-marking-view__levels {
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--default-grid-baseline, 8px);
-}
 
-.peer-review-marking-view__level {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	cursor: pointer;
-	padding: 4px 8px;
-	border: 1px solid var(--color-border);
-	border-radius: 4px;
-	background: var(--color-main-background);
-}
 
-.peer-review-marking-view__level:has(input:checked) {
-	background: var(--color-primary-element-light);
-	border-color: var(--color-primary);
-}
 
-.peer-review-marking-view__level-points {
-	color: var(--color-text-maxcontrast);
-	font-size: 0.85em;
-}
 
-.peer-review-marking-view__score-total {
-	margin-top: calc(var(--default-grid-baseline, 8px) * 2);
-	padding: var(--default-grid-baseline, 8px);
-	background: var(--color-background-hover);
-	border-radius: 4px;
-}
 
 .peer-review-marking-view__comments-input {
 	width: 100%;
