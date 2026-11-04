@@ -466,7 +466,7 @@ OC.L10N.register(
         "How each assessment item performed, question by question.": "Hvernig hvert matsatriði stóð sig, spurningu fyrir spurningu.",
         "What course evaluations said, per course.": "Hvað námskeiðsmat sagði, eftir námskeiði.",
         "What was found on placement visits.": "Hvað fannst í vinnustaðaheimsóknum.",
-        "Store": "Verslun",
+        "Marketplace": "Verslun",
         "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Settu upp skrár, skemu og flæði sem aðrar stofnanir hafa birt.",
         "Enter the access code you were given to start this assessment.": "Sláðu inn aðgangskóðann sem þú fékkst til að hefja þetta próf.",
         "Access code": "Aðgangskóði",

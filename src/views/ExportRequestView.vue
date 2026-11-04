@@ -128,7 +128,7 @@
 						variant="secondary"
 						:disabled="busy || !ready"
 						@click="publish">
-						{{ t('learniq', 'Publish to the course store') }}
+						{{ t('learniq', 'Publish to the course marketplace') }}
 					</NcButton>
 				</div>
 			</form>
@@ -407,7 +407,7 @@ export default {
 					},
 				)
 				if (response.data?.outcome === 'ok') {
-					this.done = this.t('learniq', 'Published to the course store.')
+					this.done = this.t('learniq', 'Published to the course marketplace.')
 				} else {
 					this.error = this.publishText(response.data?.outcome)
 				}
@@ -436,34 +436,34 @@ export default {
 				case 'not_configured':
 					return this.t(
 						'learniq',
-						'No course store is set up yet. Ask your administrator.',
+						'No course marketplace is set up yet. Ask your administrator.',
 					)
 				case 'too_large':
 					return this.t(
 						'learniq',
-						'This course is too large for the store.',
+						'This course is too large for the marketplace.',
 					)
 				case 'store_unreachable':
 				case 'store_rejected':
 				case 'store_invalid_response':
 					return this.t(
 						'learniq',
-						'The course store could not take the course. Try again later.',
+						'The course marketplace could not take the course. Try again later.',
 					)
 				case 'rate_limited':
 					return this.t(
 						'learniq',
-						'The course store is busy. Try again in a few minutes.',
+						'The course marketplace is busy. Try again in a few minutes.',
 					)
 				case 'forbidden':
 					return this.t(
 						'learniq',
-						'You may not publish courses to the store. Your administrator decides who may.',
+						'You may not publish courses to the marketplace. Your administrator decides who may.',
 					)
 				case 'publish_not_supported':
 					return this.t(
 						'learniq',
-						'This server cannot publish to a course store yet. Ask your administrator to update OpenRegister.',
+						'This server cannot publish to a course marketplace yet. Ask your administrator to update OpenRegister.',
 					)
 				default:
 					return this.t('learniq', 'The course could not be published.')
