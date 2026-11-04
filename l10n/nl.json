@@ -4322,7 +4322,12 @@
         "Menu": "Menu",
         "Timetable exchange": "Roosteruitwisseling",
         "AI translations": "AI-vertalingen",
-        "Administration settings": "Beheerinstellingen"
+        "Administration settings": "Beheerinstellingen",
+        "Move up": "Omhoog",
+        "Move down": "Omlaag",
+        "Drag a chapter or lesson to another place, or use the Move up and Move down buttons. With the keyboard: Tab to the button, Enter moves it. The new order is saved at once and read out.": "Sleep een hoofdstuk of les naar een andere plek, of gebruik de knoppen Omhoog en Omlaag. Met het toetsenbord: Tab naar de knop, Enter verplaatst. De nieuwe volgorde wordt meteen bewaard en voorgelezen.",
+        "Chapter {name} moved to position {pos} of {total}. Saved.": "Hoofdstuk {name} verplaatst naar positie {pos} van {total}. Opgeslagen.",
+        "Lesson {name} moved to position {pos} of {total}. Saved.": "Les {name} verplaatst naar positie {pos} van {total}. Opgeslagen."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
