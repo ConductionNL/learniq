@@ -37,11 +37,11 @@
 -->
 
 <template>
-	<div class="self-assessment-view">
+	<div class="self-assessment-view lq-board-page">
 		<!-- Loading -->
 		<div v-if="loading" class="self-assessment-view__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('learniq', 'Loading self-assessment...') }}</span>
+			<span>{{ t('learniq', 'Loading self-assessment…') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -57,7 +57,7 @@
 			role="status"
 			aria-live="polite">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<h2>{{ t('learniq', 'Self-assessment submitted') }}</h2>
+			<CnPageHeader :title="t('learniq', 'Self-assessment submitted')" />
 			<p>
 				{{
 					t('learniq', 'Score: {score} / {max}', {
@@ -71,7 +71,7 @@
 		<!-- Marking form -->
 		<template v-else-if="submission">
 			<header class="self-assessment-view__header">
-				<h2>{{ t('learniq', 'Self-assessment') }}</h2>
+				<CnPageHeader :title="t('learniq', 'Self-assessment')" />
 				<p class="self-assessment-view__meta">
 					{{
 						t('learniq', 'Assignment: {title}', {
@@ -81,12 +81,10 @@
 				</p>
 			</header>
 
-			<section
+			<CnDetailCard
 				v-if="rubric && rubric.criteria && rubric.criteria.length > 0"
+				:title="t('learniq', 'Rubric: {name}', { name: rubric.name || '' })"
 				class="self-assessment-view__rubric">
-				<h3>
-					{{ t('learniq', 'Rubric: {name}', { name: rubric.name || '' }) }}
-				</h3>
 
 				<div
 					v-for="criterion in rubric.criteria"
@@ -137,21 +135,20 @@
 						})
 					}}</strong>
 				</div>
-			</section>
+			</CnDetailCard>
 
-			<section class="self-assessment-view__comments">
-				<h3 id="self-assessment-comments-label">
-					{{ t('learniq', 'Your reflection') }}
-				</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Your reflection')"
+				class="self-assessment-view__comments">
 				<textarea
 					id="self-assessment-comments"
 					v-model="comments"
 					class="self-assessment-view__comments-input"
-					aria-labelledby="self-assessment-comments-label"
-					:placeholder="t('learniq', 'Reflect on your own work...')"
+					:aria-label="t('learniq', 'Your reflection')"
+					:placeholder="t('learniq', 'Reflect on your own work…')"
 					:disabled="saving"
 					rows="5" />
-			</section>
+			</CnDetailCard>
 
 			<div class="self-assessment-view__actions">
 				<button
@@ -173,12 +170,14 @@
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'SelfAssessmentView',
+	components: { CnDetailCard, CnPageHeader },
 
 	props: {
 		/**
@@ -566,13 +565,6 @@ export default {
 </script>
 
 <style scoped>
-.self-assessment-view {
-	max-width: 860px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
 .self-assessment-view__loading,
 .self-assessment-view__error {
 	display: flex;
@@ -581,18 +573,9 @@ export default {
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
-.self-assessment-view__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
 .self-assessment-view__meta {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9em;
-}
-
-.self-assessment-view__rubric,
-.self-assessment-view__comments {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
 }
 
 .self-assessment-view__criterion {

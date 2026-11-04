@@ -221,6 +221,7 @@
 			"type": "index",
 			"title": "Enrolments",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Enrolment",
 				"headerActions": [
@@ -351,6 +352,7 @@
 			"type": "index",
 			"title": "Staff",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Staff"
 			}
@@ -361,6 +363,7 @@
 			"type": "index",
 			"title": "Schools",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "School"
 			}
@@ -371,6 +374,7 @@
 			"type": "index",
 			"title": "Locations",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Vestiging"
 			}
@@ -1071,6 +1075,7 @@
 			"type": "index",
 			"title": "Attendance records",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "attendance-record",
 				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly so the platform's built-in mass import/export/copy/delete (CnIndexPage showMass*) is a documented capability of this index, not an implicit default (findings 12.6/14.7).",
@@ -1205,6 +1210,7 @@
 			"type": "index",
 			"title": "Excuse requests",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "excuse-request",
 				"headerActions": [
@@ -1421,6 +1427,7 @@
 			"type": "index",
 			"title": "Attendance thresholds",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "attendance-threshold",
 				"columns": [
@@ -1615,6 +1622,7 @@
 			"type": "index",
 			"title": "Attendance flags",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "attendance-flag",
 				"readOnly": true,
@@ -1768,6 +1776,7 @@
 			"type": "index",
 			"title": "Learners",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "learner-profile",
 				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly, see AttendanceRecords' note.",

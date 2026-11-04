@@ -85,28 +85,30 @@ class LearniqJsonCourseImporter {
 			);
 		}
 
-		$entries = [];
-		$courseId = $this->importTree(tree: $tree, importedBy: $origin->importedBy, tenantId: $origin->tenantId, entries: $entries);
+		$imported = $this->importTree(tree: $tree, origin: $origin);
 
 		return $this->reporter->persistReport(
 			origin: $origin,
-			outcome: new ImportReportOutcome(sourceFormat: self::SOURCE_FORMAT, courseId: $courseId, entries: $entries, errorMessage: null),
+			outcome: new ImportReportOutcome(
+				sourceFormat: self::SOURCE_FORMAT,
+				courseId: $imported['courseId'],
+				entries: $imported['entries'],
+				errorMessage: null
+			),
 		);
 	}//end importPackage()
 
 	/**
 	 * Materialise a scholiq-native JSON export's object graph.
 	 *
-	 * @param array<string, mixed> $tree The decoded scholiq-native JSON tree.
-	 * @param string $importedBy NC user id (nc:files owner for resolved Material bytes).
-	 * @param string $tenantId Tenant UUID.
-	 * @param array<int, array<string,mixed>> $entries Report entries accumulator (by reference).
+	 * @param array<string, mixed> $tree   The decoded scholiq-native JSON tree.
+	 * @param ImportOrigin         $origin Who imported the package (nc:files owner for resolved Material bytes), and the tenant.
 	 *
-	 * @return string|null UUID of the re-created top-level Course.
+	 * @return array{courseId: string|null, entries: array<int, array<string, mixed>>} The re-created top-level Course and the report entries.
 	 *
 	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
-	private function importTree(array $tree, string $importedBy, string $tenantId, array &$entries): ?string {
+	private function importTree(array $tree, ImportOrigin $origin): array {
 		$courseData = (array)($tree['course'] ?? []);
 		// The copy keeps the source course's metadata, so a CC BY licence and
 		// its author survive an install from the course store
@@ -114,45 +116,49 @@ class LearniqJsonCourseImporter {
 		$courseId = $this->objectWriter->createCourse(
 			title: (string)($courseData['name'] ?? 'Imported course'),
 			parentCourseId: null,
-			tenantId: $tenantId,
+			tenantId: $origin->tenantId,
 			metadata: $courseData
 		);
-		$entries[] = $this->reporter->entry(
+		$course = $this->reporter->entry(
 			resourceIdentifier: $this->sourceIdentifier(row: $courseData, fallback: 'course'),
 			resourceType: 'course',
 			title: (string)($courseData['name'] ?? ''),
 			result: ['outcome' => 'imported', 'targetType' => 'course', 'targetId' => $courseId, 'reason' => null]
 		);
+		$scope = ['courseId' => $courseId, 'importedBy' => $origin->importedBy, 'tenantId' => $origin->tenantId];
 
-		$this->importChildCourses(tree: $tree, courseId: $courseId, tenantId: $tenantId, entries: $entries);
-		$this->importLessons(tree: $tree, courseId: $courseId, tenantId: $tenantId, entries: $entries);
-		$this->importMaterials(tree: $tree, courseId: $courseId, owner: ['importedBy' => $importedBy, 'tenantId' => $tenantId], entries: $entries);
-		$this->importRubrics(tree: $tree, tenantId: $tenantId, entries: $entries);
-		$this->importAssessments(tree: $tree, courseId: $courseId, tenantId: $tenantId, entries: $entries);
-		$this->importLtiPlacements(tree: $tree, courseId: $courseId, tenantId: $tenantId, entries: $entries);
-
-		return $courseId;
+		return [
+			'courseId' => $courseId,
+			'entries' => array_merge(
+				[$course],
+				$this->importChildCourses(tree: $tree, scope: $scope),
+				$this->importLessons(tree: $tree, scope: $scope),
+				$this->importMaterials(tree: $tree, scope: $scope),
+				$this->importRubrics(tree: $tree, scope: $scope),
+				$this->importAssessments(tree: $tree, scope: $scope),
+				$this->importLtiPlacements(tree: $tree, scope: $scope),
+			),
+		];
 	}//end importTree()
 
 	/**
 	 * Re-create the export's direct child Courses under the new Course.
 	 *
-	 * @param array<string, mixed> $tree The decoded scholiq-native JSON tree.
-	 * @param string|null $courseId Re-created top-level Course UUID.
-	 * @param string $tenantId Tenant UUID.
-	 * @param array<int, array<string,mixed>> $entries Report entries accumulator (by reference).
+	 * @param array<string, mixed>                                            $tree  The decoded scholiq-native JSON tree.
+	 * @param array{courseId: string|null, importedBy: string, tenantId: string} $scope The re-created Course, the nc:files owner and the tenant.
 	 *
-	 * @return void
+	 * @return array<int, array<string, mixed>> The report entries.
 	 *
 	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
-	private function importChildCourses(array $tree, ?string $courseId, string $tenantId, array &$entries): void {
+	private function importChildCourses(array $tree, array $scope): array {
+		$entries = [];
 		foreach ((array)($tree['childCourses'] ?? []) as $child) {
 			$child = (array)$child;
 			$childCourseId = $this->objectWriter->createCourse(
 				title: (string)($child['name'] ?? 'Imported module'),
-				parentCourseId: $courseId,
-				tenantId: $tenantId
+				parentCourseId: $scope['courseId'],
+				tenantId: $scope['tenantId']
 			);
 			$entries[] = $this->reporter->entry(
 				resourceIdentifier: $this->sourceIdentifier(row: $child, fallback: 'child-course'),
@@ -161,32 +167,33 @@ class LearniqJsonCourseImporter {
 				result: ['outcome' => 'imported', 'targetType' => 'course', 'targetId' => $childCourseId, 'reason' => null]
 			);
 		}
+
+		return $entries;
 	}//end importChildCourses()
 
 	/**
 	 * Re-create the export's Lessons under the new Course.
 	 *
-	 * @param array<string, mixed> $tree The decoded scholiq-native JSON tree.
-	 * @param string|null $courseId Re-created top-level Course UUID.
-	 * @param string $tenantId Tenant UUID.
-	 * @param array<int, array<string,mixed>> $entries Report entries accumulator (by reference).
+	 * @param array<string, mixed>                                            $tree  The decoded scholiq-native JSON tree.
+	 * @param array{courseId: string|null, importedBy: string, tenantId: string} $scope The re-created Course, the nc:files owner and the tenant.
 	 *
-	 * @return void
+	 * @return array<int, array<string, mixed>> The report entries.
 	 *
 	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
-	private function importLessons(array $tree, ?string $courseId, string $tenantId, array &$entries): void {
+	private function importLessons(array $tree, array $scope): array {
+		$entries = [];
 		foreach ((array)($tree['lessons'] ?? []) as $lesson) {
 			$lesson = (array)$lesson;
 			$lessonId = $this->objectWriter->createLesson(
 				lesson: [
-					'courseId' => $courseId,
+					'courseId' => $scope['courseId'],
 					'title' => (string)($lesson['name'] ?? ''),
 					'order' => (int)($lesson['order'] ?? 0),
 					'contentType' => (string)($lesson['contentType'] ?? 'text'),
 					'contentRef' => (string)($lesson['contentRef'] ?? ''),
 				],
-				tenantId: $tenantId
+				tenantId: $scope['tenantId']
 			);
 			$entries[] = $this->reporter->entry(
 				resourceIdentifier: $this->sourceIdentifier(row: $lesson, fallback: 'lesson'),
@@ -195,22 +202,23 @@ class LearniqJsonCourseImporter {
 				result: ['outcome' => 'imported', 'targetType' => 'lesson', 'targetId' => $lessonId, 'reason' => null]
 			);
 		}
+
+		return $entries;
 	}//end importLessons()
 
 	/**
 	 * Re-create the export's Materials, writing any `contentBase64` bytes back
 	 * into `nc:files` so the destination tenant can resolve them.
 	 *
-	 * @param array<string, mixed> $tree The decoded scholiq-native JSON tree.
-	 * @param string|null $courseId Re-created top-level Course UUID.
-	 * @param array{importedBy: string, tenantId: string} $owner The nc:files owner for resolved Material bytes, and the tenant.
-	 * @param array<int, array<string,mixed>> $entries Report entries accumulator (by reference).
+	 * @param array<string, mixed>                                            $tree  The decoded scholiq-native JSON tree.
+	 * @param array{courseId: string|null, importedBy: string, tenantId: string} $scope The re-created Course, the nc:files owner and the tenant.
 	 *
-	 * @return void
+	 * @return array<int, array<string, mixed>> The report entries.
 	 *
 	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
-	private function importMaterials(array $tree, ?string $courseId, array $owner, array &$entries): void {
+	private function importMaterials(array $tree, array $scope): array {
+		$entries = [];
 		foreach ((array)($tree['materials'] ?? []) as $material) {
 			$material = (array)$material;
 			$fileRef = null;
@@ -218,8 +226,8 @@ class LearniqJsonCourseImporter {
 				$fileRef = $this->fileWriter->writeBase64ToFiles(
 					base64Content: (string)$material['contentBase64'],
 					title: (string)($material['title'] ?? 'material'),
-					importedBy: $owner['importedBy'],
-					tenantId: $owner['tenantId'],
+					importedBy: $scope['importedBy'],
+					tenantId: $scope['tenantId'],
 				);
 			}
 
@@ -229,9 +237,9 @@ class LearniqJsonCourseImporter {
 					'kind' => (string)($material['kind'] ?? 'document'),
 					'fileRef' => $fileRef,
 					'url' => $material['url'] ?? null,
-					'courseId' => $courseId,
+					'courseId' => $scope['courseId'],
 				],
-				tenantId: $owner['tenantId']
+				tenantId: $scope['tenantId']
 			);
 			$entries[] = $this->reporter->entry(
 				resourceIdentifier: $this->sourceIdentifier(row: $material, fallback: 'material'),
@@ -240,20 +248,22 @@ class LearniqJsonCourseImporter {
 				result: ['outcome' => 'imported', 'targetType' => 'material', 'targetId' => $materialId, 'reason' => null]
 			);
 		}//end foreach
+
+		return $entries;
 	}//end importMaterials()
 
 	/**
 	 * Re-create the export's Rubrics.
 	 *
-	 * @param array<string, mixed> $tree The decoded scholiq-native JSON tree.
-	 * @param string $tenantId Tenant UUID.
-	 * @param array<int, array<string,mixed>> $entries Report entries accumulator (by reference).
+	 * @param array<string, mixed>                                            $tree  The decoded scholiq-native JSON tree.
+	 * @param array{courseId: string|null, importedBy: string, tenantId: string} $scope The re-created Course, the nc:files owner and the tenant.
 	 *
-	 * @return void
+	 * @return array<int, array<string, mixed>> The report entries.
 	 *
 	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
-	private function importRubrics(array $tree, string $tenantId, array &$entries): void {
+	private function importRubrics(array $tree, array $scope): array {
+		$entries = [];
 		foreach ((array)($tree['rubrics'] ?? []) as $rubric) {
 			$rubric = (array)$rubric;
 			$rubricId = $this->objectWriter->create(
@@ -263,7 +273,7 @@ class LearniqJsonCourseImporter {
 					'criteria' => $rubric['criteria'] ?? [],
 					'maxPoints' => $rubric['maxPoints'] ?? 100,
 					'lifecycle' => 'draft',
-					'tenant_id' => $tenantId,
+					'tenant_id' => $scope['tenantId'],
 				]
 			);
 			$entries[] = $this->reporter->entry(
@@ -273,31 +283,32 @@ class LearniqJsonCourseImporter {
 				result: ['outcome' => 'imported', 'targetType' => 'rubric', 'targetId' => $rubricId, 'reason' => null]
 			);
 		}//end foreach
+
+		return $entries;
 	}//end importRubrics()
 
 	/**
 	 * Re-create the export's Assessments as degraded shells — their `itemRefs`
 	 * are source-tenant UUIDs that do not resolve here.
 	 *
-	 * @param array<string, mixed> $tree The decoded scholiq-native JSON tree.
-	 * @param string|null $courseId Re-created top-level Course UUID.
-	 * @param string $tenantId Tenant UUID.
-	 * @param array<int, array<string,mixed>> $entries Report entries accumulator (by reference).
+	 * @param array<string, mixed>                                            $tree  The decoded scholiq-native JSON tree.
+	 * @param array{courseId: string|null, importedBy: string, tenantId: string} $scope The re-created Course, the nc:files owner and the tenant.
 	 *
-	 * @return void
+	 * @return array<int, array<string, mixed>> The report entries.
 	 *
 	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
-	private function importAssessments(array $tree, ?string $courseId, string $tenantId, array &$entries): void {
+	private function importAssessments(array $tree, array $scope): array {
+		$entries = [];
 		foreach ((array)($tree['assessments'] ?? []) as $assessment) {
 			$assessment = (array)$assessment;
 			$assessmentId = $this->objectWriter->create(
 				schema: 'exam',
 				object: [
 					'title' => $assessment['title'] ?? '',
-					'courseId' => $courseId,
+					'courseId' => $scope['courseId'],
 					'lifecycle' => 'draft',
-					'tenant_id' => $tenantId,
+					'tenant_id' => $scope['tenantId'],
 				]
 			);
 			$entries[] = $this->reporter->entry(
@@ -313,25 +324,26 @@ class LearniqJsonCourseImporter {
 				]
 			);
 		}//end foreach
+
+		return $entries;
 	}//end importAssessments()
 
 	/**
 	 * Re-create the export's LtiToolPlacements as degraded placements — no
 	 * live OpenConnector deployment binding travels in the package.
 	 *
-	 * @param array<string, mixed> $tree The decoded scholiq-native JSON tree.
-	 * @param string|null $courseId Re-created top-level Course UUID.
-	 * @param string $tenantId Tenant UUID.
-	 * @param array<int, array<string,mixed>> $entries Report entries accumulator (by reference).
+	 * @param array<string, mixed>                                            $tree  The decoded scholiq-native JSON tree.
+	 * @param array{courseId: string|null, importedBy: string, tenantId: string} $scope The re-created Course, the nc:files owner and the tenant.
 	 *
-	 * @return void
+	 * @return array<int, array<string, mixed>> The report entries.
 	 *
 	 * @spec openspec/specs/course-management/spec.md#scenario-an-lti-resource-becomes-a-placement-not-an-inline-link
 	 */
-	private function importLtiPlacements(array $tree, ?string $courseId, string $tenantId, array &$entries): void {
+	private function importLtiPlacements(array $tree, array $scope): array {
+		$entries = [];
 		foreach ((array)($tree['ltiPlacements'] ?? []) as $placement) {
 			$placement = (array)$placement;
-			$placementId = $this->objectWriter->createLtiPlacement(courseId: $courseId, tenantId: $tenantId);
+			$placementId = $this->objectWriter->createLtiPlacement(courseId: $scope['courseId'], tenantId: $scope['tenantId']);
 			$entries[] = $this->reporter->entry(
 				resourceIdentifier: $this->sourceIdentifier(row: $placement, fallback: 'lti-placement'),
 				resourceType: 'lti-tool-placement',
@@ -345,6 +357,8 @@ class LearniqJsonCourseImporter {
 				]
 			);
 		}
+
+		return $entries;
 	}//end importLtiPlacements()
 
 	/**

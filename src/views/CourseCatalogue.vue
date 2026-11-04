@@ -15,8 +15,8 @@
  @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
 -->
 <template>
-	<div class="course-catalogue">
-		<h2>{{ t('learniq', 'Course catalogue') }}</h2>
+	<div class="course-catalogue lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Course catalogue')" />
 		<form class="course-catalogue__filters" @submit.prevent="load">
 			<NcTextField v-model="search" :label="t('learniq', 'Search courses')" />
 			<NcSelect
@@ -47,75 +47,77 @@
 			<li
 				v-for="entry in entries"
 				:key="entry.kind + entry.id"
-				class="course-catalogue__card">
-				<h3>{{ entry.name }}</h3>
-				<p class="course-catalogue__meta">
-					<span v-if="entry.kind === 'programme'"
-						>{{ t('learniq', 'Programme') }} ·
-					</span>
-					<span v-if="entry.provider"
-						>{{
-							t('learniq', 'Provider: {provider}', {
-								provider: entry.provider,
-							})
-						}}
-						·
-					</span>
-					<span v-if="entry.level">{{ entry.level }} · </span>
-					<span v-if="entry.language">{{ entry.language }}</span>
-					<span v-if="entry.ectsCredits">
-						·
-						{{
-							t('learniq', '{credits} credits', {
-								credits: entry.ectsCredits,
-							})
-						}}</span
-					>
-				</p>
-				<p class="course-catalogue__description">
-					{{ shorten(entry.description) }}
-				</p>
-				<p
-					v-if="entry.enrolment && entry.enrolment.lifecycle === 'active'"
-					class="course-catalogue__state">
-					{{ t('learniq', 'You are signed up') }}
-				</p>
-				<p
-					v-else-if="
-						entry.enrolment && entry.enrolment.lifecycle === 'pending'
-					"
-					class="course-catalogue__state">
-					{{ t('learniq', 'Your request is waiting for approval') }}
-				</p>
-				<div class="course-catalogue__actions">
-					<NcButton
-						v-if="canWithdraw(entry)"
-						variant="tertiary"
-						:disabled="busy === entry.id"
-						@click="withdraw(entry)">
-						{{ t('learniq', 'Withdraw') }}
-					</NcButton>
-					<NcButton
-						v-else-if="!isLive(entry)"
-						variant="primary"
-						:disabled="busy === entry.id"
-						@click="signUp(entry)">
-						{{
-							entry.selfEnrolment === 'on-request'
-								? t('learniq', 'Request a place')
-								: t('learniq', 'Sign up')
-						}}
-					</NcButton>
-				</div>
-				<NcNoteCard v-if="notes[entry.id]" :type="notes[entry.id].type">
-					{{ notes[entry.id].text }}
-				</NcNoteCard>
+				class="course-catalogue__entry">
+				<CnDetailCard :title="entry.name" class="course-catalogue__card">
+					<p class="course-catalogue__meta">
+						<span v-if="entry.kind === 'programme'"
+							>{{ t('learniq', 'Programme') }} ·
+						</span>
+						<span v-if="entry.provider"
+							>{{
+								t('learniq', 'Provider: {provider}', {
+									provider: entry.provider,
+								})
+							}}
+							·
+						</span>
+						<span v-if="entry.level">{{ entry.level }} · </span>
+						<span v-if="entry.language">{{ entry.language }}</span>
+						<span v-if="entry.ectsCredits">
+							·
+							{{
+								t('learniq', '{credits} credits', {
+									credits: entry.ectsCredits,
+								})
+							}}</span
+						>
+					</p>
+					<p class="course-catalogue__description">
+						{{ shorten(entry.description) }}
+					</p>
+					<p
+						v-if="entry.enrolment && entry.enrolment.lifecycle === 'active'"
+						class="course-catalogue__state">
+						{{ t('learniq', 'You are signed up') }}
+					</p>
+					<p
+						v-else-if="
+							entry.enrolment && entry.enrolment.lifecycle === 'pending'
+						"
+						class="course-catalogue__state">
+						{{ t('learniq', 'Your request is waiting for approval') }}
+					</p>
+					<div class="course-catalogue__actions">
+						<NcButton
+							v-if="canWithdraw(entry)"
+							variant="tertiary"
+							:disabled="busy === entry.id"
+							@click="withdraw(entry)">
+							{{ t('learniq', 'Withdraw') }}
+						</NcButton>
+						<NcButton
+							v-else-if="!isLive(entry)"
+							variant="primary"
+							:disabled="busy === entry.id"
+							@click="signUp(entry)">
+							{{
+								entry.selfEnrolment === 'on-request'
+									? t('learniq', 'Request a place')
+									: t('learniq', 'Sign up')
+							}}
+						</NcButton>
+					</div>
+					<NcNoteCard v-if="notes[entry.id]" :type="notes[entry.id].type">
+						{{ notes[entry.id].text }}
+					</NcNoteCard>
+				</CnDetailCard>
 			</li>
 		</ul>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import {
@@ -132,6 +134,8 @@ export default {
 	name: 'CourseCatalogue',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
@@ -319,33 +323,34 @@ export default {
 </script>
 
 <style scoped>
-.course-catalogue {
-	padding: calc(var(--default-grid-baseline, 4px) * 4);
-}
-
 .course-catalogue__filters {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: flex-end;
 	gap: calc(var(--default-grid-baseline, 4px) * 2);
-	margin-bottom: calc(var(--default-grid-baseline, 4px) * 4);
 }
 
 .course-catalogue__cards {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-	gap: calc(var(--default-grid-baseline, 4px) * 3);
+	gap: var(--cn-board-section-gap, 16px);
 	list-style: none;
+	margin: 0;
 	padding: 0;
 }
 
+.course-catalogue__entry {
+	display: flex;
+}
+
 .course-catalogue__card {
+	flex: 1;
+}
+
+.course-catalogue__card :deep(.cn-detail-card__content) {
 	display: flex;
 	flex-direction: column;
 	gap: var(--default-grid-baseline, 4px);
-	padding: calc(var(--default-grid-baseline, 4px) * 3);
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius-large);
 }
 
 .course-catalogue__meta,
