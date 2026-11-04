@@ -1056,7 +1056,7 @@ OC.L10N.register(
         "Course templates": "Cursussjablonen",
         "Support requests": "Ondersteuningsverzoeken",
         "Subject choices": "Vakkenkeuzes",
-        "Pick electives": "Vakken kiezen",
+        "Pick electives": "Keuzevakken kiezen",
         "LTI tools": "LTI-tools",
         "Timetabling": "Roostering",
         "Rooms": "Lokalen",
@@ -3017,7 +3017,7 @@ OC.L10N.register(
         "Whether learners can still check in.": "Of leerlingen zich nog kunnen aanmelden.",
         "Check in to a lesson": "Aanmelden voor een les",
         "None of your lessons has an open check-in right now.": "Bij geen van je lessen staat het aanmelden nu open.",
-        "Check in": "Inchecken",
+        "Check in": "Aanmelden",
         "You are checked in. You were late.": "Je bent aangemeld. Je was te laat.",
         "You are checked in.": "Je bent aangemeld.",
         "Checking in did not work. Try again.": "Aanmelden is niet gelukt. Probeer het opnieuw.",
@@ -4267,10 +4267,14 @@ OC.L10N.register(
         "Timetable exchange": "Roosteruitwisseling",
         "AI translations": "AI-vertalingen",
         "Administration settings": "Beheerinstellingen",
-        "Reports and automation": "Rapportages en automatisering",
-        "Set up the app": "De app inrichten",
-        "About the app": "Over de app",
-        "Exchanges": "Uitwisselingen"
+        "How long a learner can appeal a decision of the exam board. The term counts from the day of the decision and is on every fraud case and exemption case.": "Hoe lang een leerling in beroep kan tegen een besluit van de examencommissie. De termijn telt vanaf de dag van het besluit en staat op elke fraudezaak en vrijstellingszaak.",
+        "Loading the appeal term…": "De beroepstermijn wordt geladen…",
+        "Appeal term in days": "Beroepstermijn in dagen",
+        "Enter a whole number of days, from 1 to {max}.": "Vul een heel aantal dagen in, van 1 tot en met {max}.",
+        "Default {default} days. A decision of {decided} can then be appealed up to and including {until}.": "Standaard {default} dagen. Een besluit van {decided} is dan tot en met {until} aanvechtbaar.",
+        "The appeal term could not be loaded. Reload the page to try again.": "De beroepstermijn kon niet worden geladen. Laad de pagina opnieuw om het nog eens te proberen.",
+        "Appeal term saved": "Beroepstermijn opgeslagen",
+        "The appeal term could not be saved. Try again.": "De beroepstermijn kon niet worden opgeslagen. Probeer het opnieuw."
     },
     "nplurals=2; plural=(n != 1);"
 )
