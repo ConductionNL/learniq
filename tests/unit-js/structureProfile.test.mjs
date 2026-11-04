@@ -1882,7 +1882,7 @@ test('the foldout groups as the board draws it: roadmap and marketplace under Ab
 	assert.deepEqual(fold.slice(0, 4), ['#Reports and automation', 'Reports', 'Flows', 'xAPI statements'])
 	assert.equal(fold[4], '#Set up the app')
 	assert.ok(fold.indexOf('School-year rollover') > 4 && fold.indexOf('School-year rollover') < about)
-	assert.deepEqual(fold.slice(about, about + 3), ['#About the app', 'Store', 'Features & roadmap'])
+	assert.deepEqual(fold.slice(about, about + 3), ['#About the app', 'Marketplace', 'Features & roadmap'])
 	assert.deepEqual(SIMPLE.nav.footer, ['settings', 'help'])
 	assert.ok(FULL.settingsSection.includes('FeaturesRoadmapMenu'))
 })
