@@ -260,7 +260,7 @@ class SecondarySchoolExampleSetTest extends TestCase {
 		foreach (self::of('cohort') as $class) {
 			// The one course's own group has its one teacher, not a class's subject teachers.
 			if ($class['name'] === 'Biologie leerjaar 3 havo/vwo') {
-				self::assertSame(['vo-docent-15'], $class['teacherIds']);
+				self::assertSame(expected: ['vo-docent-15'], actual: $class['teacherIds']);
 				continue;
 			}
 
