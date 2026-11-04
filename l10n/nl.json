@@ -4342,7 +4342,9 @@
         "Lesson {name} moved to position {pos} of {total}. Saved.": "Les {name} verplaatst naar positie {pos} van {total}. Opgeslagen.",
         "{done} of {total} mandatory subjects done": "{done} van {total} verplichte vakken klaar",
         "Optional subjects": "Keuzevakken",
-        "Shared with you": "Gedeeld met u"
+        "Shared with you": "Gedeeld met u",
+        "Read only": "Alleen lezen",
+        "School costs": "Schoolkosten"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
