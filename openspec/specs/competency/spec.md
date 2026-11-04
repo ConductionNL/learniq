@@ -1,7 +1,7 @@
 # competency Specification
 
 ## Purpose
-TBD - created by archiving change competency-framework. Update Purpose after archive.
+Describe what learners must be able to do as frameworks of competencies, each with its own proficiency scale. Schools align lessons and assessments to those goals, then read each learner's attainment, skills gaps and the curriculum coverage per year and subject.
 
 ## Requirements
 

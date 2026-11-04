@@ -74,6 +74,260 @@ class StudentPortalPages {
 		'timetable-change' => 'Changed',
 	];
 
+	private const STUDENT_SESSIONS_FIELDS = [
+		'cohortId',
+		'courseId',
+		'title',
+		'startsAt',
+		'endsAt',
+		'location',
+		'changeReasonKind',
+		'changeReason',
+		'lifecycle',
+	];
+
+	private const STUDENT_SESSIONS_VIA = [
+		'register' => self::REGISTER,
+		'schema' => 'enrolment',
+		'scopeField' => 'learnerRef',
+		'targetField' => 'cohortId',
+		'match' => 'scopeField',
+		'when' => ['field' => 'lifecycle', 'in' => ['active']],
+	];
+
+	private const STUDENT_SESSIONS_COLUMNS = [
+		['field' => 'startsAt', 'label' => 'Starts at', 'render' => 'datetime'],
+		['field' => 'title', 'label' => 'Subject'],
+		['field' => 'location', 'label' => 'Room'],
+	];
+
+	private const STUDENT_SESSIONS_FIELD_CONFIGS = [
+		'changeReasonKind' => ['label' => 'Change', 'valueLabels' => self::LESSON_CHANGE],
+	];
+
+	private const TIMETABLE_BLOCK_SOURCES = [
+		[
+			'collection' => 'studentSessions',
+			'startField' => 'startsAt',
+			'endField' => 'endsAt',
+			'titleField' => 'title',
+			'metaField' => 'location',
+			'noteField' => 'changeReason',
+			'statusField' => 'changeReasonKind',
+			'cancelledWhen' => ['field' => 'lifecycle', 'in' => ['cancelled']],
+		],
+	];
+
+	private const STUDENT_HOMEWORK_COLUMNS = [
+		['field' => 'title', 'label' => 'To do'],
+		['field' => 'dueAt', 'label' => 'Hand in by', 'render' => 'date'],
+	];
+
+	private const STUDENT_BPV_PLACEMENTS = [
+		// Her own placement, so her hours have something to be about.
+		// Without it the week form could only ask her to type a uuid:
+		// portaliq fills a `collection` option provider from the
+		// subject-scoped collection over that schema, and a pupil had
+		// none (internship-hours).
+		'id' => 'studentBpvPlacements',
+		'register' => self::REGISTER,
+		'schema' => 'bpv-placement',
+		'scopeField' => 'learnerRef',
+		'scopeClaim' => 'learnerRef',
+		'label' => 'My placement',
+		'listable' => true,
+		'minTrust' => 'low',
+		// Followed like a case: the placement has steps (placement-steps-and-assessment-draft).
+		'kind' => 'cases',
+		'steps' => ['label' => 'Where do you stand?', 'provider' => 'bpvPlacementSteps'],
+		// The school's own people and the SBB payload stay out, the same
+		// projection her trainer reads.
+		'fields' => [
+			'learnerRef',
+			'trainingCompanyName',
+			'periodFrom',
+			'periodTo',
+			'agreedHours',
+			'hoursApprovedTotal',
+			// The bar on her hours page: approved, waiting and sent back (bpv-hours-match-the-board).
+			'hoursWaitingTotal',
+			'hoursReturnedTotal',
+			'lifecycle',
+			// The agreements on the board (Detail, "Afspraken"; board-data-the-schemas-lacked).
+			'workdaysLabel',
+			'workplaceAddress',
+			'qualificationName',
+			'crebo',
+		],
+		'columns' => [
+			['field' => 'trainingCompanyName', 'label' => 'Training company'],
+			['field' => 'hoursApprovedTotal', 'label' => 'Hours approved'],
+			['field' => 'agreedHours', 'label' => 'Agreed hours'],
+		],
+		// Words on the record, never field keys such as "Period From" (REPORT-2, item 8).
+		'fieldConfigs' => [
+			'trainingCompanyName' => ['label' => 'Training company'],
+			'periodFrom'          => ['label' => 'From'],
+			'periodTo'            => ['label' => 'Until'],
+			'agreedHours'         => ['label' => 'Agreed hours'],
+			'hoursApprovedTotal'  => ['label' => 'Hours approved'],
+			'hoursWaitingTotal'   => ['label' => 'Waiting for approval'],
+			'hoursReturnedTotal'  => ['label' => 'Sent back'],
+			'lifecycle'           => ['label' => 'Status', 'valueLabels' => PortalValueLabels::PLACEMENT_STATUS],
+			'workdaysLabel'       => ['label' => 'Workdays'],
+			'workplaceAddress'    => ['label' => 'Address'],
+			'qualificationName'   => ['label' => 'Qualification'],
+			'crebo'               => ['label' => 'Crebo'],
+		],
+	];
+
+	private const STUDENT_HOUR_WEEKS_FIELDS = [
+		'learnerRef',
+		'bpvPlacementId',
+		'isoWeek',
+		'hoursSubmitted',
+		'submittedAt',
+		'hoursApproved',
+		'approvedByName',
+		'approvedAt',
+		'note',
+		'lifecycle',
+	];
+
+	private const STUDENT_HOUR_WEEKS_COLUMNS = [
+		['field' => 'isoWeek', 'label' => 'Week'],
+		['field' => 'hoursSubmitted', 'label' => 'Hours you entered'],
+		// When she sent it, which is what answers "have I actually
+		// handed in week 39?" while the week waits.
+		['field' => 'submittedAt', 'label' => 'Sent on', 'render' => 'date'],
+		['field' => 'hoursApproved', 'label' => 'Hours approved'],
+		// A corrected week says so in words. Reading "approved"
+		// over a number she did not write is exactly how a
+		// correction becomes silent.
+		['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::HOUR_WEEK_STATUS],
+	];
+
+	private const STUDENT_SCHOOL_COACHES = [
+		'id' => 'studentSchoolCoaches',
+		'register' => self::REGISTER,
+		'schema' => 'staff',
+		'scopeField' => 'ncUserId',
+		'scopeClaim' => 'learnerRef',
+		// Reverse join: a staff row counts when its user id is the
+		// schoolCoachId of a placement of this student.
+		'via' => [
+			'register' => self::REGISTER,
+			'schema' => 'bpv-placement',
+			'scopeField' => 'learnerRef',
+			'targetField' => 'schoolCoachId',
+			'match' => 'scopeField',
+		],
+		'label' => 'Your BPV supervisor at school',
+		'listable' => false,
+		'minTrust' => 'low',
+		'fields' => ['ncUserId'],
+		'columns' => [
+			['field' => 'ncUserId', 'label' => 'BPV supervisor', 'render' => 'user'],
+		],
+	];
+
+	private const STUDENT_TRAINERS = [
+		'id' => 'studentTrainers',
+		'register' => self::REGISTER,
+		'schema' => 'praktijkopleider',
+		// Not read in forward join mode; portaliq matches the row's own id.
+		'scopeField' => 'trainingCompanyName',
+		'scopeClaim' => 'learnerRef',
+		// Forward join: a trainer counts when her own id is a placement's
+		// practicalTrainerId of a placement of this student.
+		'via' => [
+			'register' => self::REGISTER,
+			'schema' => 'bpv-placement',
+			'scopeField' => 'learnerRef',
+			'targetField' => 'practicalTrainerId',
+		],
+		'label' => 'Your trainer',
+		'listable' => false,
+		'minTrust' => 'low',
+		'fields' => ['givenName', 'familyName', 'trainingCompanyName'],
+	];
+
+	private const STUDENT_WORK_PROCESSES_COLUMNS = [
+		['field' => 'werkprocesCode', 'label' => 'Code'],
+		['field' => 'werkprocesLabel', 'label' => 'Work process'],
+		['field' => 'hoursSpent', 'label' => 'Hours'],
+		['field' => 'selfAssessment', 'label' => 'Your estimate', 'valueLabels' => PortalValueLabels::SELF_ASSESSMENT],
+	];
+
+	private const SUBMIT_HOUR_WEEK_CROSS_REFS = [
+		'bpvPlacementId' => [
+			'register' => self::REGISTER,
+			'schema' => 'bpv-placement',
+			'scopeField' => 'learnerRef',
+			'scopeClaim' => 'learnerRef',
+			'required' => true,
+		],
+	];
+
+	/**
+	 * The student's placements to choose from, by the company's name.
+	 */
+	public const PLACEMENT_OPTIONS = [
+		'type' => 'collection',
+		'register' => self::REGISTER,
+		'schema' => 'bpv-placement',
+		'labelField' => 'trainingCompanyName',
+		'valueField' => 'id',
+	];
+
+	private const SUBMIT_HOUR_WEEK_OPTIONS_PROVIDERS = [
+		'bpvPlacementId' => self::PLACEMENT_OPTIONS,
+	];
+
+	private const SUBMIT_HOUR_WEEK_FIELD_CONFIGS = [
+		'bpvPlacementId' => ['label' => 'Your placement', 'required' => true],
+		'isoWeek' => ['label' => 'The week, as 2026-W39', 'required' => true],
+		'hoursSubmitted' => ['label' => 'Hours you worked', 'required' => true],
+	];
+
+	private const STUDENT_HOMEWORK_TASKS_BLOCK = [
+		'type' => 'tasks',
+		'label' => 'Homework and tests',
+		'display' => 'highlight',
+		'collection' => 'studentHomework',
+		'dueField' => 'dueAt',
+		'titleFields' => ['title'],
+	];
+
+	private const STUDENT_LATEST_GRADES_BLOCK = [
+		'type' => 'collection',
+		'label' => 'Latest grades',
+		'collection' => 'studentGrades',
+		'limit' => 3,
+		'sort' => ['field' => 'gradedAt', 'direction' => 'desc'],
+	];
+
+	private const STUDENT_SUPERVISORS_BLOCK = [
+		'type' => 'collection',
+		'label' => 'Your supervisors',
+		'collection' => 'studentTrainers',
+		'display' => 'rows',
+		'titleFields' => ['givenName', 'familyName'],
+		'subtitleField' => 'trainingCompanyName',
+	];
+
+	private const HOURS_BAR_SEGMENTS = [
+		['field' => 'hoursApprovedTotal', 'label' => 'Approved', 'tone' => 'positive'],
+		['field' => 'hoursWaitingTotal', 'label' => 'Waiting', 'tone' => 'waiting'],
+		['field' => 'hoursReturnedTotal', 'label' => 'Sent back', 'tone' => 'warning'],
+	];
+
+	private const HOURS_BAR_CARDS = [
+		['field' => 'hoursApprovedTotal', 'label' => 'Approved', 'unit' => ['one' => 'hour', 'other' => 'hours']],
+		['field' => 'hoursWaitingTotal', 'label' => 'Waiting', 'unit' => ['one' => 'hour', 'other' => 'hours']],
+		['field' => 'hoursReturnedTotal', 'label' => 'Sent back', 'unit' => ['one' => 'hour', 'other' => 'hours'], 'highlight' => true],
+	];
+
 	/**
 	 * Her timetable: the lessons of the groups she is enrolled in.
 	 *
@@ -99,36 +353,13 @@ class StudentPortalPages {
 			'schema' => 'session',
 			'scopeField' => 'cohortId',
 			'scopeClaim' => 'learnerRef',
-			'via' => [
-				'register' => self::REGISTER,
-				'schema' => 'enrolment',
-				'scopeField' => 'learnerRef',
-				'targetField' => 'cohortId',
-				'match' => 'scopeField',
-				'when' => ['field' => 'lifecycle', 'in' => ['active']],
-			],
+			'via' => self::STUDENT_SESSIONS_VIA,
 			'label' => 'My timetable',
 			'listable' => true,
 			'minTrust' => 'low',
-			'fields' => [
-				'cohortId',
-				'courseId',
-				'title',
-				'startsAt',
-				'endsAt',
-				'location',
-				'changeReasonKind',
-				'changeReason',
-				'lifecycle',
-			],
-			'fieldConfigs' => [
-				'changeReasonKind' => ['label' => 'Change', 'valueLabels' => self::LESSON_CHANGE],
-			],
-			'columns' => [
-				['field' => 'startsAt', 'label' => 'Starts at', 'render' => 'datetime'],
-				['field' => 'title', 'label' => 'Subject'],
-				['field' => 'location', 'label' => 'Room'],
-			],
+			'fields' => self::STUDENT_SESSIONS_FIELDS,
+			'fieldConfigs' => self::STUDENT_SESSIONS_FIELD_CONFIGS,
+			'columns' => self::STUDENT_SESSIONS_COLUMNS,
 		];
 	}//end sessionsCollection()
 
@@ -152,18 +383,7 @@ class StudentPortalPages {
 			'display' => 'timetable',
 			'range' => $range,
 			'firstLabel' => 'Your first lesson',
-			'sources' => [
-				[
-					'collection' => 'studentSessions',
-					'startField' => 'startsAt',
-					'endField' => 'endsAt',
-					'titleField' => 'title',
-					'metaField' => 'location',
-					'noteField' => 'changeReason',
-					'statusField' => 'changeReasonKind',
-					'cancelledWhen' => ['field' => 'lifecycle', 'in' => ['cancelled']],
-				],
-			],
+			'sources' => self::TIMETABLE_BLOCK_SOURCES,
 		];
 	}//end timetableBlock()
 
@@ -188,10 +408,7 @@ class StudentPortalPages {
 			'listable' => true,
 			'minTrust' => 'low',
 			'fields' => ['title', 'instructions', 'dueAt', 'cohortId', 'allowLateSubmission', 'lifecycle'],
-			'columns' => [
-				['field' => 'title', 'label' => 'To do'],
-				['field' => 'dueAt', 'label' => 'Hand in by', 'render' => 'date'],
-			],
+			'columns' => self::STUDENT_HOMEWORK_COLUMNS,
 		];
 	}//end homeworkCollection()
 
@@ -233,63 +450,7 @@ class StudentPortalPages {
 	 */
 	public function bpvCollections(): array {
 		return [
-		[
-			// Her own placement, so her hours have something to be about.
-			// Without it the week form could only ask her to type a uuid:
-			// portaliq fills a `collection` option provider from the
-			// subject-scoped collection over that schema, and a pupil had
-			// none (internship-hours).
-			'id' => 'studentBpvPlacements',
-			'register' => self::REGISTER,
-			'schema' => 'bpv-placement',
-			'scopeField' => 'learnerRef',
-			'scopeClaim' => 'learnerRef',
-			'label' => 'My placement',
-			'listable' => true,
-			'minTrust' => 'low',
-			// Followed like a case: the placement has steps (placement-steps-and-assessment-draft).
-			'kind' => 'cases',
-			'steps' => ['label' => 'Where do you stand?', 'provider' => 'bpvPlacementSteps'],
-			// The school's own people and the SBB payload stay out, the same
-			// projection her trainer reads.
-			'fields' => [
-				'learnerRef',
-				'trainingCompanyName',
-				'periodFrom',
-				'periodTo',
-				'agreedHours',
-				'hoursApprovedTotal',
-				// The bar on her hours page: approved, waiting and sent back (bpv-hours-match-the-board).
-				'hoursWaitingTotal',
-				'hoursReturnedTotal',
-				'lifecycle',
-				// The agreements on the board (Detail, "Afspraken"; board-data-the-schemas-lacked).
-				'workdaysLabel',
-				'workplaceAddress',
-				'qualificationName',
-				'crebo',
-			],
-			'columns' => [
-				['field' => 'trainingCompanyName', 'label' => 'Training company'],
-				['field' => 'hoursApprovedTotal', 'label' => 'Hours approved'],
-				['field' => 'agreedHours', 'label' => 'Agreed hours'],
-			],
-			// Words on the record, never field keys such as "Period From" (REPORT-2, item 8).
-			'fieldConfigs' => [
-				'trainingCompanyName' => ['label' => 'Training company'],
-				'periodFrom'          => ['label' => 'From'],
-				'periodTo'            => ['label' => 'Until'],
-				'agreedHours'         => ['label' => 'Agreed hours'],
-				'hoursApprovedTotal'  => ['label' => 'Hours approved'],
-				'hoursWaitingTotal'   => ['label' => 'Waiting for approval'],
-				'hoursReturnedTotal'  => ['label' => 'Sent back'],
-				'lifecycle'           => ['label' => 'Status', 'valueLabels' => PortalValueLabels::PLACEMENT_STATUS],
-				'workdaysLabel'       => ['label' => 'Workdays'],
-				'workplaceAddress'    => ['label' => 'Address'],
-				'qualificationName'   => ['label' => 'Qualification'],
-				'crebo'               => ['label' => 'Crebo'],
-			],
-		],
+		self::STUDENT_BPV_PLACEMENTS,
 		$this->hourWeeksCollection(),
 		$this->workProcessesCollection(),
 		...$this->supervisorCollections(),
@@ -324,30 +485,8 @@ class StudentPortalPages {
 			// it is a value that never varies and tells her nothing. It stays
 			// what the school reads afterwards, and the e2e asserts it from an
 			// admin read, where it is evidence that the stamp ran.
-			'fields' => [
-				'learnerRef',
-				'bpvPlacementId',
-				'isoWeek',
-				'hoursSubmitted',
-				'submittedAt',
-				'hoursApproved',
-				'approvedByName',
-				'approvedAt',
-				'note',
-				'lifecycle',
-			],
-			'columns' => [
-				['field' => 'isoWeek', 'label' => 'Week'],
-				['field' => 'hoursSubmitted', 'label' => 'Hours you entered'],
-				// When she sent it, which is what answers "have I actually
-				// handed in week 39?" while the week waits.
-				['field' => 'submittedAt', 'label' => 'Sent on', 'render' => 'date'],
-				['field' => 'hoursApproved', 'label' => 'Hours approved'],
-				// A corrected week says so in words. Reading "approved"
-				// over a number she did not write is exactly how a
-				// correction becomes silent.
-				['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::HOUR_WEEK_STATUS],
-			],
+			'fields' => self::STUDENT_HOUR_WEEKS_FIELDS,
+			'columns' => self::STUDENT_HOUR_WEEKS_COLUMNS,
 		];
 	}//end hourWeeksCollection()
 
@@ -364,49 +503,8 @@ class StudentPortalPages {
 	 */
 	public function supervisorCollections(): array {
 		return [
-			[
-				'id' => 'studentTrainers',
-				'register' => self::REGISTER,
-				'schema' => 'praktijkopleider',
-				// Not read in forward join mode; portaliq matches the row's own id.
-				'scopeField' => 'trainingCompanyName',
-				'scopeClaim' => 'learnerRef',
-				// Forward join: a trainer counts when her own id is a placement's
-				// practicalTrainerId of a placement of this student.
-				'via' => [
-					'register' => self::REGISTER,
-					'schema' => 'bpv-placement',
-					'scopeField' => 'learnerRef',
-					'targetField' => 'practicalTrainerId',
-				],
-				'label' => 'Your trainer',
-				'listable' => false,
-				'minTrust' => 'low',
-				'fields' => ['givenName', 'familyName', 'trainingCompanyName'],
-			],
-			[
-				'id' => 'studentSchoolCoaches',
-				'register' => self::REGISTER,
-				'schema' => 'staff',
-				'scopeField' => 'ncUserId',
-				'scopeClaim' => 'learnerRef',
-				// Reverse join: a staff row counts when its user id is the
-				// schoolCoachId of a placement of this student.
-				'via' => [
-					'register' => self::REGISTER,
-					'schema' => 'bpv-placement',
-					'scopeField' => 'learnerRef',
-					'targetField' => 'schoolCoachId',
-					'match' => 'scopeField',
-				],
-				'label' => 'Your BPV supervisor at school',
-				'listable' => false,
-				'minTrust' => 'low',
-				'fields' => ['ncUserId'],
-				'columns' => [
-					['field' => 'ncUserId', 'label' => 'BPV supervisor', 'render' => 'user'],
-				],
-			],
+			self::STUDENT_TRAINERS,
+			self::STUDENT_SCHOOL_COACHES,
 		];
 	}//end supervisorCollections()
 
@@ -430,12 +528,7 @@ class StudentPortalPages {
 			'listable' => false,
 			'minTrust' => 'low',
 			'fields' => ['learnerRef', 'bpvPlacementId', 'werkprocesCode', 'werkprocesLabel', 'hoursSpent', 'selfAssessment'],
-			'columns' => [
-				['field' => 'werkprocesCode', 'label' => 'Code'],
-				['field' => 'werkprocesLabel', 'label' => 'Work process'],
-				['field' => 'hoursSpent', 'label' => 'Hours'],
-				['field' => 'selfAssessment', 'label' => 'Your estimate', 'valueLabels' => PortalValueLabels::SELF_ASSESSMENT],
-			],
+			'columns' => self::STUDENT_WORK_PROCESSES_COLUMNS,
 			// "Nu invullen" on each row: her own estimate, nothing else.
 			'rowActions' => [StudentSelfAssessment::ACTION],
 		];
@@ -468,31 +561,11 @@ class StudentPortalPages {
 		// without this guard she could file hours against another
 		// student's placement and HourWeekTotalRollup would add them to
 		// that placement's total.
-		'crossRefs' => [
-			'bpvPlacementId' => [
-				'register' => self::REGISTER,
-				'schema' => 'bpv-placement',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'required' => true,
-			],
-		],
+		'crossRefs' => self::SUBMIT_HOUR_WEEK_CROSS_REFS,
 		// And she picks it from her own placements rather than typing a
 		// uuid, the way her guardian picks a child.
-		'optionsProviders' => [
-			'bpvPlacementId' => [
-				'type' => 'collection',
-				'register' => self::REGISTER,
-				'schema' => 'bpv-placement',
-				'labelField' => 'trainingCompanyName',
-				'valueField' => 'id',
-			],
-		],
-		'fieldConfigs' => [
-			'bpvPlacementId' => ['label' => 'Your placement', 'required' => true],
-			'isoWeek' => ['label' => 'The week, as 2026-W39', 'required' => true],
-			'hoursSubmitted' => ['label' => 'Hours you worked', 'required' => true],
-		],
+		'optionsProviders' => self::SUBMIT_HOUR_WEEK_OPTIONS_PROVIDERS,
+		'fieldConfigs' => self::SUBMIT_HOUR_WEEK_FIELD_CONFIGS,
 		'submitLabel' => 'Send these hours',
 		'successMessage' => 'Your hours are with your workplace trainer. You see her decision in the list.',
 		];
@@ -560,21 +633,8 @@ class StudentPortalPages {
 				['type' => 'greeting'],
 				$this->timetableBlock(label: 'Your timetable today', range: 'day'),
 				['type' => 'cta', 'page' => 'studentSessions', 'label' => 'Whole week'],
-				[
-					'type' => 'tasks',
-					'label' => 'Homework and tests',
-					'display' => 'highlight',
-					'collection' => 'studentHomework',
-					'dueField' => 'dueAt',
-					'titleFields' => ['title'],
-				],
-				[
-					'type' => 'collection',
-					'label' => 'Latest grades',
-					'collection' => 'studentGrades',
-					'limit' => 3,
-					'sort' => ['field' => 'gradedAt', 'direction' => 'desc'],
-				],
+				self::STUDENT_HOMEWORK_TASKS_BLOCK,
+				self::STUDENT_LATEST_GRADES_BLOCK,
 				$this->absenceFigures(),
 				['type' => 'cta', 'action' => 'createSubmission', 'label' => 'Hand in work'],
 				['type' => 'cta', 'action' => 'createExcuseRequest', 'label' => 'Report an absence'],
@@ -691,14 +751,7 @@ class StudentPortalPages {
 			$this->hoursBar(collection: $id),
 			['type' => 'collection', 'label' => 'Work processes', 'collection' => 'studentWorkProcesses', 'recordField' => 'bpvPlacementId'],
 			// "Je begeleiders": her trainer at the company and her coach at school.
-			[
-				'type' => 'collection',
-				'label' => 'Your supervisors',
-				'collection' => 'studentTrainers',
-				'display' => 'rows',
-				'titleFields' => ['givenName', 'familyName'],
-				'subtitleField' => 'trainingCompanyName',
-			],
+			self::STUDENT_SUPERVISORS_BLOCK,
 			['type' => 'collection', 'collection' => 'studentSchoolCoaches'],
 			['type' => 'detail', 'collection' => $id, 'label' => 'Agreements'],
 		];
@@ -722,18 +775,10 @@ class StudentPortalPages {
 			'collection' => $collection,
 			'label' => 'My BPV hours',
 			'display' => 'segmented',
-			'segments' => [
-				['field' => 'hoursApprovedTotal', 'label' => 'Approved', 'tone' => 'positive'],
-				['field' => 'hoursWaitingTotal', 'label' => 'Waiting', 'tone' => 'waiting'],
-				['field' => 'hoursReturnedTotal', 'label' => 'Sent back', 'tone' => 'warning'],
-			],
+			'segments' => self::HOURS_BAR_SEGMENTS,
 			'totalField' => 'agreedHours',
 			'unit' => 'hours',
-			'cards' => [
-				['field' => 'hoursApprovedTotal', 'label' => 'Approved', 'unit' => ['one' => 'hour', 'other' => 'hours']],
-				['field' => 'hoursWaitingTotal', 'label' => 'Waiting', 'unit' => ['one' => 'hour', 'other' => 'hours']],
-				['field' => 'hoursReturnedTotal', 'label' => 'Sent back', 'unit' => ['one' => 'hour', 'other' => 'hours'], 'highlight' => true],
-			],
+			'cards' => self::HOURS_BAR_CARDS,
 		];
 	}//end hoursBar()
 

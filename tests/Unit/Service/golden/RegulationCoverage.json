@@ -1,0 +1,1568 @@
+{
+    "department null": {
+        "rows": [
+            {
+                "id": "r-5",
+                "slug": "nobody-scope",
+                "name": "Alpha",
+                "inScope": 0,
+                "covered": 0,
+                "excused": 0,
+                "coveragePercent": null,
+                "rag": null
+            },
+            {
+                "id": "r-1",
+                "slug": "bhv",
+                "name": "BHV",
+                "inScope": 5,
+                "covered": 3,
+                "excused": 1,
+                "coveragePercent": 60.0,
+                "rag": "red"
+            },
+            {
+                "id": "",
+                "slug": "hygiene",
+                "name": "hygiene",
+                "inScope": 5,
+                "covered": 1,
+                "excused": 0,
+                "coveragePercent": 20.0,
+                "rag": "red"
+            },
+            {
+                "id": "r-2",
+                "slug": "vca",
+                "name": "vca basis",
+                "inScope": 5,
+                "covered": 2,
+                "excused": 1,
+                "coveragePercent": 40.0,
+                "rag": "amber"
+            },
+            {
+                "id": "r-4",
+                "slug": "",
+                "name": "Zonder slug",
+                "inScope": 6,
+                "covered": 1,
+                "excused": 0,
+                "coveragePercent": 16.7,
+                "rag": "red"
+            }
+        ],
+        "calls": [
+            {
+                "learnerKeys": "anna"
+            },
+            {
+                "covers": [
+                    "bhv",
+                    "anna"
+                ]
+            },
+            {
+                "covers": [
+                    "vca",
+                    "anna"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "anna"
+                    ],
+                    "vca",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "hygiene",
+                    "anna"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "anna"
+                    ],
+                    "hygiene",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "",
+                    "anna"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "anna"
+                    ],
+                    "",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "nobody-scope",
+                    "anna"
+                ]
+            },
+            {
+                "learnerKeys": "bert"
+            },
+            {
+                "covers": [
+                    "bhv",
+                    "bert"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "bert",
+                        "emp-bert"
+                    ],
+                    "bhv",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "vca",
+                    "bert"
+                ]
+            },
+            {
+                "covers": [
+                    "hygiene",
+                    "bert"
+                ]
+            },
+            {
+                "covers": [
+                    "",
+                    "bert"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "bert",
+                        "emp-bert"
+                    ],
+                    "",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "nobody-scope",
+                    "bert"
+                ]
+            },
+            {
+                "learnerKeys": "carla"
+            },
+            {
+                "covers": [
+                    "bhv",
+                    "carla"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "carla"
+                    ],
+                    "bhv",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "vca",
+                    "carla"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "carla"
+                    ],
+                    "vca",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "hygiene",
+                    "carla"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "carla"
+                    ],
+                    "hygiene",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "",
+                    "carla"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "carla"
+                    ],
+                    "",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "nobody-scope",
+                    "carla"
+                ]
+            },
+            {
+                "learnerKeys": "dirk"
+            },
+            {
+                "covers": [
+                    "bhv",
+                    "dirk"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "dirk"
+                    ],
+                    "bhv",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "vca",
+                    "dirk"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "dirk"
+                    ],
+                    "vca",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "hygiene",
+                    "dirk"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "dirk"
+                    ],
+                    "hygiene",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "",
+                    "dirk"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "dirk"
+                    ],
+                    "",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "nobody-scope",
+                    "dirk"
+                ]
+            },
+            {
+                "learnerKeys": "eva"
+            },
+            {
+                "covers": [
+                    "bhv",
+                    "eva"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "eva"
+                    ],
+                    "bhv",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "vca",
+                    "eva"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "eva"
+                    ],
+                    "vca",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "hygiene",
+                    "eva"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "eva"
+                    ],
+                    "hygiene",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "",
+                    "eva"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "eva"
+                    ],
+                    "",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "nobody-scope",
+                    "eva"
+                ]
+            },
+            {
+                "learnerKeys": "frank"
+            },
+            {
+                "covers": [
+                    "bhv",
+                    "frank"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "frank"
+                    ],
+                    "bhv",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "vca",
+                    "frank"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "frank"
+                    ],
+                    "vca",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "hygiene",
+                    "frank"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "frank"
+                    ],
+                    "hygiene",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "",
+                    "frank"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "frank"
+                    ],
+                    "",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "nobody-scope",
+                    "frank"
+                ]
+            }
+        ]
+    },
+    "department \"\"": {
+        "rows": [
+            {
+                "id": "r-5",
+                "slug": "nobody-scope",
+                "name": "Alpha",
+                "inScope": 0,
+                "covered": 0,
+                "excused": 0,
+                "coveragePercent": null,
+                "rag": null
+            },
+            {
+                "id": "r-1",
+                "slug": "bhv",
+                "name": "BHV",
+                "inScope": 5,
+                "covered": 3,
+                "excused": 1,
+                "coveragePercent": 60.0,
+                "rag": "red"
+            },
+            {
+                "id": "",
+                "slug": "hygiene",
+                "name": "hygiene",
+                "inScope": 5,
+                "covered": 1,
+                "excused": 0,
+                "coveragePercent": 20.0,
+                "rag": "red"
+            },
+            {
+                "id": "r-2",
+                "slug": "vca",
+                "name": "vca basis",
+                "inScope": 5,
+                "covered": 2,
+                "excused": 1,
+                "coveragePercent": 40.0,
+                "rag": "amber"
+            },
+            {
+                "id": "r-4",
+                "slug": "",
+                "name": "Zonder slug",
+                "inScope": 6,
+                "covered": 1,
+                "excused": 0,
+                "coveragePercent": 16.7,
+                "rag": "red"
+            }
+        ],
+        "calls": [
+            {
+                "learnerKeys": "anna"
+            },
+            {
+                "covers": [
+                    "bhv",
+                    "anna"
+                ]
+            },
+            {
+                "covers": [
+                    "vca",
+                    "anna"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "anna"
+                    ],
+                    "vca",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "hygiene",
+                    "anna"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "anna"
+                    ],
+                    "hygiene",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "",
+                    "anna"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "anna"
+                    ],
+                    "",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "nobody-scope",
+                    "anna"
+                ]
+            },
+            {
+                "learnerKeys": "bert"
+            },
+            {
+                "covers": [
+                    "bhv",
+                    "bert"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "bert",
+                        "emp-bert"
+                    ],
+                    "bhv",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "vca",
+                    "bert"
+                ]
+            },
+            {
+                "covers": [
+                    "hygiene",
+                    "bert"
+                ]
+            },
+            {
+                "covers": [
+                    "",
+                    "bert"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "bert",
+                        "emp-bert"
+                    ],
+                    "",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "nobody-scope",
+                    "bert"
+                ]
+            },
+            {
+                "learnerKeys": "carla"
+            },
+            {
+                "covers": [
+                    "bhv",
+                    "carla"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "carla"
+                    ],
+                    "bhv",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "vca",
+                    "carla"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "carla"
+                    ],
+                    "vca",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "hygiene",
+                    "carla"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "carla"
+                    ],
+                    "hygiene",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "",
+                    "carla"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "carla"
+                    ],
+                    "",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "nobody-scope",
+                    "carla"
+                ]
+            },
+            {
+                "learnerKeys": "dirk"
+            },
+            {
+                "covers": [
+                    "bhv",
+                    "dirk"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "dirk"
+                    ],
+                    "bhv",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "vca",
+                    "dirk"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "dirk"
+                    ],
+                    "vca",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "hygiene",
+                    "dirk"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "dirk"
+                    ],
+                    "hygiene",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "",
+                    "dirk"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "dirk"
+                    ],
+                    "",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "nobody-scope",
+                    "dirk"
+                ]
+            },
+            {
+                "learnerKeys": "eva"
+            },
+            {
+                "covers": [
+                    "bhv",
+                    "eva"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "eva"
+                    ],
+                    "bhv",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "vca",
+                    "eva"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "eva"
+                    ],
+                    "vca",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "hygiene",
+                    "eva"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "eva"
+                    ],
+                    "hygiene",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "",
+                    "eva"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "eva"
+                    ],
+                    "",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "nobody-scope",
+                    "eva"
+                ]
+            },
+            {
+                "learnerKeys": "frank"
+            },
+            {
+                "covers": [
+                    "bhv",
+                    "frank"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "frank"
+                    ],
+                    "bhv",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "vca",
+                    "frank"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "frank"
+                    ],
+                    "vca",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "hygiene",
+                    "frank"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "frank"
+                    ],
+                    "hygiene",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "",
+                    "frank"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "frank"
+                    ],
+                    "",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "nobody-scope",
+                    "frank"
+                ]
+            }
+        ]
+    },
+    "department \"zorg\"": {
+        "rows": [
+            {
+                "id": "r-5",
+                "slug": "nobody-scope",
+                "name": "Alpha",
+                "inScope": 0,
+                "covered": 0,
+                "excused": 0,
+                "coveragePercent": null,
+                "rag": null
+            },
+            {
+                "id": "r-1",
+                "slug": "bhv",
+                "name": "BHV",
+                "inScope": 2,
+                "covered": 1,
+                "excused": 1,
+                "coveragePercent": 50.0,
+                "rag": "red"
+            },
+            {
+                "id": "",
+                "slug": "hygiene",
+                "name": "hygiene",
+                "inScope": 2,
+                "covered": 0,
+                "excused": 0,
+                "coveragePercent": 0.0,
+                "rag": "red"
+            },
+            {
+                "id": "r-2",
+                "slug": "vca",
+                "name": "vca basis",
+                "inScope": 2,
+                "covered": 1,
+                "excused": 1,
+                "coveragePercent": 50.0,
+                "rag": "amber"
+            },
+            {
+                "id": "r-4",
+                "slug": "",
+                "name": "Zonder slug",
+                "inScope": 3,
+                "covered": 1,
+                "excused": 0,
+                "coveragePercent": 33.3,
+                "rag": "red"
+            }
+        ],
+        "calls": [
+            {
+                "departmentLevels": "zorg/team-a"
+            },
+            {
+                "learnerKeys": "anna"
+            },
+            {
+                "covers": [
+                    "bhv",
+                    "anna"
+                ]
+            },
+            {
+                "covers": [
+                    "vca",
+                    "anna"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "anna"
+                    ],
+                    "vca",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "hygiene",
+                    "anna"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "anna"
+                    ],
+                    "hygiene",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "",
+                    "anna"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "anna"
+                    ],
+                    "",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "nobody-scope",
+                    "anna"
+                ]
+            },
+            {
+                "departmentLevels": "zorg"
+            },
+            {
+                "learnerKeys": "bert"
+            },
+            {
+                "covers": [
+                    "bhv",
+                    "bert"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "bert",
+                        "emp-bert"
+                    ],
+                    "bhv",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "vca",
+                    "bert"
+                ]
+            },
+            {
+                "covers": [
+                    "hygiene",
+                    "bert"
+                ]
+            },
+            {
+                "covers": [
+                    "",
+                    "bert"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "bert",
+                        "emp-bert"
+                    ],
+                    "",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "nobody-scope",
+                    "bert"
+                ]
+            },
+            {
+                "departmentLevels": "techniek"
+            },
+            {
+                "departmentLevels": "zorg/team-b"
+            },
+            {
+                "learnerKeys": "dirk"
+            },
+            {
+                "covers": [
+                    "bhv",
+                    "dirk"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "dirk"
+                    ],
+                    "bhv",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "vca",
+                    "dirk"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "dirk"
+                    ],
+                    "vca",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "hygiene",
+                    "dirk"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "dirk"
+                    ],
+                    "hygiene",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "",
+                    "dirk"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "dirk"
+                    ],
+                    "",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "nobody-scope",
+                    "dirk"
+                ]
+            },
+            {
+                "departmentLevels": ""
+            },
+            {
+                "departmentLevels": "techniek"
+            }
+        ]
+    },
+    "department \"zorg\\/team-a\"": {
+        "rows": [
+            {
+                "id": "r-5",
+                "slug": "nobody-scope",
+                "name": "Alpha",
+                "inScope": 0,
+                "covered": 0,
+                "excused": 0,
+                "coveragePercent": null,
+                "rag": null
+            },
+            {
+                "id": "r-1",
+                "slug": "bhv",
+                "name": "BHV",
+                "inScope": 0,
+                "covered": 0,
+                "excused": 1,
+                "coveragePercent": null,
+                "rag": null
+            },
+            {
+                "id": "",
+                "slug": "hygiene",
+                "name": "hygiene",
+                "inScope": 1,
+                "covered": 0,
+                "excused": 0,
+                "coveragePercent": 0.0,
+                "rag": "red"
+            },
+            {
+                "id": "r-2",
+                "slug": "vca",
+                "name": "vca basis",
+                "inScope": 1,
+                "covered": 1,
+                "excused": 0,
+                "coveragePercent": 100.0,
+                "rag": "green"
+            },
+            {
+                "id": "r-4",
+                "slug": "",
+                "name": "Zonder slug",
+                "inScope": 1,
+                "covered": 0,
+                "excused": 0,
+                "coveragePercent": 0.0,
+                "rag": "red"
+            }
+        ],
+        "calls": [
+            {
+                "departmentLevels": "zorg/team-a"
+            },
+            {
+                "learnerKeys": "anna"
+            },
+            {
+                "covers": [
+                    "bhv",
+                    "anna"
+                ]
+            },
+            {
+                "covers": [
+                    "vca",
+                    "anna"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "anna"
+                    ],
+                    "vca",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "hygiene",
+                    "anna"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "anna"
+                    ],
+                    "hygiene",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "",
+                    "anna"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "anna"
+                    ],
+                    "",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "nobody-scope",
+                    "anna"
+                ]
+            },
+            {
+                "departmentLevels": "zorg"
+            },
+            {
+                "departmentLevels": "techniek"
+            },
+            {
+                "departmentLevels": "zorg/team-b"
+            },
+            {
+                "departmentLevels": ""
+            },
+            {
+                "departmentLevels": "techniek"
+            }
+        ]
+    },
+    "department \"techniek\"": {
+        "rows": [
+            {
+                "id": "r-5",
+                "slug": "nobody-scope",
+                "name": "Alpha",
+                "inScope": 0,
+                "covered": 0,
+                "excused": 0,
+                "coveragePercent": null,
+                "rag": null
+            },
+            {
+                "id": "r-1",
+                "slug": "bhv",
+                "name": "BHV",
+                "inScope": 2,
+                "covered": 1,
+                "excused": 0,
+                "coveragePercent": 50.0,
+                "rag": "red"
+            },
+            {
+                "id": "",
+                "slug": "hygiene",
+                "name": "hygiene",
+                "inScope": 2,
+                "covered": 1,
+                "excused": 0,
+                "coveragePercent": 50.0,
+                "rag": "red"
+            },
+            {
+                "id": "r-2",
+                "slug": "vca",
+                "name": "vca basis",
+                "inScope": 2,
+                "covered": 1,
+                "excused": 0,
+                "coveragePercent": 50.0,
+                "rag": "amber"
+            },
+            {
+                "id": "r-4",
+                "slug": "",
+                "name": "Zonder slug",
+                "inScope": 2,
+                "covered": 0,
+                "excused": 0,
+                "coveragePercent": 0.0,
+                "rag": "red"
+            }
+        ],
+        "calls": [
+            {
+                "departmentLevels": "zorg/team-a"
+            },
+            {
+                "departmentLevels": "zorg"
+            },
+            {
+                "departmentLevels": "techniek"
+            },
+            {
+                "learnerKeys": "carla"
+            },
+            {
+                "covers": [
+                    "bhv",
+                    "carla"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "carla"
+                    ],
+                    "bhv",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "vca",
+                    "carla"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "carla"
+                    ],
+                    "vca",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "hygiene",
+                    "carla"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "carla"
+                    ],
+                    "hygiene",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "",
+                    "carla"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "carla"
+                    ],
+                    "",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "nobody-scope",
+                    "carla"
+                ]
+            },
+            {
+                "departmentLevels": "zorg/team-b"
+            },
+            {
+                "departmentLevels": ""
+            },
+            {
+                "departmentLevels": "techniek"
+            },
+            {
+                "learnerKeys": "frank"
+            },
+            {
+                "covers": [
+                    "bhv",
+                    "frank"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "frank"
+                    ],
+                    "bhv",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "vca",
+                    "frank"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "frank"
+                    ],
+                    "vca",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "hygiene",
+                    "frank"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "frank"
+                    ],
+                    "hygiene",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "",
+                    "frank"
+                ]
+            },
+            {
+                "isCovered": [
+                    [
+                        "frank"
+                    ],
+                    "",
+                    "2026-11-03T12:00:00+00:00"
+                ]
+            },
+            {
+                "covers": [
+                    "nobody-scope",
+                    "frank"
+                ]
+            }
+        ]
+    },
+    "department \"nobody\"": {
+        "rows": [
+            {
+                "id": "r-5",
+                "slug": "nobody-scope",
+                "name": "Alpha",
+                "inScope": 0,
+                "covered": 0,
+                "excused": 0,
+                "coveragePercent": null,
+                "rag": null
+            },
+            {
+                "id": "r-1",
+                "slug": "bhv",
+                "name": "BHV",
+                "inScope": 0,
+                "covered": 0,
+                "excused": 0,
+                "coveragePercent": null,
+                "rag": null
+            },
+            {
+                "id": "",
+                "slug": "hygiene",
+                "name": "hygiene",
+                "inScope": 0,
+                "covered": 0,
+                "excused": 0,
+                "coveragePercent": null,
+                "rag": null
+            },
+            {
+                "id": "r-2",
+                "slug": "vca",
+                "name": "vca basis",
+                "inScope": 0,
+                "covered": 0,
+                "excused": 0,
+                "coveragePercent": null,
+                "rag": null
+            },
+            {
+                "id": "r-4",
+                "slug": "",
+                "name": "Zonder slug",
+                "inScope": 0,
+                "covered": 0,
+                "excused": 0,
+                "coveragePercent": null,
+                "rag": null
+            }
+        ],
+        "calls": [
+            {
+                "departmentLevels": "zorg/team-a"
+            },
+            {
+                "departmentLevels": "zorg"
+            },
+            {
+                "departmentLevels": "techniek"
+            },
+            {
+                "departmentLevels": "zorg/team-b"
+            },
+            {
+                "departmentLevels": ""
+            },
+            {
+                "departmentLevels": "techniek"
+            }
+        ]
+    }
+}

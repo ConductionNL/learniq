@@ -30,6 +30,7 @@ namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\Learniq\Event\HourPlanActivitiesQueryEvent;
 use OCA\Learniq\Listener\HourPlanActivitiesQueryListener;
+use OCA\Learniq\Listener\PortalClaimScopeListener;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
 /**
@@ -53,6 +54,13 @@ class QueryListenerRegistrar {
 		$context->registerEventListener(
 			event: HourPlanActivitiesQueryEvent::class,
 			listener: HourPlanActivitiesQueryListener::class
+		);
+
+		// Portaliq asks whether learniq's employer claim may scope for the
+		// account's portal organisation.
+		$context->registerEventListener(
+			event: PortalClaimScopeListener::EVENT,
+			listener: PortalClaimScopeListener::class
 		);
 	}//end register()
 }//end class
