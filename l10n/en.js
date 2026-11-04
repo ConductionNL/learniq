@@ -3821,7 +3821,14 @@ OC.L10N.register(
         "Hide the lessons of {name}": "Hide the lessons of {name}",
         "Show on the board": "Show on the board",
         "Changes in {seconds} s": "Changes in {seconds} s",
-        "This code holds until you close check-in.": "This code holds until you close check-in."
+        "This code holds until you close check-in.": "This code holds until you close check-in.",
+        "Waiting for a decision": "Waiting for a decision",
+        "All sign-ups": "All sign-ups",
+        "{shown} of {total} requests · learners who signed up from the course catalogue for a course on request": "{shown} of {total} requests · learners who signed up from the course catalogue for a course on request",
+        "Sign-up approved.": "Sign-up approved.",
+        "Reject sign-up": "Reject sign-up",
+        "The learner reads this reason.": "The learner reads this reason.",
+        "The sign-up could not be rejected.": "The sign-up could not be rejected."
     },
     "nplurals=2; plural=(n != 1);"
 )

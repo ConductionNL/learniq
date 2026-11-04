@@ -22,7 +22,7 @@
 			"id": "ManagerSignUpRequestsMenu",
 			"label": "Sign-up requests",
 			"icon": "AccountGroup",
-			"route": "Enrolments",
+			"route": "SignUpRequests",
 			"order": 29,
 			"visibleIf": {
 				"user.managesLearners": true,
@@ -36,17 +36,13 @@
 						"team-lead"
 					]
 				}
-			},
-			"query": {
-				"source": "self",
-				"lifecycle": "pending"
 			}
 		},
 		{
 			"id": "TeamLeadSignUpRequestsMenu",
 			"label": "Sign-up requests",
 			"icon": "AccountGroup",
-			"route": "Enrolments",
+			"route": "SignUpRequests",
 			"order": 30,
 			"visibleIf": {
 				"user.primaryRole": {
@@ -54,10 +50,6 @@
 						"team-lead"
 					]
 				}
-			},
-			"query": {
-				"source": "self",
-				"lifecycle": "pending"
 			}
 		},
 		{

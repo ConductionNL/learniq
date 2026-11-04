@@ -4298,7 +4298,14 @@ OC.L10N.register(
         "Hide the lessons of {name}": "Lessen van {name} verbergen",
         "Show on the board": "Op het bord tonen",
         "Changes in {seconds} s": "Verandert over {seconds} s",
-        "This code holds until you close check-in.": "Deze code blijft geldig tot je het aanmelden sluit."
+        "This code holds until you close check-in.": "Deze code blijft geldig tot je het aanmelden sluit.",
+        "Waiting for a decision": "Wachten op besluit",
+        "All sign-ups": "Alle aanmeldingen",
+        "{shown} of {total} requests · learners who signed up from the course catalogue for a course on request": "{shown} van {total} verzoeken · leerlingen die zich vanuit de cursuscatalogus hebben aangemeld voor een cursus op aanvraag",
+        "Sign-up approved.": "Aanmelding goedgekeurd.",
+        "Reject sign-up": "Aanmelding afwijzen",
+        "The learner reads this reason.": "De leerling leest deze reden.",
+        "The sign-up could not be rejected.": "De aanmelding kon niet worden afgewezen."
     },
     "nplurals=2; plural=(n != 1);"
 )
