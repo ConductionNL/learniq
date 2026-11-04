@@ -13,8 +13,8 @@
  @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-preview-as-learner/spec.md#requirement-preview-as-learner
 -->
 <template>
-	<div class="course-preview">
-		<h2>{{ t('learniq', 'Preview as learner') }}</h2>
+	<div class="course-preview lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Preview as learner')" />
 		<NcLoadingIcon v-if="loading" :size="32" />
 		<NcNoteCard v-else-if="error" type="error">
 			{{ error }}
@@ -42,13 +42,15 @@
 			<NcEmptyContent
 				v-if="lessons.length === 0"
 				:name="t('learniq', 'This course has no lessons yet')" />
-			<ol v-else class="course-preview__lessons">
-				<li v-for="lesson in lessons" :key="lesson.id">
-					<NcButton variant="tertiary" @click="open(lesson.id)">
-						{{ lesson.name || lesson.id }}
-					</NcButton>
-				</li>
-			</ol>
+			<CnDetailCard v-else :title="t('learniq', 'Lessons')">
+				<ol class="course-preview__lessons">
+					<li v-for="lesson in lessons" :key="lesson.id">
+						<NcButton variant="tertiary" @click="open(lesson.id)">
+							{{ lesson.name || lesson.id }}
+						</NcButton>
+					</li>
+				</ol>
+			</CnDetailCard>
 			<div class="course-preview__actions">
 				<NcButton
 					variant="primary"
@@ -62,6 +64,7 @@
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import {
 	NcButton,
@@ -75,7 +78,7 @@ import { previewQuery } from '../utils/lessonPreview.js'
 export default {
 	name: 'CoursePreviewView',
 
-	components: { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcTextField },
+	components: { CnDetailCard, CnPageHeader, NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcTextField },
 
 	props: {
 		/** Course UUID from the route :courseId param. */
@@ -162,14 +165,6 @@ export default {
 </script>
 
 <style scoped>
-.course-preview {
-	padding: calc(var(--default-grid-baseline) * 4);
-	max-width: 720px;
-	display: flex;
-	flex-direction: column;
-	gap: calc(var(--default-grid-baseline) * 3);
-}
-
 .course-preview__lessons {
 	padding-inline-start: calc(var(--default-grid-baseline) * 5);
 }

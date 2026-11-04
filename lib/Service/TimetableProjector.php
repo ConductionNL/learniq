@@ -75,30 +75,21 @@ class TimetableProjector {
 	 * The caller's own lessons in the window, each with the notes the caller
 	 * may read and whether the caller may add one (timetabling-lesson-note).
 	 *
-	 * @param array<int,array<string,mixed>>    $rawSessions     Raw session data arrays.
-	 * @param string                            $windowFrom      Inclusive window start (ISO 8601).
-	 * @param string                            $windowTo        Exclusive window end (ISO 8601).
-	 * @param array<string,array<string,mixed>> $roomCache       Pre-loaded Room data keyed by UUID.
-	 * @param string                            $uid             The caller.
-	 * @param array<int,string>                 $taughtCohortIds Cohorts the caller teaches.
+	 * @param array<string,mixed> $lessons         `sessions` (raw lessons), `window` (inclusive start and exclusive
+	 *                                             end, ISO 8601) and `roomCache` (pre-loaded rooms keyed by UUID).
+	 * @param string              $uid             The caller.
+	 * @param array<int,string>   $taughtCohortIds Cohorts the caller teaches.
 	 *
 	 * @return array<int,array<string,mixed>> The ordered, projected sessions.
 	 *
 	 * @spec openspec/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
 	 */
-	public function personalSessions(
-		array $rawSessions,
-		string $windowFrom,
-		string $windowTo,
-		array $roomCache,
-		string $uid,
-		array $taughtCohortIds
-	): array {
+	public function personalSessions(array $lessons, string $uid, array $taughtCohortIds): array {
 		$sessions = $this->windowedSessions(
-			rawSessions: $rawSessions,
-			window: [$windowFrom, $windowTo],
-			roomCache: $roomCache,
-			notes: $this->noteReader->forSessions(sessions: $rawSessions, uid: $uid, taughtCohortIds: $taughtCohortIds)
+			rawSessions: $lessons['sessions'],
+			window: $lessons['window'],
+			roomCache: $lessons['roomCache'],
+			notes: $this->noteReader->forSessions(sessions: $lessons['sessions'], uid: $uid, taughtCohortIds: $taughtCohortIds)
 		);
 
 		return $this->noteReader->markWritable(sessions: $sessions, uid: $uid, taughtCohortIds: $taughtCohortIds);
@@ -116,26 +107,8 @@ class TimetableProjector {
 	 */
 	public function resolveWindow(?string $from, ?string $to): array {
 		$tz = new DateTimeZone('UTC');
-
-		$start = null;
-		if ($from !== null && trim($from) !== '') {
-			try {
-				$start = new DateTimeImmutable($from, $tz);
-			} catch (Throwable $e) {
-				$this->logger->warning('[TimetableProjector] Ignoring unparseable "from"; using default window.', ['from' => $from]);
-				$start = null;
-			}
-		}
-
-		$end = null;
-		if ($to !== null && trim($to) !== '') {
-			try {
-				$end = new DateTimeImmutable($to, $tz);
-			} catch (Throwable $e) {
-				$this->logger->warning('[TimetableProjector] Ignoring unparseable "to"; using default window.', ['to' => $to]);
-				$end = null;
-			}
-		}
+		$start = $this->instant(value: (string)$from, name: 'from');
+		$end = $this->instant(value: (string)$to, name: 'to');
 
 		if ($start === null) {
 			// Monday 00:00:00 of the current week.
@@ -150,6 +123,28 @@ class TimetableProjector {
 
 		return [$start->format(DateTimeInterface::ATOM), $end->format(DateTimeInterface::ATOM)];
 	}//end resolveWindow()
+
+	/**
+	 * A window edge as a UTC instant, or null when it is blank or unparseable
+	 * (logged), so the default applies.
+	 *
+	 * @param string $value The requested edge.
+	 * @param string $name  `from` or `to`.
+	 *
+	 * @return DateTimeImmutable|null
+	 */
+	private function instant(string $value, string $name): ?DateTimeImmutable {
+		if (trim($value) === '') {
+			return null;
+		}
+
+		try {
+			return new DateTimeImmutable($value, new DateTimeZone('UTC'));
+		} catch (Throwable $e) {
+			$this->logger->warning('[TimetableProjector] Ignoring unparseable "' . $name . '"; using default window.', [$name => $value]);
+			return null;
+		}
+	}//end instant()
 
 	/**
 	 * Project the raw sessions overlapping the requested window, ordered
@@ -171,7 +166,7 @@ class TimetableProjector {
 
 		$sessions = [];
 		foreach ($rawSessions as $session) {
-			if ($this->overlapsWindow(session: $session, fromTs: $fromTs, toTs: $toTs) === false) {
+			if ($this->overlapsWindow(session: $session, window: [$fromTs, $toTs]) === false) {
 				continue;
 			}
 
@@ -345,39 +340,53 @@ class TimetableProjector {
 	 * the window start. When `endsAt` is absent, the session is treated as a
 	 * point in time and included if its `startsAt` falls within the window.
 	 *
-	 * @param array<string,mixed> $session The session data.
-	 * @param int|false $fromTs Window start as a unix timestamp.
-	 * @param int|false $toTs Window end as a unix timestamp.
+	 * @param array<string,mixed>               $session The session data.
+	 * @param array{0: int|false, 1: int|false} $window  Window start and end as unix timestamps.
 	 *
 	 * @return bool True when the session overlaps the window.
 	 */
-	private function overlapsWindow(array $session, int|false $fromTs, int|false $toTs): bool {
+	private function overlapsWindow(array $session, array $window): bool {
+		[$fromTs, $toTs] = $window;
 		if ($fromTs === false || $toTs === false) {
 			// Unparseable window — do not silently drop everything.
 			return true;
 		}
 
-		$startsAt = (string)($session['startsAt'] ?? '');
-		if ($startsAt === '') {
-			return false;
-		}
-
-		$startTs = strtotime($startsAt);
+		$startTs = self::timeOf(session: $session, field: 'startsAt');
 		if ($startTs === false) {
 			return false;
 		}
 
-		$endsAtRaw = (string)($session['endsAt'] ?? '');
-		$endTs = $startTs;
-		if ($endsAtRaw !== '') {
-			$endTs = strtotime($endsAtRaw);
-		}
-
-		if ($endTs === false) {
-			$endTs = $startTs;
-		}
-
 		// Overlap: starts before window end AND ends after window start.
-		return ($startTs < $toTs && $endTs >= $fromTs);
+		return ($startTs < $toTs && self::endOf(session: $session, startTs: $startTs) >= $fromTs);
 	}//end overlapsWindow()
+
+	/**
+	 * When a session ends: its `endsAt`, or its start when that is missing or unparseable.
+	 *
+	 * @param array<string, mixed> $session The raw session.
+	 * @param int                  $startTs Its start.
+	 *
+	 * @return int
+	 */
+	private static function endOf(array $session, int $startTs): int {
+		$endTs = self::timeOf(session: $session, field: 'endsAt');
+		if ($endTs === false) {
+			return $startTs;
+		}
+
+		return $endTs;
+	}//end endOf()
+
+	/**
+	 * A session time field as a unix timestamp, or false when it is missing, empty or unparseable.
+	 *
+	 * @param array<string, mixed> $session The raw session.
+	 * @param string               $field   `startsAt` or `endsAt`.
+	 *
+	 * @return int|false
+	 */
+	private static function timeOf(array $session, string $field): int|false {
+		return strtotime((string)($session[$field] ?? ''));
+	}//end timeOf()
 }//end class

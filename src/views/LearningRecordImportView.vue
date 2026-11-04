@@ -18,11 +18,9 @@
 -->
 
 <template>
-	<div class="learning-record-import">
+	<div class="learning-record-import lq-board-page">
 		<header class="learning-record-import__header">
-			<h2 class="learning-record-import__heading">
-				{{ t('learniq', 'Import prior learning record') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Import prior learning record')" />
 			<p class="learning-record-import__intro">
 				{{
 					t(
@@ -34,7 +32,7 @@
 		</header>
 
 		<!-- Upload form -->
-		<div v-if="!report" class="learning-record-import__upload">
+		<CnDetailCard v-if="!report" class="learning-record-import__upload">
 			<label class="learning-record-import__label" for="lri-source-format">
 				{{ t('learniq', 'Bundle format') }}
 			</label>
@@ -81,10 +79,10 @@
 			<p v-if="uploadError" role="alert" class="learning-record-import__error">
 				{{ uploadError }}
 			</p>
-		</div>
+		</CnDetailCard>
 
 		<!-- Report -->
-		<div v-else class="learning-record-import__report">
+		<CnDetailCard v-else class="learning-record-import__report">
 			<div
 				class="learning-record-import__summary"
 				:class="`learning-record-import__summary--${verificationSeverity}`"
@@ -153,15 +151,17 @@
 			<button class="button-vue" @click="reset">
 				{{ t('learniq', 'Upload another bundle') }}
 			</button>
-		</div>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'LearningRecordImportView',
+	components: { CnDetailCard, CnPageHeader },
 
 	data() {
 		return {
@@ -327,22 +327,8 @@ export default {
 </script>
 
 <style scoped>
-.learning-record-import {
-	max-width: 960px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.learning-record-import__heading {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-	margin-bottom: calc(var(--default-grid-baseline, 8px));
-}
-
 .learning-record-import__intro {
 	color: var(--color-text-maxcontrast);
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .learning-record-import__label {
