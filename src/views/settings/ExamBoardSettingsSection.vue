@@ -13,15 +13,7 @@
 	<NcSettingsSection
 		id="section-exam-board"
 		:name="t('learniq', 'Exam board')"
-		:description="
-			t(
-				'learniq',
-				'How long a learner can appeal a decision of the exam board. The term counts from the day of the decision and is on every fraud case and exemption case.',
-			)
-		">
-		<NcNoteCard v-if="error" type="error">
-			{{ error }}
-		</NcNoteCard>
+		:description="description">
 		<p v-if="loading">
 			{{ t('learniq', 'Loading the appeal term…') }}
 		</p>
@@ -35,12 +27,17 @@
 				:error="invalid"
 				:helperText="helperText"
 				data-testid="exam-board-appeal-days" />
-			<div class="learniq-exam-board-settings__actions">
-				<NcButton type="submit" variant="primary" :disabled="saving || invalid">
-					{{ t('learniq', 'Save') }}
-				</NcButton>
-			</div>
+			<NcButton
+				class="learniq-exam-board-settings__save"
+				type="submit"
+				variant="primary"
+				:disabled="saving || invalid">
+				{{ t('learniq', 'Save') }}
+			</NcButton>
 		</form>
+		<NcNoteCard v-if="error" type="error">
+			{{ error }}
+		</NcNoteCard>
 	</NcSettingsSection>
 </template>
 
@@ -81,6 +78,16 @@ export default {
 	},
 
 	computed: {
+		/**
+		 * What the term is, under the section's name.
+		 *
+		 * @return {string}
+		 * @spec openspec/specs/exam-board/spec.md#scenario-the-school-sets-its-own-appeal-term
+		 */
+		description() {
+			return t('learniq', 'How long a learner can appeal a decision of the exam board. The term counts from the day of the decision and is on every fraud case and exemption case.')
+		},
+
 		/**
 		 * Whether the field holds no term the server accepts.
 		 *
@@ -155,7 +162,7 @@ export default {
 	max-width: 480px;
 }
 
-.learniq-exam-board-settings__actions {
+.learniq-exam-board-settings__save {
 	margin-top: calc(var(--default-grid-baseline) * 3);
 }
 </style>
