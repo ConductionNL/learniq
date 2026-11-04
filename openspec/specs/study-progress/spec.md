@@ -1,7 +1,7 @@
 # study-progress Specification
 
 ## Purpose
-TBD - created by archiving change bsa-study-progress-guard. Update Purpose after archive.
+Guard the binding study advice (bindend studieadvies, BSA) by tracking credits earned and flagging learners at risk. A negative decision requires an issued warning, and the year-end decision records its evidence and the right to be heard.
 
 ## Requirements
 

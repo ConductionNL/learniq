@@ -1,0 +1,139 @@
+{
+    "no rows": {
+        "current": "corporate",
+        "workspace": {
+            "segment": "corporate",
+            "chosenSegment": null
+        },
+        "has": false,
+        "saved uuid": [
+            "missing"
+        ],
+        "log": []
+    },
+    "one array row": {
+        "current": "vo",
+        "workspace": {
+            "segment": "vo",
+            "chosenSegment": "vo"
+        },
+        "has": true,
+        "saved uuid": [
+            "u-1"
+        ],
+        "log": []
+    },
+    "unknown and non-string segments skipped": {
+        "current": "corporate",
+        "workspace": {
+            "segment": "corporate",
+            "chosenSegment": null
+        },
+        "has": false,
+        "saved uuid": [
+            "missing"
+        ],
+        "log": []
+    },
+    "newest wins": {
+        "current": "mbo",
+        "workspace": {
+            "segment": "mbo",
+            "chosenSegment": null
+        },
+        "has": true,
+        "saved uuid": [
+            "u-new"
+        ],
+        "log": []
+    },
+    "a tie keeps the first": {
+        "current": "po",
+        "workspace": {
+            "segment": "po",
+            "chosenSegment": null
+        },
+        "has": true,
+        "saved uuid": [
+            "u-a"
+        ],
+        "log": []
+    },
+    "no time counts as oldest": {
+        "current": "training",
+        "workspace": {
+            "segment": "training",
+            "chosenSegment": "training"
+        },
+        "has": true,
+        "saved uuid": [
+            "missing"
+        ],
+        "log": []
+    },
+    "a later row without time loses": {
+        "current": "vo",
+        "workspace": {
+            "segment": "vo",
+            "chosenSegment": "vo"
+        },
+        "has": true,
+        "saved uuid": [
+            "missing"
+        ],
+        "log": []
+    },
+    "a chooser that is no text": {
+        "current": "vo",
+        "workspace": {
+            "segment": "vo",
+            "chosenSegment": null
+        },
+        "has": true,
+        "saved uuid": [
+            "missing"
+        ],
+        "log": []
+    },
+    "uuid order": {
+        "current": "vo",
+        "workspace": {
+            "segment": "vo",
+            "chosenSegment": null
+        },
+        "has": true,
+        "saved uuid": [
+            "u-last"
+        ],
+        "log": []
+    },
+    "entities": {
+        "current": "mbo",
+        "workspace": {
+            "segment": "mbo",
+            "chosenSegment": "mbo"
+        },
+        "has": true,
+        "saved uuid": [
+            "missing"
+        ],
+        "log": []
+    },
+    "read fails": {
+        "current": "corporate",
+        "workspace": {
+            "segment": "corporate",
+            "chosenSegment": null
+        },
+        "has": false,
+        "saved uuid": [
+            "missing"
+        ],
+        "log": [
+            "[SegmentService] LearniqSettings read failed ({message}); defaulting to \"{default}\".",
+            "[SegmentService] LearniqSettings read failed ({message}); defaulting to \"{default}\".",
+            "[SegmentService] LearniqSettings read failed ({message}); defaulting to \"{default}\".",
+            "[SegmentService] LearniqSettings read failed ({message}); defaulting to \"{default}\"."
+        ]
+    }
+}

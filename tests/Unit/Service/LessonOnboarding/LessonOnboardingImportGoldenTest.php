@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\LessonOnboarding;
 
+use OCA\Learniq\Tests\Support\PassedArguments;
 use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
 use OCA\Learniq\Service\LessonOnboarding\LessonDraftBuilder;
@@ -182,7 +183,7 @@ class LessonOnboardingImportGoldenTest extends TestCase {
 		);
 		$objects->method('saveObject')->willReturnCallback(
 			function (...$args) {
-				$this->calls[] = ['saveObject' => $args];
+				$this->calls[] = ['saveObject' => PassedArguments::of(method: [ObjectService::class, 'saveObject'], args: $args)];
 				return OrEntityFactory::make([], 'lesson');
 			}
 		);
