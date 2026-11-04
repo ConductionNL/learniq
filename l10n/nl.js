@@ -4270,7 +4270,10 @@ OC.L10N.register(
         "Reports and automation": "Rapportages en automatisering",
         "Set up the app": "De app inrichten",
         "About the app": "Over de app",
-        "Exchanges": "Uitwisselingen"
+        "Exchanges": "Uitwisselingen",
+        "Show on the board": "Op het bord tonen",
+        "Changes in {seconds} s": "Verandert over {seconds} s",
+        "This code holds until you close check-in.": "Deze code blijft geldig tot je het aanmelden sluit."
     },
     "nplurals=2; plural=(n != 1);"
 )
