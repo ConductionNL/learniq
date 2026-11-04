@@ -298,7 +298,7 @@ class ParentSitePages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-is-grouped-per-child
+	 * @spec openspec/changes/archive/2026-10-30-site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-guardian-menu-is-grouped-per-child
 	 */
 	public function perChild(array $page): array {
 		return array_merge($page, ['perRecord' => self::CHILDREN]);
@@ -311,7 +311,7 @@ class ParentSitePages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-is-grouped-per-child
+	 * @spec openspec/changes/archive/2026-10-30-site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-guardian-menu-is-grouped-per-child
 	 */
 	public function inGroup(array $page): array {
 		return array_merge($page, ['group' => self::GROUP]);
@@ -324,7 +324,7 @@ class ParentSitePages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-is-grouped-per-child
+	 * @spec openspec/changes/archive/2026-10-30-site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-guardian-menu-is-grouped-per-child
 	 */
 	public function offMenu(array $page): array {
 		return array_merge($page, ['menu' => false]);
