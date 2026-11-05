@@ -18,6 +18,7 @@ import CredentialWalletOffer from './components/sections/CredentialWalletOffer.v
 import AccessibilityBarrierDialog from './dialogs/AccessibilityBarrierDialog.vue'
 import CohortCreateDialog from './dialogs/CohortCreateDialog.vue'
 import ConcernReportDialog from './dialogs/ConcernReportDialog.vue'
+import ConferenceReportDialog from './dialogs/ConferenceReportDialog.vue'
 import ConfidentialNoteCreateDialog from './dialogs/ConfidentialNoteCreateDialog.vue'
 import CredentialRevokeDialog from './dialogs/CredentialRevokeDialog.vue'
 import DeclineSignUpDialog from './dialogs/DeclineSignUpDialog.vue'
@@ -25,9 +26,12 @@ import DossierNoteCreateDialog from './dialogs/DossierNoteCreateDialog.vue'
 import EnrolmentWithdrawDialog from './dialogs/EnrolmentWithdrawDialog.vue'
 import ExemptionDecisionDialog from './dialogs/ExemptionDecisionDialog.vue'
 import GradeEntryCreateDialog from './dialogs/GradeEntryCreateDialog.vue'
+import GroupEnrolDialog from './dialogs/GroupEnrolDialog.vue'
 import RegulationExemptionDecisionDialog from './dialogs/RegulationExemptionDecisionDialog.vue'
 import SelfCheckInDialog from './dialogs/SelfCheckInDialog.vue'
 import SubmissionReopenDialog from './dialogs/SubmissionReopenDialog.vue'
+import TeacherAvailabilityDialog from './dialogs/TeacherAvailabilityDialog.vue'
+import TimetableCalendarFeedDialog from './dialogs/TimetableCalendarFeedDialog.vue'
 // admissions-and-subject-choice: the two genuine new custom views this
 // change adds — the coordinator's admissions review board (queue of
 // intake-completed Applications cross-referenced against their round's
@@ -249,6 +253,11 @@ export default {
 		component: ConcernReportDialog,
 		propsSchema: { type: 'object', properties: { learnerId: { type: 'string' }, audience: { type: 'string' } } },
 	},
+	ConferenceReportDialog: {
+		kind: 'modal',
+		component: ConferenceReportDialog,
+		propsSchema: { type: 'object', properties: { conferenceSlotId: { type: 'string' }, learnerId: { type: 'string' } } },
+	},
 	ConfidentialNoteCreateDialog: {
 		kind: 'modal',
 		component: ConfidentialNoteCreateDialog,
@@ -279,6 +288,11 @@ export default {
 		component: GradeEntryCreateDialog,
 		propsSchema: { type: 'object', properties: { learnerId: { type: 'string' } } },
 	},
+	GroupEnrolDialog: {
+		kind: 'modal',
+		component: GroupEnrolDialog,
+		propsSchema: { type: 'object', properties: { objectId: { type: 'string' } }, required: ['objectId'] },
+	},
 	RegulationExemptionDecisionDialog: {
 		kind: 'modal',
 		component: RegulationExemptionDecisionDialog,
@@ -288,6 +302,16 @@ export default {
 		kind: 'modal',
 		component: SubmissionReopenDialog,
 		propsSchema: { type: 'object', properties: { objectId: { type: 'string' } }, required: ['objectId'] },
+	},
+	TeacherAvailabilityDialog: {
+		kind: 'modal',
+		component: TeacherAvailabilityDialog,
+		propsSchema: { type: 'object', properties: { conferenceRoundId: { type: 'string' } }, required: ['conferenceRoundId'] },
+	},
+	TimetableCalendarFeedDialog: {
+		kind: 'modal',
+		component: TimetableCalendarFeedDialog,
+		propsSchema: { type: 'object', properties: {} },
 	},
 	CheckInPage: page(CheckInPage),
 	CourseCatalogue: page(CourseCatalogue),
