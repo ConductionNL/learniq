@@ -2242,17 +2242,49 @@
 				"schema": "Cohort",
 				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly so the platform's built-in mass import/export/copy/delete is a documented capability of this index, not an implicit default (findings 12.6/14.7).",
 				"columns": [
-					"name",
-					"period",
-					"academicYear",
-					"lifecycle"
+					{
+						"key": "name",
+						"label": "Group",
+						"secondary": "Year {programmeYear}"
+					},
+					{
+						"key": "period",
+						"label": "Period"
+					},
+					{
+						"key": "academicYear",
+						"label": "School year"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					}
 				],
 				"actionToggles": {
 					"showMassImport": true,
 					"showMassExport": true,
 					"showMassCopy": true,
 					"showMassDelete": true
-				}
+				},
+				"countText": "{shown} of {total} groups",
+				"searchPlaceholder": "Search by group or mentor",
+				"quickFilters": [
+					{
+						"label": "My groups",
+						"filter": {
+							"teacherIds": "@me"
+						},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "All groups",
+						"filter": {},
+						"showCount": true
+					}
+				],
+				"bulkNoun": "groups",
+				"allowSavedViews": true
 			}
 		},
 		{
@@ -6049,7 +6081,8 @@
 					},
 					{
 						"key": "value",
-						"label": "Grade"
+						"label": "Grade",
+						"widget": "number"
 					},
 					{
 						"key": "period",
@@ -6057,10 +6090,44 @@
 					},
 					{
 						"key": "gradedAt",
-						"label": "Graded At",
+						"label": "Entered on",
 						"formatter": "date"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
 					}
-				]
+				],
+				"countText": "{shown} of {total} grades",
+				"searchPlaceholder": "Search by learner, course or test",
+				"quickFilters": [
+					{
+						"label": "My grades",
+						"filter": {
+							"grader": "@me"
+						},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Draft",
+						"filter": {
+							"lifecycle": "concept"
+						},
+						"showCount": true
+					},
+					{
+						"label": "All grades",
+						"filter": {},
+						"showCount": true
+					}
+				],
+				"defaultSort": {
+					"field": "gradedAt",
+					"direction": "desc"
+				},
+				"bulkNoun": "grades",
+				"allowSavedViews": true
 			}
 		},
 		{

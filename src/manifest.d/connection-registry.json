@@ -58,12 +58,25 @@
 				"columns": [
 					{
 						"key": "title",
-						"label": "Connection"
+						"label": "Connection",
+						"secondary": "{description}"
 					},
 					{
 						"key": "status",
 						"label": "Status",
-						"formatter": "connectionStatus"
+						"formatter": "connectionStatus",
+						"widget": "badge",
+						"widgetProps": {
+							"colorMap": {
+								"configured": "success",
+								"simulated": "success",
+								"limited": "warning",
+								"error": "error",
+								"unavailable": "default",
+								"unconfigured": "default",
+								"disabled": "default"
+							}
+						}
 					},
 					{
 						"key": "statusMessage",
@@ -72,7 +85,8 @@
 					},
 					{
 						"key": "checkedAt",
-						"label": "Last checked"
+						"label": "Last checked",
+						"formatter": "date"
 					},
 					{
 						"key": "settingsUrl",
@@ -85,11 +99,48 @@
 						}
 					}
 				],
-				"folderSidebar": {
-					"source": "field",
-					"field": "status",
-					"allLabel": "All connections"
-				}
+				"quickFilters": [
+					{
+						"label": "All connections",
+						"filter": {},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Works",
+						"filter": {
+							"status": "configured"
+						},
+						"showCount": true
+					},
+					{
+						"label": "Limited",
+						"filter": {
+							"status": "limited"
+						},
+						"showCount": true
+					},
+					{
+						"label": "Error",
+						"filter": {
+							"status": "error"
+						},
+						"showCount": true
+					},
+					{
+						"label": "Not available",
+						"filter": {
+							"status": [
+								"unavailable",
+								"unconfigured",
+								"disabled"
+							]
+						},
+						"showCount": true
+					}
+				],
+				"massActionNameField": "title",
+				"allowSavedViews": true
 			}
 		}
 	]

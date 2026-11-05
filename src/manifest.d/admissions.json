@@ -278,7 +278,73 @@
 				],
 				"showTitle": true,
 				"register": "learniq",
-				"schema": "admission"
+				"schema": "admission",
+				"countText": "{shown} of {total} applications",
+				"searchPlaceholder": "Search by applicant or programme",
+				"quickFilters": [
+					{
+						"label": "All",
+						"filter": {},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Ready for a decision",
+						"filter": {
+							"lifecycle": "intake-completed"
+						},
+						"showCount": true
+					},
+					{
+						"label": "Intake planned",
+						"filter": {
+							"lifecycle": "intake-scheduled"
+						},
+						"showCount": true
+					},
+					{
+						"label": "Waiting list",
+						"filter": {
+							"lifecycle": "waitlisted"
+						},
+						"showCount": true
+					}
+				],
+				"columns": [
+					{
+						"key": "applicantGivenName",
+						"label": "Applicant",
+						"template": "{applicantGivenName} {applicantFamilyName}",
+						"secondary": "{priorSchool}"
+					},
+					{
+						"key": "programmeId",
+						"label": "Programme",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "programme"
+						}
+					},
+					{
+						"key": "schoolAdviceLevel",
+						"label": "School advice"
+					},
+					{
+						"key": "progressionTestLevel",
+						"label": "Progression test"
+					},
+					{
+						"key": "submittedAt",
+						"label": "Submitted",
+						"formatter": "date"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					}
+				],
+				"allowSavedViews": true
 			}
 		},
 		{

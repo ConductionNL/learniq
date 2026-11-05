@@ -61,7 +61,48 @@
 				],
 				"showTitle": true,
 				"register": "learniq",
-				"schema": "confidential-note"
+				"schema": "confidential-note",
+				"countText": "{shown} of {total} notes",
+				"searchPlaceholder": "Search by case or name",
+				"quickFilters": [
+					{
+						"label": "All",
+						"filter": {},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Open",
+						"filter": {
+							"status": "open"
+						},
+						"showCount": true
+					}
+				],
+				"columns": [
+					{
+						"key": "title",
+						"label": "Short name of the case"
+					},
+					{
+						"key": "status",
+						"label": "Status"
+					},
+					{
+						"key": "participantIds",
+						"label": "People with access"
+					},
+					{
+						"key": "destroyAfter",
+						"label": "Destroy after",
+						"formatter": "date"
+					},
+					{
+						"key": "@self.updated",
+						"label": "Changed"
+					}
+				],
+				"allowSavedViews": true
 			}
 		},
 		{
@@ -142,7 +183,55 @@
 				],
 				"showTitle": true,
 				"register": "learniq",
-				"schema": "concern-report"
+				"schema": "concern-report",
+				"countText": "{shown} of {total} reports",
+				"searchPlaceholder": "Search in reports",
+				"quickFilters": [
+					{
+						"label": "All",
+						"filter": {},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Not picked up yet",
+						"filter": {
+							"status": "received"
+						},
+						"showCount": true
+					},
+					{
+						"label": "In progress",
+						"filter": {
+							"status": "in-progress"
+						},
+						"showCount": true
+					}
+				],
+				"defaultSort": {
+					"field": "happenedOn",
+					"direction": "desc"
+				},
+				"columns": [
+					{
+						"key": "topic",
+						"label": "What is it about"
+					},
+					{
+						"key": "happenedOn",
+						"label": "When did it happen",
+						"formatter": "date"
+					},
+					{
+						"key": "wantsConversation",
+						"label": "Wants to talk"
+					},
+					{
+						"key": "status",
+						"label": "Status"
+					}
+				],
+				"allowSavedViews": true
 			}
 		},
 		{
