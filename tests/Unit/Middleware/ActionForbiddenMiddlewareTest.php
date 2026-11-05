@@ -146,10 +146,9 @@ class ActionForbiddenMiddlewareTest extends TestCase {
 			$session,
 			$actionAuth,
 			$rollup,
-			$this->createMock(originalClassName: RegulationAssignmentService::class),
-			$this->createMock(originalClassName: ObjectService::class),
-			new RegulationCoverageService(rollup: $rollup, audience: new RegulationAudienceResolver()),
-			$this->createMock(originalClassName: \OCA\Learniq\Service\RegulationAssignPreview::class)
+			$this->createMock(RegulationAssignmentService::class),
+			$this->createMock(ObjectService::class),
+			new RegulationCoverageService($rollup, new RegulationAudienceResolver())
 		);
 
 		$registered = [];

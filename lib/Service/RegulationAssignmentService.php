@@ -136,6 +136,54 @@ class RegulationAssignmentService {
 	}//end assign()
 
 	/**
+	 * The audience a request names: null for none, false when it is not valid.
+	 *
+	 * @param string $kind  section, team or hr-function; empty for none.
+	 * @param string $value The audience value within that kind.
+	 *
+	 * @return array{kind: string, value: string}|false|null
+	 *
+	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
+	 */
+	public function audienceOf(string $kind, string $value): array|false|null {
+		$kind = trim($kind);
+		$value = trim($value);
+		if ($kind === '' && $value === '') {
+			return null;
+		}
+
+		if (in_array($kind, RegulationAudienceResolver::AUDIENCE_KINDS, true) === false || $value === '') {
+			return false;
+		}
+
+		return ['kind' => $kind, 'value' => $value];
+	}//end audienceOf()
+
+	/**
+	 * The due date a request names: null for none, false when it is not a Y-m-d date.
+	 *
+	 * @param string $value The due date as sent.
+	 *
+	 * @return string|false|null
+	 *
+	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
+	 */
+	public function dueDateOf(string $value): string|false|null {
+		$value = trim($value);
+		if ($value === '') {
+			return null;
+		}
+
+		if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $parts) !== 1
+			|| checkdate((int)$parts[2], (int)$parts[3], (int)$parts[1]) === false
+		) {
+			return false;
+		}
+
+		return $value;
+	}//end dueDateOf()
+
+	/**
 	 * The published courses bound to the regulation.
 	 *
 	 * @param array<string,mixed> $regulation The Regulation object.
