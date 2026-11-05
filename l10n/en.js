@@ -5030,7 +5030,23 @@ OC.L10N.register(
         "The round could not be read.": "The round could not be read.",
         "not available": "not available",
         "Your availability could not be saved.": "Your availability could not be saved.",
-        "My availability": "My availability"
+        "My availability": "My availability",
+        "Reports and documents": "Reports and documents",
+        "Your children's reports and the school's papers. You can download and keep them all.": "Your children's reports and the school's papers. You can download and keep them all.",
+        "There is no report yet. You get a message when one is ready.": "There is no report yet. You get a message when one is ready.",
+        "From school": "From school",
+        "For all parents": "For all parents",
+        "The school has not shared any papers yet.": "The school has not shared any papers yet.",
+        "School document": "School document",
+        "A paper of the school for parents or pupils, such as the school guide or the year calendar. The file is attached to the record. A published document for guardians shows in the portal of every guardian with a child at this school.": "A paper of the school for parents or pupils, such as the school guide or the year calendar. The file is attached to the record. A published document for guardians shows in the portal of every guardian with a child at this school.",
+        "What parents read above the download, for example School guide 2026-2027.": "What parents read above the download, for example School guide 2026-2027.",
+        "The school this document belongs to.": "The school this document belongs to.",
+        "Parents and guardians": "Parents and guardians",
+        "Staff only": "Staff only",
+        "Who may read it. Only a published document for parents and guardians reaches the portal.": "Who may read it. Only a published document for parents and guardians reaches the portal.",
+        "A draft stays inside the school; a published document for parents shows in their portal.": "A draft stays inside the school; a published document for parents shows in their portal.",
+        "Published on": "Published on",
+        "When the document was published for parents.": "When the document was published for parents."
     },
     "nplurals=2; plural=(n != 1);"
 )
