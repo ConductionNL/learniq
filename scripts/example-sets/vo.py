@@ -1841,14 +1841,16 @@ def add_story(b: Builder, school: dict, locations: dict, rooms: dict, courses: d
 
     # --- mentor talks: Tuesday 13 October after school and Thursday 15 October in the evening ----------------------
     mentor_name = TEACHER_BY_ID[STORY_MENTOR][1]
+    blocks = [(dt.date(2026, 10, 13), (16, 10), (17, 20)), (dt.date(2026, 10, 15), (18, 30), (19, 40))]
     talks = b.add("conference-round", {
         "name": "Mentorgesprekken 3HV-B, oktober 2026", "cohortIds": [h4b["uuid"]], "teacherIds": [STORY_MENTOR],
         "slotDurationMinutes": 10, "bufferMinutes": 10,
         "bookingOpensAt": stamp(TODAY, 7, 50), "bookingClosesAt": stamp(dt.date(2026, 10, 9), 23, 59),
         "invitedLearnerIds": list(h4b["learnerIds"]), "invitedLearnerRefs": learner_refs,
         "bookingMode": "direct", "maxBookingsPerChild": 1, "lifecycle": "booking-open",
+        "evenings": [{"date": d.isoformat(), "from": f"{sh:02d}:{sm:02d}", "until": f"{eh:02d}:{em:02d}"}
+                     for d, (sh, sm), (eh, em) in blocks],
     })
-    blocks = [(dt.date(2026, 10, 13), (16, 10), (17, 20)), (dt.date(2026, 10, 15), (18, 30), (19, 40))]
     b.add("teacher-availability", {
         "conferenceRoundId": talks["uuid"], "teacherId": STORY_MENTOR,
         "blocks": [{"startsAt": stamp(d, *s), "endsAt": stamp(d, *e)} for d, s, e in blocks], "lifecycle": "submitted",
