@@ -29,6 +29,7 @@ use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\ComplianceRollupService;
 use OCA\Learniq\Service\ExternalTrainingService;
 use OCA\Learniq\Service\RegulationAssignmentService;
+use OCA\Learniq\Service\RegulationAssignPreview;
 use OCA\Learniq\Service\RegulationAudienceResolver;
 use OCA\Learniq\Service\RegulationCoverageService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -64,10 +65,16 @@ class ComplianceRollupControllerTest extends TestCase {
 	 * @param bool $signedIn Whether a user is signed in.
 	 * @param bool $allowed Whether the action gate lets the caller through.
 	 * @param RegulationAssignmentService|null $assignment Assignment double.
+	 * @param RegulationAssignPreview|null $preview Preview double.
 	 *
 	 * @return ComplianceRollupController
 	 */
-	private function controller(bool $signedIn = true, bool $allowed = true, ?RegulationAssignmentService $assignment = null): ComplianceRollupController {
+	private function controller(
+		bool $signedIn = true,
+		bool $allowed = true,
+		?RegulationAssignmentService $assignment = null,
+		?RegulationAssignPreview $preview = null
+	): ComplianceRollupController {
 		$store = [
 			'learner-profile' => [
 				['id' => 'p-ann', 'ncUserId' => 'ann', 'department' => 'Operations/Logistics', 'lifecycle' => 'active'],
@@ -85,6 +92,10 @@ class ComplianceRollupControllerTest extends TestCase {
 			static function (string $id) {
 				if ($id === 'reg-draft') {
 					return OrEntityFactory::make(['id' => 'reg-draft', 'lifecycle' => 'draft'], 'regulation');
+				}
+
+				if ($id === 'reg-mc') {
+					return OrEntityFactory::make(['id' => 'reg-mc', 'slug' => 'MELDCODE', 'lifecycle' => 'published'], 'regulation');
 				}
 
 				throw new DoesNotExistException('no such regulation');
@@ -112,13 +123,14 @@ class ComplianceRollupControllerTest extends TestCase {
 		$rollup = new ComplianceRollupService($objectService, new RegulationAudienceResolver(), $training);
 
 		return new ComplianceRollupController(
-			$this->createMock(IRequest::class),
+			$this->createMock(originalClassName: IRequest::class),
 			$session,
 			$actionAuth,
 			$rollup,
-			$assignment ?? $this->createMock(RegulationAssignmentService::class),
+			$assignment ?? $this->createMock(originalClassName: RegulationAssignmentService::class),
 			$objectService,
-			new RegulationCoverageService($rollup, new RegulationAudienceResolver())
+			new RegulationCoverageService(rollup: $rollup, audience: new RegulationAudienceResolver()),
+			$preview ?? $this->createMock(originalClassName: RegulationAssignPreview::class)
 		);
 	}//end controller()
 
@@ -170,6 +182,65 @@ class ComplianceRollupControllerTest extends TestCase {
 		self::assertSame(Http::STATUS_NOT_FOUND, $this->controller(assignment: $assignment)->assignRegulation(id: 'reg-missing')->getStatus());
 		self::assertSame(Http::STATUS_NOT_FOUND, $this->controller(assignment: $assignment)->assignRegulation()->getStatus());
 		self::assertSame(Http::STATUS_CONFLICT, $this->controller(assignment: $assignment)->assignRegulation(id: 'reg-draft')->getStatus());
-		self::assertSame(['regulation.assign', 'regulation.assign', 'regulation.assign'], $this->asked);
+		self::assertSame(expected: ['regulation.assign', 'regulation.assign', 'regulation.assign'], actual: $this->asked);
 	}//end testAssigningAnUnknownOrDraftRegulation()
+
+	/**
+	 * The preview and the narrowed assignment pass the chosen audience on; an
+	 * unknown kind or a malformed due date is refused before anything is done.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
+	 */
+	public function testThePreviewAndAssignmentFollowTheChosenAudience(): void {
+		$preview = $this->createMock(originalClassName: RegulationAssignPreview::class);
+		$preview->expects(self::once())->method('preview')
+			->with(
+				self::callback(callback: static fn (array $r): bool => $r['id'] === 'reg-mc'),
+				['kind' => 'team', 'value' => 'Talen/Frans']
+			)
+			->willReturn(['courseName' => 'Meldcode', 'audiences' => [], 'total' => 2]);
+		$answer = $this->controller(preview: $preview)
+			->assignPreview(id: 'reg-mc', audienceKind: 'team', audience: ' Talen/Frans ');
+		self::assertSame(expected: [Http::STATUS_OK, 2], actual: [$answer->getStatus(), $answer->getData()['total']]);
+
+		$assignment = $this->createMock(originalClassName: RegulationAssignmentService::class);
+		$assignment->expects(self::once())->method('assign')
+			->with(self::anything(), ['kind' => 'hr-function', 'value' => 'Docent Frans'], '2026-12-01')
+			->willReturn(['created' => 1, 'skipped' => 0, 'inScope' => 1, 'courses' => 1]);
+		$assigned = $this->controller(assignment: $assignment)
+			->assignRegulation(id: 'reg-mc', audienceKind: 'hr-function', audience: 'Docent Frans', dueDate: '2026-12-01');
+		self::assertSame(expected: Http::STATUS_OK, actual: $assigned->getStatus());
+
+		$never = $this->createMock(originalClassName: RegulationAssignmentService::class);
+		$never->expects(self::never())->method('assign');
+		$refused = $this->controller(assignment: $never);
+		foreach ([['school', 'x', ''], ['team', '', ''], ['', '', '1-12-2026']] as [$kind, $audience, $due]) {
+			$status = $refused->assignRegulation(id: 'reg-mc', audienceKind: $kind, audience: $audience, dueDate: $due)->getStatus();
+			self::assertSame(expected: Http::STATUS_BAD_REQUEST, actual: $status);
+		}
+	}//end testThePreviewAndAssignmentFollowTheChosenAudience()
+
+	/**
+	 * The preview asks the regulation.assign action first, and answers 401, 404 and 409 like the assignment.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-the-assignment-is-previewed-per-audience
+	 */
+	public function testThePreviewIsGatedLikeTheAssignment(): void {
+		$preview = $this->createMock(originalClassName: RegulationAssignPreview::class);
+		$preview->expects(self::never())->method('preview');
+
+		$signedOut = $this->controller(signedIn: false, preview: $preview);
+		self::assertSame(expected: Http::STATUS_UNAUTHORIZED, actual: $signedOut->assignPreview(id: 'reg-mc')->getStatus());
+		$officer = $this->controller(preview: $preview);
+		self::assertSame(expected: Http::STATUS_NOT_FOUND, actual: $officer->assignPreview(id: 'reg-missing')->getStatus());
+		self::assertSame(expected: Http::STATUS_CONFLICT, actual: $officer->assignPreview(id: 'reg-draft')->getStatus());
+		self::assertSame(expected: ['regulation.assign', 'regulation.assign'], actual: $this->asked);
+
+		$this->expectException(exception: OCSForbiddenException::class);
+		$this->controller(allowed: false, preview: $preview)->assignPreview(id: 'reg-mc');
+	}//end testThePreviewIsGatedLikeTheAssignment()
 }//end class

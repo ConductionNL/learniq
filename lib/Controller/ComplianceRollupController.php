@@ -36,6 +36,8 @@ use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\ComplianceRollupService;
 use OCA\Learniq\Service\RegulationAssignmentService;
+use OCA\Learniq\Service\RegulationAssignPreview;
+use OCA\Learniq\Service\RegulationAudienceResolver;
 use OCA\Learniq\Service\RegulationCoverageService;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
@@ -62,6 +64,7 @@ class ComplianceRollupController extends Controller {
 	 * @param RegulationAssignmentService $assignment    Audience-scoped assignment.
 	 * @param ObjectService               $objectService OR object access.
 	 * @param RegulationCoverageService   $coverage      Coverage per regulation.
+	 * @param RegulationAssignPreview     $preview       Assignment preview per audience.
 	 */
 	public function __construct(
 		IRequest $request,
@@ -71,6 +74,7 @@ class ComplianceRollupController extends Controller {
 		private readonly RegulationAssignmentService $assignment,
 		private readonly ObjectService $objectService,
 		private readonly RegulationCoverageService $coverage,
+		private readonly RegulationAssignPreview $preview,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -128,16 +132,75 @@ class ComplianceRollupController extends Controller {
 	}//end regulations()
 
 	/**
-	 * Assign a published regulation's mandatory courses to its audience.
+	 * Assign a published regulation's mandatory courses to its audience, or to
+	 * one part of it (`audienceKind` + `audience`), with an optional `dueDate`.
 	 *
-	 * @param string $id Regulation UUID.
+	 * @param string $id           Regulation UUID.
+	 * @param string $audienceKind section, team or hr-function; empty for the whole audience.
+	 * @param string $audience     The audience value within that kind.
+	 * @param string $dueDate      Due date (Y-m-d) of the enrolments created; empty for none.
 	 *
 	 * @return JSONResponse { created, skipped, inScope, courses }, or an error.
 	 *
 	 * @spec openspec/parity/capabilities.json#comp-assign-from-hr-roles
+	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
 	 */
 	#[NoAdminRequired]
-	public function assignRegulation(string $id=''): JSONResponse {
+	public function assignRegulation(string $id='', string $audienceKind='', string $audience='', string $dueDate=''): JSONResponse {
+		$regulation = $this->assignableRegulation(id: $id);
+		if ($regulation instanceof JSONResponse) {
+			return $regulation;
+		}
+
+		$scope = $this->audienceOf(kind: $audienceKind, value: $audience);
+		if ($scope === false || ($dueDate !== '' && $this->isDate(value: $dueDate) === false)) {
+			return new JSONResponse(data: ['error' => 'Unknown audience or due date'], statusCode: Http::STATUS_BAD_REQUEST);
+		}
+
+		$due = null;
+		if ($dueDate !== '') {
+			$due = $dueDate;
+		}
+
+		return new JSONResponse(data: $this->assignment->assign(regulation: $regulation, audience: $scope, dueDate: $due));
+	}//end assignRegulation()
+
+	/**
+	 * What assigning a published regulation to one audience would do; writes nothing.
+	 *
+	 * @param string $id           Regulation UUID.
+	 * @param string $audienceKind section, team or hr-function; empty for the audience lists only.
+	 * @param string $audience     The audience value within that kind.
+	 *
+	 * @return JSONResponse { courseName, audiences, total?, alreadyEnrolled?, toEnrol?, rows? }, or an error.
+	 *
+	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-the-assignment-is-previewed-per-audience
+	 */
+	#[NoAdminRequired]
+	public function assignPreview(string $id='', string $audienceKind='', string $audience=''): JSONResponse {
+		$regulation = $this->assignableRegulation(id: $id);
+		if ($regulation instanceof JSONResponse) {
+			return $regulation;
+		}
+
+		$scope = $this->audienceOf(kind: $audienceKind, value: $audience);
+		if ($scope === false) {
+			return new JSONResponse(data: ['error' => 'Unknown audience'], statusCode: Http::STATUS_BAD_REQUEST);
+		}
+
+		return new JSONResponse(data: $this->preview->preview(regulation: $regulation, audience: $scope));
+	}//end assignPreview()
+
+	/**
+	 * The published regulation the caller may assign, or the error response.
+	 *
+	 * Checks the `regulation.assign` action before the regulation is read.
+	 *
+	 * @param string $id Regulation UUID.
+	 *
+	 * @return array<string,mixed>|JSONResponse
+	 */
+	private function assignableRegulation(string $id): array|JSONResponse {
 		$user = $this->userSession->getUser();
 		if ($user === null) {
 			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
@@ -160,8 +223,43 @@ class ComplianceRollupController extends Controller {
 			return new JSONResponse(data: ['error' => 'Only a published regulation can be assigned'], statusCode: Http::STATUS_CONFLICT);
 		}
 
-		return new JSONResponse(data: $this->assignment->assign(regulation: $data));
-	}//end assignRegulation()
+		return $data;
+	}//end assignableRegulation()
+
+	/**
+	 * The audience to narrow to: null for none, false when it is not valid.
+	 *
+	 * @param string $kind  The audience kind.
+	 * @param string $value The audience value.
+	 *
+	 * @return array{kind: string, value: string}|false|null
+	 */
+	private function audienceOf(string $kind, string $value): array|false|null {
+		$kind = trim($kind);
+		$value = trim($value);
+		if ($kind === '' && $value === '') {
+			return null;
+		}
+
+		if (in_array($kind, RegulationAudienceResolver::AUDIENCE_KINDS, true) === false || $value === '') {
+			return false;
+		}
+
+		return ['kind' => $kind, 'value' => $value];
+	}//end audienceOf()
+
+	/**
+	 * Whether a value is a calendar date written Y-m-d.
+	 *
+	 * @param string $value The value.
+	 *
+	 * @return bool
+	 */
+	private function isDate(string $value): bool {
+		$date = \DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+
+		return $date !== false && $date->format('Y-m-d') === $value;
+	}//end isDate()
 
 	/**
 	 * The Regulation, read with the caller's rights, or null when it does not exist.

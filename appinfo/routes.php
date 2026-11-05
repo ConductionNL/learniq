@@ -101,6 +101,7 @@ return [
         ['name' => 'complianceRollup#departments',      'url' => '/api/compliance/departments',        'verb' => 'GET'],
         ['name' => 'complianceRollup#regulations',      'url' => '/api/compliance/coverage-by-regulation', 'verb' => 'GET'],
         ['name' => 'complianceRollup#assignRegulation', 'url' => '/api/compliance/regulations/{id}/assign', 'verb' => 'POST'],
+        ['name' => 'complianceRollup#assignPreview',    'url' => '/api/compliance/regulations/{id}/assign/preview', 'verb' => 'GET'],
 
         // QTI package import — user-invokable action (ADR-023: qti.import).
         // Controller: QtiImportController (slug: qtiImport).
