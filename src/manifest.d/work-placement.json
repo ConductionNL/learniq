@@ -220,21 +220,72 @@
 				"columns": [
 					{
 						"key": "learnerId",
-						"label": "Learner",
-						"widget": "learnerName"
+						"label": "Student",
+						"widget": "learnerName",
+						"secondary": "{qualificationName}"
 					},
-					"agreedHours",
-					"curriculumPlanId",
-					"hoursApprovedTotal",
-					"lifecycle",
-					"periodFrom",
-					"periodTo",
-					"practicalTrainerId",
-					"programmeId",
-					"schoolCoachId",
-					"trainingCompanyKvkNumber",
-					"trainingCompanyName"
-				]
+					{
+						"key": "trainingCompanyName",
+						"label": "Training company",
+						"secondary": "KvK {trainingCompanyKvkNumber}"
+					},
+					{
+						"key": "practicalTrainerId",
+						"label": "Workplace supervisor",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "praktijkopleider",
+							"labelTemplate": "{givenName} {familyName}"
+						}
+					},
+					{
+						"key": "periodFrom",
+						"label": "Period",
+						"formatter": "date"
+					},
+					{
+						"key": "trainingCompanyVerification.status",
+						"label": "Recognised training company"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					}
+				],
+				"countText": "{shown} of {total} placements",
+				"searchPlaceholder": "Search a student, training company or KvK number",
+				"quickFilters": [
+					{
+						"label": "All",
+						"filter": {},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Proposed",
+						"filter": {
+							"lifecycle": "proposed"
+						},
+						"showCount": true
+					},
+					{
+						"label": "Waiting for the check",
+						"filter": {
+							"lifecycle": "sbb-verification-pending"
+						},
+						"showCount": true
+					},
+					{
+						"label": "Active",
+						"filter": {
+							"lifecycle": "active"
+						},
+						"showCount": true
+					}
+				],
+				"bulkNoun": "placements",
+				"allowSavedViews": true
 			}
 		},
 		{

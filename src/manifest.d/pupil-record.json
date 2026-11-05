@@ -115,16 +115,54 @@
 				"columns": [
 					{
 						"key": "learnerId",
-						"label": "Learner",
-						"widget": "learnerName"
+						"label": "Learner and date",
+						"widget": "learnerName",
+						"secondary": "{date}"
 					},
-					"authorId",
-					"body",
-					"careTeamUserIds",
-					"category",
-					"confidentiality",
-					"date"
-				]
+					{
+						"key": "category",
+						"label": "Kind"
+					},
+					{
+						"key": "body",
+						"label": "Note"
+					},
+					{
+						"key": "authorId",
+						"label": "Author",
+						"widget": "avatar",
+						"widgetProps": {
+							"user": true
+						}
+					},
+					{
+						"key": "confidentiality",
+						"label": "Who sees it"
+					}
+				],
+				"countText": "{shown} of {total} notes",
+				"searchPlaceholder": "Search by learner or note",
+				"quickFilters": [
+					{
+						"label": "All notes",
+						"filter": {},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Written by me",
+						"filter": {
+							"authorId": "@me"
+						},
+						"showCount": true
+					}
+				],
+				"defaultSort": {
+					"field": "date",
+					"direction": "desc"
+				},
+				"bulkNoun": "notes",
+				"allowSavedViews": true
 			}
 		},
 		{

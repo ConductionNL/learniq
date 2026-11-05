@@ -1231,6 +1231,10 @@
 						"label": "Status"
 					},
 					{
+						"key": "reason",
+						"label": "Explanation"
+					},
+					{
 						"key": "markedAt",
 						"label": "Marked At",
 						"formatter": "date"
@@ -1241,7 +1245,44 @@
 					"showMassExport": true,
 					"showMassCopy": true,
 					"showMassDelete": true
-				}
+				},
+				"countText": "{shown} of {total} registrations",
+				"searchPlaceholder": "Search by learner or lesson",
+				"quickFilters": [
+					{
+						"label": "Deviations this week",
+						"filter": {
+							"status": [
+								"late",
+								"absent-unexcused",
+								"absent-excused",
+								"left-early"
+							],
+							"markedAt[gte]": "@today-7d"
+						},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Unexcused",
+						"filter": {
+							"status": "absent-unexcused"
+						},
+						"showCount": true
+					},
+					{
+						"label": "All registrations",
+						"filter": {},
+						"showCount": true
+					}
+				],
+				"defaultSort": {
+					"field": "markedAt",
+					"direction": "desc"
+				},
+				"bulkNoun": "registrations",
+				"bulkBandAlways": true,
+				"allowSavedViews": true
 			}
 		},
 		{
@@ -1926,17 +1967,58 @@
 				"schema": "learner-profile",
 				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly, see AttendanceRecords' note.",
 				"columns": [
-					"givenName",
-					"familyName",
-					"ncUserId",
-					"schoolId"
+					{
+						"key": "fullName",
+						"label": "Learner",
+						"widget": "avatar",
+						"widgetProps": {
+							"nameField": "fullName"
+						}
+					},
+					{
+						"key": "groupLabel",
+						"label": "Group and mentor"
+					},
+					{
+						"key": "ncUserId",
+						"label": "User name"
+					},
+					{
+						"key": "schoolId",
+						"label": "School",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "school"
+						}
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					}
 				],
 				"actionToggles": {
 					"showMassImport": true,
 					"showMassExport": true,
 					"showMassCopy": true,
 					"showMassDelete": true
-				}
+				},
+				"countText": "{shown} of {total} learners",
+				"searchPlaceholder": "Search by name, group or user name",
+				"quickFilters": [
+					{
+						"label": "All learners",
+						"filter": {
+							"roles": "learner"
+						},
+						"showCount": true,
+						"default": true
+					}
+				],
+				"massActionNameField": "fullName",
+				"bulkNoun": "learners",
+				"bulkBandAlways": true,
+				"allowSavedViews": true
 			}
 		},
 		{

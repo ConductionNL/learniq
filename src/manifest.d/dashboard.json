@@ -480,7 +480,67 @@
 				"showTitle": true,
 				"register": "learniq",
 				"schema": "accessibility-limitation",
-				"_note": "accessibility-conformance-statement: the known-limitations register index, compliance-officer/admin authoring surface (gated via the Accessibility limitations nav entry's visibleIf). Generic declarative index - no bespoke UI."
+				"_note": "accessibility-conformance-statement: the known-limitations register index, compliance-officer/admin authoring surface (gated via the Accessibility limitations nav entry's visibleIf). Generic declarative index - no bespoke UI.",
+				"countText": "{shown} of {total} limitations",
+				"searchPlaceholder": "Search by criterion or component",
+				"quickFilters": [
+					{
+						"label": "All",
+						"filter": {},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Open",
+						"filter": {
+							"lifecycle": "open"
+						},
+						"showCount": true
+					},
+					{
+						"label": "Workaround available",
+						"filter": {
+							"lifecycle": "mitigated"
+						},
+						"showCount": true
+					},
+					{
+						"label": "Fixed",
+						"filter": {
+							"lifecycle": "fixed"
+						},
+						"showCount": true
+					}
+				],
+				"columns": [
+					{
+						"key": "wcagCriterion",
+						"label": "WCAG criterion"
+					},
+					{
+						"key": "severity",
+						"label": "Severity"
+					},
+					{
+						"key": "affectedSurface",
+						"label": "Component"
+					},
+					{
+						"key": "workaround",
+						"label": "Workaround"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					},
+					{
+						"key": "plannedFixDate",
+						"label": "Planned fix",
+						"formatter": "date"
+					}
+				],
+				"massActionNameField": "wcagCriterion",
+				"allowSavedViews": true
 			}
 		},
 		{
@@ -659,7 +719,62 @@
 				],
 				"showTitle": true,
 				"register": "learniq",
-				"schema": "Regulation"
+				"schema": "Regulation",
+				"countText": "{shown} of {total} obligations",
+				"searchPlaceholder": "Search an obligation or source",
+				"quickFilters": [
+					{
+						"label": "All obligations",
+						"filter": {},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Red",
+						"filter": {
+							"ragStatus": "red"
+						},
+						"showCount": true
+					},
+					{
+						"label": "Amber",
+						"filter": {
+							"ragStatus": "amber"
+						},
+						"showCount": true
+					},
+					{
+						"label": "Green",
+						"filter": {
+							"ragStatus": "green"
+						},
+						"showCount": true
+					}
+				],
+				"columns": [
+					{
+						"key": "name",
+						"label": "Obligation"
+					},
+					{
+						"key": "renewalCycleMonths",
+						"label": "Repeat (months)"
+					},
+					{
+						"key": "coveragePercent",
+						"label": "Coverage",
+						"widget": "progress",
+						"widgetProps": {
+							"thresholds": {
+								"good": 90,
+								"warn": 70
+							}
+						}
+					}
+				],
+				"massActionNameField": "name",
+				"bulkNoun": "obligations",
+				"allowSavedViews": true
 			}
 		},
 		{

@@ -616,8 +616,8 @@ test('the full profile is exactly the plain manifest build', () => {
 	)
 	// 347 since the four unreached pages (BulkEnrol, CohortTimetable,
 	// MarkAttendanceView, SubmitExcuseModal) became actions; 348 with
-	// SignUpRequests (Aanmeldverzoeken).
-	assert.equal(plain.pages.length, 348)
+	// SignUpRequests (Aanmeldverzoeken); 349 with MyGrades (LqLlCijfers).
+	assert.equal(plain.pages.length, 349)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {
