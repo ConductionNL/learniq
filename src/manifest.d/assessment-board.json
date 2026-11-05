@@ -226,6 +226,23 @@
 					"policyReference",
 					"resultingGradeEntryId",
 					"submittedAt"
+				],
+				"actions": [
+					{
+						"id": "decide-exemption",
+						"label": "Decide",
+						"icon": "Gavel",
+						"type": "open-modal",
+						"target": "ExemptionDecisionDialog",
+						"visibleWhen": {
+							"field": "lifecycle",
+							"op": "in",
+							"value": [
+								"submitted",
+								"in-assessment"
+							]
+						}
+					}
 				]
 			}
 		},

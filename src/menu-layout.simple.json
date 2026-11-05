@@ -1316,13 +1316,10 @@
 				"headerActions": [
 					{
 						"id": "report-a-concern",
-						"type": "open-form",
+						"type": "open-modal",
+						"target": "ConcernReportDialog",
 						"label": "Report a concern",
-						"formTitle": "Report a concern",
 						"icon": "ShieldAlertOutline",
-						"register": "learniq",
-						"schema": "concern-report",
-						"successMessage": "Your concern is sent to the confidential counsellor.",
 						"props": {
 							"learnerId": "@objectId"
 						}

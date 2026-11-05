@@ -13,22 +13,16 @@
  @spec openspec/changes/attendance-timetable-calendar-feed/specs/timetable-calendar-feed/spec.md#requirement-calendar-subscription-feed
 -->
 <template>
-	<NcDialog
+	<CnDialog
 		:open="true"
-		:name="t('learniq', 'Subscribe in your calendar')"
-		@update:open="
-			(v) => {
-				if (!v) $emit('close')
-			}
-		">
+		:name="words.title"
+		:eyebrow="t('learniq', 'My timetable')"
+		width="form"
+		:noClose="busy"
+		@closing="$emit('close')">
 		<div class="calendar-feed" data-testid="calendar-feed-dialog">
 			<p>
-				{{
-					t(
-						'learniq',
-						'Add this address to your calendar app to see your lessons there. Your calendar app refreshes it, so cancelled lessons and substitutes show up by themselves.',
-					)
-				}}
+				{{ words.intro }}
 			</p>
 			<NcLoadingIcon v-if="loading" :size="32" />
 			<template v-else-if="url">
@@ -38,29 +32,19 @@
 					readonly
 					data-testid="calendar-feed-url" />
 				<p class="calendar-feed__hint">
-					{{
-						t(
-							'learniq',
-							'Anyone with this address can read your timetable. Keep it to yourself.',
-						)
-					}}
+					{{ words.hint }}
 				</p>
 				<a
 					:href="webcalUrl"
 					class="calendar-feed__link"
 					data-testid="calendar-feed-webcal">
-					{{ t('learniq', 'Open in your calendar app') }}
+					{{ words.open }}
 				</a>
 			</template>
 			<p v-else-if="exists" data-testid="calendar-feed-exists">
-				{{
-					t(
-						'learniq',
-						'You already have a calendar address. If you lost it or shared it by mistake, reset it: the old address stops working.',
-					)
-				}}
+				{{ words.exists }}
 			</p>
-			<NcNoteCard v-if="copied" type="success">
+			<NcNoteCard v-if="copied" type="success" role="status">
 				{{ t('learniq', 'The address is copied.') }}
 			</NcNoteCard>
 			<NcNoteCard v-if="error" type="error">
@@ -75,6 +59,9 @@
 				data-testid="calendar-feed-remove"
 				@click="remove">
 				{{ t('learniq', 'Remove address') }}
+			</NcButton>
+			<NcButton variant="tertiary" :disabled="busy" @click="$emit('close')">
+				{{ t('learniq', 'Cancel') }}
 			</NcButton>
 			<NcButton
 				v-if="url"
@@ -95,13 +82,14 @@
 				}}
 			</NcButton>
 		</template>
-	</NcDialog>
+	</CnDialog>
 </template>
 
 <script>
+import { CnDialog } from '@conduction/nextcloud-vue'
+import { loadState } from '@nextcloud/initial-state'
 import {
 	NcButton,
-	NcDialog,
 	NcLoadingIcon,
 	NcNoteCard,
 	NcTextField,
@@ -116,8 +104,8 @@ export default {
 	name: 'TimetableCalendarFeedDialog',
 
 	components: {
+		CnDialog,
 		NcButton,
-		NcDialog,
 		NcLoadingIcon,
 		NcNoteCard,
 		NcTextField,
@@ -135,6 +123,34 @@ export default {
 			copied: false,
 			error: '',
 		}
+	},
+
+	computed: {
+		/**
+		 * The dialog's sentences: "je" for a pupil, "u" for staff and
+		 * guardians, as the timetable boards address them.
+		 *
+		 * @return {{title: string, intro: string, hint: string, open: string, exists: string}} The sentences.
+		 * @spec openspec/changes/attendance-timetable-calendar-feed/specs/timetable-calendar-feed/spec.md#requirement-calendar-subscription-feed
+		 */
+		words() {
+			if (loadState('learniq', 'primaryRole', 'learner') === 'learner') {
+				return {
+					title: this.t('learniq', 'Subscribe in your calendar'),
+					intro: this.t('learniq', 'Add this address to your calendar app to see your lessons there. Your calendar app refreshes it, so cancelled lessons and substitutes show up by themselves.'),
+					hint: this.t('learniq', 'Anyone with this address can read your timetable. Keep it to yourself.'),
+					open: this.t('learniq', 'Open in your calendar app'),
+					exists: this.t('learniq', 'You already have a calendar address. If you lost it or shared it by mistake, reset it: the old address stops working.'),
+				}
+			}
+			return {
+				title: this.t('learniq', 'Subscribe in your own calendar'),
+				intro: this.t('learniq', 'Put this address in your calendar app to see your lessons there. Your calendar app keeps fetching it, so cancelled lessons and substitutes appear by themselves.'),
+				hint: this.t('learniq', 'Anyone who has this address can read your timetable. Keep it for yourself.'),
+				open: this.t('learniq', 'Open it in your calendar app'),
+				exists: this.t('learniq', 'You already have a calendar address. If you lost it or shared it by mistake, make a new link: the old address then stops working.'),
+			}
+		},
 	},
 
 	/**
