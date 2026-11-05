@@ -66,7 +66,7 @@ export async function createObject(schema, body) {
  * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
  */
 export async function updateObject(schema, id, body) {
-	const { data } = await axios.put(generateUrl(objectsUrl(schema, id)), body)
+	const { data } = await axios.patch(generateUrl(objectsUrl(schema, id)), body)
 	return oneObject(data)
 }
 
