@@ -57,7 +57,7 @@ class OpenMaterialSourceClientTest extends TestCase {
 		$client = $this->client(
 			static function (LearningMaterialRequestedEvent $event) use (&$seen): void {
 				$seen = [$event->getSourceApp(), $event->getRequest()];
-				$event->setAnswer(['total' => 242, 'records' => []]);
+				$event->answer(answer: ['total' => 242, 'records' => []]);
 			}
 		);
 
@@ -82,14 +82,14 @@ class OpenMaterialSourceClientTest extends TestCase {
 		$this->expectExceptionMessage('The source did not answer. (source-unavailable)');
 
 		$this->client(
-			static fn (LearningMaterialRequestedEvent $event) => $event->refuse(['code' => 'source-unavailable', 'reason' => 'Edurep antwoordt niet.', 'source' => 'edurep'])
+			static fn (LearningMaterialRequestedEvent $event) => $event->refuse(refusal: ['code' => 'source-unavailable', 'reason' => 'Edurep antwoordt niet.', 'source' => 'edurep'])
 		)->find(sourceId: 'urn:test:1');
 	}//end testARefusalIsUnavailableInLearniqsWordsNotIntegriqs()
 
 	public function testAnUnknownCodeStillReadsAsFailed(): void {
 		$this->expectExceptionMessage('Integriq could not reach the source. (something-new)');
 
-		$this->client(static fn (LearningMaterialRequestedEvent $event) => $event->refuse(['code' => 'something-new', 'reason' => 'Iets nieuws.']))
+		$this->client(static fn (LearningMaterialRequestedEvent $event) => $event->refuse(refusal: ['code' => 'something-new', 'reason' => 'Iets nieuws.']))
 			->find(sourceId: 'urn:test:1');
 	}//end testAnUnknownCodeStillReadsAsFailed()
 
@@ -105,7 +105,7 @@ class OpenMaterialSourceClientTest extends TestCase {
 		$client = $this->client(
 			static function (LearningMaterialRequestedEvent $event) use (&$seen): void {
 				$seen = $event->getRequest();
-				$event->setAnswer(null);
+				$event->answer(answer: null);
 			}
 		);
 
@@ -114,7 +114,7 @@ class OpenMaterialSourceClientTest extends TestCase {
 	}//end testFindSendsTheIdAndReturnsNullWhenTheSourceHasNoRecord()
 
 	public function testFindReturnsTheRecord(): void {
-		$client = $this->client(static fn (LearningMaterialRequestedEvent $event) => $event->setAnswer(['sourceId' => 'urn:wikiwijsmaken:194413']));
+		$client = $this->client(static fn (LearningMaterialRequestedEvent $event) => $event->answer(answer: ['sourceId' => 'urn:wikiwijsmaken:194413']));
 
 		$this->assertSame(expected: ['sourceId' => 'urn:wikiwijsmaken:194413'], actual: $client->find(sourceId: 'urn:wikiwijsmaken:194413'));
 	}//end testFindReturnsTheRecord()
