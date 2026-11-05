@@ -1122,6 +1122,13 @@
 						"icon": "FolderOutline"
 					},
 					{
+						"id": "course-open-materials",
+						"type": "custom",
+						"component": "CourseOpenMaterials",
+						"title": "Learning material",
+						"icon": "BookOpenVariant"
+					},
+					{
 						"id": "board-history",
 						"type": "audit-trail",
 						"title": "Record history",
@@ -1180,6 +1187,10 @@
 								{
 									"label": "Tests",
 									"widgetId": "course-assessments"
+								},
+								{
+									"label": "Learning material",
+									"widgetId": "course-open-materials"
 								},
 								{
 									"widgetId": "board-history",
@@ -1277,6 +1288,10 @@
 						{
 							"label": "Tests",
 							"widgetId": "course-assessments"
+						},
+						{
+							"label": "Learning material",
+							"widgetId": "course-open-materials"
 						}
 					]
 				},
