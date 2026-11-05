@@ -4362,7 +4362,23 @@ OC.L10N.register(
         "Expected learners": "Verwachte leerlingen",
         "Report {givenName} ill or absent": "{givenName} ziek of afwezig melden",
         "Message to {teacherName}": "Bericht aan {teacherName}",
-        "Send a message": "Bericht sturen"
+        "Send a message": "Bericht sturen",
+        "Reports and documents": "Rapporten en documenten",
+        "Your children's reports and the school's papers. You can download and keep them all.": "De rapporten van uw kinderen en de papieren van school. U kunt alles downloaden en bewaren.",
+        "There is no report yet. You get a message when one is ready.": "Er is nog geen rapport. U krijgt een bericht als het klaarstaat.",
+        "From school": "Van school",
+        "For all parents": "Voor alle ouders",
+        "The school has not shared any papers yet.": "De school heeft nog geen papieren gedeeld.",
+        "School document": "Schooldocument",
+        "A paper of the school for parents or pupils, such as the school guide or the year calendar. The file is attached to the record. A published document for guardians shows in the portal of every guardian with a child at this school.": "Een papier van de school voor ouders of leerlingen, zoals de schoolgids of de jaarkalender. Het bestand hangt aan dit record. Een gepubliceerd document voor ouders staat in het portaal van elke ouder met een kind op deze school.",
+        "What parents read above the download, for example School guide 2026-2027.": "Wat ouders boven de download lezen, bijvoorbeeld Schoolgids 2026-2027.",
+        "The school this document belongs to.": "De school waar dit document bij hoort.",
+        "Parents and guardians": "Ouders en verzorgers",
+        "Staff only": "Alleen medewerkers",
+        "Who may read it. Only a published document for parents and guardians reaches the portal.": "Wie het mag lezen. Alleen een gepubliceerd document voor ouders en verzorgers komt in het portaal.",
+        "A draft stays inside the school; a published document for parents shows in their portal.": "Een concept blijft binnen de school; een gepubliceerd document voor ouders staat in hun portaal.",
+        "Published on": "Gepubliceerd op",
+        "When the document was published for parents.": "Wanneer het document voor ouders is gepubliceerd."
     },
     "nplurals=2; plural=(n != 1);"
 )
