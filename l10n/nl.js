@@ -4348,7 +4348,10 @@ OC.L10N.register(
         "Choose one answer.": "Kies één antwoord.",
         "Write your answer in words.": "Schrijf je antwoord in woorden.",
         "Handing in your assessment…": "Je toets wordt ingeleverd…",
-        "Expected learners": "Verwachte leerlingen"
+        "Expected learners": "Verwachte leerlingen",
+        "Report {givenName} ill or absent": "{givenName} ziek of afwezig melden",
+        "Message to {teacherName}": "Bericht aan {teacherName}",
+        "Send a message": "Bericht sturen"
     },
     "nplurals=2; plural=(n != 1);"
 )
