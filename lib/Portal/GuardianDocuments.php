@@ -36,7 +36,6 @@ namespace OCA\Learniq\Portal;
 
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
-use Throwable;
 
 /**
  * The papers of one child or one school, for the guardian's portal.
@@ -130,7 +129,7 @@ class GuardianDocuments {
 				_rbac: false,
 				_multitenancy: false
 			);
-		} catch (Throwable $e) {
+		} catch (\Throwable $e) {
 			$this->logger->warning('Learniq: the guardian portal papers could not be read', ['schema' => $query->schema, 'reason' => $e->getMessage()]);
 			return [];
 		}

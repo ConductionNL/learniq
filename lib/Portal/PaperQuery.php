@@ -69,12 +69,7 @@ class PaperQuery {
 	 * @spec openspec/changes/guardian-reports-and-documents/specs/portal-contribution/spec.md#requirement-a-guardian-reads-her-childrens-published-reports-and-the-schools-papers-on-one-page
 	 */
 	public function matches(array $row): bool {
-		foreach ($this->filters as $field => $value) {
-			if (($row[$field] ?? null) !== $value) {
-				return false;
-			}
-		}
-
-		return true;
+		$values = array_map(static fn (string $field): mixed => ($row[$field] ?? null), array_keys($this->filters));
+		return $values === array_values($this->filters);
 	}//end matches()
 }//end class
