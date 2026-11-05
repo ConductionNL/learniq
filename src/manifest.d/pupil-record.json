@@ -117,7 +117,7 @@
 						"key": "learnerId",
 						"label": "Learner and date",
 						"widget": "learnerName",
-						"secondary": "{date}"
+						"secondary": "{date|weekday}"
 					},
 					{
 						"key": "category",

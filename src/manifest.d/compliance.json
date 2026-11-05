@@ -390,8 +390,8 @@
 						"widget": "number",
 						"widgetProps": {
 							"unit": {
-								"one": "{n} day",
-								"other": "{n} days"
+								"one": "{count} day",
+								"other": "{count} days"
 							}
 						}
 					}
@@ -525,7 +525,7 @@
 					{
 						"key": "decidedBy",
 						"label": "Decided by",
-						"secondary": "{decidedAt}"
+						"template": "{decidedBy|user}, {decidedAt|date}"
 					}
 				],
 				"allowSavedViews": true
