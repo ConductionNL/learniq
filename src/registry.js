@@ -13,8 +13,8 @@
 // assignment-missing-submissions-view: body section on AssignmentDetail.
 import AssignmentHandInStatus from './components/sections/AssignmentHandInStatus.vue'
 import AssignmentPeerReviewAllocation from './components/sections/AssignmentPeerReviewAllocation.vue'
-import DeclineSignUpDialog from './dialogs/DeclineSignUpDialog.vue'
 import CredentialWalletOffer from './components/sections/CredentialWalletOffer.vue'
+import DeclineSignUpDialog from './dialogs/DeclineSignUpDialog.vue'
 import SelfCheckInDialog from './dialogs/SelfCheckInDialog.vue'
 // admissions-and-subject-choice: the two genuine new custom views this
 // change adds — the coordinator's admissions review board (queue of
