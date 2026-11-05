@@ -6,7 +6,7 @@
 
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { matrixColumns, subjectRows, yearRows } from '../../src/utils/enrolmentForecastMatrix.js'
+import { applyCellEdit, editableColumn, intakeRows, matrixColumns, rateRows, subjectRows, yearRows } from '../../src/utils/enrolmentForecastMatrix.js'
 
 test('a programme year becomes one row with the server figures', () => {
 	const [row] = yearRows([{ programmeId: 'p', programmeName: 'havo', programmeYear: 4, learners: 104, groupsNeeded: 4 }])
@@ -27,4 +27,18 @@ test('the columns are read only, without formulas, and only numbers add up', () 
 	const columns = matrixColumns([['programmeYear', 'Year', 'string'], ['learners', 'Learners', 'number']])
 	assert.ok(columns.every((column) => column.readOnly === true && column.formula === undefined))
 	assert.deepEqual(columns.map((column) => column.aggregate), ['none', 'sum'])
+})
+
+test('the rates and the intake are editable matrix rows that write back into the scenario', () => {
+	const rates = [{ programmeId: 'p', programmeYear: 5, upRate: 0.78, repeatRate: 0.12, leaveRate: 0.05 }]
+	const [row] = rateRows(rates, () => 'vwo')
+	assert.deepEqual(row, { id: '0', label: 'vwo', programmeYear: '5', upRate: 0.78, repeatRate: 0.12, leaveRate: 0.05 })
+	assert.equal(applyCellEdit(rates, { rowId: '0', colKey: 'upRate', value: 0.83 }), true)
+	assert.equal(rates[0].upRate, 0.83)
+	assert.equal(applyCellEdit(rates, { rowId: '4', colKey: 'upRate', value: 1 }), false)
+	const intake = [{ programmeId: 'p', expected: 120 }]
+	assert.deepEqual(intakeRows(intake, () => 'havo'), [{ id: '0', label: 'havo', expected: 120 }])
+	const column = editableColumn('upRate', 'Over')
+	assert.equal(column.readOnly, undefined)
+	assert.equal(column.type, 'number')
 })
