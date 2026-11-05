@@ -28,42 +28,20 @@
 		</div>
 		<template v-if="scenario">
 			<CnDetailCard :title="t('learniq', 'Rates per programme year')">
-				<table class="forecast__table" data-testid="forecast-rates">
-					<thead>
-						<tr>
-							<th v-for="label in rateHeads" :key="label" scope="col">
-								{{ label }}
-							</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr v-for="(rate, index) in scenario.rates" :key="index">
-							<td>{{ programmeName(rate.programmeId) }}</td>
-							<td>{{ rate.programmeYear }}</td>
-							<td
-								v-for="field in ['upRate', 'repeatRate', 'leaveRate']"
-								:key="field">
-								<input
-									v-model.number="rate[field]"
-									type="number"
-									min="0"
-									max="1"
-									step="0.01"
-									:aria-label="t('learniq', 'Rate')" />
-							</td>
-						</tr>
-					</tbody>
-				</table>
+				<CnDataMatrix
+					data-testid="forecast-rates"
+					:rows="rateMatrixRows"
+					:columns="rateColumns"
+					:rowHeader="t('learniq', 'Programme')"
+					@cellEdit="(edit) => onCellEdit(scenario.rates, edit)" />
 			</CnDetailCard>
 			<CnDetailCard :title="t('learniq', 'Expected intake in year 1')">
-				<ul class="forecast__intake">
-					<li v-for="(row, index) in scenario.intake" :key="index">
-						<label>
-							{{ programmeName(row.programmeId) }}
-							<input v-model.number="row.expected" type="number" min="0" />
-						</label>
-					</li>
-				</ul>
+				<CnDataMatrix
+					data-testid="forecast-intake"
+					:rows="intakeMatrixRows"
+					:columns="intakeColumns"
+					:rowHeader="t('learniq', 'Programme')"
+					@cellEdit="(edit) => onCellEdit(scenario.intake, edit)" />
 			</CnDetailCard>
 			<div class="forecast__bar">
 				<NcButton :disabled="busy" @click="save">
@@ -119,7 +97,7 @@ import axios from '@nextcloud/axios'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcNoteCard, NcSelect } from '@nextcloud/vue'
-import { matrixColumns, subjectRows, yearRows } from '../utils/enrolmentForecastMatrix.js'
+import { applyCellEdit, editableColumn, intakeRows, matrixColumns, rateRows, subjectRows, yearRows } from '../utils/enrolmentForecastMatrix.js'
 
 const OBJECTS = '/apps/openregister/api/objects/learniq/'
 
@@ -149,19 +127,42 @@ export default {
 
 	computed: {
 		/**
-		 * The head cells of the rates table.
+		 * The rate columns: the year read only, the three rates editable.
 		 *
 		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
-		 * @return {string[]} Translated column labels.
+		 * @return {Array<object>} CnDataMatrix columns.
 		 */
-		rateHeads() {
+		rateColumns() {
 			return [
-				t('learniq', 'Programme'),
-				t('learniq', 'Year'),
-				t('learniq', 'Moves up'),
-				t('learniq', 'Repeats'),
-				t('learniq', 'Leaves'),
+				...matrixColumns([['programmeYear', t('learniq', 'Year'), 'string']]),
+				editableColumn('upRate', t('learniq', 'Moves up')),
+				editableColumn('repeatRate', t('learniq', 'Repeats')),
+				editableColumn('leaveRate', t('learniq', 'Leaves')),
 			]
+		},
+
+		/**
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @return {Array<object>} The editable intake column.
+		 */
+		intakeColumns() {
+			return [editableColumn('expected', t('learniq', 'Expected learners'))]
+		},
+
+		/**
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @return {Array<object>} The scenario's rates as matrix rows.
+		 */
+		rateMatrixRows() {
+			return rateRows(this.scenario?.rates, this.programmeName)
+		},
+
+		/**
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @return {Array<object>} The scenario's intake as matrix rows.
+		 */
+		intakeMatrixRows() {
+			return intakeRows(this.scenario?.intake, this.programmeName)
 		},
 
 		/**
@@ -229,6 +230,18 @@ export default {
 	},
 
 	methods: {
+		/**
+		 * Keep a committed matrix cell in the scenario; Save scenario stores it.
+		 *
+		 * @param {Array<object>} list The scenario's `rates` or `intake`.
+		 * @param {object} edit CnDataMatrix's `cell-edit` payload.
+		 * @return {void}
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 */
+		onCellEdit(list, edit) {
+			applyCellEdit(list, edit)
+		},
+
 		t,
 
 		/**
@@ -463,23 +476,6 @@ export default {
 	flex-wrap: wrap;
 	align-items: end;
 	gap: 12px;
-}
-
-.forecast__table {
-	width: 100%;
-	border-collapse: collapse;
-	margin-block: 8px;
-}
-
-.forecast__table th,
-.forecast__table td {
-	padding: 4px 8px;
-	text-align: start;
-	border-bottom: 1px solid var(--color-border);
-}
-
-.forecast__table input {
-	width: 80px;
 }
 
 .forecast__label {
