@@ -1138,6 +1138,75 @@
 			}
 		},
 		{
+			"id": "GradeEntries",
+			"_note": "LqLlCijfers: the learner reads their own grades in the one grade-entries list, as the lenses Mijn cijfers / Concept / Alle cijfers, not on a page of their own (gate 68, duplicate index pages). The GradeEntry read rule already limits a learner to their own released entries, so the lens filters narrow presentation and grant nothing. The list is read only, repeats no learner column, and a row opens GradeImpactDetail, what that grade does to the period average. Only the full structure lacks this overlay: there a learner gets the staff lenses, whose All grades lens is the same list.",
+			"when": {
+				"user.primaryRole": {
+					"in": [
+						"learner"
+					]
+				}
+			},
+			"config": {
+				"readOnly": true,
+				"headerButtons": [],
+				"rowRoute": "GradeImpactDetail",
+				"searchPlaceholder": "Search by course",
+				"quickFilters": [
+					{
+						"label": "My grades",
+						"filter": {
+							"learnerId": "@me",
+							"lifecycle": "published"
+						},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Draft",
+						"filter": {
+							"lifecycle": "concept"
+						},
+						"showCount": true
+					},
+					{
+						"label": "All grades",
+						"filter": {},
+						"showCount": true
+					}
+				],
+				"columns": [
+					{
+						"key": "courseName",
+						"label": "Course"
+					},
+					{
+						"key": "value",
+						"label": "Grade",
+						"widget": "number"
+					},
+					{
+						"key": "weight",
+						"label": "Weight"
+					},
+					{
+						"key": "period",
+						"label": "Period"
+					},
+					{
+						"key": "gradedAt",
+						"label": "Graded At",
+						"formatter": "date"
+					},
+					{
+						"key": "comment",
+						"label": "Comment"
+					}
+				],
+				"massActionNameField": "courseName"
+			}
+		},
+		{
 			"id": "LearnerProfiles",
 			"configAppend": {
 				"headerActions": [
