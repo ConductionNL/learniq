@@ -32,6 +32,9 @@
 		<template #tab-lti>
 			<LtiSettingsSection />
 		</template>
+		<template #tab-open-material>
+			<OpenMaterialSettingsSection />
+		</template>
 		<template #tab-store>
 			<StoreRegistrySettingsSection />
 		</template>
@@ -56,6 +59,7 @@ import ExamBoardSettingsSection from './ExamBoardSettingsSection.vue'
 import ExampleDataSettingsSection from './ExampleDataSettingsSection.vue'
 import LtiSettingsSection from './LtiSettingsSection.vue'
 import MenuStructureSection from './MenuStructureSection.vue'
+import OpenMaterialSettingsSection from './OpenMaterialSettingsSection.vue'
 import StoreRegistrySettingsSection from './StoreRegistrySettingsSection.vue'
 import TimetableExchangeSettingsSection from './TimetableExchangeSettingsSection.vue'
 import { initializeStores } from '../../store/store.js'
@@ -71,6 +75,7 @@ export default {
 		StoreRegistrySettingsSection,
 		TimetableExchangeSettingsSection,
 		LtiSettingsSection,
+		OpenMaterialSettingsSection,
 		MenuStructureSection,
 		AiTranslationReviewSection,
 		ActionAuthMatrix,
@@ -101,6 +106,7 @@ export default {
 				{ id: 'data-exchange', label: this.t('learniq', 'Data exchange') },
 				{ id: 'timetable-exchange', label: this.t('learniq', 'Timetable exchange') },
 				{ id: 'lti', label: this.t('learniq', 'LTI tools') },
+				{ id: 'open-material', label: this.t('learniq', 'Open learning material') },
 				{ id: 'store', label: this.t('learniq', 'Store') },
 				{ id: 'exam-board', label: this.t('learniq', 'Exam board') },
 				{ id: 'ai-translations', label: this.t('learniq', 'AI translations') },

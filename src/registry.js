@@ -10,6 +10,8 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
  */
 
+// open-learning-material: the Lesmateriaal tab of a course.
+import CourseOpenMaterials from './components/openMaterial/CourseOpenMaterials.vue'
 // assignment-missing-submissions-view: body section on AssignmentDetail.
 import AssignmentHandInStatus from './components/sections/AssignmentHandInStatus.vue'
 import AssignmentPeerReviewAllocation from './components/sections/AssignmentPeerReviewAllocation.vue'
@@ -223,6 +225,7 @@ export default {
 	//     CnFlowSidebar has to mount in the NC app sidebar for the canvas
 	//     to keep full width. ---
 	FlowDetailSidebar: page(FlowDetailSidebar),
+	CourseOpenMaterials: page(CourseOpenMaterials),
 
 	// learniq#947
 	RollCallView: page(RollCallView),

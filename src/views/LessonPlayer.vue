@@ -170,7 +170,10 @@
 						<div
 							v-else-if="block.type === 'media'"
 							class="lesson-player__block-media">
-							<template v-if="materialFor(block)">
+							<p v-if="materialFor(block) && isBlockedMaterial(materialFor(block))" class="lesson-player__block-media-missing">
+								{{ t('learniq', 'This material is not available in this course.') }}
+							</p>
+							<template v-else-if="materialFor(block)">
 								<p class="lesson-player__block-media-kind">
 									{{ materialKindLabel(materialFor(block).kind) }}
 								</p>
@@ -197,6 +200,7 @@
 								<p v-else>
 									{{ materialFor(block).title }}
 								</p>
+								<MaterialAttribution :material="materialFor(block)" />
 							</template>
 							<p v-else class="lesson-player__block-media-missing">
 								{{ t('learniq', 'Referenced material is unavailable.') }}
@@ -421,12 +425,15 @@ import { CnDetailCard, CnPageHeader, cnRenderMarkdown } from '@conduction/nextcl
 import { getCurrentUser } from '@nextcloud/auth'
 // SPDX-License-Identifier: EUPL-1.2
 // Copyright (C) 2026 Conduction B.V.
+import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcNoteCard, NcTextField } from '@nextcloud/vue'
 import AlertCircleOutline from 'vue-material-design-icons/AlertCircleOutline.vue'
 import ApplicationOutline from 'vue-material-design-icons/ApplicationOutline.vue'
 import BookOpenPageVariantOutline from 'vue-material-design-icons/BookOpenPageVariantOutline.vue'
 import LockOutline from 'vue-material-design-icons/LockOutline.vue'
+import MaterialAttribution from '../components/openMaterial/MaterialAttribution.vue'
+import { OPEN_MATERIAL_API } from '../services/openMaterial.js'
 import { buildCmi5LaunchUrl } from '../utils/cmi5Launch.js'
 import { playerVisibleBlocks } from '../utils/lessonBlocks.js'
 import { completionBelongsTo, currentEnrolment } from '../utils/lessonCompletion.js'
@@ -460,6 +467,7 @@ export default {
 		ApplicationOutline,
 		BookOpenPageVariantOutline,
 		LockOutline,
+		MaterialAttribution,
 		NcNoteCard,
 		NcTextField,
 	},
@@ -531,6 +539,8 @@ export default {
 			// course-authoring-ux: referenced-object caches for block
 			// rendering (contentType === 'text'), keyed by UUID.
 			materialsById: {},
+			/** Whether this course is paid or corporate, so NC material is not served. */
+			commercialCourse: false,
 			assessmentsById: {},
 			assignmentsById: {},
 			// Per-block LTI launch state, keyed by blockId — a lesson can
@@ -701,6 +711,7 @@ export default {
 			this.clearScormApi()
 			Object.assign(this.$data, this.$options.data.call(this))
 			await this.loadLesson()
+			await this.loadCommercialCourse()
 		},
 	},
 
@@ -712,6 +723,7 @@ export default {
 	 */
 	async mounted() {
 		await this.loadLesson()
+		await this.loadCommercialCourse()
 	},
 
 	/**
@@ -727,6 +739,30 @@ export default {
 	},
 
 	methods: {
+		/**
+		 * Whether this course is paid or corporate, as the server decides.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/open-learning-material/spec.md#scenario-non-commercial-material-is-flagged-in-a-paid-course
+		 */
+		async loadCommercialCourse() {
+			try {
+				const { data } = await axios.get(generateUrl(OPEN_MATERIAL_API + '/panel'), { params: { courseId: this.courseId } })
+				this.commercialCourse = data?.commercialCourse === true
+			} catch {
+				this.commercialCourse = false
+			}
+		},
+
+		/**
+		 * @param {object} material A Material.
+		 * @return {boolean} Whether NC material sits in a paid or corporate course.
+		 * @spec openspec/specs/open-learning-material/spec.md#scenario-non-commercial-material-is-flagged-in-a-paid-course
+		 */
+		isBlockedMaterial(material) {
+			return this.commercialCourse && material.nonCommercial === true
+		},
+
 		/**
 		 * Load the Course + Lesson pair for xAPI-instrumented playback, then
 		 * the release gate, the content-type runtime and the next step.

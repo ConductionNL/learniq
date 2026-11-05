@@ -44,6 +44,23 @@
             "unconfiguredMessage": "No shillinq administration is set, so learniq cannot raise a fee's contributions. Set it with occ config:app:set learniq shillinq_administration_id."
         },
         {
+            "key": "open-material-edurep",
+            "title": "Open learning material via Edurep",
+            "description": "Search Edurep from Kennisnet (Wikiwijs, Schooltv, SURFsharekit and more) from the lesson editor and the course materials, through integriq. Free, no key. The school profile sets the level; switch collections on or off here.",
+            "order": 54,
+            "settingsUrl": "/settings/admin/learniq#section-open-material",
+            "reportedOnly": true,
+            "unconfiguredMessage": "No teacher has searched Edurep yet. Learniq reports the status after each search. Terms of use: https://www.kennisnet.nl/edurep/"
+        },
+        {
+            "key": "open-material-edusources",
+            "title": "Open learning material via Edusources",
+            "description": "Search Edusources from SURF (mbo, hbo, wo) as a second source next to Edurep.",
+            "order": 56,
+            "available": false,
+            "unavailableMessage": "SURF offers no search API for outside apps yet. SURFsharekit, the largest source of Edusources, is already in Edurep."
+        },
+        {
             "key": "sbb",
             "title": "SBB leerbedrijf check",
             "description": "Checking that the employer of a work placement is an erkend leerbedrijf in the SBB register.",

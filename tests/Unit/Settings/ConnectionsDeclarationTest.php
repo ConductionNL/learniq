@@ -75,6 +75,8 @@ class ConnectionsDeclarationTest extends TestCase {
 		'lti',
 		'eudi-wallet',
 		'payment',
+		'open-material-edurep',
+		'open-material-edusources',
 		'sbb',
 		'proctoring',
 		'plagiarism',
@@ -90,6 +92,7 @@ class ConnectionsDeclarationTest extends TestCase {
 		'src/views/settings/DataExchangeSettingsSection.vue',
 		'src/views/settings/TimetableExchangeSettingsSection.vue',
 		'src/views/settings/LtiSettingsSection.vue',
+		'src/views/settings/OpenMaterialSettingsSection.vue',
 		'src/views/LearniqSettings.vue',
 	];
 
@@ -250,7 +253,7 @@ class ConnectionsDeclarationTest extends TestCase {
 			$linked[] = $connection['key'];
 		}
 
-		$this->assertSame(expected: ['data-exchange', 'timetable', 'lti'], actual: $linked);
+		$this->assertSame(expected: ['data-exchange', 'timetable', 'lti', 'open-material-edurep'], actual: $linked);
 	}//end testEverySettingsLinkPointsAtAnExistingSection()
 
 	/**
@@ -275,7 +278,7 @@ class ConnectionsDeclarationTest extends TestCase {
 		}
 
 		$this->assertSame(
-			expected: ['sbb', 'proctoring', 'plagiarism'],
+			expected: ['open-material-edusources', 'sbb', 'proctoring', 'plagiarism'],
 			actual: $unavailable
 		);
 	}//end testEveryUnavailableConnectionSaysWhy()

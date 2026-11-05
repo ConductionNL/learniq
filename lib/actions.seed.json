@@ -24,6 +24,7 @@
     "display-screen.manage": ["admin", "team-leads", "compliance-officers"],
     "elective.manage": ["admin", "coordinators", "instructors", "team-leads", "compliance-officers"],
     "report.contact-hours": ["admin", "instructors", "team-leads", "compliance-officers"],
-    "report.enrolment-forecast": ["admin", "team-leads", "compliance-officers"]
+    "report.enrolment-forecast": ["admin", "team-leads", "compliance-officers"],
+    "material.import-open": ["admin", "instructors", "hr", "compliance-officers", "team-leads"]
   }
 }

@@ -455,6 +455,11 @@ return [
         // which asks integriq for a job through learniq.
         ['name' => 'exchangeGate#show', 'url' => '/api/exchange-gates/{jobId}', 'verb' => 'GET'],
         ['name' => 'exchangeRequest#create', 'url' => '/api/exchange/requests', 'verb' => 'POST'],
+        // Open learning material: the search panel and adding a result as a Material.
+        ['name' => 'openMaterial#panel', 'url' => '/api/open-material/panel', 'verb' => 'GET'],
+        ['name' => 'openMaterial#search', 'url' => '/api/open-material/search', 'verb' => 'GET'],
+        ['name' => 'openMaterial#record', 'url' => '/api/open-material/record', 'verb' => 'GET'],
+        ['name' => 'openMaterial#add', 'url' => '/api/open-material/materials', 'verb' => 'POST'],
         // D10 + data-exchange-to-integriq: a timetable import is a delivery into planninq, asked
         // through integriq's RosterImportRequestedEvent. Controller: TimetableImportController.
         ['name' => 'timetableImport#create', 'url' => '/api/timetable/imports', 'verb' => 'POST'],

@@ -168,6 +168,10 @@
 						<NcButton :disabled="pickingFile" @click="pickAndCreateMaterial(update)">
 							{{ t('learniq', 'Upload a new file…') }}
 						</NcButton>
+						<NcButton v-if="openMaterialEnabled" variant="secondary" data-testid="open-material-open" @click="openMaterialSearch(update)">
+							{{ t('learniq', 'Search open learning material') }}
+						</NcButton>
+						<MaterialAttribution v-if="materialById(block.materialId)" :material="materialById(block.materialId)" />
 					</template>
 
 					<template #block-quiz="{ block, update }">
@@ -219,17 +223,28 @@
 				@addGoal="onAssistAddGoal"
 				@off="assistOff = true" />
 		</template>
+		<OpenMaterialSearchModal
+v-if="openMaterialUpdate"
+			:target="{ lessonId }"
+			:targetLabel="lesson ? lesson.title : ''"
+			@added="onOpenMaterialAdded"
+			@ownFiles="onOpenMaterialOwnFiles"
+			@close="openMaterialUpdate = null" />
 	</div>
 </template>
 
 <script>
 import { CnBlockListEditor, CnDetailCard, CnMarkdownEditor, CnPageHeader } from '@conduction/nextcloud-vue'
+import axios from '@nextcloud/axios'
 import { getFilePickerBuilder } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcSelect } from '@nextcloud/vue'
 import AutoFix from 'vue-material-design-icons/AutoFix.vue'
 import LessonAssistPanel from '../components/lesson/LessonAssistPanel.vue'
 import LessonNextStepEditor from '../components/lesson/LessonNextStepEditor.vue'
+import MaterialAttribution from '../components/openMaterial/MaterialAttribution.vue'
+import OpenMaterialSearchModal from '../modals/OpenMaterialSearchModal.vue'
+import { loadPanel } from '../services/openMaterial.js'
 import { GOAL_COUNT_MAX, isHermiqEnabled } from '../utils/lessonAssist.js'
 import {
 	BLOCK_TYPES,
@@ -272,8 +287,10 @@ export default {
 		CnPageHeader,
 		LessonAssistPanel,
 		LessonNextStepEditor,
+		MaterialAttribution,
 		NcButton,
 		NcSelect,
+		OpenMaterialSearchModal,
 	},
 
 	props: {
@@ -309,6 +326,10 @@ export default {
 			saveError: '',
 			saveDone: false,
 			pickingFile: false,
+			/** Whether the administrator left open learning material on. */
+			openMaterialEnabled: false,
+			/** The media block's update while the open material search is open. */
+			openMaterialUpdate: null,
 			liveMessage: '',
 			/** @type {Array<object>} */
 			materials: [],
@@ -416,11 +437,78 @@ export default {
 		},
 	},
 
+	/**
+	 * Load the lesson, then whether open learning material is on.
+	 *
+	 * @return {Promise<void>}
+	 * @spec openspec/specs/open-learning-material/spec.md#scenario-edurep-is-switched-off
+	 */
 	async mounted() {
 		await this.load()
+		await this.loadOpenMaterialPanel()
 	},
 
 	methods: {
+		/**
+		 * Whether to offer the open material search: the administrator's switch.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/open-learning-material/spec.md#scenario-edurep-is-switched-off
+		 */
+		async loadOpenMaterialPanel() {
+			try {
+				const panel = await loadPanel(axios, generateUrl)
+				this.openMaterialEnabled = panel.enabled === true
+			} catch {
+				this.openMaterialEnabled = false
+			}
+		},
+
+		/**
+		 * Open the search panel for this media block.
+		 *
+		 * @param {function(object): void} update CnBlockListEditor's update for the media block.
+		 * @return {void}
+		 * @spec openspec/specs/open-learning-material/spec.md#scenario-a-teacher-searches-from-the-lesson-editor
+		 */
+		openMaterialSearch(update) {
+			this.openMaterialUpdate = update
+		},
+
+		/**
+		 * Put the added Material in the block that opened the panel, by UUID only.
+		 *
+		 * @param {object} material The new Material.
+		 * @return {void}
+		 * @spec openspec/specs/open-learning-material/spec.md#requirement-material-carries-its-source-and-attribution
+		 */
+		onOpenMaterialAdded(material) {
+			this.materials.push(material)
+			this.openMaterialUpdate({ materialId: material.id })
+			this.openMaterialUpdate = null
+		},
+
+		/**
+		 * Close the search and open the file picker for the same block instead.
+		 *
+		 * @return {void}
+		 * @spec openspec/specs/open-learning-material/spec.md#scenario-edurep-does-not-answer
+		 */
+		onOpenMaterialOwnFiles() {
+			const update = this.openMaterialUpdate
+			this.openMaterialUpdate = null
+			this.pickAndCreateMaterial(update)
+		},
+
+		/**
+		 * @param {string} id A Material UUID.
+		 * @return {object|null} The loaded Material.
+		 * @spec openspec/specs/open-learning-material/spec.md#requirement-material-carries-its-source-and-attribution
+		 */
+		materialById(id) {
+			return this.materials.find((m) => m.id === id) || null
+		},
+
 		/**
 		 * Load the Lesson and every picker source scoped to its Course:
 		 * existing Materials attached to this Lesson (media block picker),
