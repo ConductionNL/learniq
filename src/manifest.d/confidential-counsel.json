@@ -242,45 +242,196 @@
 			"config": {
 				"register": "learniq",
 				"schema": "concern-report",
-				"_note": "support-confidential-concern-report: one learner's report. Data only, full width: the schema references nothing and nothing references it, so no related panel, email, calendar or files leaves. The history tab shows the counsellor's status changes, which the reporter may see.",
+				"_note": "Board LqZoMelding (G2): the report as a card (what, when, wants to talk, who reported), what happened, and the contact the reporter expects beside it. History as the last tab and side card.",
+				"statusPill": {
+					"field": "status",
+					"labels": {
+						"received": "Received",
+						"in-progress": "In progress",
+						"closed": "Closed"
+					},
+					"colorMap": {
+						"in-progress": "purple",
+						"closed": "success"
+					}
+				},
+				"typePill": {
+					"field": "wantsConversation",
+					"labels": {
+						"true": "Wants to talk"
+					},
+					"colorMap": {
+						"true": "warning"
+					},
+					"values": [
+						"true"
+					]
+				},
+				"breadcrumb": {
+					"label": "Concern reports",
+					"route": "ConcernReports"
+				},
+				"headerMeta": "happened on {happenedOn|longdate}",
 				"widgets": [
 					{
-						"id": "cr-data",
-						"type": "data",
-						"title": "Data",
+						"id": "cr-facts",
+						"type": "facts",
+						"title": "Report",
 						"content": {
-							"columns": 2
-						},
-						"icon": "NoteTextOutline"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "cr-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 12,
-						"gridHeight": 6,
-						"showTitle": false
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
+							"fields": [
 								{
-									"type": "audit"
+									"path": "topic",
+									"label": "What it is about",
+									"map": {
+										"bullying": "Bullying",
+										"harassment": "Harassment",
+										"discrimination": "Discrimination",
+										"violence": "Violence",
+										"other": "Something else"
+									}
+								},
+								{
+									"path": "happenedOn",
+									"label": "When it happened",
+									"format": "longdate"
+								},
+								{
+									"path": "wantsConversation",
+									"label": "I would like to talk to a counsellor",
+									"map": {
+										"true": "Yes",
+										"false": "No"
+									}
+								},
+								{
+									"path": "learnerId",
+									"label": "Reported by",
+									"resolve": {
+										"register": "learniq",
+										"schema": "learner-profile",
+										"labelField": "fullName"
+									}
+								}
+							],
+							"columns": 2
+						}
+					},
+					{
+						"id": "cr-what",
+						"type": "facts",
+						"title": "What happened",
+						"content": {
+							"fields": [
+								{
+									"as": "text",
+									"path": "description"
 								}
 							]
 						}
+					},
+					{
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
+					},
+					{
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
+								{
+									"label": "Overview",
+									"widgetIds": [
+										"cr-facts",
+										"cr-what"
+									],
+									"sections": true
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
+								}
+							]
+						}
+					}
+				],
+				"sideColumn": [
+					{
+						"id": "cr-contact",
+						"type": "facts",
+						"title": "Contact with the reporter",
+						"content": {
+							"fields": [
+								{
+									"as": "line",
+									"text": "The reporter wants to talk and expects a counsellor to get in touch. The reporter can see the status.",
+									"when": {
+										"field": "wantsConversation",
+										"op": "eq",
+										"value": true
+									}
+								},
+								{
+									"as": "line",
+									"text": "The reporter did not ask for a conversation. The reporter can see the status.",
+									"when": {
+										"field": "wantsConversation",
+										"op": "neq",
+										"value": true
+									}
+								}
+							]
+						}
+					},
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Overview",
+							"widgetIds": [
+								"cr-facts",
+								"cr-what"
+							],
+							"sections": true
+						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		}
 	]

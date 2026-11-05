@@ -407,48 +407,200 @@
 			"config": {
 				"register": "data-subject-requests",
 				"schema": "dataSubjectRequest",
-				"_note": "privacy-reuse-openregister-register (D20): an OpenRegister dataSubjectRequest case (six AVG rights, the art-12 deadline, escalation), read through the generic objects API. Body leads with the case data; no Related/Files leaves. The lifecycle field is OpenRegister's `status`. Sidebar keeps metadata and the audit trail as History.",
+				"_note": "Boards LqCfInzageverzoek and LqCfPrivacyverzoek (G2): the request as a card (kind, subject, received, statutory term, handler, request) with the note on data about others for an access request; days left as a header pill. The copy assembly table waits on the backend (lane E).",
 				"lifecycleActions": {
 					"field": "status"
 				},
+				"statusPill": {
+					"field": "status",
+					"labels": {
+						"received": "Received",
+						"verifying": "Verifying identity",
+						"in-progress": "In progress",
+						"evidence-collection": "Collecting data",
+						"denial-drafted": "Refusal drafted",
+						"fulfilled": "Handled",
+						"refused": "Refused",
+						"closed": "Closed"
+					},
+					"colorMap": {
+						"in-progress": "purple",
+						"fulfilled": "success",
+						"refused": "error"
+					}
+				},
+				"typePill": {
+					"field": "escalationTier",
+					"labels": {
+						"on-track": "On track",
+						"reminder": "Term ends soon",
+						"escalation": "Term almost over",
+						"breached": "Term exceeded"
+					},
+					"colorMap": {
+						"reminder": "warning",
+						"escalation": "warning",
+						"breached": "error"
+					}
+				},
+				"breadcrumb": {
+					"label": "Privacy requests",
+					"route": "DataSubjectRequests"
+				},
+				"headerMeta": "received {receivedAt|longdate}",
 				"widgets": [
 					{
-						"id": "dsr-data",
-						"type": "data",
-						"title": "Data",
+						"id": "dsr-facts",
+						"type": "facts",
+						"title": "Request",
 						"content": {
-							"columns": 2
-						},
-						"icon": "AccountAlertOutline"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "dsr-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 12,
-						"gridHeight": 6,
-						"showTitle": false
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
+							"fields": [
 								{
-									"type": "audit"
+									"path": "type",
+									"label": "Kind",
+									"map": {
+										"access": "Access (right of access, GDPR article 15)",
+										"rectification": "Correction (GDPR article 16)",
+										"erasure": "Erasure (right to be forgotten)",
+										"restriction": "Restriction of processing",
+										"portability": "Data portability",
+										"objection": "Objection"
+									}
+								},
+								{
+									"path": "subjectId",
+									"label": "Data subject"
+								},
+								{
+									"path": "receivedAt",
+									"label": "Received",
+									"format": "longdate"
+								},
+								{
+									"path": "dueAt",
+									"label": "Statutory term",
+									"format": "longdate"
+								},
+								{
+									"path": "extendedUntil",
+									"label": "Extended until",
+									"format": "longdate"
+								},
+								{
+									"path": "handler",
+									"label": "Handler",
+									"format": "user"
+								},
+								{
+									"path": "outcome",
+									"label": "Outcome"
+								},
+								{
+									"as": "line",
+									"text": "Data about others (classmates in a note, a mentor) stays out of the copy. Only what is about the data subject goes along; record in the note what you redacted.",
+									"when": {
+										"field": "type",
+										"op": "eq",
+										"value": "access"
+									}
+								}
+							],
+							"columns": 2
+						}
+					},
+					{
+						"id": "dsr-notes",
+						"type": "facts",
+						"title": "Notes",
+						"content": {
+							"fields": [
+								{
+									"as": "text",
+									"path": "notes"
 								}
 							]
 						}
+					},
+					{
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
+					},
+					{
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
+								{
+									"label": "Overview",
+									"widgetIds": [
+										"dsr-facts"
+									]
+								},
+								{
+									"label": "Notes",
+									"widgetId": "dsr-notes"
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
+								}
+							]
+						}
+					}
+				],
+				"sideColumn": [
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Overview",
+							"widgetIds": [
+								"dsr-facts"
+							]
+						},
+						{
+							"label": "Notes",
+							"widgetId": "dsr-notes"
+						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		},
 		{

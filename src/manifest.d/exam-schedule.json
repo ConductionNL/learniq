@@ -119,21 +119,79 @@
 			"config": {
 				"register": "learniq",
 				"schema": "exam-period",
-				"_note": "timetabling-exam-schedule: a test week with its exams listed below.",
+				"_note": "Board LqCoToetsweek (G2): the test week as a card and its tests as a tab. Invigilation figures and clash notes wait on lane E (exam-schedule backend).",
+				"statusPill": {
+					"field": "lifecycle",
+					"labels": {
+						"planning": "Planning",
+						"published": "Published",
+						"closed": "Closed"
+					},
+					"colorMap": {
+						"published": "success"
+					}
+				},
+				"breadcrumb": {
+					"label": "Test weeks",
+					"route": "ExamPeriods"
+				},
+				"headerMeta": "{startsOn|longdate} to {endsOn|longdate}",
 				"widgets": [
 					{
-						"id": "exam-period-data",
-						"type": "data",
-						"title": "Data",
+						"id": "exam-period-facts",
+						"type": "facts",
+						"title": "Test week",
 						"content": {
+							"fields": [
+								{
+									"path": "name",
+									"label": "Name"
+								},
+								{
+									"path": "startsOn",
+									"label": "First day",
+									"format": "longdate"
+								},
+								{
+									"path": "endsOn",
+									"label": "Last day",
+									"format": "longdate"
+								},
+								{
+									"path": "cohortIds",
+									"label": "Classes",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Cohort",
+										"labelField": "name"
+									}
+								},
+								{
+									"path": "courseIds",
+									"label": "Subjects",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Course",
+										"labelField": "name"
+									}
+								},
+								{
+									"path": "lifecycle",
+									"label": "Status",
+									"map": {
+										"planning": "Planning",
+										"published": "Published",
+										"closed": "Closed"
+									}
+								}
+							],
 							"columns": 2
-						},
-						"icon": "CalendarClockOutline"
+						}
 					},
 					{
 						"id": "exam-period-sittings",
 						"type": "object-list",
-						"title": "Exams in this week",
+						"title": "Tests in this week",
 						"content": {
 							"register": "learniq",
 							"schema": "exam-sitting",
@@ -164,44 +222,87 @@
 								}
 							]
 						}
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "exam-period-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 12,
-						"gridHeight": 6,
-						"showTitle": false
 					},
 					{
-						"id": "2",
-						"widgetId": "exam-period-sittings",
-						"gridX": 0,
-						"gridY": 6,
-						"gridWidth": 12,
-						"gridHeight": 5,
-						"showTitle": false
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
+					},
+					{
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
 								{
-									"type": "audit"
+									"label": "Overview",
+									"widgetIds": [
+										"exam-period-facts"
+									]
+								},
+								{
+									"label": "Tests",
+									"widgetId": "exam-period-sittings"
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
 								}
 							]
 						}
+					}
+				],
+				"sideColumn": [
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Overview",
+							"widgetIds": [
+								"exam-period-facts"
+							]
+						},
+						{
+							"label": "Tests",
+							"widgetId": "exam-period-sittings"
+						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		},
 		{

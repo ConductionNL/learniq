@@ -1293,22 +1293,120 @@
 			"config": {
 				"register": "learniq",
 				"schema": "attendance-record",
-				"_note": "An Attendance Record is a single presence mark (status, minutes attended, marked by/at, reason, linked excuse) for a learner in a session. Body leads with the record data (8-wide) and a Related panel resolving session, learner, cohort and any linked excuse request. Supporting evidence renders as a Files leaf. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail as the mark-change audit.",
+				"_note": "Board LqRegistratie (G2): the registration as a card (learner, lesson, group, status, minutes, reason, who and how), the teacher note and the evidence files under it; linked lesson, learner and group beside it.",
+				"statusPill": {
+					"field": "status",
+					"labels": {
+						"present": "Present",
+						"absent-unexcused": "Absent without permission",
+						"absent-excused": "Absent with permission",
+						"late": "Late",
+						"left-early": "Left early"
+					},
+					"colorMap": {
+						"present": "success",
+						"late": "warning",
+						"absent-excused": "teal",
+						"absent-unexcused": "error",
+						"left-early": "warning"
+					}
+				},
+				"breadcrumb": {
+					"label": "Attendance records",
+					"route": "AttendanceRecords"
+				},
+				"headerMeta": "registered by {markedBy|user} on {markedAt|longdate}",
 				"widgets": [
 					{
-						"id": "att-data",
-						"type": "data",
-						"title": "Data",
+						"id": "att-facts",
+						"type": "facts",
+						"title": "Registration",
 						"content": {
+							"fields": [
+								{
+									"path": "learnerRef",
+									"label": "Learner",
+									"resolve": {
+										"register": "learniq",
+										"schema": "learner-profile",
+										"labelField": "fullName"
+									}
+								},
+								{
+									"path": "sessionId",
+									"label": "Lesson",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Session",
+										"labelField": "title"
+									}
+								},
+								{
+									"path": "cohortId",
+									"label": "Group",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Cohort",
+										"labelField": "name"
+									}
+								},
+								{
+									"path": "status",
+									"label": "Status",
+									"map": {
+										"present": "Present",
+										"absent-unexcused": "Absent without permission",
+										"absent-excused": "Absent with permission",
+										"late": "Late",
+										"left-early": "Left early"
+									}
+								},
+								{
+									"path": "minutesAttended",
+									"label": "Minutes present"
+								},
+								{
+									"path": "absenceReasonKind",
+									"label": "Reason",
+									"map": {
+										"illness": "Ill",
+										"appointment": "Appointment",
+										"other": "Other"
+									}
+								},
+								{
+									"path": "markedBy",
+									"label": "Registered by",
+									"format": "user"
+								},
+								{
+									"path": "markedVia",
+									"label": "How",
+									"map": {
+										"teacher": "By the teacher, in the register",
+										"self-check-in": "By the learner, self check-in"
+									}
+								},
+								{
+									"path": "lesuren",
+									"label": "Counts as lesson hours"
+								}
+							],
 							"columns": 2
-						},
-						"icon": "CheckCircleOutline"
+						}
 					},
 					{
-						"id": "att-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
+						"id": "att-note",
+						"type": "facts",
+						"title": "Teacher's note",
+						"content": {
+							"fields": [
+								{
+									"as": "text",
+									"path": "reason"
+								}
+							]
+						}
 					},
 					{
 						"id": "att-files",
@@ -1316,53 +1414,140 @@
 						"integrationId": "files",
 						"title": "Evidence",
 						"icon": "FolderOutline"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "att-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 5,
-						"showTitle": false
 					},
 					{
-						"id": "2",
-						"widgetId": "att-related",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 5,
-						"showTitle": false
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
 					},
 					{
-						"id": "3",
-						"widgetId": "att-files",
-						"gridX": 0,
-						"gridY": 5,
-						"gridWidth": 12,
-						"gridHeight": 3,
-						"showTitle": false
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
 								{
-									"type": "audit"
+									"label": "Overview",
+									"widgetIds": [
+										"att-facts",
+										"att-note",
+										"att-files"
+									],
+									"sections": true
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
 								}
 							]
 						}
+					}
+				],
+				"sideColumn": [
+					{
+						"id": "att-linked",
+						"type": "facts",
+						"title": "Linked",
+						"content": {
+							"fields": [
+								{
+									"path": "sessionId",
+									"label": "Lesson",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Session",
+										"labelField": "title"
+									},
+									"route": {
+										"name": "SessionDetail",
+										"params": {
+											"id": "@source.sessionId"
+										}
+									}
+								},
+								{
+									"path": "learnerRef",
+									"label": "Learner",
+									"resolve": {
+										"register": "learniq",
+										"schema": "learner-profile",
+										"labelField": "fullName"
+									},
+									"route": {
+										"name": "LearnerProfileDetail",
+										"params": {
+											"id": "@source.learnerRef"
+										}
+									}
+								},
+								{
+									"path": "cohortId",
+									"label": "Group",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Cohort",
+										"labelField": "name"
+									},
+									"route": {
+										"name": "CohortDetail",
+										"params": {
+											"id": "@source.cohortId"
+										}
+									}
+								}
+							],
+							"hideEmpty": true
+						}
+					},
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Overview",
+							"widgetIds": [
+								"att-facts",
+								"att-note",
+								"att-files"
+							],
+							"sections": true
+						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		},
 		{
@@ -1639,38 +1824,106 @@
 			"config": {
 				"register": "learniq",
 				"schema": "attendance-threshold",
-				"_note": "An Attendance Threshold is a rule (kind, scope, window, metric, limit, on-cross action) that triggers early-warning flags — a config/rule archetype. Body leads with the rule definition (8-wide) and a Related panel resolving the scoped cohort. The Attendance flags this rule has raised render as a wide related-index so a mentor sees its effect. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail for rule-change history.",
+				"_note": "Board LqVerzuimgrens (G2): figures (limit, window, learners above it), the rule as a card, the signals it raised as a tab, and the statutory limit beside an own limit.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
+				"statusPill": {
+					"field": "kind",
+					"labels": {
+						"leerplicht-16uur": "Statutory limit",
+						"college-aanwezigheid": "Attendance requirement",
+						"training-attendance": "Training attendance",
+						"compliance-presence": "Required presence",
+						"generic": "Own limit"
+					}
+				},
+				"breadcrumb": {
+					"label": "Attendance thresholds",
+					"route": "AttendanceThresholds"
+				},
 				"widgets": [
 					{
-						"id": "thr-data",
-						"type": "data",
-						"title": "Data",
+						"id": "thr-figures",
+						"type": "facts",
+						"title": "Figures",
 						"content": {
-							"columns": 2
-						},
-						"icon": "Gauge"
-					},
-					{
-						"id": "thr-kpis",
-						"type": "stats-block",
-						"title": "Overview",
-						"icon": "ChartBar",
-						"content": {
-							"entries": [
+							"layout": "tiles",
+							"fields": [
 								{
-									"title": "Raised flags",
-									"register": "learniq",
-									"schema": "attendance-flag",
-									"metric": "count",
-									"filter": {
-										"attendanceThresholdId": "@objectId"
-									},
-									"route": "AttendanceFlags"
+									"path": "limit",
+									"label": "Limit"
+								},
+								{
+									"label": "Window",
+									"template": "{window.weeks} weeks"
+								},
+								{
+									"label": "Signals",
+									"countFrom": {
+										"register": "learniq",
+										"schema": "attendance-flag",
+										"filter": {
+											"attendanceThresholdId": "@objectId"
+										}
+									}
 								}
 							]
+						}
+					},
+					{
+						"id": "thr-rule",
+						"type": "facts",
+						"title": "The rule",
+						"content": {
+							"fields": [
+								{
+									"path": "name",
+									"label": "Name"
+								},
+								{
+									"path": "kind",
+									"label": "Kind",
+									"map": {
+										"leerplicht-16uur": "Statutory limit",
+										"college-aanwezigheid": "Attendance requirement",
+										"training-attendance": "Training attendance",
+										"compliance-presence": "Required presence",
+										"generic": "Own limit"
+									}
+								},
+								{
+									"path": "scope",
+									"label": "Applies to",
+									"map": {
+										"per-learner": "Every learner",
+										"per-cohort": "Per group"
+									}
+								},
+								{
+									"path": "metric",
+									"label": "Counts",
+									"map": {
+										"unexcused-lesuren": "Lesson hours missed without permission",
+										"unexcused-sessions": "Lessons missed without permission",
+										"attendance-percent-below": "Attendance below a percentage"
+									}
+								},
+								{
+									"path": "limit",
+									"label": "Limit"
+								},
+								{
+									"label": "Window",
+									"template": "{window.weeks} weeks, rolling"
+								},
+								{
+									"path": "lessonHourMinutes",
+									"label": "A lesson hour is",
+									"suffix": " minutes"
+								}
+							],
+							"columns": 2
 						}
 					},
 					{
@@ -1723,66 +1976,140 @@
 						"icon": "AlertCircleOutline"
 					},
 					{
-						"id": "thr-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "thr-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 5,
-						"showTitle": false
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
 					},
 					{
-						"id": "2",
-						"widgetId": "thr-kpis",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "3",
-						"widgetId": "thr-flags",
-						"gridX": 0,
-						"gridY": 5,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "4",
-						"widgetId": "thr-related",
-						"gridX": 6,
-						"gridY": 5,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
 								{
-									"type": "audit"
+									"label": "Overview",
+									"widgetIds": [
+										"thr-figures",
+										"thr-rule"
+									]
+								},
+								{
+									"label": "Signals",
+									"widgetId": "thr-flags",
+									"countFrom": {
+										"register": "learniq",
+										"schema": "attendance-flag",
+										"filter": {
+											"attendanceThresholdId": "@objectId"
+										}
+									}
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
 								}
 							]
 						}
+					}
+				],
+				"sideColumn": [
+					{
+						"id": "thr-statutory",
+						"type": "facts",
+						"title": "Statutory limit",
+						"content": {
+							"fields": [
+								{
+									"as": "line",
+									"text": "The statutory rule of 16 hours keeps applying alongside: at 16 lesson hours missed without permission in 4 weeks a report goes to the Verzuimloket."
+								}
+							]
+						},
+						"visibleWhen": {
+							"field": "kind",
+							"op": "neq",
+							"value": "leerplicht-16uur"
+						}
+					},
+					{
+						"id": "thr-status",
+						"type": "facts",
+						"title": "Status",
+						"content": {
+							"fields": [
+								{
+									"as": "pill",
+									"path": "lifecycle",
+									"map": {
+										"draft": "Draft",
+										"active": "Active",
+										"archived": "Archived"
+									},
+									"variantMap": {
+										"active": "success"
+									}
+								}
+							]
+						}
+					},
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Overview",
+							"widgetIds": [
+								"thr-figures",
+								"thr-rule"
+							]
+						},
+						{
+							"label": "Signals",
+							"widgetId": "thr-flags",
+							"countFrom": {
+								"register": "learniq",
+								"schema": "attendance-flag",
+								"filter": {
+									"attendanceThresholdId": "@objectId"
+								}
+							}
+						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		},
 		{
@@ -1828,22 +2155,149 @@
 			"config": {
 				"register": "learniq",
 				"schema": "attendance-flag",
+				"_note": "Board LqVerzuimsignaal (G2, G7): figures (missed, reported on, waiting), the municipality response, what the school already did, and a What now card per stage. Recording the response is lane C/E (attendance-flag-report-actions).",
 				"readOnly": true,
-				"_note": "An Attendance Flag is a raised early-warning (learner, threshold, window, metric value, breaching records, mentor) — an alert/case archetype. Body leads with the flag data including the metric value (8-wide), a metric KPI stat, and a Related panel resolving learner, threshold, cohort, mentor and any data-exchange job. The breaching Attendance records render as a related-index (the evidence). No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"statusPill": {
+					"field": "lifecycle",
+					"labels": {
+						"open": "Open",
+						"in-handling": "In handling",
+						"reported": "Reported",
+						"resolved": "Resolved"
+					},
+					"colorMap": {
+						"in-handling": "purple",
+						"reported": "warning",
+						"resolved": "success"
+					}
+				},
+				"typePill": {
+					"field": "flagKind",
+					"labels": {
+						"signal-verzuim": "Absence signal",
+						"langdurig-relatief-verzuim": "Long-term absence",
+						"thuiszitter": "Pupil at home",
+						"attendance-requirement": "Attendance requirement"
+					}
+				},
+				"breadcrumb": {
+					"label": "Attendance flags",
+					"route": "AttendanceFlags"
+				},
+				"headerMeta": "{metricValue} lesson hours missed between {windowStart|date} and {windowEnd|date}",
+				"stageField": "lifecycle",
+				"nextStep": {
+					"stages": {
+						"open": {
+							"title": "What now?",
+							"checklist": [
+								{
+									"label": "Call home and record the call",
+									"doneField": "interventions"
+								},
+								{
+									"label": "Take the signal into handling"
+								}
+							]
+						},
+						"in-handling": {
+							"title": "What now?",
+							"after": "Then: report to the Verzuimloket when the statutory limit is reached.",
+							"checklist": [
+								{
+									"label": "Call home and record the call",
+									"doneField": "interventions"
+								},
+								{
+									"label": "Report to the Verzuimloket",
+									"doneField": "dataExchangeJobId"
+								}
+							]
+						},
+						"reported": {
+							"title": "What now?",
+							"after": "Call the compulsory education office when there is no response after ten school days, and record it here afterwards.",
+							"checklist": [
+								{
+									"label": "Reported to the Verzuimloket",
+									"doneField": "dataExchangeJobId"
+								},
+								{
+									"label": "Record the municipality's response",
+									"doneField": "municipalityFeedback.receivedAt"
+								}
+							]
+						}
+					}
+				},
 				"widgets": [
 					{
-						"id": "flag-data",
-						"type": "data",
-						"title": "Data",
+						"id": "flag-figures",
+						"type": "facts",
+						"title": "Figures",
 						"content": {
-							"columns": 2
-						},
-						"icon": "AlertCircleOutline"
+							"layout": "tiles",
+							"fields": [
+								{
+									"path": "metricValue",
+									"label": "Missed without permission"
+								},
+								{
+									"path": "reportDeadlineAt",
+									"label": "Report due",
+									"format": "date"
+								},
+								{
+									"path": "daysSinceFlag",
+									"label": "Days since the signal"
+								}
+							]
+						}
+					},
+					{
+						"id": "flag-response",
+						"type": "facts",
+						"title": "Response from the municipality",
+						"content": {
+							"fields": [
+								{
+									"as": "line",
+									"text": "The signal stays open until the compulsory education officer says which route the report takes. Learniq records what the municipality says and fills in nothing itself."
+								},
+								{
+									"path": "municipalityFeedback.masRoute",
+									"label": "Route (MAS)",
+									"emptyValue": "not yet known"
+								},
+								{
+									"path": "municipalityFeedback.receivedAt",
+									"label": "Received on",
+									"format": "longdate",
+									"emptyValue": "not yet"
+								}
+							],
+							"hideEmpty": false
+						}
+					},
+					{
+						"id": "flag-actions",
+						"type": "record-list",
+						"title": "What the school already did",
+						"content": {
+							"objectRows": {
+								"path": "interventions"
+							},
+							"presentation": "rows",
+							"leading": "{recordedAt|date}",
+							"title": "{note}",
+							"meta": "{recordedBy}",
+							"emptyText": "Nothing recorded yet"
+						}
 					},
 					{
 						"id": "flag-recs",
 						"type": "object-list",
-						"title": "Attendance records",
+						"title": "Registrations",
 						"content": {
 							"register": "learniq",
 							"schema": "attendance-record",
@@ -1859,7 +2313,7 @@
 							"columns": [
 								{
 									"key": "sessionId",
-									"label": "Session ID"
+									"label": "Lesson"
 								},
 								{
 									"key": "status",
@@ -1867,11 +2321,11 @@
 								},
 								{
 									"key": "minutesAttended",
-									"label": "Minutes Attended"
+									"label": "Minutes present"
 								},
 								{
 									"key": "markedAt",
-									"label": "Marked At"
+									"label": "Registered on"
 								}
 							],
 							"rowRoute": "AttendanceRecordDetail",
@@ -1886,57 +2340,134 @@
 						"icon": "CheckCircleOutline"
 					},
 					{
-						"id": "flag-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "flag-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 5,
-						"showTitle": false
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
 					},
 					{
-						"id": "2",
-						"widgetId": "flag-related",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "3",
-						"widgetId": "flag-recs",
-						"gridX": 0,
-						"gridY": 5,
-						"gridWidth": 12,
-						"gridHeight": 5,
-						"showTitle": false
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
 								{
-									"type": "audit"
+									"label": "Overview",
+									"widgetIds": [
+										"flag-figures",
+										"flag-response",
+										"flag-actions"
+									]
+								},
+								{
+									"label": "Registrations",
+									"widgetId": "flag-recs"
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
 								}
 							]
 						}
+					}
+				],
+				"sideColumn": [
+					{
+						"id": "flag-linked",
+						"type": "facts",
+						"title": "Linked",
+						"content": {
+							"fields": [
+								{
+									"path": "attendanceThresholdId",
+									"label": "Rule",
+									"resolve": {
+										"register": "learniq",
+										"schema": "attendance-threshold",
+										"labelField": "name"
+									},
+									"route": {
+										"name": "AttendanceThresholdDetail",
+										"params": {
+											"id": "@source.attendanceThresholdId"
+										}
+									}
+								},
+								{
+									"path": "cohortId",
+									"label": "Group",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Cohort",
+										"labelField": "name"
+									},
+									"route": {
+										"name": "CohortDetail",
+										"params": {
+											"id": "@source.cohortId"
+										}
+									}
+								},
+								{
+									"path": "mentorId",
+									"label": "Mentor",
+									"format": "user"
+								}
+							],
+							"hideEmpty": true
+						}
+					},
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Overview",
+							"widgetIds": [
+								"flag-figures",
+								"flag-response",
+								"flag-actions"
+							]
+						},
+						{
+							"label": "Registrations",
+							"widgetId": "flag-recs"
+						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		},
 		{
@@ -2029,284 +2560,241 @@
 			"config": {
 				"register": "learniq",
 				"schema": "learner-profile",
-				"_note": "A Learner Profile is the person record — the STUDENT hub. learner-record-extras (finding 2.1/pupil-card-anatomy.md) replaced the single scrolling Data block with a top-of-page `lprof-tabs` widget (Identity / Address & contact / Guardians / Medical / First aid), so guardians — previously the `related` widget buried at layout slot 8, resolving only after a long scroll — are now one click away instead of a dash at the bottom. Each tabbed child is declared here as an ordinary widget with NO layout entry of its own (CnTabsWidget resolves them by id from this widgets array, not from layout; a widget with both would render twice). Below the tabs: KPI tiles, then Enrolments (the courses they take), Final grades (outcomes/results), Attendance (presence), Learning plans (support/OPP), and Credentials (diplomas/badges earned), each its own object-list scoped by learnerId — paired 6+6. No lifecycleActions: LearnerProfile uses a states model (active/merged/deleted via merge/delete transitions), not a linear `lifecycle` enum, so status changes are handled by dedicated flows, not a generic transition menu. No comms leaves on the body: LearnerProfile declares no linkedTypes (HARD RULE 1). The audit trail lives as the single sidebar tab (the built-in audit widget), not a body widget (HARD RULE 4).",
+				"_note": "Board LqLeerling (G2): the overview stacks recent grades, the latest attendance, the learner as a card and what else is in the dossier (counts); the other lists are tabs; the contact card beside it. Mentor, guardians and the parent portal wait on lanes D/E (learner-list-and-page-follow-the-boards).",
+				"breadcrumb": {
+					"label": "Learners",
+					"route": "LearnerProfiles"
+				},
+				"titleField": "fullName",
+				"headerMeta": "{ageYears} years · learner number {personalNumber}",
+				"typePill": {
+					"field": "groupLabel"
+				},
 				"widgets": [
 					{
-						"id": "lprof-tabs",
-						"type": "tabs",
-						"title": "Learner",
-						"icon": "AccountBoxOutline",
+						"id": "lprof-facts",
+						"type": "facts",
+						"title": "Details",
 						"content": {
-							"ariaLabel": "Learner profile sections",
-							"tabs": [
+							"fields": [
 								{
-									"widgetId": "lprof-data",
-									"label": "Identity",
-									"icon": "AccountBoxOutline"
+									"path": "givenName",
+									"label": "Given name"
 								},
 								{
-									"widgetId": "lprof-data-address",
-									"label": "Address & contact",
-									"icon": "MapMarkerOutline"
+									"path": "familyName",
+									"label": "Family name"
 								},
 								{
-									"widgetId": "lprof-related",
-									"label": "Guardians",
-									"icon": "AccountMultipleOutline"
+									"path": "ncUserId",
+									"label": "User name"
 								},
 								{
-									"widgetId": "lprof-data-medical",
-									"label": "Medical",
-									"icon": "MedicalBag"
+									"path": "schoolId",
+									"label": "School",
+									"resolve": {
+										"register": "learniq",
+										"schema": "school",
+										"labelField": "name"
+									}
 								},
 								{
-									"widgetId": "lprof-first-aid",
-									"label": "First aid",
-									"icon": "Bandage"
-								}
-							]
-						}
-					},
-					{
-						"id": "lprof-data",
-						"type": "data",
-						"title": "Data",
-						"content": {
-							"columns": 2
-						},
-						"icon": "AccountBoxOutline"
-					},
-					{
-						"id": "lprof-data-address",
-						"type": "data",
-						"title": "Address & contact",
-						"content": {
-							"columns": 2,
-							"include": [
-								"address",
-								"emergencyContacts"
-							]
-						},
-						"icon": "MapMarkerOutline"
-					},
-					{
-						"id": "lprof-data-medical",
-						"type": "data",
-						"title": "Medical",
-						"content": {
-							"columns": 2,
-							"include": [
-								"medicalConditions",
-								"allergies",
-								"medicalConsentDate",
-								"hasParentalAuthority"
-							]
-						},
-						"icon": "MedicalBag"
-					},
-					{
-						"id": "lprof-first-aid",
-						"type": "object-list",
-						"title": "First aid incidents",
-						"content": {
-							"register": "learniq",
-							"schema": "first-aid-incident",
-							"filter": {
-								"learnerId": "@objectId"
-							},
-							"sort": {
-								"field": "occurredAt",
-								"dir": "desc"
-							},
-							"limit": 25,
-							"columns": [
-								{
-									"key": "occurredAt",
-									"label": "Occurred At"
+									"path": "personalNumber",
+									"label": "Learner number"
 								},
 								{
-									"key": "whatHappened",
-									"label": "What Happened"
+									"path": "birthDate",
+									"label": "Date of birth",
+									"format": "longdate"
 								},
 								{
-									"key": "lifecycle",
-									"label": "Status"
+									"path": "groupLabel",
+									"label": "Group"
 								}
 							],
-							"rowRoute": "FirstAidIncidentDetail",
-							"viewAllRoute": "FirstAidIncidents",
-							"viewAllQuery": {
-								"learnerId": "@objectId"
-							},
-							"emptyText": "No first aid incidents found."
-						},
-						"icon": "Bandage"
-					},
-					{
-						"id": "lprof-kpis-enrolments",
-						"type": "stats-block",
-						"title": "Enrolments",
-						"icon": "ChartBar",
-						"content": {
-							"entries": [
-								{
-									"title": "Enrolments",
-									"register": "learniq",
-									"schema": "enrolment",
-									"metric": "count",
-									"filter": {
-										"learnerId": "@objectId"
-									},
-									"route": "Enrolments"
-								}
-							]
+							"columns": 2
 						}
 					},
 					{
-						"id": "lprof-kpis-attendance-records",
-						"type": "stats-block",
-						"title": "Attendance records",
-						"icon": "ChartBar",
+						"id": "lprof-dossier",
+						"type": "facts",
+						"title": "Also in the dossier",
 						"content": {
-							"entries": [
+							"fields": [
 								{
-									"title": "Attendance records",
-									"register": "learniq",
-									"schema": "attendance-record",
-									"metric": "count",
-									"filter": {
-										"learnerId": "@objectId"
-									},
-									"route": "AttendanceRecords"
-								}
-							]
-						}
-					},
-					{
-						"id": "lprof-kpis-credentials",
-						"type": "stats-block",
-						"title": "Credentials",
-						"icon": "ChartBar",
-						"content": {
-							"entries": [
+									"label": "Enrolments",
+									"countFrom": {
+										"register": "learniq",
+										"schema": "enrolment",
+										"filter": {
+											"learnerId": "@objectId"
+										}
+									}
+								},
 								{
-									"title": "Credentials",
-									"register": "learniq",
-									"schema": "credential",
-									"metric": "count",
-									"filter": {
-										"learnerId": "@objectId"
-									},
-									"route": "Credentials"
-								}
-							]
-						}
-					},
-					{
-						"id": "lprof-kpis-dossier-timeline",
-						"type": "stats-block",
-						"title": "Dossier timeline",
-						"icon": "ChartBar",
-						"content": {
-							"entries": [
+									"label": "Attendance records",
+									"countFrom": {
+										"register": "learniq",
+										"schema": "attendance-record",
+										"filter": {
+											"learnerId": "@objectId"
+										}
+									}
+								},
 								{
-									"title": "Dossier notes",
-									"register": "learniq",
-									"schema": "dossier-note",
-									"metric": "count",
-									"filter": {
-										"learnerId": "@object.ncUserId"
-									},
-									"route": {
-										"name": "PupilDossierTimelineView",
-										"query": {
+									"label": "Learning plans",
+									"countFrom": {
+										"register": "learniq",
+										"schema": "learning-plan",
+										"filter": {
+											"learnerId": "@objectId"
+										}
+									}
+								},
+								{
+									"label": "Final grades",
+									"countFrom": {
+										"register": "learniq",
+										"schema": "final-grade",
+										"filter": {
+											"learnerId": "@objectId"
+										}
+									}
+								},
+								{
+									"label": "Credentials",
+									"countFrom": {
+										"register": "learniq",
+										"schema": "credential",
+										"filter": {
+											"learnerId": "@objectId"
+										}
+									}
+								},
+								{
+									"label": "Dossier notes",
+									"countFrom": {
+										"register": "learniq",
+										"schema": "dossier-note",
+										"filter": {
 											"learnerId": "@object.ncUserId"
 										}
 									}
+								},
+								{
+									"label": "Behaviour incidents",
+									"countFrom": {
+										"register": "learniq",
+										"schema": "behaviour-incident",
+										"filter": {
+											"learnerId": "@objectId"
+										}
+									}
+								},
+								{
+									"label": "Wellbeing check-ins",
+									"countFrom": {
+										"register": "learniq",
+										"schema": "wellbeing-check-in",
+										"filter": {
+											"learnerId": "@objectId"
+										}
+									}
+								},
+								{
+									"label": "First aid incidents",
+									"countFrom": {
+										"register": "learniq",
+										"schema": "first-aid-incident",
+										"filter": {
+											"learnerId": "@objectId"
+										}
+									}
+								}
+							],
+							"columns": 2
+						}
+					},
+					{
+						"id": "lprof-data-address",
+						"type": "facts",
+						"title": "Address",
+						"content": {
+							"fields": [
+								{
+									"as": "text",
+									"parts": [
+										{
+											"path": "address.street"
+										},
+										{
+											"path": "address.houseNumber"
+										}
+									],
+									"separator": " "
+								},
+								{
+									"as": "text",
+									"parts": [
+										{
+											"path": "address.postalCode",
+											"format": "postcode"
+										},
+										{
+											"path": "address.city"
+										}
+									],
+									"separator": " "
 								}
 							]
-						},
-						"_note": "The timeline sources store the learner's Nextcloud user id in learnerId, so the count and the deep link pass the profile's ncUserId, not its uuid."
+						}
 					},
 					{
-						"id": "lprof-enrol",
-						"type": "object-list",
-						"title": "Enrolments",
+						"id": "lprof-emergency",
+						"type": "record-list",
+						"title": "Emergency contacts",
 						"content": {
-							"register": "learniq",
-							"schema": "Enrolment",
-							"filter": {
-								"learnerId": "@objectId"
+							"objectRows": {
+								"path": "emergencyContacts"
 							},
-							"sort": {
-								"field": "id",
-								"dir": "asc"
-							},
-							"limit": 25,
-							"columns": [
-								{
-									"key": "courseId",
-									"label": "Course ID"
-								},
-								{
-									"key": "cohortId",
-									"label": "Cohort ID"
-								},
-								{
-									"key": "mandatory",
-									"label": "Mandatory"
-								},
-								{
-									"key": "dueDate",
-									"label": "Due Date"
-								}
-							],
-							"rowRoute": "EnrolmentDetail",
-							"viewAllRoute": "Enrolments",
-							"viewAllQuery": {
-								"learnerId": "@objectId"
-							},
-							"emptyText": "No enrolments found."
-						},
-						"icon": "AccountGroup"
+							"presentation": "rows",
+							"title": "{name}",
+							"meta": "{relationship} · {phone}",
+							"emptyText": "No emergency contacts yet"
+						}
 					},
 					{
-						"id": "lprof-plans",
-						"type": "object-list",
-						"title": "Learning plans",
+						"id": "lprof-data-medical",
+						"type": "facts",
+						"title": "Medical",
 						"content": {
-							"register": "learniq",
-							"schema": "learning-plan",
-							"filter": {
-								"learnerId": "@objectId"
-							},
-							"sort": {
-								"field": "id",
-								"dir": "asc"
-							},
-							"limit": 25,
-							"columns": [
+							"fields": [
 								{
-									"key": "kind",
-									"label": "Kind"
+									"path": "medicalConditions",
+									"label": "Conditions",
+									"format": "list"
 								},
 								{
-									"key": "period",
-									"label": "Period"
+									"path": "allergies",
+									"label": "Allergies",
+									"format": "list"
 								},
 								{
-									"key": "nextReviewAt",
-									"label": "Next Review At"
+									"path": "medicalConsentDate",
+									"label": "Consent given on",
+									"format": "longdate"
+								},
+								{
+									"path": "hasParentalAuthority",
+									"label": "Parents have authority",
+									"map": {
+										"true": "Yes",
+										"false": "No"
+									}
 								}
 							],
-							"rowRoute": "LearningPlanDetail",
-							"viewAllRoute": "LearningPlans",
-							"viewAllQuery": {
-								"learnerId": "@objectId"
-							},
-							"emptyText": "No learning plans found."
-						},
-						"icon": "NoteTextOutline"
+							"columns": 2
+						}
 					},
 					{
 						"id": "lprof-finals",
@@ -2391,6 +2879,86 @@
 						"icon": "CheckCircleOutline"
 					},
 					{
+						"id": "lprof-enrol",
+						"type": "object-list",
+						"title": "Enrolments",
+						"content": {
+							"register": "learniq",
+							"schema": "Enrolment",
+							"filter": {
+								"learnerId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "courseId",
+									"label": "Course ID"
+								},
+								{
+									"key": "cohortId",
+									"label": "Cohort ID"
+								},
+								{
+									"key": "mandatory",
+									"label": "Mandatory"
+								},
+								{
+									"key": "dueDate",
+									"label": "Due Date"
+								}
+							],
+							"rowRoute": "EnrolmentDetail",
+							"viewAllRoute": "Enrolments",
+							"viewAllQuery": {
+								"learnerId": "@objectId"
+							},
+							"emptyText": "No enrolments found."
+						},
+						"icon": "AccountGroup"
+					},
+					{
+						"id": "lprof-plans",
+						"type": "object-list",
+						"title": "Learning plans",
+						"content": {
+							"register": "learniq",
+							"schema": "learning-plan",
+							"filter": {
+								"learnerId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "kind",
+									"label": "Kind"
+								},
+								{
+									"key": "period",
+									"label": "Period"
+								},
+								{
+									"key": "nextReviewAt",
+									"label": "Next Review At"
+								}
+							],
+							"rowRoute": "LearningPlanDetail",
+							"viewAllRoute": "LearningPlans",
+							"viewAllQuery": {
+								"learnerId": "@objectId"
+							},
+							"emptyText": "No learning plans found."
+						},
+						"icon": "NoteTextOutline"
+					},
+					{
 						"id": "lprof-credentials",
 						"type": "object-list",
 						"title": "Credentials",
@@ -2432,12 +3000,6 @@
 							"allowCreate": false
 						},
 						"icon": "Trophy"
-					},
-					{
-						"id": "lprof-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
 					},
 					{
 						"id": "lprof-dossier-notes",
@@ -2550,157 +3112,226 @@
 						"icon": "Heart"
 					},
 					{
+						"id": "lprof-first-aid",
+						"type": "object-list",
+						"title": "First aid incidents",
+						"content": {
+							"register": "learniq",
+							"schema": "first-aid-incident",
+							"filter": {
+								"learnerId": "@objectId"
+							},
+							"sort": {
+								"field": "occurredAt",
+								"dir": "desc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "occurredAt",
+									"label": "Occurred At"
+								},
+								{
+									"key": "whatHappened",
+									"label": "What Happened"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							],
+							"rowRoute": "FirstAidIncidentDetail",
+							"viewAllRoute": "FirstAidIncidents",
+							"viewAllQuery": {
+								"learnerId": "@objectId"
+							},
+							"emptyText": "No first aid incidents found."
+						},
+						"icon": "Bandage"
+					},
+					{
 						"id": "lp-contact",
 						"type": "integration",
 						"integrationId": "contacts",
 						"requiredApp": "contacts",
 						"title": "Contact card",
 						"icon": "AccountBoxOutline"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "lprof-tabs",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 5,
-						"showTitle": false
 					},
 					{
-						"id": "2-1",
-						"widgetId": "lprof-kpis-enrolments",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 2,
-						"showTitle": false
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
 					},
 					{
-						"id": "2-2",
-						"widgetId": "lprof-kpis-attendance-records",
-						"gridX": 8,
-						"gridY": 2,
-						"gridWidth": 4,
-						"gridHeight": 2,
-						"showTitle": false
-					},
-					{
-						"id": "2-3",
-						"widgetId": "lprof-kpis-credentials",
-						"gridX": 8,
-						"gridY": 4,
-						"gridWidth": 4,
-						"gridHeight": 2,
-						"showTitle": false
-					},
-					{
-						"id": "3",
-						"widgetId": "lprof-enrol",
-						"gridX": 0,
-						"gridY": 6,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "4",
-						"widgetId": "lprof-plans",
-						"gridX": 6,
-						"gridY": 6,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "5",
-						"widgetId": "lprof-finals",
-						"gridX": 0,
-						"gridY": 11,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "6",
-						"widgetId": "lprof-attendance",
-						"gridX": 6,
-						"gridY": 11,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "7",
-						"widgetId": "lprof-credentials",
-						"gridX": 0,
-						"gridY": 16,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "9",
-						"widgetId": "lprof-kpis-dossier-timeline",
-						"gridX": 0,
-						"gridY": 21,
-						"gridWidth": 4,
-						"gridHeight": 2,
-						"showTitle": false
-					},
-					{
-						"id": "10",
-						"widgetId": "lprof-dossier-notes",
-						"gridX": 0,
-						"gridY": 23,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "11",
-						"widgetId": "lprof-behaviour-incidents",
-						"gridX": 6,
-						"gridY": 23,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "12",
-						"widgetId": "lprof-wellbeing-checkins",
-						"gridX": 0,
-						"gridY": 28,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "13",
-						"widgetId": "lp-contact",
-						"gridX": 0,
-						"gridY": 33,
-						"gridWidth": 12,
-						"gridHeight": 4
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
 								{
-									"type": "audit"
+									"label": "Overview",
+									"widgetIds": [
+										"lprof-finals",
+										"lprof-attendance",
+										"lprof-facts",
+										"lprof-dossier"
+									]
+								},
+								{
+									"label": "Enrolments",
+									"widgetId": "lprof-enrol"
+								},
+								{
+									"label": "Learning plans",
+									"widgetId": "lprof-plans"
+								},
+								{
+									"label": "Dossier notes",
+									"widgetId": "lprof-dossier-notes"
+								},
+								{
+									"label": "Behaviour incidents",
+									"widgetId": "lprof-behaviour-incidents"
+								},
+								{
+									"label": "Wellbeing check-ins",
+									"widgetId": "lprof-wellbeing-checkins"
+								},
+								{
+									"label": "Credentials",
+									"widgetId": "lprof-credentials"
+								},
+								{
+									"label": "Address & contact",
+									"widgetIds": [
+										"lprof-data-address",
+										"lprof-emergency"
+									]
+								},
+								{
+									"label": "Medical",
+									"widgetId": "lprof-data-medical"
+								},
+								{
+									"label": "First aid",
+									"widgetId": "lprof-first-aid"
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
 								}
 							]
 						}
+					}
+				],
+				"sideColumn": [
+					{
+						"id": "lprof-mentor",
+						"type": "facts",
+						"title": "Mentor",
+						"content": {
+							"fields": [
+								{
+									"as": "title",
+									"path": "teacherName"
+								},
+								{
+									"path": "groupLabel",
+									"label": "Group"
+								}
+							],
+							"emptyText": "No mentor yet"
+						}
+					},
+					"lp-contact",
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Overview",
+							"widgetIds": [
+								"lprof-finals",
+								"lprof-attendance",
+								"lprof-facts",
+								"lprof-dossier"
+							]
+						},
+						{
+							"label": "Enrolments",
+							"widgetId": "lprof-enrol"
+						},
+						{
+							"label": "Learning plans",
+							"widgetId": "lprof-plans"
+						},
+						{
+							"label": "Dossier notes",
+							"widgetId": "lprof-dossier-notes"
+						},
+						{
+							"label": "Behaviour incidents",
+							"widgetId": "lprof-behaviour-incidents"
+						},
+						{
+							"label": "Wellbeing check-ins",
+							"widgetId": "lprof-wellbeing-checkins"
+						},
+						{
+							"label": "Credentials",
+							"widgetId": "lprof-credentials"
+						},
+						{
+							"label": "Address & contact",
+							"widgetIds": [
+								"lprof-data-address",
+								"lprof-emergency"
+							]
+						},
+						{
+							"label": "Medical",
+							"widgetId": "lprof-data-medical"
+						},
+						{
+							"label": "First aid",
+							"widgetId": "lprof-first-aid"
+						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		},
 		{
