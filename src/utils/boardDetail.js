@@ -8,6 +8,13 @@
  * The page keeps its own widgets, side column, pills and header actions; this
  * only adds what every such page repeats.
  *
+ * The expansion is written into the manifest fragments by
+ * `scripts/build-board-detail.mjs`, so the manifest holds what renders and
+ * every reader of it (the gates, Buildiq) sees the tab strip. It is
+ * idempotent: the parts it generates are replaced, never added twice, and
+ * `config.board` stays as the source. `npm run check:board-detail` fails
+ * when a fragment is out of date.
+ *
  * `config.board`:
  * - `tabs`: the tabs before Historie, each `{ label, widgetIds }` (a stack of
  *   cards) or `{ label, widgetId }`; an entry may carry `countFrom`.
@@ -27,6 +34,7 @@ export const BOARD_TABS_ID = 'board-tabs'
 export const BOARD_HISTORY_ID = 'board-history'
 export const BOARD_HISTORY_CARD_ID = 'board-history-card'
 export const BOARD_HISTORY_TITLE = 'Record history'
+const GENERATED = new Set([BOARD_TABS_ID, BOARD_HISTORY_ID, BOARD_HISTORY_CARD_ID])
 
 /**
  * The audit-trail widget that draws the record history.
@@ -60,10 +68,10 @@ export function expandBoardDetail(page) {
 		return page
 	}
 	const config = { ...page.config }
-	delete config.board
 	delete config.sidebar
+	delete config.layout
 	const history = board.history === false ? null : { tab: true, card: true, ...(board.history || {}) }
-	const widgets = [...(config.widgets || [])]
+	const widgets = (config.widgets || []).filter((widget) => !GENERATED.has(widget?.id))
 	const tabs = (board.tabs || []).map((tab) => ({ ...tab }))
 	if (history?.tab) {
 		widgets.push(historyWidget(BOARD_HISTORY_ID, history, 50))
@@ -75,16 +83,16 @@ export function expandBoardDetail(page) {
 		title: 'Panels',
 		content: { ariaLabel: 'Details', tabs },
 	})
-	const sideColumn = [...(config.sideColumn || [])]
+	const sideColumn = (config.sideColumn || []).filter((entry) => !GENERATED.has(typeof entry === 'string' ? entry : entry?.id))
 	if (history?.card) {
 		sideColumn.push(historyWidget(BOARD_HISTORY_CARD_ID, history, 5))
 	}
 	return {
 		...page,
 		config: {
-			follow: false,
-			showWidgetActions: false,
 			...config,
+			follow: config.follow ?? false,
+			showWidgetActions: config.showWidgetActions ?? false,
 			widgets,
 			sideColumn,
 			layout: [{ id: '1', widgetId: BOARD_TABS_ID, gridX: 0, gridY: 0, gridWidth: 12, gridHeight: 18, showTitle: false }],

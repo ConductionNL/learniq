@@ -302,10 +302,60 @@
 								}
 							]
 						}
+					},
+					{
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
+					},
+					{
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
+								{
+									"label": "Overview",
+									"widgetIds": [
+										"bt-norm"
+									]
+								},
+								{
+									"label": "Reports",
+									"widgetId": "bt-flags"
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
+								}
+							]
+						}
 					}
 				],
 				"sideColumn": [
-					"bt-kpis"
+					"bt-kpis",
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
 				],
 				"board": {
 					"tabs": [
@@ -320,7 +370,20 @@
 							"widgetId": "bt-flags"
 						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		},
 		{
@@ -698,6 +761,41 @@
 								}
 							]
 						}
+					},
+					{
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
+					},
+					{
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
+								{
+									"label": "Overview",
+									"widgetIds": [
+										"bd-figures",
+										"bd-decision",
+										"bd-response"
+									]
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
+								}
+							]
+						}
 					}
 				],
 				"sideColumn": [
@@ -728,6 +826,19 @@
 							],
 							"hideEmpty": true
 						}
+					},
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
 					}
 				],
 				"board": {
@@ -741,7 +852,20 @@
 							]
 						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		},
 		{

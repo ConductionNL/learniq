@@ -13,9 +13,9 @@ A detail page that declares `config.board` MUST render one tab strip holding the
 
 #### Scenario: A page without the board key keeps its own layout
 - **GIVEN** a detail page without `config.board`
-- **WHEN** the app boots
-- **THEN** the page's widgets, layout and sidebar are used as declared
-- @e2e exclude boot-time manifest transform; covered by tests/unit-js/boardDetail.test.mjs
+- **WHEN** the board detail pattern is written into the fragments
+- **THEN** the page's widgets, layout and sidebar stay as declared
+- @e2e exclude authoring-time manifest generation; covered by tests/unit-js/boardDetail.test.mjs
 
 ### Requirement: A decision page says what to do next
 

@@ -1373,6 +1373,42 @@
 						"integrationId": "files",
 						"title": "Evidence",
 						"icon": "FolderOutline"
+					},
+					{
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
+					},
+					{
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
+								{
+									"label": "Overview",
+									"widgetIds": [
+										"att-facts",
+										"att-note",
+										"att-files"
+									],
+									"sections": true
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
+								}
+							]
+						}
 					}
 				],
 				"sideColumn": [
@@ -1430,6 +1466,19 @@
 							],
 							"hideEmpty": true
 						}
+					},
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
 					}
 				],
 				"board": {
@@ -1444,7 +1493,20 @@
 							"sections": true
 						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		},
 		{
@@ -1871,6 +1933,51 @@
 							"allowCreate": false
 						},
 						"icon": "AlertCircleOutline"
+					},
+					{
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
+					},
+					{
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
+								{
+									"label": "Overview",
+									"widgetIds": [
+										"thr-figures",
+										"thr-rule"
+									]
+								},
+								{
+									"label": "Signals",
+									"widgetId": "thr-flags",
+									"countFrom": {
+										"register": "learniq",
+										"schema": "attendance-flag",
+										"filter": {
+											"attendanceThresholdId": "@objectId"
+										}
+									}
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
+								}
+							]
+						}
 					}
 				],
 				"sideColumn": [
@@ -1912,6 +2019,19 @@
 								}
 							]
 						}
+					},
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
 					}
 				],
 				"board": {
@@ -1935,7 +2055,20 @@
 							}
 						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		},
 		{
@@ -2164,6 +2297,45 @@
 							"allowCreate": false
 						},
 						"icon": "CheckCircleOutline"
+					},
+					{
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
+					},
+					{
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
+								{
+									"label": "Overview",
+									"widgetIds": [
+										"flag-figures",
+										"flag-response",
+										"flag-actions"
+									]
+								},
+								{
+									"label": "Registrations",
+									"widgetId": "flag-recs"
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
+								}
+							]
+						}
 					}
 				],
 				"sideColumn": [
@@ -2211,6 +2383,19 @@
 							],
 							"hideEmpty": true
 						}
+					},
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
 					}
 				],
 				"board": {
@@ -2228,7 +2413,20 @@
 							"widgetId": "flag-recs"
 						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		},
 		{
@@ -2876,6 +3074,81 @@
 						"requiredApp": "contacts",
 						"title": "Contact card",
 						"icon": "AccountBoxOutline"
+					},
+					{
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
+					},
+					{
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
+								{
+									"label": "Overview",
+									"widgetIds": [
+										"lprof-finals",
+										"lprof-attendance",
+										"lprof-facts",
+										"lprof-dossier"
+									]
+								},
+								{
+									"label": "Enrolments",
+									"widgetId": "lprof-enrol"
+								},
+								{
+									"label": "Learning plans",
+									"widgetId": "lprof-plans"
+								},
+								{
+									"label": "Dossier notes",
+									"widgetId": "lprof-dossier-notes"
+								},
+								{
+									"label": "Behaviour incidents",
+									"widgetId": "lprof-behaviour-incidents"
+								},
+								{
+									"label": "Wellbeing check-ins",
+									"widgetId": "lprof-wellbeing-checkins"
+								},
+								{
+									"label": "Credentials",
+									"widgetId": "lprof-credentials"
+								},
+								{
+									"label": "Address & contact",
+									"widgetIds": [
+										"lprof-data-address",
+										"lprof-emergency"
+									]
+								},
+								{
+									"label": "Medical",
+									"widgetId": "lprof-data-medical"
+								},
+								{
+									"label": "First aid",
+									"widgetId": "lprof-first-aid"
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
+								}
+							]
+						}
 					}
 				],
 				"sideColumn": [
@@ -2897,7 +3170,20 @@
 							"emptyText": "No mentor yet"
 						}
 					},
-					"lp-contact"
+					"lp-contact",
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
 				],
 				"board": {
 					"tabs": [
@@ -2950,7 +3236,20 @@
 							"widgetId": "lprof-first-aid"
 						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		},
 		{

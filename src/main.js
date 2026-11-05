@@ -30,7 +30,6 @@ import menuLayoutFull from './menu-layout.json'
 import menuLayoutSimple from './menu-layout.simple.json'
 import pinia from './pinia.js'
 import registry from './registry.js'
-import { expandBoardDetailPages } from './utils/boardDetail.js'
 import { normaliseCallerTenant } from './utils/callerTenant.js'
 import { applyIntegrationTitles } from './utils/integrationTitles.js'
 import { applyReportCardGates } from './utils/reportCardGates.js'
@@ -216,7 +215,7 @@ const fragmentCtx = require.context('./manifest.d/', false, /\.json$/)
 const fragments = fragmentCtx
 	.keys()
 	.sort()
-	.map((key) => expandBoardDetailPages(fragmentCtx(key)))
+	.map((key) => fragmentCtx(key))
 // CnReportsPage ignores a card's `visibleIf` (CnAppNav and CnNavCardGrid
 // honour it), so the Reports cards are filtered here against the runtime
 // built above, with the library's own evaluator (company-segment-menu-gating).
@@ -234,7 +233,7 @@ const menuLayout =
 const mergedManifest = applyReportCardGates(
 	buildProfiledManifest(
 		buildManifest,
-		expandBoardDetailPages(bundledManifest),
+		bundledManifest,
 		fragments,
 		menuLayout,
 		// An overlay with a `when` (the Today dashboard) applies only for the

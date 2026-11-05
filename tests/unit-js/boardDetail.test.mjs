@@ -3,8 +3,9 @@
 //
 // A detail page follows its board: `config.board` expands into one tab strip
 // with the record history last, a history side card, no Follow control, no
-// per-card Actions menus and no object sidebar; the drawn detail pages use it
-// and no longer show the generic Data and Related cards.
+// per-card Actions menus and no object sidebar; the drawn detail pages hold
+// that expansion (scripts/build-board-detail.mjs) and no longer show the
+// generic Data and Related cards.
 //
 // Run via `node --test tests/unit-js/` (package.json `test:js-unit`).
 
@@ -65,12 +66,17 @@ test('the history is also the last side card, after the page own cards', () => {
 	assert.deepEqual(config.sideColumn.map((widget) => widget.id), ['side', BOARD_HISTORY_CARD_ID])
 })
 
-test('a board page has no Follow control, no card menus, no sidebar and no board key left', () => {
+test('a board page has no Follow control, no card menus and no sidebar, and keeps its board key', () => {
 	const { config } = expandBoardDetail(sample)
 	assert.equal(config.follow, false)
 	assert.equal(config.showWidgetActions, false)
 	assert.equal('sidebar' in config, false)
-	assert.equal('board' in config, false)
+	assert.deepEqual(config.board, sample.config.board)
+})
+
+test('expanding twice gives the same page', () => {
+	const once = expandBoardDetail(sample)
+	assert.deepEqual(expandBoardDetail(once), once)
 })
 
 test('history false draws neither the tab nor the card', () => {
@@ -92,7 +98,8 @@ for (const id of BOARD_PAGES) {
 	test(`${id} follows its board`, () => {
 		const page = byId.get(id)
 		assert.ok(page, `${id} exists`)
-		const { config } = expandBoardDetail(page)
+		assert.deepEqual(expandBoardDetail(page), page, 'the fragment holds the expansion (node scripts/build-board-detail.mjs)')
+		const { config } = page
 		const ids = new Set(config.widgets.map((widget) => widget.id))
 		assert.equal(config.widgets.some((widget) => widget.type === 'data' || widget.type === 'related'), false, 'no generic Data or Related card')
 		const strip = config.widgets.find((widget) => widget.id === BOARD_TABS_ID)

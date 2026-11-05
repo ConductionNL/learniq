@@ -11,7 +11,7 @@ The zuiddrecht school boards draw learniq's detail pages one way: a header with 
 
 ## What changes
 
-- **One pattern, declared once.** A detail page may carry `config.board` (`tabs`, `history`). At boot `src/utils/boardDetail.js` expands it into the nextcloud-vue detail config: one tab strip with the record history as the last tab, an audit-trail side card titled Historie after the page's own side cards, no Follow control, no per-card Actions menus and no object sidebar.
+- **One pattern, declared once.** A detail page may carry `config.board` (`tabs`, `history`). `src/utils/boardDetail.js` expands it into the nextcloud-vue detail config, and `scripts/build-board-detail.mjs` writes that expansion into the fragments (`npm run check:board-detail` fails when one is out of date), so the manifest holds what renders: one tab strip with the record history as the last tab, an audit-trail side card titled Historie after the page's own side cards, no Follow control, no per-card Actions menus and no object sidebar.
 - **22 detail pages use it**, each with the cards its board draws, built from nextcloud-vue widgets (`facts`, `record-list` with `objectRows`, the existing `object-list` and `integration` widgets), header pills (`statusPill`, `typePill`), a breadcrumb and a meta line. The generic `data` and `related` widgets are gone from these pages.
 - **"Wat nu?" on the decision pages**: the BSA decision and the attendance flag carry `nextStep` stages on their lifecycle (CnNextStepCard).
 - Dutch strings for every new label.
