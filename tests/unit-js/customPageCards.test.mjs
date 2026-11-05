@@ -51,7 +51,6 @@ const views = {
 	LearniqAiProcessingDisclosure: 2,
 	AssessmentScoringView: 1,
 	ExportRequestView: 1,
-	TakeAssessmentView: 1,
 	LessonPlayer: 1,
 	ConferenceScheduleBoard: 2,
 	MyTimetable: 2,
