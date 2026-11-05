@@ -2341,7 +2341,8 @@
 					}
 				],
 				"bulkNoun": "groups",
-				"allowSavedViews": true
+				"allowSavedViews": true,
+				"createModal": "CohortCreateDialog"
 			}
 		},
 		{
@@ -4483,7 +4484,24 @@
 								"assignmentId": "@objectId"
 							},
 							"emptyText": "No submissions found.",
-							"allowCreate": false
+							"allowCreate": false,
+							"rowActions": [
+								{
+									"id": "reopen-submission",
+									"label": "Ask to hand in again",
+									"icon": "ClockOutline",
+									"type": "open-modal",
+									"target": "SubmissionReopenDialog",
+									"props": {
+										"objectId": "@row.id"
+									},
+									"visibleWhen": {
+										"field": "lifecycle",
+										"op": "eq",
+										"value": "returned"
+									}
+								}
+							]
 						},
 						"icon": "FileDocument"
 					},
@@ -6656,7 +6674,8 @@
 					"direction": "desc"
 				},
 				"bulkNoun": "grades",
-				"allowSavedViews": true
+				"allowSavedViews": true,
+				"createModal": "GradeEntryCreateDialog"
 			}
 		},
 		{

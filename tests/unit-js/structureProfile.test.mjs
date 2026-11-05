@@ -1801,13 +1801,13 @@ test('Report a concern is an action on the pupil page, the same form pre-filled 
 	const action = pupil.config.headerActions.find(
 		(item) => item.id === 'report-a-concern',
 	)
-	assert.equal(action.type, 'open-form')
-	assert.equal(action.register, reportPage.config.register)
-	assert.equal(action.schema, reportPage.config.schema)
+	// The board's Zorg melden dialog, which writes a concern-report.
+	assert.equal(action.type, 'open-modal')
+	assert.equal(action.target, 'ConcernReportDialog')
 	// Pre-filled with the pupil whose page it is.
 	assert.deepEqual(action.props, { learnerId: '@objectId' })
 	// The page keeps its address in both profiles; the full menu keeps the
-	// entry, and the full pupil page has no new action.
+	// entry, and the full pupil page does not offer it.
 	assert.ok(
 		simple.pages.some(
 			(page) =>
@@ -1817,7 +1817,7 @@ test('Report a concern is an action on the pupil page, the same form pre-filled 
 	assert.ok(flat(full.menu).some((item) => item.id === 'ReportConcernMenu'))
 	assert.ok(!flat(simple.menu).some((item) => item.id === 'ReportConcernMenu'))
 	const fullPupil = full.pages.find((page) => page.id === 'LearnerProfileDetail')
-	assert.equal(fullPupil.config.headerActions, undefined)
+	assert.ok(!(fullPupil.config.headerActions ?? []).some((item) => item.id === 'report-a-concern'))
 	assert.deepEqual(Object.keys(ACTION_OVERLAYS[0]).sort(), ['configAppend', 'id'])
 })
 

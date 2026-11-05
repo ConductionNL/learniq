@@ -162,7 +162,8 @@
 					"direction": "desc"
 				},
 				"bulkNoun": "notes",
-				"allowSavedViews": true
+				"allowSavedViews": true,
+				"createModal": "DossierNoteCreateDialog"
 			}
 		},
 		{

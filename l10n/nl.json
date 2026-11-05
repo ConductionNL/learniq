@@ -5580,7 +5580,8 @@
         "_{from} to {until}, about %n conversation_::_{from} to {until}, about %n conversations_": [
             "{from} tot {until}, ongeveer %n gesprek",
             "{from} tot {until}, ongeveer %n gesprekken"
-        ]
+        ],
+        "My availability": "Mijn beschikbaarheid"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

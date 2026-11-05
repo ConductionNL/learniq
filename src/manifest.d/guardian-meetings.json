@@ -349,7 +349,19 @@
 							]
 						}
 					]
-				}
+				},
+				"headerActions": [
+					{
+						"id": "teacher-availability",
+						"label": "My availability",
+						"icon": "CalendarClockOutline",
+						"type": "open-modal",
+						"target": "TeacherAvailabilityDialog",
+						"props": {
+							"conferenceRoundId": "@objectId"
+						}
+					}
+				]
 			}
 		},
 		{
@@ -641,7 +653,8 @@
 					"recordedAt",
 					"recordedBy",
 					"teacherId"
-				]
+				],
+				"createModal": "ConferenceReportDialog"
 			}
 		},
 		{

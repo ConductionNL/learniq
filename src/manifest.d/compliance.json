@@ -879,7 +879,21 @@
 				"showTitle": true,
 				"register": "learniq",
 				"schema": "regulation-exemption",
-				"_note": "Reached by compliance officers, hr and admin through RegulationExemptionsMenu, and by a line manager through RequestExemptionMenu (user.managesLearners; its notIn list is the roles that already reach RegulationExemptionsMenu, so nobody sees the entry twice). The read rule narrows a line manager's list to the requests they made; RegulationExemptionRequestStamp refuses a person who does not report to them."
+				"_note": "Reached by compliance officers, hr and admin through RegulationExemptionsMenu, and by a line manager through RequestExemptionMenu (user.managesLearners; its notIn list is the roles that already reach RegulationExemptionsMenu, so nobody sees the entry twice). The read rule narrows a line manager's list to the requests they made; RegulationExemptionRequestStamp refuses a person who does not report to them.",
+				"actions": [
+					{
+						"id": "decide-regulation-exemption",
+						"label": "Decide",
+						"icon": "Gavel",
+						"type": "open-modal",
+						"target": "RegulationExemptionDecisionDialog",
+						"visibleWhen": {
+							"field": "lifecycle",
+							"op": "eq",
+							"value": "requested"
+						}
+					}
+				]
 			}
 		},
 		{
@@ -931,7 +945,24 @@
 							]
 						}
 					]
-				}
+				},
+				"headerActions": [
+					{
+						"id": "decide-regulation-exemption",
+						"label": "Decide",
+						"icon": "Gavel",
+						"type": "open-modal",
+						"target": "RegulationExemptionDecisionDialog",
+						"props": {
+							"objectId": "@objectId"
+						},
+						"visibleWhen": {
+							"field": "lifecycle",
+							"op": "eq",
+							"value": "requested"
+						}
+					}
+				]
 			}
 		}
 	]

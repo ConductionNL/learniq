@@ -447,6 +447,20 @@
 					"walletOfferError",
 					"walletOfferNote",
 					"walletOfferStatus"
+				],
+				"actions": [
+					{
+						"id": "revoke-credential",
+						"label": "Revoke certificate",
+						"icon": "CloseCircleOutline",
+						"type": "open-modal",
+						"target": "CredentialRevokeDialog",
+						"visibleWhen": {
+							"field": "lifecycle",
+							"op": "eq",
+							"value": "issued"
+						}
+					}
 				]
 			}
 		},
@@ -800,7 +814,27 @@
 							]
 						}
 					]
-				}
+				},
+				"headerActions": [
+					{
+						"id": "withdraw-enrolment",
+						"label": "Withdraw",
+						"icon": "CloseCircleOutline",
+						"type": "open-modal",
+						"target": "EnrolmentWithdrawDialog",
+						"props": {
+							"objectId": "@objectId"
+						},
+						"visibleWhen": {
+							"field": "lifecycle",
+							"op": "in",
+							"value": [
+								"pending",
+								"active"
+							]
+						}
+					}
+				]
 			}
 		},
 		{
@@ -923,6 +957,21 @@
 						"confirm": true,
 						"successMessage": "The Europass version was created.",
 						"errorMessage": "The Europass version could not be created. It exists already, the certificate is not issued, or only HR and compliance officers can create it."
+					},
+					{
+						"id": "revoke-credential",
+						"label": "Revoke certificate",
+						"icon": "CloseCircleOutline",
+						"type": "open-modal",
+						"target": "CredentialRevokeDialog",
+						"props": {
+							"objectId": "@objectId"
+						},
+						"visibleWhen": {
+							"field": "lifecycle",
+							"op": "eq",
+							"value": "issued"
+						}
 					}
 				],
 				"bodyWidgets": [
@@ -2916,7 +2965,27 @@
 							"viewAllQuery": {
 								"learnerId": "@objectId"
 							},
-							"emptyText": "No enrolments found."
+							"emptyText": "No enrolments found.",
+							"rowActions": [
+								{
+									"id": "withdraw-enrolment",
+									"label": "Withdraw",
+									"icon": "CloseCircleOutline",
+									"type": "open-modal",
+									"target": "EnrolmentWithdrawDialog",
+									"props": {
+										"objectId": "@row.id"
+									},
+									"visibleWhen": {
+										"field": "lifecycle",
+										"op": "in",
+										"value": [
+											"pending",
+											"active"
+										]
+									}
+								}
+							]
 						},
 						"icon": "AccountGroup"
 					},
@@ -3321,6 +3390,28 @@
 				},
 				"follow": false,
 				"showWidgetActions": false,
+				"headerActions": [
+					{
+						"id": "new-dossier-note",
+						"label": "New note",
+						"icon": "NoteTextOutline",
+						"type": "open-modal",
+						"target": "DossierNoteCreateDialog",
+						"props": {
+							"learnerId": "@object.ncUserId"
+						}
+					},
+					{
+						"id": "conference-report",
+						"label": "Conference report",
+						"icon": "MessageTextOutline",
+						"type": "open-modal",
+						"target": "ConferenceReportDialog",
+						"props": {
+							"learnerId": "@object.ncUserId"
+						}
+					}
+				],
 				"layout": [
 					{
 						"id": "1",

@@ -5029,7 +5029,8 @@ OC.L10N.register(
         "from {from} up to and including {until}": "from {from} up to and including {until}",
         "The round could not be read.": "The round could not be read.",
         "not available": "not available",
-        "Your availability could not be saved.": "Your availability could not be saved."
+        "Your availability could not be saved.": "Your availability could not be saved.",
+        "My availability": "My availability"
     },
     "nplurals=2; plural=(n != 1);"
 )

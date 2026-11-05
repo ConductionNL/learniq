@@ -618,7 +618,8 @@
 				"showTitle": true,
 				"register": "learniq",
 				"schema": "accessibility-feedback",
-				"_note": "accessibility-conformance-statement: the triage log of user-submitted AccessibilityFeedback, compliance-officer/admin surface (gated via the Accessibility feedback nav entry's visibleIf). Creation itself stays open to any authenticated user via AccessibilityFeedbackCreate, reached from the AccessibilityStatement page's 'Report an accessibility problem' entry point, not from this index."
+				"_note": "accessibility-conformance-statement: the triage log of user-submitted AccessibilityFeedback, compliance-officer/admin surface (gated via the Accessibility feedback nav entry's visibleIf). Creation itself stays open to any authenticated user via AccessibilityFeedbackCreate, reached from the AccessibilityStatement page's 'Report an accessibility problem' entry point, not from this index.",
+				"createModal": "AccessibilityBarrierDialog"
 			}
 		},
 		{
@@ -774,7 +775,16 @@
 				],
 				"massActionNameField": "name",
 				"bulkNoun": "obligations",
-				"allowSavedViews": true
+				"allowSavedViews": true,
+				"actions": [
+					{
+						"id": "enrol-group",
+						"label": "Enrol a group",
+						"icon": "AccountPlusOutline",
+						"type": "open-modal",
+						"target": "GroupEnrolDialog"
+					}
+				]
 			}
 		},
 		{

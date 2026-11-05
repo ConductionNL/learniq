@@ -5518,7 +5518,8 @@ OC.L10N.register(
         "The round could not be read.": "De ronde kon niet worden gelezen.",
         "not available": "niet beschikbaar",
         "Your availability could not be saved.": "Uw beschikbaarheid kon niet worden opgeslagen.",
-        "_{from} to {until}, about %n conversation_::_{from} to {until}, about %n conversations_": ["{from} tot {until}, ongeveer %n gesprek","{from} tot {until}, ongeveer %n gesprekken"]
+        "_{from} to {until}, about %n conversation_::_{from} to {until}, about %n conversations_": ["{from} tot {until}, ongeveer %n gesprek","{from} tot {until}, ongeveer %n gesprekken"],
+        "My availability": "Mijn beschikbaarheid"
     },
     "nplurals=2; plural=(n != 1);"
 )
