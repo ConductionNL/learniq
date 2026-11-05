@@ -19,10 +19,15 @@ import AccessibilityBarrierDialog from './dialogs/AccessibilityBarrierDialog.vue
 import CohortCreateDialog from './dialogs/CohortCreateDialog.vue'
 import ConcernReportDialog from './dialogs/ConcernReportDialog.vue'
 import ConfidentialNoteCreateDialog from './dialogs/ConfidentialNoteCreateDialog.vue'
+import CredentialRevokeDialog from './dialogs/CredentialRevokeDialog.vue'
 import DeclineSignUpDialog from './dialogs/DeclineSignUpDialog.vue'
 import DossierNoteCreateDialog from './dialogs/DossierNoteCreateDialog.vue'
+import EnrolmentWithdrawDialog from './dialogs/EnrolmentWithdrawDialog.vue'
+import ExemptionDecisionDialog from './dialogs/ExemptionDecisionDialog.vue'
 import GradeEntryCreateDialog from './dialogs/GradeEntryCreateDialog.vue'
+import RegulationExemptionDecisionDialog from './dialogs/RegulationExemptionDecisionDialog.vue'
 import SelfCheckInDialog from './dialogs/SelfCheckInDialog.vue'
+import SubmissionReopenDialog from './dialogs/SubmissionReopenDialog.vue'
 // admissions-and-subject-choice: the two genuine new custom views this
 // change adds — the coordinator's admissions review board (queue of
 // intake-completed Applications cross-referenced against their round's
@@ -249,15 +254,40 @@ export default {
 		component: ConfidentialNoteCreateDialog,
 		propsSchema: { type: 'object', properties: {} },
 	},
+	CredentialRevokeDialog: {
+		kind: 'modal',
+		component: CredentialRevokeDialog,
+		propsSchema: { type: 'object', properties: { objectId: { type: 'string' } }, required: ['objectId'] },
+	},
 	DossierNoteCreateDialog: {
 		kind: 'modal',
 		component: DossierNoteCreateDialog,
 		propsSchema: { type: 'object', properties: { learnerId: { type: 'string' } } },
 	},
+	EnrolmentWithdrawDialog: {
+		kind: 'modal',
+		component: EnrolmentWithdrawDialog,
+		propsSchema: { type: 'object', properties: { objectId: { type: 'string' } }, required: ['objectId'] },
+	},
+	ExemptionDecisionDialog: {
+		kind: 'modal',
+		component: ExemptionDecisionDialog,
+		propsSchema: { type: 'object', properties: { objectId: { type: 'string' } }, required: ['objectId'] },
+	},
 	GradeEntryCreateDialog: {
 		kind: 'modal',
 		component: GradeEntryCreateDialog,
 		propsSchema: { type: 'object', properties: { learnerId: { type: 'string' } } },
+	},
+	RegulationExemptionDecisionDialog: {
+		kind: 'modal',
+		component: RegulationExemptionDecisionDialog,
+		propsSchema: { type: 'object', properties: { objectId: { type: 'string' } }, required: ['objectId'] },
+	},
+	SubmissionReopenDialog: {
+		kind: 'modal',
+		component: SubmissionReopenDialog,
+		propsSchema: { type: 'object', properties: { objectId: { type: 'string' } }, required: ['objectId'] },
 	},
 	CheckInPage: page(CheckInPage),
 	CourseCatalogue: page(CourseCatalogue),
