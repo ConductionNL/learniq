@@ -132,6 +132,12 @@ SCHEMAS = [
     "lesson",
     "material",
     "shared-course-package",
+    # The guardian, certificate, peer review and item bank boards (add_guardian_and_item_bank_boards): appended for the
+    # same reason.
+    "credential",
+    "peer-review",
+    "item-bank",
+    "item",
 ]
 
 # The same fictional region as the primary school set, so both sets agree.
@@ -1496,6 +1502,7 @@ def build() -> dict:
     add_boards(b, courses)
     add_board_pupils(b, courses)
     add_lesson_and_store_boards(b, courses)
+    add_guardian_and_item_bank_boards(b)
 
     # --- assemble ------------------------------------------------------------------------------------
     for rows in b.buckets.values():
@@ -2350,6 +2357,101 @@ def add_lesson_and_store_boards(b: Builder, courses: dict) -> None:
                 "materials": [], "assessments": [], "rubrics": [], "ltiPlacements": [],
             },
         })
+
+
+# (item title, interaction type, max score, difficulty or None, lifecycle) of the first items LqItembank draws.
+NE_ITEMS = [
+    ("Hoofdgedachte tekst Schermtijd", "choice", 1, 0.42, "published"),
+    ("Signaalwoorden herkennen", "textEntry", 2, 0.61, "published"),
+    ("Betoog: geef je mening", "extendedText", 6, None, "published"),
+    ("Zinsdelen in volgorde", "order", 2, 0.38, "draft"),
+]
+# The rest of the bank's 48 items: a topic per block of eleven, numbered.
+NE_ITEM_TOPICS = ["Woordenschat", "Spelling", "Tekstverbanden", "Leesstrategie"]
+
+
+def add_guardian_and_item_bank_boards(b: Builder) -> None:
+    """The records the guardian boards (LqOuRooster, LqOuMijnLeren, LqOuVakkenKiezen, LqOuLeerdossier),
+    LqLlCertificaat, LqPeerreview, LqItembank and LqItemanalyse draw (identity.conduction.nl/screens): a second
+    child for Marieke de Jong, so "Voor welk kind" has a choice; Fenna's Certificaat rekenen 2F; Fenna's peer
+    review of a classmate's betoog; and the item bank Nederlands onderbouw with 48 items, readable by every
+    teacher. Runs last and draws no random number, so no earlier uuid moves; the only earlier value it edits is
+    the 1A class list.
+
+    @spec openspec/specs/example-sets/spec.md
+    """
+    profiles = {p["ncUserId"]: p for p in b.buckets["learner-profile"]}
+    fenna = profiles["vo-leerling-121"]
+    first_year = next(c for c in b.buckets["cohort"] if c["name"] == "1A")
+    classmate = profiles[first_year["learnerIds"][0]]
+
+    # --- a second child for Marieke and Erik de Jong, in the brugklas ------------------------------------------
+    number = max(int(nc.rsplit("-", 1)[1]) for nc in profiles if nc.startswith("vo-leerling-")) + 1
+    sibling = b.add("learner-profile", {
+        "ncUserId": f"vo-leerling-{number:03d}", "givenName": "Mila", "familyName": "de Jong", "birthDate": "2014-02-19",
+        "schoolId": fenna["schoolId"], "roles": ["learner"], "parentIds": list(fenna["parentIds"]),
+        "guardianRefs": list(fenna["guardianRefs"]), "address": dict(fenna["address"]),
+        "emergencyContacts": [dict(c) for c in fenna["emergencyContacts"]], "allergies": None, "medicalConditions": None,
+        "beeldmateriaalConsent": dict(fenna["beeldmateriaalConsent"]), "lifecycle": "active",
+        "groupLabel": classmate.get("groupLabel"),
+    })
+    first_year["learnerIds"].append(sibling["ncUserId"])
+    for enrolment in [e for e in b.buckets["enrolment"] if e["learnerId"] == classmate["ncUserId"]]:
+        b.add("enrolment", {
+            **{k: v for k, v in enrolment.items() if k not in ("@self", "uuid", "slug", "learnerId", "learnerRef")},
+            "learnerId": sibling["ncUserId"], "learnerRef": sibling["uuid"],
+            # She starts in the brugklas with the story year, so the report cards of 2025-2026 are not hers.
+            "inschrijvingDate": "2026-08-17",
+        })
+
+    # --- Fenna's certificate --------------------------------------------------------------------------------------
+    b.add("credential", {
+        "learnerId": fenna["uuid"], "learnerUserId": fenna["ncUserId"], "kind": "certificate",
+        "issuedAt": stamp(dt.date(2026, 6, 12), 11, 2), "issuerDid": "did:web:zuiddrecht-college.example",
+        "signature": "eyJhbGciOiJSUzI1NiJ9.ZGVtby1yZWtlbmVuLTJm.demo-signature-not-verifiable",
+        "openbadges3Payload": {
+            "@context": ["https://www.w3.org/ns/credentials/v2", "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json"],
+            "type": ["VerifiableCredential", "OpenBadgeCredential"], "name": "Certificaat rekenen 2F",
+            "credentialSubject": {"achievement": {
+                "name": "Certificaat rekenen 2F",
+                "description": "Getallen, verhoudingen, meten en meetkunde en verbanden op referentieniveau 2F.",
+            }},
+        },
+        "issuedBy": SUBJECT_TEACHER["WI"][0], "source": "manual",
+        "verificationUrl": "https://zuiddrecht-college.example/c/7KQ2-M9XD", "lifecycle": "issued",
+    })
+
+    # --- Fenna reviews a classmate's betoog -----------------------------------------------------------------------
+    betoog = next(a for a in b.buckets["assignment"] if a["title"] == "Betoog schrijven")
+    work = next(s for s in b.buckets["submission"]
+                if s["assignmentId"] == betoog["uuid"] and fenna["ncUserId"] not in s["learnerIds"])
+    b.add("peer-review", {
+        "assignmentId": betoog["uuid"], "submissionId": work["uuid"], "reviewerId": fenna["ncUserId"],
+        "rubricScores": [], "comments": "", "lifecycle": "assigned",
+    })
+
+    # --- the item bank Nederlands onderbouw, 48 items -------------------------------------------------------------
+    bank = b.add("item-bank", {
+        "name": "Nederlands onderbouw", "subject": "Nederlands",
+        "description": "Leesvaardigheid, schrijven en woordenschat voor leerjaar 1 tot en met 3.",
+        "itemIds": [], "lifecycle": "published",
+    })
+    rows = list(NE_ITEMS)
+    for i in range(48 - len(NE_ITEMS)):
+        topic = NE_ITEM_TOPICS[i // 11]
+        rows.append((f"{topic} {i % 11 + 1}", "choice", 1, round(0.35 + (i * 7 % 50) / 100, 2), "published"))
+    for title, kind, score, difficulty, lifecycle in rows:
+        code = "".join(ch if ch.isalnum() else "-" for ch in title.lower()).strip("-")
+        item = b.add("item", {
+            "itemBankId": bank["uuid"], "title": title, "interactionType": kind,
+            "qtiBody": (f'<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1" identifier="{code}" '
+                        f'title="{title}" adaptive="false" timeDependent="false"><itemBody><p>{title}</p></itemBody>'
+                        '</assessmentItem>'),
+            "maxScore": score, "subjectTags": ["nederlands"], "lifecycle": lifecycle,
+            # An item without graded attempts has no difficulty yet ("nog niet berekend").
+            **({"difficulty": difficulty} if difficulty is not None else {}),
+        })
+        bank["itemIds"].append(item["uuid"])
 
 
 def stamp_group_labels(b: Builder) -> None:
