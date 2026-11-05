@@ -4418,7 +4418,11 @@
         "Expected learners": "Verwachte leerlingen",
         "Report {givenName} ill or absent": "{givenName} ziek of afwezig melden",
         "Message to {teacherName}": "Bericht aan {teacherName}",
-        "Send a message": "Bericht sturen"
+        "Send a message": "Bericht sturen",
+        "Reason for withdrawing": "Reden van uitschrijven",
+        "Evenings": "Avonden",
+        "The evenings of the round on which teachers can be booked, each a date with a start and end time. Teachers mark their availability per evening.": "De avonden van de ronde waarop ouders docenten kunnen spreken, elk een datum met een begin- en eindtijd. Docenten geven per avond aan wanneer ze beschikbaar zijn.",
+        "Why the learner was withdrawn, given by the staff member who withdrew them. Empty when the learner signed off themselves.": "Waarom de leerling is uitgeschreven, ingevuld door de medewerker die uitschreef. Leeg als de leerling zichzelf heeft afgemeld."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

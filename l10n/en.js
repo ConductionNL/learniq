@@ -3876,7 +3876,11 @@ OC.L10N.register(
         "Expected learners": "Expected learners",
         "Report {givenName} ill or absent": "Report {givenName} ill or absent",
         "Message to {teacherName}": "Message to {teacherName}",
-        "Send a message": "Send a message"
+        "Send a message": "Send a message",
+        "Reason for withdrawing": "Reason for withdrawing",
+        "Evenings": "Evenings",
+        "The evenings of the round on which teachers can be booked, each a date with a start and end time. Teachers mark their availability per evening.": "The evenings of the round on which teachers can be booked, each a date with a start and end time. Teachers mark their availability per evening.",
+        "Why the learner was withdrawn, given by the staff member who withdrew them. Empty when the learner signed off themselves.": "Why the learner was withdrawn, given by the staff member who withdrew them. Empty when the learner signed off themselves."
     },
     "nplurals=2; plural=(n != 1);"
 )
