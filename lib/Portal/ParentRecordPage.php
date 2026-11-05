@@ -57,11 +57,30 @@ class ParentRecordPage {
 		'familyName',
 		// The group line under the child's name (school-portals-use-the-new-blocks).
 		'groupLabel',
+		// "Bericht aan {teacherName}", the message form opened on that teacher (wilgenboom/Detail).
+		'teacherName',
+		'teacherRef',
 		'guardianRefs',
 		// The record page joins the school's calendar and news on it.
 		'schoolId',
 		'beeldmateriaalConsent',
 		'beeldmateriaalConsentReviewDueAt',
+	];
+
+	/**
+	 * The two buttons the child's page opens with (wilgenboom/Detail): report
+	 * this child absent, and write to the group's teacher, the form opened
+	 * with that teacher chosen (portaliq cta `messageTo`).
+	 */
+	private const CHILD_PAGE_CTAS = [
+		['type' => 'cta', 'action' => 'createExcuseRequest', 'label' => 'Report {givenName} ill or absent', 'withRecord' => true],
+		[
+			'type' => 'cta',
+			'route' => '/mijn/messages',
+			'label' => 'Message to {teacherName}',
+			'labelWhenEmpty' => 'Send a message',
+			'messageTo' => 'teacherRef',
+		],
 	];
 
 	private const PARENT_CHILDREN_CONTACTS = [
@@ -331,6 +350,7 @@ class ParentRecordPage {
 			'records' => ['collection' => 'parentChildren', 'titleFields' => ['givenName'], 'subtitleFields' => ['groupLabel']],
 			'blocks' => [
 				['type' => 'collection', 'collection' => 'parentChildren'],
+				...self::CHILD_PAGE_CTAS,
 				$this->attendanceFigures(),
 				['type' => 'collection', 'collection' => 'parentReportCards', 'recordField' => 'learnerRef'],
 				// The latest report as a bar per subject, with the teacher's words (board Detail).

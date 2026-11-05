@@ -673,3 +673,19 @@ The guardian's overview MUST open, in this order, with: a `greeting` block whose
 - WHEN she opens `/mijn`
 - THEN she reads "Goedemorgen, Fatima", the button "Afwezig melden", then "Wat u nog moet doen" with the conference round of groep 4, then "Mijn kinderen" with Vera and Sami
 - @e2e tests/e2e/portal-design/wilgenboom.spec.ts
+
+### Requirement: The guardian's pages declare what the wilgenboom boards draw
+
+Learniq MUST declare, through portaliq's options (portaliq change guardian-pages-follow-the-wilgenboom-boards and guardian-message-to-and-whole-day): the Mijn Wilgenboom menu layout in `lib/Settings/portals/po.json` (`residentMenu.groups`: Mijn Wilgenboom, Mijn kinderen with `learniq:parentChildren`, Regelen, Van school, Uw gegevens; wilgenboom/MijnMenu); on the child's page the buttons "{givenName} ziek of afwezig melden" and "Bericht aan {teacherName}" with `labelWhenEmpty` "Bericht sturen" and `messageTo: teacherRef` (wilgenboom/Detail); `statusNoteAtField: decidedAt` on the absence rows (wilgenboom/MijnLijst); and the absence form's child as cards (`widget: choices`) with `descriptionField: groupLabel` (wilgenboom/MobielDetail). `LearnerProfile.teacherName` and `teacherRef` MUST be readable copies of the group's first teacher, written with `groupLabel`, and empty when that teacher has no display name of their own.
+
+#### Scenario: Bericht aan meester Daan
+<!-- @e2e exclude Portal manifest shape and readable copies; covered by tests/Unit/Portal/ParentRecordPageTest.php (testMyChildrenIsTheRecordPageOfEachChild) and tests/Unit/Service/LearnerGroupLabelTest.php (testTheTeacherIsNamedWithTheUserTheMessageGoesTo). -->
+- **GIVEN** Vera in Groep 7, whose first teacher is Meester Daan
+- **WHEN** her father opens Vera's page in Mijn Wilgenboom
+- **THEN** the page opens with "Vera ziek of afwezig melden" and "Bericht aan Meester Daan", and the second opens the message form with Meester Daan chosen
+
+#### Scenario: The menu reads as the board draws it
+<!-- @e2e exclude Portal declaration; covered by tests/Unit/Portal/GuardianWilgenboomBoardsTest.php. -->
+- **GIVEN** the po example set loaded on a new portal
+- **WHEN** a guardian opens her own area
+- **THEN** the menu reads Mijn Wilgenboom, Mijn kinderen with a row per child, Regelen, Van school and Uw gegevens

@@ -3858,7 +3858,10 @@ OC.L10N.register(
         "To wallet": "To wallet",
         "In your wallet since {date}.": "In your wallet since {date}.",
         "Putting this certificate in your wallet did not work. Your certificate stays valid; ask your school to try again.": "Putting this certificate in your wallet did not work. Your certificate stays valid; ask your school to try again.",
-        "Ask your school to put this certificate in your wallet.": "Ask your school to put this certificate in your wallet."
+        "Ask your school to put this certificate in your wallet.": "Ask your school to put this certificate in your wallet.",
+        "Report {givenName} ill or absent": "Report {givenName} ill or absent",
+        "Message to {teacherName}": "Message to {teacherName}",
+        "Send a message": "Send a message"
     },
     "nplurals=2; plural=(n != 1);"
 )

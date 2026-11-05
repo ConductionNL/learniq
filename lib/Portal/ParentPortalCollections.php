@@ -746,6 +746,8 @@ class ParentPortalCollections {
 			'register' => self::REGISTER,
 			'schema' => 'learner-profile',
 			'labelField' => 'givenName',
+			// The card's second line, "Groep 7 · Meester Daan" (wilgenboom/MobielDetail).
+			'descriptionField' => 'groupLabel',
 			'valueField' => 'id',
 		];
 
