@@ -3869,7 +3869,14 @@ OC.L10N.register(
         "New application": "New application",
         "New note": "New note",
         "New group": "New group",
-        "New learner": "New learner"
+        "New learner": "New learner",
+        "Choose one answer.": "Choose one answer.",
+        "Write your answer in words.": "Write your answer in words.",
+        "Handing in your assessment…": "Handing in your assessment…",
+        "Expected learners": "Expected learners",
+        "Report {givenName} ill or absent": "Report {givenName} ill or absent",
+        "Message to {teacherName}": "Message to {teacherName}",
+        "Send a message": "Send a message"
     },
     "nplurals=2; plural=(n != 1);"
 )

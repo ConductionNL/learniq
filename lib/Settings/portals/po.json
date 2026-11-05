@@ -103,6 +103,42 @@
         "cases",
         "tasks",
         "access"
+      ],
+      "groups": [
+        {
+          "title": "Mijn Wilgenboom",
+          "items": [
+            "learniq:parentOverview",
+            "messages"
+          ]
+        },
+        {
+          "title": "Mijn kinderen",
+          "items": [
+            "learniq:parentChildren"
+          ]
+        },
+        {
+          "title": "Regelen",
+          "items": [
+            "learniq:parentAbsence",
+            "learniq:parentConferences",
+            "learniq:parentCalendar"
+          ]
+        },
+        {
+          "title": "Van school",
+          "items": [
+            "news"
+          ]
+        },
+        {
+          "title": "Uw gegevens",
+          "items": [
+            "details",
+            "account"
+          ]
+        }
       ]
     }
   },

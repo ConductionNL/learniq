@@ -86,16 +86,21 @@ class ParentRecordPageTest extends TestCase {
 		self::assertSame('parentChildren', $page['id']);
 		self::assertSame(['collection' => 'parentChildren', 'titleFields' => ['givenName', 'familyName']], $page['record']);
 		self::assertSame(
-			['collection', 'kpi', 'collection', 'collection', 'collection', 'collection', 'collection', 'calendar', 'news'],
+			['collection', 'cta', 'cta', 'kpi', 'collection', 'collection', 'collection', 'collection', 'collection', 'calendar', 'news'],
 			array_column($page['blocks'], 'type')
 		);
+		// The page opens with "Vera ziek of afwezig melden" and "Bericht aan meester Daan" (wilgenboom/Detail).
+		self::assertSame(['type' => 'cta', 'action' => 'createExcuseRequest', 'label' => 'Report {givenName} ill or absent', 'withRecord' => true], $page['blocks'][1]);
+		self::assertSame('teacherRef', $page['blocks'][2]['messageTo']);
+		self::assertSame('Message to {teacherName}', $page['blocks'][2]['label']);
+		self::assertSame('Send a message', $page['blocks'][2]['labelWhenEmpty']);
 		self::assertSame(
 			['parentChildren', 'parentAttendanceSummary', 'parentReportCards', 'parentReportSubjectGrades', 'parentReportCardGrades', 'parentHomework', 'parentAttendance'],
 			array_values(array_filter(array_column($page['blocks'], 'collection')))
 		);
 
 		// Every child-bound block narrows to the open child.
-		$blocks = array_column(array_slice($page['blocks'], 1), null, 'collection');
+		$blocks = array_column(array_slice($page['blocks'], 3), null, 'collection');
 		foreach (['parentAttendanceSummary', 'parentReportCards', 'parentReportSubjectGrades', 'parentReportCardGrades', 'parentAttendance'] as $id) {
 			self::assertSame('learnerRef', $blocks[$id]['recordField'], $id);
 		}
@@ -113,7 +118,7 @@ class ParentRecordPageTest extends TestCase {
 	 * @spec openspec/changes/portal-parent-child-record/specs/portal-contribution/spec.md#requirement-a-guardian-reads-her-childs-attendance-figures
 	 */
 	public function testTheFigureCardsReadTheAttendanceSummary(): void {
-		$kpi = (array_column($this->manifest['pages'], null, 'id')['parentChildren'])['blocks'][1];
+		$kpi = (array_column($this->manifest['pages'], null, 'id')['parentChildren'])['blocks'][3];
 		$summary = $this->schemas['AttendanceSummary']['properties'];
 
 		self::assertSame(['field' => 'schoolYear', 'direction' => 'desc'], $kpi['pick']);
@@ -139,7 +144,7 @@ class ParentRecordPageTest extends TestCase {
 	 * @spec openspec/changes/parent-figures-singular-and-plural/specs/portal-contribution/spec.md#requirement-the-figure-cards-count-in-singular-and-plural
 	 */
 	public function testTheFigureCardsCountInSingularAndPlural(): void {
-		$cards = (array_column($this->manifest['pages'], null, 'id')['parentChildren'])['blocks'][1]['cards'];
+		$cards = (array_column($this->manifest['pages'], null, 'id')['parentChildren'])['blocks'][3]['cards'];
 
 		self::assertSame(['one' => 'day', 'other' => 'days'], $cards[0]['unit']);
 		self::assertSame(['one' => 'time', 'other' => 'times'], $cards[1]['unit']);
@@ -164,7 +169,7 @@ class ParentRecordPageTest extends TestCase {
 		self::assertNotContains('learnerRefs', $homework['fields'], 'no guardian reads another pupil\'s uuid');
 		self::assertTrue($this->schemas['Assignment']['properties']['learnerRefs']['readOnly']);
 
-		$lookup = (array_column($this->manifest['pages'], null, 'id')['parentChildren'])['blocks'][5]['lookups'][0];
+		$lookup = (array_column($this->manifest['pages'], null, 'id')['parentChildren'])['blocks'][7]['lookups'][0];
 		self::assertSame('parentSubmissions', $lookup['collection']);
 		self::assertSame('learnerRef', $lookup['recordField']);
 		self::assertSame('Open', $lookup['fallback']);
@@ -189,7 +194,7 @@ class ParentRecordPageTest extends TestCase {
 
 		self::assertContains('schoolId', $this->collection('parentChildren')['fields']);
 
-		$sources = (array_column($this->manifest['pages'], null, 'id')['parentChildren'])['blocks'][7]['sources'];
+		$sources = (array_column($this->manifest['pages'], null, 'id')['parentChildren'])['blocks'][9]['sources'];
 		self::assertSame(['parentSchoolEvents', 'parentSchoolCalendar', 'parentSchoolCalendar', 'parentConferenceSlots'], array_column($sources, 'collection'));
 		self::assertSame('cohortIds', $sources[0]['recordGroupsField']);
 		self::assertSame(['field' => 'holidays', 'startField' => 'startDate', 'endField' => 'endDate', 'titleField' => 'name'], $sources[1]['expand']);
