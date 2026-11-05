@@ -18,7 +18,12 @@
 -->
 <template>
 	<div class="learniq-domain-dashboard">
-		<CnDashboardPage :title="pageTitle" :widgets="widgets" :layout="layout">
+		<CnDashboardPage
+			:title="pageTitle"
+			:widgets="widgets"
+			:layout="layout"
+			:showActionsMenu="false"
+			:showWidgetActions="false">
 			<template #widget-manage-courses>
 				<ManageListWidget
 					schema="Course"

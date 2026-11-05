@@ -2745,6 +2745,7 @@
 			"_note": "ADR-044 §4 cards-collapse. This page exists so the group above it is ONE top-level entry instead of a long flat child list: relocating a group into another DISSOLVES it (buildManifest applyMenuRelocations discards the group's own label), which produced a 33-item undifferentiated list — the exact failure ADR-097 Decision 6 names. Each former leaf is a card here, keeping its label, with a description wherever the label is ambiguous out of context.",
 			"config": {
 				"allowEdit": false,
+				"showActionsMenu": false,
 				"widgets": [
 					{
 						"id": "nav-card-grid",

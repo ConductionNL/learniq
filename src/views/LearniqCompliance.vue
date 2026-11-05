@@ -13,7 +13,8 @@
 	<CnDashboardPage
 		:title="t('learniq', 'Compliance')"
 		:widgets="widgets"
-		:layout="layout">
+		:layout="layout"
+		:showActionsMenu="false">
 		<template #widget-department-compliance>
 			<DepartmentComplianceWidget />
 		</template>

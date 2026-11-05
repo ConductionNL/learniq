@@ -96,6 +96,19 @@
 			"type": "index",
 			"title": "Dossier notes",
 			"config": {
+				"headerButtons": [
+					{
+						"action": "export",
+						"label": "Download",
+						"icon": "TrayArrowDown"
+					},
+					{
+						"action": "add",
+						"label": "New note",
+						"variant": "primary",
+						"icon": "Plus"
+					}
+				],
 				"showTitle": true,
 				"register": "learniq",
 				"schema": "dossier-note",

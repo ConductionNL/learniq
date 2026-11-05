@@ -32,3 +32,11 @@
 .lq-board-page > .cn-page-header {
 	margin-bottom: 0;
 }
+
+/* On the board look the page title sits 4px under the content's top, at 96
+ * as on every learniq board, the same inset nextcloud-vue gives the index,
+ * detail and dashboard headers. A custom page's header is the standalone one,
+ * which takes its top from the page. */
+.cn-look-board .lq-board-page .cn-page-header:not(.cn-look-nextcloud *) {
+	padding-top: 4px;
+}

@@ -2220,6 +2220,23 @@
 			"type": "index",
 			"title": "Cohorts",
 			"config": {
+				"headerButtons": [
+					{
+						"action": "export",
+						"label": "Download",
+						"icon": "TrayArrowDown"
+					},
+					{
+						"action": "actions-menu",
+						"label": "Actions"
+					},
+					{
+						"action": "add",
+						"label": "New group",
+						"variant": "primary",
+						"icon": "Plus"
+					}
+				],
 				"showTitle": true,
 				"register": "learniq",
 				"schema": "Cohort",
@@ -6004,6 +6021,19 @@
 			"type": "index",
 			"title": "Grade entries",
 			"config": {
+				"headerButtons": [
+					{
+						"action": "export",
+						"label": "Download",
+						"icon": "TrayArrowDown"
+					},
+					{
+						"action": "add",
+						"label": "Enter grade",
+						"variant": "primary",
+						"icon": "Plus"
+					}
+				],
 				"showTitle": true,
 				"register": "learniq",
 				"schema": "grade-entry",

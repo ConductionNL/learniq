@@ -46,6 +46,19 @@
 			"type": "index",
 			"title": "Confidential notes",
 			"config": {
+				"headerButtons": [
+					{
+						"action": "export",
+						"label": "Download",
+						"icon": "TrayArrowDown"
+					},
+					{
+						"action": "add",
+						"label": "New note",
+						"variant": "primary",
+						"icon": "Plus"
+					}
+				],
 				"showTitle": true,
 				"register": "learniq",
 				"schema": "confidential-note"
@@ -120,6 +133,13 @@
 			"type": "index",
 			"title": "Concern reports",
 			"config": {
+				"headerButtons": [
+					{
+						"action": "export",
+						"label": "Download",
+						"icon": "TrayArrowDown"
+					}
+				],
 				"showTitle": true,
 				"register": "learniq",
 				"schema": "concern-report"
