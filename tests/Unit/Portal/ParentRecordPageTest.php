@@ -241,12 +241,13 @@ class ParentRecordPageTest extends TestCase {
 		self::assertSame(['type' => 'action', 'action' => 'createConferenceSignup'], $pages['parentConferenceSignups']['blocks'][0]);
 		// site-guardian-portal-design: the overview, the per-child pages and the
 		// calendar first; every collection page after them, out of the menu.
+		// guardian-reports-and-documents: "Rapporten en documenten" is the last menu page.
 		self::assertSame(
-			['parentOverview', 'parentChildren', 'parentAbsence', 'parentConferences', 'parentCalendar'],
-			array_slice(array_column($this->manifest['pages'], 'id'), 0, 5)
+			['parentOverview', 'parentChildren', 'parentAbsence', 'parentConferences', 'parentCalendar', 'parentDocuments'],
+			array_slice(array_column($this->manifest['pages'], 'id'), 0, 6)
 		);
 		self::assertCount(1, array_filter($this->manifest['pages'], static fn (array $page): bool => $page['id'] === 'parentChildren'));
-		foreach (array_slice($this->manifest['pages'], 5) as $page) {
+		foreach (array_slice($this->manifest['pages'], 6) as $page) {
 			self::assertFalse($page['menu'], $page['id'] . ' leaves the menu');
 		}
 	}//end testEveryOtherSectionKeepsItsPage()
