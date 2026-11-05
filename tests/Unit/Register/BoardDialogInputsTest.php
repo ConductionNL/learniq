@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/board-dialog-inputs-and-row-names/specs/board-dialogs/spec.md
+ * @spec openspec/changes/board-dialog-inputs-and-row-names/specs/board-dialogs/spec.md#requirement-a-transition-stores-the-reason-its-board-dialog-sends
  */
 
 declare(strict_types=1);
@@ -120,7 +120,7 @@ class BoardDialogInputsTest extends TestCase {
 			json: (string)file_get_contents(filename: __DIR__ . '/../../../lib/Settings/profiles/vo.json'),
 			associative: true
 		);
-		$objects = $set['components']['objects'];
+		$objects = $set['x-openregister']['seedData']['objects'];
 		$round = $objects['conference-round'][0];
 		$availability = $objects['teacher-availability'][0];
 
