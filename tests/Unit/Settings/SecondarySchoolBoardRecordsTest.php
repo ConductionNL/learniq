@@ -504,7 +504,10 @@ class SecondarySchoolBoardRecordsTest extends TestCase {
 
 		$credential = self::where(rows: $objects['credential'], field: 'learnerUserId', value: 'vo-leerling-121');
 		self::assertCount(expectedCount: 1, haystack: $credential);
-		self::assertSame(expected: ['Certificaat rekenen 2F', 'issued'], actual: [$credential[0]['openbadges3Payload']['name'], $credential[0]['lifecycle']]);
+		self::assertSame(
+			expected: ['Certificaat rekenen 2F', 'issued'],
+			actual: [$credential[0]['openbadges3Payload']['name'], $credential[0]['lifecycle']]
+		);
 
 		$review = self::where(rows: $objects['peer-review'], field: 'reviewerId', value: 'vo-leerling-121');
 		self::assertCount(expectedCount: 1, haystack: $review);
@@ -515,6 +518,7 @@ class SecondarySchoolBoardRecordsTest extends TestCase {
 		$bank = self::where(rows: $objects['item-bank'], field: 'name', value: 'Nederlands onderbouw');
 		self::assertCount(expectedCount: 1, haystack: $bank);
 		self::assertCount(expectedCount: 48, haystack: $bank[0]['itemIds']);
-		self::assertSame(expected: $bank[0]['itemIds'], actual: array_column(array: self::where(rows: $objects['item'], field: 'itemBankId', value: $bank[0]['uuid']), column_key: 'uuid'));
+		$items = self::where(rows: $objects['item'], field: 'itemBankId', value: $bank[0]['uuid']);
+		self::assertSame(expected: $bank[0]['itemIds'], actual: array_column(array: $items, column_key: 'uuid'));
 	}//end testTheGuardianCertificatePeerReviewAndItemBankBoardsFindTheirRecords()
 }//end class
