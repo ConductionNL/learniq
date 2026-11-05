@@ -538,59 +538,6 @@
 			"title": "My evaluations",
 			"component": "MyEvaluationsView",
 			"_note": "Mounts MyEvaluationsView (assessment-course-evaluation-answer-page): the learner's open course evaluation invitations from learniq's GET /api/evaluations/mine and an answer form that posts to POST /api/evaluations/{invitationId}/answer, which stores the response without an owner and submits it through the guarded transition. Custom on purpose: a form built from another object's questions against learniq endpoints, not a list or record page of one schema."
-		},
-		{
-			"id": "MyGrades",
-			"route": "/my-grades",
-			"type": "index",
-			"title": "My grades",
-			"_note": "LqLlCijfers \"Alle cijfers\": the learner's own published grades, newest first. The list is scoped to the reader (`learnerId: @me`); the GradeEntry read rule already limits a learner to their own entries, so the filter narrows presentation and grants nothing. A row opens GradeImpactDetail, what that grade does to the period average. No menu entry of its own: the learner board draws grades under My learning, so the way in is the grade page's All grades button and the My learning home. Read only: a learner enters, copies or deletes nothing here.",
-			"config": {
-				"showTitle": true,
-				"register": "learniq",
-				"schema": "grade-entry",
-				"readOnly": true,
-				"filter": {
-					"learnerId": "@me",
-					"lifecycle": "published"
-				},
-				"countText": "{shown} of {total} grades",
-				"searchPlaceholder": "Search by course",
-				"defaultSort": {
-					"field": "gradedAt",
-					"direction": "desc"
-				},
-				"rowRoute": "GradeImpactDetail",
-				"columns": [
-					{
-						"key": "courseName",
-						"label": "Course"
-					},
-					{
-						"key": "value",
-						"label": "Grade",
-						"widget": "number"
-					},
-					{
-						"key": "weight",
-						"label": "Weight"
-					},
-					{
-						"key": "period",
-						"label": "Period"
-					},
-					{
-						"key": "gradedAt",
-						"label": "Graded At",
-						"formatter": "date"
-					},
-					{
-						"key": "comment",
-						"label": "Comment"
-					}
-				],
-				"massActionNameField": "courseName"
-			}
 		}
 	]
 }

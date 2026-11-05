@@ -7,7 +7,7 @@
 // LqCfBeperkingen, LqCfPartners, LqCfPrivacyverzoeken, LqCfVerplichtingen,
 // LqCijfers, LqCoAanmeldingen, LqDossier, LqGroepen, LqKoppelingen,
 // LqLeerlingen, LqZoMeldingen, LqZoNotities, LqStore), and a learner reads
-// their own grades on a page of their own (LqLlCijfers "Alle cijfers").
+// their own grades on a page of their own (LqLlCijfers, a lens of the grade entries).
 //
 // Every lens filters on a field: a misspelled key matches nothing and shows an
 // empty list with a zero count, and nothing logs it. So each key is checked
@@ -191,27 +191,43 @@ describe('board list toolbars', () => {
 })
 
 describe('the learner reads their own grades', () => {
-	const myGrades = page('MyGrades')
+	const SIMPLE = readJson('../../src/menu-layout.simple.json')
+	const overlay = SIMPLE.pages.find((p) => p.id === 'GradeEntries' && p.when)
+	const config = overlay.config
 
-	test('the list holds only the reader\'s published grades', () => {
-		assert.equal(myGrades.type, 'index')
-		assert.equal(myGrades.route, '/my-grades')
-		assert.equal(myGrades.config.schema, 'grade-entry')
-		assert.deepEqual(myGrades.config.filter, { learnerId: '@me', lifecycle: 'published' })
+	test('grades have one list: no page of their own for the learner', () => {
+		assert.equal(page('MyGrades'), undefined)
+		assert.equal(PAGES.filter((p) => p.type === 'index' && p.config?.schema === 'grade-entry').length, 1)
+	})
+
+	test('the overlay is for the learner and reads Mijn cijfers, Concept, Alle cijfers', () => {
+		assert.deepEqual(overlay.when, { 'user.primaryRole': { in: ['learner'] } })
+		assert.deepEqual(config.quickFilters.map((q) => q.label), ['My grades', 'Draft', 'All grades'])
+		assert.deepEqual(config.quickFilters[0].filter, { learnerId: '@me', lifecycle: 'published' })
+		assert.equal(config.quickFilters.filter((q) => q.default === true).length, 1)
+		assert.equal(config.quickFilters[0].default, true)
 	})
 
 	test('the list changes nothing and opens what a grade does to the average', () => {
-		assert.equal(myGrades.config.readOnly, true)
-		assert.equal(myGrades.config.rowRoute, 'GradeImpactDetail')
+		assert.equal(config.readOnly, true)
+		assert.deepEqual(config.headerButtons, [])
+		assert.equal(config.rowRoute, 'GradeImpactDetail')
 		assert.ok(page('GradeImpactDetail'), 'GradeImpactDetail exists')
 	})
 
 	test('its columns are grade fields and read in Dutch', () => {
 		const props = SCHEMAS['grade-entry'].properties
-		for (const c of myGrades.config.columns) {
+		for (const c of config.columns) {
 			assert.ok(props[c.key], c.key)
 			assert.ok(NL[c.label], c.label)
 		}
-		assert.ok(!myGrades.config.columns.some((c) => c.key === 'learnerId'), 'a learner\'s own list repeats no learner')
+		for (const q of config.quickFilters) {
+			assert.ok(NL[q.label], q.label)
+			for (const key of Object.keys(q.filter)) {
+				assert.ok(props[key], key)
+			}
+		}
+		assert.ok(NL[config.searchPlaceholder], config.searchPlaceholder)
+		assert.ok(!config.columns.some((c) => c.key === 'learnerId'), 'a learner\'s own list repeats no learner')
 	})
 })
