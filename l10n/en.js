@@ -5046,7 +5046,10 @@ OC.L10N.register(
         "Who may read it. Only a published document for parents and guardians reaches the portal.": "Who may read it. Only a published document for parents and guardians reaches the portal.",
         "A draft stays inside the school; a published document for parents shows in their portal.": "A draft stays inside the school; a published document for parents shows in their portal.",
         "Published on": "Published on",
-        "When the document was published for parents.": "When the document was published for parents."
+        "When the document was published for parents.": "When the document was published for parents.",
+        "Evenings": "Evenings",
+        "The evenings of the round on which teachers can be booked, each a date with a start and end time. Teachers mark their availability per evening.": "The evenings of the round on which teachers can be booked, each a date with a start and end time. Teachers mark their availability per evening.",
+        "Why the learner was withdrawn, given by the staff member who withdrew them. Empty when the learner signed off themselves.": "Why the learner was withdrawn, given by the staff member who withdrew them. Empty when the learner signed off themselves."
     },
     "nplurals=2; plural=(n != 1);"
 )

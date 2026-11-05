@@ -5597,7 +5597,10 @@
         "Who may read it. Only a published document for parents and guardians reaches the portal.": "Wie het mag lezen. Alleen een gepubliceerd document voor ouders en verzorgers komt in het portaal.",
         "A draft stays inside the school; a published document for parents shows in their portal.": "Een concept blijft binnen de school; een gepubliceerd document voor ouders staat in hun portaal.",
         "Published on": "Gepubliceerd op",
-        "When the document was published for parents.": "Wanneer het document voor ouders is gepubliceerd."
+        "When the document was published for parents.": "Wanneer het document voor ouders is gepubliceerd.",
+        "Evenings": "Avonden",
+        "The evenings of the round on which teachers can be booked, each a date with a start and end time. Teachers mark their availability per evening.": "De avonden van de ronde waarop ouders docenten kunnen spreken, elk een datum met een begin- en eindtijd. Docenten geven per avond aan wanneer ze beschikbaar zijn.",
+        "Why the learner was withdrawn, given by the staff member who withdrew them. Empty when the learner signed off themselves.": "Waarom de leerling is uitgeschreven, ingevuld door de medewerker die uitschreef. Leeg als de leerling zichzelf heeft afgemeld."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

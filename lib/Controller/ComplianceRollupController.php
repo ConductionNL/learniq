@@ -37,7 +37,6 @@ use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\ComplianceRollupService;
 use OCA\Learniq\Service\RegulationAssignmentService;
 use OCA\Learniq\Service\RegulationCoverageService;
-use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -50,7 +49,7 @@ use OCP\IUserSession;
  * Per-department compliance roll-up and audience-scoped regulation assignment.
  */
 class ComplianceRollupController extends Controller {
-	use FindOrNull;
+	use AssignableRegulation;
 
 	/**
 	 * Constructor.
@@ -128,51 +127,33 @@ class ComplianceRollupController extends Controller {
 	}//end regulations()
 
 	/**
-	 * Assign a published regulation's mandatory courses to its audience.
+	 * Assign a published regulation's mandatory courses to its audience, or to
+	 * one part of it (`audienceKind` + `audience`), with an optional `dueDate`.
 	 *
-	 * @param string $id Regulation UUID.
+	 * @param string $id           Regulation UUID.
+	 * @param string $audienceKind section, team or hr-function; empty for the whole audience.
+	 * @param string $audience     The audience value within that kind.
+	 * @param string $dueDate      Due date (Y-m-d) of the enrolments created; empty for none.
 	 *
 	 * @return JSONResponse { created, skipped, inScope, courses }, or an error.
 	 *
 	 * @spec openspec/parity/capabilities.json#comp-assign-from-hr-roles
+	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
 	 */
 	#[NoAdminRequired]
-	public function assignRegulation(string $id=''): JSONResponse {
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
+	public function assignRegulation(string $id='', string $audienceKind='', string $audience='', string $dueDate=''): JSONResponse {
+		$regulation = $this->assignableRegulation(id: $id);
+		if ($regulation instanceof JSONResponse) {
+			return $regulation;
 		}
 
-		// ADR-023: throws OCSForbiddenException (HTTP 403) when not allowed.
-		$this->actionAuth->requireAction(user: $user, action: 'regulation.assign');
-
-		$regulation = null;
-		if ($id !== '') {
-			$regulation = $this->regulation(id: $id);
+		$scope = $this->assignment->audienceOf(kind: $audienceKind, value: $audience);
+		$due = $this->assignment->dueDateOf(value: $dueDate);
+		if ($scope === false || $due === false) {
+			return new JSONResponse(data: ['error' => 'Unknown audience or due date'], statusCode: Http::STATUS_BAD_REQUEST);
 		}
 
-		if ($regulation === null) {
-			return new JSONResponse(data: ['error' => 'Regulation not found'], statusCode: Http::STATUS_NOT_FOUND);
-		}
-
-		$data = $regulation->jsonSerialize();
-		if (($data['lifecycle'] ?? '') !== 'published') {
-			return new JSONResponse(data: ['error' => 'Only a published regulation can be assigned'], statusCode: Http::STATUS_CONFLICT);
-		}
-
-		return new JSONResponse(data: $this->assignment->assign(regulation: $data));
+		return new JSONResponse(data: $this->assignment->assign(regulation: $regulation, audience: $scope, dueDate: $due));
 	}//end assignRegulation()
 
-	/**
-	 * The Regulation, read with the caller's rights, or null when it does not exist.
-	 *
-	 * @param string $id Regulation UUID.
-	 *
-	 * @return \OCA\OpenRegister\Db\ObjectEntity|null
-	 *
-	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException When the id matches more than one object; LookupIntegrityMiddleware answers it.
-	 */
-	private function regulation(string $id): ?\OCA\OpenRegister\Db\ObjectEntity {
-		return $this->findOrNull(find: fn () => $this->objectService->find(id: $id, register: 'learniq', schema: 'regulation'));
-	}//end regulation()
 }//end class
