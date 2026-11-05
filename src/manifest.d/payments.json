@@ -64,6 +64,7 @@
 			"config": {
 				"register": "learniq",
 				"schema": "fee-item",
+				"_note": "Board LqSchoolkosten (G2): the fee as a card with the voluntary notice, linked groups and course beside it. The contributions per learner (from shillinq) wait on lane E.",
 				"headerActions": [
 					{
 						"id": "raise-contributions",
@@ -82,59 +83,233 @@
 						}
 					}
 				],
+				"statusPill": {
+					"field": "lifecycle",
+					"labels": {
+						"draft": "Draft",
+						"active": "Active",
+						"archived": "Archived"
+					},
+					"colorMap": {
+						"active": "success"
+					}
+				},
+				"typePill": {
+					"field": "voluntary",
+					"labels": {
+						"true": "Voluntary"
+					},
+					"colorMap": {
+						"true": "teal"
+					},
+					"values": [
+						"true"
+					]
+				},
+				"breadcrumb": {
+					"label": "Fee items",
+					"route": "FeeItems"
+				},
+				"headerMeta": "{amount|currency} per learner",
 				"widgets": [
 					{
-						"id": "fee-item-data",
-						"type": "data",
-						"title": "Data",
+						"id": "fee-facts",
+						"type": "facts",
+						"title": "Details",
 						"content": {
-							"columns": 2
-						},
-						"icon": "CurrencyEur"
-					},
-					{
-						"id": "fee-item-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "fee-item-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "2",
-						"widgetId": "fee-item-related",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 5,
-						"showTitle": false
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
+							"fields": [
 								{
-									"type": "audit"
+									"path": "name",
+									"label": "Name"
+								},
+								{
+									"path": "kind",
+									"label": "Kind",
+									"map": {
+										"course-enrolment": "Course fee",
+										"school-trip": "School trip",
+										"materials": "Materials",
+										"schoolkassa": "School fund",
+										"mbo-contractonderwijs": "Contract education",
+										"other": "Other"
+									}
+								},
+								{
+									"path": "amount",
+									"label": "Amount",
+									"format": "currency",
+									"suffix": " per learner"
+								},
+								{
+									"path": "voluntary",
+									"label": "Voluntary",
+									"map": {
+										"true": "Yes, a voluntary parental contribution",
+										"false": "No, required to take part"
+									}
+								},
+								{
+									"path": "linkedCohortId",
+									"label": "Group",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Cohort",
+										"labelField": "name"
+									}
+								},
+								{
+									"path": "academicYear",
+									"label": "Academic year"
+								},
+								{
+									"path": "validFrom",
+									"label": "Collect from",
+									"format": "longdate"
+								},
+								{
+									"path": "validUntil",
+									"label": "Collect until",
+									"format": "longdate"
+								},
+								{
+									"path": "taxPosture",
+									"label": "VAT",
+									"map": {
+										"education-exempt": "Exempt, education",
+										"standard-rate": "Standard rate",
+										"reduced-rate": "Reduced rate",
+										"not-applicable": "Not applicable"
+									}
+								},
+								{
+									"path": "description",
+									"label": "Description"
+								},
+								{
+									"as": "line",
+									"text": "This contribution is voluntary. Whether parents pay is shown for information only: every learner takes part, also when nothing was paid.",
+									"when": {
+										"field": "voluntary",
+										"op": "eq",
+										"value": true
+									}
+								}
+							],
+							"columns": 2
+						}
+					},
+					{
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
+					},
+					{
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
+								{
+									"label": "Overview",
+									"widgetIds": [
+										"fee-facts"
+									]
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
 								}
 							]
 						}
+					}
+				],
+				"sideColumn": [
+					{
+						"id": "fee-linked",
+						"type": "facts",
+						"title": "Linked",
+						"content": {
+							"fields": [
+								{
+									"path": "linkedCohortId",
+									"label": "Group",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Cohort",
+										"labelField": "name"
+									},
+									"route": {
+										"name": "CohortDetail",
+										"params": {
+											"id": "@source.linkedCohortId"
+										}
+									}
+								},
+								{
+									"path": "linkedCourseId",
+									"label": "Course",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Course",
+										"labelField": "name"
+									},
+									"route": {
+										"name": "CourseDetail",
+										"params": {
+											"id": "@source.linkedCourseId"
+										}
+									}
+								}
+							],
+							"hideEmpty": true
+						}
+					},
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Overview",
+							"widgetIds": [
+								"fee-facts"
+							]
+						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			},
 			"_note": "payments-to-shillinq-migration (D19): the Raise contributions action posts to ContributionController, which raises this fee's contributions in shillinq for the guardians of its learners (shillinq contract extracurricular-fee-to-shillinq v1). Visible on an active fee only."
 		},

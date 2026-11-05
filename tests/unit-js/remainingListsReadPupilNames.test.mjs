@@ -138,7 +138,8 @@ test('a list that only gained the pupil name kept its other columns', () => {
 	// The 38 pages beyond the three reported ones show what they showed,
 	// less the tenant id and the fields that repeat the pupil.
 	const repeats = ['tenant_id', 'learnerRef', 'learnerRefs', ...ACCOUNT_KEYS]
-	for (const id of ['DossierNotes', 'SupportRequests', 'Submissions', 'Sessions', 'FraudCases']) {
+	// DossierNotes shows the columns board LqDossier draws (boardListToolbars).
+	for (const id of ['SupportRequests', 'Submissions', 'Sessions', 'FraudCases']) {
 		const schema = SCHEMAS[page(id).config.schema]
 		const shown = Object.entries(schema.properties)
 			.filter(([key, prop]) => prop.visible !== false && prop.type !== 'object' && !repeats.includes(key))
