@@ -8,7 +8,6 @@
 			"strictGaps": {
 				"nl": [
 					"Age (Years)",
-					"Allergies",
 					"Append-only log of the school's follow-up handling for this incident (a check-in the next day, a referral to a doctor, a return-to-play decision). Each addition MUST be a new audited version of the appendOnly incident (ADR-008) — never an in-place edit of a prior entry. Same shape as BehaviourIncident.followUpActions.",
 					"Call order; 1 is called first. Null entries sort last.",
 					"City or town name.",
@@ -52,7 +51,6 @@
 					"Nextcloud user ID of the learner this first-aid incident concerns.",
 					"Nextcloud user ID of the staff member who administered first aid / reported this incident.",
 					"Nextcloud user ID of the staff member who recorded this follow-up action.",
-					"Phone",
 					"Phone number to reach this contact on.",
 					"Plagiarism Check Status",
 					"Plagiarism Checked At",
@@ -120,7 +118,6 @@
 			"strictGaps": {
 				"nl": [
 					"Age (Years)",
-					"Allergies",
 					"Append-only log of the school's follow-up handling for this incident (a check-in the next day, a referral to a doctor, a return-to-play decision). Each addition MUST be a new audited version of the appendOnly incident (ADR-008) — never an in-place edit of a prior entry. Same shape as BehaviourIncident.followUpActions.",
 					"Call order; 1 is called first. Null entries sort last.",
 					"City or town name.",
@@ -164,7 +161,6 @@
 					"Nextcloud user ID of the learner this first-aid incident concerns.",
 					"Nextcloud user ID of the staff member who administered first aid / reported this incident.",
 					"Nextcloud user ID of the staff member who recorded this follow-up action.",
-					"Phone",
 					"Phone number to reach this contact on.",
 					"Plagiarism Check Status",
 					"Plagiarism Checked At",

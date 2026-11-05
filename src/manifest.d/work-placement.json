@@ -364,25 +364,146 @@
 			"config": {
 				"register": "learniq",
 				"schema": "bpv-placement",
-				"_note": "A BpvPlacement is the learner ↔ leerbedrijf match for one BPV period — the hub record for the bpv-praktijkovereenkomst capability. Body leads with the placement data (8-wide, including leerbedrijfVerification.status so the coordinator sees the SBB gate state inline) and a Related panel resolving learner/programme/curriculum plan/praktijkopleider. Its Praktijkovereenkomst, werkproces assessments and visit reports render as related-index tables — the placement's living dossier. lifecycleActions renders the checkLeerbedrijf/confirm/activate/complete/terminate transition buttons declaratively (no custom code). Sidebar keeps metadata + audit-trail.",
+				"_note": "Board LqBpvPlaatsing (G2): the placement as a card, the agreement, hours, assessments and visits as tabs, the practical trainer and the follow-ups beside it. Reminder and activate wait on lane E.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
+				"statusPill": {
+					"field": "lifecycle",
+					"labels": {
+						"proposed": "Proposed",
+						"sbb-verification-pending": "Awaiting check",
+						"confirmed": "Confirmed",
+						"active": "Active",
+						"completed": "Completed",
+						"terminated": "Ended"
+					},
+					"colorMap": {
+						"active": "success",
+						"confirmed": "success",
+						"sbb-verification-pending": "warning",
+						"terminated": "error"
+					}
+				},
+				"breadcrumb": {
+					"label": "BPV placements",
+					"route": "BpvPlacements"
+				},
+				"headerMeta": "{qualificationName}",
 				"widgets": [
 					{
-						"id": "bpv-data",
-						"type": "data",
-						"title": "Data",
+						"id": "bpv-facts",
+						"type": "facts",
+						"title": "Placement",
 						"content": {
+							"fields": [
+								{
+									"path": "learnerRef",
+									"label": "Student",
+									"resolve": {
+										"register": "learniq",
+										"schema": "learner-profile",
+										"labelField": "fullName"
+									}
+								},
+								{
+									"label": "Qualification",
+									"parts": [
+										{
+											"path": "qualificationName"
+										},
+										{
+											"path": "crebo",
+											"label": "crebo"
+										}
+									],
+									"separator": ", "
+								},
+								{
+									"label": "Company",
+									"parts": [
+										{
+											"path": "trainingCompanyName"
+										},
+										{
+											"path": "trainingCompanyKvkNumber",
+											"label": "KvK"
+										}
+									],
+									"separator": ", "
+								},
+								{
+									"path": "trainingCompanyVerification.status",
+									"label": "Approved training company",
+									"map": {
+										"verified": "Approved",
+										"pending": "Awaiting check",
+										"rejected": "Not approved",
+										"unverified": "Not checked"
+									}
+								},
+								{
+									"label": "Period",
+									"template": "{periodFrom:longdate} to {periodTo:longdate}"
+								},
+								{
+									"path": "workdaysLabel",
+									"label": "Workdays"
+								},
+								{
+									"path": "workplaceAddress",
+									"label": "Workplace"
+								},
+								{
+									"label": "Hours",
+									"template": "{hoursApprovedTotal} of {agreedHours} approved, {hoursWaitingTotal} waiting"
+								}
+							],
 							"columns": 2
-						},
-						"icon": "Briefcase"
+						}
 					},
 					{
-						"id": "bpv-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
+						"id": "bpv-pok",
+						"type": "object-list",
+						"title": "Praktijkovereenkomst",
+						"content": {
+							"register": "learniq",
+							"schema": "praktijkovereenkomst",
+							"filter": {
+								"bpvPlacementId": "@objectId"
+							},
+							"sort": {
+								"field": "version",
+								"dir": "desc"
+							},
+							"limit": 10,
+							"columns": [
+								{
+									"key": "version",
+									"label": "Version"
+								},
+								{
+									"key": "periodFrom",
+									"label": "Period From"
+								},
+								{
+									"key": "periodTo",
+									"label": "Period To"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Lifecycle"
+								}
+							],
+							"rowRoute": "PraktijkovereenkomstDetail",
+							"viewAllRoute": "Praktijkovereenkomsten",
+							"viewAllQuery": {
+								"bpvPlacementId": "@objectId"
+							},
+							"emptyText": "No praktijkovereenkomst found.",
+							"allowCreate": false
+						},
+						"icon": "FileDocument"
 					},
 					{
 						"id": "bpv-hours",
@@ -429,49 +550,6 @@
 							"allowCreate": false
 						},
 						"icon": "ClockOutline"
-					},
-					{
-						"id": "bpv-pok",
-						"type": "object-list",
-						"title": "Praktijkovereenkomst",
-						"content": {
-							"register": "learniq",
-							"schema": "praktijkovereenkomst",
-							"filter": {
-								"bpvPlacementId": "@objectId"
-							},
-							"sort": {
-								"field": "version",
-								"dir": "desc"
-							},
-							"limit": 10,
-							"columns": [
-								{
-									"key": "version",
-									"label": "Version"
-								},
-								{
-									"key": "periodFrom",
-									"label": "Period From"
-								},
-								{
-									"key": "periodTo",
-									"label": "Period To"
-								},
-								{
-									"key": "lifecycle",
-									"label": "Lifecycle"
-								}
-							],
-							"rowRoute": "PraktijkovereenkomstDetail",
-							"viewAllRoute": "Praktijkovereenkomsten",
-							"viewAllQuery": {
-								"bpvPlacementId": "@objectId"
-							},
-							"emptyText": "No praktijkovereenkomst found.",
-							"allowCreate": false
-						},
-						"icon": "FileDocument"
 					},
 					{
 						"id": "bpv-assessments",
@@ -564,74 +642,94 @@
 						"icon": "ClipboardListOutline"
 					}
 				],
-				"layout": [
+				"sideColumn": [
 					{
-						"id": "1",
-						"widgetId": "bpv-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 5,
-						"showTitle": false
+						"id": "bpv-trainer",
+						"type": "facts",
+						"title": "Practical trainer",
+						"content": {
+							"fields": [
+								{
+									"as": "title",
+									"template": "{givenName} {familyName}"
+								},
+								{
+									"path": "email",
+									"label": "Email",
+									"format": "email"
+								},
+								{
+									"path": "phone",
+									"label": "Phone",
+									"format": "phone"
+								}
+							],
+							"source": {
+								"register": "learniq",
+								"schema": "praktijkopleider",
+								"id": "@object.practicalTrainerId"
+							},
+							"emptyText": "No practical trainer yet"
+						}
 					},
+					"bpv-deck",
 					{
-						"id": "2",
-						"widgetId": "bpv-related",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "3",
-						"widgetId": "bpv-pok",
-						"gridX": 0,
-						"gridY": 5,
-						"gridWidth": 12,
-						"gridHeight": 4,
-						"showTitle": true
-					},
-					{
-						"id": "4",
-						"widgetId": "bpv-assessments",
-						"gridX": 0,
-						"gridY": 9,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": true
-					},
-					{
-						"id": "5",
-						"widgetId": "bpv-visits",
-						"gridX": 6,
-						"gridY": 9,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": true
-					},
-					{
-						"id": "6",
-						"widgetId": "bpv-deck",
-						"gridX": 0,
-						"gridY": 14,
-						"gridWidth": 12,
-						"gridHeight": 4
+						"id": "bpv-linked",
+						"type": "facts",
+						"title": "Linked",
+						"content": {
+							"fields": [
+								{
+									"path": "programmeId",
+									"label": "Programme",
+									"resolve": {
+										"register": "learniq",
+										"schema": "programme",
+										"labelField": "name"
+									}
+								},
+								{
+									"path": "curriculumPlanId",
+									"label": "Training plan",
+									"resolve": {
+										"register": "learniq",
+										"schema": "curriculum-plan",
+										"labelField": "name"
+									}
+								},
+								{
+									"path": "schoolCoachId",
+									"label": "School supervisor",
+									"format": "user"
+								}
+							],
+							"hideEmpty": true
+						}
 					}
 				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
+				"board": {
 					"tabs": [
 						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
-								{
-									"type": "audit"
-								}
+							"label": "Overview",
+							"widgetIds": [
+								"bpv-facts"
 							]
+						},
+						{
+							"label": "Placement agreement",
+							"widgetId": "bpv-pok"
+						},
+						{
+							"label": "Hours",
+							"widgetId": "bpv-hours"
+						},
+						{
+							"label": "Assessments",
+							"widgetId": "bpv-assessments"
+						},
+						{
+							"label": "Visits",
+							"widgetId": "bpv-visits"
 						}
 					]
 				}

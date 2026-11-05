@@ -64,6 +64,7 @@
 			"config": {
 				"register": "learniq",
 				"schema": "fee-item",
+				"_note": "Board LqSchoolkosten (G2): the fee as a card with the voluntary notice, linked groups and course beside it. The contributions per learner (from shillinq) wait on lane E.",
 				"headerActions": [
 					{
 						"id": "raise-contributions",
@@ -82,55 +83,170 @@
 						}
 					}
 				],
+				"statusPill": {
+					"field": "lifecycle",
+					"labels": {
+						"draft": "Draft",
+						"active": "Active",
+						"archived": "Archived"
+					},
+					"colorMap": {
+						"active": "success"
+					}
+				},
+				"typePill": {
+					"field": "voluntary",
+					"labels": {
+						"true": "Voluntary"
+					},
+					"colorMap": {
+						"true": "teal"
+					},
+					"values": [
+						"true"
+					]
+				},
+				"breadcrumb": {
+					"label": "Fee items",
+					"route": "FeeItems"
+				},
+				"headerMeta": "{amount|currency} per learner",
 				"widgets": [
 					{
-						"id": "fee-item-data",
-						"type": "data",
-						"title": "Data",
+						"id": "fee-facts",
+						"type": "facts",
+						"title": "Details",
 						"content": {
+							"fields": [
+								{
+									"path": "name",
+									"label": "Name"
+								},
+								{
+									"path": "kind",
+									"label": "Kind",
+									"map": {
+										"course-enrolment": "Course fee",
+										"school-trip": "School trip",
+										"materials": "Materials",
+										"schoolkassa": "School fund",
+										"mbo-contractonderwijs": "Contract education",
+										"other": "Other"
+									}
+								},
+								{
+									"path": "amount",
+									"label": "Amount",
+									"format": "currency",
+									"suffix": " per learner"
+								},
+								{
+									"path": "voluntary",
+									"label": "Voluntary",
+									"map": {
+										"true": "Yes, a voluntary parental contribution",
+										"false": "No, required to take part"
+									}
+								},
+								{
+									"path": "linkedCohortId",
+									"label": "Group",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Cohort",
+										"labelField": "name"
+									}
+								},
+								{
+									"path": "academicYear",
+									"label": "Academic year"
+								},
+								{
+									"path": "validFrom",
+									"label": "Collect from",
+									"format": "longdate"
+								},
+								{
+									"path": "validUntil",
+									"label": "Collect until",
+									"format": "longdate"
+								},
+								{
+									"path": "taxPosture",
+									"label": "VAT",
+									"map": {
+										"education-exempt": "Exempt, education",
+										"standard-rate": "Standard rate",
+										"reduced-rate": "Reduced rate",
+										"not-applicable": "Not applicable"
+									}
+								},
+								{
+									"path": "description",
+									"label": "Description"
+								},
+								{
+									"as": "line",
+									"text": "This contribution is voluntary. Whether parents pay is shown for information only: every learner takes part, also when nothing was paid.",
+									"when": {
+										"field": "voluntary",
+										"op": "eq",
+										"value": true
+									}
+								}
+							],
 							"columns": 2
-						},
-						"icon": "CurrencyEur"
-					},
-					{
-						"id": "fee-item-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
+						}
 					}
 				],
-				"layout": [
+				"sideColumn": [
 					{
-						"id": "1",
-						"widgetId": "fee-item-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "2",
-						"widgetId": "fee-item-related",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 5,
-						"showTitle": false
+						"id": "fee-linked",
+						"type": "facts",
+						"title": "Linked",
+						"content": {
+							"fields": [
+								{
+									"path": "linkedCohortId",
+									"label": "Group",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Cohort",
+										"labelField": "name"
+									},
+									"route": {
+										"name": "CohortDetail",
+										"params": {
+											"id": "@source.linkedCohortId"
+										}
+									}
+								},
+								{
+									"path": "linkedCourseId",
+									"label": "Course",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Course",
+										"labelField": "name"
+									},
+									"route": {
+										"name": "CourseDetail",
+										"params": {
+											"id": "@source.linkedCourseId"
+										}
+									}
+								}
+							],
+							"hideEmpty": true
+						}
 					}
 				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
+				"board": {
 					"tabs": [
 						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
-								{
-									"type": "audit"
-								}
+							"label": "Overview",
+							"widgetIds": [
+								"fee-facts"
 							]
 						}
 					]

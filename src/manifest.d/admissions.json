@@ -289,24 +289,176 @@
 			"config": {
 				"register": "learniq",
 				"schema": "admission",
-				"_note": "admissions-and-subject-choice: an Application is the aanmelding a coordinator scores through an intake conversation to a placed/waitlisted/rejected decision, gated by AdmissionsDecisionGuard. Body leads with applicant/guardian/decision data (8-wide) and a Related panel resolving the AdmissionsRound and Programme applied for. lifecycleActions expose submit/scheduleIntake/completeIntake/place/waitlist/reject/withdraw as buttons. Sidebar keeps metadata + audit-trail.",
+				"_note": "Board LqCoAanmelding (G2): the application as a card, the school advice as a card, the prior learning records as a tab; round and programme beside it.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
+				"statusPill": {
+					"field": "lifecycle",
+					"labels": {
+						"draft": "Draft",
+						"submitted": "Submitted",
+						"intake-scheduled": "Intake planned",
+						"intake-completed": "Intake held",
+						"placed": "Placed",
+						"waitlisted": "Waiting list",
+						"rejected": "Rejected",
+						"converted": "Enrolled",
+						"withdrawn": "Withdrawn"
+					},
+					"colorMap": {
+						"intake-completed": "purple",
+						"placed": "success",
+						"converted": "success",
+						"rejected": "error",
+						"waitlisted": "warning"
+					}
+				},
+				"breadcrumb": {
+					"label": "Applications",
+					"route": "Applications"
+				},
+				"headerMeta": "submitted {submittedAt|longdate}",
 				"widgets": [
 					{
-						"id": "app-data",
-						"type": "data",
-						"title": "Data",
+						"id": "app-facts",
+						"type": "facts",
+						"title": "Application",
 						"content": {
+							"fields": [
+								{
+									"path": "applicantGivenName",
+									"label": "Given name"
+								},
+								{
+									"path": "applicantFamilyName",
+									"label": "Family name"
+								},
+								{
+									"path": "applicantBirthDate",
+									"label": "Date of birth",
+									"format": "longdate"
+								},
+								{
+									"path": "priorSchool",
+									"label": "Previous school"
+								},
+								{
+									"path": "admissionsRoundId",
+									"label": "Round",
+									"resolve": {
+										"register": "learniq",
+										"schema": "admissions-round",
+										"labelField": "name"
+									}
+								},
+								{
+									"path": "programmeId",
+									"label": "Programme",
+									"resolve": {
+										"register": "learniq",
+										"schema": "programme",
+										"labelField": "name"
+									}
+								},
+								{
+									"label": "Parent",
+									"parts": [
+										{
+											"path": "guardianGivenName"
+										},
+										{
+											"path": "guardianFamilyName"
+										}
+									],
+									"separator": " "
+								},
+								{
+									"path": "guardianEmail",
+									"label": "Email",
+									"format": "email"
+								},
+								{
+									"path": "guardianPhone",
+									"label": "Phone",
+									"format": "phone"
+								},
+								{
+									"path": "submittedAuthLevel",
+									"label": "Login level when submitted",
+									"map": {
+										"none": "none",
+										"basic": "basic",
+										"substantial": "substantial (DigiD)",
+										"high": "high"
+									}
+								},
+								{
+									"path": "intakeScheduledAt",
+									"label": "Intake",
+									"format": "longdatetime"
+								},
+								{
+									"path": "intakeNotes",
+									"label": "Intake note"
+								}
+							],
 							"columns": 2
-						},
-						"icon": "AccountBoxOutline"
+						}
 					},
 					{
-						"id": "app-related",
-						"type": "related",
-						"title": "Related"
+						"id": "app-advice",
+						"type": "facts",
+						"title": "School advice",
+						"content": {
+							"fields": [
+								{
+									"path": "schoolAdviceLevel",
+									"label": "Advice of the primary school",
+									"map": {
+										"pro": "pro",
+										"vmbo-bb": "vmbo-bb",
+										"vmbo-kb": "vmbo-kb",
+										"vmbo-gt": "vmbo-gt",
+										"havo": "havo",
+										"vwo": "vwo"
+									}
+								},
+								{
+									"path": "progressionTestLevel",
+									"label": "Progression test",
+									"map": {
+										"pro": "pro",
+										"vmbo-bb": "vmbo-bb",
+										"vmbo-kb": "vmbo-kb",
+										"vmbo-gt": "vmbo-gt",
+										"havo": "havo",
+										"vwo": "vwo"
+									}
+								},
+								{
+									"path": "schoolAdviceAdjustedLevel",
+									"label": "Adjusted advice",
+									"map": {
+										"pro": "pro",
+										"vmbo-bb": "vmbo-bb",
+										"vmbo-kb": "vmbo-kb",
+										"vmbo-gt": "vmbo-gt",
+										"havo": "havo",
+										"vwo": "vwo"
+									}
+								},
+								{
+									"path": "adjustmentMotivation",
+									"label": "Why it was adjusted"
+								},
+								{
+									"path": "adviesNote",
+									"label": "Placement"
+								}
+							],
+							"columns": 2
+						}
 					},
 					{
 						"id": "app-learning-record-imports",
@@ -323,45 +475,63 @@
 						}
 					}
 				],
-				"layout": [
+				"sideColumn": [
 					{
-						"id": "1",
-						"widgetId": "app-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 6
-					},
-					{
-						"id": "2",
-						"widgetId": "app-related",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 6
-					},
-					{
-						"id": "3",
-						"widgetId": "app-learning-record-imports",
-						"gridX": 0,
-						"gridY": 6,
-						"gridWidth": 12,
-						"gridHeight": 4
+						"id": "app-linked",
+						"type": "facts",
+						"title": "Linked",
+						"content": {
+							"fields": [
+								{
+									"path": "admissionsRoundId",
+									"label": "Round",
+									"resolve": {
+										"register": "learniq",
+										"schema": "admissions-round",
+										"labelField": "name"
+									}
+								},
+								{
+									"path": "programmeId",
+									"label": "Programme",
+									"resolve": {
+										"register": "learniq",
+										"schema": "programme",
+										"labelField": "name"
+									}
+								},
+								{
+									"path": "convertedLearnerProfileId",
+									"label": "Learner",
+									"resolve": {
+										"register": "learniq",
+										"schema": "learner-profile",
+										"labelField": "fullName"
+									},
+									"route": {
+										"name": "LearnerProfileDetail",
+										"params": {
+											"id": "@source.convertedLearnerProfileId"
+										}
+									}
+								}
+							],
+							"hideEmpty": true
+						}
 					}
 				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
+				"board": {
 					"tabs": [
 						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
-								{
-									"type": "audit"
-								}
+							"label": "Overview",
+							"widgetIds": [
+								"app-facts",
+								"app-advice"
 							]
+						},
+						{
+							"label": "Prior learning records",
+							"widgetId": "app-learning-record-imports"
 						}
 					]
 				}

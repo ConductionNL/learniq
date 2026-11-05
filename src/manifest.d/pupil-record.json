@@ -135,58 +135,117 @@
 			"config": {
 				"register": "learniq",
 				"schema": "dossier-note",
+				"_note": "Board LqNotitie (G2): the note text first under a notice that a dossier note is not changed, then its facts; who may read it as a header pill. Read-only, so no inline editors.",
 				"readOnly": true,
-				"_note": "pupil-dossier-notes: a DossierNote is the everyday pupil-dossier record a mentor/coordinator keeps day to day (observation/conversation/phone-call-home/concern/positive), distinct from the formal LearningPlan/SupportRequest/DeliberationRecord care chain. appendOnly: true — readOnly here; a correction is a new note, never an in-place edit. Body leads with the note data (8-wide) and a Related panel. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail. x-property-rbac restricts every row server-side to admin/mentor/coordinator/the note's own author regardless of confidentiality value — the finer three-way confidentiality tiering beyond that floor is a named, unimplemented OpenRegister platform-capability gap (design.md Decision 1), not a UI filter.",
+				"statusPill": {
+					"field": "confidentiality",
+					"labels": {
+						"team-visible": "The team",
+						"care-team-only": "Only the care team",
+						"private-to-author": "Only me"
+					},
+					"colorMap": {
+						"care-team-only": "warning",
+						"private-to-author": "warning"
+					}
+				},
+				"typePill": {
+					"field": "category",
+					"labels": {
+						"observation": "Observation",
+						"conversation": "Conversation",
+						"phone-call-home": "Phone call home",
+						"concern": "Care",
+						"positive": "Positive"
+					},
+					"colorMap": {
+						"concern": "warning",
+						"positive": "success"
+					}
+				},
+				"breadcrumb": {
+					"label": "Dossier notes",
+					"route": "DossierNotes"
+				},
+				"headerMeta": "written by {authorId|user} on {date|longdate}",
 				"widgets": [
 					{
-						"id": "dn-data",
-						"type": "data",
-						"title": "Data",
+						"id": "dn-body",
+						"type": "facts",
+						"title": "Note",
 						"content": {
+							"fields": [
+								{
+									"as": "text",
+									"path": "body"
+								}
+							],
+							"notice": {
+								"text": "A dossier note is no longer changed. If something is wrong, write a new note that adds to it."
+							}
+						}
+					},
+					{
+						"id": "dn-facts",
+						"type": "facts",
+						"title": "Details",
+						"content": {
+							"fields": [
+								{
+									"path": "learnerId",
+									"label": "Learner",
+									"format": "user"
+								},
+								{
+									"path": "date",
+									"label": "Date",
+									"format": "longdate"
+								},
+								{
+									"path": "category",
+									"label": "Kind",
+									"map": {
+										"observation": "Observation",
+										"conversation": "Conversation",
+										"phone-call-home": "Phone call home",
+										"concern": "Care",
+										"positive": "Positive"
+									}
+								},
+								{
+									"path": "confidentiality",
+									"label": "Who can see it",
+									"map": {
+										"team-visible": "The team",
+										"care-team-only": "Only the care team",
+										"private-to-author": "Only me"
+									}
+								},
+								{
+									"path": "authorId",
+									"label": "Author",
+									"format": "user"
+								},
+								{
+									"path": "careTeamUserIds",
+									"label": "Care team",
+									"format": "list"
+								}
+							],
 							"columns": 2
-						},
-						"icon": "NoteTextOutline"
-					},
-					{
-						"id": "dn-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
+						}
 					}
 				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "dn-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 6,
-						"showTitle": false
-					},
-					{
-						"id": "2",
-						"widgetId": "dn-related",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 6,
-						"showTitle": false
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
+				"sideColumn": [],
+				"board": {
 					"tabs": [
 						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
-								{
-									"type": "audit"
-								}
-							]
+							"label": "Overview",
+							"widgetIds": [
+								"dn-body",
+								"dn-facts"
+							],
+							"sections": true
 						}
 					]
 				}

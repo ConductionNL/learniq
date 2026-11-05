@@ -158,38 +158,85 @@
 			"config": {
 				"register": "learniq",
 				"schema": "bsa-trajectory",
-				"_note": "bsa-study-progress-guard: a BsaTrajectory is the BSA norm config per Programme + academicYear (kind, normEcts, interim-check window, onAtRisk action) — a config/rule archetype, mirroring AttendanceThreshold. Body leads with the rule definition (8-wide) and a Related panel resolving the scoped Programme/Cohort. The BsaProgressFlags this rule has raised render as a wide related-index so a study-advisor sees its effect. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail for rule-change history.",
+				"_note": "Board LqStudievoortgang (G2): the norm as a card with its notice, the reported students as a tab, figures beside it.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
+				"statusPill": {
+					"field": "lifecycle",
+					"labels": {
+						"draft": "Draft",
+						"active": "Active",
+						"archived": "Archived"
+					},
+					"colorMap": {
+						"active": "success"
+					}
+				},
+				"breadcrumb": {
+					"label": "BSA trajectories",
+					"route": "BsaTrajectories"
+				},
+				"headerMeta": "norm {normEcts} EC",
 				"widgets": [
 					{
-						"id": "bt-data",
-						"type": "data",
-						"title": "Data",
+						"id": "bt-norm",
+						"type": "facts",
+						"title": "Norm",
 						"content": {
-							"columns": 2
-						},
-						"icon": "ScaleBalance"
-					},
-					{
-						"id": "bt-kpis",
-						"type": "stats-block",
-						"title": "Overview",
-						"icon": "ChartBar",
-						"content": {
-							"entries": [
+							"fields": [
 								{
-									"title": "Raised flags",
-									"register": "learniq",
-									"schema": "bsa-progress-flag",
-									"metric": "count",
-									"filter": {
-										"bsaTrajectoryId": "@objectId"
+									"path": "programmeId",
+									"label": "Programme",
+									"resolve": {
+										"register": "learniq",
+										"schema": "programme",
+										"labelField": "name"
+									}
+								},
+								{
+									"path": "academicYear",
+									"label": "Academic year"
+								},
+								{
+									"path": "kind",
+									"label": "Kind",
+									"map": {
+										"he-eerstejaar-bsa": "BSA first year of higher education",
+										"mbo-studieadvies": "Study advice in vocational education",
+										"generic": "Own norm"
+									}
+								},
+								{
+									"path": "cohortId",
+									"label": "Group",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Cohort",
+										"labelField": "name"
 									},
-									"route": "BsaProgressFlags"
+									"emptyValue": "All groups"
+								},
+								{
+									"path": "normEcts",
+									"label": "Norm at the end of the year",
+									"suffix": " EC"
+								},
+								{
+									"path": "interimNormEcts",
+									"label": "Interim norm",
+									"suffix": " EC"
+								},
+								{
+									"path": "windowOpensAt",
+									"label": "Interim check",
+									"format": "longdate"
 								}
-							]
+							],
+							"columns": 2,
+							"notice": {
+								"text": "The interim norm only gives a signal. A negative binding study advice can only follow a formal warning with an improvement period, and the student is heard first."
+							}
 						}
 					},
 					{
@@ -237,63 +284,40 @@
 						"icon": "AlertCircleOutline"
 					},
 					{
-						"id": "bt-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "bt-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "2",
-						"widgetId": "bt-kpis",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "3",
-						"widgetId": "bt-flags",
-						"gridX": 0,
-						"gridY": 5,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "4",
-						"widgetId": "bt-related",
-						"gridX": 6,
-						"gridY": 5,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
+						"id": "bt-kpis",
+						"type": "stats-block",
+						"title": "Overview",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
 								{
-									"type": "audit"
+									"title": "Raised flags",
+									"register": "learniq",
+									"schema": "bsa-progress-flag",
+									"metric": "count",
+									"filter": {
+										"bsaTrajectoryId": "@objectId"
+									},
+									"route": "BsaProgressFlags"
 								}
 							]
+						}
+					}
+				],
+				"sideColumn": [
+					"bt-kpis"
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Overview",
+							"widgetIds": [
+								"bt-norm"
+							]
+						},
+						{
+							"label": "Reports",
+							"widgetId": "bt-flags"
 						}
 					]
 				}
@@ -535,59 +559,185 @@
 			"config": {
 				"register": "learniq",
 				"schema": "bsa-decision",
-				"_note": "bsa-study-progress-guard: a BsaDecision is the year-end bindend studieadvies decision with a full evidence trail (credits, norm, warningIds, personal circumstances, hoorplicht, appeal sub-lifecycle) — an append-only signed-evidence + case archetype. BsaDecisionGuard structurally blocks a negative* decide transition without a logged issued BsaWarning. Body leads with the decision fields (8-wide) and a Related panel resolving learner, programme and referenced warnings. No comms leaves — x-openregister-notifications handles the learner/study-advisor notification on decide. Sidebar keeps metadata + audit-trail.",
+				"_note": "Board LqBsaBesluit (G2, G7): figures (credits achieved, norm, shortfall), the warning and the decision as cards, and a What now card while the decision is a concept. The evidence table (results with credits) waits on lane E data.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
+				"statusPill": {
+					"field": "lifecycle",
+					"labels": {
+						"drafted": "Concept",
+						"decided": "Decided",
+						"appealed": "Under appeal",
+						"upheld": "Upheld",
+						"overturned": "Revised"
+					},
+					"colorMap": {
+						"decided": "success",
+						"appealed": "warning",
+						"overturned": "purple"
+					}
+				},
+				"breadcrumb": {
+					"label": "BSA decisions",
+					"route": "BsaDecisions"
+				},
+				"headerMeta": "academic year {academicYear}",
+				"stageField": "lifecycle",
+				"nextStep": {
+					"stages": {
+						"drafted": {
+							"title": "What now?",
+							"after": "Put the decision before the examination board. Without a warning, a hearing and evidence the decision cannot be taken.",
+							"checklist": [
+								{
+									"label": "Warning given",
+									"doneField": "warningIds"
+								},
+								{
+									"label": "Student heard",
+									"doneField": "studentHeardAt"
+								},
+								{
+									"label": "Rationale written",
+									"doneField": "rationale"
+								}
+							]
+						}
+					}
+				},
 				"widgets": [
 					{
-						"id": "bd-data",
-						"type": "data",
-						"title": "Data",
+						"id": "bd-figures",
+						"type": "facts",
+						"title": "Figures",
 						"content": {
-							"columns": 2
-						},
-						"icon": "Gavel"
+							"layout": "tiles",
+							"fields": [
+								{
+									"path": "ectsAchieved",
+									"label": "Achieved",
+									"suffix": " EC"
+								},
+								{
+									"path": "ectsNormRequired",
+									"label": "Norm",
+									"suffix": " EC"
+								},
+								{
+									"path": "studentHeardAt",
+									"label": "Heard",
+									"format": "date"
+								}
+							]
+						}
 					},
 					{
-						"id": "bd-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "bd-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 6,
-						"showTitle": false
+						"id": "bd-decision",
+						"type": "facts",
+						"title": "Decision",
+						"content": {
+							"fields": [
+								{
+									"path": "decisionType",
+									"label": "Advice",
+									"map": {
+										"positive": "Positive study advice",
+										"negative": "Negative binding study advice",
+										"negative-with-recommendation": "Negative, with a recommendation",
+										"postponed": "Postponed"
+									}
+								},
+								{
+									"path": "studentHeardAt",
+									"label": "Heard",
+									"format": "longdate"
+								},
+								{
+									"path": "personalCircumstancesConsidered",
+									"label": "Personal circumstances",
+									"map": {
+										"true": "Reported and weighed",
+										"false": "None reported"
+									}
+								},
+								{
+									"path": "personalCircumstancesNote",
+									"label": "Note on circumstances"
+								},
+								{
+									"path": "rationale",
+									"label": "Rationale"
+								},
+								{
+									"path": "decidedBy",
+									"label": "Decided by",
+									"format": "user"
+								},
+								{
+									"path": "decisionDate",
+									"label": "Decided on",
+									"format": "longdate"
+								}
+							],
+							"columns": 2,
+							"notice": {
+								"text": "A decision points to the evidence it rests on."
+							}
+						}
 					},
 					{
-						"id": "2",
-						"widgetId": "bd-related",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 6,
-						"showTitle": false
+						"id": "bd-response",
+						"type": "facts",
+						"title": "The student's response",
+						"content": {
+							"fields": [
+								{
+									"as": "text",
+									"path": "studentResponse"
+								}
+							]
+						}
 					}
 				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
+				"sideColumn": [
+					{
+						"id": "bd-linked",
+						"type": "facts",
+						"title": "Linked",
+						"content": {
+							"fields": [
+								{
+									"path": "learnerId",
+									"label": "Student",
+									"format": "user"
+								},
+								{
+									"path": "programmeId",
+									"label": "Programme",
+									"resolve": {
+										"register": "learniq",
+										"schema": "programme",
+										"labelField": "name"
+									}
+								},
+								{
+									"path": "academicYear",
+									"label": "Academic year"
+								}
+							],
+							"hideEmpty": true
+						}
+					}
+				],
+				"board": {
 					"tabs": [
 						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
-								{
-									"type": "audit"
-								}
+							"label": "Overview",
+							"widgetIds": [
+								"bd-figures",
+								"bd-decision",
+								"bd-response"
 							]
 						}
 					]
