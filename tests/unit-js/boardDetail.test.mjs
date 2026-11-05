@@ -36,6 +36,8 @@ const BOARD_PAGES = [
 	'ApplicationDetail', 'AttendanceFlagDetail', 'AttendanceRecordDetail', 'AttendanceThresholdDetail',
 	'BpvPlacementDetail', 'BsaDecisionDetail', 'BsaTrajectoryDetail', 'ConcernReportDetail',
 	'DataSubjectRequestDetail', 'DossierNoteDetail', 'ExamPeriodDetail', 'FeeItemDetail', 'LearnerProfileDetail',
+	'AssessmentDetail', 'CohortDetail', 'CourseDetail', 'GradeEntryDetail', 'GradeScaleDetail', 'GroupPlanDetail',
+	'ItemBankDetail', 'LearningPlanDetail', 'SessionDetail',
 ]
 
 const sample = {
