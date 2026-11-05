@@ -2262,6 +2262,18 @@
         "{present} present, {late} late, {authorised} absent with permission, {unauthorised} absent without permission",
         "{programme}, intake {year}, {status}",
         "{revoked} revoked and {expired} expired certificates are left as they are. Learners keep their certificate number, issue date and expiry.",
-        "{shown} of {total} strings"
+        "{shown} of {total} strings",
+        "There is no report yet. You get a message when one is ready.",
+        "The school has not shared any papers yet.",
+        "School document",
+        "A paper of the school for parents or pupils, such as the school guide or the year calendar. The file is attached to the record. A published document for guardians shows in the portal of every guardian with a child at this school.",
+        "What parents read above the download, for example School guide 2026-2027.",
+        "The school this document belongs to.",
+        "Parents and guardians",
+        "Staff only",
+        "Who may read it. Only a published document for parents and guardians reaches the portal.",
+        "A draft stays inside the school; a published document for parents shows in their portal.",
+        "Published on",
+        "When the document was published for parents."
     ]
 }

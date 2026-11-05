@@ -206,6 +206,7 @@ class ParentRecordPage {
 	 * @return array<string, mixed> The parentChildren collection.
 	 *
 	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-parent-audience-exposes-per-child-and-per-guardian-group-directory-data-req-pcon-006
+	 * @spec openspec/changes/guardian-reports-and-documents/specs/portal-contribution/spec.md#requirement-a-guardian-reads-her-childrens-published-reports-and-the-schools-papers-on-one-page
 	 */
 	public function childrenCollection(): array {
 		return [
@@ -224,6 +225,8 @@ class ParentRecordPage {
 			// site-messages-per-record). The tab and the "to" field name the
 			// child by first name.
 			'contacts' => self::PARENT_CHILDREN_CONTACTS,
+			// Each child's published reports, on "Rapporten en documenten" (guardian-reports-and-documents).
+			'documents' => ParentDocumentsPage::CHILD_DOCUMENTS,
 		];
 
 	}//end childrenCollection()
@@ -306,6 +309,7 @@ class ParentRecordPage {
 	 * @spec openspec/changes/portal-parent-child-record/specs/portal-contribution/spec.md#requirement-a-guardian-opens-one-child-and-sees-everything-about-them
 	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-is-grouped-per-child
 	 * @spec openspec/changes/school-portals-match-their-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-holds-only-what-the-board-shows
+	 * @spec openspec/changes/guardian-reports-and-documents/specs/portal-contribution/spec.md#requirement-a-guardian-reads-her-childrens-published-reports-and-the-schools-papers-on-one-page
 	 */
 	public function pages(array $collections, array $actions, ParentPortalCollections $sections): array {
 		$site = new ParentSitePages();
@@ -315,6 +319,8 @@ class ParentRecordPage {
 			$site->absencePage(),
 			$site->conferencesPage(),
 			$site->inGroup(page: $this->calendarPage()),
+			// "Rapporten en documenten" (guardian-reports-and-documents).
+			(new ParentDocumentsPage())->page(),
 			// The page the overview's task opens, out of the menu.
 			$site->invitationPage(),
 		];

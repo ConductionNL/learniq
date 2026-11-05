@@ -257,14 +257,14 @@ class PortalContributionProvider {
 	 * @param IFactory|null             $l10nFactory    Puts parent labels in the request's language (PortalLabelTranslator).
 	 * @param EmployerBookingSteps|null $bookingSteps   Answers a company booking's steps (employer-portal-audience).
 	 * @param BpvPlacementSteps|null    $placementSteps Answers a work placement's steps (site-workplace-trainer-portal-design).
-	 * @param PortalMessageContacts|null $messageContacts Who a resident may write to (portal-message-contacts).
+	 * @param PortalRecordProviders|null $records        Who a resident may write to and what a guardian may download, per row.
 	 * @param PortalPublicIndex|null     $publicIndex     What a visitor may find (portal-public-index).
 	 */
 	public function __construct(
 		private readonly ?IFactory $l10nFactory=null,
 		private readonly ?EmployerBookingSteps $bookingSteps=null,
 		private readonly ?BpvPlacementSteps $placementSteps=null,
-		private readonly ?PortalMessageContacts $messageContacts=null,
+		private readonly ?PortalRecordProviders $records=null,
 		private readonly ?PortalPublicIndex $publicIndex=null,
 	) {
 	}//end __construct()
@@ -310,7 +310,7 @@ class PortalContributionProvider {
 	 * @spec openspec/changes/portal-message-contacts/specs/portal-contribution/spec.md#requirement-a-guardian-and-a-pupil-may-write-to-the-teachers-of-the-pupils-current-groups
 	 */
 	public function childMessageContacts(string $id): array {
-		return ($this->messageContacts?->childContacts(profileId: $id) ?? []);
+		return ($this->records?->contacts?->childContacts(profileId: $id) ?? []);
 	}//end childMessageContacts()
 
 	/**
@@ -323,8 +323,37 @@ class PortalContributionProvider {
 	 * @spec openspec/changes/portal-message-contacts/specs/portal-contribution/spec.md#requirement-a-guardian-and-a-pupil-may-write-to-the-teachers-of-the-pupils-current-groups
 	 */
 	public function ownMessageContacts(string $id): array {
-		return ($this->messageContacts?->ownContacts(enrolmentId: $id) ?? []);
+		return ($this->records?->contacts?->ownContacts(enrolmentId: $id) ?? []);
 	}//end ownMessageContacts()
+
+	/**
+	 * The `documents` provider of `parentChildren`: the files of the child's
+	 * published report cards. Portaliq calls this only for a child it read
+	 * through the guardian's own scoped collection.
+	 *
+	 * @param string $id The child's learner profile id.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/guardian-reports-and-documents/specs/portal-contribution/spec.md#requirement-a-guardian-reads-her-childrens-published-reports-and-the-schools-papers-on-one-page
+	 */
+	public function childDocuments(string $id): array {
+		return ($this->records?->documents?->childReports(profileId: $id) ?? []);
+	}//end childDocuments()
+
+	/**
+	 * The `documents` provider of `parentSchools`: the files of the school's
+	 * published documents for guardians, for a school one of her children attends.
+	 *
+	 * @param string $id The school's id.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/guardian-reports-and-documents/specs/portal-contribution/spec.md#requirement-a-guardian-reads-her-childrens-published-reports-and-the-schools-papers-on-one-page
+	 */
+	public function schoolDocuments(string $id): array {
+		return ($this->records?->documents?->schoolPapers(schoolId: $id) ?? []);
+	}//end schoolDocuments()
 
 	/**
 	 * The audiences this provider contributes to (contract v2, preferred).
@@ -694,7 +723,8 @@ class PortalContributionProvider {
 			$extras->conferenceCollections(childJoin: $childJoin),
 			[$extras->groupMembershipsCollection(childJoin: $childJoin)],
 			[$extras->reportSubjectGradesCollection(childJoin: $childJoin)],
-			$record->collections(childJoin: $childJoin)
+			$record->collections(childJoin: $childJoin),
+			[(new ParentDocumentsPage())->schoolsCollection(childJoin: $childJoin)]
 		);
 		$actions = array_merge(
 			$this->parentActions(childJoin: $childJoin),

@@ -28,6 +28,7 @@ namespace OCA\Learniq\Tests\Unit\Portal;
 
 use OCA\Learniq\Portal\PortalContributionProvider;
 use OCA\Learniq\Portal\PortalMessageContacts;
+use OCA\Learniq\Portal\PortalRecordProviders;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserManager;
@@ -176,7 +177,7 @@ class PortalMessageContactsTest extends TestCase {
 		self::assertSame([], $provider->ownMessageContacts('x'));
 
 		$vera = self::row(set: 'po', schema: 'learner-profile', match: ['ncUserId' => 'po-leerling-147']);
-		$with = new PortalContributionProvider(messageContacts: $this->over(set: 'po'));
+		$with = new PortalContributionProvider(records: new PortalRecordProviders(contacts: $this->over(set: 'po')));
 		self::assertSame('po-leerkracht-09', $with->childMessageContacts($vera['uuid'])[0]['staffRef']);
 	}//end testTheManifestsNameTheProvidersAndTheProviderAnswers()
 }//end class

@@ -129,7 +129,8 @@
         {
           "title": "Van school",
           "items": [
-            "news"
+            "news",
+            "learniq:parentDocuments"
           ]
         },
         {

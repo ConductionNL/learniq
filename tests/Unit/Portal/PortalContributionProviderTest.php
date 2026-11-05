@@ -508,9 +508,9 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame(['conference.answered'], array_column($manifest['notifications'], 'ruleKey'), 'one rule: the teacher answered a booking');
 
 		$collections = $manifest['collections'];
-		$this->assertCount(20, $collections);
+		$this->assertCount(21, $collections);
 		$this->assertSame(
-			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceInvitations', 'parentConferenceFreeSlots', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships', 'parentReportSubjectGrades', 'parentInbox', 'parentGradeInbox', 'parentAttendanceSummary', 'parentHomework', 'parentSubmissions', 'parentSchoolEvents', 'parentSchoolCalendar'],
+			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceInvitations', 'parentConferenceFreeSlots', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships', 'parentReportSubjectGrades', 'parentInbox', 'parentGradeInbox', 'parentAttendanceSummary', 'parentHomework', 'parentSubmissions', 'parentSchoolEvents', 'parentSchoolCalendar', 'parentSchools'],
 			array_column($collections, 'id')
 		);
 
@@ -524,7 +524,7 @@ class PortalContributionProviderTest extends TestCase {
 		// testParentBooksAConferenceForTheirOwnChildOnly; parentConferenceFreeSlots
 		// matches a free time on the pupils who may book it
 		// (ParentConferenceDirectBookingTest).
-		$reverseJoinedCollections = array_filter($collections, static fn ($c) => in_array($c['id'], ['parentChildren', 'parentConferenceRounds', 'parentConferenceFreeSlots', ...self::RECORD_PAGE_COLLECTIONS], true) === false);
+		$reverseJoinedCollections = array_filter($collections, static fn ($c) => in_array($c['id'], ['parentChildren', 'parentConferenceRounds', 'parentConferenceFreeSlots', 'parentSchools', ...self::RECORD_PAGE_COLLECTIONS], true) === false);
 		foreach ($reverseJoinedCollections as $collection) {
 			$this->assertSame('learniq', $collection['register']);
 			// Parent scope key is the guardian claim; the outer record scope
@@ -680,10 +680,14 @@ class PortalContributionProviderTest extends TestCase {
 		// parentChildren is deliberately excluded — it matches learner-profile
 		// directly (see testParentChildrenCollectionMatchesDirectly), the one
 		// parent collection with no cross-object hop and therefore no via.
+		// parentSchools is the one forward join: the schools whose OWN id a
+		// child names in schoolId (guardian-reports-and-documents).
 		$reverseJoinedCollections = array_filter(
 			$manifest['collections'],
-			static fn ($c) => $c['id'] !== 'parentChildren'
+			static fn ($c) => in_array($c['id'], ['parentChildren', 'parentSchools'], true) === false
 		);
+		$schools = array_column($manifest['collections'], null, 'id')['parentSchools'];
+		$this->assertSame(['guardianRefs', 'schoolId', 'id'], [$schools['via']['scopeField'], $schools['via']['targetField'], $schools['via']['match']]);
 
 		foreach ($reverseJoinedCollections as $collection) {
 			$via = $collection['via'] ?? null;
@@ -1033,7 +1037,9 @@ class PortalContributionProviderTest extends TestCase {
 				$this->assertArrayHasKey($slug, $propsBySlug, "manifest schema '$slug' missing from register");
 				$props = $propsBySlug[$slug];
 
-				$this->assertContains($collection['scopeField'], $props, "scopeField on '$slug' not in register");
+				// A forward join (match: id) compares the row's own identity token.
+				$identity = (($collection['via']['match'] ?? '') === 'id') ? ['id'] : [];
+				$this->assertContains($collection['scopeField'], array_merge($props, $identity), "scopeField on '$slug' not in register");
 				foreach (($collection['fields'] ?? []) as $field) {
 					$this->assertContains($field, $props, "field '$field' on '$slug' not in register");
 				}
