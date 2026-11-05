@@ -3861,7 +3861,11 @@ OC.L10N.register(
         "Ask your school to put this certificate in your wallet.": "Ask your school to put this certificate in your wallet.",
         "Choose one answer.": "Choose one answer.",
         "Write your answer in words.": "Write your answer in words.",
-        "Handing in your assessment…": "Handing in your assessment…"
+        "Handing in your assessment…": "Handing in your assessment…",
+        "Expected learners": "Expected learners",
+        "Report {givenName} ill or absent": "Report {givenName} ill or absent",
+        "Message to {teacherName}": "Message to {teacherName}",
+        "Send a message": "Send a message"
     },
     "nplurals=2; plural=(n != 1);"
 )

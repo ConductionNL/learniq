@@ -298,6 +298,8 @@ class ParentSitePages {
 					'statusField' => 'lifecycle',
 					'statusTones' => ['submitted' => 'neutral', 'approved' => 'success', 'rejected' => 'error'],
 					'statusNoteField' => 'decidedBy',
+					// "Meester Daan, 1 oktober 8:20 uur" under Goedgekeurd (wilgenboom/MijnLijst).
+					'statusNoteAtField' => 'decidedAt',
 					'sort' => ['field' => 'dateFrom', 'direction' => 'desc'],
 				],
 			],

@@ -756,7 +756,8 @@ class PortalContributionProvider {
 				'crossRefs' => ['learnerRef' => (new ParentPortalCollections())->childCrossRef()],
 				'optionsProviders' => ['learnerRef' => (new ParentPortalCollections())->childOptions()],
 				'fieldConfigs' => [
-					'learnerRef' => ['label' => 'Child', 'required' => true],
+					// One card per child (wilgenboom/MobielDetail "Wie is er afwezig?").
+					'learnerRef' => ['label' => 'Child', 'required' => true, 'widget' => 'choices'],
 					// Today and the next day as cards, then "Een andere dag" (portaliq
 					// site-multi-step-forms REQ-SMF-005, LearniqAbsence.dc.html).
 					'dateFrom' => ['label' => 'First day absent', 'required' => true, 'widget' => 'dateChoices', 'dateChoices' => 2],

@@ -4347,7 +4347,11 @@ OC.L10N.register(
         "Ask your school to put this certificate in your wallet.": "Vraag je school om dit certificaat in je wallet te zetten.",
         "Choose one answer.": "Kies één antwoord.",
         "Write your answer in words.": "Schrijf je antwoord in woorden.",
-        "Handing in your assessment…": "Je toets wordt ingeleverd…"
+        "Handing in your assessment…": "Je toets wordt ingeleverd…",
+        "Expected learners": "Verwachte leerlingen",
+        "Report {givenName} ill or absent": "{givenName} ziek of afwezig melden",
+        "Message to {teacherName}": "Bericht aan {teacherName}",
+        "Send a message": "Bericht sturen"
     },
     "nplurals=2; plural=(n != 1);"
 )
