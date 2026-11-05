@@ -21,8 +21,13 @@ const DIALOGS = [
 	'CohortCreateDialog',
 	'ConcernReportDialog',
 	'ConfidentialNoteCreateDialog',
+	'CredentialRevokeDialog',
 	'DossierNoteCreateDialog',
+	'EnrolmentWithdrawDialog',
+	'ExemptionDecisionDialog',
 	'GradeEntryCreateDialog',
+	'RegulationExemptionDecisionDialog',
+	'SubmissionReopenDialog',
 ]
 
 for (const name of DIALOGS) {
