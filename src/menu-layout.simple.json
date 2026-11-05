@@ -959,6 +959,7 @@
 				"greeting": "date",
 				"subtitleByRole": null,
 				"subtitleOfSchoolByRole": null,
+				"showActionsMenu": false,
 				"showWidgetActions": false,
 				"viewsLabel": "Role",
 				"defaultView": "teacher",

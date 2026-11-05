@@ -22,7 +22,12 @@
 -->
 <template>
 	<div class="learniq-domain-dashboard">
-		<CnDashboardPage :title="pageTitle" :widgets="widgets" :layout="layout">
+		<CnDashboardPage
+			:title="pageTitle"
+			:widgets="widgets"
+			:layout="layout"
+			:showActionsMenu="false"
+			:showWidgetActions="false">
 			<template #widget-global-search>
 				<GlobalSearchWidget />
 			</template>

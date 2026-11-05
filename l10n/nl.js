@@ -4344,7 +4344,18 @@ OC.L10N.register(
         "To wallet": "Naar wallet",
         "In your wallet since {date}.": "In je wallet sinds {date}.",
         "Putting this certificate in your wallet did not work. Your certificate stays valid; ask your school to try again.": "Naar wallet lukte niet. Je certificaat blijft gewoon geldig; vraag je school het opnieuw te proberen.",
-        "Ask your school to put this certificate in your wallet.": "Vraag je school om dit certificaat in je wallet te zetten."
+        "Ask your school to put this certificate in your wallet.": "Vraag je school om dit certificaat in je wallet te zetten.",
+        "Add registration": "Registratie toevoegen",
+        "Propose placement": "Plaatsing voorstellen",
+        "New limitation": "Nieuwe beperking",
+        "New connection": "Nieuwe koppeling",
+        "New request": "Nieuw verzoek",
+        "Add regulation": "Verplichting toevoegen",
+        "Enter grade": "Cijfer invoeren",
+        "New application": "Nieuwe aanmelding",
+        "New note": "Nieuwe notitie",
+        "New group": "Nieuwe groep",
+        "New learner": "Nieuwe leerling"
     },
     "nplurals=2; plural=(n != 1);"
 )

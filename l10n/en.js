@@ -3858,7 +3858,18 @@ OC.L10N.register(
         "To wallet": "To wallet",
         "In your wallet since {date}.": "In your wallet since {date}.",
         "Putting this certificate in your wallet did not work. Your certificate stays valid; ask your school to try again.": "Putting this certificate in your wallet did not work. Your certificate stays valid; ask your school to try again.",
-        "Ask your school to put this certificate in your wallet.": "Ask your school to put this certificate in your wallet."
+        "Ask your school to put this certificate in your wallet.": "Ask your school to put this certificate in your wallet.",
+        "Add registration": "Add registration",
+        "Propose placement": "Propose placement",
+        "New limitation": "New limitation",
+        "New connection": "New connection",
+        "New request": "New request",
+        "Add regulation": "Add regulation",
+        "Enter grade": "Enter grade",
+        "New application": "New application",
+        "New note": "New note",
+        "New group": "New group",
+        "New learner": "New learner"
     },
     "nplurals=2; plural=(n != 1);"
 )

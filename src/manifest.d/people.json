@@ -1186,6 +1186,23 @@
 			"type": "index",
 			"title": "Attendance records",
 			"config": {
+				"headerButtons": [
+					{
+						"action": "export",
+						"label": "Download",
+						"icon": "TrayArrowDown"
+					},
+					{
+						"action": "actions-menu",
+						"label": "Actions"
+					},
+					{
+						"action": "add",
+						"label": "Add registration",
+						"variant": "primary",
+						"icon": "Plus"
+					}
+				],
 				"showTitle": true,
 				"register": "learniq",
 				"schema": "attendance-record",
@@ -1887,6 +1904,23 @@
 			"type": "index",
 			"title": "Learners",
 			"config": {
+				"headerButtons": [
+					{
+						"action": "export",
+						"label": "Download",
+						"icon": "TrayArrowDown"
+					},
+					{
+						"action": "actions-menu",
+						"label": "Actions"
+					},
+					{
+						"action": "add",
+						"label": "New learner",
+						"variant": "primary",
+						"icon": "Plus"
+					}
+				],
 				"showTitle": true,
 				"register": "learniq",
 				"schema": "learner-profile",

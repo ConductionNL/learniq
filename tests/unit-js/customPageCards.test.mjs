@@ -117,3 +117,11 @@ test('the board page layout takes the board look tokens', () => {
 	assert.match(rule, /gap: var\(--cn-board-section-gap/)
 	assert.match(rule, /padding: var\(--cn-board-content-padding/)
 })
+
+test('a custom page title sits 4px under the content top on the board look', () => {
+	const css = readFileSync(resolve(root, 'src/assets/app.css'), 'utf8')
+	const at = css.indexOf('.cn-look-board .lq-board-page .cn-page-header:not(.cn-look-nextcloud *) {')
+	assert.ok(at > -1, 'the board look rule for a custom page header exists')
+	const rule = css.slice(at, css.indexOf('}', at))
+	assert.match(rule, /padding-top: 4px;/)
+})

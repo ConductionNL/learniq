@@ -201,6 +201,19 @@
 			"type": "index",
 			"title": "BPV placements",
 			"config": {
+				"headerButtons": [
+					{
+						"action": "export",
+						"label": "Download",
+						"icon": "TrayArrowDown"
+					},
+					{
+						"action": "add",
+						"label": "Propose placement",
+						"variant": "primary",
+						"icon": "Plus"
+					}
+				],
 				"showTitle": true,
 				"register": "learniq",
 				"schema": "bpv-placement",

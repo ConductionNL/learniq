@@ -29,7 +29,9 @@
 			:description="pageSubtitle"
 			:widgets="widgets"
 			:layout="layout"
-			:headerActions="headerActions">
+			:headerActions="headerActions"
+			:showActionsMenu="false"
+			:showWidgetActions="false">
 			<!-- Admin view -->
 			<template #widget-manage-courses>
 				<ManageCoursesWidget />

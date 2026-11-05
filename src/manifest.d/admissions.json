@@ -263,6 +263,19 @@
 			"type": "index",
 			"title": "Applications",
 			"config": {
+				"headerButtons": [
+					{
+						"action": "export",
+						"label": "Download",
+						"icon": "TrayArrowDown"
+					},
+					{
+						"action": "add",
+						"label": "New application",
+						"variant": "primary",
+						"icon": "Plus"
+					}
+				],
 				"showTitle": true,
 				"register": "learniq",
 				"schema": "admission"
