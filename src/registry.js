@@ -14,7 +14,14 @@
 import AssignmentHandInStatus from './components/sections/AssignmentHandInStatus.vue'
 import AssignmentPeerReviewAllocation from './components/sections/AssignmentPeerReviewAllocation.vue'
 import CredentialWalletOffer from './components/sections/CredentialWalletOffer.vue'
+// lqb-c board dialogs: purpose-built create and decision dialogs (G5, G11).
+import AccessibilityBarrierDialog from './dialogs/AccessibilityBarrierDialog.vue'
+import CohortCreateDialog from './dialogs/CohortCreateDialog.vue'
+import ConcernReportDialog from './dialogs/ConcernReportDialog.vue'
+import ConfidentialNoteCreateDialog from './dialogs/ConfidentialNoteCreateDialog.vue'
 import DeclineSignUpDialog from './dialogs/DeclineSignUpDialog.vue'
+import DossierNoteCreateDialog from './dialogs/DossierNoteCreateDialog.vue'
+import GradeEntryCreateDialog from './dialogs/GradeEntryCreateDialog.vue'
 import SelfCheckInDialog from './dialogs/SelfCheckInDialog.vue'
 // admissions-and-subject-choice: the two genuine new custom views this
 // change adds — the coordinator's admissions review board (queue of
@@ -221,6 +228,36 @@ export default {
 		kind: 'modal',
 		component: DeclineSignUpDialog,
 		propsSchema: { type: 'object', properties: { objectId: { type: 'string' } }, required: ['objectId'] },
+	},
+	AccessibilityBarrierDialog: {
+		kind: 'modal',
+		component: AccessibilityBarrierDialog,
+		propsSchema: { type: 'object', properties: { surface: { type: 'string' } } },
+	},
+	CohortCreateDialog: {
+		kind: 'modal',
+		component: CohortCreateDialog,
+		propsSchema: { type: 'object', properties: {} },
+	},
+	ConcernReportDialog: {
+		kind: 'modal',
+		component: ConcernReportDialog,
+		propsSchema: { type: 'object', properties: { learnerId: { type: 'string' }, audience: { type: 'string' } } },
+	},
+	ConfidentialNoteCreateDialog: {
+		kind: 'modal',
+		component: ConfidentialNoteCreateDialog,
+		propsSchema: { type: 'object', properties: {} },
+	},
+	DossierNoteCreateDialog: {
+		kind: 'modal',
+		component: DossierNoteCreateDialog,
+		propsSchema: { type: 'object', properties: { learnerId: { type: 'string' } } },
+	},
+	GradeEntryCreateDialog: {
+		kind: 'modal',
+		component: GradeEntryCreateDialog,
+		propsSchema: { type: 'object', properties: { learnerId: { type: 'string' } } },
 	},
 	CheckInPage: page(CheckInPage),
 	CourseCatalogue: page(CourseCatalogue),
