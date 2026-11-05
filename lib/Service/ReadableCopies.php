@@ -57,7 +57,8 @@ class ReadableCopies {
 		'portfolio-share' => ['portfolioTitle' => null, 'learnerName' => null],
 		'teacher-availability' => ['teacherName' => null],
 		// The line under a child's name in the guardian's menu (school-portals-use-the-new-blocks).
-		'learner-profile' => ['groupLabel' => null, 'fullName' => null],
+		// With the group's teacher for the child page's "Bericht aan {teacherName}" (wilgenboom/Detail).
+		'learner-profile' => ['groupLabel' => null, 'fullName' => null, 'teacherName' => null, 'teacherRef' => null],
 		// The certificate lists of the employer's and the participant's portal (portal-certificates).
 		'credential'      => ['learnerName' => null, 'courseName' => null, 'organisationRef' => null, 'validUntilLabel' => null, 'renewalLine' => null],
 	];
@@ -150,10 +151,11 @@ class ReadableCopies {
 		}
 
 		if ($slug === 'learner-profile') {
-			return [
-				'groupLabel' => (new LearnerGroupLabel(objectService: $this->objectService, users: $this->users))->derive(profile: $row),
-				'fullName'   => $this->personName(profile: $row),
-			];
+			$group = new LearnerGroupLabel(objectService: $this->objectService, users: $this->users);
+			return array_merge(
+				['groupLabel' => $group->derive(profile: $row), 'fullName' => $this->personName(profile: $row)],
+				$group->teacher(profile: $row)
+			);
 		}
 
 		return [];
