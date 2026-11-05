@@ -478,4 +478,47 @@ class SecondarySchoolBoardRecordsTest extends TestCase {
 		);
 		self::assertCount(expectedCount: 1, haystack: $lessons);
 	}//end testTheRemainingBoardsFindTheirRecords()
+
+	/**
+	 * The guardian, certificate, peer review and item bank boards: Marieke de
+	 * Jong has two children (Fenna and Mila, the brugklas), Fenna holds the
+	 * Certificaat rekenen 2F and reviews a classmate's betoog, and the item
+	 * bank Nederlands onderbouw holds 48 items.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/example-sets/spec.md
+	 */
+	public function testTheGuardianCertificatePeerReviewAndItemBankBoardsFindTheirRecords(): void {
+		$objects  = self::objects(set: 'vo');
+		$children = array_values(
+			array: array_filter(
+				array: $objects['learner-profile'],
+				callback: static fn (array $p): bool => in_array(needle: 'vo-ouder-227', haystack: ($p['parentIds'] ?? []), strict: true)
+			)
+		);
+		self::assertSame(expected: ['Fenna', 'Mila'], actual: array_column(array: $children, column_key: 'givenName'));
+		$firstYear = self::where(rows: $objects['cohort'], field: 'name', value: '1A')[0];
+		self::assertContains(needle: $children[1]['ncUserId'], haystack: $firstYear['learnerIds']);
+		self::assertNotEmpty(actual: self::where(rows: $objects['enrolment'], field: 'learnerId', value: $children[1]['ncUserId']));
+
+		$credential = self::where(rows: $objects['credential'], field: 'learnerUserId', value: 'vo-leerling-121');
+		self::assertCount(expectedCount: 1, haystack: $credential);
+		self::assertSame(
+			expected: ['Certificaat rekenen 2F', 'issued'],
+			actual: [$credential[0]['openbadges3Payload']['name'], $credential[0]['lifecycle']]
+		);
+
+		$review = self::where(rows: $objects['peer-review'], field: 'reviewerId', value: 'vo-leerling-121');
+		self::assertCount(expectedCount: 1, haystack: $review);
+		$work = self::where(rows: $objects['submission'], field: 'uuid', value: $review[0]['submissionId']);
+		self::assertCount(expectedCount: 1, haystack: $work);
+		self::assertNotContains(needle: 'vo-leerling-121', haystack: $work[0]['learnerIds']);
+
+		$bank = self::where(rows: $objects['item-bank'], field: 'name', value: 'Nederlands onderbouw');
+		self::assertCount(expectedCount: 1, haystack: $bank);
+		self::assertCount(expectedCount: 48, haystack: $bank[0]['itemIds']);
+		$items = self::where(rows: $objects['item'], field: 'itemBankId', value: $bank[0]['uuid']);
+		self::assertSame(expected: $bank[0]['itemIds'], actual: array_column(array: $items, column_key: 'uuid'));
+	}//end testTheGuardianCertificatePeerReviewAndItemBankBoardsFindTheirRecords()
 }//end class

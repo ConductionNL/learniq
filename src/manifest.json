@@ -273,7 +273,13 @@
         "app": "learniq",
         "title": "Marketplace",
         "description": "Find courses other schools share and install your own copy. Every course here carries an open licence and the name of its maker.",
-        "publishRoute": "CoursePackageExport"
+        "publishRoute": "CoursePackageExport",
+        "kindLenses": [
+          {
+            "kind": "course-package",
+            "label": "Course package"
+          }
+        ]
       },
       "_note": "ADR-114 Decision 4 / ADR-080, lesson-sharing-via-store-plane. CnStorePage calls learniq's own StoreController: search through OpenRegister's store plane, install as a copy through CoursePackageImportService. store-rights-for-teachers (D27): src/main.js writes canInstall and canPublish from the storeAccess initial state into this config, and publishRoute sends Publish to the export screen, where the sharing gate runs; a CnStorePage without those props (before nextcloud-vue #1268 is released) keeps Install admin-only. With no registry configured the page says so and makes no network call."
     },

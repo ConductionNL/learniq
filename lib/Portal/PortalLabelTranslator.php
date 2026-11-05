@@ -76,6 +76,11 @@ class PortalLabelTranslator {
 		'titleTemplate',
 		// A link or QR column's words for its link (portaliq link-field-qr-code).
 		'linkLabel',
+		// A documents block's line beside its heading, its words when empty and a page's
+		// opening text (portaliq documents-for-each-record, guardian-reports-and-documents).
+		'subtitle',
+		'emptyLabel',
+		'markdown',
 	];
 
 	/**
