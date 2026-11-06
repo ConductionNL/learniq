@@ -9,7 +9,13 @@
  @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 -->
 <template>
-	<CnEmptyContent :name="heading" :description="text" :error="state === 'down'" role="status" data-testid="open-material-state">
+	<CnWidgetEmptyState
+		size="card"
+		:name="heading"
+		:description="text"
+		:variant="state === 'down' ? 'error' : 'neutral'"
+		role="status"
+		data-testid="open-material-state">
 		<template #icon>
 			<component :is="icon" :size="24" />
 		</template>
@@ -27,11 +33,11 @@ v-for="action in actions"
 				{{ foot }}
 			</p>
 		</template>
-	</CnEmptyContent>
+	</CnWidgetEmptyState>
 </template>
 
 <script>
-import { CnEmptyContent } from '@conduction/nextcloud-vue'
+import { CnWidgetEmptyState } from '@conduction/nextcloud-vue'
 import { NcButton } from '@nextcloud/vue'
 import AlertOutline from 'vue-material-design-icons/AlertOutline.vue'
 import Magnify from 'vue-material-design-icons/Magnify.vue'
@@ -39,7 +45,7 @@ import Magnify from 'vue-material-design-icons/Magnify.vue'
 export default {
 	name: 'OpenMaterialState',
 
-	components: { CnEmptyContent, NcButton },
+	components: { CnWidgetEmptyState, NcButton },
 
 	props: {
 		/** idle, empty or down. */
