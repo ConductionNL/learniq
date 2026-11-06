@@ -159,3 +159,20 @@ describe('body section coverage', () => {
 		)
 	})
 })
+
+describe('widgets inside a tab', () => {
+	test('a widget a tab shows has a type that resolves, never "custom"', () => {
+		// A tab panel looks the widget up by its type in the registry; the
+		// `component` of a type:"custom" widget is only read through a page slot,
+		// which a tab does not forward, so the panel renders empty.
+		const fragments = fs.readdirSync(path.join(ROOT, 'src/manifest.d')).filter((n) => n.endsWith('.json'))
+		const docs = [readJson('src/manifest.json'), ...fragments.map((name) => readJson(`src/manifest.d/${name}`))]
+		const blank = docs.flatMap((doc) => (doc.pages ?? []).flatMap((page) => {
+			const widgets = page.config?.widgets ?? []
+			const tabbed = widgets.filter((w) => w.type === 'tabs').flatMap((w) => w.content?.tabs ?? [])
+			const ids = new Set(tabbed.flatMap((tab) => [tab.widgetId, ...(tab.widgetIds ?? [])]))
+			return widgets.filter((w) => ids.has(w.id) && w.type === 'custom').map((w) => `${page.id}/${w.id}`)
+		}))
+		assert.deepEqual(blank, [])
+	})
+})
