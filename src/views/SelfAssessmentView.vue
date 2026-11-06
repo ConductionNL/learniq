@@ -367,7 +367,7 @@ export default {
 		async loadExistingSelfAssessment(submissionId) {
 			const uid = getCurrentUser()?.uid ?? ''
 			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/self-assessment?filters[submissionId]=${submissionId}&filters[learnerId]=${uid}&_limit=1`,
+				`/apps/openregister/api/objects/learniq/self-assessment?submissionId=${submissionId}&learnerId=${uid}&_limit=1`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },

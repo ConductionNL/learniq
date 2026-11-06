@@ -16,11 +16,11 @@
   Talks only to OpenRegister's REST API:
     - GET  /api/objects/learniq/Portfolio/:id
     - GET  /api/objects/learniq/portfolio-template/:id           (when templateId set)
-    - GET  /api/objects/learniq/portfolio-entry?filters[portfolioId]=:id
-    - GET  /api/objects/learniq/Submission?filters[learnerIds]=:learnerId
-    - GET  /api/objects/learniq/werkproces-assessment?filters[...]
-    - GET  /api/objects/learniq/external-training-record?filters[learnerUserId]=:learnerId
-    - GET  /api/objects/learniq/Credential?filters[learnerUserId]=:learnerId
+    - GET  /api/objects/learniq/portfolio-entry?portfolioId=:id
+    - GET  /api/objects/learniq/Submission?learnerIds=:learnerId
+    - GET  /api/objects/learniq/werkproces-assessment?learnerId=:learnerId
+    - GET  /api/objects/learniq/external-training-record?learnerUserId=:learnerId
+    - GET  /api/objects/learniq/Credential?learnerUserId=:learnerId
     - POST /api/objects/learniq/portfolio-entry
     - POST /api/objects/:id/transition           ({ action: 'submit' })
 
@@ -521,7 +521,7 @@ export default {
 		async loadEntries(portfolioId) {
 			this.entries = await this.fetchList(
 				'portfolio-entry',
-				`filters[portfolioId]=${portfolioId}&_limit=100`,
+				`portfolioId=${portfolioId}&_limit=100`,
 			)
 		},
 
@@ -546,7 +546,7 @@ export default {
 				if (kind === 'submission') {
 					const rows = await this.fetchList(
 						'Submission',
-						`filters[learnerIds]=${uid}&_limit=100`,
+						`learnerIds=${uid}&_limit=100`,
 					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,
@@ -557,7 +557,7 @@ export default {
 				} else if (kind === 'werkproces-assessment') {
 					const rows = await this.fetchList(
 						kind,
-						`filters[learnerId]=${uid}&_limit=100`,
+						`learnerId=${uid}&_limit=100`,
 					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,
@@ -568,7 +568,7 @@ export default {
 						kind,
 						// ExternalTrainingRecord.learnerId is the LearnerProfile
 						// uuid; the learner's user id is on learnerUserId.
-						`filters[learnerUserId]=${uid}&_limit=100`,
+						`learnerUserId=${uid}&_limit=100`,
 					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,
@@ -579,7 +579,7 @@ export default {
 						'Credential',
 						// Credential.learnerId is the LearnerProfile uuid; the
 						// learner's user id is on learnerUserId.
-						`filters[learnerUserId]=${uid}&_limit=100`,
+						`learnerUserId=${uid}&_limit=100`,
 					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,

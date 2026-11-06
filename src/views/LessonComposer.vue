@@ -527,7 +527,7 @@ export default {
 				// shown in place among the blocks (teacher-notes-protection).
 				this.loadedNotes = await this.fetchList(
 					TEACHER_NOTE_SCHEMA,
-					`filters[lessonId]=${this.lessonId}&_limit=500`,
+					`lessonId=${this.lessonId}&_limit=500`,
 				)
 				this.blocks = mergeTeacherNotes(
 					this.lesson.blocks || [],
@@ -553,23 +553,23 @@ export default {
 				] = await Promise.all([
 					this.fetchList(
 						'Material',
-						`filters[lessonId]=${this.lessonId}&_limit=200`,
+						`lessonId=${this.lessonId}&_limit=200`,
 					),
 					this.fetchList(
 						'exam',
-						`filters[courseId]=${this.courseId}&_limit=200`,
+						`courseId=${this.courseId}&_limit=200`,
 					),
 					this.fetchList(
 						'Assignment',
-						`filters[courseId]=${this.courseId}&_limit=200`,
+						`courseId=${this.courseId}&_limit=200`,
 					),
 					this.fetchList(
 						'lti-tool-placement',
-						`filters[courseId]=${this.courseId}&_limit=200`,
+						`courseId=${this.courseId}&_limit=200`,
 					),
 					this.fetchList(
 						'Lesson',
-						`filters[courseId]=${this.courseId}&_limit=500`,
+						`courseId=${this.courseId}&_limit=500`,
 					),
 				])
 				this.materials = materials

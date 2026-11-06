@@ -116,7 +116,7 @@ export default {
 		try {
 			const [panel, list] = await Promise.all([
 				axios.get(generateUrl(OPEN_MATERIAL_API + '/panel'), { params: { courseId: this.objectId } }),
-				axios.get(generateUrl('/apps/openregister/api/objects/learniq/material'), { params: { 'filters[courseId]': this.objectId, _limit: 200 } }),
+				axios.get(generateUrl('/apps/openregister/api/objects/learniq/material'), { params: { courseId: this.objectId, _limit: 200 } }),
 			])
 			this.panel = panel.data || {}
 			this.materials = list.data?.results ?? list.data?.objects ?? []
