@@ -48,7 +48,7 @@ class PresentationLessonReader {
 	 *
 	 * @var string
 	 */
-	public const EXTRACTOR = 'OCA\\OpenRegister\\Service\\TextExtraction\\PresentationExtractor';
+	public const EXTRACTOR = 'OCA\\OpenRegister\\Files\\Service\\TextExtraction\\PresentationExtractor';
 
 	/**
 	 * Constructor.

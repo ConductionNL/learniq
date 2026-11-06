@@ -51,7 +51,7 @@ class OfficeLessonExtractor {
 	 *
 	 * @var string
 	 */
-	public const WORD_EXTRACTOR = 'OCA\\OpenRegister\\Service\\TextExtraction\\WordExtractor';
+	public const WORD_EXTRACTOR = 'OCA\\OpenRegister\\Files\\Service\\TextExtraction\\WordExtractor';
 
 	/**
 	 * Structured Word reader.
