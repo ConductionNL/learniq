@@ -53,6 +53,8 @@ test('collections, levels and file types read as names', () => {
 	assert.equal(levelName('BVE'), 'mbo')
 	assert.equal(collectionName('wikiwijsmaken'), 'Wikiwijs Maken')
 	assert.equal(collectionName('aeres'), 'aeres')
+	assert.equal(collectionName('krantindeklas'), 'Nieuws in de klas')
+	assert.equal(levelName('HO'), 'ho')
 	assert.equal(formatName('application/x-Wikiwijs-Arrangement'), 'Wikiwijs-arrangement')
 	assert.equal(formatName('video/H264'), 'video')
 })
