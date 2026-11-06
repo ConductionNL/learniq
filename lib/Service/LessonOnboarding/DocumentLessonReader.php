@@ -53,7 +53,7 @@ class DocumentLessonReader {
 	 *
 	 * @var string
 	 */
-	public const EXTRACTOR = 'OCA\\OpenRegister\\Service\\TextExtraction\\DocumentExtractor';
+	public const EXTRACTOR = 'OCA\\OpenRegister\\Files\\Service\\TextExtraction\\DocumentExtractor';
 
 	/**
 	 * Constructor.
