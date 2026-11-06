@@ -15,7 +15,7 @@
 
   Talks only to OpenRegister's REST API:
     - GET  /api/objects/learniq/Portfolio/:id
-    - GET  /api/objects/learniq/portfolio-entry?filters[portfolioId]=:id
+    - GET  /api/objects/learniq/portfolio-entry?portfolioId=:id
     - GET  /api/objects/learniq/Submission/:id                  (per submission-kind entry)
     - GET  /api/objects/learniq/werkproces-assessment/:id        (per werkproces-assessment-kind entry)
     - GET  /api/objects/learniq/external-training-record/:id      (per external-training-record-kind entry)
@@ -278,7 +278,7 @@ export default {
 
 				this.entries = await this.fetchList(
 					'portfolio-entry',
-					`filters[portfolioId]=${portfolioId}&_limit=100`,
+					`portfolioId=${portfolioId}&_limit=100`,
 				)
 				await this.resolveEntryReferences()
 			} catch (err) {
