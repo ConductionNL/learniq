@@ -98,7 +98,7 @@ import { NcButton, NcCheckboxRadioSwitch, NcNoteCard, NcTextField } from '@nextc
 import OpenMaterialDetail from '../components/openMaterial/OpenMaterialDetail.vue'
 import OpenMaterialResultCard from '../components/openMaterial/OpenMaterialResultCard.vue'
 import OpenMaterialState from '../components/openMaterial/OpenMaterialState.vue'
-import { addMaterial, collectionName, facetRows, formatName, licenceLabel, loadPanel, searchMaterial } from '../services/openMaterial.js'
+import { addMaterial, collectionName, facetRows, formatName, levelName, licenceLabel, loadPanel, searchMaterial } from '../services/openMaterial.js'
 
 export default {
 	name: 'OpenMaterialSearchModal',
@@ -339,7 +339,7 @@ export default {
 				BVE: 'mbo',
 				HBO: 'hbo',
 				WO: 'wo',
-			}[code] || code
+			}[code] || levelName(code)
 		},
 	},
 }
