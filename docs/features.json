@@ -207,5 +207,14 @@
     "docsUrl": "openspec/specs/edci-and-europass-credentials/spec.md",
     "title_nl": "EDCI- en Europass-credentials",
     "summary_nl": "Geef Europese diplomacredentials uit naast badges."
+  },
+  {
+    "slug": "open-learning-material",
+    "title": "Open learning material",
+    "summary": "Search Edurep (Wikiwijs, Schooltv, SURFsharekit) from a lesson and add a result with its licence and makers.",
+    "status": "soon",
+    "docsUrl": "openspec/specs/open-learning-material/spec.md",
+    "title_nl": "Open lesmateriaal",
+    "summary_nl": "Zoek in Edurep (Wikiwijs, Schooltv, SURFsharekit) vanuit een les en voeg een resultaat toe met licentie en makers."
   }
 ]

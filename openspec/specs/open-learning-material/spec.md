@@ -111,7 +111,11 @@ NTR or NPO terms were reachable. The result card and the Material card say "spee
 The panel (`LqOpenLesmateriaal`) MUST show the query, the result count, result cards with title,
 description, licence badge, makers, collection, level, file type and year, the buttons Toevoegen (as link or
 as copy, as the rules decide), Details en licentie and Bekijk bij de bron, and pagination. Filters MUST show
-counts from the source's facets. The panel MUST render the three states on `LqOpenLesmateriaalStaten`: not
+counts from the source's facets. A filter group's counts MUST leave out that group's own filter, so every
+option stays visible and can be ticked again. Levels are ticked to narrow; licences, collections and file
+types start ticked and unticking one leaves out only that one. KlasCement keeps its row while it is off, and
+a chosen option the source no longer counts keeps a row with count 0. File types that read the same, such as
+the two Word formats, share one row. Turning a page asks for no new counts. The panel MUST render the three states on `LqOpenLesmateriaalStaten`: not
 searched yet (suggestions from the course), nothing found (fewer words, filters off, include KlasCement),
 and source unreachable (retry; own files keep working; the administrator sees the status under
 Koppelingen). The result detail (`LqOpenLesmateriaalDetail`) MUST explain the licence in plain Dutch and
@@ -124,6 +128,12 @@ state whether adding makes a link or a copy before the teacher confirms.
 - **WHEN** she clicks Zoek open lesmateriaal and searches "betoog"
 - **THEN** the panel lists results from Edurep with the school's level preselected and KlasCement off
 - **AND** choosing Toevoegen als koppeling on a CC BY 4.0 record puts the new Material in the media block
+
+#### Scenario: Options stay visible while a filter is on
+- **GIVEN** a teacher at a VO school whose search for "betoog" shows level VO ticked and KlasCement unticked
+- **WHEN** she looks at the filters
+- **THEN** the other levels and KlasCement show with their counts and can be ticked
+- **AND** unticking CC BY-NC-ND 3.0 takes 210 results to 201, and its row stays so she can tick it again
 
 #### Scenario: Edurep does not answer
 - **GIVEN** the integriq source returns a timeout

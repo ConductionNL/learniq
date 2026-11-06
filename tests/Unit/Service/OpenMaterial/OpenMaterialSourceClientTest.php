@@ -61,10 +61,10 @@ class OpenMaterialSourceClientTest extends TestCase {
 			}
 		);
 
-		$result = $client->search(request: ['query' => 'betoog', 'filters' => ['levels' => ['VO'], 'collections' => ['wikiwijsmaken']], 'page' => 2]);
+		$result = $client->search(request: ['query' => 'betoog', 'filters' => ['levels' => ['VO'], 'collections' => ['wikiwijsmaken']], 'page' => 2, 'facets' => false]);
 
 		$this->assertSame(
-			expected: ['learniq', ['source' => 'edurep', 'operation' => 'search', 'query' => 'betoog', 'filters' => ['levels' => ['VO'], 'collection' => ['wikiwijsmaken'], 'pageSize' => 10], 'page' => 2]],
+			expected: ['learniq', ['source' => 'edurep', 'operation' => 'search', 'query' => 'betoog', 'filters' => ['levels' => ['VO'], 'collection' => ['wikiwijsmaken'], 'pageSize' => 10, 'facets' => false], 'page' => 2]],
 			actual: $seen
 		);
 		$this->assertSame(expected: 242, actual: $result['total']);

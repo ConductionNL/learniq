@@ -21,6 +21,14 @@ export const FACETS = {
 	formats: 'lom.technical.format',
 }
 
+/** The search state list each filter group keeps: ticked levels, unticked everything else. */
+export const FILTER_KEYS = {
+	levels: 'levels',
+	licenses: 'excludeLicenses',
+	collections: 'excludeCollections',
+	formats: 'excludeFormats',
+}
+
 /** Readable collection names; anything else shows as the source names it. */
 const COLLECTION_NAMES = {
 	wikiwijsmaken: 'Wikiwijs Maken',
@@ -134,7 +142,7 @@ export function licenceFromFacet(value) {
 	if (match) {
 		return 'CC-BY' + match[1].toUpperCase() + '-' + match[2] + '.' + match[3]
 	}
-	return { cc0: 'CC0-1.0', pdm: 'PDM' }[value] || ''
+	return { 'cc0-10': 'CC0-1.0', 'pdm-10': 'PDM' }[value] || ''
 }
 
 /**
@@ -210,30 +218,64 @@ export function resultNote(record) {
 }
 
 /**
- * Facet rows for the filter panel: value, label code, count and whether it can filter.
+ * Merge the facet entries that read the same, keeping every source value behind the row.
+ *
+ * @param {Array<{value: string, count: number}>} entries The facet entries.
+ * @param {function(string): string} nameOf The row a value belongs to.
+ * @return {Array<{value: string, values: Array<string>, count: number, filterable: boolean}>} The rows.
+ */
+function mergedRows(entries, nameOf) {
+	const rows = new Map()
+	entries.forEach(({ value, count }) => {
+		const name = nameOf(value)
+		const row = rows.get(name) || { value, values: [], count: 0, filterable: value !== '' }
+		row.count += count
+		row.values = row.values.includes(value) ? row.values : [...row.values, value]
+		rows.set(name, row)
+	})
+	return [...rows.values()]
+}
+
+/**
+ * Facet rows for the filter panel: value, the source values behind it, count and whether it can filter.
+ * A chosen value the source no longer counts keeps a row, so it can be changed back.
  *
  * @param {object} facets The search result's facets.
  * @param {string} filter levels, licenses, collections or formats.
- * @return {Array<{value: string, count: number, filterable: boolean}>} The rows.
+ * @param {Array<string>} chosen The group's list in the search state.
+ * @return {Array<{value: string, values: Array<string>, count: number, filterable: boolean}>} The rows.
  * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
  */
-export function facetRows(facets, filter) {
-	const rows = (facets?.[FACETS[filter]] || []).map((entry) => ({
+export function facetRows(facets, filter, chosen = []) {
+	const counted = (facets?.[FACETS[filter]] || []).map((entry) => ({
 		value: filter === 'licenses' ? licenceFromFacet(entry.value) : String(entry.value),
 		count: Number(entry.count) || 0,
 	}))
-	if (filter !== 'licenses') {
-		return rows.map((row) => ({ ...row, filterable: true }))
+	const missing = chosen.filter((value) => !counted.some((entry) => entry.value === value))
+	const entries = [...counted, ...missing.map((value) => ({ value, count: 0 }))]
+	const rows = mergedRows(entries, filter === 'formats' ? formatName : (value) => value)
+	return [...rows.filter((row) => row.filterable), ...rows.filter((row) => !row.filterable)]
+}
+
+/**
+ * A group's list after clicking a row: its values leave the list, or join it when none is in.
+ *
+ * @param {Array<string>} list The group's list in the search state.
+ * @param {Array<string>} values The row's source values.
+ * @return {Array<string>} The new list.
+ * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
+ */
+export function toggledValues(list, values) {
+	if (values.some((value) => list.includes(value))) {
+		return list.filter((value) => !values.includes(value))
 	}
-	const open = rows.filter((row) => row.value !== '').map((row) => ({ ...row, filterable: true }))
-	const closed = rows.filter((row) => row.value === '').reduce((sum, row) => sum + row.count, 0)
-	return closed > 0 ? [...open, { value: '', count: closed, filterable: false }] : open
+	return [...list, ...values]
 }
 
 /**
  * The query parameters of one search.
  *
- * @param {object} state query, page and the chosen filters.
+ * @param {object} state query, page, the chosen filters and facets, false to leave the counts out.
  * @return {object} The parameters for GET /search.
  * @spec openspec/specs/open-learning-material/spec.md#scenario-a-teacher-searches-from-the-lesson-editor
  */
@@ -242,10 +284,11 @@ export function searchParams(state) {
 		query: String(state.query || '').trim(),
 		page: state.page || 1,
 		levels: state.levels || [],
-		licenses: state.licenses || [],
-		formats: state.formats || [],
+		excludeLicenses: state.excludeLicenses || [],
+		excludeFormats: state.excludeFormats || [],
 		excludeCollections: state.excludeCollections || [],
 		includeCollectionsOff: 'true',
+		facets: state.facets !== false,
 	}
 }
 

@@ -98,7 +98,7 @@ import { NcButton, NcCheckboxRadioSwitch, NcNoteCard, NcTextField } from '@nextc
 import OpenMaterialDetail from '../components/openMaterial/OpenMaterialDetail.vue'
 import OpenMaterialResultCard from '../components/openMaterial/OpenMaterialResultCard.vue'
 import OpenMaterialState from '../components/openMaterial/OpenMaterialState.vue'
-import { addMaterial, collectionName, facetRows, formatName, levelName, licenceLabel, loadPanel, searchMaterial } from '../services/openMaterial.js'
+import { addMaterial, collectionName, facetRows, FILTER_KEYS, formatName, levelName, licenceLabel, loadPanel, searchMaterial, toggledValues } from '../services/openMaterial.js'
 
 export default {
 	name: 'OpenMaterialSearchModal',
@@ -122,8 +122,8 @@ export default {
 			searched: '',
 			page: 1,
 			levels: [],
-			licenses: [],
-			formats: [],
+			excludeLicenses: [],
+			excludeFormats: [],
 			excludeCollections: [],
 			collectionsOff: [],
 			result: null,
@@ -184,11 +184,15 @@ export default {
 		 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 		 */
 		facetGroups() {
+			const facets = this.result?.facets
+			if (!facets) {
+				return []
+			}
 			const titles = { levels: this.t('learniq', 'Level'), licenses: this.t('learniq', 'Licence'), collections: this.t('learniq', 'Collection'), formats: this.t('learniq', 'File type') }
 			return Object.keys(titles).map((filter) => ({
 				filter,
 				title: titles[filter],
-				rows: facetRows(this.result?.facets, filter).map((row) => ({ ...row, label: this.facetLabel(filter, row.value) })),
+				rows: facetRows(facets, filter, this[FILTER_KEYS[filter]]).map((row) => ({ ...row, label: this.facetLabel(filter, row.value) })),
 			})).filter((group) => group.rows.length > 0)
 		},
 	},
@@ -210,7 +214,7 @@ export default {
 
 	methods: {
 		/**
-		 * Search one page.
+		 * Search one page. Turning a page of the same search keeps the counts it already has.
 		 *
 		 * @param {number} page The page.
 		 * @return {Promise<void>}
@@ -220,9 +224,11 @@ export default {
 			this.loading = true
 			this.refusal = ''
 			this.page = page
+			const keepFacets = page > 1 && this.query.trim() === this.searched
 			this.searched = this.query.trim()
 			try {
-				this.result = await searchMaterial(axios, generateUrl, this.$data)
+				const found = await searchMaterial(axios, generateUrl, { ...this.$data, facets: !keepFacets })
+				this.result = keepFacets ? { ...found, facets: this.result?.facets } : found
 				this.state = this.total > 0 ? 'results' : 'empty'
 			} catch {
 				this.state = 'down'
@@ -260,13 +266,8 @@ export default {
 		 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 		 */
 		isOn(filter, row) {
-			if (filter === 'collections') {
-				return !this.excludeCollections.includes(row.value)
-			}
-			if (filter === 'levels') {
-				return this.levels.includes(row.value)
-			}
-			return this[filter].length === 0 || this[filter].includes(row.value)
+			const listed = row.values.some((value) => this[FILTER_KEYS[filter]].includes(value))
+			return filter === 'levels' ? listed : !listed
 		},
 
 		/**
@@ -278,11 +279,7 @@ export default {
 		 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 		 */
 		toggle(filter, row) {
-			const key = filter === 'collections' ? 'excludeCollections' : filter
-			const all = facetRows(this.result?.facets, filter).filter((r) => r.filterable).map((r) => r.value)
-			const current = this[key].length === 0 && ['licenses', 'formats'].includes(filter) ? all : this[key]
-			const next = current.includes(row.value) ? current.filter((v) => v !== row.value) : [...current, row.value]
-			this[key] = ['licenses', 'formats'].includes(filter) && next.length === all.length ? [] : next
+			this[FILTER_KEYS[filter]] = toggledValues(this[FILTER_KEYS[filter]], row.values)
 			return this.search(1)
 		},
 
@@ -299,7 +296,7 @@ export default {
 				this.query = action.value
 			}
 			if (action.id === 'filters-off') {
-				Object.assign(this, { levels: [], licenses: [], formats: [], excludeCollections: [...this.collectionsOff] })
+				Object.assign(this, { levels: [], excludeLicenses: [], excludeFormats: [], excludeCollections: [...this.collectionsOff] })
 			}
 			if (action.id === 'collections-on') {
 				this.excludeCollections = []

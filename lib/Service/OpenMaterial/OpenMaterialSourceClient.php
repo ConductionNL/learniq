@@ -95,7 +95,7 @@ class OpenMaterialSourceClient {
 	/**
 	 * Search the source.
 	 *
-	 * @param array{query: string, filters: array<string, array<int, string>>, page: int} $request The search.
+	 * @param array{query: string, filters: array<string, array<int, string>>, page: int, facets?: bool} $request The search.
 	 *
 	 * @return array<string, mixed> The search result: total, page, pageSize, records, facets.
 	 *
@@ -107,6 +107,7 @@ class OpenMaterialSourceClient {
 		$filters = $request['filters'];
 		$filters['collection'] = ($filters['collections'] ?? []);
 		$filters['pageSize']   = self::PAGE_SIZE;
+		$filters['facets']     = ($request['facets'] ?? true);
 		unset($filters['collections']);
 
 		$answer = $this->ask(request: ['operation' => 'search', 'query' => $request['query'], 'filters' => $filters, 'page' => $request['page']]);

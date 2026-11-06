@@ -213,15 +213,16 @@ class OpenMaterialController extends Controller {
 	/**
 	 * The search request from the query string.
 	 *
-	 * @return array<string, mixed> query, page, filters and includeCollectionsOff.
+	 * @return array<string, mixed> query, page, filters, includeCollectionsOff and facets.
 	 */
 	private function searchRequest(): array {
 		$request = ['query' => (string)$this->request->getParam('query', ''), 'page' => (int)$this->request->getParam('page', 1)];
-		foreach (['levels', 'licenses', 'collections', 'formats', 'excludeCollections'] as $name) {
+		foreach (['levels', 'licenses', 'collections', 'formats', 'excludeLicenses', 'excludeFormats', 'excludeCollections'] as $name) {
 			$request[$name] = (array)$this->request->getParam($name, []);
 		}
 
 		$request['includeCollectionsOff'] = in_array($this->request->getParam('includeCollectionsOff', ''), ['1', 'true', true], true);
+		$request['facets'] = in_array($this->request->getParam('facets', 'true'), ['0', 'false', false], true) === false;
 
 		return $request;
 	}//end searchRequest()
