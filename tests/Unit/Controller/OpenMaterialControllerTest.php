@@ -117,6 +117,38 @@ class OpenMaterialControllerTest extends TestCase {
 		$this->assertSame(expected: Http::STATUS_FORBIDDEN, actual: $this->controller(['enabled' => false])->search()->getStatus());
 	}//end testASwitchedOffSourceIsNotSearched()
 
+	public function testASearchReadsTheUntickedFiltersAndTheCountsSwitch(): void {
+		$this->params = ['query' => 'betoog', 'excludeLicenses' => ['CC-BY-3.0'], 'excludeFormats' => ['application/pdf'], 'facets' => 'false'];
+		$sent         = null;
+		$this->search->method('search')->willReturnCallback(
+			static function (array $request) use (&$sent): array {
+				$sent = $request;
+				return ['total' => 0];
+			}
+		);
+
+		$this->controller()->search();
+
+		$this->assertSame(expected: ['CC-BY-3.0'], actual: $sent['excludeLicenses']);
+		$this->assertSame(expected: ['application/pdf'], actual: $sent['excludeFormats']);
+		$this->assertFalse(condition: $sent['facets']);
+	}//end testASearchReadsTheUntickedFiltersAndTheCountsSwitch()
+
+	public function testASearchAsksForCountsUnlessToldNot(): void {
+		$this->params = ['query' => 'betoog'];
+		$sent         = null;
+		$this->search->method('search')->willReturnCallback(
+			static function (array $request) use (&$sent): array {
+				$sent = $request;
+				return ['total' => 0];
+			}
+		);
+
+		$this->controller()->search();
+
+		$this->assertTrue(condition: $sent['facets']);
+	}//end testASearchAsksForCountsUnlessToldNot()
+
 	public function testASourceThatDoesNotAnswerIs503(): void {
 		$this->search->method('search')->willThrowException(new IntegriqUnavailableException('Edurep did not answer.'));
 

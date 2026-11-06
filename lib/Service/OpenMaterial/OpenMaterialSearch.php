@@ -59,7 +59,7 @@ class OpenMaterialSearch {
 	/**
 	 * The filters a teacher may set, each a list of values.
 	 */
-	private const FILTERS = ['levels', 'licenses', 'collections', 'formats'];
+	private const FILTERS = ['levels', 'licenses', 'collections', 'formats', 'excludeLicenses', 'excludeFormats'];
 
 	/**
 	 * Constructor.
@@ -126,7 +126,7 @@ class OpenMaterialSearch {
 	/**
 	 * Search the source and decide on every record.
 	 *
-	 * @param array<string, mixed> $request query, page, the filter lists and includeCollectionsOff.
+	 * @param array<string, mixed> $request query, page, the filter lists, includeCollectionsOff and facets.
 	 *
 	 * @return array<string, mixed> The search result with a decision per record.
 	 *
@@ -139,6 +139,7 @@ class OpenMaterialSearch {
 			'query'   => trim((string)($request['query'] ?? '')),
 			'filters' => $this->filters(request: $request),
 			'page'    => max(1, (int)($request['page'] ?? 1)),
+			'facets'  => (($request['facets'] ?? true) !== false),
 		];
 		$result = $this->reported(call: fn (): array => $this->client->search(request: $query));
 		$result['records'] = array_map(fn (array $record): array => $this->imports->withDecision(record: $record), (array)($result['records'] ?? []));

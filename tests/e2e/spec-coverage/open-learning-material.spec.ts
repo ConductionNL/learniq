@@ -5,6 +5,7 @@
  *
  * Covers (UI-observable surface):
  *   @e2e openspec/specs/open-learning-material/spec.md#scenario-a-teacher-searches-from-the-lesson-editor
+ *   @e2e openspec/specs/open-learning-material/spec.md#scenario-options-stay-visible-while-a-filter-is-on
  *   @e2e openspec/specs/open-learning-material/spec.md#scenario-edurep-does-not-answer
  *
  * The source is integriq's Edurep adapter, which this suite never calls: the
@@ -112,6 +113,41 @@ test.describe('open-learning-material — the search panel in the lesson editor'
 		await page.getByTestId('open-material-add').click()
 		await expect(page.getByTestId('open-material-search')).toBeHidden()
 		await expect(page.getByTestId('material-attribution').first()).toContainText('Kirstin Beekman')
+	})
+
+	test('options stay visible and can be ticked again while a filter is on', async ({ loggedInPage: page }) => {
+		const lesson = await findLesson(page)
+		requireFixture(lesson, 'a Lesson that belongs to a course')
+		await servePanel(page)
+		const asked: URLSearchParams[] = []
+		await page.route('**/apps/learniq/api/open-material/search**', (route) => {
+			asked.push(new URL(route.request().url()).searchParams)
+			return route.fulfill({
+				json: {
+					total: 1,
+					page: 1,
+					pageSize: 10,
+					records: [WIKIWIJS],
+					facets: {
+						'lom.educational.context': [{ value: 'VO', count: 13 }, { value: 'WO', count: 15 }],
+						'lom.rights.copyrightandotherrestrictions': [{ value: 'cc-by-40', count: 36 }],
+						'meta.repository.id': [{ value: 'wikiwijsmaken', count: 35 }, { value: 'KlasCement', count: 25 }],
+					},
+				},
+			})
+		})
+
+		await openSearch(page, lesson as { id: string, courseId: string })
+		await page.getByTestId('open-material-query').locator('input').fill('betoog')
+		await page.getByRole('button', { name: 'Search', exact: true }).click()
+
+		const filters = page.getByRole('complementary', { name: 'Filters' })
+		await expect(filters.getByText('KlasCement (Flanders)')).toBeVisible()
+		await filters.getByText('CC BY 4.0').click()
+		await expect(filters.getByText('CC BY 4.0')).toBeVisible()
+		await expect.poll(() => asked.at(-1)?.getAll('excludeLicenses[]')).toEqual(['CC-BY-4.0'])
+		await filters.getByText('CC BY 4.0').click()
+		await expect.poll(() => asked.at(-1)?.getAll('excludeLicenses[]')).toEqual([])
 	})
 
 	test('when Edurep does not answer, the panel says so and offers a retry', async ({ loggedInPage: page }) => {

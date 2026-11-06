@@ -101,9 +101,24 @@ class OpenMaterialSearchTest extends TestCase {
 
 		$result = $this->search()->search(request: ['query' => ' betoog ', 'levels' => ['VO']]);
 
-		$this->assertSame(expected: ['query' => 'betoog', 'filters' => ['levels' => ['VO'], 'excludeCollections' => ['KlasCement']], 'page' => 1], actual: $sent);
+		$this->assertSame(expected: ['query' => 'betoog', 'filters' => ['levels' => ['VO'], 'excludeCollections' => ['KlasCement']], 'page' => 1, 'facets' => true], actual: $sent);
 		$this->assertSame(expected: ['mode' => 'link', 'reason' => 'no-derivatives', 'nonCommercial' => false], actual: $result['records'][0]['decision']);
 	}//end testASearchLeavesKlasCementOutAndDecidesOnEveryRecord()
+
+	public function testUntickedLicencesAndFormatsAndAPageWithoutCountsReachTheClient(): void {
+		$sent = null;
+		$this->client->method('search')->willReturnCallback(
+			static function (array $request) use (&$sent): array {
+				$sent = $request;
+				return ['total' => 0, 'records' => []];
+			}
+		);
+
+		$this->search()->search(request: ['query' => 'betoog', 'excludeLicenses' => ['CC-BY-3.0'], 'excludeFormats' => ['application/pdf'], 'includeCollectionsOff' => true, 'facets' => false]);
+
+		$this->assertSame(expected: ['excludeLicenses' => ['CC-BY-3.0'], 'excludeFormats' => ['application/pdf']], actual: $sent['filters']);
+		$this->assertFalse(condition: $sent['facets']);
+	}//end testUntickedLicencesAndFormatsAndAPageWithoutCountsReachTheClient()
 
 	public function testThePanelManagesTheExcludedCollectionsItself(): void {
 		$sent = null;

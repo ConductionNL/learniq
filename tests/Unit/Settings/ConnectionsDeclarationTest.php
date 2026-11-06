@@ -223,10 +223,11 @@ class ConnectionsDeclarationTest extends TestCase {
 	}//end testNoTextCarriesAnEmDash()
 
 	/**
-	 * Every settings link lands on a section the admin page really has.
+	 * Every settings link opens a tab and lands on a section the admin page really has.
 	 *
 	 * A link into a section that does not exist opens the page at the top and
-	 * logs nothing. Gate 116 checks the same rule on the whole of `src/`.
+	 * logs nothing, and without the tab it opens the first tab, where the section
+	 * is not rendered. Gate 116 checks the same rule on the whole of `src/`.
 	 *
 	 * @return void
 	 */
@@ -243,8 +244,13 @@ class ConnectionsDeclarationTest extends TestCase {
 			}
 
 			$url = (string)$connection['settingsUrl'];
-			$this->assertStringStartsWith(prefix: '/settings/admin/learniq#section-', string: $url, message: $connection['key']);
+			$this->assertMatchesRegularExpression(pattern: '~^/settings/admin/learniq\?tab=([a-z-]+)#section-\1$~', string: $url, message: $connection['key']);
 			$anchor = substr($url, (strpos($url, '#') + 1));
+			$this->assertStringContainsString(
+				needle: "{ id: '" . substr($anchor, strlen('section-')) . "',",
+				haystack: $adminPage,
+				message: $connection['key'] . ' links to a missing tab'
+			);
 			$this->assertStringContainsString(
 				needle: 'id="' . $anchor . '"',
 				haystack: $adminPage,
