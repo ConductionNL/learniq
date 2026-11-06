@@ -662,6 +662,7 @@
 			"type": "index",
 			"title": "Courses",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Course"
 			}
@@ -675,65 +676,163 @@
 			"config": {
 				"register": "learniq",
 				"schema": "Course",
+				"_note": "Board LqCursus (G2): the lessons first, then the course as a card with its figures, the other lists as tabs, sharing outside the school beside it. The outline editor (chapters with lessons, move and add inline) is an nc-vue widget still to come.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
+				"headerActions": [
+					{
+						"id": "reissue-certificates",
+						"label": "Reissue certificates",
+						"icon": "CertificateOutline",
+						"type": "navigate",
+						"target": "/courses/@objectId/reissue"
+					},
+					{
+						"id": "preview-as-learner",
+						"label": "Preview as learner",
+						"icon": "EyeOutline",
+						"type": "navigate",
+						"target": "/courses/@objectId/preview"
+					}
+				],
+				"statusPill": {
+					"field": "lifecycle",
+					"labels": {
+						"draft": "Concept",
+						"published": "Published",
+						"archived": "Archived"
+					},
+					"colorMap": {
+						"published": "success"
+					}
+				},
+				"typePill": {
+					"field": "level",
+					"labels": {
+						"po": "Primary education",
+						"vo": "Secondary education",
+						"mbo": "Vocational education",
+						"hbo": "Higher professional education",
+						"wo": "University",
+						"corporate": "Company training"
+					}
+				},
+				"breadcrumb": {
+					"label": "Courses",
+					"route": "Courses"
+				},
+				"titleField": "name",
+				"headerMeta": "{code} · {lessonCount} lessons",
 				"widgets": [
 					{
-						"id": "course-data",
-						"type": "data",
-						"title": "Data",
+						"id": "course-facts",
+						"type": "facts",
+						"title": "Course",
 						"content": {
-							"columns": 2,
-							"include": [
-								"code",
-								"name",
-								"name_nl",
-								"description",
-								"level",
-								"language",
-								"tags",
-								"mandatoryTraining",
-								"certificateTemplate"
-							]
-						},
-						"icon": "School"
-					},
-					{
-						"id": "course-details2",
-						"type": "data",
-						"title": "Curriculum & compliance",
-						"icon": "Sitemap",
-						"content": {
-							"columns": 2,
-							"include": [
-								"regulationSlug",
-								"renewalCourseSlug",
-								"parentCourseId",
-								"curriculumPlanId",
-								"programmeIds"
-							]
-						}
-					},
-					{
-						"id": "course-kpis-lessons",
-						"type": "stats-block",
-						"title": "Lessons",
-						"icon": "ChartBar",
-						"content": {
-							"entries": [
+							"fields": [
 								{
-									"title": "Lessons",
-									"register": "learniq",
-									"schema": "lesson",
-									"metric": "count",
-									"filter": {
-										"courseId": "@objectId"
-									},
-									"route": "LessonIndex"
+									"path": "code",
+									"label": "Code"
+								},
+								{
+									"path": "name",
+									"label": "Name"
+								},
+								{
+									"path": "description",
+									"label": "Description"
+								},
+								{
+									"path": "level",
+									"label": "Level",
+									"map": {
+										"po": "Primary education",
+										"vo": "Secondary education",
+										"mbo": "Vocational education",
+										"hbo": "Higher professional education",
+										"wo": "University",
+										"corporate": "Company training"
+									}
+								},
+								{
+									"path": "subject",
+									"label": "Subject"
+								},
+								{
+									"path": "language",
+									"label": "Language"
+								},
+								{
+									"path": "lessonCount",
+									"label": "Lessons"
+								},
+								{
+									"path": "curriculumPlanId",
+									"label": "Curriculum plan",
+									"resolve": {
+										"register": "learniq",
+										"schema": "curriculum-plan",
+										"labelField": "name"
+									}
+								},
+								{
+									"path": "mandatoryTraining",
+									"label": "Mandatory training",
+									"map": {
+										"true": "Yes",
+										"false": "No"
+									}
 								}
-							]
+							],
+							"columns": 2
 						}
+					},
+					{
+						"id": "course-lessons",
+						"type": "object-list",
+						"title": "Lessons",
+						"content": {
+							"register": "learniq",
+							"schema": "Lesson",
+							"filter": {
+								"courseId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "order",
+									"label": "Order"
+								},
+								{
+									"key": "name",
+									"label": "Name"
+								},
+								{
+									"key": "contentType",
+									"label": "Content Type"
+								},
+								{
+									"key": "durationMinutes",
+									"label": "Duration Minutes"
+								},
+								{
+									"key": "mandatoryTraining",
+									"label": "Mandatory Training"
+								}
+							],
+							"rowRoute": "LessonDetail",
+							"viewAllRoute": "LessonIndex",
+							"viewAllQuery": {
+								"courseId": "@objectId"
+							},
+							"emptyText": "No lessons found."
+						},
+						"icon": "BookOpenVariant"
 					},
 					{
 						"id": "course-kpis-enrolments",
@@ -794,52 +893,6 @@
 								}
 							]
 						}
-					},
-					{
-						"id": "course-lessons",
-						"type": "object-list",
-						"title": "Lessons",
-						"content": {
-							"register": "learniq",
-							"schema": "Lesson",
-							"filter": {
-								"courseId": "@objectId"
-							},
-							"sort": {
-								"field": "id",
-								"dir": "asc"
-							},
-							"limit": 25,
-							"columns": [
-								{
-									"key": "order",
-									"label": "Order"
-								},
-								{
-									"key": "name",
-									"label": "Name"
-								},
-								{
-									"key": "contentType",
-									"label": "Content Type"
-								},
-								{
-									"key": "durationMinutes",
-									"label": "Duration Minutes"
-								},
-								{
-									"key": "mandatoryTraining",
-									"label": "Mandatory Training"
-								}
-							],
-							"rowRoute": "LessonDetail",
-							"viewAllRoute": "LessonIndex",
-							"viewAllQuery": {
-								"courseId": "@objectId"
-							},
-							"emptyText": "No lessons found."
-						},
-						"icon": "BookOpenVariant"
 					},
 					{
 						"id": "course-enrolments",
@@ -1062,177 +1115,196 @@
 						"icon": "ClipboardCheckOutline"
 					},
 					{
-						"id": "course-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
-					},
-					{
 						"id": "course-materials",
 						"type": "integration",
 						"integrationId": "files",
 						"title": "Course materials",
 						"icon": "FolderOutline"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "course-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 5,
-						"showTitle": false
 					},
 					{
-						"id": "2-1",
-						"widgetId": "course-kpis-lessons",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 2,
-						"showTitle": false
+						"id": "course-open-materials",
+						"type": "CourseOpenMaterials",
+						"title": "Learning material",
+						"icon": "BookOpenVariant"
 					},
 					{
-						"id": "2-2",
-						"widgetId": "course-kpis-enrolments",
-						"gridX": 8,
-						"gridY": 2,
-						"gridWidth": 4,
-						"gridHeight": 2,
-						"showTitle": false
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
 					},
 					{
-						"id": "2-3",
-						"widgetId": "course-kpis-assignments",
-						"gridX": 8,
-						"gridY": 4,
-						"gridWidth": 4,
-						"gridHeight": 2,
-						"showTitle": false
-					},
-					{
-						"id": "2-4",
-						"widgetId": "course-kpis-assessments",
-						"gridX": 8,
-						"gridY": 6,
-						"gridWidth": 4,
-						"gridHeight": 2,
-						"showTitle": false
-					},
-					{
-						"id": "3",
-						"widgetId": "course-details2",
-						"gridX": 0,
-						"gridY": 8,
-						"gridWidth": 8,
-						"gridHeight": 4,
-						"showTitle": false
-					},
-					{
-						"id": "4",
-						"widgetId": "course-related",
-						"gridX": 8,
-						"gridY": 8,
-						"gridWidth": 4,
-						"gridHeight": 4,
-						"showTitle": false
-					},
-					{
-						"id": "5",
-						"widgetId": "course-lessons",
-						"gridX": 0,
-						"gridY": 12,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "6",
-						"widgetId": "course-enrolments",
-						"gridX": 6,
-						"gridY": 12,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "7",
-						"widgetId": "course-cohorts",
-						"gridX": 0,
-						"gridY": 17,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "8",
-						"widgetId": "course-assignments",
-						"gridX": 6,
-						"gridY": 17,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "9",
-						"widgetId": "course-sessions",
-						"gridX": 0,
-						"gridY": 22,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "10",
-						"widgetId": "course-assessments",
-						"gridX": 6,
-						"gridY": 22,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "11",
-						"widgetId": "course-materials",
-						"gridX": 0,
-						"gridY": 27,
-						"gridWidth": 12,
-						"gridHeight": 3,
-						"showTitle": false
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
 								{
-									"type": "audit"
+									"label": "Lessons",
+									"widgetId": "course-lessons"
+								},
+								{
+									"label": "Overview",
+									"widgetIds": [
+										"course-kpis-enrolments",
+										"course-kpis-assignments",
+										"course-kpis-assessments",
+										"course-facts"
+									],
+									"columns": 3,
+									"layout": [
+										{
+											"widgetId": "course-facts",
+											"gridWidth": 12
+										}
+									]
+								},
+								{
+									"label": "Enrolments",
+									"widgetId": "course-enrolments"
+								},
+								{
+									"label": "Groups",
+									"widgetId": "course-cohorts"
+								},
+								{
+									"label": "Assignments",
+									"widgetId": "course-assignments"
+								},
+								{
+									"label": "Sessions",
+									"widgetId": "course-sessions"
+								},
+								{
+									"label": "Tests",
+									"widgetId": "course-assessments"
+								},
+								{
+									"label": "Learning material",
+									"widgetId": "course-open-materials"
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
 								}
 							]
 						}
+					}
+				],
+				"sideColumn": [
+					{
+						"id": "course-sharing",
+						"type": "facts",
+						"title": "Sharing outside the school",
+						"content": {
+							"fields": [
+								{
+									"path": "license",
+									"label": "Licence",
+									"map": {
+										"CC0-1.0": "CC0 1.0, public domain",
+										"CC-BY-4.0": "CC BY 4.0, an open licence",
+										"CC-BY-SA-4.0": "CC BY-SA 4.0, an open licence",
+										"CC-BY-NC-4.0": "CC BY-NC 4.0",
+										"CC-BY-NC-SA-4.0": "CC BY-NC-SA 4.0",
+										"CC-BY-ND-4.0": "CC BY-ND 4.0",
+										"CC-BY-NC-ND-4.0": "CC BY-NC-ND 4.0",
+										"all-rights-reserved": "All rights reserved"
+									}
+								},
+								{
+									"path": "author",
+									"label": "Author"
+								},
+								{
+									"as": "line",
+									"text": "A course only goes outside the school with an open licence, an author, open lesson material and your confirmation that it holds no learner data and the rights are settled."
+								}
+							]
+						}
+					},
+					"course-materials",
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Lessons",
+							"widgetId": "course-lessons"
+						},
+						{
+							"label": "Overview",
+							"widgetIds": [
+								"course-kpis-enrolments",
+								"course-kpis-assignments",
+								"course-kpis-assessments",
+								"course-facts"
+							],
+							"columns": 3,
+							"layout": [
+								{
+									"widgetId": "course-facts",
+									"gridWidth": 12
+								}
+							]
+						},
+						{
+							"label": "Enrolments",
+							"widgetId": "course-enrolments"
+						},
+						{
+							"label": "Groups",
+							"widgetId": "course-cohorts"
+						},
+						{
+							"label": "Assignments",
+							"widgetId": "course-assignments"
+						},
+						{
+							"label": "Sessions",
+							"widgetId": "course-sessions"
+						},
+						{
+							"label": "Tests",
+							"widgetId": "course-assessments"
+						},
+						{
+							"label": "Learning material",
+							"widgetId": "course-open-materials"
+						}
 					]
 				},
-				"headerActions": [
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
 					{
-						"id": "reissue-certificates",
-						"label": "Reissue certificates",
-						"icon": "CertificateOutline",
-						"type": "navigate",
-						"target": "/courses/@objectId/reissue"
-					},
-					{
-						"id": "preview-as-learner",
-						"label": "Preview as learner",
-						"icon": "EyeOutline",
-						"type": "navigate",
-						"target": "/courses/@objectId/preview"
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
 					}
 				]
 			}
@@ -1260,6 +1332,7 @@
 			"title": "Course package import reports",
 			"_note": "course-package-import-export: the anti-Canvas promise made structural — one CoursePackageImportReport per course-package import attempt, listing every source-package resource's outcome (imported/degraded/dropped). Index lists every attempt; CoursePackageImportReportDetail renders the full entries table.",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "course-package-import-report"
 			}
@@ -1383,6 +1456,7 @@
 			"type": "index",
 			"title": "Lessons",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Lesson",
 				"filter": {
@@ -1583,6 +1657,7 @@
 			"type": "index",
 			"title": "Programmes",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Programme"
 			}
@@ -1969,6 +2044,7 @@
 			"type": "index",
 			"title": "Curriculum plans",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "curriculum-plan"
 			}
@@ -2215,21 +2291,72 @@
 			"type": "index",
 			"title": "Cohorts",
 			"config": {
+				"headerButtons": [
+					{
+						"action": "export",
+						"label": "Download",
+						"icon": "TrayArrowDown"
+					},
+					{
+						"action": "actions-menu",
+						"label": "Actions"
+					},
+					{
+						"action": "add",
+						"label": "New group",
+						"variant": "primary",
+						"icon": "Plus"
+					}
+				],
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Cohort",
 				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly so the platform's built-in mass import/export/copy/delete is a documented capability of this index, not an implicit default (findings 12.6/14.7).",
 				"columns": [
-					"name",
-					"period",
-					"academicYear",
-					"lifecycle"
+					{
+						"key": "name",
+						"label": "Group",
+						"secondary": "Year {programmeYear}"
+					},
+					{
+						"key": "period",
+						"label": "Period"
+					},
+					{
+						"key": "academicYear",
+						"label": "School year"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					}
 				],
 				"actionToggles": {
 					"showMassImport": true,
 					"showMassExport": true,
 					"showMassCopy": true,
 					"showMassDelete": true
-				}
+				},
+				"countText": "{shown} of {total} groups",
+				"searchPlaceholder": "Search by group or mentor",
+				"quickFilters": [
+					{
+						"label": "My groups",
+						"filter": {
+							"teacherIds": "@me"
+						},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "All groups",
+						"filter": {},
+						"showCount": true
+					}
+				],
+				"bulkNoun": "groups",
+				"allowSavedViews": true,
+				"createModal": "CohortCreateDialog"
 			}
 		},
 		{
@@ -2238,6 +2365,7 @@
 			"type": "index",
 			"title": "Subject teacher assignments",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "SubjectTeacherAssignment"
 			}
@@ -2250,69 +2378,112 @@
 			"config": {
 				"register": "learniq",
 				"schema": "Cohort",
-				"_note": "A Cohort is a delivery group (a course/programme run for a set of learners in an academic year/period, mapped to an NC group). Body leads with cohort metadata (8-wide) and a Related panel resolving programme, course and NC group. The three things a cohort coordinator manages render as related-index rosters: scheduled Sessions, Enrolments (the roster) and Attendance flags (early-warning). HARD RULE 1 exception (talk-classroom-spaces): Cohort is a delivery-run archetype, not a catalog definition, so it gains linkedTypes:[\"talk\"] and a persistent class-space widget consuming OpenRegister's existing TalkLinkService/TalkProvider unchanged — CohortTalkMembershipHandler keeps the linked conversation's participants in sync with active Enrolments. Course/Programme/CurriculumPlan keep zero comms leaves. Sidebar keeps metadata + audit-trail.",
+				"_note": "Board LqGroep (G2): figures (lessons, enrolments, open signals), lessons today and attendance signals on the overview, the group facts and notes; teachers, work groups and the class space beside it.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
+				"statusPill": {
+					"field": "lifecycle",
+					"labels": {
+						"planned": "Planned",
+						"active": "Active",
+						"completed": "Completed",
+						"archived": "Archived"
+					},
+					"colorMap": {
+						"active": "success"
+					}
+				},
+				"breadcrumb": {
+					"label": "Cohorts",
+					"route": "Cohorts"
+				},
+				"headerMeta": "academic year {academicYear}",
 				"widgets": [
 					{
-						"id": "coh-data",
-						"type": "data",
-						"title": "Data",
+						"id": "coh-facts",
+						"type": "facts",
+						"title": "Details",
 						"content": {
+							"fields": [
+								{
+									"path": "name",
+									"label": "Name"
+								},
+								{
+									"path": "kind",
+									"label": "Kind of group",
+									"map": {
+										"teaching": "Teaching group",
+										"care": "Care group",
+										"plusklas": "Plus class"
+									}
+								},
+								{
+									"path": "programmeId",
+									"label": "Programme",
+									"resolve": {
+										"register": "learniq",
+										"schema": "programme",
+										"labelField": "name"
+									}
+								},
+								{
+									"path": "programmeYear",
+									"label": "Year in the programme"
+								},
+								{
+									"path": "period",
+									"label": "Period"
+								},
+								{
+									"path": "academicYear",
+									"label": "Academic year"
+								},
+								{
+									"path": "locationId",
+									"label": "Location",
+									"resolve": {
+										"register": "learniq",
+										"schema": "vestiging",
+										"labelField": "name"
+									}
+								},
+								{
+									"path": "reportCardTemplateId",
+									"label": "Report template",
+									"resolve": {
+										"register": "learniq",
+										"schema": "report-card-template",
+										"labelField": "name"
+									}
+								},
+								{
+									"path": "lifecycle",
+									"label": "Status",
+									"map": {
+										"planned": "Planned",
+										"active": "Active",
+										"completed": "Completed",
+										"archived": "Archived"
+									}
+								}
+							],
 							"columns": 2
-						},
-						"icon": "AccountGroup"
+						}
 					},
 					{
 						"id": "coh-notes",
-						"type": "data",
+						"type": "facts",
 						"title": "Notes",
 						"content": {
-							"columns": 1,
-							"include": [
-								"notes"
+							"fields": [
+								{
+									"as": "text",
+									"path": "notes"
+								}
 							]
-						},
-						"icon": "NoteTextOutline"
-					},
-					{
-						"id": "coh-sessions-today",
-						"type": "object-list",
-						"title": "Today's sessions",
-						"content": {
-							"register": "learniq",
-							"schema": "Session",
-							"filter": {
-								"cohortId": "@objectId",
-								"startsAt": {
-									"gte": "@today",
-									"lt": "@today+1d"
-								}
-							},
-							"sort": {
-								"field": "startsAt",
-								"dir": "asc"
-							},
-							"limit": 25,
-							"columns": [
-								{
-									"key": "title",
-									"label": "Title"
-								},
-								{
-									"key": "startsAt",
-									"label": "Starts At"
-								},
-								{
-									"key": "endsAt",
-									"label": "Ends At"
-								}
-							],
-							"rowRoute": "SessionDetail",
-							"emptyText": "No sessions scheduled for today."
-						},
-						"icon": "Calendar"
+						}
 					},
 					{
 						"id": "coh-kpis-sessions",
@@ -2373,6 +2544,88 @@
 								}
 							]
 						}
+					},
+					{
+						"id": "coh-sessions-today",
+						"type": "object-list",
+						"title": "Today's sessions",
+						"content": {
+							"register": "learniq",
+							"schema": "Session",
+							"filter": {
+								"cohortId": "@objectId",
+								"startsAt": {
+									"gte": "@today",
+									"lt": "@today+1d"
+								}
+							},
+							"sort": {
+								"field": "startsAt",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "title",
+									"label": "Title"
+								},
+								{
+									"key": "startsAt",
+									"label": "Starts At"
+								},
+								{
+									"key": "endsAt",
+									"label": "Ends At"
+								}
+							],
+							"rowRoute": "SessionDetail",
+							"emptyText": "No sessions scheduled for today."
+						},
+						"icon": "Calendar"
+					},
+					{
+						"id": "coh-flags",
+						"type": "object-list",
+						"title": "Attendance flags",
+						"content": {
+							"register": "learniq",
+							"schema": "attendance-flag",
+							"filter": {
+								"cohortId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Learner",
+									"widget": "learnerName"
+								},
+								{
+									"key": "metricValue",
+									"label": "Metric Value"
+								},
+								{
+									"key": "windowStart",
+									"label": "Window Start"
+								},
+								{
+									"key": "windowEnd",
+									"label": "Window End"
+								}
+							],
+							"rowRoute": "AttendanceFlagDetail",
+							"viewAllRoute": "AttendanceFlags",
+							"viewAllQuery": {
+								"cohortId": "@objectId"
+							},
+							"emptyText": "No attendance flags found.",
+							"allowCreate": false
+						},
+						"icon": "AlertCircleOutline"
 					},
 					{
 						"id": "coh-sessions",
@@ -2469,50 +2722,6 @@
 						"icon": "AccountGroup"
 					},
 					{
-						"id": "coh-flags",
-						"type": "object-list",
-						"title": "Attendance flags",
-						"content": {
-							"register": "learniq",
-							"schema": "attendance-flag",
-							"filter": {
-								"cohortId": "@objectId"
-							},
-							"sort": {
-								"field": "id",
-								"dir": "asc"
-							},
-							"limit": 25,
-							"columns": [
-								{
-									"key": "learnerId",
-									"label": "Learner",
-									"widget": "learnerName"
-								},
-								{
-									"key": "metricValue",
-									"label": "Metric Value"
-								},
-								{
-									"key": "windowStart",
-									"label": "Window Start"
-								},
-								{
-									"key": "windowEnd",
-									"label": "Window End"
-								}
-							],
-							"rowRoute": "AttendanceFlagDetail",
-							"viewAllRoute": "AttendanceFlags",
-							"viewAllQuery": {
-								"cohortId": "@objectId"
-							},
-							"emptyText": "No attendance flags found.",
-							"allowCreate": false
-						},
-						"icon": "AlertCircleOutline"
-					},
-					{
 						"id": "coh-subject-teachers",
 						"type": "object-list",
 						"title": "Subject teachers",
@@ -2593,153 +2802,153 @@
 						"icon": "AccountGroup"
 					},
 					{
-						"id": "coh-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
-					},
-					{
 						"id": "cohort-talk",
 						"type": "integration",
 						"integrationId": "talk",
 						"title": "Class space",
 						"icon": "MessageTextOutline"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "coh-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 5,
-						"showTitle": false
 					},
 					{
-						"id": "2-1",
-						"widgetId": "coh-kpis-sessions",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 2,
-						"showTitle": false
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
 					},
 					{
-						"id": "2-2",
-						"widgetId": "coh-kpis-enrolments",
-						"gridX": 8,
-						"gridY": 2,
-						"gridWidth": 4,
-						"gridHeight": 2,
-						"showTitle": false
-					},
-					{
-						"id": "2-3",
-						"widgetId": "coh-kpis-attendance-flags",
-						"gridX": 8,
-						"gridY": 4,
-						"gridWidth": 4,
-						"gridHeight": 2,
-						"showTitle": false
-					},
-					{
-						"id": "2-4",
-						"widgetId": "coh-notes",
-						"gridX": 0,
-						"gridY": 6,
-						"gridWidth": 12,
-						"gridHeight": 3,
-						"showTitle": false
-					},
-					{
-						"id": "2-5",
-						"widgetId": "coh-sessions-today",
-						"gridX": 0,
-						"gridY": 9,
-						"gridWidth": 12,
-						"gridHeight": 4,
-						"showTitle": false
-					},
-					{
-						"id": "3",
-						"widgetId": "coh-sessions",
-						"gridX": 0,
-						"gridY": 13,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "4",
-						"widgetId": "coh-enrol",
-						"gridX": 6,
-						"gridY": 13,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "5",
-						"widgetId": "coh-flags",
-						"gridX": 0,
-						"gridY": 18,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "6",
-						"widgetId": "coh-related",
-						"gridX": 6,
-						"gridY": 18,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "7",
-						"widgetId": "coh-subject-teachers",
-						"gridX": 0,
-						"gridY": 23,
-						"gridWidth": 12,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "8",
-						"widgetId": "cohort-talk",
-						"gridX": 0,
-						"gridY": 32,
-						"gridWidth": 12,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "work-groups",
-						"widgetId": "coh-work-groups",
-						"gridX": 0,
-						"gridY": 28,
-						"gridWidth": 12,
-						"gridHeight": 4
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
 								{
-									"type": "audit"
+									"label": "Overview",
+									"widgetIds": [
+										"coh-kpis-sessions",
+										"coh-kpis-enrolments",
+										"coh-kpis-attendance-flags",
+										"coh-sessions-today",
+										"coh-flags",
+										"coh-facts",
+										"coh-notes"
+									],
+									"columns": 3,
+									"layout": [
+										{
+											"widgetId": "coh-sessions-today",
+											"gridWidth": 12
+										},
+										{
+											"widgetId": "coh-flags",
+											"gridWidth": 12
+										},
+										{
+											"widgetId": "coh-facts",
+											"gridWidth": 12
+										},
+										{
+											"widgetId": "coh-notes",
+											"gridWidth": 12
+										}
+									]
+								},
+								{
+									"label": "Lessons",
+									"widgetId": "coh-sessions"
+								},
+								{
+									"label": "Enrolments",
+									"widgetId": "coh-enrol"
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
 								}
 							]
 						}
+					}
+				],
+				"sideColumn": [
+					"coh-subject-teachers",
+					"coh-work-groups",
+					"cohort-talk",
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Overview",
+							"widgetIds": [
+								"coh-kpis-sessions",
+								"coh-kpis-enrolments",
+								"coh-kpis-attendance-flags",
+								"coh-sessions-today",
+								"coh-flags",
+								"coh-facts",
+								"coh-notes"
+							],
+							"columns": 3,
+							"layout": [
+								{
+									"widgetId": "coh-sessions-today",
+									"gridWidth": 12
+								},
+								{
+									"widgetId": "coh-flags",
+									"gridWidth": 12
+								},
+								{
+									"widgetId": "coh-facts",
+									"gridWidth": 12
+								},
+								{
+									"widgetId": "coh-notes",
+									"gridWidth": 12
+								}
+							]
+						},
+						{
+							"label": "Lessons",
+							"widgetId": "coh-sessions"
+						},
+						{
+							"label": "Enrolments",
+							"widgetId": "coh-enrol"
+						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		},
 		{
@@ -2748,6 +2957,7 @@
 			"type": "index",
 			"title": "Work groups",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "work-group"
 			}
@@ -2831,19 +3041,12 @@
 			}
 		},
 		{
-			"id": "CohortTimetable",
-			"route": "/cohorts/:id/timetable",
-			"type": "custom",
-			"title": "Cohort timetable",
-			"component": "CohortTimetableView",
-			"_note": "Mounts CohortTimetableView (learniq#947): the cohort's Sessions in CnTimelineView."
-		},
-		{
 			"id": "Sessions",
 			"route": "/sessions",
 			"type": "index",
 			"title": "Sessions",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Session",
 				"columns": [
@@ -2899,6 +3102,7 @@
 			"type": "index",
 			"title": "Today's sessions",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Session",
 				"filter": {
@@ -2958,6 +3162,7 @@
 			"type": "index",
 			"title": "This week's sessions",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Session",
 				"filter": {
@@ -3019,19 +3224,92 @@
 			"config": {
 				"register": "learniq",
 				"schema": "Session",
-				"_note": "A Session is a scheduled teaching occurrence (start/end, location, tied to cohort/course/lesson, with materials and assignments). Body leads with session details (8-wide) and a Related panel resolving cohort/course/lesson. The attendance roster is the primary operational surface, so Attendance records render as a wide related-index; assigned work shows as an Assignments table. Session materials render as a Files leaf (handouts for the session). HARD RULE 1 exception (talk-classroom-spaces): a Session is a scheduled occurrence, not a catalog definition, so it gains linkedTypes:[\"talk\"] and a join-call widget — in practice a teacher links the parent Cohort's already-linked conversation (the common recurring-class path) or a fresh one-off room, via OR's existing picker/create UI unchanged. Sidebar keeps metadata + audit-trail.",
+				"_note": "Board LqLes (G2): presence and assignments as figures, notes and assignments on the overview, online joining, materials and the agenda beside it. The check-in code card stays the header action (SelfCheckInDialog).",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
+				"headerActions": [
+					{
+						"id": "open-self-check-in",
+						"label": "Open self check-in",
+						"icon": "CalendarCheckOutline",
+						"type": "open-modal",
+						"target": "SelfCheckInDialog",
+						"props": {
+							"sessionId": "@objectId"
+						}
+					}
+				],
+				"statusPill": {
+					"field": "lifecycle",
+					"labels": {
+						"scheduled": "Scheduled",
+						"in-progress": "In progress",
+						"completed": "Finished",
+						"cancelled": "Cancelled"
+					},
+					"colorMap": {
+						"in-progress": "purple",
+						"completed": "success",
+						"cancelled": "error"
+					}
+				},
+				"breadcrumb": {
+					"label": "Sessions",
+					"route": "Sessions"
+				},
+				"headerMeta": "{startsAt|longdatetime} · {location}",
 				"widgets": [
 					{
-						"id": "sess-data",
-						"type": "data",
-						"title": "Data",
+						"id": "sess-facts",
+						"type": "facts",
+						"title": "Lesson",
 						"content": {
+							"fields": [
+								{
+									"path": "courseId",
+									"label": "Course",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Course",
+										"labelField": "name"
+									}
+								},
+								{
+									"path": "cohortId",
+									"label": "Group",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Cohort",
+										"labelField": "name"
+									}
+								},
+								{
+									"path": "startsAt",
+									"label": "Starts",
+									"format": "longdatetime"
+								},
+								{
+									"path": "endsAt",
+									"label": "Ends",
+									"format": "longdatetime"
+								},
+								{
+									"path": "location",
+									"label": "Room"
+								},
+								{
+									"path": "substituteTeacherId",
+									"label": "Substitute",
+									"format": "user"
+								},
+								{
+									"path": "changeReason",
+									"label": "Change"
+								}
+							],
 							"columns": 2
-						},
-						"icon": "Calendar"
+						}
 					},
 					{
 						"id": "sess-kpis-attendance",
@@ -3122,44 +3400,6 @@
 						"icon": "CheckCircleOutline"
 					},
 					{
-						"id": "sess-assign",
-						"type": "object-list",
-						"title": "Assignments",
-						"content": {
-							"register": "learniq",
-							"schema": "Assignment",
-							"filter": {
-								"sessionId": "@objectId"
-							},
-							"sort": {
-								"field": "id",
-								"dir": "asc"
-							},
-							"limit": 25,
-							"columns": [
-								{
-									"key": "title",
-									"label": "Title"
-								},
-								{
-									"key": "dueAt",
-									"label": "Due At"
-								},
-								{
-									"key": "maxPoints",
-									"label": "Max Points"
-								}
-							],
-							"rowRoute": "AssignmentDetail",
-							"viewAllRoute": "Assignments",
-							"viewAllQuery": {
-								"sessionId": "@objectId"
-							},
-							"emptyText": "No assignments found."
-						},
-						"icon": "ClipboardList"
-					},
-					{
 						"id": "sess-notes",
 						"type": "object-list",
 						"title": "Notes",
@@ -3201,17 +3441,42 @@
 						}
 					},
 					{
-						"id": "sess-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
-					},
-					{
-						"id": "sess-files",
-						"type": "integration",
-						"integrationId": "files",
-						"title": "Session materials",
-						"icon": "FolderOutline"
+						"id": "sess-assign",
+						"type": "object-list",
+						"title": "Assignments",
+						"content": {
+							"register": "learniq",
+							"schema": "Assignment",
+							"filter": {
+								"sessionId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "title",
+									"label": "Title"
+								},
+								{
+									"key": "dueAt",
+									"label": "Due At"
+								},
+								{
+									"key": "maxPoints",
+									"label": "Max Points"
+								}
+							],
+							"rowRoute": "AssignmentDetail",
+							"viewAllRoute": "Assignments",
+							"viewAllQuery": {
+								"sessionId": "@objectId"
+							},
+							"emptyText": "No assignments found."
+						},
+						"icon": "ClipboardList"
 					},
 					{
 						"id": "session-talk",
@@ -3221,121 +3486,141 @@
 						"icon": "Phone"
 					},
 					{
+						"id": "sess-files",
+						"type": "integration",
+						"integrationId": "files",
+						"title": "Session materials",
+						"icon": "FolderOutline"
+					},
+					{
 						"id": "sess-calendar",
 						"type": "integration",
 						"integrationId": "calendar",
 						"requiredApp": "calendar",
 						"title": "Agenda",
 						"icon": "CalendarClockOutline"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "sess-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 5,
-						"showTitle": false
 					},
 					{
-						"id": "2-1",
-						"widgetId": "sess-kpis-attendance",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 2,
-						"showTitle": false
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
 					},
 					{
-						"id": "2-2",
-						"widgetId": "sess-kpis-assignments",
-						"gridX": 8,
-						"gridY": 2,
-						"gridWidth": 4,
-						"gridHeight": 3,
-						"showTitle": false
-					},
-					{
-						"id": "3",
-						"widgetId": "sess-attend",
-						"gridX": 0,
-						"gridY": 5,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "4",
-						"widgetId": "sess-assign",
-						"gridX": 6,
-						"gridY": 5,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "4-1",
-						"widgetId": "sess-notes",
-						"gridX": 0,
-						"gridY": 10,
-						"gridWidth": 12,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "5",
-						"widgetId": "sess-related",
-						"gridX": 0,
-						"gridY": 15,
-						"gridWidth": 12,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "6",
-						"widgetId": "sess-files",
-						"gridX": 0,
-						"gridY": 20,
-						"gridWidth": 12,
-						"gridHeight": 3,
-						"showTitle": false
-					},
-					{
-						"id": "7",
-						"widgetId": "session-talk",
-						"gridX": 0,
-						"gridY": 23,
-						"gridWidth": 12,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "8",
-						"widgetId": "sess-calendar",
-						"gridX": 0,
-						"gridY": 28,
-						"gridWidth": 12,
-						"gridHeight": 4
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
 								{
-									"type": "audit"
+									"label": "Overview",
+									"widgetIds": [
+										"sess-kpis-attendance",
+										"sess-kpis-assignments",
+										"sess-facts",
+										"sess-notes",
+										"sess-assign"
+									],
+									"columns": 2,
+									"layout": [
+										{
+											"widgetId": "sess-facts",
+											"gridWidth": 12
+										},
+										{
+											"widgetId": "sess-notes",
+											"gridWidth": 12
+										},
+										{
+											"widgetId": "sess-assign",
+											"gridWidth": 12
+										}
+									]
+								},
+								{
+									"label": "Presence",
+									"widgetId": "sess-attend"
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
 								}
 							]
 						}
+					}
+				],
+				"sideColumn": [
+					"session-talk",
+					"sess-files",
+					"sess-calendar",
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Overview",
+							"widgetIds": [
+								"sess-kpis-attendance",
+								"sess-kpis-assignments",
+								"sess-facts",
+								"sess-notes",
+								"sess-assign"
+							],
+							"columns": 2,
+							"layout": [
+								{
+									"widgetId": "sess-facts",
+									"gridWidth": 12
+								},
+								{
+									"widgetId": "sess-notes",
+									"gridWidth": 12
+								},
+								{
+									"widgetId": "sess-assign",
+									"gridWidth": 12
+								}
+							]
+						},
+						{
+							"label": "Presence",
+							"widgetId": "sess-attend"
+						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		},
 		{
@@ -3344,6 +3629,7 @@
 			"type": "index",
 			"title": "Materials",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Material"
 			}
@@ -3434,6 +3720,7 @@
 			"type": "index",
 			"title": "Rooms",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "room"
 			}
@@ -3588,6 +3875,7 @@
 			"type": "index",
 			"title": "Display screens",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "display-screen"
 			}
@@ -3679,6 +3967,7 @@
 			"type": "index",
 			"title": "Optional lessons",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "elective-offer"
 			}
@@ -3778,6 +4067,7 @@
 			"type": "index",
 			"title": "Timetable conflicts",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "timetable-conflict"
 			}
@@ -3855,6 +4145,7 @@
 			"type": "index",
 			"title": "Exam accommodations",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "exam-accommodation",
 				"columns": [
@@ -3959,6 +4250,7 @@
 			"type": "index",
 			"title": "Rubrics",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Rubric"
 			}
@@ -4116,6 +4408,7 @@
 			"type": "index",
 			"title": "Assignments",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Assignment"
 			}
@@ -4205,7 +4498,24 @@
 								"assignmentId": "@objectId"
 							},
 							"emptyText": "No submissions found.",
-							"allowCreate": false
+							"allowCreate": false,
+							"rowActions": [
+								{
+									"id": "reopen-submission",
+									"label": "Ask to hand in again",
+									"icon": "ClockOutline",
+									"type": "open-modal",
+									"target": "SubmissionReopenDialog",
+									"props": {
+										"objectId": "@row.id"
+									},
+									"visibleWhen": {
+										"field": "lifecycle",
+										"op": "eq",
+										"value": "returned"
+									}
+								}
+							]
 						},
 						"icon": "FileDocument"
 					},
@@ -4360,6 +4670,7 @@
 			"type": "index",
 			"title": "Submissions",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Submission",
 				"filter": {
@@ -4523,6 +4834,7 @@
 			"type": "index",
 			"title": "Peer reviews",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "peer-review",
 				"filter": {
@@ -4611,6 +4923,7 @@
 			"type": "index",
 			"title": "Self-assessments",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "self-assessment",
 				"filter": {
@@ -4713,6 +5026,7 @@
 			"type": "index",
 			"title": "Peer feedback summaries",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "peer-feedback-summary",
 				"readOnly": true,
@@ -4781,6 +5095,7 @@
 			"type": "index",
 			"title": "Item banks",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "item-bank"
 			}
@@ -4793,7 +5108,7 @@
 			"config": {
 				"register": "learniq",
 				"schema": "item-bank",
-				"_note": "An Item Bank is a reusable pool of assessment questions grouped by subject. Body leads with the bank metadata (8-wide) and a Related panel. The constituent Items render as a wide related-index (the bank's actual content), with a total-items KPI stat. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail. assessment-completeness (finding 6.3): headerActions adds a QTI export trigger for the already-built, unit-tested QtiExportController/qti-export route — the id is `export-qti`, not `export`, because a bare `export` header-action id is dropped at render time to avoid shadowing the built-in.",
+				"_note": "Board LqItembank (G2): the bank as a card and its items under it, the items as a tab too. QTI import stays a header action (lane C owns the dialog).",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
@@ -4806,34 +5121,53 @@
 						"target": "/apps/learniq/api/assessment/qti-export?itemBankId=@objectId"
 					}
 				],
+				"statusPill": {
+					"field": "lifecycle",
+					"labels": {
+						"draft": "Concept",
+						"published": "Published",
+						"archived": "Withdrawn"
+					},
+					"colorMap": {
+						"published": "success",
+						"archived": "error"
+					}
+				},
+				"breadcrumb": {
+					"label": "Item banks",
+					"route": "ItemBanks"
+				},
+				"headerMeta": "subject {subject}",
 				"widgets": [
 					{
-						"id": "ibank-data",
-						"type": "data",
-						"title": "Data",
+						"id": "ibank-facts",
+						"type": "facts",
+						"title": "Item bank",
 						"content": {
-							"columns": 2
-						},
-						"icon": "DatabaseOutline"
-					},
-					{
-						"id": "ibank-kpis",
-						"type": "stats-block",
-						"title": "Overview",
-						"icon": "ChartBar",
-						"content": {
-							"entries": [
+							"fields": [
 								{
-									"title": "Items",
-									"register": "learniq",
-									"schema": "item",
-									"metric": "count",
-									"filter": {
-										"itemBankId": "@objectId"
-									},
-									"route": "Items"
+									"path": "name",
+									"label": "Name"
+								},
+								{
+									"path": "subject",
+									"label": "Subject"
+								},
+								{
+									"path": "description",
+									"label": "Description"
+								},
+								{
+									"path": "lifecycle",
+									"label": "Status",
+									"map": {
+										"draft": "Concept",
+										"published": "Published",
+										"archived": "Withdrawn"
+									}
 								}
-							]
+							],
+							"columns": 2
 						}
 					},
 					{
@@ -4879,66 +5213,87 @@
 						"icon": "DatabaseOutline"
 					},
 					{
-						"id": "ibank-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "ibank-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 5,
-						"showTitle": false
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
 					},
 					{
-						"id": "2",
-						"widgetId": "ibank-kpis",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "3",
-						"widgetId": "ibank-items",
-						"gridX": 0,
-						"gridY": 5,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "4",
-						"widgetId": "ibank-related",
-						"gridX": 6,
-						"gridY": 5,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
 								{
-									"type": "audit"
+									"label": "Overview",
+									"widgetIds": [
+										"ibank-facts",
+										"ibank-items"
+									]
+								},
+								{
+									"label": "Items",
+									"widgetId": "ibank-items"
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
 								}
 							]
 						}
+					}
+				],
+				"sideColumn": [
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Overview",
+							"widgetIds": [
+								"ibank-facts",
+								"ibank-items"
+							]
+						},
+						{
+							"label": "Items",
+							"widgetId": "ibank-items"
+						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		},
 		{
@@ -4947,6 +5302,7 @@
 			"type": "index",
 			"title": "Items",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Item"
 			}
@@ -5024,6 +5380,7 @@
 			"type": "index",
 			"title": "Assessments",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "exam"
 			}
@@ -5036,38 +5393,107 @@
 			"config": {
 				"register": "learniq",
 				"schema": "exam",
-				"_note": "An Assessment is a configured test (item refs, scoring scheme, pass mark, time limit, attempts, proctoring, availability window) tied to a course/session/cohort. Body leads with the assessment configuration (8-wide) and a Related panel resolving course/session and grade-entry component. Learner attempts render as a wide Results related-index, with an attempts KPI stat. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"_note": "Board LqToetsInstellingen (G2): when and for whom the test is open (window, access code), the test settings, results and accommodations as tabs; course and group beside it.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
+				"statusPill": {
+					"field": "lifecycle",
+					"labels": {
+						"draft": "Concept",
+						"published": "Published",
+						"closed": "Closed",
+						"archived": "Archived"
+					},
+					"colorMap": {
+						"published": "success"
+					}
+				},
+				"breadcrumb": {
+					"label": "Assessments",
+					"route": "Assessments"
+				},
 				"widgets": [
 					{
-						"id": "ass-data",
-						"type": "data",
-						"title": "Data",
+						"id": "ass-window",
+						"type": "facts",
+						"title": "When and for whom the test is open",
 						"content": {
+							"fields": [
+								{
+									"path": "availableFrom",
+									"label": "Available from",
+									"format": "longdatetime"
+								},
+								{
+									"path": "availableUntil",
+									"label": "Available until",
+									"format": "longdatetime"
+								},
+								{
+									"path": "accessCode",
+									"label": "Access code",
+									"copy": true
+								},
+								{
+									"as": "line",
+									"text": "Outside these times, or without the right code, a learner does not start the test. Give the code only to those in the test room."
+								}
+							],
 							"columns": 2
-						},
-						"icon": "ClipboardCheckOutline"
+						}
 					},
 					{
-						"id": "ass-kpis",
-						"type": "stats-block",
-						"title": "Overview",
-						"icon": "ChartBar",
+						"id": "ass-settings",
+						"type": "facts",
+						"title": "Test settings",
 						"content": {
-							"entries": [
+							"fields": [
 								{
-									"title": "Attempts",
-									"register": "learniq",
-									"schema": "assessment-result",
-									"metric": "count",
-									"filter": {
-										"assessmentId": "@objectId"
-									},
-									"route": "AssessmentResults"
+									"path": "scoringScheme",
+									"label": "Scoring",
+									"map": {
+										"points": "Points",
+										"passMark": "Pass mark",
+										"irt": "Item response theory"
+									}
+								},
+								{
+									"path": "passMark",
+									"label": "Pass from"
+								},
+								{
+									"path": "timeLimitMinutes",
+									"label": "Time",
+									"suffix": " minutes"
+								},
+								{
+									"path": "maxAttempts",
+									"label": "Attempts"
+								},
+								{
+									"path": "itemSelectionMode",
+									"label": "Questions",
+									"map": {
+										"fixed": "Fixed questions",
+										"random-draw": "Drawn from the item bank"
+									}
+								},
+								{
+									"path": "shuffleItemOrder",
+									"label": "Changing order",
+									"map": {
+										"true": "Yes",
+										"false": "No"
+									}
+								},
+								{
+									"path": "availableAfterDays",
+									"label": "Opens after enrolment",
+									"suffix": " days"
 								}
-							]
+							],
+							"columns": 2
 						}
 					},
 					{
@@ -5115,12 +5541,6 @@
 						"icon": "ClipboardCheckOutline"
 					},
 					{
-						"id": "ass-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
-					},
-					{
 						"id": "ass-accommodations",
 						"type": "object-list",
 						"title": "Exam accommodations",
@@ -5159,71 +5579,152 @@
 							"allowCreate": false
 						},
 						"icon": "AccountHeartOutline"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "ass-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 5,
-						"showTitle": false
 					},
 					{
-						"id": "2",
-						"widgetId": "ass-kpis",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 5,
-						"showTitle": false
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
 					},
 					{
-						"id": "3",
-						"widgetId": "ass-res",
-						"gridX": 0,
-						"gridY": 5,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "4",
-						"widgetId": "ass-related",
-						"gridX": 6,
-						"gridY": 5,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "5",
-						"widgetId": "ass-accommodations",
-						"gridX": 0,
-						"gridY": 10,
-						"gridWidth": 12,
-						"gridHeight": 5,
-						"showTitle": false
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
 								{
-									"type": "audit"
+									"label": "Overview",
+									"widgetIds": [
+										"ass-window",
+										"ass-settings"
+									]
+								},
+								{
+									"label": "Results",
+									"widgetId": "ass-res"
+								},
+								{
+									"label": "Accommodations",
+									"widgetId": "ass-accommodations"
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
 								}
 							]
 						}
+					}
+				],
+				"sideColumn": [
+					{
+						"id": "ass-linked",
+						"type": "facts",
+						"title": "Linked",
+						"content": {
+							"fields": [
+								{
+									"path": "courseId",
+									"label": "Course",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Course",
+										"labelField": "name"
+									},
+									"route": {
+										"name": "CourseDetail",
+										"params": {
+											"id": "@source.courseId"
+										}
+									}
+								},
+								{
+									"path": "cohortId",
+									"label": "Group",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Cohort",
+										"labelField": "name"
+									},
+									"route": {
+										"name": "CohortDetail",
+										"params": {
+											"id": "@source.cohortId"
+										}
+									}
+								},
+								{
+									"path": "sessionId",
+									"label": "Lesson",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Session",
+										"labelField": "title"
+									},
+									"route": {
+										"name": "SessionDetail",
+										"params": {
+											"id": "@source.sessionId"
+										}
+									}
+								}
+							],
+							"hideEmpty": true
+						}
+					},
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Overview",
+							"widgetIds": [
+								"ass-window",
+								"ass-settings"
+							]
+						},
+						{
+							"label": "Results",
+							"widgetId": "ass-res"
+						},
+						{
+							"label": "Accommodations",
+							"widgetId": "ass-accommodations"
+						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		},
 		{
@@ -5232,6 +5733,7 @@
 			"type": "index",
 			"title": "Assessment results",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "assessment-result",
 				"columns": [
@@ -5434,6 +5936,7 @@
 			"type": "index",
 			"title": "Item statistics",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "item-statistics",
 				"readOnly": true
@@ -5510,6 +6013,7 @@
 			"type": "index",
 			"title": "Assessment reliability",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "assessment-reliability",
 				"readOnly": true
@@ -5594,6 +6098,7 @@
 			"type": "index",
 			"title": "Proctoring sessions",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "proctoring-session",
 				"readOnly": true,
@@ -5732,6 +6237,7 @@
 			"type": "index",
 			"title": "Grade scales",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "grade-scale"
 			}
@@ -5744,38 +6250,140 @@
 			"config": {
 				"register": "learniq",
 				"schema": "grade-scale",
-				"_note": "A Grade Scale defines how scores map to grades (kind, bands, min/max, pass threshold, rounding) — a config archetype. Body leads with the scale definition including bands (8-wide) and a Related panel. Grade entries recorded against this scale render as a related-index so an examinations officer sees usage. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail for rule-change history.",
+				"_note": "Board LqCijferschaal (G2): figures (lowest and highest grade, pass mark, entries in use), the scale as a card, its bands from the record, and the grades on this scale as a tab.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
+				"statusPill": {
+					"field": "lifecycle",
+					"labels": {
+						"draft": "Draft",
+						"active": "Active",
+						"archived": "Archived"
+					},
+					"colorMap": {
+						"active": "success"
+					}
+				},
+				"typePill": {
+					"field": "kind",
+					"labels": {
+						"numeric": "Numeric",
+						"letter": "Letters",
+						"ects": "ECTS",
+						"pass-fail": "Passed or not passed",
+						"percentage": "Percentage",
+						"band": "Bands",
+						"dle": "DLE",
+						"leerrendement": "Learning yield"
+					}
+				},
+				"breadcrumb": {
+					"label": "Grade scales",
+					"route": "GradeScales"
+				},
 				"widgets": [
 					{
-						"id": "gscale-data",
-						"type": "data",
-						"title": "Data",
+						"id": "gscale-figures",
+						"type": "facts",
+						"title": "Figures",
 						"content": {
-							"columns": 2
-						},
-						"icon": "ScaleBalance"
-					},
-					{
-						"id": "gscale-kpis",
-						"type": "stats-block",
-						"title": "Overview",
-						"icon": "ChartBar",
-						"content": {
-							"entries": [
+							"layout": "tiles",
+							"fields": [
 								{
-									"title": "Grade entries",
-									"register": "learniq",
-									"schema": "grade-entry",
-									"metric": "count",
-									"filter": {
-										"gradeScaleId": "@objectId"
-									},
-									"route": "GradeEntries"
+									"path": "min",
+									"label": "Lowest grade"
+								},
+								{
+									"path": "max",
+									"label": "Highest grade"
+								},
+								{
+									"path": "passThreshold",
+									"label": "Pass from"
+								},
+								{
+									"label": "In use",
+									"countFrom": {
+										"register": "learniq",
+										"schema": "grade-entry",
+										"filter": {
+											"gradeScaleId": "@objectId"
+										}
+									}
 								}
 							]
+						}
+					},
+					{
+						"id": "gscale-facts",
+						"type": "facts",
+						"title": "The scale",
+						"content": {
+							"fields": [
+								{
+									"path": "name",
+									"label": "Name"
+								},
+								{
+									"path": "kind",
+									"label": "Kind",
+									"map": {
+										"numeric": "Numeric",
+										"letter": "Letters",
+										"ects": "ECTS",
+										"pass-fail": "Passed or not passed",
+										"percentage": "Percentage",
+										"band": "Bands",
+										"dle": "DLE",
+										"leerrendement": "Learning yield"
+									}
+								},
+								{
+									"label": "Range",
+									"template": "{min} to {max}"
+								},
+								{
+									"path": "passThreshold",
+									"label": "Pass from"
+								},
+								{
+									"path": "roundingRule",
+									"label": "Rounding",
+									"map": {
+										"none": "No rounding",
+										"half-up-1dp": "To one decimal, half up",
+										"half-up-int": "To a whole number, half up",
+										"nearest-half": "To the nearest half"
+									}
+								}
+							],
+							"columns": 2
+						}
+					},
+					{
+						"id": "gscale-bands",
+						"type": "record-list",
+						"title": "Bands",
+						"content": {
+							"objectRows": {
+								"path": "bands"
+							},
+							"presentation": "rows",
+							"title": "{minValue} to {maxValue}",
+							"meta": "{label}",
+							"pill": {
+								"field": "pass",
+								"labels": {
+									"true": "Passed",
+									"false": "Not passed"
+								},
+								"colorMap": {
+									"true": "success",
+									"false": "error"
+								}
+							},
+							"emptyText": "This scale has no bands"
 						}
 					},
 					{
@@ -5823,66 +6431,103 @@
 						"icon": "Percent"
 					},
 					{
-						"id": "gscale-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "gscale-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 5,
-						"showTitle": false
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
 					},
 					{
-						"id": "2",
-						"widgetId": "gscale-kpis",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "3",
-						"widgetId": "gscale-grades",
-						"gridX": 0,
-						"gridY": 5,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "4",
-						"widgetId": "gscale-related",
-						"gridX": 6,
-						"gridY": 5,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
 								{
-									"type": "audit"
+									"label": "Overview",
+									"widgetIds": [
+										"gscale-figures",
+										"gscale-facts",
+										"gscale-bands"
+									]
+								},
+								{
+									"label": "Grades",
+									"widgetId": "gscale-grades",
+									"countFrom": {
+										"register": "learniq",
+										"schema": "grade-entry",
+										"filter": {
+											"gradeScaleId": "@objectId"
+										}
+									}
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
 								}
 							]
 						}
+					}
+				],
+				"sideColumn": [
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Overview",
+							"widgetIds": [
+								"gscale-figures",
+								"gscale-facts",
+								"gscale-bands"
+							]
+						},
+						{
+							"label": "Grades",
+							"widgetId": "gscale-grades",
+							"countFrom": {
+								"register": "learniq",
+								"schema": "grade-entry",
+								"filter": {
+									"gradeScaleId": "@objectId"
+								}
+							}
+						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		},
 		{
@@ -5891,6 +6536,7 @@
 			"type": "index",
 			"title": "LTI tool placements",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "lti-tool-placement"
 			}
@@ -5968,6 +6614,20 @@
 			"type": "index",
 			"title": "Grade entries",
 			"config": {
+				"headerButtons": [
+					{
+						"action": "export",
+						"label": "Download",
+						"icon": "TrayArrowDown"
+					},
+					{
+						"action": "add",
+						"label": "Enter grade",
+						"variant": "primary",
+						"icon": "Plus"
+					}
+				],
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "grade-entry",
 				"columns": [
@@ -5982,7 +6642,8 @@
 					},
 					{
 						"key": "value",
-						"label": "Grade"
+						"label": "Grade",
+						"widget": "number"
 					},
 					{
 						"key": "period",
@@ -5990,10 +6651,45 @@
 					},
 					{
 						"key": "gradedAt",
-						"label": "Graded At",
+						"label": "Entered on",
 						"formatter": "date"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
 					}
-				]
+				],
+				"countText": "{shown} of {total} grades",
+				"searchPlaceholder": "Search by learner, course or test",
+				"quickFilters": [
+					{
+						"label": "My grades",
+						"filter": {
+							"grader": "@me"
+						},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Draft",
+						"filter": {
+							"lifecycle": "concept"
+						},
+						"showCount": true
+					},
+					{
+						"label": "All grades",
+						"filter": {},
+						"showCount": true
+					}
+				],
+				"defaultSort": {
+					"field": "gradedAt",
+					"direction": "desc"
+				},
+				"bulkNoun": "grades",
+				"allowSavedViews": true,
+				"createModal": "GradeEntryCreateDialog"
 			}
 		},
 		{
@@ -6004,62 +6700,9 @@
 			"config": {
 				"register": "learniq",
 				"schema": "grade-entry",
-				"_note": "A Grade Entry is a single recorded score (value, scale, weight, period, grader, source submission/result) for a learner and curriculum component — a score record. Body leads with the entry data including value and comment (8-wide), a value KPI stat, and a Related panel resolving the learner, course, grade-scale and source submission/result. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail as the grade-change audit. Header action (governance-four-eyes): Ask for a correction opens /grades/corrections. It replaces nothing; no widget or sidebar tab on this page reaches the corrections, and a grade in a locked report period changes only through one.",
+				"_note": "Board LqCijfer (G2): the grade large with its weight and period, the facts of the entry and the comment for the learner; linked test, learner and group beside it. Lifecycle (publish) stays in the header actions.",
 				"lifecycleActions": {
 					"field": "lifecycle"
-				},
-				"widgets": [
-					{
-						"id": "gentry-data",
-						"type": "data",
-						"title": "Data",
-						"content": {
-							"columns": 2
-						},
-						"icon": "Percent"
-					},
-					{
-						"id": "gentry-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "gentry-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "2",
-						"widgetId": "gentry-related",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 5,
-						"showTitle": false
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
-								{
-									"type": "audit"
-								}
-							]
-						}
-					]
 				},
 				"headerActions": [
 					{
@@ -6068,6 +6711,307 @@
 						"icon": "FileDocumentEditOutline",
 						"type": "open-page",
 						"target": "DataCorrectionRequests"
+					}
+				],
+				"statusPill": {
+					"field": "lifecycle",
+					"labels": {
+						"concept": "Concept",
+						"published": "Published",
+						"revised": "Revised",
+						"invalidated": "Invalidated"
+					},
+					"colorMap": {
+						"published": "success",
+						"revised": "purple",
+						"invalidated": "error"
+					}
+				},
+				"typePill": {
+					"field": "courseName"
+				},
+				"breadcrumb": {
+					"label": "Grade entries",
+					"route": "GradeEntries"
+				},
+				"headerMeta": "entered by {grader|user} on {gradedAt|longdate}",
+				"widgets": [
+					{
+						"id": "gentry-grade",
+						"type": "facts",
+						"title": "Grade",
+						"content": {
+							"fields": [
+								{
+									"as": "title",
+									"path": "value",
+									"format": "number",
+									"decimals": 1
+								},
+								{
+									"as": "line",
+									"parts": [
+										{
+											"path": "methodName"
+										},
+										{
+											"path": "methodBlock"
+										}
+									]
+								},
+								{
+									"as": "line",
+									"parts": [
+										{
+											"path": "weight",
+											"label": "Weight"
+										},
+										{
+											"path": "period",
+											"label": "counts for"
+										}
+									]
+								}
+							]
+						}
+					},
+					{
+						"id": "gentry-facts",
+						"type": "facts",
+						"title": "Details",
+						"content": {
+							"fields": [
+								{
+									"path": "learnerRef",
+									"label": "Learner",
+									"resolve": {
+										"register": "learniq",
+										"schema": "learner-profile",
+										"labelField": "fullName"
+									}
+								},
+								{
+									"path": "courseName",
+									"label": "Subject"
+								},
+								{
+									"path": "curriculumPlanId",
+									"label": "Curriculum plan",
+									"resolve": {
+										"register": "learniq",
+										"schema": "curriculum-plan",
+										"labelField": "name"
+									}
+								},
+								{
+									"path": "componentId",
+									"label": "Part"
+								},
+								{
+									"path": "period",
+									"label": "Period"
+								},
+								{
+									"path": "gradeScaleId",
+									"label": "Grade scale",
+									"resolve": {
+										"register": "learniq",
+										"schema": "grade-scale",
+										"labelField": "name"
+									}
+								},
+								{
+									"path": "sourceKind",
+									"label": "Source",
+									"map": {
+										"assignment-submission": "Assignment",
+										"assessment-result": "Test result",
+										"participation": "Participation",
+										"manual": "Entered by hand",
+										"exemption": "Exemption",
+										"lti-ags": "External tool",
+										"portfolio": "Portfolio",
+										"method-test": "Method test"
+									}
+								},
+								{
+									"path": "weight",
+									"label": "Weight"
+								},
+								{
+									"path": "grader",
+									"label": "Entered by",
+									"format": "user"
+								},
+								{
+									"path": "gradedAt",
+									"label": "Entered on",
+									"format": "longdatetime"
+								},
+								{
+									"path": "visibleFrom",
+									"label": "Visible from",
+									"format": "longdate",
+									"emptyValue": "on publishing"
+								},
+								{
+									"path": "lifecycle",
+									"label": "Status",
+									"map": {
+										"concept": "Concept",
+										"published": "Published",
+										"revised": "Revised",
+										"invalidated": "Invalidated"
+									}
+								}
+							],
+							"columns": 2
+						}
+					},
+					{
+						"id": "gentry-comment",
+						"type": "facts",
+						"title": "Comment for the learner",
+						"content": {
+							"fields": [
+								{
+									"as": "text",
+									"path": "comment"
+								}
+							]
+						}
+					},
+					{
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
+					},
+					{
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
+								{
+									"label": "Overview",
+									"widgetIds": [
+										"gentry-grade",
+										"gentry-facts",
+										"gentry-comment"
+									],
+									"sections": true
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
+								}
+							]
+						}
+					}
+				],
+				"sideColumn": [
+					{
+						"id": "gentry-linked",
+						"type": "facts",
+						"title": "Linked",
+						"content": {
+							"fields": [
+								{
+									"path": "courseId",
+									"label": "Course",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Course",
+										"labelField": "name"
+									},
+									"route": {
+										"name": "CourseDetail",
+										"params": {
+											"id": "@source.courseId"
+										}
+									}
+								},
+								{
+									"path": "learnerRef",
+									"label": "Learner",
+									"resolve": {
+										"register": "learniq",
+										"schema": "learner-profile",
+										"labelField": "fullName"
+									},
+									"route": {
+										"name": "LearnerProfileDetail",
+										"params": {
+											"id": "@source.learnerRef"
+										}
+									}
+								},
+								{
+									"path": "cohortId",
+									"label": "Group",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Cohort",
+										"labelField": "name"
+									},
+									"route": {
+										"name": "CohortDetail",
+										"params": {
+											"id": "@source.cohortId"
+										}
+									}
+								}
+							],
+							"hideEmpty": true
+						}
+					},
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Overview",
+							"widgetIds": [
+								"gentry-grade",
+								"gentry-facts",
+								"gentry-comment"
+							],
+							"sections": true
+						}
+					]
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
 					}
 				]
 			}
@@ -6078,6 +7022,7 @@
 			"type": "index",
 			"title": "Grade corrections",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "data-correction-request",
 				"_note": "governance-four-eyes: a grade in a locked report period changes only on a correction a second person approved. A teacher asks here (the grade, the new value, the reason); team leads, administration managers and admins see every request and approve or reject it on the detail page. The read rule gives a teacher their own requests only. Reached from the Grades menu and from the Ask for a correction action on a grade entry."
@@ -6156,6 +7101,7 @@
 			"type": "index",
 			"title": "Final grades",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "final-grade",
 				"columns": [
@@ -6356,6 +7302,7 @@
 			"type": "index",
 			"title": "Course templates",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "course-template"
 			}
@@ -6433,6 +7380,7 @@
 			"type": "index",
 			"title": "Learning plan templates",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "learning-plan-template"
 			}
@@ -6591,6 +7539,7 @@
 			"type": "index",
 			"title": "Learning plans",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "learning-plan",
 				"_note": "care-and-support-index: columns[] added so the care team's own read (learner, kind, coordinator, lifecycle, next review date) does not need a second index page over the same schema (ADR-097 Decision 5, ratchet gate-68 duplicate-index-pages). The CareTeamOverviewMenu nav entry deep-links here with a lifecycle=active query preset (menu[].query, the documented role-lens mechanism) rather than duplicating this page.",
@@ -6615,48 +7564,72 @@
 			"config": {
 				"register": "learniq",
 				"schema": "learning-plan",
-				"_note": "A Learning Plan is an individual learner's development/support plan (goals, support measures, review cadence, coordinator, versioning). Body leads with the plan data including goals and support measures (8-wide) and a Related panel resolving learner, template, cohort/course and coordinator. Its Evaluations (periodic reviews) render as a wide related-index — the plan's living history — and supporting documents render as a Files leaf. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"_note": "Board LqLeerplan (G2): goals and support measures from the record, evaluations and support requests, the OPP outflow and growth beside it when set; the plan documents as a tab.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
+				"statusPill": {
+					"field": "lifecycle",
+					"labels": {
+						"draft": "Draft",
+						"active": "Active",
+						"under-evaluation": "Being evaluated",
+						"closed": "Closed",
+						"superseded": "Replaced"
+					},
+					"colorMap": {
+						"active": "success",
+						"under-evaluation": "purple"
+					}
+				},
+				"typePill": {
+					"field": "kind",
+					"labels": {
+						"opp": "Development perspective",
+						"handelingsplan": "Action plan",
+						"iep": "Individual education plan",
+						"pdp": "Personal development plan",
+						"idp": "Individual development plan",
+						"generic": "Plan"
+					}
+				},
+				"breadcrumb": {
+					"label": "Learning plans",
+					"route": "LearningPlans"
+				},
+				"headerMeta": "coordinator {coordinatorId|user}, next evaluation {nextReviewAt|longdate}",
 				"widgets": [
 					{
-						"id": "lp-data",
-						"type": "data",
-						"title": "Data",
+						"id": "lp-goals",
+						"type": "record-list",
+						"title": "Goals",
 						"content": {
-							"columns": 2
-						},
-						"icon": "NoteTextOutline"
+							"objectRows": {
+								"path": "goals"
+							},
+							"presentation": "rows",
+							"title": "{description}",
+							"meta": "{domain}",
+							"trailing": [
+								"{targetDate|date}"
+							],
+							"emptyText": "No goals yet"
+						}
 					},
 					{
-						"id": "lp-kpis",
-						"type": "stats-block",
-						"title": "Overview",
-						"icon": "ChartBar",
+						"id": "lp-measures",
+						"type": "record-list",
+						"title": "Support measures",
 						"content": {
-							"entries": [
-								{
-									"title": "Evaluations",
-									"register": "learniq",
-									"schema": "learning-plan-evaluation",
-									"metric": "count",
-									"filter": {
-										"learningPlanId": "@objectId"
-									},
-									"route": "LearningPlanEvaluations"
-								},
-								{
-									"title": "Support requests",
-									"register": "learniq",
-									"schema": "support-request",
-									"metric": "count",
-									"filter": {
-										"learningPlanId": "@objectId"
-									},
-									"route": "SupportRequests"
-								}
-							]
+							"objectRows": {
+								"path": "supportMeasures"
+							},
+							"presentation": "rows",
+							"title": "{description}",
+							"trailing": [
+								"{startDate|date}"
+							],
+							"emptyText": "No support measures yet"
 						}
 					},
 					{
@@ -6697,12 +7670,6 @@
 							"allowCreate": false
 						},
 						"icon": "CheckCircleOutline"
-					},
-					{
-						"id": "lp-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
 					},
 					{
 						"id": "lp-support-requests",
@@ -6749,80 +7716,143 @@
 						"integrationId": "files",
 						"title": "Plan documents",
 						"icon": "FolderOutline"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "lp-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 5,
-						"showTitle": false
 					},
 					{
-						"id": "2",
-						"widgetId": "lp-kpis",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 5,
-						"showTitle": false
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
 					},
 					{
-						"id": "3",
-						"widgetId": "lp-evals",
-						"gridX": 0,
-						"gridY": 5,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "4",
-						"widgetId": "lp-related",
-						"gridX": 6,
-						"gridY": 5,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "5",
-						"widgetId": "lp-support-requests",
-						"gridX": 0,
-						"gridY": 10,
-						"gridWidth": 12,
-						"gridHeight": 4,
-						"showTitle": false
-					},
-					{
-						"id": "6",
-						"widgetId": "lp-files",
-						"gridX": 0,
-						"gridY": 14,
-						"gridWidth": 12,
-						"gridHeight": 3,
-						"showTitle": false
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
 								{
-									"type": "audit"
+									"label": "Overview",
+									"widgetIds": [
+										"lp-goals",
+										"lp-measures",
+										"lp-evals",
+										"lp-support-requests"
+									]
+								},
+								{
+									"label": "Plan documents",
+									"widgetId": "lp-files"
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
 								}
 							]
 						}
+					}
+				],
+				"sideColumn": [
+					{
+						"id": "lp-opp",
+						"type": "facts",
+						"title": "OPP: outflow and growth",
+						"content": {
+							"fields": [
+								{
+									"path": "uitstroombestemming",
+									"label": "Outflow destination"
+								},
+								{
+									"label": "Bandwidth",
+									"template": "{outflowBandwidth.lowerVaardigheidsscore} to {outflowBandwidth.upperVaardigheidsscore}"
+								}
+							]
+						}
+					},
+					{
+						"id": "lp-version",
+						"type": "facts",
+						"title": "Versions",
+						"content": {
+							"fields": [
+								{
+									"path": "version",
+									"label": "Version"
+								},
+								{
+									"path": "nextReviewAt",
+									"label": "Next evaluation",
+									"format": "longdate"
+								},
+								{
+									"path": "supersedesId",
+									"label": "Replaces",
+									"resolve": {
+										"register": "learniq",
+										"schema": "learning-plan",
+										"labelField": "period"
+									},
+									"route": {
+										"name": "LearningPlanDetail",
+										"params": {
+											"id": "@source.supersedesId"
+										}
+									}
+								}
+							]
+						}
+					},
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Overview",
+							"widgetIds": [
+								"lp-goals",
+								"lp-measures",
+								"lp-evals",
+								"lp-support-requests"
+							]
+						},
+						{
+							"label": "Plan documents",
+							"widgetId": "lp-files"
+						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		},
 		{
@@ -6831,6 +7861,7 @@
 			"type": "index",
 			"title": "Learning plan evaluations",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "learning-plan-evaluation",
 				"filter": {
@@ -6934,6 +7965,7 @@
 			"type": "index",
 			"title": "Signatures",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Signature",
 				"filter": {
@@ -7057,6 +8089,7 @@
 			"type": "index",
 			"title": "Group plans",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "group-plan"
 			}
@@ -7069,48 +8102,94 @@
 			"config": {
 				"register": "learniq",
 				"schema": "group-plan",
-				"_note": "A GroupPlan is the groepsplan — Dutch PO/SBO's group-level HGW/1-zorgroute planning cycle for one Cohort/subject/period: results analysis, group-wide goals, lifecycle, and the version-chain supersedesId (identical pattern to LearningPlan.supersedesId). Body leads with the plan data (2-column) and a Related panel resolving the cohort, coordinator, and prior-period plan; its GroupPlanSubgroups (instructieniveau split) and GroupPlanEvaluations (period-end reviews) render as wide related-index panels, mirroring LearningPlanDetail's Evaluations pattern. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"_note": "Board LqGroepsplan (G2): the plan as a card, the group goals from the record, subgroups and evaluations as tabs, the results analysis beside it.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
+				"statusPill": {
+					"field": "lifecycle",
+					"labels": {
+						"draft": "Draft",
+						"active": "Active",
+						"under-evaluation": "Being evaluated",
+						"closed": "Closed",
+						"superseded": "Replaced"
+					},
+					"colorMap": {
+						"active": "success",
+						"under-evaluation": "purple"
+					}
+				},
+				"breadcrumb": {
+					"label": "Group plans",
+					"route": "GroupPlans"
+				},
+				"headerMeta": "{period}, until {periodEndDate|longdate}",
 				"widgets": [
 					{
-						"id": "gp-data",
-						"type": "data",
-						"title": "Data",
+						"id": "gp-facts",
+						"type": "facts",
+						"title": "Details",
 						"content": {
-							"columns": 2
-						},
-						"icon": "AccountGroup"
-					},
-					{
-						"id": "gp-kpis",
-						"type": "stats-block",
-						"title": "Overview",
-						"icon": "ChartBar",
-						"content": {
-							"entries": [
+							"fields": [
 								{
-									"title": "Subgroups",
-									"register": "learniq",
-									"schema": "group-plan-subgroup",
-									"metric": "count",
-									"filter": {
-										"groupPlanId": "@objectId"
-									},
-									"route": "GroupPlanSubgroups"
+									"path": "cohortId",
+									"label": "Group",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Cohort",
+										"labelField": "name"
+									}
 								},
 								{
-									"title": "Evaluations",
-									"register": "learniq",
-									"schema": "group-plan-evaluation",
-									"metric": "count",
-									"filter": {
-										"groupPlanId": "@objectId"
+									"path": "subject",
+									"label": "Subject"
+								},
+								{
+									"path": "period",
+									"label": "Period"
+								},
+								{
+									"path": "periodEndDate",
+									"label": "End date",
+									"format": "longdate"
+								},
+								{
+									"path": "coordinatorId",
+									"label": "Coordinator",
+									"format": "user"
+								},
+								{
+									"path": "supersedesId",
+									"label": "Previous plan",
+									"resolve": {
+										"register": "learniq",
+										"schema": "group-plan",
+										"labelField": "subject"
 									},
-									"route": "GroupPlanEvaluations"
+									"route": {
+										"name": "GroupPlanDetail",
+										"params": {
+											"id": "@source.supersedesId"
+										}
+									}
 								}
-							]
+							],
+							"columns": 2
+						}
+					},
+					{
+						"id": "gp-goals",
+						"type": "record-list",
+						"title": "Group goals",
+						"content": {
+							"objectRows": {
+								"path": "goals"
+							},
+							"presentation": "rows",
+							"title": "{description}",
+							"meta": "{domain}",
+							"emptyText": "No group goals yet"
 						}
 					},
 					{
@@ -7153,12 +8232,6 @@
 						"icon": "AccountBoxOutline"
 					},
 					{
-						"id": "gp-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
-					},
-					{
 						"id": "gp-evals",
 						"type": "object-list",
 						"title": "Evaluations",
@@ -7192,71 +8265,137 @@
 							"allowCreate": true
 						},
 						"icon": "CheckCircleOutline"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "gp-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 5,
-						"showTitle": false
 					},
 					{
-						"id": "2",
-						"widgetId": "gp-kpis",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 5,
-						"showTitle": false
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
 					},
 					{
-						"id": "3",
-						"widgetId": "gp-subgroups",
-						"gridX": 0,
-						"gridY": 5,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "4",
-						"widgetId": "gp-related",
-						"gridX": 6,
-						"gridY": 5,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "5",
-						"widgetId": "gp-evals",
-						"gridX": 0,
-						"gridY": 10,
-						"gridWidth": 12,
-						"gridHeight": 4,
-						"showTitle": false
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
 								{
-									"type": "audit"
+									"label": "Overview",
+									"widgetIds": [
+										"gp-facts",
+										"gp-goals"
+									],
+									"sections": true
+								},
+								{
+									"label": "Subgroups",
+									"widgetId": "gp-subgroups"
+								},
+								{
+									"label": "Evaluations",
+									"widgetId": "gp-evals"
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
 								}
 							]
 						}
+					}
+				],
+				"sideColumn": [
+					{
+						"id": "gp-results",
+						"type": "facts",
+						"title": "Results",
+						"content": {
+							"fields": [
+								{
+									"as": "text",
+									"path": "resultsAnalysis.narrative"
+								}
+							]
+						}
+					},
+					{
+						"id": "gp-linked",
+						"type": "facts",
+						"title": "Linked",
+						"content": {
+							"fields": [
+								{
+									"path": "cohortId",
+									"label": "Group",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Cohort",
+										"labelField": "name"
+									},
+									"route": {
+										"name": "CohortDetail",
+										"params": {
+											"id": "@source.cohortId"
+										}
+									}
+								}
+							],
+							"hideEmpty": true
+						}
+					},
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Overview",
+							"widgetIds": [
+								"gp-facts",
+								"gp-goals"
+							],
+							"sections": true
+						},
+						{
+							"label": "Subgroups",
+							"widgetId": "gp-subgroups"
+						},
+						{
+							"label": "Evaluations",
+							"widgetId": "gp-evals"
+						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		},
 		{
@@ -7265,6 +8404,7 @@
 			"type": "index",
 			"title": "Group plan subgroups",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "group-plan-subgroup",
 				"filter": {
@@ -7448,6 +8588,7 @@
 			"type": "index",
 			"title": "Group plan evaluations",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "group-plan-evaluation",
 				"filter": {
@@ -7547,6 +8688,7 @@
 			"type": "index",
 			"title": "Support requests",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "support-request",
 				"columns": [
@@ -7770,6 +8912,7 @@
 			"type": "index",
 			"title": "TLV applications",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "tlv-application"
 			}
@@ -7847,6 +8990,7 @@
 			"type": "index",
 			"title": "Deliberation records",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "deliberation-record"
 			}
@@ -7925,6 +9069,7 @@
 			"type": "index",
 			"title": "Trajectories",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "trajectory",
 				"columns": [
@@ -8061,6 +9206,7 @@
 			"type": "index",
 			"title": "Trajectory status updates",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "trajectory-status-update",
 				"filter": {
@@ -8133,6 +9279,7 @@
 			"type": "index",
 			"title": "Observation instruments",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "observation-instrument",
 				"columns": [
@@ -8216,19 +9363,12 @@
 			}
 		},
 		{
-			"id": "MarkAttendanceView",
-			"route": "/sessions/:sessionId/attendance",
-			"type": "custom",
-			"title": "Mark attendance",
-			"component": "AttendanceRegisterView",
-			"_note": "Mounts AttendanceRegisterView (learniq#947): one row per learner of the session's cohort, a status per learner, saved as one AttendanceRecord each."
-		},
-		{
 			"id": "ReportPeriods",
 			"route": "/report-periods",
 			"type": "index",
 			"title": "Report periods",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "report-period"
 			}
@@ -8355,6 +9495,7 @@
 			"type": "index",
 			"title": "Report cards",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "report-card",
 				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly, see Cohorts' note.",
@@ -8457,6 +9598,7 @@
 			"type": "index",
 			"title": "Report card templates",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "report-card-template"
 			}
@@ -8542,6 +9684,7 @@
 			"type": "index",
 			"title": "Subject choices",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "subject-choice",
 				"columns": [

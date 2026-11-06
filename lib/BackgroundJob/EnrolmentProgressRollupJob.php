@@ -21,13 +21,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\BackgroundJob;
 
 use OCA\Learniq\Service\EnrolmentProgressEvaluator;
-use OCA\OpenRegister\BackgroundJob\ActorForwardedJob;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\OpenRegister\Service\OrganisationService;
-use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\IUserManager;
-use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -51,7 +46,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-suppress UnusedClass Enqueued by ListenerDeferralService at request
  *  shutdown, never constructed by name — psalm reads PHP and sees no caller.
  */
-class EnrolmentProgressRollupJob extends ActorForwardedJob {
+class EnrolmentProgressRollupJob extends ForwardedJob {
 
 	/**
 	 * The register these objects live in.
@@ -68,30 +63,18 @@ class EnrolmentProgressRollupJob extends ActorForwardedJob {
 	private const ENROLMENT_SCHEMA = 'enrolment';
 
 	/**
-	 * @param ITimeFactory               $time          Clock, for the base job.
-	 * @param IUserSession               $userSession   Actor forwarding, for the base job.
-	 * @param IUserManager               $userManager   Actor forwarding, for the base job.
-	 * @param OrganisationService        $organisation  Tenant context, for the base job.
+	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface            $logger        Logger; the base declares it protected.
 	 * @param ObjectService              $objectService OR object access.
 	 * @param EnrolmentProgressEvaluator $evaluator     progressPercent calculation engine.
 	 */
 	public function __construct(
-		ITimeFactory $time,
-		IUserSession $userSession,
-		IUserManager $userManager,
-		OrganisationService $organisation,
+		ActorForwarding $forwarding,
 		LoggerInterface $logger,
 		private readonly ObjectService $objectService,
 		private readonly EnrolmentProgressEvaluator $evaluator,
 	) {
-		parent::__construct(
-			time: $time,
-			userSession: $userSession,
-			userManager: $userManager,
-			organisation: $organisation,
-			logger: $logger
-		);
+		parent::__construct(forwarding: $forwarding, logger: $logger);
 	}//end __construct()
 
 	/**

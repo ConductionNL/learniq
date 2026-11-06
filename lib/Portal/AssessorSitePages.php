@@ -53,6 +53,51 @@ class AssessorSitePages {
 	 */
 	private const REGISTER = 'learniq';
 
+	private const EA_OVERVIEW_BLOCKS = [
+		// One list, longest access first. Each row names the candidate,
+		// the portfolio and the date his access runs to, so the mockup's
+		// sentence is read off the rows until portaliq can fill a text
+		// block from a record.
+		[
+			'type' => 'collection',
+			// "Gedeeld met u", as the board esdoornveen/Beoordelaar heads the list.
+			'label' => 'Shared with you',
+			'collection' => 'eaSharedPortfolios',
+			'sort' => ['field' => 'expiresAt', 'direction' => 'desc'],
+		],
+		['type' => 'inbox', 'label' => 'Messages', 'limit' => 2],
+	];
+
+	/**
+	 * How a list of shared portfolios reads, for the assessor and the trainer alike.
+	 */
+	public const SHARED_PORTFOLIO_LISTING = [
+		'label' => 'Portfolios shared with me',
+		'listable' => true,
+		'minTrust' => 'low',
+		// Only active grants resolve — a revoked share must return no rows.
+		'filter' => ['lifecycle' => 'active'],
+		'fields' => [
+			'portfolioId',
+			'entryIds',
+			'sharedWithKind',
+			'sharedBy',
+			'expiresAt',
+			'lifecycle',
+		],
+	];
+
+	private const ASSESSOR_COLLECTIONS = [
+		[
+			'id' => 'eaSharedPortfolios',
+			'register' => self::REGISTER,
+			'schema' => 'portfolio-share',
+			'scopeField' => 'sharedWithExternalAssessorId',
+			'scopeClaim' => 'externalAssessorId',
+			...self::SHARED_PORTFOLIO_LISTING,
+		],
+	];
+
 	/**
 	 * The shares granted to this assessor, by whose work and until when.
 	 *
@@ -121,18 +166,7 @@ class AssessorSitePages {
 			'icon' => 'ViewDashboard',
 			'group' => ParentSitePages::GROUP,
 			'home' => true,
-			'blocks' => [
-				// One list, longest access first. Each row names the candidate,
-				// the portfolio and the date his access runs to, so the mockup's
-				// sentence is read off the rows until portaliq can fill a text
-				// block from a record.
-				[
-					'type' => 'collection',
-					'collection' => 'eaSharedPortfolios',
-					'sort' => ['field' => 'expiresAt', 'direction' => 'desc'],
-				],
-				['type' => 'inbox', 'label' => 'Messages', 'limit' => 2],
-			],
+			'blocks' => self::EA_OVERVIEW_BLOCKS,
 		];
 	}//end overviewPage()
 	/**
@@ -156,28 +190,7 @@ class AssessorSitePages {
 	public function contribution(): array {
 		$contribution = [
 			'label' => 'Learniq',
-			'collections' => [
-				[
-					'id' => 'eaSharedPortfolios',
-					'register' => self::REGISTER,
-					'schema' => 'portfolio-share',
-					'scopeField' => 'sharedWithExternalAssessorId',
-					'scopeClaim' => 'externalAssessorId',
-					'label' => 'Portfolios shared with me',
-					'listable' => true,
-					'minTrust' => 'low',
-					// Only active grants resolve — a revoked share must return no rows.
-					'filter' => ['lifecycle' => 'active'],
-					'fields' => [
-						'portfolioId',
-						'entryIds',
-						'sharedWithKind',
-						'sharedBy',
-						'expiresAt',
-						'lifecycle',
-					],
-				],
-			],
+			'collections' => self::ASSESSOR_COLLECTIONS,
 			'actions' => [],
 			'notifications' => [],
 		];

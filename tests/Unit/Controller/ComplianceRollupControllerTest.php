@@ -44,6 +44,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * @covers \OCA\Learniq\Controller\ComplianceRollupController
  * @uses \OCA\Learniq\Service\ComplianceRollupService
+ * @uses \OCA\Learniq\Service\ComplianceSnapshot
  * @uses \OCA\Learniq\Service\RegulationCoverageService
  * @uses \OCA\Learniq\Service\RegulationAudienceResolver
  * @uses \OCA\Learniq\Service\RunningExemptions
@@ -66,7 +67,11 @@ class ComplianceRollupControllerTest extends TestCase {
 	 *
 	 * @return ComplianceRollupController
 	 */
-	private function controller(bool $signedIn = true, bool $allowed = true, ?RegulationAssignmentService $assignment = null): ComplianceRollupController {
+	private function controller(
+		bool $signedIn = true,
+		bool $allowed = true,
+		?RegulationAssignmentService $assignment = null
+	): ComplianceRollupController {
 		$store = [
 			'learner-profile' => [
 				['id' => 'p-ann', 'ncUserId' => 'ann', 'department' => 'Operations/Logistics', 'lifecycle' => 'active'],
@@ -84,6 +89,10 @@ class ComplianceRollupControllerTest extends TestCase {
 			static function (string $id) {
 				if ($id === 'reg-draft') {
 					return OrEntityFactory::make(['id' => 'reg-draft', 'lifecycle' => 'draft'], 'regulation');
+				}
+
+				if ($id === 'reg-mc') {
+					return OrEntityFactory::make(['id' => 'reg-mc', 'slug' => 'MELDCODE', 'lifecycle' => 'published'], 'regulation');
 				}
 
 				throw new DoesNotExistException('no such regulation');
@@ -111,13 +120,13 @@ class ComplianceRollupControllerTest extends TestCase {
 		$rollup = new ComplianceRollupService($objectService, new RegulationAudienceResolver(), $training);
 
 		return new ComplianceRollupController(
-			$this->createMock(IRequest::class),
+			$this->createMock(originalClassName: IRequest::class),
 			$session,
 			$actionAuth,
 			$rollup,
-			$assignment ?? $this->createMock(RegulationAssignmentService::class),
+			$assignment ?? $this->createMock(originalClassName: RegulationAssignmentService::class),
 			$objectService,
-			new RegulationCoverageService($rollup, new RegulationAudienceResolver())
+			new RegulationCoverageService(rollup: $rollup, audience: new RegulationAudienceResolver())
 		);
 	}//end controller()
 
@@ -169,6 +178,33 @@ class ComplianceRollupControllerTest extends TestCase {
 		self::assertSame(Http::STATUS_NOT_FOUND, $this->controller(assignment: $assignment)->assignRegulation(id: 'reg-missing')->getStatus());
 		self::assertSame(Http::STATUS_NOT_FOUND, $this->controller(assignment: $assignment)->assignRegulation()->getStatus());
 		self::assertSame(Http::STATUS_CONFLICT, $this->controller(assignment: $assignment)->assignRegulation(id: 'reg-draft')->getStatus());
-		self::assertSame(['regulation.assign', 'regulation.assign', 'regulation.assign'], $this->asked);
+		self::assertSame(expected: ['regulation.assign', 'regulation.assign', 'regulation.assign'], actual: $this->asked);
 	}//end testAssigningAnUnknownOrDraftRegulation()
+
+	/**
+	 * The narrowed assignment passes the chosen audience and due date on; an
+	 * unknown kind, an empty audience or a malformed due date is refused before
+	 * anything is assigned.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
+	 */
+	public function testTheAssignmentFollowsTheChosenAudience(): void {
+		$assignment = $this->createPartialMock(originalClassName: RegulationAssignmentService::class, methods: ['assign']);
+		$assignment->expects(self::once())->method('assign')
+			->with(self::anything(), ['kind' => 'hr-function', 'value' => 'Docent Frans'], '2026-12-01')
+			->willReturn(['created' => 1, 'skipped' => 0, 'inScope' => 1, 'courses' => 1]);
+		$assigned = $this->controller(assignment: $assignment)
+			->assignRegulation(id: 'reg-mc', audienceKind: 'hr-function', audience: ' Docent Frans ', dueDate: '2026-12-01');
+		self::assertSame(expected: Http::STATUS_OK, actual: $assigned->getStatus());
+
+		$never = $this->createPartialMock(originalClassName: RegulationAssignmentService::class, methods: ['assign']);
+		$never->expects(self::never())->method('assign');
+		$refused = $this->controller(assignment: $never);
+		foreach ([['school', 'x', ''], ['team', '', ''], ['', '', '1-12-2026'], ['', '', '2026-02-30']] as [$kind, $audience, $due]) {
+			$status = $refused->assignRegulation(id: 'reg-mc', audienceKind: $kind, audience: $audience, dueDate: $due)->getStatus();
+			self::assertSame(expected: Http::STATUS_BAD_REQUEST, actual: $status);
+		}
+	}//end testTheAssignmentFollowsTheChosenAudience()
 }//end class

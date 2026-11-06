@@ -30,6 +30,8 @@ namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\Learniq\Listener\AssessmentResultIntegrityListener;
 use OCA\Learniq\Listener\LvsResultFreezeListener;
+use OCA\Learniq\Listener\ProctoringFlagReviewGuard;
+use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectDeletingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
@@ -72,6 +74,19 @@ class EvidenceFreezeListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: LvsResultFreezeListener::class
+		);
+
+		// Proctoring flag review (proctoring-flag-review-page D2): a learner
+		// may append pending flags to their own session but only staff decide
+		// one, and the server stamps reviewedBy/reviewedAt. A pre-write veto,
+		// registered directly for the same reason as the two above.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: ProctoringFlagReviewGuard::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: ProctoringFlagReviewGuard::class
 		);
 	}//end register()
 }//end class

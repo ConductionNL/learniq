@@ -127,6 +127,195 @@ class EmployerSitePages {
 		'birth-date-missing' => 'Birth date missing',
 	];
 
+	private const EMPLOYER_EDITIONS = [
+		'id' => 'employerEditions',
+		'register' => self::REGISTER,
+		'schema' => 'cohort',
+		'scopeField' => 'locationId',
+		'scopeClaim' => self::LOCATION_CLAIM,
+		'label' => 'Course dates you can book',
+		'listable' => false,
+		'minTrust' => 'low',
+		'filter' => ['lifecycle' => 'planned'],
+		'fields' => ['name', 'courseId', 'period', 'locationId', 'lifecycle'],
+	];
+
+	private const EMPLOYER_PARTICIPANTS_EXTRA = [
+		'fieldConfigs' => ['detailsStatus' => ['valueLabels' => self::DETAILS_STATUS]],
+		'columns' => [
+			['field' => 'learnerName', 'label' => 'Participant'],
+			['field' => 'certificateLine', 'label' => 'Certificate'],
+			['field' => 'detailsStatus', 'label' => 'Details', 'valueLabels' => self::DETAILS_STATUS],
+		],
+	];
+
+	private const EMPLOYER_EMPLOYEES_EXTRA = [
+		'filter' => ['lifecycle' => 'active'],
+		'defaultSort' => ['field' => 'familyName', 'direction' => 'asc'],
+		'columns' => [
+			['field' => 'fullName', 'label' => 'Name'],
+			['field' => 'department', 'label' => 'Department'],
+		],
+	];
+
+	private const EMPLOYER_BOOKINGS_COLUMNS = [
+		['field' => 'firstDay', 'label' => 'First day', 'render' => 'date'],
+		['field' => 'courseName', 'label' => 'Course name'],
+		['field' => 'participantNames', 'label' => 'Participants'],
+		['field' => 'employerStatus', 'label' => 'Status', 'valueLabels' => self::BOOKING_STATUS],
+	];
+
+	private const EMPLOYER_CERTIFICATES_EXTRA = [
+		'filter' => ['lifecycle' => 'issued', 'kind' => 'certificate'],
+		'defaultSort' => ['field' => 'expiresAt', 'direction' => 'asc'],
+		// One group per certificate, the holders under it, as the board (REPORT-2, item 9).
+		'groupByField' => 'courseName',
+		'fieldConfigs' => ['expiryStatus' => ['valueLabels' => self::EXPIRY_STATUS]],
+		'columns' => [
+			['field' => 'learnerName', 'label' => 'Employee'],
+			['field' => 'courseName', 'label' => 'Certificate'],
+			['field' => 'expiresAt', 'label' => 'Valid until', 'render' => 'date'],
+			['field' => 'expiryLabel', 'label' => 'Status'],
+			['field' => 'renewalLine', 'label' => 'Renewal'],
+			['field' => 'verificationUrl', 'label' => 'Check or download', 'render' => 'link'],
+		],
+	];
+
+	private const EMPLOYER_CERTIFICATES_FIELDS = [
+		'organisationRef',
+		'learnerName',
+		'courseName',
+		'kind',
+		'validUntilLabel',
+		'expiresAt',
+		'expiryStatus',
+		'expiryLabel',
+		'renewalLine',
+		'verificationUrl',
+		'lifecycle',
+	];
+
+	private const ENROL_EMPLOYEES_FIELD_CONFIGS = [
+		'cohortId' => ['label' => 'Course and date', 'required' => true],
+		// Portaliq's count stepper; an older portaliq drops the widget and asks for a number.
+		'participantCount' => [
+			'label' => 'Number of participants',
+			'required' => true,
+			'widget' => 'count',
+			'min' => 1,
+			'max' => 12,
+			'unit' => ['one' => 'participant', 'other' => 'participants'],
+			'help' => 'You fill in the names in the next step. Six participants or more? Ask for a day of your own.',
+		],
+	];
+
+	private const SUPPLY_BIRTH_DATE_FIELD_CONFIGS = [
+		'learnerRef' => ['label' => 'Participant', 'required' => true],
+		'birthDate' => [
+			'label' => 'Birth date',
+			'required' => true,
+			'help' => 'The exam institution uses the birth date to register the participant. We keep it only with this participant.',
+		],
+	];
+
+	private const ADD_BOOKING_PARTICIPANT_FIELD_CONFIGS = [
+		'bookingRef' => ['label' => 'Booking', 'required' => true],
+		'learnerRef' => ['label' => 'Employee', 'required' => true],
+	];
+
+	private const EMPLOYER_OPEN_TASKS = [
+		'id' => 'employerOpenTasks',
+		'label' => 'Still to do',
+		'menu' => false,
+		'blocks' => [
+			[
+				'type' => 'collection',
+				'collection' => 'employerOpenTasks',
+				'display' => 'rows',
+				'titleFields' => ['openTask'],
+				'subtitleField' => 'openTaskNote',
+				'dateField' => 'openTaskDueAt',
+			],
+			['type' => 'action', 'action' => 'supplyBirthDate'],
+		],
+	];
+
+	private const EMPLOYER_EMPLOYEES = [
+		'id' => 'employerEmployees',
+		'label' => 'Employees',
+		'icon' => 'AccountGroupOutline',
+		'group' => self::GROUP_COURSES,
+		'blocks' => [
+			['type' => 'collection', 'collection' => 'employerEmployees'],
+			['type' => 'action', 'action' => 'addBookingParticipant'],
+		],
+	];
+
+	private const EMPLOYER_CERTIFICATES = [
+		'id' => 'employerCertificates',
+		'label' => 'Certificates',
+		'icon' => 'CertificateOutline',
+		'group' => self::GROUP_COURSES,
+		'blocks' => [['type' => 'collection', 'collection' => 'employerCertificates']],
+	];
+
+	private const BOOKING_ROWS = [
+		'display' => 'rows',
+		'dateField' => 'firstDay',
+		'titleFields' => ['courseName'],
+		'subtitleField' => 'participantNames',
+		'statusField' => 'employerStatus',
+		'statusTones' => self::BOOKING_TONES,
+		'statusNoteField' => 'statusNote',
+	];
+
+	private const EMPLOYER_COMING_BOOKINGS_BLOCK = [
+		'type' => 'collection',
+		'collection' => 'employerComingBookings',
+		...self::BOOKING_ROWS,
+		'limit' => 3,
+		'sort' => ['field' => 'firstDay', 'direction' => 'asc'],
+	];
+
+	private const EMPLOYER_TASKS_BLOCK = [
+		'type' => 'tasks',
+		'label' => 'First this',
+		'display' => 'highlight',
+		'eyebrow' => 'First this',
+		'collection' => 'employerOpenTasks',
+		'titleFields' => ['openTask'],
+		'subtitleFields' => ['openTaskNote'],
+		'dueField' => 'openTaskDueAt',
+		'buttonLabel' => 'Fill in the birth date',
+	];
+
+	private const EMPLOYER_BOOKINGS_BLOCKS = [
+		[
+			'type' => 'collection',
+			'collection' => 'employerBookings',
+			...self::BOOKING_ROWS,
+			'sort' => ['field' => 'firstDay', 'direction' => 'asc'],
+		],
+		['type' => 'steps', 'collection' => 'employerBookings', 'label' => 'Where does this booking stand?'],
+		// The board's participants (Detail): each name with the certificate
+		// line and whether the details are complete (REPORT-2, item 9).
+		[
+			'type' => 'collection',
+			'label' => 'Participants',
+			'collection' => 'employerParticipants',
+			'recordField' => 'bookingRef',
+			'display' => 'rows',
+			'titleFields' => ['learnerName'],
+			'subtitleField' => 'certificateLine',
+			'statusField' => 'detailsStatus',
+			'statusTones' => ['complete' => 'success', 'birth-date-missing' => 'warning'],
+		],
+		['type' => 'detail', 'collection' => 'employerBookings'],
+		['type' => 'action', 'action' => 'supplyBirthDate'],
+		['type' => 'action', 'action' => 'addBookingParticipant'],
+		['type' => 'cta', 'action' => 'enrolEmployees', 'label' => 'New booking'],
+	];
+
 	/**
 	 * The employer's manifest.
 	 *
@@ -184,12 +373,7 @@ class EmployerSitePages {
 					'steps' => ['label' => 'Where does this booking stand?', 'provider' => self::STEPS_PROVIDER],
 					'defaultSort' => ['field' => 'firstDay', 'direction' => 'desc'],
 					'fieldConfigs' => $statusConfig,
-					'columns' => [
-						['field' => 'firstDay', 'label' => 'First day', 'render' => 'date'],
-						['field' => 'courseName', 'label' => 'Course name'],
-						['field' => 'participantNames', 'label' => 'Participants'],
-						['field' => 'employerStatus', 'label' => 'Status', 'valueLabels' => self::BOOKING_STATUS],
-					],
+					'columns' => self::EMPLOYER_BOOKINGS_COLUMNS,
 				]
 			),
 			$this->direct(
@@ -204,14 +388,7 @@ class EmployerSitePages {
 				schema: 'enrolment',
 				label: 'Participants',
 				fields: $this->participantFields(),
-				extra: [
-					'fieldConfigs' => ['detailsStatus' => ['valueLabels' => self::DETAILS_STATUS]],
-					'columns' => [
-						['field' => 'learnerName', 'label' => 'Participant'],
-						['field' => 'certificateLine', 'label' => 'Certificate'],
-						['field' => 'detailsStatus', 'label' => 'Details', 'valueLabels' => self::DETAILS_STATUS],
-					],
-				]
+				extra: self::EMPLOYER_PARTICIPANTS_EXTRA
 			),
 			// Names only: never the birth date, the address or anything the
 			// institute keeps for itself.
@@ -220,28 +397,10 @@ class EmployerSitePages {
 				schema: 'learner-profile',
 				label: 'Employees',
 				fields: ['organisationRef', 'fullName', 'givenName', 'familyName', 'department', 'lifecycle'],
-				extra: [
-					'filter' => ['lifecycle' => 'active'],
-					'defaultSort' => ['field' => 'familyName', 'direction' => 'asc'],
-					'columns' => [
-						['field' => 'fullName', 'label' => 'Name'],
-						['field' => 'department', 'label' => 'Department'],
-					],
-				]
+				extra: self::EMPLOYER_EMPLOYEES_EXTRA
 			),
 			$this->certificatesCollection(),
-			[
-				'id' => 'employerEditions',
-				'register' => self::REGISTER,
-				'schema' => 'cohort',
-				'scopeField' => 'locationId',
-				'scopeClaim' => self::LOCATION_CLAIM,
-				'label' => 'Course dates you can book',
-				'listable' => false,
-				'minTrust' => 'low',
-				'filter' => ['lifecycle' => 'planned'],
-				'fields' => ['name', 'courseId', 'period', 'locationId', 'lifecycle'],
-			],
+			self::EMPLOYER_EDITIONS,
 		];
 	}//end collections()
 
@@ -259,32 +418,8 @@ class EmployerSitePages {
 			id: 'employerCertificates',
 			schema: 'credential',
 			label: 'Certificates in your company',
-			fields: [
-				'organisationRef',
-				'learnerName',
-				'courseName',
-				'kind',
-				'validUntilLabel',
-				'expiresAt',
-				'expiryStatus',
-				'expiryLabel',
-				'renewalLine',
-				'verificationUrl',
-				'lifecycle',
-			],
-			extra: [
-				'filter' => ['lifecycle' => 'issued', 'kind' => 'certificate'],
-				'defaultSort' => ['field' => 'expiresAt', 'direction' => 'asc'],
-				'fieldConfigs' => ['expiryStatus' => ['valueLabels' => self::EXPIRY_STATUS]],
-				'columns' => [
-					['field' => 'learnerName', 'label' => 'Employee'],
-					['field' => 'courseName', 'label' => 'Certificate'],
-					['field' => 'expiresAt', 'label' => 'Valid until', 'render' => 'date'],
-					['field' => 'expiryLabel', 'label' => 'Status'],
-					['field' => 'renewalLine', 'label' => 'Renewal'],
-					['field' => 'verificationUrl', 'label' => 'Check or download', 'render' => 'link'],
-				],
-			]
+			fields: self::EMPLOYER_CERTIFICATES_FIELDS,
+			extra: self::EMPLOYER_CERTIFICATES_EXTRA
 		);
 	}//end certificatesCollection()
 
@@ -307,19 +442,7 @@ class EmployerSitePages {
 				fields: ['cohortId', 'participantCount'],
 				extra: [
 					'optionsProviders' => ['cohortId' => $this->options(schema: 'cohort', label: 'name', value: 'id')],
-					'fieldConfigs' => [
-						'cohortId' => ['label' => 'Course and date', 'required' => true],
-						// Portaliq's count stepper; an older portaliq drops the widget and asks for a number.
-						'participantCount' => [
-							'label' => 'Number of participants',
-							'required' => true,
-							'widget' => 'count',
-							'min' => 1,
-							'max' => 12,
-							'unit' => ['one' => 'participant', 'other' => 'participants'],
-							'help' => 'You fill in the names in the next step. Six participants or more? Ask for a day of your own.',
-						],
-					],
+					'fieldConfigs' => self::ENROL_EMPLOYEES_FIELD_CONFIGS,
 					'requiredFields' => ['cohortId', 'participantCount'],
 					'submitLabel' => 'Book these places',
 					'successMessage' => 'Your booking is received. Now fill in who takes each place.',
@@ -336,10 +459,7 @@ class EmployerSitePages {
 						'bookingRef' => $this->options(schema: 'course-booking', label: 'bookingLabel', value: 'id'),
 						'learnerRef' => $this->options(schema: 'learner-profile', label: 'fullName', value: 'id'),
 					],
-					'fieldConfigs' => [
-						'bookingRef' => ['label' => 'Booking', 'required' => true],
-						'learnerRef' => ['label' => 'Employee', 'required' => true],
-					],
+					'fieldConfigs' => self::ADD_BOOKING_PARTICIPANT_FIELD_CONFIGS,
 					'requiredFields' => ['bookingRef', 'learnerRef'],
 					'submitLabel' => 'Put on the booking',
 					'successMessage' => 'The employee has a place on the booking.',
@@ -354,14 +474,7 @@ class EmployerSitePages {
 				extra: [
 					// The participants still missing a birth date: the first enrolment collection.
 					'optionsProviders' => ['learnerRef' => $this->options(schema: 'enrolment', label: 'learnerName', value: 'learnerRef')],
-					'fieldConfigs' => [
-						'learnerRef' => ['label' => 'Participant', 'required' => true],
-						'birthDate' => [
-							'label' => 'Birth date',
-							'required' => true,
-							'help' => 'The exam institution uses the birth date to register the participant. We keep it only with this participant.',
-						],
-					],
+					'fieldConfigs' => self::SUPPLY_BIRTH_DATE_FIELD_CONFIGS,
 					'requiredFields' => ['learnerRef', 'birthDate'],
 					'submitLabel' => 'Save',
 					'successMessage' => 'The birth date is saved. The participant can take the exam.',
@@ -382,39 +495,9 @@ class EmployerSitePages {
 		return [
 			$this->overviewPage(),
 			$this->bookingsPage(),
-			[
-				'id' => 'employerEmployees',
-				'label' => 'Employees',
-				'icon' => 'AccountGroupOutline',
-				'group' => self::GROUP_COURSES,
-				'blocks' => [
-					['type' => 'collection', 'collection' => 'employerEmployees'],
-					['type' => 'action', 'action' => 'addBookingParticipant'],
-				],
-			],
-			[
-				'id' => 'employerCertificates',
-				'label' => 'Certificates',
-				'icon' => 'CertificateOutline',
-				'group' => self::GROUP_COURSES,
-				'blocks' => [['type' => 'collection', 'collection' => 'employerCertificates']],
-			],
-			[
-				'id' => 'employerOpenTasks',
-				'label' => 'Still to do',
-				'menu' => false,
-				'blocks' => [
-					[
-						'type' => 'collection',
-						'collection' => 'employerOpenTasks',
-						'display' => 'rows',
-						'titleFields' => ['openTask'],
-						'subtitleField' => 'openTaskNote',
-						'dateField' => 'openTaskDueAt',
-					],
-					['type' => 'action', 'action' => 'supplyBirthDate'],
-				],
-			],
+			self::EMPLOYER_EMPLOYEES,
+			self::EMPLOYER_CERTIFICATES,
+			self::EMPLOYER_OPEN_TASKS,
 		];
 	}//end pages()
 
@@ -435,30 +518,8 @@ class EmployerSitePages {
 			'home' => true,
 			'blocks' => [
 				['type' => 'greeting', 'label' => 'Book places', 'action' => 'enrolEmployees'],
-				[
-					'type' => 'tasks',
-					'label' => 'First this',
-					'display' => 'highlight',
-					'eyebrow' => 'First this',
-					'collection' => 'employerOpenTasks',
-					'titleFields' => ['openTask'],
-					'subtitleFields' => ['openTaskNote'],
-					'dueField' => 'openTaskDueAt',
-					'buttonLabel' => 'Fill in the birth date',
-				],
-				[
-					'type' => 'collection',
-					'collection' => 'employerComingBookings',
-					'display' => 'rows',
-					'dateField' => 'firstDay',
-					'titleFields' => ['courseName'],
-					'subtitleField' => 'participantNames',
-					'statusField' => 'employerStatus',
-					'statusTones' => self::BOOKING_TONES,
-					'statusNoteField' => 'statusNote',
-					'limit' => 3,
-					'sort' => ['field' => 'firstDay', 'direction' => 'asc'],
-				],
+				self::EMPLOYER_TASKS_BLOCK,
+				self::EMPLOYER_COMING_BOOKINGS_BLOCK,
 				['type' => 'cta', 'page' => 'employerBookings', 'label' => 'All bookings'],
 				$this->certificateRows(),
 				['type' => 'cta', 'page' => 'employerCertificates', 'label' => 'All certificates'],
@@ -485,26 +546,7 @@ class EmployerSitePages {
 			'icon' => 'CalendarAccountOutline',
 			'group' => self::GROUP_COURSES,
 			'record' => ['collection' => 'employerBookings', 'titleFields' => ['courseName']],
-			'blocks' => [
-				[
-					'type' => 'collection',
-					'collection' => 'employerBookings',
-					'display' => 'rows',
-					'dateField' => 'firstDay',
-					'titleFields' => ['courseName'],
-					'subtitleField' => 'participantNames',
-					'statusField' => 'employerStatus',
-					'statusTones' => self::BOOKING_TONES,
-					'statusNoteField' => 'statusNote',
-					'sort' => ['field' => 'firstDay', 'direction' => 'asc'],
-				],
-				['type' => 'steps', 'collection' => 'employerBookings', 'label' => 'Where does this booking stand?'],
-				['type' => 'collection', 'collection' => 'employerParticipants', 'recordField' => 'bookingRef'],
-				['type' => 'detail', 'collection' => 'employerBookings'],
-				['type' => 'action', 'action' => 'supplyBirthDate'],
-				['type' => 'action', 'action' => 'addBookingParticipant'],
-				['type' => 'cta', 'action' => 'enrolEmployees', 'label' => 'New booking'],
-			],
+			'blocks' => self::EMPLOYER_BOOKINGS_BLOCKS,
 		];
 	}//end bookingsPage()
 

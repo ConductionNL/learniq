@@ -82,8 +82,8 @@ Signing assurance-level capture MUST be declarative config; the actual DigiD/eID
 The frontend MUST be declarative: `src/manifest.json` pages for `SupportRequest`/`TlvApplication`/
 `DeliberationRecord` index+detail, following the same `<Schema>s`/`<Schema>Detail` convention as the
 existing `LearningPlans`/`LearningPlanDetail` pages. The SWV dossier review step MUST reuse the existing
-`OsoDossierReviewView` custom view (`CnStructuredDocReview`) rather than introduce a new bespoke
-component. There MUST be no PHP CRUD controllers.
+parent review pages (`DossierReviews`, `DossierReviewDetail`, which replaced the `OsoDossierReviewView`
+custom view when the exchanges moved to integriq) rather than introduce a new bespoke component. There MUST be no PHP CRUD controllers.
 
 #### Scenario: Pages are manifest-declared and reuse the existing dossier-review view
 
@@ -91,7 +91,7 @@ component. There MUST be no PHP CRUD controllers.
 - **WHEN** the app renders `SupportRequest`/`TlvApplication`/`DeliberationRecord` screens and the SWV
   dossier review step
 - **THEN** index/detail pages come from `src/manifest.json`, the dossier review step reuses the existing
-  `OsoDossierReviewView`, and there are no PHP CRUD controllers
+  `DossierReviewDetail` page, and there are no PHP CRUD controllers
 
 ### Requirement: Persist SupportRequest, TlvApplication, and DeliberationRecord domain objects in OpenRegister
 
@@ -512,10 +512,10 @@ schema is a role lens, not a page") and its enforcing ratchet, gate-68 `duplicat
 ### Requirement: Differentiation forms speak of support needs, level and goal
 The teacher-facing titles and property descriptions of `GroupPlan`, `GroupPlanSubgroup`, `SupportRequest` and `ExamAccommodation` MUST describe differentiation by level, goal, time or material and the recording of support needs, in plain sentences without engineering rationale. Engineering rationale MUST live in the property's `x-notes`, which the form does not show. Every rewritten title and description MUST have an English catalogue key and a Dutch value.
 
-#### Scenario: A teacher fills in an instruction group
-- **GIVEN** a Dutch-language teacher opens the form for a group within a group plan
+#### Scenario: A teacher fills in a subgroup
+- **GIVEN** a Dutch-language teacher chooses "Subgroep toevoegen" on a group plan
 - **WHEN** the form renders
-- **THEN** the title reads "Instructiegroep" and the approach field explains, in Dutch, how the group is taught to reach its goal
+- **THEN** the title reads "Subgroep" and the field "Aanpak" explains, in Dutch, how the group is taught to reach its goal
 
 #### Scenario: Engineering notes stay out of the form
 - **GIVEN** the `GroupPlan.supersedesId` property
@@ -560,6 +560,34 @@ Activating a LearningPlan MUST apply the required signer roles of its template, 
 - **GIVEN** a template requiring signatures and no signatures on the plan
 - **WHEN** the plan is activated
 - **THEN** the guard refuses it
+
+### Requirement: A signature is recorded by the server in a role the signer holds
+
+A Signature on a LearningPlan and a PokSignature on a work placement agreement MUST be written by learniq's sign endpoint (`POST /api/sign/{learning-plan|placement-agreement}/{id}`), never by the browser. The server MUST set `signerId` from the session, `signedAt` from its own clock, `subjectVersion` and `tenant_id` from the signed record, and MUST refuse a role the signer does not hold on that record: `learner`, `coordinator` and `student` come from the record, `parent` from the learner's `LearnerProfile.parentIds`, `teacher` from the `instructors` group, `school` from the placement's school coach or the `coordinators` group. Both signature schemas MUST deny direct creation. A signature MUST carry an affirmed typed or drawn capture, and the same signer MUST NOT sign the same version twice in the same role.
+
+#### Scenario: The coordinator signs a learning plan
+
+- **GIVEN** a draft learning plan whose `coordinatorId` is the signed-in user
+- **WHEN** they sign it with a typed signature and the affirmation
+- **THEN** a Signature is recorded with `signerRole: coordinator`, their user id, the server's time and the plan's version and tenant
+
+#### Scenario: A role the signer does not hold is refused
+
+- **GIVEN** a draft learning plan on which the signed-in user is neither learner nor coordinator, nor a listed parent, nor in `instructors`
+- **WHEN** they ask to sign it as `coordinator`
+- **THEN** the endpoint answers 403 and no Signature is recorded
+
+#### Scenario: A listed parent signs a work placement agreement
+
+- **GIVEN** an agreement awaiting signatures for a student whose learner profile lists the signed-in user in `parentIds`
+- **WHEN** they sign it as `parent`
+- **THEN** a PokSignature with `signerRole: parent` is recorded for that version
+
+#### Scenario: A signature cannot be created through the objects API
+
+- **GIVEN** a user who is not an administrator
+- **WHEN** they create a Signature or PokSignature through OpenRegister's objects API
+- **THEN** OpenRegister refuses the creation
 
 ## Standards
 

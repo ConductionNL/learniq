@@ -24,6 +24,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\Calendar\SchoolYear;
+use OCA\Learniq\Service\OpenMaterial\OpenMaterialSettings;
+use OCA\Learniq\Service\Settings\AppealTerm;
 use OCA\Learniq\Service\Settings\MenuStructure;
 use OCP\App\IAppManager;
 use OCP\IAppConfig;
@@ -50,6 +53,14 @@ class SettingsService {
 		// is not on this list is dropped by updateSettings() while the write
 		// still answers success.
 		MenuStructure::KEY,
+		// The first day of the school year, MM-DD (school-year-setting).
+		SchoolYear::KEY,
+		// The exam board's appeal term in days (exam-board, decision 333).
+		AppealTerm::KEY,
+		// Open learning material on or off, collections off, link-allowed collections (open-learning-material).
+		OpenMaterialSettings::ENABLED_KEY,
+		OpenMaterialSettings::COLLECTIONS_OFF_KEY,
+		OpenMaterialSettings::LINK_COLLECTIONS_KEY,
 	];
 
 	/**

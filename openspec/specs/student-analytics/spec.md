@@ -1,7 +1,7 @@
 # student-analytics Specification
 
 ## Purpose
-TBD - created by archiving change learning-progress-and-analytics. Update Purpose after archive.
+Show teachers how learners and groups are doing through engagement scores, rule-based at-risk signals and test-score heat maps. Planners forecast next year's learners and the groups they need.
 
 ## Requirements
 
@@ -61,7 +61,7 @@ ADR-005 gate, in a separate change — it MUST NOT be built as local Scholiq log
 
 - **GIVEN** a learner's prior `EngagementRiskFlag` is `resolved`
 - **WHEN** their `EngagementScore.score` crosses back below the threshold on new activity
-- **THEN** a new `EngagementRiskFlag` (`open`) is created — the idempotency guard only suppresses duplicates
+- **THEN** the resolved `EngagementRiskFlag` is reopened (`open`) with its history kept, as learniq/LqBetrokkenheid shows; the idempotency guard only suppresses duplicates
   while a flag is already `open`/`in-handling`
 
 ### Requirement: Cohort/group test-score trend renders as a heat map over existing data
@@ -112,6 +112,6 @@ The computed forecast MUST show per programme year and per subject the number of
 
 #### Scenario: Groups for an elective subject
 
-- **GIVEN** a forecast of 61 learners taking "Economie" in havo 4 and a target group size of 28
+- **GIVEN** a forecast of 98 learners taking "Economie" in havo 4 and a target group size of 28
 - **WHEN** the planner reads the subject table
-- **THEN** "Economie" in havo 4 needs 3 groups
+- **THEN** "Economie" in havo 4 needs 4 groups

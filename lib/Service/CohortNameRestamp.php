@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
  */
 
 declare(strict_types=1);
@@ -37,7 +37,7 @@ use Throwable;
 /**
  * Re-stamps the group name on a renamed cohort's enrolments.
  *
- * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
  */
 class CohortNameRestamp {
 
@@ -72,7 +72,7 @@ class CohortNameRestamp {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
 	 */
 	public function restamp(string $cohortId, string $name): void {
 		try {

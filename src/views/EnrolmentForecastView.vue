@@ -9,8 +9,8 @@
  @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
 -->
 <template>
-	<div class="forecast">
-		<h2>{{ t('learniq', 'Enrolment forecast') }}</h2>
+	<div class="forecast lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Enrolment forecast')" />
 		<NcNoteCard v-if="error" type="error">
 			{{ error }}
 		</NcNoteCard>
@@ -27,54 +27,22 @@
 			</NcButton>
 		</div>
 		<template v-if="scenario">
-			<h3>{{ t('learniq', 'Rates per programme year') }}</h3>
-			<table class="forecast__table" data-testid="forecast-rates">
-				<thead>
-					<tr>
-						<th scope="col">
-							{{ t('learniq', 'Programme') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Year') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Moves up') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Repeats') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Leaves') }}
-						</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr v-for="(rate, index) in scenario.rates" :key="index">
-						<td>{{ programmeName(rate.programmeId) }}</td>
-						<td>{{ rate.programmeYear }}</td>
-						<td
-							v-for="field in ['upRate', 'repeatRate', 'leaveRate']"
-							:key="field">
-							<input
-								v-model.number="rate[field]"
-								type="number"
-								min="0"
-								max="1"
-								step="0.01"
-								:aria-label="t('learniq', 'Rate')" />
-						</td>
-					</tr>
-				</tbody>
-			</table>
-			<h3>{{ t('learniq', 'Expected intake in year 1') }}</h3>
-			<ul class="forecast__intake">
-				<li v-for="(row, index) in scenario.intake" :key="index">
-					<label>
-						{{ programmeName(row.programmeId) }}
-						<input v-model.number="row.expected" type="number" min="0" />
-					</label>
-				</li>
-			</ul>
+			<CnDetailCard :title="t('learniq', 'Rates per programme year')">
+				<CnDataMatrix
+					data-testid="forecast-rates"
+					:rows="rateMatrixRows"
+					:columns="rateColumns"
+					:rowHeader="t('learniq', 'Programme')"
+					@cellEdit="(edit) => onCellEdit(scenario.rates, edit)" />
+			</CnDetailCard>
+			<CnDetailCard :title="t('learniq', 'Expected intake in year 1')">
+				<CnDataMatrix
+					data-testid="forecast-intake"
+					:rows="intakeMatrixRows"
+					:columns="intakeColumns"
+					:rowHeader="t('learniq', 'Programme')"
+					@cellEdit="(edit) => onCellEdit(scenario.intake, edit)" />
+			</CnDetailCard>
 			<div class="forecast__bar">
 				<NcButton :disabled="busy" @click="save">
 					{{ t('learniq', 'Save scenario') }}
@@ -87,7 +55,7 @@
 				</NcButton>
 			</div>
 		</template>
-		<template v-if="result">
+		<CnDetailCard v-if="result" :title="t('learniq', 'Forecast')">
 			<p class="forecast__label">
 				{{
 					t(
@@ -101,83 +69,35 @@
 					)
 				}}
 			</p>
-			<table class="forecast__table" data-testid="forecast-years">
-				<thead>
-					<tr>
-						<th scope="col">
-							{{ t('learniq', 'Programme') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Year') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Learners') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Groups needed') }}
-						</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr
-						v-for="row in result.programmeYears"
-						:key="row.programmeId + row.programmeYear">
-						<td>{{ row.programmeName }}</td>
-						<td>{{ row.programmeYear }}</td>
-						<td>{{ row.learners }}</td>
-						<td>{{ row.groupsNeeded }}</td>
-					</tr>
-				</tbody>
-			</table>
-			<table
+			<CnDataMatrix
+				data-testid="forecast-years"
+				:rows="yearMatrixRows"
+				:columns="yearColumns"
+				:rowHeader="t('learniq', 'Programme')"
+				:emptyLabel="t('learniq', 'No programme years in this forecast.')"
+				:columnTotalsLabel="t('learniq', 'Total')"
+				readOnly
+				showColumnTotals />
+			<CnDataMatrix
 				v-if="result.subjects.length > 0"
-				class="forecast__table"
-				data-testid="forecast-subjects">
-				<thead>
-					<tr>
-						<th scope="col">
-							{{ t('learniq', 'Programme') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Year') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Subject') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Learners') }}
-						</th>
-						<th scope="col">
-							{{ t('learniq', 'Groups needed') }}
-						</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr
-						v-for="row in result.subjects"
-						:key="row.programmeId + row.programmeYear + row.courseId">
-						<td>{{ row.programmeName }}</td>
-						<td>{{ row.programmeYear }}</td>
-						<td>{{ row.courseName }}</td>
-						<td>
-							{{ row.learners }}
-							<em v-if="row.isEstimated">{{
-								t('learniq', 'estimated')
-							}}</em>
-						</td>
-						<td>{{ row.groupsNeeded }}</td>
-					</tr>
-				</tbody>
-			</table>
-		</template>
+				data-testid="forecast-subjects"
+				:rows="subjectMatrixRows"
+				:columns="subjectColumns"
+				:rowHeader="t('learniq', 'Programme')"
+				:columnTotalsLabel="t('learniq', 'Total')"
+				readOnly
+				showColumnTotals />
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDataMatrix, CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcNoteCard, NcSelect } from '@nextcloud/vue'
+import { applyCellEdit, editableColumn, intakeRows, matrixColumns, rateRows, subjectRows, yearRows } from '../utils/enrolmentForecastMatrix.js'
 
 const OBJECTS = '/apps/openregister/api/objects/learniq/'
 
@@ -185,6 +105,9 @@ export default {
 	name: 'EnrolmentForecastView',
 
 	components: {
+		CnDataMatrix,
+		CnDetailCard,
+		CnPageHeader,
 		NcButton,
 		NcNoteCard,
 		NcSelect,
@@ -204,6 +127,91 @@ export default {
 
 	computed: {
 		/**
+		 * The rate columns: the year read only, the three rates editable.
+		 *
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @return {Array<object>} CnDataMatrix columns.
+		 */
+		rateColumns() {
+			return [
+				...matrixColumns([['programmeYear', t('learniq', 'Year'), 'string']]),
+				editableColumn('upRate', t('learniq', 'Moves up')),
+				editableColumn('repeatRate', t('learniq', 'Repeats')),
+				editableColumn('leaveRate', t('learniq', 'Leaves')),
+			]
+		},
+
+		/**
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @return {Array<object>} The editable intake column.
+		 */
+		intakeColumns() {
+			return [editableColumn('expected', t('learniq', 'Expected learners'))]
+		},
+
+		/**
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @return {Array<object>} The scenario's rates as matrix rows.
+		 */
+		rateMatrixRows() {
+			return rateRows(this.scenario?.rates, this.programmeName)
+		},
+
+		/**
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @return {Array<object>} The scenario's intake as matrix rows.
+		 */
+		intakeMatrixRows() {
+			return intakeRows(this.scenario?.intake, this.programmeName)
+		},
+
+		/**
+		 * The columns of the forecast per programme year.
+		 *
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @return {Array<object>} CnDataMatrix columns.
+		 */
+		yearColumns() {
+			return matrixColumns([
+				['programmeYear', t('learniq', 'Year'), 'string'],
+				['learners', t('learniq', 'Learners'), 'number'],
+				['groupsNeeded', t('learniq', 'Groups needed'), 'number'],
+			])
+		},
+
+		/**
+		 * The columns of the forecast per subject.
+		 *
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @return {Array<object>} CnDataMatrix columns.
+		 */
+		subjectColumns() {
+			return matrixColumns([
+				['programmeYear', t('learniq', 'Year'), 'string'],
+				['courseName', t('learniq', 'Subject'), 'string'],
+				['learners', t('learniq', 'Learners'), 'number'],
+				['estimate', t('learniq', 'Estimate'), 'string'],
+				['groupsNeeded', t('learniq', 'Groups needed'), 'number'],
+			])
+		},
+
+		/**
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @return {Array<object>} The forecast per programme year as matrix rows.
+		 */
+		yearMatrixRows() {
+			return yearRows(this.result?.programmeYears)
+		},
+
+		/**
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 * @return {Array<object>} The forecast per subject as matrix rows.
+		 */
+		subjectMatrixRows() {
+			return subjectRows(this.result?.subjects, t('learniq', 'estimated'))
+		},
+
+		/**
 		 * The scenarios as select options.
 		 *
 		 * @return {Array<{value: string, label: string}>}
@@ -222,6 +230,18 @@ export default {
 	},
 
 	methods: {
+		/**
+		 * Keep a committed matrix cell in the scenario; Save scenario stores it.
+		 *
+		 * @param {Array<object>} list The scenario's `rates` or `intake`.
+		 * @param {object} edit CnDataMatrix's `cell-edit` payload.
+		 * @return {void}
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
+		 */
+		onCellEdit(list, edit) {
+			applyCellEdit(list, edit)
+		},
+
 		t,
 
 		/**
@@ -451,34 +471,11 @@ export default {
 </script>
 
 <style scoped>
-.forecast {
-	padding: 16px;
-	max-width: 1100px;
-}
-
 .forecast__bar {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: end;
 	gap: 12px;
-	margin-block: 12px;
-}
-
-.forecast__table {
-	width: 100%;
-	border-collapse: collapse;
-	margin-block: 8px;
-}
-
-.forecast__table th,
-.forecast__table td {
-	padding: 4px 8px;
-	text-align: start;
-	border-bottom: 1px solid var(--color-border);
-}
-
-.forecast__table input {
-	width: 80px;
 }
 
 .forecast__label {

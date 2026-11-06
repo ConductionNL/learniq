@@ -38,7 +38,6 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use DateInterval;
 use DateTimeImmutable;
 use DateTimeZone;
 use OCA\OpenRegister\Service\ObjectService;
@@ -50,7 +49,6 @@ class ComplianceRollupService {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const OPEN_ENROLMENT_STATES = ['pending', 'active'];
-	private const UPCOMING_WINDOW_DAYS = 30;
 	private const PAGE_LIMIT = 10000;
 
 
@@ -83,25 +81,18 @@ class ComplianceRollupService {
 	 */
 	public function byDepartment(?DateTimeImmutable $now=null): array {
 		$now = ($now ?? new DateTimeImmutable('now', new DateTimeZone('UTC')));
-		$horizon = $now->add(new DateInterval('P'.self::UPCOMING_WINDOW_DAYS.'D'));
 
 		$population = $this->population();
-		$regulations = $population['regulations'];
-		$exemptions = $population['exemptions'];
-		$enrolments = $this->rows(schema: 'enrolment', filters: ['mandatory' => true]);
-		$credentials = $this->rows(schema: 'credential');
+		$snapshot = new ComplianceSnapshot(
+			population: $population,
+			enrolments: $this->rows(schema: 'enrolment', filters: ['mandatory' => true]),
+			credentials: $this->rows(schema: 'credential'),
+			now: $now
+		);
 
 		$nodes = [];
 		foreach ($population['learners'] as $profile) {
-			$figures = $this->learnerFigures(
-				profile: $profile,
-				regulations: $regulations,
-				enrolments: $enrolments,
-				credentials: $credentials,
-				exemptions: $exemptions,
-				now: $now,
-				horizon: $horizon
-			);
+			$figures = $this->learnerFigures(profile: $profile, snapshot: $snapshot);
 
 			foreach ($this->audience->departmentLevels(department: (string)($profile['department'] ?? '')) as $level) {
 				$nodes[$level] = $this->addFigures(node: ($nodes[$level] ?? $this->emptyNode(department: $level)), figures: $figures);
@@ -142,33 +133,23 @@ class ComplianceRollupService {
 	/**
 	 * One learner's contribution to every level of their department.
 	 *
-	 * @param array<string,mixed>            $profile     The learner.
-	 * @param array<int,array<string,mixed>> $regulations Published regulations.
-	 * @param array<int,array<string,mixed>> $enrolments  Mandatory enrolments.
-	 * @param array<int,array<string,mixed>> $credentials All credentials.
-	 * @param array<int,array<string,mixed>> $exemptions  Granted regulation exemptions.
-	 * @param DateTimeImmutable              $now         Evaluation instant.
-	 * @param DateTimeImmutable              $horizon     End of the upcoming window.
+	 * @param array<string,mixed> $profile  The learner.
+	 * @param ComplianceSnapshot  $snapshot The rows and instant of this roll-up.
 	 *
 	 * @return array<string,int>
 	 */
-	private function learnerFigures(
-		array $profile,
-		array $regulations,
-		array $enrolments,
-		array $credentials,
-		array $exemptions,
-		DateTimeImmutable $now,
-		DateTimeImmutable $horizon,
-	): array {
+	private function learnerFigures(array $profile, ComplianceSnapshot $snapshot): array {
 		$keys = $this->learnerKeys(profile: $profile);
-		$excusedFrom = $this->runningExemptions->regulationsFor(keys: $keys, exemptions: $exemptions, now: $now);
-		$regulationFigures = $this->regulationFigures(profile: $profile, keys: $keys, regulations: $regulations, excusedFrom: $excusedFrom, now: $now);
-		$deadlineFigures = $this->deadlineFigures(keys: $keys, enrolments: $enrolments, now: $now, horizon: $horizon);
+		$excusedFrom = $this->runningExemptions->regulationsFor(keys: $keys, exemptions: $snapshot->exemptions, now: $snapshot->now);
+		$regulationFigures = $this->regulationFigures(
+			learner: ['profile' => $profile, 'keys' => $keys, 'excusedFrom' => $excusedFrom],
+			snapshot: $snapshot
+		);
+		$deadlineFigures = $this->deadlineFigures(keys: $keys, snapshot: $snapshot);
 
 		$expired = 0;
-		foreach ($credentials as $credential) {
-			if ($this->ownedBy(row: $credential, keys: $keys) === true && $this->isExpired(credential: $credential, now: $now) === true) {
+		foreach ($snapshot->credentials as $credential) {
+			if ($this->ownedBy(row: $credential, keys: $keys) === true && $this->isExpired(credential: $credential, now: $snapshot->now) === true) {
 				$expired++;
 			}
 		}
@@ -183,30 +164,28 @@ class ComplianceRollupService {
 	 * rule the learner holds a running exemption from is not an obligation:
 	 * it is counted as excused, so an auditor sees it.
 	 *
-	 * @param array<string,mixed>            $profile     The learner.
-	 * @param array<int,string>              $keys        The learner's keys.
-	 * @param array<int,array<string,mixed>> $regulations Published regulations.
-	 * @param array<string,true>             $excusedFrom Regulation slugs the learner is exempt from today.
-	 * @param DateTimeImmutable              $now         Evaluation instant.
+	 * @param array{profile: array<string,mixed>, keys: array<int,string>, excusedFrom: array<string,true>} $learner The learner, the
+	 *     learner's keys and the regulation slugs the learner is exempt from today.
+	 * @param ComplianceSnapshot $snapshot The published regulations and the evaluation instant of this roll-up.
 	 *
 	 * @return array{obligations: int, covered: int, excused: int}
 	 *
 	 * @spec openspec/changes/compliance-exemption-record/specs/compliance-exemptions/spec.md#requirement-exemptions-in-the-roll-up
 	 */
-	private function regulationFigures(array $profile, array $keys, array $regulations, array $excusedFrom, DateTimeImmutable $now): array {
+	private function regulationFigures(array $learner, ComplianceSnapshot $snapshot): array {
 		$figures = ['obligations' => 0, 'covered' => 0, 'excused' => 0];
-		foreach ($regulations as $regulation) {
-			if ($this->audience->covers(regulation: $regulation, profile: $profile) === false) {
+		foreach ($snapshot->regulations as $regulation) {
+			if ($this->audience->covers(regulation: $regulation, profile: $learner['profile']) === false) {
 				continue;
 			}
 
-			if (isset($excusedFrom[(string)($regulation['slug'] ?? '')]) === true) {
+			if (isset($learner['excusedFrom'][(string)($regulation['slug'] ?? '')]) === true) {
 				$figures['excused']++;
 				continue;
 			}
 
 			$figures['obligations']++;
-			if ($this->isCovered(keys: $keys, regulationSlug: (string)($regulation['slug'] ?? ''), now: $now) === true) {
+			if ($this->isCovered(keys: $learner['keys'], regulationSlug: (string)($regulation['slug'] ?? ''), now: $snapshot->now) === true) {
 				$figures['covered']++;
 			}
 		}
@@ -217,16 +196,14 @@ class ComplianceRollupService {
 	/**
 	 * Upcoming and overdue open mandatory enrolments for one learner.
 	 *
-	 * @param array<int,string>              $keys       The learner's keys.
-	 * @param array<int,array<string,mixed>> $enrolments Mandatory enrolments.
-	 * @param DateTimeImmutable              $now        Evaluation instant.
-	 * @param DateTimeImmutable              $horizon    End of the upcoming window.
+	 * @param array<int,string>  $keys     The learner's keys.
+	 * @param ComplianceSnapshot $snapshot Mandatory enrolments, evaluation instant and window end.
 	 *
 	 * @return array{upcomingDeadlines: int, overdue: int}
 	 */
-	private function deadlineFigures(array $keys, array $enrolments, DateTimeImmutable $now, DateTimeImmutable $horizon): array {
+	private function deadlineFigures(array $keys, ComplianceSnapshot $snapshot): array {
 		$figures = ['upcomingDeadlines' => 0, 'overdue' => 0];
-		foreach ($enrolments as $enrolment) {
+		foreach ($snapshot->enrolments as $enrolment) {
 			if ($this->ownedBy(row: $enrolment, keys: $keys) === false
 				|| in_array($enrolment['lifecycle'] ?? '', self::OPEN_ENROLMENT_STATES, true) === false
 			) {
@@ -234,9 +211,9 @@ class ComplianceRollupService {
 			}
 
 			$due = $this->parseDate(value: $enrolment['dueDate'] ?? null);
-			if ($due !== null && $due < $now) {
+			if ($due !== null && $due < $snapshot->now) {
 				$figures['overdue']++;
-			} else if ($due !== null && $due <= $horizon) {
+			} else if ($due !== null && $due <= $snapshot->horizon) {
 				$figures['upcomingDeadlines']++;
 			}
 		}

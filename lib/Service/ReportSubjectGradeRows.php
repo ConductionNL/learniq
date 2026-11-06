@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-latest-report-reads-as-one-bar-per-subject
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-the-latest-report-reads-as-one-bar-per-subject
  */
 
 declare(strict_types=1);
@@ -34,7 +34,7 @@ use OCA\OpenRegister\Service\ObjectService;
 /**
  * Writes and replaces the per-subject rows of a published report card.
  *
- * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-latest-report-reads-as-one-bar-per-subject
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-the-latest-report-reads-as-one-bar-per-subject
  */
 class ReportSubjectGradeRows {
 
@@ -67,7 +67,7 @@ class ReportSubjectGradeRows {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-latest-report-reads-as-one-bar-per-subject
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-latest-report-reads-as-one-bar-per-subject
 	 */
 	public static function rowsFor(array $card, array $names, string $group): array {
 		$caption = implode(' · ', array_values(array_filter([
@@ -113,7 +113,7 @@ class ReportSubjectGradeRows {
 	 *
 	 * @throws \Throwable When OpenRegister refuses a read or a write.
 	 *
-	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-latest-report-reads-as-one-bar-per-subject
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-latest-report-reads-as-one-bar-per-subject
 	 */
 	public function replace(array $card): int {
 		$learnerRef = (string)($card['learnerRef'] ?? '');

@@ -28,7 +28,7 @@
 -->
 
 <template>
-	<div class="lesson-player">
+	<div class="lesson-player lq-board-page">
 		<div v-if="loading" class="lesson-player__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
 			<span>{{ t('learniq', 'Loading lesson…') }}</span>
@@ -63,14 +63,10 @@
 		</div>
 
 		<article v-else class="lesson-player__content">
-			<header class="lesson-player__header">
-				<p v-if="course && course.name" class="lesson-player__course">
-					{{ course.name }}
-				</p>
-				<h1 v-if="lesson && lesson.name" class="lesson-player__title">
-					{{ lesson.name }}
-				</h1>
-			</header>
+			<CnPageHeader
+				v-if="lesson && lesson.name"
+				:title="lesson.name"
+				:breadcrumb="course && course.name ? { label: course.name } : null" />
 
 			<NcNoteCard
 				v-if="preview.active"
@@ -93,342 +89,351 @@
 					@update:modelValue="setSimulatedScore" />
 			</NcNoteCard>
 
-			<section
-				v-if="preview.active && (isLtiLesson || isCmi5Lesson)"
-				class="lesson-player__placeholder">
-				<NcEmptyContent
-					:name="
-						t(
-							'learniq',
-							'This content does not run in a preview, because it would record results.',
-						)
-					">
-					<template #icon>
-						<ApplicationOutline />
-					</template>
-				</NcEmptyContent>
-			</section>
-
-			<section v-else-if="isLtiLesson" class="lesson-player__lti">
-				<div
-					v-if="ltiLaunching"
-					class="lesson-player__loading"
-					aria-live="polite">
-					<span class="icon-loading" aria-hidden="true" />
-					<span>{{ t('learniq', 'Starting external tool…') }}</span>
-				</div>
-
-				<NcEmptyContent
-					v-else-if="ltiError"
-					:name="t('learniq', 'Could not start the external tool')"
-					:description="ltiError">
-					<template #icon>
-						<AlertCircleOutline />
-					</template>
-					<template #action>
-						<NcButton variant="secondary" @click="launchLti">
-							{{ t('learniq', 'Try again') }}
-						</NcButton>
-					</template>
-				</NcEmptyContent>
-
-				<div
-					v-else-if="ltiLaunch && ltiLaunch.launchMode === 'deep-linking'"
-					class="lesson-player__lti-frame-wrap">
-					<iframe
-						:name="ltiFrameName"
-						class="lesson-player__lti-frame"
-						:title="t('learniq', 'External LTI tool')" />
-				</div>
-
-				<NcEmptyContent
-					v-else-if="ltiLaunch"
-					:name="t('learniq', 'External tool opened in a new tab')"
-					:description="
-						t('learniq', 'If nothing opened, use the button below.')
-					">
-					<template #icon>
-						<ApplicationOutline />
-					</template>
-					<template #action>
-						<NcButton variant="secondary" @click="launchLti">
-							{{ t('learniq', 'Open tool again') }}
-						</NcButton>
-					</template>
-				</NcEmptyContent>
-			</section>
-
-			<section v-else-if="isTextLesson" class="lesson-player__blocks">
-				<div
-					v-for="block in sortedBlocks"
-					:key="block.blockId"
-					class="lesson-player__block">
-					<!-- richText -->
-					<div
-						v-if="block.type === 'richText'"
-						class="lesson-player__block-richtext"
-						v-html="renderBlockMarkdown(block.text)" />
-
-					<!-- media -->
-					<div
-						v-else-if="block.type === 'media'"
-						class="lesson-player__block-media">
-						<template v-if="materialFor(block)">
-							<p class="lesson-player__block-media-kind">
-								{{ materialKindLabel(materialFor(block).kind) }}
-							</p>
-							<video
-								v-if="
-									materialFor(block).kind === 'video'
-									&& materialFor(block).url
-								"
-								class="lesson-player__block-video"
-								controls
-								:src="materialFor(block).url">
-								{{ materialFor(block).title }}
-							</video>
-							<a
-								v-else-if="
-									materialFor(block).kind === 'link'
-									&& materialFor(block).url
-								"
-								:href="materialFor(block).url"
-								target="_blank"
-								rel="noopener noreferrer">
-								{{ materialFor(block).title }}
-							</a>
-							<p v-else>
-								{{ materialFor(block).title }}
-							</p>
+			<CnDetailCard class="lesson-player__card">
+				<section
+					v-if="preview.active && (isLtiLesson || isCmi5Lesson)"
+					class="lesson-player__placeholder">
+					<NcEmptyContent
+						:name="
+							t(
+								'learniq',
+								'This content does not run in a preview, because it would record results.',
+							)
+						">
+						<template #icon>
+							<ApplicationOutline />
 						</template>
-						<p v-else class="lesson-player__block-media-missing">
-							{{ t('learniq', 'Referenced material is unavailable.') }}
-						</p>
+					</NcEmptyContent>
+				</section>
+
+				<section v-else-if="isLtiLesson" class="lesson-player__lti">
+					<div
+						v-if="ltiLaunching"
+						class="lesson-player__loading"
+						aria-live="polite">
+						<span class="icon-loading" aria-hidden="true" />
+						<span>{{ t('learniq', 'Starting external tool…') }}</span>
 					</div>
 
-					<!-- quiz -->
+					<NcEmptyContent
+						v-else-if="ltiError"
+						:name="t('learniq', 'Could not start the external tool')"
+						:description="ltiError">
+						<template #icon>
+							<AlertCircleOutline />
+						</template>
+						<template #action>
+							<NcButton variant="secondary" @click="launchLti">
+								{{ t('learniq', 'Try again') }}
+							</NcButton>
+						</template>
+					</NcEmptyContent>
+
 					<div
-						v-else-if="block.type === 'quiz'"
-						class="lesson-player__block-quiz">
-						<p>
-							{{
-								assessmentFor(block)
-									? assessmentFor(block).title
-									: t('learniq', 'Quiz')
-							}}
-						</p>
-						<NcButton
-							variant="primary"
-							:disabled="preview.active"
-							@click="startQuiz(block)">
-							{{ t('learniq', 'Start quiz') }}
-						</NcButton>
+						v-else-if="ltiLaunch && ltiLaunch.launchMode === 'deep-linking'"
+						class="lesson-player__lti-frame-wrap">
+						<iframe
+							:name="ltiFrameName"
+							class="lesson-player__lti-frame"
+							:title="t('learniq', 'External LTI tool')" />
 					</div>
 
-					<!-- assignment -->
-					<div
-						v-else-if="block.type === 'assignment'"
-						class="lesson-player__block-assignment">
-						<p>
-							{{
-								assignmentFor(block)
-									? assignmentFor(block).title
-									: t('learniq', 'Assignment')
-							}}
-						</p>
-						<NcButton variant="secondary" @click="openAssignment(block)">
-							{{ t('learniq', 'View assignment') }}
-						</NcButton>
-					</div>
+					<NcEmptyContent
+						v-else-if="ltiLaunch"
+						:name="t('learniq', 'External tool opened in a new tab')"
+						:description="
+							t('learniq', 'If nothing opened, use the button below.')
+						">
+						<template #icon>
+							<ApplicationOutline />
+						</template>
+						<template #action>
+							<NcButton variant="secondary" @click="launchLti">
+								{{ t('learniq', 'Open tool again') }}
+							</NcButton>
+						</template>
+					</NcEmptyContent>
+				</section>
 
-					<!-- ltiTool -->
+				<section v-else-if="isTextLesson" class="lesson-player__blocks">
 					<div
-						v-else-if="block.type === 'ltiTool'"
-						class="lesson-player__block-lti">
+						v-for="block in sortedBlocks"
+						:key="block.blockId"
+						class="lesson-player__block">
+						<!-- richText -->
 						<div
-							v-if="
-								blockLtiState[block.blockId]
-								&& blockLtiState[block.blockId].launching
-							"
-							aria-live="polite">
-							<span class="icon-loading" aria-hidden="true" />
-							<span>{{
-								t('learniq', 'Starting external tool…')
-							}}</span>
+							v-if="block.type === 'richText'"
+							class="lesson-player__block-richtext"
+							v-html="renderBlockMarkdown(block.text)" />
+
+						<!-- media -->
+						<div
+							v-else-if="block.type === 'media'"
+							class="lesson-player__block-media">
+							<p v-if="materialFor(block) && isBlockedMaterial(materialFor(block))" class="lesson-player__block-media-missing">
+								{{ t('learniq', 'This material is not available in this course.') }}
+							</p>
+							<template v-else-if="materialFor(block)">
+								<p class="lesson-player__block-media-kind">
+									{{ materialKindLabel(materialFor(block).kind) }}
+								</p>
+								<video
+									v-if="
+										materialFor(block).kind === 'video'
+										&& materialFor(block).url
+									"
+									class="lesson-player__block-video"
+									controls
+									:src="materialFor(block).url">
+									{{ materialFor(block).title }}
+								</video>
+								<a
+									v-else-if="
+										materialFor(block).kind === 'link'
+										&& materialFor(block).url
+									"
+									:href="materialFor(block).url"
+									target="_blank"
+									rel="noopener noreferrer">
+									{{ materialFor(block).title }}
+								</a>
+								<p v-else>
+									{{ materialFor(block).title }}
+								</p>
+								<MaterialAttribution :material="materialFor(block)" />
+							</template>
+							<p v-else class="lesson-player__block-media-missing">
+								{{ t('learniq', 'Referenced material is unavailable.') }}
+							</p>
 						</div>
-						<p
-							v-else-if="
-								blockLtiState[block.blockId]
-								&& blockLtiState[block.blockId].error
-							"
-							role="alert">
-							{{ blockLtiState[block.blockId].error }}
-						</p>
-						<NcButton
-							v-else
-							variant="secondary"
-							@click="launchLtiForBlock(block)">
-							{{ t('learniq', 'Open external tool') }}
-						</NcButton>
+
+						<!-- quiz -->
+						<div
+							v-else-if="block.type === 'quiz'"
+							class="lesson-player__block-quiz">
+							<p>
+								{{
+									assessmentFor(block)
+										? assessmentFor(block).title
+										: t('learniq', 'Quiz')
+								}}
+							</p>
+							<NcButton
+								variant="primary"
+								:disabled="preview.active"
+								@click="startQuiz(block)">
+								{{ t('learniq', 'Start quiz') }}
+							</NcButton>
+						</div>
+
+						<!-- assignment -->
+						<div
+							v-else-if="block.type === 'assignment'"
+							class="lesson-player__block-assignment">
+							<p>
+								{{
+									assignmentFor(block)
+										? assignmentFor(block).title
+										: t('learniq', 'Assignment')
+								}}
+							</p>
+							<NcButton variant="secondary" @click="openAssignment(block)">
+								{{ t('learniq', 'View assignment') }}
+							</NcButton>
+						</div>
+
+						<!-- ltiTool -->
+						<div
+							v-else-if="block.type === 'ltiTool'"
+							class="lesson-player__block-lti">
+							<div
+								v-if="
+									blockLtiState[block.blockId]
+									&& blockLtiState[block.blockId].launching
+								"
+								aria-live="polite">
+								<span class="icon-loading" aria-hidden="true" />
+								<span>{{
+									t('learniq', 'Starting external tool…')
+								}}</span>
+							</div>
+							<p
+								v-else-if="
+									blockLtiState[block.blockId]
+									&& blockLtiState[block.blockId].error
+								"
+								role="alert">
+								{{ blockLtiState[block.blockId].error }}
+							</p>
+							<NcButton
+								v-else
+								variant="secondary"
+								@click="launchLtiForBlock(block)">
+								{{ t('learniq', 'Open external tool') }}
+							</NcButton>
+						</div>
 					</div>
-				</div>
 
-				<p
-					v-if="sortedBlocks.length === 0"
-					class="lesson-player__block-empty">
-					{{ t('learniq', 'This lesson has no content blocks yet.') }}
-				</p>
-			</section>
+					<p
+						v-if="sortedBlocks.length === 0"
+						class="lesson-player__block-empty">
+						{{ t('learniq', 'This lesson has no content blocks yet.') }}
+					</p>
+				</section>
 
-			<section v-else-if="isScorm12Lesson" class="lesson-player__scorm">
-				<div
-					v-if="scorm12.loading"
-					class="lesson-player__loading"
-					aria-live="polite">
-					<span class="icon-loading" aria-hidden="true" />
-					<span>{{ t('learniq', 'Loading SCORM package…') }}</span>
-				</div>
+				<section v-else-if="isScorm12Lesson" class="lesson-player__scorm">
+					<div
+						v-if="scorm12.loading"
+						class="lesson-player__loading"
+						aria-live="polite">
+						<span class="icon-loading" aria-hidden="true" />
+						<span>{{ t('learniq', 'Loading SCORM package…') }}</span>
+					</div>
 
-				<NcEmptyContent
-					v-else-if="scorm12.error"
-					:name="t('learniq', 'Could not load the SCORM package')"
-					:description="scorm12.error">
-					<template #icon>
-						<AlertCircleOutline />
-					</template>
-				</NcEmptyContent>
+					<NcEmptyContent
+						v-else-if="scorm12.error"
+						:name="t('learniq', 'Could not load the SCORM package')"
+						:description="scorm12.error">
+						<template #icon>
+							<AlertCircleOutline />
+						</template>
+					</NcEmptyContent>
 
-				<div v-else class="lesson-player__scorm-frame-wrap">
-					<iframe
-						v-if="scorm12.apiMounted"
-						class="lesson-player__scorm-frame"
-						:src="scorm12.contentUrl"
-						:title="t('learniq', 'SCORM package')" />
-				</div>
-			</section>
+					<div v-else class="lesson-player__scorm-frame-wrap">
+						<iframe
+							v-if="scorm12.apiMounted"
+							class="lesson-player__scorm-frame"
+							:src="scorm12.contentUrl"
+							:title="t('learniq', 'SCORM package')" />
+					</div>
+				</section>
 
-			<section v-else-if="isCmi5Lesson" class="lesson-player__cmi5">
-				<div
-					v-if="cmi5.launching"
-					class="lesson-player__loading"
-					aria-live="polite">
-					<span class="icon-loading" aria-hidden="true" />
-					<span>{{ t('learniq', 'Starting cmi5 package…') }}</span>
-				</div>
+				<section v-else-if="isCmi5Lesson" class="lesson-player__cmi5">
+					<div
+						v-if="cmi5.launching"
+						class="lesson-player__loading"
+						aria-live="polite">
+						<span class="icon-loading" aria-hidden="true" />
+						<span>{{ t('learniq', 'Starting cmi5 package…') }}</span>
+					</div>
 
-				<NcEmptyContent
-					v-else-if="!cmi5.available"
-					:name="
-						t(
-							'learniq',
-							'cmi5 playback is not yet available for this lesson',
-						)
-					"
-					:description="
-						t(
-							'learniq',
-							'The cmi5 launch service for this lesson has not been enabled yet. Try again later.',
-						)
-					">
-					<template #icon>
-						<AlertCircleOutline />
-					</template>
-				</NcEmptyContent>
+					<NcEmptyContent
+						v-else-if="!cmi5.available"
+						:name="
+							t(
+								'learniq',
+								'cmi5 playback is not yet available for this lesson',
+							)
+						"
+						:description="
+							t(
+								'learniq',
+								'The cmi5 launch service for this lesson has not been enabled yet. Try again later.',
+							)
+						">
+						<template #icon>
+							<AlertCircleOutline />
+						</template>
+					</NcEmptyContent>
 
-				<NcEmptyContent
-					v-else-if="cmi5.error"
-					:name="t('learniq', 'Could not start the cmi5 package')"
-					:description="cmi5.error">
-					<template #icon>
-						<AlertCircleOutline />
-					</template>
-					<template #action>
-						<NcButton variant="secondary" @click="launchCmi5">
-							{{ t('learniq', 'Try again') }}
-						</NcButton>
-					</template>
-				</NcEmptyContent>
+					<NcEmptyContent
+						v-else-if="cmi5.error"
+						:name="t('learniq', 'Could not start the cmi5 package')"
+						:description="cmi5.error">
+						<template #icon>
+							<AlertCircleOutline />
+						</template>
+						<template #action>
+							<NcButton variant="secondary" @click="launchCmi5">
+								{{ t('learniq', 'Try again') }}
+							</NcButton>
+						</template>
+					</NcEmptyContent>
 
-				<div
-					v-else-if="cmi5.launchUrl"
-					class="lesson-player__cmi5-frame-wrap">
-					<iframe
-						class="lesson-player__cmi5-frame"
-						:src="cmi5.launchUrl"
-						:title="t('learniq', 'cmi5 package')" />
-				</div>
-			</section>
+					<div
+						v-else-if="cmi5.launchUrl"
+						class="lesson-player__cmi5-frame-wrap">
+						<iframe
+							class="lesson-player__cmi5-frame"
+							:src="cmi5.launchUrl"
+							:title="t('learniq', 'cmi5 package')" />
+					</div>
+				</section>
 
-			<section v-else class="lesson-player__placeholder">
-				<NcEmptyContent
-					:name="t('learniq', 'Lesson content not available')"
-					:description="
-						t(
-							'learniq',
-							'This lesson does not yet have playable content. Author-tooling is delivered by the ItemAuthor view.',
-						)
-					">
-					<template #icon>
-						<BookOpenPageVariantOutline />
-					</template>
-				</NcEmptyContent>
-			</section>
+				<section v-else class="lesson-player__placeholder">
+					<NcEmptyContent
+						:name="t('learniq', 'Lesson content not available')"
+						:description="
+							t(
+								'learniq',
+								'This lesson does not yet have playable content. Author-tooling is delivered by the ItemAuthor view.',
+							)
+						">
+						<template #icon>
+							<BookOpenPageVariantOutline />
+						</template>
+					</NcEmptyContent>
+				</section>
 
-			<footer class="lesson-player__footer">
-				<NcButton
-					v-if="showManualCompleteAction"
-					variant="primary"
-					:disabled="manualCompletion.completed || manualCompletion.saving"
-					@click="markLessonComplete">
-					{{
-						manualCompletion.completed
-							? t('learniq', 'Completed')
-							: t('learniq', 'Mark lesson complete')
-					}}
-				</NcButton>
-				<p
-					v-if="manualCompletion.error"
-					class="lesson-player__manual-complete-error"
-					role="alert">
-					{{ manualCompletion.error }}
-				</p>
-				<div
-					v-if="nextStep.checked"
-					class="lesson-player__next-step"
-					aria-live="polite">
+				<footer class="lesson-player__footer">
 					<NcButton
-						v-if="nextStep.lessonId"
+						v-if="showManualCompleteAction"
 						variant="primary"
-						@click="goToNextStep">
+						:disabled="manualCompletion.completed || manualCompletion.saving"
+						@click="markLessonComplete">
 						{{
-							t('learniq', 'Go to {lesson}', {
-								lesson: nextStep.name || t('learniq', 'Next step'),
-							})
+							manualCompletion.completed
+								? t('learniq', 'Completed')
+								: t('learniq', 'Mark lesson complete')
 						}}
 					</NcButton>
-					<p v-else>
-						{{ t('learniq', 'This is the last lesson of the course.') }}
+					<p
+						v-if="manualCompletion.error"
+						class="lesson-player__manual-complete-error"
+						role="alert">
+						{{ manualCompletion.error }}
 					</p>
-				</div>
-				<NcButton variant="secondary" @click="goBack">
-					{{ t('learniq', 'Back to course') }}
-				</NcButton>
-			</footer>
+					<div
+						v-if="nextStep.checked"
+						class="lesson-player__next-step"
+						aria-live="polite">
+						<NcButton
+							v-if="nextStep.lessonId"
+							variant="primary"
+							@click="goToNextStep">
+							{{
+								t('learniq', 'Go to {lesson}', {
+									lesson: nextStep.name || t('learniq', 'Next step'),
+								})
+							}}
+						</NcButton>
+						<p v-else>
+							{{ t('learniq', 'This is the last lesson of the course.') }}
+						</p>
+					</div>
+					<NcButton variant="secondary" @click="goBack">
+						{{ t('learniq', 'Back to course') }}
+					</NcButton>
+				</footer>
+			</CnDetailCard>
 		</article>
 	</div>
 </template>
 
 <script>
-import { cnRenderMarkdown } from '@conduction/nextcloud-vue'
+import { CnDetailCard, CnPageHeader, cnRenderMarkdown } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 // SPDX-License-Identifier: EUPL-1.2
 // Copyright (C) 2026 Conduction B.V.
+import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcNoteCard, NcTextField } from '@nextcloud/vue'
 import AlertCircleOutline from 'vue-material-design-icons/AlertCircleOutline.vue'
 import ApplicationOutline from 'vue-material-design-icons/ApplicationOutline.vue'
 import BookOpenPageVariantOutline from 'vue-material-design-icons/BookOpenPageVariantOutline.vue'
 import LockOutline from 'vue-material-design-icons/LockOutline.vue'
+import MaterialAttribution from '../components/openMaterial/MaterialAttribution.vue'
+import { OPEN_MATERIAL_API } from '../services/openMaterial.js'
 import { buildCmi5LaunchUrl } from '../utils/cmi5Launch.js'
 import { playerVisibleBlocks } from '../utils/lessonBlocks.js'
 import { completionBelongsTo, currentEnrolment } from '../utils/lessonCompletion.js'
@@ -454,12 +459,15 @@ export default {
 	name: 'LessonPlayer',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcEmptyContent,
 		NcButton,
 		AlertCircleOutline,
 		ApplicationOutline,
 		BookOpenPageVariantOutline,
 		LockOutline,
+		MaterialAttribution,
 		NcNoteCard,
 		NcTextField,
 	},
@@ -531,6 +539,8 @@ export default {
 			// course-authoring-ux: referenced-object caches for block
 			// rendering (contentType === 'text'), keyed by UUID.
 			materialsById: {},
+			/** Whether this course is paid or corporate, so NC material is not served. */
+			commercialCourse: false,
 			assessmentsById: {},
 			assignmentsById: {},
 			// Per-block LTI launch state, keyed by blockId — a lesson can
@@ -701,6 +711,7 @@ export default {
 			this.clearScormApi()
 			Object.assign(this.$data, this.$options.data.call(this))
 			await this.loadLesson()
+			await this.loadCommercialCourse()
 		},
 	},
 
@@ -712,6 +723,7 @@ export default {
 	 */
 	async mounted() {
 		await this.loadLesson()
+		await this.loadCommercialCourse()
 	},
 
 	/**
@@ -727,6 +739,30 @@ export default {
 	},
 
 	methods: {
+		/**
+		 * Whether this course is paid or corporate, as the server decides.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/open-learning-material/spec.md#scenario-non-commercial-material-is-flagged-in-a-paid-course
+		 */
+		async loadCommercialCourse() {
+			try {
+				const { data } = await axios.get(generateUrl(OPEN_MATERIAL_API + '/panel'), { params: { courseId: this.courseId } })
+				this.commercialCourse = data?.commercialCourse === true
+			} catch {
+				this.commercialCourse = false
+			}
+		},
+
+		/**
+		 * @param {object} material A Material.
+		 * @return {boolean} Whether NC material sits in a paid or corporate course.
+		 * @spec openspec/specs/open-learning-material/spec.md#scenario-non-commercial-material-is-flagged-in-a-paid-course
+		 */
+		isBlockedMaterial(material) {
+			return this.commercialCourse && material.nonCommercial === true
+		},
+
 		/**
 		 * Load the Course + Lesson pair for xAPI-instrumented playback, then
 		 * the release gate, the content-type runtime and the next step.
@@ -1580,8 +1616,10 @@ export default {
 </script>
 
 <style scoped>
-.lesson-player {
-	padding: 16px;
+.lesson-player__content {
+	display: flex;
+	flex-direction: column;
+	gap: var(--cn-board-section-gap, 16px);
 }
 
 .lesson-player__loading,
@@ -1593,19 +1631,6 @@ export default {
 	justify-content: center;
 	gap: 8px;
 	padding: 32px 16px;
-}
-
-.lesson-player__header {
-	margin-bottom: 24px;
-}
-
-.lesson-player__course {
-	color: var(--color-text-maxcontrast);
-	margin: 0 0 4px;
-}
-
-.lesson-player__title {
-	margin: 0 0 8px;
 }
 
 .lesson-player__summary {

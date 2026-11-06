@@ -25,8 +25,8 @@
     - GET  /api/objects/learniq/Submission/:id
     - GET  /api/objects/learniq/Assignment/:id
     - GET  /api/objects/learniq/Rubric/:id
-    - GET  /api/objects/learniq/peer-feedback-summary?filters[submissionId]=:id (read-only context)
-    - GET  /api/objects/learniq/self-assessment?filters[submissionId]=:id (read-only context)
+    - GET  /api/objects/learniq/peer-feedback-summary?submissionId=:id (read-only context)
+    - GET  /api/objects/learniq/self-assessment?submissionId=:id (read-only context)
     - PUT  /api/objects/learniq/Submission/:id
     - POST /api/objects/:id/transition           ({ action: 'return' })
 
@@ -50,7 +50,7 @@
 -->
 
 <template>
-	<div class="mark-submission-view">
+	<div class="mark-submission-view lq-board-page">
 		<!-- Loading -->
 		<div v-if="loading" class="mark-submission-view__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
@@ -70,7 +70,7 @@
 			role="status"
 			aria-live="polite">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<h2>{{ t('learniq', 'Submission returned to learner') }}</h2>
+			<CnPageHeader :title="t('learniq', 'Submission returned to learner')" />
 			<p>
 				{{
 					t('learniq', 'Grade: {grade} / {max}', {
@@ -85,7 +85,7 @@
 		<template v-else-if="submission">
 			<!-- Header -->
 			<header class="mark-submission-view__header">
-				<h2>{{ t('learniq', 'Mark submission') }}</h2>
+				<CnPageHeader :title="t('learniq', 'Mark submission')" />
 				<p class="mark-submission-view__meta">
 					{{
 						t('learniq', 'Assignment: {title}', {
@@ -112,8 +112,9 @@
 			</header>
 
 			<!-- Attachments -->
-			<section class="mark-submission-view__attachments">
-				<h3>{{ t('learniq', 'Submitted files') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Submitted files')"
+				class="mark-submission-view__attachments">
 				<ul
 					v-if="(submission.attachmentRefs || []).length > 0"
 					class="mark-submission-view__file-list">
@@ -128,7 +129,7 @@
 				<p v-else class="mark-submission-view__no-files">
 					{{ t('learniq', 'No files attached.') }}
 				</p>
-			</section>
+			</CnDetailCard>
 
 			<!-- Double marking: waiting for the other marks, or not allocated -->
 			<p
@@ -155,8 +156,10 @@
 			</p>
 
 			<!-- Double marking: every mark side by side, then the final grade -->
-			<section v-if="mode === 'final'" class="mark-submission-view__final">
-				<h3>{{ t('learniq', 'Marks of the markers') }}</h3>
+			<CnDetailCard
+				v-if="mode === 'final'"
+				:title="t('learniq', 'Marks of the markers')"
+				class="mark-submission-view__final">
 				<table class="mark-submission-view__marks-table">
 					<thead>
 						<tr>
@@ -217,89 +220,38 @@
 								)
 					}}
 				</p>
-			</section>
+			</CnDetailCard>
 
 			<template v-if="showsMarkingForm">
 				<!-- Rubric marking (shown only when a Rubric is attached) -->
-				<section
+				<CnDetailCard
 					v-if="rubric && rubric.criteria && rubric.criteria.length > 0"
+					:title="t('learniq', 'Rubric: {name}', { name: rubric.name || '' })"
 					class="mark-submission-view__rubric">
-					<h3>
-						{{
-							t('learniq', 'Rubric: {name}', {
-								name: rubric.name || '',
-							})
-						}}
-					</h3>
-
-					<div
-						v-for="criterion in rubric.criteria"
-						:key="criterion.criterionId"
-						class="mark-submission-view__criterion">
-						<h4 class="mark-submission-view__criterion-label">
-							{{ criterion.label }}
-							<span class="mark-submission-view__criterion-weight">
+					<RubricPicker
+						v-model:selectedLevels="selectedLevels"
+						:rubric="rubric"
+						:maxPoints="assignment.maxPoints || 0"
+						:disabled="saving">
+						<template v-if="submission.lifecycle === 'late'" #scoreNote>
+							<span class="mark-submission-view__effective-grade">
 								{{
-									t('learniq', '(weight: {w})', {
-										w: criterion.weight,
-									})
+									t(
+										'learniq',
+										'Effective grade after late penalty: {grade}',
+										{ grade: effectiveGrade },
+									)
 								}}
 							</span>
-						</h4>
-						<div class="mark-submission-view__levels">
-							<label
-								v-for="level in criterion.levels"
-								:key="level.levelId"
-								class="mark-submission-view__level">
-								<input
-									type="radio"
-									:name="criterion.criterionId"
-									:value="level.levelId"
-									:checked="
-										getSelectedLevel(criterion.criterionId)
-										=== level.levelId
-									"
-									:disabled="saving"
-									@change="selectLevel(criterion, level)" />
-								<span class="mark-submission-view__level-label">{{
-									level.label
-								}}</span>
-								<span class="mark-submission-view__level-points">
-									{{
-										t('learniq', '{pts} pts', {
-											pts: level.points,
-										})
-									}}
-								</span>
-							</label>
-						</div>
-					</div>
-
-					<!-- Running total -->
-					<div class="mark-submission-view__score-total">
-						<strong>{{
-							t('learniq', 'Score: {score} / {max}', {
-								score: computedScore,
-								max: assignment.maxPoints || '?',
-							})
-						}}</strong>
-						<span
-							v-if="submission.lifecycle === 'late'"
-							class="mark-submission-view__effective-grade">
-							{{
-								t(
-									'learniq',
-									'Effective grade after late penalty: {grade}',
-									{ grade: effectiveGrade },
-								)
-							}}
-						</span>
-					</div>
-				</section>
+						</template>
+					</RubricPicker>
+				</CnDetailCard>
 
 				<!-- No rubric — manual score entry -->
-				<section v-else class="mark-submission-view__manual-score">
-					<h3>{{ t('learniq', 'Manual score') }}</h3>
+				<CnDetailCard
+					v-else
+					:title="t('learniq', 'Manual score')"
+					class="mark-submission-view__manual-score">
 					<label
 						for="manual-grade"
 						class="mark-submission-view__score-label">
@@ -317,39 +269,36 @@
 						:max="assignment.maxPoints || undefined"
 						class="mark-submission-view__score-input"
 						:disabled="saving" />
-				</section>
+				</CnDetailCard>
 
 				<!-- Feedback text -->
-				<section class="mark-submission-view__feedback">
-					<h3 id="mark-submission-feedback-label">
-						{{
-							mode === 'marker'
-								? t('learniq', 'Notes for the teacher in charge')
-								: t('learniq', 'Teacher feedback')
-						}}
-					</h3>
+				<CnDetailCard
+					:title="mode === 'marker' ? t('learniq', 'Notes for the teacher in charge') : t('learniq', 'Teacher feedback')"
+					class="mark-submission-view__feedback">
 					<textarea
 						id="mark-submission-feedback"
 						v-model="feedbackText"
 						class="mark-submission-view__feedback-input"
-						aria-labelledby="mark-submission-feedback-label"
+						:aria-label="
+							mode === 'marker'
+								? t('learniq', 'Notes for the teacher in charge')
+								: t('learniq', 'Teacher feedback')
+						"
 						:placeholder="
 							t('learniq', 'Write feedback for the learner...')
 						"
 						:disabled="saving"
 						rows="5" />
-				</section>
+				</CnDetailCard>
 
 				<!--
 				Peer/self-assessment read-only context (peer-and-self-assessment).
 				Never editable here — grade authority stays with the teacher.
 			-->
-				<section
+				<CnDetailCard
 					v-if="peerFeedbackSummary || selfAssessment"
-					class="mark-submission-view__peer-context"
-					aria-label="Peer and self-assessment context">
-					<h3>{{ t('learniq', 'Peer & self-assessment context') }}</h3>
-
+					:title="t('learniq', 'Peer & self-assessment context')"
+					class="mark-submission-view__peer-context">
 					<div
 						v-if="peerFeedbackSummary"
 						class="mark-submission-view__peer-summary">
@@ -439,7 +388,7 @@
 							)
 						}}
 					</p>
-				</section>
+				</CnDetailCard>
 			</template>
 
 			<!-- Actions -->
@@ -480,14 +429,17 @@
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
+import RubricPicker from '../components/RubricPicker.vue'
 import { resolveGradePlan } from '../utils/assignmentGradePlan.js'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 import { markingMode, prefillFinalGrade } from '../utils/doubleMarking.js'
 
 export default {
 	name: 'MarkSubmissionView',
+	components: { CnDetailCard, CnPageHeader, RubricPicker },
 
 	props: {
 		/**
@@ -821,7 +773,7 @@ export default {
 		 */
 		async loadPeerFeedbackSummary(submissionId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/peer-feedback-summary?filters[submissionId]=${submissionId}&_limit=1`,
+				`/apps/openregister/api/objects/learniq/peer-feedback-summary?submissionId=${submissionId}&_limit=1`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -846,7 +798,7 @@ export default {
 		 */
 		async loadSelfAssessment(submissionId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/self-assessment?filters[submissionId]=${submissionId}&_limit=1`,
+				`/apps/openregister/api/objects/learniq/self-assessment?submissionId=${submissionId}&_limit=1`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -957,34 +909,6 @@ export default {
 				console.error('[MarkSubmissionView] saveOwnMark error', err)
 			} finally {
 				this.saving = false
-			}
-		},
-
-		/**
-		 * Get the currently selected levelId for a criterion.
-		 *
-		 * @param {string} criterionId Criterion identifier
-		 * @return {string|undefined}
-		 */
-		getSelectedLevel(criterionId) {
-			return this.selectedLevels[criterionId]?.levelId
-		},
-
-		/**
-		 * Record the teacher's level selection for a criterion.
-		 *
-		 * @param {object} criterion Rubric criterion object
-		 * @param {object} level     Selected level object
-		 * @return {void}
-		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-28
-		 */
-		selectLevel(criterion, level) {
-			this.selectedLevels = {
-				...this.selectedLevels,
-				[criterion.criterionId]: {
-					levelId: level.levelId,
-					points: level.points,
-				},
 			}
 		},
 
@@ -1157,10 +1081,6 @@ export default {
 	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
-.mark-submission-view__final {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
 .mark-submission-view__marks-table {
 	width: 100%;
 	border-collapse: collapse;
@@ -1172,13 +1092,6 @@ export default {
 	text-align: left;
 	padding: 4px var(--default-grid-baseline, 8px);
 	border-bottom: 1px solid var(--color-border);
-}
-
-.mark-submission-view {
-	max-width: 860px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .mark-submission-view__loading,
@@ -1209,13 +1122,6 @@ export default {
 	font-size: 0.85em;
 }
 
-.mark-submission-view__attachments,
-.mark-submission-view__rubric,
-.mark-submission-view__manual-score,
-.mark-submission-view__feedback {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
 .mark-submission-view__file-list {
 	list-style: none;
 	padding: 0;
@@ -1234,61 +1140,13 @@ export default {
 	font-style: italic;
 }
 
-.mark-submission-view__criterion {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
-	padding: var(--default-grid-baseline, 8px);
-	border: 1px solid var(--color-border);
-	border-radius: 4px;
-}
 
-.mark-submission-view__criterion-label {
-	font-weight: bold;
-	margin-bottom: var(--default-grid-baseline, 8px);
-}
 
-.mark-submission-view__criterion-weight {
-	font-weight: normal;
-	color: var(--color-text-maxcontrast);
-	font-size: 0.85em;
-	margin-left: 4px;
-}
 
-.mark-submission-view__levels {
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--default-grid-baseline, 8px);
-}
 
-.mark-submission-view__level {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	cursor: pointer;
-	padding: 4px 8px;
-	border: 1px solid var(--color-border);
-	border-radius: 4px;
-	background: var(--color-main-background);
-}
 
-.mark-submission-view__level:has(input:checked) {
-	background: var(--color-primary-element-light);
-	border-color: var(--color-primary);
-}
 
-.mark-submission-view__level-points {
-	color: var(--color-text-maxcontrast);
-	font-size: 0.85em;
-}
 
-.mark-submission-view__score-total {
-	margin-top: calc(var(--default-grid-baseline, 8px) * 2);
-	padding: var(--default-grid-baseline, 8px);
-	background: var(--color-background-hover);
-	border-radius: 4px;
-	display: flex;
-	align-items: center;
-	gap: calc(var(--default-grid-baseline, 8px) * 2);
-}
 
 .mark-submission-view__effective-grade {
 	color: var(--color-warning);
@@ -1314,14 +1172,6 @@ export default {
 	padding: 8px;
 	resize: vertical;
 	font-family: inherit;
-}
-
-.mark-submission-view__peer-context {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-	padding: var(--default-grid-baseline, 8px);
-	border: 1px dashed var(--color-border);
-	border-radius: 4px;
-	background: var(--color-background-hover);
 }
 
 .mark-submission-view__peer-items {

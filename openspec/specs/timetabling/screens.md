@@ -1,0 +1,25 @@
+# Screens
+
+- learniq/LqLesBeheren les beheren (planninq adopts this: rows sib-learniq-att-book-a-room, sib-learniq-att-schedule-a-lesson, tt-bulk-change-weeks, tt-substitution) https://identity.conduction.nl/screens/board?id=learniq/LqLesBeheren
+- learniq/LqRooster mijn rooster (planninq adopts this: rows sib-learniq-att-schedule-a-lesson, tt-standby-slots, tt-substitution) https://identity.conduction.nl/screens/board?id=learniq/LqRooster
+- planninq/PlRoosterscenario roosterscenario's (planninq adopts this: row sib-learniq-att-spot-a-clash) https://identity.conduction.nl/screens/board?id=planninq/PlRoosterscenario
+- learniq/LqCoConflicten roosterconflicten (planninq adopts this: rows sib-learniq-att-never-auto-resolve-a-clash, sib-learniq-att-spot-a-clash) https://identity.conduction.nl/screens/board?id=learniq/LqCoConflicten
+- learniq/LqOuRooster rooster van Fenna (ouder) (planninq adopts this: row sib-learniq-att-tell-people-a-lesson-moved) https://identity.conduction.nl/screens/board?id=learniq/LqOuRooster
+- learniq/LqLlRooster mijn rooster (leerling) (planninq adopts this: row sib-learniq-att-tell-people-a-lesson-moved) https://identity.conduction.nl/screens/board?id=learniq/LqLlRooster
+- learniq/LqCoRoosterImporteren rooster importeren https://identity.conduction.nl/screens/board?id=learniq/LqCoRoosterImporteren
+- learniq/LqDashboard vandaag https://identity.conduction.nl/screens/board?id=learniq/LqDashboard
+- learniq/LqLlKeuzelessen keuzelessen (leerling) https://identity.conduction.nl/screens/board?id=learniq/LqLlKeuzelessen
+- learniq/LqOuVandaag vandaag (ouder) https://identity.conduction.nl/screens/board?id=learniq/LqOuVandaag
+- vaartveld/MobielDetail rooster van vandaag https://identity.conduction.nl/screens/board?id=vaartveld/MobielDetail
+- vaartveld/LqBord weekrooster https://identity.conduction.nl/screens/board?id=vaartveld/LqBord
+- vaartveld/LqRolC teamleider bovenbouw https://identity.conduction.nl/screens/board?id=vaartveld/LqRolC
+- warmtepompacademie/LqVandaag vandaag voor de planner https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqVandaag
+- warmtepompacademie/LqBord cursusdagen per status https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqBord
+- learniq/LqKoppelingen integraties https://identity.conduction.nl/screens/board?id=learniq/LqKoppelingen
+- learniq/LqLesNotitie notitie toevoegen https://identity.conduction.nl/screens/board?id=learniq/LqLesNotitie
+- learniq/LqInstellingen beheerinstellingen: groepscodes per roostersysteem en de SWV-ontvanger https://identity.conduction.nl/screens/board?id=learniq/LqInstellingen
+- learniq/LqLeerling leerling: toetsaanpassingen aanvragen en goedkeuren https://identity.conduction.nl/screens/board?id=learniq/LqLeerling
+- learniq/LqStandbyUren stand-by uren plannen (teamleider) https://identity.conduction.nl/screens/board?id=learniq/LqStandbyUren
+- wilgenboom/Berichten berichten https://identity.conduction.nl/screens/board?id=wilgenboom/Berichten
+
+Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAdminSettingsShell, CnAppNav, CnBoardView, CnBreadcrumbs, CnBuildiqEditButton, CnConfirmDialog, CnDashboardGrid, CnDashboardPage, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnFilterBar, CnFormDialog, CnIndexPage, CnIntegrationCard, CnKpiGrid, CnMassDeleteDialog, CnMassImportDialog, CnNextStepCard, CnObjectCalendar, CnObjectListWidget, CnPageHeader, CnPagination, CnProgressBar, CnQuickFilterBar, CnRowActions, CnSegmentedControl, CnSettingsPage, CnSettingsSection, CnStatsBlock, CnStatusBadge, CnSubObjectsField, CnTableWidget, CnTabs, CnWeekStripWidget, CnWidgetWrapper

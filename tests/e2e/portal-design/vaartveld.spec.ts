@@ -2,8 +2,8 @@
 // SPDX-FileCopyrightText: 2026 Conduction B.V.
 
 /**
- * Vaartveld College (vo), against school-design/vaartveld/preview. The
- * website boards run signed out; Noor Bakker's boards sign her in with her
+ * Zuiddrecht College (vo), against school-design/vaartveld/preview. The
+ * website boards run signed out; the pupil boards sign Fenna de Jong in with her
  * school account (`PORTAL_DESIGN_PASSWORD`). Today's timetable is not
  * checked: it waits for the pupil's sessions (site-pupil-portal-design T1).
  *
@@ -15,6 +15,7 @@ import { expect, test } from '@playwright/test'
 import { siteUrl } from '../helpers/portal-fixture.ts'
 import {
 	boardShot,
+	dated,
 	ensurePortalAccount,
 	expectNoHorizontalScroll,
 	expectNoSeriousAxeFinding,
@@ -35,25 +36,29 @@ const DESIGN = {
 }
 const FOOTER = [
 	'Een vraag? Bel of mail de school.',
-	'Vaartveld College is een voorbeeldschool.',
+	'Zuiddrecht College is een voorbeeldschool.',
 ]
 const NOOR = {
 	user: 'vo-leerling-121',
 	ref: 'ee02000a-0000-4000-8000-000000000534',
-	name: 'Noor Bakker',
+	name: 'Fenna de Jong',
 }
 
 test.describe('vaartveld: the website', () => {
 	test('Home', async ({ page }, info) => {
 		await openSitePage(page, PORTAL, '/')
 		await expectTexts(page, [
-			'Herfstvakantie: van zaterdag 17 tot en met zondag 25 oktober',
+			// The notice strip: a bold lead and the text (school-portals-match-their-boards).
+			'Herfstvakantie',
+			dated(
+				'Van zaterdag 17 tot en met zondag 25 oktober is de school dicht.',
+			),
 			'Kijk ver vooruit.',
 			'Direct regelen',
 			'Rooster en wijzigingen',
 			'Nieuws',
-			'Informatieavond profielkeuze op dinsdag 3 november',
-			'Mijn Vaartveld',
+			dated('Informatieavond profielkeuze op dinsdag 3 november'),
+			'Mijn Zuiddrecht',
 			'Agenda',
 			'Mentorgesprekken',
 			'Toetsweek 1, bovenbouw',
@@ -66,7 +71,7 @@ test.describe('vaartveld: the website', () => {
 			'nlNewsList',
 			'nlSignIn',
 			'nlEventList',
-			'nlLinkList',
+			'nlLinkColumns',
 		])
 		await expectTheme(page, PORTAL, DESIGN, info)
 		if (info.project.name === 'phone') {
@@ -104,12 +109,12 @@ test.describe('vaartveld: the website', () => {
 		await boardShot(page, PORTAL, 'Zoeken', info)
 		await page
 			.getByRole('link', {
-				name: 'Informatieavond profielkeuze op dinsdag 3 november',
+				name: dated('Informatieavond profielkeuze op dinsdag 3 november'),
 			})
 			.first()
 			.click()
 		await expectTexts(page, [
-			'Dinsdag 3 november 2026, 19.30 tot 21.00 uur',
+			dated('Dinsdag 3 november 2026, 19.30 tot 21.00 uur'),
 			'Marloes Peters',
 			'Kom je ook?',
 		])
@@ -124,7 +129,7 @@ test.describe('vaartveld: the website', () => {
 	})
 })
 
-test.describe('vaartveld: Mijn Vaartveld (Noor Bakker)', () => {
+test.describe('vaartveld: Mijn Zuiddrecht (Fenna de Jong)', () => {
 	test('MijnOverzicht', async ({ browser }, info) => {
 		await ensurePortalAccount(
 			NOOR.user,
@@ -139,7 +144,7 @@ test.describe('vaartveld: Mijn Vaartveld (Noor Bakker)', () => {
 			info.project.use.viewport ?? { width: 1440, height: 1000 },
 		)
 		await expect(
-			page.getByText(/Goede(morgen|middag|navond), Noor/).first(),
+			page.getByText(/Goede(morgen|middag|navond), Fenna/).first(),
 		).toBeVisible()
 		await expectTexts(page, [
 			'Huiswerk en toetsen',

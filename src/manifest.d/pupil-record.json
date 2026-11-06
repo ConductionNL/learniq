@@ -96,21 +96,74 @@
 			"type": "index",
 			"title": "Dossier notes",
 			"config": {
+				"headerButtons": [
+					{
+						"action": "export",
+						"label": "Download",
+						"icon": "TrayArrowDown"
+					},
+					{
+						"action": "add",
+						"label": "New note",
+						"variant": "primary",
+						"icon": "Plus"
+					}
+				],
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "dossier-note",
 				"columns": [
 					{
 						"key": "learnerId",
-						"label": "Learner",
-						"widget": "learnerName"
+						"label": "Learner and date",
+						"widget": "learnerName",
+						"secondary": "{date|weekday}"
 					},
-					"authorId",
-					"body",
-					"careTeamUserIds",
-					"category",
-					"confidentiality",
-					"date"
-				]
+					{
+						"key": "category",
+						"label": "Kind"
+					},
+					{
+						"key": "body",
+						"label": "Note"
+					},
+					{
+						"key": "authorId",
+						"label": "Author",
+						"widget": "avatar",
+						"widgetProps": {
+							"user": true
+						}
+					},
+					{
+						"key": "confidentiality",
+						"label": "Who sees it"
+					}
+				],
+				"countText": "{shown} of {total} notes",
+				"searchPlaceholder": "Search by learner or note",
+				"quickFilters": [
+					{
+						"label": "All notes",
+						"filter": {},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Written by me",
+						"filter": {
+							"authorId": "@me"
+						},
+						"showCount": true
+					}
+				],
+				"defaultSort": {
+					"field": "date",
+					"direction": "desc"
+				},
+				"bulkNoun": "notes",
+				"allowSavedViews": true,
+				"createModal": "DossierNoteCreateDialog"
 			}
 		},
 		{
@@ -121,61 +174,182 @@
 			"config": {
 				"register": "learniq",
 				"schema": "dossier-note",
+				"_note": "Board LqNotitie (G2): the note text first under a notice that a dossier note is not changed, then its facts; who may read it as a header pill. Read-only, so no inline editors.",
 				"readOnly": true,
-				"_note": "pupil-dossier-notes: a DossierNote is the everyday pupil-dossier record a mentor/coordinator keeps day to day (observation/conversation/phone-call-home/concern/positive), distinct from the formal LearningPlan/SupportRequest/DeliberationRecord care chain. appendOnly: true — readOnly here; a correction is a new note, never an in-place edit. Body leads with the note data (8-wide) and a Related panel. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail. x-property-rbac restricts every row server-side to admin/mentor/coordinator/the note's own author regardless of confidentiality value — the finer three-way confidentiality tiering beyond that floor is a named, unimplemented OpenRegister platform-capability gap (design.md Decision 1), not a UI filter.",
+				"statusPill": {
+					"field": "confidentiality",
+					"labels": {
+						"team-visible": "The team",
+						"care-team-only": "Only the care team",
+						"private-to-author": "Only me"
+					},
+					"colorMap": {
+						"care-team-only": "warning",
+						"private-to-author": "warning"
+					}
+				},
+				"typePill": {
+					"field": "category",
+					"labels": {
+						"observation": "Observation",
+						"conversation": "Conversation",
+						"phone-call-home": "Phone call home",
+						"concern": "Care",
+						"positive": "Positive"
+					},
+					"colorMap": {
+						"concern": "warning",
+						"positive": "success"
+					}
+				},
+				"breadcrumb": {
+					"label": "Dossier notes",
+					"route": "DossierNotes"
+				},
+				"headerMeta": "written by {authorId|user} on {date|longdate}",
 				"widgets": [
 					{
-						"id": "dn-data",
-						"type": "data",
-						"title": "Data",
+						"id": "dn-body",
+						"type": "facts",
+						"title": "Note",
 						"content": {
-							"columns": 2
-						},
-						"icon": "NoteTextOutline"
-					},
-					{
-						"id": "dn-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "dn-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 6,
-						"showTitle": false
-					},
-					{
-						"id": "2",
-						"widgetId": "dn-related",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 6,
-						"showTitle": false
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
+							"fields": [
 								{
-									"type": "audit"
+									"as": "text",
+									"path": "body"
+								}
+							],
+							"notice": {
+								"text": "A dossier note is no longer changed. If something is wrong, write a new note that adds to it."
+							}
+						}
+					},
+					{
+						"id": "dn-facts",
+						"type": "facts",
+						"title": "Details",
+						"content": {
+							"fields": [
+								{
+									"path": "learnerId",
+									"label": "Learner",
+									"format": "user"
+								},
+								{
+									"path": "date",
+									"label": "Date",
+									"format": "longdate"
+								},
+								{
+									"path": "category",
+									"label": "Kind",
+									"map": {
+										"observation": "Observation",
+										"conversation": "Conversation",
+										"phone-call-home": "Phone call home",
+										"concern": "Care",
+										"positive": "Positive"
+									}
+								},
+								{
+									"path": "confidentiality",
+									"label": "Who can see it",
+									"map": {
+										"team-visible": "The team",
+										"care-team-only": "Only the care team",
+										"private-to-author": "Only me"
+									}
+								},
+								{
+									"path": "authorId",
+									"label": "Author",
+									"format": "user"
+								},
+								{
+									"path": "careTeamUserIds",
+									"label": "Care team",
+									"format": "list"
+								}
+							],
+							"columns": 2
+						}
+					},
+					{
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
+					},
+					{
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
+								{
+									"label": "Overview",
+									"widgetIds": [
+										"dn-body",
+										"dn-facts"
+									],
+									"sections": true
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
 								}
 							]
 						}
+					}
+				],
+				"sideColumn": [
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Overview",
+							"widgetIds": [
+								"dn-body",
+								"dn-facts"
+							],
+							"sections": true
+						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		},
 		{
@@ -184,6 +358,7 @@
 			"type": "index",
 			"title": "Behaviour incidents",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "behaviour-incident",
 				"columns": [
@@ -278,6 +453,7 @@
 			"type": "index",
 			"title": "Wellbeing check-ins",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "wellbeing-check-in",
 				"columns": [
@@ -363,6 +539,7 @@
 			"type": "index",
 			"title": "First aid incidents",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "first-aid-incident",
 				"columns": [
@@ -456,7 +633,7 @@
 			"type": "custom",
 			"title": "Pupil dossier timeline",
 			"component": "PupilDossierTimelineView",
-			"_note": "pupil-dossier-notes (the one genuine custom-view exception for this capability): merges DossierNote + BehaviourIncident + WellbeingCheckIn with the existing LearningPlan/SupportRequest/DeliberationRecord care-chain objects into one chronological feed for a single learner — no object-list widget filter can merge more than one schema (verified: the manifest's object-list/stats-block/data/integration/related widget types are all single-schema). Reached via the 'Dossier timeline' KPI tile on LearnerProfileDetail (lprof-kpis-dossier-timeline), which resolves @objectId into this route's learnerId query parameter — the only token-resolved deep-link mechanism the v2 action dialect has for a detail-page-to-custom-page link at HEAD (open-page/navigate header actions do not carry the current object id; verified against actionsDispatcher.js). Reads learnerId from $route.query.learnerId; shows a learner-picker empty state when absent (e.g. direct navigation).",
+			"_note": "pupil-dossier-notes (the one genuine custom-view exception for this capability): merges DossierNote + BehaviourIncident + WellbeingCheckIn with the existing LearningPlan/SupportRequest/DeliberationRecord care-chain objects into one chronological feed for a single learner — no object-list widget filter can merge more than one schema (verified: the manifest's object-list/stats-block/data/integration/related widget types are all single-schema). Reached via the 'Dossier timeline' KPI tile on LearnerProfileDetail (lprof-kpis-dossier-timeline), which passes the profile's ncUserId (@object.ncUserId) as this route's learnerId query parameter — the only token-resolved deep-link mechanism the v2 action dialect has for a detail-page-to-custom-page link at HEAD (open-page/navigate header actions do not carry the current object id; verified against actionsDispatcher.js). Reads learnerId from $route.query.learnerId; shows a learner-picker empty state when absent (e.g. direct navigation).",
 			"config": {
 				"register": "learniq",
 				"schema": "learner-profile"

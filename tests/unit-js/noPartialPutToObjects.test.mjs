@@ -96,9 +96,6 @@ const FULL_REPLACE = {
 	// saveAndSubmit(): carries every schema property but lifecycle, which the
 	// submit transition right after it sets.
 	'src/views/SelfAssessmentView.vue': 1,
-	// save(): attendanceRecord() carries every required field, and a replace
-	// is what clears a reason the teacher removed.
-	'src/views/AttendanceRegisterView.vue': 1,
 }
 
 const OBJECTS_PATH = /\/apps\/openregister\/api\/objects\/|objectsUrl\(|\bOBJECTS\b/

@@ -195,8 +195,7 @@ class TimetableController extends Controller {
 
 		$sessions = $this->projector->windowedSessions(
 			rawSessions: $rawSessions,
-			windowFrom: $windowFrom,
-			windowTo: $windowTo,
+			window: [$windowFrom, $windowTo],
 			roomCache: $this->timetable->preloadRooms(sessions: $rawSessions)
 		);
 

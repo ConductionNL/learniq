@@ -77,7 +77,13 @@ class BpvPlacementStepsTest extends TestCase {
 
 		self::assertSame(['Agreement signed', 'Work plan made', 'Midterm review', 'Final review', 'Placement finished'], array_column($steps, 'label'));
 		self::assertSame(['done', 'done', 'current', 'todo', 'todo'], array_column($steps, 'state'));
-		self::assertSame(['27 augustus 2026', '9 september 2026', '13 oktober 2026', 'januari 2027', '29 januari 2027'], array_column($steps, 'description'));
+		// The current step says what happens and carries its day for the "Volgende stap" card (portaliq #1409);
+		// every other step names its day once, in its line (REPORT-2, item 8).
+		self::assertSame(
+			['27 augustus 2026', '9 september 2026', 'Tussenbeoordeling om 10.00 uur bij Bakker Techniek BV. Milan en Petra Bakker vullen vooraf elk een beoordeling in.', 'januari 2027', '29 januari 2027'],
+			array_column($steps, 'description')
+		);
+		self::assertSame([2 => '2026-10-13'], array_filter(array_map(static fn (array $step): ?string => ($step['date'] ?? null), $steps)));
 	}//end testMilansPlacementStandsAtTheMidtermReview()
 
 	/**

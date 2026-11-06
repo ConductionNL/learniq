@@ -51,30 +51,38 @@ Federated authentication (DigiD / SURFconext / eduID) is OUT of this spec — it
 - **WHEN** the authentication completes outside this spec's scope
 - **THEN** Scholiq persists only the resulting pseudonymous identifiers on `LearnerProfile` and does not implement the federated authentication itself
 
-### Requirement: Data-exchange management is reached from the Admin Settings page
-The data-exchange entry point MUST move from the in-app settings foldout to the Nextcloud Admin Settings page. The `DataExchange` leaf id MUST be removed from `src/menu-layout.json#settingsSection`, and the Admin Settings page (mounted by `lib/Settings/AdminSettings.php` + `src/settings.js` → `src/views/settings/AdminRoot.vue`) MUST render a "Data exchange" settings section that links to the still-routable Data-exchange **jobs** (`#/data-exchange/jobs`) and **mapping profiles** (`#/data-exchange/mapping-profiles`) SPA pages, mirroring the "Manage AI features" affordance in `ScholiqSettings.vue`. Because the Admin Settings mount has no in-app vue-router, the links MUST navigate out via full navigation (hash-form SPA URL), not by embedding router pages. All data-exchange pages (`DataExchangeJobs`, `DataExchangeJobDetail`, `DataMappingProfiles`, `DataMappingProfileDetail`, `RequestExportModal`, `OsoDossierReviewView`) MUST remain registered in `src/manifest.json.pages[]` and routable. No backend, register schema, lifecycle guard, OSO gate or OpenConnector delegation is changed.
+### Requirement: Data-exchange management is reached from Geavanceerd, for administrators
+The Uitwisselingen panel MUST sit in the settings foldout "Geavanceerd" of the app, for administrators only. The `DataExchange` leaf id MUST stay in `src/menu-layout.json#settingsSection` with an admin gate and MUST open `#/data-exchange/jobs`. The Admin Settings page (mounted by `lib/Settings/AdminSettings.php` + `src/settings.js` → `src/views/settings/AdminRoot.vue`) MUST also render a "Gegevensuitwisseling" settings section that links to the **exchange jobs** (`#/data-exchange/jobs`) and the **parent reviews** (`#/data-exchange/parent-reviews`) SPA pages. Because the Admin Settings mount has no in-app vue-router, those links MUST navigate out via full navigation (hash-form SPA URL), not by embedding router pages. The exchange jobs and the mapping profiles belong to integriq (learniq#1157): learniq's `ExchangeJobs` page is a read-only list of integriq's `job` schema filtered on `ownerApp: learniq`, and declares integriq as the app it needs. Learniq has no mapping-profile page; the profiles are edited in integriq. The learniq data-exchange pages (`ExchangeJobs`, `DossierReviews`, `DossierReviewDetail`, `RequestExportModal`) MUST remain registered in `src/manifest.d/data-exchange.json` and routable. No backend, register schema, lifecycle guard or OSO gate is changed.
 
-#### Scenario: Admin Settings shows a Data exchange section
+#### Scenario: Admin Settings shows a Gegevensuitwisseling section
 <!-- @e2e exclude Admin Settings is rendered by the Nextcloud settings framework outside the SPA route-smoke harness (tests/e2e/pages.spec.ts); the section render + link targets are verified in-browser at apply. -->
-- **GIVEN** an admin on the Scholiq Admin Settings page (`AdminRoot.vue`)
+- **GIVEN** an admin on the Learniq Admin Settings page (`AdminRoot.vue`)
 - **WHEN** the page renders
-- **THEN** a "Data exchange" settings section is shown with a link to Data-exchange jobs (`#/data-exchange/jobs`) and a link to mapping profiles (`#/data-exchange/mapping-profiles`)
+- **THEN** a "Gegevensuitwisseling" settings section is shown with a link to the exchange jobs (`#/data-exchange/jobs`) and a link to the parent reviews (`#/data-exchange/parent-reviews`)
 
-#### Scenario: The in-app Data exchange foldout entry is removed
-<!-- @e2e exclude Static / absence assertion — verified by the manifest/menu-layout unit test (no `DataExchange` id in settingsSection); not a positive route-smoke DOM behaviour. -->
-- **GIVEN** the parsed `src/menu-layout.json`
-- **WHEN** its `settingsSection` array is inspected
-- **THEN** it does not list `DataExchange`
+#### Scenario: An administrator reaches Uitwisselingen from Geavanceerd
+<!-- @e2e exclude Menu layout; verified by the manifest/menu-layout unit test (`DataExchange` in settingsSection, admin-gated) against learniq/LqUitwisselingen. -->
+- **GIVEN** an administrator in the app
+- **WHEN** they open the settings foldout "Geavanceerd"
+- **THEN** it lists "Uitwisselingen", which opens `#/data-exchange/jobs`
+
+#### Scenario: Other roles do not see Uitwisselingen
+<!-- @e2e exclude Menu gating; verified by the manifest/menu-layout unit test. -->
+- **GIVEN** a user who is not an administrator
+- **WHEN** they open the settings foldout "Geavanceerd"
+- **THEN** "Uitwisselingen" is not listed
 
 #### Scenario: Data-exchange jobs page remains routable via deep link
-- **GIVEN** the `DataExchangeJobs` page is no longer in the nav
+<!-- @e2e exclude Integriq is not installed in the learniq e2e stack, so the page shows its missing-app notice there; the route is checked by the manifest build (tests/validate-manifest.js). -->
+- **GIVEN** the `ExchangeJobs` page and integriq installed
 - **WHEN** a user navigates directly to `#/data-exchange/jobs`
-- **THEN** the `DataExchangeJobs` index page renders without a fatal error
+- **THEN** the `ExchangeJobs` index page renders integriq's jobs for learniq, read only, without a fatal error
 
-#### Scenario: Data-exchange mapping profiles page remains routable via deep link
-- **GIVEN** the `DataMappingProfiles` page is no longer in the nav
-- **WHEN** a user navigates directly to `#/data-exchange/mapping-profiles`
-- **THEN** the `DataMappingProfiles` index page renders without a fatal error
+#### Scenario: Mapping profiles are not a learniq page
+<!-- @e2e exclude An absence in the built manifest, with no DOM to assert; tests/validate-manifest.js builds the pages. -->
+- **GIVEN** the built manifest
+- **WHEN** its pages are listed
+- **THEN** no page routes to `#/data-exchange/mapping-profiles`, because the mapping profiles are edited in integriq
 
 ### Requirement: A DataExchangeJob target can require standing partner approval before it runs
 `DataExchangeJob` SHALL gain four additive properties: `requiresPartnerApproval` (boolean, default `false`),
@@ -144,22 +152,21 @@ explicit, documented feature of these four indexes rather than an implicit platf
 - **THEN** each declares a non-empty `columns` array and `actionToggles.showMassImport`/
   `showMassExport`/`showMassCopy`/`showMassDelete` all `true`
 
-### Requirement: An Import & export nav entry makes the existing data-exchange tooling discoverable
+### Requirement: One Uitwisselingen entry makes the existing data-exchange tooling discoverable
 
-The system MUST declare an `ImportExportToolsMenu` nav entry under the existing `GroupDataExchange`
-menu group, labelled "Import & export", routing to the existing `DataExchangeJobs` page — no new
-page is declared, per ADR-097 Decision 5's "a second index over an already-indexed schema is a
-role lens, not a page" preference (already applied by `care-and-support-index`, a sibling change
-this round, for the same reason).
+The menu MUST offer the exchange tooling through one entry, "Uitwisselingen" under "Geavanceerd",
+routing to the existing `ExchangeJobs` page. No new page is declared, per ADR-097 Decision 5's
+"a second index over an already-indexed schema is a role lens, not a page" preference (already
+applied by `care-and-support-index`, a sibling change this round, for the same reason).
 
-#### Scenario: The Import & export entry routes to the existing DataExchangeJobs page
+#### Scenario: The Uitwisselingen entry routes to the existing ExchangeJobs page
 
 <!-- @e2e exclude Declarative manifest nav addition, no new route or component; verified by reasoning over the built effective manifest. -->
 
 - **GIVEN** the manifest is built
-- **WHEN** `ImportExportToolsMenu` is inspected
-- **THEN** it routes to `DataExchangeJobs`, and no second `type: "index"` page exists over the
-  `data-exchange-job` schema
+- **WHEN** the "Uitwisselingen" entry is inspected
+- **THEN** it routes to `ExchangeJobs`, and no second `type: "index"` page exists over integriq's
+  `job` schema
 
 ### Requirement: TimeEdit joins the rostering-import preset family
 
@@ -497,13 +504,14 @@ When every other condition passes, the gate MUST hand integriq only the fields t
 - WHEN a coordinator calls `GET /api/exchange-gates/{jobId}`
 - THEN the answer is `refuse` with `teldatum-unconfirmed` and no records
 
-### Requirement: The Data exchange menu is a read-only status panel beside the gate pages
-The Data exchange menu MUST show integriq's jobs and rejections owned by learniq, read-only, and the partner approval, teldatum check and dossier review pages. It MUST NOT offer to create or edit a job.
+### Requirement: The Uitwisselingen panel is a read-only status panel beside the gate pages
+The Uitwisselingen panel under "Geavanceerd" MUST show integriq's jobs and rejections owned by learniq, read-only, and the partner approval, teldatum check and dossier review pages. It MUST NOT offer to create or edit a job.
 
 #### Scenario: an administrator opens the panel
 - GIVEN integriq holds two jobs owned by learniq and one owned by another app
-- WHEN an administrator opens Exchange jobs
+- WHEN an administrator opens "Uitwisselingen" under "Geavanceerd"
 - THEN two rows show, without an add or edit action
+- AND the panel reads "Alleen lezen"
 
 ### Requirement: Existing exchange rows are moved to integriq, or archived
 A repair step MUST archive every row of the four retired schemas to app data, and when integriq is installed MUST send each job (with its rejections) and each customised mapping profile to integriq, once. It MUST NOT delete the old rows.

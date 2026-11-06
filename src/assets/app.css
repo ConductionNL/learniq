@@ -16,3 +16,27 @@
 	> .cn-widget-wrapper {
 	height: auto;
 }
+
+/* A custom page laid out as its board: the board look's content inset, and
+ * its cards (CnDetailCard) one section gap apart. The page header's own
+ * bottom margin gives way to that gap. Outside the board look the page keeps
+ * a 16px inset and gap. */
+.lq-board-page {
+	display: flex;
+	flex-direction: column;
+	gap: var(--cn-board-section-gap, 16px);
+	box-sizing: border-box;
+	padding: var(--cn-board-content-padding, 16px);
+}
+
+.lq-board-page > .cn-page-header {
+	margin-bottom: 0;
+}
+
+/* On the board look the page title sits 4px under the content's top, at 96
+ * as on every learniq board, the same inset nextcloud-vue gives the index,
+ * detail and dashboard headers. A custom page's header is the standalone one,
+ * which takes its top from the page. */
+.cn-look-board .lq-board-page .cn-page-header:not(.cn-look-nextcloud *) {
+	padding-top: 4px;
+}

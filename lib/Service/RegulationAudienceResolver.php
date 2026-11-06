@@ -45,6 +45,13 @@ class RegulationAudienceResolver {
 	public const DEPARTMENT_SEPARATOR = '/';
 
 	/**
+	 * The audience kinds an assignment can be narrowed to: a section (the top
+	 * level of the department path), a team (the whole department path) or an
+	 * HR function (one of the profile's roles).
+	 */
+	public const AUDIENCE_KINDS = ['section', 'team', 'hr-function'];
+
+	/**
 	 * Whether the regulation covers the profile.
 	 *
 	 * @param array<string,mixed> $regulation The Regulation object.
@@ -73,6 +80,27 @@ class RegulationAudienceResolver {
 			default => true,
 		};
 	}//end covers()
+
+	/**
+	 * The values a profile has for one audience kind.
+	 *
+	 * @param string              $kind    One of AUDIENCE_KINDS.
+	 * @param array<string,mixed> $profile The LearnerProfile object.
+	 *
+	 * @return array<int,string> Empty for an unknown kind or a profile without the value.
+	 *
+	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
+	 */
+	public function audienceValues(string $kind, array $profile): array {
+		$levels = array_values(array_filter($this->departmentLevels(department: (string)($profile['department'] ?? ''))));
+
+		return match ($kind) {
+			'section' => array_slice($levels, 0, 1),
+			'team' => array_slice($levels, -1),
+			'hr-function' => $this->stringList(value: $profile['roles'] ?? []),
+			default => [],
+		};
+	}//end audienceValues()
 
 	/**
 	 * Every level of a department path, top first:

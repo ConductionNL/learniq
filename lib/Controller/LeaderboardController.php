@@ -54,10 +54,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\CallerGroups;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
@@ -74,6 +75,7 @@ use OCP\IUserSession;
  * @spec openspec/specs/engagement/spec.md#requirement-a-ranked-leaderboard-is-opt-in-per-cohort-course-default-off-and-respects-a-per-learner-opt-out
  */
 class LeaderboardController extends Controller {
+	use FindOrNull;
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const COHORT_SCHEMA = 'cohort';
@@ -90,21 +92,35 @@ class LeaderboardController extends Controller {
 	private const OPT_OUT_CONFIG_KEY = 'pref_leaderboardoptout';
 
 	/**
+	 * Current user session.
+	 *
+	 * @var IUserSession
+	 */
+	private readonly IUserSession $userSession;
+
+	/**
+	 * Group manager (admin check).
+	 *
+	 * @var IGroupManager
+	 */
+	private readonly IGroupManager $groupManager;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IRequest $request HTTP request.
-	 * @param IUserSession $userSession Current user session.
-	 * @param IGroupManager $groupManager Group manager (admin check).
+	 * @param CallerGroups $caller      The user session and the group manager.
 	 * @param ObjectService $objectService OR object query/persistence.
 	 * @param IConfig $config Nextcloud config (opt-out preference reads).
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly IUserSession $userSession,
-		private readonly IGroupManager $groupManager,
+		CallerGroups $caller,
 		private readonly ObjectService $objectService,
 		private readonly IConfig $config,
 	) {
+		$this->userSession = $caller->userSession;
+		$this->groupManager = $caller->groupManager;
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
 
@@ -387,26 +403,11 @@ class LeaderboardController extends Controller {
 	 * @param string $schema Schema slug.
 	 *
 	 * @return array<string,mixed>|null Null when no such object exists.
+	 *
+	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException When the id matches more than one object; LookupIntegrityMiddleware answers it.
 	 */
 	private function fetchObject(string $id, string $schema): ?array {
-		// ObjectService::find() THROWS DoesNotExistException for an unknown id —
-		// it does not return null — so without this catch the `=== null` check
-		// below was dead code and an unknown id escaped as a 500 instead of the
-		// 404 this resolver's nullable contract promises the caller.
-		try {
-			$obj = $this->objectService->find(
-				id: $id,
-				register: self::LEARNIQ_REGISTER,
-				schema: $schema
-			);
-		} catch (DoesNotExistException $e) {
-			return null;
-		}
-
-		if ($obj === null) {
-			return null;
-		}
-
-		return $obj->jsonSerialize();
+		$find = fn () => $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
+		return $this->findOrNull(find: $find)?->jsonSerialize();
 	}//end fetchObject()
 }//end class

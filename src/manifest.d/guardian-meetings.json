@@ -143,6 +143,7 @@
 			"type": "index",
 			"title": "Conference rounds",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "conference-round",
 				"columns": [
@@ -348,7 +349,19 @@
 							]
 						}
 					]
-				}
+				},
+				"headerActions": [
+					{
+						"id": "teacher-availability",
+						"label": "My availability",
+						"icon": "CalendarClockOutline",
+						"type": "open-modal",
+						"target": "TeacherAvailabilityDialog",
+						"props": {
+							"conferenceRoundId": "@objectId"
+						}
+					}
+				]
 			}
 		},
 		{
@@ -357,6 +370,7 @@
 			"type": "index",
 			"title": "Teacher availability",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "teacher-availability",
 				"columns": [
@@ -479,6 +493,7 @@
 			"type": "index",
 			"title": "Conference slots",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "conference-slot",
 				"columns": [
@@ -622,6 +637,7 @@
 			"type": "index",
 			"title": "Conference reports",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "conference-report",
 				"columns": [
@@ -637,7 +653,8 @@
 					"recordedAt",
 					"recordedBy",
 					"teacherId"
-				]
+				],
+				"createModal": "ConferenceReportDialog"
 			}
 		},
 		{

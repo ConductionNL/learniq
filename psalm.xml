@@ -33,7 +33,12 @@
              container. Real classes live in openregister/lib/Service/. -->
         <file name="tests/Stubs/Service/TenantKeyService.php" preloadClasses="true" />
         <file name="tests/Stubs/Service/TalkLinkService.php" preloadClasses="true" />
+        <file name="tests/Stubs/Service/OrganisationService.php" preloadClasses="true" />
+        <file name="tests/Stubs/Db/Organisation.php" preloadClasses="true" />
+        <file name="tests/Stubs/Db/MagicMapper.php" preloadClasses="true" />
         <file name="tests/Stubs/Service/FileService.php" preloadClasses="true" />
+        <!-- OpenRegister's RBAC refusal, caught to answer 403 instead of 500. -->
+        <file name="tests/Stubs/Exception/NotAuthorizedException.php" preloadClasses="true" />
         <!-- OpenRegister's store plane (ADR-080): discovery, publish and the
              publish authorizer, used by learniq's course store
              (lesson-sharing-via-store-plane, store-publish-through-plane). The
@@ -53,6 +58,10 @@
              (ADR-041). Declaration-only stub, so psalm sees the constructor the
              service builds instead of reading the guarded branch as dead. -->
         <file name="tests/Stubs/Integriq/Event/ConnectionStatusReportedEvent.php" preloadClasses="true" />
+        <!-- Portaliq's claim scope event. PortalClaimScopeListener matches it by
+             class name (ADR-041). Declaration-only stub; the real class lives in
+             portaliq/lib/Event/. -->
+        <file name="tests/Stubs/Portaliq/Event/PortalClaimScopeEvent.php" preloadClasses="true" />
     </stubs>
     <issueHandlers>
         <UndefinedDocblockClass errorLevel="suppress"/>

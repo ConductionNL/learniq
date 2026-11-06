@@ -14,24 +14,16 @@ import { dirname, resolve } from 'node:path'
 import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 import {
-	ATTENDANCE_STATUSES,
-	attendanceRecord,
-	attendanceRows,
 	auditPackUrl,
-	bulkEnrolmentBody,
 	exchangeRequestBody,
 	exchangeRequestUrl,
-	EXCUSE_REASON_KINDS,
 	gradebookGrid,
 	gradeEntryBody,
 	handInAction,
-	learnersToEnrol,
 	moveItem,
 	nextGoalId,
 	parseMark,
 	planGraph,
-	registerRowsToSave,
-	timelineEvents,
 } from '../../src/utils/customPages.js'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
@@ -58,52 +50,6 @@ function assertFitsSchema(body, schema, serverSet = []) {
 		assert.ok(key in body, `${schema} requires ${key}`)
 	}
 }
-
-test('status and reason lists match the register enums', () => {
-	assert.deepEqual(
-		[...ATTENDANCE_STATUSES].sort(),
-		[...schemas.AttendanceRecord.properties.status.enum].sort(),
-	)
-	assert.deepEqual(
-		[...EXCUSE_REASON_KINDS].sort(),
-		[...schemas.ExcuseRequest.properties.reasonKind.enum].sort(),
-	)
-})
-
-test('the attendance register keeps saved marks and defaults the rest to present', () => {
-	const rows = attendanceRows(
-		['a', 'b', 'a'],
-		[{ id: 'r1', learnerId: 'b', status: 'late', reason: 'bus' }],
-	)
-	assert.deepEqual(rows, [
-		{ learnerId: 'a', status: 'present', reason: '', recordId: '', markedVia: 'teacher', savedStatus: null, savedReason: '' },
-		{ learnerId: 'b', status: 'late', reason: 'bus', recordId: 'r1', markedVia: 'teacher', savedStatus: 'late', savedReason: 'bus' },
-	])
-	const body = attendanceRecord(
-		rows[1],
-		{ id: 's1', cohortId: 'c1', tenant_id: 't' },
-		'teacher',
-		'2026-09-27T10:00:00Z',
-	)
-	assertFitsSchema(body, 'AttendanceRecord')
-	assert.equal(body.sessionId, 's1')
-	assert.equal(body.markedVia, 'teacher')
-})
-
-test('saving the register leaves an untouched self check-in alone and turns a changed one into a teacher mark', () => {
-	const rows = attendanceRows(
-		['a', 'b', 'c'],
-		[
-			{ id: 'r1', learnerId: 'a', status: 'present', markedVia: 'self-check-in' },
-			{ id: 'r2', learnerId: 'b', status: 'late', markedVia: 'self-check-in' },
-		],
-	)
-	rows[1].status = 'present'
-	assert.deepEqual(
-		registerRowsToSave(rows).map((r) => r.learnerId),
-		['b', 'c'],
-	)
-})
 
 test('the gradebook grid skips revised and invalidated marks and posts a valid concept entry', () => {
 	const components = [
@@ -140,21 +86,6 @@ test('the gradebook grid skips revised and invalidated marks and posts a valid c
 	assert.equal(parseMark('abc'), null)
 })
 
-test('bulk enrolment skips learners with an open enrolment and fits the schema', () => {
-	const todo = learnersToEnrol(
-		['a', 'b', 'c', 'c'],
-		[
-			{ learnerId: 'a', lifecycle: 'active' },
-			{ learnerId: 'b', lifecycle: 'withdrawn' },
-		],
-	)
-	assert.deepEqual(todo, ['b', 'c'])
-	assertFitsSchema(
-		bulkEnrolmentBody('b', { id: 'course-1', tenant_id: 't' }, 'c1'),
-		'Enrolment',
-	)
-})
-
 test('an export request names a target and, optionally, one learner', () => {
 	assert.deepEqual(exchangeRequestBody({ target: 'bron-rod', learnerId: '  ' }), {
 		target: 'bron-rod',
@@ -170,28 +101,7 @@ test('an export request names a target and, optionally, one learner', () => {
 	)
 })
 
-test('timeline, plan graph and goal helpers', () => {
-	assert.deepEqual(
-		timelineEvents([
-			{
-				id: 's',
-				title: 'Maths',
-				startsAt: '2026-10-01T09:00:00Z',
-				lifecycle: 'cancelled',
-			},
-			{ id: 'x' },
-		]),
-		[
-			{
-				id: 's',
-				title: 'Maths',
-				start: '2026-10-01T09:00:00Z',
-				end: undefined,
-				location: undefined,
-				kind: 'cancelled',
-			},
-		],
-	)
+test('plan graph and goal helpers', () => {
 	const graph = planGraph({
 		id: 'p',
 		kind: 'opp',
@@ -208,44 +118,27 @@ test('timeline, plan graph and goal helpers', () => {
 	assert.deepEqual(moveItem(['a', 'b'], 0, -1), ['a', 'b'])
 })
 
-test('signature records fit their append-only schemas', async () => {
-	const { signatureBody, defaultSignerRole, SIGNABLE_SUBJECTS } =
-		await import('../../src/utils/customPages.js')
-	assert.deepEqual(
-		SIGNABLE_SUBJECTS['learning-plan'].roles,
-		schemas.Signature.properties.signerRole.enum,
+// @spec openspec/specs/learning-plan/spec.md#requirement-a-signature-is-recorded-by-the-server-in-a-role-the-signer-holds
+test('the signing page offers only schema roles and signs through the server endpoint', async () => {
+	const { signUrl, SIGNABLE_SUBJECTS } = await import(
+		'../../src/utils/customPages.js'
 	)
+	for (const role of SIGNABLE_SUBJECTS['learning-plan'].roles) {
+		assert.ok(schemas.Signature.properties.signerRole.enum.includes(role))
+	}
 	for (const role of SIGNABLE_SUBJECTS.praktijkovereenkomst.roles) {
 		assert.ok(schemas.PokSignature.properties.signerRole.enum.includes(role))
 	}
-	const plan = {
-		id: 'p',
-		version: 3,
-		learnerId: 'lea',
-		coordinatorId: 'co',
-		tenant_id: 't',
-	}
-	assert.equal(defaultSignerRole('learning-plan', plan, 'co'), 'coordinator')
-	const body = signatureBody({
-		kind: 'learning-plan',
-		subject: plan,
-		signerId: 'co',
-		signerRole: 'coordinator',
-		capture: { mode: 'typed', value: 'C. Oordinator' },
-		signedAt: '2026-09-27T10:00:00Z',
-	})
-	assertFitsSchema(body, 'Signature')
-	assert.equal(body.subjectVersion, 3)
-	const pok = signatureBody({
-		kind: 'praktijkovereenkomst',
-		subject: { id: 'k', version: 1 },
-		signerId: 'lea',
-		signerRole: 'student',
-		capture: { mode: 'drawn', value: 'data:image/png;base64,AA' },
-		signedAt: '2026-09-27T10:00:00Z',
-	})
-	assertFitsSchema(pok, 'PokSignature')
-	assert.equal(pok.evidenceRef, 'drawn:data:image/png;base64,AA')
+	assert.equal(
+		signUrl('learning-plan', 'p 1'),
+		'/apps/learniq/api/sign/learning-plan/p%201',
+	)
+	assert.equal(
+		signUrl('praktijkovereenkomst', 'k'),
+		'/apps/learniq/api/sign/placement-agreement/k',
+	)
+	assert.equal(schemas.Signature.authorization.create, undefined)
+	assert.equal(schemas.PokSignature.authorization.create, undefined)
 })
 
 // @spec openspec/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
@@ -271,25 +164,6 @@ test('a parent or guardian can sign a work placement agreement, and the page say
 		parentSignatureNeeded('learning-plan', { parentSignatureRequired: true }),
 		false,
 	)
-})
-
-test('bulk enrolment by department takes the department and everything under it', async () => {
-	const { learnersInDepartment, departmentOptions } =
-		await import('../../src/utils/customPages.js')
-	const profiles = [
-		{ ncUserId: 'a', department: 'Operations/Infra/Team A' },
-		{ ncUserId: 'b', department: 'Operations / Infra' },
-		{ ncUserId: 'c', department: 'Operations/Infrastructure' },
-		{ ncUserId: 'd', department: 'Finance' },
-		{ ncUserId: 'e', department: 'Operations/Infra', mergedInto: 'x' },
-	]
-	assert.deepEqual(learnersInDepartment(profiles, 'Operations/Infra'), ['a', 'b'])
-	assert.deepEqual(learnersInDepartment(profiles, ''), [])
-	assert.deepEqual(departmentOptions(profiles.slice(0, 2)), [
-		'Operations',
-		'Operations/Infra',
-		'Operations/Infra/Team A',
-	])
 })
 
 // learniq#983 part C: a guard can not redirect submit to `late`, so the hand-in

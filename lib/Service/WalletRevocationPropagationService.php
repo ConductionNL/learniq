@@ -154,18 +154,24 @@ class WalletRevocationPropagationService implements LifecycleGuardInterface {
 	/**
 	 * Propagate a revocation to any outstanding wallet offer, best-effort.
 	 *
-	 * No-op (credential returned unchanged, no call made) unless there is an
-	 * outstanding offer with a correlation key. On a confirmed revocation sets
-	 * `walletOfferStatus=revoked`; on any failure records `walletOfferError`
-	 * and never throws.
+	 * The offer link is cleared first, whatever follows: a revoked
+	 * certificate is never offered. Otherwise no call is made unless there is
+	 * an outstanding offer with a correlation key. On a confirmed revocation
+	 * sets `walletOfferStatus=revoked`; on any failure records
+	 * `walletOfferError` and never throws.
 	 *
 	 * @param array<string,mixed> $credential The Credential data array.
 	 *
 	 * @return array<string,mixed> The Credential with the propagation outcome applied.
 	 *
 	 * @spec openspec/specs/certification/spec.md#requirement-revoking-a-credential-propagates-to-any-outstanding-wallet-offer-fail-soft
+	 * @spec openspec/changes/credential-wallet-offer-for-the-learner/specs/certification/spec.md#requirement-the-credential-keeps-the-wallet-offer-link-while-the-offer-is-open
 	 */
 	public function propagate(array $credential): array {
+		if (isset($credential['walletOfferUri']) === true) {
+			$credential['walletOfferUri'] = null;
+		}
+
 		$walletOfferStatus = ($credential['walletOfferStatus'] ?? null);
 		if (in_array($walletOfferStatus, self::OUTSTANDING_STATUSES, true) === false) {
 			// Nothing outstanding to revoke — no-op.

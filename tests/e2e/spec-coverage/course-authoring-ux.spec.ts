@@ -189,8 +189,9 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		await moduleNameInput.fill('e2e Reorder Module')
 		await page.getByRole('button', { name: 'Add module' }).click()
 
-		const moduleRow = page.locator('.course-builder__module', {
-			hasText: 'e2e Reorder Module',
+		// The chapter's tree item: its own row carries the chapter class.
+		const moduleRow = page.locator('li.cn-tree-node').filter({
+			has: page.locator('.course-builder__module', { hasText: 'e2e Reorder Module' }),
 		})
 		const lessonNameInput = moduleRow.getByPlaceholder('New lesson name')
 		const lessonRows = moduleRow.locator('.course-builder__lesson')
@@ -222,13 +223,17 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 
 		// Keyboard reorder: move the second lesson up via its "Move ... up" button.
 		await moduleRow
-			.getByRole('button', { name: /Move lesson 'e2e Lesson 2' up/ })
+			.getByRole('button', { name: 'Move up: e2e Lesson 2' })
 			.click()
 		await expect(lessonRows.first()).toContainText('e2e Lesson 2')
+		// The move is read out with the new position and that it is saved.
+		await expect(page.getByTestId('cn-tree-view-status')).toHaveText(
+			/(Lesson e2e Lesson 2 moved to position 1 of 2\. Saved\.|Les e2e Lesson 2 verplaatst naar positie 1 van 2\. Opgeslagen\.)/,
+		)
 
 		// Drag-and-drop reorder: drag the (now first) lesson's handle onto the
 		// second row — exercises vuedraggable/SortableJS's pointer-driven drag.
-		const firstHandle = lessonRows.nth(0).locator('.course-builder__handle')
+		const firstHandle = lessonRows.nth(0).locator('.cn-tree-node__handle')
 		const secondRow = lessonRows.nth(1)
 		await firstHandle.dragTo(secondRow)
 
@@ -261,8 +266,9 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		await moduleNameInput.fill('e2e Compose Module')
 		await page.getByRole('button', { name: 'Add module' }).click()
 
-		const moduleRow = page.locator('.course-builder__module', {
-			hasText: 'e2e Compose Module',
+		// The chapter's tree item: its own row carries the chapter class.
+		const moduleRow = page.locator('li.cn-tree-node').filter({
+			has: page.locator('.course-builder__module', { hasText: 'e2e Compose Module' }),
 		})
 		const lessonNameInput = moduleRow.getByPlaceholder('New lesson name')
 		await lessonNameInput.fill('e2e Compose Lesson')
@@ -271,7 +277,7 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		// `exact: true` is load-bearing. getByRole's `name` is a SUBSTRING match
 		// by default, and this module is called "e2e Compose Module", so its
 		// three icon buttons carry accessible names containing "Compose"
-		// ("Move module 'e2e Compose Module' up", … down, "Delete module …").
+		// ("Move up: e2e Compose Module", … down, "Delete module …").
 		// Without it the locator resolved to 4 elements and Playwright failed
 		// on strict mode rather than clicking the lesson's Compose button.
 		await moduleRow.getByRole('button', { name: 'Compose', exact: true }).click()
@@ -286,23 +292,17 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		// drivable without seeded Material/Assessment fixtures).
 		await page.getByRole('button', { name: 'Add block' }).click()
 		await page.getByRole('button', { name: 'Add block' }).click()
-		const blockRows = page.locator('.lesson-composer__block')
+		const blockRows = page.getByTestId('cn-block-list-block')
 		await expect(blockRows).toHaveCount(2)
 
 		const textareas = page.locator('[data-testid="cn-markdown-textarea"]')
 		await textareas.nth(0).fill('First block text')
 		await textareas.nth(1).fill('Second block text')
 
-		// Keyboard-only block reorder: move the SECOND block up.
-		//
-		// Addressed by position, which is now part of the button's accessible
-		// name. It previously read `/Move Rich text block up/`, which matched
-		// one control per block — two rich-text blocks, two identical names,
-		// strict-mode violation. That ambiguity was a real a11y defect rather
-		// than a test problem (a screen-reader user heard the same name twice
-		// with no way to tell the controls apart), so it is fixed in
-		// LessonComposer.vue and the locator simply names the block it means.
-		await page.getByRole('button', { name: 'Move Rich text block 2 up' }).click()
+		// Keyboard-only block reorder: move the SECOND block up. CnBlockListEditor
+		// names each control "{action}: {type} block {position}", so two blocks of
+		// one type never share a name.
+		await page.getByRole('button', { name: 'Up: Rich text block 2' }).click()
 		await expect(textareas.nth(0)).toHaveValue('Second block text')
 
 		await page.getByRole('button', { name: 'Save lesson' }).click()

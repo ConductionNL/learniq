@@ -178,7 +178,7 @@ class CurriculumCoverageRollupTest extends TestCase {
 	 * @return void
 	 */
 	private function seedStoredRows(): void {
-		$rows = $this->calculator->compute($this->store['competency-framework']['fw'], array_values($this->store['competency']), array_values($this->store['lesson']), [], 'earlier');
+		$rows = $this->calculator->compute($this->store['competency-framework']['fw'], ['goals' => array_values($this->store['competency']), 'planned' => array_values($this->store['lesson']), 'assessed' => [], 'now' => 'earlier']);
 		foreach ($rows as $row) {
 			if ($row['subjectScope'] === 'none') {
 				$row = array_filter($row, static fn (mixed $value): bool => $value !== null);
@@ -218,6 +218,7 @@ class CurriculumCoverageRollupTest extends TestCase {
 		self::assertSame('row-all', $this->saved[0][0]);
 		self::assertSame(1, $this->saved[0][1]['plannedCount']);
 		self::assertSame('t1', $this->saved[0][1]['tenant_id']);
+		self::assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/', (string)$this->saved[0][1]['lastRecomputedAt']);
 
 	}//end testRecomputeUpsertsOnlyChangedRows()
 

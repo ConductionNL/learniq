@@ -2,43 +2,22 @@
 <!-- Copyright (C) 2026 Conduction B.V. -->
 
 <!--
- ExamCaseDossierView — shared custom page component for the ExemptionCase
- and FraudCase manifest detail pages (type: custom), selected by
- `config.schema` ("exemption-case" | "fraud-case").
+ ExamCaseDossierView: the shared detail page of the ExemptionCase and
+ FraudCase manifest pages, selected by `config.schema` ("exemption-case" |
+ "fraud-case").
 
- The "custom view only where a manifest page can't render it" exception
- (design.md §1, §8): "who may see what" is genuine conditional-rendering
- logic a manifest detail page cannot express — within FraudCase's already
- object-level-restricted readable set (x-property-rbac: admin, examboard,
- the accused learner, the reporter), the accused and the reporter must NOT
- see `hearingRecords`/decision-internal fields; only an examboard member (or
- admin) does (design.md §8, "the accused and reporter should not see
- internal hearing deliberation notes, only the case outline and eventual
- outcome"). This is an APPLICATION-LEVEL UI CONVENTION, NOT a server-enforced
- field-level RBAC guarantee — this register has no field-level read/write
- RBAC primitive at HEAD (the same documented residual gap as
- `ProctoringSession.flags[].reviewDecision`, restated in design.md §8).
- Anyone holding object-level read access (including the accused/reporter)
- retains full field-level read access to the raw object via the generic
- OpenRegister object API — this view is a rendering convention, not a
- security boundary.
+ The server withholds a fraud case's hearing records, decision rationale and
+ sanction from everyone outside the exam board (property authorization in
+ the register), so the accused and the reporter never receive them. The
+ decision forms render for exam board members only (`exam-board` in the
+ `dashboardRoles` initial state).
 
- KNOWN LIMITATION: there is no client-side signal for "is this NC user an
- `examboard` group member" today (unlike `primaryRole`, which
- `PageController`/`DashboardRoleService` already resolve and expose via
- `loadState`). Until an `examboard` membership flag is added to that
- resolver and exposed the same way, this view treats `isAdmin` as the
- examboard proxy for the withholding decision below — under-inclusive
- (a real board member who isn't also an NC admin sees the redacted view
- too) but never over-inclusive (never leaks internals to an unauthorised
- viewer). Flagged here rather than silently assumed complete.
-
- @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+ @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-withheld-by-the-server
  @spec openspec/specs/exam-board/spec.md#requirement-frontend-is-declarative-with-one-shared-custom-detail-view
 -->
 
 <template>
-	<div class="exam-case-dossier">
+	<div class="exam-case-dossier lq-board-page">
 		<div v-if="loading" class="exam-case-dossier__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
 			<span>{{ t('learniq', 'Loading case...') }}</span>
@@ -55,13 +34,7 @@
 
 		<template v-else>
 			<header class="exam-case-dossier__header">
-				<h2>
-					{{
-						isExemption
-							? t('learniq', 'Exemption request')
-							: t('learniq', 'Fraud case')
-					}}
-				</h2>
+				<CnPageHeader :title="isExemption ? t('learniq', 'Exemption request') : t('learniq', 'Fraud case')" />
 				<span
 					class="exam-case-dossier__status"
 					:class="'exam-case-dossier__status--' + caseObject.lifecycle">
@@ -70,7 +43,7 @@
 			</header>
 
 			<!-- ExemptionCase data -->
-			<section v-if="isExemption" class="exam-case-dossier__section">
+			<CnDetailCard v-if="isExemption" class="exam-case-dossier__section">
 				<dl class="exam-case-dossier__fields">
 					<dt>{{ t('learniq', 'Learner') }}</dt>
 					<dd>{{ caseObject.learnerId }}</dd>
@@ -89,7 +62,7 @@
 				</dl>
 
 				<div
-					v-if="caseObject.lifecycle === 'submitted'"
+					v-if="canDecide && caseObject.lifecycle === 'submitted'"
 					class="exam-case-dossier__actions">
 					<button
 						class="button-vue"
@@ -100,7 +73,7 @@
 				</div>
 
 				<div
-					v-if="caseObject.lifecycle === 'in-assessment'"
+					v-if="canDecide && caseObject.lifecycle === 'in-assessment'"
 					class="exam-case-dossier__decision-form">
 					<label for="exemption-rationale">{{
 						t('learniq', 'Decision rationale')
@@ -131,7 +104,8 @@
 
 				<div
 					v-if="
-						['submitted', 'in-assessment'].includes(caseObject.lifecycle)
+						canWithdraw
+							&& ['submitted', 'in-assessment'].includes(caseObject.lifecycle)
 					"
 					class="exam-case-dossier__actions">
 					<button
@@ -141,10 +115,10 @@
 						{{ t('learniq', 'Withdraw') }}
 					</button>
 				</div>
-			</section>
+			</CnDetailCard>
 
 			<!-- FraudCase data -->
-			<section v-else class="exam-case-dossier__section">
+			<CnDetailCard v-else class="exam-case-dossier__section">
 				<dl class="exam-case-dossier__fields">
 					<dt>{{ t('learniq', 'Accused learner') }}</dt>
 					<dd>{{ caseObject.accusedLearnerId }}</dd>
@@ -160,10 +134,7 @@
 					</template>
 				</dl>
 
-				<!-- design.md §8: hearing/decision internals are withheld from anyone
-				     who is not an examboard member (or admin) — a UI convention, not
-				     server-enforced field RBAC. See file-header note. -->
-				<div v-if="canSeeInternals" class="exam-case-dossier__internal">
+				<div v-if="canDecide" class="exam-case-dossier__internal">
 					<h3>{{ t('learniq', 'Hearing records') }}</h3>
 					<ul v-if="(caseObject.hearingRecords || []).length > 0">
 						<li
@@ -200,7 +171,7 @@
 				</p>
 
 				<div
-					v-if="caseObject.lifecycle === 'reported'"
+					v-if="canDecide && caseObject.lifecycle === 'reported'"
 					class="exam-case-dossier__decision-form">
 					<label for="hearing-date">{{
 						t('learniq', 'Hearing date')
@@ -220,7 +191,7 @@
 				</div>
 
 				<div
-					v-if="caseObject.lifecycle === 'hearing-scheduled'"
+					v-if="canDecide && caseObject.lifecycle === 'hearing-scheduled'"
 					class="exam-case-dossier__actions">
 					<button
 						class="button-vue"
@@ -231,7 +202,7 @@
 				</div>
 
 				<div
-					v-if="caseObject.lifecycle === 'heard'"
+					v-if="canDecide && caseObject.lifecycle === 'heard'"
 					class="exam-case-dossier__decision-form">
 					<label for="fraud-verdict">{{ t('learniq', 'Verdict') }}</label>
 					<select id="fraud-verdict" v-model="verdict">
@@ -314,9 +285,10 @@
 
 				<div
 					v-if="
-						['reported', 'hearing-scheduled'].includes(
-							caseObject.lifecycle,
-						)
+						canDecide
+							&& ['reported', 'hearing-scheduled'].includes(
+								caseObject.lifecycle,
+							)
 					"
 					class="exam-case-dossier__actions">
 					<button
@@ -326,7 +298,7 @@
 						{{ t('learniq', 'Dismiss') }}
 					</button>
 				</div>
-			</section>
+			</CnDetailCard>
 
 			<p v-if="saveError" role="alert" class="exam-case-dossier__error-inline">
 				{{ saveError }}
@@ -336,12 +308,15 @@
 </template>
 
 <script>
-import { getCurrentUser } from '@nextcloud/auth'
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
+import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
+import { canWithdrawExemption, isExamBoard } from '../utils/examBoard.js'
 
 export default {
 	name: 'ExamCaseDossierView',
+	components: { CnDetailCard, CnPageHeader },
 
 	props: {
 		/** OpenRegister object UUID, injected by vue-router from the `:id` route param. */
@@ -378,6 +353,7 @@ export default {
 			sanctionType: '',
 			sanctionDurationMonths: null,
 			sanctionScope: '',
+			dashboardRoles: loadState('learniq', 'dashboardRoles', []),
 		}
 	},
 
@@ -387,15 +363,24 @@ export default {
 		},
 
 		/**
-		 * See file-header note: `isAdmin` is the best available client-side
-		 * proxy for "examboard member" until DashboardRoleService exposes a
-		 * real `examboard` membership flag via loadState.
+		 * Whether the signed-in user is on the exam board, who alone gets the
+		 * decision forms and the case internals.
 		 *
 		 * @return {boolean}
-		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-withheld-by-the-server
 		 */
-		canSeeInternals() {
-			return !!getCurrentUser()?.isAdmin
+		canDecide() {
+			return isExamBoard(this.dashboardRoles)
+		},
+
+		/**
+		 * Whether the signed-in user may withdraw an exemption request.
+		 *
+		 * @return {boolean}
+		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-withheld-by-the-server
+		 */
+		canWithdraw() {
+			return canWithdrawExemption(this.dashboardRoles)
 		},
 	},
 
@@ -485,7 +470,7 @@ export default {
 		 * @param {object} payload Fields to submit alongside the transition (read by
 		 *                         the server-side guard as part of the transitioning object).
 		 * @return {Promise<void>}
-		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-withheld-by-the-server
 		 */
 		async transition(action, payload = {}) {
 			this.saving = true
@@ -520,14 +505,14 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-withheld-by-the-server
 		 */
 		startAssessment() {
 			return this.transition('startAssessment')
 		},
 
 		/**
-		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-withheld-by-the-server
 		 */
 		grantExemption() {
 			return this.transition('grant', {
@@ -544,14 +529,14 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-withheld-by-the-server
 		 */
 		withdrawExemption() {
 			return this.transition('withdraw')
 		},
 
 		/**
-		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-withheld-by-the-server
 		 */
 		scheduleHearing() {
 			return this.transition('scheduleHearing', {
@@ -560,14 +545,14 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-withheld-by-the-server
 		 */
 		holdHearing() {
 			return this.transition('holdHearing')
 		},
 
 		/**
-		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-withheld-by-the-server
 		 */
 		decideFraudCase() {
 			const payload = {
@@ -583,7 +568,7 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-withheld-by-the-server
 		 */
 		dismissFraudCase() {
 			return this.transition('dismiss')
@@ -594,11 +579,6 @@ export default {
 
 <style scoped lang="scss">
 .exam-case-dossier {
-	display: flex;
-	flex-direction: column;
-	gap: var(--default-grid-baseline, 8px);
-	padding: calc(var(--default-grid-baseline, 8px) * 2);
-
 	&__header {
 		display: flex;
 		align-items: center;

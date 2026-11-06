@@ -318,7 +318,7 @@ class PageControllerTest extends TestCase {
 	 * index() hands the page shell the loaded example sets, from which the
 	 * browser builds one removal step per set.
 	 *
-	 * @spec openspec/specs/example-sets/spec.md#scenario-two-sets-were-loaded
+	 * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
 	 *
 	 * @return void
 	 */

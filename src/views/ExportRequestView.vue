@@ -19,122 +19,125 @@
  @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
 -->
 <template>
-	<div class="export-request">
-		<h2>{{ heading }}</h2>
-		<form class="export-request__form" @submit.prevent="submit">
-			<template v-if="kind === 'audit-pack'">
-				<NcSelect
-					v-model="regulationSlug"
-					:options="regulationOptions"
-					:reduce="(option) => option.id"
-					:inputLabel="t('learniq', 'Regulation')" />
-				<label for="er-from">{{ t('learniq', 'From') }}</label>
-				<input id="er-from" v-model="dateFrom" type="date" required />
-				<label for="er-to">{{ t('learniq', 'Until') }}</label>
-				<input id="er-to" v-model="dateTo" type="date" required />
-			</template>
-
-			<template v-else-if="kind === 'course-package'">
-				<NcSelect
-					v-model="courseId"
-					:options="courseOptions"
-					:reduce="(option) => option.id"
-					:inputLabel="t('learniq', 'Course')" />
-				<NcSelect
-					v-if="!share"
-					v-model="format"
-					:options="packageFormats"
-					:reduce="(option) => option.id"
-					:clearable="false"
-					:inputLabel="t('learniq', 'Format')" />
-				<NcCheckboxRadioSwitch v-model="share" type="switch">
-					{{ t('learniq', 'Share outside the school') }}
-				</NcCheckboxRadioSwitch>
-				<template v-if="share">
-					<NcNoteCard type="info">
-						{{
-							t(
-								'learniq',
-								"A shared package leaves out your school's own links, file paths and access codes. Your confirmation is recorded with your name.",
-							)
-						}}
-					</NcNoteCard>
-					<NcCheckboxRadioSwitch v-model="noPupilData">
-						{{
-							t(
-								'learniq',
-								'This package holds no pupil names, photos, work or other personal data.',
-							)
-						}}
-					</NcCheckboxRadioSwitch>
-					<NcCheckboxRadioSwitch v-model="rightsCleared">
-						{{
-							t(
-								'learniq',
-								"The school may share everything in it. Nothing comes from a publisher's method without permission.",
-							)
-						}}
-					</NcCheckboxRadioSwitch>
+	<div class="export-request lq-board-page">
+		<CnPageHeader :title="heading" />
+		<CnDetailCard class="export-request__card">
+			<form class="export-request__form" @submit.prevent="submit">
+				<template v-if="kind === 'audit-pack'">
+					<NcSelect
+						v-model="regulationSlug"
+						:options="regulationOptions"
+						:reduce="(option) => option.id"
+						:inputLabel="t('learniq', 'Regulation')" />
+					<label for="er-from">{{ t('learniq', 'From') }}</label>
+					<input id="er-from" v-model="dateFrom" type="date" required />
+					<label for="er-to">{{ t('learniq', 'Until') }}</label>
+					<input id="er-to" v-model="dateTo" type="date" required />
 				</template>
-			</template>
 
-			<template v-else>
-				<NcSelect
-					v-model="target"
-					:options="targetOptions"
-					:reduce="(option) => option.id"
-					:clearable="false"
-					:inputLabel="t('learniq', 'Send to')" />
-				<label for="er-learner">{{
-					t('learniq', 'Learner user id (optional)')
-				}}</label>
-				<input id="er-learner" v-model="learnerId" type="text" />
-			</template>
+				<template v-else-if="kind === 'course-package'">
+					<NcSelect
+						v-model="courseId"
+						:options="courseOptions"
+						:reduce="(option) => option.id"
+						:inputLabel="t('learniq', 'Course')" />
+					<NcSelect
+						v-if="!share"
+						v-model="format"
+						:options="packageFormats"
+						:reduce="(option) => option.id"
+						:clearable="false"
+						:inputLabel="t('learniq', 'Format')" />
+					<NcCheckboxRadioSwitch v-model="share" type="switch">
+						{{ t('learniq', 'Share outside the school') }}
+					</NcCheckboxRadioSwitch>
+					<template v-if="share">
+						<NcNoteCard type="info">
+							{{
+								t(
+									'learniq',
+									"A shared package leaves out your school's own links, file paths and access codes. Your confirmation is recorded with your name.",
+								)
+							}}
+						</NcNoteCard>
+						<NcCheckboxRadioSwitch v-model="noPupilData">
+							{{
+								t(
+									'learniq',
+									'This package holds no pupil names, photos, work or other personal data.',
+								)
+							}}
+						</NcCheckboxRadioSwitch>
+						<NcCheckboxRadioSwitch v-model="rightsCleared">
+							{{
+								t(
+									'learniq',
+									"The school may share everything in it. Nothing comes from a publisher's method without permission.",
+								)
+							}}
+						</NcCheckboxRadioSwitch>
+					</template>
+				</template>
 
-			<NcNoteCard v-if="error" type="error">
-				{{ error }}
-			</NcNoteCard>
-			<NcNoteCard v-if="blockers.length > 0" type="warning">
-				<p>
-					{{ t('learniq', 'This course may not leave the school yet:') }}
+				<template v-else>
+					<NcSelect
+						v-model="target"
+						:options="targetOptions"
+						:reduce="(option) => option.id"
+						:clearable="false"
+						:inputLabel="t('learniq', 'Send to')" />
+					<label for="er-learner">{{
+						t('learniq', 'Learner user id (optional)')
+					}}</label>
+					<input id="er-learner" v-model="learnerId" type="text" />
+				</template>
+
+				<NcNoteCard v-if="error" type="error">
+					{{ error }}
+				</NcNoteCard>
+				<NcNoteCard v-if="blockers.length > 0" type="warning">
+					<p>
+						{{ t('learniq', 'This course may not leave the school yet:') }}
+					</p>
+					<ul class="export-request__blockers">
+						<li v-for="(reason, index) in blockerTexts" :key="index">
+							{{ reason }}
+						</li>
+					</ul>
+				</NcNoteCard>
+				<NcNoteCard v-if="done" type="success">
+					{{ done }}
+				</NcNoteCard>
+				<p v-if="jobId">
+					<router-link
+						:to="{ name: 'DataExchangeJobDetail', params: { id: jobId } }">
+						{{ t('learniq', 'Open the export job') }}
+					</router-link>
 				</p>
-				<ul class="export-request__blockers">
-					<li v-for="(reason, index) in blockerTexts" :key="index">
-						{{ reason }}
-					</li>
-				</ul>
-			</NcNoteCard>
-			<NcNoteCard v-if="done" type="success">
-				{{ done }}
-			</NcNoteCard>
-			<p v-if="jobId">
-				<router-link
-					:to="{ name: 'DataExchangeJobDetail', params: { id: jobId } }">
-					{{ t('learniq', 'Open the export job') }}
-				</router-link>
-			</p>
 
-			<div class="export-request__actions">
-				<NcButton type="submit" variant="primary" :disabled="busy || !ready">
-					{{
-						kind === 'data-exchange'
-							? t('learniq', 'Request the export')
-							: t('learniq', 'Download')
-					}}
-				</NcButton>
-				<NcButton
-					v-if="kind === 'course-package' && share && canPublish"
-					variant="secondary"
-					:disabled="busy || !ready"
-					@click="publish">
-					{{ t('learniq', 'Publish to the course store') }}
-				</NcButton>
-			</div>
-		</form>
+				<div class="export-request__actions">
+					<NcButton type="submit" variant="primary" :disabled="busy || !ready">
+						{{
+							kind === 'data-exchange'
+								? t('learniq', 'Request the export')
+								: t('learniq', 'Download')
+						}}
+					</NcButton>
+					<NcButton
+						v-if="kind === 'course-package' && share && canPublish"
+						variant="secondary"
+						:disabled="busy || !ready"
+						@click="publish">
+						{{ t('learniq', 'Publish to the course marketplace') }}
+					</NcButton>
+				</div>
+			</form>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
@@ -160,7 +163,7 @@ import { normaliseStoreAccess } from '../utils/storeAccess.js'
 export default {
 	name: 'ExportRequestView',
 
-	components: { NcButton, NcCheckboxRadioSwitch, NcNoteCard, NcSelect },
+	components: { CnDetailCard, CnPageHeader, NcButton, NcCheckboxRadioSwitch, NcNoteCard, NcSelect },
 
 	props: {
 		/** 'audit-pack', 'course-package' or 'data-exchange' (page config). */
@@ -404,7 +407,7 @@ export default {
 					},
 				)
 				if (response.data?.outcome === 'ok') {
-					this.done = this.t('learniq', 'Published to the course store.')
+					this.done = this.t('learniq', 'Published to the course marketplace.')
 				} else {
 					this.error = this.publishText(response.data?.outcome)
 				}
@@ -433,34 +436,34 @@ export default {
 				case 'not_configured':
 					return this.t(
 						'learniq',
-						'No course store is set up yet. Ask your administrator.',
+						'No course marketplace is set up yet. Ask your administrator.',
 					)
 				case 'too_large':
 					return this.t(
 						'learniq',
-						'This course is too large for the store.',
+						'This course is too large for the marketplace.',
 					)
 				case 'store_unreachable':
 				case 'store_rejected':
 				case 'store_invalid_response':
 					return this.t(
 						'learniq',
-						'The course store could not take the course. Try again later.',
+						'The course marketplace could not take the course. Try again later.',
 					)
 				case 'rate_limited':
 					return this.t(
 						'learniq',
-						'The course store is busy. Try again in a few minutes.',
+						'The course marketplace is busy. Try again in a few minutes.',
 					)
 				case 'forbidden':
 					return this.t(
 						'learniq',
-						'You may not publish courses to the store. Your administrator decides who may.',
+						'You may not publish courses to the marketplace. Your administrator decides who may.',
 					)
 				case 'publish_not_supported':
 					return this.t(
 						'learniq',
-						'This server cannot publish to a course store yet. Ask your administrator to update OpenRegister.',
+						'This server cannot publish to a course marketplace yet. Ask your administrator to update OpenRegister.',
 					)
 				default:
 					return this.t('learniq', 'The course could not be published.')
@@ -559,8 +562,7 @@ export default {
 </script>
 
 <style scoped>
-.export-request {
-	padding: calc(var(--default-grid-baseline, 4px) * 4);
+.export-request__card {
 	max-inline-size: 40rem;
 }
 

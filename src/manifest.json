@@ -50,12 +50,13 @@
     ]
   },
   "version": "0.1.0",
+  "look": "board",
   "dependencies": [
     "openregister",
     {
-      "id": "openconnector",
+      "id": "integriq",
       "required": false,
-      "name": "OpenConnector"
+      "name": "Integriq"
     }
   ],
   "observability": {
@@ -166,7 +167,7 @@
     },
     {
       "id": "StoreMenu",
-      "label": "Store",
+      "label": "Marketplace",
       "icon": "StoreOutline",
       "route": "Store",
       "section": "footer",
@@ -267,12 +268,18 @@
       "id": "Store",
       "route": "/store",
       "type": "store",
-      "title": "Store",
+      "title": "Marketplace",
       "config": {
         "app": "learniq",
-        "title": "Store",
+        "title": "Marketplace",
         "description": "Find courses other schools share and install your own copy. Every course here carries an open licence and the name of its maker.",
-        "publishRoute": "CoursePackageExport"
+        "publishRoute": "CoursePackageExport",
+        "kindLenses": [
+          {
+            "kind": "course-package",
+            "label": "Course package"
+          }
+        ]
       },
       "_note": "ADR-114 Decision 4 / ADR-080, lesson-sharing-via-store-plane. CnStorePage calls learniq's own StoreController: search through OpenRegister's store plane, install as a copy through CoursePackageImportService. store-rights-for-teachers (D27): src/main.js writes canInstall and canPublish from the storeAccess initial state into this config, and publishRoute sends Publish to the export screen, where the sharing gate runs; a CnStorePage without those props (before nextcloud-vue #1268 is released) keeps Install admin-only. With no registry configured the page says so and makes no network call."
     },
@@ -459,6 +466,7 @@
       "type": "index",
       "title": "xAPI statements",
       "config": {
+        "showTitle": true,
         "register": "learniq",
         "schema": "xapi-statement",
         "readOnly": true
@@ -543,10 +551,12 @@
       "type": "index",
       "title": "Flows",
       "config": {
+        "showTitle": true,
         "entitySource": "flows",
-        "app": "learniq"
+        "app": "learniq",
+        "rowRoute": "FlowDetail"
       },
-      "_note": "ADR-110 Decision 4: a flow is app-specific, so the authoring surface lives here rather than behind a deep link to another app's list. An ordinary index over the named `flows` source (config.entitySource) rather than the deprecated `flows` page type, reading OpenRegister's one native flow store (ADR-065), scoped to this app by config.app."
+      "_note": "ADR-110 Decision 4: a flow is app-specific, so the authoring surface lives here rather than behind a deep link to another app's list. An ordinary index over the named `flows` source (config.entitySource) rather than the deprecated `flows` page type, reading OpenRegister's one native flow store (ADR-065), scoped to this app by config.app. rowRoute names the FlowDetail page (a route name, not a path): a named-source page has no register and schema, so without it a row click opens nothing and Edit falls back to the source's own /flows path."
     },
     {
       "id": "FlowDetail",

@@ -26,6 +26,7 @@ namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\Learniq\AppInfo\Registrar\IntegrityListenerRegistrar;
 use OCA\Learniq\Listener\ExcuseRequestOwnerStamp;
+use OCA\Learniq\Service\Attendance\ExcuseRequestStaffOwner;
 use OCA\Learniq\Service\Portal\PortalWriteSubject;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Service\LearnerRefResolver;
@@ -138,6 +139,7 @@ class ExcuseRequestOwnerStampTest extends TestCase {
 				userSession: $session,
 				logger: new NullLogger()
 			),
+			staffOwner: new ExcuseRequestStaffOwner(profiles: $lookup, userSession: $session, logger: new NullLogger()),
 		);
 	}//end makeStamp()
 
@@ -241,11 +243,11 @@ class ExcuseRequestOwnerStampTest extends TestCase {
 		self::assertSame('ouder-1', $guardians->getModifiedData()['submittedBy']);
 
 		// A mentor's session is not the portal's: the report is not about them,
-		// so the staff branch applies and the write needs a learnerId.
+		// so the staff branch applies and files it in the mentor's name.
 		$mentors = $this->portalCreate(extra: ['learnerRef' => 'lp-1']);
 		$this->makeStamp(hasUser: true, uid: 'mentor-1')->handle($mentors);
-		self::assertTrue($mentors->isPropagationStopped());
-		self::assertSame('excuse-owner-missing', $mentors->getErrors()['reason']);
+		self::assertFalse($mentors->isPropagationStopped());
+		self::assertSame('mentor-1', $mentors->getModifiedData()['submittedBy']);
 	}//end testThePortalPathBelongsToWhoeverTheReportIsAttributedTo()
 
 	/**
@@ -355,15 +357,36 @@ class ExcuseRequestOwnerStampTest extends TestCase {
 	}//end testAFailedLookupRefusesThePortalReport()
 
 	/**
-	 * A signed-in caller never takes the portal path: a create with only a
-	 * learnerRef and no pupil is refused, so nobody reports in another pupil's
-	 * name by sending a uuid.
+	 * A signed-in caller never takes the portal path: a staff create that
+	 * names the pupil only by profile is filed for that pupil, in the
+	 * caller's own name and the pupil's school, whatever submitter it sends.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-server-stamps-who-an-excuse-request-is-about-and-who-filed-it
+	 */
+	public function testAStaffCreateByProfileIsFiledForThatPupilInTheCallersName(): void {
+		$this->seedFamily();
+		$event = $this->portalCreate(extra: ['learnerRef' => 'lp-1', 'submittedBy' => 'someone-else']);
+
+		$this->makeStamp(hasUser: true)->handle($event);
+
+		self::assertFalse($event->isPropagationStopped());
+		$data = $event->getModifiedData();
+		self::assertSame('pupil-1', $data['learnerId']);
+		self::assertSame('lp-1', $data['learnerRef']);
+		self::assertSame('mentor-1', $data['submittedBy']);
+		self::assertSame(self::TENANT, $data['tenant_id']);
+	}//end testAStaffCreateByProfileIsFiledForThatPupilInTheCallersName()
+
+	/**
+	 * A signed-in create naming an unknown profile has no pupil and is refused.
 	 *
 	 * @return void
 	 */
 	public function testASignedInCreateWithoutAPupilIsRefused(): void {
 		$this->seedFamily();
-		$event = $this->portalCreate(extra: ['learnerRef' => 'lp-1', 'tenant_id' => self::TENANT]);
+		$event = $this->portalCreate(extra: ['learnerRef' => 'lp-unknown', 'tenant_id' => self::TENANT]);
 
 		$this->makeStamp(hasUser: true)->handle($event);
 
@@ -419,23 +442,23 @@ class ExcuseRequestOwnerStampTest extends TestCase {
 	}//end testAStaffCreateKeepsItsLevel()
 
 	/**
-	 * Staff are held to the rule the schema's required list gave: no pupil, no
-	 * submitter or no school refuses the write.
+	 * A staff create without a pupil is refused; the submitter and the school
+	 * come from the server.
 	 *
 	 * @return void
 	 */
 	public function testAStaffCreateWithoutItsOwnerFieldsIsRefused(): void {
 		$this->seedFamily();
-		foreach (['learnerId', 'submittedBy', 'tenant_id'] as $missing) {
-			$fields = ['learnerId' => 'pupil-1', 'submittedBy' => 'mentor-1', 'tenant_id' => self::TENANT];
-			unset($fields[$missing]);
-			$event = $this->portalCreate(extra: $fields);
+		$event = $this->portalCreate(extra: ['submittedBy' => 'mentor-1', 'tenant_id' => self::TENANT]);
+		$this->makeStamp(hasUser: true)->handle($event);
+		self::assertTrue($event->isPropagationStopped());
+		self::assertSame('excuse-owner-missing', $event->getErrors()['reason']);
 
-			$this->makeStamp(hasUser: true)->handle($event);
-
-			self::assertTrue($event->isPropagationStopped(), $missing);
-			self::assertSame('excuse-owner-missing', $event->getErrors()['reason'], $missing);
-		}
+		$event = $this->portalCreate(extra: ['learnerId' => 'pupil-1']);
+		$this->makeStamp(hasUser: true)->handle($event);
+		self::assertFalse($event->isPropagationStopped());
+		self::assertSame('mentor-1', $event->getModifiedData()['submittedBy']);
+		self::assertSame(self::TENANT, $event->getModifiedData()['tenant_id']);
 	}//end testAStaffCreateWithoutItsOwnerFieldsIsRefused()
 
 	/**

@@ -31,15 +31,19 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\KeyManagementService;
 use OCA\Learniq\Settings\AdminSettings;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\AuthorizedAdminSetting;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IRequest;
 use OCP\IUserSession;
+use OCP\Log\Audit\CriticalActionPerformedEvent;
+use RuntimeException;
 
 /**
  * Admin-only endpoints for RSA keypair generation and status.
@@ -71,6 +75,8 @@ class KeyAdminController extends Controller {
 	 * @param IAppConfig $appConfig App config for throttle timestamps.
 	 * @param IConfig $config System config for tenant binding lookup.
 	 * @param IUserSession $userSession User session for caller identity.
+	 * @param CallerTenantResolver $tenants Resolves the caller's tenant: the per-user binding, else the default tenant.
+	 * @param IEventDispatcher $dispatcher Dispatches the admin audit event of a rotation.
 	 *
 	 * @return void
 	 */
@@ -80,6 +86,8 @@ class KeyAdminController extends Controller {
 		private readonly IAppConfig $appConfig,
 		private readonly IConfig $config,
 		private readonly IUserSession $userSession,
+		private readonly CallerTenantResolver $tenants,
+		private readonly IEventDispatcher $dispatcher,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -191,6 +199,112 @@ class KeyAdminController extends Controller {
 		$response->cacheFor(0);
 		return $response;
 	}//end keyStatus()
+
+	/**
+	 * Report the signing key of the caller's own tenant.
+	 *
+	 * The tenant is resolved on the server, so the admin page needs no tenant id.
+	 *
+	 * @return JSONResponse {configured: false} or {configured: true, fingerprint}.
+	 *
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-allow-the-credential-signing-key-to-be-rotated-from-settings
+	 */
+	#[AuthorizedAdminSetting(AdminSettings::class)]
+	public function signingKeyStatus(): JSONResponse {
+		$tenantId = $this->callerTenantOrDefault();
+		$status = $this->keyManagementService->getTenantKeyStatus(tenantId: $tenantId);
+
+		$body = ['configured' => false];
+		if ($status !== null) {
+			$body = ['configured' => true, 'fingerprint' => $status['fingerprint']];
+		}
+
+		$response = new JSONResponse($body);
+		$response->cacheFor(0);
+		return $response;
+	}//end signingKeyStatus()
+
+	/**
+	 * Generate the caller's tenant signing key, or rotate it with `confirm=true`.
+	 *
+	 * The tenant is resolved on the server. A rotation keeps the old public key
+	 * for verification, is throttled to one per 24 hours, and is written to the
+	 * admin audit log.
+	 *
+	 * @return JSONResponse {fingerprint, rotated} with 201; {error} with 400, 429 or 500.
+	 *
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-allow-the-credential-signing-key-to-be-rotated-from-settings
+	 */
+	#[AuthorizedAdminSetting(AdminSettings::class)]
+	public function rotateSigningKey(): JSONResponse {
+		$tenantId = $this->callerTenantOrDefault();
+		$rotated = $this->keyManagementService->getTenantKeyStatus(tenantId: $tenantId) !== null;
+
+		if ($rotated === true) {
+			if ($this->request->getParam('confirm', '') !== 'true') {
+				$response = new JSONResponse(['error' => 'Key rotation requires confirm=true.'], 400);
+				$response->cacheFor(0);
+				return $response;
+			}
+
+			$throttleError = $this->checkRotationThrottle(tenantId: $tenantId);
+			if ($throttleError !== null) {
+				$response = new JSONResponse(['error' => $throttleError], 429);
+				$response->cacheFor(0);
+				return $response;
+			}
+		}
+
+		try {
+			$result = $this->keyManagementService->generateTenantKeypair(tenantId: $tenantId);
+		} catch (RuntimeException $e) {
+			$response = new JSONResponse(['error' => $e->getMessage()], 500);
+			$response->cacheFor(0);
+			return $response;
+		}
+
+		$this->appConfig->setValueString(
+			app: 'learniq',
+			key: self::KEYGEN_LAST_AT_PREFIX . $tenantId,
+			value: (string)time()
+		);
+
+		$actor = $this->userSession->getUser()?->getUID() ?? 'unknown';
+		$action = 'generated';
+		if ($rotated === true) {
+			$action = 'rotated';
+		}
+
+		$this->dispatcher->dispatchTyped(
+			new CriticalActionPerformedEvent(
+				'Credential signing key %s by "%s" for tenant "%s", new fingerprint "%s"',
+				[
+					'action' => $action,
+					'actor' => $actor,
+					'tenantId' => $tenantId,
+					'fingerprint' => $result['fingerprint'],
+				]
+			)
+		);
+
+		$response = new JSONResponse(['fingerprint' => $result['fingerprint'], 'rotated' => $rotated], 201);
+		$response->cacheFor(0);
+		return $response;
+	}//end rotateSigningKey()
+
+	/**
+	 * The caller's tenant: the per-user binding, else the default tenant.
+	 *
+	 * @return string The tenant id.
+	 */
+	private function callerTenantOrDefault(): string {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return CallerTenantResolver::DEFAULT_TENANT;
+		}
+
+		return $this->tenants->resolve(user: $user);
+	}//end callerTenantOrDefault()
 
 	/**
 	 * Resolve the tenant ID bound to the authenticated caller.

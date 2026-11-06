@@ -403,7 +403,7 @@ class SetupController extends Controller {
 	 * @return JSONResponse `{ success, message }`.
 	 *
 	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-removes-a-loaded-example-set-through-openregisters-import-jobs
-	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
 	 */
 	private function removeExampleSet(?string $profileId=null): JSONResponse {
 		$picked = ($profileId ?? $this->pickedProfile());

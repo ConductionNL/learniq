@@ -85,10 +85,13 @@ describe('registry component coverage', () => {
 		)
 	})
 
-	test('the eight previously-unregistered shared components are now registered', () => {
+	test('no registry key shadows a library component or widget that no manifest names', () => {
+		// The eight shared components were registered for pages that now mount
+		// thin learniq views, and `audit-trail` shadowed nc-vue's own built-in
+		// widget of that name (the consumer registry wins over the catalogue).
 		const registrySource = fs.readFileSync(path.join(ROOT, 'src/registry.js'), 'utf8')
 		const registeredKeys = extractPageKeys(registrySource)
-		const expected = [
+		const retired = [
 			'CnDataMatrix',
 			'CnWizardDialog',
 			'CnRichSubmitDialog',
@@ -98,14 +101,13 @@ describe('registry component coverage', () => {
 			'CnStructuredDocReview',
 			'CnRelationshipGraph',
 		]
-		for (const name of expected) {
-			assert.ok(registeredKeys.has(name), `${name} must be registered as kind:"page"`)
-			assert.match(
-				registrySource,
-				new RegExp(`import\\s*\\{[^}]*\\b${name}\\b[^}]*\\}\\s*from\\s*'@conduction/nextcloud-vue'`, 's'),
-				`${name} must be imported from @conduction/nextcloud-vue`,
-			)
+		const named = new Set(collectCustomPages().map((p) => p.component))
+		for (const name of retired) {
+			assert.equal(named.has(name), false, `${name} is named by a custom page again: register it, or point the page at a view`)
+			assert.equal(registeredKeys.has(name), false, `${name} must not be registered: no page names it`)
 		}
+		assert.doesNotMatch(registrySource, /['"]audit-trail['"]\s*:/, 'the audit-trail key would shadow nc-vue\'s built-in widget')
+		assert.doesNotMatch(registrySource, /from '@conduction\/nextcloud-vue'/, 'the registry imports no library component directly')
 	})
 
 	test('a fixture registry missing one component is caught by the same check used above', () => {
@@ -114,7 +116,6 @@ describe('registry component coverage', () => {
 		// in learniq-defect-triage.md entry 1, rather than only ever matching
 		// against a registry.js that already has the fix applied.
 		const fixtureSource = `
-			import { CnDataMatrix } from '@conduction/nextcloud-vue'
 			export default {
 				CnDataMatrix: page(CnDataMatrix),
 			}
@@ -156,5 +157,22 @@ describe('body section coverage', () => {
 			[],
 			'every bodyWidgets component must be registered as kind:"section" in src/registry.js',
 		)
+	})
+})
+
+describe('widgets inside a tab', () => {
+	test('a widget a tab shows has a type that resolves, never "custom"', () => {
+		// A tab panel looks the widget up by its type in the registry; the
+		// `component` of a type:"custom" widget is only read through a page slot,
+		// which a tab does not forward, so the panel renders empty.
+		const fragments = fs.readdirSync(path.join(ROOT, 'src/manifest.d')).filter((n) => n.endsWith('.json'))
+		const docs = [readJson('src/manifest.json'), ...fragments.map((name) => readJson(`src/manifest.d/${name}`))]
+		const blank = docs.flatMap((doc) => (doc.pages ?? []).flatMap((page) => {
+			const widgets = page.config?.widgets ?? []
+			const tabbed = widgets.filter((w) => w.type === 'tabs').flatMap((w) => w.content?.tabs ?? [])
+			const ids = new Set(tabbed.flatMap((tab) => [tab.widgetId, ...(tab.widgetIds ?? [])]))
+			return widgets.filter((w) => ids.has(w.id) && w.type === 'custom').map((w) => `${page.id}/${w.id}`)
+		}))
+		assert.deepEqual(blank, [])
 	})
 })

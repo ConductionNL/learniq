@@ -1,56 +1,36 @@
 // SPDX-License-Identifier: EUPL-1.2
 // Copyright (C) 2026 Conduction B.V.
 //
-// absence-and-booking-fields-are-required: a staff booking names the pupil's
-// learner profile, because the schema requires it before any listener runs.
+// A conference signup request names the round, the pupil, the teachers and
+// a note; the server stamps the tenant and the pupil's learner profile.
 //
-// @spec openspec/changes/absence-and-booking-fields-are-required/specs/parent-conferences/spec.md#requirement-a-conference-signup-names-its-pupils-learner-profile
+// @spec openspec/specs/parent-conferences/spec.md#requirement-a-guardian-or-self-signup-submission-is-gated-by-a-per-object-authorization-guard
 
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { conferenceSignupBody } from '../../src/utils/conferenceSignupBody.js'
 
-test('a staff booking sends the round, the pupil, the pupil profile and the tenant', () => {
+test('a booking sends the round, the pupil, the teachers and the note, nothing the server stamps', () => {
 	const body = conferenceSignupBody({
 		roundId: 'round-1',
-		round: { id: 'round-1', tenant_id: 'tenant-1' },
-		learner: { id: 'profile-vera', ncUserId: 'po-leerling-147' },
+		learnerId: 'po-leerling-147',
 		teacherIds: ['po-leerkracht-07'],
-		notes: '',
-	})
-
-	assert.equal(body.conferenceRoundId, 'round-1')
-	assert.equal(body.learnerId, 'po-leerling-147')
-	assert.equal(body.learnerRef, 'profile-vera')
-	assert.equal(body.tenant_id, 'tenant-1')
-	assert.equal(body.notes, null)
-	assert.equal(body.requestedTeacherIds.length, 1)
-})
-
-test('a profile known only by uuid still names the pupil', () => {
-	const body = conferenceSignupBody({
-		roundId: 'round-2',
-		round: null,
-		learner: { uuid: 'profile-sami', ncUserId: 'po-leerling-467' },
-		teacherIds: [],
 		notes: 'Graag na drie uur',
 	})
 
-	assert.equal(body.learnerRef, 'profile-sami')
-	assert.equal(body.conferenceRoundId, 'round-2')
-	assert.equal(body.tenant_id, undefined)
-	assert.equal(body.notes, 'Graag na drie uur')
+	assert.deepEqual(body, {
+		conferenceRoundId: 'round-1',
+		learnerId: 'po-leerling-147',
+		requestedTeacherIds: ['po-leerkracht-07'],
+		notes: 'Graag na drie uur',
+	})
 })
 
-test('without a pupil there is no profile to send, so the server refuses it', () => {
-	const body = conferenceSignupBody({
-		roundId: 'round-1',
-		round: { id: 'round-1' },
-		learner: null,
-		teacherIds: [],
-		notes: '',
-	})
+test('an empty note is sent as null and a missing pupil as an empty id', () => {
+	const body = conferenceSignupBody({ roundId: 'round-2', learnerId: undefined, teacherIds: [], notes: '' })
 
-	assert.equal(body.learnerRef, '')
+	assert.equal(body.notes, null)
 	assert.equal(body.learnerId, '')
+	assert.equal('tenant_id' in body, false)
+	assert.equal('learnerRef' in body, false)
 })

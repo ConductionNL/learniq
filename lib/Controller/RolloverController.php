@@ -113,16 +113,26 @@ class RolloverController extends Controller {
 		);
 
 		$fromCohorts = [];
+		$cohortNames = [];
 		foreach ($cohorts as $row) {
-			if (is_array($row) === true) {
-				$fromCohorts[] = $row;
-				continue;
+			$cohort = $row;
+			if (is_array($row) === false) {
+				$cohort = (array)$row->jsonSerialize();
 			}
 
-			$fromCohorts[] = (array)$row->jsonSerialize();
+			$fromCohorts[] = $cohort;
+			$cohortId = (string)($cohort['id'] ?? ($cohort['uuid'] ?? ''));
+			if ($cohortId !== '') {
+				$cohortNames[$cohortId] = (string)($cohort['name'] ?? $cohortId);
+			}
 		}
 
-		return new JSONResponse(data: ['mappings' => $this->rolloverService->proposeDefaultMapping(fromCohorts: $fromCohorts)]);
+		return new JSONResponse(
+			data: [
+				'mappings' => $this->rolloverService->proposeDefaultMapping(fromCohorts: $fromCohorts),
+				'cohortNames' => $cohortNames,
+			]
+		);
 	}//end proposeMapping()
 
 	/**

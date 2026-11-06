@@ -24,11 +24,11 @@
 -->
 
 <template>
-	<div class="take-assessment">
+	<div class="take-assessment lq-board-page">
 		<!-- Loading -->
 		<div v-if="loading" class="take-assessment__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('learniq', 'Loading assessment...') }}</span>
+			<span>{{ t('learniq', 'Loading assessment…') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -186,151 +186,30 @@
 
 		<!-- Assessment header + item view -->
 		<template v-else-if="assessment && resultId">
-			<header class="take-assessment__header">
-				<h2 class="take-assessment__title">
-					{{ assessment.title }}
-				</h2>
-				<div class="take-assessment__meta">
-					<span
-						v-if="assessment.timeLimitMinutes"
-						class="take-assessment__timer"
-						:class="{ 'take-assessment__timer--warning': timeWarning }">
-						{{
-							t('learniq', 'Time remaining: {time}', {
-								time: formattedTimeRemaining,
-							})
-						}}
-					</span>
-					<span
-						v-if="autosaveState"
-						class="take-assessment__autosave"
-						role="status"
-						aria-live="polite">
-						{{ autosaveMessage }}
-					</span>
-					<span class="take-assessment__progress">
-						{{
-							t('learniq', 'Item {current} of {total}', {
-								current: currentItemIndex + 1,
-								total: items.length,
-							})
-						}}
-					</span>
-				</div>
-			</header>
+			<CnPageHeader :title="assessment.title" />
+			<div class="take-assessment__meta">
+				<span
+					v-if="assessment.timeLimitMinutes"
+					class="take-assessment__timer"
+					:class="{ 'take-assessment__timer--warning': timeWarning }">
+					{{
+						t('learniq', 'Time remaining: {time}', {
+							time: formattedTimeRemaining,
+						})
+					}}
+				</span>
+			</div>
 
-			<!-- Item display -->
-			<section
-				v-if="currentItem"
+			<!-- The items, one a page, each answer saved a moment after it is given (CnChecklistRunWidget) -->
+			<CnChecklistRunWidget
 				class="take-assessment__item"
-				aria-live="polite">
-				<h3 class="take-assessment__item-title">
-					{{ currentItem.title }}
-				</h3>
-
-				<!-- Choice interaction -->
-				<div
-					v-if="currentItem.interactionType === 'choice'"
-					class="take-assessment__choice">
-					<p
-						class="take-assessment__qti-body"
-						v-html="extractPrompt(currentItem.qtiBody)" />
-					<ul class="take-assessment__options" role="radiogroup">
-						<li
-							v-for="option in extractChoices(
-								currentItem.qtiBody,
-								currentItemOptionOrder,
-							)"
-							:key="option.id"
-							class="take-assessment__option">
-							<label>
-								<input
-									type="radio"
-									:name="'item-' + currentItem.uuid"
-									:value="option.id"
-									:checked="currentResponse === option.id"
-									@change="setResponse(option.id)" />
-								{{ option.label }}
-							</label>
-						</li>
-					</ul>
-				</div>
-
-				<!-- Extended text (essay) interaction -->
-				<div
-					v-else-if="currentItem.interactionType === 'extendedText'"
-					class="take-assessment__essay">
-					<p
-						id="take-assessment-essay-prompt"
-						class="take-assessment__qti-body"
-						v-html="extractPrompt(currentItem.qtiBody)" />
-					<textarea
-						id="take-assessment-essay-input"
-						class="take-assessment__essay-input"
-						rows="10"
-						aria-labelledby="take-assessment-essay-prompt"
-						:placeholder="t('learniq', 'Write your response here...')"
-						:value="currentResponse || ''"
-						@input="setResponse($event.target.value)" />
-					<p class="take-assessment__essay-note">
-						{{
-							t('learniq', 'This item will be marked by your teacher.')
-						}}
-					</p>
-				</div>
-
-				<!-- Other interaction types — no in-browser editor yet -->
-				<div v-else class="take-assessment__other-interaction">
-					<p
-						id="take-assessment-other-prompt"
-						class="take-assessment__qti-body"
-						v-html="extractPrompt(currentItem.qtiBody)" />
-					<p class="take-assessment__interaction-note">
-						{{
-							t(
-								'learniq',
-								'Interaction type "{type}" — please provide your response:',
-								{ type: currentItem.interactionType },
-							)
-						}}
-					</p>
-					<textarea
-						id="take-assessment-other-input"
-						class="take-assessment__essay-input"
-						rows="6"
-						aria-labelledby="take-assessment-other-prompt"
-						:placeholder="t('learniq', 'Enter your response...')"
-						:value="currentResponse || ''"
-						@input="setResponse($event.target.value)" />
-				</div>
-			</section>
-
-			<!-- Navigation -->
-			<nav class="take-assessment__nav">
-				<button
-					class="button-vue"
-					:disabled="currentItemIndex === 0"
-					@click="prevItem">
-					{{ t('learniq', 'Previous') }}
-				</button>
-				<button
-					v-if="currentItemIndex < items.length - 1"
-					class="button-vue button-vue--primary"
-					@click="nextItem">
-					{{ t('learniq', 'Next') }}
-				</button>
-				<button
-					v-else
-					class="button-vue button-vue--primary"
-					:disabled="submitting"
-					@click="submitAssessment">
-					<span
-						v-if="submitting"
-						class="icon-loading"
-						aria-hidden="true" />
-					{{ t('learniq', 'Submit assessment') }}
-				</button>
-			</nav>
+				:content="runContent"
+				:objectData="runRecord"
+				@finished="onRunFinished" />
+			<p v-if="submitting" class="take-assessment__submitting" role="status">
+				<span class="icon-loading" aria-hidden="true" />
+				{{ t('learniq', 'Handing in your assessment…') }}
+			</p>
 			<p v-if="submitError" role="alert" class="take-assessment__error-inline">
 				{{ submitError }}
 			</p>
@@ -339,8 +218,10 @@
 </template>
 
 <script>
+import { CnChecklistRunWidget, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
+import { applyAnswer, runAnswers, runContent, runQuestion, SAVE_ANSWER } from '../utils/assessmentRun.js'
 import {
 	answersFromResult,
 	responsesPayload,
@@ -351,6 +232,18 @@ import { transitionUrl } from '../utils/manualScoring.js'
 
 export default {
 	name: 'TakeAssessmentView',
+
+	components: {
+		CnChecklistRunWidget,
+		CnPageHeader,
+	},
+
+	provide() {
+		return {
+			// The run widget hands each answer to this view, which keeps it on the attempt.
+			cnDispatchAction: (action) => this.onRunAction(action),
+		}
+	},
 
 	props: {
 		/**
@@ -378,8 +271,6 @@ export default {
 			 * @type {object|null}
 			 */
 			result: null,
-			/** @type {number} */
-			currentItemIndex: 0,
 			/** @type {Record<string, unknown>} */
 			responses: {},
 			loading: false,
@@ -401,10 +292,6 @@ export default {
 			timerInterval: null,
 			/** @type {number} Server time minus browser time, in milliseconds */
 			serverOffset: 0,
-			/** @type {number|null} Timeout ID of the pending autosave */
-			autosaveTimeout: null,
-			/** @type {string|null} 'saving', 'saved' or 'failed' */
-			autosaveState: null,
 			showTestModeIntro: false,
 			showTabLockBlocked: false,
 			nativeTestModeActive: false,
@@ -419,41 +306,34 @@ export default {
 
 	computed: {
 		/**
-		 * Current item object.
+		 * The attempt as the run widget reads it: one question per drawn item,
+		 * choices in the attempt's option order, and the answers kept so far.
 		 *
-		 * @return {object|null}
-		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
-		 */
-		currentItem() {
-			return this.items[this.currentItemIndex] ?? null
-		},
-
-		/**
-		 * Current response for the active item.
-		 *
-		 * @return {unknown}
-		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
-		 */
-		currentResponse() {
-			const item = this.currentItem
-			if (!item) return null
-			return this.responses[item.uuid] ?? null
-		},
-
-		/**
-		 * Server-resolved answer-option order for the current item, from
-		 * AssessmentResult.drawnItemRefs[].optionOrder (null when shuffle is
-		 * disabled or the item has no discrete choice identifiers).
-		 *
-		 * @return {string[]|null}
+		 * @return {object}
 		 * @spec openspec/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
 		 */
-		currentItemOptionOrder() {
-			const item = this.currentItem
-			if (!item) return null
-			const drawnItemRefs = this.result?.drawnItemRefs ?? []
-			const ref = drawnItemRefs.find((r) => r.itemId === item.uuid)
-			return ref?.optionOrder ?? null
+		runRecord() {
+			return {
+				id: this.resultId,
+				questions: this.items.map((item) => runQuestion(item, {
+					prompt: this.extractPrompt(item.qtiBody),
+					choices: this.extractChoices(item.qtiBody, this.optionOrderFor(item)),
+					help: this.helpFor(item),
+				})),
+
+				answers: runAnswers(this.responses),
+			}
+		},
+
+		/**
+		 * @return {object} The run widget's config.
+		 * @spec openspec/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
+		 */
+		runContent() {
+			return runContent({
+				submit: this.t('learniq', 'Submit assessment'),
+				saved: this.t('learniq', 'Your answers are saved'),
+			})
 		},
 
 		/**
@@ -477,25 +357,6 @@ export default {
 		 */
 		timeWarning() {
 			return this.secondsRemaining !== null && this.secondsRemaining <= 300
-		},
-
-		/**
-		 * What the autosave status line says.
-		 *
-		 * @return {string}
-		 * @spec openspec/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
-		 */
-		autosaveMessage() {
-			if (this.autosaveState === 'saving') {
-				return this.t('learniq', 'Saving your answers')
-			}
-			if (this.autosaveState === 'failed') {
-				return this.t(
-					'learniq',
-					'Your answers could not be saved just now. We try again with your next answer and when you hand in.',
-				)
-			}
-			return this.t('learniq', 'Your answers are saved')
 		},
 	},
 
@@ -528,7 +389,6 @@ export default {
 	 */
 	beforeUnmount() {
 		this.clearTimer()
-		this.clearAutosave()
 
 		if (!this.nativeTestModeActive) return
 
@@ -1485,103 +1345,82 @@ export default {
 		},
 
 		/**
-		 * Save the answers a moment after the learner stops changing them, so a
-		 * closed tab or a stopped clock loses nothing already answered.
-		 *
-		 * @return {void}
-		 * @spec openspec/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
-		 */
-		scheduleAutosave() {
-			if (!this.resultId || this.submitted || this.submitting) return
-			this.clearAutosave()
-			this.autosaveTimeout = setTimeout(() => {
-				this.autosaveTimeout = null
-				this.autosave()
-			}, 1500)
-		},
-
-		/**
-		 * Cancel a pending autosave.
-		 *
-		 * @return {void}
-		 * @spec openspec/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
-		 */
-		clearAutosave() {
-			if (this.autosaveTimeout !== null) {
-				clearTimeout(this.autosaveTimeout)
-				this.autosaveTimeout = null
-			}
-		},
-
-		/**
 		 * Save the answers on the attempt in progress. PATCH, so only the
-		 * answers change; the server keeps them out after the deadline.
+		 * answers change; the server keeps them out after the deadline. A
+		 * failed save rejects, so the run widget says the answer is not saved.
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
 		 */
 		async autosave() {
 			if (!this.resultId || this.submitted || this.submitting) return
-			this.autosaveState = 'saving'
-			try {
-				const resp = await fetch(
-					generateUrl(
-						`/apps/openregister/api/objects/learniq/assessment-result/${this.resultId}`,
-					),
-					{
-						method: 'PATCH',
-						headers: {
-							'OCS-APIREQUEST': 'true',
-							Accept: 'application/json',
-							'Content-Type': 'application/json',
-						},
-						body: JSON.stringify({
-							responses: responsesPayload(this.items, this.responses),
-						}),
+			const resp = await fetch(
+				generateUrl(`/apps/openregister/api/objects/learniq/assessment-result/${this.resultId}`),
+				{
+					method: 'PATCH',
+					headers: {
+						'OCS-APIREQUEST': 'true',
+						Accept: 'application/json',
+						'Content-Type': 'application/json',
 					},
-				)
-				this.autosaveState = resp.ok ? 'saved' : 'failed'
-			} catch {
-				this.autosaveState = 'failed'
+					body: JSON.stringify({ responses: responsesPayload(this.items, this.responses) }),
+				},
+			)
+			if (!resp.ok) {
+				throw new Error(`autosave failed: ${resp.status}`)
 			}
 		},
 
 		/**
-		 * Set the response for the current item.
+		 * The run widget gave an answer (its `saveEachAnswer` waited a moment
+		 * after the last change): keep it and save the attempt.
 		 *
-		 * @param {unknown} value Learner's response value
-		 * @return {void}
-		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
+		 * @param {{id: string, args?: Array<object>}} action The dispatched save action, the answer last.
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
 		 */
-		setResponse(value) {
-			const item = this.currentItem
-			if (!item) return
-			this.responses = { ...this.responses, [item.uuid]: value }
-			this.scheduleAutosave()
+		onRunAction(action) {
+			if (action?.id !== SAVE_ANSWER) return Promise.resolve()
+			const args = Array.isArray(action.args) ? action.args : []
+			this.responses = applyAnswer(this.responses, args[args.length - 1])
+			return this.autosave()
 		},
 
 		/**
-		 * Navigate to the previous item.
+		 * The learner handed in from the run widget, or its clock ran out.
 		 *
-		 * @return {void}
+		 * @return {Promise<void>|undefined}
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
-		prevItem() {
-			if (this.currentItemIndex > 0) {
-				this.currentItemIndex--
-			}
+		onRunFinished() {
+			if (this.submitting || this.submitted) return undefined
+			return this.submitAssessment()
 		},
 
 		/**
-		 * Navigate to the next item.
+		 * The server-resolved option order of one item, from
+		 * AssessmentResult.drawnItemRefs[].optionOrder (null when shuffle is off).
 		 *
-		 * @return {void}
+		 * @param {object} item The Item.
+		 * @return {string[]|null}
+		 * @spec openspec/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
+		 */
+		optionOrderFor(item) {
+			const ref = (this.result?.drawnItemRefs ?? []).find((r) => r.itemId === item.uuid)
+			return ref?.optionOrder ?? null
+		},
+
+		/**
+		 * The line under an item's question: how to answer it.
+		 *
+		 * @param {object} item The Item.
+		 * @return {string}
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
-		nextItem() {
-			if (this.currentItemIndex < this.items.length - 1) {
-				this.currentItemIndex++
-			}
+		helpFor(item) {
+			if (item.interactionType === 'choice') return this.t('learniq', 'Choose one answer.')
+			if (item.interactionType === 'extendedText') return this.t('learniq', 'This item will be marked by your teacher.')
+			return this.t('learniq', 'Write your answer in words.')
 		},
 
 		/**
@@ -1596,7 +1435,6 @@ export default {
 			this.submitting = true
 			this.submitError = null
 			this.clearTimer()
-			this.clearAutosave()
 
 			try {
 				// Persist responses.
@@ -1729,13 +1567,6 @@ export default {
 </script>
 
 <style scoped>
-.take-assessment {
-	max-width: 800px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
 .take-assessment__loading,
 .take-assessment__error {
 	display: flex;
@@ -1759,26 +1590,11 @@ export default {
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
-.take-assessment__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-	border-bottom: 1px solid var(--color-border);
-	padding-bottom: var(--default-grid-baseline, 8px);
-}
-
-.take-assessment__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-}
-
 .take-assessment__meta {
 	display: flex;
 	gap: calc(var(--default-grid-baseline, 8px) * 2);
 	margin-top: var(--default-grid-baseline, 8px);
 	font-size: 0.9em;
-	color: var(--color-text-maxcontrast);
-}
-
-.take-assessment__autosave {
 	color: var(--color-text-maxcontrast);
 }
 
@@ -1788,60 +1604,6 @@ export default {
 
 .take-assessment__timer--warning {
 	color: var(--color-error);
-}
-
-.take-assessment__item {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-	padding: calc(var(--default-grid-baseline, 8px) * 2);
-	background: var(--color-background-hover);
-	border-radius: var(--border-radius, 4px);
-}
-
-.take-assessment__item-title {
-	font-weight: bold;
-	margin-bottom: var(--default-grid-baseline, 8px);
-}
-
-.take-assessment__options {
-	list-style: none;
-	padding: 0;
-}
-
-.take-assessment__option {
-	padding: 4px 0;
-}
-
-.take-assessment__option label {
-	display: flex;
-	align-items: center;
-	gap: var(--default-grid-baseline, 8px);
-	cursor: pointer;
-}
-
-.take-assessment__essay-input {
-	width: 100%;
-	box-sizing: border-box;
-	padding: var(--default-grid-baseline, 8px);
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius, 4px);
-	font-family: inherit;
-	font-size: inherit;
-	resize: vertical;
-}
-
-.take-assessment__essay-note,
-.take-assessment__interaction-note {
-	font-size: 0.85em;
-	color: var(--color-text-maxcontrast);
-	margin-top: var(--default-grid-baseline, 8px);
-	font-style: italic;
-}
-
-.take-assessment__nav {
-	display: flex;
-	gap: calc(var(--default-grid-baseline, 8px) * 2);
-	justify-content: space-between;
-	margin-top: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .take-assessment__confirmation {

@@ -27,6 +27,7 @@ namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\ExampleSetsController;
 use OCA\Learniq\Controller\SetupController;
+use OCA\Learniq\Service\ExampleSetSizes;
 use OCA\Learniq\Service\LoadedExampleSets;
 use OCA\Learniq\Service\SeedProfileService;
 use OCA\Learniq\Service\SegmentService;
@@ -155,7 +156,7 @@ class SetupControllerTest extends TestCase {
 			static fn (string $app, string $key, string $default = ''): string => ($stored[$key] ?? $default)
 		);
 
-		return new ExampleSetsController($this->request, $this->profiles);
+		return new ExampleSetsController($this->request, $this->profiles, new ExampleSetSizes(seedProfiles: $this->profiles));
 	}//end exampleSetsController()
 
 	/**
@@ -368,7 +369,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/specs/example-sets/spec.md#scenario-removing-one-of-two-loaded-sets
+	 * @spec openspec/specs/example-sets/spec.md#scenario-removing-the-company-set
 	 */
 	public function testAPerSetStepRemovesThatSet(): void {
 		$this->profiles->expects(self::once())->method('remove')->with('demo')->willReturn(
@@ -386,7 +387,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
 	 */
 	public function testAPerSetStepForAnUnknownSetIsRefused(): void {
 		$this->profiles->expects(self::never())->method('remove');
@@ -711,7 +712,8 @@ class SetupControllerTest extends TestCase {
 	}//end testTheAdminPageListsNothingWhenNothingWasLoaded()
 
 	/**
-	 * The admin page lists the loaded example sets, with their labels.
+	 * The admin page lists the loaded example sets, with their labels and,
+	 * for a curated set, how many objects it holds.
 	 *
 	 * The wizard no longer removes example data; the admin page's Example
 	 * data section reads this list and offers a Remove button per set.
@@ -722,11 +724,20 @@ class SetupControllerTest extends TestCase {
 	 */
 	public function testTheAdminPageReadsTheLoadedSets(): void {
 		$stored = ['example_sets_loaded' => json_encode([['id' => 'po', 'label' => 'Primary school'], ['id' => 'demo', 'label' => 'Generated']])];
+		$this->profiles->method('uuidsFor')->willReturnCallback(
+			static function (string $profileId): array {
+				if ($profileId !== 'po') {
+					throw new RuntimeException(message: 'No fixed uuids.');
+				}
+
+				return ['a', 'b', 'c'];
+			}
+		);
 
 		$data = $this->exampleSetsController(stored: $stored)->exampleSets()->getData();
 
 		self::assertSame(
-			[['id' => 'po', 'label' => 'Primary school'], ['id' => 'demo', 'label' => 'Generated']],
+			[['id' => 'po', 'label' => 'Primary school', 'objects' => 3], ['id' => 'demo', 'label' => 'Generated']],
 			$data['sets']
 		);
 	}//end testTheAdminPageReadsTheLoadedSets()

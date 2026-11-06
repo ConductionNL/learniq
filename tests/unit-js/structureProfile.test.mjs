@@ -162,6 +162,21 @@ const ACTION_OVERLAYS = SIMPLE.pages.filter(isActionOverlay)
 const TODAY = SIMPLE.pages.find(
 	(overlay) => overlay.id === 'Dashboard' && overlay.page,
 )
+/**
+ * One view of the Today role choice: its layout and the widgets it places.
+ *
+ * @param {string} id The view id.
+ * @return {{widgets: Array<object>, layout: Array<object>}} The view.
+ */
+function todayView(id) {
+	const layout = TODAY.config.views.find((view) => view.id === id).layout
+	const placed = new Set(layout.map((item) => item.widgetId))
+	return { widgets: TODAY.config.widgets.filter((widget) => placed.has(widget.id)), layout }
+}
+/** The Docent view of Today: the grid LqDashboard draws. */
+const TEACHER = todayView('teacher')
+/** The Mentor view of Today: the signals of the pupils the reader mentors. */
+const MENTOR = todayView('mentor')
 /** The roles that get Report a concern as a button on their start page. */
 const CONCERN_ROLES = ['learner', 'guardian']
 /** The roles the Today dashboard is for. */
@@ -325,21 +340,44 @@ const PLANNING = [
 	'InvigilatorAssignmentsMenu',
 	'InvigilatorAvailabilityMenu',
 ]
+/**
+ * The teaching doors an administrator and the administration lose: the boards
+ * draw their sidebar as hr's (specs/navigation, "The sidebar shows the items
+ * drawn for the signed-in role"), so Lessons, Grades, Progress and Timetables
+ * are no longer in their simple menu.
+ */
+const TEACHING = [
+	'Assessments',
+	'CareTeamOverviewMenu',
+	'Courses',
+	'Curriculum',
+	'Grades',
+	'GroupLearning',
+	'GroupProgress',
+	'ImportedCoursesMenu',
+	'LearningPlans',
+	'ReportCardsMenu',
+	'TimetablesMenu',
+]
 const KNOWN_UNLINKED = {
 	admin: [
 		...CONCERN,
 		...PLANNING,
+		...TEACHING,
 		'AdmissionsReviewBoardMenu',
+		'BehaviourIncidentsMenu',
 		'BookConferenceSlotsMenu',
-		'CatalogueMenu',
 		'CheckInMenu',
 		'ConferenceScheduleBoardMenu',
+		'DossierNotesMenu',
 		'ExamAccommodationsMenu',
-		'GroupPeople',
+		'FirstAidIncidentsMenu',
+		'GradeCorrectionsMenu',
+		'GroupPlans',
 		'HourPlanActivitiesMenu',
+		'ImportExportToolsMenu',
 		'MyElectivesMenu',
 		'MyEvaluationsMenu',
-		'MyLearningRecordMenu',
 		'MyWorkGroupsMenu',
 		'RegulationExemptionsMenu',
 		'SchoolAdviezenMenu',
@@ -347,8 +385,11 @@ const KNOWN_UNLINKED = {
 		'StandbyPlanningMenu',
 		'SubjectChoicePickerMenu',
 		'SubjectChoicesMenu',
+		'SupportRequests',
 		'TeacherAvailabilitiesMenu',
 		'TimetableConflictQueueMenu',
+		'TrajectoriesMenu',
+		'WellbeingCheckInsMenu',
 	],
 	'compliance-officer': [
 		...CONCERN,
@@ -360,19 +401,23 @@ const KNOWN_UNLINKED = {
 	'administration-manager': [
 		...CONCERN,
 		...PLANNING,
+		...TEACHING,
 		'AdmissionsReviewBoardMenu',
-		'CatalogueMenu',
 		'ConferenceScheduleBoardMenu',
+		'DossierReviewsMenu',
 		'ExamAccommodationsMenu',
+		'ExchangeJobsMenu',
+		'ExchangeRejectionsMenu',
 		'GradeCorrectionsMenu',
 		'GroupPlans',
-		'MyLearningRecordMenu',
+		'ImportExportToolsMenu',
 		'SchoolAdviezenMenu',
 		'SchoolEventsMenu',
 		'StandbyPlanningMenu',
 		'SubjectChoicesMenu',
 		'SupportRequests',
 		'TeacherAvailabilitiesMenu',
+		'TeldatumChecksMenu',
 		'TrajectoriesMenu',
 	],
 	'team-lead': [
@@ -484,13 +529,11 @@ const SIMPLE_MAIN_BY_ROLE = {
 	'administration-manager': [
 		'Dashboard',
 		'GroupMyLearning',
-		'GroupsSimple',
 		'MyTimetableMenu',
-		'TimetablesMenu',
-		'GroupLearning',
+		'CatalogueMenu',
+		'MyLearningRecordMenu',
 		'LearnersSimple',
 		'AttendanceSimple',
-		'GroupProgress',
 		'GroupPeople',
 	],
 	learner: [
@@ -516,15 +559,12 @@ const SIMPLE_MAIN_BY_ROLE = {
 	admin: [
 		'Dashboard',
 		'GroupMyLearning',
-		'GroupsSimple',
 		'MyTimetableMenu',
-		'TimetablesMenu',
-		'GroupLearning',
-		'GradesSimple',
+		'CatalogueMenu',
+		'MyLearningRecordMenu',
 		'LearnersSimple',
 		'AttendanceSimple',
-		'GroupProgress',
-		'CareSimple',
+		'GroupPeople',
 		'GroupCompliance',
 	],
 }
@@ -568,14 +608,17 @@ test('the full profile is exactly the plain manifest build', () => {
 	const entries = flat(plain.menu)
 	const count = (section) =>
 		entries.filter((item) => sectionOf(item) === section).length
-	assert.equal(entries.length, 108)
-	assert.equal(plain.menu.length, 25)
+	assert.equal(entries.length, 109)
+	assert.equal(plain.menu.length, 26)
 	assert.deepEqual(
 		[count('main'), count('footer'), count('settings')],
-		[100, 3, 5],
+		[100, 2, 7],
 	)
-	// 351 since internship-hours T6 added the school's BPV hours list (BpvHourWeeks).
-	assert.equal(plain.pages.length, 351)
+	// 347 since the four unreached pages (BulkEnrol, CohortTimetable,
+	// MarkAttendanceView, SubmitExcuseModal) became actions; 348 with
+	// SignUpRequests (Aanmeldverzoeken); 349 with MyGrades (LqLlCijfers); 348 once
+	// MyGrades became the learner lens of GradeEntries.
+	assert.equal(plain.pages.length, 348)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {
@@ -687,8 +730,8 @@ test('the simple menu is flat, in order, and under two captions', () => {
 	assert.deepEqual(
 		main.filter(isCaption).map((item) => item.label),
 		// LqDashboard: Today, My learning and Groups sit at the top with no
-		// caption above them; the board's first caption is Onderwijs.
-		['Teaching', 'Learners'],
+		// caption above them; the captions read Onderwijs and Leerlingen.
+		['Learning', 'Learners'],
 	)
 	const orders = main.map((item) => item.order)
 	assert.equal(new Set(orders).size, orders.length, 'two entries share an order')
@@ -793,13 +836,12 @@ test('the simple menu never shows a role a page the full menu does not show it',
 
 test('the new door opens for the roles that already had the pages next to it', () => {
 	// Cohorts had no menu entry. It borrows the gate of Learning, the entry
-	// its lists sit under in the full menu.
+	// its lists sit under in the full menu, narrowed to the roles whose
+	// sidebar the boards draw with Groepen.
 	const entry = SIMPLE.menu.find((item) => item.id === 'GroupsSimple')
 	assert.deepEqual(entry.visibleIf['user.primaryRole'].in, [
 		'instructor',
 		'coordinator',
-		'administration-manager',
-		'admin',
 	])
 })
 
@@ -872,11 +914,11 @@ test('every string of the simple profile has a Dutch one', () => {
 			}
 		}
 	}
-	strings.push(TODAY.page.title, TODAY.config.description)
+	strings.push(TODAY.page.title)
 	for (const action of TODAY.config.headerActions) {
 		strings.push(action.label)
 	}
-	for (const widget of TODAY.config.widgets) {
+	for (const widget of TEACHER.widgets) {
 		const content = widget.content
 		strings.push(widget.title)
 		for (const key of ['label', 'kicker', 'title', 'reason', 'emptyText']) {
@@ -948,7 +990,7 @@ function asQuery(filter) {
 /** Every widget of the Today dashboard that counts records, with its filter and where it leads. */
 function todayCounts() {
 	const counts = []
-	for (const widget of TODAY.config.widgets) {
+	for (const widget of TEACHER.widgets) {
 		if (widget.type === 'stat') {
 			counts.push({
 				id: widget.id,
@@ -1024,9 +1066,9 @@ test('the Today dashboard holds library widgets only, each laid out once, none o
 	const catalog = readText(
 		'node_modules/@conduction/nextcloud-vue/src/utils/libraryWidgetKeys.js',
 	)
-	const ids = TODAY.config.widgets.map((widget) => widget.id)
+	const ids = TEACHER.widgets.map((widget) => widget.id)
 	assert.equal(new Set(ids).size, ids.length)
-	for (const widget of TODAY.config.widgets) {
+	for (const widget of TEACHER.widgets) {
 		assert.notEqual(widget.type, 'custom', `${widget.id} is a custom widget`)
 		assert.ok(
 			catalog.includes(`'${widget.type}'`),
@@ -1034,11 +1076,11 @@ test('the Today dashboard holds library widgets only, each laid out once, none o
 		)
 	}
 	assert.deepEqual(
-		TODAY.config.layout.map((item) => item.widgetId).sort(),
+		TEACHER.layout.map((item) => item.widgetId).sort(),
 		[...ids].sort(),
 	)
 	const taken = new Set()
-	for (const item of TODAY.config.layout) {
+	for (const item of TEACHER.layout) {
 		assert.ok(item.gridX + item.gridWidth <= 12, `${item.widgetId} is too wide`)
 		for (let x = item.gridX; x < item.gridX + item.gridWidth; x++) {
 			for (let y = item.gridY; y < item.gridY + item.gridHeight; y++) {
@@ -1055,17 +1097,17 @@ test('the Today dashboard holds library widgets only, each laid out once, none o
 test('the Other dashboards card has one frame and one title', () => {
 	// The card grid wraps itself in a titled card. Left alone it reads
 	// "Other dashboards / Actions / Explore / Actions".
-	const grid = TODAY.config.widgets.find(
+	const grid = TEACHER.widgets.find(
 		(widget) => widget.type === 'nav-card-grid',
 	)
-	const placed = TODAY.config.layout.find((item) => item.widgetId === grid.id)
+	const placed = TEACHER.layout.find((item) => item.widgetId === grid.id)
 	assert.equal(grid.content.title, grid.title)
 	assert.equal(placed.showTitle, false)
 	assert.equal(placed.showActions, false)
 })
 
 test('a tile label is at most eighteen characters', () => {
-	const tiles = TODAY.config.widgets.filter((widget) => widget.type === 'stat')
+	const tiles = TEACHER.widgets.filter((widget) => widget.type === 'stat')
 	assert.equal(tiles.length, 4)
 	for (const tile of tiles) {
 		assert.ok(tile.content.label.length <= 18, tile.content.label)
@@ -1123,7 +1165,7 @@ test('every number on Today uses the filter of the list it opens', () => {
 test('the First today card counts with a flat filter', () => {
 	// The library's count source writes a nested operator as JSON, and
 	// OpenRegister answers that with a 500. A card's filter stays flat.
-	const card = TODAY.config.widgets.find((widget) => widget.type === 'banner')
+	const card = TEACHER.widgets.find((widget) => widget.type === 'banner')
 	for (const value of Object.values(card.content.visibleWhen.source.filter)) {
 		assert.notEqual(typeof value, 'object')
 	}
@@ -1139,7 +1181,8 @@ test('the First today card is not collapsed before its condition is read', () =>
 	// nextcloud-vue CnDashboardPage.isCollapsedWidget: a banner whose text is
 	// empty gives up its cell BEFORE `visibleWhen` is looked at. Since 2.65.0
 	// an attention card's `title` counts as its text (widgetDisplayConfig);
-	// 2.60.0 read `text` alone. This mirrors that rule (it lives in a .vue
+	// 2.60.0 read `text` alone, and a banner's `lead` counts before the
+	// title. This mirrors that rule (it lives in a .vue
 	// file node cannot import) and pins the source text, so the mirror fails
 	// when the library changes the rule.
 	const page = readText(
@@ -1154,8 +1197,11 @@ test('the First today card is not collapsed before its condition is read', () =>
 		page,
 		/const title = layout === 'attention' \? \(content\.title \|\| props\.title \|\| ''\) : ''/,
 	)
-	assert.match(page, /text: content\.text \|\| props\.text \|\| title \|\| ''/)
-	for (const widget of TODAY.config.widgets) {
+	assert.match(
+		page,
+		/text: content\.text \|\| props\.text \|\| content\.lead \|\| props\.lead \|\| title \|\| ''/,
+	)
+	for (const widget of TEACHER.widgets) {
 		if (widget.type !== 'banner') {
 			continue
 		}
@@ -1164,7 +1210,13 @@ test('the First today card is not collapsed before its condition is read', () =>
 			layout === 'attention'
 				? widget.content.title || widget.props?.title || ''
 				: ''
-		const text = widget.content.text || widget.props?.text || title || ''
+		const text =
+			widget.content.text
+			|| widget.props?.text
+			|| widget.content.lead
+			|| widget.props?.lead
+			|| title
+			|| ''
 		assert.notEqual(text, '', `${widget.id} has no text and would never show`)
 		assert.equal(widget.content.text, widget.content.title)
 	}
@@ -1196,6 +1248,7 @@ function browserGlobals() {
 		getElementsByTagName: () => [head],
 		querySelector: () => null,
 		getElementById: () => null,
+		createElement: () => ({}),
 		addEventListener: () => {},
 	}
 }
@@ -1212,7 +1265,7 @@ async function libraryVisibleWhen() {
 
 test('the First today card shows for open flags and hides for none, by the library own rule', async () => {
 	const { compareVisibleWhen, readVisibleWhenValue } = await libraryVisibleWhen()
-	const card = TODAY.config.widgets.find((widget) => widget.type === 'banner')
+	const card = TEACHER.widgets.find((widget) => widget.type === 'banner')
 	const condition = card.content.visibleWhen
 	const realFetch = globalThis.fetch
 	const asked = []
@@ -1295,7 +1348,7 @@ test('no address a Today number asks or opens carries an operator as JSON', asyn
 			lists++
 		}
 		const isCard =
-			TODAY.config.widgets.find((w) => w.id === id).type === 'banner'
+			TEACHER.widgets.find((w) => w.id === id).type === 'banner'
 		if (isCard) {
 			const asked = buildQueryString(resolveFilterTokens(source.filter, {}))
 			assert.ok(!hasJson(asked), `${id} asks ${asked}`)
@@ -1353,7 +1406,7 @@ test('every widget type on Today is one the installed library build registers', 
 	)
 
 	const appRegistry = readText('src/registry.js')
-	for (const widget of TODAY.config.widgets) {
+	for (const widget of TEACHER.widgets) {
 		assert.ok(
 			!new RegExp(`^\\s*['"]?${widget.type}['"]?\\s*:`, 'm').test(appRegistry),
 			`${widget.type} is overridden by the app registry`,
@@ -1574,7 +1627,7 @@ test('the full profile has no brand and no button, and main.js reads the theming
 })
 
 test('Today sits in two columns as the board draws it', () => {
-	const placed = (id) => TODAY.config.layout.find((item) => item.widgetId === id)
+	const placed = (id) => TEACHER.layout.find((item) => item.widgetId === id)
 	// LqDashboard has no week strip: the main column is the lessons of today
 	// and the signals in my groups.
 	const main = ['today-lessons', 'today-signals']
@@ -1587,7 +1640,7 @@ test('Today sits in two columns as the board draws it', () => {
 	for (let at = 1; at < main.length; at++) {
 		assert.ok(placed(main[at]).gridY > placed(main[at - 1]).gridY, main[at])
 	}
-	const tiles = TODAY.config.widgets.filter((widget) => widget.type === 'stat')
+	const tiles = TEACHER.widgets.filter((widget) => widget.type === 'stat')
 	for (const tile of tiles) {
 		const item = placed(tile.id)
 		// Two by two in the side column, as LqDashboard draws its tiles. The
@@ -1605,7 +1658,7 @@ test('Today sits in two columns as the board draws it', () => {
 	assert.ok(
 		grid.gridY
 			>= Math.max(
-				...TODAY.config.layout
+				...TEACHER.layout
 					.filter((item) => item.id !== grid.id)
 					.map((item) => item.gridY + item.gridHeight),
 			),
@@ -1615,7 +1668,7 @@ test('Today sits in two columns as the board draws it', () => {
 test('the two lists on Today open what they show', () => {
 	const pages = build(SIMPLE, 'instructor').pages
 	const pageOf = (name) => pages.find((candidate) => candidate.id === name)
-	const lists = TODAY.config.widgets.filter(
+	const lists = TEACHER.widgets.filter(
 		(widget) => widget.type === 'object-table',
 	)
 	assert.equal(lists.length, 2)
@@ -1653,7 +1706,7 @@ test('the two lists on Today open what they show', () => {
 	}
 	// The flags list is the attention card's own count, opened the same way.
 	const flags = lists.find((list) => list.id === 'today-signals')
-	const card = TODAY.config.widgets.find((widget) => widget.type === 'banner')
+	const card = TEACHER.widgets.find((widget) => widget.type === 'banner')
 	assert.deepEqual(
 		flags.content.source.filter,
 		card.content.visibleWhen.source.filter,
@@ -1704,29 +1757,26 @@ test('navTheming reads the emblem from thematiq, and an empty string when there 
 	assert.equal(navTheming({ theming: THEMING }).name, 'Gemeente Zuiddrecht')
 })
 
-test('Today has one header, on the page ground, and the navigation ends in Settings and Help', () => {
-	// LqDashboard: no page header above the greeting; the date and the
-	// heading sit on the page ground, one row high. The header's only button
-	// (Today's register) is the navigation's primary action already.
-	assert.equal(TODAY.config.showHeader, false)
+test('Today opens with the page header, as on the board, and the navigation ends in Settings and Help', () => {
+	// LqDashboard: the page header names the page with its h1 and the date
+	// under it, and carries Today's register; no greeting widget repeats it.
+	assert.notEqual(TODAY.config.showHeader, false)
+	assert.equal(TODAY.config.greeting, 'date')
+	assert.equal(TODAY.config.description, undefined)
 	assert.equal(TODAY.config.showWidgetActions, false)
-	const greeting = TODAY.config.widgets.find(
-		(widget) => widget.id === 'today-greeting',
+	assert.equal(
+		TEACHER.widgets.some((widget) => widget.type === 'header'),
+		false,
 	)
-	assert.deepEqual(greeting.content, {
-		title: 'Today',
-		showDate: true,
-		ground: true,
-	})
-	const row = TODAY.config.layout.find(
-		(item) => item.widgetId === 'today-greeting',
+	assert.equal(
+		TEACHER.layout.some((item) => item.widgetId === 'today-greeting'),
+		false,
 	)
-	assert.equal(row.gridHeight, 1)
 	const register = TODAY.config.headerActions.find(
 		(action) => action.id === 'open-roll-call',
 	)
 	assert.equal(SIMPLE.nav.primaryAction.route, register.target)
-	for (const tile of TODAY.config.widgets.filter(
+	for (const tile of TEACHER.widgets.filter(
 		(widget) => widget.type === 'stat',
 	)) {
 		assert.equal(tile.content.layout, 'stacked', tile.id)
@@ -1752,13 +1802,13 @@ test('Report a concern is an action on the pupil page, the same form pre-filled 
 	const action = pupil.config.headerActions.find(
 		(item) => item.id === 'report-a-concern',
 	)
-	assert.equal(action.type, 'open-form')
-	assert.equal(action.register, reportPage.config.register)
-	assert.equal(action.schema, reportPage.config.schema)
+	// The board's Zorg melden dialog, which writes a concern-report.
+	assert.equal(action.type, 'open-modal')
+	assert.equal(action.target, 'ConcernReportDialog')
 	// Pre-filled with the pupil whose page it is.
 	assert.deepEqual(action.props, { learnerId: '@objectId' })
 	// The page keeps its address in both profiles; the full menu keeps the
-	// entry, and the full pupil page has no new action.
+	// entry, and the full pupil page does not offer it.
 	assert.ok(
 		simple.pages.some(
 			(page) =>
@@ -1768,7 +1818,7 @@ test('Report a concern is an action on the pupil page, the same form pre-filled 
 	assert.ok(flat(full.menu).some((item) => item.id === 'ReportConcernMenu'))
 	assert.ok(!flat(simple.menu).some((item) => item.id === 'ReportConcernMenu'))
 	const fullPupil = full.pages.find((page) => page.id === 'LearnerProfileDetail')
-	assert.equal(fullPupil.config.headerActions, undefined)
+	assert.ok(!(fullPupil.config.headerActions ?? []).some((item) => item.id === 'report-a-concern'))
 	assert.deepEqual(Object.keys(ACTION_OVERLAYS[0]).sort(), ['configAppend', 'id'])
 })
 
@@ -1825,4 +1875,85 @@ test('pupils and guardians get Report a concern as a button on their start page,
 	// The start page hands the buttons to its dashboard.
 	const source = readText('src/views/LearniqDashboards.vue')
 	assert.match(source, /:headerActions="headerActions"/)
+})
+
+/**
+ * The foldout of one role in the order CnAppNav draws it: the settings
+ * section by order, then the footer entries a declared footer leaves out.
+ *
+ * @param {string} role The primary role.
+ * @return {Array<string>} Labels, captions prefixed with `#`.
+ */
+function foldoutOf(role) {
+	const items = shown(build(SIMPLE, role)).sort((a, b) => a.order - b.order)
+	const label = (item) => (isCaption(item) ? '#' : '') + item.label
+	return [
+		...items.filter((item) => sectionOf(item) === 'settings'),
+		...items.filter((item) => sectionOf(item) === 'footer'),
+	].map(label)
+}
+
+test('the foldout groups as the board draws it: roadmap and marketplace under About the app', () => {
+	const fold = foldoutOf('admin')
+	const about = fold.indexOf('#About the app')
+	assert.deepEqual(fold.slice(0, 4), ['#Reports and automation', 'Reports', 'Flows', 'xAPI statements'])
+	assert.equal(fold[4], '#Set up the app')
+	assert.ok(fold.indexOf('School-year rollover') > 4 && fold.indexOf('School-year rollover') < about)
+	assert.deepEqual(fold.slice(about, about + 3), ['#About the app', 'Marketplace', 'Features & roadmap'])
+	assert.deepEqual(SIMPLE.nav.footer, ['settings', 'help'])
+	assert.ok(FULL.settingsSection.includes('FeaturesRoadmapMenu'))
+})
+
+test('Exchanges is one admin-only foldout entry that opens the jobs and links the gate pages', () => {
+	for (const layout of [FULL, SIMPLE]) {
+		assert.ok(layout.settingsSection.includes('DataExchange'))
+		assert.ok(!layout.settingsSection.includes('ImportExportToolsMenu'))
+	}
+	assert.ok(SIMPLE.removals.includes('ImportExportToolsMenu'))
+	for (const role of ROLES) {
+		const entry = shown(build(SIMPLE, role)).find((item) => item.id === 'DataExchange')
+		assert.equal(!!entry, role === 'admin', role)
+		assert.equal(entry?.section ?? 'settings', 'settings', role)
+	}
+	const jobs = build(SIMPLE, 'admin').pages.find((page) => page.id === 'ExchangeJobs')
+	assert.equal(jobs.route, '/data-exchange/jobs')
+	assert.deepEqual(
+		jobs.config.headerActions.map((action) => action.route),
+		['ExchangeRejections', 'TeldatumChecks', 'DossierReviews'],
+	)
+})
+
+test('learners and guardians get no Learners caption', () => {
+	for (const role of ['learner', 'guardian']) {
+		const captions = shown(build(SIMPLE, role)).filter(isCaption).map((item) => item.id)
+		assert.ok(!captions.includes('LearnersCaption'), role)
+		assert.ok(captions.includes('TeachingCaption'), role)
+	}
+})
+
+test('Today offers the role choice Docent | Mentor as the board draws it', () => {
+	assert.deepEqual(
+		TODAY.config.views.map((view) => [view.id, view.label]),
+		[['teacher', 'Teacher'], ['mentor', 'Mentor']],
+	)
+	assert.equal(TODAY.config.defaultView, 'teacher')
+	assert.deepEqual(TODAY.config.layout, [])
+	const placed = new Set([...TEACHER.layout, ...MENTOR.layout].map((item) => item.widgetId))
+	for (const widget of TODAY.config.widgets) {
+		assert.ok(placed.has(widget.id), `${widget.id} is placed in no view`)
+	}
+})
+
+test('the Mentor view counts and lists the same signals: open, of the pupils the reader mentors', () => {
+	const mine = { lifecycle: 'open', mentorId: '@me' }
+	const list = MENTOR.widgets.find((widget) => widget.type === 'object-table')
+	const tile = MENTOR.widgets.find((widget) => widget.type === 'stat')
+	assert.deepEqual(list.content.source.filter, mine)
+	assert.deepEqual(list.content.viewAllRoute.query, mine)
+	assert.deepEqual(tile.content.source.filter, mine)
+	assert.deepEqual(tile.content.route, { name: 'AttendanceFlags', query: mine })
+	assert.ok(tile.content.label.length <= 18, tile.content.label)
+	for (const item of MENTOR.layout) {
+		assert.ok(item.gridX + item.gridWidth <= 12, `${item.widgetId} is too wide`)
+	}
 })

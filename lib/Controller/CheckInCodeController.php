@@ -30,9 +30,9 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\CheckIn\CheckInCodeService;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
@@ -47,6 +47,7 @@ use OCP\IUserSession;
  * @spec openspec/specs/attendance/spec.md#requirement-a-teacher-opens-a-self-check-in-window-for-a-lesson
  */
 class CheckInCodeController extends Controller {
+	use FindOrNull;
 
 	/**
 	 * Groups that may read the code of a window.
@@ -97,11 +98,7 @@ class CheckInCodeController extends Controller {
 			return new JSONResponse(data: ['error' => 'forbidden'], statusCode: Http::STATUS_FORBIDDEN);
 		}
 
-		try {
-			$window = $this->objects->find(id: $windowId, register: 'learniq', schema: 'check-in-window', _rbac: false, _render: false)?->jsonSerialize();
-		} catch (DoesNotExistException) {
-			$window = null;
-		}
+		$window = $this->window(windowId: $windowId);
 
 		if (is_array($window) === false) {
 			return new JSONResponse(data: ['error' => 'not_found'], statusCode: Http::STATUS_NOT_FOUND);
@@ -170,4 +167,18 @@ class CheckInCodeController extends Controller {
 
 		return false;
 	}//end isStaff()
+
+	/**
+	 * The CheckInWindow row, or null when it does not exist.
+	 *
+	 * @param string $windowId The CheckInWindow uuid.
+	 *
+	 * @return array<string, mixed>|null
+	 *
+	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException When the id matches more than one object; LookupIntegrityMiddleware answers it.
+	 */
+	private function window(string $windowId): ?array {
+		$find = fn () => $this->objects->find(id: $windowId, register: 'learniq', schema: 'check-in-window', _rbac: false, _render: false);
+		return $this->findRowOrNull(find: $find);
+	}//end window()
 }//end class

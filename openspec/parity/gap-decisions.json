@@ -1334,5 +1334,13 @@
     "reason": "Reversed by Ruben on 2026-09-29 (build-all DECISIONS row 18): build a learner-side confidential report that lands in the existing counsellor channel. Supersedes the decided-no of the same day.",
     "change": "support-confidential-concern-report",
     "decidedOn": "2026-09-29"
+  },
+  {
+    "row": "ass-review-proctoring-flags",
+    "matrix": "learniq",
+    "decision": "build",
+    "reason": "Reopened by decision 100 (8 Oct): board LqProctoring draws the review queue, and native test mode already fills it without an external provider.",
+    "change": "proctoring-flag-review-page",
+    "decidedOn": "2026-10-08"
   }
 ]

@@ -1,7 +1,7 @@
 # competency Specification
 
 ## Purpose
-TBD - created by archiving change competency-framework. Update Purpose after archive.
+Describe what learners must be able to do as frameworks of competencies, each with its own proficiency scale. Schools align lessons and assessments to those goals, then read each learner's attainment, skills gaps and the curriculum coverage per year and subject.
 
 ## Requirements
 
@@ -341,7 +341,7 @@ what learners have mastered.
   (planned only), both for groep 5, and a root goal K3 that applies to every year and nothing covers
 - **WHEN** a coordinator opens Curriculum coverage and picks that framework
 - **THEN** the matrix lists Getallen as a heading, then K1 and K2 under it, then K3
-- **AND** the groep 5 column reads "Planned and assessed (master)" for K1, "Planned" for K2 and "Not covered" for K3
+- **AND** the groep 5 column reads "Gepland en getoetst" for K1, "Gepland" for K2 and "Niet gedekt" for K3, without a depth in the cell
 - **AND** K1 and K2 show nothing in any other year column
 
 #### Scenario: Picking a subject narrows the matrix

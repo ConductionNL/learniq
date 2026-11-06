@@ -67,6 +67,20 @@ class PortalLabelTranslator {
 		'noteLabel',
 		// A form field's hint under its label (employer-portal-audience).
 		'help',
+		// A timetable's label over the first lesson (portaliq calendar-timetable-display).
+		'firstLabel',
+		// The heading and help text of the messages form (portal-message-contacts).
+		'composeLabel',
+		'composeHint',
+		// A task's title sentence; its `{field}` places stay as they are (portaliq lookup-by-row-field).
+		'titleTemplate',
+		// A link or QR column's words for its link (portaliq link-field-qr-code).
+		'linkLabel',
+		// A documents block's line beside its heading, its words when empty and a page's
+		// opening text (portaliq documents-for-each-record, guardian-reports-and-documents).
+		'subtitle',
+		'emptyLabel',
+		'markdown',
 	];
 
 	/**

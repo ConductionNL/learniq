@@ -20,15 +20,19 @@
  * @spec openspec/changes/portal-certificates/specs/portal-contribution/spec.md
  * @spec openspec/changes/participant-portal/specs/portal-contribution/spec.md
  * @spec openspec/changes/employer-signs-in-with-eherkenning/specs/portal-identity/spec.md
+ * @spec openspec/changes/portal-board-checks-run-on-a-real-instance/specs/example-sets/spec.md#requirement-the-board-checks-run-against-any-instance-that-loaded-the-sets
+ * @spec openspec/changes/school-portals-match-their-boards/specs/example-sets/spec.md#requirement-the-portal-declarations-follow-their-boards
  */
 
 import { expect, request, test } from '@playwright/test'
 import path from 'node:path'
 import { baseUrl } from '../base-url.ts'
 import { siteUrl } from '../helpers/portal-fixture.ts'
-import { ACR_SUBSTANTIAL, startStubDigid } from '../helpers/stub-digid.ts'
+import { ACR_SUBSTANTIAL } from '../helpers/stub-digid.ts'
 import {
+	ADMIN_CREDENTIALS,
 	boardShot,
+	dated,
 	ensurePortalAccount,
 	expectNoHorizontalScroll,
 	expectNoSeriousAxeFinding,
@@ -38,6 +42,7 @@ import {
 	openSitePage,
 	SHOTS,
 	signInAs,
+	startBroker,
 } from './boards.ts'
 
 const PORTAL = 'warmtepompacademie'
@@ -87,9 +92,14 @@ test.describe('warmtepompacademie: the website', () => {
 			'U oefent op echte opstellingen',
 			...FOOTER,
 		])
+		// The course days stand beside the hero text (portaliq hero-aside).
+		await expect(
+			page
+				.getByTestId('hero-aside')
+				.filter({ hasText: 'Eerstvolgende cursusdagen' }),
+		).toBeVisible()
 		await expectWidgetOrder(page, [
 			'hero',
-			'nlEventList',
 			'nlList',
 			'nlSignIn',
 			'nlButtonLink',
@@ -154,10 +164,10 @@ test.describe('warmtepompacademie: Mijn academie (Linda Jansen, employer)', () =
 			'Geboortedatum van 1 deelnemer ontbreekt',
 			'Warmtepompen installeren: basis',
 			'De plek staat vast',
-			'Bevestiging uiterlijk dinsdag 6 oktober',
+			dated('Bevestiging uiterlijk dinsdag 6 oktober'),
 			'F-gassen categorie 1',
-			'Verloopt over 8 weken',
-			'Herhaling op 8 oktober',
+			/Verloopt over \d+ weken/,
+			dated('Herhaling op 8 oktober'),
 			'BRL 6000-21, bovengronds deel',
 		])
 		if (info.project.name === 'phone') {
@@ -178,13 +188,20 @@ test.describe('warmtepompacademie: Mijn academie (Linda Jansen, employer)', () =
 			info.project.use.viewport ?? { width: 1440, height: 1000 },
 		)
 		await page.goto(
-			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/employerBookings')}`,
+			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/learniq/employerBookings')}`,
 		)
 		await expectTexts(page, [
 			'Lucht-water warmtepomp: ontwerp en inbedrijfstelling',
 			'Waterzijdig inregelen',
+		])
+		// The board's Detail is one booking opened: its participants and the birth date form.
+		await page
+			.getByRole('link', { name: /F-gassen: herhaling en examen/ })
+			.first()
+			.click()
+		await expectTexts(page, [
 			'Geboortedatum ontbreekt',
-			'Certificaat geldig tot 30 november 2026',
+			dated('Certificaat geldig tot 30 november 2026'),
 			'Geboortedatum invullen',
 		])
 		await expectNoSeriousAxeFinding(page)
@@ -211,11 +228,11 @@ test.describe('warmtepompacademie: Mijn academie (Tom Verbeek, participant)', ()
 		await expectTexts(page, [
 			'Tom',
 			'F-gassen: herhaling en examen',
-			'donderdag 8 oktober',
+			dated('donderdag 8 oktober'),
 			'08.30 tot 16.30 uur',
 			'Praktijkhal Zuiddrecht, Energieweg 8',
 			'F-gassen categorie 1',
-			'Verloopt over 8 weken',
+			/Verloopt over \d+ weken/,
 			'Lucht-water warmtepomp: ontwerp en inbedrijfstelling',
 		])
 		if (info.project.name === 'phone') {
@@ -242,7 +259,7 @@ test.describe('warmtepompacademie: Linda signs in with eHerkenning', () => {
 			'PORTAL_DESIGN_EHERKENNING_ISSUER is not set: the employer signs in with eHerkenning through the stub broker',
 		)
 		test.setTimeout(300_000)
-		const stub = await startStubDigid(
+		const stub = await startBroker(
 			issuer,
 			process.env.PORTAL_DESIGN_EHERKENNING_CLIENT
 				?? 'warmtepompacademie-portal',
@@ -251,10 +268,7 @@ test.describe('warmtepompacademie: Linda signs in with eHerkenning', () => {
 		try {
 			const admin = await request.newContext({
 				baseURL: baseUrl(),
-				httpCredentials: {
-					username: process.env.NC_ADMIN_USER ?? 'admin',
-					password: process.env.NC_ADMIN_PASS ?? 'admin',
-				},
+				httpCredentials: ADMIN_CREDENTIALS,
 				extraHTTPHeaders: { 'OCS-APIRequest': 'true' },
 			})
 			const invite = await admin.post(

@@ -16,11 +16,11 @@
   Talks only to OpenRegister's REST API:
     - GET  /api/objects/learniq/Portfolio/:id
     - GET  /api/objects/learniq/portfolio-template/:id           (when templateId set)
-    - GET  /api/objects/learniq/portfolio-entry?filters[portfolioId]=:id
-    - GET  /api/objects/learniq/Submission?filters[learnerIds]=:learnerId
-    - GET  /api/objects/learniq/werkproces-assessment?filters[...]
-    - GET  /api/objects/learniq/external-training-record?filters[learnerUserId]=:learnerId
-    - GET  /api/objects/learniq/Credential?filters[learnerUserId]=:learnerId
+    - GET  /api/objects/learniq/portfolio-entry?portfolioId=:id
+    - GET  /api/objects/learniq/Submission?learnerIds=:learnerId
+    - GET  /api/objects/learniq/werkproces-assessment?learnerId=:learnerId
+    - GET  /api/objects/learniq/external-training-record?learnerUserId=:learnerId
+    - GET  /api/objects/learniq/Credential?learnerUserId=:learnerId
     - POST /api/objects/learniq/portfolio-entry
     - POST /api/objects/:id/transition           ({ action: 'submit' })
 
@@ -36,11 +36,11 @@
 -->
 
 <template>
-	<div class="portfolio-builder">
+	<div class="portfolio-builder lq-board-page">
 		<!-- Loading -->
 		<div v-if="loading" class="portfolio-builder__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('learniq', 'Loading portfolio...') }}</span>
+			<span>{{ t('learniq', 'Loading portfolio…') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -51,13 +51,7 @@
 
 		<template v-else-if="portfolio">
 			<header class="portfolio-builder__header">
-				<h2>
-					{{
-						t('learniq', 'Build portfolio: {title}', {
-							title: portfolio.title || '',
-						})
-					}}
-				</h2>
+				<CnPageHeader :title="t('learniq', 'Build portfolio: {title}', { title: portfolio.title || '' })" />
 				<p class="portfolio-builder__meta">
 					{{
 						t('learniq', 'Kind: {kind}', { kind: portfolio.kind || '' })
@@ -73,10 +67,10 @@
 			</header>
 
 			<!-- Required-section coverage, when a template governs this portfolio -->
-			<section
+			<CnDetailCard
 				v-if="template && sections.length > 0"
+				:title="t('learniq', 'Required sections')"
 				class="portfolio-builder__sections">
-				<h3>{{ t('learniq', 'Required sections') }}</h3>
 				<ul class="portfolio-builder__section-list">
 					<li
 						v-for="section in sections"
@@ -97,11 +91,12 @@
 						<span>{{ section.label }}</span>
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 
 			<!-- Existing entries -->
-			<section class="portfolio-builder__entries">
-				<h3>{{ t('learniq', 'Evidence entries') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Evidence entries')"
+				class="portfolio-builder__entries">
 				<ul v-if="entries.length > 0" class="portfolio-builder__entry-list">
 					<li
 						v-for="entry in entries"
@@ -130,11 +125,12 @@
 				<p v-else class="portfolio-builder__no-entries">
 					{{ t('learniq', 'No evidence added yet.') }}
 				</p>
-			</section>
+			</CnDetailCard>
 
 			<!-- Add-entry form: evidence-kind picker, never a free-text UUID field -->
-			<section class="portfolio-builder__add-entry">
-				<h3>{{ t('learniq', 'Add evidence') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Add evidence')"
+				class="portfolio-builder__add-entry">
 
 				<label for="pb-evidence-kind" class="portfolio-builder__field-label">
 					{{ t('learniq', 'Evidence kind') }}
@@ -261,7 +257,7 @@
 					class="portfolio-builder__add-error">
 					{{ addEntryError }}
 				</p>
-			</section>
+			</CnDetailCard>
 
 			<!-- Submit -->
 			<div v-if="canSubmit" class="portfolio-builder__actions">
@@ -293,12 +289,14 @@
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'PortfolioBuilder',
+	components: { CnDetailCard, CnPageHeader },
 
 	props: {
 		/**
@@ -523,7 +521,7 @@ export default {
 		async loadEntries(portfolioId) {
 			this.entries = await this.fetchList(
 				'portfolio-entry',
-				`filters[portfolioId]=${portfolioId}&_limit=100`,
+				`portfolioId=${portfolioId}&_limit=100`,
 			)
 		},
 
@@ -548,7 +546,7 @@ export default {
 				if (kind === 'submission') {
 					const rows = await this.fetchList(
 						'Submission',
-						`filters[learnerIds]=${uid}&_limit=100`,
+						`learnerIds=${uid}&_limit=100`,
 					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,
@@ -559,7 +557,7 @@ export default {
 				} else if (kind === 'werkproces-assessment') {
 					const rows = await this.fetchList(
 						kind,
-						`filters[learnerId]=${uid}&_limit=100`,
+						`learnerId=${uid}&_limit=100`,
 					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,
@@ -570,7 +568,7 @@ export default {
 						kind,
 						// ExternalTrainingRecord.learnerId is the LearnerProfile
 						// uuid; the learner's user id is on learnerUserId.
-						`filters[learnerUserId]=${uid}&_limit=100`,
+						`learnerUserId=${uid}&_limit=100`,
 					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,
@@ -581,7 +579,7 @@ export default {
 						'Credential',
 						// Credential.learnerId is the LearnerProfile uuid; the
 						// learner's user id is on learnerUserId.
-						`filters[learnerUserId]=${uid}&_limit=100`,
+						`learnerUserId=${uid}&_limit=100`,
 					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,
@@ -785,23 +783,12 @@ export default {
 </script>
 
 <style scoped>
-.portfolio-builder {
-	max-width: 860px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
 .portfolio-builder__loading,
 .portfolio-builder__error {
 	display: flex;
 	align-items: center;
 	gap: var(--default-grid-baseline, 8px);
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.portfolio-builder__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
 }
 
 .portfolio-builder__meta {
@@ -811,12 +798,6 @@ export default {
 
 .portfolio-builder__lifecycle {
 	margin-left: var(--default-grid-baseline, 8px);
-}
-
-.portfolio-builder__sections,
-.portfolio-builder__entries,
-.portfolio-builder__add-entry {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
 }
 
 .portfolio-builder__section-list,

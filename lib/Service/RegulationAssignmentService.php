@@ -71,36 +71,30 @@ class RegulationAssignmentService {
 	}//end __construct()
 
 	/**
-	 * Assign the regulation's mandatory courses to its audience.
+	 * Assign the regulation's mandatory courses to its audience, or to one
+	 * part of it.
 	 *
-	 * @param array<string,mixed> $regulation The Regulation object.
+	 * @param array<string,mixed>                     $regulation The Regulation object.
+	 * @param array{kind: string, value: string}|null $audience   One audience to narrow to (see
+	 *                                                            RegulationAudienceResolver::AUDIENCE_KINDS), or null for all.
+	 * @param string|null                             $dueDate    A due date (Y-m-d) for the enrolments it creates.
 	 *
 	 * @return array{created: int, skipped: int, inScope: int, courses: int}
 	 *
 	 * @spec openspec/parity/capabilities.json#comp-assign-from-hr-roles
+	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
 	 */
-	public function assign(array $regulation): array {
+	public function assign(array $regulation, ?array $audience=null, ?string $dueDate=null): array {
 		$result = ['created' => 0, 'skipped' => 0, 'inScope' => 0, 'courses' => 0];
 		$slug = (string)($regulation['slug'] ?? '');
 		if ($slug === '' || ($regulation['active'] ?? true) === false) {
 			return $result;
 		}
 
-		$courses = array_values(
-			array_filter(
-				$this->rows(schema: 'course', filters: ['regulationSlug' => $slug]),
-				static fn (array $course): bool => ($course['lifecycle'] ?? '') === 'published'
-			)
-		);
+		$courses = $this->publishedCourses(regulation: $regulation);
 		$result['courses'] = count($courses);
 
-		$learners = array_values(
-			array_filter(
-				$this->rows(schema: 'learner-profile'),
-				fn (array $profile): bool => (string)($profile['ncUserId'] ?? '') !== ''
-					&& $this->audience->covers(regulation: $regulation, profile: $profile) === true
-			)
-		);
+		$learners = $this->learnersInScope(regulation: $regulation, audience: $audience);
 		$result['inScope'] = count($learners);
 
 		foreach ($courses as $course) {
@@ -113,20 +107,21 @@ class RegulationAssignmentService {
 					continue;
 				}
 
-				$this->objectService->saveObject(
-					object: [
-						'learnerId' => $userId,
-						'learnerRef' => (string)($learner['id'] ?? ($learner['uuid'] ?? '')),
-						'courseId' => $courseId,
-						'mandatory' => true,
-						'regulationSlug' => $slug,
-						'source' => 'system',
-						'managerId' => $learner['managerId'] ?? null,
-						'tenant_id' => (string)($regulation['tenant_id'] ?? ($course['tenant_id'] ?? '')),
-					],
-					register: self::LEARNIQ_REGISTER,
-					schema: 'enrolment'
-				);
+				$enrolment = [
+					'learnerId' => $userId,
+					'learnerRef' => (string)($learner['id'] ?? ($learner['uuid'] ?? '')),
+					'courseId' => $courseId,
+					'mandatory' => true,
+					'regulationSlug' => $slug,
+					'source' => 'system',
+					'managerId' => $learner['managerId'] ?? null,
+					'tenant_id' => (string)($regulation['tenant_id'] ?? ($course['tenant_id'] ?? '')),
+				];
+				if ($dueDate !== null) {
+					$enrolment['dueDate'] = $dueDate;
+				}
+
+				$this->objectService->saveObject(object: $enrolment, register: self::LEARNIQ_REGISTER, schema: 'enrolment');
 				$enrolled[$userId] = true;
 				$result['created']++;
 			}//end foreach
@@ -141,13 +136,113 @@ class RegulationAssignmentService {
 	}//end assign()
 
 	/**
+	 * The audience a request names: null for none, false when it is not valid.
+	 *
+	 * @param string $kind  section, team or hr-function; empty for none.
+	 * @param string $value The audience value within that kind.
+	 *
+	 * @return array{kind: string, value: string}|false|null
+	 *
+	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
+	 */
+	public function audienceOf(string $kind, string $value): array|false|null {
+		$kind = trim($kind);
+		$value = trim($value);
+		if ($kind === '' && $value === '') {
+			return null;
+		}
+
+		if (in_array($kind, RegulationAudienceResolver::AUDIENCE_KINDS, true) === false || $value === '') {
+			return false;
+		}
+
+		return ['kind' => $kind, 'value' => $value];
+	}//end audienceOf()
+
+	/**
+	 * The due date a request names: null for none, false when it is not a Y-m-d date.
+	 *
+	 * @param string $value The due date as sent.
+	 *
+	 * @return string|false|null
+	 *
+	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
+	 */
+	public function dueDateOf(string $value): string|false|null {
+		$value = trim($value);
+		if ($value === '') {
+			return null;
+		}
+
+		if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $parts) !== 1
+			|| checkdate((int)$parts[2], (int)$parts[3], (int)$parts[1]) === false
+		) {
+			return false;
+		}
+
+		return $value;
+	}//end dueDateOf()
+
+	/**
+	 * The published courses bound to the regulation.
+	 *
+	 * @param array<string,mixed> $regulation The Regulation object.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	public function publishedCourses(array $regulation): array {
+		return array_values(
+			array_filter(
+				$this->rows(schema: 'course', filters: ['regulationSlug' => (string)($regulation['slug'] ?? '')]),
+				static fn (array $course): bool => ($course['lifecycle'] ?? '') === 'published'
+			)
+		);
+	}//end publishedCourses()
+
+	/**
+	 * The active learners with an account the regulation covers, narrowed to
+	 * one audience when given.
+	 *
+	 * @param array<string,mixed>                     $regulation The Regulation object.
+	 * @param array{kind: string, value: string}|null $audience   One audience, or null for all.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	public function learnersInScope(array $regulation, ?array $audience=null): array {
+		return array_values(
+			array_filter(
+				$this->rows(schema: 'learner-profile'),
+				fn (array $profile): bool => (string)($profile['ncUserId'] ?? '') !== ''
+					&& $this->audience->covers(regulation: $regulation, profile: $profile) === true
+					&& $this->inAudience(profile: $profile, audience: $audience) === true
+			)
+		);
+	}//end learnersInScope()
+
+	/**
+	 * Whether a profile belongs to the audience; every profile does when none is given.
+	 *
+	 * @param array<string,mixed>                     $profile  The LearnerProfile.
+	 * @param array{kind: string, value: string}|null $audience The audience, or null.
+	 *
+	 * @return bool
+	 */
+	private function inAudience(array $profile, ?array $audience): bool {
+		if ($audience === null) {
+			return true;
+		}
+
+		return in_array($audience['value'], $this->audience->audienceValues(kind: $audience['kind'], profile: $profile), true);
+	}//end inAudience()
+
+	/**
 	 * Nextcloud user ids holding a live enrolment in the course.
 	 *
 	 * @param string $courseId Course UUID.
 	 *
 	 * @return array<string,bool>
 	 */
-	private function liveEnrolledUsers(string $courseId): array {
+	public function liveEnrolledUsers(string $courseId): array {
 		$users = [];
 		foreach ($this->rows(schema: 'enrolment', filters: ['courseId' => $courseId]) as $enrolment) {
 			if (in_array($enrolment['lifecycle'] ?? 'pending', self::ENDED_STATES, true) === true) {

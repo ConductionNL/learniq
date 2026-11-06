@@ -83,6 +83,14 @@ class ConnectionReportService {
 	public const LTI_KEY = 'lti';
 
 	/**
+	 * The connection key of the open learning material row. Learniq reports it
+	 * from how the source answered the last search (open-learning-material).
+	 *
+	 * @var string
+	 */
+	public const OPEN_MATERIAL_KEY = 'open-material-edurep';
+
+	/**
 	 * Integriq's LTI launch event, named by string like STATUS_EVENT.
 	 *
 	 * @var string
@@ -94,7 +102,7 @@ class ConnectionReportService {
 	 *
 	 * @var array<int, string>
 	 */
-	public const REPORTED_KEYS = [self::WALLET_KEY, self::TIMETABLE_KEY, self::LTI_KEY];
+	public const REPORTED_KEYS = [self::WALLET_KEY, self::TIMETABLE_KEY, self::LTI_KEY, self::OPEN_MATERIAL_KEY];
 
 	/**
 	 * The statuses an observation may carry: the call got through, it was not
@@ -285,6 +293,20 @@ class ConnectionReportService {
 
 		$this->observe(key: self::LTI_KEY, status: 'unavailable', reason: 'LTI tools need integriq, which is not installed.');
 	}//end observeLti()
+
+	/**
+	 * The status last recorded for a connection (`configured`, `unconfigured`,
+	 * `error` or `unavailable`), or null when nothing was recorded.
+	 *
+	 * @param string $key The connection key.
+	 *
+	 * @return string|null
+	 *
+	 * @spec openspec/changes/credential-wallet-offer-for-the-learner/specs/certification/spec.md#requirement-the-setup-check-names-the-missing-wallet-token
+	 */
+	public function lastStatus(string $key): ?string {
+		return ($this->readObservation(key: $key)['status'] ?? null);
+	}//end lastStatus()
 
 	/**
 	 * The stored observation for a connection, or null when none is usable.
