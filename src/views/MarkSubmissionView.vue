@@ -25,8 +25,8 @@
     - GET  /api/objects/learniq/Submission/:id
     - GET  /api/objects/learniq/Assignment/:id
     - GET  /api/objects/learniq/Rubric/:id
-    - GET  /api/objects/learniq/peer-feedback-summary?filters[submissionId]=:id (read-only context)
-    - GET  /api/objects/learniq/self-assessment?filters[submissionId]=:id (read-only context)
+    - GET  /api/objects/learniq/peer-feedback-summary?submissionId=:id (read-only context)
+    - GET  /api/objects/learniq/self-assessment?submissionId=:id (read-only context)
     - PUT  /api/objects/learniq/Submission/:id
     - POST /api/objects/:id/transition           ({ action: 'return' })
 
@@ -773,7 +773,7 @@ export default {
 		 */
 		async loadPeerFeedbackSummary(submissionId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/peer-feedback-summary?filters[submissionId]=${submissionId}&_limit=1`,
+				`/apps/openregister/api/objects/learniq/peer-feedback-summary?submissionId=${submissionId}&_limit=1`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -798,7 +798,7 @@ export default {
 		 */
 		async loadSelfAssessment(submissionId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/self-assessment?filters[submissionId]=${submissionId}&_limit=1`,
+				`/apps/openregister/api/objects/learniq/self-assessment?submissionId=${submissionId}&_limit=1`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },

@@ -32,6 +32,8 @@ const COLLECTION_NAMES = {
 	artik: 'Artik',
 	metaplus: 'Metaplus',
 	wur_staff: 'WUR',
+	krantindeklas: 'Nieuws in de klas',
+	webkwestie: 'WebKwestie',
 }
 
 /** Readable file types by MIME type or prefix. */

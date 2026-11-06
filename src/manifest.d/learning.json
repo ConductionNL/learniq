@@ -1123,8 +1123,7 @@
 					},
 					{
 						"id": "course-open-materials",
-						"type": "custom",
-						"component": "CourseOpenMaterials",
+						"type": "CourseOpenMaterials",
 						"title": "Learning material",
 						"icon": "BookOpenVariant"
 					},
