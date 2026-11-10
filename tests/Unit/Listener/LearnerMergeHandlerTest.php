@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Lifecycle\LearnerMergeGuard;
 use OCA\Learniq\Listener\LearnerMergeHandler;
 use OCA\Learniq\Service\LearnerMergeService;
@@ -142,11 +143,11 @@ class LearnerMergeHandlerTest extends TestCase {
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			SaveCallShape::legacy(function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->saved[] = ['schema' => (string)$schema, 'object' => $data];
 				return OrEntityFactory::make($data, (string)$schema);
-			}
+			})
 		);
 
 		return $objectService;

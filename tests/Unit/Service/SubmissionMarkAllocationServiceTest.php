@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Service\SubmissionMarkAllocationService;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\OpenRegister\Service\ObjectService;
@@ -59,7 +60,13 @@ class SubmissionMarkAllocationServiceTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) => $this->store->save((string)$schema, $object, $uuid)
+			SaveCallShape::legacy(fn (
+				array $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				?string $uuid = null
+			) => $this->store->save((string)$schema, $object, $uuid))
 		);
 
 		return new SubmissionMarkAllocationService(objectService: $objects);

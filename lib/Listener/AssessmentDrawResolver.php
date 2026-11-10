@@ -57,6 +57,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\ItemPoolFilter;
 use OCA\Learniq\Service\ListenerSchemaResolver;
@@ -221,9 +223,10 @@ class AssessmentDrawResolver implements IEventListener {
 	 */
 	private function saveDraw(array $result, array $drawnItemRefs): void {
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ASSESSMENT_RESULT_SCHEMA,
-			object: array_merge($result, ['drawnItemRefs' => $drawnItemRefs])
+			object: array_merge($result, ['drawnItemRefs' => $drawnItemRefs]),
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ASSESSMENT_RESULT_SCHEMA)
+			)
 		);
 
 		$this->logger->info(

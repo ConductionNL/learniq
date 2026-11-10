@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\CredentialIssuanceHandler;
 use OCA\Learniq\Service\ListenerSchemaResolver;
@@ -440,7 +441,14 @@ class CredentialIssuanceHandlerTest extends TestCase {
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], mixed $register = null, mixed $schema = null, ?string $uuid = null, bool $_rbac = true): ObjectEntity {
+			SaveCallShape::legacy(function (
+				array|ObjectEntity $object,
+				?array $extend = [],
+				mixed $register = null,
+				mixed $schema = null,
+				?string $uuid = null,
+				bool $_rbac = true
+			): ObjectEntity {
 				$data = $object;
 				if ($object instanceof ObjectEntity) {
 					$data = (array)$object->getObject();
@@ -448,7 +456,7 @@ class CredentialIssuanceHandlerTest extends TestCase {
 
 				$this->saved[] = ['object' => $data, 'schema' => $schema, 'uuid' => $uuid, 'rbac' => $_rbac];
 				return OrEntityFactory::make($data, (string)$schema, 'learniq', $uuid);
-			}
+			})
 		);
 
 		return $objectService;

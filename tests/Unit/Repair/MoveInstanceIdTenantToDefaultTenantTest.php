@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Repair;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Repair\MoveInstanceIdTenantToDefaultTenant;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\OpenRegister\Db\ObjectEntity;
@@ -101,7 +102,15 @@ class MoveInstanceIdTenantToDefaultTenantTest extends TestCase {
 			}
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null, bool $_rbac = true, bool $_multitenancy = true): ObjectEntity {
+			SaveCallShape::legacy(function (
+				array $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				?string $uuid = null,
+				bool $_rbac = true,
+				bool $_multitenancy = true
+			): ObjectEntity {
 				if (in_array($uuid, $this->failing, true) === true) {
 					throw new RuntimeException('guard refused');
 				}
@@ -114,7 +123,7 @@ class MoveInstanceIdTenantToDefaultTenantTest extends TestCase {
 				}
 
 				return $this->createMock(ObjectEntity::class);
-			}
+			})
 		);
 
 		$config = $this->createMock(IConfig::class);

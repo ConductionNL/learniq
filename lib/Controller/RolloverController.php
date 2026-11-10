@@ -32,6 +32,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\ActionAuthService;
@@ -185,7 +187,12 @@ class RolloverController extends Controller {
 
 		// A plan deleted between the read above and this save reads as absent.
 		try {
-			$this->objectService->saveObject(register: 'learniq', schema: 'rollover-plan', object: $plan);
+			$this->objectService->saveObject(
+				object: $plan,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: 'learniq', schema: 'rollover-plan')
+				)
+			);
 		} catch (DoesNotExistException $e) {
 			return new JSONResponse(data: ['error' => 'Plan not found'], statusCode: Http::STATUS_NOT_FOUND);
 		}

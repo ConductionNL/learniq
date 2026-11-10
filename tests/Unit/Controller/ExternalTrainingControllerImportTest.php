@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Controller;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Controller\ExternalTrainingController;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerTenantResolver;
@@ -93,10 +94,10 @@ class ExternalTrainingControllerImportTest extends TestCase {
 				: [])
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null) {
+			SaveCallShape::legacy(function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null) {
 				$this->saved[] = $object;
 				return OrEntityFactory::make($object, (string)$schema);
-			}
+			})
 		);
 
 		$actionAuth = $this->createMock(ActionAuthService::class);

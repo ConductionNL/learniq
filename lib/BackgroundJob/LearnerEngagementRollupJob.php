@@ -23,6 +23,8 @@ namespace OCA\Learniq\BackgroundJob;
 use DateTimeImmutable;
 use OCA\Learniq\Service\PointEngagementEvaluator;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use Psr\Log\LoggerInterface;
@@ -137,9 +139,10 @@ class LearnerEngagementRollupJob extends ForwardedJob {
 		);
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::LEARNER_ENGAGEMENT_SCHEMA,
-			object: $data
+			object: $data,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::LEARNER_ENGAGEMENT_SCHEMA)
+			)
 		);
 
 		if ($sourceKind === self::STREAK_MILESTONE_KIND) {
@@ -247,8 +250,6 @@ class LearnerEngagementRollupJob extends ForwardedJob {
 			}
 
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::POINT_AWARD_SCHEMA,
 				object: [
 					'learnerId' => $learnerId,
 					'pointRuleId' => $ruleId,
@@ -257,7 +258,10 @@ class LearnerEngagementRollupJob extends ForwardedJob {
 					'sourceObjectId' => null,
 					'awardedAt' => DateTimeImmutable::createFromMutable($this->timeFactory->getDateTime())->format(\DATE_ATOM),
 					'tenant_id' => $tenantId,
-				]
+				],
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::POINT_AWARD_SCHEMA)
+				)
 			);
 		}//end foreach
 

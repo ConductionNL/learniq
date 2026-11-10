@@ -47,6 +47,8 @@ namespace OCA\Learniq\Listener;
 use DateTimeImmutable;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -168,9 +170,10 @@ class PortfolioGradeEmitHandler implements IEventListener {
 		];
 
 		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::GRADE_ENTRY_SCHEMA,
-			object: $gradeEntry
+			object: $gradeEntry,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::GRADE_ENTRY_SCHEMA)
+			)
 		);
 
 		$savedData = $saved->jsonSerialize();
@@ -183,9 +186,10 @@ class PortfolioGradeEmitHandler implements IEventListener {
 
 		// Back-link the GradeEntry to the Portfolio.
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::PORTFOLIO_SCHEMA,
-			object: array_merge($portfolio, ['gradeEntryId' => $gradeEntryId])
+			object: array_merge($portfolio, ['gradeEntryId' => $gradeEntryId]),
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::PORTFOLIO_SCHEMA)
+			)
 		);
 
 		$this->logger->info(

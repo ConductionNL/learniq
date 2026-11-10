@@ -46,6 +46,8 @@ use DateTimeInterface;
 use DateTimeZone;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -126,7 +128,13 @@ class CheckInService {
 			'tenant_id' => (string)($window['tenant_id'] ?? ($session['tenant_id'] ?? '')),
 		];
 
-		$write = fn () => $this->objects->saveObject(object: $record, register: self::REGISTER, schema: self::RECORD_SCHEMA, _rbac: false);
+		$write = fn () => $this->objects->saveObject(
+			object: $record,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::RECORD_SCHEMA)
+			),
+			_rbac: false
+		);
 		if ($runAs === null) {
 			$write();
 			return new PortalOutcome(status: Http::STATUS_OK, body: ['status' => $status, 'sessionId' => (string)$session['id']]);

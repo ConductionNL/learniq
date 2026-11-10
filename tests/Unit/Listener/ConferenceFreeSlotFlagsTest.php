@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use DateTimeZone;
 use OCA\Learniq\Listener\ConferenceFreeSlotGenerator;
 use OCA\Learniq\Service\LearnerRefResolver;
@@ -151,6 +152,10 @@ class ConferenceFreeSlotFlagsTest extends TestCase {
 	 * @return array<string,mixed>
 	 */
 	private function byName(string $method, array $args): array {
+		if ($method === 'saveObject') {
+			return SaveCallShape::all(args: $args);
+		}
+
 		$named = [];
 		foreach ((new ReflectionMethod(ObjectService::class, $method))->getParameters() as $index => $parameter) {
 			if (array_key_exists($index, $args) === true) {

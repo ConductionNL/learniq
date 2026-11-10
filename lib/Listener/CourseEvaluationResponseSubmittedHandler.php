@@ -45,6 +45,8 @@ namespace OCA\Learniq\Listener;
 use DateTimeImmutable;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -149,14 +151,15 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 		// caller's own rights, filtered on the session uid, so this write
 		// only ever touches the caller's invitation.
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::EVALUATION_INVITATION_SCHEMA,
 			object: array_merge(
 				$invitation,
 				[
 					'hasResponded' => true,
 					'respondedAt' => (new DateTimeImmutable())->format(\DATE_ATOM),
 				]
+			),
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::EVALUATION_INVITATION_SCHEMA)
 			),
 			_rbac: false
 		);

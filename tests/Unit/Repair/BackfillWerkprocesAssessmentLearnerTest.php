@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Repair;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Listener\WerkprocesAssessmentLearnerStamp;
 use OCA\Learniq\Repair\BackfillWerkprocesAssessmentLearner;
 use OCA\Learniq\Service\ListenerSchemaResolver;
@@ -105,10 +106,9 @@ class BackfillWerkprocesAssessmentLearnerTest extends TestCase {
 		);
 		// Read arguments by the real parameter names: the stub and
 		// OpenRegister's own ObjectService order them differently.
-		$names = array_map(static fn (\ReflectionParameter $parameter): string => $parameter->getName(), (new \ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters());
 		$objectService->method('saveObject')->willReturnCallback(
-			function (mixed ...$args) use ($names): ObjectEntity {
-				$named = array_combine(array_slice($names, 0, count($args)), $args);
+			function (mixed ...$args): ObjectEntity {
+				$named = SaveCallShape::all(args: $args);
 				$this->saveRbac[] = (bool)($named['_rbac'] ?? true);
 				if ($this->refuseSaves === true) {
 					throw new \RuntimeException("Property 'learnerId' is not allowed.");

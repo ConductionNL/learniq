@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Controller;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Controller\ElectiveController;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\ElectiveBoard;
@@ -85,14 +86,14 @@ class ElectiveControllerTest extends TestCase {
 
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('saveObject')->willReturnCallback(
-			function ($object, $extend=[], $register=null, $schema=null, $uuid=null, $_rbac=true) use ($refuse) {
+			SaveCallShape::legacy(function ($object, $extend=[], $register=null, $schema=null, $uuid=null, $_rbac=true) use ($refuse) {
 				if ($refuse !== null) {
 					throw new \RuntimeException($refuse);
 				}
 
 				$this->saves[] = [$object, $_rbac];
 				return OrEntityFactory::make($object, 'elective-sign-up');
-			}
+			})
 		);
 
 		$board = $this->createMock(ElectiveBoard::class);

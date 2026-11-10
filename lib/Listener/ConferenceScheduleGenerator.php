@@ -65,6 +65,8 @@ use OCA\Learniq\Service\ConferenceSlotPass;
 use OCA\Learniq\Service\ConferenceSlotSlicer;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -256,11 +258,21 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 */
 	private function writeOutcome(string $roundId, array $outcome): void {
 		foreach ($outcome['newSlots'] as $slot) {
-			$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::CONFERENCE_SLOT_SCHEMA, object: $slot);
+			$this->objectService->saveObject(
+				object: $slot,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::CONFERENCE_SLOT_SCHEMA)
+				)
+			);
 		}
 
 		foreach ($outcome['signupSaves'] as $signup) {
-			$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::CONFERENCE_SIGNUP_SCHEMA, object: $signup);
+			$this->objectService->saveObject(
+				object: $signup,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::CONFERENCE_SIGNUP_SCHEMA)
+				)
+			);
 		}
 
 		$this->logger->info(
@@ -315,7 +327,12 @@ class ConferenceScheduleGenerator implements IEventListener {
 			if ($signupId !== '' && isset($cancelledSignupIds[$signupId]) === true) {
 				$freedSlot = $slot;
 				$freedSlot['lifecycle'] = 'cancelled';
-				$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::CONFERENCE_SLOT_SCHEMA, object: $freedSlot);
+				$this->objectService->saveObject(
+					object: $freedSlot,
+					options: new ObjectSaveOptions(
+						target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::CONFERENCE_SLOT_SCHEMA)
+					)
+				);
 				continue;
 			}
 

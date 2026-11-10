@@ -37,6 +37,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -253,9 +255,10 @@ class LearnerMergeService {
 			unset($row['@self']);
 			$this->objectService->saveObject(
 				object: $row,
-				register: self::LEARNIQ_REGISTER,
-				schema: $schema,
-				uuid: $rowId
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: $schema),
+					uuid: $rowId
+				)
 			);
 			$this->logger->info('[LearnerMergeService] Moved {schema} {id} to the surviving learner.', ['schema' => $schema, 'id' => $rowId]);
 		}

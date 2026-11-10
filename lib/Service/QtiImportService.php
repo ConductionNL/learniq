@@ -45,6 +45,8 @@ namespace OCA\Learniq\Service;
 use DOMDocument;
 use DOMElement;
 use DOMNodeList;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -361,7 +363,12 @@ class QtiImportService {
 	 * @return string|null The uuid, or null when the saved entity has none.
 	 */
 	private function saveItem(array $itemData): ?string {
-		$uuid = $this->objectService->saveObject(register: 'learniq', schema: 'item', object: $itemData)->getUuid();
+		$uuid = $this->objectService->saveObject(
+			object: $itemData,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: 'learniq', schema: 'item')
+			)
+		)->getUuid();
 		if (is_string($uuid) === true) {
 			return $uuid;
 		}

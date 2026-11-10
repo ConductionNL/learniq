@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Lifecycle\SessionChangeGuard;
 use OCA\Learniq\Listener\SessionChangeNoticeHandler;
 use OCA\Learniq\Service\SessionChangeBatchService;
@@ -22,7 +23,6 @@ use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use PHPUnit\Framework\TestCase;
-use ReflectionMethod;
 use RuntimeException;
 
 /**
@@ -107,10 +107,9 @@ class SessionChangeBatchGoldenTest extends TestCase {
 				return OrEntityFactory::make($lessons[$id], 'session');
 			}
 		);
-		$saveNames = array_map(static fn ($param): string => $param->getName(), (new ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters());
 		$objects->method('saveObject')->willReturnCallback(
-			function (...$args) use ($saveNames) {
-				$named = array_combine(array_slice($saveNames, 0, count($args)), $args);
+			function (...$args) {
+				$named = SaveCallShape::all(args: $args);
 				$object = $named['object'];
 				$this->calls[] = ['save' => [$named['schema'] ?? null, $named['uuid'] ?? null, $object]];
 				if (($object['id'] ?? '') === 's-restore-fails' && ($object['changeBatchId'] ?? null) === null) {

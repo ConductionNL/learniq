@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\Signing;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use DateTime;
 use OCA\Learniq\Exception\SigningRefusedException;
 use OCA\Learniq\Service\PokParentSignatureRule;
@@ -93,11 +94,11 @@ class SigningServiceTest extends TestCase {
 			}
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], mixed $register = null, mixed $schema = null) {
+			SaveCallShape::legacy(function (array $object, ?array $extend = [], mixed $register = null, mixed $schema = null) {
 				$this->saved[] = ['schema' => (string)$schema, 'row' => $object];
 
 				return OrEntityFactory::make(array_merge($object, ['id' => 'sig-new']));
-			}
+			})
 		);
 
 		$groupManager = $this->createMock(IGroupManager::class);

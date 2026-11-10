@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use InvalidArgumentException;
 use OCA\Learniq\Exception\XapiRequestException;
 use OCA\Learniq\Service\CallerTenantResolver;
@@ -73,7 +74,13 @@ class XapiStatementIngestTest extends TestCase {
 	private function ingest(): XapiStatementIngest {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], mixed $register = null, mixed $schema = null, ?string $uuid = null): ObjectEntity {
+			SaveCallShape::legacy(function (
+				array|ObjectEntity $object,
+				?array $extend = [],
+				mixed $register = null,
+				mixed $schema = null,
+				?string $uuid = null
+			): ObjectEntity {
 				$row = (array)$object;
 				if (isset($this->rows[$uuid]) === true) {
 					throw new RuntimeException('SCHEMA_APPEND_ONLY: Schema "xapi-statement" is append-only; update operations are not permitted.');
@@ -82,7 +89,7 @@ class XapiStatementIngestTest extends TestCase {
 				$this->saves[]     = (string)$uuid;
 				$this->rows[$uuid] = $row + ['result' => null, 'context' => null, 'timestamp' => null, 'authority' => null];
 				return OrEntityFactory::make($this->rows[$uuid], 'xapi-statement');
-			}
+			})
 		);
 		$objects->method('find')->willReturnCallback(
 			function (int|string $id): ObjectEntity {

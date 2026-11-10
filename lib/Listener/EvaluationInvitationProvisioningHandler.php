@@ -39,6 +39,8 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -205,8 +207,6 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 			$provisioned[(string)$learnerId] = true;
 
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::EVALUATION_INVITATION_SCHEMA,
 				object: [
 					'campaignId' => $stamp['campaignId'],
 					'courseId' => $cohort['courseId'],
@@ -218,7 +218,10 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 					'academicYear' => $stamp['academicYear'],
 					'period' => $stamp['period'],
 					'tenant_id' => $stamp['tenant_id'],
-				]
+				],
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::EVALUATION_INVITATION_SCHEMA)
+				)
 			);
 		}//end foreach
 

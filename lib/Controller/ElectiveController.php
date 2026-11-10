@@ -40,6 +40,8 @@ use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\ElectiveBoard;
 use OCA\Learniq\Service\ElectiveService;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -243,8 +245,9 @@ class ElectiveController extends Controller {
 		try {
 			$saved = $this->objectService->saveObject(
 				object: $signUp,
-				register: ElectiveService::REGISTER,
-				schema: ElectiveService::SIGN_UP_SCHEMA,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: ElectiveService::REGISTER, schema: ElectiveService::SIGN_UP_SCHEMA)
+				),
 				_rbac: $asStaff
 			);
 		} catch (Throwable $exception) {

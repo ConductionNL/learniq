@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Listener\CorrectionAppliedHandler;
 use OCA\Learniq\Service\Grading\CorrectionApprovals;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -92,7 +93,14 @@ class CorrectionAppliedHandlerTest extends TestCase {
 			), 'data-correction-request')
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null, bool $_rbac = true) use ($saveFails): ObjectEntity {
+			SaveCallShape::legacy(function (
+				array|ObjectEntity $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				$uuid = null,
+				bool $_rbac = true
+			) use ($saveFails): ObjectEntity {
 				if ($saveFails === true) {
 					throw new \RuntimeException('database gone');
 				}
@@ -100,7 +108,7 @@ class CorrectionAppliedHandlerTest extends TestCase {
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->saved[] = ['schema' => (string)$schema, 'object' => $data, 'uuid' => $uuid, 'rbac' => $_rbac];
 				return OrEntityFactory::make($data, (string)$schema);
-			}
+			})
 		);
 
 		return new CorrectionAppliedHandler(

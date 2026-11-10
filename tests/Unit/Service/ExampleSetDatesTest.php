@@ -22,6 +22,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use DateTimeImmutable;
 use OCA\Learniq\Service\ExampleSetDates;
 use OCA\Learniq\Service\LoadedExampleSets;
@@ -93,7 +94,7 @@ class FakeObjectStore {
 	 * @return ObjectEntity
 	 */
 	public function saveObject(array $object, mixed ...$rest): ObjectEntity {
-		$this->saves[] = ['object' => $object] + $rest;
+		$this->saves[] = SaveCallShape::named(args: [$object, ($rest['options'] ?? null), ($rest['_rbac'] ?? true), ($rest['_multitenancy'] ?? true)]);
 		return OrEntityFactory::make($object);
 	}//end saveObject()
 }//end class

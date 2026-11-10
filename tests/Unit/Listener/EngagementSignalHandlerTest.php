@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use DateTime;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -155,7 +156,7 @@ class EngagementSignalHandlerTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			SaveCallShape::legacy(function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
 				$register = (string)$register;
 				$schema = (string)$schema;
 
@@ -180,7 +181,7 @@ class EngagementSignalHandlerTest extends TestCase {
 				}
 
 				return OrEntityFactory::make($object, $schema, $register);
-			}
+			})
 		);
 
 		$this->deferral = $this->createMock(ListenerDeferralService::class);

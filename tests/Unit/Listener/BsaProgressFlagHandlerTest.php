@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use DateTime;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -106,14 +107,14 @@ class BsaProgressFlagHandlerTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			SaveCallShape::legacy(function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
 				$this->savedObjects[] = [
 					'register' => (string)$register,
 					'schema' => (string)$schema,
 					'object' => $object,
 				];
 				return OrEntityFactory::make($object, (string)$schema, (string)$register);
-			}
+			})
 		);
 
 		$evaluator = $this->createMock(BsaProgressEvaluator::class);

@@ -43,6 +43,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit;
 
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -196,7 +198,12 @@ $rows = $this->objectService->findAll(
 	]
 );
 $scoped = $this->objectService->findAll(['filters' => array_merge($filters, ['register' => 'r', 'schema' => 's'])]);
-$saved = $this->objectService->saveObject(object: $o, register: 'learniq', schema: 'lesson');
+$saved = $this->objectService->saveObject(
+	object: $o,
+	options: new ObjectSaveOptions(
+		target: new ObjectFindTarget(register: 'learniq', schema: 'lesson')
+	)
+);
 $payload = ['register' => 'learniq', 'schema' => 'lesson'];
 PHP;
 
@@ -272,7 +279,12 @@ PHP;
 <?php
 $a = $this->objectService->findAll(['ids' => [$id], 'filters' => ['register' => 'learniq', 'schema' => 'exam', 'tenant_id' => $t], 'limit' => 1]);
 $b = $this->objectService->findAll(['filters' => ['register' => 'learniq', 'schema' => 'grade-entry', 'learnerId' => $uid, 'assessmentResultId' => $id]]);
-$job = $this->objectService->saveObject(object: ['scope' => ['filters' => ['id' => $sourceId]]], register: 'learniq', schema: 'job');
+$job = $this->objectService->saveObject(
+	object: ['scope' => ['filters' => ['id' => $sourceId]]],
+	options: new ObjectSaveOptions(
+		target: new ObjectFindTarget(register: 'learniq', schema: 'job')
+	)
+);
 $this->logger->info('Job {id}', ['id' => $jobId]);
 PHP;
 

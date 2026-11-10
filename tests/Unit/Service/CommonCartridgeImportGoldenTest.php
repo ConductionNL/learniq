@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Service\CommonCartridgeParser;
 use OCA\Learniq\Service\CoursePackage\CommonCartridgeCourseImporter;
 use OCA\Learniq\Service\CoursePackage\CommonCartridgeResourceRouter;
@@ -167,17 +168,9 @@ class CommonCartridgeImportGoldenTest extends TestCase {
 	private function callsFor(string $dir, array $manifest): array {
 		$calls   = [];
 		$service = $this->createMock(ObjectService::class);
-		$params   = (new ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters();
 		$service->method('saveObject')->willReturnCallback(
-			static function (...$args) use ($params, &$calls) {
-				$named = [];
-				foreach ($args as $i => $value) {
-					if ($params[$i]->isDefaultValueAvailable() === true && $params[$i]->getDefaultValue() === $value) {
-						continue;
-					}
-
-					$named[$params[$i]->getName()] = $value;
-				}
+			static function (...$args) use (&$calls) {
+				$named = SaveCallShape::named(args: $args);
 
 				$calls[] = ['saveObject' => $named];
 				if (($named['object']['name'] ?? '') === 'Node IX') {

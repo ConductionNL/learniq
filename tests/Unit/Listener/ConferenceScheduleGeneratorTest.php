@@ -30,6 +30,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -102,14 +103,14 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			SaveCallShape::legacy(function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
 				$this->savedObjects[] = [
 					'register' => (string)$register,
 					'schema' => (string)$schema,
 					'object' => $object,
 				];
 				return OrEntityFactory::make($object, (string)$schema, (string)$register);
-			}
+			})
 		);
 
 		return new ConferenceScheduleGenerator($objectService, $this->createMock(LoggerInterface::class), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
@@ -431,10 +432,10 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			SaveCallShape::legacy(function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
 				$this->savedObjects[] = ['register' => (string)$register, 'schema' => (string)$schema, 'object' => $object];
 				return OrEntityFactory::make($object, (string)$schema, (string)$register);
-			}
+			})
 		);
 		$users = $this->createMock(IUserManager::class);
 		$users->method('getDisplayName')->willReturn('Meester Daan');

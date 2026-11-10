@@ -50,6 +50,8 @@ namespace OCA\Learniq\Controller;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\LearningRecordExportSigningService;
@@ -251,9 +253,10 @@ class LearningRecordShareVerifyController extends Controller {
 
 		try {
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::SHARE_SCHEMA,
-				object: $updated
+				object: $updated,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::SHARE_SCHEMA)
+				)
 			);
 		} catch (\Throwable) {
 			// Best-effort — a failed access-stamp must never block a valid verification response.

@@ -30,6 +30,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserManager;
 
@@ -187,8 +189,9 @@ class EmployerBookingProjection {
 
 		$saved = $this->objectService->saveObject(
 			object: array_merge($row, $fields),
-			register: self::REGISTER,
-			schema: $schema,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: $schema)
+			),
 			_rbac: false,
 			_multitenancy: false
 		);

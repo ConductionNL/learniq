@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\CorrectionAppliedHandler;
 use OCA\Learniq\Listener\GradeRollupHandler;
@@ -171,6 +172,10 @@ class CorrectionAppliedAfterRollupFailureTest extends TestCase {
 	 * @return array<string,mixed>
 	 */
 	private static function named(string $method, array $args): array {
+		if ($method === 'saveObject') {
+			return SaveCallShape::all(args: $args);
+		}
+
 		$named = [];
 		foreach ((new ReflectionMethod(ObjectService::class, $method))->getParameters() as $position => $parameter) {
 			if (array_key_exists($position, $args) === true) {

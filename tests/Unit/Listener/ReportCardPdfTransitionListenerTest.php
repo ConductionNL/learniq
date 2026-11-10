@@ -21,6 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Listener\ReportCardPdfTransitionListener;
 use OCA\Learniq\Service\ReportCardPdfDelegationService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -123,13 +124,19 @@ class ReportCardPdfTransitionListenerTest extends TestCase {
 	private function captureSave(): \ArrayObject {
 		$captured = new \ArrayObject();
 		$this->objectService->expects($this->once())->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use ($captured) {
+			SaveCallShape::legacy(static function (
+				array $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				?string $uuid = null
+			) use ($captured) {
 				$captured['object'] = $object;
 				$captured['schema'] = $schema;
 				$captured['uuid'] = $uuid;
 
 				return OrEntityFactory::make($object, 'report-card');
-			}
+			})
 		);
 
 		return $captured;

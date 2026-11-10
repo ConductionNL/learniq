@@ -21,6 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Repair;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Repair\BackfillReadableCopies;
 use OCA\Learniq\Service\ReadableCopies;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -87,7 +88,13 @@ class BackfillReadableCopiesTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) => $this->store->save((string)$schema, $object, $uuid)
+			SaveCallShape::legacy(fn (
+				array $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				?string $uuid = null
+			) => $this->store->save((string)$schema, $object, $uuid))
 		);
 
 		return new BackfillReadableCopies(
@@ -172,14 +179,14 @@ class BackfillReadableCopiesTest extends TestCase {
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use (&$saved) {
+			SaveCallShape::legacy(static function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use (&$saved) {
 				if ($uuid === 'enrolment-broken') {
 					throw new RuntimeException('locked');
 				}
 
 				$saved[$uuid] = $object['cohortName'];
 				return OrEntityFactory::make($object, (string)$schema);
-			}
+			})
 		);
 
 		$messages = [];

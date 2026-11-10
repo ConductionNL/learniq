@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Listener\ConferenceScheduleGenerator;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\TransitionScope;
@@ -32,7 +33,6 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
-use ReflectionMethod;
 
 /**
  * Pins every saveObject call ConferenceScheduleGenerator makes for a round
@@ -169,17 +169,9 @@ class ConferenceScheduleGoldenTest extends TestCase {
 				return $found;
 			}
 		);
-		$params = (new ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters();
 		$service->method('saveObject')->willReturnCallback(
-			static function (...$args) use ($params, &$calls): ObjectEntity {
-				$named = [];
-				foreach ($args as $i => $value) {
-					if ($params[$i]->isDefaultValueAvailable() === true && $params[$i]->getDefaultValue() === $value) {
-						continue;
-					}
-
-					$named[$params[$i]->getName()] = $value;
-				}
+			static function (...$args) use (&$calls): ObjectEntity {
+				$named = SaveCallShape::named(args: $args);
 
 				unset($named['object']['@self']);
 				$calls[] = ['saveObject' => $named];

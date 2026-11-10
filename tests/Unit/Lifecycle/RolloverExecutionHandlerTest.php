@@ -21,6 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Exception\RolloverInterruptedException;
 use OCA\Learniq\Lifecycle\RolloverExecutionHandler;
 use OCA\Learniq\Service\ListenerSchemaResolver;
@@ -53,10 +54,10 @@ class RolloverExecutionHandlerTest extends TestCase {
 		$saved   = [];
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved) {
+			SaveCallShape::legacy(static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved) {
 				$saved[] = $object;
 				return OrEntityFactory::make($object, (string)$schema, (string)$register);
-			}
+			})
 		);
 
 		$rollover = $this->createMock(RolloverService::class);

@@ -37,6 +37,8 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use OCA\Learniq\Exception\XapiRequestException;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Http;
 use Throwable;
@@ -162,9 +164,10 @@ class XapiDocumentStore {
 		$row = $this->row(key: $key, contents: $contents, contentType: $contentType, context: $context);
 		$this->objectService->saveObject(
 			object: $row,
-			register: self::REGISTER,
-			schema: self::SCHEMA,
-			uuid: $row['id'],
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA),
+				uuid: $row['id']
+			),
 			_rbac: false
 		);
 

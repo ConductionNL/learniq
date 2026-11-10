@@ -32,6 +32,8 @@ use OCA\Learniq\Exception\IntegriqUnavailableException;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerActions;
 use OCA\Learniq\Service\IntegriqExchangeClient;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -166,9 +168,10 @@ class ExchangeRequestController extends Controller {
 
 		if ($learnerId !== '' && in_array($target, self::REVIEWED_TARGETS, true) === true) {
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::DOSSIER_REVIEW_SCHEMA,
-				object: ['exchangeJobId' => $jobId, 'target' => $target, 'learnerUserId' => $learnerId, 'status' => 'pending']
+				object: ['exchangeJobId' => $jobId, 'target' => $target, 'learnerUserId' => $learnerId, 'status' => 'pending'],
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::DOSSIER_REVIEW_SCHEMA)
+				)
 			);
 		}
 

@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\Portal;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Service\Portal\EmployerBookingProjection;
 use OCA\Learniq\Service\Portal\PortalEmployerBookings;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
@@ -159,10 +160,10 @@ class EmployerBookingOrganisationTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, false, false)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): object {
+			SaveCallShape::legacy(function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): object {
 				$this->saves[] = [(string)$schema, $this->actingFor];
 				return $this->store->save((string)$schema, $object, $uuid, false);
-			}
+			})
 		);
 		$objectService->method('runForOrganisation')->willReturnCallback(
 			function (string $organisationUuid, callable $operation): mixed {

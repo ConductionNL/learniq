@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Repair;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Repair\BackfillReportCardGradeLines;
 use OCA\Learniq\Service\ReportCardGradeLines;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
@@ -100,13 +101,13 @@ class BackfillReportCardGradeLinesTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) {
+			SaveCallShape::legacy(function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) {
 				if ($this->refuseSaves !== null) {
 					throw new \RuntimeException(($this->refuseSaves)($object));
 				}
 
 				return $this->store->save((string)$schema, $object, $uuid);
-			}
+			})
 		);
 
 		return new BackfillReportCardGradeLines(

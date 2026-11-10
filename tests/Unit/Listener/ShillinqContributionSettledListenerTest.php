@@ -27,6 +27,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\AppInfo\Registrar\BootListenerRegistrar;
 use OCA\Learniq\Listener\ShillinqContributionSettledListener;
 use OCA\Learniq\Service\ContributionBeneficiaryResolver;
@@ -108,7 +109,13 @@ class ShillinqContributionSettledListenerTest extends TestCase {
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): ObjectEntity => $this->store->save((string)$schema, $object, $uuid)
+			SaveCallShape::legacy(fn (
+				array|ObjectEntity $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				?string $uuid = null
+			): ObjectEntity => $this->store->save((string)$schema, $object, $uuid))
 		);
 
 		$engine = $this->createMock(TransitionEngine::class);

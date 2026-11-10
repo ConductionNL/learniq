@@ -52,7 +52,13 @@ trait XapiDocumentsInMemory {
 			static fn (array $config = [], bool $rbac = true, bool $multitenancy = true): array => $store->findAll($config, $rbac, $multitenancy)
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			static function (array|ObjectEntity $object, ?array $extend = [], mixed $register = null, mixed $schema = null, ?string $uuid = null) use ($store): ObjectEntity {
+			SaveCallShape::legacy(static function (
+				array|ObjectEntity $object,
+				?array $extend = [],
+				mixed $register = null,
+				mixed $schema = null,
+				?string $uuid = null
+			) use ($store): ObjectEntity {
 				$row = (array)$object;
 				foreach ($row as $name => $value) {
 					if (is_string($value) === true && is_array(json_decode($value, true)) === true) {
@@ -61,7 +67,7 @@ trait XapiDocumentsInMemory {
 				}
 
 				return $store->save((string)$schema, $row, $uuid);
-			}
+			})
 		);
 		$objects->method('find')->willReturnCallback(
 			static function (int|string $id, ?array $extend = [], bool $files = false, mixed $register = null, mixed $schema = null) use ($store): ?ObjectEntity {

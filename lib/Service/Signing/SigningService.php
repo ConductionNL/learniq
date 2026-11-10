@@ -35,6 +35,8 @@ use DateTimeZone;
 use OCA\Learniq\Exception\SigningRefusedException;
 use OCA\Learniq\Service\PokParentSignatureRule;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -198,7 +200,13 @@ class SigningService {
 			$row['subjectKind'] = $config['subjectKind'];
 		}
 
-		$saved = $this->objects->saveObject(object: $row, register: self::REGISTER, schema: $config['signatureSchema'], _rbac: false);
+		$saved = $this->objects->saveObject(
+			object: $row,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: $config['signatureSchema'])
+			),
+			_rbac: false
+		);
 
 		return [
 			'id' => (string)($saved->jsonSerialize()['id'] ?? ''),

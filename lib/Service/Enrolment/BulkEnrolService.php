@@ -29,6 +29,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Enrolment;
 
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Throwable;
 
@@ -91,8 +93,9 @@ class BulkEnrolService {
 						'source' => 'bulk',
 						'tenant_id' => (string)($course['tenant_id'] ?? ''),
 					],
-					register: self::REGISTER,
-					schema: 'enrolment'
+					options: new ObjectSaveOptions(
+						target: new ObjectFindTarget(register: self::REGISTER, schema: 'enrolment')
+					)
 				);
 				$outcome['enrolled']++;
 			} catch (Throwable $exception) {

@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\CommonCartridgeParser;
 use OCA\Learniq\Service\CoursePackage\CommonCartridgeCourseImporter;
@@ -123,7 +124,7 @@ class CoursePackageRoundTripTest extends TestCase {
 		$savedByschema = [];
 		$importObjectService = $this->createMock(ObjectService::class);
 		$importObjectService->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$savedByschema) {
+			SaveCallShape::legacy(static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$savedByschema) {
 				$schemaSlug = (string)$schema;
 
 				$savedByschema[$schemaSlug] ??= [];
@@ -135,7 +136,7 @@ class CoursePackageRoundTripTest extends TestCase {
 					(string)$register,
 					$schemaSlug . '-reimported-' . count($savedByschema[$schemaSlug])
 				);
-			}
+			})
 		);
 
 		$importFolder = $this->createMock(Folder::class);

@@ -19,6 +19,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\AppInfo\Registrar\TransitionBridgeListenerRegistrar;
 use OCA\Learniq\BackgroundJob\ActorForwarding;
 use OCA\Learniq\BackgroundJob\SchoolAdviesVoorlopigRodJob;
@@ -165,11 +166,17 @@ class SchoolAdviesVoorlopigRodTest extends TestCase {
 			}
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null, $uuid = null) use (&$saved, &$stored): ObjectEntity {
+			SaveCallShape::legacy(static function (
+				array $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				$uuid = null
+			) use (&$saved, &$stored): ObjectEntity {
 				$saved[] = ['schema' => $schema, 'object' => $object, 'uuid' => $uuid];
 				$stored = $object;
 				return OrEntityFactory::make($object, (string)$schema);
-			}
+			})
 		);
 		$integriq = $this->createMock(IntegriqExchangeClient::class);
 		$integriq->expects($this->once())->method('requestJob')->with(

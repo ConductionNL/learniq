@@ -41,6 +41,8 @@ namespace OCA\Learniq\Listener;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -249,8 +251,9 @@ class HourWeekTotalRollup implements IEventListener {
 
 			$this->objectService->saveObject(
 				object: array_merge($row, $totals),
-				register: self::REGISTER,
-				schema: self::PLACEMENT_SCHEMA,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::PLACEMENT_SCHEMA)
+				),
 				_rbac: false,
 				_multitenancy: false
 			);

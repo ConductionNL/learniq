@@ -21,6 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use DateTime;
 use OCA\Integriq\Event\ExchangeRecordsReceivedEvent;
 use OCA\Learniq\AppInfo\Registrar\CaseListenerRegistrar;
@@ -81,13 +82,13 @@ class ExchangeImportLandingListenerTest extends TestCase {
 			}
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null, bool $_rbac = true) {
+			SaveCallShape::legacy(function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null, bool $_rbac = true) {
 				$this->writes[] = ['schema' => (string)$schema, 'row' => $object, 'rbac' => $_rbac];
 				$object['id'] = $object['id'] ?? ($schema . '-' . count($this->writes));
 				$this->db[(string)$schema] = array_values(array_filter($this->db[(string)$schema] ?? [], static fn (array $r): bool => ($r['id'] ?? null) !== $object['id']));
 				$this->db[(string)$schema][] = $object;
 				return OrEntityFactory::make($object, (string)$schema);
-			}
+			})
 		);
 		$time = $this->createMock(ITimeFactory::class);
 		$time->method('getDateTime')->willReturn(new DateTime('2026-09-28T10:00:00+00:00'));

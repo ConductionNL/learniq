@@ -30,6 +30,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\AppInfo\Registrar\IntegrityListenerRegistrar;
 use OCA\Learniq\Listener\HourWeekSubmissionStamp;
 use OCA\Learniq\Listener\HourWeekTotalRollup;
@@ -114,7 +115,13 @@ class HourWeekListenersTest extends TestCase {
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): object => $this->store->save((string)$schema, $object, ($uuid ?? (string)($object['id'] ?? '')))
+			SaveCallShape::legacy(fn (
+				array $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				?string $uuid = null
+			): object => $this->store->save((string)$schema, $object, ($uuid ?? (string)($object['id'] ?? ''))))
 		);
 
 		return $objectService;
@@ -403,10 +410,16 @@ class HourWeekListenersTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use (&$writes): object {
+			SaveCallShape::legacy(function (
+				array $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				?string $uuid = null
+			) use (&$writes): object {
 				$writes++;
 				return $this->store->save((string)$schema, $object, ($uuid ?? (string)($object['id'] ?? '')));
-			}
+			})
 		);
 		$resolver = $this->createMock(ListenerSchemaResolver::class);
 		$resolver->method('guardSchemaSlug')->willReturn('bpv-hour-week');
@@ -580,10 +593,16 @@ class HourWeekListenersTest extends TestCase {
 			}
 		);
 		$service->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use (&$writes): object {
+			SaveCallShape::legacy(function (
+				array $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				?string $uuid = null
+			) use (&$writes): object {
 				$writes++;
 				return $this->store->save((string)$schema, $object, (string)($object['id'] ?? ''));
-			}
+			})
 		);
 		$resolver = $this->createMock(ListenerSchemaResolver::class);
 		$resolver->method('guardSchemaSlug')->willReturn('bpv-hour-week');

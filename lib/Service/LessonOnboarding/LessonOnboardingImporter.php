@@ -35,6 +35,8 @@ namespace OCA\Learniq\Service\LessonOnboarding;
 use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
@@ -277,7 +279,13 @@ class LessonOnboardingImporter {
 		$draft = $this->noteSplitter->split(blocks: $this->draftBuilder->build(sections: $run['lesson']['sections'], materialIds: $run['materialIds']));
 		$run['payload']['blocks'] = $draft['blocks'];
 		$run['notes'] = $draft['notes'];
-		$this->objectService->saveObject(object: $run['payload'], register: self::REGISTER, schema: 'lesson', uuid: $run['lessonId']);
+		$this->objectService->saveObject(
+			object: $run['payload'],
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: 'lesson'),
+				uuid: $run['lessonId']
+			)
+		);
 
 		return $run;
 	}//end attachImages()

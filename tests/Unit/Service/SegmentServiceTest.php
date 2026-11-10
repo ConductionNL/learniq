@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\Learniq\Service\SegmentService;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserManager;
@@ -355,10 +356,11 @@ class SegmentServiceTest extends TestCase {
 						&& $data['setBy'] === 'admin'
 						&& strtotime((string)$data['setAt']) !== false
 				),
-				self::anything(),
-				'learniq',
-				'learniqsettings',
-				null,
+				self::callback(
+					callback: static fn (ObjectSaveOptions $options): bool => $options->target->register === 'learniq'
+						&& $options->target->schema === 'learniqsettings'
+						&& $options->uuid === null
+				),
 				false
 			);
 
@@ -381,10 +383,11 @@ class SegmentServiceTest extends TestCase {
 			->method('saveObject')
 			->with(
 				self::callback(static fn (array $data): bool => $data['segment'] === 'vo'),
-				self::anything(),
-				'learniq',
-				'learniqsettings',
-				'ee000000-0000-4000-8000-000000000001',
+				self::callback(
+					callback: static fn (ObjectSaveOptions $options): bool => $options->target->register === 'learniq'
+						&& $options->target->schema === 'learniqsettings'
+						&& $options->uuid === 'ee000000-0000-4000-8000-000000000001'
+				),
 				false
 			);
 

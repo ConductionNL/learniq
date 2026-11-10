@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\BackgroundJob;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use DateTime;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -166,7 +167,7 @@ class EngagementSignalJobTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			SaveCallShape::legacy(function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
 				$register = (string)$register;
 				$schema = (string)$schema;
 
@@ -191,7 +192,7 @@ class EngagementSignalJobTest extends TestCase {
 				}
 
 				return OrEntityFactory::make($object, $schema, $register);
-			}
+			})
 		);
 
 		$evaluator = $this->createMock(EngagementScoreEvaluator::class);

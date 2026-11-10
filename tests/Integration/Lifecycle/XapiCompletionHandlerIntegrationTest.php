@@ -33,6 +33,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Integration\Lifecycle;
 
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\XapiCompletionHandler;
 use OCP\EventDispatcher\Event;
@@ -170,9 +172,10 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 	private function createObject(string $schema, array $data): array {
 		try {
 			$obj = $this->objectService->saveObject(
-				register: 'learniq',
-				schema: $schema,
 				object: $data,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: 'learniq', schema: $schema)
+				),
 			);
 		} catch (\OCP\AppFramework\Db\DoesNotExistException $e) {
 			// The Learniq OpenRegister register/schemas aren't provisioned in

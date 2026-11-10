@@ -34,6 +34,8 @@ use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\CredentialLearner;
 use OCA\Learniq\Service\EuropassIssuer;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -160,7 +162,14 @@ class CredentialEuropassController extends Controller {
 			$row = $credential;
 			unset($row['@self']);
 			$row['edciPayload'] = $payload;
-			$this->objects->saveObject(object: $row, register: self::REGISTER, schema: self::SCHEMA, uuid: $id, _rbac: false);
+			$this->objects->saveObject(
+				object: $row,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA),
+					uuid: $id
+				),
+				_rbac: false
+			);
 		} catch (Throwable) {
 			return new JSONResponse(data: ['error' => 'save_failed'], statusCode: Http::STATUS_INTERNAL_SERVER_ERROR);
 		}

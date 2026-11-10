@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\Portal;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Service\Portal\PortalHourWeekApproval;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
@@ -95,13 +96,19 @@ class PortalHourWeekApprovalTest extends TestCase {
 		);
 		$objectService->method('saveObject')->willReturnCallback(
 			// The real saveObject() answers an entity, never an array.
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use ($saveThrows): object {
+			SaveCallShape::legacy(function (
+				array $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				?string $uuid = null
+			) use ($saveThrows): object {
 				if ($saveThrows === true) {
 					throw new RuntimeException('SQLSTATE 23505 secret table name');
 				}
 
 				return $this->store->save((string)$schema, $object, $uuid ?? self::WEEK);
-			}
+			})
 		);
 
 		$config = $this->createMock(IAppConfig::class);
@@ -387,7 +394,7 @@ class PortalHourWeekApprovalTest extends TestCase {
 		$asArrays->method('saveObject')->willReturnCallback(
 			// saveObject() always answers an entity; only the READ shape is
 			// what this case varies.
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): object => OrEntityFactory::make($object, 'bpv-hour-week')
+			SaveCallShape::legacy(fn (array $object): object => OrEntityFactory::make($object, 'bpv-hour-week'))
 		);
 		$outcome = (new PortalHourWeekApproval(
 			objectService: $asArrays,
@@ -419,7 +426,13 @@ class PortalHourWeekApprovalTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): object => $this->store->save((string)$schema, $object, $uuid ?? self::WEEK)
+			SaveCallShape::legacy(fn (
+				array $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				?string $uuid = null
+			): object => $this->store->save((string)$schema, $object, $uuid ?? self::WEEK))
 		);
 
 		return $objectService;

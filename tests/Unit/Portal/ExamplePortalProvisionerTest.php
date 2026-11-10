@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Portal;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Portal\ExampleAccountProvisioner;
 use OCA\Learniq\Portal\ExamplePortalContent;
 use OCA\Learniq\Portal\ExamplePortalDeclarations;
@@ -106,7 +107,15 @@ class ExamplePortalProvisionerTest extends TestCase {
 				}
 			);
 			$objects->method('saveObject')->willReturnCallback(
-				function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null, bool $_rbac = true, bool $_multitenancy = true): ObjectEntity {
+				SaveCallShape::legacy(function (
+					array $object,
+					?array $extend = [],
+					$register = null,
+					$schema = null,
+					?string $uuid = null,
+					bool $_rbac = true,
+					bool $_multitenancy = true
+				): ObjectEntity {
 					$this->writes[] = compact('object', 'register', 'schema', 'uuid', '_rbac', '_multitenancy');
 					$id = ($uuid ?? ($schema . '-' . count($this->writes)));
 					$row = $object + ['@self' => ['id' => $id]];
@@ -115,7 +124,7 @@ class ExamplePortalProvisionerTest extends TestCase {
 					$entity = $this->createMock(ObjectEntity::class);
 					$entity->method('jsonSerialize')->willReturn($row);
 					return $entity;
-				}
+				})
 			);
 		}
 

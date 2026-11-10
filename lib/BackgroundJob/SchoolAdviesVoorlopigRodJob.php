@@ -33,6 +33,8 @@ use OCA\Learniq\Service\ExchangeDisclosure;
 use OCA\Learniq\Service\IntegriqExchangeClient;
 use OCA\Learniq\Service\SchoolAdviesRodTiming;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -128,10 +130,11 @@ class SchoolAdviesVoorlopigRodJob extends ForwardedJob {
 		);
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::SCHOOL_ADVIES_SCHEMA,
 			object: array_merge($advies, ['voorlopigExchangeJobId' => $jobId]),
-			uuid: $id
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::SCHOOL_ADVIES_SCHEMA),
+				uuid: $id
+			)
 		);
 	}//end send()
 }//end class

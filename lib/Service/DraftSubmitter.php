@@ -29,6 +29,8 @@ namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Exception\DraftSubmitException;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -74,7 +76,12 @@ class DraftSubmitter {
 	 */
 	public function createAndSubmit(string $schema, array $data): array {
 		try {
-			$draft = $this->objectService->saveObject(object: $data, register: self::REGISTER, schema: $schema);
+			$draft = $this->objectService->saveObject(
+				object: $data,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: $schema)
+				)
+			);
 		} catch (Throwable $exception) {
 			$this->logger->info('[DraftSubmitter] A {schema} draft was refused: {msg}', ['schema' => $schema, 'msg' => $exception->getMessage()]);
 			throw new DraftSubmitException(reason: DraftSubmitException::INVALID, previous: $exception);

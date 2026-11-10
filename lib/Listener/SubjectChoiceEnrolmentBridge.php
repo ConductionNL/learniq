@@ -36,6 +36,8 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -129,14 +131,15 @@ class SubjectChoiceEnrolmentBridge implements IEventListener {
 			// System context (enrolment): a coordinator or administration manager locks the choice, and
 			// Enrolment create is instructors, hr, compliance officers and team leads only.
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::ENROLMENT_SCHEMA,
 				object: [
 					'learnerId' => $learnerId,
 					'courseId' => $courseId,
 					'source' => 'subject-choice',
 					'tenant_id' => $tenantId,
 				],
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ENROLMENT_SCHEMA)
+				),
 				_rbac: false
 			);
 			$created++;

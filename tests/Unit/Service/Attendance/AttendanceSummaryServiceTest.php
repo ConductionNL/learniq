@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\Attendance;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Service\Attendance\AttendanceSummaryCalculator;
 use OCA\Learniq\Service\Attendance\AttendanceSummaryService;
 use OCA\Learniq\Service\LearnerRefResolver;
@@ -177,14 +178,7 @@ class AttendanceSummaryServiceTest extends TestCase {
 	 * @return array<string,mixed>
 	 */
 	private static function saveObjectArguments(array $args): array {
-		$named = [];
-		foreach ((new \ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters() as $position => $parameter) {
-			if (array_key_exists($position, $args) === true) {
-				$named[$parameter->getName()] = $args[$position];
-			}
-		}
-
-		return $named;
+		return SaveCallShape::all(args: $args);
 	}
 
 	private static function record(string $sessionId, string $status, array $extra=[]): array {

@@ -50,6 +50,8 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Bpv\ProvidesLeerbedrijfVerification;
 use OCP\EventDispatcher\Event;
@@ -191,9 +193,10 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 		);
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::PLACEMENT_SCHEMA,
-			object: array_merge($placement, ['trainingCompanyVerification' => $updatedVerification])
+			object: array_merge($placement, ['trainingCompanyVerification' => $updatedVerification]),
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::PLACEMENT_SCHEMA)
+			)
 		);
 
 		$this->logger->info(

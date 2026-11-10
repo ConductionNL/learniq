@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Service\ReportSubjectGradeRows;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\OpenRegister\Service\ObjectService;
@@ -87,10 +88,15 @@ class ReportSubjectGradeRowsTest extends TestCase {
 			$deleted[] = [$schema, $uuid];
 			return true;
 		});
-		$objects->method('saveObject')->willReturnCallback(function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved, $store) {
+		$objects->method('saveObject')->willReturnCallback(SaveCallShape::legacy(function (
+			array $object,
+			?array $extend = [],
+			$register = null,
+			$schema = null
+		) use (&$saved, $store) {
 			$saved[] = [$schema, $object];
 			return $store->save((string)$schema, $object, null);
-		});
+		}));
 
 		$written = (new ReportSubjectGradeRows($objects))->replace([
 			'id' => 'card-2', 'learnerRef' => 'vera', 'learnerId' => 'po-leerling-147', 'cohortId' => 'g7', 'periodName' => 'Rapport 2',

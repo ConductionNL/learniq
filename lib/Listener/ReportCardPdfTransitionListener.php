@@ -37,6 +37,8 @@ namespace OCA\Learniq\Listener;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Service\ReportCardPdfDelegationService;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -95,9 +97,10 @@ class ReportCardPdfTransitionListener implements IEventListener {
 
 		$this->objectService->saveObject(
 			object: $this->pdfService->render(reportCard: $entity->getObject()),
-			register: self::LEARNIQ_REGISTER,
-			schema: self::REPORT_CARD_SCHEMA,
-			uuid: $entity->getUuid()
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA),
+				uuid: $entity->getUuid()
+			)
 		);
 
 		$this->logger->info(

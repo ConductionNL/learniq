@@ -21,6 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Service\CompetencyAlignmentNormaliser;
 use OCA\Learniq\Service\CompetencyTree;
 use OCA\Learniq\Service\CurriculumCoverageCalculator;
@@ -118,10 +119,10 @@ class CurriculumCoverageRollupTest extends TestCase {
 			}
 		);
 		$service->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend=[], mixed $register=null, mixed $schema=null, ?string $uuid=null): object {
+			SaveCallShape::legacy(function (array $object, ?array $extend=[], mixed $register=null, mixed $schema=null, ?string $uuid=null): object {
 				$this->saved[] = [$uuid, $object];
 				return OrEntityFactory::make($object, (string) $schema);
-			}
+			})
 		);
 		$service->method('deleteObject')->willReturnCallback(
 			function (string $uuid): bool {

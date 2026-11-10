@@ -43,6 +43,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Repair;
 
 use OCA\Learniq\Service\LessonOnboarding\TeacherNoteSplitter;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -152,9 +154,10 @@ class MoveTeacherNotesOutOfLessons implements IRepairStep {
 		try {
 			$this->objectService->saveObject(
 				object: array_merge($this->dataOf(row: $lesson), ['blocks' => $split['blocks']]),
-				register: self::REGISTER,
-				schema: self::LESSON_SCHEMA,
-				uuid: $uuid,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::LESSON_SCHEMA),
+					uuid: $uuid
+				),
 				_rbac: false,
 				_multitenancy: false
 			);
@@ -195,8 +198,9 @@ class MoveTeacherNotesOutOfLessons implements IRepairStep {
 
 				$this->objectService->saveObject(
 					object: [...$note, 'lessonId' => $lessonId, 'tenant_id' => $tenantId],
-					register: self::REGISTER,
-					schema: self::NOTE_SCHEMA,
+					options: new ObjectSaveOptions(
+						target: new ObjectFindTarget(register: self::REGISTER, schema: self::NOTE_SCHEMA)
+					),
 					_rbac: false,
 					_multitenancy: false
 				);

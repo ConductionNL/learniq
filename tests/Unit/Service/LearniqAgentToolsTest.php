@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Mcp\LearniqScannableServices;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\AgentToolAnswer;
@@ -135,14 +136,21 @@ class LearniqAgentToolsTest extends TestCase {
 			}
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null, bool $_rbac = true): ObjectEntity {
+			SaveCallShape::legacy(function (
+				array $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				?string $uuid = null,
+				bool $_rbac = true
+			): ObjectEntity {
 				if ($this->guardRefusal !== null) {
 					throw new RuntimeException($this->guardRefusal);
 				}
 
 				$this->saves[] = [(string)$schema, $object, $uuid, $_rbac];
 				return $this->entity(data: array_merge($object, ['id' => ($uuid ?? 'new-id')]));
-			}
+			})
 		);
 
 		$user = $this->createMock(IUser::class);

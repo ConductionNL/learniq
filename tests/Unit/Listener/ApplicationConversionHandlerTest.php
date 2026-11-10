@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
@@ -95,7 +96,14 @@ class ApplicationConversionHandlerTest extends TestCase {
 
 		$counter = ['learner-profile' => 0, 'enrolment' => 0];
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null, bool $_rbac = true) use (&$counter): ObjectEntity {
+			SaveCallShape::legacy(function (
+				array|ObjectEntity $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				$uuid = null,
+				bool $_rbac = true
+			) use (&$counter): ObjectEntity {
 				$this->rbacWrites[] = ['schema' => (string)$schema, 'rbac' => $_rbac];
 				$this->savedObjects[] = [
 					'register' => (string)$register,
@@ -122,7 +130,7 @@ class ApplicationConversionHandlerTest extends TestCase {
 				}
 
 				return OrEntityFactory::make($object, (string)$schema, (string)$register);
-			}
+			})
 		);
 
 		$transitionEngine = $this->createMock(TransitionEngine::class);

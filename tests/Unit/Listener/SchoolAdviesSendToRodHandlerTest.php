@@ -27,6 +27,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Exception\ExchangeRequestRefusedException;
 use OCA\Learniq\Listener\SchoolAdviesSendToRodHandler;
 use OCA\Learniq\Service\IntegriqExchangeClient;
@@ -66,11 +67,11 @@ class SchoolAdviesSendToRodHandlerTest extends TestCase {
 		$this->saved = [];
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null): ObjectEntity {
+			SaveCallShape::legacy(function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null): ObjectEntity {
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->saved[] = ['schema' => (string)$schema, 'object' => $data, 'uuid' => $uuid];
 				return OrEntityFactory::make($data, (string)$schema);
-			}
+			})
 		);
 		$this->integriq = $this->createMock(IntegriqExchangeClient::class);
 
