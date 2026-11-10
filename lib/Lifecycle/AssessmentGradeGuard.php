@@ -301,31 +301,40 @@ class AssessmentGradeGuard implements LifecycleGuardInterface {
 	private function findUnscoredItem(array $itemRefs, array $itemByUuid, array $responseByItemId): ?array {
 		foreach ($itemRefs as $itemRef) {
 			$itemId = $itemRef['itemId'] ?? null;
-			if ($itemId === null) {
-				continue;
-			}
 
 			// Bulk-fetched above (#196): O(1) lookup, tenant-scoped.
-			$item = ($itemByUuid[$itemId] ?? null);
-			if ($item === null) {
-				continue;
+			$item = null;
+			if ($itemId !== null) {
+				$item = ($itemByUuid[$itemId] ?? null);
 			}
 
-			if ($this->needsManualScoring(item: $item) === false) {
-				continue;
-			}
-
-			$response = ($responseByItemId[$itemId] ?? null);
-			if (($response['manualScore'] ?? null) === null && ($response['autoScore'] ?? null) === null) {
+			if ($item !== null && $this->isUnscored(item: $item, response: ($responseByItemId[$itemId] ?? null)) === true) {
 				return [
 					'itemId' => (string)$itemId,
 					'interactionType' => (string)($item['interactionType'] ?? ''),
 				];
 			}
-		}//end foreach
+		}
 
 		return null;
 	}//end findUnscoredItem()
+
+	/**
+	 * Whether an item that needs manual scoring has neither a manual nor an
+	 * auto score in its response.
+	 *
+	 * @param array<string,mixed>      $item     The Item.
+	 * @param array<string,mixed>|null $response The learner's response to it, or null.
+	 *
+	 * @return bool
+	 */
+	private function isUnscored(array $item, ?array $response): bool {
+		if ($this->needsManualScoring(item: $item) === false) {
+			return false;
+		}
+
+		return (($response['manualScore'] ?? null) === null && ($response['autoScore'] ?? null) === null);
+	}//end isUnscored()
 
 	/**
 	 * Whether an Item can only be scored by a human.
