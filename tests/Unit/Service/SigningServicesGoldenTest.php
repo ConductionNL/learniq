@@ -305,4 +305,48 @@ class SigningServicesGoldenTest extends TestCase {
 
 		self::assertSame(['a' => [2, 1], 'b' => ['c' => 1, 'd' => 2]], $verifier->canonical(['b' => ['d' => 2, 'c' => 1], 'a' => [2, 1]]));
 	}//end testProofVerifierOutcomes()
+	/**
+	 * The credential check refuses without learner, tenant, issuer key or private key, leaving the object untouched,
+	 * and otherwise stamps the four signed fields after the existing ones.
+	 *
+	 * @return void
+	 */
+	public function testCredentialCheckOutcomes(): void {
+		$urls = $this->createMock(IURLGenerator::class);
+		$urls->method('linkToRouteAbsolute')->willReturnCallback(
+			fn (string $route, array $params): string => 'https://x/' . $route . '/' . $params['id']
+		);
+		$object = ['id' => 'cred-1', 'learnerId' => 'lea', 'issuedAt' => '2026-06-01T10:00:00+00:00', 'tenant_id' => 't1', 'issuedBy' => 'School'];
+
+		$refusals = [
+			'no learner' => [['learnerId' => ''] + $object, 'enc', self::$publicKeyPem],
+			'no tenant' => [['tenant_id' => ''] + $object, 'enc', self::$publicKeyPem],
+			'no public key' => [$object, 'enc', ''],
+			'no private key' => [$object, '', self::$publicKeyPem],
+		];
+		foreach ($refusals as $name => [$input, $private, $public]) {
+			$service = new CredentialSigningService($this->appConfig($private, $public), $this->crypto(), $urls);
+			$context = ['object' => $input, 'other' => 1];
+			self::assertFalse($service->check($context), $name);
+			self::assertSame(['object' => $input, 'other' => 1], $context, $name);
+		}
+
+		$service = new CredentialSigningService($this->appConfig('enc', self::$publicKeyPem), $this->crypto(), $urls);
+		$context = ['object' => $object];
+		self::assertTrue($service->check($context));
+
+		$signed = $context['object'];
+		self::assertSame(
+			['id', 'learnerId', 'issuedAt', 'tenant_id', 'issuedBy', 'openbadges3Payload', 'signature', 'issuerDid', 'verificationUrl'],
+			array_keys($signed)
+		);
+		$kid = substr(hash('sha256', self::$publicKeyPem), 0, 32);
+		self::assertSame('did:web:learniq:t1:' . $kid, $signed['issuerDid']);
+		self::assertSame('https://x/learniq.credentialVerify.verify/cred-1', $signed['verificationUrl']);
+		self::assertSame($signed['signature'], $signed['openbadges3Payload']['proof']['jws']);
+		self::assertSame($signed['issuerDid'] . '#' . $kid, $signed['openbadges3Payload']['proof']['verificationMethod']);
+		$unsigned = $signed['openbadges3Payload'];
+		unset($unsigned['proof']);
+		self::assertSame($service->signPayload($unsigned, 't1'), $signed['signature']);
+	}//end testCredentialCheckOutcomes()
 }//end class
