@@ -134,23 +134,7 @@ final class GuardianSubmitCheck {
 	 * @return array<string,mixed>|null The profile, or null when it does not resolve.
 	 */
 	private function loadLearnerProfile(string $learnerId, string $tenantId): ?array {
-		$filters = ['ncUserId' => $learnerId];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$profiles = $this->objectService->findAll(
-			[
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::LEARNER_PROFILE_SCHEMA,
-					]
-				),
-				'limit' => 1,
-			]
-		);
+		$profiles = $this->objectService->findAll($this->profileQuery(learnerId: $learnerId, tenantId: $tenantId));
 
 		if (empty($profiles) === true) {
 			return null;
@@ -163,6 +147,32 @@ final class GuardianSubmitCheck {
 
 		return (array)$profile;
 	}//end loadLearnerProfile()
+
+	/**
+	 * The query for the learner's one LearnerProfile, scoped to the tenant when known.
+	 *
+	 * @param string $learnerId The learner's NC user id.
+	 * @param string $tenantId  Tenant UUID, or '' when unknown.
+	 *
+	 * @return array<string,mixed> findAll() config.
+	 */
+	private function profileQuery(string $learnerId, string $tenantId): array {
+		$filters = ['ncUserId' => $learnerId];
+		if ($tenantId !== '') {
+			$filters['tenant_id'] = $tenantId;
+		}
+
+		return [
+			'filters' => array_merge(
+				$filters,
+				[
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LEARNER_PROFILE_SCHEMA,
+				]
+			),
+			'limit' => 1,
+		];
+	}//end profileQuery()
 
 	/**
 	 * Whether the caller may act for this learner: either they ARE the
