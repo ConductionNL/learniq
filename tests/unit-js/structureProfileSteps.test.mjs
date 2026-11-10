@@ -107,17 +107,17 @@ test('a gated primary action is kept only for a reader the gate passes for', () 
 		seen.push([predicate, runtime])
 		return true
 	}
-	assert.deepEqual(resolveProfileNav(nav, null, yes, null), {
+	assert.deepEqual(resolveProfileNav(nav, { runtime: null, passes: yes, theming: null }), {
 		primaryAction: { label: 'Go' },
 		brand: { name: 'b' },
 	})
 	assert.deepEqual(seen, [[{ role: 'x' }, {}]])
-	assert.deepEqual(resolveProfileNav(nav, { user: 1 }, () => 0, null), { brand: { name: 'b' } })
-	assert.deepEqual(resolveProfileNav(nav, { user: 1 }, undefined, null), { brand: { name: 'b' } })
-	assert.deepEqual(resolveProfileNav({ primaryAction: { label: 'Go' } }, {}, undefined, null), {
+	assert.deepEqual(resolveProfileNav(nav, { runtime: { user: 1 }, passes: () => 0, theming: null }), { brand: { name: 'b' } })
+	assert.deepEqual(resolveProfileNav(nav, { runtime: { user: 1 }, passes: undefined, theming: null }), { brand: { name: 'b' } })
+	assert.deepEqual(resolveProfileNav({ primaryAction: { label: 'Go' } }, { runtime: {}, passes: undefined, theming: null }), {
 		primaryAction: { label: 'Go' },
 	})
-	assert.deepEqual(resolveProfileNav({ primaryAction: 'Go' }, {}, undefined, null), { primaryAction: 'Go' })
+	assert.deepEqual(resolveProfileNav({ primaryAction: 'Go' }, { runtime: {}, passes: undefined, theming: null }), { primaryAction: 'Go' })
 })
 
 /**
@@ -136,17 +136,22 @@ function recordingBuild(calls) {
 test('a profile without menu, nav, defaults and pages goes through buildManifest unchanged', () => {
 	const calls = []
 	const base = { menu: [{ id: 'm' }], pages: [{ id: 'A' }] }
-	const out = buildProfiledManifest(recordingBuild(calls), base, ['f'], {
-		relocations: [1],
-		removals: undefined,
-		settingsSection: 's',
-		other: 'ignored',
+	const out = buildProfiledManifest({
+		buildManifest: recordingBuild(calls),
+		base,
+		fragments: ['f'],
+		profileFile: {
+			relocations: [1],
+			removals: undefined,
+			settingsSection: 's',
+			other: 'ignored',
+		},
 	})
 	assert.equal(calls[0].base, base)
 	assert.deepEqual(calls[0].fragments, ['f'])
 	assert.deepEqual(calls[0].layout, { relocations: [1], settingsSection: 's' })
 	assert.deepEqual(out, { pages: [{ id: 'A' }], nav: undefined, menu: [{ id: 'm' }] })
-	assert.deepEqual(buildProfiledManifest(recordingBuild(calls), base, [], null).pages, [{ id: 'A' }])
+	assert.deepEqual(buildProfiledManifest({ buildManifest: recordingBuild(calls), base, fragments: [], profileFile: null }).pages, [{ id: 'A' }])
 	assert.deepEqual(calls[1].layout, {})
 })
 
@@ -154,22 +159,22 @@ test('a profile menu goes before the base menu as copies, and its nav merges ove
 	const calls = []
 	const entry = { id: 'p', order: 1 }
 	const base = { menu: [{ id: 'm' }], nav: { brand: { name: 'x' }, keep: 1 }, runtime: { r: 1 } }
-	const out = buildProfiledManifest(
-		recordingBuild(calls),
+	const out = buildProfiledManifest({
+		buildManifest: recordingBuild(calls),
 		base,
-		[],
-		{ menu: [entry], nav: { brand: { caption: '@theming.name' }, primaryAction: { label: 'Go', visibleIf: {} } } },
-		(predicate, runtime) => runtime.r === 1,
-		{ theming: { name: 'School' } },
-	)
+		fragments: [],
+		profileFile: { menu: [entry], nav: { brand: { caption: '@theming.name' }, primaryAction: { label: 'Go', visibleIf: {} } } },
+		passes: (predicate, runtime) => runtime.r === 1,
+		theming: { name: 'School' },
+	})
 	assert.deepEqual(calls[0].base.menu, [{ id: 'p', order: 1 }, { id: 'm' }])
 	assert.notEqual(calls[0].base.menu[0], entry)
 	assert.deepEqual(out.nav, { brand: { caption: 'School' }, keep: 1, primaryAction: { label: 'Go' } })
-	const noTheming = buildProfiledManifest(recordingBuild(calls), { menu: [] }, [], { menu: [], nav: { t: '@theming.name' } })
+	const noTheming = buildProfiledManifest({ buildManifest: recordingBuild(calls), base: { menu: [] }, fragments: [], profileFile: { menu: [], nav: { t: '@theming.name' } } })
 	assert.deepEqual(noTheming.nav, { t: '' })
 	assert.deepEqual(calls[1].base, { menu: [] })
 	assert.deepEqual(
-		buildProfiledManifest(recordingBuild(calls), {}, [], { menu: [{ id: 'q' }], nav: 'not an object' }).menu,
+		buildProfiledManifest({ buildManifest: recordingBuild(calls), base: {}, fragments: [], profileFile: { menu: [{ id: 'q' }], nav: 'not an object' } }).menu,
 		[{ id: 'q' }],
 	)
 })
@@ -195,7 +200,7 @@ test('page overlays apply in order, skip unknown pages with a warning and respec
 			],
 		}
 		const passes = (when, runtime) => when.role === runtime.role
-		const out = buildProfiledManifest(recordingBuild([]), base, [], file, passes)
+		const out = buildProfiledManifest({ buildManifest: recordingBuild([]), base, fragments: [], profileFile: file, passes })
 		assert.deepEqual(out.pages, [
 			{ id: 'A', type: 'index', title: 'First', config: { headerFilters: false, second: true } },
 			{ id: 'B', type: 'index', title: 'Gated', config: { headerFilters: false } },
@@ -207,7 +212,7 @@ test('page overlays apply in order, skip unknown pages with a warning and respec
 			{ page: 'Nope' },
 		])
 		assert.deepEqual(warned[1][1], { page: undefined })
-		const ungated = buildProfiledManifest(recordingBuild([]), base, [], { pages: [file.pages[3]] })
+		const ungated = buildProfiledManifest({ buildManifest: recordingBuild([]), base, fragments: [], profileFile: { pages: [file.pages[3]] } })
 		assert.deepEqual(ungated.pages[1], { id: 'B', type: 'index' })
 	} finally {
 		console.warn = warn
