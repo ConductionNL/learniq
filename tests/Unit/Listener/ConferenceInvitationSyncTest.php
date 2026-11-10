@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\AppInfo\Registrar\CollaborationListenerRegistrar;
 use OCA\Learniq\Listener\ConferenceInvitationSync;
 use OCA\Learniq\Repair\BackfillConferenceInvitations;
@@ -241,7 +242,7 @@ class ConferenceInvitationSyncTest extends TestCase {
 			static fn (array $object, ?array $extend=[], $register=null, $schema=null, ?string $uuid=null) => $store->save((string)$schema, $object, $uuid, false)
 		);
 		$objectService->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) use ($store) {
+			FindCallShape::legacy(static function (int|string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) use ($store) {
 				foreach (($store->rows[(string)$schema] ?? []) as $row) {
 					if ($row['id'] === $id) {
 						return OrEntityFactory::make($row, (string)$schema);
@@ -249,7 +250,7 @@ class ConferenceInvitationSyncTest extends TestCase {
 				}
 
 				return null;
-			}
+			})
 		);
 
 		return $objectService;

@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\CheckIn;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Service\CheckIn\CheckInCodeService;
 use OCA\Learniq\Service\CheckIn\CheckInService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -107,7 +108,7 @@ class CheckInServiceTest extends TestCase {
 			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) => $this->store->save((string)$schema, $object, $uuid)
 		);
 		$objects->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ObjectEntity {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ObjectEntity {
 				foreach (($this->store->rows[(string)$schema] ?? []) as $row) {
 					if ($row['id'] === $id) {
 						return OrEntityFactory::make($row, (string)$schema);
@@ -115,7 +116,7 @@ class CheckInServiceTest extends TestCase {
 				}
 
 				throw new DoesNotExistException('gone');
-			}
+			})
 		);
 		$objects->method('runAs')->willReturnCallback(
 			function (IUser $user, callable $operation): mixed {

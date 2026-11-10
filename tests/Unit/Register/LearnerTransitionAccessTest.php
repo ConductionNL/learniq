@@ -31,6 +31,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Register;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Lifecycle\LearnerCaller;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
 use OCA\Learniq\Service\ListenerSchemaResolver;
@@ -214,7 +215,13 @@ class LearnerTransitionAccessTest extends TestCase {
 		if ($type === ObjectService::class) {
 			$objects = $this->createMock(ObjectService::class);
 			$objects->method('find')->willReturnCallback(
-				static fn (int|string $id, ?array $_extend = [], bool $files = false, mixed $register = null, mixed $schema = null) => isset(self::LOOKUPS[(string)$schema]) === true ? OrEntityFactory::make(self::LOOKUPS[(string)$schema], (string)$schema) : null
+				FindCallShape::legacy(static fn (
+					int|string $id,
+					?array $_extend = [],
+					bool $files = false,
+					mixed $register = null,
+					mixed $schema = null
+				) => isset(self::LOOKUPS[(string)$schema]) === true ? OrEntityFactory::make(self::LOOKUPS[(string)$schema], (string)$schema) : null)
 			);
 			$objects->method('findAll')->willReturn([]);
 			return $objects;

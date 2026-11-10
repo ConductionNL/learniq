@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Service\DataExchangePayloadBuilder;
 use OCA\Learniq\Service\DataExchangeTransformer;
 use OCA\Learniq\Service\ExchangeDisclosure;
@@ -106,7 +107,7 @@ class ExchangeGateServiceTest extends TestCase {
 			}
 		);
 		$objects->method('find')->willReturnCallback(
-			function ($id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, ...$rest): ?ObjectEntity {
+			FindCallShape::legacy(function ($id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, ...$rest): ?ObjectEntity {
 				foreach (($this->rows[$register . '/' . $schema] ?? []) as $row) {
 					if (($row['id'] ?? '') === $id) {
 						return OrEntityFactory::make($row, (string)$schema);
@@ -114,7 +115,7 @@ class ExchangeGateServiceTest extends TestCase {
 				}
 
 				throw new \RuntimeException('not found');
-			}
+			})
 		);
 
 		$l10n = $this->createMock(IL10N::class);

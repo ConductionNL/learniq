@@ -21,6 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Support;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Controller\CheckInCodeController;
 use OCA\Learniq\Controller\ComplianceRollupController;
 use OCA\Learniq\Controller\CredentialEuropassController;
@@ -206,19 +207,9 @@ class FindOrNullGoldenTest extends TestCase {
 	private function outcome(string $class, string $method, array $args, callable $answer): array {
 		$calls   = [];
 		$service = $this->createMock(ObjectService::class);
-		$params  = (new ReflectionMethod(ObjectService::class, 'find'))->getParameters();
 		$service->method('find')->willReturnCallback(
-			static function (...$values) use ($params, $answer, &$calls): mixed {
-				$named = [];
-				foreach ($values as $i => $value) {
-					if ($params[$i]->isDefaultValueAvailable() === true && $params[$i]->getDefaultValue() === $value) {
-						continue;
-					}
-
-					$named[$params[$i]->getName()] = $value;
-				}
-
-				$calls[] = $named;
+			static function (...$values) use ($answer, &$calls): mixed {
+				$calls[] = FindCallShape::named(args: $values);
 				return $answer();
 			}
 		);

@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\CoursePackageExportService;
 use OCA\Learniq\Service\QtiExportService;
@@ -56,7 +57,7 @@ class CoursePackageExportServiceTest extends TestCase {
 		// — the callback receives those positionally, and may only hand back an
 		// ObjectEntity or null.
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
 				$row = match ([$schema, $id]) {
 					['course', 'course-1'] => ['id' => 'course-1', 'name' => 'Physics 101', 'tenant_id' => 't1'],
 					['item', 'item-1'] => ['id' => 'item-1', 'itemBankId' => 'bank-1', 'qtiBody' => '<x/>'],
@@ -69,7 +70,7 @@ class CoursePackageExportServiceTest extends TestCase {
 				}
 
 				return OrEntityFactory::make($row, (string)$schema);
-			}
+			})
 		);
 		$objectService->method('findAll')->willReturnCallback(
 			static function (array $config): array {

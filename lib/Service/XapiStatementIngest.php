@@ -275,7 +275,12 @@ class XapiStatementIngest {
 	 */
 	private function storedStatement(string $id): ?array {
 		try {
-			$entity = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: self::SCHEMA), _rbac: false, _multitenancy: false);
+			$entity = $this->objectService->find(
+				id: $id,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: self::SCHEMA),
+				_rbac: false,
+				_multitenancy: false
+			);
 		} catch (DoesNotExistException $e) {
 			return null;
 		}

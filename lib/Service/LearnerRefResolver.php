@@ -239,7 +239,12 @@ class LearnerRefResolver {
 		}
 
 		$find = fn () => $this->objectService
-			->find(id: $learnerRef, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::PROFILE_SCHEMA), _rbac: false, _multitenancy: false);
+			->find(
+				id: $learnerRef,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::PROFILE_SCHEMA),
+				_rbac: false,
+				_multitenancy: false
+			);
 		$object = $this->findOrNull(find: $find);
 		if ($object === null) {
 			return null;

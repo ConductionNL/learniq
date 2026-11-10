@@ -291,7 +291,12 @@ class SubmissionOwnerStamp implements IEventListener {
 		}
 
 		$find = fn () => $this->objectService
-			->find(id: $id, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::ASSIGNMENT_SCHEMA), _rbac: false, _multitenancy: false);
+			->find(
+				id: $id,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::ASSIGNMENT_SCHEMA),
+				_rbac: false,
+				_multitenancy: false
+			);
 		return $this->findOrNull(find: $find)?->jsonSerialize();
 	}//end assignment()
 

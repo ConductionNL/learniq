@@ -323,7 +323,12 @@ class ElectiveService {
 	 */
 	private function one(string $id, string $schema): ?array {
 		try {
-			$row = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: $schema), _rbac: false, _multitenancy: false);
+			$row = $this->objectService->find(
+				id: $id,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: $schema),
+				_rbac: false,
+				_multitenancy: false
+			);
 		} catch (Throwable $exception) {
 			unset($exception);
 			return null;

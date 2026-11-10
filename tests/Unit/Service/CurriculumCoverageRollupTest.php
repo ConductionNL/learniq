@@ -21,6 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Service\CompetencyAlignmentNormaliser;
 use OCA\Learniq\Service\CompetencyTree;
 use OCA\Learniq\Service\CurriculumCoverageCalculator;
@@ -97,7 +98,14 @@ class CurriculumCoverageRollupTest extends TestCase {
 	private function rollup(): CurriculumCoverageRollup {
 		$service = $this->createMock(ObjectService::class);
 		$service->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend=[], bool $files=false, mixed $register=null, mixed $schema=null, bool $_rbac=true): ?object {
+			FindCallShape::legacy(function (
+				int|string $id,
+				?array $_extend=[],
+				bool $files=false,
+				mixed $register=null,
+				mixed $schema=null,
+				bool $_rbac=true
+			): ?object {
 				$this->finds[] = (string) $id;
 				self::assertFalse($_rbac);
 				if (isset($this->store[$schema][$id]) === false) {
@@ -105,7 +113,7 @@ class CurriculumCoverageRollupTest extends TestCase {
 				}
 
 				return OrEntityFactory::make($this->store[$schema][$id], (string) $schema, 'learniq', (string) $id);
-			}
+			})
 		);
 		$service->method('findAll')->willReturnCallback(
 			function (array $config, bool $_rbac=true, bool $_multitenancy=true): array {

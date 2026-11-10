@@ -30,6 +30,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use DateTimeImmutable;
 use OCA\Learniq\Lifecycle\CourseEvaluationEligibilityGuard;
 use OCA\Learniq\Listener\CourseEvaluationResponseSubmittedHandler;
@@ -143,7 +144,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objects->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
 				foreach (($this->store->rows[(string)$schema] ?? []) as $row) {
 					if ($row['id'] === $id) {
 						return OrEntityFactory::make($row, (string)$schema);
@@ -151,7 +152,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 				}
 
 				return null;
-			}
+			})
 		);
 		// Read arguments by the real parameter names: the stub and
 		// OpenRegister's own ObjectService order them differently.

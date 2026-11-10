@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use DateTime;
 use OCA\Learniq\Service\AssessmentAccessPolicy;
 use OCA\Learniq\Service\AssessmentAttemptLimits;
@@ -72,13 +73,13 @@ class AssessmentAttemptLimitsTest extends TestCase {
 	private function makeLimits(): AssessmentAttemptLimits {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
 				if ($schema !== 'exam' || isset($this->exams[$id]) === false) {
 					throw new DoesNotExistException('not found');
 				}
 
 				return OrEntityFactory::make($this->exams[$id], 'exam');
-			}
+			})
 		);
 		$objects->method('findAll')->willReturnCallback(
 			fn (array $config = []): array => match ($config['filters']['schema'] ?? '') {

@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\AppInfo\Registrar\CollaborationListenerRegistrar;
 use OCA\Learniq\Listener\ConferenceSlotBookingStamp;
 use OCA\Learniq\Service\ConferenceSlotClaim;
@@ -366,7 +367,7 @@ class ConferenceSlotBookingStampTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
 				foreach (($this->store->rows[(string)$schema] ?? []) as $row) {
 					if ($row['id'] === $id) {
 						if ($schema === 'conference-slot') {
@@ -383,7 +384,7 @@ class ConferenceSlotBookingStampTest extends TestCase {
 				}
 
 				return null;
-			}
+			})
 		);
 		$objectService->method('saveObject')->willReturnCallback(
 			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) => $this->store->save((string)$schema, $object, $uuid)

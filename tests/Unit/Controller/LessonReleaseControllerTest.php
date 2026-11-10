@@ -31,6 +31,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Controller;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Controller\LessonReleaseController;
 use OCA\Learniq\Service\AssessmentAccessFacts;
@@ -121,7 +122,7 @@ class LessonReleaseControllerTest extends TestCase {
 		// and returns ?ObjectEntity. willReturnCallback() hands the closure the
 		// mock's arguments POSITIONALLY, so the closure must mirror that order.
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
 				foreach (($this->db[$schema] ?? []) as $rec) {
 					if (($rec['id'] ?? null) === $id) {
 						return OrEntityFactory::make($rec, (string)$schema);
@@ -129,7 +130,7 @@ class LessonReleaseControllerTest extends TestCase {
 				}
 
 				return null;
-			}
+			})
 		);
 
 		$objectService->method('findAll')->willReturnCallback(

@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Service\DataExchangePayloadBuilder;
 use OCA\Learniq\Service\DataExchangeTransformer;
 use OCA\Learniq\Service\ExchangeDisclosure;
@@ -123,7 +124,7 @@ class RodPersonalNumberLeakTest extends TestCase {
 			}
 		);
 		$objects->method('find')->willReturnCallback(
-			function ($id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, ...$rest): ?ObjectEntity {
+			FindCallShape::legacy(function ($id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, ...$rest): ?ObjectEntity {
 				if ($this->findFails !== null) {
 					throw new RuntimeException($this->findFails);
 				}
@@ -135,7 +136,7 @@ class RodPersonalNumberLeakTest extends TestCase {
 				}
 
 				return null;
-			}
+			})
 		);
 
 		$this->logger = new CapturingLogger();

@@ -21,6 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Service\AiLocalityClassifier;
 use OCA\Learniq\Tests\Support\CapturingLogger;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -58,7 +59,7 @@ class AiLocalityClassifierGoldenTest extends TestCase {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
 			static function (...$args) use ($credentials, &$reads) {
-				$reads[] = $args;
+				$reads[] = FindCallShape::find(args: $args);
 				$id = (string)$args[0];
 				if ($id === 'cred-denied') {
 					throw new RuntimeException('not allowed');

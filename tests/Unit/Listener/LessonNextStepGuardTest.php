@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\LessonNextStepGuard;
 use OCA\Learniq\Service\ListenerSchemaResolver;
@@ -68,7 +69,13 @@ class LessonNextStepGuardTest extends TestCase {
 
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, mixed $register = null, mixed $schema = null) use ($findThrows): mixed {
+			FindCallShape::legacy(function (
+				int|string $id,
+				?array $_extend = [],
+				bool $files = false,
+				mixed $register = null,
+				mixed $schema = null
+			) use ($findThrows): mixed {
 				if ($findThrows === true) {
 					throw new \RuntimeException('database gone');
 				}
@@ -79,7 +86,7 @@ class LessonNextStepGuardTest extends TestCase {
 				}
 
 				return OrEntityFactory::make($row, 'lesson');
-			}
+			})
 		);
 
 		return new LessonNextStepGuard(schemaResolver: $resolver, objectService: $objects);

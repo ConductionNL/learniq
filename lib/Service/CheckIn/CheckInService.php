@@ -367,7 +367,11 @@ class CheckInService {
 			return null;
 		}
 
-		$find = fn () => $this->objects->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false), _rbac: false);
+		$find = fn () => $this->objects->find(
+			id: $id,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false),
+			_rbac: false
+		);
 		return $this->findRowWithIdOrNull(find: $find, id: $id);
 	}//end read()
 

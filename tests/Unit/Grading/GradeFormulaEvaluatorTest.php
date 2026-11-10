@@ -32,6 +32,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Grading;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Grading\GradeAggregationEngine;
@@ -79,7 +80,13 @@ class GradeFormulaEvaluatorTest extends TestCase {
 		$scaleEntity = $scale === null ? null : $this->makeObjectEntity(data: $scale, schema: 'grade-scale');
 
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($planEntity, $scaleEntity) {
+			FindCallShape::legacy(function (
+				int|string $id,
+				?array $_extend = [],
+				bool $files = false,
+				$register = null,
+				$schema = null
+			) use ($planEntity, $scaleEntity) {
 				if ($schema === 'curriculum-plan') {
 					return $planEntity;
 				}
@@ -89,7 +96,7 @@ class GradeFormulaEvaluatorTest extends TestCase {
 				}
 
 				return null;
-			}
+			})
 		);
 
 		$objectService->method('findAll')->willReturnCallback(

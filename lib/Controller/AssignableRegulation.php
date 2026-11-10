@@ -60,7 +60,10 @@ trait AssignableRegulation {
 
 		$regulation = null;
 		if ($id !== '') {
-			$regulation = $this->findOrNull(find: fn () => $this->objectService->find(id: $id, options: new ObjectFindOptions(register: 'learniq', schema: 'regulation')));
+			$regulation = $this->findOrNull(find: fn () => $this->objectService->find(
+				id: $id,
+				options: new ObjectFindOptions(register: 'learniq', schema: 'regulation')
+			));
 		}
 
 		if ($regulation instanceof ObjectEntity === false) {

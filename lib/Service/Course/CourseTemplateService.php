@@ -334,7 +334,11 @@ class CourseTemplateService {
 		);
 
 		try {
-			$record = $this->objects->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false), _rbac: true)?->jsonSerialize();
+			$record = $this->objects->objectService->find(
+				id: $id,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false),
+				_rbac: true
+			)?->jsonSerialize();
 		} catch (DoesNotExistException) {
 			throw $missing;
 		} catch (NotAuthorizedException) {

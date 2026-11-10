@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use DateTimeImmutable;
 use OCA\Learniq\Service\AssessmentAccessFacts;
 use OCA\Learniq\Service\AssessmentAccessPolicy;
@@ -45,14 +46,23 @@ class AssessmentAccessFactsTest extends TestCase {
 	public function testAssessmentAccessReadsTheWriteOnlyCodeRawAndNeverReturnsIt(): void {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true, bool $_multitenancy = true, bool $_render = true) {
+			FindCallShape::legacy(static function (
+				int|string $id,
+				?array $_extend = [],
+				bool $files = false,
+				$register = null,
+				$schema = null,
+				bool $_rbac = true,
+				bool $_multitenancy = true,
+				bool $_render = true
+			) {
 				$row = ['id' => 'exam-1', 'accessCode' => 'room-12'];
 				if ($_render === true) {
 					unset($row['accessCode']);
 				}
 
 				return OrEntityFactory::make($row, 'exam');
-			}
+			})
 		);
 		$facts = new AssessmentAccessFacts(objectService: $objectService, policy: new AssessmentAccessPolicy());
 

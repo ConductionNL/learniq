@@ -235,7 +235,11 @@ class GradeRollupHandler implements IEventListener {
 	private function fetchGradeVisibilityPolicy(string $curriculumPlanId): ?array {
 		// A system read: the publishing teacher may not read the plan (D9).
 		$find = fn () => $this->objectService
-			->find(id: $curriculumPlanId, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::CURRICULUM_PLAN_SCHEMA), _rbac: false);
+			->find(
+				id: $curriculumPlanId,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::CURRICULUM_PLAN_SCHEMA),
+				_rbac: false
+			);
 		$plan = $this->findOrNull(find: $find);
 		if ($plan === null) {
 			return null;

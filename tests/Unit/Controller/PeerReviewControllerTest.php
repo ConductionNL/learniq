@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Controller;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\CallerGroups;
 use OCA\Learniq\Controller\PeerReviewController;
@@ -66,7 +67,13 @@ class PeerReviewControllerTest extends TestCase {
 		// and returns ?ObjectEntity. willReturnCallback() hands the closure the
 		// mock's arguments POSITIONALLY, so the closure must mirror that order.
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($assignment, $cohort, $session) {
+			FindCallShape::legacy(function (
+				int|string $id,
+				?array $_extend = [],
+				bool $files = false,
+				$register = null,
+				$schema = null
+			) use ($assignment, $cohort, $session) {
 				if ($schema === 'assignment' && $assignment !== null) {
 					return OrEntityFactory::make($assignment, 'assignment');
 				}
@@ -80,7 +87,7 @@ class PeerReviewControllerTest extends TestCase {
 				}
 
 				return null;
-			}
+			})
 		);
 
 		$allocationService = $this->createMock(PeerReviewAllocationService::class);

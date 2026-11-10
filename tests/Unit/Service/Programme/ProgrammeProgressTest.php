@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\Programme;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Service\Programme\ProgrammeProgress;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
@@ -66,7 +67,7 @@ class ProgrammeProgressTest extends TestCase {
 		);
 
 		$objects->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ObjectEntity {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ObjectEntity {
 				foreach (($this->store->rows[(string)$schema] ?? []) as $row) {
 					if ($row['id'] === $id) {
 						return OrEntityFactory::make($row, (string)$schema);
@@ -74,7 +75,7 @@ class ProgrammeProgressTest extends TestCase {
 				}
 
 				throw new DoesNotExistException('gone');
-			}
+			})
 		);
 
 		return new ProgrammeProgress(objects: $objects);

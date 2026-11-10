@@ -276,7 +276,12 @@ class ExternalTrainingService {
 		}
 
 		$find = fn () => $this->objectService
-			->find(id: $profileId, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: 'learner-profile'), _rbac: false, _multitenancy: false);
+			->find(
+				id: $profileId,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: 'learner-profile'),
+				_rbac: false,
+				_multitenancy: false
+			);
 		$profile = $this->findOrNull(find: $find);
 
 		$ncUserId = ($profile?->jsonSerialize()['ncUserId'] ?? null);

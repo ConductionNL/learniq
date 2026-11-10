@@ -185,7 +185,12 @@ class PokParentSignatureRule {
 			return null;
 		}
 
-		$find = fn () => $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema), _rbac: false, _multitenancy: false);
+		$find = fn () => $this->objectService->find(
+			id: $id,
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema),
+			_rbac: false,
+			_multitenancy: false
+		);
 		return $this->findOrNull(find: $find)?->jsonSerialize();
 	}//end row()
 

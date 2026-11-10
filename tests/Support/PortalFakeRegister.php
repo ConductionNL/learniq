@@ -110,14 +110,14 @@ final class PortalFakeRegister {
 		$service = $test->getMockBuilder(ObjectService::class)->disableOriginalConstructor()->getMock();
 
 		$service->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ObjectEntity {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ObjectEntity {
 				$row = $this->rows[(string)$schema][(string)$id] ?? null;
 				if ($register !== 'learniq' || $row === null) {
 					throw new DoesNotExistException('not found');
 				}
 
 				return OrEntityFactory::make(array_merge($row, ['id' => (string)$id]), (string)$schema);
-			}
+			})
 		);
 
 		$service->method('findAll')->willReturnCallback(

@@ -232,7 +232,12 @@ class PortalMessageContacts {
 		}
 
 		try {
-			$object = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false), _rbac: false, _multitenancy: false);
+			$object = $this->objectService->find(
+				id: $id,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false),
+				_rbac: false,
+				_multitenancy: false
+			);
 		} catch (Throwable $e) {
 			return null;
 		}

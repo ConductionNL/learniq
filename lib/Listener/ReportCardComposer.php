@@ -255,7 +255,10 @@ class ReportCardComposer implements IEventListener {
 			return;
 		}
 
-		$period = $this->objectService->find(id: $reportPeriodId, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::REPORT_PERIOD_SCHEMA));
+		$period = $this->objectService->find(
+			id: $reportPeriodId,
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::REPORT_PERIOD_SCHEMA)
+		);
 		if ($period === null) {
 			$this->logger->warning(
 				'[ReportCardComposer] ReportCard {id} recompose: governing ReportPeriod {period} not found.',
@@ -314,7 +317,10 @@ class ReportCardComposer implements IEventListener {
 		$qualifying = [];
 
 		foreach ($curriculumPlanIds as $curriculumPlanId) {
-			$plan = $this->objectService->find(id: $curriculumPlanId, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::CURRICULUM_PLAN_SCHEMA));
+			$plan = $this->objectService->find(
+				id: $curriculumPlanId,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::CURRICULUM_PLAN_SCHEMA)
+			);
 			if ($plan === null) {
 				continue;
 			}

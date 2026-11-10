@@ -34,6 +34,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Release;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\LessonReleaseEvaluator;
@@ -90,7 +91,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 		// register/schema pair sits at positions 4 and 5 — and the return value
 		// must be an ObjectEntity, never the raw fixture row.
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
 				foreach (($this->db[(string)$schema] ?? []) as $rec) {
 					if (($rec['id'] ?? null) === $id) {
 						return OrEntityFactory::make($rec, (string)$schema);
@@ -98,7 +99,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 				}
 
 				return null;
-			}
+			})
 		);
 
 		$objectService->method('findAll')->willReturnCallback(

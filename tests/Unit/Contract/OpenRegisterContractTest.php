@@ -69,7 +69,7 @@ final class OpenRegisterContractTest extends TestCase {
 	public function testObjectServiceFindSignatureIsUnchanged(): void {
 		$this->assertParameterNames(
 			new ReflectionMethod(ObjectService::class, 'find'),
-			// openregister #9116 moved register, schema, extend, files, render
+			// OpenRegister #9116 moved register, schema, extend, files, render
 			// and audit into one ObjectFindOptions.
 			['id', 'options', '_rbac', '_multitenancy']
 		);

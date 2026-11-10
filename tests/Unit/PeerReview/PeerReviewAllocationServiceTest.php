@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\PeerReview;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\PeerReviewAllocationService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -76,13 +77,13 @@ class PeerReviewAllocationServiceTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($assignment) {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($assignment) {
 				if ($schema === 'assignment' && $id === self::ASSIGNMENT_ID) {
 					return OrEntityFactory::make($assignment, 'assignment');
 				}
 
 				return null;
-			}
+			})
 		);
 
 		// Answers the way OpenRegister does: register and schema are read ONLY

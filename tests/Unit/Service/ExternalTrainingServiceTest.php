@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\ExternalTrainingService;
@@ -289,9 +290,15 @@ class ExternalTrainingServiceTest extends TestCase {
 		$profileId = '3c9e1f2a-4b5d-4e6f-8a7b-0c1d2e3f4a5b';
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			static fn (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) => ($schema === 'learner-profile' && $id === $profileId)
+			FindCallShape::legacy(static fn (
+				int|string $id,
+				?array $_extend = [],
+				bool $files = false,
+				$register = null,
+				$schema = null
+			) => ($schema === 'learner-profile' && $id === $profileId)
 				? OrEntityFactory::make(['id' => $profileId, 'ncUserId' => 'r.devries'], 'learner-profile')
-				: null
+				: null)
 		);
 		$svc = new ExternalTrainingService($objectService, $this->createMock(LoggerInterface::class));
 

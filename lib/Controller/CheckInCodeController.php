@@ -179,7 +179,11 @@ class CheckInCodeController extends Controller {
 	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException When the id matches more than one object; LookupIntegrityMiddleware answers it.
 	 */
 	private function window(string $windowId): ?array {
-		$find = fn () => $this->objects->find(id: $windowId, options: new ObjectFindOptions(register: 'learniq', schema: 'check-in-window', render: false), _rbac: false);
+		$find = fn () => $this->objects->find(
+			id: $windowId,
+			options: new ObjectFindOptions(register: 'learniq', schema: 'check-in-window', render: false),
+			_rbac: false
+		);
 		return $this->findRowOrNull(find: $find);
 	}//end window()
 }//end class

@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\QtiExportService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -49,7 +50,13 @@ class QtiExportServiceTest extends TestCase {
 
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($fullyParsedBody, $degradedBody) {
+			FindCallShape::legacy(function (
+				int|string $id,
+				?array $_extend = [],
+				bool $files = false,
+				$register = null,
+				$schema = null
+			) use ($fullyParsedBody, $degradedBody) {
 				if ($schema === 'item-bank') {
 					return OrEntityFactory::make(
 						['id' => 'bank-1', 'name' => 'Physics 101', 'itemIds' => ['item-1', 'item-2']],
@@ -68,7 +75,7 @@ class QtiExportServiceTest extends TestCase {
 				}
 
 				return OrEntityFactory::make($row, 'item');
-			}
+			})
 		);
 
 		$zipBytes = (new QtiExportService($objectService))->export('bank-1');
@@ -101,7 +108,7 @@ class QtiExportServiceTest extends TestCase {
 	private function exportEntries(array $bodies): array {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($bodies) {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($bodies) {
 				if ($schema === 'item-bank') {
 					return OrEntityFactory::make(['id' => 'bank-1', 'name' => 'Statistiek', 'itemIds' => array_keys($bodies)], 'item-bank');
 				}
@@ -111,7 +118,7 @@ class QtiExportServiceTest extends TestCase {
 				}
 
 				return OrEntityFactory::make(['id' => $id, 'qtiBody' => $bodies[$id], 'interactionType' => 'choice'], 'item');
-			}
+			})
 		);
 
 		$tmpFile = tempnam(sys_get_temp_dir(), 'learniq_qti_export_test_');

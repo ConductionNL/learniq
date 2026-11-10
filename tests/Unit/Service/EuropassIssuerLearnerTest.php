@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Service\CredentialSigningService;
 use OCA\Learniq\Service\EdciPayloadBuilder;
 use OCA\Learniq\Service\EuropassIssuer;
@@ -61,13 +62,19 @@ class EuropassIssuerLearnerTest extends TestCase {
 		$profile = ['id' => self::PROFILE, 'ncUserId' => 'p.ganpat', 'givenName' => 'Priya', 'familyName' => 'Ganpat'];
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($profile): ObjectEntity {
+			FindCallShape::legacy(static function (
+				int|string $id,
+				?array $_extend = [],
+				bool $files = false,
+				$register = null,
+				$schema = null
+			) use ($profile): ObjectEntity {
 				if ($schema === 'learner-profile' && $id === self::PROFILE) {
 					return OrEntityFactory::make($profile, 'learner-profile');
 				}
 
 				throw new DoesNotExistException('gone');
-			}
+			})
 		);
 		$objects->method('findAll')->willReturnCallback(
 			function (array $config = []) use ($profile): array {

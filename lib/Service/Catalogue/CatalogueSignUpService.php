@@ -365,7 +365,12 @@ class CatalogueSignUpService {
 			return null;
 		}
 
-		$find = fn () => $this->objects->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false), _rbac: false, _multitenancy: false);
+		$find = fn () => $this->objects->find(
+			id: $id,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false),
+			_rbac: false,
+			_multitenancy: false
+		);
 		return $this->findRowWithIdOrNull(find: $find, id: $id);
 	}//end read()
 }//end class

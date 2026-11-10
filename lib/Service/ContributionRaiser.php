@@ -302,7 +302,12 @@ class ContributionRaiser {
 
 		$ids = $this->courseLearners(courseId: $courseId);
 		if ($cohortId !== '') {
-			$cohort = $this->objectService->find(id: $cohortId, options: new ObjectFindOptions(register: self::REGISTER, schema: 'cohort'), _rbac: false, _multitenancy: false);
+			$cohort = $this->objectService->find(
+				id: $cohortId,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: 'cohort'),
+				_rbac: false,
+				_multitenancy: false
+			);
 			$ids = (array)($cohort?->jsonSerialize()['learnerIds'] ?? []);
 		}
 

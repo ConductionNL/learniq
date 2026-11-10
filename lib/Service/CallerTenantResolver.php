@@ -151,7 +151,10 @@ class CallerTenantResolver {
 	 * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
 	 */
 	public function findOwned(IUser $user, string $id, string $schema): ?array {
-		$object = $this->findOrNull(find: fn () => $this->objectService->find(id: $id, options: new ObjectFindOptions(register: Application::APP_ID, schema: $schema)));
+		$object = $this->findOrNull(find: fn () => $this->objectService->find(
+			id: $id,
+			options: new ObjectFindOptions(register: Application::APP_ID, schema: $schema)
+		));
 		if ($object === null) {
 			return null;
 		}

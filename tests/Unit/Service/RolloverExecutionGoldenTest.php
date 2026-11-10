@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Service\IntegriqExchangeClient;
 use OCA\Learniq\Service\RolloverExecutionService;
 use OCA\Learniq\Service\RolloverService;
@@ -137,7 +138,7 @@ class RolloverExecutionGoldenTest extends TestCase {
 		$service = $this->createMock(ObjectService::class);
 		$service->method('find')->willReturnCallback(
 			static function (...$args) use ($rows, &$calls) {
-				$named   = self::named('find', $args);
+				$named   = FindCallShape::named(args: $args);
 				$calls[] = ['find' => $named];
 				foreach (($rows['cohort'] ?? []) as $row) {
 					if ($row['id'] === $named['id']) {

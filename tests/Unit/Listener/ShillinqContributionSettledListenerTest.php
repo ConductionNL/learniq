@@ -27,6 +27,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\AppInfo\Registrar\BootListenerRegistrar;
 use OCA\Learniq\Listener\ShillinqContributionSettledListener;
 use OCA\Learniq\Service\ContributionBeneficiaryResolver;
@@ -97,7 +98,7 @@ class ShillinqContributionSettledListenerTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
 				foreach (($this->store->rows[(string)$schema] ?? []) as $row) {
 					if (($row['id'] ?? null) === $id) {
 						return OrEntityFactory::make($row, (string)$schema);
@@ -105,7 +106,7 @@ class ShillinqContributionSettledListenerTest extends TestCase {
 				}
 
 				return null;
-			}
+			})
 		);
 		$objectService->method('saveObject')->willReturnCallback(
 			fn (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): ObjectEntity => $this->store->save((string)$schema, $object, $uuid)

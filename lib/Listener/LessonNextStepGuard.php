@@ -136,7 +136,11 @@ class LessonNextStepGuard implements IEventListener {
 	 */
 	private function courseOf(string $lessonId): ?string {
 		try {
-			$object = $this->objectService->find(id: $lessonId, options: new ObjectFindOptions(register: self::REGISTER, schema: self::LESSON_SCHEMA), _rbac: false);
+			$object = $this->objectService->find(
+				id: $lessonId,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: self::LESSON_SCHEMA),
+				_rbac: false
+			);
 		} catch (Throwable) {
 			return null;
 		}

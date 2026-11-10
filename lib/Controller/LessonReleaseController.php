@@ -246,7 +246,10 @@ class LessonReleaseController extends Controller {
 	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException When the id matches more than one object; LookupIntegrityMiddleware answers it.
 	 */
 	private function resolveObject(string $id, string $schema): ?array {
-		$object = $this->findOrNull(find: fn () => $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema)));
+		$object = $this->findOrNull(find: fn () => $this->objectService->find(
+			id: $id,
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema)
+		));
 		if ($object === null) {
 			return null;
 		}

@@ -21,6 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\AppInfo\Registrar\IntegrityListenerRegistrar;
 use OCA\Learniq\Listener\LessonNoteAuthorGuard;
 use OCA\Learniq\Service\ListenerSchemaResolver;
@@ -88,7 +89,13 @@ class LessonNoteAuthorGuardTest extends TestCase {
 
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, mixed $register = null, mixed $schema = null) use ($findThrows): mixed {
+			FindCallShape::legacy(function (
+				int|string $id,
+				?array $_extend = [],
+				bool $files = false,
+				mixed $register = null,
+				mixed $schema = null
+			) use ($findThrows): mixed {
 				if ($findThrows === true) {
 					throw new \RuntimeException('database gone');
 				}
@@ -99,7 +106,7 @@ class LessonNoteAuthorGuardTest extends TestCase {
 				}
 
 				return OrEntityFactory::make($data, (string)$schema);
-			}
+			})
 		);
 
 		return new LessonNoteAuthorGuard(

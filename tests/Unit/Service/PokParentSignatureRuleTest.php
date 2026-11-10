@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use DateTimeImmutable;
 use DateTimeZone;
 use OCA\Learniq\Service\LearnerRefResolver;
@@ -64,7 +65,7 @@ class PokParentSignatureRuleTest extends TestCase {
 	private function makeRule(string $today = '2026-09-27'): PokParentSignatureRule {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true) {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true) {
 				$this->reads[] = ['schema' => (string)$schema, 'rbac' => $_rbac];
 				$row = $this->rows[(string)$schema][(string)$id] ?? null;
 				if ($row === null) {
@@ -72,7 +73,7 @@ class PokParentSignatureRuleTest extends TestCase {
 				}
 
 				return OrEntityFactory::make($row, (string)$schema);
-			}
+			})
 		);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config, bool $_rbac = true) {

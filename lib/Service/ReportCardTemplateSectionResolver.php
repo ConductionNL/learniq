@@ -90,7 +90,10 @@ class ReportCardTemplateSectionResolver {
 
 		$templateId = (string)$rawTemplateId;
 
-		$template = $this->objectService->find(id: $templateId, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_TEMPLATE_SCHEMA));
+		$template = $this->objectService->find(
+			id: $templateId,
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_TEMPLATE_SCHEMA)
+		);
 		if ($template === null) {
 			$this->logger->warning(
 				'[ReportCardTemplateSectionResolver] ReportCardTemplate {template} not found; falling back to the fixed composition shape.',

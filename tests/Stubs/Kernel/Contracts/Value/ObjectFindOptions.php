@@ -1,6 +1,7 @@
 <?php
 // Test-only copy, verbatim, of ConductionNL/openregister lib/Kernel/Contracts/Value/ObjectFindOptions.php from openregister #9116 (10 Nov 2026).
-// Kept identical below this line, except that OpenRegister's spec-anchor tags are renamed to @or-spec: they name OpenRegister's specs, which this repo does not have.
+// Kept identical below this line, except that OpenRegister's spec-anchor tags are renamed to @or-spec:
+// they name OpenRegister's specs, which this repo does not have.
 
 /**
  * ObjectFindOptions: where to look for one object and what to return with it.

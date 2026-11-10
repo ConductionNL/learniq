@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use DateTime;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -81,13 +82,13 @@ class BsaProgressFlagHandlerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($programmeIds) {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($programmeIds) {
 				if ($schema === 'course') {
 					return OrEntityFactory::make(['id' => (string)$id, 'programmeIds' => $programmeIds], 'course');
 				}
 
 				return null;
-			}
+			})
 		);
 
 		$objectService->method('findAll')->willReturnCallback(

@@ -64,7 +64,13 @@ trait XapiDocumentsInMemory {
 			}
 		);
 		$objects->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $extend = [], bool $files = false, mixed $register = null, mixed $schema = null) use ($store): ?ObjectEntity {
+			FindCallShape::legacy(static function (
+				int|string $id,
+				?array $extend = [],
+				bool $files = false,
+				mixed $register = null,
+				mixed $schema = null
+			) use ($store): ?ObjectEntity {
 				foreach (($store->rows[(string)$schema] ?? []) as $row) {
 					if (($row['id'] ?? null) === $id) {
 						return OrEntityFactory::make($row, (string)$schema);
@@ -72,7 +78,7 @@ trait XapiDocumentsInMemory {
 				}
 
 				return null;
-			}
+			})
 		);
 		$objects->method('deleteObject')->willReturnCallback(
 			static function (string $uuid, mixed $register = null, mixed $schema = null, bool $rbac = true, bool $multitenancy = true) use ($store): bool {

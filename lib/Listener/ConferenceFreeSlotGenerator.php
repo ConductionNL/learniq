@@ -480,7 +480,12 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 			return null;
 		}
 
-		$object = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: $schema), _rbac: false, _multitenancy: false);
+		$object = $this->objectService->find(
+			id: $id,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: $schema),
+			_rbac: false,
+			_multitenancy: false
+		);
 		if ($object === null) {
 			return null;
 		}

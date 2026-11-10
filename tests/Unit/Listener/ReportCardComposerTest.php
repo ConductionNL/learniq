@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use DateTime;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
@@ -93,7 +94,13 @@ class ReportCardComposerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($cohorts, $plans, $templates): ?ObjectEntity {
+			FindCallShape::legacy(function (
+				int|string $id,
+				?array $_extend = [],
+				bool $files = false,
+				$register = null,
+				$schema = null
+			) use ($cohorts, $plans, $templates): ?ObjectEntity {
 				if ($schema === 'cohort' && isset($cohorts[$id]) === true) {
 					return OrEntityFactory::make($cohorts[$id], 'cohort');
 				}
@@ -107,7 +114,7 @@ class ReportCardComposerTest extends TestCase {
 				}
 
 				return null;
-			}
+			})
 		);
 
 		$objectService->method('findAll')->willReturnCallback(
@@ -443,7 +450,7 @@ class ReportCardComposerTest extends TestCase {
 		// directly whose find() also resolves the governing ReportPeriod.
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
 				if ($schema === 'curriculum-plan') {
 					return OrEntityFactory::make(
 						['id' => 'plan-bio', 'components' => [['componentId' => 'c1', 'period' => '1', 'weight' => 1, 'kind' => 'assessment']]],
@@ -465,7 +472,7 @@ class ReportCardComposerTest extends TestCase {
 				}
 
 				return null;
-			}
+			})
 		);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) {
@@ -572,7 +579,7 @@ class ReportCardComposerTest extends TestCase {
 	 */
 	private function makeTemplateAwareRecomposer(): ReportCardComposer {
 		$objectService = $this->createMock(ObjectService::class);
-		$objectService->method('find')->willReturnCallback([$this, 'resolveTemplateAwareFixture']);
+		$objectService->method('find')->willReturnCallback(FindCallShape::legacy([$this, 'resolveTemplateAwareFixture']));
 		$objectService->method('findAll')->willReturnCallback([$this, 'resolveTemplateAwareFindAllFixture']);
 		$objectService->method('saveObject')->willReturnCallback(
 			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {

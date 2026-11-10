@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use DateTime;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -89,13 +90,19 @@ class GradeRollupHandlerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($curriculumPlan): ?ObjectEntity {
+			FindCallShape::legacy(function (
+				int|string $id,
+				?array $_extend = [],
+				bool $files = false,
+				$register = null,
+				$schema = null
+			) use ($curriculumPlan): ?ObjectEntity {
 				if ($schema === 'curriculum-plan' && $curriculumPlan !== null) {
 					return OrEntityFactory::make($curriculumPlan, 'curriculum-plan');
 				}
 
 				return null;
-			}
+			})
 		);
 
 		$objectService->method('findAll')->willReturnCallback(

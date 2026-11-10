@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\EntitlementPaymentSettledGuard;
@@ -61,7 +62,13 @@ class FeeItemVoluntaryEntitlementGuardTest extends TestCase {
 		// and returns ?ObjectEntity. willReturnCallback() hands the closure the
 		// mock's arguments POSITIONALLY, so the closure must mirror that order.
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($feeItem, $paymentRequest) {
+			FindCallShape::legacy(function (
+				int|string $id,
+				?array $_extend = [],
+				bool $files = false,
+				$register = null,
+				$schema = null
+			) use ($feeItem, $paymentRequest) {
 				if ($schema === 'fee-item' && $feeItem !== null) {
 					return OrEntityFactory::make($feeItem, 'fee-item');
 				}
@@ -71,7 +78,7 @@ class FeeItemVoluntaryEntitlementGuardTest extends TestCase {
 				}
 
 				return null;
-			}
+			})
 		);
 
 		$appManager = $this->createMock(IAppManager::class);

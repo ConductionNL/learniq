@@ -272,7 +272,11 @@ class SigningService {
 	 * @throws SigningRefusedException When the record does not exist.
 	 */
 	private function load(string $schema, string $id): array {
-		$find = fn () => $this->objects->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false), _rbac: false);
+		$find = fn () => $this->objects->find(
+			id: $id,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false),
+			_rbac: false
+		);
 		$record = $this->findRowOrNull(find: $find);
 		if (is_array($record) === false) {
 			throw new SigningRefusedException(status: Http::STATUS_NOT_FOUND, reason: 'not-found', message: 'This document could not be found.');
@@ -372,7 +376,11 @@ class SigningService {
 			return [];
 		}
 
-		$find = fn () => $this->objects->find(id: $placementId, options: new ObjectFindOptions(register: self::REGISTER, schema: 'bpv-placement', render: false), _rbac: false);
+		$find = fn () => $this->objects->find(
+			id: $placementId,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: 'bpv-placement', render: false),
+			_rbac: false
+		);
 		return $this->findRowOrNull(find: $find) ?? [];
 	}//end findPlacement()
 

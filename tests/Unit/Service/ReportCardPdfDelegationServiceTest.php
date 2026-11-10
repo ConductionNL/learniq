@@ -33,6 +33,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Service\ReportCardPdfDelegationService;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -105,13 +106,13 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 		);
 
 		$this->objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
 				if ($schema === 'report-card-template' && isset($this->templates[$id]) === true) {
 					return OrEntityFactory::make($this->templates[$id], 'report-card-template');
 				}
 
 				return null;
-			}
+			})
 		);
 
 	}//end setUp()
