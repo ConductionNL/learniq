@@ -738,5 +738,222 @@
 			"gridWidth": 6,
 			"gridHeight": 4
 		}
+	],
+	"learningWidgets": [
+		{
+			"id": "kpi-courses",
+			"title": "Courses",
+			"type": "stat",
+			"content": {
+				"label": "Courses",
+				"variant": "primary",
+				"clickRoute": {
+					"path": "/courses"
+				},
+				"source": {
+					"register": "learniq",
+					"schema": "course",
+					"metric": "count"
+				}
+			}
+		},
+		{
+			"id": "manage-courses",
+			"title": "Courses",
+			"type": "custom"
+		},
+		{
+			"id": "manage-curriculum",
+			"title": "Curriculum",
+			"type": "custom"
+		},
+		{
+			"id": "manage-assignments",
+			"title": "Assignments",
+			"type": "custom"
+		},
+		{
+			"id": "manage-assessments",
+			"title": "Assessments",
+			"type": "custom"
+		},
+		{
+			"id": "manage-learning-plans",
+			"title": "Learning plans",
+			"type": "custom"
+		},
+		{
+			"id": "manage-grades",
+			"title": "Grades",
+			"type": "custom"
+		}
+	],
+	"learningLayout": [
+		{
+			"id": 1,
+			"widgetId": "kpi-courses",
+			"gridX": 0,
+			"gridY": 0,
+			"gridWidth": 3,
+			"gridHeight": 2,
+			"showTitle": false
+		},
+		{
+			"id": 2,
+			"widgetId": "manage-courses",
+			"gridX": 0,
+			"gridY": 2,
+			"gridWidth": 6,
+			"gridHeight": 4
+		},
+		{
+			"id": 3,
+			"widgetId": "manage-curriculum",
+			"gridX": 6,
+			"gridY": 2,
+			"gridWidth": 6,
+			"gridHeight": 4
+		},
+		{
+			"id": 4,
+			"widgetId": "manage-assignments",
+			"gridX": 0,
+			"gridY": 6,
+			"gridWidth": 6,
+			"gridHeight": 4
+		},
+		{
+			"id": 5,
+			"widgetId": "manage-assessments",
+			"gridX": 6,
+			"gridY": 6,
+			"gridWidth": 6,
+			"gridHeight": 4
+		},
+		{
+			"id": 6,
+			"widgetId": "manage-learning-plans",
+			"gridX": 0,
+			"gridY": 10,
+			"gridWidth": 6,
+			"gridHeight": 4
+		},
+		{
+			"id": 7,
+			"widgetId": "manage-grades",
+			"gridX": 6,
+			"gridY": 10,
+			"gridWidth": 6,
+			"gridHeight": 4
+		}
+	],
+	"complianceWidgets": [
+		{
+			"id": "kpi-regulations",
+			"title": "Regulations",
+			"type": "stat",
+			"content": {
+				"label": "Regulations",
+				"clickRoute": {
+					"path": "/compliance/regulations"
+				},
+				"source": {
+					"register": "learniq",
+					"schema": "regulation",
+					"metric": "count"
+				}
+			}
+		},
+		{
+			"id": "kpi-attestations",
+			"title": "Signed attestations",
+			"type": "stat",
+			"content": {
+				"label": "Signed attestations",
+				"variant": "success",
+				"clickRoute": {
+					"path": "/compliance/attestations"
+				},
+				"source": {
+					"register": "learniq",
+					"schema": "attestation",
+					"metric": "count"
+				}
+			}
+		},
+		{
+			"id": "kpi-external-training",
+			"title": "External training",
+			"type": "stat",
+			"content": {
+				"label": "External training",
+				"variant": "success",
+				"clickRoute": {
+					"path": "/compliance/external-training"
+				},
+				"source": {
+					"register": "learniq",
+					"schema": "external-training-record",
+					"metric": "count"
+				}
+			}
+		},
+		{
+			"id": "department-compliance",
+			"title": "Compliance per department",
+			"type": "custom"
+		},
+		{
+			"id": "rule-coverage",
+			"title": "Coverage per rule",
+			"type": "custom"
+		}
+	],
+	"complianceLayout": [
+		{
+			"id": 1,
+			"widgetId": "kpi-regulations",
+			"gridX": 0,
+			"gridY": 0,
+			"gridWidth": 3,
+			"gridHeight": 2,
+			"showTitle": false
+		},
+		{
+			"id": 2,
+			"widgetId": "kpi-attestations",
+			"gridX": 3,
+			"gridY": 0,
+			"gridWidth": 3,
+			"gridHeight": 2,
+			"showTitle": false
+		},
+		{
+			"id": 3,
+			"widgetId": "kpi-external-training",
+			"gridX": 0,
+			"gridY": 2,
+			"gridWidth": 3,
+			"gridHeight": 2,
+			"showTitle": false
+		},
+		{
+			"id": 4,
+			"widgetId": "department-compliance",
+			"gridX": 0,
+			"gridY": 4,
+			"gridWidth": 12,
+			"gridHeight": 6,
+			"showTitle": true
+		},
+		{
+			"id": 5,
+			"widgetId": "rule-coverage",
+			"gridX": 0,
+			"gridY": 10,
+			"gridWidth": 12,
+			"gridHeight": 6,
+			"showTitle": true
+		}
 	]
 }

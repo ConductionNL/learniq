@@ -36,6 +36,8 @@ async function buildAll() {
 		})
 		const pending = instanceOf(roles, { scope: null, scopePending: true })
 		const peopleView = instanceOf(people)
+		const learningView = instanceOf(await loadSfc('src/views/LearningDashboard.vue'))
+		const complianceView = instanceOf(await loadSfc('src/views/LearniqCompliance.vue'))
 		return JSON.parse(
 			JSON.stringify({
 				admin: schoolWide.adminConfig,
@@ -45,6 +47,10 @@ async function buildAll() {
 				student: schoolWide.studentConfig,
 				peopleWidgets: peopleView.widgets,
 				peopleLayout: peopleView.layout,
+				learningWidgets: learningView.widgets,
+				learningLayout: learningView.layout,
+				complianceWidgets: complianceView.widgets,
+				complianceLayout: complianceView.layout,
 			}),
 		)
 	} finally {
@@ -57,8 +63,10 @@ test('the dashboards declare the same tiles, sources and grid as before', async 
 })
 
 test('each build hands out fresh layout objects', async () => {
-	const people = await loadSfc('src/views/PeopleDashboard.vue')
-	const first = instanceOf(people).layout
-	first[0].gridX = 99
-	assert.equal(instanceOf(people).layout[0].gridX, 0)
+	for (const file of ['src/views/PeopleDashboard.vue', 'src/views/LearningDashboard.vue', 'src/views/LearniqCompliance.vue']) {
+		const view = await loadSfc(file)
+		const first = instanceOf(view).layout
+		first[0].gridX = 99
+		assert.equal(instanceOf(view).layout[0].gridX, 0, file)
+	}
 })
