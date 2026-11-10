@@ -34,6 +34,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -96,7 +97,7 @@ class LearnerOwnRowGuard implements LifecycleGuardInterface {
 	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-a-learner-runs-the-transitions-on-their-own-rows
 	 */
 	private function exportLearner(string $exportId): ?string {
-		$export = $this->objectService->find(id: $exportId, register: 'learniq', schema: 'learning-record-export');
+		$export = $this->objectService->find(id: $exportId, options: new ObjectFindOptions(register: 'learniq', schema: 'learning-record-export'));
 		if ($export === null) {
 			return null;
 		}

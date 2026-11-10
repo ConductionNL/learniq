@@ -22,6 +22,7 @@ namespace OCA\Learniq\BackgroundJob;
 
 use DateTimeImmutable;
 use OCA\Learniq\Service\EngagementScoreEvaluator;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -394,8 +395,7 @@ class EngagementSignalJob extends ForwardedJob {
 	private function learnerInCohort(string $learnerId, string $cohortId): bool {
 		$cohort = $this->objectService->find(
 			id: $cohortId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::COHORT_SCHEMA
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::COHORT_SCHEMA)
 		);
 
 		if ($cohort === null) {

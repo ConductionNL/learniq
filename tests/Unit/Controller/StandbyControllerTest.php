@@ -21,6 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Controller;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Controller\StandbyController;
 use OCA\Learniq\Service\StandbyCalendar;
 use OCA\Learniq\Service\SubstitutionCandidateService;
@@ -60,14 +61,14 @@ class StandbyControllerTest extends TestCase {
 
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, mixed $register = null, mixed $schema = null) {
+			FindCallShape::legacy(static function (int|string $id, ?array $_extend = [], bool $files = false, mixed $register = null, mixed $schema = null) {
 				$rows = [
 					'session' => ['s-1' => ['id' => 's-1', 'cohortId' => 'c-1']],
 					'cohort' => ['c-1' => ['id' => 'c-1', 'teacherIds' => ['tom']]],
 				];
 				$row = ($rows[(string)$schema][(string)$id] ?? null);
 				return $row === null ? null : OrEntityFactory::make($row, (string)$schema);
-			}
+			})
 		);
 		$candidates = $this->createMock(SubstitutionCandidateService::class);
 		$candidates->method('forSession')->willReturn([['userId' => 'eva', 'displayName' => 'Eva', 'group' => 'standby', 'reason' => 'On standby 10:15 to 11:05']]);

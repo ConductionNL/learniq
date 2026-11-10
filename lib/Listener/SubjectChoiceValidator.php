@@ -49,6 +49,7 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -385,8 +386,7 @@ class SubjectChoiceValidator implements IEventListener {
 	private function fetchPlan(string $curriculumPlanId): ?array {
 		$plan = $this->objectService->find(
 			id: $curriculumPlanId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::CURRICULUM_PLAN_SCHEMA
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::CURRICULUM_PLAN_SCHEMA)
 		);
 
 		if ($plan === null) {

@@ -42,6 +42,7 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -178,8 +179,7 @@ class FraudCaseDecisionHandler implements IEventListener {
 	private function fetchGradeEntry(string $gradeEntryId): ?array {
 		$obj = $this->objectService->find(
 			id: $gradeEntryId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::GRADE_ENTRY_SCHEMA
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::GRADE_ENTRY_SCHEMA)
 		);
 
 		if ($obj === null) {

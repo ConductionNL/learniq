@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Lifecycle\EntitlementPaymentSettledGuard;
 use OCA\Learniq\Service\ContributionBeneficiaryResolver;
 use OCA\Learniq\Tests\Support\GuardVerdicts;
@@ -58,7 +59,14 @@ class EntitlementPaymentSettledGuardTest extends TestCase {
 	private function makeGuard(?array $request, bool $installed = true, bool $readFails = false): EntitlementPaymentSettledGuard {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true) use ($request, $readFails) {
+			FindCallShape::legacy(function (
+				int|string $id,
+				?array $_extend = [],
+				bool $files = false,
+				$register = null,
+				$schema = null,
+				bool $_rbac = true
+			) use ($request, $readFails) {
 				if ($schema === 'learner-profile') {
 					return ($id === 'lp-1') ? OrEntityFactory::make(['id' => 'lp-1', 'ncUserId' => 'leerling-001'], 'learner-profile') : null;
 				}
@@ -73,7 +81,7 @@ class EntitlementPaymentSettledGuardTest extends TestCase {
 				}
 
 				return OrEntityFactory::make($request, 'PaymentRequest', 'shillinq');
-			}
+			})
 		);
 
 		$appManager = $this->createMock(IAppManager::class);

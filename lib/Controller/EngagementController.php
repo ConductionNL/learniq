@@ -43,6 +43,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -244,8 +245,7 @@ class EngagementController extends Controller {
 		try {
 			$level = $this->objectService->find(
 				id: $levelId,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::ENGAGEMENT_LEVEL_SCHEMA
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::ENGAGEMENT_LEVEL_SCHEMA)
 			);
 		} catch (Throwable $e) {
 			$this->logger->warning(

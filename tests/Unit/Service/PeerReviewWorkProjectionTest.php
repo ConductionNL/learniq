@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Service\PeerReviewWorkProjection;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\FileService;
@@ -113,7 +114,7 @@ class PeerReviewWorkProjectionTest extends TestCase {
 	private function makeProjection(array $admins = [], bool $filesThrow = false): PeerReviewWorkProjection {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true) {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true) {
 				$this->rbacFlags[] = $_rbac;
 				$row = ($this->db[(string)$schema][(string)$id] ?? null);
 				if ($row === null) {
@@ -121,7 +122,7 @@ class PeerReviewWorkProjectionTest extends TestCase {
 				}
 
 				return OrEntityFactory::make($row, (string)$schema);
-			}
+			})
 		);
 
 		$fileService = $this->createMock(FileService::class);

@@ -48,6 +48,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -238,7 +239,12 @@ class LearnerRefResolver {
 		}
 
 		$find = fn () => $this->objectService
-			->find(id: $learnerRef, register: self::LEARNIQ_REGISTER, schema: self::PROFILE_SCHEMA, _rbac: false, _multitenancy: false);
+			->find(
+				id: $learnerRef,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::PROFILE_SCHEMA),
+				_rbac: false,
+				_multitenancy: false
+			);
 		$object = $this->findOrNull(find: $find);
 		if ($object === null) {
 			return null;

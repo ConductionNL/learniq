@@ -22,6 +22,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use DateTime;
 use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\AssessmentAttemptTimeLimitListener;
@@ -89,13 +90,13 @@ class AssessmentAttemptTimeLimitListenerTest extends TestCase {
 
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
 				if ($schema !== 'exam' || isset($this->exams[$id]) === false) {
 					throw new DoesNotExistException('not found');
 				}
 
 				return OrEntityFactory::make($this->exams[$id], 'exam');
-			}
+			})
 		);
 		$objects->method('findAll')->willReturnCallback(
 			fn (array $config = []): array => (($config['filters']['schema'] ?? '') === 'exam-accommodation') ? $this->accommodations : []

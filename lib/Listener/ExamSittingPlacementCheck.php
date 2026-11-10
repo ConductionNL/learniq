@@ -39,6 +39,7 @@ use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -156,7 +157,7 @@ class ExamSittingPlacementCheck implements IEventListener {
 	private function capacityRefusal(array $sitting): ?array {
 		$capacity = 0;
 		foreach ($this->ids(value: ($sitting['roomIds'] ?? [])) as $roomId) {
-			$room = $this->objectService->find(id: $roomId, register: self::REGISTER, schema: 'room');
+			$room = $this->objectService->find(id: $roomId, options: new ObjectFindOptions(register: self::REGISTER, schema: 'room'));
 			if ($room === null) {
 				return ['reason' => 'exam-room-unknown', 'message' => 'One of the rooms for this exam does not exist.'];
 			}
@@ -279,7 +280,7 @@ class ExamSittingPlacementCheck implements IEventListener {
 			return 'Exam';
 		}
 
-		$assessment = $this->objectService->find(id: $assessmentId, register: self::REGISTER, schema: 'exam');
+		$assessment = $this->objectService->find(id: $assessmentId, options: new ObjectFindOptions(register: self::REGISTER, schema: 'exam'));
 
 		return (string)(($assessment?->getObject() ?? [])['title'] ?? 'Exam');
 	}//end examTitle()

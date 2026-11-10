@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Lifecycle\AttendanceFlagReportGuard;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
@@ -48,7 +49,7 @@ class AttendanceFlagReportGuardTest extends TestCase {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
 			static function (...$args) use ($job, &$calls) {
-				$calls[] = $args;
+				$calls[] = FindCallShape::find(args: $args);
 				if ($job === null) {
 					throw new RuntimeException('not found');
 				}

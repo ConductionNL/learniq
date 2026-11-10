@@ -34,6 +34,7 @@ namespace OCA\OpenRegister\Service;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Db\Register;
 use OCA\OpenRegister\Db\Schema;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCP\IUser;
 
 /**
@@ -44,27 +45,18 @@ abstract class ObjectService {
 	/**
 	 * Find a single object.
 	 *
-	 * @param int|string $id Object identifier.
-	 * @param array<string,mixed>|null $_extend Extend directives.
-	 * @param bool $files Include files.
-	 * @param Register|string|int|null $register Register context.
-	 * @param Schema|string|int|null $schema Schema context.
-	 * @param bool $_rbac Apply RBAC.
-	 * @param bool $_multitenancy Apply multitenancy.
-	 * @param bool $_render Render the result.
+	 * @param int|string             $id            Object identifier.
+	 * @param ObjectFindOptions|null $options       Register and schema scope, extend, files, render and audit.
+	 * @param bool                   $_rbac         Apply RBAC.
+	 * @param bool                   $_multitenancy Apply multitenancy.
 	 *
 	 * @return ObjectEntity|null
 	 */
 	abstract public function find(
 		int|string $id,
-		?array $_extend = [],
-		bool $files = false,
-		Register|string|int|null $register = null,
-		Schema|string|int|null $schema = null,
+		?ObjectFindOptions $options = null,
 		bool $_rbac = true,
 		bool $_multitenancy = true,
-		bool $_render = true,
-		bool $_audit = true,
 	): ?ObjectEntity;
 
 	/**

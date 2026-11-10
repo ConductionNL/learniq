@@ -22,6 +22,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use DateTimeImmutable;
 use OCA\Learniq\Service\ExampleSetDates;
 use OCA\Learniq\Service\LoadedExampleSets;
@@ -78,7 +79,7 @@ class FakeObjectStore {
 	 * @return ObjectEntity|null
 	 */
 	public function find(string $id, mixed ...$rest): ?ObjectEntity {
-		$this->finds[] = ['id' => $id] + $rest;
+		$this->finds[] = FindCallShape::named(args: [$id, ($rest['options'] ?? null), ($rest['_rbac'] ?? true), ($rest['_multitenancy'] ?? true)]);
 		if (isset($this->objects[$id]) === false) {
 			return null;
 		}

@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\Course;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Exception\CourseTemplateRefusedException;
 use OCA\Learniq\Service\Course\CourseTemplateObjects;
 use OCA\Learniq\Service\Course\CourseTemplateService;
@@ -91,14 +92,21 @@ class CourseTemplateServiceTest extends TestCase {
 	): CourseTemplateService {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, mixed $register = null, mixed $schema = null, bool $_rbac = false) use ($records) {
+			FindCallShape::legacy(function (
+				int|string $id,
+				?array $_extend = [],
+				bool $files = false,
+				mixed $register = null,
+				mixed $schema = null,
+				bool $_rbac = false
+			) use ($records) {
 				$this->rbac[] = ['find', $_rbac];
 				if (isset($records[$id]) === false) {
 					throw new DoesNotExistException('missing');
 				}
 
 				return OrEntityFactory::make($records[$id]);
-			}
+			})
 		);
 		$objects->method('findAll')->willReturnCallback(
 			function (array $config, bool $_rbac = false) use ($modules, $lessons): array {

@@ -30,6 +30,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Listener\EnrolmentPrerequisiteListener;
@@ -112,14 +113,14 @@ class EnrolmentPrerequisiteListenerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
 				$record = ($this->db[$schema][$id] ?? null);
 				if ($record === null) {
 					return null;
 				}
 
 				return OrEntityFactory::make($record, (string)$schema);
-			}
+			})
 		);
 
 		$objectService->method('findAll')->willReturnCallback(

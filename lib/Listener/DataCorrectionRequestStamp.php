@@ -34,6 +34,7 @@ use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -184,7 +185,7 @@ class DataCorrectionRequestStamp implements IEventListener {
 		}
 
 		try {
-			return $this->objects->find(id: $entryId, register: 'learniq', schema: 'grade-entry')?->jsonSerialize();
+			return $this->objects->find(id: $entryId, options: new ObjectFindOptions(register: 'learniq', schema: 'grade-entry'))?->jsonSerialize();
 		} catch (Throwable) {
 			return null;
 		}

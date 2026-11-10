@@ -33,6 +33,7 @@ use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerActions;
 use OCA\Learniq\Service\EnrolmentForecastService;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -135,7 +136,7 @@ class EnrolmentForecastController extends Controller {
 	 */
 	private function load(string $id): ?array {
 		try {
-			$row = $this->objectService->find(id: $id, register: self::REGISTER, schema: self::SCHEMA);
+			$row = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: self::SCHEMA));
 		} catch (Throwable $exception) {
 			unset($exception);
 			return null;

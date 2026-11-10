@@ -51,6 +51,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use Psr\Log\LoggerInterface;
@@ -454,7 +455,7 @@ class PeerReviewAllocationService {
 	 */
 	private function fetchObject(string $id, string $schema): ?array {
 		try {
-			$obj = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
+			$obj = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema));
 		} catch (DoesNotExistException) {
 			$obj = null;
 		}

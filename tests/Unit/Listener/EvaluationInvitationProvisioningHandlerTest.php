@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -71,13 +72,19 @@ class EvaluationInvitationProvisioningHandlerTest extends TestCase {
 		}
 
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($cohortsById): ?ObjectEntity {
+			FindCallShape::legacy(function (
+				int|string $id,
+				?array $_extend = [],
+				bool $files = false,
+				$register = null,
+				$schema = null
+			) use ($cohortsById): ?ObjectEntity {
 				if ($schema === 'cohort' && isset($cohortsById[$id]) === true) {
 					return OrEntityFactory::make($cohortsById[$id], 'cohort');
 				}
 
 				return null;
-			}
+			})
 		);
 
 		$objectService->method('findAll')->willReturnCallback(

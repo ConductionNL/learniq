@@ -49,6 +49,7 @@ namespace OCA\Learniq\Listener;
 use DateTimeImmutable;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -292,8 +293,7 @@ class PeerFeedbackAggregator implements IEventListener {
 	private function fetchObject(string $id, string $schema): ?array {
 		$obj = $this->objectService->find(
 			id: $id,
-			register: self::LEARNIQ_REGISTER,
-			schema: $schema
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema)
 		);
 
 		if ($obj === null) {

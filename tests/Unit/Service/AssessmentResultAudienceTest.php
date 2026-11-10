@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Service\AssessmentResultAudience;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
@@ -60,7 +61,14 @@ class AssessmentResultAudienceTest extends TestCase {
 	private function makeStamper(bool $throws = false): AssessmentResultAudience {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true) use ($throws) {
+			FindCallShape::legacy(function (
+				int|string $id,
+				?array $_extend = [],
+				bool $files = false,
+				$register = null,
+				$schema = null,
+				bool $_rbac = true
+			) use ($throws) {
 				$this->rbacFlags[] = $_rbac;
 				if ($throws === true) {
 					throw new RuntimeException('down');
@@ -73,7 +81,7 @@ class AssessmentResultAudienceTest extends TestCase {
 				}
 
 				return null;
-			}
+			})
 		);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config, bool $_rbac = true) use ($throws) {

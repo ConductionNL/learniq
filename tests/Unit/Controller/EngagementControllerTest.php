@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Controller;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Controller\EngagementController;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
@@ -80,7 +81,13 @@ class EngagementControllerTest extends TestCase {
 		// willReturnCallback() hands the closure its arguments POSITIONALLY,
 		// so the closure must mirror that order.
 		$objectService->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($level, $levelThrows) {
+			FindCallShape::legacy(static function (
+				int|string $id,
+				?array $_extend = [],
+				bool $files = false,
+				$register = null,
+				$schema = null
+			) use ($level, $levelThrows) {
 				if ($levelThrows === true) {
 					throw new DoesNotExistException('no such EngagementLevel');
 				}
@@ -90,7 +97,7 @@ class EngagementControllerTest extends TestCase {
 				}
 
 				return null;
-			}
+			})
 		);
 
 		$userSession = $this->createMock(IUserSession::class);

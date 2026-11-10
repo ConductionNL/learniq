@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\LearnerCaller;
 use OCA\Learniq\Lifecycle\RubricScoresCompletionGuard;
@@ -69,7 +70,13 @@ class RubricScoresCompletionGuardTest extends TestCase {
 		// and returns ?ObjectEntity. willReturnCallback() hands the closure the
 		// mock's arguments POSITIONALLY, so the closure must mirror that order.
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($assignment, $rubric, $submission) {
+			FindCallShape::legacy(function (
+				int|string $id,
+				?array $_extend = [],
+				bool $files = false,
+				$register = null,
+				$schema = null
+			) use ($assignment, $rubric, $submission) {
 				if ($schema === 'assignment' && $assignment !== null) {
 					return OrEntityFactory::make($assignment, 'assignment');
 				}
@@ -83,7 +90,7 @@ class RubricScoresCompletionGuardTest extends TestCase {
 				}
 
 				return null;
-			}
+			})
 		);
 
 		return new RubricScoresCompletionGuard($objectService, $this->createMock(LoggerInterface::class), new LearnerCaller($this->createMock(IGroupManager::class)));

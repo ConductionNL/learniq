@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTime;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IL10N;
 use Psr\Log\LoggerInterface;
@@ -359,8 +360,7 @@ class ExchangeGateService {
 		try {
 			$job = $this->objectService->find(
 				id: $jobId,
-				register: self::INTEGRIQ_REGISTER,
-				schema: self::INTEGRIQ_JOB_SCHEMA,
+				options: new ObjectFindOptions(register: self::INTEGRIQ_REGISTER, schema: self::INTEGRIQ_JOB_SCHEMA),
 				_rbac: false,
 				_multitenancy: false
 			);
@@ -388,8 +388,7 @@ class ExchangeGateService {
 		try {
 			$row = $this->objectService->find(
 				id: $uuid,
-				register: self::LEARNIQ_REGISTER,
-				schema: $schema,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema),
 				_rbac: false,
 				_multitenancy: false
 			);

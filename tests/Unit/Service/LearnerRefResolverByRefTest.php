@@ -30,6 +30,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
@@ -80,7 +81,7 @@ class LearnerRefResolverByRefTest extends TestCase {
 	private function makeLookup(bool $throws = false): LearnerRefResolver {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($throws) {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($throws) {
 				if ($throws === true) {
 					throw new RuntimeException('database gone');
 				}
@@ -90,7 +91,7 @@ class LearnerRefResolverByRefTest extends TestCase {
 				}
 
 				return OrEntityFactory::make(array_merge($this->profiles[$id], ['id' => $id]), 'learner-profile');
-			}
+			})
 		);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config = [], bool $_rbac = true, bool $_multitenancy = true) use ($throws): array {

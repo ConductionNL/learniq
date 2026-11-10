@@ -48,6 +48,7 @@ namespace OCA\Learniq\Service;
 
 use InvalidArgumentException;
 use OCA\Learniq\AppInfo\Application;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
 use OCP\IUserManager;
@@ -123,7 +124,7 @@ class ContributionRaiser {
 			return null;
 		}
 
-		$found = $this->objectService->find(id: $id, register: self::REGISTER, schema: 'fee-item');
+		$found = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: 'fee-item'));
 		$feeItem = $found?->jsonSerialize();
 		if (is_array($feeItem) === false || ($feeItem['lifecycle'] ?? '') !== 'active') {
 			return null;
@@ -301,7 +302,12 @@ class ContributionRaiser {
 
 		$ids = $this->courseLearners(courseId: $courseId);
 		if ($cohortId !== '') {
-			$cohort = $this->objectService->find(id: $cohortId, register: self::REGISTER, schema: 'cohort', _rbac: false, _multitenancy: false);
+			$cohort = $this->objectService->find(
+				id: $cohortId,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: 'cohort'),
+				_rbac: false,
+				_multitenancy: false
+			);
 			$ids = (array)($cohort?->jsonSerialize()['learnerIds'] ?? []);
 		}
 

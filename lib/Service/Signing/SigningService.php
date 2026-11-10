@@ -35,6 +35,7 @@ use DateTimeZone;
 use OCA\Learniq\Exception\SigningRefusedException;
 use OCA\Learniq\Service\PokParentSignatureRule;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -271,7 +272,11 @@ class SigningService {
 	 * @throws SigningRefusedException When the record does not exist.
 	 */
 	private function load(string $schema, string $id): array {
-		$find = fn () => $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _render: false);
+		$find = fn () => $this->objects->find(
+			id: $id,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false),
+			_rbac: false
+		);
 		$record = $this->findRowOrNull(find: $find);
 		if (is_array($record) === false) {
 			throw new SigningRefusedException(status: Http::STATUS_NOT_FOUND, reason: 'not-found', message: 'This document could not be found.');
@@ -371,7 +376,11 @@ class SigningService {
 			return [];
 		}
 
-		$find = fn () => $this->objects->find(id: $placementId, register: self::REGISTER, schema: 'bpv-placement', _rbac: false, _render: false);
+		$find = fn () => $this->objects->find(
+			id: $placementId,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: 'bpv-placement', render: false),
+			_rbac: false
+		);
 		return $this->findRowOrNull(find: $find) ?? [];
 	}//end findPlacement()
 

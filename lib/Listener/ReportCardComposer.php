@@ -56,6 +56,7 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\AttendanceWindowAggregator;
 use OCA\Learniq\Service\LearnerRefResolver;
@@ -254,7 +255,10 @@ class ReportCardComposer implements IEventListener {
 			return;
 		}
 
-		$period = $this->objectService->find(id: $reportPeriodId, register: self::LEARNIQ_REGISTER, schema: self::REPORT_PERIOD_SCHEMA);
+		$period = $this->objectService->find(
+			id: $reportPeriodId,
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::REPORT_PERIOD_SCHEMA)
+		);
 		if ($period === null) {
 			$this->logger->warning(
 				'[ReportCardComposer] ReportCard {id} recompose: governing ReportPeriod {period} not found.',
@@ -313,7 +317,10 @@ class ReportCardComposer implements IEventListener {
 		$qualifying = [];
 
 		foreach ($curriculumPlanIds as $curriculumPlanId) {
-			$plan = $this->objectService->find(id: $curriculumPlanId, register: self::LEARNIQ_REGISTER, schema: self::CURRICULUM_PLAN_SCHEMA);
+			$plan = $this->objectService->find(
+				id: $curriculumPlanId,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::CURRICULUM_PLAN_SCHEMA)
+			);
 			if ($plan === null) {
 				continue;
 			}
@@ -357,7 +364,7 @@ class ReportCardComposer implements IEventListener {
 		$cohortTemplateMap = [];
 
 		foreach ($cohortIds as $cohortId) {
-			$cohort = $this->objectService->find(id: $cohortId, register: self::LEARNIQ_REGISTER, schema: self::COHORT_SCHEMA);
+			$cohort = $this->objectService->find(id: $cohortId, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::COHORT_SCHEMA));
 			if ($cohort === null) {
 				continue;
 			}

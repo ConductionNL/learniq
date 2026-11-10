@@ -42,6 +42,7 @@ use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -191,8 +192,7 @@ class ConferenceInvitationSync implements IEventListener {
 		try {
 			$round = $this->objectService->find(
 				id: $roundId,
-				register: self::REGISTER,
-				schema: self::ROUND_SCHEMA,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: self::ROUND_SCHEMA),
 				_rbac: false,
 				_multitenancy: false
 			);

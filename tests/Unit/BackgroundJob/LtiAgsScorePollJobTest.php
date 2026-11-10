@@ -33,6 +33,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\BackgroundJob;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\BackgroundJob\LtiAgsScorePollJob;
@@ -425,7 +426,15 @@ class LtiAgsScorePollJobTest extends TestCase {
 			'tenant_id' => 'tenant-1',
 		];
 		$this->objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true, bool $_multitenancy = true): ?ObjectEntity {
+			FindCallShape::legacy(function (
+				int|string $id,
+				?array $_extend = [],
+				bool $files = false,
+				$register = null,
+				$schema = null,
+				bool $_rbac = true,
+				bool $_multitenancy = true
+			): ?ObjectEntity {
 				if ($this->refusesCaller(action: 'read', schema: (string)$schema, rbac: $_rbac, multitenancy: $_multitenancy) === true) {
 					return null;
 				}
@@ -435,7 +444,7 @@ class LtiAgsScorePollJobTest extends TestCase {
 				}
 
 				return null;
-			}
+			})
 		);
 
 		$this->job(
@@ -576,7 +585,15 @@ class LtiAgsScorePollJobTest extends TestCase {
 			'placement-x' => array_merge($this->placementFixture, ['id' => 'placement-x', 'openconnectorDeploymentId' => 'deployment-9']),
 		];
 		$this->objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true, bool $_multitenancy = true) use ($byId): ?ObjectEntity {
+			FindCallShape::legacy(function (
+				int|string $id,
+				?array $_extend = [],
+				bool $files = false,
+				$register = null,
+				$schema = null,
+				bool $_rbac = true,
+				bool $_multitenancy = true
+			) use ($byId): ?ObjectEntity {
 				if ($this->refusesCaller(action: 'read', schema: (string)$schema, rbac: $_rbac, multitenancy: $_multitenancy) === true) {
 					return null;
 				}
@@ -586,7 +603,7 @@ class LtiAgsScorePollJobTest extends TestCase {
 				}
 
 				return OrEntityFactory::make($byId[(string)$id], 'lti-tool-placement');
-			}
+			})
 		);
 
 		$score = ['userId' => 'learner-1', 'scoreGiven' => 7, 'scoreMaximum' => 10];

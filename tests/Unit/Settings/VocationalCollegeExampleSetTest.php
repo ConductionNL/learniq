@@ -31,6 +31,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Settings;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use DateTimeImmutable;
 use OCA\Learniq\Service\ExampleSetPreparation;
 use OCA\Learniq\Service\ExampleSetSources;
@@ -569,13 +570,13 @@ class VocationalCollegeExampleSetTest extends TestCase {
 
 		$store = $this->createMock(ObjectService::class);
 		$store->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($rows) {
+			FindCallShape::legacy(static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($rows) {
 				if (isset($rows[(string)$schema][(string)$id]) === false) {
 					throw new DoesNotExistException('not in the set');
 				}
 
 				return OrEntityFactory::make($rows[(string)$schema][(string)$id], (string)$schema);
-			}
+			})
 		);
 		$store->method('findAll')->willReturnCallback(
 			static fn (array $config): array => ($signaturesBySubject[$config['filters']['subjectId'] ?? ''] ?? [])

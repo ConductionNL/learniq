@@ -52,6 +52,7 @@ use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -263,7 +264,12 @@ class ConferenceSlotBookingStamp implements IEventListener {
 	 * @return array<string, mixed>|null
 	 */
 	private function roundOfSlot(string $slotId): ?array {
-		$found = $this->objectService->find(id: $slotId, register: self::REGISTER, schema: self::SLOT_SCHEMA, _rbac: false, _multitenancy: false);
+		$found = $this->objectService->find(
+			id: $slotId,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: self::SLOT_SCHEMA),
+			_rbac: false,
+			_multitenancy: false
+		);
 		if ($found === null) {
 			return null;
 		}
@@ -274,7 +280,12 @@ class ConferenceSlotBookingStamp implements IEventListener {
 			return null;
 		}
 
-		$round = $this->objectService->find(id: $roundId, register: self::REGISTER, schema: self::ROUND_SCHEMA, _rbac: false, _multitenancy: false);
+		$round = $this->objectService->find(
+			id: $roundId,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: self::ROUND_SCHEMA),
+			_rbac: false,
+			_multitenancy: false
+		);
 		if ($round === null) {
 			return null;
 		}

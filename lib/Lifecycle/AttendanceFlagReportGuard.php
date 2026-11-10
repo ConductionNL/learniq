@@ -37,6 +37,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -129,8 +130,7 @@ class AttendanceFlagReportGuard implements LifecycleGuardInterface {
 		try {
 			$job = $this->objectService->find(
 				id: (string)$dataExchangeJobId,
-				register: self::INTEGRIQ_REGISTER,
-				schema: self::INTEGRIQ_JOB_SCHEMA,
+				options: new ObjectFindOptions(register: self::INTEGRIQ_REGISTER, schema: self::INTEGRIQ_JOB_SCHEMA),
 				_rbac: false,
 				_multitenancy: false
 			);

@@ -34,6 +34,7 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Db\ObjectEntity;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -121,7 +122,7 @@ class ExamSittingOverview {
 			return null;
 		}
 
-		$entity = $this->objectService->find(id: $sittingId, register: self::REGISTER, schema: 'exam-sitting');
+		$entity = $this->objectService->find(id: $sittingId, options: new ObjectFindOptions(register: self::REGISTER, schema: 'exam-sitting'));
 		if ($entity === null) {
 			return null;
 		}
@@ -291,7 +292,7 @@ class ExamSittingOverview {
 	private function cohortLearners(array $sitting): array {
 		$learners = [];
 		foreach ((array)($sitting['cohortIds'] ?? []) as $cohortId) {
-			$cohort = $this->objectService->find(id: (string)$cohortId, register: self::REGISTER, schema: 'cohort');
+			$cohort = $this->objectService->find(id: (string)$cohortId, options: new ObjectFindOptions(register: self::REGISTER, schema: 'cohort'));
 			foreach ((array)(($cohort?->getObject() ?? [])['learnerIds'] ?? []) as $learner) {
 				$learners[(string)$learner] = true;
 			}

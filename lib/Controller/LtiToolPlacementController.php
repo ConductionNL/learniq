@@ -35,6 +35,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -305,7 +306,7 @@ class LtiToolPlacementController extends Controller {
 	 */
 	private function findObject(string $id, string $schema): ?array {
 		try {
-			$object = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
+			$object = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema));
 		} catch (Throwable $e) {
 			return null;
 		}

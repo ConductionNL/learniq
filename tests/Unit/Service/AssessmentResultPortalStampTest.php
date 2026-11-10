@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Service\AssessmentResultPortalStamp;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -60,13 +61,13 @@ class AssessmentResultPortalStampTest extends TestCase {
 
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+			FindCallShape::legacy(static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
 				if ($schema !== 'exam' || $id !== 'exam-1') {
 					throw new DoesNotExistException('not found');
 				}
 
 				return OrEntityFactory::make(['id' => 'exam-1', 'title' => 'Toets hoofdstuk 3'], 'exam');
-			}
+			})
 		);
 
 		return new AssessmentResultPortalStamp(profiles: $lookup, objectService: $objectService, logger: new NullLogger());

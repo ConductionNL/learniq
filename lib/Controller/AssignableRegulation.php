@@ -29,6 +29,7 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Db\ObjectEntity;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 
@@ -59,7 +60,10 @@ trait AssignableRegulation {
 
 		$regulation = null;
 		if ($id !== '') {
-			$regulation = $this->findOrNull(find: fn () => $this->objectService->find(id: $id, register: 'learniq', schema: 'regulation'));
+			$regulation = $this->findOrNull(find: fn () => $this->objectService->find(
+				id: $id,
+				options: new ObjectFindOptions(register: 'learniq', schema: 'regulation')
+			));
 		}
 
 		if ($regulation instanceof ObjectEntity === false) {

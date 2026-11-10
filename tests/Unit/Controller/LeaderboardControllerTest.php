@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Controller;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\CallerGroups;
 use OCA\Learniq\Controller\LeaderboardController;
@@ -78,13 +79,13 @@ class LeaderboardControllerTest extends TestCase {
 		// and returns ?ObjectEntity. willReturnCallback() hands the closure the
 		// mock's arguments POSITIONALLY, so the closure must mirror that order.
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($cohort) {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($cohort) {
 				if ($schema === 'cohort' && $cohort !== null) {
 					return OrEntityFactory::make($cohort, 'cohort');
 				}
 
 				return null;
-			}
+			})
 		);
 
 		$objectService->method('findAll')->willReturnCallback(

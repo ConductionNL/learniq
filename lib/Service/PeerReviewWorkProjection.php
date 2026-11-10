@@ -40,6 +40,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\FileService;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Files\File;
@@ -284,8 +285,7 @@ class PeerReviewWorkProjection {
 		try {
 			$object = $this->objectService->find(
 				id: $id,
-				register: self::LEARNIQ_REGISTER,
-				schema: $schema,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema),
 				_rbac: false
 			);
 		} catch (Throwable $exception) {

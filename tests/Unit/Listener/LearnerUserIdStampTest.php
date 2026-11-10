@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\LearnerUserIdStamp;
 use OCA\Learniq\Service\LearnerRefResolver;
@@ -76,7 +77,13 @@ class LearnerUserIdStampTest extends TestCase {
 		];
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($profiles): ObjectEntity {
+			FindCallShape::legacy(function (
+				int|string $id,
+				?array $_extend = [],
+				bool $files = false,
+				$register = null,
+				$schema = null
+			) use ($profiles): ObjectEntity {
 				$this->reads++;
 				if ($this->failReads !== null) {
 					throw new RuntimeException($this->failReads);
@@ -87,7 +94,7 @@ class LearnerUserIdStampTest extends TestCase {
 				}
 
 				throw new DoesNotExistException('gone');
-			}
+			})
 		);
 
 		$schemaResolver = $this->createMock(ListenerSchemaResolver::class);

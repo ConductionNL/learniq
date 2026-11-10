@@ -40,6 +40,7 @@ use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -219,7 +220,7 @@ class LessonNoteAuthorGuard implements IEventListener {
 	 */
 	private function load(string $schema, string $id): ?array {
 		try {
-			$object = $this->objectService->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false);
+			$object = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: $schema), _rbac: false);
 		} catch (Throwable $exception) {
 			$this->logger->debug(
 				'[LessonNoteAuthorGuard] {schema} {id} not readable: {msg}',

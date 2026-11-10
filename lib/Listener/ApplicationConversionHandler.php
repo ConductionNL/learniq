@@ -54,6 +54,7 @@ namespace OCA\Learniq\Listener;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Service\Programme\ProgrammeRequirements;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -269,8 +270,7 @@ class ApplicationConversionHandler implements IEventListener {
 
 		$programme = $this->objectService->find(
 			id: $programmeId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::PROGRAMME_SCHEMA
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::PROGRAMME_SCHEMA)
 		);
 
 		if ($programme === null) {

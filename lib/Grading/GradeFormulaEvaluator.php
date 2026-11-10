@@ -39,6 +39,7 @@ namespace OCA\Learniq\Grading;
 
 use DateTimeImmutable;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -167,7 +168,11 @@ class GradeFormulaEvaluator {
 	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
 	 */
 	private function systemRead(string $id, string $schema): ?\OCA\OpenRegister\Db\ObjectEntity {
-		return $this->findOrNull(find: fn () => $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema, _rbac: false));
+		return $this->findOrNull(find: fn () => $this->objectService->find(
+			id: $id,
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema),
+			_rbac: false
+		));
 	}//end systemRead()
 
 	/**

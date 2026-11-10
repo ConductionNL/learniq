@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Mcp\LearniqScannableServices;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\AgentToolAnswer;
@@ -95,7 +96,7 @@ class LearniqAgentToolsTest extends TestCase {
 	private function tools(): LearniqAgentTools {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
 				$this->reads++;
 				foreach ($this->objects[(string)$schema] ?? [] as $row) {
 					if (($row['id'] ?? null) === $id) {
@@ -104,7 +105,7 @@ class LearniqAgentToolsTest extends TestCase {
 				}
 
 				return null;
-			}
+			})
 		);
 		$objects->method('findAll')->willReturnCallback(
 			function (array $config): array {

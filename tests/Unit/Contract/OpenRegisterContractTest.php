@@ -69,10 +69,9 @@ final class OpenRegisterContractTest extends TestCase {
 	public function testObjectServiceFindSignatureIsUnchanged(): void {
 		$this->assertParameterNames(
 			new ReflectionMethod(ObjectService::class, 'find'),
-			// `_audit` was appended by openregister c9d96966 (2026-08-13), which
-			// lets a read opt out of writing its audit row. It is APPENDED, so
-			// no existing positional closure shifted.
-			['id', '_extend', 'files', 'register', 'schema', '_rbac', '_multitenancy', '_render', '_audit']
+			// OpenRegister #9116 moved register, schema, extend, files, render
+			// and audit into one ObjectFindOptions.
+			['id', 'options', '_rbac', '_multitenancy']
 		);
 
 		$this->assertReturnTypeIs(

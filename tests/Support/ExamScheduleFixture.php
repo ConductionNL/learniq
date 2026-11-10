@@ -71,7 +71,13 @@ final class ExamScheduleFixture {
 	 */
 	public function wire(ObjectService&MockObject $service): ObjectService {
 		$service->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, mixed $register = null, mixed $schema = null): ?ObjectEntity {
+			FindCallShape::legacy(function (
+				int|string $id,
+				?array $_extend = [],
+				bool $files = false,
+				mixed $register = null,
+				mixed $schema = null
+			): ?ObjectEntity {
 				foreach (($this->store->rows[(string)$schema] ?? []) as $row) {
 					if (($row['id'] ?? null) === $id) {
 						return OrEntityFactory::make($row, (string)$schema);
@@ -79,7 +85,7 @@ final class ExamScheduleFixture {
 				}
 
 				return null;
-			}
+			})
 		);
 		$service->method('findAll')->willReturnCallback(
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)

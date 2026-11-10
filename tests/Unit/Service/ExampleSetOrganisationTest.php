@@ -23,6 +23,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Service\ExampleSetOrganisation;
 use OCA\Learniq\Tests\Support\DelegatingDouble;
 use OCA\OpenRegister\Db\MagicMapper;
@@ -122,7 +124,8 @@ class ExampleSetOrganisationTest extends TestCase {
 			 *
 			 * @return ObjectEntity
 			 */
-			public function find(int|string $id, mixed $register=null, mixed $schema=null, bool $_rbac=true, bool $_multitenancy=true, bool $_render=true, bool $_audit=true): ObjectEntity {
+			public function find(int|string $id, ?ObjectFindOptions $options=null, bool $_rbac=true, bool $_multitenancy=true): ObjectEntity {
+				[, , , $register, $schema, , , $_render, $_audit] = FindCallShape::find(args: [$id, $options]);
 				$this->reads[] = [$id, $register, $schema, $_rbac, $_multitenancy, $_render, $_audit];
 				return $this->rows[(string)$id] ?? throw new \Exception('Object not found');
 			}//end find()

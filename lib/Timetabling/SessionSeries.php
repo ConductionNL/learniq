@@ -31,6 +31,7 @@ namespace OCA\Learniq\Timetabling;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Throwable;
 
@@ -237,7 +238,7 @@ class SessionSeries {
 	 */
 	public function loadSession(string $sessionId): ?array {
 		try {
-			$row = $this->objectService->find(id: $sessionId, register: self::REGISTER, schema: self::SESSION_SCHEMA);
+			$row = $this->objectService->find(id: $sessionId, options: new ObjectFindOptions(register: self::REGISTER, schema: self::SESSION_SCHEMA));
 		} catch (Throwable $exception) {
 			unset($exception);
 			return null;

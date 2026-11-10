@@ -30,6 +30,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use DateTime;
 use OCA\Learniq\Listener\AssessmentAttemptGateListener;
 use OCA\Learniq\Service\AssessmentAccessPolicy;
@@ -113,7 +114,16 @@ class AssessmentAttemptGateListenerTest extends TestCase {
 
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true, bool $_multitenancy = true, bool $_render = true) use ($findThrows) {
+			FindCallShape::legacy(function (
+				int|string $id,
+				?array $_extend = [],
+				bool $files = false,
+				$register = null,
+				$schema = null,
+				bool $_rbac = true,
+				bool $_multitenancy = true,
+				bool $_render = true
+			) use ($findThrows) {
 				$this->findCalls[] = ['id' => $id, 'schema' => $schema, 'rbac' => $_rbac, 'render' => $_render];
 				if ($findThrows === true) {
 					throw new RuntimeException('database gone');
@@ -125,7 +135,7 @@ class AssessmentAttemptGateListenerTest extends TestCase {
 				}
 
 				return OrEntityFactory::make($row, 'exam');
-			}
+			})
 		);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config = []): array {

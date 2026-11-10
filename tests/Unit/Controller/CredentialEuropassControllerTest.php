@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Controller;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Controller\CredentialEuropassController;
 use OCA\Learniq\Service\CredentialLearner;
 use OCA\Learniq\Service\EuropassIssuer;
@@ -79,7 +80,7 @@ class CredentialEuropassControllerTest extends TestCase {
 		];
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ObjectEntity {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ObjectEntity {
 				if ($schema === 'course' && $id === 'c-1') {
 					return OrEntityFactory::make(['id' => 'c-1', 'code' => 'MDB 2026'], 'course');
 				}
@@ -93,7 +94,7 @@ class CredentialEuropassControllerTest extends TestCase {
 				}
 
 				throw new DoesNotExistException('gone');
-			}
+			})
 		);
 		$objects->method('saveObject')->willReturnCallback(
 			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): ObjectEntity {

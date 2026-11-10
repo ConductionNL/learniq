@@ -50,6 +50,7 @@ namespace OCA\Learniq\Controller;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\LearningRecordExportSigningService;
@@ -281,7 +282,7 @@ class LearningRecordShareVerifyController extends Controller {
 		// fail closed on, so it must return null and let the caller emit the denied JSON —
 		// matching the `catch (\Throwable)` already used by the other methods on this class.
 		try {
-			$obj = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
+			$obj = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema));
 		} catch (\Throwable) {
 			return null;
 		}

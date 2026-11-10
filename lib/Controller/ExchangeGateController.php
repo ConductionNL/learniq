@@ -30,6 +30,7 @@ use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerActions;
 use OCA\Learniq\Service\ExchangeGateService;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -151,8 +152,7 @@ class ExchangeGateController extends Controller {
 		try {
 			$job = $this->objectService->find(
 				id: $jobId,
-				register: self::INTEGRIQ_REGISTER,
-				schema: self::INTEGRIQ_JOB_SCHEMA,
+				options: new ObjectFindOptions(register: self::INTEGRIQ_REGISTER, schema: self::INTEGRIQ_JOB_SCHEMA),
 				_rbac: false,
 				_multitenancy: false
 			);

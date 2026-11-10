@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\AdmissionsDecisionGuard;
@@ -68,13 +69,13 @@ class AdmissionsDecisionGuardTest extends TestCase {
 		// and returns ?ObjectEntity. willReturnCallback() hands the closure the
 		// mock's arguments POSITIONALLY, so the closure must mirror that order.
 		$this->objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($round) {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($round) {
 				if ($schema === 'admissions-round' && $round !== null) {
 					return OrEntityFactory::make($round, 'admissions-round');
 				}
 
 				return null;
-			}
+			})
 		);
 
 	}//end wireRound()

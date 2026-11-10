@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Lifecycle\LearnerMergeGuard;
 use OCA\Learniq\Listener\LearnerMergeHandler;
 use OCA\Learniq\Service\LearnerMergeService;
@@ -131,7 +132,7 @@ class LearnerMergeHandlerTest extends TestCase {
 			}
 		);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
 				foreach ($this->store[(string)$schema] ?? [] as $row) {
 					if ($row['id'] === $id) {
 						return OrEntityFactory::make($row, (string)$schema);
@@ -139,7 +140,7 @@ class LearnerMergeHandlerTest extends TestCase {
 				}
 
 				return null;
-			}
+			})
 		);
 		$objectService->method('saveObject')->willReturnCallback(
 			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {

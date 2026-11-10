@@ -38,6 +38,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Lifecycle\Action\LinkCoveringCorrectionAction;
 use OCA\Learniq\Lifecycle\Action\StampTransitionActorAction;
 use OCA\Learniq\Lifecycle\DataCorrectionDecisionGuard;
@@ -131,7 +132,7 @@ class CorrectionAppliedThroughApplyTransitionTest extends TestCase {
 		);
 		$objects->method('find')->willReturnCallback(
 			static function (mixed ...$args) use ($store): ?ObjectEntity {
-				$named = self::named(method: 'find', args: $args);
+				$named = FindCallShape::named(args: $args);
 				$schema = (string)($named['schema'] ?? '');
 				foreach (($store->rows[$schema] ?? []) as $row) {
 					if (($row['id'] ?? null) === $named['id']) {

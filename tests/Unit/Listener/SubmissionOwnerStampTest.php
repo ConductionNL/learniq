@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\AppInfo\Registrar\IntegrityListenerRegistrar;
 use OCA\Learniq\Listener\SubmissionOwnerStamp;
 use OCA\Learniq\Service\Portal\PortalWriteSubject;
@@ -110,13 +111,13 @@ class SubmissionOwnerStampTest extends TestCase {
 
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
 				if ($schema !== 'assignment' || isset($this->assignments[$id]) === false) {
 					throw new DoesNotExistException('not found');
 				}
 
 				return OrEntityFactory::make(array_merge($this->assignments[$id], ['id' => $id]), 'assignment');
-			}
+			})
 		);
 
 		$user = $this->createMock(IUser::class);

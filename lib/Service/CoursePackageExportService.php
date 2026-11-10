@@ -45,6 +45,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
@@ -210,7 +211,7 @@ class CoursePackageExportService {
 	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#data-model
 	 */
 	public function gatherCourseTree(string $courseId, string $exportingUser): array {
-		$course = $this->objectService->find(id: $courseId, register: self::LEARNIQ_REGISTER, schema: 'course');
+		$course = $this->objectService->find(id: $courseId, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: 'course'));
 		if ($course === null) {
 			throw new RuntimeException("Course '{$courseId}' not found.");
 		}
@@ -290,7 +291,7 @@ class CoursePackageExportService {
 				continue;
 			}
 
-			$rubric = $this->objectService->find(id: $rubricId, register: self::LEARNIQ_REGISTER, schema: 'rubric');
+			$rubric = $this->objectService->find(id: $rubricId, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: 'rubric'));
 			if ($rubric !== null) {
 				$rubrics[] = $this->toArray(object: $rubric);
 			}
@@ -317,7 +318,7 @@ class CoursePackageExportService {
 					continue;
 				}
 
-				$item = $this->objectService->find(id: $itemId, register: self::LEARNIQ_REGISTER, schema: 'item');
+				$item = $this->objectService->find(id: $itemId, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: 'item'));
 				if ($item === null) {
 					continue;
 				}

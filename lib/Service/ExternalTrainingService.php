@@ -37,6 +37,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -275,7 +276,12 @@ class ExternalTrainingService {
 		}
 
 		$find = fn () => $this->objectService
-			->find(id: $profileId, register: self::LEARNIQ_REGISTER, schema: 'learner-profile', _rbac: false, _multitenancy: false);
+			->find(
+				id: $profileId,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: 'learner-profile'),
+				_rbac: false,
+				_multitenancy: false
+			);
 		$profile = $this->findOrNull(find: $find);
 
 		$ncUserId = ($profile?->jsonSerialize()['ncUserId'] ?? null);

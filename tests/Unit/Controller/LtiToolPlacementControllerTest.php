@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Controller;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Integriq\Event\LtiLaunchRequestedEvent;
 use OCA\Learniq\Controller\LtiToolPlacementController;
 use OCA\OpenRegister\Db\ObjectEntity;
@@ -97,7 +98,7 @@ class LtiToolPlacementControllerTest extends TestCase {
 
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
 				$row = ($this->objects[(string)$schema][(string)$id] ?? null);
 				if ($row === null) {
 					throw new DoesNotExistException('not found');
@@ -106,7 +107,7 @@ class LtiToolPlacementControllerTest extends TestCase {
 				$entity = $this->createMock(ObjectEntity::class);
 				$entity->method('jsonSerialize')->willReturn($row);
 				return $entity;
-			}
+			})
 		);
 
 		$dispatcher = $this->createMock(IEventDispatcher::class);

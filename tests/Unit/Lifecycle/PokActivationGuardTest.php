@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use DateTimeImmutable;
 use DateTimeZone;
 use OCA\Learniq\Lifecycle\PokActivationGuard;
@@ -74,13 +75,13 @@ class PokActivationGuardTest extends TestCase {
 			}
 		);
 		$objectService->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($rows) {
+			FindCallShape::legacy(static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($rows) {
 				if (isset($rows[(string)$schema][(string)$id]) === false) {
 					throw new DoesNotExistException('not found');
 				}
 
 				return OrEntityFactory::make($rows[(string)$schema][(string)$id], (string)$schema);
-			}
+			})
 		);
 
 		$time = $this->createMock(ITimeFactory::class);

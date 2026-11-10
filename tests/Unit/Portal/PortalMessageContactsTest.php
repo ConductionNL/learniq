@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Portal;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\Learniq\Portal\PortalContributionProvider;
 use OCA\Learniq\Portal\PortalMessageContacts;
 use OCA\Learniq\Portal\PortalRecordProviders;
@@ -79,8 +80,8 @@ class PortalMessageContactsTest extends TestCase {
 		);
 		$store->method('find')->willReturnCallback(
 			function (...$args) use ($objects): ?ObjectEntity {
-				// find(id, _extend, files, register, schema, ...), positional through the mock.
-				[$id, $schema] = [($args['id'] ?? $args[0]), (string)($args['schema'] ?? $args[4] ?? '')];
+				$flat = FindCallShape::find(args: $args);
+				[$id, $schema] = [$flat[0], (string)($flat[4] ?? '')];
 				foreach ($objects[$schema] ?? [] as $row) {
 					if (($row['uuid'] ?? null) === $id) {
 						$entity = $this->createMock(ObjectEntity::class);

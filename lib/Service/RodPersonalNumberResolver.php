@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -92,8 +93,7 @@ class RodPersonalNumberResolver {
 		try {
 			$profile = $this->objectService->find(
 				id: $profileId,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::LEARNER_PROFILE_SCHEMA,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::LEARNER_PROFILE_SCHEMA),
 				_rbac: false,
 				_multitenancy: false
 			);

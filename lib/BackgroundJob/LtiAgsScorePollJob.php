@@ -63,6 +63,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\BackgroundJob;
 
 use DateTimeImmutable;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\LtiAgsPullClient;
@@ -415,8 +416,7 @@ class LtiAgsScorePollJob extends TimedJob {
 		try {
 			$object = $this->objectService->find(
 				id: $lineItemId,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::PLACEMENT_SCHEMA,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::PLACEMENT_SCHEMA),
 				_rbac: false,
 				_multitenancy: false
 			);
@@ -519,8 +519,7 @@ class LtiAgsScorePollJob extends TimedJob {
 		// in schema 'GradeScale'") and no grade was written.
 		$scale = $this->objectService->find(
 			id: $gradeScaleId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::GRADE_SCALE_SCHEMA,
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::GRADE_SCALE_SCHEMA),
 			_rbac: false,
 			_multitenancy: false
 		);

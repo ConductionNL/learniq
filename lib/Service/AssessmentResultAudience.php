@@ -40,6 +40,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -114,8 +115,7 @@ class AssessmentResultAudience {
 
 		$assessment = $this->objectService->find(
 			id: $assessmentId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ASSESSMENT_SCHEMA,
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::ASSESSMENT_SCHEMA),
 			_rbac: false
 		);
 		if ($assessment === null) {
@@ -129,8 +129,7 @@ class AssessmentResultAudience {
 		if ($cohortId !== '') {
 			$cohort = $this->objectService->find(
 				id: $cohortId,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::COHORT_SCHEMA,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::COHORT_SCHEMA),
 				_rbac: false
 			);
 			$cohorts = array_filter([$cohort]);

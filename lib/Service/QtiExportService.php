@@ -41,6 +41,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use RuntimeException;
 use ZipArchive;
@@ -87,7 +88,7 @@ class QtiExportService {
 	 * @spec openspec/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-21-package
 	 */
 	public function export(string $itemBankId): string {
-		$bank = $this->objectService->find(id: $itemBankId, register: self::LEARNIQ_REGISTER, schema: 'item-bank');
+		$bank = $this->objectService->find(id: $itemBankId, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: 'item-bank'));
 		if ($bank === null) {
 			throw new RuntimeException("ItemBank '{$itemBankId}' not found.");
 		}
@@ -101,7 +102,7 @@ class QtiExportService {
 				continue;
 			}
 
-			$item = $this->objectService->find(id: $itemId, register: self::LEARNIQ_REGISTER, schema: 'item');
+			$item = $this->objectService->find(id: $itemId, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: 'item'));
 			if ($item === null) {
 				continue;
 			}

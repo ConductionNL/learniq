@@ -36,6 +36,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -373,7 +374,7 @@ class CourseEvaluationAnswerService {
 		}
 
 		try {
-			$object = $this->objectService->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false);
+			$object = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: $schema), _rbac: false);
 		} catch (Throwable) {
 			return null;
 		}

@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Controller;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Controller\LearningRecordShareVerifyController;
@@ -101,14 +102,14 @@ class LearningRecordShareVerifyControllerTest extends TestCase {
 		// ObjectEntity's getters come from Entity::__call, so a real instance is
 		// required — a mock cannot configure them.
 		$this->objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
+			FindCallShape::legacy(function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
 				$data = $this->objectsBySchemaId[$schema . ':' . $id] ?? null;
 				if ($data === null) {
 					return null;
 				}
 
 				return OrEntityFactory::make($data, (string)$schema, 'learniq', (string)$id);
-			}
+			})
 		);
 
 		$this->signingService = $this->createMock(LearningRecordExportSigningService::class);

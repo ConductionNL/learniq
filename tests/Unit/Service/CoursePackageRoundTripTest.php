@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\FindCallShape;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\CommonCartridgeParser;
 use OCA\Learniq\Service\CoursePackage\CommonCartridgeCourseImporter;
@@ -72,7 +73,7 @@ class CoursePackageRoundTripTest extends TestCase {
 		// --- Seed source object graph (mocked ObjectService, export side). ---
 		$exportObjectService = $this->createMock(ObjectService::class);
 		$exportObjectService->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+			FindCallShape::legacy(static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
 				$row = match ([$schema, $id]) {
 					['course', 'course-source'] => ['id' => 'course-source', 'name' => 'Physics 101', 'tenant_id' => 't1'],
 					['rubric', 'rubric-source'] => ['id' => 'rubric-source', 'name' => 'Essay rubric', 'criteria' => [], 'maxPoints' => 20],
@@ -84,7 +85,7 @@ class CoursePackageRoundTripTest extends TestCase {
 				}
 
 				return OrEntityFactory::make($row, (string)$schema);
-			}
+			})
 		);
 		$exportObjectService->method('findAll')->willReturnCallback(
 			static function (array $config): array {

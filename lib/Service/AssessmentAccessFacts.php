@@ -30,6 +30,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Throwable;
 
@@ -77,10 +78,8 @@ class AssessmentAccessFacts {
 		try {
 			$object = $this->objectService->find(
 				id: $assessmentId,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::ASSESSMENT_SCHEMA,
-				_rbac: false,
-				_render: false
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::ASSESSMENT_SCHEMA, render: false),
+				_rbac: false
 			);
 			if ($object !== null) {
 				$raw = $object->jsonSerialize();
