@@ -295,3 +295,115 @@ test('the page is a menu entry and not a Reports card', () => {
 		/CurriculumCoverageMatrixView: page\(CurriculumCoverageMatrixView\)/,
 	)
 })
+
+test('the goal tree reads uuids, treats a self, missing or inactive parent as a root, and orders ties by code', () => {
+	const tree = goalTree([
+		{ uuid: 'b', code: 'B10', title: 'Ten' },
+		{ uuid: 'a', code: 'B9', order: 1 },
+		{ id: 'self', parentId: 'self', code: 'S', order: 1 },
+		{ id: 'orphan', parentId: 'gone', code: 'O', order: 0 },
+		{ id: 'old', code: 'X', lifecycle: 'retired' },
+		{ id: 'kid', parentId: 'old', code: 'K', order: 5 },
+		{ id: 'a1', parentId: 'a', code: 'A2' },
+		{ id: 'a0', parentId: 'a', code: 'A10' },
+		{ id: '', code: 'none' },
+		{ code: 'none either' },
+	])
+	assert.deepEqual(
+		tree.map((node) => [node.id, node.depth, node.isLeaf, node.parentId, node.code, node.title]),
+		[
+			['orphan', 0, true, 'gone', 'O', ''],
+			['a', 0, false, '', 'B9', ''],
+			['a1', 1, true, 'a', 'A2', ''],
+			['a0', 1, true, 'a', 'A10', ''],
+			['self', 0, true, 'self', 'S', ''],
+			['kid', 0, true, 'old', 'K', ''],
+			['b', 0, true, '', 'B10', 'Ten'],
+		],
+	)
+})
+
+test('a cell names its depth only when it is planned or assessed', () => {
+	assert.equal(statusLabel(null, LABELS, { m: 'M' }), 'Not covered')
+	assert.equal(statusLabel({ plannedDepth: 'm' }, LABELS, { m: 'M' }), 'Not covered')
+	assert.equal(statusLabel({ planned: true, plannedDepth: null, assessedDepth: 'x' }, LABELS), 'Planned (x)')
+	assert.equal(statusLabel({ assessed: true }, LABELS), 'Assessed')
+	assert.equal(statusLabel({ planned: true, assessed: true, assessedDepth: 'm' }, LABELS, { m: 'M' }), 'Planned and assessed (M)')
+})
+
+test('the matrix shows a covered goal with its whole ancestry and leaves uncovered branches out', () => {
+	const goals = [
+		{ id: 'root', code: 'R' },
+		{ id: 'mid', parentId: 'root', code: 'M' },
+		{ id: 'leaf', parentId: 'mid', code: 'L', title: 'Leaf' },
+		{ id: 'other', parentId: 'root', code: 'Z' },
+		{ id: 'lone', code: 'Q' },
+	]
+	const coverageRows = [
+		{ subjectScope: 'all', year: null, goals: [{ competencyId: 'leaf', planned: true }, { competencyId: 'mid', assessed: true }] },
+		{ subjectScope: 'all', year: '2', goals: [{ competencyId: 'leaf' }] },
+		{ subjectScope: 'all', year: '1' },
+		{ subjectScope: 'subject', subjectId: 's', year: '9' },
+	]
+	const out = coverageMatrix({ goals, coverageRows, selection: { subjectScope: 'all', subjectId: null }, labels: LABELS })
+	assert.deepEqual(out.columns.map((c) => c.key), ['y:1', 'y:2'])
+	assert.deepEqual(out.rows, [
+		{ id: 'root', label: 'R', isHeading: true, 'y:1': '', 'y:2': '' },
+		{ id: 'mid', label: '\u00a0'.repeat(4) + 'M', isHeading: true, 'y:1': '', 'y:2': '' },
+		{ id: 'leaf', label: '\u00a0'.repeat(8) + 'L · Leaf', isHeading: false, 'y:1': '', 'y:2': 'Planned' },
+	])
+	assert.equal(out.total, coverageRows[0])
+	const noTotal = coverageMatrix({ goals, coverageRows: [{ subjectScope: 'all', year: '1', goals: [{ competencyId: 'lone' }] }], selection: { subjectScope: 'all', subjectId: null }, labels: LABELS })
+	assert.deepEqual(noTotal.rows, [])
+	assert.equal(noTotal.total, null)
+	const flat = coverageMatrix({ goals, coverageRows: [{ subjectScope: 'all', goals: [{ competencyId: 'lone', assessed: true, assessedDepth: 'd' }] }], selection: { subjectScope: 'all', subjectId: null }, labels: LABELS, levelLabels: { d: 'Deep' } })
+	assert.deepEqual(flat.columns, [{ key: 'all', label: 'All years', type: 'string', readOnly: true }])
+	assert.deepEqual(flat.rows, [{ id: 'lone', label: 'Q', isHeading: false, all: 'Assessed (Deep)' }])
+})
+
+test('gap sections name the subject, fall back to its id or no subject, and sort by subject then year', () => {
+	const goals = [{ id: 'g1', code: 'G1', title: 'One' }, { id: 'g2', title: 'Two' }]
+	const sections = gapList({
+		goals,
+		coverageRows: [
+			{ subjectScope: 'subject', subjectId: 'b', year: '10', uncoveredIds: ['g1', 'x'] },
+			{ subjectScope: 'subject', subjectId: 'b', year: '9', plannedNotAssessedIds: ['g2'] },
+			{ subjectScope: 'subject', subjectId: 'a', year: '1', uncoveredIds: [], plannedNotAssessedIds: [] },
+			{ subjectScope: 'subject', subjectId: 'a', year: null, uncoveredIds: ['g1'] },
+			{ subjectScope: 'none', subjectId: null, year: '2', uncoveredIds: ['g2'] },
+			{ subjectScope: 'subject', year: '3', uncoveredIds: ['g2'] },
+			{ subjectScope: 'all', year: '4', uncoveredIds: ['g1'] },
+		],
+		subjectNames: { b: 'Biology' },
+		labels: LABELS,
+	})
+	assert.deepEqual(sections, [
+		{ key: 'subject|b|9', subject: 'Biology', year: '9', notCovered: [], plannedNotAssessed: ['Two'] },
+		{ key: 'subject|b|10', subject: 'Biology', year: '10', notCovered: ['G1 · One', 'x'], plannedNotAssessed: [] },
+		{ key: 'none||2', subject: 'No subject', year: '2', notCovered: ['Two'], plannedNotAssessed: [] },
+		{ key: 'subject||3', subject: 'No subject', year: '3', notCovered: ['Two'], plannedNotAssessed: [] },
+	])
+	assert.deepEqual(
+		gapList({ goals, coverageRows: [{ subjectScope: 'subject', subjectId: 'c', year: '', uncoveredIds: ['g1'] }], subjectNames: {}, labels: LABELS }),
+		[{ key: 'subject|c|', subject: 'c', year: 'All years', notCovered: ['G1 · One'], plannedNotAssessed: [] }],
+	)
+})
+
+test('subject options sort by name and add no subject last, only when such rows exist', () => {
+	assert.deepEqual(
+		subjectOptions(
+			[{ subjectScope: 'subject', subjectId: 'z' }, { subjectScope: 'subject', subjectId: 'a' }, { subjectScope: 'subject' }, { subjectScope: 'subject', subjectId: 'z' }],
+			{ z: 'Algebra' },
+			LABELS,
+		),
+		[
+			{ id: 'all', label: 'All subjects' },
+			{ id: 'a', label: 'a' },
+			{ id: 'z', label: 'Algebra' },
+		],
+	)
+	assert.deepEqual(subjectOptions([{ subjectScope: 'none' }], {}, LABELS), [
+		{ id: 'all', label: 'All subjects' },
+		{ id: 'none', label: 'No subject' },
+	])
+})
