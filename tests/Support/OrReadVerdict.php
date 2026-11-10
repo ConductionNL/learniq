@@ -30,6 +30,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Support;
 
 use OCA\OpenRegister\Service\ConditionMatcher;
+use OCA\OpenRegister\Service\ConditionUserResolvers;
 use OCA\OpenRegister\Service\OperatorEvaluator;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -74,7 +75,7 @@ trait OrReadVerdict {
 		$session = $this->createMock(IUserSession::class);
 		$session->method('getUser')->willReturn($user);
 		$matcher = new ConditionMatcher(
-			userSession: $session,
+			users: new ConditionUserResolvers(userSession: $session),
 			container: $this->createMock(ContainerInterface::class),
 			operatorEvaluator: new OperatorEvaluator(logger: new NullLogger()),
 			logger: new NullLogger()
