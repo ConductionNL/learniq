@@ -124,6 +124,19 @@ class ConcernReportReporterStamp implements IEventListener {
 			return;
 		}
 
+		$this->stampReporter(event: $event, userId: $userId);
+	}//end stampWrite()
+
+	/**
+	 * Stamp a new report with its signed-in reporter, the reporter's tenant
+	 * and the `received` status.
+	 *
+	 * @param ObjectCreatingEvent $event  The create event.
+	 * @param string              $userId The signed-in reporter.
+	 *
+	 * @return void
+	 */
+	private function stampReporter(ObjectCreatingEvent $event, string $userId): void {
 		$event->setModifiedData(
 			array_merge(
 				$event->getModifiedData(),
@@ -134,7 +147,7 @@ class ConcernReportReporterStamp implements IEventListener {
 				]
 			)
 		);
-	}//end stampWrite()
+	}//end stampReporter()
 
 	/**
 	 * Put the stored reporter and tenant back over whatever the update sends.
