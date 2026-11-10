@@ -242,17 +242,7 @@ class AssessmentPublishGuard implements LifecycleGuardInterface {
 	 * @return bool
 	 */
 	private function aiProctorFeatureEnabled(): bool {
-		$aiFeatures = $this->objectService->findAll(
-			[
-				'filters' => [
-					'register' => self::HERMIQ_REGISTER,
-					'schema' => self::HERMIQ_AI_FEATURE_SCHEMA,
-					'slug' => self::AI_PROCTOR_SLUG,
-					'lifecycle' => 'enabled',
-				],
-				'limit' => 1,
-			]
-		);
+		$aiFeatures = $this->findEnabledAiProctorFeature();
 
 		if (empty($aiFeatures) === true) {
 			$this->logger->info(
@@ -266,6 +256,25 @@ class AssessmentPublishGuard implements LifecycleGuardInterface {
 
 		return true;
 	}//end aiProctorFeatureEnabled()
+
+	/**
+	 * The enabled AI-proctoring feature in Hermiq's AI-feature register, if any.
+	 *
+	 * @return array<int,mixed>
+	 */
+	private function findEnabledAiProctorFeature(): array {
+		return $this->objectService->findAll(
+			[
+				'filters' => [
+					'register' => self::HERMIQ_REGISTER,
+					'schema' => self::HERMIQ_AI_FEATURE_SCHEMA,
+					'slug' => self::AI_PROCTOR_SLUG,
+					'lifecycle' => 'enabled',
+				],
+				'limit' => 1,
+			]
+		);
+	}//end findEnabledAiProctorFeature()
 
 	/**
 	 * Sovereign-ai-guarantee: the AI feature is governed, but is it running
