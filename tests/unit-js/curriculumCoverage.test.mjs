@@ -145,15 +145,15 @@ test('the goal tree is depth first, sibling ordered, without archived goals', ()
 
 test('a cell says planned, assessed, both or neither in words, with the depth label', () => {
 	assert.equal(
-		statusLabel(K1, LABELS, { master: 'Beheerst' }),
+		statusLabel(K1, { labels: LABELS, levelLabels: { master: 'Beheerst' } }),
 		'Planned and assessed (Beheerst)',
 	)
-	assert.equal(statusLabel(K2, LABELS), 'Planned')
+	assert.equal(statusLabel(K2, { labels: LABELS }), 'Planned')
 	assert.equal(
-		statusLabel({ assessed: true, assessedDepth: 'practise' }, LABELS),
+		statusLabel({ assessed: true, assessedDepth: 'practise' }, { labels: LABELS }),
 		'Assessed (practise)',
 	)
-	assert.equal(statusLabel(K3, LABELS), 'Not covered')
+	assert.equal(statusLabel(K3, { labels: LABELS }), 'Not covered')
 })
 
 test("the matrix shows goals under their domain, years as columns, cells only in a goal's years", () => {
@@ -259,7 +259,7 @@ test('without years the gap list uses the all-years rows', () => {
 })
 
 test('subject options list all, each named subject, and no subject', () => {
-	assert.deepEqual(subjectOptions(ROWS, { rekenen: 'Rekenen' }, LABELS), [
+	assert.deepEqual(subjectOptions(ROWS, { subjectNames: { rekenen: 'Rekenen' }, labels: LABELS }), [
 		{ id: 'all', label: 'All subjects' },
 		{ id: 'rekenen', label: 'Rekenen' },
 		{ id: 'none', label: 'No subject' },
@@ -324,11 +324,11 @@ test('the goal tree reads uuids, treats a self, missing or inactive parent as a 
 })
 
 test('a cell names its depth only when it is planned or assessed', () => {
-	assert.equal(statusLabel(null, LABELS, { m: 'M' }), 'Not covered')
-	assert.equal(statusLabel({ plannedDepth: 'm' }, LABELS, { m: 'M' }), 'Not covered')
-	assert.equal(statusLabel({ planned: true, plannedDepth: null, assessedDepth: 'x' }, LABELS), 'Planned (x)')
-	assert.equal(statusLabel({ assessed: true }, LABELS), 'Assessed')
-	assert.equal(statusLabel({ planned: true, assessed: true, assessedDepth: 'm' }, LABELS, { m: 'M' }), 'Planned and assessed (M)')
+	assert.equal(statusLabel(null, { labels: LABELS, levelLabels: { m: 'M' } }), 'Not covered')
+	assert.equal(statusLabel({ plannedDepth: 'm' }, { labels: LABELS, levelLabels: { m: 'M' } }), 'Not covered')
+	assert.equal(statusLabel({ planned: true, plannedDepth: null, assessedDepth: 'x' }, { labels: LABELS }), 'Planned (x)')
+	assert.equal(statusLabel({ assessed: true }, { labels: LABELS }), 'Assessed')
+	assert.equal(statusLabel({ planned: true, assessed: true, assessedDepth: 'm' }, { labels: LABELS, levelLabels: { m: 'M' } }), 'Planned and assessed (M)')
 })
 
 test('the matrix shows a covered goal with its whole ancestry and leaves uncovered branches out', () => {
@@ -391,18 +391,17 @@ test('gap sections name the subject, fall back to its id or no subject, and sort
 
 test('subject options sort by name and add no subject last, only when such rows exist', () => {
 	assert.deepEqual(
-		subjectOptions(
-			[{ subjectScope: 'subject', subjectId: 'z' }, { subjectScope: 'subject', subjectId: 'a' }, { subjectScope: 'subject' }, { subjectScope: 'subject', subjectId: 'z' }],
-			{ z: 'Algebra' },
-			LABELS,
-		),
+		subjectOptions([{ subjectScope: 'subject', subjectId: 'z' }, { subjectScope: 'subject', subjectId: 'a' }, { subjectScope: 'subject' }, { subjectScope: 'subject', subjectId: 'z' }], {
+			subjectNames: { z: 'Algebra' },
+			labels: LABELS,
+		}),
 		[
 			{ id: 'all', label: 'All subjects' },
 			{ id: 'a', label: 'a' },
 			{ id: 'z', label: 'Algebra' },
 		],
 	)
-	assert.deepEqual(subjectOptions([{ subjectScope: 'none' }], {}, LABELS), [
+	assert.deepEqual(subjectOptions([{ subjectScope: 'none' }], { subjectNames: {}, labels: LABELS }), [
 		{ id: 'all', label: 'All subjects' },
 		{ id: 'none', label: 'No subject' },
 	])
