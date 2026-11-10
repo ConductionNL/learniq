@@ -45,6 +45,8 @@ namespace OCA\Learniq\Service\CourseStore;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\OpenRegister\AppHost\Service\StoreDescriptor;
+use OCA\OpenRegister\AppHost\Service\StoreListing;
+use OCA\OpenRegister\AppHost\Service\StoreSharing;
 
 /**
  * Builds the StoreDescriptor for shared course packages.
@@ -124,19 +126,24 @@ class CourseStoreDescriptor {
 	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-store-publish-travels-through-the-store-planes-write-path
 	 */
 	public function descriptor(): StoreDescriptor {
-		$arguments = [
-			'appId'           => Application::APP_ID,
-			'schema'          => self::SCHEMA,
-			'defaultRegister' => self::DEFAULT_REGISTER,
-			'cardFields'      => self::CARD_FIELDS,
-		];
+		$listing = new StoreListing(
+			appId: Application::APP_ID,
+			schema: self::SCHEMA,
+			defaultRegister: self::DEFAULT_REGISTER,
+			cardFields: self::CARD_FIELDS
+		);
 
-		if ($this->supportsPublish() === true) {
-			$arguments['publishFields'] = self::PUBLISH_FIELDS;
-			$arguments['publishGroups'] = array_values($this->actionAuth->getAllowedGroups(action: self::ACTION_PUBLISH));
+		if ($this->supportsPublish() === false) {
+			return new StoreDescriptor(listing: $listing);
 		}
 
-		return new StoreDescriptor(...$arguments);
+		return new StoreDescriptor(
+			listing: $listing,
+			sharing: new StoreSharing(
+				publishFields: self::PUBLISH_FIELDS,
+				publishGroups: array_values($this->actionAuth->getAllowedGroups(action: self::ACTION_PUBLISH))
+			)
+		);
 
 	}//end descriptor()
 
