@@ -57,6 +57,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCP\EventDispatcher\Event;
@@ -285,7 +286,7 @@ class EnrolmentPrerequisiteListener implements IEventListener {
 	 * @return array<string, mixed>|null
 	 */
 	private function resolveObject(string $id, string $schema): ?array {
-		$object = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
+		$object = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema));
 		if ($object === null) {
 			return null;
 		}

@@ -35,6 +35,7 @@ use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -186,7 +187,7 @@ class PortfolioEntryOwnershipListener implements IEventListener {
 			return null;
 		}
 
-		$portfolio = $this->objectService->find(id: $portfolioId, register: 'learniq', schema: 'portfolio');
+		$portfolio = $this->objectService->find(id: $portfolioId, options: new ObjectFindOptions(register: 'learniq', schema: 'portfolio'));
 		$learnerId = ($portfolio?->jsonSerialize()['learnerId'] ?? null);
 		if (is_string($learnerId) === false) {
 			return null;

@@ -38,6 +38,7 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Files\IRootFolder;
@@ -207,7 +208,7 @@ class LearningRecordImportIntakeService {
 			);
 		}
 
-		$final = $this->objectService->find(id: $createdId, register: self::LEARNIQ_REGISTER, schema: self::SCHEMA);
+		$final = $this->objectService->find(id: $createdId, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::SCHEMA));
 
 		return $this->toArray(row: $final);
 	}//end createImport()

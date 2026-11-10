@@ -38,6 +38,7 @@ use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -168,8 +169,7 @@ class CheckInWindowStamp implements IEventListener {
 		try {
 			$session = $this->objectService->find(
 				id: $id,
-				register: self::REGISTER,
-				schema: self::SESSION_SCHEMA,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: self::SESSION_SCHEMA),
 				_rbac: false,
 				_multitenancy: false
 			);

@@ -36,6 +36,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Lifecycle\Action;
 
 use OCA\Learniq\Service\LearnerRefResolver;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -120,8 +121,7 @@ class ConferenceInvitationAction implements LifecycleActionInterface {
 		try {
 			$cohort = $this->objectService->find(
 				id: $cohortId,
-				register: self::REGISTER,
-				schema: self::COHORT_SCHEMA,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: self::COHORT_SCHEMA),
 				_rbac: false,
 				_multitenancy: false
 			);

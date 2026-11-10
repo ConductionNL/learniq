@@ -34,6 +34,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\JwsProofVerifier;
@@ -143,8 +144,7 @@ class CredentialVerifyController extends Controller {
 		try {
 			$credentialObj = $this->objectService->find(
 				id: $id,
-				register: 'learniq',
-				schema: 'credential'
+				options: new ObjectFindOptions(register: 'learniq', schema: 'credential')
 			);
 		} catch (DoesNotExistException | MultipleObjectsReturnedException $notFound) {
 			// Same meaning as `null` below, so the same answer: a guess, and
@@ -241,7 +241,7 @@ class CredentialVerifyController extends Controller {
 		}
 
 		try {
-			$credentialObj = $this->objectService->find(id: $id, register: 'learniq', schema: 'credential');
+			$credentialObj = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: 'learniq', schema: 'credential'));
 		} catch (DoesNotExistException | MultipleObjectsReturnedException) {
 			$credentialObj = null;
 		}

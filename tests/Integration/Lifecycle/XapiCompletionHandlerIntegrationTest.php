@@ -33,6 +33,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Integration\Lifecycle;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\XapiCompletionHandler;
 use OCP\EventDispatcher\Event;
@@ -229,8 +230,7 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 		try {
 			$entity = $this->objectService->find(
 				id: $uuid,
-				register: 'learniq',
-				schema: $schema,
+				options: new ObjectFindOptions(register: 'learniq', schema: $schema),
 			);
 		} catch (\OCP\AppFramework\Db\DoesNotExistException) {
 			return [];

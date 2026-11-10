@@ -55,6 +55,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -171,8 +172,7 @@ class FeeItemVoluntaryEntitlementGuard implements LifecycleGuardInterface {
 	private function fetchFeeItem(string $feeItemId): ?array {
 		$obj = $this->objectService->find(
 			id: $feeItemId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::FEE_ITEM_SCHEMA
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::FEE_ITEM_SCHEMA)
 		);
 
 		if ($obj === null) {

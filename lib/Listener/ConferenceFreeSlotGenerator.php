@@ -51,6 +51,7 @@ use OCA\Learniq\Service\ConferenceSlotSlicer;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -479,7 +480,7 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 			return null;
 		}
 
-		$object = $this->objectService->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false);
+		$object = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: $schema), _rbac: false, _multitenancy: false);
 		if ($object === null) {
 			return null;
 		}

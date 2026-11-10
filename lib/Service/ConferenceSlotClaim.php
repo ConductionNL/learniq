@@ -45,6 +45,7 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Lock\ILockingProvider;
 use OCP\Lock\LockedException;
@@ -138,7 +139,7 @@ class ConferenceSlotClaim {
 	 */
 	private function claimLocked(string $slotId, array $round, array $booking): array {
 		$roundId = (string)($round['id'] ?? '');
-		$found = $this->objectService->find(id: $slotId, register: self::REGISTER, schema: self::SLOT_SCHEMA, _rbac: false, _multitenancy: false);
+		$found = $this->objectService->find(id: $slotId, options: new ObjectFindOptions(register: self::REGISTER, schema: self::SLOT_SCHEMA), _rbac: false, _multitenancy: false);
 		if ($found === null) {
 			return ['refuse' => 'slot-unknown'];
 		}

@@ -34,6 +34,7 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -115,8 +116,7 @@ class ConferenceWaitlistPlacement implements IEventListener {
 	private function scheduleWhenMet(string $signupId): void {
 		$signup = $this->objectService->find(
 			id: $signupId,
-			register: self::REGISTER,
-			schema: self::SIGNUP_SCHEMA,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: self::SIGNUP_SCHEMA),
 			_rbac: false,
 			_multitenancy: false
 		)?->jsonSerialize();

@@ -31,6 +31,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Lifecycle;
 
 use OCA\Learniq\Service\Grading\CorrectionApprovals;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -99,7 +100,7 @@ class DataCorrectionDecisionGuard implements LifecycleGuardInterface {
 		}
 
 		try {
-			$entity = $this->objects->find(id: $entryId, register: 'learniq', schema: 'grade-entry', _rbac: false);
+			$entity = $this->objects->find(id: $entryId, options: new ObjectFindOptions(register: 'learniq', schema: 'grade-entry'), _rbac: false);
 		} catch (Throwable) {
 			$entity = null;
 		}

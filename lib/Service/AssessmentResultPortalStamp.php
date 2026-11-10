@@ -35,6 +35,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -126,8 +127,7 @@ class AssessmentResultPortalStamp {
 		try {
 			$assessment = $this->objectService->find(
 				id: $assessmentId,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::ASSESSMENT_SCHEMA,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::ASSESSMENT_SCHEMA),
 				_rbac: false,
 				_multitenancy: false
 			);

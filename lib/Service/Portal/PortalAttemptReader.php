@@ -33,6 +33,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Portal;
 
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -187,7 +188,7 @@ class PortalAttemptReader {
 		}
 
 		$find = fn () => $this->objectService
-			->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false, _render: false);
+			->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false), _rbac: false, _multitenancy: false);
 		return $this->findOrNull(find: $find)?->jsonSerialize();
 	}//end one()
 

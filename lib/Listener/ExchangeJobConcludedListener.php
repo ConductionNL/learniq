@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -93,8 +94,7 @@ class ExchangeJobConcludedListener implements IEventListener {
 		try {
 			$request = $this->objectService->find(
 				id: $supportRequestId,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::SUPPORT_REQUEST_SCHEMA,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::SUPPORT_REQUEST_SCHEMA),
 				_rbac: false,
 				_multitenancy: false
 			);

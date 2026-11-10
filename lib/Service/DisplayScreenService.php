@@ -36,6 +36,7 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Security\ISecureRandom;
 use Throwable;
@@ -128,11 +129,9 @@ class DisplayScreenService {
 		try {
 			$row = $this->objectService->find(
 				id: $parts[0],
-				register: self::REGISTER,
-				schema: self::SCHEMA,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: self::SCHEMA, render: false),
 				_rbac: false,
-				_multitenancy: false,
-				_render: false
+				_multitenancy: false
 			);
 		} catch (Throwable $exception) {
 			unset($exception);
@@ -178,7 +177,7 @@ class DisplayScreenService {
 	 */
 	private function loadAsCaller(string $screenId): ?array {
 		try {
-			$row = $this->objectService->find(id: $screenId, register: self::REGISTER, schema: self::SCHEMA, _render: false);
+			$row = $this->objectService->find(id: $screenId, options: new ObjectFindOptions(register: self::REGISTER, schema: self::SCHEMA, render: false));
 		} catch (Throwable $exception) {
 			unset($exception);
 			return null;

@@ -46,6 +46,7 @@ use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -290,7 +291,7 @@ class SubmissionOwnerStamp implements IEventListener {
 		}
 
 		$find = fn () => $this->objectService
-			->find(id: $id, register: self::LEARNIQ_REGISTER, schema: self::ASSIGNMENT_SCHEMA, _rbac: false, _multitenancy: false);
+			->find(id: $id, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::ASSIGNMENT_SCHEMA), _rbac: false, _multitenancy: false);
 		return $this->findOrNull(find: $find)?->jsonSerialize();
 	}//end assignment()
 

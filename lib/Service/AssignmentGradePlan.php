@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Throwable;
 
@@ -88,7 +89,7 @@ class AssignmentGradePlan {
 		}
 
 		try {
-			$object = $this->objectService->find(id: $id, register: self::REGISTER, schema: $schema);
+			$object = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: $schema));
 		} catch (Throwable $e) {
 			return null;
 		}

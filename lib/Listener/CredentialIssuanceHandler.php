@@ -46,6 +46,7 @@ use OCA\Learniq\Service\EuropassIssuer;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -120,8 +121,7 @@ class CredentialIssuanceHandler implements IEventListener {
 		// Read the Course to check for certificateTemplate.
 		$courseObj = $this->objectService->find(
 			id: $courseId,
-			register: self::LEARNIQ_REGISTER,
-			schema: 'course'
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: 'course')
 		);
 
 		if ($courseObj === null) {

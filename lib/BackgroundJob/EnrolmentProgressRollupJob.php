@@ -21,6 +21,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\BackgroundJob;
 
 use OCA\Learniq\Service\EnrolmentProgressEvaluator;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -151,7 +152,7 @@ class EnrolmentProgressRollupJob extends ForwardedJob {
 	private function resolveEnrolment(string $learnerId, string $courseId, string $enrolmentId): ?array {
 		if ($enrolmentId !== '') {
 			try {
-				$named = $this->objectService->find(id: $enrolmentId, register: self::LEARNIQ_REGISTER, schema: self::ENROLMENT_SCHEMA);
+				$named = $this->objectService->find(id: $enrolmentId, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::ENROLMENT_SCHEMA));
 			} catch (\Throwable $e) {
 				$named = null;
 			}

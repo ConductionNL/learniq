@@ -35,6 +35,7 @@ use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Exception\DraftSubmitException;
 use OCA\Learniq\Service\DraftSubmitter;
 use OCA\Learniq\Service\LearnerRefResolver;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -183,7 +184,7 @@ class RequestSubmitController extends Controller {
 		}
 
 		try {
-			$object = $this->objectService->find(id: $id, register: self::REGISTER, schema: $schema);
+			$object = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: $schema));
 		} catch (Throwable $exception) {
 			return null;
 		}

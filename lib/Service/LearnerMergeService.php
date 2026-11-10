@@ -37,6 +37,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -321,7 +322,7 @@ class LearnerMergeService {
 		}
 
 		try {
-			$entity = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: self::PROFILE_SCHEMA);
+			$entity = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::PROFILE_SCHEMA));
 		} catch (\Throwable $e) {
 			$this->logger->warning('[LearnerMergeService] Profile {id} could not be loaded: {m}', ['id' => $id, 'm' => $e->getMessage()]);
 			return null;

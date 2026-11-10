@@ -48,6 +48,7 @@ namespace OCA\Learniq\Listener;
 use DateTimeImmutable;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\BsaProgressEvaluator;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -148,8 +149,7 @@ class BsaProgressFlagHandler implements IEventListener {
 	private function resolveProgrammeIds(string $courseId): array {
 		$course = $this->objectService->find(
 			id: $courseId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::COURSE_SCHEMA
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::COURSE_SCHEMA)
 		);
 
 		if ($course === null) {

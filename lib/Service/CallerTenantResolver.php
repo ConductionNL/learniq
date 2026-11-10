@@ -30,6 +30,7 @@ namespace OCA\Learniq\Service;
 
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IConfig;
 use OCP\IUser;
@@ -150,7 +151,7 @@ class CallerTenantResolver {
 	 * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
 	 */
 	public function findOwned(IUser $user, string $id, string $schema): ?array {
-		$object = $this->findOrNull(find: fn () => $this->objectService->find(id: $id, register: Application::APP_ID, schema: $schema));
+		$object = $this->findOrNull(find: fn () => $this->objectService->find(id: $id, options: new ObjectFindOptions(register: Application::APP_ID, schema: $schema)));
 		if ($object === null) {
 			return null;
 		}
