@@ -29,6 +29,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectDeletion;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -123,9 +125,10 @@ class ReportSubjectGradeRows {
 
 		foreach ($this->rowsOf(learnerRef: $learnerRef) as $old) {
 			$this->objectService->deleteObject(
-				uuid: (string)($old['id'] ?? ($old['uuid'] ?? '')),
-				register: self::REGISTER,
-				schema: self::SCHEMA,
+				deletion: new ObjectDeletion(
+					uuid: (string)($old['id'] ?? ($old['uuid'] ?? '')),
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA)
+				),
 				_rbac: false,
 				_multitenancy: false
 			);

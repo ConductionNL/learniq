@@ -30,6 +30,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\CoursePackage;
 
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectDeletion;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -209,7 +211,12 @@ class CoursePackageObjectWriter {
 	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#data-model
 	 */
 	public function delete(string $schema, string $uuid): void {
-		$this->objectService->deleteObject(uuid: $uuid, register: self::LEARNIQ_REGISTER, schema: $schema);
+		$this->objectService->deleteObject(
+			deletion: new ObjectDeletion(
+				uuid: $uuid,
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: $schema)
+			)
+		);
 	}//end delete()
 
 	/**

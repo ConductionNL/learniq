@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\Course;
 
+use OCA\Learniq\Tests\Support\DeleteCallShape;
 use OCA\Learniq\Exception\CourseTemplateRefusedException;
 use OCA\Learniq\Service\Course\CourseTemplateObjects;
 use OCA\Learniq\Service\Course\CourseTemplateService;
@@ -113,12 +114,12 @@ class CourseTemplateServiceTest extends TestCase {
 			}
 		);
 		$objects->method('deleteObject')->willReturnCallback(
-			function (string $uuid, mixed $register = null, mixed $schema = null, bool $_rbac = false): bool {
+			DeleteCallShape::legacy(function (string $uuid, mixed $register = null, mixed $schema = null, bool $_rbac = false): bool {
 				$this->deleted[] = ['schema' => (string)$schema, 'id' => $uuid];
 				$this->rbac[]    = ['deleteObject', $_rbac];
 
 				return true;
-			}
+			})
 		);
 
 		$writer = $this->createMock(CoursePackageObjectWriter::class);

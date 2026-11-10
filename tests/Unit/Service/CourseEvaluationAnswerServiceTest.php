@@ -30,6 +30,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\DeleteCallShape;
 use DateTimeImmutable;
 use OCA\Learniq\Lifecycle\CourseEvaluationEligibilityGuard;
 use OCA\Learniq\Listener\CourseEvaluationResponseSubmittedHandler;
@@ -166,11 +167,11 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 			}
 		);
 		$objects->method('deleteObject')->willReturnCallback(
-			function (string $uuid, $register = null, $schema = null): bool {
+			DeleteCallShape::legacy(function (string $uuid, $register = null, $schema = null): bool {
 				$this->deleted[] = $uuid;
 				$this->store->rows[(string)$schema] = array_values(array_filter($this->store->rows[(string)$schema], static fn (array $row): bool => $row['id'] !== $uuid));
 				return true;
-			}
+			})
 		);
 
 		$user = $this->createMock(IUser::class);

@@ -34,6 +34,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectDeletion;
 use DateTimeImmutable;
 use DateTimeInterface;
 use OCA\Learniq\Exception\XapiRequestException;
@@ -223,9 +225,10 @@ class XapiDocumentStore {
 		}
 
 		$this->objectService->deleteObject(
-			uuid: $this->documentUuid(key: $key),
-			register: self::REGISTER,
-			schema: self::SCHEMA,
+			deletion: new ObjectDeletion(
+				uuid: $this->documentUuid(key: $key),
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA)
+			),
 			_rbac: false,
 			_multitenancy: false
 		);
@@ -272,9 +275,10 @@ class XapiDocumentStore {
 	public function deleteAll(array $key): void {
 		foreach ($this->rowsUnder(key: $key) as $row) {
 			$this->objectService->deleteObject(
-				uuid: $this->documentUuid(key: array_replace($key, ['documentId' => (string)$row['documentId']])),
-				register: self::REGISTER,
-				schema: self::SCHEMA,
+				deletion: new ObjectDeletion(
+					uuid: $this->documentUuid(key: array_replace($key, ['documentId' => (string)$row['documentId']])),
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA)
+				),
 				_rbac: false,
 				_multitenancy: false
 			);

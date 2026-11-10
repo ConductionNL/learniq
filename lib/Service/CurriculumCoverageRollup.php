@@ -39,6 +39,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectDeletion;
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -307,9 +309,7 @@ class CurriculumCoverageRollup {
 		}
 
 		$this->objectService->deleteObject(
-			uuid: $id,
-			register: self::REGISTER,
-			schema: self::COVERAGE_SCHEMA,
+			deletion: new ObjectDeletion(uuid: $id, target: new ObjectFindTarget(register: self::REGISTER, schema: self::COVERAGE_SCHEMA)),
 			_rbac: false,
 			_multitenancy: false
 		);

@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\DeleteCallShape;
 use OCA\Learniq\Service\ReportSubjectGradeRows;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\OpenRegister\Service\ObjectService;
@@ -83,10 +84,12 @@ class ReportSubjectGradeRowsTest extends TestCase {
 		$saved   = [];
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('findAll')->willReturnCallback(fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $store->findAll($config, $_rbac, $_multitenancy));
-		$objects->method('deleteObject')->willReturnCallback(static function (string $uuid, $register = null, $schema = null) use (&$deleted): bool {
-			$deleted[] = [$schema, $uuid];
-			return true;
-		});
+		$objects->method('deleteObject')->willReturnCallback(
+			DeleteCallShape::legacy(static function (string $uuid, $register = null, $schema = null) use (&$deleted): bool {
+				$deleted[] = [$schema, $uuid];
+				return true;
+			})
+		);
 		$objects->method('saveObject')->willReturnCallback(function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved, $store) {
 			$saved[] = [$schema, $object];
 			return $store->save((string)$schema, $object, null);

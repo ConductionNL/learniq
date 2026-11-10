@@ -22,6 +22,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\BackgroundJob;
 
+use OCA\Learniq\Tests\Support\DeleteCallShape;
 use DateTime;
 use DateTimeImmutable;
 use OCA\Learniq\BackgroundJob\CourseEvaluationDraftCleanupJob;
@@ -110,7 +111,7 @@ class CourseEvaluationDraftCleanupJobTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objects->method('deleteObject')->willReturnCallback(
-			fn (string $uuid, $register = null, $schema = null, bool $_rbac = true, bool $_multitenancy = true, bool $_retentionSweep = false, $currentUser = null, bool $permanent = false): bool => $store->delete((string)$schema, $uuid, $_rbac, $_multitenancy, $permanent)
+			DeleteCallShape::legacy(fn (string $uuid, $register = null, $schema = null, bool $_rbac = true, bool $_multitenancy = true, bool $_retentionSweep = false, $currentUser = null, bool $permanent = false): bool => $store->delete((string)$schema, $uuid, $_rbac, $_multitenancy, $permanent))
 		);
 
 		$time = $this->createMock(ITimeFactory::class);

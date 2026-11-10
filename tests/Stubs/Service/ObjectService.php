@@ -34,6 +34,7 @@ namespace OCA\OpenRegister\Service;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Db\Register;
 use OCA\OpenRegister\Db\Schema;
+use OCA\OpenRegister\Service\Object\ObjectDeletion;
 use OCP\IUser;
 
 /**
@@ -120,26 +121,19 @@ abstract class ObjectService {
 	/**
 	 * Delete an object.
 	 *
-	 * @param string                   $uuid          Object uuid.
-	 * @param Register|string|int|null $register      Register context.
-	 * @param Schema|string|int|null   $schema        Schema context.
-	 * @param bool                     $_rbac         Apply RBAC.
-	 * @param bool                     $_multitenancy Apply multitenancy.
-	 * @param bool                     $_retentionSweep Internal retention-sweep flag.
-	 * @param IUser|null               $currentUser   Explicit acting user.
-	 * @param bool                     $permanent     Destroy the row rather than tombstone it.
+	 * @param ObjectDeletion $deletion        The uuid, the optional register and schema scope,
+	 *                                        the explicit acting user and whether to destroy the row.
+	 * @param bool           $_rbac           Apply RBAC.
+	 * @param bool           $_multitenancy   Apply multitenancy.
+	 * @param bool           $_retentionSweep Internal retention-sweep flag.
 	 *
 	 * @return bool
 	 */
 	abstract public function deleteObject(
-		string $uuid,
-		Register|string|int|null $register = null,
-		Schema|string|int|null $schema = null,
+		ObjectDeletion $deletion,
 		bool $_rbac = true,
 		bool $_multitenancy = true,
 		bool $_retentionSweep = false,
-		?IUser $currentUser = null,
-		bool $permanent = false,
 	): bool;
 
 	/**

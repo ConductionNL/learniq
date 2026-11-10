@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\Course;
 
+use OCA\Learniq\Tests\Support\DeleteCallShape;
 use OCA\Learniq\Exception\CourseTemplateRefusedException;
 use OCA\Learniq\Service\Course\CourseTemplateObjects;
 use OCA\Learniq\Service\Course\CourseTemplateService;
@@ -189,14 +190,14 @@ class CourseTemplateInstantiateGoldenTest extends TestCase {
 			}
 		);
 		$objects->method('deleteObject')->willReturnCallback(
-			function (string $uuid, mixed $register = null, mixed $schema = null, ...$rest): bool {
+			DeleteCallShape::legacy(function (string $uuid, mixed $register = null, mixed $schema = null, ...$rest): bool {
 				$this->calls[] = ['delete' => [$uuid, $register, $schema, $rest]];
 				if ($uuid === 'id-1') {
 					throw new RuntimeException('cannot delete');
 				}
 
 				return true;
-			}
+			})
 		);
 
 		$creates = 0;

@@ -75,7 +75,7 @@ trait XapiDocumentsInMemory {
 			}
 		);
 		$objects->method('deleteObject')->willReturnCallback(
-			static function (string $uuid, mixed $register = null, mixed $schema = null, bool $rbac = true, bool $multitenancy = true) use ($store): bool {
+			DeleteCallShape::legacy(static function (string $uuid, mixed $register = null, mixed $schema = null, bool $rbac = true, bool $multitenancy = true) use ($store): bool {
 				if ($multitenancy === true) {
 					throw new RuntimeException('Object not found in magic table');
 				}
@@ -89,7 +89,7 @@ trait XapiDocumentsInMemory {
 				}
 
 				return false;
-			}
+			})
 		);
 
 		return $objects;
