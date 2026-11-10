@@ -22,6 +22,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Lifecycle\Action;
 
 use OCA\Learniq\Lifecycle\Action\TenantSignatureAction;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 use OCA\OpenRegister\Service\TenantKeyService;
 use PHPUnit\Framework\TestCase;
@@ -80,7 +81,14 @@ class TenantSignatureActionTest extends TestCase {
 	 * @return void
 	 */
 	public function testSignatureAndKeyIdEndUpOnTheSavedObject(): void {
-		$result = $this->makeAction('super-secret-key')->execute($this->objectData(), [], [], TenantSignatureAction::class);
+		$result = $this->makeAction('super-secret-key')->execute(
+			new LifecycleActionContext(
+				objectData: $this->objectData(),
+				previousData: [],
+				parameters: [],
+				actionName: TenantSignatureAction::class
+			)
+		);
 
 		$canonical = [
 			'id' => 'attestation-1',
@@ -106,14 +114,28 @@ class TenantSignatureActionTest extends TestCase {
 	 */
 	public function testSignatureIsStableUnderItsOwnFields(): void {
 		$action = $this->makeAction('k');
-		$first = $action->execute($this->objectData(), [], [], TenantSignatureAction::class)['signature'];
+		$first = $action->execute(
+			new LifecycleActionContext(
+				objectData: $this->objectData(),
+				previousData: [],
+				parameters: [],
+				actionName: TenantSignatureAction::class
+			)
+		)['signature'];
 
 		$withSelf = $this->objectData();
 		$withSelf['signature'] = 'stale';
 		$withSelf['signingKeyId'] = 'stale-key';
 		$withSelf['lifecycle'] = 'drafted';
 
-		$this->assertSame($first, $action->execute($withSelf, [], [], TenantSignatureAction::class)['signature']);
+		$this->assertSame($first, $action->execute(
+			new LifecycleActionContext(
+				objectData: $withSelf,
+				previousData: [],
+				parameters: [],
+				actionName: TenantSignatureAction::class
+			)
+		)['signature']);
 	}//end testSignatureIsStableUnderItsOwnFields()
 
 	/**
@@ -124,6 +146,13 @@ class TenantSignatureActionTest extends TestCase {
 	public function testMissingTenantKeyThrows(): void {
 		$this->expectException(RuntimeException::class);
 
-		$this->makeAction('')->execute($this->objectData(), [], [], TenantSignatureAction::class);
+		$this->makeAction('')->execute(
+			new LifecycleActionContext(
+				objectData: $this->objectData(),
+				previousData: [],
+				parameters: [],
+				actionName: TenantSignatureAction::class
+			)
+		);
 	}//end testMissingTenantKeyThrows()
 }//end class

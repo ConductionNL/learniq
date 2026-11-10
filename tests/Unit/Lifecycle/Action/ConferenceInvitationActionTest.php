@@ -26,6 +26,7 @@ namespace OCA\Learniq\Tests\Unit\Lifecycle\Action;
 use OCA\Learniq\Lifecycle\Action\ConferenceInvitationAction;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -58,10 +59,12 @@ class ConferenceInvitationActionTest extends TestCase {
 		);
 
 		$round = (new ConferenceInvitationAction($objectService, $profiles, new NullLogger()))->execute(
-			['cohortIds' => ['c-1', 'c-2'], 'tenant_id' => 't'],
-			[],
-			[],
-			'OCA\\Learniq\\Lifecycle\\Action\\ConferenceInvitationAction'
+			new LifecycleActionContext(
+				objectData: ['cohortIds' => ['c-1', 'c-2'], 'tenant_id' => 't'],
+				previousData: [],
+				parameters: [],
+				actionName: 'OCA\\Learniq\\Lifecycle\\Action\\ConferenceInvitationAction'
+			)
 		);
 
 		$this->assertSame(['l-1', 'l-2', 'l-3'], $round['invitedLearnerIds']);

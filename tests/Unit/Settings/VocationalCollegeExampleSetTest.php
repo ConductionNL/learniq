@@ -44,6 +44,7 @@ use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\PokParentSignatureRule;
 use OCA\Learniq\Service\SeedProfileService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -590,7 +591,8 @@ class VocationalCollegeExampleSetTest extends TestCase {
 		foreach (self::of('praktijkovereenkomst') as $agreement) {
 			$pok = array_merge($agreement, ['id' => $agreement['uuid']]);
 			self::assertTrue($guard->check($pok, 'activate', 'mbo-stagecoordinator-01')->isAllowed(), $agreement['slug'] . ' passes the activation guard');
-			self::assertSame($stamp->execute($pok, [], [], 'activate')['parentSignatureRequired'], $agreement['parentSignatureRequired'], $agreement['slug']);
+			$stamped = $stamp->execute(new LifecycleActionContext(objectData: $pok, previousData: [], parameters: [], actionName: 'activate'));
+			self::assertSame($stamped['parentSignatureRequired'], $agreement['parentSignatureRequired'], $agreement['slug']);
 
 			$parentSigners = array_column(array_filter($signaturesBySubject[$agreement['uuid']], static fn (array $s): bool => $s['signerRole'] === 'parent'), 'signerId');
 			if ($agreement['parentSignatureRequired'] === false) {

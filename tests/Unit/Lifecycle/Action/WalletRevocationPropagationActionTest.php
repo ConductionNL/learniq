@@ -23,6 +23,7 @@ namespace OCA\Learniq\Tests\Unit\Lifecycle\Action;
 
 use OCA\Learniq\Lifecycle\Action\WalletRevocationPropagationAction;
 use OCA\Learniq\Service\WalletRevocationPropagationService;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 use OCP\App\IAppManager;
 use OCP\Http\Client\IClient;
@@ -88,7 +89,14 @@ class WalletRevocationPropagationActionTest extends TestCase {
 		$object = ['id' => 'credential-1', 'lifecycle' => 'revoked', 'walletOfferStatus' => 'offered', 'walletAttestationRef' => 'offer-1'];
 		$previous = array_merge($object, ['lifecycle' => 'issued']);
 
-		$saved = $this->makeAction('{"status":"revoked"}')->execute($object, $previous, [], WalletRevocationPropagationAction::class);
+		$saved = $this->makeAction('{"status":"revoked"}')->execute(
+			new LifecycleActionContext(
+				objectData: $object,
+				previousData: $previous,
+				parameters: [],
+				actionName: WalletRevocationPropagationAction::class
+			)
+		);
 
 		self::assertSame('revoked', $saved['walletOfferStatus']);
 		self::assertSame('revoked', $saved['lifecycle']);
@@ -103,7 +111,14 @@ class WalletRevocationPropagationActionTest extends TestCase {
 	public function testFailedPropagationRecordsTheErrorOnTheSavedObject(): void {
 		$object = ['id' => 'credential-2', 'lifecycle' => 'revoked', 'walletOfferStatus' => 'claimed', 'walletAttestationRef' => 'offer-2'];
 
-		$saved = $this->makeAction('{"status":"pending"}')->execute($object, [], [], WalletRevocationPropagationAction::class);
+		$saved = $this->makeAction('{"status":"pending"}')->execute(
+			new LifecycleActionContext(
+				objectData: $object,
+				previousData: [],
+				parameters: [],
+				actionName: WalletRevocationPropagationAction::class
+			)
+		);
 
 		self::assertSame('claimed', $saved['walletOfferStatus']);
 		self::assertNotEmpty($saved['walletOfferError']);

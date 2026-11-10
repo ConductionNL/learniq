@@ -26,6 +26,7 @@ use OCA\Learniq\Service\LearningRecordAggregationService;
 use OCA\Learniq\Service\LearningRecordBundleWriter;
 use OCA\Learniq\Service\LearningRecordExportService;
 use OCA\Learniq\Service\LearningRecordExportSigningService;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Files\File;
@@ -110,7 +111,14 @@ class LearningRecordExportGenerateActionTest extends TestCase {
 	 * @return void
 	 */
 	public function testBundleFieldsLandOnTheSavedObject(): void {
-		$saved = $this->makeAction('header..signature')->execute(self::generatedExport(), [], [], LearningRecordExportGenerateAction::class);
+		$saved = $this->makeAction('header..signature')->execute(
+			new LifecycleActionContext(
+				objectData: self::generatedExport(),
+				previousData: [],
+				parameters: [],
+				actionName: LearningRecordExportGenerateAction::class
+			)
+		);
 
 		self::assertSame('generated', $saved['lifecycle']);
 		self::assertSame('header..signature', $saved['bundleSignature']);
@@ -129,6 +137,13 @@ class LearningRecordExportGenerateActionTest extends TestCase {
 	public function testSigningFailureThrows(): void {
 		$this->expectException(RuntimeException::class);
 
-		$this->makeAction(null)->execute(self::generatedExport(), [], [], LearningRecordExportGenerateAction::class);
+		$this->makeAction(null)->execute(
+			new LifecycleActionContext(
+				objectData: self::generatedExport(),
+				previousData: [],
+				parameters: [],
+				actionName: LearningRecordExportGenerateAction::class
+			)
+		);
 	}//end testSigningFailureThrows()
 }//end class
