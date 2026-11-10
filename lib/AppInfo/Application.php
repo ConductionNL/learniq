@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\AppInfo;
 
 use OCA\OpenRegister\AppHost\Bootstrap;
+use OCA\OpenRegister\AppHost\LeafAdoption;
 use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
 use OCA\Learniq\Middleware\ActionForbiddenMiddleware;
 use OCA\Learniq\Middleware\LookupIntegrityMiddleware;
@@ -134,12 +135,14 @@ class Application extends App implements IBootstrap {
 		OpenRegisterAutoloader::register();
 
 		Bootstrap::register(
-			$context,
-			self::APP_ID,
-			[
-				'namespace' => 'OCA\\Learniq',
-				'sectionName' => 'Learniq',
-			]
+			context: $context,
+			adoption: new LeafAdoption(
+				appId: self::APP_ID,
+				options: [
+					'namespace' => 'OCA\\Learniq',
+					'sectionName' => 'Learniq',
+				]
+			)
 		);
 
 		// Override cookbook (ADR-040): re-point the settings controller/service,
