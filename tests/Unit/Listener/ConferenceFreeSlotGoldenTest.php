@@ -17,6 +17,9 @@ use OCA\Learniq\Tests\Support\CapturingLogger;
 use OCA\Learniq\Tests\Support\GoldenFile;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
+use OCA\OpenRegister\Service\Lifecycle\TransitionActor;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
 use OCP\EventDispatcher\Event;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IDateTimeZone;
@@ -73,7 +76,7 @@ class ConferenceFreeSlotGoldenTest extends TestCase {
 		foreach ($events as $name => [$data, $to, $register, $schema]) {
 			$this->calls = [];
 			$logger = new CapturingLogger();
-			$this->generator(logger: $logger)->handle(event: new ObjectTransitionedEvent(OrEntityFactory::make($data, 'conference-round'), 'open-booking', 'invitations-sent', $to, 'planner', $register, $schema));
+			$this->generator(logger: $logger)->handle(event: new ObjectTransitionedEvent(object: OrEntityFactory::make($data, 'conference-round'), move: new TransitionMove(action: 'open-booking', from: 'invitations-sent', to: $to), scope: new RegisterSchemaRef(register: $register, schema: $schema), actor: new TransitionActor(userId: 'planner')));
 			$actual[$name] = ['calls' => $this->calls, 'log' => array_map(static fn (array $r): array => [$r['level'], $r['message'], $r['context']], $logger->records)];
 		}
 

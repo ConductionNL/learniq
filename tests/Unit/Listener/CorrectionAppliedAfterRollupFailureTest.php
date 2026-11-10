@@ -37,6 +37,9 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\TransitionScope;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
+use OCA\OpenRegister\Service\Lifecycle\TransitionActor;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -227,7 +230,7 @@ class CorrectionAppliedAfterRollupFailureTest extends TestCase {
 			ListenerSchemaResolver::class => TransitionScope::resolver(),
 			LoggerInterface::class        => new NullLogger(),
 		];
-		$event = new ObjectTransitionedEvent(OrEntityFactory::make(self::ENTRY, 'grade-entry'), 'republish', 'revised', 'published', 'lp-teacher', 'learniq', 'grade-entry');
+		$event = new ObjectTransitionedEvent(object: OrEntityFactory::make(self::ENTRY, 'grade-entry'), move: new TransitionMove(action: 'republish', from: 'revised', to: 'published'), scope: new RegisterSchemaRef(register: 'learniq', schema: 'grade-entry'), actor: new TransitionActor(userId: 'lp-teacher'));
 
 		try {
 			foreach ($this->transitionedListeners() as $class) {

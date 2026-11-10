@@ -38,6 +38,9 @@ use OCA\OpenRegister\Event\ObjectEventSubscription;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
+use OCA\OpenRegister\Service\Lifecycle\TransitionActor;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
 use OCA\Portaliq\Event\PortalClaimScopeEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\EventDispatcher\Event;
@@ -231,7 +234,7 @@ class RegisteredListenersHandleRealEventsTest extends TestCase {
 			ObjectDeletedEvent::class => new ObjectDeletedEvent($entity),
 			ObjectCreatedEvent::class => new ObjectCreatedEvent($entity),
 			ObjectUpdatedEvent::class => new ObjectUpdatedEvent($entity, $before),
-			ObjectTransitionedEvent::class => new ObjectTransitionedEvent($entity, 'minimal', 'draft', 'active', 'alice', 'learniq', 'minimal'),
+			ObjectTransitionedEvent::class => new ObjectTransitionedEvent(object: $entity, move: new TransitionMove(action: 'minimal', from: 'draft', to: 'active'), scope: new RegisterSchemaRef(register: 'learniq', schema: 'minimal'), actor: new TransitionActor(userId: 'alice')),
 			// A Nextcloud Files event (office-file-lesson-onboarding): the node is a file double.
 			NodeCreatedEvent::class => new NodeCreatedEvent($this->createStub(File::class)),
 			NodeRenamedEvent::class => new NodeRenamedEvent($this->createStub(File::class), $this->createStub(File::class)),
