@@ -121,3 +121,42 @@ test('only the teacher and admin views see the roster', () => {
 	assert.equal(canSeeHandInStatus(['student']), false)
 	assert.equal(canSeeHandInStatus(undefined), false)
 })
+
+test('the roster skips blank ids, matches a cohort by uuid, and reads missing cohorts as none', () => {
+	const cohorts = [
+		{ uuid: 'c-a', learnerIds: ['p1', '', 7, 'p2', 'p1'] },
+		{ id: 'c-b', learnerIds: ['p3'] },
+		null,
+		{ id: 'c-c' },
+	]
+	assert.deepEqual(rosterFor({ cohortId: 'c-a' }, cohorts), ['p1', 'p2'])
+	assert.deepEqual(rosterFor({}, cohorts), ['p1', 'p2', 'p3'])
+	assert.deepEqual(rosterFor(null, undefined), [])
+	assert.deepEqual(rosterFor({ cohortId: 'x' }, undefined), [])
+})
+
+test('a row names the handed-in submission before a draft, and an unreadable due date is never overdue', () => {
+	const submissions = [
+		{ uuid: 'd1', lifecycle: 'draft', learnerIds: ['p1', 'p2'] },
+		{ id: 's1', uuid: 'u1', lifecycle: 'returned', learnerIds: ['p1'] },
+		null,
+		{ id: 'x', lifecycle: 'draft' },
+	]
+	const now = new Date('2026-05-01T00:00:00Z')
+	assert.deepEqual(handInRows(['p1', 'p2', 'p3'], submissions, { dueAt: '2026-04-01' }, now), [
+		{ learnerId: 'p1', state: 'handed-in', lifecycle: 'returned', submissionId: 's1', overdue: false },
+		{ learnerId: 'p2', state: 'started', lifecycle: 'draft', submissionId: 'd1', overdue: true },
+		{ learnerId: 'p3', state: 'not-started', lifecycle: null, submissionId: null, overdue: true },
+	])
+	assert.equal(handInRows(['p3'], [], { dueAt: 'not a date' }, now)[0].overdue, false)
+	assert.equal(handInRows(['p3'], null, { dueAt: '2026-06-01' }, now)[0].overdue, false)
+	assert.equal(handInRows(['p3'], null, { dueAt: '2026-05-01T00:00:00Z' }, now)[0].overdue, false)
+	assert.deepEqual(handInRows(undefined, submissions, null, now), [])
+	assert.deepEqual(handInRows(['p9'], [{ lifecycle: 'submitted', learnerIds: ['p9'] }], null, now)[0], {
+		learnerId: 'p9',
+		state: 'handed-in',
+		lifecycle: 'submitted',
+		submissionId: null,
+		overdue: false,
+	})
+})
