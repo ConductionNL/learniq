@@ -754,7 +754,7 @@ export default {
 		 */
 		openProcessingAccountability() {
 			window.open(
-				generateUrl('/apps/openregister/api/avg/verantwoording'),
+				generateUrl('/apps/openregister/api/avg/accountability'),
 				'_blank',
 			)
 		},

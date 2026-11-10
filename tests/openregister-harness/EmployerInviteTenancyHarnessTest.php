@@ -50,6 +50,12 @@ use OCA\OpenRegister\Db\Schema;
 use OCA\OpenRegister\Db\SchemaMapper;
 use OCA\OpenRegister\Service\ConditionMatcher;
 use OCA\OpenRegister\Service\DateTimeNormalizer;
+use OCA\OpenRegister\Service\Object\Permission\PermissionCallerServices;
+use OCA\OpenRegister\Service\Object\Permission\PermissionDataServices;
+use OCA\OpenRegister\Service\Object\Permission\PermissionDenyServices;
+use OCA\OpenRegister\Service\Object\Permission\PermissionDerivedGrantServices;
+use OCA\OpenRegister\Service\Object\Permission\PermissionGrantServices;
+use OCA\OpenRegister\Service\Object\Permission\PermissionRuleServices;
 use OCA\OpenRegister\Service\Object\PermissionHandler;
 use OCA\OpenRegister\Service\Object\SchemaTypeConverter;
 use OCA\OpenRegister\Service\ObjectService;
@@ -126,15 +132,15 @@ class EmployerInviteTenancyHarnessTest extends TestCase {
 		$container = $this->createMock(originalClassName: ContainerInterface::class);
 
 		$permissionHandler = new PermissionHandler(
-			$userSession,
-			$userManager,
-			$groupManager,
-			$this->createMock(originalClassName: SchemaMapper::class),
-			$this->createMock(originalClassName: MagicMapper::class),
-			$conditionMatcher,
-			$appConfig,
-			$logger,
-			$container
+			caller: new PermissionCallerServices(userSession: $userSession, userManager: $userManager, groupManager: $groupManager, appConfig: $appConfig),
+			data: new PermissionDataServices(
+				schemaMapper: $this->createMock(originalClassName: SchemaMapper::class),
+				objectEntityMapper: $this->createMock(originalClassName: MagicMapper::class),
+				container: $container,
+				logger: $logger
+			),
+			rules: new PermissionRuleServices(conditionMatcher: $conditionMatcher),
+			grants: new PermissionGrantServices(deny: new PermissionDenyServices(), derived: new PermissionDerivedGrantServices())
 		);
 		$container->method('get')->willReturnCallback(
 			static function (string $service) use ($permissionHandler, $registerMapper): object {
