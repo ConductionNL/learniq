@@ -75,7 +75,9 @@ class JwsProofVerifier {
 			return false;
 		}
 
-		return $this->verifyJwsSignature(jws: $jws, payload: $payload, publicKeyPem: $publicKeyPem);
+		$parsed = DetachedJws::parse(jws: $jws);
+
+		return ($parsed !== null && $parsed->verifies(payload: $payload, publicKeyPem: $publicKeyPem) === true);
 	}//end verify()
 
 	/**
@@ -101,9 +103,8 @@ class JwsProofVerifier {
 		}
 
 		// Decode base64url → JSON.
-		$padded = str_pad($headerB64, (int)ceil(strlen($headerB64) / 4) * 4, '=');
-		$headerJson = base64_decode(strtr($padded, '-_', '+/'), strict: true);
-		if ($headerJson === false) {
+		$headerJson = DetachedJws::base64UrlDecode(encoded: $headerB64);
+		if ($headerJson === null) {
 			return null;
 		}
 
@@ -121,64 +122,6 @@ class JwsProofVerifier {
 	}//end extractKidFromJws()
 
 	/**
-	 * Verify an RS256 JWS signature using the provided public key.
-	 *
-	 * Recomputes the signing input (<header>.<payload>) and calls openssl_verify.
-	 * The payload is the canonicalised (json_encode) OB3 payload WITHOUT the proof
-	 * block, matching what CredentialSigningService::signPayload signed.
-	 *
-	 * @param string $jws Compact JWS string (detached payload, b64:false).
-	 * @param array<string,mixed> $payload The full OB3 payload (proof block will be excluded).
-	 * @param string $publicKeyPem PEM-encoded RSA public key.
-	 *
-	 * @return bool True when openssl_verify returns 1 (valid).
-	 */
-	private function verifyJwsSignature(string $jws, array $payload, string $publicKeyPem): bool {
-		// Split: "<header>..<signature>" → header and signature parts.
-		$parts = explode('..', $jws, 2);
-		if (count($parts) !== 2) {
-			return false;
-		}
-
-		[$headerB64, $sigB64] = $parts;
-		if ($headerB64 === '' || $sigB64 === '') {
-			return false;
-		}
-
-		// The signing input is header + '.' + canonicalised payload WITHOUT proof.
-		// Remove the proof block to match what was signed.
-		$payloadToVerify = $payload;
-		unset($payloadToVerify['proof']);
-
-		// H6: RFC 8785 (JCS) — sort keys recursively before encoding so that the
-		// verify-side signing input matches the sign-side input exactly.
-		$payloadToVerify = $this->canonical(payload: $payloadToVerify);
-
-		$canonicalised = json_encode($payloadToVerify, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-		if ($canonicalised === false) {
-			return false;
-		}
-
-		$signingInput = $headerB64 . '.' . $canonicalised;
-
-		// Decode base64url signature.
-		$padded = str_pad($sigB64, (int)ceil(strlen($sigB64) / 4) * 4, '=');
-		$signature = base64_decode(strtr($padded, '-_', '+/'), strict: true);
-		if ($signature === false) {
-			return false;
-		}
-
-		$pubKey = openssl_pkey_get_public($publicKeyPem);
-		if ($pubKey === false) {
-			return false;
-		}
-
-		$result = openssl_verify($signingInput, $signature, $pubKey, OPENSSL_ALGO_SHA256);
-
-		return $result === 1;
-	}//end verifyJwsSignature()
-
-	/**
 	 * Recursively sort an array's keys (RFC 8785 JCS) for deterministic JSON output.
 	 *
 	 * Mirrors CredentialSigningService::canonicalisePayload so that the verify-side
@@ -191,18 +134,6 @@ class JwsProofVerifier {
 	 * @spec openspec/specs/certification/spec.md#requirement-the-europass-form-is-checkable-on-the-verification-route
 	 */
 	public function canonical(array $payload): array {
-		$isObject = count(array_filter(array_keys($payload), 'is_string')) > 0;
-
-		if ($isObject === true) {
-			ksort($payload, SORT_STRING);
-		}
-
-		foreach ($payload as $key => $value) {
-			if (is_array($value) === true) {
-				$payload[$key] = $this->canonical(payload: $value);
-			}
-		}
-
-		return $payload;
+		return JcsCanonicaliser::canonicalise(payload: $payload);
 	}//end canonical()
 }//end class
