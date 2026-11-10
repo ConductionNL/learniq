@@ -141,8 +141,10 @@ final class TenantJwsSigner {
 	 * @param string $tenantId Tenant UUID.
 	 *
 	 * @return string
+	 *
+	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-the-signature-verifies-against-the-tenant-s-existing-public-key
 	 */
-	private function keyId(string $tenantId): string {
+	public function keyId(string $tenantId): string {
 		$publicKeyPem = $this->publicKeyPem(tenantId: $tenantId);
 
 		$kid = 'unknown';

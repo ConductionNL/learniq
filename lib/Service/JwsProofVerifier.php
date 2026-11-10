@@ -61,16 +61,11 @@ class JwsProofVerifier {
 	 */
 	public function verify(array $payload, string $tenantId): bool {
 		$jws = $payload['proof']['jws'] ?? null;
-		if (is_string($jws) === false || $jws === '' || $tenantId === '') {
+		if (is_string($jws) === false || $jws === '') {
 			return false;
 		}
 
-		$kid = $this->extractKidFromJws(jws: $jws);
-		if ($kid === null) {
-			return false;
-		}
-
-		$publicKeyPem = $this->keys->resolvePublicKeyByFingerprint(tenantId: $tenantId, fingerprint: $kid);
+		$publicKeyPem = $this->publicKeyFor(jws: $jws, tenantId: $tenantId);
 		if ($publicKeyPem === null) {
 			return false;
 		}
@@ -79,6 +74,27 @@ class JwsProofVerifier {
 
 		return ($parsed !== null && $parsed->verifies(payload: $payload, publicKeyPem: $publicKeyPem) === true);
 	}//end verify()
+
+	/**
+	 * The tenant public key the JWS's `kid` names.
+	 *
+	 * @param string $jws      Compact JWS string.
+	 * @param string $tenantId The tenant, '' when unknown.
+	 *
+	 * @return string|null PEM, or null without a tenant, a readable kid or a matching key.
+	 */
+	private function publicKeyFor(string $jws, string $tenantId): ?string {
+		if ($tenantId === '') {
+			return null;
+		}
+
+		$kid = $this->extractKidFromJws(jws: $jws);
+		if ($kid === null) {
+			return null;
+		}
+
+		return $this->keys->resolvePublicKeyByFingerprint(tenantId: $tenantId, fingerprint: $kid);
+	}//end publicKeyFor()
 
 	/**
 	 * Extract the `kid` value from a compact JWS protected header.
@@ -102,7 +118,17 @@ class JwsProofVerifier {
 			return null;
 		}
 
-		// Decode base64url → JSON.
+		return $this->kidFromHeader(headerB64: $headerB64);
+	}//end extractKidFromJws()
+
+	/**
+	 * The `kid` a base64url protected header names.
+	 *
+	 * @param string $headerB64 Base64url JSON header.
+	 *
+	 * @return string|null The kid, or null when the header does not decode or names none.
+	 */
+	private function kidFromHeader(string $headerB64): ?string {
 		$headerJson = DetachedJws::base64UrlDecode(encoded: $headerB64);
 		if ($headerJson === null) {
 			return null;
@@ -119,7 +145,7 @@ class JwsProofVerifier {
 		}
 
 		return $kid;
-	}//end extractKidFromJws()
+	}//end kidFromHeader()
 
 	/**
 	 * Recursively sort an array's keys (RFC 8785 JCS) for deterministic JSON output.
