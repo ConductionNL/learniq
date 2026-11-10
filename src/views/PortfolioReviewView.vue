@@ -404,19 +404,7 @@ export default {
 			this.gradeError = null
 
 			try {
-				await sendJsonOrThrow(
-					generateUrl(`/apps/openregister/api/objects/learniq/Portfolio/${this.id}`),
-					{
-						method: 'PATCH',
-						body: { gradeValue: Number(this.gradeValue) },
-						failure: 'Portfolio update failed',
-					},
-				)
-				await sendJsonOrThrow(generateUrl(objectTransitionUrl(this.id)), {
-					method: 'POST',
-					body: { action: 'grade' },
-					failure: 'Portfolio grade transition failed',
-				})
+				await this.saveGrade()
 				this.portfolio = await this.fetchObject('Portfolio', this.id)
 			} catch (err) {
 				this.gradeError = this.t(
@@ -428,6 +416,28 @@ export default {
 			} finally {
 				this.grading = false
 			}
+		},
+
+		/**
+		 * Save the grade on the Portfolio and dispatch its `grade` transition.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
+		 */
+		async saveGrade() {
+			await sendJsonOrThrow(
+				generateUrl(`/apps/openregister/api/objects/learniq/Portfolio/${this.id}`),
+				{
+					method: 'PATCH',
+					body: { gradeValue: Number(this.gradeValue) },
+					failure: 'Portfolio update failed',
+				},
+			)
+			await sendJsonOrThrow(generateUrl(objectTransitionUrl(this.id)), {
+				method: 'POST',
+				body: { action: 'grade' },
+				failure: 'Portfolio grade transition failed',
+			})
 		},
 	},
 }
