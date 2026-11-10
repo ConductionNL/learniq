@@ -157,7 +157,7 @@ export default {
 					).data,
 				)
 				const roster = rosterFor(assignment, cohorts)
-				this.rows = handInRows(roster, submissions, assignment, new Date())
+				this.rows = handInRows({ learnerIds: roster, submissions, assignment }, new Date())
 				await this.loadNames()
 			} catch {
 				this.loadError = this.t(

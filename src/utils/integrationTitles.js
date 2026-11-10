@@ -31,6 +31,59 @@ export const TITLE_PROP_BY_INTEGRATION = Object.freeze({
 })
 
 /**
+ * The prop a widget's card reads its title under, when the widget is an
+ * integration that needs one and carries a title.
+ *
+ * @param {object} widget A widget.
+ * @return {string|undefined} The prop name.
+ * @spec exclude shim for a nextcloud-vue prop-name mismatch (CnContactsCard reads titleLabel, the host passes title); no learniq requirement covers widget titles
+ */
+function titlePropFor(widget) {
+	const prop =
+		widget?.type === 'integration'
+			? TITLE_PROP_BY_INTEGRATION[widget.integrationId]
+			: undefined
+	if (!prop || typeof widget.title !== 'string' || widget.title === '') {
+		return undefined
+	}
+	return prop
+}
+
+/**
+ * A widget's own props, or none when it has no props object.
+ *
+ * @param {object} widget A widget.
+ * @return {object} The props.
+ * @spec exclude shim for a nextcloud-vue prop-name mismatch (CnContactsCard reads titleLabel, the host passes title); no learniq requirement covers widget titles
+ */
+function ownProps(widget) {
+	const props = widget.props
+	return props && typeof props === 'object' && !Array.isArray(props)
+		? props
+		: {}
+}
+
+/**
+ * Give one widget its title under the prop its card reads, unless it sets
+ * that prop itself.
+ *
+ * @param {object} widget A widget (mutated in place).
+ * @return {void}
+ * @spec exclude shim for a nextcloud-vue prop-name mismatch (CnContactsCard reads titleLabel, the host passes title); no learniq requirement covers widget titles
+ */
+function applyTitleProp(widget) {
+	const prop = titlePropFor(widget)
+	if (!prop) {
+		return
+	}
+	const props = ownProps(widget)
+	if (props[prop] !== undefined) {
+		return
+	}
+	widget.props = { ...props, [prop]: widget.title }
+}
+
+/**
  * Give every integration widget whose card reads `titleLabel` its manifest
  * title under that prop. Other widgets, and a widget with no title, are left
  * as they are.
@@ -46,23 +99,7 @@ export function applyIntegrationTitles(manifest) {
 			continue
 		}
 		for (const widget of widgets) {
-			const prop =
-				widget?.type === 'integration'
-					? TITLE_PROP_BY_INTEGRATION[widget.integrationId]
-					: undefined
-			if (!prop || typeof widget.title !== 'string' || widget.title === '') {
-				continue
-			}
-			const props =
-				widget.props
-				&& typeof widget.props === 'object'
-				&& !Array.isArray(widget.props)
-					? widget.props
-					: {}
-			if (props[prop] !== undefined) {
-				continue
-			}
-			widget.props = { ...props, [prop]: widget.title }
+			applyTitleProp(widget)
 		}
 	}
 	return manifest
