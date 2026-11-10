@@ -23,6 +23,7 @@ namespace OCA\Learniq\Tests\Unit\Lifecycle\Action;
 
 use OCA\Learniq\Lifecycle\Action\PokParentSignatureStampAction;
 use OCA\Learniq\Service\PokParentSignatureRule;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 
@@ -78,7 +79,14 @@ class PokParentSignatureStampActionTest extends TestCase {
 		$asked  = [];
 		$action = $this->makeAction(['required' => true, 'reason' => 'minor', 'parentIds' => ['ouder-1']], [], $asked);
 
-		$result = $action->execute(['id' => 'pok-1', 'version' => 2, 'lifecycle' => 'pending-signatures'], [], [], 'requestSignatures');
+		$result = $action->execute(
+			new LifecycleActionContext(
+				objectData: ['id' => 'pok-1', 'version' => 2, 'lifecycle' => 'pending-signatures'],
+				previousData: [],
+				parameters: [],
+				actionName: 'requestSignatures'
+			)
+		);
 
 		self::assertTrue($result['parentSignatureRequired']);
 		self::assertSame('pending-signatures', $result['lifecycle']);
@@ -96,7 +104,14 @@ class PokParentSignatureStampActionTest extends TestCase {
 		$asked  = [];
 		$action = $this->makeAction(['required' => false, 'reason' => 'adult', 'parentIds' => []], [], $asked);
 
-		$result = $action->execute(['id' => 'pok-1', 'version' => 2, 'parentSignatureRequired' => true], [], [], 'requestSignatures');
+		$result = $action->execute(
+			new LifecycleActionContext(
+				objectData: ['id' => 'pok-1', 'version' => 2, 'parentSignatureRequired' => true],
+				previousData: [],
+				parameters: [],
+				actionName: 'requestSignatures'
+			)
+		);
 
 		self::assertFalse($result['parentSignatureRequired']);
 	}//end testAnAdultsAgreementIsNotFlagged()
@@ -117,7 +132,14 @@ class PokParentSignatureStampActionTest extends TestCase {
 		];
 		$action     = $this->makeAction(['required' => true, 'reason' => 'minor', 'parentIds' => ['ouder-1']], $signatures, $asked);
 
-		$action->execute(['id' => 'pok-1', 'version' => 2], [], [], 'activate');
+		$action->execute(
+			new LifecycleActionContext(
+				objectData: ['id' => 'pok-1', 'version' => 2],
+				previousData: [],
+				parameters: [],
+				actionName: 'activate'
+			)
+		);
 
 		self::assertSame(['2025-08-22T19:05:00+02:00'], $asked);
 	}//end testOnActivationTheStudentsSignatureDateCounts()
@@ -131,7 +153,14 @@ class PokParentSignatureStampActionTest extends TestCase {
 		$asked  = [];
 		$action = $this->makeAction(['required' => true, 'reason' => 'minor', 'parentIds' => []], [], $asked);
 
-		self::assertSame(['version' => 1], $action->execute(['version' => 1], [], [], 'requestSignatures'));
+		self::assertSame(['version' => 1], $action->execute(
+			new LifecycleActionContext(
+				objectData: ['version' => 1],
+				previousData: [],
+				parameters: [],
+				actionName: 'requestSignatures'
+			)
+		));
 		self::assertSame([], $asked);
 	}//end testAPokWithoutAnIdIsLeftAlone()
 }//end class

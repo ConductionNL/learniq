@@ -52,6 +52,7 @@
         <file name="tests/Stubs/Lifecycle/LifecycleGuardInterface.php" preloadClasses="true" />
         <!-- OpenRegister's lifecycle action contract: the transition `actions`
              that carry the writes the guards used to make (learniq#983). -->
+        <file name="tests/Stubs/Lifecycle/LifecycleActionContext.php" preloadClasses="true" />
         <file name="tests/Stubs/Lifecycle/LifecycleActionInterface.php" preloadClasses="true" />
         <!-- Integriq's connection-registry event (adopt-connection-registry).
              ConnectionReportService names it by string behind class_exists

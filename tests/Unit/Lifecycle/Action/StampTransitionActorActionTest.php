@@ -24,6 +24,7 @@ namespace OCA\Learniq\Tests\Unit\Lifecycle\Action;
 use DateTimeImmutable;
 use DateTimeInterface;
 use OCA\Learniq\Lifecycle\Action\StampTransitionActorAction;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -74,7 +75,14 @@ class StampTransitionActorActionTest extends TestCase {
 	public function testActorFieldEndsUpOnTheSavedObject(): void {
 		$object = ['id' => 'accommodation-1', 'approvedBy' => 'someone-else', 'lifecycle' => 'approved'];
 
-		$result = $this->makeAction('actor-1')->execute($object, [], ['actorField' => 'approvedBy'], StampTransitionActorAction::class);
+		$result = $this->makeAction('actor-1')->execute(
+			new LifecycleActionContext(
+				objectData: $object,
+				previousData: [],
+				parameters: ['actorField' => 'approvedBy'],
+				actionName: StampTransitionActorAction::class
+			)
+		);
 
 		self::assertSame('actor-1', $result['approvedBy']);
 		self::assertSame('approved', $result['lifecycle']);
@@ -89,10 +97,12 @@ class StampTransitionActorActionTest extends TestCase {
 	public function testTimeFieldIsStampedInUtc(): void {
 		$before = time();
 		$result = $this->makeAction('verifier-1')->execute(
-			['id' => 'record-1', 'verifiedAt' => '1999-01-01T00:00:00+00:00'],
-			[],
-			['actorField' => 'verifiedBy', 'timeField' => 'verifiedAt'],
-			StampTransitionActorAction::class
+			new LifecycleActionContext(
+				objectData: ['id' => 'record-1', 'verifiedAt' => '1999-01-01T00:00:00+00:00'],
+				previousData: [],
+				parameters: ['actorField' => 'verifiedBy', 'timeField' => 'verifiedAt'],
+				actionName: StampTransitionActorAction::class
+			)
 		);
 
 		self::assertSame('verifier-1', $result['verifiedBy']);
@@ -110,7 +120,14 @@ class StampTransitionActorActionTest extends TestCase {
 	public function testNoSessionUserThrows(): void {
 		$this->expectException(RuntimeException::class);
 
-		$this->makeAction(null)->execute(['id' => 'x'], [], ['actorField' => 'approvedBy'], StampTransitionActorAction::class);
+		$this->makeAction(null)->execute(
+			new LifecycleActionContext(
+				objectData: ['id' => 'x'],
+				previousData: [],
+				parameters: ['actorField' => 'approvedBy'],
+				actionName: StampTransitionActorAction::class
+			)
+		);
 	}//end testNoSessionUserThrows()
 
 	/**
@@ -121,6 +138,13 @@ class StampTransitionActorActionTest extends TestCase {
 	public function testMissingActorFieldParameterThrows(): void {
 		$this->expectException(RuntimeException::class);
 
-		$this->makeAction('actor-1')->execute(['id' => 'x'], [], [], StampTransitionActorAction::class);
+		$this->makeAction('actor-1')->execute(
+			new LifecycleActionContext(
+				objectData: ['id' => 'x'],
+				previousData: [],
+				parameters: [],
+				actionName: StampTransitionActorAction::class
+			)
+		);
 	}//end testMissingActorFieldParameterThrows()
 }//end class

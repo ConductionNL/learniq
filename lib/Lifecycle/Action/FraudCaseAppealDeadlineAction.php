@@ -28,6 +28,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use OCA\Learniq\Service\Settings\AppealTerm;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 
 /**
@@ -59,18 +60,16 @@ class FraudCaseAppealDeadlineAction implements LifecycleActionInterface {
 	/**
 	 * Stamp decidedAt and appealDeadline onto the object.
 	 *
-	 * @param array<string,mixed> $objectData   The FraudCase after the lifecycle field moved to `decided`.
-	 * @param array<string,mixed> $previousData The FraudCase before the transition (unused).
-	 * @param array<string,mixed> $parameters   The declared `actionParameters` (unused).
-	 * @param string              $actionName   The declared action name.
+	 * @param LifecycleActionContext $context The transition; its objectData is the FraudCase after the lifecycle field
+	 *                                        moved to `decided`.
 	 *
 	 * @return array<string,mixed> The FraudCase with decidedAt and appealDeadline set.
 	 *
 	 * @spec openspec/specs/exam-board/spec.md#requirement-a-decided-fraudcase-stamps-the-appeal-deadline-from-the-schools-appeal-term
-	 *
-	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleActionInterface's.
 	 */
-	public function execute(array $objectData, array $previousData, array $parameters, string $actionName): array {
+	public function execute(LifecycleActionContext $context): array {
+		$objectData = $context->objectData;
+
 		$now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
 
 		$objectData['decidedAt'] = $now->format(DateTimeInterface::ATOM);

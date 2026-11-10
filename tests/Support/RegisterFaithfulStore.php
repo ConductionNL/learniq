@@ -92,6 +92,7 @@ namespace OCA\Learniq\Tests\Support;
 
 use DateTime;
 use OCA\OpenRegister\Db\ObjectEntity;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use RuntimeException;
@@ -718,10 +719,12 @@ final class RegisterFaithfulStore {
 				}
 
 				$object = $this->lifecycleActions[$name]->execute(
-					$object,
-					$stored,
-					(array)($envelope['actionParameters'] ?? []),
-					$name
+					new LifecycleActionContext(
+						objectData: $object,
+						previousData: $stored,
+						parameters: (array)($envelope['actionParameters'] ?? []),
+						actionName: $name
+					)
 				);
 			}
 
