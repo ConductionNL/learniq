@@ -146,4 +146,104 @@ class CourseStoreInstallerTest extends TestCase {
 		// An unbound installer lands in the default tenant, not the instance id.
 		self::assertSame(CallerTenantResolver::DEFAULT_TENANT, $tenant);
 	}//end testAFailedImportIsAFailure()
+
+	/**
+	 * An installer over an import service that answers with the given report.
+	 *
+	 * @param array<string, mixed>|\Throwable $answer The report, or the exception the import throws.
+	 * @param array<string, mixed>            $seen   Filled with what the import saw.
+	 *
+	 * @return CourseStoreInstaller
+	 */
+	private function installer(array|\Throwable $answer, array &$seen = []): CourseStoreInstaller {
+		$importService = $this->createMock(CoursePackageImportService::class);
+		$importService->method('import')->willReturnCallback(
+			function (string $path, string $filename, string $user, string $tenant) use ($answer, &$seen): array {
+				$seen = ['path' => $path, 'raw' => (string)file_get_contents($path), 'filename' => $filename, 'tenant' => $tenant];
+				if ($answer instanceof \Throwable) {
+					throw $answer;
+				}
+
+				return $answer;
+			}
+		);
+
+		return new CourseStoreInstaller($importService, new CallerTenantResolver($this->config(), $this->createMock(ObjectService::class)));
+	}//end installer()
+
+	/**
+	 * Refused packages name the reason and import nothing.
+	 *
+	 * @return void
+	 */
+	public function testRefusedPackagesNameTheReason(): void {
+		$none = ['success' => false, 'courseId' => null, 'reportId' => null, 'components' => [], 'message' => 'The shared course carries no package to install.'];
+		foreach ([['package' => ['lessons' => []]], ['package' => '{not json'], ['package' => '"text"'], ['package' => 7], []] as $item) {
+			$seen = [];
+			self::assertSame($none, $this->installer([], $seen)->install($item, 'docent-07'), json_encode($item));
+			self::assertSame([], $seen);
+		}
+	}//end testRefusedPackagesNameTheReason()
+
+	/**
+	 * The staged file is the package as unescaped JSON, named after the slug or a default.
+	 *
+	 * @return void
+	 */
+	public function testTheStagedFileAndItsName(): void {
+		$seen = [];
+		$this->installer(['lifecycle' => 'imported', 'courseId' => 'c'], $seen)->install(['package' => ['course' => ['name' => 'Één/twee']]], 'docent-07');
+
+		self::assertSame('{"course":{"name":"Één/twee"}}', $seen['raw']);
+		self::assertSame('shared-course.json', $seen['filename']);
+		self::assertSame('tenant-1', $seen['tenant']);
+		self::assertFileDoesNotExist($seen['path']);
+	}//end testTheStagedFileAndItsName()
+
+	/**
+	 * A throwing import still removes the staged file and passes the exception on.
+	 *
+	 * @return void
+	 */
+	public function testAThrowingImportRemovesTheStagedFile(): void {
+		$seen = [];
+		try {
+			$this->installer(new \RuntimeException('boom'), $seen)->install(['slug' => 's', 'package' => ['course' => []]], 'docent-07');
+			self::fail('The exception was swallowed.');
+		} catch (\RuntimeException $exception) {
+			self::assertSame('boom', $exception->getMessage());
+		}
+
+		self::assertFileDoesNotExist($seen['path']);
+	}//end testAThrowingImportRemovesTheStagedFile()
+
+	/**
+	 * Report shapes map to the store answer field by field.
+	 *
+	 * @return void
+	 */
+	public function testReportShapes(): void {
+		$item  = ['package' => ['course' => []]];
+		$cases = [
+			[
+				['uuid' => 'r-2', 'courseId' => 'c-1', 'entries' => [['outcome' => 'unknown'], (object)['title' => 'T', 'outcome' => 'imported']]],
+				['success' => false, 'courseId' => 'c-1', 'reportId' => 'r-2', 'components' => [['name' => '', 'status' => 'refused'], ['name' => 'T', 'status' => 'installed']], 'message' => ''],
+			],
+			[
+				['id' => 5, 'courseId' => '', 'lifecycle' => 'imported'],
+				['success' => false, 'courseId' => null, 'reportId' => null, 'components' => [], 'message' => ''],
+			],
+			[
+				['id' => '', 'courseId' => 12, 'lifecycle' => 'imported', 'errorMessage' => 'x'],
+				['success' => false, 'courseId' => null, 'reportId' => '', 'components' => [], 'message' => 'x'],
+			],
+			[
+				['courseId' => 'c-2', 'lifecycle' => 'imported', 'entries' => 'none'],
+				['success' => true, 'courseId' => 'c-2', 'reportId' => null, 'components' => [['name' => '', 'status' => 'refused']], 'message' => ''],
+			],
+		];
+		foreach ($cases as [$report, $expected]) {
+			self::assertSame($expected, $this->installer($report)->install($item, 'docent-07'));
+		}
+	}//end testReportShapes()
 }//end class
