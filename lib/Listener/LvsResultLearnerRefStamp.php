@@ -50,8 +50,6 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\OpenRegister\Db\ObjectEntity;
-use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -95,28 +93,25 @@ class LvsResultLearnerRefStamp implements IEventListener {
 	 * @spec openspec/changes/lvs-result-learner-ref/specs/data-exchange/spec.md#requirement-every-lvsresult-names-its-pupil-by-learnerprofile-reference
 	 */
 	public function handle(Event $event): void {
-		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {
+		$write = SchemaWrite::of(event: $event, schemaResolver: $this->schemaResolver);
+		if ($write === null || $write->slug !== self::LVS_SCHEMA) {
 			return;
 		}
 
-		if ($event->isPropagationStopped() === true) {
-			return;
-		}
+		$this->stampWrite(write: $write);
+	}//end handle()
 
+	/**
+	 * Stamp one write of a schema this listener owns.
+	 *
+	 * @param SchemaWrite $write The write and its schema slug.
+	 *
+	 * @return void
+	 */
+	private function stampWrite(SchemaWrite $write): void {
+		$event = $write->event;
+		$entity = $write->entity();
 		$stored = null;
-		$entity = $this->entityOf(event: $event);
-
-		try {
-			$slug = $this->schemaResolver->guardSchemaSlug(entity: $entity);
-		} catch (Throwable $exception) {
-			// Not knowing the schema is not knowing it is ours: never touch
-			// another app's writes.
-			return;
-		}
-
-		if ($slug !== self::LVS_SCHEMA) {
-			return;
-		}
 
 		$payload = array_merge(($entity->getObject() ?? []), $event->getModifiedData());
 		$learnerId = $this->stringOf(value: ($payload['learnerId'] ?? ''));
@@ -132,22 +127,7 @@ class LvsResultLearnerRefStamp implements IEventListener {
 				['learnerRef' => $this->derive(learnerId: $learnerId, tenantId: $tenantId, stored: $stored)]
 			)
 		);
-	}//end handle()
-
-	/**
-	 * The object being written: the new state on an update.
-	 *
-	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The write event.
-	 *
-	 * @return ObjectEntity
-	 */
-	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
-	}//end entityOf()
+	}//end stampWrite()
 
 	/**
 	 * A payload value as a string, empty when it is not one.

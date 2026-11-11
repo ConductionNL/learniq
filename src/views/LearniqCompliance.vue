@@ -34,6 +34,60 @@ import { CnDashboardPage } from '@conduction/nextcloud-vue'
 import { NcButton } from '@nextcloud/vue'
 import DepartmentComplianceWidget from './widgets/DepartmentComplianceWidget.vue'
 import RegulationCoverageWidget from './widgets/RegulationCoverageWidget.vue'
+import {
+	countTile,
+	customTile,
+	freshLayout,
+} from '../utils/dashboardTiles.js'
+
+/** The compliance dashboard grid: the three counts, then the two coverage lists. */
+const COMPLIANCE_LAYOUT = [
+	{
+		id: 1,
+		widgetId: 'kpi-regulations',
+		gridX: 0,
+		gridY: 0,
+		gridWidth: 3,
+		gridHeight: 2,
+		showTitle: false,
+	},
+	{
+		id: 2,
+		widgetId: 'kpi-attestations',
+		gridX: 3,
+		gridY: 0,
+		gridWidth: 3,
+		gridHeight: 2,
+		showTitle: false,
+	},
+	{
+		id: 3,
+		widgetId: 'kpi-external-training',
+		gridX: 0,
+		gridY: 2,
+		gridWidth: 3,
+		gridHeight: 2,
+		showTitle: false,
+	},
+	{
+		id: 4,
+		widgetId: 'department-compliance',
+		gridX: 0,
+		gridY: 4,
+		gridWidth: 12,
+		gridHeight: 6,
+		showTitle: true,
+	},
+	{
+		id: 5,
+		widgetId: 'rule-coverage',
+		gridX: 0,
+		gridY: 10,
+		gridWidth: 12,
+		gridHeight: 6,
+		showTitle: true,
+	},
+]
 
 export default {
 	name: 'LearniqCompliance',
@@ -47,53 +101,7 @@ export default {
 
 	data() {
 		return {
-			layout: [
-				{
-					id: 1,
-					widgetId: 'kpi-regulations',
-					gridX: 0,
-					gridY: 0,
-					gridWidth: 3,
-					gridHeight: 2,
-					showTitle: false,
-				},
-				{
-					id: 2,
-					widgetId: 'kpi-attestations',
-					gridX: 3,
-					gridY: 0,
-					gridWidth: 3,
-					gridHeight: 2,
-					showTitle: false,
-				},
-				{
-					id: 3,
-					widgetId: 'kpi-external-training',
-					gridX: 0,
-					gridY: 2,
-					gridWidth: 3,
-					gridHeight: 2,
-					showTitle: false,
-				},
-				{
-					id: 4,
-					widgetId: 'department-compliance',
-					gridX: 0,
-					gridY: 4,
-					gridWidth: 12,
-					gridHeight: 6,
-					showTitle: true,
-				},
-				{
-					id: 5,
-					widgetId: 'rule-coverage',
-					gridX: 0,
-					gridY: 10,
-					gridWidth: 12,
-					gridHeight: 6,
-					showTitle: true,
-				},
-			],
+			layout: freshLayout(COMPLIANCE_LAYOUT),
 		}
 	},
 
@@ -117,60 +125,11 @@ export default {
 		 */
 		widgets() {
 			return [
-				{
-					id: 'kpi-regulations',
-					title: this.t('learniq', 'Regulations'),
-					type: 'stat',
-					content: {
-						label: this.t('learniq', 'Regulations'),
-						clickRoute: { path: '/compliance/regulations' },
-						source: {
-							register: 'learniq',
-							schema: 'regulation',
-							metric: 'count',
-						},
-					},
-				},
-				{
-					id: 'kpi-attestations',
-					title: this.t('learniq', 'Signed attestations'),
-					type: 'stat',
-					content: {
-						label: this.t('learniq', 'Signed attestations'),
-						variant: 'success',
-						clickRoute: { path: '/compliance/attestations' },
-						source: {
-							register: 'learniq',
-							schema: 'attestation',
-							metric: 'count',
-						},
-					},
-				},
-				{
-					id: 'kpi-external-training',
-					title: this.t('learniq', 'External training'),
-					type: 'stat',
-					content: {
-						label: this.t('learniq', 'External training'),
-						variant: 'success',
-						clickRoute: { path: '/compliance/external-training' },
-						source: {
-							register: 'learniq',
-							schema: 'external-training-record',
-							metric: 'count',
-						},
-					},
-				},
-				{
-					id: 'department-compliance',
-					title: this.t('learniq', 'Compliance per department'),
-					type: 'custom',
-				},
-				{
-					id: 'rule-coverage',
-					title: this.t('learniq', 'Coverage per rule'),
-					type: 'custom',
-				},
+				countTile('kpi-regulations', this.t('learniq', 'Regulations')),
+				countTile('kpi-attestations', this.t('learniq', 'Signed attestations')),
+				countTile('kpi-external-training', this.t('learniq', 'External training')),
+				customTile('department-compliance', this.t('learniq', 'Compliance per department')),
+				customTile('rule-coverage', this.t('learniq', 'Coverage per rule')),
 			]
 		},
 	},

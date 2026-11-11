@@ -79,15 +79,8 @@ class CredentialSigningService {
 	public function check(array &$transitionContext): bool {
 		$object = &$transitionContext['object'];
 
-		$credentialId = $object['id'] ?? '';
-		$learnerId = $object['learnerId'] ?? '';
-		$courseId = $object['courseId'] ?? null;
-		$issuedAt = $object['issuedAt'] ?? (new DateTimeImmutable())->format(\DATE_ATOM);
-		$expiresAt = $object['expiresAt'] ?? null;
 		$tenantId = $object['tenant_id'] ?? '';
-		$issuedBy = $object['issuedBy'] ?? '';
-
-		if ($learnerId === '' || $tenantId === '') {
+		if (($object['learnerId'] ?? '') === '' || $tenantId === '') {
 			return false;
 		}
 
@@ -96,41 +89,83 @@ class CredentialSigningService {
 			return false;
 		}
 
-		$verificationUrl = $this->urlGenerator->linkToRouteAbsolute(
-			'learniq.credentialVerify.verify',
-			['id' => $credentialId]
-		);
-
-		$payload = $this->buildOb3Payload(
-			credential: [
-				'credentialId' => $credentialId,
-				'learnerId' => $learnerId,
-				'courseId' => $courseId,
-				'issuedAt' => $issuedAt,
-				'expiresAt' => $expiresAt,
-			],
-			issuer: [
-				'issuerDid' => $issuerDid,
-				'issuedBy' => $issuedBy,
-				'verificationUrl' => $verificationUrl,
-			],
-		);
-
-		$proof = $this->proofFor(payload: $payload, tenantId: $tenantId, issuerDid: $issuerDid);
-		if ($proof === null) {
+		$signedFields = $this->signedFields(object: $object, issuerDid: $issuerDid);
+		if ($signedFields === null) {
 			return false;
 		}
 
-		$payload['proof'] = $proof;
-		$jws = $proof['jws'];
-
-		$object['openbadges3Payload'] = $payload;
-		$object['signature'] = $jws;
-		$object['issuerDid'] = $issuerDid;
-		$object['verificationUrl'] = $verificationUrl;
+		foreach ($signedFields as $field => $value) {
+			$object[$field] = $value;
+		}
 
 		return true;
 	}//end check()
+
+	/**
+	 * The fields signing stamps on a credential: its signed Open Badges
+	 * payload with the proof embedded, the JWS, the issuer DID and the public
+	 * verification URL.
+	 *
+	 * @param array<string,mixed> $object    The Credential data, its learner and tenant set.
+	 * @param string              $issuerDid The tenant's issuer DID.
+	 *
+	 * @return array<string,mixed>|null The fields in stamping order, or null when the tenant cannot sign.
+	 */
+	private function signedFields(array $object, string $issuerDid): ?array {
+		$issuer = $this->issuerFields(object: $object, issuerDid: $issuerDid);
+		$payload = $this->buildOb3Payload(credential: $this->credentialFields(object: $object), issuer: $issuer);
+
+		$proof = $this->proofFor(payload: $payload, tenantId: ($object['tenant_id'] ?? ''), issuerDid: $issuerDid);
+		if ($proof === null) {
+			return null;
+		}
+
+		$payload['proof'] = $proof;
+
+		return [
+			'openbadges3Payload' => $payload,
+			'signature' => $proof['jws'],
+			'issuerDid' => $issuerDid,
+			'verificationUrl' => $issuer['verificationUrl'],
+		];
+	}//end signedFields()
+
+	/**
+	 * The issuer fields the Open Badges payload is built from, the public
+	 * verification URL (which carries the credential id) among them.
+	 *
+	 * @param array<string,mixed> $object    The Credential data.
+	 * @param string              $issuerDid The tenant's issuer DID.
+	 *
+	 * @return array{issuerDid:string,issuedBy:mixed,verificationUrl:string}
+	 */
+	private function issuerFields(array $object, string $issuerDid): array {
+		return [
+			'issuerDid' => $issuerDid,
+			'issuedBy' => ($object['issuedBy'] ?? ''),
+			'verificationUrl' => $this->urlGenerator->linkToRouteAbsolute(
+				'learniq.credentialVerify.verify',
+				['id' => ($object['id'] ?? '')]
+			),
+		];
+	}//end issuerFields()
+
+	/**
+	 * The credential fields the Open Badges payload is built from.
+	 *
+	 * @param array<string,mixed> $object The Credential data.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function credentialFields(array $object): array {
+		return [
+			'credentialId' => $object['id'] ?? '',
+			'learnerId' => $object['learnerId'] ?? '',
+			'courseId' => $object['courseId'] ?? null,
+			'issuedAt' => $object['issuedAt'] ?? (new DateTimeImmutable())->format(\DATE_ATOM),
+			'expiresAt' => $object['expiresAt'] ?? null,
+		];
+	}//end credentialFields()
 
 	/**
 	 * The DataIntegrityProof block for a payload: an RS256 JWS with the
@@ -151,17 +186,7 @@ class CredentialSigningService {
 			return null;
 		}
 
-		$publicKey = $this->appConfig->getValueString(
-			app: 'learniq',
-			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
-			default: ''
-		);
-
-		$kid = 'unknown';
-		if ($publicKey !== '') {
-			// Use 32-char fingerprint (128-bit) to match KeyManagementService. Fixes #193.
-			$kid = substr(hash('sha256', $publicKey), 0, 32);
-		}
+		$kid = $this->signer()->keyId(tenantId: $tenantId);
 
 		return [
 			'type' => 'DataIntegrityProof',
@@ -298,58 +323,7 @@ class CredentialSigningService {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
 	 */
 	public function signPayload(array $payload, string $tenantId): ?string {
-		$encryptedPrivateKey = $this->appConfig->getValueString(
-			app: 'learniq',
-			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PRIVATE, tenantId: $tenantId),
-			default: ''
-		);
-
-		if ($encryptedPrivateKey === '') {
-			return null;
-		}
-
-		try {
-			$privateKeyPem = $this->crypto->decrypt($encryptedPrivateKey);
-		} catch (\Exception) {
-			return null;
-		}
-
-		// Derive kid from the public-key fingerprint stored at key-generation time.
-		$publicKeyPem = $this->appConfig->getValueString(
-			app: 'learniq',
-			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
-			default: ''
-		);
-
-		$kid = 'unknown';
-		if ($publicKeyPem !== '') {
-			// Use 32-char fingerprint (128-bit) to match KeyManagementService. Fixes #193.
-			$kid = substr(hash('sha256', $publicKeyPem), 0, 32);
-		}
-
-		// H6: RFC 8785 (JCS) — sort keys recursively before encoding so the
-		// signing input is deterministic regardless of PHP version or array
-		// construction order. Without this, re-assembling the same payload data
-		// in a different call path could produce a different byte string and
-		// fail signature verification.
-		$canonicalPayload = $this->canonicalisePayload(payload: $payload);
-		$canonicalised = json_encode($canonicalPayload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-		if ($canonicalised === false) {
-			return null;
-		}
-
-		// RFC 7515: header must be base64url — NOT plain base64 ('+', '/', '=' are invalid in JWS).
-		$headerJson = json_encode(['alg' => 'RS256', 'b64' => false, 'crit' => ['b64'], 'kid' => $kid]);
-		$header = rtrim(strtr(base64_encode($headerJson), '+/', '-_'), '=');
-		$signingInput = $header . '.' . $canonicalised;
-
-		$signature = '';
-		$result = openssl_sign($signingInput, $signature, $privateKeyPem, OPENSSL_ALGO_SHA256);
-		if ($result === false) {
-			return null;
-		}
-
-		return $header . '..' . rtrim(strtr(base64_encode($signature), '+/', '-_'), '=');
+		return $this->signer()->sign(payload: $payload, tenantId: $tenantId);
 	}//end signPayload()
 
 	/**
@@ -366,39 +340,6 @@ class CredentialSigningService {
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
 	 */
-
-	/**
-	 * Recursively sort an array's keys (RFC 8785 JCS) for deterministic JSON output.
-	 *
-	 * Guarantees that the signing input produced by signPayload() is identical to
-	 * the input reconstructed by CredentialVerifyController::verifyJwsSignature(),
-	 * regardless of the order in which PHP populates the payload array.
-	 *
-	 * Arrays with integer keys (JSON arrays) are NOT key-sorted — only associative
-	 * maps (objects in JSON) are sorted.
-	 *
-	 * @param array<string,mixed> $payload The payload array to canonicalise.
-	 *
-	 * @return array<string,mixed> The same data with all object keys sorted.
-	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
-	 */
-	private function canonicalisePayload(array $payload): array {
-		// Detect whether this level is a JSON object (string keys) or JSON array (int keys).
-		$isObject = count(array_filter(array_keys($payload), 'is_string')) > 0;
-
-		if ($isObject === true) {
-			ksort($payload, SORT_STRING);
-		}
-
-		foreach ($payload as $key => $value) {
-			if (is_array($value) === true) {
-				$payload[$key] = $this->canonicalisePayload(payload: $value);
-			}
-		}
-
-		return $payload;
-	}//end canonicalisePayload()
 
 	/**
 	 * Build a privacy-safe credentialSubject.id from learnerId.
@@ -439,20 +380,15 @@ class CredentialSigningService {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
 	 */
 	private function resolveIssuerDid(string $tenantId): ?string {
-		$publicKey = $this->appConfig->getValueString(
-			app: 'learniq',
-			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
-			default: ''
-		);
-
-		if ($publicKey === '') {
-			return null;
-		}
-
-		// Synthetic did:web using a fingerprint of the public key.
-		// Use 32-char fingerprint (128-bit) to match KeyManagementService.
-		$fingerprint = substr(hash('sha256', $publicKey), 0, 32);
-
-		return 'did:web:learniq:' . $tenantId . ':' . $fingerprint;
+		return $this->signer()->issuerDid(tenantId: $tenantId);
 	}//end resolveIssuerDid()
+
+	/**
+	 * The tenant-key signer over this service's config and crypto.
+	 *
+	 * @return TenantJwsSigner
+	 */
+	private function signer(): TenantJwsSigner {
+		return new TenantJwsSigner(appConfig: $this->appConfig, crypto: $this->crypto);
+	}//end signer()
 }//end class

@@ -46,8 +46,6 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\OpenRegister\Db\ObjectEntity;
-use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -91,28 +89,25 @@ class GradeEntryLearnerRefStamp implements IEventListener {
 	 * @spec openspec/specs/grading/spec.md#requirement-every-gradeentry-carries-a-server-stamped-learnerref
 	 */
 	public function handle(Event $event): void {
-		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {
+		$write = SchemaWrite::of(event: $event, schemaResolver: $this->schemaResolver);
+		if ($write === null || $write->slug !== self::GRADE_ENTRY_SCHEMA) {
 			return;
 		}
 
-		if ($event->isPropagationStopped() === true) {
-			return;
-		}
+		$this->stampWrite(write: $write);
+	}//end handle()
 
+	/**
+	 * Stamp one write of a schema this listener owns.
+	 *
+	 * @param SchemaWrite $write The write and its schema slug.
+	 *
+	 * @return void
+	 */
+	private function stampWrite(SchemaWrite $write): void {
+		$event = $write->event;
+		$entity = $write->entity();
 		$stored = null;
-		$entity = $this->entityOf(event: $event);
-
-		try {
-			$slug = $this->schemaResolver->guardSchemaSlug(entity: $entity);
-		} catch (Throwable $exception) {
-			// Not knowing the schema is not knowing it is ours: never touch
-			// another app's writes.
-			return;
-		}
-
-		if ($slug !== self::GRADE_ENTRY_SCHEMA) {
-			return;
-		}
 
 		$payload = array_merge(($entity->getObject() ?? []), $event->getModifiedData());
 		$learnerId = $payload['learnerId'] ?? '';
@@ -130,22 +125,7 @@ class GradeEntryLearnerRefStamp implements IEventListener {
 				['learnerRef' => $this->derive(learnerId: $learnerId, stored: $stored)]
 			)
 		);
-	}//end handle()
-
-	/**
-	 * The object being written: the new state on an update.
-	 *
-	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The write event.
-	 *
-	 * @return ObjectEntity
-	 */
-	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
-	}//end entityOf()
+	}//end stampWrite()
 
 	/**
 	 * The learnerRef to store: the resolved profile UUID, null when there is

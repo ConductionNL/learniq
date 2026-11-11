@@ -68,3 +68,20 @@ test('the lesson player checks completion against the current enrolment and send
 	assert.match(player, /completionBelongsTo\(/)
 	assert.match(player, /enrolmentId: this\.currentEnrolmentId/)
 })
+
+test('a completion counts by its tie, else by its date against the enrolment start', () => {
+	assert.equal(completionBelongsTo({}, null), true)
+	assert.equal(completionBelongsTo(null, undefined), true)
+	assert.equal(completionBelongsTo({ enrolmentId: 'e1' }, null), false)
+	assert.equal(completionBelongsTo({ enrolmentId: 'e1' }, { uuid: 'e1' }), true)
+	assert.equal(completionBelongsTo({ enrolmentId: 7 }, { id: 7, uuid: 'x' }), true)
+	assert.equal(completionBelongsTo({ enrolmentId: 'e1' }, { created: '2026-01-01' }), false)
+	assert.equal(completionBelongsTo({ enrolmentId: 'e2' }, { id: 'e1' }), false)
+	const enrolment = { id: 'e1', '@self': { created: '2026-02-01T00:00:00Z' }, created: '2020-01-01' }
+	assert.equal(completionBelongsTo({ completedAt: '2026-02-01T00:00:00Z' }, enrolment), true)
+	assert.equal(completionBelongsTo({ completedAt: '2026-01-15' }, enrolment), false)
+	assert.equal(completionBelongsTo({ enrolmentId: '', completedAt: '2026-03-01' }, { created: '2026-02-01' }), true)
+	assert.equal(completionBelongsTo({ completedAt: '2026-03-01' }, { id: 'e1' }), false)
+	assert.equal(completionBelongsTo({}, { created: '2026-02-01' }), false)
+	assert.equal(completionBelongsTo({ completedAt: '2026-03-01' }, { '@self': {}, created: '2026-02-01' }), true)
+})

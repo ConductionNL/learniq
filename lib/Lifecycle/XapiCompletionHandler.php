@@ -29,9 +29,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Lifecycle;
 
 use OCA\Learniq\BackgroundJob\XapiStatementFollowUpJob;
+use OCA\Learniq\Listener\CompletedXapiStatement;
 use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\XapiEnrolmentCompletion;
-use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -52,16 +51,6 @@ use OCP\EventDispatcher\IEventListener;
  * @implements IEventListener<Event>
  */
 class XapiCompletionHandler implements IEventListener {
-
-	/**
-	 * OR register slug for Learniq objects.
-	 */
-	private const LEARNIQ_REGISTER = 'learniq';
-
-	/**
-	 * OR schema slug for xAPI statement objects.
-	 */
-	private const XAPI_SCHEMA = 'xapi-statement';
 
 	/**
 	 * Constructor.
@@ -86,33 +75,15 @@ class XapiCompletionHandler implements IEventListener {
 	 * @spec openspec/specs/progress-tracking/spec.md#requirement-the-follow-up-of-an-xapi-statement-runs-outside-the-save-that-records-it
 	 */
 	public function handle(Event $event): void {
-		if ($event instanceof ObjectCreatedEvent === false) {
+		$statement = CompletedXapiStatement::fromEvent(event: $event, schemaResolver: $this->schemaResolver);
+		if ($statement === null) {
 			return;
-		}
-
-		$entity = $event->getObject();
-		if ($this->schemaResolver->registerSlug(entity: $entity) !== self::LEARNIQ_REGISTER
-			|| $this->schemaResolver->schemaSlug(entity: $entity) !== self::XAPI_SCHEMA
-		) {
-			return;
-		}
-
-		$statement = $entity->jsonSerialize();
-		if (in_array(($statement['verb']['id'] ?? ''), XapiEnrolmentCompletion::COMPLETION_VERBS, true) === false) {
-			return;
-		}
-
-		// Deduplicated per statement: a repeated event owes one completion. No id, no dedupe.
-		$id = (string)($statement['id'] ?? ($statement['uuid'] ?? ''));
-		$dedupeKey = null;
-		if ($id !== '') {
-			$dedupeKey = XapiStatementFollowUpJob::ENROLMENT_COMPLETION . '|' . $id;
 		}
 
 		$this->deferral->defer(
 			jobClass: XapiStatementFollowUpJob::class,
 			entry: ['kind' => XapiStatementFollowUpJob::ENROLMENT_COMPLETION, 'statement' => $statement],
-			dedupeKey: $dedupeKey
+			dedupeKey: CompletedXapiStatement::dedupeKey(kind: XapiStatementFollowUpJob::ENROLMENT_COMPLETION, statement: $statement)
 		);
 	}//end handle()
 }//end class

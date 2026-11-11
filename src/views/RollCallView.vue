@@ -298,16 +298,9 @@ import {
 	rollCallCounts,
 	withStatus,
 } from '../utils/rollCall.js'
+import { registerParams, rowKeyAction } from '../utils/rollCallKeys.js'
 
 const API = '/apps/learniq/api/attendance/roll-call'
-
-/** Keys that mark a pupil while their row has focus. */
-const KEYS = {
-	p: 'present',
-	l: 'late',
-	t: 'absent-excused',
-	o: 'absent-unexcused',
-}
 
 export default {
 	name: 'RollCallView',
@@ -428,21 +421,28 @@ export default {
 			this.saveError = ''
 			const query = this.$route?.query ?? {}
 			try {
-				const response = await axios.get(generateUrl(API), {
-					params: {
-						cohortId: query.cohortId || undefined,
-						date: query.date || undefined,
-						sessionId: query.sessionId || undefined,
-					},
-				})
+				const response = await this.fetchRegister(query)
 				this.apply(response.data)
 			} catch (error) {
-				this.loadError =
-					error?.response?.data?.error
-					|| this.t('learniq', 'The register could not be loaded.')
+				this.loadError = this.serverErrorOr(
+					error,
+					this.t('learniq', 'The register could not be loaded.'),
+				)
 			} finally {
 				this.loading = false
 			}
+		},
+
+		/**
+		 * Read the register a route query asks for.
+		 *
+		 * @param {object} query The route query.
+		 * @return {Promise<object>} The axios response.
+		 */
+		fetchRegister(query) {
+			return axios.get(generateUrl(API), {
+				params: registerParams(query),
+			})
 		},
 
 		/**
@@ -549,25 +549,27 @@ export default {
 		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 		 */
 		onKey(event, index) {
-			if (
-				event.target !== event.currentTarget
-				|| event.ctrlKey
-				|| event.metaKey
-				|| event.altKey
-			)
+			const action = rowKeyAction(event)
+			if (!action) {
 				return
+			}
+			event.preventDefault()
+			if (action.step) {
+				this.focusRow(index + action.step)
+			} else {
+				this.mark(index, action.status)
+			}
+		},
+
+		/**
+		 * Move the focus to a pupil's row, when there is one.
+		 *
+		 * @param {number} index The pupil's row.
+		 * @return {void}
+		 */
+		focusRow(index) {
 			const rows = this.$refs.rows ?? []
-			if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-				event.preventDefault()
-				const next = index + (event.key === 'ArrowDown' ? 1 : -1)
-				rows[next]?.focus()
-				return
-			}
-			const status = KEYS[event.key.toLowerCase()]
-			if (status) {
-				event.preventDefault()
-				this.mark(index, status)
-			}
+			rows[index]?.focus()
 		},
 
 		/**
@@ -579,37 +581,76 @@ export default {
 		async save() {
 			this.saveError = ''
 			this.saved = false
-			const incomplete = incompleteMarks(this.pupils)
-			if (incomplete.length > 0) {
-				this.saveError = this.t(
-					'learniq',
-					'Check the marks of: {names}. A late mark needs its minutes and an absence with permission needs a reason.',
-					{
-						names: incomplete.map((p) => p.name).join(', '),
-					},
-				)
+			if (this.refuseIncomplete()) {
 				return
 			}
+			await this.sendRegister()
+		},
+
+		/**
+		 * Send the register and show what the server keeps, or why it failed.
+		 *
+		 * @return {Promise<void>}
+		 */
+		async sendRegister() {
 			this.saving = true
 			try {
-				const response = await axios.post(generateUrl(API), {
-					cohortId: this.register.cohortId,
-					date: this.register.date,
-					sessionId: this.register.sessionId || null,
-					marks: marksToSave(this.pupils),
-				})
+				const response = await this.postRegister()
 				this.apply(response.data)
 				this.saved = true
 			} catch (error) {
-				this.saveError =
-					error?.response?.data?.error
-					|| this.t(
-						'learniq',
-						'The register could not be saved. Try again.',
-					)
+				this.saveError = this.serverErrorOr(
+					error,
+					this.t('learniq', 'The register could not be saved. Try again.'),
+				)
 			} finally {
 				this.saving = false
 			}
+		},
+
+		/**
+		 * The error the server gave for a failed request, else a sentence of our own.
+		 *
+		 * @param {Error} error The failure.
+		 * @param {string} fallback The sentence when the server gave none.
+		 * @return {string} The message.
+		 */
+		serverErrorOr(error, fallback) {
+			return error?.response?.data?.error || fallback
+		},
+
+		/**
+		 * Refuse to save while a mark misses its minutes or reason, naming the pupils.
+		 *
+		 * @return {boolean} Whether the save is refused.
+		 */
+		refuseIncomplete() {
+			const incomplete = incompleteMarks(this.pupils)
+			if (incomplete.length === 0) {
+				return false
+			}
+			this.saveError = this.t(
+				'learniq',
+				'Check the marks of: {names}. A late mark needs its minutes and an absence with permission needs a reason.',
+				{
+					names: incomplete.map((p) => p.name).join(', '),
+				},
+			)
+			return true
+		},
+
+		/**
+		 * Send the register's marks for its group, day and lesson.
+		 *
+		 * @return {Promise<object>} The axios response.
+		 */
+		postRegister() {
+			return axios.post(generateUrl(API), {
+				cohortId: this.register.cohortId,
+				date: this.register.date,
+				sessionId: this.register.sessionId || null,
+				marks: marksToSave(this.pupils),
+			})
 		},
 
 		/**
@@ -618,20 +659,14 @@ export default {
 		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 		 */
 		statusLabel(status) {
-			switch (status) {
-				case 'present':
-					return this.t('learniq', 'Present')
-				case 'late':
-					return this.t('learniq', 'Late')
-				case 'absent-excused':
-					return this.t('learniq', 'Absent with permission')
-				case 'absent-unexcused':
-					return this.t('learniq', 'Absent without permission')
-				case 'left-early':
-					return this.t('learniq', 'Left early')
-				default:
-					return status
+			const labels = {
+				present: this.t('learniq', 'Present'),
+				late: this.t('learniq', 'Late'),
+				'absent-excused': this.t('learniq', 'Absent with permission'),
+				'absent-unexcused': this.t('learniq', 'Absent without permission'),
+				'left-early': this.t('learniq', 'Left early'),
 			}
+			return Object.hasOwn(labels, status) ? labels[status] : status
 		},
 
 		/**

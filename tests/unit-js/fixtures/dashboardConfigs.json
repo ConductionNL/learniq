@@ -1,0 +1,959 @@
+{
+	"admin": {
+		"widgets": [
+			{
+				"id": "kpi-courses",
+				"title": "Courses",
+				"type": "stat",
+				"content": {
+					"label": "Courses",
+					"variant": "primary",
+					"clickRoute": {
+						"path": "/courses"
+					},
+					"source": {
+						"register": "learniq",
+						"schema": "course",
+						"metric": "count"
+					}
+				}
+			},
+			{
+				"id": "kpi-cohorts",
+				"title": "Cohorts",
+				"type": "stat",
+				"content": {
+					"label": "Cohorts",
+					"clickRoute": {
+						"path": "/cohorts"
+					},
+					"source": {
+						"register": "learniq",
+						"schema": "cohort",
+						"metric": "count"
+					}
+				}
+			},
+			{
+				"id": "kpi-learners",
+				"title": "Learners",
+				"type": "stat",
+				"content": {
+					"label": "Learners",
+					"variant": "success",
+					"clickRoute": {
+						"path": "/learner-profiles"
+					},
+					"source": {
+						"register": "learniq",
+						"schema": "learner-profile",
+						"metric": "count"
+					}
+				}
+			},
+			{
+				"id": "kpi-active-enrolments",
+				"title": "Active enrolments",
+				"type": "stat",
+				"content": {
+					"label": "Active enrolments",
+					"variant": "primary",
+					"clickRoute": {
+						"path": "/enrolments"
+					},
+					"source": {
+						"register": "learniq",
+						"schema": "enrolment",
+						"metric": "count",
+						"filter": {
+							"lifecycle": "active"
+						}
+					}
+				}
+			},
+			{
+				"id": "kpi-open-flags",
+				"title": "Open attendance flags",
+				"type": "stat",
+				"content": {
+					"label": "Open attendance flags",
+					"variant": "warning",
+					"clickRoute": {
+						"path": "/attendance/flags"
+					},
+					"source": {
+						"register": "learniq",
+						"schema": "attendance-flag",
+						"metric": "count",
+						"filter": {
+							"lifecycle": "open"
+						}
+					}
+				}
+			},
+			{
+				"id": "manage-courses",
+				"title": "Courses",
+				"type": "custom"
+			},
+			{
+				"id": "manage-cohorts",
+				"title": "Cohorts",
+				"type": "custom"
+			},
+			{
+				"id": "manage-programmes",
+				"title": "Programmes",
+				"type": "custom"
+			}
+		],
+		"layout": [
+			{
+				"id": 1,
+				"widgetId": "kpi-courses",
+				"gridX": 0,
+				"gridY": 0,
+				"gridWidth": 2,
+				"gridHeight": 2,
+				"showTitle": false
+			},
+			{
+				"id": 2,
+				"widgetId": "kpi-cohorts",
+				"gridX": 2,
+				"gridY": 0,
+				"gridWidth": 2,
+				"gridHeight": 2,
+				"showTitle": false
+			},
+			{
+				"id": 3,
+				"widgetId": "kpi-learners",
+				"gridX": 4,
+				"gridY": 0,
+				"gridWidth": 2,
+				"gridHeight": 2,
+				"showTitle": false
+			},
+			{
+				"id": 4,
+				"widgetId": "kpi-active-enrolments",
+				"gridX": 6,
+				"gridY": 0,
+				"gridWidth": 2,
+				"gridHeight": 2,
+				"showTitle": false
+			},
+			{
+				"id": 5,
+				"widgetId": "kpi-open-flags",
+				"gridX": 8,
+				"gridY": 0,
+				"gridWidth": 2,
+				"gridHeight": 2,
+				"showTitle": false
+			},
+			{
+				"id": 6,
+				"widgetId": "manage-courses",
+				"gridX": 0,
+				"gridY": 2,
+				"gridWidth": 4,
+				"gridHeight": 4
+			},
+			{
+				"id": 7,
+				"widgetId": "manage-cohorts",
+				"gridX": 4,
+				"gridY": 2,
+				"gridWidth": 4,
+				"gridHeight": 4
+			},
+			{
+				"id": 8,
+				"widgetId": "manage-programmes",
+				"gridX": 8,
+				"gridY": 2,
+				"gridWidth": 4,
+				"gridHeight": 4
+			}
+		]
+	},
+	"teacher": {
+		"widgets": [
+			{
+				"id": "kpi-engagement-score",
+				"title": "Avg. engagement score",
+				"type": "stat",
+				"content": {
+					"label": "Avg. engagement score",
+					"clickRoute": {
+						"path": "/progress/engagement-scores"
+					},
+					"source": {
+						"register": "learniq",
+						"schema": "engagement-score",
+						"metric": "avg",
+						"field": "score"
+					}
+				}
+			},
+			{
+				"id": "kpi-engagement-flags",
+				"title": "Open engagement flags",
+				"type": "stat",
+				"content": {
+					"label": "Open engagement flags",
+					"variant": "warning",
+					"clickRoute": {
+						"path": "/progress/engagement-flags"
+					},
+					"source": {
+						"register": "learniq",
+						"schema": "engagement-risk-flag",
+						"metric": "count",
+						"filter": {
+							"lifecycle": "open"
+						}
+					}
+				}
+			},
+			{
+				"id": "teacher-courses",
+				"title": "My courses",
+				"type": "custom"
+			},
+			{
+				"id": "teacher-assignments",
+				"title": "Assignments to grade",
+				"type": "custom"
+			},
+			{
+				"id": "teacher-sessions",
+				"title": "Sessions to mark",
+				"type": "custom"
+			},
+			{
+				"id": "teacher-cohorts",
+				"title": "My cohorts",
+				"type": "custom"
+			}
+		],
+		"layout": [
+			{
+				"id": 1,
+				"widgetId": "kpi-engagement-score",
+				"gridX": 0,
+				"gridY": 0,
+				"gridWidth": 6,
+				"gridHeight": 2,
+				"showTitle": false
+			},
+			{
+				"id": 2,
+				"widgetId": "kpi-engagement-flags",
+				"gridX": 6,
+				"gridY": 0,
+				"gridWidth": 6,
+				"gridHeight": 2,
+				"showTitle": false
+			},
+			{
+				"id": 3,
+				"widgetId": "teacher-courses",
+				"gridX": 0,
+				"gridY": 2,
+				"gridWidth": 6,
+				"gridHeight": 4
+			},
+			{
+				"id": 4,
+				"widgetId": "teacher-assignments",
+				"gridX": 6,
+				"gridY": 2,
+				"gridWidth": 6,
+				"gridHeight": 4
+			},
+			{
+				"id": 5,
+				"widgetId": "teacher-sessions",
+				"gridX": 0,
+				"gridY": 6,
+				"gridWidth": 6,
+				"gridHeight": 4
+			},
+			{
+				"id": 6,
+				"widgetId": "teacher-cohorts",
+				"gridX": 6,
+				"gridY": 6,
+				"gridWidth": 6,
+				"gridHeight": 4
+			}
+		]
+	},
+	"teacherScoped": {
+		"widgets": [
+			{
+				"id": "kpi-engagement-score",
+				"title": "Avg. engagement score",
+				"type": "stat",
+				"content": {
+					"label": "Avg. engagement score",
+					"clickRoute": {
+						"path": "/progress/engagement-scores"
+					},
+					"source": {
+						"register": "learniq",
+						"schema": "engagement-score",
+						"metric": "avg",
+						"field": "score",
+						"filter": {
+							"learnerId": {
+								"in": [
+									"p1",
+									"p2"
+								]
+							}
+						}
+					}
+				}
+			},
+			{
+				"id": "kpi-engagement-flags",
+				"title": "Open engagement flags",
+				"type": "stat",
+				"content": {
+					"label": "Open engagement flags",
+					"variant": "warning",
+					"clickRoute": {
+						"path": "/progress/engagement-flags"
+					},
+					"source": {
+						"register": "learniq",
+						"schema": "engagement-risk-flag",
+						"metric": "count",
+						"filter": {
+							"lifecycle": "open",
+							"learnerId": {
+								"in": [
+									"p1",
+									"p2"
+								]
+							}
+						}
+					}
+				}
+			},
+			{
+				"id": "teacher-courses",
+				"title": "My courses",
+				"type": "custom"
+			},
+			{
+				"id": "teacher-assignments",
+				"title": "Assignments to grade",
+				"type": "custom"
+			},
+			{
+				"id": "teacher-sessions",
+				"title": "Sessions to mark",
+				"type": "custom"
+			},
+			{
+				"id": "teacher-cohorts",
+				"title": "My cohorts",
+				"type": "custom"
+			}
+		],
+		"layout": [
+			{
+				"id": 1,
+				"widgetId": "kpi-engagement-score",
+				"gridX": 0,
+				"gridY": 0,
+				"gridWidth": 6,
+				"gridHeight": 2,
+				"showTitle": false
+			},
+			{
+				"id": 2,
+				"widgetId": "kpi-engagement-flags",
+				"gridX": 6,
+				"gridY": 0,
+				"gridWidth": 6,
+				"gridHeight": 2,
+				"showTitle": false
+			},
+			{
+				"id": 3,
+				"widgetId": "teacher-courses",
+				"gridX": 0,
+				"gridY": 2,
+				"gridWidth": 6,
+				"gridHeight": 4
+			},
+			{
+				"id": 4,
+				"widgetId": "teacher-assignments",
+				"gridX": 6,
+				"gridY": 2,
+				"gridWidth": 6,
+				"gridHeight": 4
+			},
+			{
+				"id": 5,
+				"widgetId": "teacher-sessions",
+				"gridX": 0,
+				"gridY": 6,
+				"gridWidth": 6,
+				"gridHeight": 4
+			},
+			{
+				"id": 6,
+				"widgetId": "teacher-cohorts",
+				"gridX": 6,
+				"gridY": 6,
+				"gridWidth": 6,
+				"gridHeight": 4
+			}
+		]
+	},
+	"teacherPending": {
+		"widgets": [
+			{
+				"id": "kpi-engagement-score",
+				"title": "Avg. engagement score",
+				"type": "stat",
+				"content": {
+					"label": "Avg. engagement score",
+					"clickRoute": {
+						"path": "/progress/engagement-scores"
+					}
+				}
+			},
+			{
+				"id": "kpi-engagement-flags",
+				"title": "Open engagement flags",
+				"type": "stat",
+				"content": {
+					"label": "Open engagement flags",
+					"variant": "warning",
+					"clickRoute": {
+						"path": "/progress/engagement-flags"
+					}
+				}
+			},
+			{
+				"id": "teacher-courses",
+				"title": "My courses",
+				"type": "custom"
+			},
+			{
+				"id": "teacher-assignments",
+				"title": "Assignments to grade",
+				"type": "custom"
+			},
+			{
+				"id": "teacher-sessions",
+				"title": "Sessions to mark",
+				"type": "custom"
+			},
+			{
+				"id": "teacher-cohorts",
+				"title": "My cohorts",
+				"type": "custom"
+			}
+		],
+		"layout": [
+			{
+				"id": 1,
+				"widgetId": "kpi-engagement-score",
+				"gridX": 0,
+				"gridY": 0,
+				"gridWidth": 6,
+				"gridHeight": 2,
+				"showTitle": false
+			},
+			{
+				"id": 2,
+				"widgetId": "kpi-engagement-flags",
+				"gridX": 6,
+				"gridY": 0,
+				"gridWidth": 6,
+				"gridHeight": 2,
+				"showTitle": false
+			},
+			{
+				"id": 3,
+				"widgetId": "teacher-courses",
+				"gridX": 0,
+				"gridY": 2,
+				"gridWidth": 6,
+				"gridHeight": 4
+			},
+			{
+				"id": 4,
+				"widgetId": "teacher-assignments",
+				"gridX": 6,
+				"gridY": 2,
+				"gridWidth": 6,
+				"gridHeight": 4
+			},
+			{
+				"id": 5,
+				"widgetId": "teacher-sessions",
+				"gridX": 0,
+				"gridY": 6,
+				"gridWidth": 6,
+				"gridHeight": 4
+			},
+			{
+				"id": 6,
+				"widgetId": "teacher-cohorts",
+				"gridX": 6,
+				"gridY": 6,
+				"gridWidth": 6,
+				"gridHeight": 4
+			}
+		]
+	},
+	"student": {
+		"widgets": [
+			{
+				"id": "my-mandatory-training",
+				"title": "My mandatory training",
+				"type": "custom"
+			},
+			{
+				"id": "kpi-points-level",
+				"title": "My points",
+				"type": "stat",
+				"content": {
+					"label": "My points",
+					"variant": "primary",
+					"endpointSource": {
+						"url": "/apps/learniq/api/engagement/me"
+					},
+					"valueField": "totalPoints",
+					"caption": "{summary}"
+				}
+			}
+		],
+		"layout": [
+			{
+				"id": 1,
+				"widgetId": "my-mandatory-training",
+				"gridX": 0,
+				"gridY": 0,
+				"gridWidth": 6,
+				"gridHeight": 5
+			},
+			{
+				"id": 2,
+				"widgetId": "kpi-points-level",
+				"gridX": 6,
+				"gridY": 0,
+				"gridWidth": 6,
+				"gridHeight": 2,
+				"showTitle": false
+			}
+		]
+	},
+	"peopleWidgets": [
+		{
+			"id": "global-search",
+			"title": "Search",
+			"type": "custom"
+		},
+		{
+			"id": "kpi-learners",
+			"title": "Learners",
+			"type": "stat",
+			"content": {
+				"label": "Learners",
+				"variant": "success",
+				"clickRoute": {
+					"path": "/learner-profiles"
+				},
+				"source": {
+					"register": "learniq",
+					"schema": "learner-profile",
+					"metric": "count"
+				}
+			}
+		},
+		{
+			"id": "kpi-active-enrolments",
+			"title": "Active enrolments",
+			"type": "stat",
+			"content": {
+				"label": "Active enrolments",
+				"variant": "primary",
+				"clickRoute": {
+					"path": "/enrolments"
+				},
+				"source": {
+					"register": "learniq",
+					"schema": "enrolment",
+					"metric": "count",
+					"filter": {
+						"lifecycle": "active"
+					}
+				}
+			}
+		},
+		{
+			"id": "kpi-cohorts",
+			"title": "Cohorts",
+			"type": "stat",
+			"content": {
+				"label": "Cohorts",
+				"clickRoute": {
+					"path": "/cohorts"
+				},
+				"source": {
+					"register": "learniq",
+					"schema": "cohort",
+					"metric": "count"
+				}
+			}
+		},
+		{
+			"id": "kpi-open-flags",
+			"title": "Open attendance flags",
+			"type": "stat",
+			"content": {
+				"label": "Open attendance flags",
+				"variant": "warning",
+				"clickRoute": {
+					"path": "/attendance/flags"
+				},
+				"source": {
+					"register": "learniq",
+					"schema": "attendance-flag",
+					"metric": "count",
+					"filter": {
+						"lifecycle": "open"
+					}
+				}
+			}
+		},
+		{
+			"id": "manage-learners",
+			"title": "Learners",
+			"type": "custom"
+		},
+		{
+			"id": "manage-enrolments",
+			"title": "Enrolments",
+			"type": "custom"
+		},
+		{
+			"id": "manage-attendance",
+			"title": "Attendance",
+			"type": "custom"
+		},
+		{
+			"id": "manage-credentials",
+			"title": "Credentials",
+			"type": "custom"
+		}
+	],
+	"peopleLayout": [
+		{
+			"id": 0,
+			"widgetId": "global-search",
+			"gridX": 0,
+			"gridY": 0,
+			"gridWidth": 12,
+			"gridHeight": 2,
+			"showTitle": false
+		},
+		{
+			"id": 1,
+			"widgetId": "kpi-learners",
+			"gridX": 0,
+			"gridY": 2,
+			"gridWidth": 3,
+			"gridHeight": 2,
+			"showTitle": false
+		},
+		{
+			"id": 2,
+			"widgetId": "kpi-active-enrolments",
+			"gridX": 3,
+			"gridY": 2,
+			"gridWidth": 3,
+			"gridHeight": 2,
+			"showTitle": false
+		},
+		{
+			"id": 3,
+			"widgetId": "kpi-cohorts",
+			"gridX": 6,
+			"gridY": 2,
+			"gridWidth": 3,
+			"gridHeight": 2,
+			"showTitle": false
+		},
+		{
+			"id": 4,
+			"widgetId": "kpi-open-flags",
+			"gridX": 9,
+			"gridY": 2,
+			"gridWidth": 3,
+			"gridHeight": 2,
+			"showTitle": false
+		},
+		{
+			"id": 5,
+			"widgetId": "manage-learners",
+			"gridX": 0,
+			"gridY": 4,
+			"gridWidth": 6,
+			"gridHeight": 4
+		},
+		{
+			"id": 6,
+			"widgetId": "manage-enrolments",
+			"gridX": 6,
+			"gridY": 4,
+			"gridWidth": 6,
+			"gridHeight": 4
+		},
+		{
+			"id": 7,
+			"widgetId": "manage-attendance",
+			"gridX": 0,
+			"gridY": 8,
+			"gridWidth": 6,
+			"gridHeight": 4
+		},
+		{
+			"id": 8,
+			"widgetId": "manage-credentials",
+			"gridX": 6,
+			"gridY": 8,
+			"gridWidth": 6,
+			"gridHeight": 4
+		}
+	],
+	"learningWidgets": [
+		{
+			"id": "kpi-courses",
+			"title": "Courses",
+			"type": "stat",
+			"content": {
+				"label": "Courses",
+				"variant": "primary",
+				"clickRoute": {
+					"path": "/courses"
+				},
+				"source": {
+					"register": "learniq",
+					"schema": "course",
+					"metric": "count"
+				}
+			}
+		},
+		{
+			"id": "manage-courses",
+			"title": "Courses",
+			"type": "custom"
+		},
+		{
+			"id": "manage-curriculum",
+			"title": "Curriculum",
+			"type": "custom"
+		},
+		{
+			"id": "manage-assignments",
+			"title": "Assignments",
+			"type": "custom"
+		},
+		{
+			"id": "manage-assessments",
+			"title": "Assessments",
+			"type": "custom"
+		},
+		{
+			"id": "manage-learning-plans",
+			"title": "Learning plans",
+			"type": "custom"
+		},
+		{
+			"id": "manage-grades",
+			"title": "Grades",
+			"type": "custom"
+		}
+	],
+	"learningLayout": [
+		{
+			"id": 1,
+			"widgetId": "kpi-courses",
+			"gridX": 0,
+			"gridY": 0,
+			"gridWidth": 3,
+			"gridHeight": 2,
+			"showTitle": false
+		},
+		{
+			"id": 2,
+			"widgetId": "manage-courses",
+			"gridX": 0,
+			"gridY": 2,
+			"gridWidth": 6,
+			"gridHeight": 4
+		},
+		{
+			"id": 3,
+			"widgetId": "manage-curriculum",
+			"gridX": 6,
+			"gridY": 2,
+			"gridWidth": 6,
+			"gridHeight": 4
+		},
+		{
+			"id": 4,
+			"widgetId": "manage-assignments",
+			"gridX": 0,
+			"gridY": 6,
+			"gridWidth": 6,
+			"gridHeight": 4
+		},
+		{
+			"id": 5,
+			"widgetId": "manage-assessments",
+			"gridX": 6,
+			"gridY": 6,
+			"gridWidth": 6,
+			"gridHeight": 4
+		},
+		{
+			"id": 6,
+			"widgetId": "manage-learning-plans",
+			"gridX": 0,
+			"gridY": 10,
+			"gridWidth": 6,
+			"gridHeight": 4
+		},
+		{
+			"id": 7,
+			"widgetId": "manage-grades",
+			"gridX": 6,
+			"gridY": 10,
+			"gridWidth": 6,
+			"gridHeight": 4
+		}
+	],
+	"complianceWidgets": [
+		{
+			"id": "kpi-regulations",
+			"title": "Regulations",
+			"type": "stat",
+			"content": {
+				"label": "Regulations",
+				"clickRoute": {
+					"path": "/compliance/regulations"
+				},
+				"source": {
+					"register": "learniq",
+					"schema": "regulation",
+					"metric": "count"
+				}
+			}
+		},
+		{
+			"id": "kpi-attestations",
+			"title": "Signed attestations",
+			"type": "stat",
+			"content": {
+				"label": "Signed attestations",
+				"variant": "success",
+				"clickRoute": {
+					"path": "/compliance/attestations"
+				},
+				"source": {
+					"register": "learniq",
+					"schema": "attestation",
+					"metric": "count"
+				}
+			}
+		},
+		{
+			"id": "kpi-external-training",
+			"title": "External training",
+			"type": "stat",
+			"content": {
+				"label": "External training",
+				"variant": "success",
+				"clickRoute": {
+					"path": "/compliance/external-training"
+				},
+				"source": {
+					"register": "learniq",
+					"schema": "external-training-record",
+					"metric": "count"
+				}
+			}
+		},
+		{
+			"id": "department-compliance",
+			"title": "Compliance per department",
+			"type": "custom"
+		},
+		{
+			"id": "rule-coverage",
+			"title": "Coverage per rule",
+			"type": "custom"
+		}
+	],
+	"complianceLayout": [
+		{
+			"id": 1,
+			"widgetId": "kpi-regulations",
+			"gridX": 0,
+			"gridY": 0,
+			"gridWidth": 3,
+			"gridHeight": 2,
+			"showTitle": false
+		},
+		{
+			"id": 2,
+			"widgetId": "kpi-attestations",
+			"gridX": 3,
+			"gridY": 0,
+			"gridWidth": 3,
+			"gridHeight": 2,
+			"showTitle": false
+		},
+		{
+			"id": 3,
+			"widgetId": "kpi-external-training",
+			"gridX": 0,
+			"gridY": 2,
+			"gridWidth": 3,
+			"gridHeight": 2,
+			"showTitle": false
+		},
+		{
+			"id": 4,
+			"widgetId": "department-compliance",
+			"gridX": 0,
+			"gridY": 4,
+			"gridWidth": 12,
+			"gridHeight": 6,
+			"showTitle": true
+		},
+		{
+			"id": 5,
+			"widgetId": "rule-coverage",
+			"gridX": 0,
+			"gridY": 10,
+			"gridWidth": 12,
+			"gridHeight": 6,
+			"showTitle": true
+		}
+	]
+}

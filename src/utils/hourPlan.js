@@ -11,6 +11,48 @@
  */
 
 /**
+ * The number of years of a plan: its duration, at least 1.
+ *
+ * @param {object} plan The hour plan.
+ * @return {number} The years of the programme.
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+ */
+function planYears(plan) {
+	return Math.max(1, Number(plan?.durationYears) || 1)
+}
+
+/**
+ * A number of hours as entered, 0 when it is not a number.
+ *
+ * @param {(number|string|null|undefined)} value The stored hours.
+ * @return {number} The hours.
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+ */
+function hoursOrZero(value) {
+	return Number(value) || 0
+}
+
+/**
+ * The columns of one year: one per period, or the whole year when the plan
+ * has no periods.
+ *
+ * @param {number} year The year of the programme.
+ * @param {Array<object>} periods The periods of a year.
+ * @return {Array<{programmeYear: number, periodCode: (string|null), label: string}>} The columns.
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+ */
+function yearColumns(year, periods) {
+	if (periods.length === 0) {
+		return [{ programmeYear: year, periodCode: null, label: '' }]
+	}
+	return periods.map((period) => ({
+		programmeYear: year,
+		periodCode: period.periodCode,
+		label: period.label || period.periodCode,
+	}))
+}
+
+/**
  * The columns of the grid: every year of the programme times every period,
  * or one column per year when the plan has no periods.
  *
@@ -19,43 +61,77 @@
  * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
  */
 export function planColumns(plan) {
-	const years = Math.max(1, Number(plan?.durationYears) || 1)
+	const years = planYears(plan)
 	const periods = Array.isArray(plan?.periodsPerYear) ? plan.periodsPerYear : []
 	const columns = []
 	for (let year = 1; year <= years; year++) {
-		if (periods.length === 0) {
-			columns.push({ programmeYear: year, periodCode: null, label: '' })
-			continue
-		}
-		for (const period of periods) {
-			columns.push({
-				programmeYear: year,
-				periodCode: period.periodCode,
-				label: period.label || period.periodCode,
-			})
-		}
+		columns.push(...yearColumns(year, periods))
 	}
 	return columns
+}
+
+/**
+ * Whether a plan line fills one cell of the grid.
+ *
+ * @param {object} line A plan line.
+ * @param {{courseId: string, programmeYear: number, periodCode: (string|null|undefined)}} cell The cell.
+ * @return {boolean} True when the line is the cell's line.
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+ */
+function lineFillsCell(line, cell) {
+	return line.courseId === cell.courseId
+		&& Number(line.programmeYear) === cell.programmeYear
+		&& (line.periodCode ?? null) === (cell.periodCode ?? null)
 }
 
 /**
  * The contact hours in one cell of the grid.
  *
  * @param {Array<object>} lines The plan lines.
- * @param {string} courseId The course.
- * @param {number} programmeYear The year of the programme.
- * @param {string|null} periodCode The period, or null for the whole year.
+ * @param {{courseId: string, programmeYear: number, periodCode: (string|null)}} cell The course, the year of the programme and the period (null for the whole year).
  * @return {number} The contact hours, 0 when there is no line.
  * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
  */
-export function cellHours(lines, courseId, programmeYear, periodCode) {
-	const line = (lines || []).find(
-		(l) =>
-			l.courseId === courseId
-			&& Number(l.programmeYear) === programmeYear
-			&& (l.periodCode ?? null) === (periodCode ?? null),
-	)
-	return line ? Number(line.contactHours) || 0 : 0
+export function cellHours(lines, cell) {
+	const line = (lines || []).find((l) => lineFillsCell(l, cell))
+	return line ? hoursOrZero(line.contactHours) : 0
+}
+
+/**
+ * One line after its cell was set: kept as is when it is another cell's,
+ * dropped at 0 hours when it carries nothing else, else given the hours.
+ *
+ * @param {object} line A plan line.
+ * @param {{courseId: string, programmeYear: number, periodCode: (string|null), hours: number}} entry The cell and its hours.
+ * @return {Array<object>} The line, changed, or nothing.
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+ */
+function lineAfterEntry(line, entry) {
+	if (!lineFillsCell(line, entry)) {
+		return [line]
+	}
+	if (entry.hours === 0 && !(Number(line.otherHours) > 0)) {
+		return []
+	}
+	return [{ ...line, contactHours: entry.hours }]
+}
+
+/**
+ * A new lesson line for a cell that had none.
+ *
+ * @param {{courseId: string, programmeYear: number, periodCode: (string|null), hours: number}} entry The cell and its hours.
+ * @return {object} The new line.
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+ */
+function newCellLine(entry) {
+	return {
+		courseId: entry.courseId,
+		programmeYear: entry.programmeYear,
+		periodCode: entry.periodCode ?? null,
+		contactHours: entry.hours,
+		otherHours: 0,
+		activityKind: 'lesson',
+	}
 }
 
 /**
@@ -63,43 +139,87 @@ export function cellHours(lines, courseId, programmeYear, periodCode) {
  * nothing else; a line's other hours, kind and remark are kept.
  *
  * @param {Array<object>} lines The plan lines.
- * @param {string} courseId The course.
- * @param {number} programmeYear The year of the programme.
- * @param {string|null} periodCode The period, or null.
- * @param {number|string} hours The contact hours entered.
+ * @param {{courseId: string, programmeYear: number, periodCode: (string|null), hours: (number|string)}} entry The course, the year of the programme, the period (or null) and the contact hours entered.
  * @return {Array<object>} New lines.
  * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
  */
-export function setCell(lines, courseId, programmeYear, periodCode, hours) {
-	const value = Math.max(0, Number(hours) || 0)
-	const matches = (l) =>
-		l.courseId === courseId
-		&& Number(l.programmeYear) === programmeYear
-		&& (l.periodCode ?? null) === (periodCode ?? null)
-	const out = []
-	let found = false
-	for (const line of lines || []) {
-		if (!matches(line)) {
-			out.push(line)
-			continue
-		}
-		found = true
-		if (value === 0 && !(Number(line.otherHours) > 0)) {
-			continue
-		}
-		out.push({ ...line, contactHours: value })
-	}
-	if (!found && value > 0) {
-		out.push({
-			courseId,
-			programmeYear,
-			periodCode: periodCode ?? null,
-			contactHours: value,
-			otherHours: 0,
-			activityKind: 'lesson',
-		})
+export function setCell(lines, entry) {
+	const cell = { ...entry, hours: Math.max(0, hoursOrZero(entry.hours)) }
+	const current = lines || []
+	const out = current.flatMap((line) => lineAfterEntry(line, cell))
+	if (!current.some((line) => lineFillsCell(line, cell)) && cell.hours > 0) {
+		out.push(newCellLine(cell))
 	}
 	return out
+}
+
+/**
+ * The contact and other hours planned in one year of the programme.
+ *
+ * @param {Array<object>|undefined} lines The plan lines.
+ * @param {number} year The year of the programme.
+ * @return {{contact: number, other: number}} The sums.
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+ */
+function yearSums(lines, year) {
+	const sums = { contact: 0, other: 0 }
+	for (const line of (lines || []).filter((l) => Number(l.programmeYear) === year)) {
+		sums.contact += hoursOrZero(line.contactHours)
+		sums.other += hoursOrZero(line.otherHours)
+	}
+	return sums
+}
+
+/**
+ * The contact hours norm of one year, or null when the year has none.
+ *
+ * @param {Array<object>|undefined} yearNorms The norms of the plan.
+ * @param {number} year The year of the programme.
+ * @return {number|null} The norm.
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+ */
+function yearNorm(yearNorms, year) {
+	const norms = Array.isArray(yearNorms) ? yearNorms : []
+	const normRow = norms.find((n) => Number(n.programmeYear) === year)
+	if (!normRow || normRow.contactHours === undefined || normRow.contactHours === null) {
+		return null
+	}
+	return Number(normRow.contactHours)
+}
+
+/**
+ * The hours a year is short of its norm, 0 when it has none or meets it.
+ *
+ * @param {number} contact The contact hours planned.
+ * @param {number|null} norm The norm.
+ * @return {number} The shortfall.
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+ */
+function shortOfNorm(contact, norm) {
+	if (norm !== null && contact < norm) {
+		return norm - contact
+	}
+	return 0
+}
+
+/**
+ * The totals of one year of the programme, with its norm and shortfall.
+ *
+ * @param {object} plan The hour plan.
+ * @param {number} year The year of the programme.
+ * @return {{programmeYear: number, contactHours: number, otherHours: number, norm: (number|null), shortBy: number}} The row.
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
+ */
+function yearTotal(plan, year) {
+	const sums = yearSums(plan?.lines, year)
+	const norm = yearNorm(plan?.yearNorms, year)
+	return {
+		programmeYear: year,
+		contactHours: sums.contact,
+		otherHours: sums.other,
+		norm,
+		shortBy: shortOfNorm(sums.contact, norm),
+	}
 }
 
 /**
@@ -110,32 +230,10 @@ export function setCell(lines, courseId, programmeYear, periodCode, hours) {
  * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
  */
 export function yearTotals(plan) {
-	const years = Math.max(1, Number(plan?.durationYears) || 1)
-	const norms = Array.isArray(plan?.yearNorms) ? plan.yearNorms : []
+	const years = planYears(plan)
 	const rows = []
 	for (let year = 1; year <= years; year++) {
-		let contact = 0
-		let other = 0
-		for (const line of plan?.lines || []) {
-			if (Number(line.programmeYear) === year) {
-				contact += Number(line.contactHours) || 0
-				other += Number(line.otherHours) || 0
-			}
-		}
-		const normRow = norms.find((n) => Number(n.programmeYear) === year)
-		const norm =
-			normRow
-			&& normRow.contactHours !== undefined
-			&& normRow.contactHours !== null
-				? Number(normRow.contactHours)
-				: null
-		rows.push({
-			programmeYear: year,
-			contactHours: contact,
-			otherHours: other,
-			norm,
-			shortBy: norm !== null && contact < norm ? norm - contact : 0,
-		})
+		rows.push(yearTotal(plan, year))
 	}
 	return rows
 }
