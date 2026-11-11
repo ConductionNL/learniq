@@ -71,6 +71,13 @@ class CredentialReissueServiceTest extends TestCase {
 	private array $config = [];
 
 	/**
+	 * Every findAll() call: its config and its two flags.
+	 *
+	 * @var list<array<int, mixed>>
+	 */
+	private array $queries = [];
+
+	/**
 	 * The service; credential ids in `$failing` make the transition throw.
 	 *
 	 * @param array<int, string> $failing Credential ids whose transition fails.
@@ -91,7 +98,10 @@ class CredentialReissueServiceTest extends TestCase {
 
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('findAll')->willReturnCallback(
-			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
+			function (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array {
+				$this->queries[] = [$config, $_rbac, $_multitenancy];
+				return $this->store->findAll($config, $_rbac, $_multitenancy);
+			}
 		);
 		$objects->method('runAs')->willReturnCallback(
 			function (IUser $user, callable $operation): mixed {
@@ -248,4 +258,28 @@ class CredentialReissueServiceTest extends TestCase {
 		self::assertSame(['processed' => 3, 'skipped' => 2, 'failed' => 0, 'courseId' => 'c-bhv'], array_slice($stored, 0, 4, true));
 		self::assertArrayHasKey('finishedAt', $stored);
 	}//end testTheReissueDataIsExactlyTheSignedFieldsAndTheHistory()
+	/**
+	 * The credential pages read: the preview reads one page of 10000 from
+	 * the start, the run reads pages of the batch size, both across tenants
+	 * and without RBAC.
+	 *
+	 * @return void
+	 */
+	public function testTheCredentialPagesReadAsRecorded(): void {
+		$service = $this->service();
+		$this->queries = [];
+		$service->preview(courseId: 'c-bhv');
+		$preview = $this->queries;
+		$this->queries = [];
+		$service->run(courseId: 'c-bhv', runId: 'run-2', reason: 'Nieuwe naam', actor: $this->hr());
+		$credentialPages = array_values(array_filter($this->queries, static fn (array $query): bool => ($query[0]['filters']['schema'] ?? '') === 'credential' && isset($query[0]['offset']) === true));
+
+		$page = static fn (int $offset, int $limit): array => [
+			['filters' => ['register' => 'learniq', 'schema' => 'credential', 'courseId' => 'c-bhv'], 'limit' => $limit, 'offset' => $offset],
+			false,
+			false,
+		];
+		self::assertSame([$page(0, 10000)], $preview);
+		self::assertSame([$page(0, CredentialReissueService::BATCH)], $credentialPages);
+	}//end testTheCredentialPagesReadAsRecorded()
 }//end class
