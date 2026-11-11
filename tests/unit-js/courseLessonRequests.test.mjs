@@ -89,3 +89,31 @@ test('LessonComposer fetchObject reads one object and throws on a refusal', asyn
 	answer = { status: 403, json: null }
 	await assert.rejects(() => vm.fetchObject('Lesson', 'l1'), { message: 'Lesson fetch failed: 403' })
 })
+
+test('CourseBuilder updateObject patches the changed fields and throws on a refusal', async () => {
+	const vm = instanceOf(await loadSfc('src/views/CourseBuilder.vue', STUBS), { courseId: 'c1' })
+	assert.equal(await vm.updateObject('lesson', 'l1', { order: 2 }), undefined)
+	assert.deepEqual(calls[0], {
+		url: '/nc/apps/openregister/api/objects/learniq/lesson/l1',
+		init: { method: 'PATCH', headers: WRITE, body: JSON.stringify({ order: 2 }) },
+	})
+	answer = { status: 400, json: null }
+	await assert.rejects(() => vm.updateObject('course', 'c1', {}), { message: 'course update failed: 400' })
+})
+
+test('LessonComposer save patches the lesson body', async () => {
+	const vm = instanceOf(await loadSfc('src/views/LessonComposer.vue', STUBS), {
+		courseId: 'c1',
+		lessonId: 'l1',
+		saveBody: () => ({ blocks: [{ type: 'richText' }] }),
+		saveTeacherNotes: async () => true,
+	})
+	vm.blocks = []
+	vm.lesson = {}
+	await vm.save()
+	assert.deepEqual(calls[0], {
+		url: '/nc/apps/openregister/api/objects/learniq/Lesson/l1',
+		init: { method: 'PATCH', headers: WRITE, body: JSON.stringify({ blocks: [{ type: 'richText' }] }) },
+	})
+	assert.deepEqual([vm.saveError, vm.saveDone, vm.saving], ['', true, false])
+})
