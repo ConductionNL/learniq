@@ -314,7 +314,7 @@ class MigrateDataSubjectRequestsToOpenRegisterTest extends TestCase {
 		];
 		$this->rows['data-subject-requests/dataSubjectRequest'] = [
 			['id' => 'c-1', 'notes' => MigrateDataSubjectRequestsToOpenRegister::MARKER . "dsr-1\nmore"],
-			['id' => 'c-2', 'notes' => 'dsr-2'],
+			['id' => 'c-2', 'notes' => "learniz-migration: dsr-2\n"],
 			['id' => 'c-3', 'notes' => MigrateDataSubjectRequestsToOpenRegister::MARKER . " dsr-3 \n"],
 			['id' => 'c-4', 'notes' => MigrateDataSubjectRequestsToOpenRegister::MARKER . "   \ndsr-4"],
 			['id' => 'c-5'],
