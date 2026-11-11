@@ -94,23 +94,48 @@ class XapiEnrolmentCompletion {
 
 		// The statement's object must resolve to a mandatory-training Lesson
 		// that is the final published lesson of its course.
-		$lesson = $this->resolveMandatoryLesson(payload: $statement, tenantId: $tenantId);
-		if ($lesson === null
-			|| $this->isFinalPublishedLesson(lesson: $lesson, courseId: $lesson['courseId'], tenantId: $tenantId) === false
-		) {
+		$lesson = $this->resolveFinalMandatoryLesson(payload: $statement, tenantId: $tenantId);
+		if ($lesson === null) {
 			return;
 		}
 
-		$learnerId = $this->resolveVerifiedLearnerId(payload: $statement);
-		if ($learnerId === null) {
-			return;
-		}
-
-		$enrolmentId = $this->resolveActiveEnrolmentId(learnerId: $learnerId, courseId: $lesson['courseId'], tenantId: $tenantId);
+		$enrolmentId = $this->resolveEnrolmentToComplete(statement: $statement, lesson: $lesson);
 		if ($enrolmentId === null) {
 			return;
 		}
 
+		$this->completeEnrolment(enrolmentId: $enrolmentId);
+	}//end complete()
+
+	/**
+	 * The verified learner's active Enrolment on the lesson's course, or null.
+	 *
+	 * @param array<string,mixed> $statement The XapiStatement as saved.
+	 * @param array<string,mixed> $lesson    The final mandatory Lesson.
+	 *
+	 * @return string|null The Enrolment UUID, or null when there is nothing to complete.
+	 */
+	private function resolveEnrolmentToComplete(array $statement, array $lesson): ?string {
+		$learnerId = $this->resolveVerifiedLearnerId(payload: $statement);
+		if ($learnerId === null) {
+			return null;
+		}
+
+		return $this->resolveActiveEnrolmentId(
+			learnerId: $learnerId,
+			courseId: $lesson['courseId'],
+			tenantId: (string)($statement['tenant_id'] ?? '')
+		);
+	}//end resolveEnrolmentToComplete()
+
+	/**
+	 * Fire the `complete` transition on the Enrolment and log it.
+	 *
+	 * @param string $enrolmentId The Enrolment UUID.
+	 *
+	 * @return void
+	 */
+	private function completeEnrolment(string $enrolmentId): void {
 		// OR's lifecycle engine emits the enrolment.completed audit entry and
 		// the completionOnComplete notification.
 		$this->transitionEngine->transition($enrolmentId, 'complete');
@@ -119,7 +144,7 @@ class XapiEnrolmentCompletion {
 			'[XapiEnrolmentCompletion] Enrolment {id} transitioned to completed via xAPI statement.',
 			['id' => $enrolmentId]
 		);
-	}//end complete()
+	}//end completeEnrolment()
 
 	/**
 	 * Resolve the learner identity this statement may act on.
@@ -173,6 +198,28 @@ class XapiEnrolmentCompletion {
 	}//end tenantScoped()
 
 	/**
+	 * The statement's mandatory-training Lesson when it is the final published
+	 * lesson of its course, else null.
+	 *
+	 * @param array<string,mixed> $payload  The xAPI statement payload.
+	 * @param string              $tenantId Tenant UUID, or '' when unknown.
+	 *
+	 * @return array<string,mixed>|null The Lesson, or null when it does not complete its course.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-19
+	 */
+	private function resolveFinalMandatoryLesson(array $payload, string $tenantId): ?array {
+		$lesson = $this->resolveMandatoryLesson(payload: $payload, tenantId: $tenantId);
+		if ($lesson === null
+			|| $this->isFinalPublishedLesson(lesson: $lesson, courseId: $lesson['courseId'], tenantId: $tenantId) === false
+		) {
+			return null;
+		}
+
+		return $lesson;
+	}//end resolveFinalMandatoryLesson()
+
+	/**
 	 * Resolve the statement's stamped `lessonId` to a mandatory-training Lesson.
 	 *
 	 * The xAPI object IRI is not a Lesson property, so a lookup on it can
@@ -191,39 +238,66 @@ class XapiEnrolmentCompletion {
 			return null;
 		}
 
-		$lessons = $this->objectService->findAll(
-			[
-				'ids' => [$lessonId],
-				'filters' => $this->tenantScoped(
-					filters: [
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => 'lesson',
-					],
-					tenantId: $tenantId
-				),
-				'limit' => 1,
-			]
-		);
-
-		if (empty($lessons) === true) {
-			return null;
-		}
-
-		$lesson = $this->toArray(row: $lessons[0]);
-
-		// Only mandatory training auto-completes an enrolment.
-		if (($lesson['mandatoryTraining'] ?? false) !== true) {
-			return null;
-		}
-
-		// A lesson with no course cannot complete an enrolment, so it is not a
-		// candidate either — the caller can rely on `courseId` being present.
-		if (($lesson['courseId'] ?? null) === null) {
+		$lesson = $this->findLesson(lessonId: $lessonId, tenantId: $tenantId);
+		if ($lesson === null || $this->isCompletionCandidate(lesson: $lesson) === false) {
 			return null;
 		}
 
 		return $lesson;
 	}//end resolveMandatoryLesson()
+
+	/**
+	 * The Lesson with this id in the statement's tenant, or null.
+	 *
+	 * @param string $lessonId The stamped lesson id.
+	 * @param string $tenantId Tenant UUID, or '' when unknown.
+	 *
+	 * @return array<string,mixed>|null The Lesson.
+	 */
+	private function findLesson(string $lessonId, string $tenantId): ?array {
+		$lessons = $this->objectService->findAll($this->lessonQuery(lessonId: $lessonId, tenantId: $tenantId));
+		if (empty($lessons) === true) {
+			return null;
+		}
+
+		return $this->toArray(row: $lessons[0]);
+	}//end findLesson()
+
+	/**
+	 * The query for one Lesson by id, in the statement's tenant.
+	 *
+	 * @param string $lessonId The stamped lesson id.
+	 * @param string $tenantId Tenant UUID, or '' when unknown.
+	 *
+	 * @return array<string,mixed> The findAll config.
+	 */
+	private function lessonQuery(string $lessonId, string $tenantId): array {
+		return [
+			'ids' => [$lessonId],
+			'filters' => $this->tenantScoped(
+				filters: [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => 'lesson',
+				],
+				tenantId: $tenantId
+			),
+			'limit' => 1,
+		];
+	}//end lessonQuery()
+
+	/**
+	 * Whether a Lesson can complete an enrolment: only mandatory training does,
+	 * and a lesson with no course cannot complete one, so the caller can rely
+	 * on `courseId` being present.
+	 *
+	 * @param array<string,mixed> $lesson The Lesson.
+	 *
+	 * @return bool
+	 */
+	private function isCompletionCandidate(array $lesson): bool {
+		return ($lesson['mandatoryTraining'] ?? false) === true
+			&& ($lesson['courseId'] ?? null) !== null;
+	}//end isCompletionCandidate()
 
 	/**
 	 * Whether a Lesson is the last published lesson of its course.
