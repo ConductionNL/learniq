@@ -212,3 +212,23 @@ test('shares load only for an export and read results, objects or a bare list', 
 	await refused.loadShares()
 	assert.deepEqual(refused.shares, [])
 })
+
+test('a revoke posts the transition, reloads the shares and reports a refusal', async () => {
+	for (const [status, error] of [
+		[200, null],
+		[403, 'Could not revoke the share. Please try again.'],
+	]) {
+		const vm = screen({ latestExport: { id: 'e1' }, shareError: 'x' })
+		const calls = stubFetch([answer(status, {}), answer(200, { results: [{ id: 's1', lifecycle: 'revoked' }] })])
+		const logged = await capturingErrors(() => vm.revokeShare('s1'))
+		assert.deepEqual(calls[0], {
+			url: '/index.php/apps/openregister/api/objects/s1/transition',
+			init: { method: 'POST', headers: WRITE, body: '{"action":"revoke"}' },
+			body: { action: 'revoke' },
+		})
+		assert.equal(calls[1].url, `${SHARES}?learningRecordExportId=e1&_limit=100`)
+		assert.deepEqual(vm.shares, [{ id: 's1', lifecycle: 'revoked' }])
+		assert.equal(vm.shareError, error)
+		assert.equal(logged.length, error ? 1 : 0)
+	}
+})
