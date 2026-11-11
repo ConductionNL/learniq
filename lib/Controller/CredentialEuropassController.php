@@ -103,23 +103,66 @@ class CredentialEuropassController extends Controller {
 			return new JSONResponse(data: ['error' => 'unauthorized'], statusCode: Http::STATUS_UNAUTHORIZED);
 		}
 
-		$credential = $this->read(schema: self::SCHEMA, id: $id);
-		// Credential.learnerId is the LearnerProfile uuid, never the user id:
-		// the learner is matched on learnerUserId, or through the profile.
-		$mayRead = $credential !== null
-			&& ($this->learners->belongsTo(credential: $credential, userId: $user->getUID()) === true
-			|| $this->isStaff(userId: $user->getUID()) === true);
-		if ($mayRead === false || is_array($credential['edciPayload'] ?? null) === false) {
+		$credential = $this->downloadableCredential(id: $id, userId: $user->getUID());
+		if ($credential === null) {
 			return new JSONResponse(data: ['error' => 'not_found'], statusCode: Http::STATUS_NOT_FOUND);
 		}
 
+		return $this->europassFile(credential: $credential);
+	}//end download()
+
+	/**
+	 * The credential when the user may read it and it has a Europass form; null otherwise.
+	 *
+	 * @param string $id     The credential uuid.
+	 * @param string $userId The caller.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private function downloadableCredential(string $id, string $userId): ?array {
+		$credential = $this->read(schema: self::SCHEMA, id: $id);
+		if ($credential === null || $this->mayRead(credential: $credential, userId: $userId) === false) {
+			return null;
+		}
+
+		if (is_array($credential['edciPayload'] ?? null) === false) {
+			return null;
+		}
+
+		return $credential;
+	}//end downloadableCredential()
+
+	/**
+	 * Whether the user is the credential's learner or staff.
+	 *
+	 * Credential.learnerId is the LearnerProfile uuid, never the user id:
+	 * the learner is matched on learnerUserId, or through the profile.
+	 *
+	 * @param array<string, mixed> $credential The credential.
+	 * @param string               $userId     The caller.
+	 *
+	 * @return bool
+	 */
+	private function mayRead(array $credential, string $userId): bool {
+		return $this->learners->belongsTo(credential: $credential, userId: $userId) === true
+			|| $this->isStaff(userId: $userId) === true;
+	}//end mayRead()
+
+	/**
+	 * The Europass form as `europass-<course code>-<issued date>.jsonld`.
+	 *
+	 * @param array<string, mixed> $credential A credential with its Europass form.
+	 *
+	 * @return DataDownloadResponse
+	 */
+	private function europassFile(array $credential): DataDownloadResponse {
 		$course = $this->read(schema: 'course', id: (string)($credential['courseId'] ?? ''));
 		$code = preg_replace('/[^A-Za-z0-9_-]+/', '-', (string)($course['code'] ?? 'credential'));
 		$date = substr((string)($credential['issuedAt'] ?? ''), 0, 10);
 		$json = (string)json_encode($credential['edciPayload'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 
 		return new DataDownloadResponse($json, 'europass-' . trim($code . '-' . $date, '-') . '.jsonld', 'application/ld+json');
-	}//end download()
+	}//end europassFile()
 
 	/**
 	 * Create the Europass form of an earlier credential, once. Staff only; a
