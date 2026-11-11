@@ -41,7 +41,6 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Portal;
 
 use DateTimeImmutable;
-use DateTimeZone;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IL10N;
 use OCP\L10N\IFactory;
@@ -56,8 +55,6 @@ use Throwable;
 class BpvPlacementSteps {
 
 	private const REGISTER = 'learniq';
-
-	private const ZONE = 'Europe/Amsterdam';
 
 	private const MONTHS = [
 		'januari',
@@ -75,6 +72,13 @@ class BpvPlacementSteps {
 	];
 
 	/**
+	 * Reads dates the way the course-day lines do.
+	 *
+	 * @var CourseDayLines
+	 */
+	private readonly CourseDayLines $lines;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService   $objectService Reads the placement and what belongs to it.
@@ -88,6 +92,7 @@ class BpvPlacementSteps {
 		private readonly IFactory $l10n,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->lines = new CourseDayLines();
 	}//end __construct()
 
 	/**
@@ -314,15 +319,7 @@ class BpvPlacementSteps {
 	 * @return DateTimeImmutable|null
 	 */
 	private function date(mixed $value): ?DateTimeImmutable {
-		if (is_string($value) === false || trim($value) === '') {
-			return null;
-		}
-
-		try {
-			return (new DateTimeImmutable($value, new DateTimeZone(self::ZONE)))->setTimezone(new DateTimeZone(self::ZONE));
-		} catch (\Exception) {
-			return null;
-		}
+		return $this->lines->date(value: $value);
 	}//end date()
 
 	/**
