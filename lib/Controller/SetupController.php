@@ -71,7 +71,7 @@ class SetupController extends Controller {
 	 *
 	 * @var string
 	 */
-	public const DEMO_DECIDED_KEY = 'demo_data_decided';
+	private const DEMO_DECIDED_KEY = 'demo_data_decided';
 
 	/**
 	 * App-config key holding the example set the operator picked.
@@ -83,7 +83,7 @@ class SetupController extends Controller {
 	 *
 	 * @var string
 	 */
-	public const PROFILE_KEY = 'example_profile';
+	private const PROFILE_KEY = 'example_profile';
 
 	/**
 	 * The key the single-dataset step used before the sets existed. Still
@@ -162,7 +162,7 @@ class SetupController extends Controller {
 		private readonly IGroupManager $groups,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
-		$this->loader = new ExampleSetLoader(seedProfiles: $this->seedProfiles, appConfig: $this->appConfig, logger: $this->logger);
+		$this->loader = new ExampleSetLoader(seedProfiles: $this->seedProfiles, logger: $this->logger);
 	}//end __construct()
 
 	/**
@@ -401,8 +401,27 @@ class SetupController extends Controller {
 			return $this->declineExampleSet();
 		}
 
-		return $this->loader->install(picked: $picked);
+		return $this->installExampleSet(picked: $picked);
 	}//end loadPicked()
+
+	/**
+	 * Import one set and record it as the wizard's answer once it is in.
+	 *
+	 * @param string $picked The set to import.
+	 *
+	 * @return JSONResponse `{ success, message, objects, skipped }`.
+	 */
+	private function installExampleSet(string $picked): JSONResponse {
+		$answer = $this->loader->install(picked: $picked);
+		if ($answer->decided !== null) {
+			// Loading IS choosing the set, so the pick is recorded too. The
+			// removal step reads it back.
+			$this->appConfig->setValueString(Application::APP_ID, self::PROFILE_KEY, $picked);
+			$this->appConfig->setValueString(Application::APP_ID, self::DEMO_DECIDED_KEY, $answer->decided);
+		}
+
+		return $answer->response;
+	}//end installExampleSet()
 
 
 	/**
@@ -417,7 +436,12 @@ class SetupController extends Controller {
 	 * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
 	 */
 	private function removeExampleSet(?string $profileId=null): JSONResponse {
-		return $this->loader->remove(picked: ($profileId ?? $this->pickedProfile()));
+		$answer = $this->loader->remove(picked: ($profileId ?? $this->pickedProfile()));
+		if ($answer->decided !== null) {
+			$this->appConfig->setValueString(Application::APP_ID, self::DEMO_DECIDED_KEY, $answer->decided);
+		}
+
+		return $answer->response;
 	}//end removeExampleSet()
 
 	/**

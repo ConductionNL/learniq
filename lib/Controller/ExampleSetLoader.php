@@ -28,12 +28,12 @@ use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\SeedProfileService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
-use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
 
 /**
  * Imports or removes one example set for the setup wizard and words every
- * outcome as the answer the wizard shows. Built by SetupController.
+ * outcome as the answer the wizard shows, naming the decision the wizard
+ * records. Built by SetupController, which records it.
  *
  * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-removes-a-loaded-example-set-through-openregisters-import-jobs
  */
@@ -48,41 +48,41 @@ final class ExampleSetLoader {
 	private const REMOVED = 'removed';
 
 	/**
+	 * What app config `demo_data_decided` holds after an import.
+	 *
+	 * @var string
+	 */
+	private const INSTALLED = 'installed';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param SeedProfileService $seedProfiles Imports and removes the example sets.
-	 * @param IAppConfig         $appConfig    Records the outcome as the wizard's answer.
 	 * @param LoggerInterface    $logger       Records a failed import or removal.
 	 */
 	public function __construct(
 		private readonly SeedProfileService $seedProfiles,
-		private readonly IAppConfig $appConfig,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
 
 	/**
-	 * Import one set and record it as the wizard's answer.
+	 * Import one set; a finished import is the wizard's answer to record.
 	 *
 	 * @param string $picked The set to import.
 	 *
-	 * @return JSONResponse `{ success, message, objects, skipped }`.
+	 * @return ExampleSetAnswer `{ success, message, objects, skipped }` and the decision to record.
 	 *
 	 * @spec openspec/changes/wizard-dataset-card-load/specs/first-time-setup/spec.md
 	 */
-	public function install(string $picked): JSONResponse {
+	public function install(string $picked): ExampleSetAnswer {
 		try {
 			$imported = $this->seedProfiles->install(profileId: $picked);
 		} catch (\Throwable $e) {
-			return $this->importFailed(picked: $picked, error: $e);
+			return new ExampleSetAnswer(response: $this->importFailed(picked: $picked, error: $e), decided: null);
 		}
 
-		// Loading IS choosing the set, so the pick is recorded too. The removal
-		// step reads it back.
-		$this->appConfig->setValueString(Application::APP_ID, SetupController::PROFILE_KEY, $picked);
-		$this->appConfig->setValueString(Application::APP_ID, SetupController::DEMO_DECIDED_KEY, 'installed');
-
-		return $this->importedResponse(imported: $imported);
+		return new ExampleSetAnswer(response: $this->importedResponse(imported: $imported), decided: self::INSTALLED);
 	}//end install()
 
 	/**
@@ -157,20 +157,22 @@ final class ExampleSetLoader {
 	 *
 	 * @param string $picked The set to remove, or '' when none is picked.
 	 *
-	 * @return JSONResponse `{ success, message }`.
+	 * @return ExampleSetAnswer `{ success, message }` and the decision to record.
 	 *
 	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-removes-a-loaded-example-set-through-openregisters-import-jobs
 	 * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
 	 */
-	public function remove(string $picked): JSONResponse {
+	public function remove(string $picked): ExampleSetAnswer {
 		if ($picked === '' || $picked === SeedProfileService::NONE_PROFILE) {
-			return new JSONResponse(data: ['success' => true, 'message' => 'No example data was loaded, so there is nothing to remove.']);
+			return $this->unrecorded(
+				response: new JSONResponse(data: ['success' => true, 'message' => 'No example data was loaded, so there is nothing to remove.'])
+			);
 		}
 
 		try {
 			$removed = $this->seedProfiles->remove(profileId: $picked);
 		} catch (\Throwable $e) {
-			return $this->removalFailed(picked: $picked, error: $e);
+			return $this->unrecorded(response: $this->removalFailed(picked: $picked, error: $e));
 		}
 
 		return $this->removalOutcome(picked: $picked, removed: $removed);
@@ -202,27 +204,37 @@ final class ExampleSetLoader {
 	 * @param string               $picked  The set that was removed.
 	 * @param array<string, mixed> $removed The removal's reply.
 	 *
-	 * @return JSONResponse `{ success, message }`.
+	 * @return ExampleSetAnswer `{ success, message }` and the decision to record.
 	 */
-	private function removalOutcome(string $picked, array $removed): JSONResponse {
+	private function removalOutcome(string $picked, array $removed): ExampleSetAnswer {
 		if ($removed['supported'] === false) {
-			return new JSONResponse(data: ['success' => false, 'message' => $this->fallbackMessage(profileId: $picked)]);
+			return $this->unrecorded(response: new JSONResponse(data: ['success' => false, 'message' => $this->fallbackMessage(profileId: $picked)]));
 		}
 
 		if ($removed['errors'] > 0) {
-			return $this->partialRemoval(removed: $removed);
+			return $this->unrecorded(response: $this->partialRemoval(removed: $removed));
 		}
 
 		if ($removed['jobs'] === []) {
-			return $this->noRecordedImport(picked: $picked);
+			return $this->unrecorded(response: $this->noRecordedImport(picked: $picked));
 		}
 
-		$this->appConfig->setValueString(Application::APP_ID, SetupController::DEMO_DECIDED_KEY, self::REMOVED);
-
-		return new JSONResponse(
-			data: ['success' => true, 'message' => 'Moved ' . $removed['softDeleted'] . ' example object(s) to the trash.']
+		return new ExampleSetAnswer(
+			response: new JSONResponse(data: ['success' => true, 'message' => 'Moved ' . $removed['softDeleted'] . ' example object(s) to the trash.']),
+			decided: self::REMOVED
 		);
 	}//end removalOutcome()
+
+	/**
+	 * An answer that leaves the wizard's recorded decision as it is.
+	 *
+	 * @param JSONResponse $response The answer.
+	 *
+	 * @return ExampleSetAnswer The answer with nothing to record.
+	 */
+	private function unrecorded(JSONResponse $response): ExampleSetAnswer {
+		return new ExampleSetAnswer(response: $response, decided: null);
+	}//end unrecorded()
 
 	/**
 	 * The answer to a removal that left objects behind, naming one command per job.
