@@ -264,6 +264,32 @@ class CatalogueSignUpServiceTest extends TestCase {
 	}//end testAProgrammeEnrolsEveryCourseNamingTheProgramme()
 
 	/**
+	 * Each course of the programme once, skipping empty ids and courses the
+	 * learner already holds live; the rest are created (a course the catalogue
+	 * does not hold included) or refused in order, a refusal naming its course
+	 * and message.
+	 *
+	 * @return void
+	 */
+	public function testAProgrammeEnrolsEachPendingCourseOnceInOrder(): void {
+		$service = $this->service();
+		$service->signUpCourse(learner: $this->learner(), courseId: 'c-lead');
+		$this->store->rows['programme'][0]['courseIds'] = ['c-missing', 'c-excel', '', 'c-lead', 'c-excel', 'c-pm2'];
+		$this->vetoed = ['c-pm2'];
+		$writes = count($this->store->saves);
+
+		$outcome = $service->signUpProgramme(learner: $this->learner(), programmeId: 'p-pm');
+
+		self::assertSame(200, $outcome->status);
+		self::assertSame(['c-missing', 'c-excel'], array_column($outcome->body['created'], 'courseId'));
+		self::assertSame(['c-pm2'], array_column($outcome->body['refused'], 'courseId'));
+		self::assertSame(['courseId', 'message'], array_keys($outcome->body['refused'][0]));
+		self::assertNotSame('', $outcome->body['refused'][0]['message']);
+		self::assertSame(2, (count($this->store->saves) - $writes));
+		self::assertSame(['p-pm', 'p-pm'], array_column(array_column(array_slice($this->store->saves, $writes), 'object'), 'programmeId'));
+	}//end testAProgrammeEnrolsEachPendingCourseOnceInOrder()
+
+	/**
 	 * A programme whose author marked parts mandatory: each course enrolment
 	 * takes its part's default, and a programme without marks keeps every
 	 * enrolment optional as before.
