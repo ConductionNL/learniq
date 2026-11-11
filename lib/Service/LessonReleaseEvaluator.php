@@ -438,56 +438,12 @@ class LessonReleaseEvaluator {
 		$bestScore = null;
 		foreach ($results as $result) {
 			$data = $this->toArray(object: $result);
-			$sumScore = $this->sumResponses(responses: ($data['responses'] ?? []));
+			$sumScore = (new ResultResponseSum())->sumOf(responses: ($data['responses'] ?? []));
 			$bestScore = max(($bestScore ?? $sumScore), $sumScore);
 		}
 
 		return $bestScore;
 	}//end bestScore()
-
-	/**
-	 * Sum an AssessmentResult's per-item scores, preferring `autoScore` and
-	 * falling back to `manualScore`; a response with neither contributes 0.
-	 *
-	 * @param mixed $responses The AssessmentResult's `responses` array.
-	 *
-	 * @return float
-	 */
-	private function sumResponses($responses): float {
-		if (is_array($responses) === false) {
-			return 0.0;
-		}
-
-		$sum = 0.0;
-		foreach ($responses as $response) {
-			if (is_array($response) === true) {
-				$sum += self::responseScore(response: $response);
-			}
-		}
-
-		return $sum;
-	}//end sumResponses()
-
-	/**
-	 * One response's score: its numeric `autoScore`, else its numeric `manualScore`, else 0.
-	 *
-	 * @param array<string,mixed> $response The response.
-	 *
-	 * @return float
-	 */
-	private static function responseScore(array $response): float {
-		$auto = ($response['autoScore'] ?? null);
-		if (is_numeric($auto) === true) {
-			return (float)$auto;
-		}
-
-		$manual = ($response['manualScore'] ?? null);
-		if (is_numeric($manual) === true) {
-			return (float)$manual;
-		}
-
-		return 0.0;
-	}//end responseScore()
 
 	/**
 	 * Resolve a Lesson/Assessment's display name (`name` or `title`) by id.
