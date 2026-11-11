@@ -227,14 +227,25 @@ export default {
 			const keepFacets = page > 1 && this.query.trim() === this.searched
 			this.searched = this.query.trim()
 			try {
-				const found = await searchMaterial(axios, generateUrl, { ...this.$data, facets: !keepFacets })
-				this.result = keepFacets ? { ...found, facets: this.result?.facets } : found
-				this.state = this.total > 0 ? 'results' : 'empty'
+				await this.showSearch(keepFacets)
 			} catch {
 				this.state = 'down'
 			} finally {
 				this.loading = false
 			}
+		},
+
+		/**
+		 * Run the search and show what it found, keeping the counts it already
+		 * has when asked.
+		 *
+		 * @param {boolean} keepFacets Whether the current counts stay.
+		 * @return {Promise<void>}
+		 */
+		async showSearch(keepFacets) {
+			const found = await searchMaterial(axios, generateUrl, { ...this.$data, facets: !keepFacets })
+			this.result = keepFacets ? { ...found, facets: this.result?.facets } : found
+			this.state = this.total > 0 ? 'results' : 'empty'
 		},
 
 		/**
@@ -315,11 +326,35 @@ export default {
 				return this.levelLabel(value)
 			}
 			if (filter === 'licenses') {
-				return licenceLabel(value) || this.t('learniq', 'No open licence')
+				return this.licenceFacetLabel(value)
 			}
 			if (filter === 'collections') {
-				return value === 'KlasCement' ? this.t('learniq', 'KlasCement (Flanders)') : collectionName(value)
+				return this.collectionFacetLabel(value)
 			}
+			return this.formatFacetLabel(value)
+		},
+
+		/**
+		 * @param {string} value A licence.
+		 * @return {string} Its label, or that it is no open licence.
+		 */
+		licenceFacetLabel(value) {
+			return licenceLabel(value) || this.t('learniq', 'No open licence')
+		},
+
+		/**
+		 * @param {string} value A collection.
+		 * @return {string} Its name; KlasCement is named as Flemish.
+		 */
+		collectionFacetLabel(value) {
+			return value === 'KlasCement' ? this.t('learniq', 'KlasCement (Flanders)') : collectionName(value)
+		},
+
+		/**
+		 * @param {string} value A format.
+		 * @return {string} Its name, in words for a webpage or a video.
+		 */
+		formatFacetLabel(value) {
 			return { webpage: this.t('learniq', 'Webpage'), video: this.t('learniq', 'Video') }[formatName(value)] || formatName(value)
 		},
 
