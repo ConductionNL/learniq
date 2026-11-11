@@ -79,36 +79,68 @@ class AuditPeriodReader {
 			return [];
 		}
 
-		$rows   = [];
-		$offset = 0;
-		do {
-			$page = array_map(
-				static fn ($entry): array => (array)$entry->jsonSerialize(),
-				$this->auditTrailMapper->findAll(
-					limit: self::PAGE_SIZE,
-					offset: $offset,
-					sort: ['created' => 'ASC']
-				)
-			);
-			$offset  += self::PAGE_SIZE;
-			$pageSize = count($page);
+		return $this->entriesBetween(from: $from, to: $to);
+	}//end entries()
 
-			foreach ($page as $row) {
-				$created = $this->createdAt(row: $row);
-				if ($created === null || $created < $from) {
-					continue;
-				}
-
-				if ($created > $to) {
-					return $rows;
-				}
-
-				$rows[] = $row;
+	/**
+	 * The trail's entries from `$from` to `$to` inclusive, oldest first; stops
+	 * reading at the first entry after the period.
+	 *
+	 * @param DateTimeImmutable $from The lower bound.
+	 * @param DateTimeImmutable $to   The upper bound.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function entriesBetween(DateTimeImmutable $from, DateTimeImmutable $to): array {
+		$rows = [];
+		foreach ($this->trail() as $row) {
+			$created = $this->createdAt(row: $row);
+			if ($created === null || $created < $from) {
+				continue;
 			}
-		} while ($pageSize === self::PAGE_SIZE);
+
+			if ($created > $to) {
+				return $rows;
+			}
+
+			$rows[] = $row;
+		}
 
 		return $rows;
-	}//end entries()
+	}//end entriesBetween()
+
+	/**
+	 * The whole audit trail as serialised entries, oldest first, read one page
+	 * at a time as it is consumed; the first short page is the last.
+	 *
+	 * @return \Generator<int,array<string,mixed>>
+	 */
+	private function trail(): \Generator {
+		$offset = 0;
+		do {
+			$page    = $this->page(offset: $offset);
+			$offset += self::PAGE_SIZE;
+			yield from $page;
+		} while (count($page) === self::PAGE_SIZE);
+	}//end trail()
+
+	/**
+	 * One page of the audit trail, sorted by `created` ascending, serialised.
+	 *
+	 * @param int $offset The first entry of the page.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function page(int $offset): array {
+		return array_map(
+			static fn ($entry): array => (array)$entry->jsonSerialize(),
+			$this->auditTrailMapper->findAll(
+				limit: self::PAGE_SIZE,
+				offset: $offset,
+				sort: ['created' => 'ASC']
+			)
+		);
+	}//end page()
 
 	/**
 	 * Parse one bound of the export period.
@@ -146,12 +178,8 @@ class AuditPeriodReader {
 	 * @spec openspec/specs/compliance-audit/spec.md#requirement-export-audit-ready-zip-per-regulation-and-date-range
 	 */
 	private function createdAt(array $row): ?DateTimeImmutable {
-		$created = $row['created'] ?? null;
-		if ($created instanceof DateTimeInterface) {
-			$created = $created->format(DateTimeInterface::ATOM);
-		}
-
-		if (is_string($created) === false || $created === '') {
+		$created = self::createdText(value: ($row['created'] ?? null));
+		if ($created === '') {
 			return null;
 		}
 
@@ -162,4 +190,23 @@ class AuditPeriodReader {
 
 		return $moment;
 	}//end createdAt()
+
+	/**
+	 * A creation time as text: a date as ISO 8601, a string as it is, anything else as ''.
+	 *
+	 * @param mixed $value The serialised `created` value.
+	 *
+	 * @return string
+	 */
+	private static function createdText(mixed $value): string {
+		if ($value instanceof DateTimeInterface) {
+			return $value->format(DateTimeInterface::ATOM);
+		}
+
+		if (is_string($value) === false) {
+			return '';
+		}
+
+		return $value;
+	}//end createdText()
 }//end class
