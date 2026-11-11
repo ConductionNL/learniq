@@ -45,6 +45,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Support\EntityRow;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
@@ -197,10 +198,6 @@ class AdmissionsWaitlistPromoter implements IEventListener {
 	 * @return array<string,mixed>
 	 */
 	private function normalise(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		return $row->jsonSerialize();
+		return (new EntityRow())->asArray(row: $row);
 	}//end normalise()
 }//end class

@@ -36,6 +36,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Timetabling;
 
+use OCA\Learniq\Support\EntityRow;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -335,10 +336,6 @@ class SessionWindowLoader {
 	 * @return array<string,mixed>
 	 */
 	private function normalise(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		return $row->jsonSerialize();
+		return (new EntityRow())->asArray(row: $row);
 	}//end normalise()
 }//end class

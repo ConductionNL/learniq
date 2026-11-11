@@ -39,6 +39,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Support\EntityRow;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -214,10 +215,6 @@ class AssessmentResultAudience {
 	 * @return array<string, mixed>
 	 */
 	private function toRow(mixed $object): array {
-		if (is_array($object) === true) {
-			return $object;
-		}
-
-		return $object->jsonSerialize();
+		return (new EntityRow())->asArray(row: $object);
 	}//end toRow()
 }//end class
