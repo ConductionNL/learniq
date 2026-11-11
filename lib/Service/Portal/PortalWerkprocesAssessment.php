@@ -38,6 +38,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
+use OCA\Learniq\Support\ObjectRow;
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
@@ -106,6 +107,13 @@ class PortalWerkprocesAssessment {
 	];
 
 	/**
+	 * Turns one OpenRegister result into a plain array.
+	 *
+	 * @var ObjectRow
+	 */
+	private readonly ObjectRow $objectRow;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService   $objectService Reads the trainer and writes the assessment.
@@ -119,6 +127,7 @@ class PortalWerkprocesAssessment {
 		private readonly IAppConfig $appConfig,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->objectRow = new ObjectRow();
 	}//end __construct()
 
 	/**
@@ -293,15 +302,7 @@ class PortalWerkprocesAssessment {
 	 * @return array<string, mixed>
 	 */
 	private function toRow(mixed $object): array {
-		if (is_array($object) === true) {
-			return $object;
-		}
-
-		if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-			return (array)$object->jsonSerialize();
-		}
-
-		return [];
+		return $this->objectRow->asArray(object: $object);
 	}//end toRow()
 
 	/**

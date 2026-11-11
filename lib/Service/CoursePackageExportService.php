@@ -45,6 +45,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
@@ -59,6 +60,13 @@ use ZipArchive;
 class CoursePackageExportService {
 
 	private const LEARNIQ_REGISTER = 'learniq';
+
+	/**
+	 * Turns one OpenRegister result into a plain array.
+	 *
+	 * @var ObjectRow
+	 */
+	private readonly ObjectRow $objectRow;
 
 	/**
 	 * Constructor.
@@ -76,6 +84,7 @@ class CoursePackageExportService {
 		private readonly IRootFolder $rootFolder,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->objectRow = new ObjectRow();
 	}//end __construct()
 
 	/**
@@ -435,15 +444,7 @@ class CoursePackageExportService {
 	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#data-model
 	 */
 	private function toArray(mixed $object): array {
-		if (is_array($object) === true) {
-			return $object;
-		}
-
-		if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-			return (array)$object->jsonSerialize();
-		}
-
-		return [];
+		return $this->objectRow->asArray(object: $object);
 	}//end toArray()
 
 	/**
