@@ -483,28 +483,14 @@ async function createObject(slug, body) {
 	return r.json
 }
 
-// Seed in dependency order. Returns a map slug -> first created object (for refs).
-async function seedObjects(presentSlugs) {
-	const created = {}
-	const counts = {}
-	async function seed(slug, marker, body) {
-		if (!presentSlugs.has(slug)) {
-			return null
-		}
-		const existing = await objectExists(slug, marker.field, marker.value)
-		if (existing) {
-			counts[slug] = (counts[slug] ?? 0) + 1
-			if (!created[slug]) created[slug] = existing
-			return existing
-		}
-		const obj = await createObject(slug, body)
-		if (obj) {
-			counts[slug] = (counts[slug] ?? 0) + 1
-			if (!created[slug]) created[slug] = obj
-		}
-		return obj
-	}
-	const id = (o) => o && (o.uuid ?? o.id ?? o['@self']?.uuid)
+const id = (o) => o && (o.uuid ?? o.id ?? o['@self']?.uuid)
+
+/**
+ * The tenant_id every seeded object carries.
+ *
+ * @return {Promise<string>} OpenRegister's active organisation, or a fixed demo UUID
+ */
+async function resolveTenant() {
 	// tenant_id must be a UUID. Use OR's active organisation if we can discover it;
 	// otherwise a fixed demo UUID (OR may still reject it on multitenancy grounds —
 	// then those creates 400 and we just log + continue).
@@ -526,7 +512,44 @@ async function seedObjects(presentSlugs) {
 	} catch {
 		/* keep the fixed demo UUID */
 	}
+	return TENANT
+}
 
+// Seed in dependency order. Returns a map slug -> first created object (for refs).
+async function seedObjects(presentSlugs) {
+	const created = {}
+	const counts = {}
+	async function seed(slug, marker, body) {
+		if (!presentSlugs.has(slug)) {
+			return null
+		}
+		const existing = await objectExists(slug, marker.field, marker.value)
+		if (existing) {
+			counts[slug] = (counts[slug] ?? 0) + 1
+			if (!created[slug]) created[slug] = existing
+			return existing
+		}
+		const obj = await createObject(slug, body)
+		if (obj) {
+			counts[slug] = (counts[slug] ?? 0) + 1
+			if (!created[slug]) created[slug] = obj
+		}
+		return obj
+	}
+	const ctx = { seed, created, TENANT: await resolveTenant() }
+	for (const step of SEED_STEPS) {
+		await step(ctx)
+	}
+	return counts
+}
+
+/**
+ * The demo programme and its curriculum plan.
+ *
+ * @param {object} ctx The seeding context: seed(), TENANT and the objects earlier steps made.
+ */
+async function seedProgrammeAndPlan(ctx) {
+	const { seed, TENANT } = ctx
 	// Programme + CurriculumPlan
 	const prog = await seed(
 		'programme',
@@ -573,6 +596,16 @@ async function seedObjects(presentSlugs) {
 			tenant_id: TENANT,
 		},
 	)
+	Object.assign(ctx, { plan, prog })
+}
+
+/**
+ * The courses: a root course, a sub-course and a compliance course.
+ *
+ * @param {object} ctx The seeding context: seed(), TENANT and the objects earlier steps made.
+ */
+async function seedCourses(ctx) {
+	const { seed, TENANT, plan, prog } = ctx
 	// Courses (one recursive)
 	const courseRoot = await seed(
 		'course',
@@ -614,6 +647,16 @@ async function seedObjects(presentSlugs) {
 			tenant_id: TENANT,
 		},
 	)
+	Object.assign(ctx, { courseCompliance, courseRoot, courseSub })
+}
+
+/**
+ * The lessons of the root course and the compliance lesson.
+ *
+ * @param {object} ctx The seeding context: seed(), TENANT and the objects earlier steps made.
+ */
+async function seedLessons(ctx) {
+	const { seed, TENANT, courseCompliance, courseRoot, courseSub } = ctx
 	// Lessons
 	let complianceLesson = null
 	for (const [n, cid] of [
@@ -638,6 +681,16 @@ async function seedObjects(presentSlugs) {
 		)
 		if (n === 5) complianceLesson = l
 	}
+	Object.assign(ctx, { complianceLesson })
+}
+
+/**
+ * The cohort and its learner profiles.
+ *
+ * @param {object} ctx The seeding context: seed(), TENANT and the objects earlier steps made.
+ */
+async function seedCohortAndLearners(ctx) {
+	const { seed, TENANT, courseRoot, prog } = ctx
 	// Cohort + LearnerProfiles
 	const cohort = await seed(
 		'cohort',
@@ -665,6 +718,16 @@ async function seedObjects(presentSlugs) {
 			},
 		)
 	}
+	Object.assign(ctx, { cohort })
+}
+
+/**
+ * The cohort's sessions.
+ *
+ * @param {object} ctx The seeding context: seed(), TENANT and the objects earlier steps made.
+ */
+async function seedSessions(ctx) {
+	const { seed, TENANT, cohort, courseRoot } = ctx
 	// Sessions
 	let firstSession = null
 	for (const [n, when] of [
@@ -687,6 +750,16 @@ async function seedObjects(presentSlugs) {
 		)
 		if (n === 1) firstSession = sess
 	}
+	Object.assign(ctx, { firstSession })
+}
+
+/**
+ * The course materials.
+ *
+ * @param {object} ctx The seeding context: seed(), TENANT and the objects earlier steps made.
+ */
+async function seedMaterials(ctx) {
+	const { seed, TENANT, courseRoot } = ctx
 	// Materials
 	for (const n of [1, 2])
 		await seed(
@@ -701,6 +774,15 @@ async function seedObjects(presentSlugs) {
 				...(id(courseRoot) ? { courseId: id(courseRoot) } : {}),
 			},
 		)
+}
+
+/**
+ * The rubric, the assignments and their submissions.
+ *
+ * @param {object} ctx The seeding context: seed(), TENANT and the objects earlier steps made.
+ */
+async function seedAssignments(ctx) {
+	const { seed, TENANT, courseCompliance, courseRoot } = ctx
 	// Rubric + Assignments + Submissions
 	const rubric = await seed(
 		'rubric',
@@ -768,6 +850,15 @@ async function seedObjects(presentSlugs) {
 				},
 			)
 	}
+}
+
+/**
+ * The assessment, its item and a result.
+ *
+ * @param {object} ctx The seeding context: seed(), TENANT and the objects earlier steps made.
+ */
+async function seedAssessments(ctx) {
+	const { seed, TENANT, courseRoot } = ctx
 	// Assessment + Item + Result
 	const item = await seed(
 		'item',
@@ -809,6 +900,15 @@ async function seedObjects(presentSlugs) {
 				tenant_id: TENANT,
 			},
 		)
+}
+
+/**
+ * The grade scale, the grade entries and the final grade.
+ *
+ * @param {object} ctx The seeding context: seed(), TENANT and the objects earlier steps made.
+ */
+async function seedGrades(ctx) {
+	const { seed, TENANT, courseRoot, plan } = ctx
 	// GradeScale + GradeEntries + FinalGrade.
 	// GradeScale.kind, GradeEntry.curriculumPlanId/gradeScaleId and
 	// FinalGrade.curriculumPlanId/gradeScaleId are all in the register's
@@ -851,6 +951,16 @@ async function seedObjects(presentSlugs) {
 			},
 		)
 	}
+	Object.assign(ctx, { scale })
+}
+
+/**
+ * The learning plan template, a learning plan and its evaluation and signature.
+ *
+ * @param {object} ctx The seeding context: seed(), TENANT and the objects earlier steps made.
+ */
+async function seedLearningPlans(ctx) {
+	const { seed, TENANT, cohort } = ctx
 	// LearningPlan stack
 	const lpt = await seed(
 		'learning-plan-template',
@@ -916,6 +1026,15 @@ async function seedObjects(presentSlugs) {
 			},
 		)
 	}
+}
+
+/**
+ * The attendance threshold, records and flag.
+ *
+ * @param {object} ctx The seeding context: seed(), TENANT and the objects earlier steps made.
+ */
+async function seedAttendance(ctx) {
+	const { seed, TENANT, cohort, firstSession } = ctx
 	// Attendance stack
 	const thr = await seed(
 		'attendance-threshold',
@@ -985,6 +1104,15 @@ async function seedObjects(presentSlugs) {
 				tenant_id: TENANT,
 			},
 		)
+}
+
+/**
+ * Regulations, attestations, credentials and enrolments.
+ *
+ * @param {object} ctx The seeding context: seed(), TENANT and the objects earlier steps made.
+ */
+async function seedCompliance(ctx) {
+	const { seed, TENANT, created, cohort, complianceLesson, courseCompliance, courseRoot } = ctx
 	// Compliance: Regulations, Attestations, Credentials, Enrolments.
 	// `audienceScope` (Regulation) and `issuerDid`/`signature`/`openbadges3Payload`
 	// (Credential) are required; Credential.learnerId is `format: uuid`, so the
@@ -1081,6 +1209,15 @@ async function seedObjects(presentSlugs) {
 				...(id(cohort) ? { cohortId: id(cohort) } : {}),
 			},
 		)
+}
+
+/**
+ * The xAPI statement and the data exchange objects.
+ *
+ * @param {object} ctx The seeding context: seed(), TENANT and the objects earlier steps made.
+ */
+async function seedXapiAndDataExchange(ctx) {
+	const { seed, TENANT, cohort } = ctx
 	// xAPI, DataExchange. (AiFeature governance is delegated to Hermiq — learniq seeds no AiFeature objects.)
 	// `stored` (XapiStatement), `direction`/`sourceSchema` (DataMappingProfile)
 	// and `requestedAt` (DataExchangeJob) are required and were all missing.
@@ -1121,7 +1258,15 @@ async function seedObjects(presentSlugs) {
 			tenant_id: TENANT,
 		},
 	)
+}
 
+/**
+ * The portfolio and its entries.
+ *
+ * @param {object} ctx The seeding context: seed(), TENANT and the objects earlier steps made.
+ */
+async function seedPortfolio(ctx) {
+	const { seed, TENANT } = ctx
 	// Portfolio + PortfolioEntry — the third schema OpenRegister 500s on. Seeded
 	// so its index page has a row once the allOf-strip retry lands it.
 	const portfolio = await seed(
@@ -1148,7 +1293,15 @@ async function seedObjects(presentSlugs) {
 			},
 		)
 	}
+}
 
+/**
+ * Lessons in the states adaptive-release and progress-tracking look for.
+ *
+ * @param {object} ctx The seeding context: seed(), TENANT and the objects earlier steps made.
+ */
+async function seedReleaseLessons(ctx) {
+	const { seed, TENANT, courseRoot, courseSub } = ctx
 	// ── Fixtures for scenarios that were SKIPPING rather than running ──────
 	//
 	// Fourteen spec-coverage scenarios stood down on `test.skip(!row, 'No X
@@ -1232,7 +1385,15 @@ async function seedObjects(presentSlugs) {
 			tenant_id: TENANT,
 		},
 	)
+}
 
+/**
+ * The report periods: one locked, one composed.
+ *
+ * @param {object} ctx The seeding context: seed(), TENANT and the objects earlier steps made.
+ */
+async function seedReportPeriods(ctx) {
+	const { seed, TENANT, cohort, plan } = ctx
 	// ReportPeriods. `isLocked` is a MATERIALISED calculation, not a stored
 	// field — the register declares it as `lockDate` set AND `lockDate < now`,
 	// which ReportPeriodComposeGuard reads directly. So a period is made
@@ -1283,7 +1444,16 @@ async function seedObjects(presentSlugs) {
 					},
 				)
 			: null
+	Object.assign(ctx, { periodComposed })
+}
 
+/**
+ * The grade entries the report period guards and the visibility window act on.
+ *
+ * @param {object} ctx The seeding context: seed(), TENANT and the objects earlier steps made.
+ */
+async function seedPeriodGradeEntries(ctx) {
+	const { seed, TENANT, plan, scale } = ctx
 	// A concept GradeEntry inside the locked period's scope — the row the
 	// ReportPeriodLockGuard scenario needs something to refuse.
 	if (id(plan) && id(scale)) {
@@ -1325,7 +1495,15 @@ async function seedObjects(presentSlugs) {
 			},
 		)
 	}
+}
 
+/**
+ * The report cards on the composed period.
+ *
+ * @param {object} ctx The seeding context: seed(), TENANT and the objects earlier steps made.
+ */
+async function seedReportCards(ctx) {
+	const { seed, TENANT, cohort, periodComposed } = ctx
 	// ReportCards, one per lifecycle state the review surface is asserted in.
 	//
 	// ⚠️ ALL OF THEM HANG OFF THE **COMPOSED** PERIOD, NOT THE LOCKED ONE.
@@ -1398,7 +1576,15 @@ async function seedObjects(presentSlugs) {
 			},
 		)
 	}
+}
 
+/**
+ * The group plan and its intensief subgroup.
+ *
+ * @param {object} ctx The seeding context: seed(), TENANT and the objects earlier steps made.
+ */
+async function seedGroupPlan(ctx) {
+	const { seed, TENANT, cohort } = ctx
 	// GroupPlan + an intensief subgroup that actually has members. The
 	// subgroup scenario reads learnerIds, so an empty subgroup would leave it
 	// skipping exactly as before.
@@ -1434,9 +1620,30 @@ async function seedObjects(presentSlugs) {
 			},
 		)
 	}
-
-	return counts
 }
+
+// Seed in dependency order: each step reads the objects the earlier ones made.
+const SEED_STEPS = [
+	seedProgrammeAndPlan,
+	seedCourses,
+	seedLessons,
+	seedCohortAndLearners,
+	seedSessions,
+	seedMaterials,
+	seedAssignments,
+	seedAssessments,
+	seedGrades,
+	seedLearningPlans,
+	seedAttendance,
+	seedCompliance,
+	seedXapiAndDataExchange,
+	seedPortfolio,
+	seedReleaseLessons,
+	seedReportPeriods,
+	seedPeriodGradeEntries,
+	seedReportCards,
+	seedGroupPlan,
+]
 
 // ── main ─────────────────────────────────────────────────────────────────────
 // The register declares 118 schemas (this constant said 35 — it predates most of
