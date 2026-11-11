@@ -37,6 +37,10 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Portal\PortalAssertionVerifier;
+use OCA\Learniq\Portal\PortalForwardFailure;
+use OCA\Learniq\Portal\PortalForwardGate;
+use OCA\Learniq\Portal\PortalLearnerForward;
+use OCA\Learniq\Portal\PortalLearnerStep;
 use OCA\Learniq\Service\Portal\PortalLearner;
 use OCA\Learniq\Service\Portal\PortalLearnerResolver;
 use OCA\Learniq\Service\Portal\PortalOutcome;
@@ -59,11 +63,6 @@ use Throwable;
  * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
  */
 class PortalWorkGroupController extends Controller {
-
-	/**
-	 * The only audience these endpoints serve.
-	 */
-	private const AUDIENCE = 'student';
 
 	/**
 	 * The brute-force bucket for rejected assertions, shared with the other receivers.
@@ -145,52 +144,6 @@ class PortalWorkGroupController extends Controller {
 	}//end leave()
 
 	/**
-	 * The receiver order around one step.
-	 *
-	 * @param callable(PortalLearner): PortalOutcome $step The step for the resolved pupil.
-	 *
-	 * @return JSONResponse
-	 */
-	private function receive(callable $step): JSONResponse {
-		$claims = $this->verifier->verify(jwt: (string)$this->request->getHeader(PortalAssertionVerifier::HEADER));
-		if ($claims === null) {
-			$response = new JSONResponse(data: ['error' => 'unauthorized'], statusCode: Http::STATUS_UNAUTHORIZED);
-			$response->throttle(['action' => self::THROTTLE_ACTION]);
-			return $response;
-		}
-
-		$learnerRef = $this->param(name: 'learnerRef');
-		if (($claims['audience'] ?? '') !== self::AUDIENCE || $learnerRef === '') {
-			return new JSONResponse(data: ['error' => 'forbidden'], statusCode: Http::STATUS_FORBIDDEN);
-		}
-
-		try {
-			$learner = $this->learners->resolve(learnerRef: $learnerRef);
-			if ($learner === null) {
-				return new JSONResponse(
-					data: ['error' => 'not_available', 'message' => $this->messages->message(reason: 'no-account', user: null)],
-					statusCode: Http::STATUS_FORBIDDEN
-				);
-			}
-
-			$outcome = $step($learner);
-			$body = $outcome->body;
-			if ($outcome->reason !== null) {
-				$body['message'] = $this->messages->message(reason: $outcome->reason, user: $learner->user);
-			}
-		} catch (Throwable $exception) {
-			// Never leak internals from a public route (ADR-005).
-			$this->logger->error(
-				'[PortalWorkGroupController] A portal work group step failed: {msg}',
-				['msg' => $exception->getMessage(), 'exception' => $exception]
-			);
-			return new JSONResponse(data: ['error' => 'downstream_error'], statusCode: Http::STATUS_BAD_GATEWAY);
-		}//end try
-
-		return new JSONResponse(data: $body, statusCode: $outcome->status);
-	}//end receive()
-
-	/**
 	 * A request parameter as a trimmed string, '' when absent or not a string.
 	 *
 	 * @param string $name The parameter.
@@ -198,11 +151,20 @@ class PortalWorkGroupController extends Controller {
 	 * @return string
 	 */
 	private function param(string $name): string {
-		$value = $this->request->getParam($name);
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return trim($value);
+		return PortalForwardGate::stringParam(request: $this->request, name: $name);
 	}//end param()
+
+	/**
+	 * The receiver order around one step.
+	 *
+	 * @param callable(PortalLearner): PortalOutcome $step The step for the resolved pupil.
+	 *
+	 * @return JSONResponse
+	 */
+	private function receive(callable $step): JSONResponse {
+		$failure = new PortalForwardFailure(logger: $this->logger, message: '[PortalWorkGroupController] A portal work group step failed: {msg}');
+		$forward = new PortalLearnerForward(gate: new PortalForwardGate(verifier: $this->verifier, request: $this->request), learners: $this->learners);
+
+		return $forward->respond(step: new PortalLearnerStep(run: $step(...), messages: $this->messages->message(...)), failure: $failure);
+	}//end receive()
 }//end class

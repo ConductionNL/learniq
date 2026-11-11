@@ -39,7 +39,13 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Portal\PortalAssertionVerifier;
+use OCA\Learniq\Portal\PortalForwardFailure;
+use OCA\Learniq\Portal\PortalForwardGate;
+use OCA\Learniq\Portal\PortalLearnerForward;
+use OCA\Learniq\Portal\PortalLearnerStep;
+use OCA\Learniq\Service\Portal\PortalLearner;
 use OCA\Learniq\Service\Portal\PortalLearnerResolver;
+use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCA\Learniq\Service\Portal\PortalMessages;
 use OCA\Learniq\Service\Portal\PortalSubmissionHandIn;
 use OCP\AppFramework\Controller;
@@ -59,11 +65,6 @@ use Throwable;
  * @spec openspec/specs/assignments/spec.md#requirement-a-pupil-hands-in-a-portal-draft-through-learniqs-own-endpoint
  */
 class PortalSubmissionController extends Controller {
-
-	/**
-	 * The only audience this endpoint serves.
-	 */
-	private const AUDIENCE = 'student';
 
 	/**
 	 * The brute-force bucket for rejected assertions, shared with the test receiver.
@@ -108,42 +109,12 @@ class PortalSubmissionController extends Controller {
 	#[AnonRateLimit(limit: 600, period: 60)]
 	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
 	public function handIn(): JSONResponse {
-		$claims = $this->verifier->verify(jwt: (string)$this->request->getHeader(PortalAssertionVerifier::HEADER));
-		if ($claims === null) {
-			$response = new JSONResponse(data: ['error' => 'unauthorized'], statusCode: Http::STATUS_UNAUTHORIZED);
-			$response->throttle(['action' => self::THROTTLE_ACTION]);
-			return $response;
-		}
-
-		$learnerRef = $this->stringParam(name: 'learnerRef');
-		if (($claims['audience'] ?? '') !== self::AUDIENCE || $learnerRef === '') {
-			return new JSONResponse(data: ['error' => 'forbidden'], statusCode: Http::STATUS_FORBIDDEN);
-		}
-
-		try {
-			$learner = $this->learners->resolve(learnerRef: $learnerRef);
-			if ($learner === null) {
-				return new JSONResponse(
-					data: ['error' => 'not_available', 'message' => $this->messages->message(reason: 'no-account', user: null)],
-					statusCode: Http::STATUS_FORBIDDEN
-				);
-			}
-
-			$outcome = $this->handIns->handIn(learner: $learner, submissionId: $this->stringParam(name: 'submissionId'));
-			$body = $outcome->body;
-			if ($outcome->reason !== null) {
-				$body['message'] = $this->messages->message(reason: $outcome->reason, user: $learner->user);
-			}
-		} catch (Throwable $exception) {
-			// Never leak internals from a public route (ADR-005).
-			$this->logger->error(
-				'[PortalSubmissionController] A portal hand-in failed: {msg}',
-				['msg' => $exception->getMessage(), 'exception' => $exception]
-			);
-			return new JSONResponse(data: ['error' => 'downstream_error'], statusCode: Http::STATUS_BAD_GATEWAY);
-		}//end try
-
-		return new JSONResponse(data: $body, statusCode: $outcome->status);
+		return $this->respond(
+			step: fn (PortalLearner $learner): PortalOutcome => $this->handIns->handIn(
+				learner: $learner,
+				submissionId: $this->stringParam(name: 'submissionId')
+			)
+		);
 	}//end handIn()
 
 	/**
@@ -154,11 +125,22 @@ class PortalSubmissionController extends Controller {
 	 * @return string
 	 */
 	private function stringParam(string $name): string {
-		$value = $this->request->getParam($name);
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return trim($value);
+		return PortalForwardGate::stringParam(request: $this->request, name: $name);
 	}//end stringParam()
+
+	/**
+	 * Receive the forward for one pupil and run the step for them: the
+	 * shared portal flow (admit, resolve the pupil, relay the outcome, 502 on
+	 * any failure).
+	 *
+	 * @param callable(PortalLearner):PortalOutcome $step The step for the resolved pupil.
+	 *
+	 * @return JSONResponse
+	 */
+	private function respond(callable $step): JSONResponse {
+		$failure = new PortalForwardFailure(logger: $this->logger, message: '[PortalSubmissionController] A portal hand-in failed: {msg}');
+		$forward = new PortalLearnerForward(gate: new PortalForwardGate(verifier: $this->verifier, request: $this->request), learners: $this->learners);
+
+		return $forward->respond(step: new PortalLearnerStep(run: $step(...), messages: $this->messages->message(...)), failure: $failure);
+	}//end respond()
 }//end class
