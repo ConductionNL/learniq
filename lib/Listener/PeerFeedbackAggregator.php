@@ -48,6 +48,7 @@ namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -312,17 +313,6 @@ class PeerFeedbackAggregator implements IEventListener {
 	 * @return array<string,mixed>
 	 */
 	private function toArray(mixed $value): array {
-		if (is_array($value) === true) {
-			return $value;
-		}
-
-		if (is_object($value) === true && method_exists($value, 'jsonSerialize') === true) {
-			$serialized = $value->jsonSerialize();
-			if (is_array($serialized) === true) {
-				return $serialized;
-			}
-		}
-
-		return [];
+		return (new SerialisedRow())->asArray(object: $value);
 	}//end toArray()
 }//end class

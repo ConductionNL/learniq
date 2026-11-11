@@ -35,6 +35,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Support\SerialisedRow;
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
@@ -393,14 +394,6 @@ class CourseEvaluationAnswerService {
 	 * @return array<string, mixed>
 	 */
 	private static function toArray(mixed $value): array {
-		if (is_object($value) === true && method_exists($value, 'jsonSerialize') === true) {
-			$value = $value->jsonSerialize();
-		}
-
-		if (is_array($value) === false) {
-			return [];
-		}
-
-		return $value;
+		return (new SerialisedRow())->asArray(object: $value);
 	}//end toArray()
 }//end class

@@ -34,6 +34,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Programme;
 
 use OCA\Learniq\Support\FindOrNull;
+use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -206,14 +207,6 @@ class ProgrammeProgress {
 	 * @return array<string, mixed>
 	 */
 	private function toArray(mixed $value): array {
-		if (is_object($value) === true && method_exists($value, 'jsonSerialize') === true) {
-			$value = $value->jsonSerialize();
-		}
-
-		if (is_array($value) === false) {
-			return [];
-		}
-
-		return $value;
+		return (new SerialisedRow())->asArray(object: $value);
 	}//end toArray()
 }//end class

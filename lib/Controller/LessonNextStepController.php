@@ -36,6 +36,7 @@ use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\DashboardRoleService;
 use OCA\Learniq\Service\NextStepResolver;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -288,14 +289,6 @@ class LessonNextStepController extends Controller {
 	 * @return array<string, mixed>
 	 */
 	private function toArray(mixed $value): array {
-		if (is_object($value) === true && method_exists($value, 'jsonSerialize') === true) {
-			$value = $value->jsonSerialize();
-		}
-
-		if (is_array($value) === false) {
-			return [];
-		}
-
-		return $value;
+		return (new SerialisedRow())->asArray(object: $value);
 	}//end toArray()
 }//end class
