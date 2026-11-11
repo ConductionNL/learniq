@@ -105,7 +105,8 @@ class ElectiveSignUpRules implements IEventListener {
 			return;
 		}
 
-		$entity = $this->signUpEntity(event: $event);
+		$write = new SignUpWrite(event: $event);
+		$entity = $this->signUpEntity(write: $write);
 		$user = $this->userSession->getUser();
 		if ($entity === null || $user === null) {
 			return;
@@ -113,29 +114,8 @@ class ElectiveSignUpRules implements IEventListener {
 
 		$caller = $this->electives->caller(uid: $user->getUID(), groups: $this->groupManager->getUserGroupIds($user));
 		$refusal = $this->checkedRefusal(signUp: $this->signUpOf(entity: $entity), caller: $caller);
-		if ($this->refused(event: $event, refusal: $refusal) === false) {
-			$this->stampCreation(event: $event, caller: $caller);
-		}
+		$write->settle(refusal: $refusal, caller: $caller);
 	}//end handle()
-
-	/**
-	 * Refuse the write when there is a refusal: its message as the event's
-	 * error, and no other listener runs.
-	 *
-	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event   The event.
-	 * @param string|null                             $refusal Why the sign-up may not be written, or null.
-	 *
-	 * @return bool Whether the write was refused.
-	 */
-	private function refused(ObjectCreatingEvent|ObjectUpdatingEvent $event, ?string $refusal): bool {
-		if ($refusal === null) {
-			return false;
-		}
-
-		$event->setErrors(['message' => $refusal]);
-		$event->stopPropagation();
-		return true;
-	}//end refused()
 
 	/**
 	 * Whether an event writes an object: creating or updating it.
@@ -183,28 +163,14 @@ class ElectiveSignUpRules implements IEventListener {
 	}//end checkedRefusal()
 
 	/**
-	 * Stamp a new sign-up with who made it and how.
-	 *
-	 * @param ObjectCreatingEvent|ObjectUpdatingEvent                                  $event  The event.
-	 * @param array{uid: string, admin: bool, staff: bool, integration: bool, via: string} $caller The writer.
-	 *
-	 * @return void
-	 */
-	private function stampCreation(ObjectCreatingEvent|ObjectUpdatingEvent $event, array $caller): void {
-		if ($event instanceof ObjectCreatingEvent) {
-			$event->setModifiedData(['madeBy' => $caller['uid'], 'madeVia' => $caller['via']]);
-		}
-	}//end stampCreation()
-
-	/**
 	 * The sign-up an event is about, or null for any other object.
 	 *
-	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The event.
+	 * @param SignUpWrite $write The write.
 	 *
 	 * @return object|null The entity.
 	 */
-	private function signUpEntity(ObjectCreatingEvent|ObjectUpdatingEvent $event): ?object {
-		$entity = $this->entityOf(event: $event);
+	private function signUpEntity(SignUpWrite $write): ?object {
+		$entity = $write->object();
 		if ($this->schemaResolver->registerSlug(entity: $entity) !== ElectiveService::REGISTER
 			|| $this->schemaResolver->schemaSlug(entity: $entity) !== ElectiveService::SIGN_UP_SCHEMA
 		) {
@@ -213,21 +179,6 @@ class ElectiveSignUpRules implements IEventListener {
 
 		return $entity;
 	}//end signUpEntity()
-
-	/**
-	 * The object an event carries: the new object of an update.
-	 *
-	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The event.
-	 *
-	 * @return object
-	 */
-	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): object {
-		if ($event instanceof ObjectUpdatingEvent) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
-	}//end entityOf()
 
 	/**
 	 * Why a sign-up may not be written, or null when it may.
