@@ -126,17 +126,32 @@ class ExchangeImportInput {
 	 * @return int|null The id, or null when absent or not a number.
 	 */
 	private function fileIdOf(array $scope): ?int {
-		$fileId = $scope['fileId'] ?? null;
-		if (is_string($fileId) === true && ctype_digit($fileId) === true) {
-			$fileId = (int)$fileId;
-		}
-
-		if (is_int($fileId) === false || $fileId <= 0) {
+		$fileId = self::wholeNumber(value: ($scope['fileId'] ?? null));
+		if ($fileId === null || $fileId <= 0) {
 			return null;
 		}
 
 		return $fileId;
 	}//end fileIdOf()
+
+	/**
+	 * An integer, or a string of digits as one; null for anything else.
+	 *
+	 * @param mixed $value The value.
+	 *
+	 * @return int|null
+	 */
+	private static function wholeNumber(mixed $value): ?int {
+		if (is_int($value) === true) {
+			return $value;
+		}
+
+		if (is_string($value) === true && ctype_digit($value) === true) {
+			return (int)$value;
+		}
+
+		return null;
+	}//end wholeNumber()
 
 	/**
 	 * The rows of the requester's file, or the refusal code.
@@ -156,6 +171,17 @@ class ExchangeImportInput {
 			return self::REFUSAL_TOO_LARGE;
 		}
 
+		return $this->rowsIn(file: $file);
+	}//end rowsOf()
+
+	/**
+	 * The rows of a file within the size bound, or the refusal code.
+	 *
+	 * @param File $file The file.
+	 *
+	 * @return array<int, array<string, mixed>>|string The rows, or a refusal code.
+	 */
+	private function rowsIn(File $file): array|string {
 		try {
 			$rows = $this->parse(name: $file->getName(), content: (string)$file->getContent());
 		} catch (Throwable $exception) {
@@ -172,7 +198,7 @@ class ExchangeImportInput {
 		}
 
 		return $rows;
-	}//end rowsOf()
+	}//end rowsIn()
 
 	/**
 	 * The file among the requester's own files.
@@ -187,19 +213,30 @@ class ExchangeImportInput {
 			return null;
 		}
 
-		try {
-			$node = $this->rootFolder->getUserFolder($requestedBy)->getFirstNodeById($fileId);
-		} catch (Throwable $exception) {
-			unset($exception);
-			return null;
-		}
-
+		$node = $this->nodeOf(fileId: $fileId, requestedBy: $requestedBy);
 		if ($node instanceof File === false) {
 			return null;
 		}
 
 		return $node;
 	}//end fileOf()
+
+	/**
+	 * The node with this id among the requester's files, or null when their files cannot be opened.
+	 *
+	 * @param int    $fileId      The Nextcloud file id.
+	 * @param string $requestedBy The requester.
+	 *
+	 * @return mixed
+	 */
+	private function nodeOf(int $fileId, string $requestedBy): mixed {
+		try {
+			return $this->rootFolder->getUserFolder($requestedBy)->getFirstNodeById($fileId);
+		} catch (Throwable $exception) {
+			unset($exception);
+			return null;
+		}
+	}//end nodeOf()
 
 	/**
 	 * Rows of a file by its extension: JSON, XML, or else CSV.
@@ -239,6 +276,22 @@ class ExchangeImportInput {
 			return null;
 		}
 
+		$rows = array_values(array_filter(self::recordList(decoded: $decoded), 'is_array'));
+		if ($rows === []) {
+			return null;
+		}
+
+		return $rows;
+	}//end parseJson()
+
+	/**
+	 * The records of decoded JSON: its `records` list, the list itself, or the one object.
+	 *
+	 * @param array<mixed> $decoded The decoded JSON.
+	 *
+	 * @return array<mixed>
+	 */
+	private static function recordList(array $decoded): array {
 		if (isset($decoded['records']) === true && is_array($decoded['records']) === true) {
 			$decoded = $decoded['records'];
 		}
@@ -247,13 +300,8 @@ class ExchangeImportInput {
 			$decoded = [$decoded];
 		}
 
-		$rows = array_values(array_filter($decoded, 'is_array'));
-		if ($rows === []) {
-			return null;
-		}
-
-		return $rows;
-	}//end parseJson()
+		return $decoded;
+	}//end recordList()
 
 	/**
 	 * XML: the whole document is one record (a received dossier).
@@ -288,13 +336,8 @@ class ExchangeImportInput {
 	 * @return array<int, array<string, mixed>>|null The rows.
 	 */
 	private function parseCsv(string $content): ?array {
-		$lines = preg_split('/\r\n|\r|\n/', ltrim($content, "\xEF\xBB\xBF"));
-		if ($lines === false) {
-			return null;
-		}
-
-		$lines = array_values(array_filter($lines, static fn (string $line): bool => trim($line) !== ''));
-		if (count($lines) < 2) {
+		$lines = self::nonBlankLines(content: $content);
+		if ($lines === null || count($lines) < 2) {
 			return null;
 		}
 
@@ -302,21 +345,48 @@ class ExchangeImportInput {
 		$header = array_map('trim', str_getcsv($lines[0], $delimiter, '"', ''));
 		$rows = [];
 		foreach (array_slice($lines, 1) as $line) {
-			$cells = str_getcsv($line, $delimiter, '"', '');
-			$row = [];
-			foreach ($header as $position => $field) {
-				if ($field === '') {
-					continue;
-				}
-
-				$row[$field] = trim((string)($cells[$position] ?? ''));
-			}
-
-			$rows[] = $row;
+			$rows[] = self::csvRow(header: $header, cells: str_getcsv($line, $delimiter, '"', ''));
 		}
 
 		return $rows;
 	}//end parseCsv()
+
+	/**
+	 * The lines of the content without a byte-order mark, blank lines left out.
+	 *
+	 * @param string $content The content.
+	 *
+	 * @return array<int, string>|null
+	 */
+	private static function nonBlankLines(string $content): ?array {
+		$lines = preg_split('/\r\n|\r|\n/', ltrim($content, "\xEF\xBB\xBF"));
+		if ($lines === false) {
+			return null;
+		}
+
+		return array_values(array_filter($lines, static fn (string $line): bool => trim($line) !== ''));
+	}//end nonBlankLines()
+
+	/**
+	 * One CSV row keyed by the header; a blank header column is dropped, a missing cell is ''.
+	 *
+	 * @param array<int, string>   $header The trimmed header fields.
+	 * @param array<int, mixed>    $cells  The row's cells.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function csvRow(array $header, array $cells): array {
+		$row = [];
+		foreach ($header as $position => $field) {
+			if ($field === '') {
+				continue;
+			}
+
+			$row[$field] = trim((string)($cells[$position] ?? ''));
+		}
+
+		return $row;
+	}//end csvRow()
 
 	/**
 	 * The delimiter a header line uses most.
