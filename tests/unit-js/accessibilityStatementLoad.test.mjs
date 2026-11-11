@@ -52,6 +52,18 @@ function context(methods) {
 
 const component = await loadSfcScript('src/views/LearniqAccessibilityStatement.vue', stubs)
 
+/**
+ * Bind every component method onto `ctx`.
+ *
+ * @param {object} ctx the stand-in `this`
+ * @return {void}
+ */
+function bindMethods(ctx) {
+	for (const [name, fn] of Object.entries(component.methods)) {
+		ctx[name] = fn.bind(ctx)
+	}
+}
+
 test('the published statement and its limitations are read in order', async () => {
 	stubs.store = recordingStore([
 		async () => [{ id: 's1' }, { id: 's2' }],
@@ -112,8 +124,8 @@ test('the conformance table is read for everyone and the records only for an edi
 		stubs.get = async (url) => ({ data: { criteria: [{ url }] } })
 		stubs.store = recordingStore([async () => [{ id: 'r1' }]])
 		const ctx = { canEdit, statementId: 's1', records: [], criteria: [] }
-		ctx.evidenceUrl = component.methods.evidenceUrl.bind(ctx)
-		await component.methods.loadConformance.call(ctx)
+		bindMethods(ctx)
+		await ctx.loadConformance()
 		assert.equal(ctx.criteria.length, 1)
 		assert.match(ctx.criteria[0].url, /format=\{format\}/)
 		if (canEdit) {
@@ -133,13 +145,13 @@ test('a failed evidence read or a broken record list leaves empty tables', async
 	stubs.get = async () => { throw new Error('down') }
 	stubs.store = recordingStore([async () => { throw new Error('down') }])
 	const ctx = { canEdit: true, statementId: 's1', records: ['old'], criteria: ['old'] }
-	ctx.evidenceUrl = component.methods.evidenceUrl.bind(ctx)
-	await component.methods.loadConformance.call(ctx)
+	bindMethods(ctx)
+	await ctx.loadConformance()
 	assert.deepEqual(ctx.criteria, [])
 	assert.deepEqual(ctx.records, [])
 	stubs.get = async () => ({ data: { criteria: 'none' } })
 	stubs.store = { fetchCollection: undefined }
-	await component.methods.loadConformance.call(ctx)
+	await ctx.loadConformance()
 	assert.deepEqual(ctx.criteria, [])
 	assert.deepEqual(ctx.records, [])
 })
