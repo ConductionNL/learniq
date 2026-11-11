@@ -28,6 +28,9 @@ use OCA\Learniq\Service\RolloverExecutionService;
 use OCA\Learniq\Service\RolloverService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
+use OCA\OpenRegister\Service\Lifecycle\TransitionActor;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -68,7 +71,7 @@ class RolloverExecutionHandlerTest extends TestCase {
 		$schemas->method('eventSchema')->willReturn('rollover-plan');
 
 		$plan  = ['id' => 'plan-1', 'lifecycle' => 'executing', 'perMappingProgress' => ['c0' => 'done']];
-		$event = new ObjectTransitionedEvent(OrEntityFactory::make($plan, 'rollover-plan'), 'execute', 'previewed', 'executing', 'admin', 'learniq', 'rollover-plan');
+		$event = new ObjectTransitionedEvent(object: OrEntityFactory::make($plan, 'rollover-plan'), move: new TransitionMove(action: 'execute', from: 'previewed', to: 'executing'), scope: new RegisterSchemaRef(register: 'learniq', schema: 'rollover-plan'), actor: new TransitionActor(userId: 'admin'));
 		(new RolloverExecutionHandler($objects, $rollover, $execution, $this->createMock(LoggerInterface::class), $schemas))->handle($event);
 
 		return $saved;

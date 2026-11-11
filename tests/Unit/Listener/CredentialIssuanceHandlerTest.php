@@ -41,6 +41,9 @@ use OCA\Learniq\Service\SigningKeyConfigKey;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
+use OCA\OpenRegister\Service\Lifecycle\TransitionActor;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -352,7 +355,7 @@ class CredentialIssuanceHandlerTest extends TestCase {
 			'learniq'
 		);
 
-		return new ObjectTransitionedEvent($enrolment, 'complete', 'active', 'completed', 'teacher-1', 'learniq', 'enrolment');
+		return new ObjectTransitionedEvent(object: $enrolment, move: new TransitionMove(action: 'complete', from: 'active', to: 'completed'), scope: new RegisterSchemaRef(register: 'learniq', schema: 'enrolment'), actor: new TransitionActor(userId: 'teacher-1'));
 	}//end completionEvent()
 
 	/**
