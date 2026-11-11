@@ -467,4 +467,25 @@ class ExamplePortalProvisionerTest extends TestCase {
 		self::assertSame('failed', $this->provisioner()->provision('po')['status']);
 		self::assertSame([], $this->writes);
 	}//end testAPortalWithoutAnIdIsNotSavedAgain()
+
+	/**
+	 * Only a portal that chose its own sign-in modes logs the declared modes
+	 * it lacks; an empty mode list is filled and logs nothing.
+	 *
+	 * @return void
+	 */
+	public function testOnlyAChosenModeListLogsWhatItLacks(): void {
+		$this->store['portal'] = [['slug' => 'wilgenboom', 'title' => 'Mijn Wilgenboom', 'authentication' => ['modes' => ['digid']], '@self' => ['id' => 'portal-wb']]];
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->expects(self::once())->method('warning')->with(
+			'[ExamplePortalProvisioner] portal "{slug}" keeps its own sign-in modes and does not offer: {modes}.',
+			['slug' => 'wilgenboom', 'modes' => 'public']
+		);
+		self::assertSame(['public'], $this->provisioner(logger: $logger)->provision('po')['missingModes']);
+
+		$this->store['portal'] = [['slug' => 'wilgenboom', 'title' => 'Mijn Wilgenboom', 'authentication' => ['modes' => []], '@self' => ['id' => 'portal-wb']]];
+		$quiet = $this->createMock(LoggerInterface::class);
+		$quiet->expects(self::never())->method('warning');
+		self::assertSame([], $this->provisioner(logger: $quiet)->provision('po')['missingModes']);
+	}//end testOnlyAChosenModeListLogsWhatItLacks()
 }//end class
