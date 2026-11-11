@@ -1,0 +1,153 @@
+{
+    "one week": {
+        "blocks": [
+            {
+                "slotId": "sb-1",
+                "date": "2026-09-29",
+                "startsAt": "10:15",
+                "endsAt": "11:05",
+                "vestigingId": "v-1"
+            },
+            {
+                "slotId": "sb-5",
+                "date": "2026-09-30",
+                "startsAt": "08:00",
+                "endsAt": "08:50",
+                "vestigingId": null
+            },
+            {
+                "slotId": "sb-2",
+                "date": "2026-09-30",
+                "startsAt": "09:00",
+                "endsAt": "09:50",
+                "vestigingId": null
+            },
+            {
+                "slotId": "sb-e",
+                "date": "2026-10-02",
+                "startsAt": "08:30",
+                "endsAt": "09:20",
+                "vestigingId": null
+            }
+        ],
+        "queries": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "standby-slot",
+                    "teacherId": "eva"
+                }
+            }
+        ]
+    },
+    "from mid-day": {
+        "blocks": [
+            {
+                "slotId": "sb-1",
+                "date": "2026-09-29",
+                "startsAt": "10:15",
+                "endsAt": "11:05",
+                "vestigingId": "v-1"
+            },
+            {
+                "slotId": "sb-5",
+                "date": "2026-09-30",
+                "startsAt": "08:00",
+                "endsAt": "08:50",
+                "vestigingId": null
+            },
+            {
+                "slotId": "sb-2",
+                "date": "2026-09-30",
+                "startsAt": "09:00",
+                "endsAt": "09:50",
+                "vestigingId": null
+            }
+        ],
+        "queries": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "standby-slot",
+                    "teacherId": "eva"
+                }
+            }
+        ]
+    },
+    "two weeks into october": {
+        "blocks": [
+            {
+                "slotId": "sb-3",
+                "date": "2026-10-05",
+                "startsAt": "13:00",
+                "endsAt": "13:50",
+                "vestigingId": null
+            },
+            {
+                "slotId": "sb-1",
+                "date": "2026-10-06",
+                "startsAt": "10:15",
+                "endsAt": "11:05",
+                "vestigingId": "v-1"
+            },
+            {
+                "slotId": "sb-5",
+                "date": "2026-10-07",
+                "startsAt": "08:00",
+                "endsAt": "08:50",
+                "vestigingId": null
+            },
+            {
+                "slotId": "sb-e",
+                "date": "2026-10-09",
+                "startsAt": "08:30",
+                "endsAt": "09:20",
+                "vestigingId": null
+            },
+            {
+                "slotId": "sb-3",
+                "date": "2026-10-12",
+                "startsAt": "13:00",
+                "endsAt": "13:50",
+                "vestigingId": null
+            }
+        ],
+        "queries": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "standby-slot",
+                    "teacherId": "eva"
+                }
+            }
+        ]
+    },
+    "empty window": {
+        "blocks": [],
+        "queries": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "standby-slot",
+                    "teacherId": "eva"
+                }
+            }
+        ]
+    },
+    "a bad date": {
+        "blocks": [],
+        "queries": []
+    },
+    "a failing read": {
+        "blocks": [],
+        "queries": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "standby-slot",
+                    "teacherId": "eva"
+                }
+            }
+        ]
+    }
+}
