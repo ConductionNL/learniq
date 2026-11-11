@@ -46,6 +46,7 @@ namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Service\ObjectRowReader;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -67,6 +68,13 @@ class PortfolioGradeEmitHandler implements IEventListener {
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 
 	/**
+	 * Reads single learniq objects by id.
+	 *
+	 * @var ObjectRowReader
+	 */
+	private readonly ObjectRowReader $rows;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object access service.
@@ -80,6 +88,7 @@ class PortfolioGradeEmitHandler implements IEventListener {
 		private readonly LoggerInterface $logger,
 		private readonly ListenerSchemaResolver $schemas,
 	) {
+		$this->rows = new ObjectRowReader(objectService: $objectService);
 	}//end __construct()
 
 	/**
@@ -212,29 +221,6 @@ class PortfolioGradeEmitHandler implements IEventListener {
 	 * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
 	 */
 	private function loadObject(string $schema, string $id): ?array {
-		if ($id === '') {
-			return null;
-		}
-
-		$results = $this->objectService->findAll(
-			[
-				'ids' => [$id],
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => $schema,
-				],
-				'limit' => 1,
-			]
-		);
-
-		if (empty($results) === true) {
-			return null;
-		}
-
-		if (is_array($results[0]) === true) {
-			return $results[0];
-		}
-
-		return $results[0]->jsonSerialize();
+		return $this->rows->load(schema: $schema, id: $id);
 	}//end loadObject()
 }//end class
