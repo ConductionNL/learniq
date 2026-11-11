@@ -172,7 +172,12 @@ class DataExchangePayloadBuilder {
 	 */
 	private function disclose(array $object, ?array $fields): array {
 		if ($fields === null) {
-			return $this->passThrough(object: $object);
+			foreach (ExchangeDisclosure::NEVER as $never) {
+				unset($object[$never]);
+			}
+
+			unset($object['@self']);
+			return $object;
 		}
 
 		$data = [];
@@ -182,22 +187,6 @@ class DataExchangePayloadBuilder {
 
 		return $data;
 	}//end disclose()
-
-	/**
-	 * An object without a mapping: everything but what never leaves and its metadata.
-	 *
-	 * @param array<string, mixed> $object The source object.
-	 *
-	 * @return array<string, mixed> The object, stripped.
-	 */
-	private function passThrough(array $object): array {
-		foreach (ExchangeDisclosure::NEVER as $never) {
-			unset($object[$never]);
-		}
-
-		unset($object['@self']);
-		return $object;
-	}//end passThrough()
 
 	/**
 	 * One field of a mapping's list: the BRIN resolved from the cohort, any
@@ -237,7 +226,11 @@ class DataExchangePayloadBuilder {
 		}
 
 		$results = $this->objectService->findAll($this->scopeQuery(scope: $scope, tenantId: $tenantId));
-		$this->refuseCutOffRead(results: $results, schema: $schema);
+		if (count($results) >= self::QUERY_LIMIT) {
+			throw new RuntimeException(
+				'The exchange scope selects ' . self::QUERY_LIMIT . " or more '{$schema}' objects; narrow it so nothing is cut off."
+			);
+		}
 
 		return $this->wantedRecords(objects: array_map(static fn ($item): array => self::rowOf(object: $item), $results), scope: $scope);
 	}//end querySourceObjects()
@@ -284,24 +277,6 @@ class DataExchangePayloadBuilder {
 		// #186: always force tenant_id so a scope naming another tenant reads nothing.
 		return array_merge($filters, $this->tenantFilters(tenantId: $tenantId));
 	}//end scopeFilters()
-
-	/**
-	 * Refuse a read that reached QUERY_LIMIT, so nothing is silently cut off.
-	 *
-	 * @param array<int, mixed> $results The read's results.
-	 * @param string            $schema  The schema read.
-	 *
-	 * @return void
-	 *
-	 * @throws RuntimeException When the read reaches QUERY_LIMIT.
-	 */
-	private function refuseCutOffRead(array $results, string $schema): void {
-		if (count($results) >= self::QUERY_LIMIT) {
-			throw new RuntimeException(
-				'The exchange scope selects ' . self::QUERY_LIMIT . " or more '{$schema}' objects; narrow it so nothing is cut off."
-			);
-		}
-	}//end refuseCutOffRead()
 
 	/**
 	 * The objects a scope's `recordIds` name (by id or uuid), or all of them
@@ -542,42 +517,19 @@ class DataExchangePayloadBuilder {
 	 */
 	private function resolveAttendanceRecords(array $ids, string $tenantId): array {
 		$records = [];
-
-		foreach ($ids as $id) {
-			$record = $this->attendanceRecord(id: $id, tenantId: $tenantId);
+		foreach (array_filter($ids, static fn (mixed $id): bool => is_string($id) === true && $id !== '') as $id) {
+			$record = $this->firstObject(
+				schema: self::ATTENDANCE_RECORD_SCHEMA,
+				query: ['ids' => [$id], 'filters' => $this->tenantFilters(tenantId: $tenantId)]
+			);
 			if ($record !== null) {
+				unset($record['bsnEncrypted'], $record['bsnHash'], $record['email']);
 				$records[] = $record;
 			}
 		}
 
 		return $records;
 	}//end resolveAttendanceRecords()
-
-	/**
-	 * One AttendanceRecord in the tenant, PII-stripped, or null when the id
-	 * is unusable or the record is not found.
-	 *
-	 * @param mixed  $id       The record's UUID.
-	 * @param string $tenantId Tenant ID to enforce as a mandatory filter.
-	 *
-	 * @return array<string, mixed>|null The record.
-	 */
-	private function attendanceRecord(mixed $id, string $tenantId): ?array {
-		if (is_string($id) === false || $id === '') {
-			return null;
-		}
-
-		$record = $this->firstObject(
-			schema: self::ATTENDANCE_RECORD_SCHEMA,
-			query: ['ids' => [$id], 'filters' => $this->tenantFilters(tenantId: $tenantId)]
-		);
-		if ($record === null) {
-			return null;
-		}
-
-		unset($record['bsnEncrypted'], $record['bsnHash'], $record['email']);
-		return $record;
-	}//end attendanceRecord()
 
 	/**
 	 * The mandatory tenant filter, or none for an empty tenant.
