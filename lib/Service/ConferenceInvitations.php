@@ -223,23 +223,50 @@ class ConferenceInvitations {
 			'conferenceRoundId' => (string)$round['id'],
 			'learnerRef' => $learnerRef,
 		];
-		foreach (self::COPIES as $from => $to) {
-			if (is_string($round[$from] ?? null) === true && $round[$from] !== '') {
-				$fields[$to] = $round[$from];
-			}
-		}
+		$fields = array_merge($fields, self::copiedFields(round: $round));
 
 		// An enum takes no null: a round without a mode leaves the key out.
 		if (in_array(($round['bookingMode'] ?? null), self::MODES, true) === true) {
 			$fields['bookingMode'] = $round['bookingMode'];
 		}
 
-		if (is_string($round['tenant_id'] ?? null) === true && $round['tenant_id'] !== '') {
+		if (self::isFilled(value: ($round['tenant_id'] ?? null)) === true) {
 			$fields['tenant_id'] = $round['tenant_id'];
 		}
 
 		return $fields;
 	}//end fields()
+
+	/**
+	 * The round's filled COPIES fields, under the invitation's names.
+	 *
+	 * @param array<string, mixed> $round The round.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function copiedFields(array $round): array {
+		$copied = [];
+		foreach (self::COPIES as $from => $to) {
+			if (self::isFilled(value: ($round[$from] ?? null)) === true) {
+				$copied[$to] = $round[$from];
+			}
+		}
+
+		return $copied;
+	}//end copiedFields()
+
+	/**
+	 * Whether a value is a non-empty string.
+	 *
+	 * @param mixed $value The value.
+	 *
+	 * @return bool
+	 *
+	 * @phpstan-assert-if-true non-empty-string $value
+	 */
+	private static function isFilled(mixed $value): bool {
+		return is_string($value) === true && $value !== '';
+	}//end isFilled()
 
 	/**
 	 * The uuid of a stored row, or null for a new one.
@@ -249,12 +276,8 @@ class ConferenceInvitations {
 	 * @return string|null
 	 */
 	private static function uuidOf(?array $row): ?string {
-		if ($row === null) {
-			return null;
-		}
-
 		$uuid = ($row['id'] ?? ($row['uuid'] ?? null));
-		if (is_string($uuid) === true && $uuid !== '') {
+		if (self::isFilled(value: $uuid) === true) {
 			return $uuid;
 		}
 
