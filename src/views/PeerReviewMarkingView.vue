@@ -184,6 +184,8 @@ import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 import {
 	readObject,
 	readRequiredObject,
+	restoreLevels,
+	rubricComplete,
 	rubricPoints,
 	rubricScoresOf,
 	sendJsonOrThrow,
@@ -282,16 +284,7 @@ export default {
 		 * @spec openspec/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		canSubmit() {
-			if (
-				!this.rubric
-				|| !this.rubric.criteria
-				|| this.rubric.criteria.length === 0
-			) {
-				return true
-			}
-			return this.rubric.criteria.every(
-				(c) => this.selectedLevels[c.criterionId] != null,
-			)
+			return rubricComplete(this.rubric, this.selectedLevels)
 		},
 	},
 
@@ -337,13 +330,7 @@ export default {
 
 				await this.loadWork(peerReviewId)
 
-				const existingScores = this.peerReview.rubricScores ?? []
-				for (const score of existingScores) {
-					this.selectedLevels[score.criterionId] = {
-						levelId: score.levelId,
-						points: score.points,
-					}
-				}
+				restoreLevels(this.selectedLevels, this.peerReview.rubricScores ?? [])
 				this.comments = this.peerReview.comments ?? ''
 			} catch (err) {
 				this.error = this.t(

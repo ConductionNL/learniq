@@ -131,8 +131,11 @@ import { generateUrl } from '@nextcloud/router'
 import RubricPicker from '../components/RubricPicker.vue'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 import {
+	readFirstRow,
 	readObject,
 	readRequiredObject,
+	restoreLevels,
+	rubricComplete,
 	rubricPoints,
 	rubricScoresOf,
 	sendJsonOrThrow,
@@ -206,16 +209,7 @@ export default {
 		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		canSubmit() {
-			if (
-				!this.rubric
-				|| !this.rubric.criteria
-				|| this.rubric.criteria.length === 0
-			) {
-				return true
-			}
-			return this.rubric.criteria.every(
-				(c) => this.selectedLevels[c.criterionId] != null,
-			)
+			return rubricComplete(this.rubric, this.selectedLevels)
 		},
 
 		/**
@@ -276,13 +270,10 @@ export default {
 				await this.loadExistingSelfAssessment(submissionId)
 
 				if (this.selfAssessment) {
-					const existingScores = this.selfAssessment.rubricScores ?? []
-					for (const score of existingScores) {
-						this.selectedLevels[score.criterionId] = {
-							levelId: score.levelId,
-							points: score.points,
-						}
-					}
+					restoreLevels(
+						this.selectedLevels,
+						this.selfAssessment.rubricScores ?? [],
+					)
 					this.comments = this.selfAssessment.comments ?? ''
 				}
 			} catch (err) {
@@ -355,16 +346,10 @@ export default {
 			const url = generateUrl(
 				`/apps/openregister/api/objects/learniq/self-assessment?submissionId=${submissionId}&learnerId=${uid}&_limit=1`,
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				return
+			const read = await readFirstRow(url)
+			if (read.ok) {
+				this.selfAssessment = read.row
 			}
-			const json = await resp.json()
-			const results =
-				json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
-			this.selfAssessment = results.length > 0 ? results[0] : null
 		},
 
 		/**
