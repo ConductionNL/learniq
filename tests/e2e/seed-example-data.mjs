@@ -515,34 +515,6 @@ async function resolveTenant() {
 	return TENANT
 }
 
-// Seed in dependency order. Returns a map slug -> first created object (for refs).
-async function seedObjects(presentSlugs) {
-	const created = {}
-	const counts = {}
-	async function seed(slug, marker, body) {
-		if (!presentSlugs.has(slug)) {
-			return null
-		}
-		const existing = await objectExists(slug, marker.field, marker.value)
-		if (existing) {
-			counts[slug] = (counts[slug] ?? 0) + 1
-			if (!created[slug]) created[slug] = existing
-			return existing
-		}
-		const obj = await createObject(slug, body)
-		if (obj) {
-			counts[slug] = (counts[slug] ?? 0) + 1
-			if (!created[slug]) created[slug] = obj
-		}
-		return obj
-	}
-	const ctx = { seed, created, TENANT: await resolveTenant() }
-	for (const step of SEED_STEPS) {
-		await step(ctx)
-	}
-	return counts
-}
-
 /**
  * The demo programme and its curriculum plan.
  *
@@ -1644,6 +1616,34 @@ const SEED_STEPS = [
 	seedReportCards,
 	seedGroupPlan,
 ]
+
+// Seed in dependency order. Returns a map slug -> first created object (for refs).
+async function seedObjects(presentSlugs) {
+	const created = {}
+	const counts = {}
+	async function seed(slug, marker, body) {
+		if (!presentSlugs.has(slug)) {
+			return null
+		}
+		const existing = await objectExists(slug, marker.field, marker.value)
+		if (existing) {
+			counts[slug] = (counts[slug] ?? 0) + 1
+			if (!created[slug]) created[slug] = existing
+			return existing
+		}
+		const obj = await createObject(slug, body)
+		if (obj) {
+			counts[slug] = (counts[slug] ?? 0) + 1
+			if (!created[slug]) created[slug] = obj
+		}
+		return obj
+	}
+	const ctx = { seed, created, TENANT: await resolveTenant() }
+	for (const step of SEED_STEPS) {
+		await step(ctx)
+	}
+	return counts
+}
 
 // ── main ─────────────────────────────────────────────────────────────────────
 // The register declares 118 schemas (this constant said 35 — it predates most of
