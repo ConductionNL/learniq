@@ -3,6 +3,44 @@ import { getRequestToken } from '@nextcloud/auth'
 import { defineStore } from 'pinia'
 
 /**
+ * The URL of one list read: register, schema, then the query params.
+ *
+ * @param {string} baseUrl The OpenRegister objects URL.
+ * @param {{register: string, schema: string, params: object}} query What to read.
+ * @return {string} The URL.
+ */
+function objectListUrl(baseUrl, query) {
+	const url = new URL(baseUrl, window.location.origin)
+	url.searchParams.set('register', query.register)
+	url.searchParams.set('schema', query.schema)
+	Object.entries(query.params).forEach(([k, v]) =>
+		url.searchParams.set(k, v),
+	)
+	return url.toString()
+}
+
+/**
+ * Read one registered type and keep the rows in the store; a refused read
+ * keeps what the store had and returns none.
+ *
+ * @param {object} store The object store.
+ * @param {{type: string, params: object}} read The type and query params.
+ * @return {Promise<Array<object>>} The rows.
+ */
+async function readObjectList(store, read) {
+	const query = { ...store.objectTypes[read.type], params: read.params }
+	const response = await fetch(objectListUrl(store.baseUrl, query), {
+		headers: { requesttoken: getRequestToken() },
+	})
+	if (!response.ok) {
+		return []
+	}
+	const data = await response.json()
+	store.objects[read.type] = data.results || data
+	return store.objects[read.type]
+}
+
+/**
  * Generic OpenRegister object store.
  * Configure it with baseUrl and schemaBaseUrl, then register object types.
  */
@@ -61,30 +99,14 @@ export const useObjectStore = defineStore('object', {
 			}
 
 			this.loading[type] = true
-			const { schema, register } = this.objectTypes[type]
-
 			try {
-				const url = new URL(this.baseUrl, window.location.origin)
-				url.searchParams.set('register', register)
-				url.searchParams.set('schema', schema)
-				Object.entries(params).forEach(([k, v]) =>
-					url.searchParams.set(k, v),
-				)
-
-				const response = await fetch(url.toString(), {
-					headers: { requesttoken: getRequestToken() },
-				})
-				if (response.ok) {
-					const data = await response.json()
-					this.objects[type] = data.results || data
-					return this.objects[type]
-				}
+				return await readObjectList(this, { type, params })
 			} catch (error) {
 				console.error(`Failed to fetch ${type} objects:`, error)
+				return []
 			} finally {
 				this.loading[type] = false
 			}
-			return []
 		},
 	},
 })
