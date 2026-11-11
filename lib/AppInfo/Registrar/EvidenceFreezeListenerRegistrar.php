@@ -33,6 +33,7 @@ use OCA\Learniq\Listener\LvsResultFreezeListener;
 use OCA\Learniq\Listener\ProctoringFlagReviewGuard;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectDeletingEvent;
+use OCA\OpenRegister\Event\ObjectLeavingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
@@ -64,6 +65,11 @@ class EvidenceFreezeListenerRegistrar {
 		);
 		$context->registerEventListener(
 			event: ObjectDeletingEvent::class,
+			listener: AssessmentResultIntegrityListener::class
+		);
+		// A move out of the register takes the row away like a delete.
+		$context->registerEventListener(
+			event: ObjectLeavingEvent::class,
 			listener: AssessmentResultIntegrityListener::class
 		);
 
