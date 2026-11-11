@@ -460,21 +460,34 @@ class LessonReleaseEvaluator {
 
 		$sum = 0.0;
 		foreach ($responses as $response) {
-			if (is_array($response) === false) {
-				continue;
-			}
-
-			$auto = ($response['autoScore'] ?? null);
-			$manual = ($response['manualScore'] ?? null);
-			if (is_numeric($auto) === true) {
-				$sum += (float)$auto;
-			} elseif (is_numeric($manual) === true) {
-				$sum += (float)$manual;
+			if (is_array($response) === true) {
+				$sum += self::responseScore(response: $response);
 			}
 		}
 
 		return $sum;
 	}//end sumResponses()
+
+	/**
+	 * One response's score: its numeric `autoScore`, else its numeric `manualScore`, else 0.
+	 *
+	 * @param array<string,mixed> $response The response.
+	 *
+	 * @return float
+	 */
+	private static function responseScore(array $response): float {
+		$auto = ($response['autoScore'] ?? null);
+		if (is_numeric($auto) === true) {
+			return (float)$auto;
+		}
+
+		$manual = ($response['manualScore'] ?? null);
+		if (is_numeric($manual) === true) {
+			return (float)$manual;
+		}
+
+		return 0.0;
+	}//end responseScore()
 
 	/**
 	 * Resolve a Lesson/Assessment's display name (`name` or `title`) by id.
