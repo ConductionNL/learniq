@@ -51,8 +51,6 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\BackgroundJob\XapiStatementFollowUpJob;
 use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\XapiEnrolmentCompletion;
-use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -67,9 +65,6 @@ use OCP\EventDispatcher\IEventListener;
  * @implements IEventListener<Event>
  */
 class LessonProgressHandler implements IEventListener {
-
-	private const LEARNIQ_REGISTER = 'learniq';
-	private const XAPI_SCHEMA = 'xapi-statement';
 
 	/**
 	 * Constructor.
@@ -96,27 +91,9 @@ class LessonProgressHandler implements IEventListener {
 	 * @spec openspec/specs/progress-tracking/spec.md#requirement-the-follow-up-of-an-xapi-statement-runs-outside-the-save-that-records-it
 	 */
 	public function handle(Event $event): void {
-		if ($event instanceof ObjectCreatedEvent === false) {
+		$statement = CompletedXapiStatement::fromEvent(event: $event, schemaResolver: $this->schemaResolver);
+		if ($statement === null) {
 			return;
-		}
-
-		$entity = $event->getObject();
-		if ($this->schemaResolver->registerSlug(entity: $entity) !== self::LEARNIQ_REGISTER
-			|| $this->schemaResolver->schemaSlug(entity: $entity) !== self::XAPI_SCHEMA
-		) {
-			return;
-		}
-
-		$statement = $entity->jsonSerialize();
-		if (in_array(($statement['verb']['id'] ?? ''), XapiEnrolmentCompletion::COMPLETION_VERBS, true) === false) {
-			return;
-		}
-
-		// Deduplicated per statement: a repeated event owes one upsert. No id, no dedupe.
-		$id = (string)($statement['id'] ?? ($statement['uuid'] ?? ''));
-		$dedupeKey = null;
-		if ($id !== '') {
-			$dedupeKey = XapiStatementFollowUpJob::LESSON_PROGRESS . '|' . $id;
 		}
 
 		$this->deferral->defer(
@@ -126,7 +103,7 @@ class LessonProgressHandler implements IEventListener {
 				'statement' => $statement,
 				'completedAt' => $this->timeFactory->getDateTime()->format(\DATE_ATOM),
 			],
-			dedupeKey: $dedupeKey
+			dedupeKey: CompletedXapiStatement::dedupeKey(kind: XapiStatementFollowUpJob::LESSON_PROGRESS, statement: $statement)
 		);
 	}//end handle()
 }//end class
