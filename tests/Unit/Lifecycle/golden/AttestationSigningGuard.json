@@ -1,0 +1,126 @@
+{
+    "completed": {
+        "allowed": true,
+        "message": null,
+        "queries": [
+            {
+                "filters": {
+                    "verified_actor_id": "learner-7",
+                    "lessonId": "lesson-3",
+                    "tenant_id": "tenant-a",
+                    "register": "learniq",
+                    "schema": "xapi-statement"
+                },
+                "limit": 1000
+            }
+        ],
+        "log": "[]"
+    },
+    "passed after another verb": {
+        "allowed": true,
+        "message": null,
+        "queries": [
+            {
+                "filters": {
+                    "verified_actor_id": "learner-7",
+                    "lessonId": "lesson-3",
+                    "tenant_id": "tenant-a",
+                    "register": "learniq",
+                    "schema": "xapi-statement"
+                },
+                "limit": 1000
+            }
+        ],
+        "log": "[]"
+    },
+    "an entity row": {
+        "allowed": true,
+        "message": null,
+        "queries": [
+            {
+                "filters": {
+                    "verified_actor_id": "learner-7",
+                    "lessonId": "lesson-3",
+                    "tenant_id": "tenant-a",
+                    "register": "learniq",
+                    "schema": "xapi-statement"
+                },
+                "limit": 1000
+            }
+        ],
+        "log": "[]"
+    },
+    "another verb only": {
+        "allowed": false,
+        "message": "The learner has not completed this lesson yet, so the attestation can not be signed.",
+        "queries": [
+            {
+                "filters": {
+                    "verified_actor_id": "learner-7",
+                    "lessonId": "lesson-3",
+                    "tenant_id": "tenant-a",
+                    "register": "learniq",
+                    "schema": "xapi-statement"
+                },
+                "limit": 1000
+            }
+        ],
+        "log": "[{\"level\":\"info\",\"message\":\"AttestationSigningGuard: no completion statement found\",\"context\":{\"learnerId\":\"learner-7\",\"lessonId\":\"lesson-3\"}}]"
+    },
+    "no statements": {
+        "allowed": false,
+        "message": "The learner has not completed this lesson yet, so the attestation can not be signed.",
+        "queries": [
+            {
+                "filters": {
+                    "verified_actor_id": "learner-7",
+                    "lessonId": "lesson-3",
+                    "tenant_id": "tenant-a",
+                    "register": "learniq",
+                    "schema": "xapi-statement"
+                },
+                "limit": 1000
+            }
+        ],
+        "log": "[{\"level\":\"info\",\"message\":\"AttestationSigningGuard: no completion statement found\",\"context\":{\"learnerId\":\"learner-7\",\"lessonId\":\"lesson-3\"}}]"
+    },
+    "no tenant": {
+        "allowed": true,
+        "message": null,
+        "queries": [
+            {
+                "filters": {
+                    "verified_actor_id": "learner-7",
+                    "lessonId": "lesson-3",
+                    "register": "learniq",
+                    "schema": "xapi-statement"
+                },
+                "limit": 1000
+            }
+        ],
+        "log": "[]"
+    },
+    "no lesson": {
+        "allowed": false,
+        "message": "The attestation names no learner or no lesson, so it can not be signed.",
+        "queries": [],
+        "log": "[{\"level\":\"warning\",\"message\":\"AttestationSigningGuard: missing learnerId or lessonId\",\"context\":{\"object\":{\"id\":\"attestation-1\",\"learnerId\":\"learner-7\",\"lessonId\":\"\",\"courseId\":\"course-1\",\"regulationSlug\":\"NIS2\",\"score\":88,\"tenant_id\":\"tenant-a\",\"lifecycle\":\"signed\"}}}]"
+    },
+    "no key": {
+        "allowed": false,
+        "message": "No signing key is available for this organisation, so the attestation can not be signed.",
+        "queries": [
+            {
+                "filters": {
+                    "verified_actor_id": "learner-7",
+                    "lessonId": "lesson-3",
+                    "tenant_id": "tenant-a",
+                    "register": "learniq",
+                    "schema": "xapi-statement"
+                },
+                "limit": 1000
+            }
+        ],
+        "log": "[{\"level\":\"error\",\"message\":\"AttestationSigningGuard: OR tenant key unavailable; refusing to sign without HMAC key\",\"context\":{\"tenantId\":\"tenant-a\"}}]"
+    }
+}

@@ -25,6 +25,7 @@ use OCA\Learniq\Lifecycle\AttestationSigningGuard;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\OpenRegister\Service\TenantKeyService;
+use OCA\Learniq\Tests\Support\CapturingLogger;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -169,4 +170,59 @@ class AttestationSigningGuardTest extends TestCase {
 
 		$this->assertFalse($result->isAllowed());
 	}//end testMissingIdentifiersAreDenied()
+	/**
+	 * Every outcome with its message, the statement query and the log lines,
+	 * recorded: completed, passed, an entity row, another verb only, no
+	 * statements, no tenant, no lesson, no key.
+	 *
+	 * @return void
+	 */
+	public function testEachOutcomeAsRecorded(): void {
+		$completed = ['uuid' => 'x1', 'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed']];
+		$entity = new class() implements \JsonSerializable {
+			/**
+			 * A passed statement, as an entity serialises.
+			 *
+			 * @return array<string, mixed>
+			 */
+			public function jsonSerialize(): array {
+				return ['uuid' => 'x3', 'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/passed']];
+			}//end jsonSerialize()
+		};
+		$cases = [
+			'completed' => [$this->attestationObject(), [$completed], 'k'],
+			'passed after another verb' => [$this->attestationObject(), [['verb' => ['id' => 'x:attempted']], ['verb' => ['id' => 'http://adlnet.gov/expapi/verbs/passed']]], 'k'],
+			'an entity row' => [$this->attestationObject(), [$entity], 'k'],
+			'another verb only' => [$this->attestationObject(), [['verb' => ['id' => 'x:attempted']], ['verb' => []]], 'k'],
+			'no statements' => [$this->attestationObject(), [], 'k'],
+			'no tenant' => [array_merge($this->attestationObject(), ['tenant_id' => '']), [$completed], 'k'],
+			'no lesson' => [array_merge($this->attestationObject(), ['lessonId' => '']), [$completed], 'k'],
+			'no key' => [$this->attestationObject(), [$completed], ''],
+		];
+
+		$actual = [];
+		foreach ($cases as $name => [$object, $statements, $key]) {
+			$queries = [];
+			$objectService = $this->createMock(ObjectService::class);
+			$objectService->method('findAll')->willReturnCallback(
+				function (array $config) use (&$queries, $statements): array {
+					$queries[] = $config;
+					return $statements;
+				}
+			);
+			$tenantKeyService = $this->createMock(TenantKeyService::class);
+			$tenantKeyService->method('getCurrentTenantKey')->willReturn($key);
+			$logger = new CapturingLogger();
+
+			$result = (new AttestationSigningGuard($objectService, $tenantKeyService, $logger))->check($object, 'sign', 'learner-7');
+			$actual[$name] = ['allowed' => $result->isAllowed(), 'message' => $result->getMessage(), 'queries' => $queries, 'log' => $logger->dump()];
+		}
+
+		$golden = __DIR__ . '/golden/AttestationSigningGuard.json';
+		if (getenv('RECORD_GOLDEN') === '1') {
+			file_put_contents($golden, json_encode($actual, (JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) . "\n");
+		}
+
+		self::assertSame(json_decode((string)file_get_contents($golden), true), json_decode((string)json_encode($actual), true));
+	}//end testEachOutcomeAsRecorded()
 }//end class
