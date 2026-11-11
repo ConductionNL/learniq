@@ -357,6 +357,13 @@ import AccountSearchOutline from 'vue-material-design-icons/AccountSearchOutline
 import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
 import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
 import {
+	complianceFormOf,
+	complianceIdOf,
+	compliancePayload,
+	readCompliance,
+	storeCompliance,
+} from '../utils/complianceRecord.js'
+import {
 	DEFAULT_REGISTER_KEY,
 	registerValue,
 	selectedRegister,
@@ -367,12 +374,6 @@ import {
 	signingKeyStatusOf,
 } from '../utils/signingKeyRotation.js'
 
-// The slugs privacy-governance-surfaces declares in
-// lib/Settings/learniq_register.json, verbatim (the resolver lowercases both
-// sides, so casing is irrelevant, but a structural difference is not).
-const REGISTER = 'learniq'
-const COMPLIANCE_SCHEMA = 'compliance'
-const COMPLIANCE_TYPE = `${REGISTER}-${COMPLIANCE_SCHEMA}`
 // privacy-reuse-openregister-register (D20): privacy requests live in
 // OpenRegister's shared data subject request register, not in learniq's own.
 const DATA_SUBJECT_REQUEST_REGISTER = 'data-subject-requests'
@@ -801,39 +802,11 @@ export default {
 		 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-the-school-records-its-privacyconvenant-agreement-and-privacybijsluiter
 		 */
 		async loadCompliance() {
-			const store = useObjectStore()
-			if (typeof store.registerObjectType === 'function') {
-				store.registerObjectType(
-					COMPLIANCE_TYPE,
-					COMPLIANCE_SCHEMA,
-					REGISTER,
-				)
-			}
-
-			const results =
-				typeof store.fetchCollection === 'function'
-					? await store
-							.fetchCollection(COMPLIANCE_TYPE, { _limit: 1 })
-							.catch(() => [])
-					: []
-
-			const existing =
-				Array.isArray(results) && results.length > 0 ? results[0] : null
+			const existing = await readCompliance(useObjectStore())
 
 			if (existing) {
-				this.complianceId =
-					existing.id
-					?? (existing['@self'] && existing['@self'].id)
-					?? null
-				this.complianceForm = {
-					privacyconvenantSigned: !!existing.privacyconvenantSigned,
-					verwerkersovereenkomstUrl:
-						existing.verwerkersovereenkomstUrl || '',
-
-					privacybijsluiterUrl: existing.privacybijsluiterUrl || '',
-					privacybijsluiterVersion:
-						existing.privacybijsluiterVersion || '',
-				}
+				this.complianceId = complianceIdOf(existing)
+				this.complianceForm = complianceFormOf(existing)
 			}
 		},
 
@@ -848,47 +821,33 @@ export default {
 		async saveCompliance() {
 			this.complianceSaving = true
 			try {
-				const store = useObjectStore()
-				const currentUser = getCurrentUser()
-
-				const payload = {
-					privacyconvenantSigned:
-						!!this.complianceForm.privacyconvenantSigned,
-
-					privacyconvenantSignedAt: this.complianceForm
-						.privacyconvenantSigned
-						? new Date().toISOString()
-						: null,
-
-					verwerkersovereenkomstUrl:
-						this.complianceForm.verwerkersovereenkomstUrl || null,
-
-					privacybijsluiterUrl:
-						this.complianceForm.privacybijsluiterUrl || null,
-
-					privacybijsluiterVersion:
-						this.complianceForm.privacybijsluiterVersion || null,
-
-					lastReviewedAt: new Date().toISOString(),
-					lastReviewedBy: currentUser ? currentUser.uid : null,
-				}
-				if (this.complianceId) {
-					payload.id = this.complianceId
-				}
-
-				const saved =
-					typeof store.saveObject === 'function'
-						? await store.saveObject(COMPLIANCE_TYPE, payload)
-						: null
-
-				if (saved) {
-					this.complianceId = saved.id ?? this.complianceId
-				}
+				await this.writeCompliance()
 			} catch (err) {
 				// eslint-disable-next-line no-console
 				console.error('[LearniqSettings] saveCompliance error', err)
 			} finally {
 				this.complianceSaving = false
+			}
+		},
+
+		/**
+		 * Save the edit form as the Compliance singleton, reviewed by the
+		 * signed-in user now, and remember the id it was saved under.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-records-the-signed-privacyconvenant-agreement
+		 */
+		async writeCompliance() {
+			const store = useObjectStore()
+			const payload = compliancePayload(this.complianceForm, getCurrentUser())
+			if (this.complianceId) {
+				payload.id = this.complianceId
+			}
+
+			const saved = await storeCompliance(store, payload)
+
+			if (saved) {
+				this.complianceId = saved.id ?? this.complianceId
 			}
 		},
 
