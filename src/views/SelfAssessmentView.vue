@@ -130,6 +130,14 @@ import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 import RubricPicker from '../components/RubricPicker.vue'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
+import {
+	readObject,
+	readRequiredObject,
+	rubricPoints,
+	rubricScoresOf,
+	sendJsonOrThrow,
+	SUBMIT_TRANSITION,
+} from '../utils/registerRequests.js'
 
 export default {
 	name: 'SelfAssessmentView',
@@ -187,10 +195,7 @@ export default {
 		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		computedScore() {
-			return Object.values(this.selectedLevels).reduce(
-				(sum, sel) => sum + (sel.points || 0),
-				0,
-			)
+			return rubricPoints(this.selectedLevels)
 		},
 
 		/**
@@ -300,17 +305,10 @@ export default {
 		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		async loadSubmission(submissionId) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/Submission/${submissionId}`,
+			this.submission = await readRequiredObject(
+				generateUrl(`/apps/openregister/api/objects/learniq/Submission/${submissionId}`),
+				'Submission fetch failed',
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				throw new Error(`Submission fetch failed: ${resp.status}`)
-			}
-			const json = await resp.json()
-			this.submission = json.object ?? json ?? {}
 		},
 
 		/**
@@ -321,17 +319,10 @@ export default {
 		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		async loadAssignment(assignmentId) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/Assignment/${assignmentId}`,
+			this.assignment = await readRequiredObject(
+				generateUrl(`/apps/openregister/api/objects/learniq/Assignment/${assignmentId}`),
+				'Assignment fetch failed',
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				throw new Error(`Assignment fetch failed: ${resp.status}`)
-			}
-			const json = await resp.json()
-			this.assignment = json.object ?? json ?? {}
 		},
 
 		/**
@@ -342,18 +333,13 @@ export default {
 		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		async loadRubric(rubricId) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/Rubric/${rubricId}`,
+			const read = await readObject(
+				generateUrl(`/apps/openregister/api/objects/learniq/Rubric/${rubricId}`),
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				// Non-fatal — fall back to no rubric display.
-				return
+			// A rubric that cannot be read is not fatal: the page shows none.
+			if (read.ok) {
+				this.rubric = read.object ?? null
 			}
-			const json = await resp.json()
-			this.rubric = json.object ?? json ?? null
 		},
 
 		/**
@@ -388,11 +374,7 @@ export default {
 		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		buildRubricScores() {
-			return Object.entries(this.selectedLevels).map(([criterionId, sel]) => ({
-				criterionId,
-				levelId: sel.levelId,
-				points: sel.points,
-			}))
+			return rubricScoresOf(this.selectedLevels)
 		},
 
 		/**
@@ -410,72 +392,16 @@ export default {
 			this.saving = true
 			this.saveError = null
 
-			const rubricScores = this.buildRubricScores()
-			const totalScore = this.computedScore
-			const uid = getCurrentUser()?.uid ?? ''
+			const scores = this.learnerScores()
 
 			try {
-				const payload = {
-					assignmentId: this.assignment.id ?? this.assignmentId,
-					submissionId: this.id,
-					learnerId: uid,
-					timing: this.timing,
-					rubricScores,
-					totalScore,
-					comments: this.comments,
-					tenant_id: this.submission.tenant_id ?? '',
-				}
-
-				const isUpdate = this.selfAssessment != null
-				const saveUrl = isUpdate
-					? generateUrl(
-							`/apps/openregister/api/objects/learniq/self-assessment/${this.selfAssessment.id}`,
-						)
-					: generateUrl(
-							'/apps/openregister/api/objects/learniq/self-assessment',
-						)
-
-				const saveResp = await fetch(saveUrl, {
-					method: isUpdate ? 'PUT' : 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify(
-						isUpdate
-							? { ...payload, id: this.selfAssessment.id }
-							: payload,
-					),
-				})
-				if (!saveResp.ok) {
-					throw new Error(`SelfAssessment save failed: ${saveResp.status}`)
-				}
-
-				const savedJson = await saveResp.json()
-				const saved = savedJson.object ?? savedJson ?? {}
-				const selfAssessmentId = saved.id ?? this.selfAssessment?.id
-
-				if (!selfAssessmentId) {
-					throw new Error('SelfAssessment save did not return an id')
-				}
-
-				const transitionUrl = generateUrl(
-					objectTransitionUrl(selfAssessmentId),
+				const selfAssessmentId = await this.saveSelfAssessment(
+					this.selfAssessmentPayload(scores),
 				)
-				const transResp = await fetch(transitionUrl, {
-					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ action: 'submit' }),
-				})
-				if (!transResp.ok) {
-					throw new Error(`Submit transition failed: ${transResp.status}`)
-				}
-
+				await sendJsonOrThrow(
+					generateUrl(objectTransitionUrl(selfAssessmentId)),
+					SUBMIT_TRANSITION,
+				)
 				this.submitted = true
 			} catch (err) {
 				this.saveError = this.t(
@@ -487,6 +413,82 @@ export default {
 			} finally {
 				this.saving = false
 			}
+		},
+
+		/**
+		 * The learner's rubric scores, their total and who they are.
+		 *
+		 * @return {{rubricScores: Array<object>, totalScore: number, learnerId: string}} The scores.
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
+		 */
+		learnerScores() {
+			return {
+				rubricScores: this.buildRubricScores(),
+				totalScore: this.computedScore,
+				learnerId: getCurrentUser()?.uid ?? '',
+			}
+		},
+
+		/**
+		 * The SelfAssessment to save.
+		 *
+		 * @param {{rubricScores: Array<object>, totalScore: number, learnerId: string}} scores The learner's scores.
+		 * @return {object} The SelfAssessment.
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
+		 */
+		selfAssessmentPayload(scores) {
+			return {
+				assignmentId: this.assignment.id ?? this.assignmentId,
+				submissionId: this.id,
+				learnerId: scores.learnerId,
+				timing: this.timing,
+				rubricScores: scores.rubricScores,
+				totalScore: scores.totalScore,
+				comments: this.comments,
+				tenant_id: this.submission.tenant_id ?? '',
+			}
+		},
+
+		/**
+		 * The request that saves the SelfAssessment: a create, or an update of
+		 * the draft already there.
+		 *
+		 * @param {object} payload The SelfAssessment.
+		 * @return {{url: string, method: string, body: object}} The request.
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
+		 */
+		selfAssessmentRequest(payload) {
+			const isUpdate = this.selfAssessment != null
+			const collection = '/apps/openregister/api/objects/learniq/self-assessment'
+			const path = isUpdate ? `${collection}/${this.selfAssessment.id}` : collection
+			return {
+				url: generateUrl(path),
+				method: isUpdate ? 'PUT' : 'POST',
+				body: isUpdate ? { ...payload, id: this.selfAssessment.id } : payload,
+			}
+		},
+
+		/**
+		 * Save the SelfAssessment.
+		 *
+		 * @param {object} payload The SelfAssessment.
+		 * @return {Promise<string>} Its id.
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
+		 */
+		async saveSelfAssessment(payload) {
+			const request = this.selfAssessmentRequest(payload)
+			const saveResp = await sendJsonOrThrow(request.url, {
+				method: request.method,
+				body: request.body,
+				failure: 'SelfAssessment save failed',
+			})
+			const savedJson = await saveResp.json()
+			const saved = savedJson.object ?? savedJson ?? {}
+			const selfAssessmentId = saved.id ?? this.selfAssessment?.id
+			if (!selfAssessmentId) {
+				throw new Error('SelfAssessment save did not return an id')
+			}
+			return selfAssessmentId
 		},
 	},
 }

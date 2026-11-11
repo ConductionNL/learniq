@@ -44,6 +44,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\OpenRegister\Event\ObjectLeavingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -116,12 +117,17 @@ class LvsResultFreezeListener implements IEventListener {
 	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
 	 */
 	public function handle(Event $event): void {
+		if ($event instanceof ObjectLeavingEvent === true) {
+			$this->refuseFrozenMove(event: $event);
+			return;
+		}
+
 		if ($event instanceof ObjectUpdatingEvent === false) {
 			return;
 		}
 
 		$old = $event->getOldObject();
-		if ($old === null || $this->isPoliced(event: $event) === false) {
+		if ($old === null || $this->isPoliced(entity: $event->getNewObject()) === false) {
 			return;
 		}
 
@@ -136,17 +142,47 @@ class LvsResultFreezeListener implements IEventListener {
 	}//end handle()
 
 	/**
-	 * Whether this write is an LvsResult update by a signed-in non-admin.
+	 * Refuse moving a verified or archived result out of its register or schema.
 	 *
-	 * @param ObjectUpdatingEvent $event The event.
+	 * @param ObjectLeavingEvent $event The move event, carrying the stored object.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
+	 */
+	private function refuseFrozenMove(ObjectLeavingEvent $event): void {
+		$entity = $event->getObject();
+		if ($this->isPoliced(entity: $entity) === false) {
+			return;
+		}
+
+		$state = (string)($entity->getObject()['lifecycle'] ?? '');
+		if (in_array($state, self::FROZEN_STATES, true) === false) {
+			return;
+		}
+
+		$event->setErrors(
+			[
+				'reason' => 'lvs-result-move',
+				'message' => 'A verified LVS result cannot be moved.',
+			]
+		);
+		$event->stopPropagation();
+		$this->logger->info('[LvsResultFreezeListener] Refused a write: {reason}', ['reason' => 'lvs-result-move']);
+	}//end refuseFrozenMove()
+
+	/**
+	 * Whether this write concerns an LvsResult and comes from a signed-in non-admin.
+	 *
+	 * @param object|null $entity The object the write concerns.
 	 *
 	 * @return bool True when the write must be checked.
 	 *
 	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
 	 */
-	private function isPoliced(ObjectUpdatingEvent $event): bool {
+	private function isPoliced(?object $entity): bool {
 		try {
-			$slug = $this->schemaResolver->guardSchemaSlug(entity: $event->getNewObject());
+			$slug = $this->schemaResolver->guardSchemaSlug(entity: $entity);
 		} catch (Throwable $exception) {
 			// Not knowing the schema is not knowing it is ours: never break
 			// another app's writes.

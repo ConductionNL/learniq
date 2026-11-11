@@ -76,17 +76,9 @@ import { CnChoiceCards, CnDialog, CnDialogActions } from '@conduction/nextcloud-
 import { NcTextArea, NcTextField } from '@nextcloud/vue'
 import DialogNoticeFallback from './DialogNoticeFallback.vue'
 import DialogUserSelect from './DialogUserSelect.vue'
-import { canSaveDossierNote, dossierNoteBody, NOTE_CATEGORIES, NOTE_CONFIDENTIALITY } from './dialogBodies.js'
+import { canSaveDossierNote, dossierNoteBody, localDay, NOTE_CATEGORIES, NOTE_CONFIDENTIALITY } from './dialogBodies.js'
 import { dialogNoticeProps, requestRefusal } from './dialogNotice.js'
 import { announceSaved, callerTenant, createObject, currentUserId } from './dialogRequests.js'
-
-/**
- * @param {Date} now The current moment.
- * @return {string} Today as YYYY-MM-DD, in local time.
- */
-function today(now) {
-	return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-}
 
 export default {
 	name: 'DossierNoteCreateDialog',
@@ -104,7 +96,7 @@ export default {
 		return {
 			form: {
 				learnerId: this.learnerId,
-				date: today(new Date()),
+				date: localDay(new Date()),
 				category: 'observation',
 				body: '',
 				confidentiality: 'team-visible',

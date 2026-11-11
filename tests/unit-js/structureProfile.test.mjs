@@ -135,13 +135,13 @@ function build(layout, role, state = NEVER, flags = {}) {
 		workspace: buildWorkspaceRuntime(undefined, state.segment, state.chosen),
 	}
 	return applyReportCardGates(
-		buildProfiledManifest(
+		buildProfiledManifest({
 			buildManifest,
 			base,
-			structuredClone(FRAGMENTS),
-			structuredClone(layout),
-			passesContextPredicates,
-		),
+			fragments: structuredClone(FRAGMENTS),
+			profileFile: structuredClone(layout),
+			passes: passesContextPredicates,
+		}),
 	)
 }
 
@@ -578,12 +578,12 @@ test('the full profile is exactly the plain manifest build', () => {
 		structuredClone(FRAGMENTS),
 		structuredClone(FULL),
 	)
-	const profiled = buildProfiledManifest(
+	const profiled = buildProfiledManifest({
 		buildManifest,
-		structuredClone(BASE),
-		structuredClone(FRAGMENTS),
-		structuredClone(FULL),
-	)
+		base: structuredClone(BASE),
+		fragments: structuredClone(FRAGMENTS),
+		profileFile: structuredClone(FULL),
+	})
 	// The one difference: every index page that did not choose keeps the
 	// plain header row it had before nextcloud-vue 2.62.0 gave every header a
 	// sort and filter control (menu-layout.json pageDefaults).
@@ -1053,12 +1053,12 @@ test('the page at / is the Today dashboard for the teaching roles, in the simple
 })
 
 test('an overlay with a condition is skipped when nothing can judge the condition', () => {
-	const built = buildProfiledManifest(
+	const built = buildProfiledManifest({
 		buildManifest,
-		structuredClone(BASE),
-		structuredClone(FRAGMENTS),
-		structuredClone(SIMPLE),
-	)
+		base: structuredClone(BASE),
+		fragments: structuredClone(FRAGMENTS),
+		profileFile: structuredClone(SIMPLE),
+	})
 	assert.equal(built.pages.find((page) => page.id === 'Dashboard').type, 'custom')
 })
 
@@ -1558,14 +1558,14 @@ function buildNav(
 ) {
 	const base = structuredClone(BASE)
 	base.runtime = { user: { primaryRole: role }, workspace: {} }
-	return buildProfiledManifest(
+	return buildProfiledManifest({
 		buildManifest,
 		base,
-		structuredClone(FRAGMENTS),
-		structuredClone(layout),
+		fragments: structuredClone(FRAGMENTS),
+		profileFile: structuredClone(layout),
 		passes,
-		{ theming },
-	).nav
+		theming,
+	}).nav
 }
 
 test('the simple navigation opens with the brand block, named after the instance', () => {

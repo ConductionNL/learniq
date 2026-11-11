@@ -32,6 +32,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
+use Closure;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerActions;
@@ -42,6 +43,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
+use OCP\IUser;
 use OCP\IUserSession;
 
 /**
@@ -113,70 +115,76 @@ class QtiImportController extends Controller {
 	 */
 	#[NoAdminRequired]
 	public function import(string $itemBankId = ''): JSONResponse {
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			return new JSONResponse(
-				data: ['error' => 'Not authenticated'],
-				statusCode: Http::STATUS_UNAUTHORIZED
-			);
-		}
-
-		$this->actionAuth->requireAction(user: $user, action: 'qti.import');
-
-		if ($itemBankId === '') {
-			return new JSONResponse(
-				data: ['error' => 'itemBankId is required'],
-				statusCode: Http::STATUS_BAD_REQUEST
-			);
+		$user = $this->admitImporter(itemBankId: $itemBankId);
+		if ($user instanceof JSONResponse) {
+			return $user;
 		}
 
 		// Resolve the caller's tenant — prevents cross-tenant ItemBank poisoning (wave-12 WF2).
 		// Same pattern as AuditPackExportController::export().
 		$tenantId = $this->tenants->resolve(user: $user);
 
-		$uploadedFile = $this->request->getUploadedFile('file');
-
-		if (isset($uploadedFile['tmp_name']) === false) {
-			return new JSONResponse(
-				data: ['error' => 'No file uploaded. POST a multipart/form-data request with a `file` field.'],
-				statusCode: Http::STATUS_BAD_REQUEST
-			);
+		$upload = UploadedPackage::fromRequest(request: $this->request);
+		if ($upload instanceof JSONResponse) {
+			return $upload;
 		}
 
-		if ($uploadedFile['error'] !== UPLOAD_ERR_OK) {
-			return new JSONResponse(
-				data: ['error' => 'File upload error code ' . $uploadedFile['error']],
-				statusCode: Http::STATUS_BAD_REQUEST
-			);
+		return $this->importItems(
+			import: fn (): array => $this->qtiImportService->import(packagePath: $upload['tmp_name'], itemBankId: $itemBankId, tenantId: $tenantId)
+		);
+	}//end import()
+
+	/**
+	 * The caller allowed to import, or the refusal: 401 without a session,
+	 * 400 without an itemBankId (after the action check, which throws its own).
+	 *
+	 * @param string $itemBankId UUID of the target ItemBank.
+	 *
+	 * @return IUser|JSONResponse
+	 */
+	private function admitImporter(string $itemBankId): IUser|JSONResponse {
+		$user = (new ImportCaller(userSession: $this->userSession, actionAuth: $this->actionAuth))->admit(action: 'qti.import');
+		if ($user instanceof JSONResponse || $itemBankId !== '') {
+			return $user;
 		}
 
-		$tmpPath = $uploadedFile['tmp_name'];
+		return new JSONResponse(
+			data: ['error' => 'itemBankId is required'],
+			statusCode: Http::STATUS_BAD_REQUEST
+		);
+	}//end admitImporter()
 
-		if (file_exists($tmpPath) === false) {
-			return new JSONResponse(
-				data: ['error' => 'Uploaded file not found on server.'],
-				statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
-			);
-		}
-
+	/**
+	 * Run the import: the created item ids, 422 when the package is refused,
+	 * 500 on any other failure.
+	 *
+	 * @param Closure():array<int,string> $import The import of the uploaded package.
+	 *
+	 * @return JSONResponse
+	 */
+	private function importItems(Closure $import): JSONResponse {
 		try {
-			$createdIds = $this->qtiImportService->import(
-				packagePath: $tmpPath,
-				itemBankId: $itemBankId,
-				tenantId: $tenantId,
-			);
+			$createdIds = $import();
 		} catch (\RuntimeException $e) {
 			return new JSONResponse(
 				data: ['error' => $e->getMessage()],
 				statusCode: Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		} catch (\Throwable $e) {
-			return new JSONResponse(
-				data: ['error' => 'Import failed: ' . $e->getMessage()],
-				statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
-			);
+			return UploadedPackage::importFailed(exception: $e);
 		}
 
+		return $this->itemsResponse(createdIds: $createdIds);
+	}//end importItems()
+
+	/**
+	 * 200 with the created items.
+	 *
+	 * @param array<int,string> $createdIds The created Item ids.
+	 *
+	 * @return JSONResponse
+	 */
+	private function itemsResponse(array $createdIds): JSONResponse {
 		return new JSONResponse(
 			data: [
 				'itemCount' => count($createdIds),
@@ -184,5 +192,5 @@ class QtiImportController extends Controller {
 			],
 			statusCode: Http::STATUS_OK
 		);
-	}//end import()
+	}//end itemsResponse()
 }//end class

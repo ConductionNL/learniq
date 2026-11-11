@@ -203,4 +203,49 @@ class CredentialReissueServiceTest extends TestCase {
 		self::assertSame(['processed' => 2, 'skipped' => 2, 'failed' => 1], $totals);
 		self::assertSame(['cr-2', 'cr-5'], array_column($this->fired, 'id'));
 	}//end testOneFailureDoesNotStopTheRun()
+	/**
+	 * The transition data is exactly the freshly signed fields and the
+	 * history, in this order, and the run's totals are stored.
+	 *
+	 * @return void
+	 */
+	public function testTheReissueDataIsExactlyTheSignedFieldsAndTheHistory(): void {
+		$totals = $this->service()->run(courseId: 'c-bhv', runId: 'run-9', reason: 'Nieuwe tekst', actor: $this->hr());
+		$byId = array_column($this->fired, 'data', 'id');
+
+		$at = $byId['cr-1']['reissuedAt'];
+		self::assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/', $at);
+		self::assertSame(
+			[
+				'openbadges3Payload' => ['issuer' => ['name' => 'Opleider BV']],
+				'signature' => 'new',
+				'issuerDid' => 'did:web:new',
+				'verificationUrl' => 'https://x/verify',
+				'issuedBy' => 'Opleider BV',
+				'edciPayload' => ['id' => 'urn:uuid:cr-1'],
+				'reissuedAt' => $at,
+				'reissueCount' => 1,
+				'reissueReason' => 'Nieuwe tekst',
+				'reissuedBy' => 'hr.jansen',
+				'reissueRunId' => 'run-9',
+			],
+			$byId['cr-1']
+		);
+
+		$wallet = $byId['cr-2'];
+		self::assertSame(2, $wallet['reissueCount']);
+		self::assertSame(
+			['walletOfferStatus', 'walletOfferNote'],
+			array_slice(array_keys($wallet), -2)
+		);
+		self::assertSame(
+			'The wallet holds the version from before the reissue of ' . substr($wallet['reissuedAt'], 0, 10) . '. Offer the new version again.',
+			$wallet['walletOfferNote']
+		);
+
+		self::assertSame(['processed' => 3, 'skipped' => 2, 'failed' => 0], $totals);
+		$stored = json_decode($this->config[array_key_first($this->config)], true);
+		self::assertSame(['processed' => 3, 'skipped' => 2, 'failed' => 0, 'courseId' => 'c-bhv'], array_slice($stored, 0, 4, true));
+		self::assertArrayHasKey('finishedAt', $stored);
+	}//end testTheReissueDataIsExactlyTheSignedFieldsAndTheHistory()
 }//end class

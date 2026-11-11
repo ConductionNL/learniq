@@ -108,6 +108,12 @@ import ManageListWidget from './widgets/ManageListWidget.vue'
 import ManageProgrammesWidget from './widgets/ManageProgrammesWidget.vue'
 import MyMandatoryTrainingWidget from './widgets/MyMandatoryTrainingWidget.vue'
 import {
+	countTile,
+	customTile,
+	freshLayout,
+	statTile,
+} from '../utils/dashboardTiles.js'
+import {
 	ROLL_CALL_PATH,
 	rollCallRoute,
 	sessionsToMarkFilter,
@@ -122,6 +128,154 @@ import {
 } from '../utils/teacherScope.js'
 
 const VALID_ROLES = ['admin', 'teacher', 'student']
+
+/** The admin dashboard grid: the KPI row, then the three manage lists. */
+const ADMIN_LAYOUT = [
+	{
+		id: 1,
+		widgetId: 'kpi-courses',
+		gridX: 0,
+		gridY: 0,
+		gridWidth: 2,
+		gridHeight: 2,
+		showTitle: false,
+	},
+	{
+		id: 2,
+		widgetId: 'kpi-cohorts',
+		gridX: 2,
+		gridY: 0,
+		gridWidth: 2,
+		gridHeight: 2,
+		showTitle: false,
+	},
+	{
+		id: 3,
+		widgetId: 'kpi-learners',
+		gridX: 4,
+		gridY: 0,
+		gridWidth: 2,
+		gridHeight: 2,
+		showTitle: false,
+	},
+	{
+		id: 4,
+		widgetId: 'kpi-active-enrolments',
+		gridX: 6,
+		gridY: 0,
+		gridWidth: 2,
+		gridHeight: 2,
+		showTitle: false,
+	},
+	{
+		id: 5,
+		widgetId: 'kpi-open-flags',
+		gridX: 8,
+		gridY: 0,
+		gridWidth: 2,
+		gridHeight: 2,
+		showTitle: false,
+	},
+	{
+		id: 6,
+		widgetId: 'manage-courses',
+		gridX: 0,
+		gridY: 2,
+		gridWidth: 4,
+		gridHeight: 4,
+	},
+	{
+		id: 7,
+		widgetId: 'manage-cohorts',
+		gridX: 4,
+		gridY: 2,
+		gridWidth: 4,
+		gridHeight: 4,
+	},
+	{
+		id: 8,
+		widgetId: 'manage-programmes',
+		gridX: 8,
+		gridY: 2,
+		gridWidth: 4,
+		gridHeight: 4,
+	},
+]
+
+/** The teacher dashboard grid: the two engagement tiles, then four lists. */
+const TEACHER_LAYOUT = [
+	{
+		id: 1,
+		widgetId: 'kpi-engagement-score',
+		gridX: 0,
+		gridY: 0,
+		gridWidth: 6,
+		gridHeight: 2,
+		showTitle: false,
+	},
+	{
+		id: 2,
+		widgetId: 'kpi-engagement-flags',
+		gridX: 6,
+		gridY: 0,
+		gridWidth: 6,
+		gridHeight: 2,
+		showTitle: false,
+	},
+	{
+		id: 3,
+		widgetId: 'teacher-courses',
+		gridX: 0,
+		gridY: 2,
+		gridWidth: 6,
+		gridHeight: 4,
+	},
+	{
+		id: 4,
+		widgetId: 'teacher-assignments',
+		gridX: 6,
+		gridY: 2,
+		gridWidth: 6,
+		gridHeight: 4,
+	},
+	{
+		id: 5,
+		widgetId: 'teacher-sessions',
+		gridX: 0,
+		gridY: 6,
+		gridWidth: 6,
+		gridHeight: 4,
+	},
+	{
+		id: 6,
+		widgetId: 'teacher-cohorts',
+		gridX: 6,
+		gridY: 6,
+		gridWidth: 6,
+		gridHeight: 4,
+	},
+]
+
+/** The learner dashboard grid: mandatory training beside the points tile. */
+const STUDENT_LAYOUT = [
+	{
+		id: 1,
+		widgetId: 'my-mandatory-training',
+		gridX: 0,
+		gridY: 0,
+		gridWidth: 6,
+		gridHeight: 5,
+	},
+	{
+		id: 2,
+		widgetId: 'kpi-points-level',
+		gridX: 6,
+		gridY: 0,
+		gridWidth: 6,
+		gridHeight: 2,
+		showTitle: false,
+	},
+]
 
 /** A teacher has a handful of groups; this bounds the scope read. */
 const SCOPE_LIMIT = 200
@@ -329,190 +483,13 @@ export default {
 		adminConfig() {
 			return {
 				widgets: [
-					{
-						id: 'kpi-courses',
-						title: this.t('learniq', 'Courses'),
-						// Declared, not written. `type: 'stat'` resolves to the shared
-						// CnStatWidget, which aggregates SERVER-side; the wrappers this
-						// replaces each did their own fetch and swallowed failure into a
-						// zero. `schema` is the OpenRegister SLUG.
-						type: 'stat',
-						content: {
-							label: this.t('learniq', 'Courses'),
-							variant: 'primary',
-							clickRoute: { path: '/courses' },
-							source: {
-								register: 'learniq',
-								schema: 'course',
-								metric: 'count',
-							},
-						},
-					},
-					{
-						id: 'kpi-cohorts',
-						title: this.t('learniq', 'Cohorts'),
-						// Declared, not written. `type: 'stat'` resolves to the shared
-						// CnStatWidget, which aggregates SERVER-side; the wrappers this
-						// replaces each did their own fetch and swallowed failure into a
-						// zero. `schema` is the OpenRegister SLUG.
-						type: 'stat',
-						content: {
-							label: this.t('learniq', 'Cohorts'),
-							clickRoute: { path: '/cohorts' },
-							source: {
-								register: 'learniq',
-								schema: 'cohort',
-								metric: 'count',
-							},
-						},
-					},
-					{
-						id: 'kpi-learners',
-						title: this.t('learniq', 'Learners'),
-						// Declared, not written. `type: 'stat'` resolves to the shared
-						// CnStatWidget, which aggregates SERVER-side; the wrappers this
-						// replaces each did their own fetch and swallowed failure into a
-						// zero. `schema` is the OpenRegister SLUG.
-						type: 'stat',
-						content: {
-							label: this.t('learniq', 'Learners'),
-							variant: 'success',
-							clickRoute: { path: '/learner-profiles' },
-							source: {
-								register: 'learniq',
-								schema: 'learner-profile',
-								metric: 'count',
-							},
-						},
-					},
-					{
-						id: 'kpi-active-enrolments',
-						title: this.t('learniq', 'Active enrolments'),
-						// Declared, not written. `type: 'stat'` resolves to the shared
-						// CnStatWidget, which aggregates SERVER-side; the wrappers this
-						// replaces each did their own fetch and swallowed failure into a
-						// zero. `schema` is the OpenRegister SLUG.
-						type: 'stat',
-						content: {
-							label: this.t('learniq', 'Active enrolments'),
-							variant: 'primary',
-							clickRoute: { path: '/enrolments' },
-							source: {
-								register: 'learniq',
-								schema: 'enrolment',
-								metric: 'count',
-								filter: { lifecycle: 'active' },
-							},
-						},
-					},
-					{
-						id: 'kpi-open-flags',
-						title: this.t('learniq', 'Open attendance flags'),
-						// Declared, not written. `type: 'stat'` resolves to the shared
-						// CnStatWidget, which aggregates SERVER-side; the wrappers this
-						// replaces each did their own fetch and swallowed failure into a
-						// zero. `schema` is the OpenRegister SLUG.
-						type: 'stat',
-						content: {
-							label: this.t('learniq', 'Open attendance flags'),
-							variant: 'warning',
-							clickRoute: { path: '/attendance/flags' },
-							source: {
-								register: 'learniq',
-								schema: 'attendance-flag',
-								metric: 'count',
-								filter: { lifecycle: 'open' },
-							},
-						},
-					},
-					{
-						id: 'manage-courses',
-						title: this.t('learniq', 'Courses'),
-						type: 'custom',
-					},
-					{
-						id: 'manage-cohorts',
-						title: this.t('learniq', 'Cohorts'),
-						type: 'custom',
-					},
-					{
-						id: 'manage-programmes',
-						title: this.t('learniq', 'Programmes'),
-						type: 'custom',
-					},
+					...this.adminCountTiles(),
+					customTile('manage-courses', this.t('learniq', 'Courses')),
+					customTile('manage-cohorts', this.t('learniq', 'Cohorts')),
+					customTile('manage-programmes', this.t('learniq', 'Programmes')),
 				],
 
-				layout: [
-					{
-						id: 1,
-						widgetId: 'kpi-courses',
-						gridX: 0,
-						gridY: 0,
-						gridWidth: 2,
-						gridHeight: 2,
-						showTitle: false,
-					},
-					{
-						id: 2,
-						widgetId: 'kpi-cohorts',
-						gridX: 2,
-						gridY: 0,
-						gridWidth: 2,
-						gridHeight: 2,
-						showTitle: false,
-					},
-					{
-						id: 3,
-						widgetId: 'kpi-learners',
-						gridX: 4,
-						gridY: 0,
-						gridWidth: 2,
-						gridHeight: 2,
-						showTitle: false,
-					},
-					{
-						id: 4,
-						widgetId: 'kpi-active-enrolments',
-						gridX: 6,
-						gridY: 0,
-						gridWidth: 2,
-						gridHeight: 2,
-						showTitle: false,
-					},
-					{
-						id: 5,
-						widgetId: 'kpi-open-flags',
-						gridX: 8,
-						gridY: 0,
-						gridWidth: 2,
-						gridHeight: 2,
-						showTitle: false,
-					},
-					{
-						id: 6,
-						widgetId: 'manage-courses',
-						gridX: 0,
-						gridY: 2,
-						gridWidth: 4,
-						gridHeight: 4,
-					},
-					{
-						id: 7,
-						widgetId: 'manage-cohorts',
-						gridX: 4,
-						gridY: 2,
-						gridWidth: 4,
-						gridHeight: 4,
-					},
-					{
-						id: 8,
-						widgetId: 'manage-programmes',
-						gridX: 8,
-						gridY: 2,
-						gridWidth: 4,
-						gridHeight: 4,
-					},
-				],
+				layout: freshLayout(ADMIN_LAYOUT),
 			}
 		},
 
@@ -528,122 +505,54 @@ export default {
 					// learning-progress-and-analytics: declarative KPI tiles
 					// surfacing average EngagementScore.score and open
 					// EngagementRiskFlag counts — no new chart component.
-					{
-						id: 'kpi-engagement-score',
-						title: this.t('learniq', 'Avg. engagement score'),
-						// Declared, not written. `type: 'stat'` resolves to the shared
-						// CnStatWidget, which aggregates SERVER-side; the wrappers this
-						// replaces each did their own fetch and swallowed failure into a
-						// zero. `schema` is the OpenRegister SLUG.
-						type: 'stat',
-						// A group teacher's tile averages only the pupils of their
-						// own groups (teacher-dashboard-engagement-tiles).
-						content: {
-							label: this.t('learniq', 'Avg. engagement score'),
-							clickRoute: { path: '/progress/engagement-scores' },
-							source: this.teacherTile({
-								register: 'learniq',
-								schema: 'engagement-score',
-								metric: 'avg',
-								field: 'score',
-							}),
-						},
-					},
-					{
-						id: 'kpi-engagement-flags',
-						title: this.t('learniq', 'Open engagement flags'),
-						// Declared, not written. `type: 'stat'` resolves to the shared
-						// CnStatWidget, which aggregates SERVER-side; the wrappers this
-						// replaces each did their own fetch and swallowed failure into a
-						// zero. `schema` is the OpenRegister SLUG.
-						type: 'stat',
-						content: {
-							label: this.t('learniq', 'Open engagement flags'),
-							variant: 'warning',
-							clickRoute: { path: '/progress/engagement-flags' },
-							source: this.teacherTile({
-								register: 'learniq',
-								schema: 'engagement-risk-flag',
-								metric: 'count',
-								filter: { lifecycle: 'open' },
-							}),
-						},
-					},
-					{
-						id: 'teacher-courses',
-						title: this.t('learniq', 'My courses'),
-						type: 'custom',
-					},
-					{
-						id: 'teacher-assignments',
-						title: this.t('learniq', 'Assignments to grade'),
-						type: 'custom',
-					},
-					{
-						id: 'teacher-sessions',
-						title: this.t('learniq', 'Sessions to mark'),
-						type: 'custom',
-					},
-					{
-						id: 'teacher-cohorts',
-						title: this.t('learniq', 'My cohorts'),
-						type: 'custom',
-					},
+					this.engagementScoreTile,
+					this.engagementFlagsTile,
+					...this.teacherListTiles(),
 				],
 
-				layout: [
-					{
-						id: 1,
-						widgetId: 'kpi-engagement-score',
-						gridX: 0,
-						gridY: 0,
-						gridWidth: 6,
-						gridHeight: 2,
-						showTitle: false,
-					},
-					{
-						id: 2,
-						widgetId: 'kpi-engagement-flags',
-						gridX: 6,
-						gridY: 0,
-						gridWidth: 6,
-						gridHeight: 2,
-						showTitle: false,
-					},
-					{
-						id: 3,
-						widgetId: 'teacher-courses',
-						gridX: 0,
-						gridY: 2,
-						gridWidth: 6,
-						gridHeight: 4,
-					},
-					{
-						id: 4,
-						widgetId: 'teacher-assignments',
-						gridX: 6,
-						gridY: 2,
-						gridWidth: 6,
-						gridHeight: 4,
-					},
-					{
-						id: 5,
-						widgetId: 'teacher-sessions',
-						gridX: 0,
-						gridY: 6,
-						gridWidth: 6,
-						gridHeight: 4,
-					},
-					{
-						id: 6,
-						widgetId: 'teacher-cohorts',
-						gridX: 6,
-						gridY: 6,
-						gridWidth: 6,
-						gridHeight: 4,
-					},
-				],
+				layout: freshLayout(TEACHER_LAYOUT),
 			}
+		},
+
+		/**
+		 * The teacher's average engagement score tile. A group teacher's tile
+		 * averages only the pupils of their own groups
+		 * (teacher-dashboard-engagement-tiles).
+		 *
+		 * @return {object} The widget.
+		 * @spec openspec/changes/teacher-dashboard-engagement-tiles/specs/dashboard/spec.md#requirement-the-engagement-tiles-of-a-group-teacher-count-only-their-own-groups
+		 */
+		engagementScoreTile() {
+			return statTile('kpi-engagement-score', {
+				label: this.t('learniq', 'Avg. engagement score'),
+				clickRoute: { path: '/progress/engagement-scores' },
+				source: this.teacherTile({
+					register: 'learniq',
+					schema: 'engagement-score',
+					metric: 'avg',
+					field: 'score',
+				}),
+			})
+		},
+
+		/**
+		 * The teacher's open engagement flags tile, scoped like the score tile.
+		 *
+		 * @return {object} The widget.
+		 * @spec openspec/changes/teacher-dashboard-engagement-tiles/specs/dashboard/spec.md#requirement-the-engagement-tiles-of-a-group-teacher-count-only-their-own-groups
+		 */
+		engagementFlagsTile() {
+			return statTile('kpi-engagement-flags', {
+				label: this.t('learniq', 'Open engagement flags'),
+				variant: 'warning',
+				clickRoute: { path: '/progress/engagement-flags' },
+				source: this.teacherTile({
+					register: 'learniq',
+					schema: 'engagement-risk-flag',
+					metric: 'count',
+					filter: { lifecycle: 'open' },
+				}),
+			})
 		},
 
 		/**
@@ -659,60 +568,14 @@ export default {
 		studentConfig() {
 			return {
 				widgets: [
-					{
-						id: 'my-mandatory-training',
-						title: this.t('learniq', 'My mandatory training'),
-						type: 'custom',
-					},
-					// engagement-gamification: the learner's own points/level/streak KPI —
-					// always visible regardless of any Leaderboard/opt-out state.
-					//
-					// Declared, not written. This was the last bespoke KPI tile in the
-					// app: it could not be a plain `source` aggregation because it needs
-					// a JOIN across learner-engagement and engagement-level, and a
-					// two-call frontend could not make that join succeed or fail as one
-					// — a silent level-lookup failure rendered as "has points, no level",
-					// indistinguishable from a learner who has not reached one.
-					// /api/engagement/me serves the joined record, so the tile is config.
-					{
-						id: 'kpi-points-level',
-						title: this.t('learniq', 'My points'),
-						type: 'stat',
-						content: {
-							label: this.t('learniq', 'My points'),
-							variant: 'primary',
-							endpointSource: {
-								url: '/apps/learniq/api/engagement/me',
-							},
-
-							valueField: 'totalPoints',
-							// The server composes this line: a caption template resolves a
-							// missing token to '', which would leave a learner with no level
-							// showing an orphan separator.
-							caption: '{summary}',
-						},
-					},
+					customTile(
+						'my-mandatory-training',
+						this.t('learniq', 'My mandatory training'),
+					),
+					this.pointsTile(),
 				],
 
-				layout: [
-					{
-						id: 1,
-						widgetId: 'my-mandatory-training',
-						gridX: 0,
-						gridY: 0,
-						gridWidth: 6,
-						gridHeight: 5,
-					},
-					{
-						id: 2,
-						widgetId: 'kpi-points-level',
-						gridX: 6,
-						gridY: 0,
-						gridWidth: 6,
-						gridHeight: 2,
-						showTitle: false,
-					},
-				],
+				layout: freshLayout(STUDENT_LAYOUT),
 			}
 		},
 	},
@@ -740,6 +603,68 @@ export default {
 	},
 
 	methods: {
+		/**
+		 * The admin dashboard's KPI row.
+		 *
+		 * @return {Array<object>} The count tiles.
+		 * @spec openspec/specs/dashboard/spec.md#requirement-per-role-group-gated-dashboard-menu-items
+		 */
+		adminCountTiles() {
+			return [
+				countTile('kpi-courses', this.t('learniq', 'Courses')),
+				countTile('kpi-cohorts', this.t('learniq', 'Cohorts')),
+				countTile('kpi-learners', this.t('learniq', 'Learners')),
+				countTile('kpi-active-enrolments', this.t('learniq', 'Active enrolments')),
+				countTile('kpi-open-flags', this.t('learniq', 'Open attendance flags')),
+			]
+		},
+
+		/**
+		 * The teacher dashboard's four lists.
+		 *
+		 * @return {Array<object>} The list tiles.
+		 * @spec openspec/specs/dashboard/spec.md#requirement-per-role-group-gated-dashboard-menu-items
+		 */
+		teacherListTiles() {
+			return [
+				customTile('teacher-courses', this.t('learniq', 'My courses')),
+				customTile('teacher-assignments', this.t('learniq', 'Assignments to grade')),
+				customTile('teacher-sessions', this.t('learniq', 'Sessions to mark')),
+				customTile('teacher-cohorts', this.t('learniq', 'My cohorts')),
+			]
+		},
+
+		/**
+		 * The learner's own points/level/streak KPI (engagement-gamification),
+		 * always visible regardless of any Leaderboard/opt-out state.
+		 *
+		 * Declared, not written. This was the last bespoke KPI tile in the
+		 * app: it could not be a plain `source` aggregation because it needs
+		 * a JOIN across learner-engagement and engagement-level, and a
+		 * two-call frontend could not make that join succeed or fail as one
+		 * — a silent level-lookup failure rendered as "has points, no level",
+		 * indistinguishable from a learner who has not reached one.
+		 * /api/engagement/me serves the joined record, so the tile is config.
+		 *
+		 * @return {object} The widget.
+		 * @spec openspec/specs/dashboard/spec.md#requirement-per-role-group-gated-dashboard-menu-items
+		 */
+		pointsTile() {
+			return statTile('kpi-points-level', {
+				label: this.t('learniq', 'My points'),
+				variant: 'primary',
+				endpointSource: {
+					url: '/apps/learniq/api/engagement/me',
+				},
+
+				valueField: 'totalPoints',
+				// The server composes this line: a caption template resolves a
+				// missing token to '', which would leave a learner with no level
+				// showing an orphan separator.
+				caption: '{summary}',
+			})
+		},
+
 		/**
 		 * The roll-call of a lesson's group and day, where "Sessions to mark" leads.
 		 *

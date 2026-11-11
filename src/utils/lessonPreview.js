@@ -25,6 +25,21 @@ export const PREVIEW_HEADER = 'X-Learniq-Preview'
 export const RULE_KINDS = ['score-below', 'assessment-min-score', 'lesson-completed']
 
 /**
+ * The simulated score a route query carries, null when it carries none or
+ * no number.
+ *
+ * @param {unknown} raw The `score` query value.
+ * @return {number|null} The score.
+ * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-preview-as-learner/spec.md#scenario-a-teacher-walks-the-course-as-a-learner
+ */
+function simulatedScore(raw) {
+	if (raw === undefined || raw === null || raw === '' || Number.isNaN(Number(raw))) {
+		return null
+	}
+	return Number(raw)
+}
+
+/**
  * Read the preview state from a route query.
  *
  * @param {object|undefined} query The route query.
@@ -33,11 +48,7 @@ export const RULE_KINDS = ['score-below', 'assessment-min-score', 'lesson-comple
  */
 export function previewFromQuery(query) {
 	const active = String(query?.preview ?? '') === '1'
-	const raw = query?.score
-	const score =
-		raw === undefined || raw === null || raw === '' || Number.isNaN(Number(raw))
-			? null
-			: Number(raw)
+	const score = simulatedScore(query?.score)
 	return { active, score: active ? score : null }
 }
 
@@ -118,6 +129,48 @@ export function editableRules(rules) {
 }
 
 /**
+ * Whether an edited rule is saved: it has a target and a known kind.
+ *
+ * @param {object} rule The rule as edited.
+ * @return {boolean} True when it is saved.
+ * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
+ */
+function isSavableRule(rule) {
+	return Boolean(rule?.goToLessonId) && RULE_KINDS.includes(rule?.when?.kind)
+}
+
+/**
+ * A score threshold as stored: a number, or null when it is left empty.
+ *
+ * @param {unknown} value The threshold as edited.
+ * @return {number|null} The threshold.
+ * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
+ */
+function storedThreshold(value) {
+	return value === '' || value === null || value === undefined ? null : Number(value)
+}
+
+/**
+ * The condition of a saved rule: only the fields its kind uses.
+ *
+ * @param {object} rule A rule with a known kind.
+ * @return {object} The `when` to store.
+ * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
+ */
+function ruleCondition(rule) {
+	const kind = rule.when.kind
+	if (kind === 'lesson-completed') {
+		return { kind, lessonId: rule.when.lessonId ?? null }
+	}
+	const field = kind === 'score-below' ? 'belowScore' : 'minScore'
+	return {
+		kind,
+		assessmentId: rule.when.assessmentId ?? null,
+		[field]: storedThreshold(rule.when[field]),
+	}
+}
+
+/**
  * Normalise the editor's rules into what the Lesson schema stores: only the
  * fields the rule's kind uses, and no rule without a target.
  *
@@ -128,21 +181,9 @@ export function editableRules(rules) {
 export function serialiseRules(rules) {
 	const out = []
 	for (const rule of rules ?? []) {
-		const kind = rule?.when?.kind
-		if (!rule?.goToLessonId || !RULE_KINDS.includes(kind)) continue
-		const when = { kind }
-		if (kind === 'lesson-completed') {
-			when.lessonId = rule.when.lessonId ?? null
-		} else {
-			when.assessmentId = rule.when.assessmentId ?? null
-			const field = kind === 'score-below' ? 'belowScore' : 'minScore'
-			const value = rule.when[field]
-			when[field] =
-				value === '' || value === null || value === undefined
-					? null
-					: Number(value)
+		if (isSavableRule(rule)) {
+			out.push({ when: ruleCondition(rule), goToLessonId: rule.goToLessonId })
 		}
-		out.push({ when, goToLessonId: rule.goToLessonId })
 	}
 	return out
 }

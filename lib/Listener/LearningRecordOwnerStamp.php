@@ -44,7 +44,6 @@ namespace OCA\Learniq\Listener;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\LearningRecordAggregationService;
 use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -52,7 +51,6 @@ use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\IGroupManager;
 use OCP\IUserSession;
-use Throwable;
 
 /**
  * Stamps the owner of a LearningRecordExport or LearningRecordShare on create and keeps it on update.
@@ -112,25 +110,24 @@ class LearningRecordOwnerStamp implements IEventListener {
 	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
 	 */
 	public function handle(Event $event): void {
-		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {
+		$write = SchemaWrite::of(event: $event, schemaResolver: $this->schemaResolver);
+		if ($write === null || isset(self::OWNER_FIELDS[$write->slug]) === false) {
 			return;
 		}
 
-		if ($event->isPropagationStopped() === true) {
-			return;
-		}
+		$this->stampWrite(write: $write);
+	}//end handle()
 
-		try {
-			$slug = $this->schemaResolver->guardSchemaSlug(entity: $this->entityOf(event: $event));
-		} catch (Throwable $exception) {
-			// Not knowing the schema is not knowing it is ours: never touch
-			// another app's writes.
-			return;
-		}
-
-		if (isset(self::OWNER_FIELDS[$slug]) === false) {
-			return;
-		}
+	/**
+	 * Stamp one write of a schema this listener owns.
+	 *
+	 * @param SchemaWrite $write The write and its schema slug.
+	 *
+	 * @return void
+	 */
+	private function stampWrite(SchemaWrite $write): void {
+		$event = $write->event;
+		$slug = $write->slug;
 
 		$userId = (string)($this->userSession->getUser()?->getUID() ?? '');
 		if ($userId === '' || $this->groupManager->isAdmin($userId) === true) {
@@ -144,7 +141,7 @@ class LearningRecordOwnerStamp implements IEventListener {
 		}
 
 		$this->stampOwner(event: $event, userId: $userId, fields: $fields);
-	}//end handle()
+	}//end stampWrite()
 
 	/**
 	 * Put the stored owner fields back over whatever the update sends.
@@ -215,20 +212,4 @@ class LearningRecordOwnerStamp implements IEventListener {
 
 		return $userId;
 	}//end learnerOf()
-
-	/**
-	 * The object being written: an update carries it in getNewObject(), only
-	 * a create has getObject().
-	 *
-	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The write event.
-	 *
-	 * @return ObjectEntity
-	 */
-	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
-	}//end entityOf()
 }//end class

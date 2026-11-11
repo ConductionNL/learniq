@@ -109,4 +109,59 @@ class PortalAssessmentCatalogueTest extends TestCase {
 		self::assertSame('not-open', $catalogue->startBlock(learner: $this->learner(), exam: ['availableFrom' => '2026-10-02T00:00:00+00:00'] + $open, enrolment: $enrolment, attemptsUsed: 0, now: $now));
 		self::assertSame('closed', $catalogue->startBlock(learner: $this->learner(), exam: ['availableUntil' => '2026-09-30T00:00:00+00:00'] + $open, enrolment: $enrolment, attemptsUsed: 0, now: $now));
 	}//end testEachRuleGivesItsReason()
+
+	/**
+	 * A draft test and a test the release rules hold back are not available,
+	 * and the rules refuse in a fixed order: availability before proctoring,
+	 * proctoring before the window, the window before release, and release
+	 * before the attempt count.
+	 *
+	 * @return void
+	 */
+	public function testRulesRefuseInTheirOrder(): void {
+		$catalogue = $this->catalogue(new PortalFakeRegister());
+		$now = new DateTimeImmutable('2026-10-01T09:00:00+00:00');
+		$open = ['lifecycle' => 'published', 'tenant_id' => 't-1', 'maxAttempts' => 1];
+		$enrolment = ['courseId' => 'c-1'];
+		$proctored = ['proctoring' => ['lockdownBrowser' => true]];
+		$closed = ['availableUntil' => '2026-09-30T00:00:00+00:00'];
+
+		self::assertSame('not-available', $catalogue->startBlock(learner: $this->learner(), exam: ['lifecycle' => 'draft'] + $open, enrolment: $enrolment, attemptsUsed: 0, now: $now));
+		self::assertSame('not-available', $catalogue->startBlock(learner: $this->learner(), exam: ['tenant_id' => 't-2'] + $proctored + $open, enrolment: $enrolment, attemptsUsed: 0, now: $now));
+		self::assertSame('proctored', $catalogue->startBlock(learner: $this->learner(), exam: $proctored + $closed + $open, enrolment: $enrolment, attemptsUsed: 1, now: $now));
+		self::assertSame('closed', $catalogue->startBlock(learner: $this->learner(), exam: $closed + $open, enrolment: $enrolment, attemptsUsed: 1, now: $now));
+		self::assertNull($catalogue->startBlock(learner: $this->learner(), exam: ['tenant_id' => ''] + $open, enrolment: $enrolment, attemptsUsed: 0, now: $now));
+
+		$release = $this->createMock(LessonReleaseEvaluator::class);
+		$release->method('evaluate')->willReturn(['available' => false, 'reason' => 'drip', 'availableAt' => null]);
+		$held = new PortalAssessmentCatalogue(
+			reader: new PortalAttemptReader(objectService: (new PortalFakeRegister())->objectService($this)),
+			release: $release,
+			policy: new AssessmentAccessPolicy()
+		);
+
+		self::assertSame('not-available', $held->startBlock(learner: $this->learner(), exam: $open, enrolment: $enrolment, attemptsUsed: 1, now: $now));
+		self::assertSame('closed', $held->startBlock(learner: $this->learner(), exam: $closed + $open, enrolment: $enrolment, attemptsUsed: 0, now: $now));
+	}//end testRulesRefuseInTheirOrder()
+
+	/**
+	 * A test belongs to the first live enrolment that shares its course or its
+	 * cohort; an empty id matches nothing, and a withdrawn enrolment is skipped.
+	 *
+	 * @return void
+	 */
+	public function testEnrolmentForMatchesCourseOrCohort(): void {
+		$register = new PortalFakeRegister();
+		$register->put('enrolment', 'en-1', ['learnerId' => 'pupil-1', 'courseId' => 'c-1', 'cohortId' => '', 'lifecycle' => 'active']);
+		$register->put('enrolment', 'en-2', ['learnerId' => 'pupil-1', 'courseId' => 'c-2', 'cohortId' => 'h-2', 'lifecycle' => 'pending']);
+		$register->put('enrolment', 'en-3', ['learnerId' => 'pupil-1', 'courseId' => 'c-3', 'lifecycle' => 'withdrawn']);
+		$catalogue = $this->catalogue($register);
+
+		self::assertSame('en-1', $catalogue->enrolmentFor(learner: $this->learner(), exam: ['courseId' => 'c-1'])['id'] ?? null);
+		self::assertSame('en-2', $catalogue->enrolmentFor(learner: $this->learner(), exam: ['cohortId' => 'h-2'])['id'] ?? null);
+		self::assertSame('en-2', $catalogue->enrolmentFor(learner: $this->learner(), exam: ['courseId' => 'c-9', 'cohortId' => 'h-2'])['id'] ?? null);
+		self::assertNull($catalogue->enrolmentFor(learner: $this->learner(), exam: ['courseId' => '', 'cohortId' => '']));
+		self::assertNull($catalogue->enrolmentFor(learner: $this->learner(), exam: ['courseId' => 'c-3']));
+		self::assertNull($catalogue->enrolmentFor(learner: $this->learner(), exam: []));
+	}//end testEnrolmentForMatchesCourseOrCohort()
 }//end class

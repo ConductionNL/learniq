@@ -54,6 +54,33 @@ class AttendanceWindowAggregator {
 	private const ATTENDANCE_RECORD_SCHEMA = 'attendance-record';
 
 	/**
+	 * The summary of a learner without records in the window.
+	 *
+	 * @var array<string,int|null>
+	 */
+	private const EMPTY_SUMMARY = [
+		'presentCount' => 0,
+		'absentUnexcusedCount' => 0,
+		'absentExcusedCount' => 0,
+		'lateCount' => 0,
+		'leftEarlyCount' => 0,
+		'attendancePercent' => null,
+	];
+
+	/**
+	 * The summary counter each attendance status adds to.
+	 *
+	 * @var array<string,string>
+	 */
+	private const COUNTER_BY_STATUS = [
+		'present' => 'presentCount',
+		'absent-unexcused' => 'absentUnexcusedCount',
+		'absent-excused' => 'absentExcusedCount',
+		'late' => 'lateCount',
+		'left-early' => 'leftEarlyCount',
+	];
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object access service.
@@ -166,21 +193,23 @@ class AttendanceWindowAggregator {
 	 * @spec openspec/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
 	 */
 	public function buildAttendanceSummary(string $learnerId, array $sessionIds): array {
-		$summary = [
-			'presentCount' => 0,
-			'absentUnexcusedCount' => 0,
-			'absentExcusedCount' => 0,
-			'lateCount' => 0,
-			'leftEarlyCount' => 0,
-			'attendancePercent' => null,
-		];
-
 		if (empty($sessionIds) === true) {
-			return $summary;
+			return self::EMPTY_SUMMARY;
 		}
 
-		$sessionIdSet = array_flip($sessionIds);
+		$records = self::inSessions(records: $this->learnerRecords(learnerId: $learnerId), sessionIds: $sessionIds);
 
+		return self::withPercent(summary: self::tally(records: $records), total: count($records));
+	}//end buildAttendanceSummary()
+
+	/**
+	 * Every AttendanceRecord of the learner, as arrays.
+	 *
+	 * @param string $learnerId Nextcloud user id of the learner.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function learnerRecords(string $learnerId): array {
 		$records = $this->objectService->findAll(
 			[
 				'filters' => [
@@ -192,40 +221,68 @@ class AttendanceWindowAggregator {
 			]
 		);
 
-		$total = 0;
+		return array_map(fn (mixed $row): array => $this->normalise(row: $row), $records);
+	}//end learnerRecords()
 
-		foreach ($records as $row) {
-			$record = $this->normalise(row: $row);
-			$sessionId = (string)($record['sessionId'] ?? '');
-			if ($sessionId === '' || isset($sessionIdSet[$sessionId]) === false) {
-				continue;
-			}
+	/**
+	 * The records that belong to one of the window's sessions.
+	 *
+	 * @param array<int,array<string,mixed>> $records    The learner's records.
+	 * @param array<int,string>              $sessionIds The window's session ids.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private static function inSessions(array $records, array $sessionIds): array {
+		$sessionIdSet = array_flip($sessionIds);
 
-			$total++;
+		return array_values(
+			array_filter(
+				$records,
+				static function (array $record) use ($sessionIdSet): bool {
+					$sessionId = (string)($record['sessionId'] ?? '');
+					return $sessionId !== '' && isset($sessionIdSet[$sessionId]) === true;
+				}
+			)
+		);
+	}//end inSessions()
 
-			// An unrecognised status still counts toward the total but has no
-			// counter of its own, which is what the null arm means.
-			$counter = match ((string)($record['status'] ?? '')) {
-				'present' => 'presentCount',
-				'absent-unexcused' => 'absentUnexcusedCount',
-				'absent-excused' => 'absentExcusedCount',
-				'late' => 'lateCount',
-				'left-early' => 'leftEarlyCount',
-				default => null,
-			};
-
+	/**
+	 * Count the records per status. An unrecognised status still counts
+	 * toward the total but has no counter of its own.
+	 *
+	 * @param array<int,array<string,mixed>> $records The window's records.
+	 *
+	 * @return array<string,mixed> The summary without its percentage.
+	 */
+	private static function tally(array $records): array {
+		$summary = self::EMPTY_SUMMARY;
+		foreach ($records as $record) {
+			$counter = (self::COUNTER_BY_STATUS[(string)($record['status'] ?? '')] ?? null);
 			if ($counter !== null) {
 				$summary[$counter] = ((int)$summary[$counter] + 1);
 			}
-		}//end foreach
+		}
 
+		return $summary;
+	}//end tally()
+
+	/**
+	 * Add the attendance percentage (present, late and left-early over every
+	 * counted record), when any record was counted.
+	 *
+	 * @param array<string,mixed> $summary The counted summary.
+	 * @param int                 $total   Records in the window.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private static function withPercent(array $summary, int $total): array {
 		if ($total > 0) {
 			$attended = $summary['presentCount'] + $summary['lateCount'] + $summary['leftEarlyCount'];
 			$summary['attendancePercent'] = round(($attended / $total) * 100, 2);
 		}
 
 		return $summary;
-	}//end buildAttendanceSummary()
+	}//end withPercent()
 
 	/**
 	 * Normalise an ObjectService row/entity to a plain array.
