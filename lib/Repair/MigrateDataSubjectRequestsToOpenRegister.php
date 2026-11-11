@@ -85,7 +85,7 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 	 *
 	 * @var array<string, string>
 	 */
-	private const KIND_TO_TYPE = [
+	public const KIND_TO_TYPE = [
 		'correction' => 'rectification',
 		'deletion' => 'erasure',
 	];
@@ -243,7 +243,6 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 
 		return array_filter($case, static fn ($value): bool => $value !== '');
 	}//end toCase()
-
 	/**
 	 * The case notes: the marker line, then the description and the audit trail.
 	 *
@@ -253,60 +252,8 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 	 * @return string
 	 */
 	private static function notesFor(array $row, string $sourceId): string {
-		$lines = [self::MARKER . $sourceId];
-
-		$kind = (string)($row['kind'] ?? '');
-		if ($kind !== '' && isset(self::KIND_TO_TYPE[$kind]) === false) {
-			$lines[] = 'Original kind: ' . $kind;
-		}
-
-		$description = ($row['description'] ?? null);
-		if (is_string($description) === true && trim($description) !== '') {
-			$lines[] = '';
-			$lines[] = trim($description);
-		}
-
-		$history = self::historyLines(trail: ($row['auditTrail'] ?? []));
-		if ($history !== []) {
-			$lines[] = '';
-			$lines[] = 'History:';
-			array_push($lines, ...$history);
-		}
-
-		// OpenRegister caps notes at 4000 characters.
-		return mb_substr(implode("\n", $lines), 0, 4000);
+		return (new DataSubjectRequestNotes())->notesFor(row: $row, sourceId: $sourceId);
 	}//end notesFor()
-
-	/**
-	 * One line per audit trail entry: when, who, what, and the note if any.
-	 *
-	 * @param mixed $trail The learniq `auditTrail` value.
-	 *
-	 * @return array<int, string>
-	 */
-	private static function historyLines(mixed $trail): array {
-		if (is_array($trail) === false) {
-			return [];
-		}
-
-		$lines = [];
-		foreach ($trail as $entry) {
-			if (is_array($entry) === false) {
-				continue;
-			}
-
-			$line = '- ' . (string)($entry['recordedAt'] ?? '') . ' ' . (string)($entry['recordedBy'] ?? '')
-				. ': ' . (string)($entry['action'] ?? '');
-			$note = ($entry['note'] ?? null);
-			if (is_string($note) === true && $note !== '') {
-				$line .= ' (' . $note . ')';
-			}
-
-			$lines[] = $line;
-		}
-
-		return $lines;
-	}//end historyLines()
 
 	/**
 	 * Source uuids that already have a case, read from the marker line.
@@ -316,19 +263,46 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 	private function alreadyMigrated(): array {
 		$migrated = [];
 		foreach ($this->readAll(register: self::OR_REGISTER, schema: self::OR_SCHEMA) as $case) {
-			$notes = ($case['notes'] ?? null);
-			if (is_string($notes) === false || str_starts_with($notes, self::MARKER) === false) {
-				continue;
-			}
-
-			$firstLine = strtok(substr($notes, strlen(self::MARKER)), "\n");
-			if (is_string($firstLine) === true && trim($firstLine) !== '') {
-				$migrated[trim($firstLine)] = true;
+			$sourceId = self::markedSourceId(notes: ($case['notes'] ?? null));
+			if ($sourceId !== null) {
+				$migrated[$sourceId] = true;
 			}
 		}
 
 		return $migrated;
 	}//end alreadyMigrated()
+
+	/**
+	 * The source uuid a case's notes name on their marker line, or null when
+	 * the notes carry no marker or name nothing.
+	 *
+	 * @param mixed $notes The case notes.
+	 *
+	 * @return string|null
+	 */
+	private static function markedSourceId(mixed $notes): ?string {
+		if (self::hasMarker(notes: $notes) === false) {
+			return null;
+		}
+
+		$firstLine = strtok(substr($notes, strlen(self::MARKER)), "\n");
+		if (is_string($firstLine) === true && trim($firstLine) !== '') {
+			return trim($firstLine);
+		}
+
+		return null;
+	}//end markedSourceId()
+
+	/**
+	 * Whether the notes are a string that starts with the marker.
+	 *
+	 * @param mixed $notes The case notes.
+	 *
+	 * @return bool
+	 */
+	private static function hasMarker(mixed $notes): bool {
+		return is_string($notes) === true && str_starts_with($notes, self::MARKER) === true;
+	}//end hasMarker()
 
 	/**
 	 * Every row of one schema, as arrays, without RBAC (no session in a repair step).
@@ -339,39 +313,61 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 	 * @return array<int, array<string, mixed>>
 	 */
 	private function readAll(string $register, string $schema): array {
-		$rows = [];
+		$filters = ['register' => $register, 'schema' => $schema];
+		$rows    = [];
 		for ($page = 0; $page < self::MAX_PAGES; $page++) {
-			$objects = $this->objectService->findAll(
-				config: [
-					'filters' => [
-						'register' => $register,
-						'schema' => $schema,
-					],
-					'limit' => self::PAGE_SIZE,
-					'offset' => ($page * self::PAGE_SIZE),
-				],
-				_rbac: false,
-				_multitenancy: false
-			);
-
-			foreach ($objects as $object) {
-				if (is_array($object) === true) {
-					$rows[] = $object;
-					continue;
-				}
-
-				if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-					$rows[] = (array)$object->jsonSerialize();
-				}
-			}
-
+			$objects = $this->findPage(filters: $filters, page: $page);
+			$rows    = array_merge($rows, self::asRows(objects: $objects));
 			if (count($objects) < self::PAGE_SIZE) {
 				break;
 			}
-		}//end for
+		}
 
 		return $rows;
 	}//end readAll()
+
+	/**
+	 * One page of rows matching the filters, without RBAC or tenancy.
+	 *
+	 * @param array<string, string> $filters The register and schema filters.
+	 * @param int                   $page    Zero-based page number.
+	 *
+	 * @return array<int, mixed>
+	 */
+	private function findPage(array $filters, int $page): array {
+		return $this->objectService->findAll(
+			config: [
+				'filters' => $filters,
+				'limit' => self::PAGE_SIZE,
+				'offset' => ($page * self::PAGE_SIZE),
+			],
+			_rbac: false,
+			_multitenancy: false
+		);
+	}//end findPage()
+
+	/**
+	 * The page's objects as arrays; an object that cannot be serialised is passed over.
+	 *
+	 * @param array<int, mixed> $objects One page of objects or arrays.
+	 *
+	 * @return array<int, array<mixed>>
+	 */
+	private static function asRows(array $objects): array {
+		$rows = [];
+		foreach ($objects as $object) {
+			if (is_array($object) === true) {
+				$rows[] = $object;
+				continue;
+			}
+
+			if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
+				$rows[] = (array)$object->jsonSerialize();
+			}
+		}
+
+		return $rows;
+	}//end asRows()
 
 	/**
 	 * The object uuid of a serialised row: `id`, `uuid`, or `@self.id`.
