@@ -11,7 +11,7 @@
 
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { availabilityBlocks, pickedFromBlocks } from '../../src/dialogs/dialogBodies.js'
+import { availabilityBlocks, localDay, pickedFromBlocks } from '../../src/dialogs/dialogBodies.js'
 
 /**
  * @param {string} local A local moment.
@@ -49,4 +49,9 @@ test('a block that cannot be read marks nothing; a block can span midnight', () 
 		{ startsAt: '2026-11-10T19:00:00', endsAt: '2026-11-10T19:30:00' },
 	]), { '2026-11-10': ['20:00', '19:00'] })
 	assert.deepEqual(pickedFromBlocks({ length: 1 }), {})
+})
+
+test('localDay writes a moment as its local date, zero-padded', () => {
+	assert.equal(localDay(new Date(2026, 0, 5, 23, 59)), '2026-01-05')
+	assert.equal(localDay(new Date(2026, 10, 11)), '2026-11-11')
 })
