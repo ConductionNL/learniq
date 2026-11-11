@@ -252,5 +252,176 @@ class LearningRecordImportServiceTest extends TestCase {
 		self::assertFalse($verdict->isAllowed());
 		self::assertStringContainsString('some-other-format', (string)$verdict->getMessage());
 	}//end testUnrecognisedSourceFormatBlocks()
+	/**
+	 * The full coverage report of an own-format bundle: native rows per
+	 * collection in the collection order, then each ELM credential.
+	 *
+	 * @return void
+	 */
+	public function testOwnFormatReportListsEveryRowInOrder(): void {
+		$bundle = [
+			'issuerDid' => 'did:web:learniq:tenant-1:fingerprint',
+			'elm' => [['kind' => 'diploma'], 'not-an-object', ['other' => 1]],
+			'scholiqNative' => [
+				'credentials' => [['kind' => 'certificate'], 'not-a-row'],
+				'enrolments' => [['id' => 'e-1']],
+				'portfolios' => [['title' => 'Mijn portfolio'], []],
+				'finalGrades' => 'not-a-list',
+				'bpvPlacements' => [['trainingCompanyName' => 'Van Dam']],
+				'lessonCompletions' => [['courseId' => 'c-9']],
+			],
+			'proof' => ['jws' => 'header..signature'],
+		];
+
+		$service = $this->makeService(rawContent: (string)json_encode($bundle));
+		$this->signingService->method('resolveIssuerDid')->with('tenant-1')->willReturn('did:web:learniq:tenant-1:fingerprint');
+		$this->signingService->expects($this->once())->method('verify')->with('header..signature', $bundle, 'tenant-1')->willReturn(true);
+
+		$saved = $service->parse(import: $this->baseObject(['entries' => 'old', 'errorMessage' => 'old']));
+
+		$entry = static fn (?string $schema, string $title): array => ['sourceSchema' => $schema, 'sourceTitle' => $title, 'outcome' => 'recognized', 'reason' => null];
+		self::assertSame(
+			array_merge(
+				$this->baseObject(),
+				[
+					'entries' => [
+						$entry('enrolment', 'enrolment'),
+						$entry('credential', 'Credential (certificate)'),
+						$entry('credential', 'Credential (unknown)'),
+						$entry('portfolio', 'Mijn portfolio'),
+						$entry('portfolio', 'portfolio'),
+						$entry('bpv-placement', 'Van Dam'),
+						$entry('lesson-completion', 'Lesson completions — course c-9'),
+						$entry('credential', 'Credential (diploma)'),
+						$entry('credential', 'Credential (credential)'),
+						$entry('credential', 'Credential (credential)'),
+					],
+					'errorMessage' => null,
+					'issuerDid' => 'did:web:learniq:tenant-1:fingerprint',
+					'verificationStatus' => 'verified',
+				]
+			),
+			$saved
+		);
+	}//end testOwnFormatReportListsEveryRowInOrder()
+
+	/**
+	 * Without a usable proof, or without an own issuer to compare against,
+	 * an own-format bundle is unverifiable and nothing is verified.
+	 *
+	 * @return void
+	 */
+	public function testAMissingProofOrOwnIssuerIsUnverifiable(): void {
+		$cases = [
+			'no proof' => [[], 'did:own'],
+			'empty proof' => [['proof' => ['jws' => '']], 'did:own'],
+			'proof not a string' => [['proof' => ['jws' => ['x']]], 'did:own'],
+			'no own issuer' => [['proof' => ['jws' => 'h..s']], null],
+			'no bundle issuer' => [['proof' => ['jws' => 'h..s'], 'issuerDid' => null], 'did:own'],
+		];
+
+		foreach ($cases as $label => [$extra, $own]) {
+			$bundle = array_merge(['issuerDid' => 'did:own'], $extra);
+			$service = $this->makeService(rawContent: (string)json_encode($bundle));
+			$this->signingService->method('resolveIssuerDid')->willReturn($own);
+			$this->signingService->expects($this->never())->method('verify');
+
+			$saved = $service->parse(import: $this->baseObject());
+
+			self::assertSame('unverifiable', $saved['verificationStatus'], $label);
+			self::assertSame([], $saved['entries'], $label);
+			self::assertSame(($bundle['issuerDid'] ?? null), $saved['issuerDid'], $label);
+		}
+	}//end testAMissingProofOrOwnIssuerIsUnverifiable()
+
+	/**
+	 * A bare ELM list without a `credentials` key: every entry titled by its
+	 * achievement, its name, or its position; the issuer read from `issuer.id`.
+	 *
+	 * @return void
+	 */
+	public function testABareElmListIsTitledByNameOrPosition(): void {
+		$elmList = [
+			['credentialSubject' => ['achievement' => ['name' => 'Diploma A']], 'name' => 'ignored'],
+			['name' => 'Certificaat B'],
+			['name' => ''],
+			'not-an-object',
+		];
+		$service = $this->makeService(rawContent: (string)json_encode($elmList));
+		$this->signingService->expects($this->never())->method('resolveIssuerDid');
+
+		$saved = $service->parse(import: $this->baseObject(['sourceFormat' => 'elm-europass']));
+
+		self::assertSame(['Diploma A', 'Certificaat B', 'ELM credential 3', 'ELM credential 4'], array_column($saved['entries'], 'sourceTitle'));
+		self::assertNull($saved['issuerDid']);
+		self::assertSame('unverifiable', $saved['verificationStatus']);
+		self::assertNull($saved['errorMessage']);
+
+		$withIssuer = $this->makeService(rawContent: (string)json_encode(['issuer' => ['id' => 'did:a'], 'issuerDid' => 'did:b', 'credentials' => [['name' => 'X']]]));
+		$saved = $withIssuer->parse(import: $this->baseObject(['sourceFormat' => 'elm-europass']));
+		self::assertSame('did:a', $saved['issuerDid']);
+		self::assertSame(['X'], array_column($saved['entries'], 'sourceTitle'));
+
+		$credentialsNotAList = $this->makeService(rawContent: (string)json_encode(['issuerDid' => 'did:b', 'credentials' => 'none']));
+		$saved = $credentialsNotAList->parse(import: $this->baseObject(['sourceFormat' => 'elm-europass']));
+		self::assertSame('did:b', $saved['issuerDid']);
+		self::assertSame(['ELM credential 1', 'ELM credential 2'], array_column($saved['entries'], 'sourceTitle'));
+	}//end testABareElmListIsTitledByNameOrPosition()
+
+	/**
+	 * The upload is read from the uploader's own files, relative to their
+	 * home; a missing reference, a missing uploader, a folder or a failing
+	 * read all answer "could not read", the failure with a warning.
+	 *
+	 * @return void
+	 */
+	public function testTheUploadIsReadFromTheUploadersFiles(): void {
+		$file = $this->createMock(File::class);
+		$file->method('getContent')->willReturn('{"a":1}');
+		$folder = $this->createMock(Folder::class);
+		$folder->method('get')->willReturnCallback(
+			function (string $path) use ($file): object {
+				if ($path === 'boom.json') {
+					throw new RuntimeException('disk gone');
+				}
+
+				return ($path === 'a/b.json' ? $file : $this->createMock(Folder::class));
+			}
+		);
+		$users = [];
+		$rootFolder = $this->createMock(IRootFolder::class);
+		$rootFolder->method('getUserFolder')->willReturnCallback(
+			function (string $uid) use (&$users, $folder): Folder {
+				$users[] = $uid;
+				return $folder;
+			}
+		);
+		$warnings = [];
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->method('warning')->willReturnCallback(
+			function (string $message, array $context) use (&$warnings): void {
+				$warnings[] = [$message, $context];
+			}
+		);
+		$service = new LearningRecordImportService(
+			signingService: $this->createMock(LearningRecordExportSigningService::class),
+			rootFolder: $rootFolder,
+			logger: $logger,
+		);
+
+		$read = $service->check($this->baseObject(['sourceRef' => '//a/b.json', 'sourceFormat' => 'unknown-format']), 'parse', 'x');
+		self::assertSame('Unrecognised sourceFormat: unknown-format', $read->getMessage());
+
+		foreach ([['sourceRef' => ''], ['uploadedBy' => ''], ['sourceRef' => '/a'], ['sourceRef' => 'boom.json']] as $override) {
+			$verdict = $service->check($this->baseObject($override), 'parse', 'x');
+			self::assertSame('Could not read the uploaded bundle.', $verdict->getMessage(), (string)json_encode($override));
+		}
+
+		self::assertSame(['coordinator-1', 'coordinator-1', 'coordinator-1'], $users);
+		self::assertSame(
+			[['[LearningRecordImportService] Could not read uploaded bundle at "{ref}": {msg}', ['ref' => 'boom.json', 'msg' => 'disk gone']]],
+			$warnings
+		);
+	}//end testTheUploadIsReadFromTheUploadersFiles()
 
 }//end class
