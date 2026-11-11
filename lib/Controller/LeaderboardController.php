@@ -146,6 +146,26 @@ class LeaderboardController extends Controller {
 		}
 
 		$cohort = $this->fetchObject(id: $cohortId, schema: self::COHORT_SCHEMA);
+		$refusal = $this->cohortRefusal(user: $user, cohort: $cohort);
+		if ($refusal !== null) {
+			return $refusal;
+		}
+
+		return $this->leaderboardResponse(cohort: $cohort, cohortId: $cohortId);
+	}//end getRankings()
+
+	/**
+	 * Why the caller may not see this cohort's ranking: it does not exist,
+	 * or they are neither admin nor a member; null when they may.
+	 *
+	 * @param IUser                    $user   The authenticated caller.
+	 * @param array<string,mixed>|null $cohort The Cohort data array, or null when not found.
+	 *
+	 * @return JSONResponse|null
+	 *
+	 * @phpstan-assert-if-false !null $cohort
+	 */
+	private function cohortRefusal(IUser $user, ?array $cohort): ?JSONResponse {
 		if ($cohort === null) {
 			return new JSONResponse(data: ['error' => 'Cohort not found'], statusCode: Http::STATUS_NOT_FOUND);
 		}
@@ -154,6 +174,19 @@ class LeaderboardController extends Controller {
 			return new JSONResponse(data: ['error' => 'Not authorized'], statusCode: Http::STATUS_FORBIDDEN);
 		}
 
+		return null;
+	}//end cohortRefusal()
+
+	/**
+	 * The ranking of a cohort its caller may see, when the cohort has an
+	 * active leaderboard: every learner ranked, cut to the leaderboard's top N.
+	 *
+	 * @param array<string,mixed> $cohort   The Cohort data array.
+	 * @param string              $cohortId UUID of the Cohort, as asked for.
+	 *
+	 * @return JSONResponse
+	 */
+	private function leaderboardResponse(array $cohort, string $cohortId): JSONResponse {
 		if ($this->hasActiveLeaderboard(cohortId: $cohortId) === false) {
 			return new JSONResponse(data: ['error' => 'No active leaderboard for this cohort'], statusCode: Http::STATUS_NOT_FOUND);
 		}
@@ -167,13 +200,25 @@ class LeaderboardController extends Controller {
 		$levelNames = $this->fetchLevelNames(tenantId: $tenantId);
 		$rankings = $this->buildRankings(learnerIds: $learnerIds, tenantId: $tenantId, levelNames: $levelNames);
 
+		return new JSONResponse(data: ['results' => $this->topRankings(rankings: $rankings, cohortId: $cohortId)]);
+	}//end leaderboardResponse()
+
+	/**
+	 * The rankings cut to the cohort leaderboard's top N, when it sets one.
+	 *
+	 * @param array<int,array<string,mixed>> $rankings The full ranking.
+	 * @param string                         $cohortId UUID of the Cohort.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function topRankings(array $rankings, string $cohortId): array {
 		$topN = $this->fetchLeaderboardTopN(cohortId: $cohortId);
 		if ($topN !== null) {
-			$rankings = array_slice($rankings, 0, $topN);
+			return array_slice($rankings, 0, $topN);
 		}
 
-		return new JSONResponse(data: ['results' => $rankings]);
-	}//end getRankings()
+		return $rankings;
+	}//end topRankings()
 
 	/**
 	 * True when the caller is admin, or their NC user id is in
@@ -190,19 +235,22 @@ class LeaderboardController extends Controller {
 		}
 
 		$uid = $user->getUID();
-		$learnerIds = $cohort['learnerIds'] ?? [];
-		$teacherIds = $cohort['teacherIds'] ?? [];
 
-		if (is_array($learnerIds) === true && in_array($uid, $learnerIds, true) === true) {
-			return true;
-		}
-
-		if (is_array($teacherIds) === true && in_array($uid, $teacherIds, true) === true) {
-			return true;
-		}
-
-		return false;
+		return $this->lists(ids: ($cohort['learnerIds'] ?? []), uid: $uid)
+			|| $this->lists(ids: ($cohort['teacherIds'] ?? []), uid: $uid);
 	}//end isCohortMember()
+
+	/**
+	 * Whether a stored member list holds this user id.
+	 *
+	 * @param mixed  $ids The stored list.
+	 * @param string $uid The user id.
+	 *
+	 * @return bool
+	 */
+	private function lists(mixed $ids, string $uid): bool {
+		return is_array($ids) === true && in_array($uid, $ids, true) === true;
+	}//end lists()
 
 	/**
 	 * True when an `active` Leaderboard row exists scoped to this cohort.
