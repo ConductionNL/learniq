@@ -192,6 +192,7 @@ import {
 	NcSelect,
 } from '@nextcloud/vue'
 import { clashes, slotLabel } from '../utils/electiveSlots.js'
+import { fetchLinkedLearners } from '../utils/linkedLearners.js'
 
 export default {
 	name: 'SubjectChoicePicker',
@@ -537,31 +538,10 @@ export default {
 			}
 
 			try {
-				const [childrenResp, selfResp] = await Promise.all([
-					axios.get(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/learner-profile?parentIds={uid}&_limit=50',
-							{ uid },
-						),
-					),
-					axios.get(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/learner-profile?ncUserId={uid}&_limit=1',
-							{ uid },
-						),
-					),
-				])
-				const children =
-					(childrenResp.data
-						&& (childrenResp.data.results || childrenResp.data.objects))
-					|| []
-				const self =
-					(selfResp.data
-						&& (selfResp.data.results || selfResp.data.objects))
-					|| []
-				const byId = new Map()
-				;[...children, ...self].forEach((l) => byId.set(l.ncUserId, l))
-				this.learners = Array.from(byId.values())
+				this.learners = await fetchLinkedLearners(
+					{ get: (url) => axios.get(url), urlFor: generateUrl },
+					uid,
+				)
 			} catch (e) {
 				// eslint-disable-next-line no-console
 				console.error('[SubjectChoicePicker] loadLearners failed', e)
