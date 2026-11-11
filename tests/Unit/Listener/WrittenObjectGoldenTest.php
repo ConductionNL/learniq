@@ -17,6 +17,8 @@ use OCA\Learniq\Listener\ExcuseRequestOwnerStamp;
 use OCA\Learniq\Listener\HourWeekSubmissionStamp;
 use OCA\Learniq\Listener\LessonNextStepGuard;
 use OCA\Learniq\Listener\LessonNoteAuthorGuard;
+use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
+use OCA\Learniq\Listener\ProctoringFlagReviewGuard;
 use OCA\Learniq\Listener\SchemaWrite;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
@@ -47,6 +49,8 @@ class WrittenObjectGoldenTest extends TestCase {
 			'HourWeekSubmissionStamp' => [HourWeekSubmissionStamp::class, 'entityOf'],
 			'LessonNextStepGuard' => [LessonNextStepGuard::class, 'writtenEntity'],
 			'LessonNoteAuthorGuard' => [LessonNoteAuthorGuard::class, 'writtenEntity'],
+			'PortfolioEntryOwnershipListener' => [PortfolioEntryOwnershipListener::class, 'writtenEntity'],
+			'ProctoringFlagReviewGuard' => [ProctoringFlagReviewGuard::class, 'entityOf'],
 		];
 	}//end listeners()
 
