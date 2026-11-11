@@ -143,4 +143,25 @@ class PortalAssessmentCatalogueTest extends TestCase {
 		self::assertSame('not-available', $held->startBlock(learner: $this->learner(), exam: $open, enrolment: $enrolment, attemptsUsed: 1, now: $now));
 		self::assertSame('closed', $held->startBlock(learner: $this->learner(), exam: $closed + $open, enrolment: $enrolment, attemptsUsed: 0, now: $now));
 	}//end testRulesRefuseInTheirOrder()
+
+	/**
+	 * A test belongs to the first live enrolment that shares its course or its
+	 * cohort; an empty id matches nothing, and a withdrawn enrolment is skipped.
+	 *
+	 * @return void
+	 */
+	public function testEnrolmentForMatchesCourseOrCohort(): void {
+		$register = new PortalFakeRegister();
+		$register->put('enrolment', 'en-1', ['learnerId' => 'pupil-1', 'courseId' => 'c-1', 'cohortId' => '', 'lifecycle' => 'active']);
+		$register->put('enrolment', 'en-2', ['learnerId' => 'pupil-1', 'courseId' => 'c-2', 'cohortId' => 'h-2', 'lifecycle' => 'pending']);
+		$register->put('enrolment', 'en-3', ['learnerId' => 'pupil-1', 'courseId' => 'c-3', 'lifecycle' => 'withdrawn']);
+		$catalogue = $this->catalogue($register);
+
+		self::assertSame('en-1', $catalogue->enrolmentFor(learner: $this->learner(), exam: ['courseId' => 'c-1'])['id'] ?? null);
+		self::assertSame('en-2', $catalogue->enrolmentFor(learner: $this->learner(), exam: ['cohortId' => 'h-2'])['id'] ?? null);
+		self::assertSame('en-2', $catalogue->enrolmentFor(learner: $this->learner(), exam: ['courseId' => 'c-9', 'cohortId' => 'h-2'])['id'] ?? null);
+		self::assertNull($catalogue->enrolmentFor(learner: $this->learner(), exam: ['courseId' => '', 'cohortId' => '']));
+		self::assertNull($catalogue->enrolmentFor(learner: $this->learner(), exam: ['courseId' => 'c-3']));
+		self::assertNull($catalogue->enrolmentFor(learner: $this->learner(), exam: []));
+	}//end testEnrolmentForMatchesCourseOrCohort()
 }//end class
