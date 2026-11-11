@@ -43,14 +43,31 @@ export function repeatsLesson(a, b) {
 	if (!a || !b || a.cohortId !== b.cohortId) {
 		return false
 	}
-	const sameCourse = a.courseId
+	return sameCourseOrTitle(a, b) && sameReadableSlot(a, b)
+}
+
+/**
+ * Whether two lessons share a course or, without one, a title.
+ *
+ * @param {object} a A lesson.
+ * @param {object} b Another lesson.
+ * @return {boolean}
+ */
+function sameCourseOrTitle(a, b) {
+	return a.courseId
 		? a.courseId === b.courseId
 		: (a.title || '') === (b.title || '')
-	return (
-		sameCourse
-		&& slotOf(a.startsAt) !== ''
-		&& slotOf(a.startsAt) === slotOf(b.startsAt)
-	)
+}
+
+/**
+ * Whether two lessons start at the same readable weekday and time.
+ *
+ * @param {object} a A lesson.
+ * @param {object} b Another lesson.
+ * @return {boolean}
+ */
+function sameReadableSlot(a, b) {
+	return slotOf(a.startsAt) !== '' && slotOf(a.startsAt) === slotOf(b.startsAt)
 }
 
 /**
@@ -100,13 +117,33 @@ export function noteFor(lesson, form) {
 		text: form.text.trim(),
 		audience: form.audience === 'cover' ? 'cover' : 'learners',
 	}
-	if ((lesson.source || 'learniq') === 'planninq') {
-		note.timetableSessionRef = {
-			sourceSystem: lesson.sourceSystem || '',
-			externalRef: lesson.externalRef || '',
-		}
+	if (isPlanninqLesson(lesson)) {
+		note.timetableSessionRef = timetableSessionRefOf(lesson)
 	} else {
 		note.sessionId = lesson.id
 	}
 	return note
+}
+
+/**
+ * Whether a lesson comes from planninq; a lesson without a source is learniq's.
+ *
+ * @param {object} lesson A lesson.
+ * @return {boolean}
+ */
+function isPlanninqLesson(lesson) {
+	return (lesson.source || 'learniq') === 'planninq'
+}
+
+/**
+ * The reference that names a planninq lesson.
+ *
+ * @param {object} lesson A planninq lesson.
+ * @return {{sourceSystem: string, externalRef: string}}
+ */
+function timetableSessionRefOf(lesson) {
+	return {
+		sourceSystem: lesson.sourceSystem || '',
+		externalRef: lesson.externalRef || '',
+	}
 }
