@@ -292,21 +292,32 @@ export default {
 		async loadCourses() {
 			this.loadingCourses = true
 			try {
-				const [coursesResp, campaignsResp] = await readAll([
-					generateUrl('/apps/openregister/api/objects/learniq/Course?_limit=500'),
-					generateUrl('/apps/openregister/api/objects/learniq/evaluation-campaign?_limit=200'),
-				])
-				const courses = await listOrEmpty(coursesResp)
-				const campaigns = await listOrEmpty(campaignsResp)
-
-				this.courses = courses
-				this.campaigns = campaigns
+				await this.readCoursesAndCampaigns()
 			} catch (err) {
 				// eslint-disable-next-line no-console
 				console.error('[CourseQualityReport] loadCourses error', err)
 			} finally {
 				this.loadingCourses = false
 			}
+		},
+
+		/**
+		 * Read every Course and every EvaluationCampaign; a failed read is an
+		 * empty answer.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
+		 */
+		async readCoursesAndCampaigns() {
+			const [coursesResp, campaignsResp] = await readAll([
+				generateUrl('/apps/openregister/api/objects/learniq/Course?_limit=500'),
+				generateUrl('/apps/openregister/api/objects/learniq/evaluation-campaign?_limit=200'),
+			])
+			const courses = await listOrEmpty(coursesResp)
+			const campaigns = await listOrEmpty(campaignsResp)
+
+			this.courses = courses
+			this.campaigns = campaigns
 		},
 
 		/**
