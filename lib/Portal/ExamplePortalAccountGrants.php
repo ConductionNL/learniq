@@ -72,6 +72,11 @@ class ExamplePortalAccountGrants {
 	public const CLAIM_EVENT = 'OCA\\Portaliq\\Event\\PortalAccountClaimRequestedEvent';
 
 	/**
+	 * The answer of grant() before any account is counted.
+	 */
+	private const NO_GRANTS = ['status' => 'none', 'granted' => 0, 'kept' => 0, 'waiting' => 0, 'failed' => 0, 'reasons' => []];
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IEventDispatcher          $dispatcher          Dispatches portaliq's typed events.
@@ -115,21 +120,42 @@ class ExamplePortalAccountGrants {
 	 * @spec openspec/changes/example-portal-install-steps/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
 	 */
 	public function grant(string $profileId): array {
-		$result      = ['status' => 'none', 'granted' => 0, 'kept' => 0, 'waiting' => 0, 'failed' => 0, 'reasons' => []];
 		$declaration = $this->declarations->forSet(setId: $profileId);
 		$wanted      = self::wanted(declaration: $declaration);
 		$status      = $this->readiness(wanted: $wanted);
 		if ($status !== 'done') {
-			return ['status' => $status] + $result;
+			return ['status' => $status] + self::NO_GRANTS;
 		}
 
-		$result['status'] = 'done';
+		return $this->grantEach(wanted: $wanted, portal: $this->portalOf(declaration: $declaration));
+	}//end grant()
+
+	/**
+	 * The declared portal with the organisation it is bound to ('' while unbound).
+	 *
+	 * @param array<string, mixed>|null $declaration The set's declaration.
+	 *
+	 * @return ExamplePortalTarget
+	 */
+	private function portalOf(?array $declaration): ExamplePortalTarget {
 		$slug   = (string)($declaration['portal']['slug'] ?? '');
 		$portal = $this->content->findOne(schema: 'portal', match: static fn (array $row): bool => ($row['slug'] ?? null) === $slug);
-		$organisation = trim((string)($portal['organisation'] ?? ''));
 
+		return new ExamplePortalTarget(slug: $slug, organisation: trim((string)($portal['organisation'] ?? '')));
+	}//end portalOf()
+
+	/**
+	 * Ask for every wanted account in turn and count the outcomes.
+	 *
+	 * @param array<int, array<string, mixed>> $wanted The accounts that ask for one.
+	 * @param ExamplePortalTarget              $portal The portal.
+	 *
+	 * @return array{status: string, granted: int, kept: int, waiting: int, failed: int, reasons: array<int, string>}
+	 */
+	private function grantEach(array $wanted, ExamplePortalTarget $portal): array {
+		$result = ['status' => 'done'] + self::NO_GRANTS;
 		foreach ($wanted as $account) {
-			$outcome = $this->safely(account: $account, slug: $slug, organisation: $organisation);
+			$outcome = $this->safely(account: $account, portal: $portal);
 			if (in_array($outcome, ['granted', 'kept', 'waiting'], true) === true) {
 				$result[$outcome]++;
 				continue;
@@ -140,7 +166,7 @@ class ExamplePortalAccountGrants {
 		}
 
 		return $result;
-	}//end grant()
+	}//end grantEach()
 
 	/**
 	 * The declared accounts that ask for a portal account.
@@ -187,15 +213,14 @@ class ExamplePortalAccountGrants {
 	/**
 	 * One account, never throwing: an error is the outcome `unavailable`.
 	 *
-	 * @param array<string, mixed> $account      The declared account.
-	 * @param string               $slug         The portal slug.
-	 * @param string               $organisation The portal's organisation, or ''.
+	 * @param array<string, mixed> $account The declared account.
+	 * @param ExamplePortalTarget  $portal  The portal.
 	 *
 	 * @return string
 	 */
-	private function safely(array $account, string $slug, string $organisation): string {
+	private function safely(array $account, ExamplePortalTarget $portal): string {
 		try {
-			return $this->one(account: $account, slug: $slug, organisation: $organisation);
+			return $this->one(account: $account, portal: $portal);
 		} catch (Throwable $exception) {
 			$this->logger->warning(
 				'[ExamplePortalAccountGrants] portal account for "{user}" failed: {msg}',
@@ -208,49 +233,85 @@ class ExamplePortalAccountGrants {
 	/**
 	 * One account: kept when it is complete, else provisioned and claimed.
 	 *
-	 * @param array<string, mixed> $account      The declared account.
-	 * @param string               $slug         The portal slug.
-	 * @param string               $organisation The portal's organisation, or ''.
+	 * @param array<string, mixed> $account The declared account.
+	 * @param ExamplePortalTarget  $portal  The portal.
 	 *
 	 * @return string `granted`, `kept`, `waiting` or a refusal reason.
 	 */
-	private function one(array $account, string $slug, string $organisation): string {
-		$uid      = trim((string)($account['userId'] ?? ''));
-		$audience = trim((string)($account['portal']['audience'] ?? ''));
-		if ($uid === '' || $audience === '') {
+	private function one(array $account, ExamplePortalTarget $portal): string {
+		$request = new ExamplePortalAccountRequest(account: $account, portal: $portal);
+		if ($request->isNamed() === false) {
 			return 'refused';
 		}
 
-		$claims  = self::declaredClaims(account: $account);
-		$stored  = $this->content->findOne(
-			schema: 'portalAccount',
-			match: static fn (array $row): bool => ($row['subjectRef'] ?? null) === $uid && ($row['audience'] ?? null) === $audience
-		);
-		$active  = ($stored['status'] ?? '') === 'active';
-		$missing = self::missingClaims(stored: $stored, claims: $claims);
-		if ($active === true && $missing === []) {
+		return $this->settle(request: $request);
+	}//end one()
+
+	/**
+	 * A named account: kept when it is active with every claim, waiting while
+	 * the portal has no organisation, else provisioned when needed and claimed.
+	 *
+	 * @param ExamplePortalAccountRequest $request The declared account.
+	 *
+	 * @return string `granted`, `kept`, `waiting` or a refusal reason.
+	 */
+	private function settle(ExamplePortalAccountRequest $request): string {
+		$stored  = $this->storedAccount(request: $request);
+		$missing = self::missingClaims(stored: $stored, claims: $request->claims);
+		if (($stored['status'] ?? '') === 'active' && $missing === []) {
 			return 'kept';
 		}
 
-		if ($organisation === '') {
+		if ($request->portal->organisation === '') {
 			return 'waiting';
 		}
 
-		if ($active === false) {
-			$refusal = $this->provision(
-				uid: $uid,
-				audience: $audience,
-				organisation: $organisation,
-				slug: $slug,
-				displayName: (string)($account['displayName'] ?? '')
-			);
-			if ($refusal !== '') {
-				return $refusal;
-			}
+		$refusal = $this->provisionUnlessActive(request: $request, stored: $stored);
+		if ($refusal !== '') {
+			return $refusal;
 		}
 
-		return $this->claim(uid: $uid, claims: $missing);
-	}//end one()
+		return $this->claim(uid: $request->uid, claims: $missing);
+	}//end settle()
+
+	/**
+	 * The stored portal account for the request's user and audience, or null.
+	 *
+	 * @param ExamplePortalAccountRequest $request The declared account.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private function storedAccount(ExamplePortalAccountRequest $request): ?array {
+		$uid      = $request->uid;
+		$audience = $request->audience;
+
+		return $this->content->findOne(
+			schema: 'portalAccount',
+			match: static fn (array $row): bool => ($row['subjectRef'] ?? null) === $uid && ($row['audience'] ?? null) === $audience
+		);
+	}//end storedAccount()
+
+	/**
+	 * Provision the account unless the stored one is active; answers '' or the refusal.
+	 *
+	 * @param ExamplePortalAccountRequest $request The declared account.
+	 * @param array<string, mixed>|null   $stored  The stored account, or null.
+	 *
+	 * @return string
+	 */
+	private function provisionUnlessActive(ExamplePortalAccountRequest $request, ?array $stored): string {
+		if (($stored['status'] ?? '') === 'active') {
+			return '';
+		}
+
+		return $this->provision(
+			uid: $request->uid,
+			audience: $request->audience,
+			organisation: $request->portal->organisation,
+			slug: $request->portal->slug,
+			displayName: $request->displayName()
+		);
+	}//end provisionUnlessActive()
 
 	/**
 	 * Ask portaliq for the active `nextcloud` account; answers '' or the refusal.
@@ -303,20 +364,6 @@ class ExamplePortalAccountGrants {
 
 		return 'granted';
 	}//end claim()
-
-	/**
-	 * The declared claims of an account, without empty values.
-	 *
-	 * @param array<string, mixed> $account The declared account.
-	 *
-	 * @return array<string, string>
-	 */
-	private static function declaredClaims(array $account): array {
-		return array_filter(
-			(array)($account['portal']['claims'] ?? []),
-			static fn ($value): bool => is_string($value) === true && $value !== ''
-		);
-	}//end declaredClaims()
 
 	/**
 	 * The declared claims the stored account does not carry with that value.
