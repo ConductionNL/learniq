@@ -102,8 +102,8 @@ class BackfillRequiredLearnerRefs implements IRepairStep {
 		foreach (self::SCHEMAS as $schema) {
 			$counts = $this->backfill(schema: $schema, cache: $cache);
 			$output->info(
-				'BackfillRequiredLearnerRefs ' . $schema . ': ' . $counts->of(key: 'stamped') . ' stamped, ' . $counts->of(key: 'noProfile')
-				. ' without a learner profile, ' . $counts->of(key: 'failed') . ' failed, of ' . $counts->of(key: 'scanned') . ' scanned.'
+				'BackfillRequiredLearnerRefs ' . $schema . ': ' . $counts->countOf(key: 'stamped') . ' stamped, ' . $counts->countOf(key: 'noProfile')
+				. ' without a learner profile, ' . $counts->countOf(key: 'failed') . ' failed, of ' . $counts->countOf(key: 'scanned') . ' scanned.'
 			);
 		}
 	}//end run()

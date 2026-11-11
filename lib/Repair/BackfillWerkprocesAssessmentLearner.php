@@ -100,8 +100,8 @@ class BackfillWerkprocesAssessmentLearner implements IRepairStep {
 		);
 
 		$output->info(
-			'BackfillWerkprocesAssessmentLearner: ' . $counts->of(key: 'stamped') . ' stamped, ' . $counts->of(key: 'noLearner')
-			. ' whose placement names no learner, ' . $counts->of(key: 'failed') . ' failed, of ' . $counts->of(key: 'scanned') . ' scanned.'
+			'BackfillWerkprocesAssessmentLearner: ' . $counts->countOf(key: 'stamped') . ' stamped, ' . $counts->countOf(key: 'noLearner')
+			. ' whose placement names no learner, ' . $counts->countOf(key: 'failed') . ' failed, of ' . $counts->countOf(key: 'scanned') . ' scanned.'
 		);
 	}//end run()
 

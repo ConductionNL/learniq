@@ -77,9 +77,9 @@ final class RepairTally {
 	 *
 	 * @spec exclude Repair plumbing, not a behavioural requirement.
 	 */
-	public function of(string $key): int {
+	public function countOf(string $key): int {
 		return ($this->counts[$key] ?? 0);
-	}//end of()
+	}//end countOf()
 
 	/**
 	 * Count one more row for an outcome.
@@ -89,6 +89,6 @@ final class RepairTally {
 	 * @return void
 	 */
 	private function add(string $key): void {
-		$this->counts[$key] = ($this->of(key: $key) + 1);
+		$this->counts[$key] = ($this->countOf(key: $key) + 1);
 	}//end add()
 }//end class

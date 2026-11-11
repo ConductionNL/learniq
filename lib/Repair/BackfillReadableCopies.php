@@ -101,8 +101,8 @@ class BackfillReadableCopies implements IRepairStep {
 		foreach (self::SCHEMAS as $schema) {
 			$counts = $this->backfill(schema: $schema);
 			$output->info(
-				'BackfillReadableCopies ' . $schema . ': ' . $counts->of(key: 'stamped') . ' stamped, ' . $counts->of(key: 'failed')
-				. ' failed, of ' . $counts->of(key: 'scanned') . ' scanned.'
+				'BackfillReadableCopies ' . $schema . ': ' . $counts->countOf(key: 'stamped') . ' stamped, ' . $counts->countOf(key: 'failed')
+				. ' failed, of ' . $counts->countOf(key: 'scanned') . ' scanned.'
 			);
 		}
 	}//end run()

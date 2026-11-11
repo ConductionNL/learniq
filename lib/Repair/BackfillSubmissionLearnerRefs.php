@@ -103,8 +103,8 @@ class BackfillSubmissionLearnerRefs implements IRepairStep {
 		);
 
 		$output->info(
-			'BackfillSubmissionLearnerRefs: ' . $counts->of(key: 'stamped') . ' stamped, ' . $counts->of(key: 'noProfile')
-			. ' without a learner profile, ' . $counts->of(key: 'failed') . ' failed, of ' . $counts->of(key: 'scanned') . ' scanned.'
+			'BackfillSubmissionLearnerRefs: ' . $counts->countOf(key: 'stamped') . ' stamped, ' . $counts->countOf(key: 'noProfile')
+			. ' without a learner profile, ' . $counts->countOf(key: 'failed') . ' failed, of ' . $counts->countOf(key: 'scanned') . ' scanned.'
 		);
 	}//end run()
 

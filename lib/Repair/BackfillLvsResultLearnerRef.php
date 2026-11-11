@@ -104,8 +104,8 @@ class BackfillLvsResultLearnerRef implements IRepairStep {
 		);
 
 		$output->info(
-			'BackfillLvsResultLearnerRef: ' . $counts->of(key: 'stamped') . ' stamped, ' . $counts->of(key: 'noProfile')
-			. ' without a learner profile, ' . $counts->of(key: 'failed') . ' failed, of ' . $counts->of(key: 'scanned') . ' scanned.'
+			'BackfillLvsResultLearnerRef: ' . $counts->countOf(key: 'stamped') . ' stamped, ' . $counts->countOf(key: 'noProfile')
+			. ' without a learner profile, ' . $counts->countOf(key: 'failed') . ' failed, of ' . $counts->countOf(key: 'scanned') . ' scanned.'
 		);
 	}//end run()
 

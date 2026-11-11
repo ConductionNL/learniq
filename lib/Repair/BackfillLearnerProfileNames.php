@@ -104,8 +104,8 @@ class BackfillLearnerProfileNames implements IRepairStep {
 		);
 
 		$output->info(
-			'BackfillLearnerProfileNames: ' . $counts->of(key: 'named') . ' named, ' . $counts->of(key: 'failed')
-			. ' failed, of ' . $counts->of(key: 'scanned') . ' scanned.'
+			'BackfillLearnerProfileNames: ' . $counts->countOf(key: 'named') . ' named, ' . $counts->countOf(key: 'failed')
+			. ' failed, of ' . $counts->countOf(key: 'scanned') . ' scanned.'
 		);
 	}//end run()
 
