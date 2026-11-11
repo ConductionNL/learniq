@@ -83,6 +83,109 @@ const REGISTER = 'learniq'
 const SCHEMA = 'Regulation'
 const OBJECT_TYPE = `${REGISTER}-${SCHEMA}`
 
+/**
+ * The schema lookup that runs alongside the object lookup; a store without
+ * one, or a failed one, gives no schema.
+ *
+ * @param {object} store The object store.
+ * @return {Promise<object|null>} The schema.
+ * @spec openspec/specs/compliance/spec.md
+ */
+function schemaLookup(store) {
+	return typeof store.fetchSchema === 'function'
+		? store.fetchSchema(OBJECT_TYPE).catch(() => null)
+		: Promise.resolve(null)
+}
+
+/**
+ * The Regulation OpenRegister's native id/uuid/@self.slug/@self.uri matcher
+ * finds for a slug — the links built from the OR-generated slug ("reg-avg").
+ *
+ * @param {object} store The object store.
+ * @param {string} param The route slug.
+ * @return {Promise<object|null>} The Regulation.
+ * @spec openspec/specs/compliance/spec.md
+ */
+async function fetchByIdentity(store, param) {
+	if (typeof store.fetchObject !== 'function') {
+		return null
+	}
+	return store.fetchObject(OBJECT_TYPE, param).catch(() => null)
+}
+
+/**
+ * The Regulation whose own `slug` business key is the slug. OpenRegister's
+ * generic matcher does not know about arbitrary schema properties, so a
+ * business-key link ("AVG") needs an explicit filtered lookup.
+ *
+ * @param {object} store The object store.
+ * @param {string} param The route slug.
+ * @return {Promise<object|null>} The Regulation.
+ * @spec openspec/specs/compliance/spec.md
+ */
+async function fetchBySlug(store, param) {
+	const results = await store
+		.fetchCollection(OBJECT_TYPE, { slug: param, _limit: 1 })
+		.catch(() => [])
+	return Array.isArray(results) && results.length > 0 ? results[0] : null
+}
+
+/**
+ * The Regulation a slug names: the native matcher first, the slug property
+ * second.
+ *
+ * @param {object} store The object store.
+ * @param {string} param The route slug.
+ * @return {Promise<object|null>} The Regulation, or null.
+ * @spec openspec/specs/compliance/spec.md
+ */
+async function findRegulation(store, param) {
+	const object = await fetchByIdentity(store, param)
+	if (object || typeof store.fetchCollection !== 'function') {
+		return object
+	}
+	return fetchBySlug(store, param)
+}
+
+/**
+ * An object's id as a string, '' when it has none.
+ *
+ * @param {object} object The object.
+ * @return {string} The id.
+ * @spec openspec/specs/compliance/spec.md
+ */
+function objectIdOf(object) {
+	const realId = object.id ?? (object['@self'] && object['@self'].id)
+	return realId !== undefined && realId !== null ? String(realId) : ''
+}
+
+/**
+ * The schema the store already holds, or null.
+ *
+ * @param {object} store The object store.
+ * @return {object|null} The schema.
+ * @spec openspec/specs/compliance/spec.md
+ */
+function storedSchema(store) {
+	return (
+		(typeof store.getSchema === 'function' && store.getSchema(OBJECT_TYPE))
+		|| null
+	)
+}
+
+/**
+ * The uuid an object's push events are keyed on (or-object-{uuid}): the
+ * uuid over a numeric id when both are present.
+ *
+ * @param {object} object The object.
+ * @param {string} fallback The id to use without a uuid.
+ * @return {string} The uuid.
+ * @spec openspec/specs/compliance/spec.md
+ */
+function pushUuidOf(object, fallback) {
+	return (object['@self'] && object['@self'].uuid) ?? object.uuid ?? fallback
+}
+
 export default {
 	name: 'RegulationDetailPage',
 
@@ -207,34 +310,59 @@ export default {
 			if (typeof store.subscribe !== 'function') {
 				return
 			}
-			// The push event key is or-object-{uuid} — prefer the uuid over
-			// a numeric id when both are present.
-			const uuid =
-				(object['@self'] && object['@self'].uuid)
-				?? object.uuid
-				?? this.objectId
+			const uuid = pushUuidOf(object, this.objectId)
 			if (!uuid) {
 				this.releaseLiveSubscription()
 				return
 			}
 			const key = `${OBJECT_TYPE}::${uuid}`
-			if (this.liveHandle && this.liveKey === key) {
-				return
-			}
-			if (this.livePendingKey === key) {
-				// A subscribe for this exact object is already in flight —
-				// re-subscribing here would leak the first handle + watcher.
+			if (this.isLiveOn(key)) {
 				return
 			}
 			this.releaseLiveSubscription()
+			await this.subscribeLive(store, { uuid, key })
+		},
+
+		/**
+		 * Whether this object is already subscribed, or its subscribe is in
+		 * flight — re-subscribing then would leak the first handle + watcher.
+		 *
+		 * @param {string} key The subscription key.
+		 * @return {boolean} True when nothing needs doing.
+		 * @spec openspec/specs/compliance/spec.md
+		 */
+		isLiveOn(key) {
+			return Boolean(this.liveHandle && this.liveKey === key) || this.livePendingKey === key
+		},
+
+		/**
+		 * Clear the in-flight mark when it is still this subscription's.
+		 *
+		 * @param {string} key The subscription key.
+		 * @return {void}
+		 * @spec openspec/specs/compliance/spec.md
+		 */
+		clearPendingKey(key) {
+			if (this.livePendingKey === key) {
+				this.livePendingKey = ''
+			}
+		},
+
+		/**
+		 * Subscribe to the object's push events and bridge them to the page.
+		 *
+		 * @param {object} store The object store.
+		 * @param {{uuid: string, key: string}} target The object and its subscription key.
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/compliance/spec.md
+		 */
+		async subscribeLive(store, target) {
 			try {
 				const epoch = this.liveEpoch
-				this.livePendingKey = key
-				this.liveKey = key
-				const handle = await store.subscribe(OBJECT_TYPE, uuid)
-				if (this.livePendingKey === key) {
-					this.livePendingKey = ''
-				}
+				this.livePendingKey = target.key
+				this.liveKey = target.key
+				const handle = await store.subscribe(OBJECT_TYPE, target.uuid)
+				this.clearPendingKey(target.key)
 				if (this.liveEpoch !== epoch) {
 					// Released while awaiting (another slug resolved, or the
 					// component was destroyed) — drop the stale subscription.
@@ -242,30 +370,9 @@ export default {
 					return
 				}
 				this.liveHandle = handle
-				// Bridge: event → plugin refetch → objects[type][uuid] cache →
-				// detailObjectContext (which descendants render from).
-				this.liveUnwatch = this.$watch(
-					() =>
-						typeof store.getObject === 'function'
-							? store.getObject(OBJECT_TYPE, uuid)
-							: null,
-					(fresh) => {
-						if (
-							fresh
-							&& this.liveKey === key
-							&& this.detailObjectContext.value
-						) {
-							this.detailObjectContext.value = {
-								...this.detailObjectContext.value,
-								objectData: fresh,
-							}
-						}
-					},
-				)
+				this.liveUnwatch = this.watchLiveObject(store, target)
 			} catch (e) {
-				if (this.livePendingKey === key) {
-					this.livePendingKey = ''
-				}
+				this.clearPendingKey(target.key)
 				this.liveHandle = null
 				this.liveKey = ''
 				// eslint-disable-next-line no-console
@@ -273,6 +380,42 @@ export default {
 					'[RegulationDetailPage] live subscription failed:',
 					e?.message ?? e,
 				)
+			}
+		},
+
+		/**
+		 * Bridge: event → plugin refetch → objects[type][uuid] cache →
+		 * detailObjectContext (which descendants render from).
+		 *
+		 * @param {object} store The object store.
+		 * @param {{uuid: string, key: string}} target The object and its subscription key.
+		 * @return {() => void} The unwatch.
+		 * @spec openspec/specs/compliance/spec.md
+		 */
+		watchLiveObject(store, target) {
+			return this.$watch(
+				() =>
+					typeof store.getObject === 'function'
+						? store.getObject(OBJECT_TYPE, target.uuid)
+						: null,
+				(fresh) => this.applyLiveObject(fresh, target.key),
+			)
+		},
+
+		/**
+		 * Show a refetched object, if it is still the one on the page.
+		 *
+		 * @param {object|null} fresh The refetched object.
+		 * @param {string} key The subscription key it came for.
+		 * @return {void}
+		 * @spec openspec/specs/compliance/spec.md
+		 */
+		applyLiveObject(fresh, key) {
+			if (fresh && this.liveKey === key && this.detailObjectContext.value) {
+				this.detailObjectContext.value = {
+					...this.detailObjectContext.value,
+					objectData: fresh,
+				}
 			}
 		},
 
@@ -318,9 +461,7 @@ export default {
 			this.detailObjectContext.value = null
 
 			if (!param) {
-				this.loading = false
-				this.notFound = true
-				this.releaseLiveSubscription()
+				this.showNotFound()
 				return
 			}
 
@@ -331,64 +472,50 @@ export default {
 			// Schema fetch runs alongside the object lookup — CnObjectDataWidget
 			// (the "data" grid widget) needs it for field labels/order, same as
 			// CnPageRenderer's loadDetailObject does for a `type:"detail"` page.
-			const schemaPromise =
-				typeof store.fetchSchema === 'function'
-					? store.fetchSchema(OBJECT_TYPE).catch(() => null)
-					: Promise.resolve(null)
-
-			let object = null
-
-			// 1) OpenRegister's native id/uuid/@self.slug/@self.uri matcher —
-			//    covers links built from the OR-generated slug ("reg-avg").
-			if (typeof store.fetchObject === 'function') {
-				object = await store
-					.fetchObject(OBJECT_TYPE, param)
-					.catch(() => null)
-			}
-
-			// 2) Fall back to the schema's own `slug` business-key property —
-			//    OpenRegister's generic matcher does not know about arbitrary
-			//    schema properties, so a business-key link ("AVG") needs an
-			//    explicit filtered lookup.
-			if (!object && typeof store.fetchCollection === 'function') {
-				const results = await store
-					.fetchCollection(OBJECT_TYPE, { slug: param, _limit: 1 })
-					.catch(() => [])
-				object =
-					Array.isArray(results) && results.length > 0 ? results[0] : null
-			}
-
+			const schemaPromise = schemaLookup(store)
+			const object = await findRegulation(store, param)
 			if (!object) {
-				this.loading = false
-				this.notFound = true
-				this.releaseLiveSubscription()
+				this.showNotFound()
 				return
 			}
 
-			const schema = await schemaPromise
+			this.showRegulation(store, { object, schema: await schemaPromise })
+			this.loading = false
 
-			const realId = object.id ?? (object['@self'] && object['@self'].id)
-			this.objectId =
-				realId !== undefined && realId !== null ? String(realId) : ''
+			// Live updates for the resolved object (refetch hints only).
+			this.syncLiveSubscription(store, object)
+		},
 
+		/**
+		 * Show that the slug names no regulation, and stop listening.
+		 *
+		 * @return {void}
+		 * @spec openspec/specs/compliance/spec.md
+		 */
+		showNotFound() {
+			this.loading = false
+			this.notFound = true
+			this.releaseLiveSubscription()
+		},
+
+		/**
+		 * Show the resolved regulation with its schema.
+		 *
+		 * @param {object} store The object store.
+		 * @param {{object: object, schema: (object|null)}} found The regulation and its fetched schema.
+		 * @return {void}
+		 * @spec openspec/specs/compliance/spec.md
+		 */
+		showRegulation(store, found) {
+			this.objectId = objectIdOf(found.object)
 			this.detailObjectContext.value = {
-				objectData: object,
-				schema:
-					schema
-					|| (typeof store.getSchema === 'function'
-						&& store.getSchema(OBJECT_TYPE))
-					|| null,
-
+				objectData: found.object,
+				schema: found.schema || storedSchema(store),
 				objectType: OBJECT_TYPE,
 				objectId: this.objectId,
 				register: REGISTER,
 				store,
 			}
-
-			this.loading = false
-
-			// Live updates for the resolved object (refetch hints only).
-			this.syncLiveSubscription(store, object)
 		},
 	},
 }
