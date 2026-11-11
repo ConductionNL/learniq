@@ -21,6 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
+use OCA\Learniq\Repair\Support\RepairRowWalk;
 use OCA\Learniq\Service\ReportCardGradeLines;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
@@ -45,13 +46,6 @@ class BackfillReportCardGradeLines implements IRepairStep {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const REPORT_CARD_SCHEMA = 'report-card';
-	private const PAGE_SIZE = 200;
-
-	/**
-	 * Hard stop so a paging defect can never loop forever: 10,000 pages of
-	 * 200 is two million report cards.
-	 */
-	private const MAX_PAGES = 10000;
 
 	/**
 	 * How many distinct refusal reasons the summary names.
@@ -64,6 +58,13 @@ class BackfillReportCardGradeLines implements IRepairStep {
 	 * @var string
 	 */
 	private string $lastRefusal = '';
+
+	/**
+	 * Pages through the schema this step back-fills.
+	 *
+	 * @var RepairRowWalk
+	 */
+	private readonly RepairRowWalk $rows;
 
 	/**
 	 * Constructor.
@@ -79,6 +80,7 @@ class BackfillReportCardGradeLines implements IRepairStep {
 		private readonly ReportCardGradeLines $gradeLines,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->rows = new RepairRowWalk(objectService: $objectService, logger: $logger, label: 'BackfillReportCardGradeLines');
 	}//end __construct()
 
 	/**
@@ -102,40 +104,22 @@ class BackfillReportCardGradeLines implements IRepairStep {
 	 * @spec openspec/changes/portal-parent-report-card-grades/specs/report-card/spec.md#requirement-existing-report-cards-get-their-readable-grades
 	 */
 	public function run(IOutput $output): void {
-		$counts = ['scanned' => 0, 'stamped' => 0, 'failed' => 0];
 		$refusals = [];
-
-		try {
-			for ($page = 0; $page < self::MAX_PAGES; $page++) {
-				$rows = $this->page(offset: ($page * self::PAGE_SIZE));
-				foreach ($rows as $row) {
-					$counts['scanned']++;
-					$outcome = $this->stampRow(row: $row);
-					if ($outcome !== null) {
-						$counts[$outcome]++;
-					}
-
-					if ($outcome === 'failed') {
-						$refusals = self::countRefusal(refusals: $refusals, message: $this->lastRefusal);
-					}
+		$counts = $this->rows->walk(
+			schema: self::REPORT_CARD_SCHEMA,
+			visit: function (array $row) use (&$refusals): ?string {
+				$outcome = $this->stampRow(row: $row);
+				if ($outcome === 'failed') {
+					$refusals = self::countRefusal(refusals: $refusals, message: $this->lastRefusal);
 				}
 
-				if (count($rows) < self::PAGE_SIZE) {
-					break;
-				}
+				return $outcome;
 			}
-		} catch (Throwable $exception) {
-			// OpenRegister absent or the register not imported yet: nothing
-			// to back-fill on this run, the next upgrade retries.
-			$this->logger->warning(
-				'[BackfillReportCardGradeLines] Stopped early: {msg}',
-				['msg' => $exception->getMessage()]
-			);
-		}//end try
+		);
 
 		$output->info(
-			'BackfillReportCardGradeLines: ' . $counts['stamped'] . ' stamped, ' . $counts['failed']
-			. ' failed, of ' . $counts['scanned'] . ' scanned.'
+			'BackfillReportCardGradeLines: ' . $counts->of(key: 'stamped') . ' stamped, ' . $counts->of(key: 'failed')
+			. ' failed, of ' . $counts->of(key: 'scanned') . ' scanned.'
 		);
 
 		// Live pass lane 10: "0 stamped, 294 failed" said nothing about why;
@@ -186,42 +170,6 @@ class BackfillReportCardGradeLines implements IRepairStep {
 		$refusals[$reason] = (($refusals[$reason] ?? 0) + 1);
 		return $refusals;
 	}//end countRefusal()
-
-	/**
-	 * One page of ReportCard rows as arrays.
-	 *
-	 * @param int $offset Row offset.
-	 *
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function page(int $offset): array {
-		$objects = $this->objectService->findAll(
-			config: [
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::REPORT_CARD_SCHEMA,
-				],
-				'limit' => self::PAGE_SIZE,
-				'offset' => $offset,
-			],
-			_rbac: false,
-			_multitenancy: false
-		);
-
-		$rows = [];
-		foreach ($objects as $object) {
-			if (is_array($object) === true) {
-				$rows[] = $object;
-				continue;
-			}
-
-			if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-				$rows[] = (array)$object->jsonSerialize();
-			}
-		}
-
-		return $rows;
-	}//end page()
 
 	/**
 	 * Write one row when its stored copies differ from the derived ones.
