@@ -116,7 +116,7 @@ class SessionChangeGuard implements LifecycleGuardInterface {
 	 * @spec openspec/specs/timetabling/spec.md#scenario-a-teacher-outside-the-cohort-cannot-substitute-or-cancel
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
-		if ($this->allows(object: $object, action: $action, userId: $userId) === true) {
+		if ($this->allows(change: new SessionChangeRequest(object: $object, action: $action), userId: $userId) === true) {
 			return GuardResult::allow();
 		}
 
@@ -126,9 +126,8 @@ class SessionChangeGuard implements LifecycleGuardInterface {
 	/**
 	 * The rule behind check(), answered as a boolean.
 	 *
-	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
-	 * @param string $action The transition action being applied.
-	 * @param string $userId The uid of the caller.
+	 * @param SessionChangeRequest $change The session at its target state and the action.
+	 * @param string               $userId The uid of the caller.
 	 *
 	 * @return bool True when the transition is allowed; false blocks it.
 	 *
@@ -136,63 +135,125 @@ class SessionChangeGuard implements LifecycleGuardInterface {
 	 * @spec openspec/specs/timetabling/spec.md#scenario-cancelling-without-a-reason-is-refused
 	 * @spec openspec/specs/timetabling/spec.md#scenario-a-teacher-outside-the-cohort-cannot-substitute-or-cancel
 	 */
-	private function allows(array $object, string $action, string $userId): bool {
-		$actor = $userId;
-		$cohortId = (string)($object['cohortId'] ?? '');
-		$tenantId = (string)($object['tenant_id'] ?? '');
-		$reasonKind = $object['changeReasonKind'] ?? null;
-
-		if ($actor === '') {
-			$this->logger->info('[SessionChangeGuard] No acting user — blocking {a}.', ['a' => $action]);
+	private function allows(SessionChangeRequest $change, string $userId): bool {
+		if ($userId === '') {
+			$this->logger->info('[SessionChangeGuard] No acting user — blocking {a}.', ['a' => $change->action]);
 			return false;
 		}
 
-		if ($this->isNonEmptyString(value: $reasonKind) === false) {
-			$this->logger->info(
-				'[SessionChangeGuard] {a} refused — changeReasonKind is not set.',
-				['a' => $action]
-			);
+		if ($this->hasReason(change: $change) === false || $this->hasSubstitute(change: $change) === false) {
 			return false;
 		}
 
-		if ($this->hasRequiredSubstitute(object: $object, action: $action) === false) {
-			$this->logger->info(
-				'[SessionChangeGuard] {a} refused — substituteTeacherId is not set.',
-				['a' => $action]
-			);
-			return false;
-		}
-
-		if ($this->actorIsOverrideRole(actor: $actor) === true) {
+		if ($this->actorIsOverrideRole(actor: $userId) === true) {
 			return true;
 		}
 
-		if ($cohortId === '') {
-			$this->logger->warning('[SessionChangeGuard] Session has no cohortId; blocking {a}.', ['a' => $action]);
-			return false;
-		}
+		return $this->isCohortTeacher(change: $change, actor: $userId);
+	}//end allows()
 
-		$cohort = $this->loadCohort(cohortId: $cohortId, tenantId: $tenantId);
-		if ($cohort === null) {
-			$this->logger->warning(
-				'[SessionChangeGuard] Cohort {c} not found for Session; blocking {a} (fail closed).',
-				['c' => $cohortId, 'a' => $action]
+	/**
+	 * Whether the change names its reason; a missing one is logged.
+	 *
+	 * @param SessionChangeRequest $change The session and the action.
+	 *
+	 * @return bool
+	 */
+	private function hasReason(SessionChangeRequest $change): bool {
+		if ($this->isNonEmptyString(value: ($change->object['changeReasonKind'] ?? null)) === false) {
+			$this->logger->info(
+				'[SessionChangeGuard] {a} refused — changeReasonKind is not set.',
+				['a' => $change->action]
 			);
 			return false;
 		}
 
-		$teacherIds = $cohort['teacherIds'] ?? [];
-		if (is_array($teacherIds) === true && in_array($actor, $teacherIds, true) === true) {
+		return true;
+	}//end hasReason()
+
+	/**
+	 * Whether the change names the substitute its action requires; a missing one is logged.
+	 *
+	 * @param SessionChangeRequest $change The session and the action.
+	 *
+	 * @return bool
+	 */
+	private function hasSubstitute(SessionChangeRequest $change): bool {
+		if ($this->hasRequiredSubstitute(object: $change->object, action: $change->action) === false) {
+			$this->logger->info(
+				'[SessionChangeGuard] {a} refused — substituteTeacherId is not set.',
+				['a' => $change->action]
+			);
+			return false;
+		}
+
+		return true;
+	}//end hasSubstitute()
+
+	/**
+	 * Whether the actor teaches the session's cohort; a refusal is logged.
+	 *
+	 * @param SessionChangeRequest $change The session and the action.
+	 * @param string               $actor  The uid of the caller.
+	 *
+	 * @return bool
+	 */
+	private function isCohortTeacher(SessionChangeRequest $change, string $actor): bool {
+		$cohort = $this->cohortOf(change: $change);
+		if ($cohort === null) {
+			return false;
+		}
+
+		if ($this->listsTeacher(cohort: $cohort, actor: $actor) === true) {
 			return true;
 		}
 
 		$this->logger->info(
 			'[SessionChangeGuard] Actor {u} is neither a Cohort.teacherIds member nor admin/coordinator; blocking {a}.',
-			['u' => $actor, 'a' => $action]
+			['u' => $actor, 'a' => $change->action]
 		);
-
 		return false;
-	}//end allows()
+	}//end isCohortTeacher()
+
+	/**
+	 * The session's cohort, tenant-scoped, or null (logged) when the session
+	 * names none or it cannot be found: the guard fails closed.
+	 *
+	 * @param SessionChangeRequest $change The session and the action.
+	 *
+	 * @return array<string,mixed>|null
+	 */
+	private function cohortOf(SessionChangeRequest $change): ?array {
+		$cohortId = (string)($change->object['cohortId'] ?? '');
+		if ($cohortId === '') {
+			$this->logger->warning('[SessionChangeGuard] Session has no cohortId; blocking {a}.', ['a' => $change->action]);
+			return null;
+		}
+
+		$cohort = $this->loadCohort(cohortId: $cohortId, tenantId: (string)($change->object['tenant_id'] ?? ''));
+		if ($cohort === null) {
+			$this->logger->warning(
+				'[SessionChangeGuard] Cohort {c} not found for Session; blocking {a} (fail closed).',
+				['c' => $cohortId, 'a' => $change->action]
+			);
+		}
+
+		return $cohort;
+	}//end cohortOf()
+
+	/**
+	 * Whether a cohort's teacher list holds the actor.
+	 *
+	 * @param array<string,mixed> $cohort The cohort.
+	 * @param string              $actor  The uid of the caller.
+	 *
+	 * @return bool
+	 */
+	private function listsTeacher(array $cohort, string $actor): bool {
+		$teacherIds = $cohort['teacherIds'] ?? [];
+
+		return is_array($teacherIds) === true && in_array($actor, $teacherIds, true) === true;
+	}//end listsTeacher()
 
 	/**
 	 * Whether a context value is present as a non-empty string.
