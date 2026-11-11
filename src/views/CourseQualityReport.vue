@@ -149,6 +149,7 @@
 import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcSelect } from '@nextcloud/vue'
+import { listOrEmpty, readAll } from '../utils/objectListing.js'
 
 export default {
 	name: 'CourseQualityReport',
@@ -291,43 +292,15 @@ export default {
 		async loadCourses() {
 			this.loadingCourses = true
 			try {
-				const [coursesResp, campaignsResp] = await Promise.all([
-					fetch(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/Course?_limit=500',
-						),
-						{
-							headers: {
-								'OCS-APIREQUEST': 'true',
-								Accept: 'application/json',
-							},
-						},
-					),
-					fetch(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/evaluation-campaign?_limit=200',
-						),
-						{
-							headers: {
-								'OCS-APIREQUEST': 'true',
-								Accept: 'application/json',
-							},
-						},
-					),
+				const [coursesResp, campaignsResp] = await readAll([
+					generateUrl('/apps/openregister/api/objects/learniq/Course?_limit=500'),
+					generateUrl('/apps/openregister/api/objects/learniq/evaluation-campaign?_limit=200'),
 				])
+				const courses = await listOrEmpty(coursesResp)
+				const campaigns = await listOrEmpty(campaignsResp)
 
-				const coursesJson = coursesResp.ok ? await coursesResp.json() : {}
-				const campaignsJson = campaignsResp.ok
-					? await campaignsResp.json()
-					: {}
-
-				this.courses =
-					coursesJson.results ?? coursesJson.objects ?? coursesJson ?? []
-				this.campaigns =
-					campaignsJson.results
-					?? campaignsJson.objects
-					?? campaignsJson
-					?? []
+				this.courses = courses
+				this.campaigns = campaigns
 			} catch (err) {
 				// eslint-disable-next-line no-console
 				console.error('[CourseQualityReport] loadCourses error', err)
@@ -375,50 +348,33 @@ export default {
 
 			this.loadingReport = true
 			try {
-				const courseId = encodeURIComponent(this.selectedCourseId)
-				const [scoresResp, responsesResp] = await Promise.all([
-					fetch(
-						generateUrl(
-							`/apps/openregister/api/objects/learniq/course-quality-score?courseId=${courseId}&_limit=100`,
-						),
-						{
-							headers: {
-								'OCS-APIREQUEST': 'true',
-								Accept: 'application/json',
-							},
-						},
-					),
-					fetch(
-						generateUrl(
-							`/apps/openregister/api/objects/learniq/course-evaluation-response?courseId=${courseId}&_limit=200`,
-						),
-						{
-							headers: {
-								'OCS-APIREQUEST': 'true',
-								Accept: 'application/json',
-							},
-						},
-					),
-				])
-
-				const scoresJson = scoresResp.ok ? await scoresResp.json() : {}
-				const responsesJson = responsesResp.ok
-					? await responsesResp.json()
-					: {}
-
-				this.scores =
-					scoresJson.results ?? scoresJson.objects ?? scoresJson ?? []
-				this.responses =
-					responsesJson.results
-					?? responsesJson.objects
-					?? responsesJson
-					?? []
+				await this.readCourseReport()
 			} catch (err) {
 				// eslint-disable-next-line no-console
 				console.error('[CourseQualityReport] loadReport error', err)
 			} finally {
 				this.loadingReport = false
 			}
+		},
+
+		/**
+		 * Read the selected course's CourseQualityScore and
+		 * CourseEvaluationResponse rows; a failed read is an empty answer.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
+		 */
+		async readCourseReport() {
+			const courseId = encodeURIComponent(this.selectedCourseId)
+			const [scoresResp, responsesResp] = await readAll([
+				generateUrl(`/apps/openregister/api/objects/learniq/course-quality-score?courseId=${courseId}&_limit=100`),
+				generateUrl(`/apps/openregister/api/objects/learniq/course-evaluation-response?courseId=${courseId}&_limit=200`),
+			])
+			const scores = await listOrEmpty(scoresResp)
+			const responses = await listOrEmpty(responsesResp)
+
+			this.scores = scores
+			this.responses = responses
 		},
 
 		/**
