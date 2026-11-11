@@ -64,6 +64,11 @@ class TimetableVisibilityService {
 	];
 
 	/**
+	 * The answer of allowedIds() for scopes that need no lookup: every id, or none.
+	 */
+	private const FIXED_SCOPE_IDS = ['all' => null, 'none' => []];
+
+	/**
 	 * Groups that always see every timetable.
 	 */
 	private const SEE_ALL_GROUPS = ['team-leads', 'compliance-officers'];
@@ -180,38 +185,57 @@ class TimetableVisibilityService {
 	 */
 	public function allowedIds(string $uid, string $kind): ?array {
 		$scope = $this->scope(uid: $uid, kind: $kind);
-		if ($scope === 'all') {
-			return null;
-		}
-
-		if ($scope === 'none') {
-			return [];
+		if (array_key_exists($scope, self::FIXED_SCOPE_IDS) === true) {
+			return self::FIXED_SCOPE_IDS[$scope];
 		}
 
 		$own = $this->ownCohorts(uid: $uid);
+		// A teacher's "own" is themselves; a learner's "related" are the
+		// teachers of their own groups.
+		if ($kind === 'teacher' && $scope === 'own') {
+			return [$uid];
+		}
+
+		return $this->idsOfOwnCohorts(kind: $kind, own: $own);
+	}//end allowedIds()
+
+	/**
+	 * The ids of a kind reached through the caller's own cohorts.
+	 *
+	 * @param string                            $kind `cohort`, `teacher` or `room`.
+	 * @param array<string,array<string,mixed>> $own  The caller's cohorts, keyed by id.
+	 *
+	 * @return array<int,string>
+	 */
+	private function idsOfOwnCohorts(string $kind, array $own): array {
 		if ($kind === 'cohort') {
 			return array_keys($own);
 		}
 
 		if ($kind === 'teacher') {
-			// A teacher's "own" is themselves; a learner's "related" are the
-			// teachers of their own groups.
-			if ($scope === 'own') {
-				return [$uid];
-			}
-
-			$ids = [];
-			foreach ($own as $cohort) {
-				foreach ((array)($cohort['teacherIds'] ?? []) as $teacher) {
-					$ids[(string)$teacher] = true;
-				}
-			}
-
-			return array_keys($ids);
+			return $this->teachersOf(cohorts: $own);
 		}
 
 		return $this->directory->roomsOfCohorts(cohortIds: array_keys($own));
-	}//end allowedIds()
+	}//end idsOfOwnCohorts()
+
+	/**
+	 * The distinct teacher ids of the given cohorts, in first-seen order.
+	 *
+	 * @param array<string,array<string,mixed>> $cohorts The cohorts.
+	 *
+	 * @return array<int,string>
+	 */
+	private function teachersOf(array $cohorts): array {
+		$ids = [];
+		foreach ($cohorts as $cohort) {
+			foreach ((array)($cohort['teacherIds'] ?? []) as $teacher) {
+				$ids[(string)$teacher] = true;
+			}
+		}
+
+		return array_keys($ids);
+	}//end teachersOf()
 
 	/**
 	 * Whether the caller may open one timetable.
@@ -246,24 +270,54 @@ class TimetableVisibilityService {
 	public function options(string $uid, string $kind): array {
 		$ids = $this->allowedIds(uid: $uid, kind: $kind);
 		$all = $this->everything(kind: $kind);
-		$out = [];
-		foreach ($all as $id => $label) {
-			if ($ids === null || in_array($id, $ids, true) === true) {
-				$out[] = ['id' => $id, 'label' => $label];
-			}
-		}
-
+		$out = $this->listedOptions(labels: $all, ids: $ids);
 		// A related teacher may teach no cohort row the reader can list
 		// (a planninq teacher); keep them with their display name.
-		foreach ($ids ?? [] as $id) {
-			if ($kind === 'teacher' && isset($all[$id]) === false) {
-				$out[] = ['id' => $id, 'label' => $this->displayName(uid: $id)];
-			}
+		if ($kind === 'teacher') {
+			$out = array_merge($out, $this->unlistedTeachers(labels: $all, ids: ($ids ?? [])));
 		}
 
 		usort($out, static fn (array $a, array $b): int => strcmp($a['label'], $b['label']));
 		return $out;
 	}//end options()
+
+	/**
+	 * The labelled ids the caller may pick, as `{id, label}`, in label-list order.
+	 *
+	 * @param array<string,string>   $labels Label by id.
+	 * @param array<int,string>|null $ids    The allowed ids; null means every one.
+	 *
+	 * @return array<int,array{id:string,label:string}>
+	 */
+	private function listedOptions(array $labels, ?array $ids): array {
+		$out = [];
+		foreach ($labels as $id => $label) {
+			if ($ids === null || in_array($id, $ids, true) === true) {
+				$out[] = ['id' => $id, 'label' => $label];
+			}
+		}
+
+		return $out;
+	}//end listedOptions()
+
+	/**
+	 * Allowed teachers missing from the label list, as `{id, label}` with their display name.
+	 *
+	 * @param array<string,string> $labels Label by id.
+	 * @param array<int,string>    $ids    The allowed teacher ids.
+	 *
+	 * @return array<int,array{id:string,label:string}>
+	 */
+	private function unlistedTeachers(array $labels, array $ids): array {
+		$out = [];
+		foreach ($ids as $id) {
+			if (isset($labels[$id]) === false) {
+				$out[] = ['id' => $id, 'label' => $this->displayName(uid: $id)];
+			}
+		}
+
+		return $out;
+	}//end unlistedTeachers()
 
 	/**
 	 * The cohorts the caller learns or teaches in, keyed by id.
@@ -273,20 +327,12 @@ class TimetableVisibilityService {
 	 * @return array<string,array<string,mixed>>
 	 */
 	private function ownCohorts(string $uid): array {
-		$cohorts = $this->directory->cohorts();
-		$enrolled = [];
-		foreach ($this->directory->enrolmentsOf(uid: $uid) as $enrolment) {
-			if ((string)($enrolment['learnerId'] ?? '') === $uid && (string)($enrolment['cohortId'] ?? '') !== '') {
-				$enrolled[(string)$enrolment['cohortId']] = true;
-			}
-		}
-
-		$own = [];
+		$cohorts  = $this->directory->cohorts();
+		$enrolled = $this->enrolledCohortIds(uid: $uid);
+		$own      = [];
 		foreach ($cohorts as $cohort) {
-			$id = $this->directory->idOf(row: $cohort);
-			$member = in_array($uid, (array)($cohort['teacherIds'] ?? []), true)
-				|| in_array($uid, (array)($cohort['learnerIds'] ?? []), true)
-				|| isset($enrolled[$id]);
+			$id     = $this->directory->idOf(row: $cohort);
+			$member = $this->teachesOrLearnsIn(uid: $uid, cohort: $cohort) || isset($enrolled[$id]);
 			if ($id !== '' && $member === true) {
 				$own[$id] = $cohort;
 			}
@@ -294,6 +340,37 @@ class TimetableVisibilityService {
 
 		return $own;
 	}//end ownCohorts()
+
+	/**
+	 * The cohort ids the caller's own enrolments point at, as a set.
+	 *
+	 * @param string $uid The caller.
+	 *
+	 * @return array<string,true>
+	 */
+	private function enrolledCohortIds(string $uid): array {
+		$enrolled = [];
+		foreach ($this->directory->enrolmentsOf(uid: $uid) as $enrolment) {
+			if ((string)($enrolment['learnerId'] ?? '') === $uid && (string)($enrolment['cohortId'] ?? '') !== '') {
+				$enrolled[(string)$enrolment['cohortId']] = true;
+			}
+		}
+
+		return $enrolled;
+	}//end enrolledCohortIds()
+
+	/**
+	 * Whether the caller is listed as a teacher or a learner of the cohort.
+	 *
+	 * @param string              $uid    The caller.
+	 * @param array<string,mixed> $cohort The cohort row.
+	 *
+	 * @return bool
+	 */
+	private function teachesOrLearnsIn(string $uid, array $cohort): bool {
+		return in_array($uid, (array)($cohort['teacherIds'] ?? []), true)
+			|| in_array($uid, (array)($cohort['learnerIds'] ?? []), true);
+	}//end teachesOrLearnsIn()
 
 	/**
 	 * Every cohort, teacher or room with its label.
