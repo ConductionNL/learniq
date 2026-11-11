@@ -51,6 +51,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Lifecycle;
 
 use OCA\Learniq\Service\Accessibility\WcagCriteriaCatalogue;
+use OCA\Learniq\Support\ResultArrays;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -413,18 +414,6 @@ class AccessibilityStatementPublishGuard implements LifecycleGuardInterface {
 	 * @return array<int,array<string,mixed>> The rows.
 	 */
 	private static function rows(array $objects): array {
-		$rows = [];
-		foreach ($objects as $object) {
-			if (is_array($object) === true) {
-				$rows[] = $object;
-				continue;
-			}
-
-			if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-				$rows[] = (array)$object->jsonSerialize();
-			}
-		}
-
-		return $rows;
+		return (new ResultArrays())->arraysOf(objects: $objects);
 	}//end rows()
 }//end class
