@@ -168,7 +168,7 @@ class PortalLabelTranslator {
 		}
 
 		foreach ($manifest as $key => $value) {
-			$manifest[$key] = $this->translateEntry(entry: new ManifestEntry(key: $key, value: $value, context: $context));
+			$manifest[$key] = $this->translateEntry(entry: new ManifestEntry(key: $key, value: $value), context: $context);
 		}
 
 		return $manifest;
@@ -178,16 +178,17 @@ class PortalLabelTranslator {
 	 * One manifest value in the reader's language: a nested array walked in
 	 * its own context, a visible string translated, anything else as it is.
 	 *
-	 * @param ManifestEntry $entry The key, its value and where it sits.
+	 * @param ManifestEntry $entry   The key and its value.
+	 * @param string        $context Where the key sits.
 	 *
 	 * @return mixed The value, translated where a reader sees it.
 	 */
-	private function translateEntry(ManifestEntry $entry): mixed {
+	private function translateEntry(ManifestEntry $entry, string $context): mixed {
 		if (is_array($entry->value) === true) {
-			return $this->translateNested(entry: $entry);
+			return $this->translateNested(entry: $entry, context: $context);
 		}
 
-		if (is_string($entry->value) === true && $this->isVisible(key: $entry->key, context: $entry->context) === true) {
+		if (is_string($entry->value) === true && $this->isVisible(key: $entry->key, context: $context) === true) {
 			return $this->l10n?->t($entry->value);
 		}
 
@@ -198,16 +199,17 @@ class PortalLabelTranslator {
 	 * A nested array in the reader's language: a `valueLabels` map by its
 	 * labels, any other array walked in the context its key gives it.
 	 *
-	 * @param ManifestEntry $entry The key, its array value and where it sits.
+	 * @param ManifestEntry $entry   The key and its array value.
+	 * @param string        $context Where the key sits.
 	 *
 	 * @return array<array-key, mixed> The array, translated.
 	 */
-	private function translateNested(ManifestEntry $entry): array {
+	private function translateNested(ManifestEntry $entry, string $context): array {
 		if ($entry->key === self::VALUE_LABELS_KEY) {
 			return $this->translateValueLabels(labels: $entry->value);
 		}
 
-		return $this->translate(manifest: $entry->value, context: $this->contextOf(key: $entry->key, context: $entry->context));
+		return $this->translate(manifest: $entry->value, context: $this->contextOf(key: $entry->key, context: $context));
 	}//end translateNested()
 
 	/**

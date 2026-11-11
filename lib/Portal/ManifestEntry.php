@@ -3,8 +3,8 @@
 /**
  * Learniq portal manifest entry
  *
- * One key and its value of a portal manifest, with the context the manifest
- * around it is read in, as PortalLabelTranslator walks it.
+ * One key of a portal manifest and its value, as PortalLabelTranslator walks
+ * the manifest.
  *
  * @category Portal
  * @package  OCA\Learniq\Portal
@@ -28,7 +28,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Portal;
 
 /**
- * A manifest key, its value and the context it sits in.
+ * A manifest key and its value.
  *
  * @spec openspec/specs/portal-contribution/spec.md
  */
@@ -37,16 +37,14 @@ final class ManifestEntry {
 	/**
 	 * Constructor.
 	 *
-	 * @param int|string $key     The key.
-	 * @param mixed      $value   Its value.
-	 * @param string     $context Where the key sits: '' at the top, `sources`, `source`, `values`, `counted`, ...
+	 * @param int|string $key   The key.
+	 * @param mixed      $value Its value.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		public readonly int|string $key,
 		public readonly mixed $value,
-		public readonly string $context,
 	) {
 	}//end __construct()
 }//end class
