@@ -88,8 +88,14 @@ class PublicCourseIndex {
 		}
 
 		$runs = $this->runsOf(courseIds: array_keys($offered), namespace: $namespace, today: $today);
+		$out  = [];
+		foreach ($offered as $id => $course) {
+			if (isset($runs[$id]) === true) {
+				$out[] = $this->item(course: $course, runs: $runs[$id]);
+			}
+		}
 
-		return $this->cards(offered: $offered, runs: $runs);
+		return $out;
 	}//end items()
 
 	/**
@@ -109,25 +115,6 @@ class PublicCourseIndex {
 
 		return $offered;
 	}//end offeredCourses()
-
-	/**
-	 * One card per offered course with a run to come, in course order.
-	 *
-	 * @param array<string, array<string, mixed>>             $offered The offered courses, by id.
-	 * @param array<string, array<int, array<string, mixed>>>            $runs    Their runs, by course id.
-	 *
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function cards(array $offered, array $runs): array {
-		$out = [];
-		foreach ($offered as $id => $course) {
-			if (isset($runs[$id]) === true) {
-				$out[] = $this->item(course: $course, runs: $runs[$id]);
-			}
-		}
-
-		return $out;
-	}//end cards()
 
 	/**
 	 * Whether a course is offered to the public: published, and a training
@@ -204,8 +191,9 @@ class PublicCourseIndex {
 	private function daysOf(string $cohortId, string $today): array {
 		$days = [];
 		foreach ($this->reads->rows(schema: 'session', namespace: '', filters: ['cohortId' => $cohortId]) as $session) {
-			$day = substr((string)($session['startsAt'] ?? ''), 0, 10);
-			if ($this->isLiveLessonOf(session: $session, cohortId: $cohortId) === true && $day !== '' && $day >= $today) {
+			$day  = substr((string)($session['startsAt'] ?? ''), 0, 10);
+			$live = ((string)($session['cohortId'] ?? '') === $cohortId && ($session['lifecycle'] ?? null) !== 'cancelled');
+			if ($live === true && $day !== '' && $day >= $today) {
 				$days[$day] = true;
 			}
 		}
@@ -215,18 +203,6 @@ class PublicCourseIndex {
 
 		return $list;
 	}//end daysOf()
-
-	/**
-	 * Whether a lesson belongs to this cohort and is not cancelled.
-	 *
-	 * @param array<string, mixed> $session  The lesson.
-	 * @param string               $cohortId The cohort.
-	 *
-	 * @return bool
-	 */
-	private function isLiveLessonOf(array $session, string $cohortId): bool {
-		return (string)($session['cohortId'] ?? '') === $cohortId && ($session['lifecycle'] ?? null) !== 'cancelled';
-	}//end isLiveLessonOf()
 
 	/**
 	 * One course card.
