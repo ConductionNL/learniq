@@ -73,6 +73,13 @@ class ExcuseRequestOwnerStampTest extends TestCase {
 	private ?RegisterFaithfulStore $store = null;
 
 	/**
+	 * Every profile reference looked up, in order.
+	 *
+	 * @var list<string>
+	 */
+	private array $lookups = [];
+
+	/**
 	 * Build the stamp over in-memory profiles.
 	 *
 	 * @param string $schemaSlug The slug the resolver reports.
@@ -95,7 +102,8 @@ class ExcuseRequestOwnerStampTest extends TestCase {
 		$lookup = $this->createMock(LearnerRefResolver::class);
 		$lookup->method('byRef')->willReturnCallback(
 			function (string $learnerRef) use ($lookupThrows): ?array {
-				if ($lookupThrows === true) {
+				$this->lookups[] = $learnerRef;
+				if ($lookupThrows === true || $learnerRef === 'gp-throws') {
 					throw new RuntimeException('database gone');
 				}
 
@@ -681,4 +689,34 @@ class ExcuseRequestOwnerStampTest extends TestCase {
 		self::assertContains(ObjectCreatingEvent::class . ' => ' . ExcuseRequestOwnerStamp::class, $pairs);
 		self::assertContains(ObjectUpdatingEvent::class . ' => ' . ExcuseRequestOwnerStamp::class, $pairs);
 	}//end testTheStampIsRegisteredOnCreateAndUpdate()
+
+	/**
+	 * The portal path looks up the pupil, then (only for a known pupil and a
+	 * named submitter) the guardian, before deciding; a guardian lookup that
+	 * fails refuses the report like any failed lookup.
+	 *
+	 * @return void
+	 */
+	public function testThePortalPathLooksUpThePupilThenTheGuardian(): void {
+		$this->seedFamily();
+		$this->profiles['lp-1']['guardianRefs'][] = 'gp-throws';
+
+		$cases = [
+			'pupil'           => [['learnerRef' => 'lp-1'], ['lp-1'], null],
+			'guardian'        => [['learnerRef' => 'lp-1', 'submittedByRef' => 'gp-1'], ['lp-1', 'gp-1'], null],
+			'stranger'        => [['learnerRef' => 'lp-1', 'submittedByRef' => 'gp-9'], ['lp-1', 'gp-9'], 'excuse-guardian-unknown'],
+			'unknown pupil'   => [['learnerRef' => 'lp-9', 'submittedByRef' => 'gp-1'], ['lp-9'], 'excuse-learner-unknown'],
+			'guardian throws' => [['learnerRef' => 'lp-1', 'submittedByRef' => 'gp-throws'], ['lp-1', 'gp-throws'], 'excuse-lookup-failed'],
+		];
+
+		foreach ($cases as $name => [$extra, $lookups, $refusal]) {
+			$this->lookups = [];
+			$event = $this->portalCreate(extra: $extra);
+
+			$this->makeStamp()->handle($event);
+
+			self::assertSame($lookups, $this->lookups, $name);
+			self::assertSame($refusal, ($event->getErrors()['reason'] ?? null), $name);
+		}
+	}//end testThePortalPathLooksUpThePupilThenTheGuardian()
 }//end class
