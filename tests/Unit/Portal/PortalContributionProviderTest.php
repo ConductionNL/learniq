@@ -3,6 +3,9 @@
 /**
  * Unit tests for the Learniq PortalContributionProvider.
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Pins the ADR-046 contribution contract v2: the dual v2/v1 audience
  * declaration, the fail-closed null for unserved audiences, and the exact
  * declarative manifest shape for the `student` and `parent` audiences

@@ -3,6 +3,9 @@
 /**
  * Learniq Check-in Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * A learner checks in to a lesson with the code on the teacher's screen
  * (attendance-self-check-in). Every rule is checked here before anything is
  * written: the window exists, is open and has not passed its close time or
@@ -27,8 +30,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

@@ -3,6 +3,9 @@
 /**
  * Learniq Portal Attempt Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * The `available`, `start`, `answer` and `submit` steps of portaliq's timed
  * task (ConductionNL/portaliq#749), for one pupil. Every rule a portal attempt
  * is subject to is checked here, before any write, because the attempt gate
@@ -29,8 +32,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

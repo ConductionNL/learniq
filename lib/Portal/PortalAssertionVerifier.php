@@ -3,6 +3,9 @@
 /**
  * Learniq Portal Assertion Verifier
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * When portaliq forwards an endpoint action server-to-server (ADR-046
  * contract v2, A6) it attaches an `X-Portal-Subject` header: a 60 second HS256
  * JWT carrying the resolved portal subject. This class verifies it. It is the
@@ -32,8 +35,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

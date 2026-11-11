@@ -3,6 +3,9 @@
 /**
  * Learniq Course Store Descriptor
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Learniq's parameters for OpenRegister's store plane (ADR-080): shared course
  * packages live as `shared-course-package` objects in the `learniq` register of
  * the configured registry. The registry URL, token and register come from
@@ -27,8 +30,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

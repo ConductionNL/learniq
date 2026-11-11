@@ -3,6 +3,9 @@
 /**
  * Learniq AssessmentResult Integrity Listener
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Keeps a learner's attempt trustworthy now that AssessmentResult is no longer
  * `appendOnly` (learniq#948). OpenRegister refuses EVERY update on an
  * append-only schema, lifecycle transitions included, so the flag made it
@@ -29,8 +32,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

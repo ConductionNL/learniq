@@ -3,6 +3,9 @@
 /**
  * Learniq Timetable Conflict Detector
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Detection, not optimisation (design.md "Conflict-detection algorithm").
  * Given a set of Session ids that just changed (created/updated, or
  * upserted by a `timetable-import` DataExchangeJob), scans the affected
@@ -44,8 +47,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

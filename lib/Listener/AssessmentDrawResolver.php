@@ -3,6 +3,9 @@
 /**
  * Learniq Assessment Draw Resolver
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * ADR-031 legitimate exception: server-side randomness/shuffle resolution
  * cannot be client-supplied — the exact trust boundary AssessmentScoringHandler
  * already defends for autoScore (lib/Lifecycle/AssessmentScoringHandler.php).
@@ -42,8 +45,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

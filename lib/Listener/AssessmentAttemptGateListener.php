@@ -3,6 +3,9 @@
 /**
  * Learniq Assessment Attempt Gate Listener
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Refuses to create an AssessmentResult (start an attempt) outside the
  * Assessment's availableFrom/availableUntil window, without the right access
  * code when the Assessment has one, or when the learner has used all of the
@@ -40,8 +43,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

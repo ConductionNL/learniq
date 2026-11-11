@@ -3,6 +3,9 @@
 /**
  * Learniq Learning Record Export Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * OR lifecycle guard for `LearningRecordExport`'s `generate` transition.
  * Reads `LearningRecordAggregationService::compose()`'s live composition,
  * splits it into an ELM/Europass-shaped `elm` section (per in-scope
@@ -29,8 +32,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

@@ -3,6 +3,9 @@
 /**
  * Learniq Cohort Group Provisioning Handler
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Listens for OpenRegister's ObjectTransitionedEvent and:
  *
  * 1. On Cohort `activate` (planned -> active): provisions a real Nextcloud
@@ -34,8 +37,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

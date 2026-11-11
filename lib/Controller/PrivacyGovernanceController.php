@@ -3,6 +3,9 @@
 /**
  * Learniq Privacy Governance Controller
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * One read-only endpoint (privacy-governance-surfaces): composes the eight
  * `rbac-declare-groups` group ids with live Nextcloud member counts
  * (`IGroupManager`), a best-effort two-factor-adoption count across those
@@ -28,8 +31,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

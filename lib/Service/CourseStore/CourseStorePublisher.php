@@ -3,6 +3,9 @@
 /**
  * Learniq Course Store Publisher
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Sends a share package to the course registry through OpenRegister's store
  * plane: `GenericStoreService::publish()` (openregister #4079). The plane owns
  * the whole transport, the same guard chain as discovery:
@@ -28,8 +31,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

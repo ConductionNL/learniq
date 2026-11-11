@@ -3,6 +3,9 @@
 /**
  * Learniq Learning Record Share Verify Controller
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Public (unauthenticated) endpoint for verifying a `LearningRecordShare`'s
  * shared bundle. External employers, receiving-school admissions offices,
  * or anyone holding the share link call
@@ -33,8 +36,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

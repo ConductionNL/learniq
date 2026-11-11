@@ -3,6 +3,9 @@
 /**
  * Learniq Assessment Attempt Time Limit Listener
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Holds a learner's attempt on the in-app test screen to its time limit, on
  * the server, the way the portal endpoints hold a portal attempt to it
  * (in-app-test-limits-server-side):
@@ -31,8 +34,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *
