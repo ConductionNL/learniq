@@ -158,6 +158,71 @@ class PortalMessageContactsTest extends TestCase {
 	}//end testAPupilWritesToTheTeachersOfHerActiveGroupOnly()
 
 	/**
+	 * A group's primary teachers come first, then its other teachers, each
+	 * once; ids that are not names, and accounts without a name of their
+	 * own, are left out; names and roles are read in that order.
+	 *
+	 * @return void
+	 */
+	public function testTheTeachersOfAGroupInOrderEachOnce(): void {
+		$rows = [
+			'enrolment' => ['enr-1' => ['uuid' => 'enr-1', 'lifecycle' => 'active', 'cohortId' => 'c-1']],
+			'cohort' => [
+				'c-1' => [
+					'uuid' => 'c-1',
+					'lifecycle' => 'active',
+					'teacherAssignments' => [
+						['teacherId' => 'mentor', 'role' => 'assistant'],
+						'not an assignment',
+						['teacherId' => 'prim', 'role' => 'primary'],
+						['role' => 'primary'],
+					],
+					'teacherIds' => ['anna', 'prim', 7, '', 'nameless', 'anna', 'mentor'],
+				],
+			],
+		];
+		$reads = [];
+		$store = $this->createMock(ObjectService::class);
+		$store->method('find')->willReturnCallback(
+			function (...$args) use ($rows): ?ObjectEntity {
+				$row = ($rows[(string)($args['schema'] ?? $args[4] ?? '')][(string)($args['id'] ?? $args[0])] ?? null);
+				if ($row === null) {
+					return null;
+				}
+
+				$entity = $this->createMock(ObjectEntity::class);
+				$entity->method('jsonSerialize')->willReturn($row);
+				return $entity;
+			}
+		);
+		$store->method('findAll')->willReturnCallback(
+			static function (array $config) use (&$reads): array {
+				$reads[] = 'staff:' . $config['filters']['ncUserId'];
+				return [['roles' => ($config['filters']['ncUserId'] === 'mentor' ? ['mentor'] : [])]];
+			}
+		);
+		$users = $this->createMock(IUserManager::class);
+		$users->method('getDisplayName')->willReturnCallback(
+			static function (string $uid) use (&$reads): ?string {
+				$reads[] = 'name:' . $uid;
+				return ['prim' => 'Pim Prins', 'anna' => ' Anna de Wit ', 'mentor' => 'Mo Mentor', 'nameless' => 'nameless'][$uid] ?? null;
+			}
+		);
+
+		$contacts = (new PortalMessageContacts($store, $users, $this->createMock(LoggerInterface::class)))->ownContacts(enrolmentId: 'enr-1');
+
+		self::assertSame(
+			[
+				['staffRef' => 'prim', 'name' => 'Pim Prins', 'role' => 'Teacher'],
+				['staffRef' => 'anna', 'name' => 'Anna de Wit', 'role' => 'Teacher'],
+				['staffRef' => 'mentor', 'name' => 'Mo Mentor', 'role' => 'Mentor'],
+			],
+			$contacts
+		);
+		self::assertSame(['name:prim', 'staff:prim', 'name:anna', 'staff:anna', 'name:nameless', 'name:mentor', 'staff:mentor'], $reads);
+	}//end testTheTeachersOfAGroupInOrderEachOnce()
+
+	/**
 	 * The manifests declare the two providers on the collections portaliq
 	 * reads the records from, and the provider answers through them; without
 	 * the service it answers nobody.
