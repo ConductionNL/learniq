@@ -134,8 +134,10 @@ test('a share needs a recipient, an expiry and an export before anything is sent
 	]) {
 		const vm = screen(state)
 		const calls = stubFetch([])
-		await vm.createShare()
+		const logged = await capturingErrors(() => vm.createShare())
 		assert.equal(calls.length, 0)
+		assert.deepEqual(logged, [])
+		assert.equal(vm.shareError, null)
 		assert.equal(vm.shareTouched, true)
 		assert.equal(vm.creatingShare, false)
 	}
