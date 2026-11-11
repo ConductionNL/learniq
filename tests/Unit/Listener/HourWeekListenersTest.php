@@ -596,6 +596,71 @@ class HourWeekListenersTest extends TestCase {
 	}//end testANonRowPlacementMovesNoTotal()
 
 	/**
+	 * The sums read every week of the one placement without RBAC or tenancy:
+	 * approved from every week, waiting from submitted weeks, returned from
+	 * rejected weeks (never below zero), anything that is not a number as zero.
+	 *
+	 * @return void
+	 */
+	public function testTheSumsOfEveryKindOfWeek(): void {
+		$calls = [];
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			function (array $config = [], bool $_rbac = true, bool $_multitenancy = true) use (&$calls): array {
+				$calls[] = [$config, $_rbac, $_multitenancy];
+				return [
+					['hoursSubmitted' => '8.5', 'hoursApproved' => '8', 'lifecycle' => 'approved'],
+					OrEntityFactory::make(['id' => 'w2', 'hoursSubmitted' => 4, 'lifecycle' => 'submitted'], 'bpv-hour-week'),
+					['hoursSubmitted' => 6, 'hoursApproved' => 2, 'lifecycle' => 'rejected'],
+					['hoursSubmitted' => 1, 'hoursApproved' => 3, 'lifecycle' => 'rejected'],
+					['hoursSubmitted' => 'veel', 'hoursApproved' => null, 'lifecycle' => 'submitted'],
+					['hoursSubmitted' => 9, 'hoursApproved' => 7, 'lifecycle' => 'corrected'],
+					'not a week',
+				];
+			}
+		);
+		$rollup = new HourWeekTotalRollup(
+			schemaResolver: $this->createMock(ListenerSchemaResolver::class),
+			objectService: $objectService,
+			logger: new NullLogger()
+		);
+
+		self::assertSame(
+			['hoursApprovedTotal' => 20.0, 'hoursWaitingTotal' => 4.0, 'hoursReturnedTotal' => 4.0],
+			$rollup->sumsFor(placementId: 'p-9')
+		);
+		self::assertSame(
+			[[['filters' => ['register' => 'learniq', 'schema' => 'bpv-hour-week', 'bpvPlacementId' => 'p-9'], 'limit' => 500], false, false]],
+			$calls
+		);
+	}//end testTheSumsOfEveryKindOfWeek()
+
+	/**
+	 * A created week and the new side of an updated week move their own
+	 * placement's total; another schema's write moves none.
+	 *
+	 * @return void
+	 */
+	public function testTheWrittenWeekPicksThePlacement(): void {
+		$this->store->rows['bpv-hour-week'] = [
+			['id' => 'w1', 'bpvPlacementId' => self::PLACEMENT, 'hoursApproved' => 30, 'lifecycle' => 'approved'],
+			['id' => 'w2', 'bpvPlacementId' => self::BARE_PLACEMENT, 'hoursApproved' => 12, 'lifecycle' => 'approved'],
+		];
+		$first  = OrEntityFactory::make($this->store->rows['bpv-hour-week'][0], 'bpv-hour-week');
+		$second = OrEntityFactory::make($this->store->rows['bpv-hour-week'][1], 'bpv-hour-week');
+
+		$this->rollup(slug: 'bpv-placement')->handle(new ObjectCreatedEvent($first));
+		self::assertSame(0, $this->placement(id: self::PLACEMENT)['hoursApprovedTotal']);
+
+		$this->rollup()->handle(new ObjectUpdatedEvent($second, $first));
+		self::assertSame(12.0, (float)$this->placement(id: self::BARE_PLACEMENT)['hoursApprovedTotal']);
+		self::assertSame(0, $this->placement(id: self::PLACEMENT)['hoursApprovedTotal']);
+
+		$this->rollup()->handle(new ObjectCreatedEvent($first));
+		self::assertSame(30.0, (float)$this->placement(id: self::PLACEMENT)['hoursApprovedTotal']);
+	}//end testTheWrittenWeekPicksThePlacement()
+
+	/**
 	 * One placement as the store holds it.
 	 *
 	 * @param string $id The placement uuid.
