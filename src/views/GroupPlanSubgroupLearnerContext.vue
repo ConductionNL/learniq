@@ -165,6 +165,7 @@
 <script>
 import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
+import { readRequiredList } from '../utils/requiredListRead.js'
 
 export default {
 	name: 'GroupPlanSubgroupLearnerContext',
@@ -282,15 +283,10 @@ export default {
 		 * @spec openspec/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 		 */
 		async fetchSchema(schema, query) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/${schema}?${query}`,
+			return readRequiredList(
+				generateUrl(`/apps/openregister/api/objects/learniq/${schema}?${query}`),
+				`${schema} fetch failed`,
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) throw new Error(`${schema} fetch failed: ${resp.status}`)
-			const json = await resp.json()
-			return json.results ?? json.objects ?? json ?? []
 		},
 
 		/**
