@@ -81,6 +81,10 @@ class EvidenceFreezeListenerRegistrar {
 			event: ObjectUpdatingEvent::class,
 			listener: LvsResultFreezeListener::class
 		);
+		$context->registerEventListener(
+			event: ObjectLeavingEvent::class,
+			listener: LvsResultFreezeListener::class
+		);
 
 		// Proctoring flag review (proctoring-flag-review-page D2): a learner
 		// may append pending flags to their own session but only staff decide
