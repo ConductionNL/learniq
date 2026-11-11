@@ -470,7 +470,7 @@ export default {
 			this.message = ''
 			try {
 				const result = await this.client.run(action, input)
-				this.handleResult(action, result, context)
+				this.handleResult({ action, context }, result)
 			} finally {
 				this.busyAction = ''
 			}
@@ -479,65 +479,106 @@ export default {
 		/**
 		 * Act on one classified answer (outcome classes in contract.md).
 		 *
-		 * @param {string} action The action that ran.
+		 * @param {{action: string, context: {afterBlockId?: string|null, goalIds?: string[]}}} assist The action that ran and its context from run().
 		 * @param {{outcome: string, data: object|null}} result The classified answer.
-		 * @param {{afterBlockId?: string|null, goalIds?: string[]}} context From run().
 		 * @spec openspec/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
 		 * @spec openspec/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
 		 * @return {void}
 		 */
-		handleResult(action, result, context) {
-			switch (result.outcome) {
-				case 'off':
-					sessionState.switchedOff = true
-					this.switchedOff = true
-					this.$emit('off')
-					return
-				case 'busy':
-					this.message = this.t(
-						'learniq',
-						'Too many requests. Wait a minute and try again.',
-					)
-					return
-				case 'retry':
-					this.message = this.t(
-						'learniq',
-						'The AI model gave no usable answer. Try again later.',
-					)
-					return
-				case 'ok':
-					break
-				default:
-					this.message = this.t(
-						'learniq',
-						'The AI help could not run. Try again later.',
-					)
-					return
-			}
-
-			if (action === 'goal-suggestions') {
-				this.suggestedGoalIds = goalIdsFromSuggestions(
-					result.data.suggestedGoals,
-					context.goalIds ?? [],
-				)
-				this.message =
-					this.suggestedGoalIds.length === 0
-						? this.t(
-								'learniq',
-								'No goal from the list fits this lesson.',
-							)
-						: this.t(
-								'learniq',
-								'Suggested goals are listed below. Add the ones that fit.',
-							)
+		handleResult(assist, result) {
+			if (result.outcome !== 'ok') {
+				this.handleRefusal(result.outcome)
 				return
 			}
+			if (assist.action === 'goal-suggestions') {
+				this.showGoalSuggestions(result.data, assist.context)
+				return
+			}
+			this.addDraft(assist, result.data)
+		},
 
+		/**
+		 * Act on an answer other than ok: switch off for the session, or say why.
+		 *
+		 * @param {string} outcome The outcome class.
+		 * @return {void}
+		 */
+		handleRefusal(outcome) {
+			if (outcome === 'off') {
+				this.switchOff()
+				return
+			}
+			this.message = this.refusalText(outcome)
+		},
+
+		/**
+		 * Switch the assist off for this page and the rest of the session.
+		 *
+		 * @return {void}
+		 */
+		switchOff() {
+			sessionState.switchedOff = true
+			this.switchedOff = true
+			this.$emit('off')
+		},
+
+		/**
+		 * @param {string} outcome An outcome class other than ok or off.
+		 * @return {string} Why the assist gave no draft.
+		 */
+		refusalText(outcome) {
+			const texts = {
+				busy: this.t('learniq', 'Too many requests. Wait a minute and try again.'),
+				retry: this.t('learniq', 'The AI model gave no usable answer. Try again later.'),
+			}
+			return Object.hasOwn(texts, outcome)
+				? texts[outcome]
+				: this.t('learniq', 'The AI help could not run. Try again later.')
+		},
+
+		/**
+		 * List the suggested goals that are in the lesson's goal list.
+		 *
+		 * @param {object} data The answer's data.
+		 * @param {{goalIds?: string[]}} context The ids for index mapping.
+		 * @return {void}
+		 */
+		showGoalSuggestions(data, context) {
+			this.suggestedGoalIds = goalIdsFromSuggestions(
+				data.suggestedGoals,
+				context.goalIds ?? [],
+			)
+			this.message = this.goalSuggestionText()
+		},
+
+		/**
+		 * @return {string} Whether any of the lesson's goals were suggested.
+		 */
+		goalSuggestionText() {
+			return this.suggestedGoalIds.length === 0
+				? this.t(
+						'learniq',
+						'No goal from the list fits this lesson.',
+					)
+				: this.t(
+						'learniq',
+						'Suggested goals are listed below. Add the ones that fit.',
+					)
+		},
+
+		/**
+		 * Hand the answer to the composer as a draft block.
+		 *
+		 * @param {{action: string, context: {afterBlockId?: string|null}}} assist The action that ran and where its draft lands.
+		 * @param {object} data The answer's data.
+		 * @return {void}
+		 */
+		addDraft(assist, data) {
 			this.$emit('draft', {
-				text: draftTextFromResult(action, result.data),
-				action,
-				provider: result.data.provider ?? null,
-				afterBlockId: context.afterBlockId ?? null,
+				text: draftTextFromResult(assist.action, data),
+				action: assist.action,
+				provider: data.provider ?? null,
+				afterBlockId: assist.context.afterBlockId ?? null,
 			})
 			this.message = this.t(
 				'learniq',
