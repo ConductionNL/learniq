@@ -81,11 +81,11 @@ class ReportCardGradeLinesStamp implements IEventListener {
 			return;
 		}
 
-		if ($event->isPropagationStopped() === true || $this->isReportCard(entity: $this->entityOf(event: $event)) === false) {
+		if ($event->isPropagationStopped() === true || $this->isReportCard(entity: SchemaWrite::entityOf(event: $event)) === false) {
 			return;
 		}
 
-		$payload = array_merge(($this->entityOf(event: $event)->getObject() ?? []), $event->getModifiedData());
+		$payload = array_merge((SchemaWrite::entityOf(event: $event)->getObject() ?? []), $event->getModifiedData());
 
 		$event->setModifiedData(array_merge($event->getModifiedData(), $this->stampFor(event: $event, payload: $payload)));
 	}//end handle()
@@ -137,18 +137,4 @@ class ReportCardGradeLinesStamp implements IEventListener {
 		}
 	}//end isReportCard()
 
-	/**
-	 * The object being written: the new state on an update.
-	 *
-	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The write event.
-	 *
-	 * @return ObjectEntity
-	 */
-	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
-	}//end entityOf()
 }//end class

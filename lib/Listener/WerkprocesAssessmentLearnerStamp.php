@@ -101,7 +101,7 @@ class WerkprocesAssessmentLearnerStamp implements IEventListener {
 			return;
 		}
 
-		$entity = $this->entityOf(event: $event);
+		$entity = SchemaWrite::entityOf(event: $event);
 		if ($event->isPropagationStopped() === true || $this->isAssessment(entity: $entity) === false) {
 			return;
 		}
@@ -232,21 +232,6 @@ class WerkprocesAssessmentLearnerStamp implements IEventListener {
 			return false;
 		}
 	}//end isAssessment()
-
-	/**
-	 * The object being written: the new state on an update.
-	 *
-	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The write event.
-	 *
-	 * @return ObjectEntity
-	 */
-	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
-	}//end entityOf()
 
 	/**
 	 * A string value, trimmed, or '' for anything else.

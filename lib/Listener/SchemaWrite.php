@@ -101,8 +101,10 @@ final class SchemaWrite {
 	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The write event.
 	 *
 	 * @return ObjectEntity
+	 *
+	 * @spec exclude Listener plumbing, not a behavioural requirement.
 	 */
-	private static function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
+	public static function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
 		if ($event instanceof ObjectUpdatingEvent === true) {
 			return $event->getNewObject();
 		}

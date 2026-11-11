@@ -111,11 +111,11 @@ class SubmissionOwnerStamp implements IEventListener {
 			return;
 		}
 
-		if ($event->isPropagationStopped() === true || $this->isSubmission(entity: $this->entityOf(event: $event)) === false) {
+		if ($event->isPropagationStopped() === true || $this->isSubmission(entity: SchemaWrite::entityOf(event: $event)) === false) {
 			return;
 		}
 
-		$payload = array_merge(($this->entityOf(event: $event)->getObject() ?? []), $event->getModifiedData());
+		$payload = array_merge((SchemaWrite::entityOf(event: $event)->getObject() ?? []), $event->getModifiedData());
 
 		$outcome = $this->outcomeFor(event: $event, payload: $payload);
 		$reason = ($outcome['refuse'] ?? null);
@@ -343,21 +343,6 @@ class SubmissionOwnerStamp implements IEventListener {
 			return false;
 		}
 	}//end isSubmission()
-
-	/**
-	 * The object being written: the new state on an update.
-	 *
-	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The write event.
-	 *
-	 * @return ObjectEntity
-	 */
-	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
-	}//end entityOf()
 
 	/**
 	 * Stop the write with a reason and a message the caller can show.

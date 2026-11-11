@@ -102,7 +102,7 @@ class SubmissionResubmissionDateListener implements IEventListener {
 			return;
 		}
 
-		$entity = $this->entityOf(event: $event);
+		$entity = SchemaWrite::entityOf(event: $event);
 		$uid = $this->policedUid(entity: $entity);
 		if ($uid === null) {
 			return;
@@ -124,21 +124,6 @@ class SubmissionResubmissionDateListener implements IEventListener {
 			['uid' => $uid]
 		);
 	}//end handle()
-
-	/**
-	 * The object being written: the new state on an update.
-	 *
-	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The write event.
-	 *
-	 * @return ObjectEntity
-	 */
-	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
-	}//end entityOf()
 
 	/**
 	 * The caller's uid when this is a Submission write by someone outside

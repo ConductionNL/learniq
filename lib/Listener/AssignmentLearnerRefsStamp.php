@@ -98,7 +98,7 @@ class AssignmentLearnerRefsStamp implements IEventListener {
 			return;
 		}
 
-		$entity = $this->entityOf(event: $event);
+		$entity = SchemaWrite::entityOf(event: $event);
 		try {
 			$slug = $this->schemaResolver->guardSchemaSlug(entity: $entity);
 		} catch (Throwable $exception) {
@@ -120,21 +120,6 @@ class AssignmentLearnerRefsStamp implements IEventListener {
 
 		$event->setModifiedData(array_merge($event->getModifiedData(), ['learnerRefs' => $refs]));
 	}//end handle()
-
-	/**
-	 * The object being written: the new state on an update.
-	 *
-	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The write event.
-	 *
-	 * @return ObjectEntity
-	 */
-	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
-	}//end entityOf()
 
 	/**
 	 * The learnerRefs the assignment carried before this update, empty on create.
