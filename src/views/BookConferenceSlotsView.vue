@@ -129,6 +129,12 @@ import {
 	NcNoteCard,
 	NcSelect,
 } from '@nextcloud/vue'
+import {
+	fetchRounds,
+	findRound,
+	roundOptions,
+	roundTeacherOptions,
+} from '../utils/conferenceRounds.js'
 import { conferenceSignupBody } from '../utils/conferenceSignupBody.js'
 
 export default {
@@ -168,10 +174,7 @@ export default {
 		 * @spec openspec/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		roundOptions() {
-			return this.rounds.map((r) => ({
-				id: r.id || r.uuid,
-				label: r.name || r.id || r.uuid,
-			}))
+			return roundOptions(this.rounds)
 		},
 
 		/**
@@ -180,10 +183,7 @@ export default {
 		 * @return {object|null}
 		 */
 		selectedRound() {
-			return (
-				this.rounds.find((r) => (r.id || r.uuid) === this.selectedRoundId)
-				|| null
-			)
+			return findRound(this.rounds, this.selectedRoundId)
 		},
 
 		/**
@@ -193,11 +193,7 @@ export default {
 		 * @spec openspec/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		teacherOptions() {
-			if (!this.selectedRound) return []
-			return (this.selectedRound.teacherIds || []).map((id) => ({
-				id,
-				label: id,
-			}))
+			return roundTeacherOptions(this.selectedRound)
 		},
 
 		/**
@@ -244,15 +240,10 @@ export default {
 		async loadRounds() {
 			this.loading = true
 			try {
-				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/conference-round?lifecycle=booking-open&_limit=100',
+				this.rounds = await fetchRounds(
+					{ get: (url) => axios.get(url), urlFor: generateUrl },
+					'booking-open',
 				)
-				const response = await axios.get(url)
-				this.rounds =
-					(response.data
-						&& (response.data.results || response.data.objects))
-					|| response.data
-					|| []
 			} catch (e) {
 				console.error('[BookConferenceSlotsView] loadRounds failed', e)
 				this.rounds = []
