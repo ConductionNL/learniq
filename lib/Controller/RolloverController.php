@@ -99,7 +99,23 @@ class RolloverController extends Controller {
 			return new JSONResponse(data: ['error' => 'fromAcademicYear is required'], statusCode: Http::STATUS_BAD_REQUEST);
 		}
 
-		$cohorts = $this->objectService->findAll(
+		$cohorts = self::asCohorts(
+			rows: $this->findCohorts(fromAcademicYear: $fromAcademicYear, tenantId: $this->callerTenant->resolve(user: $user))
+		);
+
+		return $this->mappingResponse(cohorts: $cohorts);
+	}//end proposeMapping()
+
+	/**
+	 * The from-year's cohorts of one tenant.
+	 *
+	 * @param string      $fromAcademicYear The year being rolled out of.
+	 * @param string $tenantId         The caller's tenant.
+	 *
+	 * @return array<int, mixed>
+	 */
+	private function findCohorts(string $fromAcademicYear, string $tenantId): array {
+		return $this->objectService->findAll(
 			[
 				'filters' => [
 					'register' => 'learniq',
@@ -107,33 +123,69 @@ class RolloverController extends Controller {
 					'academicYear' => $fromAcademicYear,
 					// The action matrix is instance-wide: without this, a planner
 					// saw every tenant's cohorts for a shared year string.
-					'tenant_id' => $this->callerTenant->resolve(user: $user),
+					'tenant_id' => $tenantId,
 				],
 			]
 		);
+	}//end findCohorts()
 
-		$fromCohorts = [];
-		$cohortNames = [];
-		foreach ($cohorts as $row) {
+	/**
+	 * The rows as cohort arrays.
+	 *
+	 * @param array<int, mixed> $rows Rows or entities.
+	 *
+	 * @return array<int, array<mixed>>
+	 */
+	private static function asCohorts(array $rows): array {
+		$cohorts = [];
+		foreach ($rows as $row) {
 			$cohort = $row;
 			if (is_array($row) === false) {
 				$cohort = (array)$row->jsonSerialize();
 			}
 
-			$fromCohorts[] = $cohort;
+			$cohorts[] = $cohort;
+		}
+
+		return $cohorts;
+	}//end asCohorts()
+
+	/**
+	 * The proposed mappings, and the name of every cohort that has an id.
+	 *
+	 * @param array<int, array<mixed>> $cohorts The from-year's cohorts.
+	 *
+	 * @return JSONResponse
+	 */
+	private function mappingResponse(array $cohorts): JSONResponse {
+		$cohortNames = self::cohortNames(cohorts: $cohorts);
+
+		return new JSONResponse(
+			data: [
+				'mappings' => $this->rolloverService->proposeDefaultMapping(fromCohorts: $cohorts),
+				'cohortNames' => $cohortNames,
+			]
+		);
+	}//end mappingResponse()
+
+	/**
+	 * Cohort id to display name; a cohort without a name is named by its id.
+	 *
+	 * @param array<int, array<mixed>> $cohorts The cohorts.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function cohortNames(array $cohorts): array {
+		$cohortNames = [];
+		foreach ($cohorts as $cohort) {
 			$cohortId = (string)($cohort['id'] ?? ($cohort['uuid'] ?? ''));
 			if ($cohortId !== '') {
 				$cohortNames[$cohortId] = (string)($cohort['name'] ?? $cohortId);
 			}
 		}
 
-		return new JSONResponse(
-			data: [
-				'mappings' => $this->rolloverService->proposeDefaultMapping(fromCohorts: $fromCohorts),
-				'cohortNames' => $cohortNames,
-			]
-		);
-	}//end proposeMapping()
+		return $cohortNames;
+	}//end cohortNames()
 
 	/**
 	 * Compute the preview for a plan and advance it to `previewed`.
