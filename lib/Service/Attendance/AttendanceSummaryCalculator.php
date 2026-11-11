@@ -168,7 +168,7 @@ class AttendanceSummaryCalculator {
 		foreach ($this->datedMarks(records: $records, sessions: $sessions) as [$status, $year, $day, $record, $session]) {
 			$years[$year] = ($years[$year] ?? self::emptyCounts());
 			if ($status === self::LATE) {
-				$years[$year] = self::withLate(counts: $years[$year], minutes: $this->lateMinutes(record: $record, session: $session));
+				$years[$year] = self::withLate(counts: $years[$year], minutes: (new LateMinutes())->minutesOf(record: $record, session: $session));
 				continue;
 			}
 
@@ -263,51 +263,6 @@ class AttendanceSummaryCalculator {
 
 		return self::moment(value: ($record['markedAt'] ?? null))?->format('Y-m-d');
 	}//end dayOf()
-
-	/**
-	 * The minutes a late record adds.
-	 *
-	 * @param array<string, mixed>                          $record  The record.
-	 * @param array{date: string, minutes: int|null}|null $session Its lesson.
-	 *
-	 * @return int
-	 */
-	private function lateMinutes(array $record, ?array $session): int {
-		$late = ($record['lateMinutes'] ?? null);
-		if (self::isWholeNumber(value: $late) === true) {
-			return max(0, (int)$late);
-		}
-
-		return self::unattendedMinutes(record: $record, session: $session);
-	}//end lateMinutes()
-
-	/**
-	 * Whether a value is an integer or a string of digits.
-	 *
-	 * @param mixed $value The value.
-	 *
-	 * @return bool
-	 */
-	private static function isWholeNumber(mixed $value): bool {
-		return is_int($value) === true || (is_string($value) === true && ctype_digit($value) === true);
-	}//end isWholeNumber()
-
-	/**
-	 * The lesson minutes a record did not attend, or 0 without a lesson length or attendance.
-	 *
-	 * @param array<string, mixed>                          $record  The record.
-	 * @param array{date: string, minutes: int|null}|null $session Its lesson.
-	 *
-	 * @return int
-	 */
-	private static function unattendedMinutes(array $record, ?array $session): int {
-		$attended = ($record['minutesAttended'] ?? null);
-		if ($session === null || $session['minutes'] === null || is_numeric($attended) === false) {
-			return 0;
-		}
-
-		return max(0, ($session['minutes'] - (int)$attended));
-	}//end unattendedMinutes()
 
 	/**
 	 * A timestamp in its own offset, or null.
