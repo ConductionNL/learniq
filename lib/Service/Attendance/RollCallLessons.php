@@ -199,30 +199,11 @@ class RollCallLessons {
 	 */
 	private function lessonsBefore(string $cohortId, DateTimeImmutable $day): array {
 		$midnight = $day->setTime(0, 0);
-		$rows = $this->objectService->findAll(
-			config: [
-				'filters' => [
-					'register' => self::REGISTER,
-					'schema' => 'session',
-					'cohortId' => $cohortId,
-					'startsAt' => ['lt' => $midnight->format(DATE_ATOM), 'gte' => $midnight->modify('-' . self::MODEL_DAYS . ' days')->format(DATE_ATOM)],
-				],
-				'sort' => ['startsAt' => 'DESC'],
-				'limit' => 20,
-			],
-			_rbac: false,
-			_multitenancy: false
-		);
-
-		$lessons = [];
-		foreach ($rows as $row) {
-			$lesson = $row;
-			if (is_array($row) === false) {
-				$lesson = (array)$row->jsonSerialize();
-			}
-
-			$start = $this->moment(value: ($lesson['startsAt'] ?? null));
-			if (($lesson['cohortId'] ?? null) === $cohortId && $start !== null && $start < $midnight) {
+		$lessons  = [];
+		foreach ($this->findLessons(cohortId: $cohortId, midnight: $midnight) as $row) {
+			$lesson = self::asLesson(row: $row);
+			$start  = $this->startBefore(lesson: $lesson, midnight: $midnight);
+			if (($lesson['cohortId'] ?? null) === $cohortId && $start !== null) {
 				$lessons[] = ['at' => $start->getTimestamp()] + $lesson;
 			}
 		}
@@ -231,4 +212,74 @@ class RollCallLessons {
 
 		return $lessons;
 	}//end lessonsBefore()
+
+	/**
+	 * The group's lessons in the model window before midnight, newest first,
+	 * read without RBAC or tenancy.
+	 *
+	 * @param string            $cohortId The group.
+	 * @param DateTimeImmutable $midnight The start of the day.
+	 *
+	 * @return array<int, mixed>
+	 */
+	private function findLessons(string $cohortId, DateTimeImmutable $midnight): array {
+		return $this->objectService->findAll(
+			config: [
+				'filters' => self::lessonFilters(cohortId: $cohortId, midnight: $midnight),
+				'sort' => ['startsAt' => 'DESC'],
+				'limit' => 20,
+			],
+			_rbac: false,
+			_multitenancy: false
+		);
+	}//end findLessons()
+
+	/**
+	 * The filters of the group's lessons in the model window before midnight.
+	 *
+	 * @param string            $cohortId The group.
+	 * @param DateTimeImmutable $midnight The start of the day.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function lessonFilters(string $cohortId, DateTimeImmutable $midnight): array {
+		return [
+			'register' => self::REGISTER,
+			'schema' => 'session',
+			'cohortId' => $cohortId,
+			'startsAt' => ['lt' => $midnight->format(DATE_ATOM), 'gte' => $midnight->modify('-' . self::MODEL_DAYS . ' days')->format(DATE_ATOM)],
+		];
+	}//end lessonFilters()
+
+	/**
+	 * A row as a lesson array.
+	 *
+	 * @param mixed $row A row or an entity.
+	 *
+	 * @return array<mixed>
+	 */
+	private static function asLesson(mixed $row): array {
+		if (is_array($row) === false) {
+			return (array)$row->jsonSerialize();
+		}
+
+		return $row;
+	}//end asLesson()
+
+	/**
+	 * The lesson's start when it lies before midnight, else null.
+	 *
+	 * @param array<mixed>      $lesson   The lesson.
+	 * @param DateTimeImmutable $midnight The start of the day.
+	 *
+	 * @return DateTimeImmutable|null
+	 */
+	private function startBefore(array $lesson, DateTimeImmutable $midnight): ?DateTimeImmutable {
+		$start = $this->moment(value: ($lesson['startsAt'] ?? null));
+		if ($start !== null && $start < $midnight) {
+			return $start;
+		}
+
+		return null;
+	}//end startBefore()
 }//end class
