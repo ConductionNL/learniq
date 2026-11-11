@@ -159,62 +159,119 @@ class PokActivationGuard implements LifecycleGuardInterface {
 	 * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
 	 */
 	private function denialReason(array $pok): ?string {
-		$pokId = $pok['id'] ?? ($pok['uuid'] ?? '');
-		$version = (int)($pok['version'] ?? 1);
-		$tenantId = $pok['tenant_id'] ?? '';
-
-		if ($pokId === '') {
+		if ($this->pokId(pok: $pok) === '') {
 			$this->logger->warning('[PokActivationGuard] Praktijkovereenkomst has no id; blocking activation.');
 			return self::DENIAL;
 		}
 
-		$signatures = $this->fetchSignatures(pokId: $pokId, version: $version, tenantId: $tenantId);
-		$missing = array_diff(self::REQUIRED_ROLES, $this->signedRoles(signatures: $signatures));
-
-		$parent = $this->parentRule->evaluate(pok: $pok, studentSignedAt: $this->parentRule->studentSignedAt(signatures: $signatures));
-		$parentMissing = $parent['required'] === true
-			&& $this->aListedParentSigned(signatures: $signatures, parentIds: $parent['parentIds']) === false;
-
-		if (empty($missing) === true && $parentMissing === false) {
-			$this->logger->info(
-				'[PokActivationGuard] Praktijkovereenkomst {id} v{v} fully signed — allowing activation.',
-				['id' => $pokId, 'v' => $version]
-			);
+		$gaps = $this->signatureGaps(pok: $pok);
+		if (empty($gaps['roles']) === true && $gaps['parentMissing'] === false) {
+			$this->logFullySigned(pok: $pok);
 			return null;
 		}
 
+		$this->logMissing(pok: $pok, gaps: $gaps);
+
+		return $this->reasonFor(gaps: $gaps);
+	}//end denialReason()
+
+	/**
+	 * The agreement's id, else its uuid, else ''.
+	 *
+	 * @param array<string,mixed> $pok The Praktijkovereenkomst.
+	 *
+	 * @return string
+	 */
+	private function pokId(array $pok): string {
+		return $pok['id'] ?? ($pok['uuid'] ?? '');
+	}//end pokId()
+
+	/**
+	 * The agreement's version, 1 when it has none.
+	 *
+	 * @param array<string,mixed> $pok The Praktijkovereenkomst.
+	 *
+	 * @return int
+	 */
+	private function pokVersion(array $pok): int {
+		return (int)($pok['version'] ?? 1);
+	}//end pokVersion()
+
+	/**
+	 * What is missing on this version: the standing roles that did not sign,
+	 * and whether a required parent signature is missing, with the parent rule's reason.
+	 *
+	 * @param array<string,mixed> $pok The Praktijkovereenkomst.
+	 *
+	 * @return array{roles: array<int, string>, parentMissing: bool, parentReason: string}
+	 *
+	 * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
+	 */
+	private function signatureGaps(array $pok): array {
+		$signatures = $this->fetchSignatures(pok: $pok);
+		$missing = array_diff(self::REQUIRED_ROLES, $this->signedRoles(signatures: $signatures));
+
+		$parent = $this->parentRule->evaluate(pok: $pok, studentSignedAt: $this->parentRule->studentSignedAt(signatures: $signatures));
+
+		return [
+			'roles' => $missing,
+			'parentMissing' => $parent['required'] === true
+				&& $this->aListedParentSigned(signatures: $signatures, parentIds: $parent['parentIds']) === false,
+			'parentReason' => $parent['reason'],
+		];
+	}//end signatureGaps()
+
+	/**
+	 * Log an agreement version that every required signature is on.
+	 *
+	 * @param array<string,mixed> $pok The Praktijkovereenkomst.
+	 *
+	 * @return void
+	 */
+	private function logFullySigned(array $pok): void {
+		$this->logger->info(
+			'[PokActivationGuard] Praktijkovereenkomst {id} v{v} fully signed — allowing activation.',
+			['id' => $this->pokId(pok: $pok), 'v' => $this->pokVersion(pok: $pok)]
+		);
+	}//end logFullySigned()
+
+	/**
+	 * Log what an agreement version still misses.
+	 *
+	 * @param array<string,mixed>                                                      $pok  The Praktijkovereenkomst.
+	 * @param array{roles: array<int, string>, parentMissing: bool, parentReason: string} $gaps What is missing.
+	 *
+	 * @return void
+	 */
+	private function logMissing(array $pok, array $gaps): void {
 		$this->logger->info(
 			'[PokActivationGuard] Praktijkovereenkomst {id} v{v} missing signatures for role(s): {missing}; parent missing: {parent} ({reason}).',
 			[
-				'id' => $pokId,
-				'v' => $version,
-				'missing' => implode(', ', $missing),
-				'parent' => var_export($parentMissing, true),
-				'reason' => $parent['reason'],
+				'id' => $this->pokId(pok: $pok),
+				'v' => $this->pokVersion(pok: $pok),
+				'missing' => implode(', ', $gaps['roles']),
+				'parent' => var_export($gaps['parentMissing'], true),
+				'reason' => $gaps['parentReason'],
 			]
 		);
-
-		return $this->reasonFor(rolesMissing: empty($missing) === false, parentMissing: $parentMissing, parentReason: $parent['reason']);
-	}//end denialReason()
+	}//end logMissing()
 
 	/**
 	 * The refusal text for what is missing.
 	 *
-	 * @param bool $rolesMissing Whether a student, school or workplace trainer signature is missing.
-	 * @param bool $parentMissing Whether a required parent signature is missing.
-	 * @param string $parentReason PokParentSignatureRule's reason.
+	 * @param array{roles: array<int, string>, parentMissing: bool, parentReason: string} $gaps What is missing.
 	 *
 	 * @return string
 	 */
-	private function reasonFor(bool $rolesMissing, bool $parentMissing, string $parentReason): string {
+	private function reasonFor(array $gaps): string {
 		$parts = [];
-		if ($rolesMissing === true) {
+		if (empty($gaps['roles']) === false) {
 			$parts[] = self::DENIAL;
 		}
 
-		if ($parentMissing === true) {
+		if ($gaps['parentMissing'] === true) {
 			$parentSentence = self::PARENT_FOR_MINOR;
-			if ($parentReason === PokParentSignatureRule::REASON_UNKNOWN_AGE) {
+			if ($gaps['parentReason'] === PokParentSignatureRule::REASON_UNKNOWN_AGE) {
 				$parentSentence = self::PARENT_FOR_UNKNOWN_AGE;
 			}
 
@@ -264,24 +321,17 @@ class PokActivationGuard implements LifecycleGuardInterface {
 	/**
 	 * Fetch the PokSignatures on this POK version.
 	 *
-	 * @param string $pokId Praktijkovereenkomst UUID.
-	 * @param int $version Praktijkovereenkomst version.
-	 * @param string $tenantId Tenant UUID scope filter.
+	 * @param array<string,mixed> $pok The Praktijkovereenkomst: its id, version and tenant.
 	 *
 	 * @return array<int, array<string, mixed>> The matching PokSignature rows.
 	 *
 	 * @spec openspec/changes/archive/2026-07-13-bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-all-three-signatures
 	 */
-	private function fetchSignatures(string $pokId, int $version, string $tenantId = ''): array {
-		$filters = ['subjectId' => $pokId, 'subjectVersion' => $version];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
+	private function fetchSignatures(array $pok): array {
 		$raw = $this->objectService->findAll(
 			[
 				'filters' => array_merge(
-					$filters,
+					$this->signatureFilters(pok: $pok),
 					[
 						'register' => self::LEARNIQ_REGISTER,
 						'schema' => self::POK_SIGNATURE_SCHEMA,
@@ -291,6 +341,34 @@ class PokActivationGuard implements LifecycleGuardInterface {
 			]
 		);
 
+		return $this->signatureRows(raw: $raw);
+	}//end fetchSignatures()
+
+	/**
+	 * The signature filters of this version, scoped to its tenant when it has one.
+	 *
+	 * @param array<string,mixed> $pok The Praktijkovereenkomst.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function signatureFilters(array $pok): array {
+		$tenantId = $pok['tenant_id'] ?? '';
+		$filters = ['subjectId' => $this->pokId(pok: $pok), 'subjectVersion' => $this->pokVersion(pok: $pok)];
+		if ($tenantId !== '') {
+			$filters['tenant_id'] = $tenantId;
+		}
+
+		return $filters;
+	}//end signatureFilters()
+
+	/**
+	 * The found signatures as arrays; anything that is not one is left out.
+	 *
+	 * @param array<int, mixed> $raw What findAll() answered.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function signatureRows(array $raw): array {
 		$rows = [];
 		foreach ($raw as $item) {
 			$row = $item;
@@ -304,5 +382,5 @@ class PokActivationGuard implements LifecycleGuardInterface {
 		}
 
 		return $rows;
-	}//end fetchSignatures()
+	}//end signatureRows()
 }//end class
