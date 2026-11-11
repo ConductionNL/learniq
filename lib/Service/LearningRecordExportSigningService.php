@@ -77,19 +77,7 @@ class LearningRecordExportSigningService {
 	 * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-2-4
 	 */
 	public function resolveIssuerDid(string $tenantId): ?string {
-		$publicKey = $this->appConfig->getValueString(
-			app: 'learniq',
-			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
-			default: ''
-		);
-
-		if ($publicKey === '') {
-			return null;
-		}
-
-		$fingerprint = substr(hash('sha256', $publicKey), 0, 32);
-
-		return 'did:web:learniq:' . $tenantId . ':' . $fingerprint;
+		return $this->signer()->issuerDid(tenantId: $tenantId);
 	}//end resolveIssuerDid()
 
 	/**
@@ -106,50 +94,7 @@ class LearningRecordExportSigningService {
 	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-the-signature-verifies-against-the-tenant-s-existing-public-key
 	 */
 	public function sign(array $bundle, string $tenantId): ?string {
-		$encryptedPrivateKey = $this->appConfig->getValueString(
-			app: 'learniq',
-			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PRIVATE, tenantId: $tenantId),
-			default: ''
-		);
-
-		if ($encryptedPrivateKey === '') {
-			return null;
-		}
-
-		try {
-			$privateKeyPem = $this->crypto->decrypt($encryptedPrivateKey);
-		} catch (\Exception) {
-			return null;
-		}
-
-		$publicKeyPem = $this->appConfig->getValueString(
-			app: 'learniq',
-			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
-			default: ''
-		);
-
-		$kid = 'unknown';
-		if ($publicKeyPem !== '') {
-			$kid = substr(hash('sha256', $publicKeyPem), 0, 32);
-		}
-
-		$canonicalPayload = $this->canonicalise(payload: $bundle);
-		$canonicalised = json_encode($canonicalPayload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-		if ($canonicalised === false) {
-			return null;
-		}
-
-		$headerJson = json_encode(['alg' => 'RS256', 'b64' => false, 'crit' => ['b64'], 'kid' => $kid]);
-		$header = rtrim(strtr(base64_encode($headerJson), '+/', '-_'), '=');
-		$signingInput = $header . '.' . $canonicalised;
-
-		$signature = '';
-		$result = openssl_sign($signingInput, $signature, $privateKeyPem, OPENSSL_ALGO_SHA256);
-		if ($result === false) {
-			return null;
-		}
-
-		return $header . '..' . rtrim(strtr(base64_encode($signature), '+/', '-_'), '=');
+		return $this->signer()->sign(payload: $bundle, tenantId: $tenantId);
 	}//end sign()
 
 	/**
@@ -166,76 +111,29 @@ class LearningRecordExportSigningService {
 	 * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
 	 */
 	public function verify(string $jws, array $bundle, string $tenantId): bool {
-		$parts = explode('..', $jws, 2);
-		if (count($parts) !== 2) {
+		$parsed = DetachedJws::parse(jws: $jws);
+		if ($parsed === null) {
 			return false;
 		}
 
-		[$headerB64, $sigB64] = $parts;
-		if ($headerB64 === '' || $sigB64 === '') {
-			return false;
-		}
-
-		$publicKeyPem = $this->appConfig->getValueString(
-			app: 'learniq',
-			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
-			default: ''
-		);
+		$publicKeyPem = $this->signer()->publicKeyPem(tenantId: $tenantId);
 		if ($publicKeyPem === '') {
 			return false;
 		}
 
 		// The stored/downloaded artifact embeds `proof` alongside the signed
 		// payload (mirrors Credential.openbadges3Payload.proof); the
-		// signing input never included it — strip it before re-canonicalising,
-		// exactly as CredentialVerifyController::verifyJwsSignature() does.
-		unset($bundle['proof']);
-
-		$canonicalPayload = $this->canonicalise(payload: $bundle);
-		$canonicalised = json_encode($canonicalPayload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-		if ($canonicalised === false) {
-			return false;
-		}
-
-		$signingInput = $headerB64 . '.' . $canonicalised;
-
-		$padded = str_pad($sigB64, (int)ceil(strlen($sigB64) / 4) * 4, '=');
-		$signature = base64_decode(strtr($padded, '-_', '+/'), strict: true);
-		if ($signature === false) {
-			return false;
-		}
-
-		$pubKey = openssl_pkey_get_public($publicKeyPem);
-		if ($pubKey === false) {
-			return false;
-		}
-
-		return openssl_verify($signingInput, $signature, $pubKey, OPENSSL_ALGO_SHA256) === 1;
+		// signing input never included it — verifies() strips it before
+		// re-canonicalising, exactly as JwsProofVerifier does.
+		return $parsed->verifies(payload: $bundle, publicKeyPem: $publicKeyPem);
 	}//end verify()
 
 	/**
-	 * Recursively sort an array's keys (RFC 8785 JCS) for deterministic JSON
-	 * output — ported verbatim from `CredentialSigningService
-	 * ::canonicalisePayload()`/`CredentialVerifyController
-	 * ::canonicalisePayload()`.
+	 * The tenant-key signer over this service's config and crypto.
 	 *
-	 * @param array<string,mixed> $payload The payload array to canonicalise.
-	 *
-	 * @return array<string,mixed> The same data with all object keys sorted.
+	 * @return TenantJwsSigner
 	 */
-	private function canonicalise(array $payload): array {
-		$isObject = count(array_filter(array_keys($payload), 'is_string')) > 0;
-
-		if ($isObject === true) {
-			ksort($payload, SORT_STRING);
-		}
-
-		foreach ($payload as $key => $value) {
-			if (is_array($value) === true) {
-				$payload[$key] = $this->canonicalise(payload: $value);
-			}
-		}
-
-		return $payload;
-	}//end canonicalise()
+	private function signer(): TenantJwsSigner {
+		return new TenantJwsSigner(appConfig: $this->appConfig, crypto: $this->crypto);
+	}//end signer()
 }//end class

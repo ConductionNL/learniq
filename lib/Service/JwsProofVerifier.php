@@ -61,22 +61,40 @@ class JwsProofVerifier {
 	 */
 	public function verify(array $payload, string $tenantId): bool {
 		$jws = $payload['proof']['jws'] ?? null;
-		if (is_string($jws) === false || $jws === '' || $tenantId === '') {
+		if (is_string($jws) === false || $jws === '') {
 			return false;
 		}
 
-		$kid = $this->extractKidFromJws(jws: $jws);
-		if ($kid === null) {
-			return false;
-		}
-
-		$publicKeyPem = $this->keys->resolvePublicKeyByFingerprint(tenantId: $tenantId, fingerprint: $kid);
+		$publicKeyPem = $this->publicKeyFor(jws: $jws, tenantId: $tenantId);
 		if ($publicKeyPem === null) {
 			return false;
 		}
 
-		return $this->verifyJwsSignature(jws: $jws, payload: $payload, publicKeyPem: $publicKeyPem);
+		$parsed = DetachedJws::parse(jws: $jws);
+
+		return ($parsed !== null && $parsed->verifies(payload: $payload, publicKeyPem: $publicKeyPem) === true);
 	}//end verify()
+
+	/**
+	 * The tenant public key the JWS's `kid` names.
+	 *
+	 * @param string $jws      Compact JWS string.
+	 * @param string $tenantId The tenant, '' when unknown.
+	 *
+	 * @return string|null PEM, or null without a tenant, a readable kid or a matching key.
+	 */
+	private function publicKeyFor(string $jws, string $tenantId): ?string {
+		if ($tenantId === '') {
+			return null;
+		}
+
+		$kid = $this->extractKidFromJws(jws: $jws);
+		if ($kid === null) {
+			return null;
+		}
+
+		return $this->keys->resolvePublicKeyByFingerprint(tenantId: $tenantId, fingerprint: $kid);
+	}//end publicKeyFor()
 
 	/**
 	 * Extract the `kid` value from a compact JWS protected header.
@@ -100,10 +118,19 @@ class JwsProofVerifier {
 			return null;
 		}
 
-		// Decode base64url → JSON.
-		$padded = str_pad($headerB64, (int)ceil(strlen($headerB64) / 4) * 4, '=');
-		$headerJson = base64_decode(strtr($padded, '-_', '+/'), strict: true);
-		if ($headerJson === false) {
+		return $this->kidFromHeader(headerB64: $headerB64);
+	}//end extractKidFromJws()
+
+	/**
+	 * The `kid` a base64url protected header names.
+	 *
+	 * @param string $headerB64 Base64url JSON header.
+	 *
+	 * @return string|null The kid, or null when the header does not decode or names none.
+	 */
+	private function kidFromHeader(string $headerB64): ?string {
+		$headerJson = DetachedJws::base64UrlDecode(encoded: $headerB64);
+		if ($headerJson === null) {
 			return null;
 		}
 
@@ -118,65 +145,7 @@ class JwsProofVerifier {
 		}
 
 		return $kid;
-	}//end extractKidFromJws()
-
-	/**
-	 * Verify an RS256 JWS signature using the provided public key.
-	 *
-	 * Recomputes the signing input (<header>.<payload>) and calls openssl_verify.
-	 * The payload is the canonicalised (json_encode) OB3 payload WITHOUT the proof
-	 * block, matching what CredentialSigningService::signPayload signed.
-	 *
-	 * @param string $jws Compact JWS string (detached payload, b64:false).
-	 * @param array<string,mixed> $payload The full OB3 payload (proof block will be excluded).
-	 * @param string $publicKeyPem PEM-encoded RSA public key.
-	 *
-	 * @return bool True when openssl_verify returns 1 (valid).
-	 */
-	private function verifyJwsSignature(string $jws, array $payload, string $publicKeyPem): bool {
-		// Split: "<header>..<signature>" → header and signature parts.
-		$parts = explode('..', $jws, 2);
-		if (count($parts) !== 2) {
-			return false;
-		}
-
-		[$headerB64, $sigB64] = $parts;
-		if ($headerB64 === '' || $sigB64 === '') {
-			return false;
-		}
-
-		// The signing input is header + '.' + canonicalised payload WITHOUT proof.
-		// Remove the proof block to match what was signed.
-		$payloadToVerify = $payload;
-		unset($payloadToVerify['proof']);
-
-		// H6: RFC 8785 (JCS) — sort keys recursively before encoding so that the
-		// verify-side signing input matches the sign-side input exactly.
-		$payloadToVerify = $this->canonical(payload: $payloadToVerify);
-
-		$canonicalised = json_encode($payloadToVerify, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-		if ($canonicalised === false) {
-			return false;
-		}
-
-		$signingInput = $headerB64 . '.' . $canonicalised;
-
-		// Decode base64url signature.
-		$padded = str_pad($sigB64, (int)ceil(strlen($sigB64) / 4) * 4, '=');
-		$signature = base64_decode(strtr($padded, '-_', '+/'), strict: true);
-		if ($signature === false) {
-			return false;
-		}
-
-		$pubKey = openssl_pkey_get_public($publicKeyPem);
-		if ($pubKey === false) {
-			return false;
-		}
-
-		$result = openssl_verify($signingInput, $signature, $pubKey, OPENSSL_ALGO_SHA256);
-
-		return $result === 1;
-	}//end verifyJwsSignature()
+	}//end kidFromHeader()
 
 	/**
 	 * Recursively sort an array's keys (RFC 8785 JCS) for deterministic JSON output.
@@ -191,18 +160,6 @@ class JwsProofVerifier {
 	 * @spec openspec/specs/certification/spec.md#requirement-the-europass-form-is-checkable-on-the-verification-route
 	 */
 	public function canonical(array $payload): array {
-		$isObject = count(array_filter(array_keys($payload), 'is_string')) > 0;
-
-		if ($isObject === true) {
-			ksort($payload, SORT_STRING);
-		}
-
-		foreach ($payload as $key => $value) {
-			if (is_array($value) === true) {
-				$payload[$key] = $this->canonical(payload: $value);
-			}
-		}
-
-		return $payload;
+		return JcsCanonicaliser::canonicalise(payload: $payload);
 	}//end canonical()
 }//end class
