@@ -118,10 +118,11 @@ class AuditPeriodReader {
 	private function trail(): \Generator {
 		$offset = 0;
 		do {
-			$page    = $this->page(offset: $offset);
-			$offset += self::PAGE_SIZE;
+			$page     = $this->page(offset: $offset);
+			$offset  += self::PAGE_SIZE;
+			$pageSize = count($page);
 			yield from $page;
-		} while (count($page) === self::PAGE_SIZE);
+		} while ($pageSize === self::PAGE_SIZE);
 	}//end trail()
 
 	/**
