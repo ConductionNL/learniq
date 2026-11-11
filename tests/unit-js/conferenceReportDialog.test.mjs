@@ -47,10 +47,13 @@ const component = await loadSfc('src/dialogs/ConferenceReportDialog.vue', {
  */
 function dialog(state = {}) {
 	log.length = 0
-	const vm = instanceOf(component, { conferenceSlotId: 's1', learnerId: '' })
+	const vm = instanceOf(component, {
+		conferenceSlotId: 's1',
+		learnerId: '',
+		slot: { id: 's1', learnerId: 'sem', teacherId: 'jan' },
+	})
 	vm.$emit = (name) => log.push(['emit', name])
 	return Object.assign(vm, {
-		slot: { id: 's1', learnerId: 'sem', teacherId: 'jan' },
 		slotId: 's1',
 		narrative: 'Goed gesprek.',
 		attendees: 'moeder',
