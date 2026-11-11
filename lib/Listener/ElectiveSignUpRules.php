@@ -101,7 +101,7 @@ class ElectiveSignUpRules implements IEventListener {
 	 * @spec openspec/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
 	 */
 	public function handle(Event $event): void {
-		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {
+		if ($this->isWrite(event: $event) === false) {
 			return;
 		}
 
@@ -112,26 +112,89 @@ class ElectiveSignUpRules implements IEventListener {
 		}
 
 		$caller = $this->electives->caller(uid: $user->getUID(), groups: $this->groupManager->getUserGroupIds($user));
+		$refusal = $this->checkedRefusal(signUp: $this->signUpOf(entity: $entity), caller: $caller);
+		if ($this->refused(event: $event, refusal: $refusal) === false) {
+			$this->stampCreation(event: $event, caller: $caller);
+		}
+	}//end handle()
+
+	/**
+	 * Refuse the write when there is a refusal: its message as the event's
+	 * error, and no other listener runs.
+	 *
+	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event   The event.
+	 * @param string|null                             $refusal Why the sign-up may not be written, or null.
+	 *
+	 * @return bool Whether the write was refused.
+	 */
+	private function refused(ObjectCreatingEvent|ObjectUpdatingEvent $event, ?string $refusal): bool {
+		if ($refusal === null) {
+			return false;
+		}
+
+		$event->setErrors(['message' => $refusal]);
+		$event->stopPropagation();
+		return true;
+	}//end refused()
+
+	/**
+	 * Whether an event writes an object: creating or updating it.
+	 *
+	 * @param Event $event The event.
+	 *
+	 * @return bool
+	 *
+	 * @phpstan-assert-if-true ObjectCreatingEvent|ObjectUpdatingEvent $event
+	 */
+	private function isWrite(Event $event): bool {
+		return $event instanceof ObjectCreatingEvent || $event instanceof ObjectUpdatingEvent;
+	}//end isWrite()
+
+	/**
+	 * The sign-up as it would be written, with its id (or uuid) as `id`.
+	 *
+	 * @param object $entity The sign-up entity.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function signUpOf(object $entity): array {
 		$signUp = (array)$entity->jsonSerialize();
 		$signUp['id'] = (string)($signUp['id'] ?? ($entity->getUuid() ?? ''));
 
+		return $signUp;
+	}//end signUpOf()
+
+	/**
+	 * Why a sign-up may not be written, now; a check that fails refuses it
+	 * as unchecked and is logged.
+	 *
+	 * @param array<string, mixed>                                                     $signUp The sign-up as it would be written.
+	 * @param array{uid: string, admin: bool, staff: bool, integration: bool, via: string} $caller The writer.
+	 *
+	 * @return string|null
+	 */
+	private function checkedRefusal(array $signUp, array $caller): ?string {
 		try {
-			$refusal = $this->refusal(signUp: $signUp, caller: $caller, now: new DateTimeImmutable('now'));
+			return $this->refusal(signUp: $signUp, caller: $caller, now: new DateTimeImmutable('now'));
 		} catch (Throwable $exception) {
 			$this->logger->warning('[ElectiveSignUpRules] Check failed: {msg}', ['msg' => $exception->getMessage()]);
-			$refusal = self::UNCHECKED;
+			return self::UNCHECKED;
 		}
+	}//end checkedRefusal()
 
-		if ($refusal !== null) {
-			$event->setErrors(['message' => $refusal]);
-			$event->stopPropagation();
-			return;
-		}
-
+	/**
+	 * Stamp a new sign-up with who made it and how.
+	 *
+	 * @param ObjectCreatingEvent|ObjectUpdatingEvent                                  $event  The event.
+	 * @param array{uid: string, admin: bool, staff: bool, integration: bool, via: string} $caller The writer.
+	 *
+	 * @return void
+	 */
+	private function stampCreation(ObjectCreatingEvent|ObjectUpdatingEvent $event, array $caller): void {
 		if ($event instanceof ObjectCreatingEvent) {
 			$event->setModifiedData(['madeBy' => $caller['uid'], 'madeVia' => $caller['via']]);
 		}
-	}//end handle()
+	}//end stampCreation()
 
 	/**
 	 * The sign-up an event is about, or null for any other object.
