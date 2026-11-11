@@ -93,3 +93,45 @@ test('the admin page no longer posts the register reload as a key rotation', () 
 	assert.doesNotMatch(source, /api\/settings\/load/)
 	assert.match(source, /signingKeyRotation\.js/)
 })
+
+test('every outcome carries its exact message and fingerprint', async () => {
+	const confirm = async () => true
+	const answer = (response) => async () => response
+	const refusal = (response) => async () => {
+		const error = new Error('refused')
+		error.response = response
+		throw error
+	}
+	const failed = (message) => ({ status: 'failed', message, fingerprint: '' })
+	const notChanged = failed('The signing key was not changed.')
+	assert.deepEqual(await rotateSigningKey(null, { confirm, post: answer({ status: 201, data: { fingerprint: 'f' } }), t }), {
+		status: 'done',
+		message: 'A signing key was generated.',
+		fingerprint: 'f',
+	})
+	assert.deepEqual(await rotateSigningKey({ configured: true }, { confirm, post: answer({ status: 201, data: { fingerprint: 'g', rotated: true } }), t }), {
+		status: 'done',
+		message: 'The signing key was rotated. Credentials issued before stay verifiable.',
+		fingerprint: 'g',
+	})
+	assert.deepEqual(await rotateSigningKey({ configured: 'yes' }, { confirm: () => assert.fail('asked'), post: answer({ status: 201, data: { fingerprint: 'h', rotated: 'true' } }), t }), {
+		status: 'done',
+		message: 'A signing key was generated.',
+		fingerprint: 'h',
+	})
+	assert.deepEqual(await rotateSigningKey({}, { confirm, post: answer({ status: 201, data: { fingerprint: 3 } }), t }), notChanged)
+	assert.deepEqual(await rotateSigningKey({}, { confirm, post: answer({ status: 201, data: { fingerprint: '' } }), t }), notChanged)
+	assert.deepEqual(await rotateSigningKey({}, { confirm, post: answer(undefined), t }), notChanged)
+	assert.deepEqual(await rotateSigningKey({}, { confirm, post: answer({ status: 200, data: { fingerprint: 'x' } }), t }), notChanged)
+	assert.deepEqual(await rotateSigningKey({}, { confirm, post: refusal({ status: 429 }), t }), failed('The signing key was rotated less than a day ago. Try again tomorrow.'))
+	assert.deepEqual(await rotateSigningKey({}, { confirm, post: refusal({ status: 403 }), t }), failed('Only an administrator can change the signing key.'))
+	assert.deepEqual(await rotateSigningKey({}, { confirm, post: refusal({ status: 500 }), t }), notChanged)
+	assert.deepEqual(await rotateSigningKey({}, { confirm, post: refusal(undefined), t }), notChanged)
+	assert.deepEqual(await rotateSigningKey({}, { confirm, post: () => { throw null }, t }), notChanged)
+	const cancelled = { status: 'cancelled', message: '', fingerprint: '' }
+	assert.deepEqual(await rotateSigningKey({ configured: true }, { confirm: async () => 'yes', post: () => assert.fail('posted'), t }), cancelled)
+	assert.deepEqual(await rotateSigningKey({ configured: true }, { confirm: () => { throw new Error('sync') }, post: () => assert.fail('posted'), t }), cancelled)
+	const translated = []
+	await rotateSigningKey({}, { confirm, post: refusal({ status: 403 }), t: (text) => translated.push(text) && 'x' })
+	assert.deepEqual(translated, ['Only an administrator can change the signing key.'])
+})
