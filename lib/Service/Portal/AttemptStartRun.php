@@ -3,9 +3,9 @@
 /**
  * Learniq Attempt Start Run
  *
- * The facts one start check weighs: the pupil, the test, the enrolment it
- * belongs to, how many attempts the pupil already has and the current time.
- * PortalAssessmentCatalogue builds one per check and hands it to each rule.
+ * The pupil and the test one start check is about. PortalAssessmentCatalogue
+ * builds one per check and hands it to each start rule, together with the one
+ * further fact that rule weighs (the enrolment, the time or the attempt count).
  *
  * @category Service
  * @package  OCA\Learniq\Service\Portal
@@ -27,8 +27,6 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
-use DateTimeInterface;
-
 /**
  * An immutable start check.
  *
@@ -41,18 +39,12 @@ final class AttemptStartRun {
 	 *
 	 * @param PortalLearner $learner The pupil.
 	 * @param array<string, mixed> $exam The test, raw.
-	 * @param array<string, mixed>|null $enrolment The enrolment it belongs to.
-	 * @param int $attemptsUsed How many attempts the pupil already has.
-	 * @param DateTimeInterface $now The current time.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		public readonly PortalLearner $learner,
 		public readonly array $exam,
-		public readonly ?array $enrolment,
-		public readonly int $attemptsUsed,
-		public readonly DateTimeInterface $now,
 	) {
 	}//end __construct()
 }//end class

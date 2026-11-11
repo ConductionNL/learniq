@@ -170,28 +170,24 @@ class PortalAssessmentCatalogue {
 	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function startBlock(PortalLearner $learner, array $exam, ?array $enrolment, int $attemptsUsed, DateTimeInterface $now): ?string {
-		$run = new AttemptStartRun(
-			learner: $learner,
-			exam: $exam,
-			enrolment: $enrolment,
-			attemptsUsed: $attemptsUsed,
-			now: $now
-		);
+		$run = new AttemptStartRun(learner: $learner, exam: $exam);
 
-		return $this->availabilityBlock(run: $run)
-			?? $this->windowBlock(run: $run)
-			?? $this->releaseBlock(run: $run);
+		return $this->availabilityBlock(run: $run, enrolment: $enrolment)
+			?? $this->windowBlock(run: $run, now: $now)
+			?? $this->releaseBlock(run: $run, enrolment: $enrolment)
+			?? $this->attemptsBlock(run: $run, attemptsUsed: $attemptsUsed);
 	}//end startBlock()
 
 	/**
 	 * Why the test is not on offer to this pupil at all, or null.
 	 *
-	 * @param AttemptStartRun $run The start check.
+	 * @param AttemptStartRun $run The pupil and the test.
+	 * @param array<string, mixed>|null $enrolment The enrolment it belongs to.
 	 *
 	 * @return string|null NOT_AVAILABLE, PROCTORED or null.
 	 */
-	private function availabilityBlock(AttemptStartRun $run): ?string {
-		if ($this->isOffered(run: $run) === false) {
+	private function availabilityBlock(AttemptStartRun $run, ?array $enrolment): ?string {
+		if ($this->isOffered(run: $run, enrolment: $enrolment) === false) {
 			return self::NOT_AVAILABLE;
 		}
 
@@ -206,25 +202,27 @@ class PortalAssessmentCatalogue {
 	 * Whether the test is published, reached through an enrolment and of the
 	 * pupil's own school.
 	 *
-	 * @param AttemptStartRun $run The start check.
+	 * @param AttemptStartRun $run The pupil and the test.
+	 * @param array<string, mixed>|null $enrolment The enrolment it belongs to.
 	 *
 	 * @return bool
 	 */
-	private function isOffered(AttemptStartRun $run): bool {
+	private function isOffered(AttemptStartRun $run, ?array $enrolment): bool {
 		return ($run->exam['lifecycle'] ?? '') === 'published'
-			&& $run->enrolment !== null
+			&& $enrolment !== null
 			&& $this->otherSchool(learner: $run->learner, exam: $run->exam) === false;
 	}//end isOffered()
 
 	/**
 	 * Why the absolute availability window refuses the start, or null.
 	 *
-	 * @param AttemptStartRun $run The start check.
+	 * @param AttemptStartRun $run The pupil and the test.
+	 * @param DateTimeInterface $now The current time.
 	 *
 	 * @return string|null NOT_OPEN, CLOSED or null.
 	 */
-	private function windowBlock(AttemptStartRun $run): ?string {
-		$window = $this->policy->windowBlock(assessment: $run->exam, now: $run->now);
+	private function windowBlock(AttemptStartRun $run, DateTimeInterface $now): ?string {
+		$window = $this->policy->windowBlock(assessment: $run->exam, now: $now);
 		if ($window === null) {
 			return null;
 		}
@@ -236,29 +234,43 @@ class PortalAssessmentCatalogue {
 	}//end windowBlock()
 
 	/**
-	 * Why the release rules or the attempt count refuse the start, or null.
+	 * Whether the release rules (drip delay, release conditions) hold the
+	 * test back for this pupil.
 	 *
-	 * @param AttemptStartRun $run The start check.
+	 * @param AttemptStartRun $run The pupil and the test.
+	 * @param array<string, mixed>|null $enrolment The enrolment it belongs to.
 	 *
-	 * @return string|null NOT_AVAILABLE, ATTEMPTS_USED or null.
+	 * @return string|null NOT_AVAILABLE or null.
 	 */
-	private function releaseBlock(AttemptStartRun $run): ?string {
+	private function releaseBlock(AttemptStartRun $run, ?array $enrolment): ?string {
 		$verdict = $this->release->evaluate(
 			item: $run->exam,
 			itemSchema: 'exam',
 			learnerId: $run->learner->ncUserId,
-			enrolment: (array)$run->enrolment
+			enrolment: (array)$enrolment
 		);
 		if (($verdict['available'] ?? false) !== true) {
 			return self::NOT_AVAILABLE;
 		}
 
-		if ($this->policy->attemptsBlock(assessment: $run->exam, attemptsUsed: $run->attemptsUsed) !== null) {
+		return null;
+	}//end releaseBlock()
+
+	/**
+	 * Whether the pupil has used up the test's attempts.
+	 *
+	 * @param AttemptStartRun $run The pupil and the test.
+	 * @param int $attemptsUsed How many attempts the pupil already has.
+	 *
+	 * @return string|null ATTEMPTS_USED or null.
+	 */
+	private function attemptsBlock(AttemptStartRun $run, int $attemptsUsed): ?string {
+		if ($this->policy->attemptsBlock(assessment: $run->exam, attemptsUsed: $attemptsUsed) !== null) {
 			return self::ATTEMPTS_USED;
 		}
 
 		return null;
-	}//end releaseBlock()
+	}//end attemptsBlock()
 
 	/**
 	 * Whether a test has a proctoring configuration that asks for anything.
