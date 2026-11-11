@@ -77,6 +77,31 @@ docker exec nextcloud php occ app:enable scholiq
 | [API reference](docs/API.md) | OR endpoints, scholiq-specific endpoints, examples |
 | [Specs](docs/SPECS.md) | Links to the 6 applied OpenSpec changes |
 
+## Deployment
+
+### Try it with Docker
+
+The repository builds an evaluation image: the official Nextcloud image with learniq and OpenRegister installed and enabled. It is meant for trying the app out and for test environments. For production, install the app from the Nextcloud App Store.
+
+```bash
+docker compose -f docker-compose.yml up -d --build
+```
+
+Open http://localhost:8080/apps/learniq/ and sign in as `admin` with password `admin`. The first start takes a minute or two. Set `NEXTCLOUD_ADMIN_PASSWORD` and `APP_PORT` to change the password and the port; `docker-compose.yml` lists every setting. `docker compose -f docker-compose.yml down -v` removes the stack and its data.
+
+Released versions are published as `ghcr.io/conductionnl/learniq`, so leaving out `--build` uses the published image.
+
+### Run it on Kubernetes
+
+`charts/learniq` wraps the official [Nextcloud Helm chart](https://github.com/nextcloud/helm) and runs the same image with PostgreSQL:
+
+```bash
+helm dependency build charts/learniq
+helm install learniq charts/learniq --set nextcloud.nextcloud.host=learniq.example.org
+```
+
+Change the passwords in `charts/learniq/values.yaml` before you install it anywhere that matters.
+
 ## Development
 
 ### Code quality
