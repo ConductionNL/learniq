@@ -180,6 +180,7 @@
 import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
+import { displayDateTime } from '../utils/displayDateTime.js'
 
 export default {
 	name: 'ProctoringReviewQueue',
@@ -367,18 +368,7 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
 		formatDate(dt) {
-			if (!dt) return ''
-			try {
-				return new Intl.DateTimeFormat(navigator.language, {
-					year: 'numeric',
-					month: 'short',
-					day: 'numeric',
-					hour: '2-digit',
-					minute: '2-digit',
-				}).format(new Date(dt))
-			} catch {
-				return dt
-			}
+			return displayDateTime(dt)
 		},
 
 		/**
