@@ -68,21 +68,6 @@ class SubjectChoiceValidator implements IEventListener {
 	private const CURRICULUM_PLAN_SCHEMA = 'curriculum-plan';
 
 	/**
-	 * SubjectChoice lifecycle states that occupy capacityByCourseId seats.
-	 *
-	 * @var string[]
-	 */
-	private const OCCUPYING_STATES = ['approved', 'locked'];
-
-	/**
-	 * Where SubjectChoice rows are read from.
-	 */
-	private const SUBJECT_CHOICE_SOURCE = [
-		'register' => self::LEARNIQ_REGISTER,
-		'schema' => self::SUBJECT_CHOICE_SCHEMA,
-	];
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object access service.
@@ -311,7 +296,7 @@ class SubjectChoiceValidator implements IEventListener {
 			return $errors;
 		}
 
-		$siblings = $this->fetchOccupyingSiblings(choice: $choice);
+		$siblings = (new OccupyingSubjectChoices(objectService: $this->objectService))->forChoice(choice: $choice);
 		foreach (self::selectedLimits(capacityByCourseId: $capacityByCourseId, selected: $selected) as $courseId => $limit) {
 			if ($this->countOccupied(siblings: $siblings, courseId: (string)$courseId) >= $limit) {
 				$errors[] = sprintf('Capacity reached for course %s (limit %d).', $courseId, $limit);
@@ -360,70 +345,6 @@ class SubjectChoiceValidator implements IEventListener {
 
 		return $occupied;
 	}//end countOccupied()
-
-	/**
-	 * Fetch sibling SubjectChoice rows in an occupying state for the same plan.
-	 *
-	 * @param array{curriculumPlanId: string, tenantId: string, choiceId: string} $choice The governing CurriculumPlan UUID, the tenant and
-	 *     the SubjectChoice id being validated, excluded from results.
-	 *
-	 * @return array<int,array<string,mixed>>
-	 */
-	private function fetchOccupyingSiblings(array $choice): array {
-		$siblings = [];
-		foreach (self::OCCUPYING_STATES as $lifecycle) {
-			$rows = $this->objectService->findAll(['filters' => self::siblingFilters(choice: $choice, lifecycle: $lifecycle), 'limit' => 5000]);
-			$siblings = array_merge($siblings, self::withoutChoice(rows: $rows, choiceId: $choice['choiceId']));
-		}
-
-		return $siblings;
-	}//end fetchOccupyingSiblings()
-
-	/**
-	 * The filters for the plan's SubjectChoice rows in one lifecycle state, within the tenant when it is known.
-	 *
-	 * @param array{curriculumPlanId: string, tenantId: string, choiceId: string} $choice    The plan, tenant and choice.
-	 * @param string                                                              $lifecycle The occupying state.
-	 *
-	 * @return array<string,string>
-	 */
-	private static function siblingFilters(array $choice, string $lifecycle): array {
-		$filters = [
-			'curriculumPlanId' => $choice['curriculumPlanId'],
-			'lifecycle' => $lifecycle,
-		];
-		if ($choice['tenantId'] !== '') {
-			$filters['tenant_id'] = $choice['tenantId'];
-		}
-
-		return array_merge($filters, self::SUBJECT_CHOICE_SOURCE);
-	}//end siblingFilters()
-
-	/**
-	 * The rows as arrays, without the SubjectChoice being validated.
-	 *
-	 * @param array<int,mixed> $rows     The rows read.
-	 * @param string           $choiceId The SubjectChoice being validated.
-	 *
-	 * @return array<int,array<string,mixed>>
-	 */
-	private static function withoutChoice(array $rows, string $choiceId): array {
-		$siblings = [];
-		foreach ($rows as $row) {
-			if (is_array($row) === false) {
-				$row = $row->jsonSerialize();
-			}
-
-			$id = (string)($row['id'] ?? ($row['uuid'] ?? ''));
-			if ($id !== '' && $id === $choiceId) {
-				continue;
-			}
-
-			$siblings[] = $row;
-		}
-
-		return $siblings;
-	}//end withoutChoice()
 
 	/**
 	 * Fetch the referenced CurriculumPlan, normalised to a plain array.
