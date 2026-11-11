@@ -100,59 +100,117 @@ class ContactHoursService {
 	 * @return array<string, mixed>
 	 */
 	private function forCohort(array $cohort, array $period): array {
-		$courses = $period['courses'];
-		$cohortId = (string)($cohort['id'] ?? '');
-		$owed = $this->owed(cohort: $cohort, period: $period);
-		[$given, $sessionCourses] = $this->given(cohortId: $cohortId, period: $period);
-		$attended = $this->attended(cohortId: $cohortId, sessionCourses: $sessionCourses);
-
-		$rows = [];
-		foreach (array_unique(array_merge(array_keys($owed ?? []), array_keys($given))) as $courseId) {
-			$rows[] = $this->courseRow(courseId: (string)$courseId, courses: $courses, owed: $owed, given: ($given[$courseId] ?? 0.0));
-		}
-
-		usort($rows, static fn (array $left, array $right): int => strcmp($left['courseName'], $right['courseName']));
+		$hours = $this->cohortHours(cohort: $cohort, period: $period);
+		$rows = $this->courseRows(hours: $hours);
 
 		return [
-			'cohortId' => $cohortId,
+			'cohortId' => $hours->cohortId,
 			'cohortName' => (string)($cohort['name'] ?? ''),
-			'hasHourPlan' => $owed !== null,
+			'hasHourPlan' => $hours->owed !== null,
 			'courses' => $rows,
 			'totals' => [
 				'owed' => $this->sumOrNull(rows: $rows, field: 'owed'),
 				'given' => round(array_sum(array_column($rows, 'given')), 2),
 			],
-			'learners' => $this->learnerRows(cohort: $cohort, attended: $attended, given: $given, margin: $period['margin']),
+			'learners' => $this->learnerRows(hours: $hours),
 		];
 	}//end forCohort()
 
 	/**
+	 * Read one group's owed, given and attended hours for the window.
+	 *
+	 * @param array<string, mixed>                                                            $cohort The group.
+	 * @param array{from: string, to: string, courses: array<string, string>, margin: int} $period First and last day, course names by id
+	 *     and the margin in percent.
+	 *
+	 * @return CohortContactHours
+	 */
+	private function cohortHours(array $cohort, array $period): CohortContactHours {
+		$hours = new CohortContactHours();
+		$hours->cohort = $cohort;
+		$hours->cohortId = (string)($cohort['id'] ?? '');
+		$hours->courseNames = $period['courses'];
+		$hours->margin = $period['margin'];
+		$hours->owed = $this->owed(cohort: $cohort, period: $period);
+		[$given, $sessionCourses] = $this->given(cohortId: $hours->cohortId, period: $period);
+		$hours->given = $given;
+		$hours->attended = $this->attended(cohortId: $hours->cohortId, sessionCourses: $sessionCourses);
+
+		return $hours;
+	}//end cohortHours()
+
+	/**
+	 * One row per course the group was owed or given, by course name.
+	 *
+	 * @param CohortContactHours $hours The group's hours.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function courseRows(CohortContactHours $hours): array {
+		$rows = [];
+		foreach (array_unique(array_merge(array_keys($hours->owed ?? []), array_keys($hours->given))) as $courseId) {
+			$rows[] = $this->courseRow(hours: $hours, courseId: (string)$courseId);
+		}
+
+		usort($rows, static fn (array $left, array $right): int => strcmp($left['courseName'], $right['courseName']));
+
+		return $rows;
+	}//end courseRows()
+
+	/**
 	 * One course's owed, given and difference.
 	 *
-	 * @param string                    $courseId The course.
-	 * @param array<string, string>     $courses  Course names by id.
-	 * @param array<string, float>|null $owed     Owed hours by course, or null without a plan.
-	 * @param float                     $given    Given hours.
+	 * @param CohortContactHours $hours    The group's hours.
+	 * @param string             $courseId The course.
 	 *
 	 * @return array<string, mixed>
 	 */
-	private function courseRow(string $courseId, array $courses, ?array $owed, float $given): array {
-		$owedHours = null;
-		$difference = null;
-		if ($owed !== null) {
-			$owedHours = round(($owed[$courseId] ?? 0.0), 2);
-			$difference = round($given - $owedHours, 2);
-		}
+	private function courseRow(CohortContactHours $hours, string $courseId): array {
+		$given = ($hours->given[$courseId] ?? 0.0);
+		$owedHours = $this->owedHours(hours: $hours, courseId: $courseId);
+		$difference = $this->difference(owedHours: $owedHours, given: $given);
 
 		return [
 			'courseId' => $courseId,
-			'courseName' => ($courses[$courseId] ?? $courseId),
+			'courseName' => ($hours->courseNames[$courseId] ?? $courseId),
 			'owed' => $owedHours,
 			'given' => round($given, 2),
 			'difference' => $difference,
 			'short' => $difference !== null && $difference < 0,
 		];
 	}//end courseRow()
+
+	/**
+	 * A course's owed hours, rounded; null without a plan.
+	 *
+	 * @param CohortContactHours $hours    The group's hours.
+	 * @param string             $courseId The course.
+	 *
+	 * @return float|null
+	 */
+	private function owedHours(CohortContactHours $hours, string $courseId): ?float {
+		if ($hours->owed === null) {
+			return null;
+		}
+
+		return round(($hours->owed[$courseId] ?? 0.0), 2);
+	}//end owedHours()
+
+	/**
+	 * Given minus owed, rounded; null without owed hours.
+	 *
+	 * @param float|null $owedHours The owed hours, or null without a plan.
+	 * @param float      $given     The given hours.
+	 *
+	 * @return float|null
+	 */
+	private function difference(?float $owedHours, float $given): ?float {
+		if ($owedHours === null) {
+			return null;
+		}
+
+		return round($given - $owedHours, 2);
+	}//end difference()
 
 	/**
 	 * Owed hours per course, prorated to the window; null without an active plan.
@@ -255,32 +313,43 @@ class ContactHoursService {
 	/**
 	 * Per learner of the group, attended against given per course.
 	 *
-	 * @param array<string, mixed>                $cohort   The group.
-	 * @param array<string, array<string, float>> $attended Attended hours by learner and course.
-	 * @param array<string, float>                $given    Given hours by course.
-	 * @param int                                 $margin   The margin in percent.
+	 * @param CohortContactHours $hours The group's hours.
 	 *
 	 * @return array<int, array<string, mixed>>
 	 */
-	private function learnerRows(array $cohort, array $attended, array $given, int $margin): array {
+	private function learnerRows(CohortContactHours $hours): array {
 		$learners = [];
-		foreach ((array)($cohort['learnerIds'] ?? []) as $learnerId) {
-			$courses = [];
-			foreach ($given as $courseId => $hours) {
-				$mine = round(($attended[$learnerId][$courseId] ?? 0.0), 2);
-				$courses[] = [
-					'courseId' => (string)$courseId,
-					'attended' => $mine,
-					'given' => round($hours, 2),
-					'below' => $mine < round($hours * (100 - $margin) / 100, 2),
-				];
-			}
-
+		foreach ((array)($hours->cohort['learnerIds'] ?? []) as $learnerId) {
+			$courses = $this->learnerCourses(hours: $hours, learnerId: $learnerId);
 			$learners[] = ['learnerId' => (string)$learnerId, 'courses' => $courses, 'below' => in_array(true, array_column($courses, 'below'), true)];
 		}
 
 		return $learners;
 	}//end learnerRows()
+
+	/**
+	 * One learner's attended hours against the given hours of each course,
+	 * marked below when under given minus the margin.
+	 *
+	 * @param CohortContactHours $hours     The group's hours.
+	 * @param mixed              $learnerId The learner, as the group lists them.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function learnerCourses(CohortContactHours $hours, mixed $learnerId): array {
+		$courses = [];
+		foreach ($hours->given as $courseId => $given) {
+			$mine = round(($hours->attended[$learnerId][$courseId] ?? 0.0), 2);
+			$courses[] = [
+				'courseId' => (string)$courseId,
+				'attended' => $mine,
+				'given' => round($given, 2),
+				'below' => $mine < round($given * (100 - $hours->margin) / 100, 2),
+			];
+		}
+
+		return $courses;
+	}//end learnerCourses()
 
 	/**
 	 * The sum of a column, or null when any row has no value.
