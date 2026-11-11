@@ -141,7 +141,7 @@ class PlanninqTimetableSource implements TimetableSource {
 		$rows = [];
 		foreach (array_unique($cohortIds) as $cohortId) {
 			if ($cohortId !== '') {
-				$rows = array_merge($rows, $this->query(identity: ['cohortId' => $cohortId], from: $from, to: $to));
+				$rows = array_merge($rows, $this->query(identity: ['cohortId' => $cohortId], window: new TimetableWindow(from: $from, to: $to)));
 			}
 		}
 
@@ -166,7 +166,7 @@ class PlanninqTimetableSource implements TimetableSource {
 			return [];
 		}
 
-		return $this->query(identity: ['teacherUserId' => $userId], from: $from, to: $to);
+		return $this->query(identity: ['teacherUserId' => $userId], window: new TimetableWindow(from: $from, to: $to));
 	}//end sessionsForTeacher()
 
 	/**
@@ -192,22 +192,50 @@ class PlanninqTimetableSource implements TimetableSource {
 			return [];
 		}
 
+		return $this->courseSessions(courseIds: $courseIds, window: new TimetableWindow(from: $from, to: $to));
+	}//end sessionsForCourses()
+
+	/**
+	 * The lessons of each distinct, non-empty course, one query per course.
+	 *
+	 * @param array<int,string> $courseIds Course UUIDs.
+	 * @param TimetableWindow   $window    The time window.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 *
+	 * @throws RuntimeException When planninq is absent, silent or refuses.
+	 */
+	private function courseSessions(array $courseIds, TimetableWindow $window): array {
 		$rows = [];
 		foreach (array_unique($courseIds) as $courseId) {
-			if ($courseId === '') {
-				continue;
-			}
-
-			foreach ($this->query(identity: ['courseId' => $courseId], from: $from, to: $to) as $session) {
-				// Never let another course's lesson through.
-				if ($session['courseId'] === $courseId) {
-					$rows[] = $session;
-				}
+			if ($courseId !== '') {
+				$rows = array_merge($rows, $this->lessonsOfCourse(courseId: $courseId, window: $window));
 			}
 		}
 
 		return $rows;
-	}//end sessionsForCourses()
+	}//end courseSessions()
+
+	/**
+	 * One course's lessons; never lets another course's lesson through.
+	 *
+	 * @param mixed           $courseId The course UUID.
+	 * @param TimetableWindow $window   The time window.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 *
+	 * @throws RuntimeException When planninq is absent, silent or refuses.
+	 */
+	private function lessonsOfCourse(mixed $courseId, TimetableWindow $window): array {
+		$rows = [];
+		foreach ($this->query(identity: ['courseId' => $courseId], window: $window) as $session) {
+			if ($session['courseId'] === $courseId) {
+				$rows[] = $session;
+			}
+		}
+
+		return $rows;
+	}//end lessonsOfCourse()
 
 	/**
 	 * The contract version of the planninq event class, 0 when it has none.
@@ -228,30 +256,38 @@ class PlanninqTimetableSource implements TimetableSource {
 	/**
 	 * Dispatch one query and map planninq's lessons onto learniq's session shape.
 	 *
-	 * @param array<string,string> $identity The identity criterion.
-	 * @param string|null          $from     ISO 8601 window start, or null.
-	 * @param string|null          $to       ISO 8601 window end, or null.
+	 * @param array<string,mixed> $identity The identity criterion.
+	 * @param TimetableWindow     $window   The time window.
 	 *
 	 * @return array<int,array<string,mixed>>
 	 *
 	 * @throws RuntimeException When planninq is absent, silent or refuses.
 	 */
-	private function query(array $identity, ?string $from, ?string $to): array {
+	private function query(array $identity, TimetableWindow $window): array {
 		if (class_exists($this->eventClass) === false) {
 			throw new RuntimeException('Planninq is not installed, so its timetable cannot be read.');
 		}
 
-		$criteria = array_merge(
-			$identity,
-			['limit' => self::LIMIT],
-			array_filter(['from' => $from, 'to' => $to], static fn (?string $bound): bool => $bound !== null && $bound !== '')
-		);
+		$criteria = array_merge($identity, ['limit' => self::LIMIT], $window->bounds());
 
 		// Named arguments work on a dynamic class name, and they are the
 		// contract: a renamed parameter in planninq fails here, loudly.
 		$event = new ($this->eventClass)(sourceApp: 'learniq', criteria: $criteria);
 		$this->dispatcher->dispatchTyped($event);
 
+		return $this->toSessions(lessons: $this->answerOf(event: $event));
+	}//end query()
+
+	/**
+	 * The lessons planninq answered on a dispatched query.
+	 *
+	 * @param object $event The dispatched query event.
+	 *
+	 * @return array<mixed>
+	 *
+	 * @throws RuntimeException When planninq did not answer or refused.
+	 */
+	private function answerOf(object $event): array {
 		if ($event->isHandled() === false) {
 			throw new RuntimeException('Planninq did not answer the timetable query.');
 		}
@@ -261,15 +297,26 @@ class PlanninqTimetableSource implements TimetableSource {
 			throw new RuntimeException('Planninq refused the timetable query: ' . (string)$event->getError());
 		}
 
+		return $sessions;
+	}//end answerOf()
+
+	/**
+	 * Map each lesson of an answer onto learniq's session shape, skipping rows that are not lessons.
+	 *
+	 * @param array<mixed> $lessons The answered lessons.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function toSessions(array $lessons): array {
 		$rows = [];
-		foreach ($sessions as $lesson) {
+		foreach ($lessons as $lesson) {
 			if (is_array($lesson) === true) {
 				$rows[] = $this->toSession(lesson: $lesson);
 			}
 		}
 
 		return $rows;
-	}//end query()
+	}//end toSessions()
 
 	/**
 	 * Map one planninq lesson onto learniq's session shape.
