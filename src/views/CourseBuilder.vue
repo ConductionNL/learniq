@@ -271,7 +271,7 @@ import DeleteOutline from 'vue-material-design-icons/DeleteOutline.vue'
 import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import { moduleHoldingLesson, schemaOfMove } from '../utils/courseTree.js'
 import { lookupList } from '../utils/portfolioEvidence.js'
-import { createdObject } from '../utils/registerRequests.js'
+import { createdObject, sendJsonOrThrow } from '../utils/registerRequests.js'
 
 export default {
 	name: 'CourseBuilder',
@@ -500,19 +500,10 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async updateObject(schema, objId, patch) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/${schema}/${objId}`,
+			await sendJsonOrThrow(
+				generateUrl(`/apps/openregister/api/objects/learniq/${schema}/${objId}`),
+				{ method: 'PATCH', body: patch, failure: `${schema} update failed` },
 			)
-			const resp = await fetch(url, {
-				method: 'PATCH',
-				headers: {
-					'OCS-APIREQUEST': 'true',
-					Accept: 'application/json',
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(patch),
-			})
-			if (!resp.ok) throw new Error(`${schema} update failed: ${resp.status}`)
 		},
 
 		/**

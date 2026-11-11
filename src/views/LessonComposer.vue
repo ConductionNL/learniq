@@ -260,7 +260,11 @@ import {
 } from '../utils/lessonBlocks.js'
 import { isNextStepRefusal } from '../utils/lessonPreview.js'
 import { lookupList } from '../utils/portfolioEvidence.js'
-import { createdObject, readRequiredObject } from '../utils/registerRequests.js'
+import {
+	createdObject,
+	readRequiredObject,
+	sendJson,
+} from '../utils/registerRequests.js'
 
 /**
  * Material.kind inferred from a picked file's MIME type (design.md D3 task 4.4).
@@ -1028,14 +1032,9 @@ export default {
 				// `[courseId, name, order, contentType, tenant_id]`), answering
 				// 400. PATCH (`objects#patch`) is the read-merge-write partial
 				// update. Same fix as CourseBuilder.updateObject().
-				const resp = await fetch(url, {
+				const resp = await sendJson(url, {
 					method: 'PATCH',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify(this.saveBody()),
+					body: this.saveBody(),
 				})
 				if (!resp.ok) {
 					const refused = await resp.json().catch(() => ({}))
