@@ -56,23 +56,8 @@ class BpvPlacementSteps {
 
 	private const REGISTER = 'learniq';
 
-	private const MONTHS = [
-		'januari',
-		'februari',
-		'maart',
-		'april',
-		'mei',
-		'juni',
-		'juli',
-		'augustus',
-		'september',
-		'oktober',
-		'november',
-		'december',
-	];
-
 	/**
-	 * Reads dates the way the course-day lines do.
+	 * Reads and formats dates the way the course-day lines do.
 	 *
 	 * @var CourseDayLines
 	 */
@@ -147,7 +132,7 @@ class BpvPlacementSteps {
 
 		$finalLine = '';
 		if ($final === null && $end !== null) {
-			$finalLine = self::MONTHS[((int)$end->format('n') - 1)] . ' ' . $end->format('Y');
+			$finalLine = CourseDayLines::MONTHS[((int)$end->format('n') - 1)] . ' ' . $end->format('Y');
 		}
 
 		$steps = [
@@ -308,7 +293,7 @@ class BpvPlacementSteps {
 			return '';
 		}
 
-		return $day->format('j') . ' ' . self::MONTHS[((int)$day->format('n') - 1)] . ' ' . $day->format('Y');
+		return $this->lines->longDate(day: $day);
 	}//end longDate()
 
 	/**
