@@ -37,6 +37,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Service\StaffGroupCheck;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -195,17 +196,7 @@ class LessonNoteAuthorGuard implements IEventListener {
 	 * @return bool
 	 */
 	private function isStaff(string $uid): bool {
-		if ($this->groupManager->isAdmin($uid) === true) {
-			return true;
-		}
-
-		foreach (self::STAFF_GROUPS as $group) {
-			if ($this->groupManager->isInGroup($uid, $group) === true) {
-				return true;
-			}
-		}
-
-		return false;
+		return (new StaffGroupCheck(groupManager: $this->groupManager, staffGroups: self::STAFF_GROUPS))->isStaff(uid: $uid);
 	}//end isStaff()
 
 	/**

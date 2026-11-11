@@ -30,6 +30,7 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\CheckIn\CheckInCodeService;
+use OCA\Learniq\Service\StaffGroupCheck;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
@@ -155,17 +156,7 @@ class CheckInCodeController extends Controller {
 	 * @return bool
 	 */
 	private function isStaff(string $userId): bool {
-		if ($this->groupManager->isAdmin($userId) === true) {
-			return true;
-		}
-
-		foreach (self::STAFF_GROUPS as $group) {
-			if ($this->groupManager->isInGroup($userId, $group) === true) {
-				return true;
-			}
-		}
-
-		return false;
+		return (new StaffGroupCheck(groupManager: $this->groupManager, staffGroups: self::STAFF_GROUPS))->isStaff(uid: $userId);
 	}//end isStaff()
 
 	/**
