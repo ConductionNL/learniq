@@ -31,18 +31,38 @@ namespace OCA\Learniq\Listener;
 final class CohortTalkMembershipChange {
 
 	/**
+	 * Cohort object uuid (== Enrolment.cohortId).
+	 *
+	 * @var string
+	 */
+	public readonly string $cohortId;
+
+	/**
+	 * Nextcloud user id of the learner.
+	 *
+	 * @var string
+	 */
+	public readonly string $learnerId;
+
+	/**
+	 * True to add (activate), false to remove (withdraw).
+	 *
+	 * @var bool
+	 */
+	public readonly bool $add;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param string $cohortId  Cohort object uuid (== Enrolment.cohortId).
-	 * @param string $learnerId Nextcloud user id of the learner.
-	 * @param bool   $add       True to add (activate), false to remove (withdraw).
+	 * @param array<string,mixed> $enrolment The Enrolment payload, with a non-empty string
+	 *                                       `cohortId` and a non-empty `learnerId`.
+	 * @param bool                $add       True to add (activate), false to remove (withdraw).
 	 *
 	 * @return void
 	 */
-	public function __construct(
-		public readonly string $cohortId,
-		public readonly string $learnerId,
-		public readonly bool $add,
-	) {
+	public function __construct(array $enrolment, bool $add) {
+		$this->cohortId  = $enrolment['cohortId'];
+		$this->learnerId = $enrolment['learnerId'];
+		$this->add       = $add;
 	}//end __construct()
 }//end class

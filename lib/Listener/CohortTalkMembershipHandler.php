@@ -177,11 +177,7 @@ class CohortTalkMembershipHandler implements IEventListener {
 			return null;
 		}
 
-		return new CohortTalkMembershipChange(
-			cohortId: $cohortId,
-			learnerId: $learnerId,
-			add: $event->getAction() === self::ACTION_ACTIVATE
-		);
+		return new CohortTalkMembershipChange(enrolment: $enrolment, add: $event->getAction() === self::ACTION_ACTIVATE);
 	}//end membershipChange()
 
 	/**
