@@ -38,7 +38,6 @@ namespace OCA\Learniq\Service;
 
 use OCA\OpenRegister\Service\AuditHashService;
 use OCP\IUser;
-use ZipArchive;
 
 /**
  * Builds the compliance audit-pack ZIP for a tenant, regulation and period.
@@ -369,26 +368,6 @@ class AuditPackBuilder {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
 	 */
 	private function buildZip(array $files): string {
-		$tmpFile = tempnam(sys_get_temp_dir(), 'learniq_audit_');
-		if ($tmpFile === false) {
-			return '';
-		}
-
-		$zip = new ZipArchive();
-		if ($zip->open($tmpFile, ZipArchive::OVERWRITE) !== true) {
-			unlink($tmpFile);
-			return '';
-		}
-
-		foreach ($files as $filename => $content) {
-			$zip->addFromString($filename, $content);
-		}
-
-		$zip->close();
-
-		$zipContent = (string)file_get_contents($tmpFile);
-		unlink($tmpFile);
-
-		return $zipContent;
+		return (new InMemoryZip(tempPrefix: 'learniq_audit_'))->build(files: $files);
 	}//end buildZip()
 }//end class

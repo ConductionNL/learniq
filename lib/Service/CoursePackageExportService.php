@@ -51,7 +51,6 @@ use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
-use ZipArchive;
 
 /**
  * Builds Common Cartridge and scholiq-native JSON exports of a `Course`.
@@ -456,26 +455,6 @@ class CoursePackageExportService {
 	 * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
 	 */
 	private function buildZip(array $files): string {
-		$tmpFile = tempnam(sys_get_temp_dir(), 'learniq_course_export_');
-		if ($tmpFile === false) {
-			return '';
-		}
-
-		$zip = new ZipArchive();
-		if ($zip->open($tmpFile, ZipArchive::OVERWRITE) !== true) {
-			unlink($tmpFile);
-			return '';
-		}
-
-		foreach ($files as $filename => $content) {
-			$zip->addFromString($filename, $content);
-		}
-
-		$zip->close();
-
-		$zipContent = (string)file_get_contents($tmpFile);
-		unlink($tmpFile);
-
-		return $zipContent;
+		return (new InMemoryZip(tempPrefix: 'learniq_course_export_'))->build(files: $files);
 	}//end buildZip()
 }//end class
