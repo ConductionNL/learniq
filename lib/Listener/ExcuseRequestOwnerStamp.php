@@ -280,39 +280,120 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 		$guardianRef = $this->text(value: ($payload['submittedByRef'] ?? null));
 
 		try {
-			$child = $this->profiles->byRef(learnerRef: $this->text(value: $payload['learnerRef']));
-			$guardian = null;
-			if ($child !== null && $guardianRef !== '') {
-				$guardian = $this->profiles->byRef(learnerRef: $guardianRef);
-			}
+			$reporters = $this->reporters(payload: $payload, guardianRef: $guardianRef);
 		} catch (Throwable $exception) {
-			$this->logger->warning(
-				'[ExcuseRequestOwnerStamp] Could not check a portal absence report: {msg}',
-				['msg' => $exception->getMessage()]
-			);
-			return ['stamp' => [], 'refuse' => 'excuse-lookup-failed'];
+			return $this->lookupFailed(exception: $exception);
 		}
 
-		if ($child === null) {
+		if ($reporters === null) {
 			return ['stamp' => [], 'refuse' => 'excuse-learner-unknown'];
 		}
 
-		$stamp = [
+		return $this->reporterStamp(reporters: $reporters, guardianRef: $guardianRef);
+	}//end portalStamp()
+
+	/**
+	 * Look up the pupil a portal report names and, for a known pupil and a
+	 * named submitter, that submitter's profile.
+	 *
+	 * @param array<string,mixed> $payload     The report as it would be written.
+	 * @param string              $guardianRef The submitter's reference, or ''.
+	 *
+	 * @return PortalAbsenceReporters|null Null when the pupil is unknown.
+	 *
+	 * @throws Throwable When a lookup fails.
+	 */
+	private function reporters(array $payload, string $guardianRef): ?PortalAbsenceReporters {
+		$child = $this->profiles->byRef(learnerRef: $this->text(value: $payload['learnerRef']));
+		if ($child === null) {
+			return null;
+		}
+
+		$guardian = null;
+		if ($guardianRef !== '') {
+			$guardian = $this->profiles->byRef(learnerRef: $guardianRef);
+		}
+
+		return new PortalAbsenceReporters(child: $child, guardian: $guardian);
+	}//end reporters()
+
+	/**
+	 * Log a lookup that failed and refuse the report.
+	 *
+	 * @param Throwable $exception Why the lookup failed.
+	 *
+	 * @return array{stamp: array<string,mixed>, refuse: string}
+	 */
+	private function lookupFailed(Throwable $exception): array {
+		$this->logger->warning(
+			'[ExcuseRequestOwnerStamp] Could not check a portal absence report: {msg}',
+			['msg' => $exception->getMessage()]
+		);
+		return ['stamp' => [], 'refuse' => 'excuse-lookup-failed'];
+	}//end lookupFailed()
+
+	/**
+	 * The stamp of a report by a known pupil: filed by the pupil, or by one
+	 * of the pupil's own guardians; a guardian of another pupil is refused.
+	 *
+	 * @param PortalAbsenceReporters $reporters   The pupil and the guardian.
+	 * @param string                 $guardianRef The submitter's reference, or ''.
+	 *
+	 * @return array{stamp: array<string,mixed>, refuse?: string}
+	 */
+	private function reporterStamp(PortalAbsenceReporters $reporters, string $guardianRef): array {
+		if ($guardianRef === '') {
+			return ['stamp' => $this->pupilStamp(child: $reporters->child)];
+		}
+
+		if (in_array($guardianRef, (array)($reporters->child['guardianRefs'] ?? []), true) === false) {
+			return ['stamp' => [], 'refuse' => 'excuse-guardian-unknown'];
+		}
+
+		return ['stamp' => $this->guardianStamp(child: $reporters->child, guardian: $reporters->guardian)];
+	}//end reporterStamp()
+
+	/**
+	 * Who a report is about: the pupil's user id, profile and school.
+	 *
+	 * @param array<string,mixed> $child The pupil's LearnerProfile.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function childStamp(array $child): array {
+		return [
 			'learnerId' => (string)$child['ncUserId'],
 			'learnerRef' => (string)$child['id'],
 			'tenant_id' => $this->text(value: ($child['tenant_id'] ?? null)),
 		];
+	}//end childStamp()
 
-		if ($guardianRef === '') {
-			$stamp['submittedBy'] = (string)$child['ncUserId'];
-			$stamp['submittedByRef'] = (string)$child['id'];
-			$stamp['submittedAuthLevel'] = self::PUPIL_PORTAL_LEVEL;
-			return ['stamp' => $stamp];
-		}
+	/**
+	 * The stamp of a report the pupil files.
+	 *
+	 * @param array<string,mixed> $child The pupil's LearnerProfile.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function pupilStamp(array $child): array {
+		$stamp = $this->childStamp(child: $child);
+		$stamp['submittedBy'] = (string)$child['ncUserId'];
+		$stamp['submittedByRef'] = (string)$child['id'];
+		$stamp['submittedAuthLevel'] = self::PUPIL_PORTAL_LEVEL;
 
-		if (in_array($guardianRef, (array)($child['guardianRefs'] ?? []), true) === false) {
-			return ['stamp' => [], 'refuse' => 'excuse-guardian-unknown'];
-		}
+		return $stamp;
+	}//end pupilStamp()
+
+	/**
+	 * The stamp of a report one of the pupil's guardians files.
+	 *
+	 * @param array<string,mixed>      $child    The pupil's LearnerProfile.
+	 * @param array<string,mixed>|null $guardian The guardian's LearnerProfile, or null.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function guardianStamp(array $child, ?array $guardian): array {
+		$stamp = $this->childStamp(child: $child);
 
 		// A guardian without a Nextcloud account has no user id; the report
 		// then names them through submittedByRef alone.
@@ -323,8 +404,8 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 
 		$stamp['submittedAuthLevel'] = self::GUARDIAN_PORTAL_LEVEL;
 
-		return ['stamp' => $stamp];
-	}//end portalStamp()
+		return $stamp;
+	}//end guardianStamp()
 
 	/**
 	 * The learnerRef for a non-portal write: the profile of `learnerId`, or
