@@ -107,11 +107,9 @@ class GradeRollupHandler implements IEventListener {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-5
 	 */
 	public function handle(Event $event): void {
-		if (($event instanceof ObjectTransitionedEvent) === false) {
-			return;
-		}
-
-		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
+		if (($event instanceof ObjectTransitionedEvent) === false
+			|| $this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER
+		) {
 			return;
 		}
 
@@ -120,18 +118,7 @@ class GradeRollupHandler implements IEventListener {
 		// so the listeners after this one on the same event (the correction
 		// bookkeeping among them) would never run (live pass D9).
 		try {
-			if ($this->schemas->eventSchema(event: $event) === self::GRADE_ENTRY_SCHEMA
-				&& $event->getTo() === 'published'
-			) {
-				$this->handleGradeEntryPublished(event: $event);
-				return;
-			}
-
-			if ($this->schemas->eventSchema(event: $event) === self::ASSESSMENT_RESULT_SCHEMA
-				&& $event->getTo() === 'graded'
-			) {
-				$this->handleAssessmentResultGraded(event: $event);
-			}
+			$this->rollUpAfter(event: $event);
 		} catch (Throwable $exception) {
 			$this->logger->error(
 				'[GradeRollupHandler] The grade roll-up after a transition failed; the transition stands: {error}',
@@ -140,6 +127,28 @@ class GradeRollupHandler implements IEventListener {
 		}
 
 	}//end handle()
+
+	/**
+	 * Roll up after a published grade entry or a graded assessment result.
+	 *
+	 * @param ObjectTransitionedEvent $event The transition.
+	 *
+	 * @return void
+	 */
+	private function rollUpAfter(ObjectTransitionedEvent $event): void {
+		if ($this->schemas->eventSchema(event: $event) === self::GRADE_ENTRY_SCHEMA
+			&& $event->getTo() === 'published'
+		) {
+			$this->handleGradeEntryPublished(event: $event);
+			return;
+		}
+
+		if ($this->schemas->eventSchema(event: $event) === self::ASSESSMENT_RESULT_SCHEMA
+			&& $event->getTo() === 'graded'
+		) {
+			$this->handleAssessmentResultGraded(event: $event);
+		}
+	}//end rollUpAfter()
 
 	/**
 	 * Recompute FinalGrade and fan out parent notifications when a GradeEntry publishes.
@@ -340,27 +349,9 @@ class GradeRollupHandler implements IEventListener {
 	 * @spec openspec/specs/grading/spec.md#requirement-the-final-grade-roll-up-writes-the-programme-it-belongs-to
 	 */
 	private function programmeFor(string $curriculumPlanId, mixed $current): ?string {
-		$programmes = $this->objectService->findAll(
-			[
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::PROGRAMME_SCHEMA,
-					'curriculumPlanId' => $curriculumPlanId,
-				],
-				'limit' => 1,
-			]
-		);
-
-		if (empty($programmes) === false) {
-			$programme = $programmes[0];
-			if (is_array($programme) === false) {
-				$programme = $programme->jsonSerialize();
-			}
-
-			$id = ($programme['id'] ?? ($programme['uuid'] ?? null));
-			if (is_string($id) === true && $id !== '') {
-				return $id;
-			}
+		$programmeId = $this->planProgrammeId(curriculumPlanId: $curriculumPlanId);
+		if ($programmeId !== null) {
+			return $programmeId;
 		}
 
 		if (is_string($current) === true && $current !== '') {
@@ -369,6 +360,60 @@ class GradeRollupHandler implements IEventListener {
 
 		return null;
 	}//end programmeFor()
+
+	/**
+	 * The id of the programme that uses a curriculum plan, or null.
+	 *
+	 * @param string $curriculumPlanId The curriculum plan.
+	 *
+	 * @return string|null
+	 */
+	private function planProgrammeId(string $curriculumPlanId): ?string {
+		$programmes = $this->objectService->findAll($this->programmeQuery(curriculumPlanId: $curriculumPlanId));
+		if (empty($programmes) === true) {
+			return null;
+		}
+
+		return $this->programmeId(programme: $programmes[0]);
+	}//end planProgrammeId()
+
+	/**
+	 * The read for the programme that uses a curriculum plan.
+	 *
+	 * @param string $curriculumPlanId The curriculum plan.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function programmeQuery(string $curriculumPlanId): array {
+		return [
+			'filters' => [
+				'register' => self::LEARNIQ_REGISTER,
+				'schema' => self::PROGRAMME_SCHEMA,
+				'curriculumPlanId' => $curriculumPlanId,
+			],
+			'limit' => 1,
+		];
+	}//end programmeQuery()
+
+	/**
+	 * A programme's id (or uuid) when it is a non-empty string, or null.
+	 *
+	 * @param mixed $programme The programme row or entity.
+	 *
+	 * @return string|null
+	 */
+	private function programmeId(mixed $programme): ?string {
+		if (is_array($programme) === false) {
+			$programme = $programme->jsonSerialize();
+		}
+
+		$id = ($programme['id'] ?? ($programme['uuid'] ?? null));
+		if (is_string($id) === true && $id !== '') {
+			return $id;
+		}
+
+		return null;
+	}//end programmeId()
 
 	/**
 	 * Resolve LearnerProfile.parentIds and fire the gradePublished notification for each parent.
