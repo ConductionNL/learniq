@@ -239,14 +239,9 @@ class SessionChangeGuard implements LifecycleGuardInterface {
 	 * @return bool True when the user is in admin/coordinator.
 	 */
 	private function actorIsOverrideRole(string $actor): bool {
-		$user = $this->userManager->get($actor);
-		if ($user === null) {
-			return false;
-		}
+		$groups = new ActorGroups(userManager: $this->userManager, groupManager: $this->groupManager);
 
-		$actorGroups = $this->groupManager->getUserGroupIds($user);
-
-		return count(array_intersect($actorGroups, self::OVERRIDE_GROUPS)) > 0;
+		return $groups->isInAny(actor: $actor, groups: self::OVERRIDE_GROUPS);
 	}//end actorIsOverrideRole()
 
 	/**
