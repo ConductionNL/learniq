@@ -75,6 +75,14 @@ class SubjectChoiceValidator implements IEventListener {
 	private const OCCUPYING_STATES = ['approved', 'locked'];
 
 	/**
+	 * Where SubjectChoice rows are read from.
+	 */
+	private const SUBJECT_CHOICE_SOURCE = [
+		'register' => self::LEARNIQ_REGISTER,
+		'schema' => self::SUBJECT_CHOICE_SCHEMA,
+	];
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object access service.
@@ -226,18 +234,35 @@ class SubjectChoiceValidator implements IEventListener {
 		}
 
 		foreach ($combinations as $combination) {
-			if (is_array($combination) === false || count($combination) === 0) {
-				continue;
-			}
-
-			$missing = array_values(array_diff($combination, $selected));
-			if (count($missing) > 0) {
-				$errors[] = sprintf('Mandatory combination not fully selected: missing %s.', implode(', ', $missing));
+			$error = self::combinationError(combination: $combination, selected: $selected);
+			if ($error !== null) {
+				$errors[] = $error;
 			}
 		}
 
 		return $errors;
 	}//end checkMandatoryCombinations()
+
+	/**
+	 * What one mandatory combination misses, or null when it is selected in full or is no combination.
+	 *
+	 * @param mixed            $combination The named combination.
+	 * @param array<int,mixed> $selected    selectedElectiveCourseIds.
+	 *
+	 * @return string|null
+	 */
+	private static function combinationError(mixed $combination, array $selected): ?string {
+		if (is_array($combination) === false || count($combination) === 0) {
+			return null;
+		}
+
+		$missing = array_values(array_diff($combination, $selected));
+		if (count($missing) > 0) {
+			return sprintf('Mandatory combination not fully selected: missing %s.', implode(', ', $missing));
+		}
+
+		return null;
+	}//end combinationError()
 
 	/**
 	 * MutuallyExclusive check — at most one course per named set.
@@ -287,21 +312,33 @@ class SubjectChoiceValidator implements IEventListener {
 		}
 
 		$siblings = $this->fetchOccupyingSiblings(choice: $choice);
-
-		foreach ($capacityByCourseId as $courseId => $limit) {
-			if (in_array($courseId, $selected, true) === false || is_int($limit) === false) {
-				continue;
-			}
-
-			$occupied = $this->countOccupied(siblings: $siblings, courseId: (string)$courseId);
-
-			if ($occupied >= $limit) {
+		foreach (self::selectedLimits(capacityByCourseId: $capacityByCourseId, selected: $selected) as $courseId => $limit) {
+			if ($this->countOccupied(siblings: $siblings, courseId: (string)$courseId) >= $limit) {
 				$errors[] = sprintf('Capacity reached for course %s (limit %d).', $courseId, $limit);
 			}
 		}
 
 		return $errors;
 	}//end checkCapacity()
+
+	/**
+	 * The whole-number limits of the selected courses, in the rules' order.
+	 *
+	 * @param array<mixed,mixed> $capacityByCourseId The capacity rule.
+	 * @param array<int,mixed>   $selected           selectedElectiveCourseIds.
+	 *
+	 * @return array<mixed,int>
+	 */
+	private static function selectedLimits(array $capacityByCourseId, array $selected): array {
+		$limits = [];
+		foreach ($capacityByCourseId as $courseId => $limit) {
+			if (in_array($courseId, $selected, true) === true && is_int($limit) === true) {
+				$limits[$courseId] = $limit;
+			}
+		}
+
+		return $limits;
+	}//end selectedLimits()
 
 	/**
 	 * Count how many sibling SubjectChoice rows already occupy a seat on `$courseId`.
@@ -333,47 +370,60 @@ class SubjectChoiceValidator implements IEventListener {
 	 * @return array<int,array<string,mixed>>
 	 */
 	private function fetchOccupyingSiblings(array $choice): array {
-		['curriculumPlanId' => $curriculumPlanId, 'tenantId' => $tenantId, 'choiceId' => $excludeId] = $choice;
 		$siblings = [];
-
 		foreach (self::OCCUPYING_STATES as $lifecycle) {
-			$filters = [
-				'curriculumPlanId' => $curriculumPlanId,
-				'lifecycle' => $lifecycle,
-			];
-			if ($tenantId !== '') {
-				$filters['tenant_id'] = $tenantId;
-			}
-
-			$rows = $this->objectService->findAll(
-				[
-					'filters' => array_merge(
-						$filters,
-						[
-							'register' => self::LEARNIQ_REGISTER,
-							'schema' => self::SUBJECT_CHOICE_SCHEMA,
-						]
-					),
-					'limit' => 5000,
-				]
-			);
-
-			foreach ($rows as $row) {
-				if (is_array($row) === false) {
-					$row = $row->jsonSerialize();
-				}
-
-				$id = (string)($row['id'] ?? ($row['uuid'] ?? ''));
-				if ($id !== '' && $id === $excludeId) {
-					continue;
-				}
-
-				$siblings[] = $row;
-			}
-		}//end foreach
+			$rows = $this->objectService->findAll(['filters' => self::siblingFilters(choice: $choice, lifecycle: $lifecycle), 'limit' => 5000]);
+			$siblings = array_merge($siblings, self::withoutChoice(rows: $rows, choiceId: $choice['choiceId']));
+		}
 
 		return $siblings;
 	}//end fetchOccupyingSiblings()
+
+	/**
+	 * The filters for the plan's SubjectChoice rows in one lifecycle state, within the tenant when it is known.
+	 *
+	 * @param array{curriculumPlanId: string, tenantId: string, choiceId: string} $choice    The plan, tenant and choice.
+	 * @param string                                                              $lifecycle The occupying state.
+	 *
+	 * @return array<string,string>
+	 */
+	private static function siblingFilters(array $choice, string $lifecycle): array {
+		$filters = [
+			'curriculumPlanId' => $choice['curriculumPlanId'],
+			'lifecycle' => $lifecycle,
+		];
+		if ($choice['tenantId'] !== '') {
+			$filters['tenant_id'] = $choice['tenantId'];
+		}
+
+		return array_merge($filters, self::SUBJECT_CHOICE_SOURCE);
+	}//end siblingFilters()
+
+	/**
+	 * The rows as arrays, without the SubjectChoice being validated.
+	 *
+	 * @param array<int,mixed> $rows     The rows read.
+	 * @param string           $choiceId The SubjectChoice being validated.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private static function withoutChoice(array $rows, string $choiceId): array {
+		$siblings = [];
+		foreach ($rows as $row) {
+			if (is_array($row) === false) {
+				$row = $row->jsonSerialize();
+			}
+
+			$id = (string)($row['id'] ?? ($row['uuid'] ?? ''));
+			if ($id !== '' && $id === $choiceId) {
+				continue;
+			}
+
+			$siblings[] = $row;
+		}
+
+		return $siblings;
+	}//end withoutChoice()
 
 	/**
 	 * Fetch the referenced CurriculumPlan, normalised to a plain array.
