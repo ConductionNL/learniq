@@ -49,6 +49,7 @@ namespace OCA\Learniq\Listener;
 use OCA\Learniq\Service\ConferenceBookingMode;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Support\TextValue;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -300,10 +301,6 @@ class ConferenceSignupPortalStamp implements IEventListener {
 	 * @return string
 	 */
 	private static function text(mixed $value): string {
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return $value;
+		return (new TextValue())->orEmpty(value: $value);
 	}//end text()
 }//end class
