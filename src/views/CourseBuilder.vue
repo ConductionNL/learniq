@@ -270,6 +270,8 @@ import { NcSelect } from '@nextcloud/vue'
 import DeleteOutline from 'vue-material-design-icons/DeleteOutline.vue'
 import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import { moduleHoldingLesson, schemaOfMove } from '../utils/courseTree.js'
+import { lookupList } from '../utils/portfolioEvidence.js'
+import { createdObject } from '../utils/registerRequests.js'
 
 export default {
 	name: 'CourseBuilder',
@@ -447,15 +449,9 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async fetchList(schema, query) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/${schema}?${query}`,
+			return lookupList(
+				generateUrl(`/apps/openregister/api/objects/learniq/${schema}?${query}`),
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) return []
-			const json = await resp.json()
-			return json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
 		},
 
 		/**
@@ -471,21 +467,10 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async createObject(schema, body) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/${schema}`,
+			return createdObject(
+				generateUrl(`/apps/openregister/api/objects/learniq/${schema}`),
+				{ body, failure: `${schema} create failed` },
 			)
-			const resp = await fetch(url, {
-				method: 'POST',
-				headers: {
-					'OCS-APIREQUEST': 'true',
-					Accept: 'application/json',
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(body),
-			})
-			if (!resp.ok) throw new Error(`${schema} create failed: ${resp.status}`)
-			const json = await resp.json()
-			return json.object ?? json ?? {}
 		},
 
 		/**
