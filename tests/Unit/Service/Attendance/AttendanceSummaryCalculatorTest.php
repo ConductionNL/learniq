@@ -200,4 +200,106 @@ class AttendanceSummaryCalculatorTest extends TestCase {
 			AttendanceSummaryCalculator::emptyCounts()
 		);
 	}//end testEmptyCounts()
+	/**
+	 * Each lesson keyed by id, uuid or `@self.id`, with its local date and
+	 * whole minutes; lessons without an id or a start are left out, and a
+	 * lesson without a later end has no length.
+	 *
+	 * @return void
+	 */
+	public function testSessionDaysKeysEveryDatedLesson(): void {
+		$days = AttendanceSummaryCalculator::sessionDays(
+			rows: [
+				['id' => 'a', 'startsAt' => '2026-03-02T08:30:00+01:00', 'endsAt' => '2026-03-02T09:20:59+01:00'],
+				['uuid' => 'b', 'startsAt' => '2026-03-03T23:30:00-05:00', 'endsAt' => '2026-03-03T23:00:00-05:00'],
+				['@self' => ['id' => 'c'], 'startsAt' => '2026-03-04T08:30:00+01:00'],
+				['id' => 'd', 'startsAt' => '2026-03-05T08:30:00+01:00', 'endsAt' => 'later'],
+				['id' => 'e', 'startsAt' => 'soon'],
+				['id' => '', 'startsAt' => '2026-03-06T08:30:00+01:00'],
+				['startsAt' => '2026-03-06T08:30:00+01:00'],
+				['id' => 'f', 'startsAt' => '2026-03-07T08:30:00+01:00', 'endsAt' => '2026-03-07T08:30:00+01:00'],
+			]
+		);
+
+		self::assertSame(
+			[
+				'a' => ['date' => '2026-03-02', 'minutes' => 50],
+				'b' => ['date' => '2026-03-03', 'minutes' => null],
+				'c' => ['date' => '2026-03-04', 'minutes' => null],
+				'd' => ['date' => '2026-03-05', 'minutes' => null],
+				'f' => ['date' => '2026-03-07', 'minutes' => null],
+			],
+			$days
+		);
+	}//end testSessionDaysKeysEveryDatedLesson()
+
+	/**
+	 * Late minutes come from a whole-number `lateMinutes`, else the lesson
+	 * length minus the minutes attended, never below zero.
+	 *
+	 * @return void
+	 */
+	public function testLateMinutesForEveryShapeOfRecord(): void {
+		$sessions = ['s' => ['date' => '2026-03-02', 'minutes' => 50], 'open' => ['date' => '2026-03-02', 'minutes' => null]];
+		$cases = [
+			'int' => [['lateMinutes' => 7], 's', 7],
+			'digit string' => [['lateMinutes' => '12'], 's', 12],
+			'negative int' => [['lateMinutes' => -3], 's', 0],
+			'not digits, attended' => [['lateMinutes' => '1.5', 'minutesAttended' => 45], 's', 5],
+			'float, attended string' => [['lateMinutes' => 2.0, 'minutesAttended' => '40'], 's', 10],
+			'attended longer' => [['minutesAttended' => 60], 's', 0],
+			'attended not numeric' => [['minutesAttended' => 'most'], 's', 0],
+			'lesson without length' => [['minutesAttended' => 10], 'open', 0],
+			'no lesson' => [['minutesAttended' => 10], 'gone', 0],
+		];
+
+		foreach ($cases as $label => [$extra, $sessionId, $minutes]) {
+			$years = (new AttendanceSummaryCalculator())->summarise(records: [self::record($sessionId, 'late', $extra)], sessions: $sessions);
+			self::assertSame($minutes, $years['2025-2026']['lateMinutes'], $label);
+			self::assertSame(1, $years['2025-2026']['lateCount'], $label);
+		}
+	}//end testLateMinutesForEveryShapeOfRecord()
+
+	/**
+	 * School years come out in order, and uncounted or undated records are skipped.
+	 *
+	 * @return void
+	 */
+	public function testSchoolYearsComeOutSorted(): void {
+		$years = (new AttendanceSummaryCalculator())->summarise(
+			records: [
+				self::record('x', 'absent-excused', ['markedAt' => '2027-01-10T08:00:00+01:00']),
+				self::record('x', 'present', ['markedAt' => '2024-01-10T08:00:00+01:00']),
+				self::record('x', 'absent-unexcused', ['markedAt' => '2025-01-10T08:00:00+01:00']),
+				self::record('x', 'absent-unexcused', ['markedAt' => 'not a date']),
+				['sessionId' => 'x', 'markedAt' => '2025-01-10T08:00:00+01:00'],
+			],
+			sessions: []
+		);
+
+		self::assertSame(['2024-2025', '2026-2027'], array_keys($years));
+		self::assertSame(1, $years['2024-2025']['absentUnauthorisedDays']);
+		self::assertSame(1, $years['2026-2027']['absentAuthorisedDays']);
+	}//end testSchoolYearsComeOutSorted()
+
+	/**
+	 * A stored row is unchanged when every recounted field matches: numbers
+	 * also as numeric strings, teachers in any order.
+	 *
+	 * @return void
+	 */
+	public function testUnchangedComparesEveryRecountedField(): void {
+		$calculator = new AttendanceSummaryCalculator();
+		$data = ['absentDays' => 2, 'teacherIds' => ['jan', 'anna'], 'schoolYear' => '2025-2026'];
+
+		self::assertTrue($calculator->unchanged(row: ['absentDays' => '2', 'teacherIds' => ['anna', 'jan'], 'schoolYear' => '2025-2026', 'extra' => 1], data: $data));
+		self::assertTrue($calculator->unchanged(row: [], data: []));
+		self::assertFalse($calculator->unchanged(row: ['absentDays' => 3, 'teacherIds' => ['anna', 'jan'], 'schoolYear' => '2025-2026'], data: $data));
+		self::assertFalse($calculator->unchanged(row: ['absentDays' => 'two', 'teacherIds' => ['anna', 'jan'], 'schoolYear' => '2025-2026'], data: $data));
+		self::assertFalse($calculator->unchanged(row: ['absentDays' => 2, 'teacherIds' => ['jan'], 'schoolYear' => '2025-2026'], data: $data));
+		self::assertFalse($calculator->unchanged(row: ['absentDays' => 2, 'teacherIds' => 'jan', 'schoolYear' => '2025-2026'], data: $data));
+		self::assertFalse($calculator->unchanged(row: ['absentDays' => 2, 'teacherIds' => ['anna', 'jan']], data: $data));
+		self::assertTrue($calculator->unchanged(row: ['teacherIds' => null], data: ['teacherIds' => []]));
+		self::assertFalse($calculator->unchanged(row: ['lateMinutes' => null], data: ['lateMinutes' => 0]));
+	}//end testUnchangedComparesEveryRecountedField()
 }//end class
