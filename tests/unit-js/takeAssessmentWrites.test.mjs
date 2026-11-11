@@ -7,6 +7,7 @@
 // component's own methods with a recording fetch and a frozen clock.
 
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { afterEach, beforeEach, mock, test } from 'node:test'
 import { loadSfcScript } from './sfcScript.mjs'
 
@@ -303,4 +304,20 @@ test('choices come in the QTI order, the server order, or as two placeholders', 
 	assert.deepEqual(extract(qti, ['B', 'Vacuole']), [declared[1], declared[2], declared[0]])
 	assert.deepEqual(extract(qti, ['Z']), declared)
 	assert.deepEqual(extract(qti, ['Z', 'A']), [declared[0], declared[1], declared[2]])
+})
+
+test('every method the screen calls on itself is defined', () => {
+	const source = readFileSync(new URL('../../src/views/TakeAssessmentView.vue', import.meta.url), 'utf8')
+	const script = source.slice(source.indexOf('<script'), source.indexOf('</script>'))
+	const called = new Set([...script.matchAll(/this\.([a-zA-Z]+)\(/g)].map((match) => match[1]))
+	for (const name of called) {
+		if (name === 't' || name === 'n' || name.startsWith('$')) {
+			continue
+		}
+		assert.ok(
+			typeof component.methods[name] === 'function' || typeof component.computed?.[name] === 'function',
+			`${name} is called but not defined`,
+		)
+	}
+	assert.equal(component.methods.extractPrompt('<p>Two  <b>plus</b> two?</p>'), 'Two plus two?')
 })

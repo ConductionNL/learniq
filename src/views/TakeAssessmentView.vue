@@ -1546,6 +1546,24 @@ export default {
 		},
 
 		/**
+		 * Extract a human-readable prompt from a QTI body string.
+		 * Strips XML tags to extract plain text for display.
+		 *
+		 * @param {string} qtiBody Raw QTI XML/JSON body
+		 * @return {string} Cleaned prompt text
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
+		 */
+		extractPrompt(qtiBody) {
+			if (!qtiBody) return ''
+			// Strip XML tags for minimal display — a proper QTI renderer would be richer.
+			return qtiBody
+				.replace(/<[^>]+>/g, ' ')
+				.replace(/\s+/g, ' ')
+				.trim()
+				.slice(0, 500)
+		},
+
+		/**
 		 * Extract choice options from a QTI choice interaction XML body.
 		 * Returns an array of { id, label } objects, in `optionOrder` when given
 		 * (the server-resolved AssessmentResult.drawnItemRefs[].optionOrder for
