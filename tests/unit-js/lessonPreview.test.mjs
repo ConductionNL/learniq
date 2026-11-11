@@ -190,3 +190,41 @@ test('the composer recognises the same-course refusal in the save response', () 
 	assert.equal(isNextStepRefusal({ message: 'Validation failed' }), false)
 	assert.equal(isNextStepRefusal(undefined), false)
 })
+
+test('saved rules keep only the fields of their kind, and drop rules without a target or kind', () => {
+	assert.deepEqual(serialiseRules(undefined), [])
+	assert.deepEqual(
+		serialiseRules([
+			null,
+			{ goToLessonId: 'l1' },
+			{ goToLessonId: 'l1', when: { kind: 'unknown' } },
+			{ goToLessonId: '', when: { kind: 'score-below', belowScore: 5 } },
+			{ goToLessonId: 'l2', when: { kind: 'score-below', belowScore: '5', minScore: 9, assessmentId: 'a1', lessonId: 'x' } },
+			{ goToLessonId: 'l3', when: { kind: 'assessment-min-score', minScore: '' } },
+			{ goToLessonId: 'l4', when: { kind: 'assessment-min-score', minScore: 'x', assessmentId: null } },
+			{ goToLessonId: 'l5', when: { kind: 'lesson-completed', lessonId: 'p', assessmentId: 'a' } },
+			{ goToLessonId: 'l6', when: { kind: 'lesson-completed' } },
+			{ goToLessonId: 'l7', when: { kind: 'score-below', belowScore: null } },
+			{ goToLessonId: 'l8', when: { kind: 'score-below', belowScore: 0 } },
+		]),
+		[
+			{ when: { kind: 'score-below', assessmentId: 'a1', belowScore: 5 }, goToLessonId: 'l2' },
+			{ when: { kind: 'assessment-min-score', assessmentId: null, minScore: null }, goToLessonId: 'l3' },
+			{ when: { kind: 'assessment-min-score', assessmentId: null, minScore: Number.NaN }, goToLessonId: 'l4' },
+			{ when: { kind: 'lesson-completed', lessonId: 'p' }, goToLessonId: 'l5' },
+			{ when: { kind: 'lesson-completed', lessonId: null }, goToLessonId: 'l6' },
+			{ when: { kind: 'score-below', assessmentId: null, belowScore: null }, goToLessonId: 'l7' },
+			{ when: { kind: 'score-below', assessmentId: null, belowScore: 0 }, goToLessonId: 'l8' },
+		],
+	)
+})
+
+test('the preview reads its simulated score only in a preview', () => {
+	assert.deepEqual(previewFromQuery(undefined), { active: false, score: null })
+	assert.deepEqual(previewFromQuery({ preview: 1, score: '7.5' }), { active: true, score: 7.5 })
+	assert.deepEqual(previewFromQuery({ preview: '1', score: '' }), { active: true, score: null })
+	assert.deepEqual(previewFromQuery({ preview: '1', score: 'x' }), { active: true, score: null })
+	assert.deepEqual(previewFromQuery({ preview: '1', score: null }), { active: true, score: null })
+	assert.deepEqual(previewFromQuery({ preview: '1', score: 0 }), { active: true, score: 0 })
+	assert.deepEqual(previewFromQuery({ preview: '0', score: '5' }), { active: false, score: null })
+})

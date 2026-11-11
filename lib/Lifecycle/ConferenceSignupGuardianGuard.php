@@ -63,16 +63,6 @@ class ConferenceSignupGuardianGuard implements LifecycleGuardInterface {
 	private const DENIAL = 'Only a guardian of this learner, or the adult learner, can sign up for this conference.';
 
 	/**
-	 * OR register slug for Learniq objects.
-	 */
-	private const LEARNIQ_REGISTER = 'learniq';
-
-	/**
-	 * OR schema slug for LearnerProfile.
-	 */
-	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
-
-	/**
 	 * Constructor.
 	 *
 	 * @param IUserSession $userSession Current NC user session (server-resolved caller identity).
@@ -125,112 +115,11 @@ class ConferenceSignupGuardianGuard implements LifecycleGuardInterface {
 	 * @spec openspec/specs/parent-conferences/spec.md#requirement-a-guardian-or-self-signup-submission-is-gated-by-a-per-object-authorization-guard
 	 */
 	private function allows(array $object): bool {
-		$learnerId = $object['learnerId'] ?? '';
+		$check = new GuardianSubmitCheck(userSession: $this->userSession, objectService: $this->objectService);
+		$verdict = $check->verdict(object: $object);
+		$log = new GuardianSubmitLog(logger: $this->logger, guard: 'ConferenceSignupGuardianGuard');
+		$log->refusal(verdict: $verdict, subject: 'ConferenceSignup');
 
-		if ($learnerId === '') {
-			$this->logger->warning(
-				'[ConferenceSignupGuardianGuard] ConferenceSignup has no learnerId; blocking submit.'
-			);
-			return false;
-		}
-
-		$user = $this->userSession->getUser();
-
-		if ($user === null) {
-			$this->logger->info(
-				'[ConferenceSignupGuardianGuard] No authenticated user in session; blocking submit.'
-			);
-			return false;
-		}
-
-		$callerUid = $user->getUID();
-
-		$profile = $this->loadLearnerProfile(learnerId: (string)$learnerId, tenantId: (string)($object['tenant_id'] ?? ''));
-		if ($profile === null) {
-			$this->logger->warning(
-				'[ConferenceSignupGuardianGuard] No LearnerProfile found for learnerId {learnerId}; blocking submit (fail closed).',
-				['learnerId' => $learnerId]
-			);
-			return false;
-		}
-
-		if ($this->callerMayActForLearner(profile: $profile, callerUid: $callerUid) === true) {
-			return true;
-		}
-
-		$this->logger->info(
-			'[ConferenceSignupGuardianGuard] Caller {caller} is not a linked guardian of learner '
-			. '{learnerId} and is not the learner; blocking submit.',
-			['caller' => $callerUid, 'learnerId' => $learnerId]
-		);
-
-		return false;
+		return $verdict->isAllowed();
 	}//end allows()
-
-	/**
-	 * Load the LearnerProfile the signup is about, scoped to its tenant.
-	 *
-	 * @param string $learnerId The learner's NC user id.
-	 * @param string $tenantId Tenant UUID, or '' when unknown.
-	 *
-	 * @return array<string,mixed>|null The profile, or null when it does not resolve.
-	 *
-	 * @spec openspec/specs/parent-conferences/spec.md#requirement-a-guardian-or-self-signup-submission-is-gated-by-a-per-object-authorization-guard
-	 */
-	private function loadLearnerProfile(string $learnerId, string $tenantId): ?array {
-		$filters = ['ncUserId' => $learnerId];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$profiles = $this->objectService->findAll(
-			[
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::LEARNER_PROFILE_SCHEMA,
-					]
-				),
-				'limit' => 1,
-			]
-		);
-
-		if (empty($profiles) === true) {
-			return null;
-		}
-
-		$profile = $profiles[0];
-		if (is_array($profile) === false) {
-			$profile = $profile->jsonSerialize();
-		}
-
-		return (array)$profile;
-	}//end loadLearnerProfile()
-
-	/**
-	 * Whether the caller may sign this learner up: either they ARE the learner
-	 * (18+ self-signup) or they are one of the profile's linked guardians.
-	 *
-	 * Fails closed — anything that is not one of those two relationships is a no.
-	 *
-	 * @param array<string,mixed> $profile The learner's LearnerProfile.
-	 * @param string $callerUid The authenticated caller's NC user id.
-	 *
-	 * @return bool True when the caller is authorised to act for this learner.
-	 *
-	 * @spec openspec/specs/parent-conferences/spec.md#requirement-a-guardian-or-self-signup-submission-is-gated-by-a-per-object-authorization-guard
-	 */
-	private function callerMayActForLearner(array $profile, string $callerUid): bool {
-		// 18+ self-signup: caller IS the learner.
-		$profileNcUserId = ($profile['ncUserId'] ?? '');
-		if ($profileNcUserId !== '' && $profileNcUserId === $callerUid) {
-			return true;
-		}
-
-		// Linked guardian: caller's uid is in the LearnerProfile's parentIds.
-		$parentIds = ($profile['parentIds'] ?? []);
-
-		return (is_array($parentIds) === true && in_array($callerUid, $parentIds, true) === true);
-	}//end callerMayActForLearner()
 }//end class

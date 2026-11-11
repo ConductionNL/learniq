@@ -74,6 +74,92 @@
 import { CnDashboardPage } from '@conduction/nextcloud-vue'
 import GlobalSearchWidget from './widgets/GlobalSearchWidget.vue'
 import ManageListWidget from './widgets/ManageListWidget.vue'
+import {
+	countTile,
+	customTile,
+	freshLayout,
+} from '../utils/dashboardTiles.js'
+
+/** The people dashboard grid (12 columns): search, the KPI row, then four lists. */
+const PEOPLE_LAYOUT = [
+	{
+		id: 0,
+		widgetId: 'global-search',
+		gridX: 0,
+		gridY: 0,
+		gridWidth: 12,
+		gridHeight: 2,
+		showTitle: false,
+	},
+	{
+		id: 1,
+		widgetId: 'kpi-learners',
+		gridX: 0,
+		gridY: 2,
+		gridWidth: 3,
+		gridHeight: 2,
+		showTitle: false,
+	},
+	{
+		id: 2,
+		widgetId: 'kpi-active-enrolments',
+		gridX: 3,
+		gridY: 2,
+		gridWidth: 3,
+		gridHeight: 2,
+		showTitle: false,
+	},
+	{
+		id: 3,
+		widgetId: 'kpi-cohorts',
+		gridX: 6,
+		gridY: 2,
+		gridWidth: 3,
+		gridHeight: 2,
+		showTitle: false,
+	},
+	{
+		id: 4,
+		widgetId: 'kpi-open-flags',
+		gridX: 9,
+		gridY: 2,
+		gridWidth: 3,
+		gridHeight: 2,
+		showTitle: false,
+	},
+	{
+		id: 5,
+		widgetId: 'manage-learners',
+		gridX: 0,
+		gridY: 4,
+		gridWidth: 6,
+		gridHeight: 4,
+	},
+	{
+		id: 6,
+		widgetId: 'manage-enrolments',
+		gridX: 6,
+		gridY: 4,
+		gridWidth: 6,
+		gridHeight: 4,
+	},
+	{
+		id: 7,
+		widgetId: 'manage-attendance',
+		gridX: 0,
+		gridY: 8,
+		gridWidth: 6,
+		gridHeight: 4,
+	},
+	{
+		id: 8,
+		widgetId: 'manage-credentials',
+		gridX: 6,
+		gridY: 8,
+		gridWidth: 6,
+		gridHeight: 4,
+	},
+]
 
 export default {
 	name: 'PeopleDashboard',
@@ -108,14 +194,8 @@ export default {
 				// src/utils/globalSearch.js (unit-tested); this `type: 'custom'`
 				// widget slot only mounts GlobalSearchWidget, same mechanism the
 				// four `manage-*` widgets below already use.
-				{
-					id: 'global-search',
-					title: this.t('learniq', 'Search'),
-					type: 'custom',
-				},
-				// KPI tiles are declared, not written. `type: 'stat'` resolves to
-				// the shared CnStatWidget through the dashboard widget registry,
-				// which counts server-side via the OpenRegister aggregation API.
+				customTile('global-search', this.t('learniq', 'Search')),
+				// KPI tiles are declared, not written (src/utils/dashboardTiles.js).
 				// The wrappers these replace each re-implemented the fetch and
 				// answered `catch { this.count = 0 }`, so a dashboard whose
 				// backend was down showed four confident zeroes.
@@ -123,87 +203,14 @@ export default {
 				// `schema` is the OpenRegister SLUG. It resolves by lower(slug),
 				// so a multi-word title would 404 while a single-word one works
 				// by coincidence.
-				{
-					id: 'kpi-learners',
-					title: this.t('learniq', 'Learners'),
-					type: 'stat',
-					content: {
-						label: this.t('learniq', 'Learners'),
-						variant: 'success',
-						clickRoute: { path: '/learner-profiles' },
-						source: {
-							register: 'learniq',
-							schema: 'learner-profile',
-							metric: 'count',
-						},
-					},
-				},
-				{
-					id: 'kpi-active-enrolments',
-					title: this.t('learniq', 'Active enrolments'),
-					type: 'stat',
-					content: {
-						label: this.t('learniq', 'Active enrolments'),
-						variant: 'primary',
-						clickRoute: { path: '/enrolments' },
-						source: {
-							register: 'learniq',
-							schema: 'enrolment',
-							metric: 'count',
-							filter: { lifecycle: 'active' },
-						},
-					},
-				},
-				{
-					id: 'kpi-cohorts',
-					title: this.t('learniq', 'Cohorts'),
-					type: 'stat',
-					content: {
-						label: this.t('learniq', 'Cohorts'),
-						clickRoute: { path: '/cohorts' },
-						source: {
-							register: 'learniq',
-							schema: 'cohort',
-							metric: 'count',
-						},
-					},
-				},
-				{
-					id: 'kpi-open-flags',
-					title: this.t('learniq', 'Open attendance flags'),
-					type: 'stat',
-					content: {
-						label: this.t('learniq', 'Open attendance flags'),
-						variant: 'warning',
-						clickRoute: { path: '/attendance/flags' },
-						source: {
-							register: 'learniq',
-							schema: 'attendance-flag',
-							metric: 'count',
-							filter: { lifecycle: 'open' },
-						},
-					},
-				},
-				{
-					id: 'manage-learners',
-					title: this.t('learniq', 'Learners'),
-					type: 'custom',
-				},
-				{
-					id: 'manage-enrolments',
-					title: this.t('learniq', 'Enrolments'),
-					type: 'custom',
-				},
-				{
-					id: 'manage-attendance',
-					title: this.t('learniq', 'Attendance'),
-					type: 'custom',
-				},
-				{
-					id: 'manage-credentials',
-					title: this.t('learniq', 'Credentials'),
-					type: 'custom',
-				},
+				countTile('kpi-learners', this.t('learniq', 'Learners')),
+				countTile('kpi-active-enrolments', this.t('learniq', 'Active enrolments')),
+				countTile('kpi-cohorts', this.t('learniq', 'Cohorts')),
+				countTile('kpi-open-flags', this.t('learniq', 'Open attendance flags')),
+				customTile('manage-learners', this.t('learniq', 'Learners')),
+				customTile('manage-enrolments', this.t('learniq', 'Enrolments')),
+				customTile('manage-attendance', this.t('learniq', 'Attendance')),
+				customTile('manage-credentials', this.t('learniq', 'Credentials')),
 			]
 		},
 
@@ -214,85 +221,7 @@ export default {
 		 * @spec openspec/specs/dashboard/spec.md#requirement-people-domain-dashboard
 		 */
 		layout() {
-			return [
-				{
-					id: 0,
-					widgetId: 'global-search',
-					gridX: 0,
-					gridY: 0,
-					gridWidth: 12,
-					gridHeight: 2,
-					showTitle: false,
-				},
-				{
-					id: 1,
-					widgetId: 'kpi-learners',
-					gridX: 0,
-					gridY: 2,
-					gridWidth: 3,
-					gridHeight: 2,
-					showTitle: false,
-				},
-				{
-					id: 2,
-					widgetId: 'kpi-active-enrolments',
-					gridX: 3,
-					gridY: 2,
-					gridWidth: 3,
-					gridHeight: 2,
-					showTitle: false,
-				},
-				{
-					id: 3,
-					widgetId: 'kpi-cohorts',
-					gridX: 6,
-					gridY: 2,
-					gridWidth: 3,
-					gridHeight: 2,
-					showTitle: false,
-				},
-				{
-					id: 4,
-					widgetId: 'kpi-open-flags',
-					gridX: 9,
-					gridY: 2,
-					gridWidth: 3,
-					gridHeight: 2,
-					showTitle: false,
-				},
-				{
-					id: 5,
-					widgetId: 'manage-learners',
-					gridX: 0,
-					gridY: 4,
-					gridWidth: 6,
-					gridHeight: 4,
-				},
-				{
-					id: 6,
-					widgetId: 'manage-enrolments',
-					gridX: 6,
-					gridY: 4,
-					gridWidth: 6,
-					gridHeight: 4,
-				},
-				{
-					id: 7,
-					widgetId: 'manage-attendance',
-					gridX: 0,
-					gridY: 8,
-					gridWidth: 6,
-					gridHeight: 4,
-				},
-				{
-					id: 8,
-					widgetId: 'manage-credentials',
-					gridX: 6,
-					gridY: 8,
-					gridWidth: 6,
-					gridHeight: 4,
-				},
-			]
+			return freshLayout(PEOPLE_LAYOUT)
 		},
 	},
 

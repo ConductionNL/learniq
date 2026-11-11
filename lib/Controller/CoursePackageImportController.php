@@ -43,6 +43,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
+use OCP\IUser;
 use OCP\IUserSession;
 
 /**
@@ -104,58 +105,44 @@ class CoursePackageImportController extends Controller {
 	 */
 	#[NoAdminRequired]
 	public function import(): JSONResponse {
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			return new JSONResponse(
-				data: ['error' => 'Not authenticated'],
-				statusCode: Http::STATUS_UNAUTHORIZED
-			);
+		$user = (new ImportCaller(userSession: $this->userSession, actionAuth: $this->actionAuth))->admit(action: 'course-package.import');
+		if ($user instanceof JSONResponse) {
+			return $user;
 		}
 
-		$this->actionAuth->requireAction(user: $user, action: 'course-package.import');
-
-		$uploadedFile = $this->request->getUploadedFile('file');
-		if (isset($uploadedFile['tmp_name']) === false) {
-			return new JSONResponse(
-				data: ['error' => 'No file uploaded. POST a multipart/form-data request with a `file` field.'],
-				statusCode: Http::STATUS_BAD_REQUEST
-			);
+		$upload = UploadedPackage::fromRequest(request: $this->request);
+		if ($upload instanceof JSONResponse) {
+			return $upload;
 		}
 
-		if ($uploadedFile['error'] !== UPLOAD_ERR_OK) {
-			return new JSONResponse(
-				data: ['error' => 'File upload error code ' . $uploadedFile['error']],
-				statusCode: Http::STATUS_BAD_REQUEST
-			);
-		}
+		return $this->importPackage(upload: $upload, user: $user);
+	}//end import()
 
-		$tmpPath = $uploadedFile['tmp_name'];
-		if (file_exists($tmpPath) === false) {
-			return new JSONResponse(
-				data: ['error' => 'Uploaded file not found on server.'],
-				statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
-			);
-		}
-
-		$sourceFilename = (string)($uploadedFile['name'] ?? 'package');
+	/**
+	 * Import the checked upload for the caller's tenant: the report, or 500.
+	 *
+	 * @param array<string,mixed> $upload The checked `file` field.
+	 * @param IUser               $user   The caller.
+	 *
+	 * @return JSONResponse
+	 */
+	private function importPackage(array $upload, IUser $user): JSONResponse {
+		$sourceFilename = (string)($upload['name'] ?? 'package');
 
 		// Resolve the caller's tenant — same pattern as QtiImportController::import().
 		$tenantId = $this->tenants->resolve(user: $user);
 
 		try {
 			$report = $this->importService->import(
-				packagePath: $tmpPath,
+				packagePath: $upload['tmp_name'],
 				sourceFilename: $sourceFilename,
 				importedBy: $user->getUID(),
 				tenantId: $tenantId,
 			);
 		} catch (\Throwable $e) {
-			return new JSONResponse(
-				data: ['error' => 'Import failed: ' . $e->getMessage()],
-				statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
-			);
+			return UploadedPackage::importFailed(exception: $e);
 		}
 
 		return new JSONResponse(data: $report, statusCode: Http::STATUS_OK);
-	}//end import()
+	}//end importPackage()
 }//end class

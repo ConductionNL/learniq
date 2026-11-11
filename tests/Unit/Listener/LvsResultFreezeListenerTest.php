@@ -29,6 +29,7 @@ use OCA\Learniq\AppInfo\Registrar\IntegrityListenerRegistrar;
 use OCA\Learniq\Listener\LvsResultFreezeListener;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\OpenRegister\Event\ObjectLeavingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\IGroupManager;
@@ -250,7 +251,36 @@ class LvsResultFreezeListenerTest extends TestCase {
 		(new IntegrityListenerRegistrar())->register(context: $context);
 
 		self::assertContains(ObjectUpdatingEvent::class . ' => ' . LvsResultFreezeListener::class, $pairs);
+		self::assertContains(ObjectLeavingEvent::class . ' => ' . LvsResultFreezeListener::class, $pairs);
 	}//end testTheFreezeIsRegisteredOnUpdate()
+
+	/**
+	 * A verified result cannot be moved out of its register or schema.
+	 *
+	 * @return void
+	 */
+	public function testAVerifiedResultCannotBeMoved(): void {
+		$event = new ObjectLeavingEvent(OrEntityFactory::make($this->lvs('verified'), 'lvs-result'));
+		$this->makeListener()->handle($event);
+
+		self::assertTrue($event->isPropagationStopped());
+		self::assertSame('lvs-result-move', $event->getErrors()['reason']);
+	}//end testAVerifiedResultCannotBeMoved()
+
+	/**
+	 * An imported result may still be moved, and an admin may move a verified one.
+	 *
+	 * @return void
+	 */
+	public function testAnImportedResultOrAnAdminMoveGoesThrough(): void {
+		$imported = new ObjectLeavingEvent(OrEntityFactory::make($this->lvs('imported'), 'lvs-result'));
+		$this->makeListener()->handle($imported);
+		self::assertFalse($imported->isPropagationStopped());
+
+		$byAdmin = new ObjectLeavingEvent(OrEntityFactory::make($this->lvs('verified'), 'lvs-result'));
+		$this->makeListener(isAdmin: true)->handle($byAdmin);
+		self::assertFalse($byAdmin->isPropagationStopped());
+	}//end testAnImportedResultOrAnAdminMoveGoesThrough()
 
 	/**
 	 * The register no longer claims LvsResult is append-only.

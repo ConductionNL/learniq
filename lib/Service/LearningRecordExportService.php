@@ -168,96 +168,192 @@ class LearningRecordExportService implements LifecycleGuardInterface {
 	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-generation-fails-closed-and-blocks-the-transition-on-error
 	 */
 	public function generate(array $export): array {
-		$learnerRef = (string)($export['learnerRef'] ?? '');
-		$learnerId = (string)($export['learnerId'] ?? '');
-		$requestedBy = (string)($export['requestedBy'] ?? '');
-		$tenantId = (string)($export['tenant_id'] ?? '');
-		$periodFrom = $export['periodFrom'] ?? null;
-		$periodTo = $export['periodTo'] ?? null;
+		$tenantId = $this->requireSubject(export: $export);
+		$walk = $this->walkLearnerRecord(export: $export);
+		$bundle = $this->composeBundle(export: $export, walk: $walk);
+		$jws = $this->signBundle(bundle: $bundle, tenantId: $tenantId);
+		$bundleRef = $this->storeBundle(signedBundle: $this->withProof(bundle: $bundle, jws: $jws), export: $export);
 
-		if ($learnerRef === '' || $tenantId === '') {
+		$export['coverageReport'] = $walk->coverageReport;
+		$export['bundleRef'] = $bundleRef;
+		$export['bundleSignature'] = $jws;
+		$export['issuerDid'] = $bundle['issuerDid'];
+		$export['generatedAt'] = $bundle['generatedAt'];
+		$export['errorMessage'] = null;
+
+		return $export;
+	}//end generate()
+
+	/**
+	 * The export's tenant, once the export names both a learner and a tenant.
+	 *
+	 * @param array<string,mixed> $export The LearningRecordExport data array.
+	 *
+	 * @return string The tenant id.
+	 *
+	 * @throws RuntimeException When the learnerRef or tenant is missing.
+	 */
+	private function requireSubject(array $export): string {
+		$tenantId = (string)($export['tenant_id'] ?? '');
+		if ((string)($export['learnerRef'] ?? '') === '' || $tenantId === '') {
 			throw new RuntimeException(self::MISSING_SUBJECT);
 		}
 
-		$composition = $this->aggregationService->compose(learnerRef: $learnerRef);
+		return $tenantId;
+	}//end requireSubject()
 
-		$walked = $this->walkComposition(composition: $composition, periodFrom: $periodFrom, periodTo: $periodTo);
-		$coverageReport = $walked['coverageReport'];
-		$scholiqNative = $walked['scholiqNative'];
+	/**
+	 * Compose the learner's record, walk it against the requested period, and
+	 * name the staff professional-judgment records that fall within the
+	 * requested scope but are deliberately never included — visible, not
+	 * silent, per design.md.
+	 *
+	 * @param array<string,mixed> $export The LearningRecordExport data array.
+	 *
+	 * @return LearningRecordWalk The finished walk.
+	 */
+	private function walkLearnerRecord(array $export): LearningRecordWalk {
+		$composition = $this->aggregationService->compose(learnerRef: (string)($export['learnerRef'] ?? ''));
+		$period = new LearningRecordPeriod(from: ($export['periodFrom'] ?? null), to: ($export['periodTo'] ?? null));
+		$walk = $this->walkComposition(composition: $composition, period: $period);
 
-		// Name the staff professional-judgment records that fall within the
-		// requested scope but are deliberately never included — visible, not
-		// silent, per design.md.
-		foreach ($this->findExcludedRowsInScope(learnerId: $learnerId, periodFrom: $periodFrom, periodTo: $periodTo) as $excludedEntry) {
-			$coverageReport[] = $excludedEntry;
+		foreach ($this->findExcludedRowsInScope(learnerId: (string)($export['learnerId'] ?? ''), period: $period) as $excludedEntry) {
+			$walk->coverageReport[] = $excludedEntry;
 		}
 
-		$elm = $this->buildElmSection(credentials: $scholiqNative['credentials'] ?? []);
+		return $walk;
+	}//end walkLearnerRecord()
 
+	/**
+	 * Build the unsigned bundle: the issuer, the generation instant, the
+	 * requested scope, the ELM section and the lossless scholiqNative section.
+	 *
+	 * @param array<string,mixed> $export The LearningRecordExport data array.
+	 * @param LearningRecordWalk  $walk   The finished walk.
+	 *
+	 * @return array<string,mixed> The bundle as it is signed.
+	 *
+	 * @throws RuntimeException When the tenant has no signing key.
+	 */
+	private function composeBundle(array $export, LearningRecordWalk $walk): array {
+		$elm = $this->buildElmSection(credentials: $walk->scholiqNative['credentials'] ?? []);
+
+		return [
+			'bundleType' => 'scholiq-learning-record',
+			'issuerDid' => $this->requireIssuerDid(tenantId: (string)($export['tenant_id'] ?? '')),
+			'generatedAt' => (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM),
+			'learnerRef' => (string)($export['learnerRef'] ?? ''),
+			'periodFrom' => $export['periodFrom'] ?? null,
+			'periodTo' => $export['periodTo'] ?? null,
+			'elm' => $elm,
+			'scholiqNative' => $walk->scholiqNative,
+		];
+	}//end composeBundle()
+
+	/**
+	 * The tenant's issuer DID.
+	 *
+	 * @param string $tenantId Tenant id.
+	 *
+	 * @return string
+	 *
+	 * @throws RuntimeException When the tenant has no signing key.
+	 */
+	private function requireIssuerDid(string $tenantId): string {
 		$issuerDid = $this->signingService->resolveIssuerDid(tenantId: $tenantId);
 		if ($issuerDid === null) {
 			throw new RuntimeException(self::MISSING_KEY);
 		}
 
-		$generatedAt = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
+		return $issuerDid;
+	}//end requireIssuerDid()
 
-		$bundle = [
-			'bundleType' => 'scholiq-learning-record',
-			'issuerDid' => $issuerDid,
-			'generatedAt' => $generatedAt,
-			'learnerRef' => $learnerRef,
-			'periodFrom' => $periodFrom,
-			'periodTo' => $periodTo,
-			'elm' => $elm,
-			'scholiqNative' => $scholiqNative,
-		];
-
+	/**
+	 * Sign the bundle with the tenant's key.
+	 *
+	 * @param array<string,mixed> $bundle   The unsigned bundle.
+	 * @param string              $tenantId Tenant id.
+	 *
+	 * @return string The JWS.
+	 *
+	 * @throws RuntimeException When signing fails.
+	 */
+	private function signBundle(array $bundle, string $tenantId): string {
 		$jws = $this->signingService->sign(bundle: $bundle, tenantId: $tenantId);
 		if ($jws === null) {
 			throw new RuntimeException('Signing the export bundle failed.');
 		}
 
-		// The stored/downloadable artifact is fully self-contained: the
-		// signed payload PLUS its own proof, so a third party can verify it
-		// without calling Learniq. Mirrors Credential.openbadges3Payload
-		// embedding its own `proof` block after signing (CredentialSigningService
-		// ::check()) — the signing input itself never includes `proof`.
-		$signedBundle = $bundle;
-		$signedBundle['proof'] = [
+		return $jws;
+	}//end signBundle()
+
+	/**
+	 * The stored/downloadable artifact is fully self-contained: the signed
+	 * payload PLUS its own proof, so a third party can verify it without
+	 * calling Learniq. Mirrors Credential.openbadges3Payload embedding its own
+	 * `proof` block after signing (CredentialSigningService::check()) — the
+	 * signing input itself never includes `proof`.
+	 *
+	 * @param array<string,mixed> $bundle The signed bundle.
+	 * @param string              $jws    Its JWS.
+	 *
+	 * @return array<string,mixed> The bundle with its proof.
+	 */
+	private function withProof(array $bundle, string $jws): array {
+		$bundle['proof'] = [
 			'type' => 'DataIntegrityProof',
 			'cryptosuite' => 'rsa-signature-2025',
-			'created' => $generatedAt,
-			'verificationMethod' => $issuerDid,
+			'created' => $bundle['generatedAt'],
+			'verificationMethod' => $bundle['issuerDid'],
 			'proofPurpose' => 'assertionMethod',
 			'jws' => $jws,
 		];
 
-		$exportId = (string)($export['id'] ?? ($export['uuid'] ?? bin2hex(random_bytes(8))));
+		return $bundle;
+	}//end withProof()
 
-		$ownerUid = $requestedBy;
-		if ($learnerId !== '') {
-			$ownerUid = $learnerId;
-		}
+	/**
+	 * Store the signed artifact in the learner's (or else the requester's) files.
+	 *
+	 * @param array<string,mixed> $signedBundle The bundle with its proof.
+	 * @param array<string,mixed> $export       The LearningRecordExport data array.
+	 *
+	 * @return string The bundleRef.
+	 *
+	 * @throws RuntimeException When the bundle can not be stored.
+	 */
+	private function storeBundle(array $signedBundle, array $export): string {
+		$exportId = (string)($export['id'] ?? ($export['uuid'] ?? bin2hex(random_bytes(8))));
 
 		$bundleRef = $this->bundleWriter->write(
 			bundle: $signedBundle,
-			ownerUid: $ownerUid,
-			tenantId: $tenantId,
+			ownerUid: $this->bundleOwner(export: $export),
+			tenantId: (string)($export['tenant_id'] ?? ''),
 			exportId: $exportId
 		);
 		if ($bundleRef === null) {
 			throw new RuntimeException('Could not store the signed bundle.');
 		}
 
-		$export['coverageReport'] = $coverageReport;
-		$export['bundleRef'] = $bundleRef;
-		$export['bundleSignature'] = $jws;
-		$export['issuerDid'] = $issuerDid;
-		$export['generatedAt'] = $generatedAt;
-		$export['errorMessage'] = null;
+		return $bundleRef;
+	}//end storeBundle()
 
-		return $export;
-	}//end generate()
+	/**
+	 * The user whose files hold the bundle: the learner, or else the requester.
+	 *
+	 * @param array<string,mixed> $export The LearningRecordExport data array.
+	 *
+	 * @return string Nextcloud user id, '' when neither is known.
+	 */
+	private function bundleOwner(array $export): string {
+		$ownerUid = (string)($export['requestedBy'] ?? '');
+		$learnerId = (string)($export['learnerId'] ?? '');
+		if ($learnerId !== '') {
+			$ownerUid = $learnerId;
+		}
+
+		return $ownerUid;
+	}//end bundleOwner()
 
 	/**
 	 * Walk the composed collections, deciding per row whether it is exported,
@@ -267,56 +363,71 @@ class LearningRecordExportService implements LifecycleGuardInterface {
 	 * still produces an `omitted` coverage entry naming it.
 	 *
 	 * @param array<string,array<int,array<string,mixed>>> $composition `LearningRecordAggregationService::compose()` result.
-	 * @param mixed $periodFrom Requested period start (inclusive), or null.
-	 * @param mixed $periodTo Requested period end (inclusive), or null.
+	 * @param LearningRecordPeriod                         $period      The requested period.
 	 *
-	 * @return array{coverageReport: array<int,array<string,mixed>>, scholiqNative: array<string,array<int,array<string,mixed>>>}
+	 * @return LearningRecordWalk
 	 *
 	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
 	 */
-	private function walkComposition(array $composition, mixed $periodFrom, mixed $periodTo): array {
-		$coverageReport = [];
-		$scholiqNative = [];
+	private function walkComposition(array $composition, LearningRecordPeriod $period): LearningRecordWalk {
+		$walk = new LearningRecordWalk(composition: $composition, period: $period);
 
-		foreach ($composition as $collectionKey => $rows) {
+		foreach (array_keys($composition) as $collectionKey) {
 			if ($collectionKey === 'lessonCompletions') {
-				// Already a per-course summary — always `summarized`, never
-				// period-filtered (the summary spans the whole enrolment).
-				foreach ($rows as $row) {
-					$coverageReport[] = $this->lessonCompletionCoverageEntry(row: $row);
-				}
-
-				$scholiqNative[$collectionKey] = $rows;
+				$this->walkLessonCompletions(walk: $walk, collectionKey: $collectionKey);
 				continue;
 			}
 
-			$schema = $this->schemaForCollectionKey(key: $collectionKey);
-			$dateField = self::PERIOD_FIELD_BY_SCHEMA[$schema] ?? null;
-			$includedRows = [];
+			$this->walkDatedCollection(walk: $walk, collectionKey: $collectionKey);
+		}
 
-			foreach ($rows as $row) {
-				$inPeriod = $this->isWithinPeriod(
-					row: $row,
-					dateField: $dateField,
-					periodFrom: $periodFrom,
-					periodTo: $periodTo
-				);
+		return $walk;
+	}//end walkComposition()
 
-				if ($inPeriod === true) {
-					$includedRows[] = $row;
-				}
+	/**
+	 * Lesson completions are already a per-course summary — always
+	 * `summarized`, never period-filtered (the summary spans the whole
+	 * enrolment).
+	 *
+	 * @param LearningRecordWalk $walk          The walk in progress.
+	 * @param string             $collectionKey The lesson-completions collection key.
+	 *
+	 * @return void
+	 */
+	private function walkLessonCompletions(LearningRecordWalk $walk, string $collectionKey): void {
+		$rows = $walk->composition[$collectionKey];
+		foreach ($rows as $row) {
+			$walk->coverageReport[] = $this->lessonCompletionCoverageEntry(row: $row);
+		}
 
-				$coverageReport[] = $this->rowCoverageEntry(schema: $schema, row: $row, included: $inPeriod);
+		$walk->scholiqNative[$collectionKey] = $rows;
+	}//end walkLessonCompletions()
+
+	/**
+	 * Keep the rows of one collection that fall within the period, recording
+	 * every row's outcome.
+	 *
+	 * @param LearningRecordWalk $walk          The walk in progress.
+	 * @param string             $collectionKey The collection key.
+	 *
+	 * @return void
+	 */
+	private function walkDatedCollection(LearningRecordWalk $walk, string $collectionKey): void {
+		$schema = $this->schemaForCollectionKey(key: $collectionKey);
+		$dateField = self::PERIOD_FIELD_BY_SCHEMA[$schema] ?? null;
+		$includedRows = [];
+
+		foreach ($walk->composition[$collectionKey] as $row) {
+			$inPeriod = $walk->period->covers(row: $row, dateField: $dateField);
+			if ($inPeriod === true) {
+				$includedRows[] = $row;
 			}
 
-			$scholiqNative[$collectionKey] = $includedRows;
-		}//end foreach
+			$walk->coverageReport[] = $this->rowCoverageEntry(schema: $schema, row: $row, included: $inPeriod);
+		}
 
-		return [
-			'coverageReport' => $coverageReport,
-			'scholiqNative' => $scholiqNative,
-		];
-	}//end walkComposition()
+		$walk->scholiqNative[$collectionKey] = $includedRows;
+	}//end walkDatedCollection()
 
 	/**
 	 * Build the coverage entry for one lesson-completion summary row.
@@ -389,69 +500,6 @@ class LearningRecordExportService implements LifecycleGuardInterface {
 	}//end schemaForCollectionKey()
 
 	/**
-	 * Whether a row falls within the requested export period.
-	 *
-	 * A row with no comparable date field for its schema (`$dateField` is
-	 * null) is always in scope — period narrowing is only applied to
-	 * schemas carrying one unambiguous per-item timestamp (see
-	 * `PERIOD_FIELD_BY_SCHEMA`). A row whose own date field is null (e.g. an
-	 * unassessed WerkprocesAssessment) is likewise kept in scope rather than
-	 * guessed at.
-	 *
-	 * @param array<string,mixed> $row The source row.
-	 * @param string|null $dateField Field name holding this schema's comparable date, or null.
-	 * @param string|null $periodFrom Requested period start (inclusive), or null.
-	 * @param string|null $periodTo Requested period end (inclusive), or null.
-	 *
-	 * @return bool
-	 */
-	private function isWithinPeriod(array $row, ?string $dateField, ?string $periodFrom, ?string $periodTo): bool {
-		if ($dateField === null || ($periodFrom === null && $periodTo === null)) {
-			return true;
-		}
-
-		// An absent or unparseable row date keeps the row in scope rather than
-		// guessing at it.
-		$date = $this->parseDate(value: ($row[$dateField] ?? null));
-		if ($date === null) {
-			return true;
-		}
-
-		// An unparseable bound is likewise never a reason to exclude a row.
-		$from = $this->parseDate(value: $periodFrom);
-		if ($from !== null && $date < $from) {
-			return false;
-		}
-
-		$to = $this->parseDate(value: $periodTo);
-
-		return ($to === null || $date <= $to);
-	}//end isWithinPeriod()
-
-	/**
-	 * Parse a value into a date, or null when it is absent or unusable.
-	 *
-	 * Both the row dates and the period bounds route through this: everywhere
-	 * `isWithinPeriod()` uses it, "no usable date" means "do not narrow on it",
-	 * so a null return is always the permissive answer.
-	 *
-	 * @param mixed $value Candidate date value (expected to be an ISO-8601 string).
-	 *
-	 * @return DateTimeImmutable|null Parsed date, or null when not a parseable non-empty string.
-	 */
-	private function parseDate(mixed $value): ?DateTimeImmutable {
-		if (is_string($value) === false || $value === '') {
-			return null;
-		}
-
-		try {
-			return new DateTimeImmutable($value);
-		} catch (\Exception) {
-			return null;
-		}
-	}//end parseDate()
-
-	/**
 	 * Resolve a human-readable label for a coverage-report entry, per schema.
 	 *
 	 * @param string $schema Schema slug.
@@ -516,51 +564,86 @@ class LearningRecordExportService implements LifecycleGuardInterface {
 	 * requested, unconditionally — the honest-coverage default), producing
 	 * one `omitted` coverageReport entry each. Never included in the bundle.
 	 *
-	 * @param string $learnerId Nextcloud user id of the learner.
-	 * @param string|null $periodFrom Requested period start (inclusive), or null.
-	 * @param string|null $periodTo Requested period end (inclusive), or null.
+	 * @param string               $learnerId Nextcloud user id of the learner.
+	 * @param LearningRecordPeriod $period    The requested period.
 	 *
 	 * @return array<int,array<string,mixed>> coverageReport-shaped entries.
 	 */
-	private function findExcludedRowsInScope(string $learnerId, ?string $periodFrom, ?string $periodTo): array {
+	private function findExcludedRowsInScope(string $learnerId, LearningRecordPeriod $period): array {
 		if ($learnerId === '') {
 			return [];
 		}
 
 		$entries = [];
 		foreach (self::EXCLUDED_SCHEMA_DATE_FIELD as $schema => $dateField) {
-			$rows = $this->objectService->findAll(
-				[
-					'filters' => [
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => $schema,
-						'learnerId' => $learnerId,
-					],
-				]
-			);
-
-			foreach ($rows as $row) {
-				$data = [];
-				if (is_array($row) === true) {
-					$data = $row;
-				} elseif (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-					$data = (array)$row->jsonSerialize();
-				}
-
-				if ($this->isWithinPeriod(row: $data, dateField: $dateField, periodFrom: $periodFrom, periodTo: $periodTo) === false) {
+			foreach ($this->findLearnerRows(schema: $schema, learnerId: $learnerId) as $row) {
+				$data = $this->rowData(row: $row);
+				if ($period->covers(row: $data, dateField: $dateField) === false) {
 					continue;
 				}
 
-				$entries[] = [
-					'sourceSchema' => $schema,
-					'sourceId' => (string)($data['id'] ?? ($data['uuid'] ?? '')),
-					'sourceTitle' => $this->resolveSourceTitle(schema: $schema, row: $data),
-					'outcome' => 'omitted',
-					'reason' => 'staff professional-judgment record, not learner-portable evidence',
-				];
+				$entries[] = $this->excludedCoverageEntry(schema: $schema, row: $data);
 			}
-		}//end foreach
+		}
 
 		return $entries;
 	}//end findExcludedRowsInScope()
+
+	/**
+	 * Every row of one schema recorded for the learner.
+	 *
+	 * @param string $schema    Schema slug.
+	 * @param string $learnerId Nextcloud user id of the learner.
+	 *
+	 * @return array<int,mixed> Rows as the object service returns them.
+	 */
+	private function findLearnerRows(string $schema, string $learnerId): array {
+		return $this->objectService->findAll(
+			[
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => $schema,
+					'learnerId' => $learnerId,
+				],
+			]
+		);
+	}//end findLearnerRows()
+
+	/**
+	 * A found row as a data array; anything that is neither an array nor
+	 * serialisable reads as an empty row.
+	 *
+	 * @param mixed $row Row as the object service returns it.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function rowData(mixed $row): array {
+		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
+			return (array)$row->jsonSerialize();
+		}
+
+		if (is_array($row) === false) {
+			return [];
+		}
+
+		return $row;
+	}//end rowData()
+
+	/**
+	 * Build the `omitted` coverage entry for one staff professional-judgment row.
+	 *
+	 * @param string              $schema Schema slug.
+	 * @param array<string,mixed> $row    The row data.
+	 *
+	 * @return array<string,mixed> Coverage-report entry.
+	 */
+	private function excludedCoverageEntry(string $schema, array $row): array {
+		return [
+			'sourceSchema' => $schema,
+			'sourceId' => (string)($row['id'] ?? ($row['uuid'] ?? '')),
+			'sourceTitle' => $this->resolveSourceTitle(schema: $schema, row: $row),
+			'outcome' => 'omitted',
+			'reason' => 'staff professional-judgment record, not learner-portable evidence',
+		];
+	}//end excludedCoverageEntry()
 }//end class

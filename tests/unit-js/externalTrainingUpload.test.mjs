@@ -138,3 +138,24 @@ test('the upload dialog records in one post, without a dry run', () => {
 	assert.ok(!dialog.includes('dryRun'))
 	assert.ok(!dialog.includes('training-upload-confirm'))
 })
+
+test('parseCsv keeps delimiters and line breaks inside quotes, and ties go to the comma', () => {
+	assert.deepEqual(parseCsv('a;b,c\n"1;2",3'), [['a;b', 'c'], ['1;2', '3']])
+	assert.deepEqual(parseCsv('a;b\r"x\r\ny";"q""";\r\n  ;  \n'), [['a', 'b'], ['x\r\ny', 'q"', '']])
+	assert.deepEqual(parseCsv(null), [])
+	assert.deepEqual(parseCsv(''), [])
+	assert.deepEqual(parseCsv('"open'), [['open']])
+	assert.deepEqual(parseCsv('a\rb'), [['a'], ['b']])
+	assert.deepEqual(parseCsv('x"y",z'), [['xy', 'z']])
+})
+
+test('the failed rows file reads an absent report as nothing failed, and a missing row as empty cells', () => {
+	const header = failedRowsCsv([], null)
+	assert.equal(header.split('\r\n').length, 2)
+	assert.ok(header.endsWith('"reason"\r\n'))
+	const csv = failedRowsCsv([], [{ row: 4, status: 'invalid', reason: '=bad' }, { row: 1, status: 'created' }])
+	const lines = csv.split('\r\n')
+	assert.equal(lines.length, 3)
+	assert.ok(lines[1].endsWith(`"'=bad"`))
+	assert.ok(lines[1].startsWith('"",'))
+})

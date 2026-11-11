@@ -34,6 +34,7 @@ use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectDeletedEvent;
 use OCA\OpenRegister\Event\ObjectDeletingEvent;
+use OCA\OpenRegister\Event\ObjectLeavingEvent;
 use OCA\OpenRegister\Event\ObjectEventSubscription;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
@@ -231,6 +232,7 @@ class RegisteredListenersHandleRealEventsTest extends TestCase {
 			ObjectCreatingEvent::class => new ObjectCreatingEvent($entity),
 			ObjectUpdatingEvent::class => new ObjectUpdatingEvent($entity, $before),
 			ObjectDeletingEvent::class => new ObjectDeletingEvent($entity),
+			ObjectLeavingEvent::class => new ObjectLeavingEvent($entity),
 			ObjectDeletedEvent::class => new ObjectDeletedEvent($entity),
 			ObjectCreatedEvent::class => new ObjectCreatedEvent($entity),
 			ObjectUpdatedEvent::class => new ObjectUpdatedEvent($entity, $before),

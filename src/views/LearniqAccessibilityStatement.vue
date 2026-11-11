@@ -233,6 +233,7 @@ import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon } from '@nextcloud/vue'
 import CriterionResultDialog from '../dialogs/CriterionResultDialog.vue'
 import { recordFor, summarise } from '../utils/conformance.js'
+import { collectionOrEmpty } from '../utils/storeCollection.js'
 
 const REGISTER = 'learniq'
 // Address a schema by the SLUG it declares in lib/Settings/learniq_register.json,
@@ -371,49 +372,71 @@ export default {
 		async loadStatement() {
 			this.loading = true
 			const store = useObjectStore()
+			this.registerStatementTypes(store)
 
-			if (typeof store.registerObjectType === 'function') {
-				store.registerObjectType(STATEMENT_TYPE, STATEMENT_SCHEMA, REGISTER)
-				store.registerObjectType(
-					LIMITATION_TYPE,
-					LIMITATION_SCHEMA,
-					REGISTER,
-				)
-			}
-
-			const results =
-				typeof store.fetchCollection === 'function'
-					? await store
-							.fetchCollection(STATEMENT_TYPE, {
-								lifecycle: 'published',
-								_limit: 1,
-							})
-							.catch(() => [])
-					: []
-			this.statement =
-				Array.isArray(results) && results.length > 0 ? results[0] : null
+			this.statement = await this.publishedStatement(store)
 
 			if (this.statement) {
-				const statementId =
-					this.statement.id
-					?? (this.statement['@self'] && this.statement['@self'].id)
-				const limitationResults =
-					typeof store.fetchCollection === 'function'
-						? await store
-								.fetchCollection(LIMITATION_TYPE, {
-									accessibilityStatementId: statementId,
-								})
-								.catch(() => [])
-						: []
-				this.limitations = Array.isArray(limitationResults)
-					? limitationResults
-					: []
-				await this.loadConformance()
+				await this.loadLimitations(store)
 			} else {
 				this.limitations = []
 			}
 
 			this.loading = false
+		},
+
+		/**
+		 * The current `published` statement, or null when there is none.
+		 *
+		 * @param {object} store The object store.
+		 * @return {Promise<object|null>}
+		 * @spec openspec/specs/accessibility-conformance/spec.md#requirement-the-accessibility-statement-must-carry-the-dutch-government-model-s-mandatory-fields
+		 */
+		async publishedStatement(store) {
+			const results = await collectionOrEmpty(store, {
+				type: STATEMENT_TYPE,
+				query: { lifecycle: 'published', _limit: 1 },
+			})
+			return results.length > 0 ? results[0] : null
+		},
+
+		/**
+		 * Register the statement and limitation object types, when the store
+		 * supports registering.
+		 *
+		 * @param {object} store The object store.
+		 * @return {void}
+		 * @spec openspec/specs/accessibility-conformance/spec.md#requirement-the-accessibility-statement-must-carry-the-dutch-government-model-s-mandatory-fields
+		 */
+		registerStatementTypes(store) {
+			if (typeof store.registerObjectType !== 'function') {
+				return
+			}
+			store.registerObjectType(STATEMENT_TYPE, STATEMENT_SCHEMA, REGISTER)
+			store.registerObjectType(
+				LIMITATION_TYPE,
+				LIMITATION_SCHEMA,
+				REGISTER,
+			)
+		},
+
+		/**
+		 * Read the limitations linked to the shown statement, then its
+		 * conformance table.
+		 *
+		 * @param {object} store The object store.
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/accessibility-conformance/spec.md#requirement-the-accessibility-statement-must-carry-the-dutch-government-model-s-mandatory-fields
+		 */
+		async loadLimitations(store) {
+			const statementId =
+				this.statement.id
+				?? (this.statement['@self'] && this.statement['@self'].id)
+			this.limitations = await collectionOrEmpty(store, {
+				type: LIMITATION_TYPE,
+				query: { accessibilityStatementId: statementId },
+			})
+			await this.loadConformance()
 		},
 
 		/**
@@ -437,6 +460,21 @@ export default {
 		 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-per-criterion-conformance-record
 		 */
 		async loadConformance() {
+			await this.loadCriteria()
+			if (!this.canEdit) {
+				return
+			}
+			await this.loadResultRecords()
+		},
+
+		/**
+		 * Read the conformance table from the public evidence endpoint; a
+		 * failed read leaves it empty.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-per-criterion-conformance-record
+		 */
+		async loadCriteria() {
 			try {
 				const response = await axios.get(this.evidenceUrl('json'))
 				this.criteria = Array.isArray(response.data?.criteria)
@@ -445,23 +483,24 @@ export default {
 			} catch {
 				this.criteria = []
 			}
+		},
 
-			if (!this.canEdit) {
-				return
-			}
+		/**
+		 * Read the stored result records of the shown statement, for the
+		 * dialog to update.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-per-criterion-conformance-record
+		 */
+		async loadResultRecords() {
 			const store = useObjectStore()
 			if (typeof store.registerObjectType === 'function') {
 				store.registerObjectType(RESULT_TYPE, RESULT_SCHEMA, REGISTER)
 			}
-			const records =
-				typeof store.fetchCollection === 'function'
-					? await store
-							.fetchCollection(RESULT_TYPE, {
-								accessibilityStatementId: this.statementId,
-							})
-							.catch(() => [])
-					: []
-			this.records = Array.isArray(records) ? records : []
+			this.records = await collectionOrEmpty(store, {
+				type: RESULT_TYPE,
+				query: { accessibilityStatementId: this.statementId },
+			})
 		},
 
 		/**

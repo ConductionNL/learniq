@@ -94,7 +94,7 @@ class MbzExtractor {
 			// Extraction pass: zip-slip (tar-slip) protection per entry, mirroring extractZip().
 			$this->extractEntries(tar: $tar, targetDirReal: $targetDirReal);
 		} finally {
-			$this->removeDirectory(dir: $workDir);
+			ExtractionTarget::removeDirectory(dir: $workDir);
 		}//end try
 	}//end extract()
 
@@ -197,13 +197,7 @@ class MbzExtractor {
 			$relativePath = $iterator->getSubPathname();
 			$destPath = $targetDirReal . DIRECTORY_SEPARATOR . $relativePath;
 
-			$parentDir = dirname($destPath);
-			if (is_dir($parentDir) === false) {
-				mkdir(directory: $parentDir, permissions: 0700, recursive: true);
-			}
-
-			$resolvedParent = realpath($parentDir);
-			if ($resolvedParent === false || str_starts_with($resolvedParent, $targetDirReal) === false) {
+			if (ExtractionTarget::parentInside(destPath: $destPath, targetDirReal: $targetDirReal) === false) {
 				throw new RuntimeException(
 					"Moodle backup entry '{$relativePath}' would extract outside the target directory (tar-slip attack)."
 				);
@@ -213,40 +207,4 @@ class MbzExtractor {
 		}//end foreach
 
 	}//end extractEntries()
-
-	/**
-	 * Recursively remove a directory and its contents.
-	 *
-	 * @param string $dir Absolute path to the directory.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#security--privacy-posture
-	 */
-	private function removeDirectory(string $dir): void {
-		if (is_dir($dir) === false) {
-			return;
-		}
-
-		$items = scandir($dir);
-		if ($items === false) {
-			return;
-		}
-
-		foreach ($items as $item) {
-			if ($item === '.' || $item === '..') {
-				continue;
-			}
-
-			$path = $dir . '/' . $item;
-			if (is_dir($path) === true) {
-				$this->removeDirectory(dir: $path);
-				continue;
-			}
-
-			unlink($path);
-		}
-
-		rmdir($dir);
-	}//end removeDirectory()
 }//end class

@@ -149,13 +149,8 @@ class MunicipalityFeedbackGuard implements LifecycleGuardInterface {
 	 * @spec openspec/changes/archive/2026-07-13-verzuim-report-composer/tasks.md#task-2.2
 	 */
 	private function actorIsAuthorised(string $actor): bool {
-		$user = $this->userManager->get($actor);
-		if ($user === null) {
-			return false;
-		}
+		$groups = new ActorGroups(userManager: $this->userManager, groupManager: $this->groupManager);
 
-		$actorGroups = $this->groupManager->getUserGroupIds($user);
-
-		return count(array_intersect($actorGroups, self::AUTHORISED_GROUPS)) > 0;
+		return $groups->isInAny(actor: $actor, groups: self::AUTHORISED_GROUPS);
 	}//end actorIsAuthorised()
 }//end class

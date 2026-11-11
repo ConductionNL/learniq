@@ -179,6 +179,12 @@
 import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import LessonOnboardingPanel from '../components/lesson/LessonOnboardingPanel.vue'
+import {
+	emptyImportState,
+	entriesWithOutcome,
+	pickedFileState,
+	postImportFile,
+} from '../utils/importUpload.js'
 
 export default {
 	name: 'CoursePackageImportView',
@@ -233,9 +239,7 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		filteredEntries() {
-			const entries = this.report?.entries ?? []
-			if (this.outcomeFilter === 'all') return entries
-			return entries.filter((entry) => entry.outcome === this.outcomeFilter)
+			return entriesWithOutcome(this.report, this.outcomeFilter)
 		},
 	},
 
@@ -248,10 +252,7 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		onFileSelected(event) {
-			const file = event.target.files?.[0] ?? null
-			this.selectedFile = file
-			this.selectedFileName = file ? file.name : ''
-			this.uploadError = null
+			Object.assign(this, pickedFileState(event))
 		},
 
 		/**
@@ -270,24 +271,10 @@ export default {
 			formData.append('file', this.selectedFile)
 
 			try {
-				const url = generateUrl(
-					'/apps/learniq/api/course-management/course-package-import',
+				this.report = await postImportFile(
+					generateUrl('/apps/learniq/api/course-management/course-package-import'),
+					formData,
 				)
-				const resp = await fetch(url, {
-					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						requesttoken: window.OC?.requestToken ?? '',
-					},
-					body: formData,
-				})
-
-				const json = await resp.json()
-				if (!resp.ok) {
-					throw new Error(json.error ?? `Import failed: ${resp.status}`)
-				}
-
-				this.report = json
 			} catch (err) {
 				this.uploadError = this.t(
 					'learniq',
@@ -307,11 +294,7 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		reset() {
-			this.report = null
-			this.selectedFile = null
-			this.selectedFileName = ''
-			this.outcomeFilter = 'all'
-			this.uploadError = null
+			Object.assign(this, emptyImportState())
 			if (this.$refs.fileInput) {
 				this.$refs.fileInput.value = ''
 			}

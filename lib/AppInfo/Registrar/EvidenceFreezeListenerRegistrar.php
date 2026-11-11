@@ -33,6 +33,7 @@ use OCA\Learniq\Listener\LvsResultFreezeListener;
 use OCA\Learniq\Listener\ProctoringFlagReviewGuard;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectDeletingEvent;
+use OCA\OpenRegister\Event\ObjectLeavingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
@@ -66,6 +67,11 @@ class EvidenceFreezeListenerRegistrar {
 			event: ObjectDeletingEvent::class,
 			listener: AssessmentResultIntegrityListener::class
 		);
+		// A move out of the register takes the row away like a delete.
+		$context->registerEventListener(
+			event: ObjectLeavingEvent::class,
+			listener: AssessmentResultIntegrityListener::class
+		);
 
 		// LvsResult freeze (lvs-score-freeze): replaces `appendOnly`, which
 		// refused `verify` and `archive` too (learniq#1124). Once verified,
@@ -73,6 +79,10 @@ class EvidenceFreezeListenerRegistrar {
 		// for the same reason.
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
+			listener: LvsResultFreezeListener::class
+		);
+		$context->registerEventListener(
+			event: ObjectLeavingEvent::class,
 			listener: LvsResultFreezeListener::class
 		);
 

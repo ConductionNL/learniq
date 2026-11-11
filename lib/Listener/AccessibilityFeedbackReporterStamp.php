@@ -40,13 +40,11 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\IUserSession;
-use Throwable;
 
 /**
  * Stamps the reporter and tenant of an AccessibilityFeedback on create and keeps them on update.
@@ -93,25 +91,23 @@ class AccessibilityFeedbackReporterStamp implements IEventListener {
 	 * @spec openspec/specs/accessibility-conformance/spec.md#requirement-any-authenticated-user-must-be-able-to-report-an-accessibility-barrier
 	 */
 	public function handle(Event $event): void {
-		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {
+		$write = SchemaWrite::of(event: $event, schemaResolver: $this->schemaResolver);
+		if ($write === null || $write->slug !== self::SCHEMA) {
 			return;
 		}
 
-		if ($event->isPropagationStopped() === true) {
-			return;
-		}
+		$this->stampWrite(write: $write);
+	}//end handle()
 
-		try {
-			$slug = $this->schemaResolver->guardSchemaSlug(entity: $this->entityOf(event: $event));
-		} catch (Throwable $exception) {
-			// Not knowing the schema is not knowing it is ours: never touch
-			// another app's writes.
-			return;
-		}
-
-		if ($slug !== self::SCHEMA) {
-			return;
-		}
+	/**
+	 * Stamp one write of a schema this listener owns.
+	 *
+	 * @param SchemaWrite $write The write and its schema slug.
+	 *
+	 * @return void
+	 */
+	private function stampWrite(SchemaWrite $write): void {
+		$event = $write->event;
 
 		if ($event instanceof ObjectUpdatingEvent === true) {
 			$this->keepReporter(event: $event);
@@ -133,23 +129,7 @@ class AccessibilityFeedbackReporterStamp implements IEventListener {
 				]
 			)
 		);
-	}//end handle()
-
-	/**
-	 * The object being written: an update carries it in getNewObject(), only
-	 * a create has getObject().
-	 *
-	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The write event.
-	 *
-	 * @return ObjectEntity
-	 */
-	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
-	}//end entityOf()
+	}//end stampWrite()
 
 	/**
 	 * Put the stored reporter and tenant back over whatever the update sends.

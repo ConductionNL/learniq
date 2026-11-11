@@ -446,6 +446,18 @@ import {
 import { buildLtiLaunchForm, isLaunchForm } from '../utils/ltiLaunchForm.js'
 import { createScorm12Api } from '../utils/scorm12Runtime.js'
 
+/**
+ * Whether a cmi5 launch answer says the package cannot be played here: no
+ * such launch (404) or no LRS behind it (503).
+ *
+ * @param {Response} res The launch response.
+ * @return {boolean} True when cmi5 is unavailable.
+ * @spec openspec/specs/course-management/spec.md
+ */
+function cmi5Unavailable(res) {
+	return res.status === 404 || res.status === 503
+}
+
 // learning-progress-and-analytics: contentTypes that do NOT emit xAPI
 // statements and therefore need the learner self-serve manual-completion
 // path (progress-tracking spec "Learners can self-report completion of
@@ -771,40 +783,7 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async loadLesson() {
-			try {
-				const [courseRes, lessonRes] = await Promise.all([
-					fetch(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/Course/'
-								+ this.courseId,
-						),
-					),
-					fetch(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/Lesson/'
-								+ this.lessonId,
-						),
-					),
-				])
-				if (!courseRes.ok)
-					throw new Error(
-						this.t('learniq', 'Failed to load course (HTTP {status})', {
-							status: courseRes.status,
-						}),
-					)
-				if (!lessonRes.ok)
-					throw new Error(
-						this.t('learniq', 'Failed to load lesson (HTTP {status})', {
-							status: lessonRes.status,
-						}),
-					)
-				this.course = await courseRes.json()
-				this.lesson = await lessonRes.json()
-			} catch (e) {
-				this.error = e?.message ?? String(e)
-			} finally {
-				this.loading = false
-			}
+			await this.fetchCourseAndLesson()
 
 			if (this.lesson && !this.error) {
 				// adaptive-release-and-prerequisites: MUST resolve before
@@ -820,6 +799,73 @@ export default {
 				return
 			}
 
+			await this.openNextStepAndCompletion()
+			await this.openContentRenderer()
+			await this.openPackagePlayer()
+		},
+
+		/**
+		 * Read the course and the lesson; a failure is the page's error.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md
+		 */
+		async fetchCourseAndLesson() {
+			try {
+				const [courseRes, lessonRes] = await Promise.all([
+					fetch(
+						generateUrl(
+							'/apps/openregister/api/objects/learniq/Course/'
+								+ this.courseId,
+						),
+					),
+					fetch(
+						generateUrl(
+							'/apps/openregister/api/objects/learniq/Lesson/'
+								+ this.lessonId,
+						),
+					),
+				])
+				this.assertCourseAndLessonRead(courseRes, lessonRes)
+				this.course = await courseRes.json()
+				this.lesson = await lessonRes.json()
+			} catch (e) {
+				this.error = e?.message ?? String(e)
+			} finally {
+				this.loading = false
+			}
+		},
+
+		/**
+		 * Throw when the course or the lesson could not be read.
+		 *
+		 * @param {Response} courseRes The course read.
+		 * @param {Response} lessonRes The lesson read.
+		 * @return {void}
+		 * @spec openspec/specs/course-management/spec.md
+		 */
+		assertCourseAndLessonRead(courseRes, lessonRes) {
+			if (!courseRes.ok)
+				throw new Error(
+					this.t('learniq', 'Failed to load course (HTTP {status})', {
+						status: courseRes.status,
+					}),
+				)
+			if (!lessonRes.ok)
+				throw new Error(
+					this.t('learniq', 'Failed to load lesson (HTTP {status})', {
+						status: lessonRes.status,
+					}),
+				)
+		},
+
+		/**
+		 * Load the next step, and whether the lesson is already marked done.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md
+		 */
+		async openNextStepAndCompletion() {
 			if (this.lesson && !this.error) {
 				await this.loadNextStep()
 			}
@@ -830,7 +876,16 @@ export default {
 				// from rendering (the action simply defaults to "not completed").
 				await this.checkExistingManualCompletion()
 			}
+		},
 
+		/**
+		 * Start the LTI tool of an LTI lesson and load the references of a
+		 * text lesson's blocks.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md
+		 */
+		async openContentRenderer() {
 			if (this.isLtiLesson && !this.preview.active) {
 				await this.launchLti()
 			}
@@ -841,7 +896,15 @@ export default {
 				// whole lesson from rendering.
 				await this.loadBlockReferences()
 			}
+		},
 
+		/**
+		 * Start the SCORM 1.2 runtime or the cmi5 package of a package lesson.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md
+		 */
+		async openPackagePlayer() {
 			if (this.isScorm12Lesson) {
 				this.initScorm12()
 			}
@@ -1140,39 +1203,7 @@ export default {
 			this.blockLtiState[block.blockId] = { launching: true, error: '' }
 
 			try {
-				const res = await fetch(
-					generateUrl(
-						'/apps/learniq/api/lti-placements/'
-							+ placementId
-							+ '/launch',
-					),
-					{
-						method: 'POST',
-						headers: writeHeaders(this.preview, {
-							requesttoken: window.OC?.requestToken ?? '',
-						}),
-					},
-				)
-				const body = await res.json().catch(() => ({}))
-				if (!res.ok) {
-					throw new Error(
-						body?.error
-							|| this.t(
-								'learniq',
-								'Failed to start the tool (HTTP {status})',
-								{ status: res.status },
-							),
-					)
-				}
-				if (!isLaunchForm(body)) {
-					throw new Error(
-						this.t(
-							'learniq',
-							'Integriq returned an unexpected launch response.',
-						),
-					)
-				}
-
+				const body = await this.requestLtiLaunch(placementId)
 				this.blockLtiState[block.blockId] = { launching: false, error: '' }
 				this.submitLtiLaunchForm(body)
 			} catch (e) {
@@ -1181,6 +1212,67 @@ export default {
 					error: e?.message ?? String(e),
 				}
 			}
+		},
+
+		/**
+		 * Post a launch request with the request token (and the preview header
+		 * in a preview).
+		 *
+		 * @param {string} path The app-relative launch path.
+		 * @return {Promise<Response>} The response.
+		 * @spec openspec/specs/course-management/spec.md
+		 */
+		postLaunch(path) {
+			return fetch(generateUrl(path), {
+				method: 'POST',
+				headers: writeHeaders(this.preview, {
+					requesttoken: window.OC?.requestToken ?? '',
+				}),
+			})
+		},
+
+		/**
+		 * The body of a launch answer; a refusal throws the server's reason,
+		 * else the given refusal message.
+		 *
+		 * @param {Response} res The launch response.
+		 * @param {(status: number) => string} refusal The message for a refusal without a reason.
+		 * @return {Promise<object>} The body.
+		 * @spec openspec/specs/course-management/spec.md
+		 */
+		async launchBody(res, refusal) {
+			const body = await res.json().catch(() => ({}))
+			if (!res.ok) {
+				throw new Error(body?.error || refusal(res.status))
+			}
+			return body
+		},
+
+		/**
+		 * Ask integriq for the launch form of an LTI tool placement.
+		 *
+		 * @param {string} placementId The placement.
+		 * @return {Promise<object>} The launch form.
+		 * @spec openspec/specs/course-management/spec.md
+		 */
+		async requestLtiLaunch(placementId) {
+			const res = await this.postLaunch(
+				'/apps/learniq/api/lti-placements/' + placementId + '/launch',
+			)
+			const body = await this.launchBody(res, (status) =>
+				this.t('learniq', 'Failed to start the tool (HTTP {status})', {
+					status,
+				}),
+			)
+			if (!isLaunchForm(body)) {
+				throw new Error(
+					this.t(
+						'learniq',
+						'Integriq returned an unexpected launch response.',
+					),
+				)
+			}
+			return body
 		},
 
 		/**
@@ -1390,39 +1482,7 @@ export default {
 			this.ltiLaunch = null
 
 			try {
-				const res = await fetch(
-					generateUrl(
-						'/apps/learniq/api/lti-placements/'
-							+ placementId
-							+ '/launch',
-					),
-					{
-						method: 'POST',
-						headers: writeHeaders(this.preview, {
-							requesttoken: window.OC?.requestToken ?? '',
-						}),
-					},
-				)
-				const body = await res.json().catch(() => ({}))
-				if (!res.ok) {
-					throw new Error(
-						body?.error
-							|| this.t(
-								'learniq',
-								'Failed to start the tool (HTTP {status})',
-								{ status: res.status },
-							),
-					)
-				}
-				if (!isLaunchForm(body)) {
-					throw new Error(
-						this.t(
-							'learniq',
-							'Integriq returned an unexpected launch response.',
-						),
-					)
-				}
-
+				const body = await this.requestLtiLaunch(placementId)
 				this.ltiLaunch = body
 				this.$nextTick(() => this.submitLtiLaunchForm(body))
 			} catch (e) {
@@ -1554,36 +1614,18 @@ export default {
 			this.cmi5.launching = true
 			this.cmi5.error = ''
 			try {
-				const res = await fetch(
-					generateUrl(
-						'/apps/learniq/api/lessons/'
-							+ this.lessonId
-							+ '/cmi5-launch',
-					),
-					{
-						method: 'POST',
-						headers: writeHeaders(this.preview, {
-							requesttoken: window.OC?.requestToken ?? '',
-						}),
-					},
+				const res = await this.postLaunch(
+					'/apps/learniq/api/lessons/' + this.lessonId + '/cmi5-launch',
 				)
-				if (res.status === 404 || res.status === 503) {
+				if (cmi5Unavailable(res)) {
 					this.cmi5.available = false
 					return
 				}
-				const body = await res.json().catch(() => ({}))
-				if (!res.ok) {
-					throw new Error(
-						body?.error
-							|| this.t(
-								'learniq',
-								'Failed to start the cmi5 package (HTTP {status})',
-								{
-									status: res.status,
-								},
-							),
-					)
-				}
+				const body = await this.launchBody(res, (status) =>
+					this.t('learniq', 'Failed to start the cmi5 package (HTTP {status})', {
+						status,
+					}),
+				)
 				this.cmi5.launchUrl = buildCmi5LaunchUrl(
 					this.lesson.contentRef,
 					body,
