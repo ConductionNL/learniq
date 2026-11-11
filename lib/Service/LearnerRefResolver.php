@@ -107,14 +107,7 @@ class LearnerRefResolver {
 		}
 
 		$profiles = $this->objectService->findAll(
-			config: [
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::PROFILE_SCHEMA,
-					'ncUserId' => $learnerId,
-				],
-				'limit' => self::MAX_PROFILES,
-			],
+			config: $this->profileQuery(filters: ['ncUserId' => $learnerId]),
 			_rbac: false
 		);
 
@@ -137,14 +130,7 @@ class LearnerRefResolver {
 		}
 
 		$profiles = $this->objectService->findAll(
-			config: [
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::PROFILE_SCHEMA,
-					'ncUserId' => $learnerId,
-				],
-				'limit' => self::MAX_PROFILES,
-			],
+			config: $this->profileQuery(filters: ['ncUserId' => $learnerId]),
 			_rbac: false,
 			_multitenancy: false
 		);
@@ -172,21 +158,34 @@ class LearnerRefResolver {
 		}
 
 		$profiles = $this->objectService->findAll(
-			config: [
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::PROFILE_SCHEMA,
-					'ncUserId' => $learnerId,
-					'tenant_id' => $tenantId,
-				],
-				'limit' => self::MAX_PROFILES,
-			],
+			config: $this->profileQuery(filters: ['ncUserId' => $learnerId, 'tenant_id' => $tenantId]),
 			_rbac: false,
 			_multitenancy: false
 		);
 
 		return $this->survivor(profiles: $profiles);
 	}//end resolveInTenant()
+
+	/**
+	 * The findAll() config for learner profiles matching the filters, at
+	 * most MAX_PROFILES of them.
+	 *
+	 * @param array<string, string> $filters The profile filters.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function profileQuery(array $filters): array {
+		return [
+			'filters' => array_merge(
+				[
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::PROFILE_SCHEMA,
+				],
+				$filters
+			),
+			'limit' => self::MAX_PROFILES,
+		];
+	}//end profileQuery()
 
 	/**
 	 * The uuid of the profile that is not merged away, else the first one;
