@@ -106,38 +106,70 @@ class EngagementController extends Controller {
 		try {
 			$row = $this->fetchOwnEngagement(learnerId: $user->getUID());
 		} catch (Throwable $e) {
-			// A failed read is NOT a learner with no points. Returning zeros
-			// here would render identically to a genuine zero on the tile,
-			// which is the exact confusion this endpoint exists to remove.
-			$this->logger->error(
-				'Could not read the caller\'s LearnerEngagement row',
-				['app' => Application::APP_ID, 'exception' => $e]
-			);
-			return new JSONResponse(
-				data: ['error' => 'Could not read your engagement record'],
-				statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
-			);
+			return $this->readFailed(error: $e);
 		}
 
 		if ($row === null) {
-			// An absent row really does mean no points yet, so this is a
-			// successful answer rather than an error.
-			return new JSONResponse(
-				data: [
-					'totalPoints' => 0.0,
-					'levelName' => null,
-					'currentStreakDays' => 0,
-					'summary' => '',
-				]
-			);
+			return $this->noPointsYet();
 		}
 
-		$levelId = $row['levelId'] ?? null;
-		$levelName = null;
-		if (is_string($levelId) === true && $levelId !== '') {
-			$levelName = $this->resolveLevelName(levelId: $levelId);
-		}
+		return $this->engagementOf(row: $row);
+	}//end me()
 
+	/**
+	 * The answer to a failed read: an error, never a confident zero.
+	 *
+	 * A failed read is NOT a learner with no points. Returning zeros here
+	 * would render identically to a genuine zero on the tile, which is the
+	 * exact confusion this endpoint exists to remove.
+	 *
+	 * @param Throwable $error Why the read failed.
+	 *
+	 * @return JSONResponse The 500.
+	 *
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
+	 */
+	private function readFailed(Throwable $error): JSONResponse {
+		$this->logger->error(
+			'Could not read the caller\'s LearnerEngagement row',
+			['app' => Application::APP_ID, 'exception' => $error]
+		);
+		return new JSONResponse(
+			data: ['error' => 'Could not read your engagement record'],
+			statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
+		);
+	}//end readFailed()
+
+	/**
+	 * The answer for a learner without a row: no points yet, a successful
+	 * answer rather than an error.
+	 *
+	 * @return JSONResponse The zeros.
+	 *
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
+	 */
+	private function noPointsYet(): JSONResponse {
+		return new JSONResponse(
+			data: [
+				'totalPoints' => 0.0,
+				'levelName' => null,
+				'currentStreakDays' => 0,
+				'summary' => '',
+			]
+		);
+	}//end noPointsYet()
+
+	/**
+	 * The caller's points, level name, streak and summary from their row.
+	 *
+	 * @param array<string, mixed> $row The caller's LearnerEngagement row.
+	 *
+	 * @return JSONResponse The record.
+	 *
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
+	 */
+	private function engagementOf(array $row): JSONResponse {
+		$levelName = $this->levelNameOf(row: $row);
 		$streakDays = (int)($row['currentStreakDays'] ?? 0);
 
 		return new JSONResponse(
@@ -148,7 +180,25 @@ class EngagementController extends Controller {
 				'summary' => $this->buildSummary(levelName: $levelName, streakDays: $streakDays),
 			]
 		);
-	}//end me()
+	}//end engagementOf()
+
+	/**
+	 * The name of the row's level, or null when it names none.
+	 *
+	 * @param array<string, mixed> $row The caller's LearnerEngagement row.
+	 *
+	 * @return string|null The level name.
+	 *
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
+	 */
+	private function levelNameOf(array $row): ?string {
+		$levelId = $row['levelId'] ?? null;
+		if (is_string($levelId) === true && $levelId !== '') {
+			return $this->resolveLevelName(levelId: $levelId);
+		}
+
+		return null;
+	}//end levelNameOf()
 
 	/**
 	 * The tile's secondary line, composed and translated.
