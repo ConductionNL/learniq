@@ -27,7 +27,6 @@ namespace OCA\Learniq\Tests\Unit\Support;
 use JsonSerializable;
 use OCA\Learniq\Service\Attendance\AttendanceSummaryService;
 use OCA\Learniq\Service\ExternalTrainingService;
-use OCA\Learniq\Service\LearnerGroupLabel;
 use OCA\Learniq\Service\PersonalTimetableService;
 use OCA\Learniq\Service\PupilGroupTeachers;
 use OCA\Learniq\Service\ReadableCopies;
@@ -36,6 +35,7 @@ use OCA\Learniq\Timetabling\Source\LocalSessionTimetableSource;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionMethod;
+use ReflectionNamedType;
 use stdClass;
 
 /**
@@ -52,7 +52,6 @@ class ServiceRowConversionGoldenTest extends TestCase {
 		return [
 			'AttendanceSummaryService' => [AttendanceSummaryService::class, 'toRow'],
 			'ExternalTrainingService' => [ExternalTrainingService::class, 'toArray'],
-			'LearnerGroupLabel' => [LearnerGroupLabel::class, 'toRow'],
 			'PersonalTimetableService' => [PersonalTimetableService::class, 'toArray'],
 			'PupilGroupTeachers' => [PupilGroupTeachers::class, 'toRow'],
 			'ReadableCopies' => [ReadableCopies::class, 'toRow'],
@@ -90,6 +89,28 @@ class ServiceRowConversionGoldenTest extends TestCase {
 	}//end serialisable()
 
 	/**
+	 * Build the class through its constructor, with a double for every
+	 * collaborator.
+	 *
+	 * @param class-string $class The class.
+	 *
+	 * @return object
+	 */
+	private function instance(string $class): object {
+		$args = [];
+		foreach (((new ReflectionClass($class))->getConstructor()?->getParameters() ?? []) as $parameter) {
+			$type = $parameter->getType();
+			if ($parameter->isDefaultValueAvailable() === true) {
+				continue;
+			}
+
+			$args[$parameter->getName()] = $this->createMock(($type instanceof ReflectionNamedType) ? $type->getName() : 'stdClass');
+		}
+
+		return new $class(...$args);
+	}//end instance()
+
+	/**
 	 * Arrays stay, serialisable objects become their data, the rest is empty.
 	 *
 	 * @param class-string $class The class.
@@ -100,7 +121,7 @@ class ServiceRowConversionGoldenTest extends TestCase {
 	 * @dataProvider converters
 	 */
 	public function testARowIsReadTheSameWay(string $class, string $method): void {
-		$instance = (new ReflectionClass($class))->newInstanceWithoutConstructor();
+		$instance = $this->instance(class: $class);
 		$convert = new ReflectionMethod($class, $method);
 		$read = static fn (mixed $value): mixed => $convert->invoke($instance, $value);
 
