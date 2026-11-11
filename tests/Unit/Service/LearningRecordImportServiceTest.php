@@ -318,6 +318,7 @@ class LearningRecordImportServiceTest extends TestCase {
 			'proof not a string' => [['proof' => ['jws' => ['x']]], 'did:own'],
 			'no own issuer' => [['proof' => ['jws' => 'h..s']], null],
 			'no bundle issuer' => [['proof' => ['jws' => 'h..s'], 'issuerDid' => null], 'did:own'],
+			'neither issuer' => [['proof' => ['jws' => 'h..s'], 'issuerDid' => null], null],
 		];
 
 		foreach ($cases as $label => [$extra, $own]) {
