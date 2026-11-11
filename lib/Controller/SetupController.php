@@ -71,7 +71,7 @@ class SetupController extends Controller {
 	 *
 	 * @var string
 	 */
-	private const DEMO_DECIDED_KEY = 'demo_data_decided';
+	public const DEMO_DECIDED_KEY = 'demo_data_decided';
 
 	/**
 	 * App-config key holding the example set the operator picked.
@@ -83,7 +83,7 @@ class SetupController extends Controller {
 	 *
 	 * @var string
 	 */
-	private const PROFILE_KEY = 'example_profile';
+	public const PROFILE_KEY = 'example_profile';
 
 	/**
 	 * The key the single-dataset step used before the sets existed. Still
@@ -118,20 +118,33 @@ class SetupController extends Controller {
 	private const SEGMENT_GROUPS = ['admin', 'administration-managers'];
 
 	/**
-	 * What app config `demo_data_decided` holds after a removal: not empty, so
-	 * the load step stays answered and the wizard does not reopen over every
-	 * page (an outstanding optional step opens it).
+	 * The actions that load an example set: the current id and the two the
+	 * step used before it offered example sets.
 	 *
-	 * @var string
+	 * @var string[]
 	 */
-	private const REMOVED = 'removed';
+	private const LOAD_ACTIONS = ['load-example-set', 'load-demo-data', 'install-demo-data'];
+
+	/**
+	 * The actions that decline the example data, current and legacy.
+	 *
+	 * @var string[]
+	 */
+	private const SKIP_ACTIONS = ['skip-example-set', 'skip-demo-data'];
+
+	/**
+	 * Imports and removes the example sets and words each outcome.
+	 *
+	 * @var ExampleSetLoader
+	 */
+	private readonly ExampleSetLoader $loader;
 
 	/**
 	 * Constructor.
 	 *
 	 * @param IRequest           $request      The request.
 	 * @param IAppConfig         $appConfig    Records the example-set answer.
-	 * @param LoggerInterface    $logger       Records a failed import.
+	 * @param LoggerInterface    $logger       Records a failed import or removal.
 	 * @param SeedProfileService $seedProfiles Lists and imports the example sets.
 	 * @param SegmentService     $segments     Lists the six kinds and stores the answer.
 	 * @param IUserSession       $userSession  Names the admin who chose the segment.
@@ -149,6 +162,7 @@ class SetupController extends Controller {
 		private readonly IGroupManager $groups,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
+		$this->loader = new ExampleSetLoader(seedProfiles: $this->seedProfiles, appConfig: $this->appConfig, logger: $this->logger);
 	}//end __construct()
 
 	/**
@@ -264,7 +278,7 @@ class SetupController extends Controller {
 		// `load-demo-data` and `install-demo-data` are the ids the step used
 		// before it offered example sets; kept so an older manifest, a runbook
 		// or a script that posts them keeps working.
-		if (in_array($actionId, ['load-example-set', 'load-demo-data', 'install-demo-data'], true) === true) {
+		if (in_array($actionId, self::LOAD_ACTIONS, true) === true) {
 			return $this->loadExampleSet(actionId: $actionId);
 		}
 
@@ -278,25 +292,56 @@ class SetupController extends Controller {
 		// One removal step per loaded set (D34): `remove-example-set-<id>`.
 		$setId = $this->seedProfiles->loadedSets()->setIdFromAction(actionId: $actionId);
 		if ($setId !== null) {
-			if ($setId !== SeedProfileService::GENERATED_PROFILE && $this->seedProfiles->isKnown(profileId: $setId) === false) {
-				return $this->badRequest(message: 'No example set is called "' . $setId . '".');
-			}
-
-			return $this->removeExampleSet(profileId: $setId);
+			return $this->removeNamedSet(setId: $setId);
 		}
 
-		if ($actionId === 'skip-example-set' || $actionId === 'skip-demo-data') {
-			$this->appConfig->setValueString(Application::APP_ID, self::PROFILE_KEY, SeedProfileService::NONE_PROFILE);
-			$this->appConfig->setValueString(Application::APP_ID, self::DEMO_DECIDED_KEY, 'skipped');
+		return $this->skipOrRefuse(actionId: $actionId);
+	}//end runAction()
 
-			return new JSONResponse(data: ['success' => true, 'message' => 'No example data was loaded.']);
+	/**
+	 * Remove the set a per-set removal step names, refusing a name no set carries.
+	 *
+	 * @param string $setId The set the step names.
+	 *
+	 * @return JSONResponse `{ success, message }`.
+	 */
+	private function removeNamedSet(string $setId): JSONResponse {
+		if ($setId !== SeedProfileService::GENERATED_PROFILE && $this->seedProfiles->isKnown(profileId: $setId) === false) {
+			return $this->badRequest(message: 'No example set is called "' . $setId . '".');
+		}
+
+		return $this->removeExampleSet(profileId: $setId);
+	}//end removeNamedSet()
+
+	/**
+	 * Decline the example data for a skip action, or answer 404 for any other id.
+	 *
+	 * @param string $actionId The action that was posted.
+	 *
+	 * @return JSONResponse `{ success, message }`.
+	 */
+	private function skipOrRefuse(string $actionId): JSONResponse {
+		if (in_array($actionId, self::SKIP_ACTIONS, true) === true) {
+			return $this->declineExampleSet();
 		}
 
 		return new JSONResponse(
 			data: ['success' => false, 'message' => 'Unknown setup action: ' . $actionId],
 			statusCode: Http::STATUS_NOT_FOUND,
 		);
-	}//end runAction()
+	}//end skipOrRefuse()
+
+	/**
+	 * Record that no example data is wanted, which answers both example-set steps.
+	 *
+	 * @return JSONResponse `{ success, message }`.
+	 */
+	private function declineExampleSet(): JSONResponse {
+		$this->appConfig->setValueString(Application::APP_ID, self::PROFILE_KEY, SeedProfileService::NONE_PROFILE);
+		$this->appConfig->setValueString(Application::APP_ID, self::DEMO_DECIDED_KEY, 'skipped');
+
+		return new JSONResponse(data: ['success' => true, 'message' => 'No example data was loaded.']);
+	}//end declineExampleSet()
 
 	/**
 	 * Import the example set a card's Load button posted as `dataset`, or the
@@ -322,14 +367,24 @@ class SetupController extends Controller {
 		// open for an operator who asked for data and got none.
 		$posted = $this->request->getParam('dataset');
 		if ($posted !== null) {
-			$postedId = $this->scalarAnswer(value: $posted);
-			if ($this->isSelectableProfile(profileId: $postedId) === false) {
-				return $this->badRequest(message: 'No example set is called "' . $postedId . '".');
+			$picked = $this->scalarAnswer(value: $posted);
+			if ($this->isSelectableProfile(profileId: $picked) === false) {
+				return $this->badRequest(message: 'No example set is called "' . $picked . '".');
 			}
-
-			$picked = $postedId;
 		}
 
+		return $this->loadPicked(actionId: $actionId, picked: $picked);
+	}//end loadExampleSet()
+
+	/**
+	 * Load the picked set, refusing an unanswered choice and declining "None".
+	 *
+	 * @param string $actionId The action that asked.
+	 * @param string $picked   The picked set, or '' when nothing is picked.
+	 *
+	 * @return JSONResponse `{ success, message, objects, skipped }`.
+	 */
+	private function loadPicked(string $actionId, string $picked): JSONResponse {
 		// The legacy id carries no answer, so it means the generated set. A
 		// caller that posts it has said which one by posting it.
 		if ($actionId === 'install-demo-data' && $picked === '') {
@@ -343,60 +398,16 @@ class SetupController extends Controller {
 		}
 
 		if ($picked === SeedProfileService::NONE_PROFILE) {
-			$this->appConfig->setValueString(Application::APP_ID, self::PROFILE_KEY, SeedProfileService::NONE_PROFILE);
-			$this->appConfig->setValueString(Application::APP_ID, self::DEMO_DECIDED_KEY, 'skipped');
-
-			return new JSONResponse(data: ['success' => true, 'message' => 'No example data was loaded.']);
+			return $this->declineExampleSet();
 		}
 
-		try {
-			$imported = $this->seedProfiles->install(profileId: $picked);
-		} catch (\Throwable $e) {
-			$this->logger->error(
-				'Setup load-example-set failed for "' . $picked . '": ' . $e->getMessage(),
-				['app' => Application::APP_ID, 'exception' => $e]
-			);
+		return $this->loader->install(picked: $picked);
+	}//end loadPicked()
 
-			return new JSONResponse(
-				data: ['success' => false, 'message' => 'Could not import the example data: ' . $e->getMessage()],
-				statusCode: Http::STATUS_INTERNAL_SERVER_ERROR,
-			);
-		}
-
-		// Loading IS choosing the set, so the pick is recorded too. The removal
-		// step reads it back.
-		$this->appConfig->setValueString(Application::APP_ID, self::PROFILE_KEY, $picked);
-		$this->appConfig->setValueString(Application::APP_ID, self::DEMO_DECIDED_KEY, 'installed');
-
-		// 🔴 SAY WHAT DID NOT ARRIVE. OpenRegister skips an object it cannot
-		// place and keeps going, so "Imported 490" was reported while 302 of
-		// them never landed. The skips come from the importer's own reply.
-		$skipped = (int)($imported['skipped'] ?? 0);
-		$message = 'Imported ' . $imported['objects'] . ' example object(s).';
-		if ($skipped > 0) {
-			$message = 'Imported ' . max(0, ($imported['objects'] - $skipped)) . ' of ' . $imported['objects']
-				. ' example object(s). ' . $skipped . ' could not be imported; the Nextcloud log names each one.';
-		}
-
-		return new JSONResponse(
-			data: [
-				'success' => true,
-				'message' => $message,
-				'objects' => $imported['objects'],
-				'skipped' => $skipped,
-			]
-		);
-	}//end loadExampleSet()
 
 	/**
-	 * Remove one example set through OpenRegister's recorded import jobs
-	 * (openregister PR 4080): the one named by a per-set step, or else the one
+	 * Remove one example set: the one named by a per-set step, or else the one
 	 * stored as the wizard's answer.
-	 *
-	 * Every outcome is an answer the wizard shows: nothing loaded, nothing
-	 * recorded, an OpenRegister without the method (with the occ command that
-	 * removes the set instead), errors (with the command that finishes the
-	 * job), or the number of objects moved to the trash.
 	 *
 	 * @param string|null $profileId The set a per-set step names, or null for the wizard's answer.
 	 *
@@ -406,78 +417,8 @@ class SetupController extends Controller {
 	 * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
 	 */
 	private function removeExampleSet(?string $profileId=null): JSONResponse {
-		$picked = ($profileId ?? $this->pickedProfile());
-		if ($picked === '' || $picked === SeedProfileService::NONE_PROFILE) {
-			return new JSONResponse(data: ['success' => true, 'message' => 'No example data was loaded, so there is nothing to remove.']);
-		}
-
-		try {
-			$removed = $this->seedProfiles->remove(profileId: $picked);
-		} catch (\Throwable $e) {
-			$this->logger->error(
-				'Setup remove-example-set failed for "' . $picked . '": ' . $e->getMessage(),
-				['app' => Application::APP_ID, 'exception' => $e]
-			);
-
-			return new JSONResponse(
-				data: ['success' => false, 'message' => 'Could not remove the example data: ' . $e->getMessage()],
-				statusCode: Http::STATUS_INTERNAL_SERVER_ERROR,
-			);
-		}
-
-		if ($removed['supported'] === false) {
-			return new JSONResponse(data: ['success' => false, 'message' => $this->fallbackMessage(profileId: $picked)]);
-		}
-
-		if ($removed['errors'] > 0) {
-			// `--import-job` takes one job per run, and purge destroys rows for
-			// good, so the advice names one command per job and says so.
-			$commands = array_map(
-				static fn (string $job): string => 'php occ openregister:objects:purge --import-job ' . $job,
-				$removed['failedJobs']
-			);
-
-			return new JSONResponse(
-				data: [
-					'success' => false,
-					'message' => 'Moved ' . $removed['softDeleted'] . ' example object(s) to the trash; ' . $removed['errors']
-						. ' could not be removed. Run this step again, or finish on the server with: ' . implode('; ', $commands)
-						. ' (each shows what it would remove; add --apply to delete for good).',
-				]
-			);
-		}
-
-		if ($removed['jobs'] === []) {
-			return new JSONResponse(
-				data: [
-					'success' => true,
-					'message' => 'OpenRegister has no recorded import of this example set, so nothing was removed. '
-						. $this->fallbackMessage(profileId: $picked),
-				]
-			);
-		}
-
-		$this->appConfig->setValueString(Application::APP_ID, self::DEMO_DECIDED_KEY, self::REMOVED);
-
-		return new JSONResponse(
-			data: ['success' => true, 'message' => 'Moved ' . $removed['softDeleted'] . ' example object(s) to the trash.']
-		);
+		return $this->loader->remove(picked: ($profileId ?? $this->pickedProfile()));
 	}//end removeExampleSet()
-
-	/**
-	 * How to remove a set without OpenRegister's recorded import jobs.
-	 *
-	 * @param string $profileId The set.
-	 *
-	 * @return string The advice, naming the command where one exists.
-	 */
-	private function fallbackMessage(string $profileId): string {
-		if ($profileId === SeedProfileService::GENERATED_PROFILE) {
-			return 'This OpenRegister cannot remove the generated example data from here. Update OpenRegister and run this step again.';
-		}
-
-		return 'Remove it on the server with: php occ learniq:example-set:remove ' . $profileId . ' --apply';
-	}//end fallbackMessage()
 
 	/**
 	 * Whether the current user may write the segment.
