@@ -323,4 +323,37 @@ class SigningServiceTest extends TestCase {
 			self::assertEmpty($authorization['create'] ?? [], $schema . ' lets a group create it directly.');
 		}
 	}//end testTheSignatureSchemasDenyDirectCreation()
+
+	/**
+	 * Each refused capture names its reason and message, and the length
+	 * limits hold exactly at their bounds (typed length counts characters).
+	 *
+	 * @return void
+	 */
+	public function testEachRefusedCaptureNamesItsReasonAndTheLimitsHoldAtTheirBounds(): void {
+		$incomplete = [
+			['mode' => 'typed', 'value' => 'C'],
+			['mode' => 'typed', 'value' => 'C', 'affirmed' => 1],
+			['mode' => 'typed', 'value' => ['C'], 'affirmed' => true],
+			['mode' => 'typed', 'affirmed' => true],
+			['mode' => 'typed', 'value' => " \t ", 'affirmed' => true],
+		];
+		$invalid = [
+			['value' => 'C', 'affirmed' => true],
+			['mode' => 'typed', 'value' => str_repeat('é', 201), 'affirmed' => true],
+			['mode' => 'drawn', 'value' => 'data:image/png;base64,' . str_repeat('A', 512000 - 21), 'affirmed' => true],
+			['mode' => 'drawn', 'value' => 'data:image/jpeg;base64,AAAA', 'affirmed' => true],
+		];
+		foreach ([['incomplete', 'Sign and confirm that you agree before saving.', $incomplete], ['invalid-signature', 'This signature cannot be saved.', $invalid]] as [$reason, $message, $captures]) {
+			foreach ($captures as $capture) {
+				$refusal = $this->refusalOf(fn () => $this->service(records: $this->plan())->sign(userId: 'co', request: new SignatureRequest(subject: 'learning-plan', id: 'plan-1', role: 'coordinator', capture: $capture)));
+				self::assertSame([422, $reason, $message], [$refusal->getStatus(), $refusal->getReason(), $refusal->getMessage()], json_encode($capture));
+			}
+		}
+
+		$typed = $this->service(records: $this->plan())->sign(userId: 'co', request: new SignatureRequest(subject: 'learning-plan', id: 'plan-1', role: 'coordinator', capture: ['mode' => 'typed', 'value' => str_repeat('é', 200), 'affirmed' => true]));
+		self::assertSame('coordinator', $typed['signerRole']);
+		$drawn = $this->service(records: $this->plan())->sign(userId: 'co', request: new SignatureRequest(subject: 'learning-plan', id: 'plan-1', role: 'coordinator', capture: ['mode' => 'drawn', 'value' => 'data:image/png;base64,' . str_repeat('A', 512000 - 22), 'affirmed' => true]));
+		self::assertSame('coordinator', $drawn['signerRole']);
+	}//end testEachRefusedCaptureNamesItsReasonAndTheLimitsHoldAtTheirBounds()
 }//end class
