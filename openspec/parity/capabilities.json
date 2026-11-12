@@ -10782,17 +10782,16 @@
       "name": "Show how many places are left on a course day.",
       "origin": "change",
       "built": {
-        "state": "building",
-        "evidence": "Partly built through openspec/changes/board-data-the-schemas-lacked; its open tasks carry the rest.",
+        "state": "built",
+        "evidence": "lib/Portal/CoursePlaces.php: places left are the cohort capacity minus the live bookings, and a full date reads \"Vol\". Only the live proof run (task T5) of board-data-the-schemas-lacked is open.",
         "owner": "ConductionNL/learniq",
         "change": "board-data-the-schemas-lacked",
-        "requirement": "openspec/changes/board-data-the-schemas-lacked/specs/portal-contribution :: A course row says how many places are left",
-        "plan": "openspec/changes/board-data-the-schemas-lacked"
+        "requirement": "openspec/changes/board-data-the-schemas-lacked/specs/portal-contribution :: A course row says how many places are left"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "board-data-the-schemas-lacked",
-      "learniq": "partial",
+      "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
       "ilias": "unknown",
