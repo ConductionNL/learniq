@@ -117,3 +117,38 @@ test('the saved payload holds the schema fields only, and a limitation only for 
 		false,
 	)
 })
+
+test('a record tested on the same day or without a date replaces an earlier pick, holes are skipped', () => {
+	const records = [
+		null,
+		{ id: 'first', wcagCriterion: '1.4.3 Contrast', testedOn: '2026-09-01' },
+		{ id: 'same-day', wcagCriterion: '1.4.3', testedOn: '2026-09-01' },
+		{ id: 'undated', wcagCriterion: '1.4.3' },
+	]
+	assert.equal(recordFor('1.4.3', records).id, 'same-day')
+	assert.equal(recordFor('1.4.3', [records[3], records[1]]).id, 'first')
+	assert.equal(recordFor('1.4.3', [records[3]]).id, 'undated')
+	assert.equal(recordFor('1.4.3', []), null)
+})
+
+test('non-text form fields are left out and a limitation is kept only for a failure', () => {
+	const context = { statementId: 's', tenantId: 't', criterion: '2.1.1', level: 'A' }
+	assert.deepEqual(resultPayload({ result: 'pass', method: 3, testedOn: null, limitationId: 'l' }, context), {
+		accessibilityStatementId: 's',
+		wcagCriterion: '2.1.1',
+		level: 'A',
+		result: 'pass',
+		tenant_id: 't',
+	})
+	assert.equal('limitationId' in resultPayload({ result: 'fail', limitationId: '' }, context), false)
+	assert.deepEqual(Object.keys(resultPayload({ result: 'fail', testedOn: ' 2026 ', method: 'm', limitationId: 'l' }, context)), [
+		'accessibilityStatementId',
+		'wcagCriterion',
+		'level',
+		'result',
+		'tenant_id',
+		'method',
+		'testedOn',
+		'limitationId',
+	])
+})
