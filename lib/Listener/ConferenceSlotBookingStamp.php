@@ -131,20 +131,23 @@ class ConferenceSlotBookingStamp implements IEventListener {
 		}
 
 		$payload = array_merge(($entity->getObject() ?? []), $event->getModifiedData());
-		if ($this->isPortalBooking(payload: $payload) === false) {
-			return;
+		if ($this->isPortalBooking(payload: $payload) === true) {
+			$this->stampOrRefuse(event: $event, payload: $payload);
 		}
+	}//end handle()
 
-		try {
-			$outcome = $this->outcomeFor(payload: $payload, signupId: self::signupId(entity: $entity));
-		} catch (Throwable $exception) {
-			$this->logger->warning(
-				'[ConferenceSlotBookingStamp] Could not check a portal booking: {msg}',
-				['msg' => $exception->getMessage()]
-			);
-			$outcome = ['refuse' => 'slot-lookup-failed'];
-		}
-
+	/**
+	 * Stamp a checked portal booking, or refuse it with its reason.
+	 *
+	 * @param ObjectCreatingEvent  $event   The create of the signup.
+	 * @param array<string, mixed> $payload The signup being created.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
+	 */
+	private function stampOrRefuse(ObjectCreatingEvent $event, array $payload): void {
+		$outcome = $this->checkedOutcome(payload: $payload, entity: $event->getObject());
 		if (isset($outcome['refuse']) === true) {
 			$event->setErrors(['reason' => $outcome['refuse'], 'message' => self::REFUSALS[$outcome['refuse']]]);
 			$event->stopPropagation();
@@ -153,7 +156,29 @@ class ConferenceSlotBookingStamp implements IEventListener {
 		}
 
 		$event->setModifiedData(array_merge($event->getModifiedData(), $outcome['stamp']));
-	}//end handle()
+	}//end stampOrRefuse()
+
+	/**
+	 * The booking's outcome, or `slot-lookup-failed` (logged) when a lookup throws.
+	 *
+	 * @param array<string, mixed> $payload The signup being created.
+	 * @param ObjectEntity         $entity  The signup entity.
+	 *
+	 * @return array{stamp?: array<string, mixed>, refuse?: string}
+	 *
+	 * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
+	 */
+	private function checkedOutcome(array $payload, ObjectEntity $entity): array {
+		try {
+			return $this->outcomeFor(payload: $payload, signupId: self::signupId(entity: $entity));
+		} catch (Throwable $exception) {
+			$this->logger->warning(
+				'[ConferenceSlotBookingStamp] Could not check a portal booking: {msg}',
+				['msg' => $exception->getMessage()]
+			);
+			return ['refuse' => 'slot-lookup-failed'];
+		}
+	}//end checkedOutcome()
 
 	/**
 	 * A portal booking of a free time: no session user, a guardianRef, a
@@ -188,49 +213,104 @@ class ConferenceSlotBookingStamp implements IEventListener {
 			return ['refuse' => 'signup-guardian-unknown'];
 		}
 
-		$childRef = (string)$child['id'];
-		$round = $this->roundOfSlot(slotId: self::text(value: $payload['slotId']));
-		if ($round === null) {
-			return ['refuse' => 'slot-unknown'];
+		$booking = [
+			'learnerRef' => (string)$child['id'],
+			'learnerId' => (string)($child['ncUserId'] ?? ''),
+			'guardianRef' => $guardianRef,
+			'signupId' => $signupId,
+		];
+
+		return $this->bookSlot(slotId: self::text(value: $payload['slotId']), booking: $booking);
+	}//end outcomeFor()
+
+	/**
+	 * Claim the slot for the booking when its round takes it, and say what to stamp.
+	 *
+	 * @param string               $slotId  The slot uuid.
+	 * @param array<string, mixed> $booking The child, its NC user, the guardian and the signup.
+	 *
+	 * @return array{stamp?: array<string, mixed>, refuse?: string}
+	 *
+	 * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
+	 */
+	private function bookSlot(string $slotId, array $booking): array {
+		$round = $this->roundOfSlot(slotId: $slotId);
+		$refusal = $this->roundRefusal(round: $round, childRef: $booking['learnerRef']);
+		if ($refusal !== null) {
+			return ['refuse' => $refusal];
 		}
 
-		if ($this->isBookable(round: $round, childRef: $childRef) === false) {
-			return ['refuse' => 'slot-round-closed'];
-		}
-
-		$claimed = $this->claim->claim(
-			slotId: self::text(value: $payload['slotId']),
-			round: $round,
-			booking: [
-				'learnerRef' => $childRef,
-				'learnerId' => (string)($child['ncUserId'] ?? ''),
-				'guardianRef' => $guardianRef,
-				'signupId' => $signupId,
-			]
-		);
+		$claimed = $this->claim->claim(slotId: $slotId, round: $round, booking: $booking);
 		if (isset($claimed['slot']) === false) {
 			return ['refuse' => ($claimed['refuse'] ?? 'slot-taken')];
 		}
 
-		$slot = $claimed['slot'];
-		$guardian = $this->profiles->byRef(learnerRef: $guardianRef);
+		return ['stamp' => array_merge($this->bookingStamp(round: $round, booking: $booking), $this->slotStamp(slot: $claimed['slot']))];
+	}//end bookSlot()
+
+	/**
+	 * Why the slot's round does not take this child's booking, or null when it does.
+	 *
+	 * @param array<string, mixed>|null $round    The slot's round, or null when unknown.
+	 * @param string                    $childRef The child's LearnerProfile uuid.
+	 *
+	 * @return string|null The refusal reason, or null.
+	 *
+	 * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
+	 */
+	private function roundRefusal(?array $round, string $childRef): ?string {
+		if ($round === null) {
+			return 'slot-unknown';
+		}
+
+		if ($this->isBookable(round: $round, childRef: $childRef) === false) {
+			return 'slot-round-closed';
+		}
+
+		return null;
+	}//end roundRefusal()
+
+	/**
+	 * The round, child and guardian half of the stamp.
+	 *
+	 * @param array<string, mixed> $round   The round.
+	 * @param array<string, mixed> $booking The claimed booking.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
+	 */
+	private function bookingStamp(array $round, array $booking): array {
+		$guardian = $this->profiles->byRef(learnerRef: $booking['guardianRef']);
 
 		return [
-			'stamp' => [
-				'conferenceRoundId' => (string)$round['id'],
-				'learnerId' => (string)($child['ncUserId'] ?? ''),
-				'learnerRef' => $childRef,
-				'guardianId' => self::text(value: ($guardian['ncUserId'] ?? null)),
-				'tenant_id' => self::text(value: ($round['tenant_id'] ?? null)),
-				'requestedTeacherIds' => [(string)($slot['teacherId'] ?? '')],
-				'teacherName' => self::text(value: ($slot['teacherName'] ?? null)),
-				'startsAt' => self::text(value: ($slot['startsAt'] ?? null)),
-				'endsAt' => self::text(value: ($slot['endsAt'] ?? null)),
-				'slotLabel' => self::text(value: ($slot['slotLabel'] ?? null)),
-				'lifecycle' => 'booked',
-			],
+			'conferenceRoundId' => (string)$round['id'],
+			'learnerId' => $booking['learnerId'],
+			'learnerRef' => $booking['learnerRef'],
+			'guardianId' => self::text(value: ($guardian['ncUserId'] ?? null)),
+			'tenant_id' => self::text(value: ($round['tenant_id'] ?? null)),
 		];
-	}//end outcomeFor()
+	}//end bookingStamp()
+
+	/**
+	 * The time half of the stamp, from the claimed slot, and `booked`.
+	 *
+	 * @param array<string, mixed> $slot The claimed slot.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
+	 */
+	private function slotStamp(array $slot): array {
+		return [
+			'requestedTeacherIds' => [(string)($slot['teacherId'] ?? '')],
+			'teacherName' => self::text(value: ($slot['teacherName'] ?? null)),
+			'startsAt' => self::text(value: ($slot['startsAt'] ?? null)),
+			'endsAt' => self::text(value: ($slot['endsAt'] ?? null)),
+			'slotLabel' => self::text(value: ($slot['slotLabel'] ?? null)),
+			'lifecycle' => 'booked',
+		];
+	}//end slotStamp()
 
 	/**
 	 * Whether the round takes direct bookings for this child now: direct
