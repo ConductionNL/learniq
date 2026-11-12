@@ -122,6 +122,65 @@ class ActionMatrixControllerTest extends TestCase {
 	}//end testAMalformedWriteIsRejectedAndChangesNothing()
 
 	/**
+	 * Each refused shape answers with its own reason, checked in a fixed order.
+	 *
+	 * @return void
+	 */
+	public function testEachRefusedMatrixNamesItsReason(): void {
+		$complete = $this->completeMatrix();
+
+		$withoutPlan = $complete;
+		unset($withoutPlan['rollover.plan']);
+
+		$withoutTwo = $withoutPlan;
+		unset($withoutTwo['qti.import']);
+
+		$intKey = $complete;
+		$intKey[7] = ['admin'];
+
+		$badGroupAndMissing = $withoutPlan;
+		$badGroupAndMissing['qti.export'] = ['admin', 42];
+
+		$cases = [
+			'no matrix at all' => [[], 'matrix must be an object mapping each action to a list of groups'],
+			'an empty matrix' => [['matrix' => []], 'matrix must be an object mapping each action to a list of groups'],
+			'matrix is a string' => [['matrix' => 'everyone'], 'matrix must be an object mapping each action to a list of groups'],
+			'an action key is an int' => [['matrix' => $intKey], 'every action must map to a list of groups'],
+			'a value is not a list' => [['matrix' => array_merge($complete, ['qti.export' => 'admin'])], 'every action must map to a list of groups'],
+			'a group is not a string' => [['matrix' => array_merge($complete, ['qti.export' => ['admin', null]])], 'groups must be group ids: qti.export'],
+			'one action is missing' => [['matrix' => $withoutPlan], 'matrix is missing actions: rollover.plan'],
+			'two actions are missing' => [['matrix' => $withoutTwo], 'matrix is missing actions: qti.import, rollover.plan'],
+			'shape is checked before completeness' => [['matrix' => $badGroupAndMissing], 'groups must be group ids: qti.export'],
+		];
+
+		foreach ($cases as $label => [$params, $reason]) {
+			$response = $this->controller(params: $params)->setMatrix();
+
+			self::assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus(), $label);
+			self::assertSame(['error' => $reason], $response->getData(), $label);
+		}
+
+		self::assertSame(0, $this->writes, 'A refused write reached the matrix store.');
+	}//end testEachRefusedMatrixNamesItsReason()
+
+	/**
+	 * A complete matrix with an extra action and empty group lists is stored.
+	 *
+	 * @return void
+	 */
+	public function testACompleteMatrixWithExtrasIsAllowed(): void {
+		$matrix = $this->completeMatrix();
+		$matrix['qti.export'] = [];
+		$matrix['custom.extra'] = ['coordinators'];
+
+		$response = $this->controller(params: ['matrix' => $matrix])->setMatrix();
+
+		self::assertSame(Http::STATUS_OK, $response->getStatus());
+		self::assertSame(['matrix' => $matrix], $response->getData());
+		self::assertSame(1, $this->writes);
+	}//end testACompleteMatrixWithExtrasIsAllowed()
+
+	/**
 	 * A matrix naming every seeded action, admin-only.
 	 *
 	 * @return array<string, array<int, string>>

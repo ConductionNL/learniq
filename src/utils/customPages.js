@@ -52,9 +52,20 @@ export function transitionUrl(id) {
  * @spec openspec/specs/assignments/spec.md#requirement-a-learner-hands-in-their-own-work-and-the-teacher-marks-it
  */
 export function handInAction(assignment, now = new Date()) {
-	const due = assignment?.dueAt ? new Date(assignment.dueAt) : null
-	if (!due || Number.isNaN(due.getTime()) || due >= now) return 'submit'
+	if (!isPastDeadline(assignment, now)) return 'submit'
 	return assignment.allowLateSubmission === true ? 'submitLate' : 'submit'
+}
+
+/**
+ * Whether an assignment has a readable deadline that lies before `now`.
+ *
+ * @param {object} assignment The assignment (dueAt).
+ * @param {Date} now The moment to judge.
+ * @return {boolean}
+ */
+function isPastDeadline(assignment, now) {
+	const due = assignment?.dueAt ? new Date(assignment.dueAt) : null
+	return !(!due || Number.isNaN(due.getTime()) || due >= now)
 }
 
 /**
@@ -142,31 +153,56 @@ export function gradebookGrid(learnerIds, components, entries) {
  * @return {object} The GradeEntry body.
  * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
  */
-export function gradeEntryBody({
-	learnerId,
-	componentId,
-	value,
-	plan,
-	cohortId,
-	grader,
-	gradedAt,
-}) {
-	const component =
-		(plan.components ?? []).find((c) => c.componentId === componentId) ?? {}
+export function gradeEntryBody(args) {
+	const component = planComponent(args.plan, args.componentId)
 	return {
-		learnerId,
-		curriculumPlanId: objectId(plan),
-		componentId,
-		cohortId,
-		gradeScaleId: component.gradeScaleId ?? plan.gradeScaleId ?? '',
+		...gradeEntryTarget(args),
+		gradeScaleId: componentGradeScaleId(component, args.plan),
 		sourceKind: 'manual',
-		value,
+		value: args.value,
 		weight: component.weight ?? null,
 		period: component.period ?? null,
-		grader,
-		gradedAt,
-		tenant_id: plan.tenant_id ?? '',
+		grader: args.grader,
+		gradedAt: args.gradedAt,
+		tenant_id: args.plan.tenant_id ?? '',
 	}
+}
+
+/**
+ * Who and what a GradeEntry marks: the learner, plan, component and cohort.
+ *
+ * @param {object} args The gradeEntryBody() arguments.
+ * @return {{learnerId: string, curriculumPlanId: string, componentId: string, cohortId: string}} The fields.
+ */
+function gradeEntryTarget(args) {
+	return {
+		learnerId: args.learnerId,
+		curriculumPlanId: objectId(args.plan),
+		componentId: args.componentId,
+		cohortId: args.cohortId,
+	}
+}
+
+/**
+ * The plan component with the given id, or an empty one.
+ *
+ * @param {object} plan The CurriculumPlan.
+ * @param {string} componentId Plan component.
+ * @return {object} The component.
+ */
+function planComponent(plan, componentId) {
+	return (plan.components ?? []).find((c) => c.componentId === componentId) ?? {}
+}
+
+/**
+ * The scale a component is marked on: its own, else the plan's, else ''.
+ *
+ * @param {object} component A plan component.
+ * @param {object} plan The CurriculumPlan.
+ * @return {string} The GradeScale id.
+ */
+function componentGradeScaleId(component, plan) {
+	return component.gradeScaleId ?? plan.gradeScaleId ?? ''
 }
 
 /**
@@ -195,32 +231,60 @@ export function parseMark(raw) {
  * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
  */
 export function planGraph(plan) {
-	const rootId = objectId(plan) || 'plan'
-	const nodes = [
-		{
-			id: rootId,
-			label: plan.kind ? String(plan.kind).toUpperCase() : 'Plan',
-			isRoot: true,
-		},
-	]
-	const edges = []
-	for (const goal of plan.goals ?? []) {
-		nodes.push({
+	const graph = { rootId: objectId(plan) || 'plan', nodes: [], edges: [] }
+	graph.nodes.push(planRootNode(plan, graph.rootId))
+	addGoalNodes(graph, plan.goals ?? [])
+	addMeasureNodes(graph, plan.supportMeasures ?? [])
+	return { nodes: graph.nodes, edges: graph.edges }
+}
+
+/**
+ * The plan's own node at the centre of its graph, labelled by its kind.
+ *
+ * @param {object} plan The LearningPlan.
+ * @param {string} rootId The node id.
+ * @return {{id: string, label: string, isRoot: boolean}} The node.
+ */
+function planRootNode(plan, rootId) {
+	return {
+		id: rootId,
+		label: plan.kind ? String(plan.kind).toUpperCase() : 'Plan',
+		isRoot: true,
+	}
+}
+
+/**
+ * Add a node per goal, each linked to the plan.
+ *
+ * @param {{rootId: string, nodes: object[], edges: object[]}} graph The graph being built.
+ * @param {object[]} goals LearningPlan.goals.
+ */
+function addGoalNodes(graph, goals) {
+	for (const goal of goals) {
+		graph.nodes.push({
 			id: `goal:${goal.goalId}`,
 			label: goal.description,
 			kind: 'goal',
 		})
-		edges.push({ source: rootId, target: `goal:${goal.goalId}` })
+		graph.edges.push({ source: graph.rootId, target: `goal:${goal.goalId}` })
 	}
-	for (const measure of plan.supportMeasures ?? []) {
-		nodes.push({
+}
+
+/**
+ * Add a node per support measure, each linked to the plan.
+ *
+ * @param {{rootId: string, nodes: object[], edges: object[]}} graph The graph being built.
+ * @param {object[]} measures LearningPlan.supportMeasures.
+ */
+function addMeasureNodes(graph, measures) {
+	for (const measure of measures) {
+		graph.nodes.push({
 			id: `measure:${measure.measureId}`,
 			label: measure.description,
 			kind: 'measure',
 		})
-		edges.push({ source: rootId, target: `measure:${measure.measureId}` })
+		graph.edges.push({ source: graph.rootId, target: `measure:${measure.measureId}` })
 	}
-	return { nodes, edges }
 }
 
 /**

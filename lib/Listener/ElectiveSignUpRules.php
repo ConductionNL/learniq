@@ -3,6 +3,9 @@
 /**
  * Learniq Elective Sign-Up Rules
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * The rules of an optional lesson sign-up, enforced on every create and
  * update of `elective-sign-up` whoever writes it: the learner's endpoint, a
  * coordinator's screen or another system through OpenRegister's object API.
@@ -27,8 +30,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

@@ -44,8 +44,19 @@ export function formQuestions(questions) {
  */
 export function questionText(question, language) {
 	const text = question?.text ?? {}
+	return localisedText(text, language) || question?.questionId || ''
+}
+
+/**
+ * A translated text in the reader's language, else English, else Dutch.
+ *
+ * @param {object} text The texts by language code.
+ * @param {string} language The reader's language code.
+ * @return {string|undefined} The text, or a falsy value when none is set.
+ */
+function localisedText(text, language) {
 	const short = String(language ?? '').slice(0, 2)
-	return text[short] || text.en || text.nl || question?.questionId || ''
+	return text[short] || text.en || text.nl
 }
 
 /**
@@ -58,16 +69,26 @@ export function questionText(question, language) {
  */
 export function isAnswered(kind, value) {
 	if (kind === 'likert-5') {
-		const rating = Number(value)
-		return (
-			value !== ''
-			&& value !== null
-			&& Number.isInteger(rating)
-			&& rating >= 1
-			&& rating <= 5
-		)
+		return isRating(value)
 	}
 	return typeof value === 'string' && value.trim() !== ''
+}
+
+/**
+ * Whether a form value is a whole-number rating from 1 to 5.
+ *
+ * @param {string|number|null|undefined} value The value in the form.
+ * @return {boolean}
+ */
+function isRating(value) {
+	const rating = Number(value)
+	return (
+		value !== ''
+		&& value !== null
+		&& Number.isInteger(rating)
+		&& rating >= 1
+		&& rating <= 5
+	)
 }
 
 /**
@@ -119,14 +140,25 @@ export function answerBody(questions, answers) {
 export function resultFigures(results) {
 	const responses = Number(results?.responseCount ?? 0)
 	const invitations = Number(results?.invitationCount ?? 0)
-	const hidden =
-		results?.meanHidden === true
-		|| results?.meanOverallScore === null
-		|| results?.meanOverallScore === undefined
+	const hidden = isMeanHidden(results)
 	return {
 		responses,
 		invitations,
 		mean: hidden ? null : Number(results.meanOverallScore),
 		hidden,
 	}
+}
+
+/**
+ * Whether the server hid the mean or sent none.
+ *
+ * @param {object|null} results The server's campaign results.
+ * @return {boolean}
+ */
+function isMeanHidden(results) {
+	return (
+		results?.meanHidden === true
+		|| results?.meanOverallScore === null
+		|| results?.meanOverallScore === undefined
+	)
 }

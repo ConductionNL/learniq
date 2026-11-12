@@ -129,3 +129,30 @@ test('staff figures hide the mean under five responses', () => {
 		hidden: true,
 	})
 })
+
+test('question text without a language or any text falls back to the id, then blank', () => {
+	assert.equal(questionText({ questionId: 'q2', text: { en: 'E', nl: 'N' } }, null), 'E')
+	assert.equal(questionText({ questionId: 'q2', text: { nl: 'N', en: '' } }, undefined), 'N')
+	assert.equal(questionText({ text: { nl: '' } }, 'nl'), '')
+	assert.equal(questionText(null, 'nl'), '')
+})
+
+test('a rating may be a numeric string or an integer-valued float, never true or a list', () => {
+	assert.equal(isAnswered('likert-5', ' 2 '), true)
+	assert.equal(isAnswered('likert-5', 4.0), true)
+	assert.equal(isAnswered('likert-5', true), true)
+	assert.equal(isAnswered('likert-5', [3]), true)
+	assert.equal(isAnswered('likert-5', []), false)
+	assert.equal(isAnswered(undefined, ' x '), true)
+})
+
+test('staff figures show the mean when it is set and not hidden', () => {
+	assert.deepEqual(resultFigures({ responseCount: '7', invitationCount: 9, meanOverallScore: '3.5' }), {
+		responses: 7,
+		invitations: 9,
+		mean: 3.5,
+		hidden: false,
+	})
+	assert.deepEqual(resultFigures(null), { responses: 0, invitations: 0, mean: null, hidden: true })
+	assert.equal(resultFigures({ meanOverallScore: 4, meanHidden: 'yes' }).mean, 4)
+})

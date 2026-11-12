@@ -3,6 +3,9 @@
 /**
  * Learniq Leaderboard Controller
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * One read endpoint: `getRankings`. This exists because the RBAC gap
  * documented in design.md ("no cross-object 'cohort-mate' RBAC primitive" --
  * the same gap SupportRequest/TlvApplication/PupilVoice already document)
@@ -40,8 +43,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

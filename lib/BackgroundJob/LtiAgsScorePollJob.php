@@ -3,6 +3,9 @@
 /**
  * Learniq LTI AGS Score Poll Job
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Background job that pulls pending `nl.conduction.lti.ags.score.received`
  * CloudEvent messages from OpenConnector's `events-cloudevents` pull surface
  * for the learniq-owned `event_subscription`, and creates a concept
@@ -46,8 +49,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

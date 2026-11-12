@@ -3,6 +3,9 @@
 /**
  * Learniq Entitlement Payment Settled Guard
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the Entitlement `grant` transition (pending -> active).
  * Replaces EntitlementOrderPaidGuard (D19, payments-to-shillinq-migration):
  * learniq no longer keeps orders or payment transactions. A school raises a
@@ -37,8 +40,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

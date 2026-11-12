@@ -3,6 +3,9 @@
 /**
  * Learniq Attendance Threshold Crossing Guard
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the AttendanceThreshold schema's `check-threshold`
  * transition (an `active` -> `active` self-loop, mirroring
  * `Session.substitute-teacher`'s established self-loop precedent). Refuses
@@ -27,8 +30,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

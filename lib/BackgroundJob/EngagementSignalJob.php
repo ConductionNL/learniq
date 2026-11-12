@@ -368,13 +368,8 @@ class EngagementSignalJob extends ForwardedJob {
 	 * @return int|null
 	 */
 	private function recencyDaysNow(?string $lastActivityAt): ?int {
-		if ($lastActivityAt === null || $lastActivityAt === '') {
-			return null;
-		}
-
-		try {
-			$last = new DateTimeImmutable($lastActivityAt);
-		} catch (\Exception) {
+		$last = self::lastActivity(value: $lastActivityAt);
+		if ($last === null) {
 			return null;
 		}
 
@@ -382,6 +377,36 @@ class EngagementSignalJob extends ForwardedJob {
 
 		return (int)floor(($now->getTimestamp() - $last->getTimestamp()) / 86400);
 	}//end recencyDaysNow()
+
+	/**
+	 * The last activity as a moment, or null when there is none.
+	 *
+	 * @param string|null $value ISO-8601 timestamp, or null.
+	 *
+	 * @return DateTimeImmutable|null
+	 */
+	private static function lastActivity(?string $value): ?DateTimeImmutable {
+		if ($value === null || $value === '') {
+			return null;
+		}
+
+		return self::momentOf(value: $value);
+	}//end lastActivity()
+
+	/**
+	 * A timestamp as a moment, or null when it does not parse.
+	 *
+	 * @param string $value ISO-8601 timestamp.
+	 *
+	 * @return DateTimeImmutable|null
+	 */
+	private static function momentOf(string $value): ?DateTimeImmutable {
+		try {
+			return new DateTimeImmutable($value);
+		} catch (\Exception) {
+			return null;
+		}
+	}//end momentOf()
 
 	/**
 	 * Check whether a learner is a member of a Cohort (Cohort.learnerIds).

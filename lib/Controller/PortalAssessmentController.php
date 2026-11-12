@@ -3,6 +3,9 @@
 /**
  * Learniq Portal Assessment Controller
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * The receiving end of portaliq's timed task (ConductionNL/portaliq#749): five
  * server-to-server forwards (`available`, `start`, `answer`, `submit`,
  * `result`) through which a pupil takes a test in the portal.
@@ -30,8 +33,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

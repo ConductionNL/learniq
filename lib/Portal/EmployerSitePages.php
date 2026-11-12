@@ -3,6 +3,9 @@
 /**
  * Learniq EmployerSitePages
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * The employer's portal: a company that sends its people to the institute's
  * courses (the Warmtepompacademie board: Linda Jansen of Jansen
  * Installatietechniek BV). She reads her company's bookings with their days,
@@ -28,8 +31,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

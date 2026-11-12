@@ -3,6 +3,9 @@
 /**
  * Learniq Competency Alignment Listener
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Pre-save listener (OpenRegister ObjectCreatingEvent and ObjectUpdatingEvent)
  * for the four schemas that align to goals: Lesson, Course, Assignment and
  * Assessment (slug `exam`). It keeps the flat `competencyIds` derived from the
@@ -29,8 +32,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

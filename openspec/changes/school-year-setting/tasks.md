@@ -4,5 +4,5 @@
 - [x] Settings service accepts the key
 - [x] Contact hours calendar and reader use it
 - [x] A standby slot without validity dates gets the current school year
-- [ ] Admin field "The school year starts on" (LQ5-ADMIN admin section)
+- [ ] Admin field "The school year starts on" (LQ5-ADMIN admin section), stored for and read by `lib/Service/Calendar/SchoolYear.php`
 - [ ] Hour plan activities and attendance summaries move onto it (their owning lanes)

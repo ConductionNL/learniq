@@ -3,6 +3,9 @@
 /**
  * Learniq Engagement Score Evaluator
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Stateless calculation engine computing a learner's per-Course engagement
  * signals from their XapiStatement activity: timeOnTaskMinutes (sum of every
  * matching statement's result.duration), lastActivityAt (max statement
@@ -38,8 +41,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

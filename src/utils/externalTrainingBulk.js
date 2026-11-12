@@ -88,11 +88,73 @@ export function bulkMissingFields({ learners, training }) {
 		missing.push('learners')
 	}
 	for (const field of REQUIRED_TRAINING_FIELDS) {
-		if (String(training?.[field] ?? '').trim() === '') {
+		if (isBlank(training?.[field])) {
 			missing.push(field)
 		}
 	}
 	return missing
+}
+
+/**
+ * Whether a form value is empty once trimmed.
+ *
+ * @param {string|number|null|undefined} value A form value.
+ * @return {boolean}
+ */
+function isBlank(value) {
+	return String(value ?? '').trim() === ''
+}
+
+/**
+ * Every learner id once, without the learners that have none.
+ *
+ * @param {object[]|null} learners The picked learners.
+ * @return {string[]}
+ */
+function uniqueLearnerIds(learners) {
+	return [
+		...new Set((learners || []).map(learnerId).filter((id) => id !== '')),
+	]
+}
+
+/**
+ * The training fields every record carries.
+ *
+ * @param {object} training The form.
+ * @return {{title: string, provider: string, kind: string, completedAt: string}}
+ */
+function requiredTrainingFields(training) {
+	return {
+		title: String(training.title ?? '').trim(),
+		provider: String(training.provider ?? '').trim(),
+		kind: training.kind || 'classroom',
+		completedAt: toDateTime(training.completedAt),
+	}
+}
+
+/**
+ * Copy the optional fields the form filled in onto the shared training.
+ *
+ * @param {object} shared The training being built.
+ * @param {object} training The form.
+ */
+function addFilledOptionalFields(shared, training) {
+	for (const field of OPTIONAL_TRAINING_FIELDS) {
+		const value = String(training[field] ?? '').trim()
+		if (value !== '') {
+			shared[field] = value
+		}
+	}
+}
+
+/**
+ * The tenant of the first picked learner that has one.
+ *
+ * @param {object[]|null} learners The picked learners.
+ * @return {string|undefined}
+ */
+function learnersTenant(learners) {
+	return (learners || []).find((l) => l?.tenant_id)?.tenant_id
 }
 
 /**
@@ -106,26 +168,14 @@ export function bulkMissingFields({ learners, training }) {
  * @spec openspec/specs/external-training-recording/spec.md
  */
 export function buildBulkPayload({ learners, training }) {
-	const learnerIds = [
-		...new Set((learners || []).map(learnerId).filter((id) => id !== '')),
-	]
-	const shared = {
-		title: String(training.title ?? '').trim(),
-		provider: String(training.provider ?? '').trim(),
-		kind: training.kind || 'classroom',
-		completedAt: toDateTime(training.completedAt),
-	}
+	const learnerIds = uniqueLearnerIds(learners)
+	const shared = requiredTrainingFields(training)
 	const validUntil = toDateTime(training.validUntil)
 	if (validUntil !== '') {
 		shared.validUntil = validUntil
 	}
-	for (const field of OPTIONAL_TRAINING_FIELDS) {
-		const value = String(training[field] ?? '').trim()
-		if (value !== '') {
-			shared[field] = value
-		}
-	}
-	const tenant = (learners || []).find((l) => l?.tenant_id)?.tenant_id
+	addFilledOptionalFields(shared, training)
+	const tenant = learnersTenant(learners)
 	if (tenant) {
 		shared.tenant_id = tenant
 	}

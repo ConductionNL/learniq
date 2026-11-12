@@ -3,6 +3,9 @@
 /**
  * Learniq Lesson Release Evaluator
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Stateless service resolving, per (item, learner) pair, whether a Lesson or
  * Assessment is available to a specific learner right now — the "adaptive
  * release" / "drip scheduling" gate the adaptive-release-and-prerequisites
@@ -30,8 +33,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

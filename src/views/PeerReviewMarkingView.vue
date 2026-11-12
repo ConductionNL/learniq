@@ -1,4 +1,7 @@
 <!--
+  SPDX-License-Identifier: EUPL-1.2
+  Copyright (C) 2026 Conduction B.V.
+
   PeerReviewMarkingView.vue
   Custom page component for the PeerReviewMarkingView manifest page (type: custom).
 
@@ -29,9 +32,6 @@
 
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring MarkSubmissionView.
-
-  SPDX-License-Identifier: EUPL-1.2
-  Copyright (C) 2026 Conduction B.V.
 
   @spec openspec/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
   @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection

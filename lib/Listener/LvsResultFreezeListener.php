@@ -3,6 +3,9 @@
 /**
  * Learniq LvsResult Freeze Listener
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Keeps a verified LVS score fixed now that LvsResult is no longer
  * `appendOnly` (learniq#1124). OpenRegister refused every update on the
  * append-only schema, the `verify` and `archive` transitions included, so the
@@ -29,8 +32,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *
