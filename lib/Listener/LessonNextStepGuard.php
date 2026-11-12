@@ -155,11 +155,7 @@ class LessonNextStepGuard implements IEventListener {
 	 * @return ObjectEntity The object as it will be stored.
 	 */
 	private function writtenEntity(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
+		return (new WrittenObject())->entityOf(event: $event);
 	}//end writtenEntity()
 
 	/**

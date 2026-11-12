@@ -103,10 +103,6 @@ final class SchemaWrite {
 	 * @return ObjectEntity
 	 */
 	private static function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
+		return (new WrittenObject())->entityOf(event: $event);
 	}//end entityOf()
 }//end class
