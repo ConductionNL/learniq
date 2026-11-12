@@ -1201,7 +1201,7 @@
       "name": "Enrol a whole department in a mandatory course in one go.",
       "built": {
         "state": "built",
-        "evidence": "src/views/BulkEnrolView.vue (department, cohort or picked learners into one course; learnersInDepartment in src/utils/customPages.js mirrors RegulationAudienceResolver)",
+        "evidence": "lib/Controller/BulkEnrolController.php and lib/Service/Enrolment/BulkEnrolService.php (department, cohort or picked learners into one course; learnersInDepartment in src/utils/customPages.js mirrors RegulationAudienceResolver)",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/enrolments/bulk",
         "change": "enrolment",
@@ -1863,7 +1863,7 @@
       "name": "Hand out a certificate the moment someone finishes a course.",
       "built": {
         "state": "built",
-        "evidence": "lib/Listener/CredentialIssuanceHandler.php. Corrections round 8 (2026-09-28), learniq#182 (reopened): the handler fires on completion but saves the Credential without the required signature, openbadges3Payload and issuerDid (lib/Listener/CredentialIssuanceHandler.php:133-147; required list at lib/Settings/learniq_register.json:363), and the signing guard it relies on never runs because the Credential lifecycle has no issue transition (lib/Settings/learniq_register.json:550-552), at 4429d54.",
+        "evidence": "lib/Listener/CredentialIssuanceHandler.php: on course completion it signs the Credential through CredentialSigningService::sign() before the save (:216), so signature, openbadges3Payload and issuerDid are set (learniq#182 fixed).",
         "owner": "ConductionNL/learniq",
         "change": "certification",
         "requirement": [
@@ -1902,7 +1902,7 @@
       "name": "Issue the certificate as an Open Badges 3.0 badge.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json Credential.properties.openbadges3Payload, required; lib/Service/CredentialSigningService.php. Corrections round 8 (2026-09-28), learniq#182: only CredentialSigningService::check() fills openbadges3Payload (lib/Service/CredentialSigningService.php:93-157, written at :155), and nothing calls it: no Credential transition names it as requires, and both issue paths save without it (lib/Listener/CredentialIssuanceHandler.php:133-147, lib/Controller/ExternalTrainingController.php:184-190), at 4429d54.",
+        "evidence": "lib/Settings/learniq_register.json Credential.properties.openbadges3Payload, required; lib/Service/CredentialSigningService.php sign() (:218) builds it with buildOb3Payload() (:263), called before the save by lib/Listener/CredentialIssuanceHandler.php:216 and lib/Controller/ExternalTrainingController.php:263.",
         "owner": "ConductionNL/learniq",
         "change": "certification",
         "requirement": "openspec/specs/certification :: Issue EDCI/Europass and Open Badges 3.0 credentials"
@@ -1938,7 +1938,7 @@
       "name": "Sign each certificate so a third party can check it is genuine.",
       "built": {
         "state": "built",
-        "evidence": "lib/Service/CredentialSigningService.php, RS256 compact JWS in Credential.properties.signature. Corrections round 8 (2026-09-28), learniq#182: signPayload() is called only from check() (lib/Service/CredentialSigningService.php:129), check() has no caller and no transition requires it, so issued certificates carry no signature and the verify endpoint treats them as unsigned (lib/Controller/CredentialVerifyController.php:234-236), at 4429d54.",
+        "evidence": "lib/Service/CredentialSigningService.php sign() and signPayload() (:325), RS256 compact JWS in Credential.properties.signature, set on both issue paths (lib/Listener/CredentialIssuanceHandler.php:216, lib/Controller/ExternalTrainingController.php:263); lib/Controller/CredentialVerifyController.php answers signature_invalid for a signature that does not verify.",
         "owner": "ConductionNL/learniq",
         "change": "certification",
         "requirement": [
@@ -6405,7 +6405,7 @@
       "name": "Import a timetable from your scheduling software.",
       "built": {
         "state": "built",
-        "evidence": "src/views/TimetableConflictQueue.vue:35-43 \"Import a timetable\" button (menu TimetableConflictQueueMenu, src/manifest.d/learning.json:574, admin and coordinator) opens src/dialogs/TimetableImportDialog.vue, which posts to POST /api/timetable/imports (appinfo/routes.php:436, lib/Controller/TimetableImportController.php:111). lib/Timetabling/PlanninqTimetableImport.php:119 deliver() raises integriq's RosterImportRequestedEvent; integriq lib/Sources/Roster/RosterDeliveryService.php hands the Zermelo, Untis, Xedule or TimeEdit lessons to planninq, and learniq reads them back from there and scans conflicts. Needs planninq and integriq installed: the button is disabled with a message otherwise (TimetableConflictQueue.vue:44-55); lib/Settings/connections.json reports the timetable connection. Integriq half: integriq/2026-09-28-rostering-adapter-targets-planninq.",
+        "evidence": "src/views/TimetableConflictQueue.vue:35-43 \"Import a timetable\" button (menu TimetableConflictQueueMenu, src/manifest.d/learning.json:574, admin and coordinator) opens src/dialogs/TimetableImportDialog.vue, which posts to POST /api/timetable/imports (appinfo/routes.php:436, lib/Controller/TimetableImportController.php:111). lib/Timetabling/PlanninqTimetableImport.php:119 deliver() raises integriq's RosterImportRequestedEvent; integriq's roster delivery hands the Zermelo, Untis, Xedule or TimeEdit lessons to planninq, and learniq reads them back from there and scans conflicts. Needs planninq and integriq installed: the button is disabled with a message otherwise (TimetableConflictQueue.vue:44-55); lib/Settings/connections.json reports the timetable connection. Integriq half: integriq/2026-09-28-rostering-adapter-targets-planninq.",
         "owner": "ConductionNL/integriq",
         "change": "2026-09-28-timetable-connection-and-import-screen",
         "reachedOn": "/timetable-conflict-queue > Import a timetable",
@@ -6489,7 +6489,7 @@
       "name": "Give each person their own timetable, not the whole school's.",
       "built": {
         "state": "built",
-        "evidence": "lib/Controller/TimetableController.php mine(), route /api/timetable/mine; src/manifest.d/my-learning.json MyTimetable. Corrections round 8 (2026-09-28), learniq#1134: a substitute teacher does not see the lessons they cover, because resolveCallerCohortIds() matches only Cohort.teacherIds, Cohort.learnerIds and the caller's own enrolments, never Session.substituteTeacherId (lib/Controller/TimetableController.php:164-218), at 4429d54.",
+        "evidence": "lib/Controller/TimetableController.php mine() (:125), route /api/timetable/mine, through lib/Service/PersonalTimetableService.php, which also reads sessionsForTeacher() so a substitute teacher sees the lessons they cover (learniq#1134 fixed); src/manifest.d/my-learning.json MyTimetable.",
         "owner": "ConductionNL/learniq",
         "change": "2026-07-07-personal-timetable",
         "requirement": "openspec/specs/personal-timetable :: A signed-in user can see their own upcoming sessions"
@@ -6609,7 +6609,8 @@
         "owner": "ConductionNL/portaliq",
         "change": "integriq/portal-idp-broker-config",
         "note": "Missing half specified in integriq/portal-idp-broker-config (spec round part 3, 2026-10-07); delivered half: portal-parent-child-record.",
-        "requirement": "openspec/specs/portal-contribution :: A guardian opens one child and sees everything about them"
+        "requirement": "openspec/specs/portal-contribution :: A guardian opens one child and sees everything about them",
+        "plan": "integriq/portal-idp-broker-config"
       },
       "provider": "portaliq",
       "providerHow": "read: this repository contributes to the portal, which ships in Portaliq",
@@ -7802,7 +7803,8 @@
         "owner": "ConductionNL/openregister",
         "change": "openregister/dsar-finds-records-by-declared-subject-id",
         "note": "The missing half (OpenRegister finding learner records by the declared subject id) is specified in openregister/dsar-finds-records-by-declared-subject-id (spec round part 3, 2026-10-07); previously linked openregister/data-subject-rights-across-the-instance.",
-        "requirement": "openregister:openspec/changes/dsar-finds-records-by-declared-subject-id/specs/gdpr-data-subject-rights :: Discovery also finds records through schema-declared subject id fields"
+        "requirement": "openregister:openspec/changes/dsar-finds-records-by-declared-subject-id/specs/gdpr-data-subject-rights :: Discovery also finds records through schema-declared subject id fields",
+        "plan": "openregister/dsar-finds-records-by-declared-subject-id"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -8295,7 +8297,7 @@
       "name": "Never let an unpaid voluntary contribution block a learner.",
       "built": {
         "state": "built",
-        "evidence": "lib/Lifecycle/FeeItemVoluntaryEntitlementGuard.php and EntitlementOrderPaidGuard.php",
+        "evidence": "lib/Lifecycle/FeeItemVoluntaryEntitlementGuard.php and lib/Lifecycle/EntitlementPaymentSettledGuard.php",
         "owner": "ConductionNL/learniq",
         "change": "2026-07-16-school-payments",
         "requirement": "openspec/specs/payments :: A voluntary FeeItem MUST NOT gate enrolment or participation"
@@ -8791,7 +8793,8 @@
         "reachedOn": "web service only; list export",
         "change": "openregister/rapportage-bi-export",
         "readOn": "2026-10-07",
-        "requirement": "openregister:openspec/specs/rapportage-bi-export :: The system MUST support API access for external BI tools via GraphQL + REST"
+        "requirement": "openregister:openspec/specs/rapportage-bi-export :: The system MUST support API access for external BI tools via GraphQL + REST",
+        "plan": "openregister/rapportage-bi-export"
       },
       "provider": "openregister",
       "providerHow": "OpenRegister's object API and export serve the data; learniq adds no BI feed.",
@@ -8829,7 +8832,8 @@
         "owner": "ConductionNL/integriq",
         "reachedOn": "nothing",
         "change": "integriq/connectors-course-marketplace",
-        "requirement": "integriq:openspec/changes/connectors-course-marketplace/specs/course-marketplace-connectors :: A provider's catalogue arrives in learniq as draft courses that launch through LTI (REQ-CMKT-001)"
+        "requirement": "integriq:openspec/changes/connectors-course-marketplace/specs/course-marketplace-connectors :: A provider's catalogue arrives in learniq as draft courses that launch through LTI (REQ-CMKT-001)",
+        "plan": "integriq/connectors-course-marketplace"
       },
       "provider": "integriq",
       "providerHow": "Launching outside courses would ride integriq's LTI adapter, which has no launch endpoint.",
