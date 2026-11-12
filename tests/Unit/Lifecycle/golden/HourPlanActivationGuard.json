@@ -1,0 +1,155 @@
+{
+    "no sibling": {
+        "allowed": true,
+        "message": null,
+        "queries": [
+            [
+                {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "hour-plan",
+                        "programmeId": "p",
+                        "intakeYear": "2026-2027"
+                    }
+                },
+                [
+                    false,
+                    true
+                ]
+            ]
+        ],
+        "log": "[]"
+    },
+    "a named active sibling": {
+        "allowed": false,
+        "message": "The hour plan \"Havo 2026\" is already active for this programme and intake year. Archive it first.",
+        "queries": [
+            [
+                {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "hour-plan",
+                        "programmeId": "p",
+                        "intakeYear": "2026-2027"
+                    }
+                },
+                [
+                    false,
+                    true
+                ]
+            ]
+        ],
+        "log": "[{\"level\":\"info\",\"message\":\"[HourPlanActivationGuard] {user} tried a second active plan for {p} {y}.\",\"context\":{\"user\":\"coord\",\"p\":\"p\",\"y\":\"2026-2027\"}}]"
+    },
+    "an unnamed active sibling": {
+        "allowed": false,
+        "message": "The hour plan \"hp-3\" is already active for this programme and intake year. Archive it first.",
+        "queries": [
+            [
+                {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "hour-plan",
+                        "programmeId": "p",
+                        "intakeYear": "2026-2027"
+                    }
+                },
+                [
+                    false,
+                    true
+                ]
+            ]
+        ],
+        "log": "[{\"level\":\"info\",\"message\":\"[HourPlanActivationGuard] {user} tried a second active plan for {p} {y}.\",\"context\":{\"user\":\"coord\",\"p\":\"p\",\"y\":\"2026-2027\"}}]"
+    },
+    "active, another intake": {
+        "allowed": true,
+        "message": null,
+        "queries": [
+            [
+                {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "hour-plan",
+                        "programmeId": "p",
+                        "intakeYear": "2026-2027"
+                    }
+                },
+                [
+                    false,
+                    true
+                ]
+            ]
+        ],
+        "log": "[]"
+    },
+    "itself by uuid": {
+        "allowed": true,
+        "message": null,
+        "queries": [
+            [
+                {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "hour-plan",
+                        "programmeId": "p",
+                        "intakeYear": "2026-2027"
+                    }
+                },
+                [
+                    false,
+                    true
+                ]
+            ]
+        ],
+        "log": "[]"
+    },
+    "a row that is not an entity": {
+        "allowed": true,
+        "message": null,
+        "queries": [
+            [
+                {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "hour-plan",
+                        "programmeId": "p",
+                        "intakeYear": "2026-2027"
+                    }
+                },
+                [
+                    false,
+                    true
+                ]
+            ]
+        ],
+        "log": "[]"
+    },
+    "no intake year": {
+        "allowed": false,
+        "message": "An hour plan needs a programme and an intake year before it can be activated.",
+        "queries": [],
+        "log": "[]"
+    },
+    "a failing read": {
+        "allowed": false,
+        "message": "The other hour plans of this programme could not be checked. Try again.",
+        "queries": [
+            [
+                {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "hour-plan",
+                        "programmeId": "p",
+                        "intakeYear": "2026-2027"
+                    }
+                },
+                [
+                    false,
+                    true
+                ]
+            ]
+        ],
+        "log": "[{\"level\":\"warning\",\"message\":\"[HourPlanActivationGuard] Could not read hour plans: {msg}\",\"context\":{\"msg\":\"down\"}}]"
+    }
+}
