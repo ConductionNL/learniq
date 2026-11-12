@@ -116,6 +116,12 @@ npm run stylelint       # CSS linting
 npm run check:manifest  # validates src/manifest.json against nc-vue schema
 ```
 
+### Test coverage
+
+<!-- coverage:start -->
+Measured test coverage: 91.3% of statements (PHP 91.3% of 37,672 statements), at commit `5c3979a` on 2026-11-12. The JavaScript frontend is not in this figure, because it has no coverage measurement yet. The figures come from [`coverage-summary.json`](coverage-summary.json); refresh them with `composer coverage:publish`.
+<!-- coverage:end -->
+
 ### Frontend development
 
 ```bash
