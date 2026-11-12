@@ -112,9 +112,11 @@ class CommonCartridgeCourseImporter {
 		}
 
 		$this->routeUnreferencedResources(resources: $manifest['resources'], walk: $walk);
+		// The entries so far reach the caller even when the QTI import throws.
 		$entries = $walk->entries;
 
-		$this->importQtiResources(dir: $package->dir, tenantId: $package->tenantId, entries: $entries);
+		$this->importQtiResources(walk: $walk);
+		$entries = $walk->entries;
 
 		return $walk->topCourseId;
 	}//end importManifest()
@@ -268,15 +270,32 @@ class CommonCartridgeCourseImporter {
 	 * Items were created than there are `pending-qti` entries, the tail of unmatched
 	 * entries degrades rather than being reported as falsely `imported`.
 	 *
-	 * @param string $dir Extracted CC package directory.
-	 * @param string $tenantId Tenant UUID.
-	 * @param array<int, array<string,mixed>> $entries Report entries accumulator, mutated in place.
+	 * @param OrganizationWalk $walk The walk: the extracted package and the report entries, mutated in place.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
 	 */
-	private function importQtiResources(string $dir, string $tenantId, array &$entries): void {
+	private function importQtiResources(OrganizationWalk $walk): void {
+		$pendingIndexes = $this->pendingQtiIndexes(entries: $walk->entries);
+		if (empty($pendingIndexes) === true) {
+			return;
+		}
+
+		$createdUuids = $this->importQtiItems(package: $walk->package);
+		foreach ($pendingIndexes as $position => $idx) {
+			$walk->entries[$idx] = $this->resolvedQtiEntry(entry: $walk->entries[$idx], uuid: ($createdUuids[$position] ?? null));
+		}
+	}//end importQtiResources()
+
+	/**
+	 * The positions of the `pending-qti` placeholder entries, in order.
+	 *
+	 * @param array<int, array<string,mixed>> $entries Report entries so far.
+	 *
+	 * @return list<int>
+	 */
+	private function pendingQtiIndexes(array $entries): array {
 		$pendingIndexes = [];
 		foreach ($entries as $idx => $entry) {
 			if ($entry['outcome'] === 'pending-qti') {
@@ -284,30 +303,46 @@ class CommonCartridgeCourseImporter {
 			}
 		}
 
-		if (empty($pendingIndexes) === true) {
-			return;
+		return $pendingIndexes;
+	}//end pendingQtiIndexes()
+
+	/**
+	 * Create the package's item bank and import every QTI item into it; none without a bank.
+	 *
+	 * @param PackageContext $package The extracted package: its directory and tenant.
+	 *
+	 * @return array<int, string> UUIDs of the created Items, in document order.
+	 */
+	private function importQtiItems(PackageContext $package): array {
+		$itemBankId = $this->objectWriter->createItemBank(name: 'Imported items', tenantId: $package->tenantId);
+		if ($itemBankId === null) {
+			return [];
 		}
 
-		$itemBankId = $this->objectWriter->createItemBank(name: 'Imported items', tenantId: $tenantId);
-		$createdUuids = [];
-		if ($itemBankId !== null) {
-			$createdUuids = $this->qtiImportService->importFromDirectory(dir: $dir, itemBankId: $itemBankId, tenantId: $tenantId);
+		return $this->qtiImportService->importFromDirectory(dir: $package->dir, itemBankId: $itemBankId, tenantId: $package->tenantId);
+	}//end importQtiItems()
+
+	/**
+	 * A `pending-qti` entry resolved: imported as its created Item, or degraded without one.
+	 *
+	 * @param array<string,mixed> $entry The placeholder entry.
+	 * @param string|null         $uuid  The created Item paired with it, or null.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function resolvedQtiEntry(array $entry, ?string $uuid): array {
+		if ($uuid !== null) {
+			$entry['outcome'] = 'imported';
+			$entry['targetType'] = 'item';
+			$entry['targetId'] = $uuid;
+			$entry['reason'] = null;
+			return $entry;
 		}
 
-		foreach ($pendingIndexes as $position => $idx) {
-			$uuid = $createdUuids[$position] ?? null;
-			if ($uuid !== null) {
-				$entries[$idx]['outcome'] = 'imported';
-				$entries[$idx]['targetType'] = 'item';
-				$entries[$idx]['targetId'] = $uuid;
-				$entries[$idx]['reason'] = null;
-				continue;
-			}
-
-			$entries[$idx]['outcome'] = 'degraded';
-			$entries[$idx]['targetType'] = null;
-			$entries[$idx]['targetId'] = null;
-			$entries[$idx]['reason'] = 'Item could not be parsed from the package (see application log).';
-		}
-	}//end importQtiResources()
+		$entry['outcome'] = 'degraded';
+		$entry['targetType'] = null;
+		$entry['targetId'] = null;
+		$entry['reason'] = 'Item could not be parsed from the package (see application log).';
+		return $entry;
+	}//end resolvedQtiEntry()
 }//end class
