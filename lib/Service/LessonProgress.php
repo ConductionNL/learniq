@@ -67,44 +67,85 @@ class LessonProgress {
 	 * @spec openspec/specs/progress-tracking/spec.md#requirement-the-follow-up-of-an-xapi-statement-runs-outside-the-save-that-records-it
 	 */
 	public function record(array $statement, string $completedAt): void {
-		$tenantId = (string)($statement['tenant_id'] ?? '');
 		$verbId = (string)($statement['verb']['id'] ?? '');
 		if (in_array($verbId, XapiEnrolmentCompletion::COMPLETION_VERBS, true) === false) {
 			return;
 		}
 
+		$found = $this->completionFor(statement: $statement);
+		if ($found === null) {
+			return;
+		}
+
+		$this->upsertLessonCompletion(completion: $found + self::statementFields(statement: $statement, completedAt: $completedAt));
+	}//end record()
+
+	/**
+	 * Who completed which lesson of which course, in which enrolment; null when
+	 * the lesson, its course or a verified learner cannot be resolved.
+	 *
+	 * @param array<string, mixed> $statement The XapiStatement as saved.
+	 *
+	 * @return array<string, mixed>|null learnerId, lessonId, courseId and enrolmentId.
+	 */
+	private function completionFor(array $statement): ?array {
+		$tenantId = (string)($statement['tenant_id'] ?? '');
+		$lesson   = $this->lessonRefs(statement: $statement, tenantId: $tenantId);
+		if ($lesson === null) {
+			return null;
+		}
+
+		$learnerId = $this->resolveVerifiedLearnerId(payload: $statement);
+		if ($learnerId === null) {
+			return null;
+		}
+
+		$enrolmentId = $this->resolveActiveEnrolmentId(learnerId: $learnerId, courseId: $lesson['courseId'], tenantId: $tenantId);
+		return ['learnerId' => $learnerId] + $lesson + ['enrolmentId' => $enrolmentId];
+	}//end completionFor()
+
+	/**
+	 * The resolved lesson's id and course id, or null when either is missing.
+	 *
+	 * @param array<string, mixed> $statement The XapiStatement as saved.
+	 * @param string               $tenantId  Tenant scope for the lookup.
+	 *
+	 * @return array<string, mixed>|null lessonId and courseId.
+	 */
+	private function lessonRefs(array $statement, string $tenantId): ?array {
 		$lesson = $this->resolveLesson(payload: $statement, tenantId: $tenantId);
 		if ($lesson === null) {
 			// No resolvable Lesson: skipped without error, exactly like the
 			// enrolment completion skips an unresolvable object id.
-			return;
+			return null;
 		}
 
 		$lessonId = $lesson['id'] ?? ($lesson['uuid'] ?? null);
 		$courseId = $lesson['courseId'] ?? null;
 		if ($lessonId === null || $courseId === null) {
-			return;
+			return null;
 		}
 
-		$learnerId = $this->resolveVerifiedLearnerId(payload: $statement);
-		if ($learnerId === null) {
-			return;
-		}
+		return ['lessonId' => $lessonId, 'courseId' => $courseId];
+	}//end lessonRefs()
 
-		$this->upsertLessonCompletion(
-			completion: [
-				'learnerId' => $learnerId,
-				'lessonId' => $lessonId,
-				'courseId' => $courseId,
-				'enrolmentId' => $this->resolveActiveEnrolmentId(learnerId: $learnerId, courseId: $courseId, tenantId: $tenantId),
-				'source' => 'xapi',
-				'verb' => $verbId,
-				'score' => self::scaledScore(statement: $statement),
-				'completedAt' => $completedAt,
-				'tenant_id' => $tenantId,
-			]
-		);
-	}//end record()
+	/**
+	 * The completion fields the statement itself carries.
+	 *
+	 * @param array<string, mixed> $statement   The XapiStatement as saved.
+	 * @param string               $completedAt When it was queued, ISO 8601.
+	 *
+	 * @return array<string, mixed> source, verb, score, completedAt and tenant_id.
+	 */
+	private static function statementFields(array $statement, string $completedAt): array {
+		return [
+			'source' => 'xapi',
+			'verb' => (string)($statement['verb']['id'] ?? ''),
+			'score' => self::scaledScore(statement: $statement),
+			'completedAt' => $completedAt,
+			'tenant_id' => (string)($statement['tenant_id'] ?? ''),
+		];
+	}//end statementFields()
 
 	/**
 	 * The statement's result.score.scaled as a float; a whole number becomes a float and any other type is a TypeError.
@@ -171,16 +212,23 @@ class LessonProgress {
 			return null;
 		}
 
-		$lessonFilters = [];
-		if ($tenantId !== '') {
-			$lessonFilters['tenant_id'] = $tenantId;
-		}
+		return self::firstRow(rows: $this->findLesson(lessonId: $lessonId, tenantId: $tenantId));
+	}//end resolveLesson()
 
-		$lessons = $this->objectService->findAll(
+	/**
+	 * The Lesson rows with this id in the tenant, at most one.
+	 *
+	 * @param string $lessonId The Lesson id the ingest stamped.
+	 * @param string $tenantId Tenant scope for the lookup, or '' for none.
+	 *
+	 * @return array<int, mixed>
+	 */
+	private function findLesson(string $lessonId, string $tenantId): array {
+		return $this->objectService->findAll(
 			[
 				'ids' => [$lessonId],
 				'filters' => array_merge(
-					$lessonFilters,
+					self::tenantFilter(tenantId: $tenantId),
 					[
 						'register' => self::LEARNIQ_REGISTER,
 						'schema' => self::LESSON_SCHEMA,
@@ -189,18 +237,42 @@ class LessonProgress {
 				'limit' => 1,
 			]
 		);
+	}//end findLesson()
 
-		if (empty($lessons) === true) {
+	/**
+	 * The tenant filter, or none for an empty tenant.
+	 *
+	 * @param string $tenantId Tenant scope, or ''.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function tenantFilter(string $tenantId): array {
+		if ($tenantId !== '') {
+			return ['tenant_id' => $tenantId];
+		}
+
+		return [];
+	}//end tenantFilter()
+
+	/**
+	 * The first row as an array, or null when there is none.
+	 *
+	 * @param array<int, mixed> $rows Rows or entities.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private static function firstRow(array $rows): ?array {
+		if (empty($rows) === true) {
 			return null;
 		}
 
-		$lesson = $lessons[0];
-		if (is_array($lesson) === false) {
-			$lesson = $lesson->jsonSerialize();
+		$row = $rows[0];
+		if (is_array($row) === false) {
+			$row = $row->jsonSerialize();
 		}
 
-		return $lesson;
-	}//end resolveLesson()
+		return $row;
+	}//end firstRow()
 
 	/**
 	 * Resolve the learner's current Enrolment id for this Course: the active
