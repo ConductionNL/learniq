@@ -30,6 +30,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Course;
 
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectDeletion;
 use OCA\Learniq\Exception\CourseTemplateRefusedException;
 use OCA\OpenRegister\Exception\NotAuthorizedException;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -278,7 +280,13 @@ class CourseTemplateService {
 	private function rollback(array $created): void {
 		foreach (array_reverse($created) as $object) {
 			try {
-				$this->objects->objectService->deleteObject(uuid: $object['id'], register: self::REGISTER, schema: $object['schema'], _rbac: true);
+				$this->objects->objectService->deleteObject(
+					deletion: new ObjectDeletion(
+						uuid: $object['id'],
+						target: new ObjectFindTarget(register: self::REGISTER, schema: $object['schema'])
+					),
+					_rbac: true
+				);
 			} catch (Throwable $failure) {
 				$this->logger->warning(
 					'[CourseTemplateService] Could not remove {schema} {id} after a failed instantiation: {error}',

@@ -64,6 +64,7 @@ require_once __DIR__ . '/Support/RegisterSchemaPayloads.php';
 require_once __DIR__ . '/Support/DelegatingDouble.php';
 require_once __DIR__ . '/Support/PassedArguments.php';
 require_once __DIR__ . '/Support/GoldenFile.php';
+require_once __DIR__ . '/Support/DeleteCallShape.php';
 
 // Shared guard: base.php exits() rather than throwing on a bad NC instance, so
 // loading it unconditionally silently truncates the suite to zero tests while

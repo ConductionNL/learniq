@@ -21,6 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\DeleteCallShape;
 use OCA\Learniq\Service\CompetencyAlignmentNormaliser;
 use OCA\Learniq\Service\CompetencyTree;
 use OCA\Learniq\Service\CurriculumCoverageCalculator;
@@ -124,10 +125,10 @@ class CurriculumCoverageRollupTest extends TestCase {
 			}
 		);
 		$service->method('deleteObject')->willReturnCallback(
-			function (string $uuid): bool {
+			DeleteCallShape::legacy(function (string $uuid): bool {
 				$this->deleted[] = $uuid;
 				return true;
-			}
+			})
 		);
 
 		return new CurriculumCoverageRollup(objectService: $service, calculator: $this->calculator, logger: new NullLogger());

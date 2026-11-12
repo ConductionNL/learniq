@@ -35,6 +35,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectDeletion;
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
@@ -231,7 +233,13 @@ class CourseEvaluationAnswerService {
 				'[CourseEvaluationAnswerService] The submit of an evaluation answer was refused; the draft is removed: {error}',
 				['error' => $exception->getMessage(), 'exception' => $exception, 'invitationId' => $invitationId]
 			);
-			$this->objectService->deleteObject(uuid: $responseId, register: self::REGISTER, schema: 'course-evaluation-response', _rbac: false);
+			$this->objectService->deleteObject(
+				deletion: new ObjectDeletion(
+					uuid: $responseId,
+					target: new ObjectFindTarget(register: self::REGISTER, schema: 'course-evaluation-response')
+				),
+				_rbac: false
+			);
 			$error = 'Your answer could not be submitted.';
 			if (str_contains($exception->getMessage(), self::GUARD_DENIAL) === true) {
 				$error = self::GUARD_DENIAL;

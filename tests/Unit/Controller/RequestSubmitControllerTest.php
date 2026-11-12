@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Controller;
 
+use OCA\Learniq\Tests\Support\DeleteCallShape;
 use OCA\Learniq\Controller\RequestSubmitController;
 use OCA\Learniq\Service\DraftSubmitter;
 use OCA\Learniq\Service\LearnerRefResolver;
@@ -107,11 +108,11 @@ class RequestSubmitControllerTest extends TestCase {
 			}
 		);
 		$objects->method('deleteObject')->willReturnCallback(
-			function (string $uuid): bool {
+			DeleteCallShape::legacy(function (string $uuid): bool {
 				$this->deleted[] = $uuid;
 
 				return true;
-			}
+			})
 		);
 
 		$engine = $this->createMock(TransitionEngine::class);

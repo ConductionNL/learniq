@@ -98,6 +98,22 @@ final class OpenRegisterContractTest extends TestCase {
 	}//end testObjectServiceFindAllSignatureIsUnchanged()
 
 	/**
+	 * The parameter list Learniq's deletes assume for ObjectService::deleteObject():
+	 * the uuid, scope, acting user and permanence travel in one ObjectDeletion.
+	 *
+	 * @return void
+	 */
+	public function testObjectServiceDeleteObjectTakesAnObjectDeletion(): void {
+		$this->assertParameterNames(
+			method: new ReflectionMethod(ObjectService::class, 'deleteObject'),
+			expected: ['deletion', '_rbac', '_multitenancy', '_retentionSweep']
+		);
+
+		$this->assertReturnTypeIs(method: new ReflectionMethod(ObjectService::class, 'deleteObject'), expected: 'bool');
+
+	}//end testObjectServiceDeleteObjectTakesAnObjectDeletion()
+
+	/**
 	 * The parameter list the portal assessment writes assume for
 	 * ObjectService::runAs(): the user first, then the operation.
 	 *

@@ -33,6 +33,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Integration\Lifecycle;
 
+use OCA\OpenRegister\Service\Object\ObjectDeletion;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\XapiCompletionHandler;
 use OCP\EventDispatcher\Event;
@@ -148,7 +149,7 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 		if ($this->objectService !== null && empty($this->createdUuids) === false) {
 			foreach (array_reverse($this->createdUuids) as ['register' => $register, 'schema' => $schema, 'uuid' => $uuid]) {
 				try {
-					$this->objectService->deleteObject($uuid);
+					$this->objectService->deleteObject(deletion: new ObjectDeletion(uuid: $uuid));
 				} catch (\Throwable) {
 					// Best-effort cleanup; ignore failures.
 				}

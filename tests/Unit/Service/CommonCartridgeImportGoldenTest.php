@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\DeleteCallShape;
 use OCA\Learniq\Service\CommonCartridgeParser;
 use OCA\Learniq\Service\CoursePackage\CommonCartridgeCourseImporter;
 use OCA\Learniq\Service\CoursePackage\CommonCartridgeResourceRouter;
@@ -188,17 +189,9 @@ class CommonCartridgeImportGoldenTest extends TestCase {
 			}
 		);
 
-		$deleteParams = (new ReflectionMethod(ObjectService::class, 'deleteObject'))->getParameters();
 		$service->method('deleteObject')->willReturnCallback(
-			static function (...$args) use ($deleteParams, &$calls): bool {
-				$named = [];
-				foreach ($args as $i => $value) {
-					if ($deleteParams[$i]->isDefaultValueAvailable() === false || $deleteParams[$i]->getDefaultValue() !== $value) {
-						$named[$deleteParams[$i]->getName()] = $value;
-					}
-				}
-
-				$calls[] = ['deleteObject' => $named];
+			static function (...$args) use (&$calls): bool {
+				$calls[] = ['deleteObject' => DeleteCallShape::named(args: $args)];
 				return true;
 			}
 		);
