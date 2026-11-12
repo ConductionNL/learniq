@@ -292,4 +292,104 @@ class ConferenceSlotBookingSyncTest extends TestCase {
 
 		return new ConferenceSlotBookingSync($resolver, $objectService, $session, new NullLogger());
 	}//end sync()
+
+	/**
+	 * REFUSED: a portal cancel of an acknowledged time after the window, in a
+	 * closed round, or in a round that no longer exists, with the exact refusal.
+	 *
+	 * @return void
+	 */
+	public function testEveryLatePortalCancelIsRefusedWithTheSameAnswer(): void {
+		$acknowledged = array_merge($this->bookedSlot(), ['lifecycle' => 'acknowledged']);
+		$cancelled    = array_merge($this->bookedSlot(), ['lifecycle' => 'cancelled']);
+		$rounds       = [
+			['bookingClosesAt' => '2020-01-01T17:00:00+01:00'],
+			['lifecycle' => 'booking-closed'],
+			['id' => 'another-round'],
+		];
+		foreach ($rounds as $change) {
+			$this->setUp();
+			$this->store->rows['conference-round'][0] = array_merge($this->store->rows['conference-round'][0], $change);
+			$portal = $this->updating(old: $acknowledged, new: $cancelled);
+
+			$this->sync()->handle($portal);
+
+			$this->assertTrue($portal->isPropagationStopped());
+			$this->assertSame(['reason' => 'cancel-window-closed', 'message' => ConferenceSlotBookingSync::LATE_CANCEL], $portal->getErrors());
+		}
+	}//end testEveryLatePortalCancelIsRefusedWithTheSameAnswer()
+
+	/**
+	 * ALLOWED: a portal cancel of a time nobody held, or in an open round
+	 * without a closing time, goes through; only booked to acknowledged is stamped.
+	 *
+	 * @return void
+	 */
+	public function testAPortalCancelOfAnUnheldTimeOrAnOpenEndedRoundGoesThrough(): void {
+		$this->store->rows['conference-round'][0]['bookingClosesAt'] = '2020-01-01T17:00:00+01:00';
+		$free = $this->updating(old: array_merge($this->bookedSlot(), ['lifecycle' => 'free']), new: array_merge($this->bookedSlot(), ['lifecycle' => 'cancelled']));
+		$this->sync()->handle($free);
+		$this->assertFalse($free->isPropagationStopped());
+
+		unset($this->store->rows['conference-round'][0]['bookingClosesAt']);
+		$openEnded = $this->updating(old: $this->bookedSlot(), new: array_merge($this->bookedSlot(), ['lifecycle' => 'cancelled']));
+		$this->sync()->handle($openEnded);
+		$this->assertFalse($openEnded->isPropagationStopped());
+
+		$fromDeclined = $this->updating(old: array_merge($this->bookedSlot(), ['lifecycle' => 'declined']), new: array_merge($this->bookedSlot(), ['lifecycle' => 'acknowledged']));
+		$this->sync(signedIn: true)->handle($fromDeclined);
+		$this->assertArrayNotHasKey('acknowledgedAt', $fromDeclined->getModifiedData());
+		$this->assertSame([], $fromDeclined->getErrors());
+	}//end testAPortalCancelOfAnUnheldTimeOrAnOpenEndedRoundGoesThrough()
+
+	/**
+	 * A stopped before-write event, another schema, an unchanged state or a
+	 * move outside held to released does nothing.
+	 *
+	 * @return void
+	 */
+	public function testWritesThatAreNotAFollowedMoveDoNothing(): void {
+		$this->store->rows['conference-round'][0]['bookingClosesAt'] = '2020-01-01T17:00:00+01:00';
+		$cancelled = array_merge($this->bookedSlot(), ['lifecycle' => 'cancelled']);
+		$stopped   = $this->updating(old: $this->bookedSlot(), new: $cancelled);
+		$stopped->stopPropagation();
+		$this->sync()->handle($stopped);
+		$this->assertSame([], $stopped->getErrors());
+
+		$other = new ObjectUpdatingEvent(OrEntityFactory::make($cancelled, 'conference-signup'), OrEntityFactory::make($this->bookedSlot(), 'conference-signup'));
+		$this->sync()->handle($other);
+		$this->assertFalse($other->isPropagationStopped());
+
+		$this->sync()->handle($this->updated(old: $this->bookedSlot(), new: $this->bookedSlot()));
+		$this->sync()->handle($this->updated(old: array_merge($this->bookedSlot(), ['lifecycle' => 'free']), new: $this->bookedSlot()));
+		$this->sync()->handle($this->updated(old: $this->bookedSlot(), new: array_merge($this->bookedSlot(), ['lifecycle' => 'completed'])));
+		$this->assertSame([], $this->store->saves);
+	}//end testWritesThatAreNotAFollowedMoveDoNothing()
+
+	/**
+	 * A schema the resolver cannot name is left alone, and a failed follow-up
+	 * is logged rather than thrown.
+	 *
+	 * @return void
+	 */
+	public function testAnUnresolvableSchemaAndAFailedFollowUpAreHandled(): void {
+		$resolver = $this->createMock(ListenerSchemaResolver::class);
+		$resolver->method('guardSchemaSlug')->willThrowException(new \RuntimeException('no schema'));
+		$objects = $this->createMock(ObjectService::class);
+		$objects->expects(self::never())->method('find');
+		$sync = new ConferenceSlotBookingSync($resolver, $objects, $this->createMock(IUserSession::class), new NullLogger());
+		$sync->handle($this->updated(old: $this->bookedSlot(), new: array_merge($this->bookedSlot(), ['lifecycle' => 'declined'])));
+
+		$resolver = $this->createMock(ListenerSchemaResolver::class);
+		$resolver->method('guardSchemaSlug')->willReturn('conference-slot');
+		$objects = $this->createMock(ObjectService::class);
+		$objects->method('find')->willThrowException(new \RuntimeException('register down'));
+		$logger = $this->createMock(\Psr\Log\LoggerInterface::class);
+		$logger->expects(self::once())->method('error')->with(
+			'[ConferenceSlotBookingSync] Slot {slot} moved to {to}, but the follow-up failed: {msg}',
+			['slot' => self::SLOT_1, 'to' => 'declined', 'msg' => 'register down']
+		);
+		$sync = new ConferenceSlotBookingSync($resolver, $objects, $this->createMock(IUserSession::class), $logger);
+		$sync->handle($this->updated(old: $this->bookedSlot(), new: array_merge($this->bookedSlot(), ['lifecycle' => 'declined'])));
+	}//end testAnUnresolvableSchemaAndAFailedFollowUpAreHandled()
 }//end class

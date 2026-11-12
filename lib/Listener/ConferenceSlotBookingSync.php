@@ -175,16 +175,49 @@ class ConferenceSlotBookingSync implements IEventListener {
 
 		[$from, $to, $slot] = $move;
 		if ($to === 'acknowledged' && $from === 'booked') {
-			$event->setModifiedData(
-				array_merge($event->getModifiedData(), ['acknowledgedAt' => (new DateTimeImmutable())->format(DateTimeInterface::ATOM)])
-			);
+			self::stampAcknowledged(event: $event);
 			return;
 		}
 
-		if ($to !== 'cancelled' || in_array($from, self::HELD, true) === false || $this->userSession->getUser() !== null) {
-			return;
+		if ($this->isPortalCancelOfAHeldTime(from: $from, to: $to) === true) {
+			$this->refuseLateCancel(event: $event, slot: $slot);
 		}
+	}//end beforeWrite()
 
+	/**
+	 * Stamp the moment the teacher acknowledged into the write.
+	 *
+	 * @param ObjectUpdatingEvent $event The event.
+	 *
+	 * @return void
+	 */
+	private static function stampAcknowledged(ObjectUpdatingEvent $event): void {
+		$event->setModifiedData(
+			array_merge($event->getModifiedData(), ['acknowledgedAt' => (new DateTimeImmutable())->format(DateTimeInterface::ATOM)])
+		);
+	}//end stampAcknowledged()
+
+	/**
+	 * Whether a parent cancels, from the portal (no session), a time they held.
+	 *
+	 * @param string $from The slot's old state.
+	 * @param string $to   The slot's new state.
+	 *
+	 * @return bool
+	 */
+	private function isPortalCancelOfAHeldTime(string $from, string $to): bool {
+		return $to === 'cancelled' && in_array($from, self::HELD, true) === true && $this->userSession->getUser() === null;
+	}//end isPortalCancelOfAHeldTime()
+
+	/**
+	 * Refuse the cancel unless the slot's round still lets parents cancel.
+	 *
+	 * @param ObjectUpdatingEvent  $event The event.
+	 * @param array<string, mixed> $slot  The slot after the write.
+	 *
+	 * @return void
+	 */
+	private function refuseLateCancel(ObjectUpdatingEvent $event, array $slot): void {
 		$round = $this->row(id: (string)($slot['conferenceRoundId'] ?? ''), schema: self::ROUND_SCHEMA);
 		if ($round !== null && $this->isCancellable(round: $round) === true) {
 			return;
@@ -192,7 +225,7 @@ class ConferenceSlotBookingSync implements IEventListener {
 
 		$event->setErrors(['reason' => 'cancel-window-closed', 'message' => self::LATE_CANCEL]);
 		$event->stopPropagation();
-	}//end beforeWrite()
+	}//end refuseLateCancel()
 
 	/**
 	 * Mirror the booking and offer a released time again.
@@ -208,27 +241,62 @@ class ConferenceSlotBookingSync implements IEventListener {
 		}
 
 		[$from, $to, $slot] = $move;
-		if (in_array($from, self::HELD, true) === false || in_array($to, array_merge(['acknowledged'], self::RELEASED), true) === false) {
-			return;
+		if (self::isFollowedMove(from: $from, to: $to) === true) {
+			$this->followUpOrLog(slot: $slot, to: $to);
 		}
+	}//end afterWrite()
 
+	/**
+	 * Run the follow-up; a failure is logged, never thrown, since the slot is already written.
+	 *
+	 * @param array<string, mixed> $slot The slot after the write.
+	 * @param string               $to   The slot's new state.
+	 *
+	 * @return void
+	 */
+	private function followUpOrLog(array $slot, string $to): void {
 		try {
-			$round = $this->row(id: (string)($slot['conferenceRoundId'] ?? ''), schema: self::ROUND_SCHEMA);
-			if ($round === null || (new ConferenceBookingMode())->isDirect(round: $round) === false) {
-				return;
-			}
-
-			$this->mirrorBooking(slot: $slot, to: $to);
-			if (in_array($to, self::RELEASED, true) === true && ($round['lifecycle'] ?? '') === 'booking-open') {
-				$this->offerAgain(slot: $slot);
-			}
+			$this->followUp(slot: $slot, to: $to);
 		} catch (Throwable $exception) {
 			$this->logger->error(
 				'[ConferenceSlotBookingSync] Slot {slot} moved to {to}, but the follow-up failed: {msg}',
 				['slot' => ($slot['id'] ?? ''), 'to' => $to, 'msg' => $exception->getMessage()]
 			);
 		}
-	}//end afterWrite()
+	}//end followUpOrLog()
+
+	/**
+	 * Whether the booking follows this move: from a held time to acknowledged or released.
+	 *
+	 * @param string $from The slot's old state.
+	 * @param string $to   The slot's new state.
+	 *
+	 * @return bool
+	 */
+	private static function isFollowedMove(string $from, string $to): bool {
+		return in_array($from, self::HELD, true) === true && in_array($to, array_merge(['acknowledged'], self::RELEASED), true) === true;
+	}//end isFollowedMove()
+
+	/**
+	 * In a direct-booking round: mirror the booking, and offer a time released
+	 * while booking is open again.
+	 *
+	 * @param array<string, mixed> $slot The slot after the write.
+	 * @param string               $to   The slot's new state.
+	 *
+	 * @return void
+	 */
+	private function followUp(array $slot, string $to): void {
+		$round = $this->row(id: (string)($slot['conferenceRoundId'] ?? ''), schema: self::ROUND_SCHEMA);
+		if ($round === null || (new ConferenceBookingMode())->isDirect(round: $round) === false) {
+			return;
+		}
+
+		$this->mirrorBooking(slot: $slot, to: $to);
+		if (in_array($to, self::RELEASED, true) === true && ($round['lifecycle'] ?? '') === 'booking-open') {
+			$this->offerAgain(slot: $slot);
+		}
+	}//end followUp()
 
 	/**
 	 * The booking follows the slot.
@@ -308,27 +376,46 @@ class ConferenceSlotBookingSync implements IEventListener {
 	 * @return array{0: string, 1: string, 2: array<string, mixed>}|null From, to and the new slot.
 	 */
 	private function move(ObjectEntity $new, ?ObjectEntity $old): ?array {
-		if ($old === null) {
+		if ($old === null || $this->isSlot(entity: $new) === false) {
 			return null;
 		}
 
+		return self::stateChange(slot: $new->jsonSerialize(), old: $old);
+	}//end move()
+
+	/**
+	 * Whether an object is a conference slot; an object whose schema cannot
+	 * be resolved is not.
+	 *
+	 * @param ObjectEntity $entity The object.
+	 *
+	 * @return bool
+	 */
+	private function isSlot(ObjectEntity $entity): bool {
 		try {
-			if ($this->schemaResolver->guardSchemaSlug(entity: $new) !== self::SLOT_SCHEMA) {
-				return null;
-			}
+			return $this->schemaResolver->guardSchemaSlug(entity: $entity) === self::SLOT_SCHEMA;
 		} catch (Throwable $exception) {
-			return null;
+			return false;
 		}
+	}//end isSlot()
 
-		$slot = $new->jsonSerialize();
+	/**
+	 * The slot's lifecycle move, or null when its state did not change.
+	 *
+	 * @param array<string, mixed> $slot The slot after the write.
+	 * @param ObjectEntity         $old  The slot before the write.
+	 *
+	 * @return array{0: string, 1: string, 2: array<string, mixed>}|null From, to and the new slot.
+	 */
+	private static function stateChange(array $slot, ObjectEntity $old): ?array {
 		$from = (string)(($old->getObject() ?? [])['lifecycle'] ?? '');
-		$to = (string)($slot['lifecycle'] ?? '');
+		$to   = (string)($slot['lifecycle'] ?? '');
 		if ($from === $to) {
 			return null;
 		}
 
 		return [$from, $to, $slot];
-	}//end move()
+	}//end stateChange()
 
 	/**
 	 * One learniq object as an array, or null.
