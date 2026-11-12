@@ -266,21 +266,50 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 	 * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
 	 */
 	private function toelatingsrechtBlocksRejection(array $round, array $object): bool {
-		$deadline = $round['applicationDeadline'] ?? null;
-		$submittedAt = $object['submittedAt'] ?? null;
-
-		$withinDeadline = true;
-		if (is_string($deadline) === true && $deadline !== '' && is_string($submittedAt) === true && $submittedAt !== '') {
-			$deadlineTs = strtotime($deadline);
-			$submittedTs = strtotime($submittedAt);
-			$withinDeadline = ($deadlineTs !== false && $submittedTs !== false && $submittedTs <= $deadlineTs);
-		}
+		$withinDeadline = $this->submittedByDeadline(
+			deadline: ($round['applicationDeadline'] ?? null),
+			submittedAt: ($object['submittedAt'] ?? null)
+		);
 
 		$adviesGiven = ($object['studiekeuzeadviesGiven'] ?? false) === true;
 		$decisionReason = trim((string)($object['decisionReason'] ?? ''));
 
 		return $withinDeadline === true && $adviesGiven === true && $decisionReason === '';
 	}//end toelatingsrechtBlocksRejection()
+
+	/**
+	 * Whether an application came in by the round's deadline. Without both
+	 * dates as non-empty strings it counts as on time; a date that does not
+	 * parse counts as late.
+	 *
+	 * @param mixed $deadline    The round's applicationDeadline.
+	 * @param mixed $submittedAt The application's submittedAt.
+	 *
+	 * @return bool
+	 */
+	private function submittedByDeadline(mixed $deadline, mixed $submittedAt): bool {
+		if ($this->isFilledString(value: $deadline) === false || $this->isFilledString(value: $submittedAt) === false) {
+			return true;
+		}
+
+		$deadlineTs = strtotime($deadline);
+		$submittedTs = strtotime($submittedAt);
+
+		return ($deadlineTs !== false && $submittedTs !== false && $submittedTs <= $deadlineTs);
+	}//end submittedByDeadline()
+
+	/**
+	 * Whether a value is a non-empty string.
+	 *
+	 * @param mixed $value The value.
+	 *
+	 * @return bool
+	 *
+	 * @phpstan-assert-if-true non-empty-string $value
+	 */
+	private function isFilledString(mixed $value): bool {
+		return is_string($value) === true && $value !== '';
+	}//end isFilledString()
 
 	/**
 	 * VO schooladvies-adjustment branch.
@@ -301,26 +330,41 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 			return true;
 		}
 
-		$adjusted = $object['schoolAdviceAdjustedLevel'] ?? null;
-		if ($adjusted === $doorstroom) {
+		if ($this->isAdjustedOrMotivated(object: $object, doorstroom: $doorstroom) === true) {
 			return true;
 		}
 
-		$motivation = trim((string)($object['adjustmentMotivation'] ?? ''));
-		if ($motivation !== '') {
-			return true;
-		}
-
-		// Pro/vmbo-bb exemption: both the original advice and the toets result
-		// are pro or vmbo-bb.
-		if (in_array($schooladvies, ['pro', 'vmbo-bb'], true) === true
-			&& in_array($doorstroom, ['pro', 'vmbo-bb'], true) === true
-		) {
-			return true;
-		}
-
-		return false;
+		return $this->isProVmboBbExemption(schooladvies: $schooladvies, doorstroom: $doorstroom);
 	}//end schooladviesAdjustmentSatisfied()
+
+	/**
+	 * Whether the advice was adjusted to the toets result, or the school
+	 * motivated keeping it.
+	 *
+	 * @param array<string,mixed> $object     Application property array.
+	 * @param mixed               $doorstroom The doorstroomtoets level.
+	 *
+	 * @return bool
+	 */
+	private function isAdjustedOrMotivated(array $object, mixed $doorstroom): bool {
+		$adjusted = $object['schoolAdviceAdjustedLevel'] ?? null;
+
+		return $adjusted === $doorstroom || trim((string)($object['adjustmentMotivation'] ?? '')) !== '';
+	}//end isAdjustedOrMotivated()
+
+	/**
+	 * Pro/vmbo-bb exemption: both the original advice and the toets result
+	 * are pro or vmbo-bb.
+	 *
+	 * @param mixed $schooladvies The schooladvies level.
+	 * @param mixed $doorstroom   The doorstroomtoets level.
+	 *
+	 * @return bool
+	 */
+	private function isProVmboBbExemption(mixed $schooladvies, mixed $doorstroom): bool {
+		return in_array($schooladvies, ['pro', 'vmbo-bb'], true) === true
+			&& in_array($doorstroom, ['pro', 'vmbo-bb'], true) === true;
+	}//end isProVmboBbExemption()
 
 	/**
 	 * Whether the doorstroomtoets result outranks the schooladvies on the shared ordinal.
