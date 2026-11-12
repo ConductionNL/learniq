@@ -1891,7 +1891,7 @@
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Certificates; certificates are \"diplomas that can be issued upon completion of activities, courses, programs, and certifications\", including \"Automatic issuing of certificates via dynamic rules\" (Certificates_Configuration).",
         "totara": "read 2026-09-26: https://totara.help/docs/certificates; the module \"generates PDF credentials for learners upon course completion\"; badge-criteria includes \"Course completion\"."
       },
-      "note": "Own rating yes to partial (corrections round 8, 2026-09-28): a completed enrolment starts the issue path, but the certificate is either refused on validation or stored unsigned and without its badge payload, and issuedBy is always empty because Course declares no issuerName, learniq#182. The repair is task 1 of openspec/changes/credentials-europass-edci-export.",
+      "note": "Corrections round 8 (2026-09-28) rated this partial: the certificate was refused or stored unsigned (learniq#182). Fixed since: CredentialIssuanceHandler signs through CredentialSigningService::sign() before the save (:216) and sets issuedBy from the school name; checked 12 Nov 2026.",
       "screen": {
         "board": null,
         "reason": "no screen: backend behaviour"
@@ -1927,7 +1927,7 @@
         "totara": "read 2026-09-26: https://totara.help/docs/what-are-open-badges; \"Totara supports Open Badges 2.0\". Badges yes, version 3.0 not stated.",
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for Open Badges, badge standard; badges are gamification badges for points (https://ispringhelpdocs.com/ispring-learn/badges-22613596.html)"
       },
-      "note": "Own rating yes to partial (corrections round 8, 2026-09-28): the Open Badges 3.0 payload builder exists but never runs when a certificate is issued, so issued certificates carry no badge payload, learniq#182.",
+      "note": "Corrections round 8 (2026-09-28) rated this partial: the Open Badges 3.0 payload was never built at issue (learniq#182). Fixed since: sign() builds it with buildOb3Payload() before the save on both issue paths; checked 12 Nov 2026.",
       "screen": {
         "board": null,
         "reason": "no screen: backend behaviour"
@@ -1966,7 +1966,7 @@
         "totara": "read 2026-09-26: https://totara.help/docs/certificate-activity-settings; \"A unique 10-digit code of random letters and numbers can be printed on the certificate\" for validation against the trainer's report. No cryptographic signature documented.",
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for certificate signature, signed certificate, verify; signatures appear only for SSO and webhooks"
       },
-      "note": "Own rating yes to partial (corrections round 8, 2026-09-28): RS256 signing and the public verify endpoint exist, but signing never runs when a certificate is issued, learniq#182.",
+      "note": "Corrections round 8 (2026-09-28) rated this partial: signing never ran at issue (learniq#182). Fixed since: both issue paths sign before the save and CredentialVerifyController answers signature_invalid for an altered signature; checked 12 Nov 2026.",
       "screen": {
         "board": null,
         "reason": "no screen: backend behaviour"
@@ -2378,7 +2378,10 @@
       },
       "screen": {
         "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
-        "board": "LqCursus"
+        "board": [
+          "LqCursus",
+          "LqLlCertificaat"
+        ]
       }
     },
     {
@@ -2427,7 +2430,10 @@
         "owner": "ConductionNL/learniq",
         "change": "certification",
         "spec": "openspec/specs/portable-learning-record",
-        "requirement": "openspec/specs/portable-learning-record :: `LearningRecordAggregationService` composes a learner's trajectory live, with no materialized rollup",
+        "requirement": [
+          "openspec/specs/portable-learning-record :: `LearningRecordAggregationService` composes a learner's trajectory live, with no materialized rollup",
+          "openspec/changes/parity-rows-written-as-requirements/specs/certification :: A certificate is read by its holder and the certificate managers only"
+        ],
         "plan": "openspec/changes/participant-portal"
       },
       "provider": "self",
@@ -3308,7 +3314,10 @@
         "evidence": "lib/Settings/learniq_register.json components.schemas.Programme; lib/Lifecycle/ProgrammePublishGuard.php",
         "owner": "ConductionNL/learniq",
         "change": "school-structure",
-        "requirement": "openspec/specs/enrolment :: A learner signs up for a whole programme"
+        "requirement": [
+          "openspec/specs/enrolment :: A learner signs up for a whole programme",
+          "openspec/specs/programme-mandatory-parts :: Mandatory and optional parts of a programme"
+        ]
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4508,7 +4517,10 @@
       },
       "screen": {
         "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
-        "board": "LqOpdracht"
+        "board": [
+          "LqOpdracht",
+          "LqLlInleveren"
+        ]
       }
     },
     {
@@ -5032,7 +5044,7 @@
         "change": "2026-07-16-report-card-composer",
         "requirement": [
           "openspec/specs/report-card :: Lock date is enforced by a materialised calculation and guards, not an automatic transition",
-          "openspec/specs/grading :: A teacher previews and batch-publishes a cohort's concept grades"
+          "openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes :: Second approver for changes to approved data"
         ]
       },
       "provider": "self",
@@ -5799,7 +5811,8 @@
         "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": [
           "LqDossier",
-          "LqNieuweNotitie"
+          "LqNieuweNotitie",
+          "LqDossierTijdlijn"
         ]
       }
     },
@@ -5839,7 +5852,10 @@
       },
       "screen": {
         "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
-        "board": "LqDossier"
+        "board": [
+          "LqDossier",
+          "LqDossierTijdlijn"
+        ]
       }
     },
     {
@@ -6153,7 +6169,10 @@
         "owner": "ConductionNL/learniq",
         "change": "attendance",
         "spec": "openspec/specs/attendance",
-        "requirement": "openspec/specs/attendance :: Threshold crossing is a declared calculation trigger",
+        "requirement": [
+          "openspec/specs/attendance :: Threshold crossing is a declared calculation trigger",
+          "openspec/changes/capability-rows-say-what-they-do/specs/attendance :: A school sets its own absence limit next to the statutory one"
+        ],
         "plan": "openspec/changes/attendance-warns-before-the-threshold"
       },
       "provider": "self",
@@ -6259,7 +6278,10 @@
       },
       "screen": {
         "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
-        "board": "LqAanwezigheidLijst"
+        "board": [
+          "LqAanwezigheidLijst",
+          "LqVerzuimsignaal"
+        ]
       }
     },
     {
@@ -6333,7 +6355,10 @@
       },
       "screen": {
         "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
-        "board": "LqLesBeheren"
+        "board": [
+          "LqLesBeheren",
+          "LqCoConflicten"
+        ]
       }
     },
     {
@@ -7272,11 +7297,12 @@
       "area": "workplace",
       "name": "Check the company is an approved training company first.",
       "built": {
-        "state": "none",
-        "evidence": "lib/Bpv/ProvidesLeerbedrijfVerification.php is an interface; lib/Settings/connections.json states no verification provider ships in learniq or integriq, so a placement cannot confirm its leerbedrijf",
+        "state": "specified",
+        "evidence": "Not built: lib/Bpv/ProvidesLeerbedrijfVerification.php is an interface; lib/Settings/connections.json states no verification provider ships in learniq or integriq, so a placement cannot confirm its leerbedrijf",
         "owner": "ConductionNL/integriq",
         "change": "workplace-leerbedrijf-check-through-integriq",
-        "requirement": "openspec/changes/workplace-leerbedrijf-check-through-integriq/specs/bpv :: The check stores SBB's answer on the placement"
+        "requirement": "openspec/changes/workplace-leerbedrijf-check-through-integriq/specs/bpv :: The check stores SBB's answer on the placement",
+        "plan": "openspec/changes/workplace-leerbedrijf-check-through-integriq"
       },
       "provider": "integriq",
       "providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -7936,7 +7962,10 @@
       },
       "screen": {
         "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
-        "board": "LqCfPartners"
+        "board": [
+          "LqCfPartners",
+          "LqAppInstellingen"
+        ]
       }
     },
     {
@@ -10055,7 +10084,10 @@
       "source": "spec-round-2026-10-07",
       "screen": {
         "canvas": "design-system",
-        "board": "LqInstallatie"
+        "board": [
+          "LqInstallatie",
+          "LqInstellingen"
+        ]
       }
     },
     {
@@ -10464,7 +10496,10 @@
         "evidence": "lib/Service/OpenMaterial/MaterialLicenceRules.php, src/modals/OpenMaterialSearchModal.vue, Material.accessRights in lib/Settings/learniq_register.json (learniq#2111; tasks.md not ticked)",
         "owner": "ConductionNL/learniq",
         "change": "open-learning-material",
-        "requirement": "openspec/changes/open-learning-material/specs/open-learning-material :: The search panel shows results with facets and three states"
+        "requirement": [
+          "openspec/changes/open-learning-material/specs/open-learning-material :: The search panel shows results with facets and three states",
+          "openspec/changes/open-learning-material/specs/open-learning-material :: Material carries its source and attribution"
+        ]
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -10690,7 +10725,10 @@
       "note": "Row added 12 Nov 2026 (decision 395): open change simple-structure-profile built a capability no row had.",
       "screen": {
         "canvas": "design-system",
-        "board": "LqDashboard"
+        "board": [
+          "LqDashboard",
+          "LqInstellingen"
+        ]
       }
     },
     {
@@ -10951,7 +10989,10 @@
       "note": "Row added 12 Nov 2026 (decision 395): open change portal-public-index built a capability no row had.",
       "screen": {
         "canvas": "design-system",
-        "board": "wilgenboom/Zoeken"
+        "board": [
+          "wilgenboom/Zoeken",
+          "warmtepompacademie/Zoeken"
+        ]
       }
     }
   ],
