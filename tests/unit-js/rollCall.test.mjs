@@ -144,3 +144,48 @@ test('a lesson leads to the roll-call of its group and day', () => {
 	assert.deepEqual(rollCallRoute({}), { path: '/attendance/roll-call', query: {} })
 	assert.equal(localDate('not a date'), '')
 })
+
+test('an unexcused absence keeps its reason kind, other marks clear it and the minutes', () => {
+	const pupil = { learnerId: 'l', status: 'absent-excused', lateMinutes: 12, absenceReasonKind: 'medical' }
+	assert.deepEqual(withStatus(pupil, 'absent-unexcused'), {
+		learnerId: 'l',
+		status: 'absent-unexcused',
+		lateMinutes: null,
+		absenceReasonKind: 'medical',
+	})
+	assert.deepEqual(withStatus(pupil, 'present'), {
+		learnerId: 'l',
+		status: 'present',
+		lateMinutes: null,
+		absenceReasonKind: null,
+	})
+	assert.equal(withStatus(pupil, 'absent-excused').absenceReasonKind, 'medical')
+})
+
+test('saved marks carry minutes, reason kind and reason only where they belong', () => {
+	assert.deepEqual(
+		marksToSave([
+			{ learnerId: 'a', status: 'late', lateMinutes: '7', reason: '  bus  ' },
+			{ learnerId: 'b', status: 'absent-unexcused', absenceReasonKind: '', reason: null },
+			{ learnerId: 'c', status: 'present', lateMinutes: 3, absenceReasonKind: 'illness', reason: '   ' },
+		]),
+		[
+			{ learnerId: 'a', status: 'late', lateMinutes: 7, reason: 'bus' },
+			{ learnerId: 'b', status: 'absent-unexcused', absenceReasonKind: null },
+			{ learnerId: 'c', status: 'present' },
+		],
+	)
+})
+
+test('the roll-call route takes the session id from uuid or @self and skips an unreadable day', () => {
+	assert.deepEqual(rollCallRoute({ uuid: 'u1', startsAt: 'never' }), {
+		path: '/attendance/roll-call',
+		query: { sessionId: 'u1' },
+	})
+	assert.deepEqual(Object.keys(rollCallRoute({ '@self': { id: 's9' }, cohortId: 'c', startsAt: '2026-10-01T08:30:00' }).query), [
+		'cohortId',
+		'date',
+		'sessionId',
+	])
+	assert.deepEqual(rollCallRoute(null), { path: '/attendance/roll-call', query: {} })
+})

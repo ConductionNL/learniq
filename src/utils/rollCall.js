@@ -44,14 +44,25 @@ export const MAX_LATE_MINUTES = 600
  */
 export function withStatus(pupil, status) {
 	const next = { ...pupil, status }
-	next.lateMinutes =
-		status === 'late' ? pupil.lateMinutes || QUICK_LATE_MINUTES[0] : null
+	next.lateMinutes = lateMinutesFor(pupil, status)
 	if (status === 'absent-excused') {
 		next.absenceReasonKind = pupil.absenceReasonKind || 'illness'
 	} else if (status !== 'absent-unexcused') {
 		next.absenceReasonKind = null
 	}
 	return next
+}
+
+/**
+ * The minutes late a pupil gets with a new status: kept or the first quick
+ * choice when late, else none.
+ *
+ * @param {object} pupil A pupil row.
+ * @param {string} status The new status.
+ * @return {number|null}
+ */
+function lateMinutesFor(pupil, status) {
+	return status === 'late' ? pupil.lateMinutes || QUICK_LATE_MINUTES[0] : null
 }
 
 /**
@@ -91,16 +102,44 @@ export function incompleteMarks(pupils) {
  * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
  */
 export function marksToSave(pupils) {
-	return pupils.map((p) => {
-		const mark = { learnerId: p.learnerId, status: p.status }
-		if (p.status === 'late') mark.lateMinutes = Number(p.lateMinutes)
-		if (p.status === 'absent-excused' || p.status === 'absent-unexcused') {
-			mark.absenceReasonKind = p.absenceReasonKind || null
-		}
-		const reason = (p.reason || '').trim()
-		if (reason) mark.reason = reason
-		return mark
-	})
+	return pupils.map(markToSave)
+}
+
+/**
+ * The mark a save sends for one pupil.
+ *
+ * @param {object} p A pupil row.
+ * @return {object} The mark.
+ */
+function markToSave(p) {
+	const mark = { learnerId: p.learnerId, status: p.status }
+	if (p.status === 'late') mark.lateMinutes = Number(p.lateMinutes)
+	if (isAbsence(p.status)) {
+		mark.absenceReasonKind = p.absenceReasonKind || null
+	}
+	const reason = trimmedReason(p)
+	if (reason) mark.reason = reason
+	return mark
+}
+
+/**
+ * Whether a status is an absence, with or without permission.
+ *
+ * @param {string} status A mark status.
+ * @return {boolean}
+ */
+function isAbsence(status) {
+	return status === 'absent-excused' || status === 'absent-unexcused'
+}
+
+/**
+ * A pupil row's typed reason, trimmed; '' when there is none.
+ *
+ * @param {object} p A pupil row.
+ * @return {string}
+ */
+function trimmedReason(p) {
+	return (p.reason || '').trim()
 }
 
 /**
@@ -169,9 +208,29 @@ export function sessionsToMarkFilter(scopeFilter, now) {
 export function rollCallRoute(session) {
 	const query = {}
 	if (session?.cohortId) query.cohortId = session.cohortId
-	const date = session?.startsAt ? localDate(session.startsAt) : ''
+	const date = sessionDate(session)
 	if (date) query.date = date
-	const id = session?.id || session?.uuid || session?.['@self']?.id
+	const id = sessionIdOf(session)
 	if (id) query.sessionId = id
 	return { path: ROLL_CALL_PATH, query }
+}
+
+/**
+ * The local day a session starts on, '' when it has no readable start.
+ *
+ * @param {object|null} session A Session row.
+ * @return {string}
+ */
+function sessionDate(session) {
+	return session?.startsAt ? localDate(session.startsAt) : ''
+}
+
+/**
+ * A session's id, whichever key OpenRegister returned it under.
+ *
+ * @param {object|null} session A Session row.
+ * @return {string|undefined}
+ */
+function sessionIdOf(session) {
+	return session?.id || session?.uuid || session?.['@self']?.id
 }
