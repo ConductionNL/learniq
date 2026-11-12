@@ -21,6 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Listener\CredentialWalletTransitionListener;
 use OCA\Learniq\Service\WalletClaimSyncService;
 use OCA\Learniq\Service\WalletOfferDelegationService;
@@ -122,14 +123,20 @@ class CredentialWalletTransitionListenerTest extends TestCase {
 	private function captureSave(): \ArrayObject {
 		$captured = new \ArrayObject();
 		$this->objectService->expects($this->once())->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use ($captured) {
+			SaveCallShape::legacy(static function (
+				array $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				?string $uuid = null
+			) use ($captured) {
 				$captured['object'] = $object;
 				$captured['register'] = $register;
 				$captured['schema'] = $schema;
 				$captured['uuid'] = $uuid;
 
 				return OrEntityFactory::make($object, 'credential');
-			}
+			})
 		);
 
 		return $captured;

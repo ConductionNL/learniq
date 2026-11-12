@@ -37,6 +37,9 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
+use OCA\OpenRegister\Service\Object\SaveActor;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
@@ -214,10 +217,11 @@ class CourseEvaluationAnswerService {
 
 		$response = $this->objectService->saveObject(
 			object: $this->builder->responsePayload(invitation: $invitation, answers: $checked['answers']),
-			register: self::REGISTER,
-			schema: 'course-evaluation-response',
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: 'course-evaluation-response'),
+				actor: new SaveActor(unowned: true)
+			),
 			_rbac: false,
-			_unowned: true,
 		);
 		$responseId = (string)($response->getUuid() ?? '');
 

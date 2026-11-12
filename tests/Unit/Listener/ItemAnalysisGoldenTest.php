@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use DateTime;
 use DateTimeZone;
 use OCA\Learniq\Listener\ItemAnalysisRecomputeHandler;
@@ -291,12 +292,19 @@ class ItemAnalysisGoldenTest extends TestCase {
 			}
 		);
 		$service->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null, bool $_rbac = true): ObjectEntity {
+			SaveCallShape::legacy(function (
+				array|ObjectEntity $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				$uuid = null,
+				bool $_rbac = true
+			): ObjectEntity {
 				$this->calls[] = ['saveObject' => [$register, $schema, $object, $_rbac]];
 				$object['id'] = $object['id'] ?? ($schema . '-' . count($this->calls));
 				$this->db[(string)$schema][] = $object;
 				return OrEntityFactory::make($object, (string)$schema);
-			}
+			})
 		);
 
 		return $service;

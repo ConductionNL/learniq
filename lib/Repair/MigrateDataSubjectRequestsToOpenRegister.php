@@ -21,6 +21,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -195,8 +197,9 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 		try {
 			$this->objectService->saveObject(
 				object: self::toCase(row: $row, sourceId: $sourceId),
-				register: self::OR_REGISTER,
-				schema: self::OR_SCHEMA,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::OR_REGISTER, schema: self::OR_SCHEMA)
+				),
 				_rbac: false,
 				_multitenancy: false
 			);

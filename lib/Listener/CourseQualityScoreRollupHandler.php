@@ -37,6 +37,8 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\CourseQualityScoreEvaluator;
 use OCP\EventDispatcher\Event;
@@ -97,9 +99,10 @@ class CourseQualityScoreRollupHandler implements IEventListener {
 		$fields = $scope + self::pick(row: $result, keys: self::SCORE_FIELDS) + ['tenant_id' => $response['tenant_id'] ?? ''];
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::COURSE_QUALITY_SCORE_SCHEMA,
-			object: array_merge($this->findExisting(scope: $scope) ?? [], $fields)
+			object: array_merge($this->findExisting(scope: $scope) ?? [], $fields),
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::COURSE_QUALITY_SCORE_SCHEMA)
+			)
 		);
 	}//end handle()
 

@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\Attendance;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use DateTimeZone;
 use OCA\Learniq\Service\Attendance\RollCallAccess;
 use OCA\Learniq\Service\Attendance\RollCallException;
@@ -129,7 +130,14 @@ class RollCallServiceTest extends TestCase {
 			}
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend=[], $register=null, $schema=null, ?string $uuid=null, bool $_rbac=true): ObjectEntity {
+			SaveCallShape::legacy(function (
+				array|ObjectEntity $object,
+				?array $extend=[],
+				$register=null,
+				$schema=null,
+				?string $uuid=null,
+				bool $_rbac=true
+			): ObjectEntity {
 				$data = (array)$object;
 				$data['id'] = ($uuid ?? ('new-' . count($this->saved)));
 				$this->saved[] = ['schema' => $schema, 'uuid' => $uuid, 'object' => $object, 'rbac' => $_rbac];
@@ -138,7 +146,7 @@ class RollCallServiceTest extends TestCase {
 				}
 
 				return OrEntityFactory::make($data, (string)$schema);
-			}
+			})
 		);
 
 		$groups = $this->createMock(IGroupManager::class);

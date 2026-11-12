@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Service\SegmentService;
 use OCA\Learniq\Tests\Support\CapturingLogger;
 use OCA\Learniq\Tests\Support\GoldenFile;
@@ -99,8 +100,7 @@ class SegmentGoldenTest extends TestCase {
 		);
 		$objects->method('saveObject')->willReturnCallback(
 			static function (...$args) use (&$saved) {
-				$names = array_map(static fn ($param): string => $param->getName(), (new \ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters());
-				$saved[] = (array_combine(array_slice($names, 0, count($args)), $args)['uuid'] ?? 'missing');
+				$saved[] = (SaveCallShape::all(args: $args)['uuid'] ?? 'missing');
 				return OrEntityFactory::make(['segment' => 'vo'], 'learniqsettings');
 			}
 		);

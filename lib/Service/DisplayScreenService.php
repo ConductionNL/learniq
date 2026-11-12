@@ -36,6 +36,8 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Security\ISecureRandom;
 use Throwable;
@@ -82,7 +84,12 @@ class DisplayScreenService {
 		$screen['tokenHash'] = hash('sha256', $secret);
 		$screen['tokenCreatedAt'] = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
 		$screen['status'] = 'active';
-		$this->objectService->saveObject(object: $screen, register: self::REGISTER, schema: self::SCHEMA);
+		$this->objectService->saveObject(
+			object: $screen,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA)
+			)
+		);
 
 		return $screenId.'.'.$secret;
 	}//end issueToken()
@@ -104,7 +111,12 @@ class DisplayScreenService {
 
 		$screen['tokenHash'] = null;
 		$screen['status'] = 'revoked';
-		$this->objectService->saveObject(object: $screen, register: self::REGISTER, schema: self::SCHEMA);
+		$this->objectService->saveObject(
+			object: $screen,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA)
+			)
+		);
 
 		return true;
 	}//end revoke()

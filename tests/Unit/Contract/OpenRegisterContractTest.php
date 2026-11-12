@@ -119,7 +119,8 @@ final class OpenRegisterContractTest extends TestCase {
 	 * `$object` is the FIRST parameter. Learniq production code used to call
 	 * `saveObject($register, $schema, $data)` positionally in two places, which
 	 * would have fatalled against the real service; the named-argument form
-	 * (`object:`, `register:`, `schema:`) is the only safe call shape.
+	 * (`object:`, `options:`) is the only safe call shape. openregister #9123
+ * moved the register, schema and every save flag into one ObjectSaveOptions.
 	 *
 	 * @return void
 	 */
@@ -133,10 +134,10 @@ final class OpenRegisterContractTest extends TestCase {
 		);
 
 		$this->assertSame(
-			['object', 'extend', 'register', 'schema'],
+			['object', 'options', '_rbac', '_multitenancy'],
 			array_map(
 				static fn ($parameter): string => $parameter->getName(),
-				array_slice($parameters, 0, 4)
+				$parameters
 			)
 		);
 

@@ -42,6 +42,8 @@ use OCA\Learniq\Listener\SessionChangeNoticeHandler;
 use OCA\Learniq\Timetabling\SessionChangeInput;
 use OCA\Learniq\Timetabling\SessionSeries;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -102,9 +104,10 @@ class SessionChangeBatchService {
 
 		$saved = $this->objectService->saveObject(
 			object: $batch,
-			register: self::REGISTER,
-			schema: self::BATCH_SCHEMA,
-			uuid: $batchId
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::BATCH_SCHEMA),
+				uuid: $batchId
+			)
 		);
 
 		$this->logger->info(
@@ -251,7 +254,12 @@ class SessionChangeBatchService {
 	 */
 	private function commit(array $lesson): array {
 		try {
-			$this->objectService->saveObject(object: $lesson['changed'], register: self::REGISTER, schema: self::SESSION_SCHEMA);
+			$this->objectService->saveObject(
+				object: $lesson['changed'],
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::SESSION_SCHEMA)
+				)
+			);
 			if ($lesson['kind'] !== 'room') {
 				$this->transitionEngine->transition(objectId: $lesson['sessionId'], action: $lesson['action']);
 			}
@@ -299,7 +307,12 @@ class SessionChangeBatchService {
 	 */
 	private function restore(array $original): void {
 		try {
-			$this->objectService->saveObject(object: $original, register: self::REGISTER, schema: self::SESSION_SCHEMA);
+			$this->objectService->saveObject(
+				object: $original,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::SESSION_SCHEMA)
+				)
+			);
 		} catch (Throwable $exception) {
 			$this->logger->warning(
 				'[SessionChangeBatchService] Could not restore lesson {id}: {msg}',

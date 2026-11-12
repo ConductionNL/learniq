@@ -21,6 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Service\QtiImportService;
 use OCA\Learniq\Tests\Support\CapturingLogger;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -82,7 +83,7 @@ class QtiItemImportGoldenTest extends TestCase {
 		$saved = [];
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved): ObjectEntity {
+			SaveCallShape::legacy(static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved): ObjectEntity {
 				$saved[] = [$register, $schema, $object];
 				$uuid = 'item-' . count($saved);
 				if ($object['title'] === 'nouuid') {
@@ -92,7 +93,7 @@ class QtiItemImportGoldenTest extends TestCase {
 				$entity = OrEntityFactory::make($object, (string)$schema, (string)$register, 'x');
 				$entity->setUuid($uuid);
 				return $entity;
-			}
+			})
 		);
 		$logger = new CapturingLogger();
 

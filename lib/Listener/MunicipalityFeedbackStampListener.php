@@ -29,6 +29,8 @@ use DateTimeInterface;
 use DateTimeZone;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -119,9 +121,10 @@ class MunicipalityFeedbackStampListener implements IEventListener {
 
 		$this->objectService->saveObject(
 			object: $data,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::FLAG_SCHEMA,
-			uuid: $entity->getUuid()
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::FLAG_SCHEMA),
+				uuid: $entity->getUuid()
+			)
 		);
 	}//end handle()
 }//end class

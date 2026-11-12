@@ -32,6 +32,8 @@ namespace OCA\Learniq\Service\CoursePackage;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -137,8 +139,6 @@ class CoursePackageImportReporter {
 		}
 
 		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::REPORT_SCHEMA,
 			object: [
 				'sourceFormat' => $outcome->sourceFormat,
 				'sourceFilename' => $origin->sourceFilename,
@@ -153,7 +153,10 @@ class CoursePackageImportReporter {
 				'errorMessage' => $outcome->errorMessage,
 				'entries' => $entries,
 				'tenant_id' => $origin->tenantId,
-			]
+			],
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::REPORT_SCHEMA)
+			)
 		);
 
 		return $saved->jsonSerialize();

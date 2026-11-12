@@ -39,6 +39,8 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
@@ -179,8 +181,6 @@ class LearningRecordImportIntakeService {
 		$uploadedAt = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
 
 		$created = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::SCHEMA,
 			object: [
 				'applicationId' => $applicationId,
 				'sourceFilename' => $sourceFilename,
@@ -190,7 +190,10 @@ class LearningRecordImportIntakeService {
 				'sourceRef' => $sourceRef,
 				'lifecycle' => 'uploaded',
 				'tenant_id' => $tenantId,
-			]
+			],
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::SCHEMA)
+			)
 		);
 
 		$createdId = $this->extractId(saved: $created);

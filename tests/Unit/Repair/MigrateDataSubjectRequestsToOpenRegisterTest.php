@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Repair;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Repair\MigrateDataSubjectRequestsToOpenRegister;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Db\ObjectEntity;
@@ -92,7 +93,14 @@ class MigrateDataSubjectRequestsToOpenRegisterTest extends TestCase {
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null, bool $_rbac = true): ObjectEntity {
+			SaveCallShape::legacy(function (
+				array|ObjectEntity $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				?string $uuid = null,
+				bool $_rbac = true
+			): ObjectEntity {
 				if ($this->failSaves === true) {
 					throw new RuntimeException('register missing');
 				}
@@ -101,7 +109,7 @@ class MigrateDataSubjectRequestsToOpenRegisterTest extends TestCase {
 				$this->rows[$register . '/' . $schema][] = array_merge($object, ['id' => 'case-' . count($this->saves)]);
 
 				return OrEntityFactory::make($object, (string)$schema);
-			}
+			})
 		);
 
 		return new MigrateDataSubjectRequestsToOpenRegister($objectService, new NullLogger());

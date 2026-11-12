@@ -21,6 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use DateTimeImmutable;
 use DateTimeInterface;
 use OCA\Learniq\Listener\MunicipalityFeedbackStampListener;
@@ -69,10 +70,10 @@ class MunicipalityFeedbackStampListenerTest extends TestCase {
 	private function makeListener(string $schemaSlug = 'attendance-flag'): MunicipalityFeedbackStampListener {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null): ObjectEntity {
+			SaveCallShape::legacy(function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null): ObjectEntity {
 				$this->saved[] = ['object' => $object, 'register' => $register, 'schema' => $schema, 'uuid' => $uuid];
 				return OrEntityFactory::make($object, 'attendance-flag');
-			}
+			})
 		);
 
 		$resolver = $this->createMock(ListenerSchemaResolver::class);

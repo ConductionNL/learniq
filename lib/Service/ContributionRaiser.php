@@ -49,6 +49,8 @@ namespace OCA\Learniq\Service;
 
 use InvalidArgumentException;
 use OCA\Learniq\AppInfo\Application;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
 use OCP\IUserManager;
@@ -401,9 +403,10 @@ class ContributionRaiser {
 
 			$this->objectService->saveObject(
 				object: array_merge($entitlement, ['paymentRequestRef' => $requestId]),
-				register: self::REGISTER,
-				schema: 'entitlement',
-				uuid: ($entitlement['id'] ?? null),
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: 'entitlement'),
+					uuid: ($entitlement['id'] ?? null)
+				),
 				_rbac: false,
 				_multitenancy: false
 			);

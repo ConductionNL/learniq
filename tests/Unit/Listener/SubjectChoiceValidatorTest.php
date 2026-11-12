@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -102,7 +103,7 @@ class SubjectChoiceValidatorTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			SaveCallShape::legacy(function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->savedObjects[] = [
 					'register' => (string)$register,
@@ -110,7 +111,7 @@ class SubjectChoiceValidatorTest extends TestCase {
 					'object' => $data,
 				];
 				return OrEntityFactory::make($data, (string)$schema, (string)$register);
-			}
+			})
 		);
 
 		return new SubjectChoiceValidator($objectService, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());

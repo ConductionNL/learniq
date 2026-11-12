@@ -41,6 +41,8 @@ namespace OCA\Learniq\Service\Portal;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -370,7 +372,14 @@ class PortalEmployerBookings {
 	 * @throws \Throwable When OpenRegister cannot be written.
 	 */
 	private function save(string $schema, array $row): array {
-		$saved = $this->objectService->saveObject(object: $row, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false);
+		$saved = $this->objectService->saveObject(
+			object: $row,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: $schema)
+			),
+			_rbac: false,
+			_multitenancy: false
+		);
 
 		return (array)$saved->jsonSerialize();
 	}//end save()

@@ -27,6 +27,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Exception\IntegriqUnavailableException;
 use OCA\Learniq\Listener\SupportRequestSubmitHandler;
 use OCA\Learniq\Service\IntegriqExchangeClient;
@@ -78,12 +79,19 @@ class SupportRequestSubmitHandlerTest extends TestCase {
 		$this->saved = [];
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null, bool $_rbac = true): ObjectEntity {
+			SaveCallShape::legacy(function (
+				array|ObjectEntity $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				$uuid = null,
+				bool $_rbac = true
+			): ObjectEntity {
 				$this->rbacWrites[] = ['schema' => (string)$schema, 'rbac' => $_rbac];
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->saved[] = ['schema' => (string)$schema, 'object' => $data, 'uuid' => $uuid];
 				return OrEntityFactory::make($data, (string)$schema);
-			}
+			})
 		);
 
 		$this->integriq = $this->createMock(IntegriqExchangeClient::class);

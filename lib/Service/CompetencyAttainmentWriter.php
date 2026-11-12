@@ -39,6 +39,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -128,9 +130,10 @@ class CompetencyAttainmentWriter {
 		$data['lastRecomputedAt'] = (new DateTimeImmutable())->format(\DATE_ATOM);
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ATTAINMENT_SCHEMA,
-			object: $data
+			object: $data,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ATTAINMENT_SCHEMA)
+			)
 		);
 
 		$this->logUpsert(existing: $existing, learnerId: $learnerId, competencyId: $competencyId);

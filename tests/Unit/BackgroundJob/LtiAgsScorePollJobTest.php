@@ -33,6 +33,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\BackgroundJob;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\BackgroundJob\LtiAgsScorePollJob;
@@ -191,12 +192,20 @@ class LtiAgsScorePollJobTest extends TestCase {
 		// willReturnCallback() hands the closure the mock's arguments
 		// POSITIONALLY, so the closure must mirror that order.
 		$this->objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null, bool $_rbac = true, bool $_multitenancy = true): ObjectEntity {
+			SaveCallShape::legacy(function (
+				array|ObjectEntity $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				?string $uuid = null,
+				bool $_rbac = true,
+				bool $_multitenancy = true
+			): ObjectEntity {
 				$this->refusesCaller(action: 'create', schema: (string)$schema, rbac: $_rbac, multitenancy: $_multitenancy);
 				$this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
 				$object['id'] = 'grade-entry-new';
 				return OrEntityFactory::make($object, (string)$schema, (string)$register);
-			}
+			})
 		);
 	}//end setUp()
 

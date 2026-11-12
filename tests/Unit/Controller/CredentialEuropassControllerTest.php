@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Controller;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Controller\CredentialEuropassController;
 use OCA\Learniq\Service\CredentialLearner;
 use OCA\Learniq\Service\EuropassIssuer;
@@ -96,10 +97,10 @@ class CredentialEuropassControllerTest extends TestCase {
 			}
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): ObjectEntity {
+			SaveCallShape::legacy(function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): ObjectEntity {
 				$this->saves[] = ['uuid' => $uuid, 'object' => $object];
 				return OrEntityFactory::make($object, (string)$schema);
-			}
+			})
 		);
 
 		$user = $this->createMock(IUser::class);

@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use DateTime;
 use DateTimeZone;
 use OCA\OpenRegister\Db\ObjectEntity;
@@ -120,7 +121,14 @@ class ItemAnalysisRecomputeHandlerTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null, bool $_rbac = true): ObjectEntity {
+			SaveCallShape::legacy(function (
+				array|ObjectEntity $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				$uuid = null,
+				bool $_rbac = true
+			): ObjectEntity {
 				$this->rbacWrites[] = ['schema' => (string)$schema, 'rbac' => $_rbac];
 				$schema = (string)$schema;
 				$object = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
@@ -150,7 +158,7 @@ class ItemAnalysisRecomputeHandlerTest extends TestCase {
 				}
 
 				return OrEntityFactory::make($object, $schema, (string)$register);
-			}
+			})
 		);
 
 		$timeFactory = $this->createMock(ITimeFactory::class);

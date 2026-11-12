@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\PeerReview;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\PeerReviewAllocationService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -109,7 +110,7 @@ class PeerReviewAllocationServiceTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null, bool $_rbac = true) {
+			SaveCallShape::legacy(function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null, bool $_rbac = true) {
 				$this->savedObjects[] = [
 					'register' => (string)$register,
 					'schema' => (string)$schema,
@@ -117,7 +118,7 @@ class PeerReviewAllocationServiceTest extends TestCase {
 					'rbac' => $_rbac,
 				];
 				return OrEntityFactory::make($object, (string)$schema, (string)$register);
-			}
+			})
 		);
 
 		return new PeerReviewAllocationService($objectService, $this->createMock(LoggerInterface::class));

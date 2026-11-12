@@ -57,6 +57,8 @@ use OCA\Learniq\Service\ContributionBeneficiaryResolver;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -189,9 +191,10 @@ class ShillinqContributionSettledListener implements IEventListener {
 						'paymentSettledVia' => ($request['settledVia'] ?? null),
 					]
 				),
-				register: self::LEARNIQ_REGISTER,
-				schema: self::ENTITLEMENT_SCHEMA,
-				uuid: $entitlementId,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ENTITLEMENT_SCHEMA),
+					uuid: $entitlementId
+				),
 				_rbac: false,
 				_multitenancy: false
 			);

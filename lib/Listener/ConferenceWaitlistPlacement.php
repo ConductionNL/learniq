@@ -34,6 +34,8 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -134,9 +136,10 @@ class ConferenceWaitlistPlacement implements IEventListener {
 		unset($signup['@self'], $signup['id']);
 		$this->objectService->saveObject(
 			object: $signup,
-			register: self::REGISTER,
-			schema: self::SIGNUP_SCHEMA,
-			uuid: $signupId,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::SIGNUP_SCHEMA),
+				uuid: $signupId
+			),
 			_rbac: false,
 			_multitenancy: false
 		);

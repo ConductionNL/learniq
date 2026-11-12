@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\Portal;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Service\Portal\EmployerBookingProjection;
 use OCA\Learniq\Service\Portal\PortalEmployerBookings;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
@@ -80,7 +81,13 @@ class PortalEmployerBookingsTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, false, false)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): object => $this->store->save((string)$schema, $object, $uuid, false)
+			SaveCallShape::legacy(fn (
+				array $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				?string $uuid = null
+			): object => $this->store->save((string)$schema, $object, $uuid, false))
 		);
 
 		$projection = new EmployerBookingProjection(objectService: $objectService, users: $this->createMock(IUserManager::class));

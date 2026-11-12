@@ -52,6 +52,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use Psr\Log\LoggerInterface;
@@ -224,8 +226,6 @@ class PeerReviewAllocationService {
 			$assignedCount++;
 
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::PEER_REVIEW_SCHEMA,
 				object: [
 					'assignmentId' => $rotation->assignmentId,
 					'submissionId' => $need->submissionId,
@@ -234,6 +234,9 @@ class PeerReviewAllocationService {
 					'lifecycle' => 'assigned',
 					'tenant_id' => $need->submission['tenant_id'] ?? '',
 				],
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::PEER_REVIEW_SCHEMA)
+				),
 				_rbac: false
 			);
 		}//end while

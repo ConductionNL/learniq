@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use DateTimeImmutable;
 use OCA\Learniq\Service\ExternalTrainingImport;
 use OCA\Learniq\Service\ExternalTrainingLearnerMatch;
@@ -110,14 +111,14 @@ class ExternalTrainingImportTest extends TestCase {
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null) use ($saveFails) {
+			SaveCallShape::legacy(function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null) use ($saveFails) {
 				if ($saveFails === true) {
 					throw new RuntimeException('store down');
 				}
 
 				$this->saved[] = ['schema' => (string)$schema, 'object' => $object];
 				return OrEntityFactory::make($object, (string)$schema);
-			}
+			})
 		);
 
 		$userManager = $this->createMock(IUserManager::class);

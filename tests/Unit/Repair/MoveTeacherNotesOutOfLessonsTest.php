@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Repair;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Repair\MoveTeacherNotesOutOfLessons;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
@@ -97,7 +98,13 @@ class MoveTeacherNotesOutOfLessonsTest extends TestCase {
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend=[], $register=null, $schema=null, ?string $uuid=null) use ($noteFails, $lessonFails) {
+			SaveCallShape::legacy(function (
+				array $object,
+				?array $extend=[],
+				$register=null,
+				$schema=null,
+				?string $uuid=null
+			) use ($noteFails, $lessonFails) {
 				if ($schema === 'lesson-teacher-note' && $noteFails === true) {
 					throw new RuntimeException('validation failed');
 				}
@@ -108,7 +115,7 @@ class MoveTeacherNotesOutOfLessonsTest extends TestCase {
 
 				$this->saves[] = [(string)$schema, $object, $uuid];
 				return OrEntityFactory::make($object, (string)$schema);
-			}
+			})
 		);
 
 		return new MoveTeacherNotesOutOfLessons($objectService, new NullLogger());

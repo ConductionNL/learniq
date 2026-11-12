@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Controller;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Controller\RequestSubmitController;
 use OCA\Learniq\Service\DraftSubmitter;
 use OCA\Learniq\Service\LearnerRefResolver;
@@ -100,11 +101,11 @@ class RequestSubmitControllerTest extends TestCase {
 		);
 		$objects->method('findAll')->willReturn([OrEntityFactory::make(['id' => self::PROFILE, 'ncUserId' => 'lrn-1', 'tenant_id' => self::TENANT], 'learner-profile')]);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], mixed $register = null, mixed $schema = null) {
+			SaveCallShape::legacy(function (array $object, ?array $extend = [], mixed $register = null, mixed $schema = null) {
 				$this->saved[(string)$schema] = $object;
 
 				return OrEntityFactory::make(array_merge($object, ['id' => self::DRAFT]), (string)$schema);
-			}
+			})
 		);
 		$objects->method('deleteObject')->willReturnCallback(
 			function (string $uuid): bool {

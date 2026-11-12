@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\Catalogue;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Service\Catalogue\CatalogueReader;
 use OCA\Learniq\Service\Catalogue\CatalogueSignUpService;
 use OCA\Learniq\Service\Portal\PortalLearner;
@@ -89,7 +90,7 @@ class CatalogueSignUpServiceTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): ObjectEntity {
+			SaveCallShape::legacy(function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): ObjectEntity {
 				if (in_array(($object['courseId'] ?? ''), $this->vetoed, true) === true && $uuid === null) {
 					throw new class('stopped') extends RuntimeException {
 						/**
@@ -104,7 +105,7 @@ class CatalogueSignUpServiceTest extends TestCase {
 				}
 
 				return $this->store->save((string)$schema, $object, $uuid);
-			}
+			})
 		);
 		$objects->method('find')->willReturnCallback(
 			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ObjectEntity {

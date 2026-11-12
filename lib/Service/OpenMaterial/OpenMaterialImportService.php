@@ -29,6 +29,8 @@ namespace OCA\Learniq\Service\OpenMaterial;
 
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Exception\MaterialImportRefusedException;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUser;
 
@@ -211,7 +213,12 @@ class OpenMaterialImportService {
 	 * @return array<string, mixed> The saved Material.
 	 */
 	private function save(array $material): array {
-		return $this->objectService->saveObject(object: $material, register: Application::APP_ID, schema: 'material')->jsonSerialize();
+		return $this->objectService->saveObject(
+			object: $material,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: Application::APP_ID, schema: 'material')
+			)
+		)->jsonSerialize();
 	}//end save()
 
 	/**

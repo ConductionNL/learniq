@@ -51,6 +51,8 @@ use OCA\Learniq\Service\ConferenceSlotSlicer;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -187,8 +189,9 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 			foreach ($free as $candidate) {
 				$this->objectService->saveObject(
 					object: $this->freeSlot(slot: ['teacherId' => $teacherId, 'candidate' => $candidate, 'eligible' => $eligible[$teacherId]], round: $round),
-					register: self::REGISTER,
-					schema: self::SLOT_SCHEMA,
+					options: new ObjectSaveOptions(
+						target: new ObjectFindTarget(register: self::REGISTER, schema: self::SLOT_SCHEMA)
+					),
 					_rbac: false,
 					_multitenancy: false
 				);

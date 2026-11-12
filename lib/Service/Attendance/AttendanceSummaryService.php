@@ -41,6 +41,9 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\PupilGroupTeachers;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
+use OCA\OpenRegister\Service\Object\SaveActor;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use Psr\Log\LoggerInterface;
@@ -314,12 +317,13 @@ class AttendanceSummaryService {
 
 		$this->objectService->saveObject(
 			object: $object,
-			register: self::REGISTER,
-			schema: self::SUMMARY_SCHEMA,
-			uuid: $uuid,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::SUMMARY_SCHEMA),
+				uuid: $uuid,
+				actor: new SaveActor(unowned: true)
+			),
 			_rbac: false,
-			_multitenancy: false,
-			_unowned: true
+			_multitenancy: false
 		);
 	}//end save()
 

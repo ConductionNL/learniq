@@ -39,6 +39,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Portal;
 
 use DateTimeImmutable;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
@@ -161,8 +163,9 @@ class PortalWerkprocesAssessment {
 
 			$saved = $this->objectService->saveObject(
 				object: $this->stamped(trainerRef: $trainerRef, trainer: $trainer, assurance: $assurance, body: $body),
-				register: self::REGISTER,
-				schema: self::ASSESSMENT_SCHEMA,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::ASSESSMENT_SCHEMA)
+				),
 				_rbac: false,
 				_multitenancy: false
 			);

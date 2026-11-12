@@ -21,6 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\BackgroundJob\ActorForwarding;
 use OCA\Learniq\BackgroundJob\CohortNameRestampJob;
 use OCA\Learniq\Listener\CohortNameCascade;
@@ -107,7 +108,13 @@ class CohortNameCascadeTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) => $this->store->save((string)$schema, $object, $uuid)
+			SaveCallShape::legacy(fn (
+				array $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				?string $uuid = null
+			) => $this->store->save((string)$schema, $object, $uuid))
 		);
 
 		return new CohortNameRestamp(objectService: $objectService, logger: new NullLogger());
@@ -222,13 +229,13 @@ class CohortNameCascadeTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) {
+			SaveCallShape::legacy(function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) {
 				if ($uuid === 'enrolment-broken') {
 					throw new RuntimeException('locked');
 				}
 
 				return $this->store->save((string)$schema, $object, $uuid);
-			}
+			})
 		);
 
 		(new CohortNameRestamp(objectService: $objectService, logger: new NullLogger()))->restamp(cohortId: self::COHORT, name: 'Groep 7');

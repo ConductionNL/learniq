@@ -127,9 +127,15 @@ final class PortalFakeRegister {
 		);
 
 		$service->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): ObjectEntity {
+			SaveCallShape::legacy(function (
+				array|ObjectEntity $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				?string $uuid = null
+			): ObjectEntity {
 				return $this->save(data: (array)$object, schema: (string)$schema, uuid: $uuid);
-			}
+			})
 		);
 
 		$service->method('runAs')->willReturnCallback(

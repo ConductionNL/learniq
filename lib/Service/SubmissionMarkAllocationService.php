@@ -35,6 +35,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -159,8 +161,6 @@ class SubmissionMarkAllocationService {
 
 		foreach ($toCreate as $markerId) {
 			$this->objectService->saveObject(
-				register: self::REGISTER,
-				schema: self::MARK_SCHEMA,
 				object: [
 					'submissionId' => $submissionId,
 					'assignmentId' => (string)($submission['assignmentId'] ?? ''),
@@ -169,6 +169,9 @@ class SubmissionMarkAllocationService {
 					'lifecycle' => 'draft',
 					'tenant_id' => (string)($submission['tenant_id'] ?? ''),
 				],
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::MARK_SCHEMA)
+				),
 				_rbac: false
 			);
 		}
@@ -179,10 +182,11 @@ class SubmissionMarkAllocationService {
 			unset($row['@self']);
 			$row['markerIds'] = $union;
 			$this->objectService->saveObject(
-				register: self::REGISTER,
-				schema: self::SUBMISSION_SCHEMA,
 				object: $row,
-				uuid: $submissionId,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::SUBMISSION_SCHEMA),
+					uuid: $submissionId
+				),
 				_rbac: false
 			);
 		}

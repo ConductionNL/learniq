@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\BackgroundJob;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\BackgroundJob\ActorForwarding;
 use OCA\Learniq\BackgroundJob\EnrolmentProgressRollupJob;
 use OCA\Learniq\Service\EnrolmentProgressEvaluator;
@@ -54,10 +55,10 @@ class EnrolmentProgressRollupJobTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturn($enrolments);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (mixed $object = null, ?array $extend = [], mixed $register = null, mixed $schema = null): mixed {
+			SaveCallShape::legacy(function (mixed $object = null, ?array $extend = [], mixed $register = null, mixed $schema = null): mixed {
 				$this->saved[] = ['schema' => (string)$schema, 'object' => $object];
 				return $object;
-			}
+			})
 		);
 
 		$evaluator = $this->createMock(EnrolmentProgressEvaluator::class);
@@ -150,7 +151,7 @@ class EnrolmentProgressRollupJobTest extends TestCase {
 		$objectService->method('findAll')->willReturn([['id' => 'enrolment-1']]);
 		$calls = 0;
 		$objectService->method('saveObject')->willReturnCallback(
-			function (mixed $object = null, ?array $extend = [], mixed $register = null, mixed $schema = null) use (&$calls): mixed {
+			SaveCallShape::legacy(function (mixed $object = null, ?array $extend = [], mixed $register = null, mixed $schema = null) use (&$calls): mixed {
 				$calls++;
 				if ($calls === 1) {
 					throw new \RuntimeException('write failed');
@@ -158,7 +159,7 @@ class EnrolmentProgressRollupJobTest extends TestCase {
 
 				$this->saved[] = ['schema' => (string)$schema, 'object' => $object];
 				return $object;
-			}
+			})
 		);
 
 		$evaluator = $this->createMock(EnrolmentProgressEvaluator::class);
@@ -200,10 +201,10 @@ class EnrolmentProgressRollupJobTest extends TestCase {
 		);
 		$objectService->method('findAll')->willReturn([['id' => 'enrol-active']]);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (mixed $object = null, ?array $extend = [], mixed $register = null, mixed $schema = null): mixed {
+			SaveCallShape::legacy(function (mixed $object = null, ?array $extend = [], mixed $register = null, mixed $schema = null): mixed {
 				$this->saved[] = ['schema' => (string)$schema, 'object' => $object];
 				return $object;
-			}
+			})
 		);
 
 		$handed = [];

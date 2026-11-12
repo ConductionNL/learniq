@@ -21,6 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Listener\LessonOnboardingFileListener;
 use OCA\Learniq\Service\LessonOnboarding\OnboardingFolderSetting;
 use OCA\OpenRegister\Service\ObjectService;
@@ -80,14 +81,7 @@ class LessonOnboardingFileListenerTest extends TestCase {
 	 * @return array<string, mixed>
 	 */
 	private static function named(array $args): array {
-		$named = [];
-		foreach ((new \ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters() as $index => $parameter) {
-			if (array_key_exists($index, $args) === true) {
-				$named[$parameter->getName()] = $args[$index];
-			}
-		}
-
-		return $named;
+		return SaveCallShape::all(args: $args);
 
 	}//end named()
 

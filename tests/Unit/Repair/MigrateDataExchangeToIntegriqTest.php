@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Repair;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use DateTime;
 use OCA\Learniq\Repair\LegacyExchangeTranslator;
 use OCA\Learniq\Repair\MigrateDataExchangeToIntegriq;
@@ -104,11 +105,11 @@ class MigrateDataExchangeToIntegriqTest extends TestCase {
 			}
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null): ObjectEntity {
+			SaveCallShape::legacy(function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null): ObjectEntity {
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->saved[] = ['schema' => (string)$schema, 'object' => $data, 'uuid' => $uuid];
 				return OrEntityFactory::make($data, (string)$schema);
-			}
+			})
 		);
 
 		$folder = $this->createMock(ISimpleFolder::class);

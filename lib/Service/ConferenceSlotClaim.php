@@ -45,6 +45,8 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Lock\ILockingProvider;
 use OCP\Lock\LockedException;
@@ -172,9 +174,10 @@ class ConferenceSlotClaim {
 		unset($booked['@self'], $booked['id']);
 		$saved = $this->objectService->saveObject(
 			object: $booked,
-			register: self::REGISTER,
-			schema: self::SLOT_SCHEMA,
-			uuid: $slotId,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::SLOT_SCHEMA),
+				uuid: $slotId
+			),
 			_rbac: false,
 			_multitenancy: false
 		);

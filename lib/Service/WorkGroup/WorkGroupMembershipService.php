@@ -39,6 +39,8 @@ namespace OCA\Learniq\Service\WorkGroup;
 use DateTimeImmutable;
 use OCA\Learniq\Service\Portal\PortalLearner;
 use OCA\Learniq\Service\Portal\PortalOutcome;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -248,7 +250,14 @@ class WorkGroupMembershipService {
 		$uuid = (string)$group['id'];
 		$this->objects->runAs(
 			user: $learner->user,
-			operation: fn () => $this->objects->saveObject(object: $row, register: self::REGISTER, schema: self::SCHEMA, uuid: $uuid, _rbac: false)
+			operation: fn () => $this->objects->saveObject(
+				object: $row,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA),
+					uuid: $uuid
+				),
+				_rbac: false
+			)
 		);
 	}//end save()
 }//end class

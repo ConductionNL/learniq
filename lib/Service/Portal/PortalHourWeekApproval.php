@@ -40,6 +40,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
 use DateTimeImmutable;
@@ -141,8 +143,9 @@ class PortalHourWeekApproval {
 
 			$saved = $this->objectService->saveObject(
 				object: $this->stamped(week: $week, trainerRef: $trainerRef, trainer: $trainer, assurance: $assurance, body: $body),
-				register: self::REGISTER,
-				schema: self::WEEK_SCHEMA,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::WEEK_SCHEMA)
+				),
 				_rbac: false,
 				_multitenancy: false
 			);

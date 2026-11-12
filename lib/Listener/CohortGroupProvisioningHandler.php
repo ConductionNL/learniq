@@ -51,6 +51,8 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -202,9 +204,10 @@ class CohortGroupProvisioningHandler implements IEventListener {
 
 		$cohort['ncGroupId'] = $groupId;
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::COHORT_SCHEMA,
-			object: $cohort
+			object: $cohort,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::COHORT_SCHEMA)
+			)
 		);
 
 		$this->logger->info(

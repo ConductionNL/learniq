@@ -57,6 +57,8 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\AttendanceWindowAggregator;
 use OCA\Learniq\Service\LearnerRefResolver;
@@ -220,7 +222,12 @@ class ReportCardComposer implements IEventListener {
 				'lifecycle' => 'draft',
 			];
 
-			$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA, object: $reportCard);
+			$this->objectService->saveObject(
+				object: $reportCard,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA)
+				)
+			);
 			$createdCount++;
 		}//end foreach
 
@@ -293,7 +300,12 @@ class ReportCardComposer implements IEventListener {
 		$updated['attendanceSummary'] = $attendanceSummary;
 		$updated['composedAt'] = $this->now();
 
-		$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA, object: $updated);
+		$this->objectService->saveObject(
+			object: $updated,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA)
+			)
+		);
 
 		$this->logger->info('[ReportCardComposer] ReportCard {id} recomposed.', ['id' => $cardId]);
 

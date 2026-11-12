@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\ExternalTrainingService;
@@ -205,10 +206,10 @@ class ExternalTrainingServiceTest extends TestCase {
 		$objectService->expects($this->exactly(2))
 			->method('saveObject')
 			->willReturnCallback(
-				static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved) {
+				SaveCallShape::legacy(static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved) {
 					$saved[] = $object;
 					return OrEntityFactory::make($object, (string)$schema, (string)$register);
-				}
+				})
 			);
 
 		$svc = new ExternalTrainingService($objectService, $this->createMock(LoggerInterface::class));

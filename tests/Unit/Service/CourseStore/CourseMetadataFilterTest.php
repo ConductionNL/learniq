@@ -22,6 +22,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\CourseStore;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Service\CoursePackage\CourseMetadataFilter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter;
@@ -105,10 +106,10 @@ class CourseMetadataFilterTest extends TestCase {
 		$saved         = [];
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend=[], $register=null, $schema=null) use (&$saved) {
+			SaveCallShape::legacy(static function (array $object, ?array $extend=[], $register=null, $schema=null) use (&$saved) {
 				$saved[] = ['schema' => (string)$schema, 'object' => $object];
 				return OrEntityFactory::make($object, (string)$schema, 'learniq', (string)$schema . '-' . count($saved));
-			}
+			})
 		);
 
 		$importer = new LearniqJsonCourseImporter(

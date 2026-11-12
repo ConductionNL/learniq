@@ -30,6 +30,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\CoursePackage;
 
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -190,9 +192,10 @@ class CoursePackageObjectWriter {
 	 */
 	public function create(string $schema, array $object): ?string {
 		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: $schema,
-			object: $object
+			object: $object,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: $schema)
+			)
 		);
 
 		return $this->extractUuid(saved: $saved);

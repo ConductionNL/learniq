@@ -40,6 +40,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -167,9 +169,10 @@ class CompetencyAttainmentRollup {
 		}
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::WERKPROCES_SCHEMA,
-			object: array_merge($data, ['competencyId' => $competencyId])
+			object: array_merge($data, ['competencyId' => $competencyId]),
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::WERKPROCES_SCHEMA)
+			)
 		);
 
 		$this->logger->info(

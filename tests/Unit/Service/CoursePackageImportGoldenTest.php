@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Service\CommonCartridgeParser;
 use OCA\Learniq\Service\CoursePackage\CommonCartridgeCourseImporter;
 use OCA\Learniq\Service\CoursePackage\CommonCartridgeResourceRouter;
@@ -48,7 +49,6 @@ use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
-use ReflectionMethod;
 
 /**
  * Pins every saveObject call CoursePackageImportService::import() makes, and
@@ -171,17 +171,9 @@ class CoursePackageImportGoldenTest extends TestCase {
 
 		$calls   = [];
 		$service = $this->createMock(ObjectService::class);
-		$params   = (new ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters();
 		$service->method('saveObject')->willReturnCallback(
-			static function (...$args) use ($params, &$calls) {
-				$named = [];
-				foreach ($args as $i => $value) {
-					if ($params[$i]->isDefaultValueAvailable() === true && $params[$i]->getDefaultValue() === $value) {
-						continue;
-					}
-
-					$named[$params[$i]->getName()] = $value;
-				}
+			static function (...$args) use (&$calls) {
+				$named = SaveCallShape::named(args: $args);
 
 				$calls[] = ['saveObject' => $named];
 				return OrEntityFactory::make($named['object'], (string)$named['schema'], (string)$named['register'], 'saved-' . count($calls));

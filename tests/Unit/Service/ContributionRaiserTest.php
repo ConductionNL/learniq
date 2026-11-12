@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use InvalidArgumentException;
 use OCA\Learniq\Service\ContributionRaiser;
 use OCA\Learniq\Service\ShillinqContributionClient;
@@ -109,7 +110,13 @@ class ContributionRaiserTest extends TestCase {
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): ObjectEntity => $this->store->save((string)$schema, $object, $uuid)
+			SaveCallShape::legacy(fn (
+				array|ObjectEntity $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null,
+				?string $uuid = null
+			): ObjectEntity => $this->store->save((string)$schema, $object, $uuid))
 		);
 
 		$shillinq = $this->createMock(ShillinqContributionClient::class);

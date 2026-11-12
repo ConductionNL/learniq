@@ -67,6 +67,8 @@ namespace OCA\Learniq\Listener;
 use DateTimeImmutable;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Grading\GradeFormulaEvaluator;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -281,8 +283,6 @@ class PointAwardTriggerHandler implements IEventListener {
 			}
 
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::POINT_AWARD_SCHEMA,
 				object: [
 					'learnerId' => $learnerId,
 					'pointRuleId' => $ruleId,
@@ -291,7 +291,10 @@ class PointAwardTriggerHandler implements IEventListener {
 					'sourceObjectId' => $source->sourceObjectId,
 					'awardedAt' => DateTimeImmutable::createFromMutable($this->timeFactory->getDateTime())->format(\DATE_ATOM),
 					'tenant_id' => $source->scope->tenantId,
-				]
+				],
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::POINT_AWARD_SCHEMA)
+				)
 			);
 		}//end foreach
 

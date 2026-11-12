@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Support;
 
+use OCA\OpenRegister\Service\ObjectService;
 use ReflectionMethod;
 
 /**
@@ -44,6 +45,10 @@ final class PassedArguments {
 	 * @return array<string, mixed>
 	 */
 	public static function of(array $method, array $args): array {
+		if (is_a($method[0], ObjectService::class, true) === true && $method[1] === 'saveObject') {
+			return SaveCallShape::named(args: $args);
+		}
+
 		$named = [];
 		foreach ((new ReflectionMethod($method[0], $method[1]))->getParameters() as $index => $param) {
 			if (array_key_exists($index, $args) === false) {

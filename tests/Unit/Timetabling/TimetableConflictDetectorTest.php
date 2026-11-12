@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Timetabling;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Timetabling\SessionOverlapEvaluator;
@@ -114,14 +115,14 @@ class TimetableConflictDetectorTest extends TestCase {
 		);
 
 		$this->objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null) {
+			SaveCallShape::legacy(function (array $object, ?array $extend = [], $register = null, $schema = null) {
 				$this->saves[] = [
 					'register' => (string)$register,
 					'schema' => (string)$schema,
 					'object' => $object,
 				];
 				return OrEntityFactory::make($object, (string)$schema, (string)$register);
-			}
+			})
 		);
 
 		return new TimetableConflictDetector(

@@ -30,6 +30,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use DateTimeImmutable;
 use OCA\Learniq\Lifecycle\CourseEvaluationEligibilityGuard;
 use OCA\Learniq\Listener\CourseEvaluationResponseSubmittedHandler;
@@ -158,10 +159,9 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 		);
 		// Read arguments by the real parameter names: the stub and
 		// OpenRegister's own ObjectService order them differently.
-		$names = array_map(static fn (\ReflectionParameter $parameter): string => $parameter->getName(), (new \ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters());
 		$objects->method('saveObject')->willReturnCallback(
-			function (mixed ...$args) use ($names): ObjectEntity {
-				$named = array_combine(array_slice($names, 0, count($args)), $args);
+			function (mixed ...$args): ObjectEntity {
+				$named = SaveCallShape::all(args: $args);
 				$object = (array)$named['object'];
 				$schema = (string)($named['schema'] ?? '');
 				$this->saveCalls[] = ['schema' => $schema, 'object' => $object, 'rbac' => ($named['_rbac'] ?? true), 'unowned' => ($named['_unowned'] ?? false)];

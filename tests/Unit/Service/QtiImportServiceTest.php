@@ -30,6 +30,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\QtiImportService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -66,7 +67,7 @@ class QtiImportServiceTest extends TestCase {
 		$this->savedObjects = [];
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null) {
+			SaveCallShape::legacy(function (array $object, ?array $extend = [], $register = null, $schema = null) {
 				$this->savedObjects[] = $object;
 
 				return OrEntityFactory::make(
@@ -75,7 +76,7 @@ class QtiImportServiceTest extends TestCase {
 					(string)$register,
 					'item-' . count($this->savedObjects)
 				);
-			}
+			})
 		);
 
 		return new QtiImportService($objectService, new NullLogger());

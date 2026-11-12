@@ -34,6 +34,7 @@ namespace OCA\OpenRegister\Service;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Db\Register;
 use OCA\OpenRegister\Db\Schema;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCP\IUser;
 
 /**
@@ -79,42 +80,21 @@ abstract class ObjectService {
 	abstract public function findAll(array $config = [], bool $_rbac = true, bool $_multitenancy = true): array;
 
 	/**
-	 * Persist an object.
+	 * Save an object.
 	 *
-	 * @param array<string,mixed>|ObjectEntity $object Object payload.
-	 * @param array<string,mixed>|null $extend Extend directives.
-	 * @param Register|string|int|null $register Register context.
-	 * @param Schema|string|int|null $schema Schema context.
-	 * @param string|null $uuid Explicit uuid.
-	 * @param bool $_rbac Apply RBAC.
-	 * @param bool $_multitenancy Apply multitenancy.
-	 * @param bool $silent Suppress events.
-	 * @param bool $_validation Validate against the schema.
-	 * @param array<string,mixed>|null $uploadedFiles Uploaded files.
-	 * @param IUser|null $currentUser Acting user.
-	 * @param bool $failIfExists Fail on conflict.
-	 * @param bool $_unowned     Stamp the system identity as owner even with a session (OR 3de558cc7d).
-	 * @param bool $_dedupOverride Save over a duplicate the dedup check would refuse.
-	 * @param string|null $_owner Explicit owner.
+	 * @param array<string, mixed>|ObjectEntity $object        The object data.
+	 * @param ObjectSaveOptions                 $options       Register and schema target, uuid, extend,
+	 *                                                         uploaded files, save policy and actor.
+	 * @param bool                              $_rbac         Apply RBAC.
+	 * @param bool                              $_multitenancy Apply multitenancy.
 	 *
 	 * @return ObjectEntity
 	 */
 	abstract public function saveObject(
 		array|ObjectEntity $object,
-		?array $extend = [],
-		Register|string|int|null $register = null,
-		Schema|string|int|null $schema = null,
-		?string $uuid = null,
+		ObjectSaveOptions $options = new ObjectSaveOptions(),
 		bool $_rbac = true,
 		bool $_multitenancy = true,
-		bool $silent = false,
-		bool $_validation = true,
-		?array $uploadedFiles = null,
-		?IUser $currentUser = null,
-		bool $failIfExists = false,
-		bool $_unowned = false,
-		bool $_dedupOverride = false,
-		?string $_owner = null,
 	): ObjectEntity;
 
 	/**

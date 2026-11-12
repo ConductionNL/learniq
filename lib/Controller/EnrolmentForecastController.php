@@ -33,6 +33,8 @@ use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerActions;
 use OCA\Learniq\Service\EnrolmentForecastService;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -121,7 +123,12 @@ class EnrolmentForecastController extends Controller {
 		}
 
 		$forecast['result'] = $result;
-		$this->objectService->saveObject(object: $forecast, register: self::REGISTER, schema: self::SCHEMA);
+		$this->objectService->saveObject(
+			object: $forecast,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA)
+			)
+		);
 
 		return new JSONResponse(data: $result);
 	}//end compute()

@@ -21,6 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Exception\SharingBlockedException;
 use OCA\Learniq\Service\CoursePackageExportService;
 use OCA\Learniq\Service\CourseShareExportService;
@@ -84,14 +85,14 @@ class CourseShareExportServiceTest extends TestCase {
 
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend=[], $register=null, $schema=null) use ($failToSave) {
+			SaveCallShape::legacy(function (array $object, ?array $extend=[], $register=null, $schema=null) use ($failToSave) {
 				if ($failToSave === true) {
 					throw new RuntimeException('database down');
 				}
 
 				$this->saved[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
 				return OrEntityFactory::make($object, (string)$schema);
-			}
+			})
 		);
 
 		return new CourseShareExportService($exporter, new CourseSharingGate(), new CourseSharePackageBuilder(), $objectService);

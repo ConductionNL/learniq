@@ -49,6 +49,8 @@ namespace OCA\Learniq\Listener;
 use DateTimeImmutable;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\BsaProgressEvaluator;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -250,8 +252,6 @@ class BsaProgressFlagHandler implements IEventListener {
 		}
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::BSA_PROGRESS_FLAG_SCHEMA,
 			object: [
 				'learnerId' => $learnerId,
 				'programmeId' => $programmeId,
@@ -262,7 +262,10 @@ class BsaProgressFlagHandler implements IEventListener {
 				'flaggedAt' => $now->format(\DATE_ATOM),
 				'lifecycle' => 'open',
 				'tenant_id' => $tenantId,
-			]
+			],
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::BSA_PROGRESS_FLAG_SCHEMA)
+			)
 		);
 
 	}//end checkTrajectory()

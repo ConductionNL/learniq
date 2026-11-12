@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Exception\RolloverInterruptedException;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
@@ -198,10 +199,10 @@ class RolloverServiceTest extends TestCase {
 		// No existing to-year cohort, no enrolments.
 		$objectService->method('findAll')->willReturn([]);
 		$objectService->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved) {
+			SaveCallShape::legacy(static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved) {
 				$saved[] = ['schema' => (string)$schema, 'object' => $object];
 				return OrEntityFactory::make($object, (string)$schema, (string)$register);
-			}
+			})
 		);
 
 		$svc = $this->makeExecutionService($objectService);
@@ -240,10 +241,10 @@ class RolloverServiceTest extends TestCase {
 		);
 		$objectService->method('findAll')->willReturn([]);
 		$objectService->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved) {
+			SaveCallShape::legacy(static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved) {
 				$saved[] = $object;
 				return OrEntityFactory::make($object, (string)$schema, (string)$register);
-			}
+			})
 		);
 
 		$this->makeExecutionService($objectService)->execute(
@@ -319,10 +320,10 @@ class RolloverServiceTest extends TestCase {
 		);
 		$objectService->method('findAll')->willReturn([]);
 		$objectService->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved) {
+			SaveCallShape::legacy(static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved) {
 				$saved[] = $object;
 				return OrEntityFactory::make($object, (string)$schema, (string)$register);
-			}
+			})
 		);
 
 		$progress = $this->makeExecutionService($objectService)->execute(
@@ -359,13 +360,13 @@ class RolloverServiceTest extends TestCase {
 		);
 		$objectService->method('findAll')->willReturn([]);
 		$objectService->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null) {
+			SaveCallShape::legacy(static function (array $object, ?array $extend = [], $register = null, $schema = null) {
 				if (($object['id'] ?? '') === 'c3') {
 					throw new RuntimeException('database gone');
 				}
 
 				return OrEntityFactory::make($object, (string)$schema, (string)$register);
-			}
+			})
 		);
 
 		$plan = [

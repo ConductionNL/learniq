@@ -42,6 +42,8 @@ namespace OCA\Learniq\Lifecycle;
 use OCA\Learniq\Exception\RolloverInterruptedException;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\RolloverExecutionService;
 use OCA\Learniq\Service\RolloverService;
@@ -121,7 +123,12 @@ class RolloverExecutionHandler implements IEventListener {
 			$plan['perMappingProgress'] = $progress;
 			$plan['lifecycle'] = 'completed';
 			$plan['executedAt'] = date('c');
-			$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::SCHEMA, object: $plan);
+			$this->objectService->saveObject(
+				object: $plan,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::SCHEMA)
+				)
+			);
 
 			$this->logger->info('[RolloverExecutionHandler] Rollover plan {p} completed.', ['p' => $planId]);
 		} catch (Throwable $e) {
@@ -146,6 +153,11 @@ class RolloverExecutionHandler implements IEventListener {
 	private function failPlan(array $plan, string $reason): void {
 		$plan['lifecycle'] = 'failed';
 		$plan['failureReason'] = $reason;
-		$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::SCHEMA, object: $plan);
+		$this->objectService->saveObject(
+			object: $plan,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::SCHEMA)
+			)
+		);
 	}//end failPlan()
 }//end class

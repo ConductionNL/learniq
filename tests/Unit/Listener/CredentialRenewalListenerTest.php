@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -75,7 +76,12 @@ class CredentialRenewalListenerTest extends TestCase {
 	private function makeListener(array|ObjectEntity $savedEnrolment): CredentialRenewalListener {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null) use ($savedEnrolment): ObjectEntity {
+			SaveCallShape::legacy(function (
+				array|ObjectEntity $object,
+				?array $extend = [],
+				$register = null,
+				$schema = null
+			) use ($savedEnrolment): ObjectEntity {
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->savedObjects[] = [
 					'register' => (string)$register,
@@ -89,7 +95,7 @@ class CredentialRenewalListenerTest extends TestCase {
 					return OrEntityFactory::make($savedEnrolment, 'enrolment');
 				}
 				return OrEntityFactory::make($data, (string)$schema, (string)$register);
-			}
+			})
 		);
 
 		$profiles = $this->createMock(LearnerRefResolver::class);

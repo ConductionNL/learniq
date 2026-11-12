@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Controller;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Controller\ExternalTrainingController;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerTenantResolver;
@@ -209,7 +210,13 @@ class ExternalTrainingControllerIssueCredentialTest extends TestCase {
 			)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], mixed $register = null, mixed $schema = null, ?string $uuid = null): ObjectEntity {
+			SaveCallShape::legacy(function (
+				array|ObjectEntity $object,
+				?array $extend = [],
+				mixed $register = null,
+				mixed $schema = null,
+				?string $uuid = null
+			): ObjectEntity {
 				$data = $object;
 				if ($object instanceof ObjectEntity) {
 					$data = (array)$object->getObject();
@@ -221,7 +228,7 @@ class ExternalTrainingControllerIssueCredentialTest extends TestCase {
 				}
 
 				return OrEntityFactory::make($data, (string)$schema, 'learniq', $uuid);
-			}
+			})
 		);
 
 		return $objectService;

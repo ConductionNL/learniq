@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\CommonCartridgeParser;
 use OCA\Learniq\Service\CoursePackage\ArchivePackage;
@@ -87,7 +88,7 @@ class CoursePackageImportServiceTest extends TestCase {
 		// non-nullable ObjectEntity — the uuid the importer reads back via
 		// `extractUuid()` lives on the entity, not in the payload array.
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null) {
+			SaveCallShape::legacy(function (array $object, ?array $extend = [], $register = null, $schema = null) {
 				$schemaSlug = (string)$schema;
 
 				$this->savedByschema[$schemaSlug] ??= [];
@@ -99,7 +100,7 @@ class CoursePackageImportServiceTest extends TestCase {
 					(string)$register,
 					$schemaSlug . '-' . count($this->savedByschema[$schemaSlug])
 				);
-			}
+			})
 		);
 
 		$folder = $this->createMock(Folder::class);

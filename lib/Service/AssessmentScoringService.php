@@ -30,6 +30,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use InvalidArgumentException;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\AssessmentScoringHandler;
 use OCP\IGroupManager;
@@ -131,9 +133,10 @@ class AssessmentScoringService {
 		// #194/#223: use named args so saveObject picks the correct register/schema
 		// from the stored state rather than relying on positional stale-state fallback.
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: 'assessment-result',
-			object: $scored
+			object: $scored,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: 'assessment-result')
+			)
 		);
 
 		$this->logger->info(

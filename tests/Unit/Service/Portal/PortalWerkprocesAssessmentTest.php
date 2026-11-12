@@ -21,6 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\Portal;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Service\Portal\PortalWerkprocesAssessment;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
@@ -86,13 +87,13 @@ class PortalWerkprocesAssessmentTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use ($failWrites) {
+			SaveCallShape::legacy(function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use ($failWrites) {
 				if ($failWrites === true) {
 					throw new RuntimeException('SQLSTATE secret table name');
 				}
 
 				return $this->store->save((string)$schema, $object, $uuid ?? 'assessment-1');
-			}
+			})
 		);
 
 		$appConfig = $this->createMock(IAppConfig::class);
@@ -288,11 +289,11 @@ class PortalWerkprocesAssessmentTest extends TestCase {
 		);
 		$saved = [];
 		$objectService->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use (&$saved) {
+			SaveCallShape::legacy(static function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use (&$saved) {
 				$saved[] = $object;
 				// The real saveObject() answers an entity, never an array.
 				return OrEntityFactory::make(['id' => 'assessment-1'], 'werkproces-assessment');
-			}
+			})
 		);
 		$appConfig = $this->createMock(IAppConfig::class);
 		$appConfig->method('getValueString')->willReturn('basic');

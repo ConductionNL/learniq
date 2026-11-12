@@ -55,6 +55,8 @@ use OCA\Learniq\Service\Portal\PortalLearner;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCA\Learniq\Service\Programme\ProgrammeRequirements;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Http;
 use Throwable;
@@ -207,7 +209,14 @@ class CatalogueSignUpService {
 		$row['lifecycle'] = 'withdrawn';
 		$this->objects->runAs(
 			user: $learner->user,
-			operation: fn () => $this->objects->saveObject(object: $row, register: self::REGISTER, schema: self::ENROLMENT, uuid: $enrolmentId, _rbac: false)
+			operation: fn () => $this->objects->saveObject(
+				object: $row,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::ENROLMENT),
+					uuid: $enrolmentId
+				),
+				_rbac: false
+			)
 		);
 
 		return new PortalOutcome(status: Http::STATUS_OK, body: ['enrolmentId' => $enrolmentId, 'lifecycle' => 'withdrawn']);
@@ -291,7 +300,13 @@ class CatalogueSignUpService {
 		try {
 			$saved = $this->objects->runAs(
 				user: $learner->user,
-				operation: fn () => $this->objects->saveObject(object: $enrolment, register: self::REGISTER, schema: self::ENROLMENT, _rbac: false)
+				operation: fn () => $this->objects->saveObject(
+					object: $enrolment,
+					options: new ObjectSaveOptions(
+						target: new ObjectFindTarget(register: self::REGISTER, schema: self::ENROLMENT)
+					),
+					_rbac: false
+				)
 			);
 		} catch (Throwable $exception) {
 			$message = $this->vetoMessage(exception: $exception);

@@ -31,6 +31,8 @@ namespace OCA\Learniq\Repair;
 
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\IntegriqExchangeClient;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\AppData\IAppDataFactory;
@@ -317,7 +319,13 @@ class MigrateDataExchangeToIntegriq implements IRepairStep {
 					}
 
 					$row['dataExchangeJobId'] = $newId;
-					$this->objectService->saveObject(object: $row, register: self::LEARNIQ_REGISTER, schema: $schema, uuid: $uuid);
+					$this->objectService->saveObject(
+						object: $row,
+						options: new ObjectSaveOptions(
+							target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: $schema),
+							uuid: $uuid
+						)
+					);
 				}
 			} catch (Throwable $exception) {
 				$this->logger->warning(
@@ -344,15 +352,16 @@ class MigrateDataExchangeToIntegriq implements IRepairStep {
 
 		try {
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: 'dossier-review',
 				object: [
 					'exchangeJobId' => $newId,
 					'target' => $target,
 					'learnerUserId' => $learner,
 					'status' => 'pending',
 					'tenant_id' => (string)($job['tenant_id'] ?? ''),
-				]
+				],
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: 'dossier-review')
+				)
 			);
 		} catch (Throwable $exception) {
 			$this->logger->warning('[MigrateDataExchangeToIntegriq] no review opened for job ' . $newId . ': ' . $exception->getMessage());

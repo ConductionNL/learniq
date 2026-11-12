@@ -31,6 +31,8 @@ namespace OCA\Learniq\Service\Attendance;
 use DateTime;
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IL10N;
 use Psr\Log\LoggerInterface;
@@ -134,7 +136,13 @@ class RollCallLessons {
 			$session['courseId'] = $cohort['courseId'];
 		}
 
-		$created = $this->objectService->saveObject(object: $session, register: self::REGISTER, schema: 'session', _rbac: false);
+		$created = $this->objectService->saveObject(
+			object: $session,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: 'session')
+			),
+			_rbac: false
+		);
 		$row = (array)$created->jsonSerialize();
 		$row['id'] = $this->idOf(row: $row);
 		if ($row['id'] === '') {

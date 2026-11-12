@@ -23,12 +23,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Service\LessonProgress;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use ReflectionMethod;
 
 /**
  * Pins every ObjectService call LessonProgress::record() makes, per scenario,
@@ -173,17 +173,9 @@ class LessonProgressGoldenTest extends TestCase {
 				return $found;
 			}
 		);
-		$params = (new ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters();
 		$service->method('saveObject')->willReturnCallback(
-			static function (...$args) use ($params, &$calls) {
-				$named = [];
-				foreach ($args as $i => $value) {
-					if ($params[$i]->isDefaultValueAvailable() === true && $params[$i]->getDefaultValue() === $value) {
-						continue;
-					}
-
-					$named[$params[$i]->getName()] = $value;
-				}
+			static function (...$args) use (&$calls) {
+				$named = SaveCallShape::named(args: $args);
 
 				// An entity row's @self block follows the loaded OpenRegister version, so it is not pinned.
 				unset($named['object']['@self']);

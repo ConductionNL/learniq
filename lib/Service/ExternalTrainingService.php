@@ -37,6 +37,8 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -216,9 +218,10 @@ class ExternalTrainingService {
 			// Do NOT set lifecycle — OR defaults it to 'submitted' and fires the
 			// 'created' notification rule.
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::SCHEMA,
-				object: $record
+				object: $record,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::SCHEMA)
+				)
 			);
 		}//end foreach
 

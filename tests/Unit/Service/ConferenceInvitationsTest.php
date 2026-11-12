@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Service\ConferenceInvitations;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
@@ -264,7 +265,13 @@ class ConferenceInvitationsTest extends TestCase {
 			static fn (array $config, bool $_rbac=true, bool $_multitenancy=true): array => $store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			static fn (array $object, ?array $extend=[], $register=null, $schema=null, ?string $uuid=null) => $store->save((string)$schema, $object, $uuid, false)
+			SaveCallShape::legacy(static fn (
+				array $object,
+				?array $extend=[],
+				$register=null,
+				$schema=null,
+				?string $uuid=null
+			) => $store->save((string)$schema, $object, $uuid, false))
 		);
 		$objectService->method('find')->willReturnCallback(
 			static function (int|string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) use ($store) {

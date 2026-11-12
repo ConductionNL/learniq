@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use InvalidArgumentException;
 use OCA\Learniq\Lifecycle\SessionChangeGuard;
 use OCA\Learniq\Listener\SessionChangeNoticeHandler;
@@ -122,10 +123,10 @@ class SessionChangeBatchServiceTest extends TestCase {
 			fn () => OrEntityFactory::makeMany(array_values($this->sessions), 'session')
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			function ($object, $extend=[], $register=null, $schema=null, $uuid=null) {
+			SaveCallShape::legacy(function ($object, $extend=[], $register=null, $schema=null, $uuid=null) {
 				$this->saves[] = [(string)$schema, $object, $uuid];
 				return OrEntityFactory::make($object, (string)$schema, 'learniq', $uuid);
-			}
+			})
 		);
 
 		$engine = $this->createMock(TransitionEngine::class);
@@ -248,10 +249,10 @@ class SessionChangeBatchServiceTest extends TestCase {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(fn ($id) => OrEntityFactory::make($this->sessions[$id], 'session'));
 		$objects->method('saveObject')->willReturnCallback(
-			function ($object, $extend=[], $register=null, $schema=null, $uuid=null) {
+			SaveCallShape::legacy(function ($object, $extend=[], $register=null, $schema=null, $uuid=null) {
 				$this->saves[] = [(string)$schema, $object, $uuid];
 				return OrEntityFactory::make($object, (string)$schema);
-			}
+			})
 		);
 		$engine = $this->createMock(TransitionEngine::class);
 		$engine->method('transition')->willThrowException(new \RuntimeException('Transition not allowed.'));

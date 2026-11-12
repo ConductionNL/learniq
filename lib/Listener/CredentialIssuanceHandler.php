@@ -46,6 +46,8 @@ use OCA\Learniq\Service\EuropassIssuer;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -235,10 +237,11 @@ class CredentialIssuanceHandler implements IEventListener {
 		// hr and compliance officers only, so saving under the caller's rights
 		// refused every live issue (NotAuthorizedException, 2026-09-30).
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: 'credential',
 			object: $signed,
-			uuid: $credentialId,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: 'credential'),
+				uuid: $credentialId
+			),
 			_rbac: false
 		);
 	}//end saveSignedCredential()

@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Service\RegulationAssignmentService;
 use OCA\Learniq\Service\RegulationAssignPreview;
 use OCA\Learniq\Service\RegulationAudienceResolver;
@@ -126,10 +127,10 @@ class RegulationAssignByAudienceTest extends TestCase {
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			SaveCallShape::legacy(function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
 				$this->saved[] = $object;
 				return OrEntityFactory::make($object, (string)$schema);
-			}
+			})
 		);
 
 		return new RegulationAssignmentService(objectService: $objectService, audience: new RegulationAudienceResolver(), logger: new NullLogger());

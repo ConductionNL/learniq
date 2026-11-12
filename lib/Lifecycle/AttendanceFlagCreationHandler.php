@@ -49,6 +49,8 @@ namespace OCA\Learniq\Lifecycle;
 use OCA\Learniq\Service\IntegriqExchangeClient;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Service\Object\ObjectFindTarget;
+use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -264,9 +266,10 @@ class AttendanceFlagCreationHandler implements IEventListener {
 		// self check-in or a coordinator's register, and AttendanceFlag create/update is instructors
 		// and compliance officers only.
 		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ATTENDANCE_FLAG_SCHEMA,
 			object: $flag,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ATTENDANCE_FLAG_SCHEMA)
+			),
 			_rbac: false
 		);
 
@@ -300,10 +303,11 @@ class AttendanceFlagCreationHandler implements IEventListener {
 
 		// System context (attendance-flag): as above: the flag update runs in the same crossing.
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ATTENDANCE_FLAG_SCHEMA,
 			object: array_merge($flag, ['dataExchangeJobId' => $jobId]),
-			uuid: $flagId,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ATTENDANCE_FLAG_SCHEMA),
+				uuid: $flagId
+			),
 			_rbac: false
 		);
 
