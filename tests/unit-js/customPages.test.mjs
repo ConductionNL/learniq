@@ -205,3 +205,50 @@ test('handInAction names transitions the register declares on Submission', () =>
 	assert.equal(transitions.submit.to, 'submitted')
 	assert.equal(transitions.submitLate.to, 'late')
 })
+
+test('a grade entry body takes the component scale, weight and period, else the plan scale or blanks', () => {
+	const base = { learnerId: 'l', componentId: 'k2', value: 6, cohortId: 'c', grader: 'g', gradedAt: 'at' }
+	assert.deepEqual(
+		gradeEntryBody({
+			...base,
+			plan: { uuid: 'p9', gradeScaleId: 'plan-scale', components: [{ componentId: 'k2', gradeScaleId: 'own', weight: 2, period: 'P1' }] },
+		}),
+		{
+			learnerId: 'l',
+			curriculumPlanId: 'p9',
+			componentId: 'k2',
+			cohortId: 'c',
+			gradeScaleId: 'own',
+			sourceKind: 'manual',
+			value: 6,
+			weight: 2,
+			period: 'P1',
+			grader: 'g',
+			gradedAt: 'at',
+			tenant_id: '',
+		},
+	)
+	const bare = gradeEntryBody({ ...base, plan: {} })
+	assert.equal(bare.gradeScaleId, '')
+	assert.equal(bare.weight, null)
+	assert.equal(bare.period, null)
+	assert.equal(bare.curriculumPlanId, '')
+	assert.equal(gradeEntryBody({ ...base, plan: { gradeScaleId: 's', components: [] } }).gradeScaleId, 's')
+})
+
+test('a plan graph without id, kind, goals or measures is a lone Plan node', () => {
+	assert.deepEqual(planGraph({}), { nodes: [{ id: 'plan', label: 'Plan', isRoot: true }], edges: [] })
+	const graph = planGraph({ '@self': { id: 'x' }, kind: 'ontwikkelingsperspectief', goals: [{ goalId: 'g', description: 'D' }] })
+	assert.deepEqual(graph.nodes, [
+		{ id: 'x', label: 'ONTWIKKELINGSPERSPECTIEF', isRoot: true },
+		{ id: 'goal:g', label: 'D', kind: 'goal' },
+	])
+})
+
+test('handInAction treats an unreadable deadline as no deadline', () => {
+	const now = new Date('2026-09-27T12:00:00Z')
+	assert.equal(handInAction({ dueAt: 'soon', allowLateSubmission: true }, now), 'submit')
+	assert.equal(handInAction(null, now), 'submit')
+	assert.equal(handInAction({ dueAt: '2026-09-27T11:00:00Z', allowLateSubmission: true }, now), 'submitLate')
+	assert.equal(handInAction({ dueAt: '2026-09-27T11:00:00Z', allowLateSubmission: 'yes' }, now), 'submit')
+})
