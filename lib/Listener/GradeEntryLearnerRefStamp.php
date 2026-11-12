@@ -47,11 +47,9 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
-use Throwable;
 
 /**
  * Derives GradeEntry.learnerRef from GradeEntry.learnerId on every write.
@@ -65,6 +63,13 @@ class GradeEntryLearnerRefStamp implements IEventListener {
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 
 	/**
+	 * Stamps learnerRef onto the writes this listener owns.
+	 *
+	 * @var LearnerRefStamping
+	 */
+	private readonly LearnerRefStamping $stamping;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
@@ -75,9 +80,10 @@ class GradeEntryLearnerRefStamp implements IEventListener {
 	 */
 	public function __construct(
 		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly LearnerRefResolver $learnerRefs,
-		private readonly LoggerInterface $logger,
+		LearnerRefResolver $learnerRefs,
+		LoggerInterface $logger,
 	) {
+		$this->stamping = new LearnerRefStamping(learnerRefs: $learnerRefs, logger: $logger, label: 'GradeEntryLearnerRefStamp');
 	}//end __construct()
 
 	/**
@@ -95,86 +101,6 @@ class GradeEntryLearnerRefStamp implements IEventListener {
 			return;
 		}
 
-		$this->stampWrite(write: $write);
+		$this->stamping->stamp(write: $write);
 	}//end handle()
-
-	/**
-	 * Stamp one write of a schema this listener owns.
-	 *
-	 * @param SchemaWrite $write The write and its schema slug.
-	 *
-	 * @return void
-	 */
-	private function stampWrite(SchemaWrite $write): void {
-		$event = $write->event;
-		$entity = $write->entity();
-		$stored = null;
-
-		$payload = array_merge(($entity->getObject() ?? []), $event->getModifiedData());
-		$learnerId = $payload['learnerId'] ?? '';
-		if (is_string($learnerId) === false) {
-			$learnerId = '';
-		}
-
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			$stored = $this->storedRef(event: $event, learnerId: $learnerId);
-		}
-
-		$event->setModifiedData(
-			array_merge(
-				$event->getModifiedData(),
-				['learnerRef' => $this->derive(learnerId: $learnerId, stored: $stored)]
-			)
-		);
-	}//end stampWrite()
-
-	/**
-	 * The learnerRef to store: the resolved profile UUID, null when there is
-	 * none, and on a lookup error the value already stored (null on create).
-	 *
-	 * @param string $learnerId Nextcloud user id on the entry.
-	 * @param string|null $stored learnerRef already stored, null on create.
-	 *
-	 * @return string|null
-	 */
-	private function derive(string $learnerId, ?string $stored): ?string {
-		try {
-			return $this->learnerRefs->resolve(learnerId: $learnerId);
-		} catch (Throwable $exception) {
-			$this->logger->warning(
-				'[GradeEntryLearnerRefStamp] Could not resolve the learner profile, keeping {kept}: {msg}',
-				['kept' => ($stored ?? 'null'), 'msg' => $exception->getMessage()]
-			);
-			return $stored;
-		}
-	}//end derive()
-
-	/**
-	 * The learnerRef the entry carries before this update, or null. Null too
-	 * when the update moves the entry to another learner: the old value then
-	 * names the wrong profile, so a failed lookup must fail closed.
-	 *
-	 * @param ObjectUpdatingEvent $event The update event.
-	 * @param string $learnerId The learnerId the entry will carry.
-	 *
-	 * @return string|null
-	 */
-	private function storedRef(ObjectUpdatingEvent $event, string $learnerId): ?string {
-		$old = $event->getOldObject();
-		if ($old === null) {
-			return null;
-		}
-
-		$oldData = ($old->getObject() ?? []);
-		if (($oldData['learnerId'] ?? null) !== $learnerId) {
-			return null;
-		}
-
-		$ref = ($oldData['learnerRef'] ?? null);
-		if (is_string($ref) === false || $ref === '') {
-			return null;
-		}
-
-		return $ref;
-	}//end storedRef()
 }//end class
