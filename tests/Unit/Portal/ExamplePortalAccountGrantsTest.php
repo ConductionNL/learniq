@@ -282,6 +282,42 @@ class ExamplePortalAccountGrantsTest extends TestCase {
 	}//end testAnOlderPortaliqIsAskedNothing()
 
 	/**
+	 * Readiness: nothing declared, portaliq not installed, and either event
+	 * class missing or without the Nextcloud uid each stop before any read.
+	 *
+	 * @return void
+	 */
+	public function testEveryReadinessOutcome(): void {
+		$installed = $this->createMock(IAppManager::class);
+		$installed->method('isInstalled')->willReturn(true);
+		$absent = $this->createMock(IAppManager::class);
+		$absent->method('isInstalled')->willReturnCallback(static fn (string $app): bool => $app !== 'portaliq');
+		$content = $this->createMock(ExamplePortalContent::class);
+		$content->expects(self::never())->method('findOne');
+		$dispatcher = $this->createMock(IEventDispatcher::class);
+		$dispatcher->expects(self::never())->method('dispatchTyped');
+		$grants = static fn (IAppManager $apps, string $provision, string $claim): ExamplePortalAccountGrants => new ExamplePortalAccountGrants(
+			dispatcher: $dispatcher,
+			appManager: $apps,
+			content: $content,
+			declarations: new ExamplePortalDeclarations(),
+			logger: new \Psr\Log\NullLogger(),
+			provisionEventClass: $provision,
+			claimEventClass: $claim,
+		);
+
+		self::assertSame('none', $grants($installed, FakeNextcloudProvisionEvent::class, FakeGrantClaimEvent::class)->grant(profileId: 'no-such-set')['status']);
+		self::assertSame('portaliq-absent', $grants($absent, FakeNextcloudProvisionEvent::class, FakeGrantClaimEvent::class)->grant(profileId: 'training')['status']);
+		self::assertSame('portaliq-too-old', $grants($installed, 'OCA\\Portaliq\\Event\\NoSuchEvent', FakeGrantClaimEvent::class)->grant(profileId: 'training')['status']);
+		self::assertSame('portaliq-too-old', $grants($installed, FakeNextcloudProvisionEvent::class, 'OCA\\Portaliq\\Event\\NoSuchEvent')->grant(profileId: 'training')['status']);
+		self::assertSame('portaliq-too-old', $grants($installed, FakeOlderProvisionEvent::class, FakeGrantClaimEvent::class)->grant(profileId: 'training')['status']);
+		self::assertSame(
+			['status' => 'portaliq-absent', 'granted' => 0, 'kept' => 0, 'waiting' => 0, 'failed' => 0, 'reasons' => []],
+			$grants($absent, FakeNextcloudProvisionEvent::class, FakeGrantClaimEvent::class)->grant(profileId: 'training')
+		);
+	}//end testEveryReadinessOutcome()
+
+	/**
 	 * The classes this app names are portaliq's own, and every declared
 	 * portal account is a learner of its set with that learner's own uuid.
 	 *
