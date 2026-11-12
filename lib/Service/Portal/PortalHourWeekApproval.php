@@ -40,6 +40,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
+use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
 use DateTimeImmutable;
@@ -286,18 +287,7 @@ class PortalHourWeekApproval {
 	 * @return array<string, mixed>
 	 */
 	private function toRow(mixed $object): array {
-		if (is_array($object) === true) {
-			return $object;
-		}
-
-		if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-			$row = $object->jsonSerialize();
-			if (is_array($row) === true) {
-				return $row;
-			}
-		}
-
-		return [];
+		return (new SerialisedRow())->asArray(object: $object);
 	}//end toRow()
 
 	/**

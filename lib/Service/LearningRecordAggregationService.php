@@ -43,6 +43,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -425,17 +426,6 @@ class LearningRecordAggregationService {
 	 * @return array<string,mixed>
 	 */
 	private function toArray(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-			$serialized = $row->jsonSerialize();
-			if (is_array($serialized) === true) {
-				return $serialized;
-			}
-		}
-
-		return [];
+		return (new SerialisedRow())->asArray(object: $row);
 	}//end toArray()
 }//end class
