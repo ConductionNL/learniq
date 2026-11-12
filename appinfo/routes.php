@@ -27,8 +27,11 @@ declare(strict_types=1);
  * /health/metrics routes are reproduced here pointing at the aliased generics.
  */
 
-return [
+// Every unversioned API route is also served under /api/v1/; see ApiPathAliases.
+return \OCA\Learniq\Middleware\Support\ApiPathAliases::withVersionedAliases([
     'routes' => [
+        // The OpenAPI document of learniq's own API, public, served under /api/v1/ too.
+        ['name' => 'openApi#show', 'url' => '/api/openapi.json', 'verb' => 'GET'],
         // SPA shell — bespoke PageController (role-aware initial state).
         // First-time setup wizard (ADR-042) - the standard CnSetupWizard contract.
         ['name' => 'setup#status',    'url' => '/api/setup/status',            'verb' => 'GET'],
@@ -493,4 +496,4 @@ return [
         // SPA catch-all — Vue history mode; specific routes MUST precede this.
         ['name' => 'page#catchAll', 'url' => '/{path}', 'verb' => 'GET', 'requirements' => ['path' => '.+'], 'defaults' => ['path' => '']],
     ],
-];
+]);
