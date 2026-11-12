@@ -329,17 +329,7 @@ class RolloverExecutionService {
 	 * @spec openspec/specs/school-structure/spec.md#requirement-a-cohort-knows-which-year-of-its-programme-it-is-in
 	 */
 	public function nextProgrammeYear(array $fromCohort, array $mapping): ?int {
-		$year = $fromCohort['programmeYear'] ?? null;
-		if (is_int($year) === false && (is_string($year) === false || ctype_digit($year) === false)) {
-			return null;
-		}
-
-		$toProgramme = (string)($mapping['toProgrammeId'] ?? '');
-		if ($toProgramme !== '' && $toProgramme !== (string)($fromCohort['programmeId'] ?? '')) {
-			return null;
-		}
-
-		return ((int)$year + 1);
+		return (new NextProgrammeYear())->forMapping(fromCohort: $fromCohort, mapping: $mapping);
 	}//end nextProgrammeYear()
 
 	/**
