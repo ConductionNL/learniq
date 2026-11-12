@@ -399,4 +399,93 @@ class ExamplePortalProvisionerTest extends TestCase {
 
 		self::assertSame(['status' => 'failed', 'slug' => 'vaartveld'], $this->provisioner(objects: $objects)->provision('vo'));
 	}//end testARefusedWriteIsReportedNotThrown()
+
+	/**
+	 * The one-line summary names the slug, the status, the theme and its
+	 * fallback, the missing modes and every counted part.
+	 *
+	 * @return void
+	 */
+	public function testTheSummaryLineNamesEveryPart(): void {
+		$provisioner = $this->provisioner();
+
+		self::assertSame('Portal -: unmapped', $provisioner->describe(['status' => 'unmapped']));
+		self::assertSame(
+			'Portal wilgenboom: created (theme example-basisschool)',
+			$provisioner->describe(['slug' => 'wilgenboom', 'status' => 'created', 'theme' => 'example-basisschool', 'themeFallback' => false, 'missingModes' => []])
+		);
+		self::assertSame(
+			'Portal wilgenboom: filled (theme nextcloud, fallback); does not offer public, digid; menus 1 created, 2 kept; news 0 created, 3 kept',
+			$provisioner->describe(
+				[
+					'slug'          => 'wilgenboom',
+					'status'        => 'filled',
+					'theme'         => 'nextcloud',
+					'themeFallback' => true,
+					'missingModes'  => ['public', 'digid'],
+					'menus'         => ['created' => 1, 'kept' => 2],
+					'news'          => ['created' => '0', 'kept' => 3],
+				]
+			)
+		);
+	}//end testTheSummaryLineNamesEveryPart()
+
+	/**
+	 * A stored list is kept whole, an empty settings object takes the
+	 * declared one, and a portal with every field set is left unchanged.
+	 *
+	 * @return void
+	 */
+	public function testListsAreKeptWholeAndEmptySettingsAreFilled(): void {
+		$this->store['portal'] = [[
+			'slug'           => 'wilgenboom',
+			'title'          => 'Mijn Wilgenboom',
+			'locales'        => ['de'],
+			'authentication' => [],
+			'@self'          => ['id' => 'portal-wb'],
+		]];
+
+		self::assertSame('filled', $this->provisioner()->provision('po')['status']);
+		$portal = $this->store['portal'][0];
+		self::assertSame(['de'], $portal['locales'], 'a stored list is never merged with the declared one');
+		self::assertSame(self::declared(set: 'po', key: 'portal')['authentication'], $portal['authentication']);
+		self::assertArrayNotHasKey('@self', $this->writes[0]['object']);
+
+		$writes = count($this->writes);
+		self::assertSame('unchanged', $this->provisioner()->provision('po')['status']);
+		self::assertSame($writes, count($this->writes), 'an unchanged portal is not saved again');
+	}//end testListsAreKeptWholeAndEmptySettingsAreFilled()
+
+	/**
+	 * A stored portal without an id is never saved, so no second portal is made.
+	 *
+	 * @return void
+	 */
+	public function testAPortalWithoutAnIdIsNotSavedAgain(): void {
+		$this->store['portal'] = [['slug' => 'wilgenboom', 'title' => 'Mijn Wilgenboom']];
+
+		self::assertSame('failed', $this->provisioner()->provision('po')['status']);
+		self::assertSame([], $this->writes);
+	}//end testAPortalWithoutAnIdIsNotSavedAgain()
+
+	/**
+	 * Only a portal that chose its own sign-in modes logs the declared modes
+	 * it lacks; an empty mode list is filled and logs nothing.
+	 *
+	 * @return void
+	 */
+	public function testOnlyAChosenModeListLogsWhatItLacks(): void {
+		$this->store['portal'] = [['slug' => 'wilgenboom', 'title' => 'Mijn Wilgenboom', 'authentication' => ['modes' => ['digid']], '@self' => ['id' => 'portal-wb']]];
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->expects(self::once())->method('warning')->with(
+			'[ExamplePortalProvisioner] portal "{slug}" keeps its own sign-in modes and does not offer: {modes}.',
+			['slug' => 'wilgenboom', 'modes' => 'public']
+		);
+		self::assertSame(['public'], $this->provisioner(logger: $logger)->provision('po')['missingModes']);
+
+		$this->store['portal'] = [['slug' => 'wilgenboom', 'title' => 'Mijn Wilgenboom', 'authentication' => ['modes' => []], '@self' => ['id' => 'portal-wb']]];
+		$quiet = $this->createMock(LoggerInterface::class);
+		$quiet->expects(self::never())->method('warning');
+		self::assertSame([], $this->provisioner(logger: $quiet)->provision('po')['missingModes']);
+	}//end testOnlyAChosenModeListLogsWhatItLacks()
 }//end class
