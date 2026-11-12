@@ -7633,7 +7633,8 @@
         "evidence": "lib/Settings/learniq_register.json x-openregister-processing.subjectIdFields maps learnerId; the per-subject endpoint ships in openregister, not here",
         "owner": "ConductionNL/openregister",
         "change": "openregister/dsar-finds-records-by-declared-subject-id",
-        "note": "The missing half (OpenRegister finding learner records by the declared subject id) is specified in openregister/dsar-finds-records-by-declared-subject-id (spec round part 3, 2026-10-07); previously linked openregister/data-subject-rights-across-the-instance."
+        "note": "The missing half (OpenRegister finding learner records by the declared subject id) is specified in openregister/dsar-finds-records-by-declared-subject-id (spec round part 3, 2026-10-07); previously linked openregister/data-subject-rights-across-the-instance.",
+        "requirement": "openregister:openspec/changes/dsar-finds-records-by-declared-subject-id/specs/gdpr-data-subject-rights :: Discovery also finds records through schema-declared subject id fields"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -8609,7 +8610,8 @@
         "owner": "ConductionNL/openregister",
         "reachedOn": "web service only; list export",
         "change": "openregister/rapportage-bi-export",
-        "readOn": "2026-10-07"
+        "readOn": "2026-10-07",
+        "requirement": "openregister:openspec/specs/rapportage-bi-export :: The system MUST support API access for external BI tools via GraphQL + REST"
       },
       "provider": "openregister",
       "providerHow": "OpenRegister's object API and export serve the data; learniq adds no BI feed.",
@@ -8646,7 +8648,8 @@
         "evidence": "lib/Settings/connections.json:23. Specified in ConductionNL/integriq openspec/changes/connectors-course-marketplace/ (integriq#2207, 413357ec). Learniq's half: openspec/changes/enrolment-catalogue-self-signup/. (OpenSpec pass 2026-09-27)",
         "owner": "ConductionNL/integriq",
         "reachedOn": "nothing",
-        "change": "integriq/connectors-course-marketplace"
+        "change": "integriq/connectors-course-marketplace",
+        "requirement": "integriq:openspec/changes/connectors-course-marketplace/specs/course-marketplace-connectors :: A provider's catalogue arrives in learniq as draft courses that launch through LTI (REQ-CMKT-001)"
       },
       "provider": "integriq",
       "providerHow": "Launching outside courses would ride integriq's LTI adapter, which has no launch endpoint.",
