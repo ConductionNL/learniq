@@ -115,15 +115,26 @@ class CohortGroupProvisioningHandler implements IEventListener {
 	 * @spec openspec/specs/school-structure/spec.md#scenario-enrolling-a-learner-into-an-active-cohort-adds-them-to-its-group
 	 */
 	public function handle(Event $event): void {
-		if (($event instanceof ObjectTransitionedEvent) === false) {
+		if (($event instanceof ObjectTransitionedEvent) === false
+			|| $this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER
+		) {
 			return;
 		}
 
-		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
-			return;
-		}
+		$this->route(event: $event, schema: $this->schemas->eventSchema(event: $event));
 
-		$schema = $this->schemas->eventSchema(event: $event);
+	}//end handle()
+
+	/**
+	 * Provision a cohort's group on its activation, or sync an enrolment's
+	 * learner into or out of it on its activation or withdrawal.
+	 *
+	 * @param ObjectTransitionedEvent $event  The transition in Learniq's register.
+	 * @param string                  $schema The transitioned object's schema.
+	 *
+	 * @return void
+	 */
+	private function route(ObjectTransitionedEvent $event, string $schema): void {
 		$action = $event->getAction();
 
 		if ($schema === self::COHORT_SCHEMA && $action === self::ACTION_ACTIVATE) {
@@ -131,16 +142,24 @@ class CohortGroupProvisioningHandler implements IEventListener {
 			return;
 		}
 
-		if ($schema === self::ENROLMENT_SCHEMA
-			&& ($action === self::ACTION_ACTIVATE || $action === self::ACTION_WITHDRAW)
-		) {
+		if ($schema === self::ENROLMENT_SCHEMA && $this->changesMembership(action: $action) === true) {
 			$this->syncMembership(
 				enrolment: $event->getObject()->jsonSerialize(),
 				add: $action === self::ACTION_ACTIVATE
 			);
 		}
+	}//end route()
 
-	}//end handle()
+	/**
+	 * Whether an enrolment action changes group membership: activate or withdraw.
+	 *
+	 * @param string $action The transition action.
+	 *
+	 * @return bool
+	 */
+	private function changesMembership(string $action): bool {
+		return $action === self::ACTION_ACTIVATE || $action === self::ACTION_WITHDRAW;
+	}//end changesMembership()
 
 	/**
 	 * Provision the Cohort's Nextcloud group and write its id back. Idempotent:
