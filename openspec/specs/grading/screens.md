@@ -19,3 +19,4 @@
 - wilgenboom/Berichten berichten https://identity.conduction.nl/screens/board?id=wilgenboom/Berichten
 
 Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAppNav, CnAuditTrailCard, CnBreadcrumbs, CnBuildiqEditButton, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnFilterBar, CnFormDialog, CnIndexPage, CnLockedBanner, CnMassActionBar, CnNextStepCard, CnNotesCard, CnPageHeader, CnPagination, CnQuickFilterBar, CnRelatedCollections, CnRowActions, CnStatusBadge, CnTabs
+- learniq/LqLlCijfers wat als: een mogelijk volgend cijfer en het gemiddelde dat het wordt (row grd-see-what-a-mark-does) https://identity.conduction.nl/screens/board?id=learniq/LqLlCijfers
