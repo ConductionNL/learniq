@@ -1,0 +1,47 @@
+{
+    "total": {
+        "lines": {
+            "total": 37672,
+            "covered": 34409,
+            "skipped": 0,
+            "pct": 91.34
+        },
+        "statements": {
+            "total": 37672,
+            "covered": 34409,
+            "skipped": 0,
+            "pct": 91.34
+        },
+        "functions": {
+            "total": 4266,
+            "covered": 3221,
+            "skipped": 0,
+            "pct": 75.5
+        }
+    },
+    "suites": {
+        "phpunit": {
+            "statements": {
+                "total": 37672,
+                "covered": 34409,
+                "skipped": 0,
+                "pct": 91.34
+            },
+            "functions": {
+                "total": 4266,
+                "covered": 3221,
+                "skipped": 0,
+                "pct": 75.5
+            },
+            "lines": {
+                "total": 37672,
+                "covered": 34409,
+                "skipped": 0,
+                "pct": 91.34
+            }
+        }
+    },
+    "measuredAt": "2026-11-12",
+    "commit": "5c3979a",
+    "generator": "scripts/coverage-publish.php"
+}

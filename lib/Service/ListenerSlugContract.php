@@ -3,6 +3,9 @@
 /**
  * Feature gate for Learniq's corrected listener schema matching.
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Learniq's OpenRegister listeners compared a schema **id** against a schema
  * **slug** literal, so their handler bodies had never run once. Correcting the
  * comparison is a small change, but it is not a behaviour-neutral one. The
@@ -44,8 +47,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

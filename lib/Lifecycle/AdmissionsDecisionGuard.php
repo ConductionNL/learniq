@@ -3,6 +3,9 @@
 /**
  * Learniq Admissions Decision Guard
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the Application schema's completeIntake transition
  * (intake-scheduled -> intake-completed) and its three decision transitions
  * (intake-completed -> placed | waitlisted | rejected) plus the promote
@@ -41,8 +44,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

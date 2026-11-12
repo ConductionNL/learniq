@@ -3,6 +3,9 @@
 /**
  * Learniq Grade Visibility Resolver
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Stateless service that resolves the `visibleFrom` datetime for a `GradeEntry`
  * at the moment it publishes — the earliest moment its (and its fanned-out
  * `GradeNotification`s') declared `gradePublished` notification is eligible to
@@ -30,8 +33,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

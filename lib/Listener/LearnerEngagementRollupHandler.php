@@ -3,6 +3,9 @@
 /**
  * Learniq Learner Engagement Rollup Handler
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Listens for OpenRegister's ObjectCreatedEvent on PointAward objects,
  * finds-or-creates the learner's LearnerEngagement row, and recomputes it via
  * PointEngagementEvaluator. When the triggering award's sourceKind is not
@@ -28,8 +31,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

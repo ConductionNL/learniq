@@ -3,6 +3,9 @@
 /**
  * Learniq POK Parent Signature Rule
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Decides whether a parent or guardian signs a praktijkovereenkomst (POK),
  * and which accounts may. A student under 18 cannot bind themselves to a
  * work placement agreement alone, so their parent co-signs.
@@ -28,8 +31,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

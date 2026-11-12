@@ -684,3 +684,55 @@ The po example set MUST give guardian Fatima Hulstkamp a second child, Sami Huls
 - WHEN the set is checked and loaded
 - THEN `python3 scripts/example-sets/po.py --check` passes and every row passes its schema
 - @e2e exclude descriptor contract; covered by ExampleSetDescriptorContractTest
+
+### Requirement: The secondary school set holds the records the 3HV-B boards draw
+
+The vo example set MUST hold, for class 3HV-B, the pupils Daan Visser, Julia Peters and Lucas van Dijk with an active enrolment in the class; Daan's care note and support request; Julia's concept grade for Nederlands; Lucas's unexcused absence at Nederlands; a Biologie test open to take on the reference day, a published one not yet open and a closed Nederlands test; the assignment Betoog schrijven with its submissions and marks; and, for the school, an admission after the intake in a 2027-2028 round, an own 8-hour attendance threshold, a bilingual course and the Meldcode regulation. The records MUST be added after every other object without a random draw, so no existing uuid moves.
+
+#### Scenario: A fresh load carries the board records
+- **GIVEN** a fresh instance
+- **WHEN** the operator loads the vo set
+- **THEN** Daan Visser's dossier holds the care note of 2 October, Julia Peters has a concept 8,2 for Nederlands, Lucas van Dijk is unexcused absent at Monday's Nederlands, 3HV-B has an open Biologie test, and Betoog schrijven has 14 handed-in submissions
+- @e2e exclude covered by PHPUnit `SecondarySchoolBoardRecordsTest` and the generator check (`scripts/example-sets/vo.py --check`)
+
+### Requirement: The secondary school set holds the lesson, the Wednesday and the shared courses the pupil boards draw
+
+The vo example set MUST hold a published course Biologie leerjaar 3 havo/vwo with ten lessons, its own group and an active enrolment in that group for every pupil of 3HV-B, whose third lesson carries a reading block, a video block, a quiz block and an assignment block that point at rows of the set. On Wednesday 7 October 2026, 3HV-B MUST have a cancelled Frans lesson in the 6th hour and a mentor hour in another room in the 7th, and its Biologie lesson that day MUST point at the third lesson. The set MUST hold three shared course packages, each with a course and lessons to install. The records MUST be added after every other object without a random draw, so no existing uuid moves.
+
+#### Scenario: A fresh load carries the lesson, the Wednesday and the store
+- **GIVEN** a fresh instance
+- **WHEN** the operator loads the vo set
+- **THEN** Fenna de Jong opens lesson 3 of Biologie leerjaar 3 havo/vwo and sees its reading text, video, quiz and assignment
+- **AND** her timetable for the week of the load shows Frans cancelled and the mentor hour moved on the Wednesday
+- **AND** with `registry_url` set to `local` the store page lists three shared courses
+- @e2e exclude covered by PHPUnit `SecondarySchoolLessonAndStoreRecordsTest` and the generator check (`scripts/example-sets/vo.py --check`)
+
+### Requirement: The homes mark the lead photo, and Esdoornveen invites training companies with links
+
+The po, vo and mbo homes MUST mark where the lead news photo goes with the board's words. Esdoornveen's home MUST offer training companies a card with the links "Inloggen als leerbedrijf" and "Leerbedrijf worden", not a second sign-in card.
+
+#### Scenario: Esdoornveen's home
+- **GIVEN** the mbo set loaded on a fresh instance
+- **WHEN** a visitor opens Esdoornveen's home
+- **THEN** one dark sign-in card shows (Mijn Esdoornveen), and "Voor leerbedrijven" is a light card with two links
+- @e2e exclude declaration covered by PHPUnit `ExamplePortalDeclarationsTest::testTheHomesMarkTheLeadPhotoAndInviteCompaniesWithLinks`
+
+### Requirement: The board checks run against any instance that loaded the sets
+
+The board checks in `tests/e2e/portal-design/` MUST run against an instance that loaded the four example sets, without edits. Admin requests MUST send their credentials without waiting for a challenge. A text check MUST pass only on a visible match. The sign-in step MUST use the Nextcloud sign-in button the portal declares. Signed-in pages MUST be opened at the route portaliq gives them (`/mijn/<app>/<page>`). With `PORTAL_DESIGN_EXTERNAL_STUB=1` a sign-in test MUST use the stub broker that already answers at the issuer instead of starting its own.
+
+#### Scenario: The suite runs on the proof instance as checked in
+- **GIVEN** an instance that loaded po, vo, mbo and training, with a long-lived DigiD stub at the issuer
+- **WHEN** the operator runs `PORTAL_DESIGN_EXTERNAL_STUB=1 npx playwright test -c tests/e2e/portal-design.config.ts`
+- **THEN** the admin calls are answered, the sign-in reaches the account pages, and every failure names the portal, not the test
+- @e2e exclude this requirement is about the e2e suite itself; it is checked by running `tests/e2e/portal-design/`
+
+### Requirement: A school's menu and search show what its board shows
+
+The vo portal MUST leave the BPV hours page (`learniq:studentHourWeeks`) out of its pupils' menu. The po portal's search MUST search its news.
+
+#### Scenario: Noor's menu
+- **GIVEN** Noor, a pupil at Vaartveld College
+- **WHEN** she opens Mijn Vaartveld
+- **THEN** her menu has no "BPV en uren"
+- @e2e exclude declaration covered by PHPUnit `ExamplePortalDeclarationsTest::testEverySchoolPortalLeavesOutTheCaseItems`

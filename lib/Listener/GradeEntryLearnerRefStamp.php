@@ -3,6 +3,9 @@
 /**
  * Learniq GradeEntry learnerRef Stamp
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Stamps `learnerRef` (the LearnerProfile UUID the portal scopes on) onto
  * every GradeEntry as it is created or updated, derived from `learnerId`.
  *
@@ -30,8 +33,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

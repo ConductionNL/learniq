@@ -66,50 +66,78 @@ class EnrolmentForecastService {
 	 * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
 	 */
 	public function compute(array $forecast): array {
+		$run = $this->newRun(forecast: $forecast);
+		$this->project(run: $run);
+
+		return [
+			'computedAt' => (new DateTimeImmutable('now'))->format(DateTimeInterface::ATOM),
+			'scenario' => (string)($forecast['name'] ?? ''),
+			'currentYear' => $run->currentYear,
+			'targetYear' => $run->targetYear,
+			'targetGroupSize' => $run->size,
+			'programmeYears' => $this->yearRows(run: $run, years: $run->years),
+			'subjects' => $this->subjectRows(run: $run),
+		];
+	}//end compute()
+
+	/**
+	 * Check the scenario's target year and read what the forecast starts from:
+	 * the programmes, the rates and the group size.
+	 *
+	 * @param array<string, mixed> $forecast The scenario.
+	 *
+	 * @return EnrolmentForecastRun
+	 *
+	 * @throws InvalidArgumentException When the target year is malformed or rates do not add up to one.
+	 */
+	private function newRun(array $forecast): EnrolmentForecastRun {
 		$targetYear = (string)($forecast['targetYear'] ?? '');
 		if (preg_match('/^(\d{4})-(\d{4})$/', $targetYear, $match) !== 1) {
 			throw new InvalidArgumentException('The target year must look like 2027-2028.');
 		}
 
-		$currentYear = sprintf('%04d-%04d', (int)$match[1] - 1, (int)$match[1]);
-		$programmes = $this->reader->programmes();
-		$rates = $this->rates(forecast: $forecast, programmes: $programmes);
-		$size = max(1, (int)($forecast['targetGroupSize'] ?? 28));
+		$run = new EnrolmentForecastRun();
+		$run->forecast = $forecast;
+		$run->targetYear = $targetYear;
+		$run->currentYear = sprintf('%04d-%04d', (int)$match[1] - 1, (int)$match[1]);
+		$run->programmes = $this->reader->programmes();
+		$run->rates = $this->rates(run: $run);
+		$run->size = max(1, (int)($forecast['targetGroupSize'] ?? 28));
 
-		$current = $this->reader->currentGroups(academicYear: $currentYear);
-		$durations = $this->reader->durations(current: $current);
-		$years = $this->progress(current: $current, rates: $rates, durations: $durations);
-		$years = $this->addIntake(years: $years, forecast: $forecast, targetYear: $targetYear);
-		$chosen = $this->chosenPerGroup(current: $current, targetYear: $targetYear);
+		return $run;
+	}//end newRun()
 
-		return [
-			'computedAt' => (new DateTimeImmutable('now'))->format(DateTimeInterface::ATOM),
-			'scenario' => (string)($forecast['name'] ?? ''),
-			'currentYear' => $currentYear,
-			'targetYear' => $targetYear,
-			'targetGroupSize' => $size,
-			'programmeYears' => $this->yearRows(years: $years, programmes: $programmes, size: $size),
-			'subjects' => $this->subjectRows(years: $years, chosen: $chosen, programmes: $programmes, size: $size),
-		];
-	}//end compute()
+	/**
+	 * Next year's buckets and choices from this year's groups.
+	 *
+	 * @param EnrolmentForecastRun $run The forecast being computed.
+	 *
+	 * @return void
+	 */
+	private function project(EnrolmentForecastRun $run): void {
+		$run->current = $this->reader->currentGroups(academicYear: $run->currentYear);
+		$durations = $this->reader->durations(current: $run->current);
+		$run->years = $this->progress(run: $run, durations: $durations);
+		$this->addIntake(run: $run);
+		$run->chosen = $this->chosenPerGroup(current: $run->current, targetYear: $run->targetYear);
+	}//end project()
 
 	/**
 	 * Rates per programme and year, checked to add up to one.
 	 *
-	 * @param array<string, mixed>                $forecast   The scenario.
-	 * @param array<string, array<string, mixed>> $programmes Programmes by id.
+	 * @param EnrolmentForecastRun $run The forecast being computed: its scenario and programmes.
 	 *
 	 * @return array<string, array{upRate: float, repeatRate: float, leaveRate: float}> Keyed `programmeId|programmeYear`.
 	 *
 	 * @throws InvalidArgumentException When a row does not add up to one.
 	 */
-	private function rates(array $forecast, array $programmes): array {
+	private function rates(EnrolmentForecastRun $run): array {
 		$rates = [];
-		foreach ((array)($forecast['rates'] ?? []) as $row) {
+		foreach ((array)($run->forecast['rates'] ?? []) as $row) {
 			$moveUp = (float)($row['upRate'] ?? 0);
 			$repeat = (float)($row['repeatRate'] ?? 0);
 			$leave = (float)($row['leaveRate'] ?? 0);
-			$label = $this->label(programmes: $programmes, programmeId: (string)($row['programmeId'] ?? ''), programmeYear: (int)($row['programmeYear'] ?? 0));
+			$label = $this->label(run: $run, row: $row);
 			if (abs(($moveUp + $repeat + $leave) - 1.0) > self::TOLERANCE) {
 				throw new InvalidArgumentException(sprintf('The rates for %s add up to %s, not 1.', $label, round($moveUp + $repeat + $leave, 3)));
 			}
@@ -124,19 +152,18 @@ class EnrolmentForecastService {
 	/**
 	 * Next year's learners per programme year from this year's groups.
 	 *
-	 * @param array<int, array<string, mixed>>                                  $current   This year's groups.
-	 * @param array<string, array{upRate: float, repeatRate: float, leaveRate: float}> $rates     Rates by key.
-	 * @param array<string, int>                                                $durations Programme length in years by programme.
+	 * @param EnrolmentForecastRun $run       The forecast being computed: this year's groups and the rates.
+	 * @param array<string, int>   $durations Programme length in years by programme.
 	 *
 	 * @return array<string, array{programmeId: string, programmeYear: int, fromMovingUp: float, repeaters: float, intake: float}>
 	 */
-	private function progress(array $current, array $rates, array $durations): array {
+	private function progress(EnrolmentForecastRun $run, array $durations): array {
 		$years = [];
-		foreach ($current as $group) {
+		foreach ($run->current as $group) {
 			$programmeId = (string)$group['programmeId'];
 			$year = (int)$group['programmeYear'];
 			$count = count((array)($group['learnerIds'] ?? []));
-			$rate = ($rates[$programmeId.'|'.$year] ?? self::DEFAULT_RATES);
+			$rate = ($run->rates[$programmeId.'|'.$year] ?? self::DEFAULT_RATES);
 
 			$this->add(years: $years, slot: [$programmeId, $year], field: 'repeaters', amount: $count * $rate['repeatRate']);
 			if ($year < ($durations[$programmeId] ?? $year)) {
@@ -148,55 +175,41 @@ class EnrolmentForecastService {
 	}//end progress()
 
 	/**
-	 * Add the first-year intake: the scenario's number, else the placed applications.
+	 * Add the first-year intake to next year's buckets: the scenario's number,
+	 * else the placed applications.
 	 *
-	 * @param array<string, array<string, mixed>> $years      The buckets.
-	 * @param array<string, mixed>                $forecast   The scenario.
-	 * @param string                              $targetYear The target school year.
+	 * @param EnrolmentForecastRun $run The forecast being computed.
 	 *
-	 * @return array<string, array<string, mixed>>
+	 * @return void
 	 */
-	private function addIntake(array $years, array $forecast, string $targetYear): array {
+	private function addIntake(EnrolmentForecastRun $run): void {
 		$intake = [];
-		foreach ((array)($forecast['intake'] ?? []) as $row) {
+		foreach ((array)($run->forecast['intake'] ?? []) as $row) {
 			$intake[(string)($row['programmeId'] ?? '')] = (float)($row['expected'] ?? 0);
 		}
 
 		unset($intake['']);
 		if ($intake === []) {
-			$intake = $this->reader->placedApplications(targetYear: $targetYear);
+			$intake = $this->reader->placedApplications(targetYear: $run->targetYear);
 		}
 
 		foreach ($intake as $programmeId => $expected) {
-			$this->add(years: $years, slot: [(string)$programmeId, 1], field: 'intake', amount: (float)$expected);
+			$this->add(years: $run->years, slot: [(string)$programmeId, 1], field: 'intake', amount: (float)$expected);
 		}
-
-		return $years;
 	}//end addIntake()
 
 	/**
 	 * The programme-year table.
 	 *
-	 * @param array<string, array<string, mixed>> $years      The buckets.
-	 * @param array<string, array<string, mixed>> $programmes Programmes by id.
-	 * @param int                                 $size       Target group size.
+	 * @param EnrolmentForecastRun                $run   The forecast being computed: its programmes and group size.
+	 * @param array<string, array<string, mixed>> $years The buckets to list.
 	 *
 	 * @return array<int, array<string, mixed>>
 	 */
-	private function yearRows(array $years, array $programmes, int $size): array {
+	private function yearRows(EnrolmentForecastRun $run, array $years): array {
 		$rows = [];
 		foreach ($years as $bucket) {
-			$learners = (int)(round($bucket['fromMovingUp']) + round($bucket['repeaters']) + round($bucket['intake']));
-			$rows[] = [
-				'programmeId' => $bucket['programmeId'],
-				'programmeName' => (string)($programmes[$bucket['programmeId']]['name'] ?? ''),
-				'programmeYear' => $bucket['programmeYear'],
-				'fromMovingUp' => (int)round($bucket['fromMovingUp']),
-				'repeaters' => (int)round($bucket['repeaters']),
-				'intake' => (int)round($bucket['intake']),
-				'learners' => $learners,
-				'groupsNeeded' => (int)ceil($learners / $size),
-			];
+			$rows[] = $this->yearRow(run: $run, bucket: $bucket);
 		}
 
 		usort(
@@ -207,6 +220,29 @@ class EnrolmentForecastService {
 
 		return $rows;
 	}//end yearRows()
+
+	/**
+	 * One programme year's row: its learners rounded per source, and the groups they fill.
+	 *
+	 * @param EnrolmentForecastRun $run    The forecast being computed: its programmes and group size.
+	 * @param array<string, mixed> $bucket One programme year's bucket.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function yearRow(EnrolmentForecastRun $run, array $bucket): array {
+		$learners = (int)(round($bucket['fromMovingUp']) + round($bucket['repeaters']) + round($bucket['intake']));
+
+		return [
+			'programmeId' => $bucket['programmeId'],
+			'programmeName' => (string)($run->programmes[$bucket['programmeId']]['name'] ?? ''),
+			'programmeYear' => $bucket['programmeYear'],
+			'fromMovingUp' => (int)round($bucket['fromMovingUp']),
+			'repeaters' => (int)round($bucket['repeaters']),
+			'intake' => (int)round($bucket['intake']),
+			'learners' => $learners,
+			'groupsNeeded' => (int)ceil($learners / $run->size),
+		];
+	}//end yearRow()
 
 	/**
 	 * The approved choices counted per next year's programme year: learners
@@ -241,40 +277,16 @@ class EnrolmentForecastService {
 	 * The subject table: approved choices counted, the rest estimated from
 	 * the share of each subject among the choices made so far.
 	 *
-	 * @param array<string, array<string, mixed>>                              $years      The buckets.
-	 * @param array<string, array{learners: int, courses?: array<string, int>}> $chosen     Choices counted per programme year.
-	 * @param array<string, array<string, mixed>>                              $programmes Programmes by id.
-	 * @param int                                                              $size       Target group size.
+	 * @param EnrolmentForecastRun $run The forecast being computed.
 	 *
 	 * @return array<int, array<string, mixed>>
 	 */
-	private function subjectRows(array $years, array $chosen, array $programmes, int $size): array {
-		$courseNames = $this->reader->courseNames();
+	private function subjectRows(EnrolmentForecastRun $run): array {
+		$run->courseNames = $this->reader->courseNames();
 		$rows = [];
-		foreach ($chosen as $key => $group) {
-			[$programmeId, $year] = explode('|', (string)$key);
-			$expected = 0;
-			foreach ($this->yearRows(years: array_intersect_key($years, [$key => true]), programmes: $programmes, size: $size) as $row) {
-				$expected = $row['learners'];
-			}
-
-			$missing = max(0, $expected - $group['learners']);
-			foreach ((array)($group['courses'] ?? []) as $courseId => $counted) {
-				$estimated = (int)round($missing * ($counted / max(1, $group['learners'])));
-				$rows[] = [
-					'programmeId' => $programmeId,
-					'programmeName' => (string)($programmes[$programmeId]['name'] ?? ''),
-					'programmeYear' => (int)$year,
-					'courseId' => (string)$courseId,
-					'courseName' => ($courseNames[(string)$courseId] ?? (string)$courseId),
-					'counted' => $counted,
-					'estimated' => $estimated,
-					'learners' => $counted + $estimated,
-					'isEstimated' => $estimated > 0,
-					'groupsNeeded' => (int)ceil(($counted + $estimated) / $size),
-				];
-			}
-		}//end foreach
+		foreach (array_keys($run->chosen) as $key) {
+			array_push($rows, ...$this->groupSubjectRows(run: $run, key: (string)$key));
+		}
 
 		usort(
 			$rows,
@@ -284,6 +296,82 @@ class EnrolmentForecastService {
 
 		return $rows;
 	}//end subjectRows()
+
+	/**
+	 * The subject rows of one next year's programme year, one per chosen subject.
+	 *
+	 * @param EnrolmentForecastRun $run The forecast being computed.
+	 * @param string               $key The programme year, `programmeId|programmeYear`.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function groupSubjectRows(EnrolmentForecastRun $run, string $key): array {
+		$programme = $this->programmeColumns(run: $run, key: $key);
+		$missing = $this->missingChoices(run: $run, key: $key);
+		$rows = [];
+		foreach ((array)($run->chosen[$key]['courses'] ?? []) as $courseId => $counted) {
+			$row = $programme + [
+				'courseId' => (string)$courseId,
+				'courseName' => ($run->courseNames[(string)$courseId] ?? (string)$courseId),
+				'counted' => $counted,
+				'estimated' => (int)round($missing * ($counted / max(1, $run->chosen[$key]['learners']))),
+			];
+			$rows[] = $row + $this->subjectTotals(row: $row, size: $run->size);
+		}
+
+		return $rows;
+	}//end groupSubjectRows()
+
+	/**
+	 * The programme columns of a subject row.
+	 *
+	 * @param EnrolmentForecastRun $run The forecast being computed: its programmes.
+	 * @param string               $key The programme year, `programmeId|programmeYear`.
+	 *
+	 * @return array{programmeId: string, programmeName: string, programmeYear: int}
+	 */
+	private function programmeColumns(EnrolmentForecastRun $run, string $key): array {
+		[$programmeId, $year] = explode('|', $key);
+
+		return [
+			'programmeId' => $programmeId,
+			'programmeName' => (string)($run->programmes[$programmeId]['name'] ?? ''),
+			'programmeYear' => (int)$year,
+		];
+	}//end programmeColumns()
+
+	/**
+	 * How many of the programme year's expected learners have not chosen yet.
+	 *
+	 * @param EnrolmentForecastRun $run The forecast being computed.
+	 * @param string               $key The programme year, `programmeId|programmeYear`.
+	 *
+	 * @return int
+	 */
+	private function missingChoices(EnrolmentForecastRun $run, string $key): int {
+		$expected = 0;
+		foreach ($this->yearRows(run: $run, years: array_intersect_key($run->years, [$key => true])) as $row) {
+			$expected = $row['learners'];
+		}
+
+		return max(0, $expected - $run->chosen[$key]['learners']);
+	}//end missingChoices()
+
+	/**
+	 * A subject's learners, counted plus estimated, and the groups they fill.
+	 *
+	 * @param array<string, mixed> $row  The subject row with its counted and estimated learners.
+	 * @param int                  $size Target group size.
+	 *
+	 * @return array{learners: int, isEstimated: bool, groupsNeeded: int}
+	 */
+	private function subjectTotals(array $row, int $size): array {
+		return [
+			'learners' => $row['counted'] + $row['estimated'],
+			'isEstimated' => $row['estimated'] > 0,
+			'groupsNeeded' => (int)ceil(($row['counted'] + $row['estimated']) / $size),
+		];
+	}//end subjectTotals()
 
 	/**
 	 * Add learners to a programme year's bucket, creating it when missing.
@@ -306,17 +394,17 @@ class EnrolmentForecastService {
 	}//end add()
 
 	/**
-	 * A readable name for a programme year, such as "havo 5".
+	 * A readable name for a rate row's programme year, such as "havo 5".
 	 *
-	 * @param array<string, array<string, mixed>> $programmes    Programmes by id.
-	 * @param string                              $programmeId   The programme.
-	 * @param int                                 $programmeYear The year.
+	 * @param EnrolmentForecastRun $run The forecast being computed: its programmes.
+	 * @param array<string, mixed> $row The scenario's rate row.
 	 *
 	 * @return string
 	 */
-	private function label(array $programmes, string $programmeId, int $programmeYear): string {
-		$name = (string)($programmes[$programmeId]['name'] ?? $programmeId);
+	private function label(EnrolmentForecastRun $run, array $row): string {
+		$programmeId = (string)($row['programmeId'] ?? '');
+		$name = (string)($run->programmes[$programmeId]['name'] ?? $programmeId);
 
-		return trim($name.' '.$programmeYear);
+		return trim($name.' '.(int)($row['programmeYear'] ?? 0));
 	}//end label()
 }//end class

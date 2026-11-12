@@ -626,6 +626,9 @@ class EngagementSignalJobTest extends TestCase {
 			'null stamp is not a crossing' => [null, 7.0, false],
 			'empty stamp is not a crossing' => ['', 7.0, false],
 			'unparseable is not a crossing' => ['not-a-date', 7.0, false],
+			'a partial day rounds down'     => ['2026-07-05T10:00:01+02:00', 7.0, false],
+			'eight whole days, limit 7'     => ['2026-07-05T10:00:00+02:00', 7.0, true],
+			'a future stamp is not stale'   => ['2026-07-20T10:00:00+02:00', -1.0, false],
 		];
 	}//end recencyProvider()
 

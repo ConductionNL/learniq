@@ -250,6 +250,19 @@ import {
 	rowsUrl,
 } from '../../utils/lessonOnboarding.js'
 
+/**
+ * The error key of a refused import, from its status and reason.
+ *
+ * @param {Error} err The request error.
+ * @return {string}
+ */
+function importErrorKeyOf(err) {
+	return importErrorKey(
+		err?.response?.status ?? 0,
+		err?.response?.data ?? null,
+	)
+}
+
 export default {
 	name: 'LessonOnboardingPanel',
 
@@ -454,35 +467,60 @@ export default {
 		async importRow(row) {
 			const id = this.rowId(row)
 			const courseId = this.courseChoice[id]
-			this.rowErrors = { ...this.rowErrors, [id]: '' }
+			this.setRowError(id, '')
 			if (!courseId) {
-				this.rowErrors = {
-					...this.rowErrors,
-					[id]: this.errorMessage('no-course'),
-				}
+				this.setRowError(id, this.errorMessage('no-course'))
 				return
 			}
+			await this.runImport(id, courseId)
+		},
 
+		/**
+		 * Show a message on one row, keeping the other rows' messages.
+		 *
+		 * @param {string} id The row id.
+		 * @param {string} message The message, '' for none.
+		 * @return {void}
+		 */
+		setRowError(id, message) {
+			this.rowErrors = { ...this.rowErrors, [id]: message }
+		},
+
+		/**
+		 * Import the file while its row is busy; a refusal is shown on the row.
+		 *
+		 * @param {string} id The row id.
+		 * @param {string} courseId The chosen course.
+		 * @return {Promise<void>}
+		 */
+		async runImport(id, courseId) {
 			this.busyRow = id
 			try {
-				const request = importRequest(id, courseId)
-				const resp = await axios.post(generateUrl(request.url), request.body)
-				this.results.unshift({ ...resp.data, notes: resp.data.notes ?? [] })
-				this.rows = this.rows.filter((r) => this.rowId(r) !== id)
-				this.liveMessage = this.t(
-					'learniq',
-					'Lesson draft "{name}" created.',
-					{ name: resp.data.lessonName },
-				)
+				await this.importInto(id, courseId)
 			} catch (err) {
-				const key = importErrorKey(
-					err?.response?.status ?? 0,
-					err?.response?.data ?? null,
-				)
-				this.rowErrors = { ...this.rowErrors, [id]: this.errorMessage(key) }
+				this.setRowError(id, this.errorMessage(importErrorKeyOf(err)))
 			} finally {
 				this.busyRow = ''
 			}
+		},
+
+		/**
+		 * POST the import, report the new draft and take its row off the list.
+		 *
+		 * @param {string} id The row id.
+		 * @param {string} courseId The chosen course.
+		 * @return {Promise<void>}
+		 */
+		async importInto(id, courseId) {
+			const request = importRequest(id, courseId)
+			const resp = await axios.post(generateUrl(request.url), request.body)
+			this.results.unshift({ ...resp.data, notes: resp.data.notes ?? [] })
+			this.rows = this.rows.filter((r) => this.rowId(r) !== id)
+			this.liveMessage = this.t(
+				'learniq',
+				'Lesson draft "{name}" created.',
+				{ name: resp.data.lessonName },
+			)
 		},
 
 		/**

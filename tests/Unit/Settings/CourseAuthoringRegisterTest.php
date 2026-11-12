@@ -3,6 +3,9 @@
 /**
  * Unit tests for the `course-authoring-ux` register delta.
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Asserts the schema shape for Lesson.blocks, Lesson's allOf/if/then
  * contentRef-conditional-requiredness (D2), Course.order, and the new
  * CourseTemplate schema. Mirrors CourseEvaluationRegisterTest.php's /
@@ -27,8 +30,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @link https://conduction.nl
  *

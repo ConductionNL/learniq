@@ -94,19 +94,35 @@ class PortalSubmissionHandIn {
 			return new PortalOutcome(status: Http::STATUS_CONFLICT, body: ['error' => 'already_handed_in'], reason: 'already-handed-in');
 		}
 
-		$submit = $this->guard->check($submission, 'submit', $learner->ncUserId);
-		$action = 'submit';
-		if ($submit->isAllowed() === false) {
-			$late = $this->guard->check($submission, SubmissionWindowGuard::LATE_ACTION, $learner->ncUserId);
-			if ($late->isAllowed() === false) {
-				return $this->refused(message: (string)$late->getMessage());
-			}
-
-			$action = SubmissionWindowGuard::LATE_ACTION;
+		$action = $this->handInAction(learner: $learner, submission: $submission);
+		if ($action instanceof PortalOutcome) {
+			return $action;
 		}
 
 		return $this->fire(learner: $learner, submission: $submission, action: $action);
 	}//end handIn()
+
+	/**
+	 * How the draft may be handed in: `submit` inside the window, else
+	 * `submitLate` when late work is allowed, else the window's refusal.
+	 *
+	 * @param PortalLearner        $learner    The pupil.
+	 * @param array<string, mixed> $submission The draft.
+	 *
+	 * @return string|PortalOutcome The action, or the refusal.
+	 */
+	private function handInAction(PortalLearner $learner, array $submission): string|PortalOutcome {
+		if ($this->guard->check($submission, 'submit', $learner->ncUserId)->isAllowed() === true) {
+			return 'submit';
+		}
+
+		$late = $this->guard->check($submission, SubmissionWindowGuard::LATE_ACTION, $learner->ncUserId);
+		if ($late->isAllowed() === false) {
+			return $this->refused(message: (string)$late->getMessage());
+		}
+
+		return SubmissionWindowGuard::LATE_ACTION;
+	}//end handInAction()
 
 	/**
 	 * Run the transition as the pupil; a guard refusal on the write is

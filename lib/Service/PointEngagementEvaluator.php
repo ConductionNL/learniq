@@ -3,6 +3,9 @@
 /**
  * Learniq Point Engagement Evaluator
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Stateless calculation engine that sums a learner's PointAward.points,
  * resolves the highest EngagementLevel the learner has reached, and computes
  * their current/longest activity streak from distinct PointAward.awardedAt
@@ -37,8 +40,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

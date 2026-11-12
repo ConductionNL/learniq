@@ -3,6 +3,9 @@
 /**
  * Learniq Contribution Raiser
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Raises a FeeItem's contributions in shillinq for the guardians of its
  * learners (D19, payments-to-shillinq-migration), through shillinq's contract
  * extracurricular-fee-to-shillinq v1. Learniq decides who is charged for what;
@@ -32,8 +35,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

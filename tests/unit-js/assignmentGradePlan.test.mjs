@@ -95,3 +95,23 @@ test('the marking view resolves the plan through the course, not off the assignm
 		'MarkSubmissionView does not use resolveGradePlan',
 	)
 })
+
+test('reads happen course first, then plan, and stop at the first gap', async () => {
+	const reads = []
+	const logging = (rows) => async (schema, id) => {
+		reads.push(`${schema}/${id}`)
+		return rows[schema]?.[id] ?? null
+	}
+	assert.equal(await resolveGradePlan({ curriculumPlanComponentId: 'comp1' }, logging({})), null)
+	assert.equal(await resolveGradePlan(null, logging({})), null)
+	assert.deepEqual(reads, [])
+	assert.equal(await resolveGradePlan(assignment, logging({})), null)
+	assert.deepEqual(reads, ['course/c1'])
+	const plan = await resolveGradePlan(
+		assignment,
+		logging({ course: { c1: { curriculumPlanId: 'p1' } }, 'curriculum-plan': { p1: { gradeScaleId: null } } }),
+	)
+	assert.deepEqual(reads, ['course/c1', 'course/c1', 'curriculum-plan/p1'])
+	assert.deepEqual(Object.keys(plan), ['curriculumPlanId', 'componentId', 'gradeScaleId', 'courseId'])
+	assert.equal(plan.gradeScaleId, '')
+})

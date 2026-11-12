@@ -3,6 +3,9 @@
 /**
  * Learniq LearnerRef Resolver
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Turns a Nextcloud user id (`learnerId` on a grade, attempt or submission)
  * into the UUID of that learner's LearnerProfile, the `learnerRef` every
  * portal collection scopes its reads on (ADR-046 A4).
@@ -32,8 +35,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

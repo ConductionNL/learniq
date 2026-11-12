@@ -3,6 +3,9 @@
 /**
  * Learniq QTI Import Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Imports QTI 2.x packages and IMS Common Cartridge archives, stores each
  * item's QTI 2.1 XML as found, and creates `Item` objects in the specified
  * ItemBank.
@@ -28,8 +31,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *
@@ -156,9 +157,10 @@ class QtiImportService {
 		$packageType = $this->manifestScanner->detectPackageType(dir: $dir);
 		$itemXmlPaths = $this->manifestScanner->collectItemPaths(dir: $dir, packageType: $packageType);
 
+		$target = new QtiItemTarget(itemBankId: $itemBankId, tenantId: $tenantId);
 		$createdUuids = [];
 		foreach ($itemXmlPaths as $xmlPath) {
-			$uuid = $this->importSingleItem(xmlPath: $xmlPath, itemBankId: $itemBankId, tenantId: $tenantId);
+			$uuid = $this->importSingleItem(xmlPath: $xmlPath, target: $target);
 			if ($uuid !== null) {
 				$createdUuids[] = $uuid;
 			}
@@ -225,20 +227,16 @@ class QtiImportService {
 	 * Other interaction types are imported with raw qtiBody and a placeholder
 	 * correctResponse pending future parser extensions.
 	 *
-	 * @param string $xmlPath Absolute path to the item XML file.
-	 * @param string $itemBankId UUID of the target ItemBank.
-	 * @param string $tenantId Tenant UUID to stamp on the created Item (H4).
+	 * @param string        $xmlPath Absolute path to the item XML file.
+	 * @param QtiItemTarget $target  The target ItemBank and the tenant to stamp on the created Item (H4).
 	 *
 	 * @return string|null Created Item UUID, or null on parse failure.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-4
 	 */
-	private function importSingleItem(string $xmlPath, string $itemBankId, string $tenantId = ''): ?string {
+	private function importSingleItem(string $xmlPath, QtiItemTarget $target): ?string {
 		$xml = $this->loadItemXml(xmlPath: $xmlPath);
-		$title = null;
-		if ($xml !== null) {
-			$title = $this->itemTitle(xml: $xml, xmlPath: $xmlPath);
-		}
+		$title = $this->titleOf(xml: $xml, xmlPath: $xmlPath);
 
 		$qtiBody = false;
 		if ($title !== null) {
@@ -249,10 +247,26 @@ class QtiImportService {
 			return null;
 		}
 
-		$item = ['itemBankId' => $itemBankId, 'title' => $title, 'qtiBody' => $qtiBody, 'tenant_id' => $tenantId];
+		$item = ['itemBankId' => $target->itemBankId, 'title' => $title, 'qtiBody' => $qtiBody, 'tenant_id' => $target->tenantId];
 
 		return $this->saveItem(itemData: $this->itemData(xml: $xml, item: $item));
 	}//end importSingleItem()
+
+	/**
+	 * The item's title, or null when the file is not XML or names none.
+	 *
+	 * @param DOMDocument|null $xml     The item document, or null when it did not parse.
+	 * @param string           $xmlPath Absolute path to the item file.
+	 *
+	 * @return string|null
+	 */
+	private function titleOf(?DOMDocument $xml, string $xmlPath): ?string {
+		if ($xml === null) {
+			return null;
+		}
+
+		return $this->itemTitle(xml: $xml, xmlPath: $xmlPath);
+	}//end titleOf()
 
 	/**
 	 * The item file as a document, or null (logged) when it is not XML.

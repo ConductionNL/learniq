@@ -3,6 +3,9 @@
 /**
  * Learniq AI Locality Classifier
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Derives a {locality, verified, evidence} verdict for an AI-assisted feature's
  * processing destination from real, code-enforced configuration — never from a
  * hand-typed field an admin could get wrong or lie in (sovereign-ai-guarantee).
@@ -34,8 +37,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

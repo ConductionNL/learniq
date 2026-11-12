@@ -228,4 +228,50 @@ class HourPlanActivityServiceTest extends TestCase {
 			self::assertSame($expected, $actual[$name], $name);
 		}
 	}//end testSchoolYearsMatchGolden()
+
+	/**
+	 * The reads behind a school year, in order and exactly as sent; a plan
+	 * of the right programme and intake that is not active, or a row of
+	 * another programme the store answers anyway, is not the plan; a read
+	 * that fails is logged and reads as empty.
+	 *
+	 * @return void
+	 */
+	public function testTheReadsBehindASchoolYear(): void {
+		$this->store['hour-plan'][] = ['id' => 'hp-other', 'programmeId' => 'p-other', 'intakeYear' => '2025-2026', 'lifecycle' => 'active', 'lines' => []];
+		$this->service()->forYear(academicYear: '2026-2027');
+
+		$schemas = array_map(static fn (array $config): string => $config['filters']['schema'], $this->queries);
+		self::assertSame('cohort', $schemas[0]);
+		self::assertSame(['filters' => ['register' => 'learniq', 'schema' => 'cohort', 'academicYear' => '2026-2027']], $this->queries[0]);
+		self::assertContains(['filters' => ['register' => 'learniq', 'schema' => 'hour-plan', 'programmeId' => 'p-mmc', 'intakeYear' => '2025-2026']], $this->queries);
+		self::assertContains(['filters' => ['register' => 'learniq', 'schema' => 'subjectteacherassignment', 'cohortId' => 'c-mv2a']], $this->queries);
+		self::assertSame(['filters' => ['register' => 'learniq', 'schema' => 'course'], 'ids' => ['co-ne', 'co-bpv']], end($this->queries));
+
+		$plan = new \ReflectionMethod(HourPlanActivityService::class, 'activePlan');
+		$this->store['hour-plan'] = [
+			['id' => 'hp-draft', 'programmeId' => 'p-mmc', 'intakeYear' => '2025-2026', 'lifecycle' => 'draft'],
+			['id' => 'hp-other', 'programmeId' => 'p-other', 'intakeYear' => '2025-2026', 'lifecycle' => 'active'],
+			['id' => 'hp-year', 'programmeId' => 'p-mmc', 'intakeYear' => '2024-2025', 'lifecycle' => 'active'],
+		];
+		$loose = $this->createMock(ObjectService::class);
+		$loose->method('findAll')->willReturnCallback(fn (array $config): array => $this->store[$config['filters']['schema']]);
+		$service = new HourPlanActivityService($loose, new NullLogger());
+		self::assertNull($plan->invoke($service, 'p-mmc', '2025-2026'));
+		$this->store['hour-plan'][] = ['id' => 'hp-live', 'programmeId' => 'p-mmc', 'intakeYear' => '2025-2026', 'lifecycle' => 'active'];
+		self::assertSame('hp-live', $plan->invoke($service, 'p-mmc', '2025-2026')['id']);
+
+		$warnings = [];
+		$logger = $this->createMock(\Psr\Log\LoggerInterface::class);
+		$logger->method('warning')->willReturnCallback(
+			static function (string $message, array $context) use (&$warnings): void {
+				$warnings[] = [$message, $context];
+			}
+		);
+		$failing = $this->createMock(ObjectService::class);
+		$failing->method('findAll')->willThrowException(new \RuntimeException('down'));
+		$year = (new HourPlanActivityService($failing, $logger))->forYear(academicYear: '2026-2027');
+		self::assertSame([], $year['activities']);
+		self::assertSame([['[HourPlanActivityService] Could not read {schema}: {msg}', ['schema' => 'cohort', 'msg' => 'down']]], $warnings);
+	}//end testTheReadsBehindASchoolYear()
 }//end class

@@ -760,51 +760,17 @@ class BookingContext:
 def employer_booking_facts(order: Booking, context: BookingContext) -> dict:
     """A port of lib/Service/Portal/EmployerBookingFacts.php::derive(); EmployerBookingFactsTest checks the two agree
     on the seeded bookings (employer-portal-audience)."""
-    booking, course, sessions, participants = order.record, order.course, order.sessions, order.participants
-    def parse(value):
-        return dt.datetime.fromisoformat(value).astimezone(AMS) if value else None
-
-    def day_and_date(d):
-        return f"{NL_WEEKDAYS[d.weekday()]} {d.day} {MAAND[d.month - 1]}"
-
-    def list_of(items):
-        return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " en " + items[-1]
-
-    def due(first):
-        if first is None:
-            return None
-        d = first - dt.timedelta(days=1)
-        while d.weekday() > 4:
-            d -= dt.timedelta(days=1)
-        return stamp(d, 12, 0)
-
-    days = sorted({parse(x["startsAt"]).date() for x in sessions})
+    booking, course, sessions = order.record, order.course, order.sessions
+    days = sorted({parse_moment(x["startsAt"]).date() for x in sessions})
     first = days[0] if days else None
-    participants = sorted([p for p in participants if p[0].get("lifecycle") != "withdrawn"], key=lambda p: p[0]["uuid"])
-    states = [e.get("lifecycle", "pending") for e, _p in participants]
-    if not states:
-        lifecycle = booking.get("lifecycle") if booking.get("lifecycle") in ("cancelled", "confirmed") else "received"
-    elif all(x in ("completed", "failed") for x in states):
-        lifecycle = "completed"
-    else:
-        lifecycle = "confirmed" if "active" in states else "received"
+    participants = sorted([p for p in order.participants if p[0].get("lifecycle") != "withdrawn"], key=lambda p: p[0]["uuid"])
+    lifecycle = booking_lifecycle(booking, [e.get("lifecycle", "pending") for e, _p in participants])
     needs = bool(EXAM_TAGS & {t.lower() for t in course.get("tags", [])}) and lifecycle in ("received", "confirmed")
     enrolments, names, refs, missing = {}, [], [], 0
     for e, p in participants:
         name = f"{p.get('givenName', '')} {p.get('familyName', '')}".strip()
-        credential = context.renewed.get(e["uuid"])
-        line = None
-        if credential and credential.get("expiresAt"):
-            x = parse(credential["expiresAt"])
-            line = f"Certificaat geldig tot {x.day} {MAAND[x.month - 1]} {x.year}"
-        fields = {"detailsStatus": "complete", "openTask": None, "openTaskNote": None, "openTaskDueAt": None, "certificateLine": line}
-        if needs and not p.get("birthDate"):
-            given = p.get("givenName", "").strip()
-            weekday = f" {NL_WEEKDAYS[first.weekday()]}" if first else ""
-            fields.update({"detailsStatus": "birth-date-missing", "openTask": f"Vul de geboortedatum van {name} in",
-                           "openTaskNote": f"{given} doet{weekday} examen. Zonder geboortedatum kunnen wij {given} niet aanmelden.",
-                           "openTaskDueAt": due(first)})
-            missing += 1
+        fields = participant_facts(p, name, context.renewed.get(e["uuid"]), needs, first)
+        missing += fields["detailsStatus"] == "birth-date-missing"
         enrolments[e["uuid"]] = fields
         names.append(name)
         refs.append(p["uuid"])
@@ -814,39 +780,9 @@ def employer_booking_facts(order: Booking, context: BookingContext) -> dict:
         status = lifecycle
     else:
         status = "waiting-for-you" if open_places or missing else lifecycle
-    if status == "waiting-for-you" and open_places:
-        note = "Vul de naam van 1 deelnemer in" if open_places == 1 else f"Vul de namen van {open_places} deelnemers in"
-    elif status == "waiting-for-you":
-        note = f"Geboortedatum van {missing} {'deelnemer' if missing == 1 else 'deelnemers'} ontbreekt"
-    elif lifecycle == "confirmed":
-        note = "De plek staat vast" if places == 1 else "De plekken staan vast"
-    elif lifecycle == "received" and booking.get("requestedAt"):
-        d, count = parse(booking["requestedAt"]).date(), 2
-        while count:
-            d += dt.timedelta(days=1)
-            if d.weekday() < 5:
-                count -= 1
-        note = "Bevestiging uiterlijk " + day_and_date(d)
-    else:
-        note = "Afgerond" if lifecycle == "completed" else None
-    if not days:
-        label = None
-    elif len(days) <= 2:
-        parts = []
-        for i, d in enumerate(days):
-            same = i + 1 < len(days) and days[i + 1].strftime("%Y-%m") == d.strftime("%Y-%m")
-            parts.append(f"{NL_WEEKDAYS[d.weekday()]} {d.day}" if same else day_and_date(d))
-        label = " en ".join(parts)
-    else:
-        months: dict[str, list[str]] = {}
-        for d in days:
-            months.setdefault(MAAND[d.month - 1], []).append(str(d.day))
-        label = list_of([f"{list_of(v)} {k}" for k, v in months.items()])
-    first_sessions = [x for x in sessions if first and parse(x["startsAt"]).date() == first]
-    time_label = None
-    if first_sessions:
-        time_label = (min(parse(x["startsAt"]).strftime("%H.%M") for x in first_sessions) + " tot "
-                      + max(parse(x["endsAt"]).strftime("%H.%M") for x in first_sessions) + " uur")
+    note = status_note(booking, lifecycle, status, (places, open_places, missing))
+    label = day_label(days)
+    time_label = first_day_times(sessions, first)
     course_name = (course.get("name") or "").strip() or None
     day = {"firstDay": first.isoformat() if first else None, "dayLabel": label, "timeLabel": time_label, "placeLabel": context.place,
            "trainerName": context.trainer, "upcoming": lifecycle in ("received", "confirmed")}
@@ -860,10 +796,101 @@ def employer_booking_facts(order: Booking, context: BookingContext) -> dict:
             "firstDay": first.isoformat() if first else None, "dayLabel": label, "timeLabel": time_label,
             "placeLabel": context.place, "trainerName": context.trainer, "participantRefs": refs, "participantNames": ", ".join(names) or None,
             "missingDetailsCount": missing, "lifecycle": lifecycle, "employerStatus": status, "statusNote": note,
-            "detailsDueAt": due(first),
+            "detailsDueAt": booking_due(first),
         },
         "enrolments": enrolments,
     }
+
+
+def parse_moment(value: str | None) -> dt.datetime | None:
+    return dt.datetime.fromisoformat(value).astimezone(AMS) if value else None
+
+
+def day_and_date(d: dt.date) -> str:
+    return f"{NL_WEEKDAYS[d.weekday()]} {d.day} {MAAND[d.month - 1]}"
+
+
+def list_of(items: list[str]) -> str:
+    return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " en " + items[-1]
+
+
+def booking_due(first: dt.date | None) -> str | None:
+    """Noon on the last weekday before the first training day."""
+    if first is None:
+        return None
+    d = first - dt.timedelta(days=1)
+    while d.weekday() > 4:
+        d -= dt.timedelta(days=1)
+    return stamp(d, 12, 0)
+
+
+def booking_lifecycle(booking: dict, states: list[str]) -> str:
+    """The booking's lifecycle, read from its participants' enrolments."""
+    if not states:
+        return booking.get("lifecycle") if booking.get("lifecycle") in ("cancelled", "confirmed") else "received"
+    if all(x in ("completed", "failed") for x in states):
+        return "completed"
+    return "confirmed" if "active" in states else "received"
+
+
+def participant_facts(p: dict, name: str, credential: dict | None, needs: bool, first: dt.date | None) -> dict:
+    """One participant's facts: the certificate line, and the open task when an exam needs a missing birth date."""
+    line = None
+    if credential and credential.get("expiresAt"):
+        x = parse_moment(credential["expiresAt"])
+        line = f"Certificaat geldig tot {x.day} {MAAND[x.month - 1]} {x.year}"
+    fields = {"detailsStatus": "complete", "openTask": None, "openTaskNote": None, "openTaskDueAt": None, "certificateLine": line}
+    if needs and not p.get("birthDate"):
+        given = p.get("givenName", "").strip()
+        weekday = f" {NL_WEEKDAYS[first.weekday()]}" if first else ""
+        fields.update({"detailsStatus": "birth-date-missing", "openTask": f"Vul de geboortedatum van {name} in",
+                       "openTaskNote": f"{given} doet{weekday} examen. Zonder geboortedatum kunnen wij {given} niet aanmelden.",
+                       "openTaskDueAt": booking_due(first)})
+    return fields
+
+
+def status_note(booking: dict, lifecycle: str, status: str, counts: tuple[int, int, int]) -> str | None:
+    """The line under the employer status; counts are (places, open places, participants missing a birth date)."""
+    places, open_places, missing = counts
+    if status == "waiting-for-you" and open_places:
+        return "Vul de naam van 1 deelnemer in" if open_places == 1 else f"Vul de namen van {open_places} deelnemers in"
+    if status == "waiting-for-you":
+        return f"Geboortedatum van {missing} {'deelnemer' if missing == 1 else 'deelnemers'} ontbreekt"
+    if lifecycle == "confirmed":
+        return "De plek staat vast" if places == 1 else "De plekken staan vast"
+    if lifecycle == "received" and booking.get("requestedAt"):
+        d, count = parse_moment(booking["requestedAt"]).date(), 2
+        while count:
+            d += dt.timedelta(days=1)
+            if d.weekday() < 5:
+                count -= 1
+        return "Bevestiging uiterlijk " + day_and_date(d)
+    return "Afgerond" if lifecycle == "completed" else None
+
+
+def day_label(days: list[dt.date]) -> str | None:
+    """The training days as one phrase: each day for one or two, the day numbers per month for more."""
+    if not days:
+        return None
+    if len(days) <= 2:
+        parts = []
+        for i, d in enumerate(days):
+            same = i + 1 < len(days) and days[i + 1].strftime("%Y-%m") == d.strftime("%Y-%m")
+            parts.append(f"{NL_WEEKDAYS[d.weekday()]} {d.day}" if same else day_and_date(d))
+        return " en ".join(parts)
+    months: dict[str, list[str]] = {}
+    for d in days:
+        months.setdefault(MAAND[d.month - 1], []).append(str(d.day))
+    return list_of([f"{list_of(v)} {k}" for k, v in months.items()])
+
+
+def first_day_times(sessions: list[dict], first: dt.date | None) -> str | None:
+    """From the first session's start to the last session's end on the first day, e.g. "08.30 tot 16.30 uur"."""
+    first_sessions = [x for x in sessions if first and parse_moment(x["startsAt"]).date() == first]
+    if not first_sessions:
+        return None
+    return (min(parse_moment(x["startsAt"]).strftime("%H.%M") for x in first_sessions) + " tot "
+            + max(parse_moment(x["endsAt"]).strftime("%H.%M") for x in first_sessions) + " uur")
 
 
 def stamp_employer_copies(b: Builder) -> None:
@@ -919,193 +946,251 @@ def add_story(b: Builder, school: dict, location: dict) -> None:
     Linda is that, and the four installers are participants. Every date is
     absolute and comes from the portal designs.
     """
-    # Rooms in the praktijkhal.
-    lokaal = b.add("room", {"name": "Lokaal 2", "code": "WPA-L2", "capacity": 12, "kind": "classroom",
-                            "facilities": ["beamer", "whiteboard"], "buildingCode": "00X600", "floor": "0"})
-    hal = b.add("room", {"name": "Praktijkhal", "code": "WPA-HAL", "capacity": 12, "kind": "other",
-                         "facilities": ["werkende lucht-water warmtepompen", "hybride opstellingen", "bodemwarmtepomp", "meetapparatuur"],
-                         "buildingCode": "00X600", "floor": "0"})
-    room_of = {"ochtend": lokaal, "middag": hal}
+    JansenStory(b, school, location).add()
 
-    # The catalogue courses of the story, with their lessons.
-    courses: dict[str, dict] = {}
-    lessons: dict[str, list[tuple[dict, int, str | None]]] = {}
-    for key, spec in STORY_COURSES.items():
-        fields = {
-            "code": f"{key}-2627", "name": spec["name"], "name_nl": spec["name"], "description": spec["description"], "level": "corporate",
-            "language": "nl", "tags": list(spec["tags"]), "mandatoryTraining": spec["mandatory"], "lifecycle": "published",
-        }
-        if spec["regulation"]:
-            fields["regulationSlug"] = spec["regulation"]
-        courses[key] = b.add("course", fields)
-        lessons[key] = []
-        for order, (title, day, part, text) in enumerate(spec["lessons"], start=1):
-            if part is None:
-                minutes = sum((h2 * 60 + m2) - (h1 * 60 + m1) for (h1, m1), (h2, m2) in HALL_SLOTS.values())
-            else:
-                (h1, m1), (h2, m2) = HALL_SLOTS[part]
-                minutes = (h2 * 60 + m2) - (h1 * 60 + m1)
-            row = b.add("lesson", {
-                "courseId": courses[key]["uuid"], "name": title, "order": order, "contentType": "text",
-                "blocks": [{"blockId": "b1", "type": "richText", "order": 1, "text": text}],
-                "durationMinutes": minutes, "learningObjectives": [text], "mandatoryTraining": spec["mandatory"], "lifecycle": "published",
-            })
-            if spec["regulation"]:
-                row["regulationSlug"] = spec["regulation"]
-            lessons[key].append((row, day, part))
-    courses["FGAS-1"]["renewalCourseSlug"] = courses["FGAS-H"]["slug"]
 
-    # Linda Jansen and her four installers.
-    contacts = [p for p in b.buckets["learner-profile"] if p["ncUserId"].startswith("training-contactpersoon-")]
-    participants = [p for p in b.buckets["learner-profile"] if p["ncUserId"].startswith("training-deelnemer-")]
-    linda = b.add("learner-profile", {
-        "ncUserId": f"training-contactpersoon-{len(contacts) + 1:03d}", "givenName": "Linda", "familyName": "Jansen",
-        "roles": ["manager"], "eduPersonAffiliation": ["affiliate"], "department": STORY_COMPANY,
-        "parentIds": [], "guardianRefs": [], "lifecycle": "active",
-    })
-    company = b.add("client-organisation", {
-        "name": STORY_COMPANY, "kvkNumber": STORY_KVK, "eherkenningRef": STORY_EHERKENNING, "contactName": "Linda Jansen",
-        "contactEmail": "linda.jansen@jansen-installatietechniek.example", "locationId": location["uuid"], "lifecycle": "active",
-    })
-    people: dict[str, dict] = {}
-    for n, (key, given, family, birth) in enumerate(STORY_PEOPLE, start=len(participants) + 1):
-        fields = {"ncUserId": f"training-deelnemer-{n:03d}", "givenName": given, "familyName": family}
-        if birth is not None:
-            fields["birthDate"] = birth
-        fields.update({
-            "schoolId": school["uuid"], "roles": ["learner"], "eduPersonAffiliation": ["affiliate"], "managerId": linda["ncUserId"],
-            "department": f"{STORY_COMPANY}/Montage", "parentIds": [], "guardianRefs": [], "lifecycle": "active",
-            "organisationRef": company["uuid"],
-        })
-        people[key] = b.add("learner-profile", fields)
+class JansenStory:
+    """The objects of Jansen Installatietechniek's week 41 of 2026, added in a fixed order."""
 
-    # Staff: the planner and the administration exist; the two trainers are new.
-    working: dict[str, set[int]] = {}
-    for _key, _number, trainer, days, _who, _state, _at in STORY_EDITIONS:
-        working.setdefault(trainer, set()).update(d.weekday() for d in days)
-    for trainer, quals in ((HENK, ["trainer F-gassen en koudetechniek", "trainer warmtepompen"]),
-                           (FATIMA, ["trainer warmtepompen", "trainer inregelen en hydrauliek"])):
-        b.add("staff", {"ncUserId": trainer, "roles": ["teacher"], "qualifications": quals,
-                        "workingDays": [WEEKDAYS[i] for i in sorted(working[trainer])]})
+    def __init__(self, b: Builder, school: dict, location: dict) -> None:
+        self.b = b
+        self.school = school
+        self.location = location
 
-    # Editions: a cohort, who teaches it, a morning and an afternoon session per day, the enrolments.
-    enrolments: dict[tuple[int, str], dict] = {}
-    bookings: list[tuple[dict, dict, list[dict], list[dict]]] = []
-    for key, number, trainer, days, who, state, enrolled in STORY_EDITIONS:
-        course = courses[key]
-        done = days[-1] < STORY_TODAY
-        first = days[0]
-        cohort = b.add("cohort", {
-            "name": f"{course['name']}, {first.day} {MAAND[first.month - 1]} {first.year}",
-            "period": f"{MAAND[first.month - 1].capitalize()} {first.year}", "academicYear": STORY_YEAR,
-            "teacherIds": [trainer], "learnerIds": [people[p]["ncUserId"] for p in who],
-            "lifecycle": "completed" if done else "planned", "locationId": location["uuid"],
-            "notes": "In de praktijkhal: theorie in Lokaal 2, na de lunch in de hal.", "kind": "teaching", "courseId": course["uuid"],
-            **({"capacity": STORY_CAPACITY[(key, first)]} if (key, first) in STORY_CAPACITY else {}),
-        })
-        b.add("subjectteacherassignment", {"cohortId": cohort["uuid"], "courseId": course["uuid"], "teacherId": trainer})
-        sessions = []
-        for day_number, d in enumerate(days, start=1):
-            for part in ("ochtend", "middag"):
-                (h1, m1), (h2, m2) = HALL_SLOTS[part]
-                lesson = next((row for row, day, p in lessons[key] if day == day_number and p in (None, part)), None)
-                when = f"{d.day} {MAAND[d.month - 1]} {d.year}"
-                title = f"{course['name']}, {part} ({when})" if len(days) == 1 else f"{course['name']}, dag {day_number} {part} ({when})"
-                sessions.append((b.add("session", {
-                    "cohortId": cohort["uuid"], "courseId": course["uuid"], "lessonId": lesson["uuid"] if lesson else None, "title": title,
-                    "startsAt": stamp(d, h1, m1), "endsAt": stamp(d, h2, m2), "location": f"{room_of[part]['name']}, {location['name']}",
-                    "roomId": room_of[part]["uuid"], "lifecycle": "completed" if done else "scheduled",
-                }), d, part))
-        booking = None
-        if number is not None:
-            confirmed = STORY_CONFIRMED.get(number)
-            booking = b.add("course-booking", {
-                "organisationRef": company["uuid"], "bookingNumber": f"I-2026-{number:04d}", "cohortId": cohort["uuid"],
-                "courseId": course["uuid"], "participantCount": len(who), "requestedAt": stamp(*enrolled),
-                "requestedByName": "Linda Jansen", "confirmedAt": stamp(*confirmed) if confirmed else None, "lifecycle": "received",
-            })
-            bookings.append((booking, course, [s for s, _d, _p in sessions], []))
-        for p in who:
-            profile = people[p]
+    def add(self) -> None:
+        self.add_rooms()
+        self.add_courses()
+        self.add_people()
+        self.add_trainers()
+        self.add_editions()
+        self.add_credentials()
+        self.add_booking_facts()
+
+    def add_rooms(self) -> None:
+        """Rooms in the praktijkhal."""
+        lokaal = self.b.add("room", {"name": "Lokaal 2", "code": "WPA-L2", "capacity": 12, "kind": "classroom",
+                                     "facilities": ["beamer", "whiteboard"], "buildingCode": "00X600", "floor": "0"})
+        hal = self.b.add("room", {"name": "Praktijkhal", "code": "WPA-HAL", "capacity": 12, "kind": "other",
+                                  "facilities": ["werkende lucht-water warmtepompen", "hybride opstellingen", "bodemwarmtepomp", "meetapparatuur"],
+                                  "buildingCode": "00X600", "floor": "0"})
+        self.room_of = {"ochtend": lokaal, "middag": hal}
+
+    def add_courses(self) -> None:
+        """The catalogue courses of the story, with their lessons."""
+        self.courses: dict[str, dict] = {}
+        self.lessons: dict[str, list[tuple[dict, int, str | None]]] = {}
+        for key, spec in STORY_COURSES.items():
             fields = {
-                "learnerId": profile["ncUserId"], "learnerRef": profile["uuid"], "courseId": course["uuid"], "source": "hr",
-                "mandatory": bool(STORY_COURSES[key]["mandatory"]), "managerId": linda["ncUserId"], "cohortId": cohort["uuid"],
-                "lifecycle": state, "locationId": location["uuid"], "volgnummer": number,
-                "requestedAt": stamp(*enrolled),
+                "code": f"{key}-2627", "name": spec["name"], "name_nl": spec["name"], "description": spec["description"], "level": "corporate",
+                "language": "nl", "tags": list(spec["tags"]), "mandatoryTraining": spec["mandatory"], "lifecycle": "published",
             }
-            if STORY_COURSES[key]["regulation"]:
-                fields["regulationSlug"] = STORY_COURSES[key]["regulation"]
-            if booking is not None:
-                fields["bookingRef"] = booking["uuid"]
-                fields["organisationRef"] = company["uuid"]
-            enrolments[(number, p)] = b.add("enrolment", fields)
-            if booking is not None:
-                bookings[-1][3].append(enrolments[(number, p)])
-            if not done:
-                continue
-            for session, d, part in sessions:
-                (h1, m1), (h2, m2) = HALL_SLOTS[part]
-                b.add("attendance-record", {
-                    "sessionId": session["uuid"], "learnerId": profile["ncUserId"], "learnerRef": profile["uuid"], "cohortId": cohort["uuid"],
-                    "status": "present", "minutesAttended": (h2 * 60 + m2) - (h1 * 60 + m1), "markedBy": trainer,
-                    "markedAt": stamp(d, h1, m1 + 10), "reason": None, "excuseRequestId": None,
+            if spec["regulation"]:
+                fields["regulationSlug"] = spec["regulation"]
+            self.courses[key] = self.b.add("course", fields)
+            self.lessons[key] = []
+            for order, (title, day, part, text) in enumerate(spec["lessons"], start=1):
+                if part is None:
+                    minutes = sum((h2 * 60 + m2) - (h1 * 60 + m1) for (h1, m1), (h2, m2) in HALL_SLOTS.values())
+                else:
+                    (h1, m1), (h2, m2) = HALL_SLOTS[part]
+                    minutes = (h2 * 60 + m2) - (h1 * 60 + m1)
+                row = self.b.add("lesson", {
+                    "courseId": self.courses[key]["uuid"], "name": title, "order": order, "contentType": "text",
+                    "blocks": [{"blockId": "b1", "type": "richText", "order": 1, "text": text}],
+                    "durationMinutes": minutes, "learningObjectives": [text], "mandatoryTraining": spec["mandatory"], "lifecycle": "published",
                 })
+                if spec["regulation"]:
+                    row["regulationSlug"] = spec["regulation"]
+                self.lessons[key].append((row, day, part))
+        self.courses["FGAS-1"]["renewalCourseSlug"] = self.courses["FGAS-H"]["slug"]
 
-    # Sanne's proof of participation for Waterzijdig inregelen, ready on Thursday 1 October at 16.52.
-    story_credential(b, StoryAward(people["sanne"], courses["WZI"], AwardTerms("badge", stamp(dt.date(2026, 10, 1), 16, 52), (INSTITUTE, ISSUER_DID)),
-                                   {"source": "auto", "enrolmentId": enrolments[(377, "sanne")]["uuid"], "lifecycle": "issued"}))
-    # The certificates the company holds. F-gassen categorie 1 runs out on 30 November 2026, eight weeks after
-    # today; the herhaling on 8 October is its renewal. OpenRegister computes expiryStatus from expiresAt.
-    for p in ("tom", "youssef", "sanne"):
-        story_credential(b, StoryAward(people[p], courses["FGAS-1"], AwardTerms("certificate", stamp(dt.date(2021, 11, 30), 10, 0), EXAM_COOLING), {
-            "expiresAt": stamp(dt.date(2026, 11, 30), 23, 59), "source": "manual",
-            "renewalEnrolmentId": enrolments[(412, p)]["uuid"], "lifecycle": "issued",
+    def add_people(self) -> None:
+        """Linda Jansen and her four installers."""
+        contacts = [p for p in self.b.buckets["learner-profile"] if p["ncUserId"].startswith("training-contactpersoon-")]
+        participants = [p for p in self.b.buckets["learner-profile"] if p["ncUserId"].startswith("training-deelnemer-")]
+        self.linda = self.b.add("learner-profile", {
+            "ncUserId": f"training-contactpersoon-{len(contacts) + 1:03d}", "givenName": "Linda", "familyName": "Jansen",
+            "roles": ["manager"], "eduPersonAffiliation": ["affiliate"], "department": STORY_COMPANY,
+            "parentIds": [], "guardianRefs": [], "lifecycle": "active",
+        })
+        self.company = self.b.add("client-organisation", {
+            "name": STORY_COMPANY, "kvkNumber": STORY_KVK, "eherkenningRef": STORY_EHERKENNING, "contactName": "Linda Jansen",
+            "contactEmail": "linda.jansen@jansen-installatietechniek.example", "locationId": self.location["uuid"], "lifecycle": "active",
+        })
+        self.people: dict[str, dict] = {}
+        for n, (key, given, family, birth) in enumerate(STORY_PEOPLE, start=len(participants) + 1):
+            fields = {"ncUserId": f"training-deelnemer-{n:03d}", "givenName": given, "familyName": family}
+            if birth is not None:
+                fields["birthDate"] = birth
+            fields.update({
+                "schoolId": self.school["uuid"], "roles": ["learner"], "eduPersonAffiliation": ["affiliate"], "managerId": self.linda["ncUserId"],
+                "department": f"{STORY_COMPANY}/Montage", "parentIds": [], "guardianRefs": [], "lifecycle": "active",
+                "organisationRef": self.company["uuid"],
+            })
+            self.people[key] = self.b.add("learner-profile", fields)
+
+    def add_trainers(self) -> None:
+        """Staff: the planner and the administration exist; the two trainers are new."""
+        working: dict[str, set[int]] = {}
+        for _key, _number, trainer, days, _who, _state, _at in STORY_EDITIONS:
+            working.setdefault(trainer, set()).update(d.weekday() for d in days)
+        for trainer, quals in ((HENK, ["trainer F-gassen en koudetechniek", "trainer warmtepompen"]),
+                               (FATIMA, ["trainer warmtepompen", "trainer inregelen en hydrauliek"])):
+            self.b.add("staff", {"ncUserId": trainer, "roles": ["teacher"], "qualifications": quals,
+                                 "workingDays": [WEEKDAYS[i] for i in sorted(working[trainer])]})
+
+    def add_editions(self) -> None:
+        """Editions: a cohort, who teaches it, a morning and an afternoon session per day, the enrolments."""
+        self.enrolments: dict[tuple[int, str], dict] = {}
+        self.bookings: list[tuple[dict, dict, list[dict], list[dict]]] = []
+        for key, number, trainer, days, who, state, enrolled in STORY_EDITIONS:
+            course = self.courses[key]
+            done = days[-1] < STORY_TODAY
+            first = days[0]
+            cohort = self.b.add("cohort", {
+                "name": f"{course['name']}, {first.day} {MAAND[first.month - 1]} {first.year}",
+                "period": f"{MAAND[first.month - 1].capitalize()} {first.year}", "academicYear": STORY_YEAR,
+                "teacherIds": [trainer], "learnerIds": [self.people[p]["ncUserId"] for p in who],
+                "lifecycle": "completed" if done else "planned", "locationId": self.location["uuid"],
+                "notes": "In de praktijkhal: theorie in Lokaal 2, na de lunch in de hal.", "kind": "teaching", "courseId": course["uuid"],
+                **({"capacity": STORY_CAPACITY[(key, first)]} if (key, first) in STORY_CAPACITY else {}),
+            })
+            self.b.add("subjectteacherassignment", {"cohortId": cohort["uuid"], "courseId": course["uuid"], "teacherId": trainer})
+            sessions = []
+            for day_number, d in enumerate(days, start=1):
+                for part in ("ochtend", "middag"):
+                    (h1, m1), (h2, m2) = HALL_SLOTS[part]
+                    lesson = next((row for row, day, p in self.lessons[key] if day == day_number and p in (None, part)), None)
+                    when = f"{d.day} {MAAND[d.month - 1]} {d.year}"
+                    title = f"{course['name']}, {part} ({when})" if len(days) == 1 else f"{course['name']}, dag {day_number} {part} ({when})"
+                    sessions.append((self.b.add("session", {
+                        "cohortId": cohort["uuid"], "courseId": course["uuid"], "lessonId": lesson["uuid"] if lesson else None, "title": title,
+                        "startsAt": stamp(d, h1, m1), "endsAt": stamp(d, h2, m2), "location": f"{self.room_of[part]['name']}, {self.location['name']}",
+                        "roomId": self.room_of[part]["uuid"], "lifecycle": "completed" if done else "scheduled",
+                    }), d, part))
+            booking = None
+            if number is not None:
+                confirmed = STORY_CONFIRMED.get(number)
+                booking = self.b.add("course-booking", {
+                    "organisationRef": self.company["uuid"], "bookingNumber": f"I-2026-{number:04d}", "cohortId": cohort["uuid"],
+                    "courseId": course["uuid"], "participantCount": len(who), "requestedAt": stamp(*enrolled),
+                    "requestedByName": "Linda Jansen", "confirmedAt": stamp(*confirmed) if confirmed else None, "lifecycle": "received",
+                })
+                self.bookings.append((booking, course, [s for s, _d, _p in sessions], []))
+            for p in who:
+                profile = self.people[p]
+                fields = {
+                    "learnerId": profile["ncUserId"], "learnerRef": profile["uuid"], "courseId": course["uuid"], "source": "hr",
+                    "mandatory": bool(STORY_COURSES[key]["mandatory"]), "managerId": self.linda["ncUserId"], "cohortId": cohort["uuid"],
+                    "lifecycle": state, "locationId": self.location["uuid"], "volgnummer": number,
+                    "requestedAt": stamp(*enrolled),
+                }
+                if STORY_COURSES[key]["regulation"]:
+                    fields["regulationSlug"] = STORY_COURSES[key]["regulation"]
+                if booking is not None:
+                    fields["bookingRef"] = booking["uuid"]
+                    fields["organisationRef"] = self.company["uuid"]
+                self.enrolments[(number, p)] = self.b.add("enrolment", fields)
+                if booking is not None:
+                    self.bookings[-1][3].append(self.enrolments[(number, p)])
+                if not done:
+                    continue
+                for session, d, part in sessions:
+                    (h1, m1), (h2, m2) = HALL_SLOTS[part]
+                    self.b.add("attendance-record", {
+                        "sessionId": session["uuid"], "learnerId": profile["ncUserId"], "learnerRef": profile["uuid"], "cohortId": cohort["uuid"],
+                        "status": "present", "minutesAttended": (h2 * 60 + m2) - (h1 * 60 + m1), "markedBy": trainer,
+                        "markedAt": stamp(d, h1, m1 + 10), "reason": None, "excuseRequestId": None,
+                    })
+
+    def add_credentials(self) -> None:
+        """Sanne's proof of participation for Waterzijdig inregelen, ready on Thursday 1 October at 16.52,
+        and the certificates the company holds."""
+        story_credential(self.b, StoryAward(self.people["sanne"], self.courses["WZI"], AwardTerms("badge", stamp(dt.date(2026, 10, 1), 16, 52), (INSTITUTE, ISSUER_DID)),
+                                            {"source": "auto", "enrolmentId": self.enrolments[(377, "sanne")]["uuid"], "lifecycle": "issued"}))
+        # The certificates the company holds. F-gassen categorie 1 runs out on 30 November 2026, eight weeks after
+        # today; the herhaling on 8 October is its renewal. OpenRegister computes expiryStatus from expiresAt.
+        for p in ("tom", "youssef", "sanne"):
+            story_credential(self.b, StoryAward(self.people[p], self.courses["FGAS-1"], AwardTerms("certificate", stamp(dt.date(2021, 11, 30), 10, 0), EXAM_COOLING), {
+                "expiresAt": stamp(dt.date(2026, 11, 30), 23, 59), "source": "manual",
+                "renewalEnrolmentId": self.enrolments[(412, p)]["uuid"], "lifecycle": "issued",
+            }))
+        story_credential(self.b, StoryAward(self.people["sanne"], self.courses["BRL6000"], AwardTerms("certificate", stamp(dt.date(2023, 3, 12), 10, 0), EXAM_COOLING), {
+            "expiresAt": stamp(dt.date(2028, 3, 12), 23, 59), "source": "manual", "lifecycle": "issued",
         }))
-    story_credential(b, StoryAward(people["sanne"], courses["BRL6000"], AwardTerms("certificate", stamp(dt.date(2023, 3, 12), 10, 0), EXAM_COOLING), {
-        "expiresAt": stamp(dt.date(2028, 3, 12), 23, 59), "source": "manual", "lifecycle": "issued",
-    }))
 
-    # What each booking says to Linda, as EmployerBookingProjection writes it.
-    renewed = {c["renewalEnrolmentId"]: c for c in b.buckets["credential"] if c.get("renewalEnrolmentId")}
-    trainers = {HENK: STORY_STAFF[HENK], FATIMA: STORY_STAFF[FATIMA]}
-    cohorts = {c["uuid"]: c for c in b.buckets["cohort"]}
-    for booking, course, sessions, rows in bookings:
-        cohort = cohorts[booking["cohortId"]]
-        facts = employer_booking_facts(Booking(booking, course, sessions, [(e, next(p for p in people.values() if p["uuid"] == e["learnerRef"])) for e in rows]),
-                                       BookingContext(renewed, trainers.get(cohort["teacherIds"][0]), f"{location['name']}, {location['street']}"))
-        booking.update(facts["booking"])
-        for e in rows:
-            e.update(facts["enrolments"][e["uuid"]])
+    def add_booking_facts(self) -> None:
+        """What each booking says to Linda, as EmployerBookingProjection writes it."""
+        renewed = {c["renewalEnrolmentId"]: c for c in self.b.buckets["credential"] if c.get("renewalEnrolmentId")}
+        trainers = {HENK: STORY_STAFF[HENK], FATIMA: STORY_STAFF[FATIMA]}
+        cohorts = {c["uuid"]: c for c in self.b.buckets["cohort"]}
+        for booking, course, sessions, rows in self.bookings:
+            cohort = cohorts[booking["cohortId"]]
+            facts = employer_booking_facts(Booking(booking, course, sessions, [(e, next(p for p in self.people.values() if p["uuid"] == e["learnerRef"])) for e in rows]),
+                                           BookingContext(renewed, trainers.get(cohort["teacherIds"][0]), f"{self.location['name']}, {self.location['street']}"))
+            booking.update(facts["booking"])
+            for e in rows:
+                e.update(facts["enrolments"][e["uuid"]])
 
 
 def build() -> dict:
-    rng = random.Random(20250901)
-    b = Builder(IDENTITY)
-    sched = Scheduler()
+    return TrainingYear().build()
 
-    # --- institute, location, rooms -------------------------------------------
-    school = b.add("school", {"brin": "00X6", "name": INSTITUTE, "pedagogicalConcept": "other"})
-    location = b.add("vestiging", {
-        "schoolId": school["uuid"], "vestigingscode": "00X600", "onderwijslocatiecode": None,
-        "name": "Praktijkhal Zuiddrecht", "street": "Energieweg 8", "postalCode": "0612 EW", "city": TOWN,
-    })
-    rooms = {key: b.add("room", dict(spec)) for key, spec in ROOMS.items()}
 
-    # --- the catalogue ----------------------------------------------------------
-    courses: dict[str, dict] = {}
-    lessons: dict[str, list[dict]] = {}
+class TrainingYear:
+    """One run of the training institute set. The steps run in a fixed order and share one random
+    generator, so every draw, and therefore the file, is the same on each run."""
 
-    def add_course(spec: dict, name: str, code: str, description: str, lifecycle: str) -> tuple[dict, list[dict]]:
+    def __init__(self) -> None:
+        self.rng = random.Random(20250901)
+        self.b = Builder(IDENTITY)
+        self.sched = Scheduler()
+
+    def build(self) -> dict:
+        self.add_institute_and_rooms()
+        self.add_catalogue()
+        self.add_package_imports()
+        self.add_leadership_programme()
+        self.add_prices()
+        self.add_item_banks()
+        self.add_people()
+        self.spread_bookings()
+        self.schedule_editions()
+        self.fill_editions()
+        self.run_editions()
+        self.add_staff()
+        self.add_cohorts()
+        self.add_enrolments()
+        self.add_intake()
+        self.add_teacher_assignments()
+        self.add_sessions()
+        self.add_knowledge_tests()
+        self.add_excuses_and_attendance()
+        self.add_credentials()
+        self.add_evaluations()
+        self.strip_private_fields()
+        return self.assemble()
+
+    def add_institute_and_rooms(self) -> None:
+        """The institute, its location and its rooms."""
+        self.school = self.b.add("school", {"brin": "00X6", "name": INSTITUTE, "pedagogicalConcept": "other"})
+        self.location = self.b.add("vestiging", {
+            "schoolId": self.school["uuid"], "vestigingscode": "00X600", "onderwijslocatiecode": None,
+            "name": "Praktijkhal Zuiddrecht", "street": "Energieweg 8", "postalCode": "0612 EW", "city": TOWN,
+        })
+        self.rooms = {key: self.b.add("room", dict(spec)) for key, spec in ROOMS.items()}
+
+    def add_course(self, spec: dict, name: str, code: str, description: str, lifecycle: str) -> tuple[dict, list[dict]]:
         fields = {
             "code": code, "name": name, "name_nl": name, "description": description, "level": "corporate", "language": "nl",
             "tags": list(spec["tags"]), "mandatoryTraining": spec["mandatory"], "lifecycle": lifecycle,
         }
         if spec["regulation"]:
             fields["regulationSlug"] = spec["regulation"]
-        course = b.add("course", fields)
+        course = self.b.add("course", fields)
         rows = []
         for order, (title, day, minutes, text) in enumerate(spec["lessons"], start=1):
-            row = b.add("lesson", {
+            row = self.b.add("lesson", {
                 "courseId": course["uuid"], "name": title, "order": order, "contentType": "text",
                 "blocks": [{"blockId": "b1", "type": "richText", "order": 1, "text": text}],
                 "durationMinutes": minutes, "learningObjectives": [text],
@@ -1117,602 +1202,623 @@ def build() -> dict:
             rows.append(row)
         return course, rows
 
-    for spec in COURSES:
-        courses[spec["key"]], lessons[spec["key"]] = add_course(spec, spec["name"], spec["key"] + "-2526", spec["description"], "published")
-    for spec in COURSES:
-        if spec["renewal"]:
-            courses[spec["key"]]["renewalCourseSlug"] = courses[spec["renewal"]]["slug"]
+    def add_catalogue(self) -> None:
+        """The course catalogue."""
+        self.courses: dict[str, dict] = {}
+        self.lessons: dict[str, list[dict]] = {}
 
-    # Next year's versions, made by exporting this year's course and reading it back in.
-    drafts = {}
-    for key in ("BHV-B", "LG-B"):
-        spec = BY_KEY[key]
-        drafts[key] = add_course(
-            spec, spec["name"] + " 2026-2027 (concept)", key + "-2627",
-            "Concept voor 2026-2027, gemaakt door de cursus van 2025-2026 te exporteren en opnieuw in te lezen.", "draft",
-        )
+        for spec in COURSES:
+            self.courses[spec["key"]], self.lessons[spec["key"]] = self.add_course(spec, spec["name"], spec["key"] + "-2526", spec["description"], "published")
+        for spec in COURSES:
+            if spec["renewal"]:
+                self.courses[spec["key"]]["renewalCourseSlug"] = self.courses[spec["renewal"]]["slug"]
 
-    # --- course package imports and the export round trips ---------------------
-    spr, plan = lessons["SPR"], lessons["PLAN"]
-    b.add("course-package-import-report", {
-        "sourceFormat": "common-cartridge-1.3", "sourceFilename": "spreadsheets-gevorderd-partnerpakket.imscc",
-        "courseId": courses["SPR"]["uuid"], "importedBy": QUALITY, "importedAt": stamp(dt.date(2025, 8, 19), 10, 12),
-        "lifecycle": "partial", "resourcesTotal": 6, "resourcesImported": 4, "resourcesDegraded": 1, "resourcesDropped": 1,
-        "entries": [
-            *[{"resourceIdentifier": f"res-{i:02d}", "resourceType": "webcontent", "title": lesson["name"], "outcome": "imported",
-               "targetType": "lesson", "targetId": lesson["uuid"], "reason": None} for i, lesson in enumerate(spr, start=1)],
-            {"resourceIdentifier": "res-05", "resourceType": "imswl_xmlv1p3", "title": "Naslag: functies op een rij", "outcome": "degraded",
-             "targetType": "lesson", "targetId": spr[0]["uuid"],
-             "reason": "Weblink omgezet naar een tekstblok in de les; het adres zelf is niet gecontroleerd."},
-            {"resourceIdentifier": "res-06", "resourceType": "imsbasiclti_xmlv1p3", "title": "Oefenomgeving van de partner", "outcome": "dropped",
-             "targetType": None, "targetId": None,
-             "reason": "LTI-koppeling naar de oefenomgeving van de partner vraagt een eigen LTI-registratie en is niet overgenomen."},
-        ],
-    })
-    b.add("course-package-import-report", {
-        "sourceFormat": "moodle-backup", "sourceFilename": "effectief-plannen-oude-leeromgeving.mbz",
-        "courseId": courses["PLAN"]["uuid"], "importedBy": QUALITY, "importedAt": stamp(dt.date(2025, 8, 20), 14, 5),
-        "lifecycle": "succeeded", "resourcesTotal": len(plan), "resourcesImported": len(plan), "resourcesDegraded": 0, "resourcesDropped": 0,
-        "entries": [{"resourceIdentifier": f"mod-page-{i}", "resourceType": "mod_page", "title": lesson["name"], "outcome": "imported",
-                     "targetType": "lesson", "targetId": lesson["uuid"], "reason": None} for i, lesson in enumerate(plan, start=1)],
-    })
-    for day, (key, (draft, draft_lessons)) in zip((dt.date(2026, 6, 15), dt.date(2026, 6, 16)), drafts.items()):
-        entries = [{"resourceIdentifier": "course", "resourceType": "course", "title": draft["name"], "outcome": "imported",
-                    "targetType": "course", "targetId": draft["uuid"], "reason": None}]
-        entries += [{"resourceIdentifier": f"lesson-{lesson['order']}", "resourceType": "lesson", "title": lesson["name"],
-                     "outcome": "imported", "targetType": "lesson", "targetId": lesson["uuid"], "reason": None} for lesson in draft_lessons]
-        b.add("course-package-import-report", {
-            "sourceFormat": "scholiq-json", "sourceFilename": f"{key.lower()}-2025-2026.scholiq.json",
-            "courseId": draft["uuid"], "importedBy": QUALITY, "importedAt": stamp(day, 11, 30), "lifecycle": "succeeded",
-            "resourcesTotal": len(entries), "resourcesImported": len(entries), "resourcesDegraded": 0, "resourcesDropped": 0,
-            "entries": entries,
+        # Next year's versions, made by exporting this year's course and reading it back in.
+        self.drafts = {}
+        for key in ("BHV-B", "LG-B"):
+            spec = BY_KEY[key]
+            self.drafts[key] = self.add_course(
+                spec, spec["name"] + " 2026-2027 (concept)", key + "-2627",
+                "Concept voor 2026-2027, gemaakt door de cursus van 2025-2026 te exporteren en opnieuw in te lezen.", "draft",
+            )
+
+    def add_package_imports(self) -> None:
+        """Course package imports and the export round trips."""
+        spr, plan = self.lessons["SPR"], self.lessons["PLAN"]
+        self.b.add("course-package-import-report", {
+            "sourceFormat": "common-cartridge-1.3", "sourceFilename": "spreadsheets-gevorderd-partnerpakket.imscc",
+            "courseId": self.courses["SPR"]["uuid"], "importedBy": QUALITY, "importedAt": stamp(dt.date(2025, 8, 19), 10, 12),
+            "lifecycle": "partial", "resourcesTotal": 6, "resourcesImported": 4, "resourcesDegraded": 1, "resourcesDropped": 1,
+            "entries": [
+                *[{"resourceIdentifier": f"res-{i:02d}", "resourceType": "webcontent", "title": lesson["name"], "outcome": "imported",
+                   "targetType": "lesson", "targetId": lesson["uuid"], "reason": None} for i, lesson in enumerate(spr, start=1)],
+                {"resourceIdentifier": "res-05", "resourceType": "imswl_xmlv1p3", "title": "Naslag: functies op een rij", "outcome": "degraded",
+                 "targetType": "lesson", "targetId": spr[0]["uuid"],
+                 "reason": "Weblink omgezet naar een tekstblok in de les; het adres zelf is niet gecontroleerd."},
+                {"resourceIdentifier": "res-06", "resourceType": "imsbasiclti_xmlv1p3", "title": "Oefenomgeving van de partner", "outcome": "dropped",
+                 "targetType": None, "targetId": None,
+                 "reason": "LTI-koppeling naar de oefenomgeving van de partner vraagt een eigen LTI-registratie en is niet overgenomen."},
+            ],
         })
-
-    # --- the leadership programme ----------------------------------------------
-    programme = b.add("programme", {
-        "name": PROGRAMME["name"], "code": PROGRAMME["code"], "level": "corporate", "description": PROGRAMME["description"],
-        "courseIds": [courses[key]["uuid"] for key, _days in PROGRAMME["modules"]], "lifecycle": "published",
-    })
-    for key, _days in PROGRAMME["modules"]:
-        courses[key]["programmeIds"] = [programme["uuid"]]
-
-    # --- prices -----------------------------------------------------------------
-    for spec in COURSES:
-        if spec["price"] is None:
-            continue
-        b.add("fee-item", {
-            "name": f"Deelname {spec['name']}", "description": "Prijs per deelnemer, inclusief lesmateriaal, lunch en certificaat.",
-            "kind": "course-enrolment", "amount": float(spec["price"]), "currency": "EUR", "voluntary": False,
-            "taxPosture": "education-exempt", "linkedCourseId": courses[spec["key"]]["uuid"], "academicYear": YEAR,
-            "validFrom": FIRST_DAY.isoformat(), "validUntil": LAST_DAY.isoformat(), "lifecycle": "active",
+        self.b.add("course-package-import-report", {
+            "sourceFormat": "moodle-backup", "sourceFilename": "effectief-plannen-oude-leeromgeving.mbz",
+            "courseId": self.courses["PLAN"]["uuid"], "importedBy": QUALITY, "importedAt": stamp(dt.date(2025, 8, 20), 14, 5),
+            "lifecycle": "succeeded", "resourcesTotal": len(plan), "resourcesImported": len(plan), "resourcesDegraded": 0, "resourcesDropped": 0,
+            "entries": [{"resourceIdentifier": f"mod-page-{i}", "resourceType": "mod_page", "title": lesson["name"], "outcome": "imported",
+                         "targetType": "lesson", "targetId": lesson["uuid"], "reason": None} for i, lesson in enumerate(plan, start=1)],
         })
-    b.add("fee-item", {
-        "name": f"Deelname {PROGRAMME['name']}", "description": "Prijs per deelnemer voor alle drie de modules, inclusief intake en lesmateriaal.",
-        "kind": "other", "amount": float(PROGRAMME["price"]), "currency": "EUR", "voluntary": False, "taxPosture": "education-exempt",
-        "academicYear": YEAR, "validFrom": FIRST_DAY.isoformat(), "validUntil": LAST_DAY.isoformat(), "lifecycle": "active",
-    })
-
-    # --- item banks and items ---------------------------------------------------
-    items: dict[str, list[dict]] = {}
-    for family, (bank_name, subject, questions) in ITEMS.items():
-        bank = b.add("item-bank", {"name": bank_name, "description": f"Kennisvragen voor de afsluitende toets, onderwerp {subject.lower()}.",
-                                   "subject": subject, "itemIds": [], "lifecycle": "published"})
-        items[family] = []
-        for n, (question, options, correct) in enumerate(questions, start=1):
-            item = b.add("item", {
-                "itemBankId": bank["uuid"], "title": f"{bank_name}, vraag {n}", "interactionType": "choice",
-                "qtiBody": qti(f"{family}-{n:02d}", f"{bank_name}, vraag {n}", question, options, correct),
-                "correctResponse": {"value": correct}, "maxScore": 1, "subjectTags": [family],
-                "difficulty": round(0.15 + 0.5 * rng.random(), 2), "lifecycle": "published",
+        for day, (key, (draft, draft_lessons)) in zip((dt.date(2026, 6, 15), dt.date(2026, 6, 16)), self.drafts.items()):
+            entries = [{"resourceIdentifier": "course", "resourceType": "course", "title": draft["name"], "outcome": "imported",
+                        "targetType": "course", "targetId": draft["uuid"], "reason": None}]
+            entries += [{"resourceIdentifier": f"lesson-{lesson['order']}", "resourceType": "lesson", "title": lesson["name"],
+                         "outcome": "imported", "targetType": "lesson", "targetId": lesson["uuid"], "reason": None} for lesson in draft_lessons]
+            self.b.add("course-package-import-report", {
+                "sourceFormat": "scholiq-json", "sourceFilename": f"{key.lower()}-2025-2026.scholiq.json",
+                "courseId": draft["uuid"], "importedBy": QUALITY, "importedAt": stamp(day, 11, 30), "lifecycle": "succeeded",
+                "resourcesTotal": len(entries), "resourcesImported": len(entries), "resourcesDegraded": 0, "resourcesDropped": 0,
+                "entries": entries,
             })
-            item["_correct"] = correct
-            items[family].append(item)
-        bank["itemIds"] = [item["uuid"] for item in items[family]]
 
-    # --- people -----------------------------------------------------------------
-    used_names: set[str] = set()
-    contacts: dict[str, dict] = {}
-    participants: list[dict] = []
-    for index, (company, size, units, contact, _demand) in enumerate(CLIENTS):
-        if company:
-            contacts[company] = b.add("learner-profile", {
-                "ncUserId": f"training-contactpersoon-{len(contacts) + 1:03d}", "givenName": contact[0], "familyName": contact[1],
-                "roles": ["manager"], "eduPersonAffiliation": ["affiliate"], "department": company,
+    def add_leadership_programme(self) -> None:
+        """The leadership programme."""
+        self.programme = self.b.add("programme", {
+            "name": PROGRAMME["name"], "code": PROGRAMME["code"], "level": "corporate", "description": PROGRAMME["description"],
+            "courseIds": [self.courses[key]["uuid"] for key, _days in PROGRAMME["modules"]], "lifecycle": "published",
+        })
+        for key, _days in PROGRAMME["modules"]:
+            self.courses[key]["programmeIds"] = [self.programme["uuid"]]
+
+    def add_prices(self) -> None:
+        """The prices."""
+        for spec in COURSES:
+            if spec["price"] is None:
+                continue
+            self.b.add("fee-item", {
+                "name": f"Deelname {spec['name']}", "description": "Prijs per deelnemer, inclusief lesmateriaal, lunch en certificaat.",
+                "kind": "course-enrolment", "amount": float(spec["price"]), "currency": "EUR", "voluntary": False,
+                "taxPosture": "education-exempt", "linkedCourseId": self.courses[spec["key"]]["uuid"], "academicYear": YEAR,
+                "validFrom": FIRST_DAY.isoformat(), "validUntil": LAST_DAY.isoformat(), "lifecycle": "active",
+            })
+        self.b.add("fee-item", {
+            "name": f"Deelname {PROGRAMME['name']}", "description": "Prijs per deelnemer voor alle drie de modules, inclusief intake en lesmateriaal.",
+            "kind": "other", "amount": float(PROGRAMME["price"]), "currency": "EUR", "voluntary": False, "taxPosture": "education-exempt",
+            "academicYear": YEAR, "validFrom": FIRST_DAY.isoformat(), "validUntil": LAST_DAY.isoformat(), "lifecycle": "active",
+        })
+
+    def add_item_banks(self) -> None:
+        """The item banks and their items."""
+        self.items: dict[str, list[dict]] = {}
+        for family, (bank_name, subject, questions) in ITEMS.items():
+            bank = self.b.add("item-bank", {"name": bank_name, "description": f"Kennisvragen voor de afsluitende toets, onderwerp {subject.lower()}.",
+                                            "subject": subject, "itemIds": [], "lifecycle": "published"})
+            self.items[family] = []
+            for n, (question, options, correct) in enumerate(questions, start=1):
+                item = self.b.add("item", {
+                    "itemBankId": bank["uuid"], "title": f"{bank_name}, vraag {n}", "interactionType": "choice",
+                    "qtiBody": qti(f"{family}-{n:02d}", f"{bank_name}, vraag {n}", question, options, correct),
+                    "correctResponse": {"value": correct}, "maxScore": 1, "subjectTags": [family],
+                    "difficulty": round(0.15 + 0.5 * self.rng.random(), 2), "lifecycle": "published",
+                })
+                item["_correct"] = correct
+                self.items[family].append(item)
+            bank["itemIds"] = [item["uuid"] for item in self.items[family]]
+
+    def add_people(self) -> None:
+        """The people."""
+        self.used_names: set[str] = set()
+        contacts: dict[str, dict] = {}
+        self.participants: list[dict] = []
+        for index, (company, size, units, contact, _demand) in enumerate(CLIENTS):
+            if company:
+                contacts[company] = self.b.add("learner-profile", {
+                    "ncUserId": f"training-contactpersoon-{len(contacts) + 1:03d}", "givenName": contact[0], "familyName": contact[1],
+                    "roles": ["manager"], "eduPersonAffiliation": ["affiliate"], "department": company,
+                    "parentIds": [], "guardianRefs": [], "lifecycle": "active",
+                })
+                self.used_names.add(contact[1])
+            for _ in range(size):
+                female = self.rng.random() < 0.5
+                self.participants.append({
+                    "company": company, "client": index, "unit": self.rng.choice(units) if units else None,
+                    "given": self.rng.choice(ADULT_F if female else ADULT_M), "family": surname(self.rng, self.used_names),
+                    "birth": dt.date(1962, 1, 1) + dt.timedelta(days=self.rng.randrange(365 * 43)),
+                    "ability": self.rng.gauss(0, 1), "load": 0,
+                })
+        for n, p in enumerate(self.participants, start=1):
+            p["nc"] = f"training-deelnemer-{n:03d}"
+            p["contact"] = contacts.get(p["company"])
+            p["profile"] = self.b.add("learner-profile", {
+                "ncUserId": p["nc"], "givenName": p["given"], "familyName": p["family"], "birthDate": p["birth"].isoformat(),
+                "schoolId": self.school["uuid"], "roles": ["learner"], "eduPersonAffiliation": ["affiliate"],
+                "managerId": p["contact"]["ncUserId"] if p["contact"] else None,
+                "department": f"{p['company']}/{p['unit']}" if p["company"] else "Particulier",
                 "parentIds": [], "guardianRefs": [], "lifecycle": "active",
             })
-            used_names.add(contact[1])
-        for _ in range(size):
-            female = rng.random() < 0.5
-            participants.append({
-                "company": company, "client": index, "unit": rng.choice(units) if units else None,
-                "given": rng.choice(ADULT_F if female else ADULT_M), "family": surname(rng, used_names),
-                "birth": dt.date(1962, 1, 1) + dt.timedelta(days=rng.randrange(365 * 43)),
-                "ability": rng.gauss(0, 1), "load": 0,
-            })
-    for n, p in enumerate(participants, start=1):
-        p["nc"] = f"training-deelnemer-{n:03d}"
-        p["contact"] = contacts.get(p["company"])
-        p["profile"] = b.add("learner-profile", {
-            "ncUserId": p["nc"], "givenName": p["given"], "familyName": p["family"], "birthDate": p["birth"].isoformat(),
-            "schoolId": school["uuid"], "roles": ["learner"], "eduPersonAffiliation": ["affiliate"],
-            "managerId": p["contact"]["ncUserId"] if p["contact"] else None,
-            "department": f"{p['company']}/{p['unit']}" if p["company"] else "Particulier",
-            "parentIds": [], "guardianRefs": [], "lifecycle": "active",
-        })
 
-    # --- who follows what: each client spreads its bookings over its staff ------
-    demand: dict[str, list[dict]] = {key: [] for key in list(BY_KEY) + ["LG"]}
-    for index, (_company, _size, _units, _contact, wanted) in enumerate(CLIENTS):
-        staff_of = [p for p in participants if p["client"] == index]
-        for key, count in wanted.items():
-            taken = {id(p) for p in demand[key]}
-            exclude = {id(p) for p in demand["BHV-H"]} if key == "BHV-B" else {id(p) for p in demand["BHV-B"]} if key == "BHV-H" else set()
-            pool = [p for p in staff_of if id(p) not in taken and id(p) not in exclude]
-            pool.sort(key=lambda p: (p["load"], rng.random()))
-            for p in pool[:count]:
-                demand[key].append(p)
-                p["load"] += 3 if key == "LG" else 1
+    def spread_bookings(self) -> None:
+        """Who follows what: each client spreads its bookings over its staff."""
+        self.demand: dict[str, list[dict]] = {key: [] for key in list(BY_KEY) + ["LG"]}
+        for index, (_company, _size, _units, _contact, wanted) in enumerate(CLIENTS):
+            staff_of = [p for p in self.participants if p["client"] == index]
+            for key, count in wanted.items():
+                taken = {id(p) for p in self.demand[key]}
+                exclude = {id(p) for p in self.demand["BHV-H"]} if key == "BHV-B" else {id(p) for p in self.demand["BHV-B"]} if key == "BHV-H" else set()
+                pool = [p for p in staff_of if id(p) not in taken and id(p) not in exclude]
+                pool.sort(key=lambda p: (p["load"], self.rng.random()))
+                for p in pool[:count]:
+                    self.demand[key].append(p)
+                    p["load"] += 3 if key == "LG" else 1
 
-    # --- schedule: the programme first, then every open edition ----------------
-    editions: list[dict] = []
-    cohort_rows: list[tuple[dict, dict]] = []
-    for start_index, first in enumerate(PROGRAMME["starts"]):
-        day = first
-        prog_days: list[tuple[str, dt.date]] = []
-        for key, count in PROGRAMME["modules"]:
-            for _ in range(count):
-                while not open_day(day):
-                    day += dt.timedelta(days=14)
-                prog_days.append((key, day))
-                day += dt.timedelta(days=14)
-        last = prog_days[-1][1]
-        cohort = {"programme": True, "first": first, "last": last, "start_index": start_index,
-                  "name": f"{PROGRAMME['name']}, start {MAAND[first.month - 1]} {first.year}",
-                  "period": f"{MAAND[first.month - 1].capitalize()} tot {MAAND[last.month - 1]} {last.year}"}
-        for key, _count in PROGRAMME["modules"]:
-            course = BY_KEY[key]
-            days = [d for k, d in prog_days if k == key]
-            trainer = PROGRAMME["trainer"][key]
-            slots = sched.slots_of(course, days)
-            resources = [trainer, "room:" + course["room"]]
-            if not sched.free(slots, resources):
-                raise RuntimeError(f"programme day taken: {key} {days}")
-            sched.book(slots, resources)
-            editions.append({"course": course, "cohort": cohort, "days": days, "trainer": trainer, "participants": [],
-                             "rebooked": [], "programme": True})
-        cohort_rows.append((cohort, {}))
-    for spec in COURSES:
-        for n, (year, month) in enumerate(spec["months"]):
-            trainer = spec["trainers"][n % len(spec["trainers"])]
-            days = sched.place(spec, year, month, trainer)
-            cohort = {"programme": False, "first": days[0], "last": days[-1],
-                      "name": f"{spec['name']}, {MAAND[days[0].month - 1]} {days[0].year}",
-                      "period": f"{MAAND[days[0].month - 1].capitalize()} {days[0].year}"}
-            editions.append({"course": spec, "cohort": cohort, "days": days, "trainer": trainer, "participants": [],
-                             "rebooked": [], "programme": False})
-            cohort_rows.append((cohort, {}))
-
-    def first_of(edition: dict) -> dt.date:
+    def first_of(self, edition: dict) -> dt.date:
         return edition["days"][0]
 
-    # A storm cancels the January VCA day; it was held one week later.
-    storm = next(e for e in editions if e["course"]["key"] == "VCA-B" and e["days"][0].month == 1)
-    storm_day = storm["days"][0] - dt.timedelta(days=7)
-    storm_slots = sched.slots_of(storm["course"], [storm_day])
-    if not (open_day(storm_day) and sched.free(storm_slots, [storm["trainer"], "room:" + storm["course"]["room"]])):
-        raise RuntimeError("the storm story needs a free day a week before the January VCA edition")
-    sched.book(storm_slots, [storm["trainer"], "room:" + storm["course"]["room"]])
-    storm["cancelled_day"] = storm_day
-    # The trainer of the January BHV basis is ill on day 1; the other BHV trainer steps in.
-    sick = next(e for e in editions if e["course"]["key"] == "BHV-B" and e["days"][0].month == 1)
-    stand_in = next(t for t in sick["course"]["trainers"] if t != sick["trainer"])
-    sick_slots = sched.slots_of(sick["course"], sick["days"][:1])
-    if not sched.free(sick_slots, [stand_in]):
-        raise RuntimeError("the stand-in trainer is not free on day 1 of the January BHV basis")
-    sched.book(sick_slots, [stand_in])
-    sick["substitute"] = stand_in
+    def schedule_editions(self) -> None:
+        """The schedule: the programme first, then every open edition."""
+        self.editions: list[dict] = []
+        self.cohort_rows: list[tuple[dict, dict]] = []
+        for start_index, first in enumerate(PROGRAMME["starts"]):
+            day = first
+            prog_days: list[tuple[str, dt.date]] = []
+            for key, count in PROGRAMME["modules"]:
+                for _ in range(count):
+                    while not open_day(day):
+                        day += dt.timedelta(days=14)
+                    prog_days.append((key, day))
+                    day += dt.timedelta(days=14)
+            last = prog_days[-1][1]
+            cohort = {"programme": True, "first": first, "last": last, "start_index": start_index,
+                      "name": f"{PROGRAMME['name']}, start {MAAND[first.month - 1]} {first.year}",
+                      "period": f"{MAAND[first.month - 1].capitalize()} tot {MAAND[last.month - 1]} {last.year}"}
+            for key, _count in PROGRAMME["modules"]:
+                course = BY_KEY[key]
+                days = [d for k, d in prog_days if k == key]
+                trainer = PROGRAMME["trainer"][key]
+                slots = self.sched.slots_of(course, days)
+                resources = [trainer, "room:" + course["room"]]
+                if not self.sched.free(slots, resources):
+                    raise RuntimeError(f"programme day taken: {key} {days}")
+                self.sched.book(slots, resources)
+                self.editions.append({"course": course, "cohort": cohort, "days": days, "trainer": trainer, "participants": [],
+                                      "rebooked": [], "programme": True})
+            self.cohort_rows.append((cohort, {}))
+        for spec in COURSES:
+            for n, (year, month) in enumerate(spec["months"]):
+                trainer = spec["trainers"][n % len(spec["trainers"])]
+                days = self.sched.place(spec, year, month, trainer)
+                cohort = {"programme": False, "first": days[0], "last": days[-1],
+                          "name": f"{spec['name']}, {MAAND[days[0].month - 1]} {days[0].year}",
+                          "period": f"{MAAND[days[0].month - 1].capitalize()} {days[0].year}"}
+                self.editions.append({"course": spec, "cohort": cohort, "days": days, "trainer": trainer, "participants": [],
+                                      "rebooked": [], "programme": False})
+                self.cohort_rows.append((cohort, {}))
 
-    # --- fill the editions: a company's people sit together ---------------------
-    by_course: dict[str, list[dict]] = {}
-    for e in editions:
-        by_course.setdefault(e["course"]["key"] if not e["programme"] else "LG:" + e["course"]["key"], []).append(e)
-    for key, people in demand.items():
-        if key == "LG" or not people:
-            continue
-        eds = sorted(by_course.get(key, []), key=first_of)
-        order = sorted(range(len(CLIENTS)), key=lambda _i: rng.random())
-        queue = [p for i in order for p in people if p["client"] == i]
-        base, extra = divmod(len(queue), len(eds))
-        at = 0
-        for n, e in enumerate(eds):
-            take = min(base + (1 if n < extra else 0), e["course"]["max"] - 1)
-            e["participants"] = queue[at:at + take]
-            at += take
-        if at != len(queue):
-            raise RuntimeError(f"{key}: {len(queue) - at} people do not fit")
-    lg = demand["LG"]
-    rng.shuffle(lg)
-    lg_cohorts = [lg[:12], lg[12:24]]
-    for e in editions:
-        if e["programme"]:
-            e["participants"] = list(lg_cohorts[e["cohort"]["start_index"]])
+        # A storm cancels the January VCA day; it was held one week later.
+        self.storm = next(e for e in self.editions if e["course"]["key"] == "VCA-B" and e["days"][0].month == 1)
+        self.storm_day = self.storm["days"][0] - dt.timedelta(days=7)
+        storm_slots = self.sched.slots_of(self.storm["course"], [self.storm_day])
+        if not (open_day(self.storm_day) and self.sched.free(storm_slots, [self.storm["trainer"], "room:" + self.storm["course"]["room"]])):
+            raise RuntimeError("the storm story needs a free day a week before the January VCA edition")
+        self.sched.book(storm_slots, [self.storm["trainer"], "room:" + self.storm["course"]["room"]])
+        self.storm["cancelled_day"] = self.storm_day
+        # The trainer of the January BHV basis is ill on day 1; the other BHV trainer steps in.
+        self.sick = next(e for e in self.editions if e["course"]["key"] == "BHV-B" and e["days"][0].month == 1)
+        stand_in = next(t for t in self.sick["course"]["trainers"] if t != self.sick["trainer"])
+        sick_slots = self.sched.slots_of(self.sick["course"], self.sick["days"][:1])
+        if not self.sched.free(sick_slots, [stand_in]):
+            raise RuntimeError("the stand-in trainer is not free on day 1 of the January BHV basis")
+        self.sched.book(sick_slots, [stand_in])
+        self.sick["substitute"] = stand_in
 
-    # --- the year, edition by edition -----------------------------------------
-    enrolment_rows: list[dict] = []
-    marks: list[dict] = []
-    tests: list[dict] = []
-    for e in sorted(editions, key=lambda e: (first_of(e), e["course"]["key"])):
-        course = e["course"]
-        slots = sched.slots_of(course, e["days"])
-        for p in e["participants"]:
-            forced = any(p is r for r in e["rebooked"])
-            day_state = {}
-            for d in e["days"]:
-                r = rng.random()
-                day_state[d] = "present" if forced or r >= 0.027 else ("ill" if r < 0.022 else "noshow")
-            own = []
-            for (d, part) in slots:
-                length = minutes_of(course, part)
-                first_part = (course["half"] is not None) or part == "ochtend"
-                last_part = (course["half"] is not None) or part == "middag"
-                if day_state[d] == "ill":
-                    mark = ("absent-excused", "Ziek gemeld", None)
-                elif day_state[d] == "noshow":
-                    mark = ("absent-unexcused", "Niet verschenen en niet afgemeld", None)
-                elif first_part and rng.random() < 0.04:
-                    late = rng.choice([5, 10, 15, 20])
-                    mark = ("late", rng.choice(["Vertraging in het openbaar vervoer", "File op de snelweg", "Parkeerplaats gezocht"]), length - late)
-                elif last_part and rng.random() < 0.012:
-                    early = rng.choice([30, 45, 60])
-                    mark = ("left-early", rng.choice(["Afspraak bij de huisarts", "Kind ophalen van de opvang", "Dringend terug naar het werk"]), length - early)
-                else:
-                    mark = ("present", None, length)
-                own.append({"p": p, "edition": e, "slot": (d, part), "status": mark[0], "reason": mark[1], "minutes": mark[2]})
-            marks.extend(own)
-            attended = sum(1 for m in own if m["status"] in ("present", "late", "left-early"))
-            eligible = attended == len(own) if course["full"] else attended / len(own) >= course.get("min_ratio", 0.75)
-            row = {"p": p, "edition": e, "rebooked": forced, "status": "completed", "reason": None, "tests": []}
-            if not eligible:
-                row["status"] = "withdrawn"
-                why = "Ziek tijdens de training" if any(v == "ill" for v in day_state.values()) else "Niet verschenen zonder afmelding"
-                later = None
-                if not e["programme"]:
-                    later = next((x for x in sorted(by_course[course["key"]], key=first_of)
-                                  if first_of(x) > e["days"][-1] and len(x["participants"]) < course["max"]), None)
-                if later is not None:
-                    later["participants"].append(p)
-                    later["rebooked"].append(p)
-                    row["reason"] = f"{why}; omgeboekt naar de editie van {later['days'][0].day} {MAAND[later['days'][0].month - 1]} {later['days'][0].year}."
-                elif e["programme"]:
-                    row["reason"] = f"{why}; de module wordt ingehaald in de volgende leergang."
-                else:
-                    row["reason"] = f"{why}; dit jaar is er geen latere editie met plaats."
-            elif course["exam"]:
-                family, count, pass_mark, _minutes = EXAMS[course["exam"]]
-                for attempt in (1, 2):
-                    answers = []
-                    for item in items[family][:count]:
-                        chance = 1 / (1 + pow(2.718281828, -(1.6 + 0.9 * p["ability"] + 0.5 * attempt - 3 * (item["difficulty"] - 0.4))))
-                        answers.append((item, rng.random() < chance))
-                    score = sum(1 for _i, ok in answers if ok)
-                    test = {"p": p, "edition": e, "attempt": attempt, "answers": answers, "score": score, "passed": score >= pass_mark}
-                    tests.append(test)
-                    row["tests"].append(test)
-                    if test["passed"]:
-                        break
-                if not row["tests"][-1]["passed"]:
-                    row["status"] = "failed"
-                    row["reason"] = "Kennistoets twee keer niet gehaald."
-            enrolment_rows.append(row)
+    def fill_editions(self) -> None:
+        """Fill the editions: a company's people sit together."""
+        self.by_course: dict[str, list[dict]] = {}
+        for e in self.editions:
+            self.by_course.setdefault(e["course"]["key"] if not e["programme"] else "LG:" + e["course"]["key"], []).append(e)
+        for key, people in self.demand.items():
+            if key == "LG" or not people:
+                continue
+            eds = sorted(self.by_course.get(key, []), key=self.first_of)
+            order = sorted(range(len(CLIENTS)), key=lambda _i: self.rng.random())
+            queue = [p for i in order for p in people if p["client"] == i]
+            base, extra = divmod(len(queue), len(eds))
+            at = 0
+            for n, e in enumerate(eds):
+                take = min(base + (1 if n < extra else 0), e["course"]["max"] - 1)
+                e["participants"] = queue[at:at + take]
+                at += take
+            if at != len(queue):
+                raise RuntimeError(f"{key}: {len(queue) - at} people do not fit")
+        lg = self.demand["LG"]
+        self.rng.shuffle(lg)
+        self.lg_cohorts = [lg[:12], lg[12:24]]
+        for e in self.editions:
+            if e["programme"]:
+                e["participants"] = list(self.lg_cohorts[e["cohort"]["start_index"]])
 
-    # --- staff, derived from the timetable -------------------------------------
-    teaching_days: dict[str, set[int]] = {}
-    for (d, _part), used in sched.busy.items():
-        for resource in used:
-            if resource.startswith("training-trainer-"):
-                teaching_days.setdefault(resource, set()).add(d.weekday())
-    b.add("staff", {"ncUserId": "training-directeur-01", "roles": ["administrator"], "qualifications": ["directeur"], "workingDays": WEEKDAYS})
-    b.add("staff", {"ncUserId": PLANNER, "roles": ["coordinator"], "qualifications": ["opleidingsplanner"], "workingDays": WEEKDAYS})
-    b.add("staff", {"ncUserId": QUALITY, "roles": ["coordinator"], "qualifications": ["kwaliteitszorg", "examencommissie"],
-                    "workingDays": ["monday", "tuesday", "thursday"]})
-    b.add("staff", {"ncUserId": "training-administratie-01", "roles": ["administrator", "support-staff"], "qualifications": ["cursusadministratie"],
-                    "workingDays": WEEKDAYS[:4]})
-    for trainer, quals in TRAINERS.items():
-        b.add("staff", {"ncUserId": trainer, "roles": ["teacher"], "qualifications": quals,
-                        "workingDays": [WEEKDAYS[i] for i in sorted(teaching_days.get(trainer, set()))]})
-
-    # --- cohorts ------------------------------------------------------------------
-    for cohort, _unused in cohort_rows:
-        eds = [e for e in editions if e["cohort"] is cohort]
-        learners: list[str] = []
-        for e in eds:
+    def run_editions(self) -> None:
+        """The year, edition by edition."""
+        self.enrolment_rows: list[dict] = []
+        self.marks: list[dict] = []
+        self.tests: list[dict] = []
+        for e in sorted(self.editions, key=lambda e: (self.first_of(e), e["course"]["key"])):
+            course = e["course"]
+            slots = self.sched.slots_of(course, e["days"])
             for p in e["participants"]:
-                if p["nc"] not in learners:
-                    learners.append(p["nc"])
-        teachers = []
-        for e in eds:
-            for t in [e["trainer"]] + ([e["substitute"]] if e.get("substitute") else []):
-                if t not in teachers:
-                    teachers.append(t)
-        notes = None
-        if storm in eds:
-            notes = f"De eerste lesdag op {storm_day.day} {MAAND[storm_day.month - 1]} is vervallen door code oranje; de training is een week later gegeven."
-        if sick in eds:
-            notes = "Op dag 1 was de vaste trainer ziek; een collega-instructeur heeft de dag overgenomen."
-        if eds[0]["course"]["room"] == "online":
-            notes = "Online training in het online klaslokaal."
-        fields = {
-            "name": cohort["name"], "period": cohort["period"], "academicYear": YEAR, "teacherIds": teachers,
-            "learnerIds": learners, "lifecycle": "completed", "locationId": location["uuid"], "notes": notes, "kind": "teaching",
-        }
-        if cohort["programme"]:
-            fields["programmeId"] = programme["uuid"]
-        else:
-            fields["courseId"] = courses[eds[0]["course"]["key"]]["uuid"]
-        cohort["row"] = b.add("cohort", fields)
+                self.enrolment_rows.append(self.follow_edition(e, course, slots, p))
 
-    # --- enrolments ---------------------------------------------------------------
-    renewal_of: dict[int, dict] = {}
-    for row in sorted(enrolment_rows, key=lambda r: (first_of(r["edition"]), r["edition"]["course"]["key"], r["p"]["nc"])):
+    def follow_edition(self, e: dict, course: dict, slots: list, p: dict) -> dict:
+        """One participant's days in an edition: the attendance marks, and the enrolment row with its outcome."""
+        forced = any(p is r for r in e["rebooked"])
+        day_state = {}
+        for d in e["days"]:
+            r = self.rng.random()
+            day_state[d] = "present" if forced or r >= 0.027 else ("ill" if r < 0.022 else "noshow")
+        own = [self.slot_mark(p, e, course, slot, day_state[slot[0]]) for slot in slots]
+        self.marks.extend(own)
+        attended = sum(1 for m in own if m["status"] in ("present", "late", "left-early"))
+        eligible = attended == len(own) if course["full"] else attended / len(own) >= course.get("min_ratio", 0.75)
+        row = {"p": p, "edition": e, "rebooked": forced, "status": "completed", "reason": None, "tests": []}
+        if not eligible:
+            self.withdraw(row, day_state)
+        elif course["exam"]:
+            self.sit_knowledge_test(row)
+        return row
+
+    def slot_mark(self, p: dict, e: dict, course: dict, slot: tuple, state: str) -> dict:
+        """A participant's attendance in one part of a training day."""
+        d, part = slot
+        length = minutes_of(course, part)
+        first_part = (course["half"] is not None) or part == "ochtend"
+        last_part = (course["half"] is not None) or part == "middag"
+        if state == "ill":
+            mark = ("absent-excused", "Ziek gemeld", None)
+        elif state == "noshow":
+            mark = ("absent-unexcused", "Niet verschenen en niet afgemeld", None)
+        elif first_part and self.rng.random() < 0.04:
+            late = self.rng.choice([5, 10, 15, 20])
+            mark = ("late", self.rng.choice(["Vertraging in het openbaar vervoer", "File op de snelweg", "Parkeerplaats gezocht"]), length - late)
+        elif last_part and self.rng.random() < 0.012:
+            early = self.rng.choice([30, 45, 60])
+            mark = ("left-early", self.rng.choice(["Afspraak bij de huisarts", "Kind ophalen van de opvang", "Dringend terug naar het werk"]), length - early)
+        else:
+            mark = ("present", None, length)
+        return {"p": p, "edition": e, "slot": (d, part), "status": mark[0], "reason": mark[1], "minutes": mark[2]}
+
+    def withdraw(self, row: dict, day_state: dict) -> None:
+        """Withdraws a participant who missed too much, rebooked onto a later edition with a free place if there is one."""
         p, e = row["p"], row["edition"]
         course = e["course"]
-        if e["programme"]:
-            source = "admission"
-        elif course["key"] == "BHV-H" and not row["rebooked"]:
-            source = "credential-renewal"
-        elif p["company"]:
-            source = "hr"
+        row["status"] = "withdrawn"
+        why = "Ziek tijdens de training" if any(v == "ill" for v in day_state.values()) else "Niet verschenen zonder afmelding"
+        later = None
+        if not e["programme"]:
+            later = next((x for x in sorted(self.by_course[course["key"]], key=self.first_of)
+                          if self.first_of(x) > e["days"][-1] and len(x["participants"]) < course["max"]), None)
+        if later is not None:
+            later["participants"].append(p)
+            later["rebooked"].append(p)
+            row["reason"] = f"{why}; omgeboekt naar de editie van {later['days'][0].day} {MAAND[later['days'][0].month - 1]} {later['days'][0].year}."
+        elif e["programme"]:
+            row["reason"] = f"{why}; de module wordt ingehaald in de volgende leergang."
         else:
-            source = "self"
-        fields = {
-            "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "courseId": courses[course["key"]]["uuid"], "source": source,
-            "mandatory": bool(course["mandatory"] and p["company"]), "managerId": p["contact"]["ncUserId"] if p["contact"] else None,
-            "cohortId": e["cohort"]["row"]["uuid"], "lifecycle": row["status"], "locationId": location["uuid"],
-        }
-        if course["regulation"]:
-            fields["regulationSlug"] = course["regulation"]
-        if row["reason"]:
-            fields["reason"] = row["reason"]
-        if source == "credential-renewal":
-            # The old certificate expired a few weeks before this edition; the renewal was booked on expiry.
-            expired = first_of(e) - dt.timedelta(days=rng.randint(10, 40))
-            row["old_expiry"] = expired
-            fields["dueDate"] = (expired + dt.timedelta(days=90)).isoformat()
-        row["obj"] = b.add("enrolment", fields)
-        if source == "credential-renewal":
-            renewal_of[id(p)] = row
+            row["reason"] = f"{why}; dit jaar is er geen latere editie met plaats."
 
-    # --- intake rounds, applications and the waiting list ------------------------
-    rounds = []
-    for first, deadline, lifecycle, year in ((PROGRAMME["starts"][0], dt.date(2025, 8, 29), "closed", YEAR),
-                                             (PROGRAMME["starts"][1], dt.date(2026, 1, 23), "closed", YEAR),
-                                             (dt.date(2026, 9, 8), dt.date(2026, 8, 28), "open", "2026-2027")):
-        rounds.append(b.add("admissions-round", {
-            "name": f"{PROGRAMME['name']}, start {MAAND[first.month - 1]} {first.year}", "kind": "generic",
-            "programmeId": programme["uuid"], "level": "corporate", "academicYear": year,
-            "applicationDeadline": deadline.isoformat(), "mandatoryIntake": True, "capacity": 12, "lifecycle": lifecycle,
-        }))
+    def sit_knowledge_test(self, row: dict) -> None:
+        """The knowledge test, with one resit; a participant who fails both has failed the course."""
+        p, e = row["p"], row["edition"]
+        family, count, pass_mark, _minutes = EXAMS[e["course"]["exam"]]
+        for attempt in (1, 2):
+            answers = []
+            for item in self.items[family][:count]:
+                chance = 1 / (1 + pow(2.718281828, -(1.6 + 0.9 * p["ability"] + 0.5 * attempt - 3 * (item["difficulty"] - 0.4))))
+                answers.append((item, self.rng.random() < chance))
+            score = sum(1 for _i, ok in answers if ok)
+            test = {"p": p, "edition": e, "attempt": attempt, "answers": answers, "score": score, "passed": score >= pass_mark}
+            self.tests.append(test)
+            row["tests"].append(test)
+            if test["passed"]:
+                break
+        if not row["tests"][-1]["passed"]:
+            row["status"] = "failed"
+            row["reason"] = "Kennistoets twee keer niet gehaald."
 
-    def applicant(application: Application, **extra) -> dict:
+    def add_staff(self) -> None:
+        """The staff, derived from the timetable."""
+        teaching_days: dict[str, set[int]] = {}
+        for (d, _part), used in self.sched.busy.items():
+            for resource in used:
+                if resource.startswith("training-trainer-"):
+                    teaching_days.setdefault(resource, set()).add(d.weekday())
+        self.b.add("staff", {"ncUserId": "training-directeur-01", "roles": ["administrator"], "qualifications": ["directeur"], "workingDays": WEEKDAYS})
+        self.b.add("staff", {"ncUserId": PLANNER, "roles": ["coordinator"], "qualifications": ["opleidingsplanner"], "workingDays": WEEKDAYS})
+        self.b.add("staff", {"ncUserId": QUALITY, "roles": ["coordinator"], "qualifications": ["kwaliteitszorg", "examencommissie"],
+                             "workingDays": ["monday", "tuesday", "thursday"]})
+        self.b.add("staff", {"ncUserId": "training-administratie-01", "roles": ["administrator", "support-staff"], "qualifications": ["cursusadministratie"],
+                             "workingDays": WEEKDAYS[:4]})
+        for trainer, quals in TRAINERS.items():
+            self.b.add("staff", {"ncUserId": trainer, "roles": ["teacher"], "qualifications": quals,
+                                 "workingDays": [WEEKDAYS[i] for i in sorted(teaching_days.get(trainer, set()))]})
+
+    def add_cohorts(self) -> None:
+        """The cohorts."""
+        for cohort, _unused in self.cohort_rows:
+            eds = [e for e in self.editions if e["cohort"] is cohort]
+            learners: list[str] = []
+            for e in eds:
+                for p in e["participants"]:
+                    if p["nc"] not in learners:
+                        learners.append(p["nc"])
+            teachers = []
+            for e in eds:
+                for t in [e["trainer"]] + ([e["substitute"]] if e.get("substitute") else []):
+                    if t not in teachers:
+                        teachers.append(t)
+            notes = None
+            if self.storm in eds:
+                notes = f"De eerste lesdag op {self.storm_day.day} {MAAND[self.storm_day.month - 1]} is vervallen door code oranje; de training is een week later gegeven."
+            if self.sick in eds:
+                notes = "Op dag 1 was de vaste trainer ziek; een collega-instructeur heeft de dag overgenomen."
+            if eds[0]["course"]["room"] == "online":
+                notes = "Online training in het online klaslokaal."
+            fields = {
+                "name": cohort["name"], "period": cohort["period"], "academicYear": YEAR, "teacherIds": teachers,
+                "learnerIds": learners, "lifecycle": "completed", "locationId": self.location["uuid"], "notes": notes, "kind": "teaching",
+            }
+            if cohort["programme"]:
+                fields["programmeId"] = self.programme["uuid"]
+            else:
+                fields["courseId"] = self.courses[eds[0]["course"]["key"]]["uuid"]
+            cohort["row"] = self.b.add("cohort", fields)
+
+    def add_enrolments(self) -> None:
+        """The enrolments."""
+        self.renewal_of: dict[int, dict] = {}
+        for row in sorted(self.enrolment_rows, key=lambda r: (self.first_of(r["edition"]), r["edition"]["course"]["key"], r["p"]["nc"])):
+            p, e = row["p"], row["edition"]
+            course = e["course"]
+            if e["programme"]:
+                source = "admission"
+            elif course["key"] == "BHV-H" and not row["rebooked"]:
+                source = "credential-renewal"
+            elif p["company"]:
+                source = "hr"
+            else:
+                source = "self"
+            fields = {
+                "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "courseId": self.courses[course["key"]]["uuid"], "source": source,
+                "mandatory": bool(course["mandatory"] and p["company"]), "managerId": p["contact"]["ncUserId"] if p["contact"] else None,
+                "cohortId": e["cohort"]["row"]["uuid"], "lifecycle": row["status"], "locationId": self.location["uuid"],
+            }
+            if course["regulation"]:
+                fields["regulationSlug"] = course["regulation"]
+            if row["reason"]:
+                fields["reason"] = row["reason"]
+            if source == "credential-renewal":
+                # The old certificate expired a few weeks before this edition; the renewal was booked on expiry.
+                expired = self.first_of(e) - dt.timedelta(days=self.rng.randint(10, 40))
+                row["old_expiry"] = expired
+                fields["dueDate"] = (expired + dt.timedelta(days=90)).isoformat()
+            row["obj"] = self.b.add("enrolment", fields)
+            if source == "credential-renewal":
+                self.renewal_of[id(p)] = row
+
+    def applicant(self, application: Application, **extra) -> dict:
         person = application.person
         fields = {
             "applicantGivenName": person.given, "applicantFamilyName": person.family, "applicantBirthDate": person.birth.isoformat(),
-            "priorSchool": rng.choice(PRIOR_EDUCATION), "admissionsRoundId": application.round["uuid"], "programmeId": programme["uuid"],
-            "submittedAuthLevel": "basic", "submittedAt": stamp(application.submitted, rng.randint(8, 21), rng.choice([5, 20, 35, 50])),
+            "priorSchool": self.rng.choice(PRIOR_EDUCATION), "admissionsRoundId": application.round["uuid"], "programmeId": self.programme["uuid"],
+            "submittedAuthLevel": "basic", "submittedAt": stamp(application.submitted, self.rng.randint(8, 21), self.rng.choice([5, 20, 35, 50])),
             "lifecycle": application.lifecycle,
         }
         fields.update(extra)
-        return b.add("admission", fields)
+        return self.b.add("admission", fields)
 
-    def stranger(female: bool) -> Applicant:
+    def stranger(self, female: bool) -> Applicant:
         """An applicant who is not one of the set's learners, with a drawn name and birth date."""
-        return Applicant(rng.choice(ADULT_F if female else ADULT_M), surname(rng, used_names),
-                         dt.date(1970, 1, 1) + dt.timedelta(days=rng.randrange(365 * 30)))
+        return Applicant(self.rng.choice(ADULT_F if female else ADULT_M), surname(self.rng, self.used_names),
+                         dt.date(1970, 1, 1) + dt.timedelta(days=self.rng.randrange(365 * 30)))
 
-    def intake(submitted: dt.date) -> dict:
-        day = next_office_day(submitted + dt.timedelta(days=rng.randint(3, 7)))
-        return {"intakeScheduledAt": stamp(day, rng.choice([10, 11, 14, 15]), 0), "intakeConductedBy": "training-trainer-05",
+    def intake(self, submitted: dt.date) -> dict:
+        day = next_office_day(submitted + dt.timedelta(days=self.rng.randint(3, 7)))
+        return {"intakeScheduledAt": stamp(day, self.rng.choice([10, 11, 14, 15]), 0), "intakeConductedBy": "training-trainer-05",
                 "intakeCompleted": True, "_day": day}
 
-    lg_rows = {id(r["p"]): [] for r in enrolment_rows if r["edition"]["programme"]}
-    for r in enrolment_rows:
-        if r["edition"]["programme"]:
-            lg_rows[id(r["p"])].append(r)
-    notes_ok = ["Wil groeien van teamleider naar afdelingshoofd; motivatie helder.", "Net leidinggevende geworden; zoekt houvast bij lastige gesprekken.",
-                "Heeft al ervaring als projectleider; leergang sluit goed aan.", "Werkgever steunt de aanmelding; doelen voor het eerste jaar besproken."]
-    moved = lg_cohorts[1][:2]
-    for start_index, round_obj in enumerate(rounds[:2]):
-        deadline = dt.date.fromisoformat(round_obj["applicationDeadline"])
-        people = lg_cohorts[start_index]
-        if start_index == 0:
-            people = people + moved
-        for n, p in enumerate(people):
-            submitted = deadline - dt.timedelta(days=rng.randint(4, 11) if start_index == 0 else rng.randint(5, 40))
-            meet = intake(submitted)
-            decided = next_office_day(meet["_day"] + dt.timedelta(days=2))
-            if start_index == 0 and any(p is m for m in moved):
-                applicant(Application(round_obj, Applicant(p["given"], p["family"], p["birth"]), submitted, "withdrawn"),
-                          intakeScheduledAt=meet["intakeScheduledAt"], intakeConductedBy=meet["intakeConductedBy"], intakeCompleted=True,
-                          intakeNotes="Geschikt; de groep is vol.", decisionType="waitlisted",
-                          decisionReason="Groep vol; doorgeschoven naar de start in februari 2026.", decidedBy=PLANNER, decidedAt=stamp(decided, 16, 0))
-                continue
-            converted = [r["obj"]["uuid"] for r in sorted(lg_rows[id(p)], key=lambda r: first_of(r["edition"]))]
-            applicant(Application(round_obj, Applicant(p["given"], p["family"], p["birth"]), submitted, "converted"),
-                      intakeScheduledAt=meet["intakeScheduledAt"], intakeConductedBy=meet["intakeConductedBy"], intakeCompleted=True,
-                      intakeNotes=rng.choice(notes_ok), decisionType="placed", decidedBy=PLANNER, decidedAt=stamp(decided, 16, 0),
-                      convertedLearnerProfileId=p["profile"]["uuid"], convertedEnrolmentIds=converted)
-        if start_index == 1:
-            for _ in range(3):
-                submitted = deadline - dt.timedelta(days=rng.randint(1, 10))
-                meet = intake(submitted)
+    def add_intake(self) -> None:
+        """Intake rounds, applications and the waiting list."""
+        rounds = []
+        for first, deadline, lifecycle, year in ((PROGRAMME["starts"][0], dt.date(2025, 8, 29), "closed", YEAR),
+                                                 (PROGRAMME["starts"][1], dt.date(2026, 1, 23), "closed", YEAR),
+                                                 (dt.date(2026, 9, 8), dt.date(2026, 8, 28), "open", "2026-2027")):
+            rounds.append(self.b.add("admissions-round", {
+                "name": f"{PROGRAMME['name']}, start {MAAND[first.month - 1]} {first.year}", "kind": "generic",
+                "programmeId": self.programme["uuid"], "level": "corporate", "academicYear": year,
+                "applicationDeadline": deadline.isoformat(), "mandatoryIntake": True, "capacity": 12, "lifecycle": lifecycle,
+            }))
+
+        lg_rows = {id(r["p"]): [] for r in self.enrolment_rows if r["edition"]["programme"]}
+        for r in self.enrolment_rows:
+            if r["edition"]["programme"]:
+                lg_rows[id(r["p"])].append(r)
+        notes_ok = ["Wil groeien van teamleider naar afdelingshoofd; motivatie helder.", "Net leidinggevende geworden; zoekt houvast bij lastige gesprekken.",
+                    "Heeft al ervaring als projectleider; leergang sluit goed aan.", "Werkgever steunt de aanmelding; doelen voor het eerste jaar besproken."]
+        moved = self.lg_cohorts[1][:2]
+        for start_index, round_obj in enumerate(rounds[:2]):
+            deadline = dt.date.fromisoformat(round_obj["applicationDeadline"])
+            people = self.lg_cohorts[start_index]
+            if start_index == 0:
+                people = people + moved
+            for n, p in enumerate(people):
+                submitted = deadline - dt.timedelta(days=self.rng.randint(4, 11) if start_index == 0 else self.rng.randint(5, 40))
+                meet = self.intake(submitted)
                 decided = next_office_day(meet["_day"] + dt.timedelta(days=2))
-                female = rng.random() < 0.5
-                applicant(Application(round_obj, stranger(female), submitted, "waitlisted"),
-                          intakeScheduledAt=meet["intakeScheduledAt"], intakeConductedBy=meet["intakeConductedBy"], intakeCompleted=True,
-                          intakeNotes="Geschikt; wacht op een plek.", decisionType="waitlisted",
-                          decisionReason="Groep vol; eerste keus voor de start in september 2026.", decidedBy=PLANNER, decidedAt=stamp(decided, 16, 0))
-            female = rng.random() < 0.5
-            applicant(Application(round_obj, stranger(female), deadline - dt.timedelta(days=20), "withdrawn"),
-                      decisionReason="Zelf afgemeld voor het intakegesprek: andere functie aangenomen.")
-    for n in range(4):
-        submitted = dt.date(2026, 6, 1) + dt.timedelta(days=rng.randint(0, 25))
-        female = rng.random() < 0.5
-        extra = {}
-        lifecycle = "submitted"
-        if n < 2:
-            lifecycle = "intake-scheduled"
-            extra = {"intakeScheduledAt": stamp(next_office_day(min(submitted + dt.timedelta(days=7), dt.date(2026, 7, 9))), 14, 0),
-                     "intakeConductedBy": "training-trainer-05"}
-        applicant(Application(rounds[2], stranger(female), submitted, lifecycle), **extra)
+                if start_index == 0 and any(p is m for m in moved):
+                    self.applicant(Application(round_obj, Applicant(p["given"], p["family"], p["birth"]), submitted, "withdrawn"),
+                                   intakeScheduledAt=meet["intakeScheduledAt"], intakeConductedBy=meet["intakeConductedBy"], intakeCompleted=True,
+                                   intakeNotes="Geschikt; de groep is vol.", decisionType="waitlisted",
+                                   decisionReason="Groep vol; doorgeschoven naar de start in februari 2026.", decidedBy=PLANNER, decidedAt=stamp(decided, 16, 0))
+                    continue
+                converted = [r["obj"]["uuid"] for r in sorted(lg_rows[id(p)], key=lambda r: self.first_of(r["edition"]))]
+                self.applicant(Application(round_obj, Applicant(p["given"], p["family"], p["birth"]), submitted, "converted"),
+                               intakeScheduledAt=meet["intakeScheduledAt"], intakeConductedBy=meet["intakeConductedBy"], intakeCompleted=True,
+                               intakeNotes=self.rng.choice(notes_ok), decisionType="placed", decidedBy=PLANNER, decidedAt=stamp(decided, 16, 0),
+                               convertedLearnerProfileId=p["profile"]["uuid"], convertedEnrolmentIds=converted)
+            if start_index == 1:
+                for _ in range(3):
+                    submitted = deadline - dt.timedelta(days=self.rng.randint(1, 10))
+                    meet = self.intake(submitted)
+                    decided = next_office_day(meet["_day"] + dt.timedelta(days=2))
+                    female = self.rng.random() < 0.5
+                    self.applicant(Application(round_obj, self.stranger(female), submitted, "waitlisted"),
+                                   intakeScheduledAt=meet["intakeScheduledAt"], intakeConductedBy=meet["intakeConductedBy"], intakeCompleted=True,
+                                   intakeNotes="Geschikt; wacht op een plek.", decisionType="waitlisted",
+                                   decisionReason="Groep vol; eerste keus voor de start in september 2026.", decidedBy=PLANNER, decidedAt=stamp(decided, 16, 0))
+                female = self.rng.random() < 0.5
+                self.applicant(Application(round_obj, self.stranger(female), deadline - dt.timedelta(days=20), "withdrawn"),
+                               decisionReason="Zelf afgemeld voor het intakegesprek: andere functie aangenomen.")
+        for n in range(4):
+            submitted = dt.date(2026, 6, 1) + dt.timedelta(days=self.rng.randint(0, 25))
+            female = self.rng.random() < 0.5
+            extra = {}
+            lifecycle = "submitted"
+            if n < 2:
+                lifecycle = "intake-scheduled"
+                extra = {"intakeScheduledAt": stamp(next_office_day(min(submitted + dt.timedelta(days=7), dt.date(2026, 7, 9))), 14, 0),
+                         "intakeConductedBy": "training-trainer-05"}
+            self.applicant(Application(rounds[2], self.stranger(female), submitted, lifecycle), **extra)
 
-    # --- who teaches what, per cohort ------------------------------------------
-    for e in editions:
-        b.add("subjectteacherassignment", {"cohortId": e["cohort"]["row"]["uuid"], "courseId": courses[e["course"]["key"]]["uuid"],
-                                           "teacherId": e["trainer"]})
+    def add_teacher_assignments(self) -> None:
+        """Who teaches what, per cohort."""
+        for e in self.editions:
+            self.b.add("subjectteacherassignment", {"cohortId": e["cohort"]["row"]["uuid"], "courseId": self.courses[e["course"]["key"]]["uuid"],
+                                                    "teacherId": e["trainer"]})
 
-    # --- sessions ---------------------------------------------------------------
-    planned = []
-    for e in editions:
-        course = e["course"]
-        for index, (d, part) in enumerate(sched.slots_of(course, e["days"])):
-            planned.append((d, part, e, False))
-        if e.get("cancelled_day"):
-            for part in ("ochtend", "middag"):
-                planned.append((e["cancelled_day"], part, e, True))
-    planned.sort(key=lambda x: (x[0], x[1] != "ochtend", x[2]["course"]["key"]))
-    session_of: dict[tuple[int, dt.date, str], dict] = {}
-    for d, part, e, cancelled in planned:
-        course = e["course"]
-        (h1, m1), (h2, m2) = slot_times(course, part)
-        day_number = (e["days"].index(d) + 1) if d in e["days"] else 1
-        lesson = next((row for row in lessons[course["key"]] if row["_day"] == day_number), None)
-        when = f"{d.day} {MAAND[d.month - 1]} {d.year}"
-        if course["half"]:
-            title = f"{course['name']} ({when})"
-        elif course["days"] == 1:
-            title = f"{course['name']}, {part} ({when})"
-        else:
-            title = f"{course['name']}, dag {day_number} {part} ({when})"
-        if e["programme"]:
-            title = f"{PROGRAMME['name']}: {title}"
-        fields = {
-            "cohortId": e["cohort"]["row"]["uuid"], "courseId": courses[course["key"]]["uuid"],
-            "lessonId": lesson["uuid"] if lesson else None, "title": title,
-            "startsAt": stamp(d, h1, m1), "endsAt": stamp(d, h2, m2), "location": ROOMS[course["room"]]["name"],
-            "roomId": rooms[course["room"]]["uuid"], "lifecycle": "cancelled" if cancelled else "completed",
-        }
-        learners = [p["nc"] for p in e["participants"] if not any(p is r for r in e["rebooked"])]
-        if cancelled:
-            fields.update({"changeReasonKind": "other", "changeReason": "Code oranje voor zware storm; de training is een week later gegeven.",
-                           "affectedLearnerIds": learners, "changedAt": stamp(d - dt.timedelta(days=1), 17, 0)})
-        elif e.get("substitute") and d == e["days"][0]:
-            fields.update({"substituteTeacherId": e["substitute"], "changeReasonKind": "teacher-absence",
-                           "changeReason": "De vaste trainer is ziek; een collega-instructeur neemt de dag over.",
-                           "affectedLearnerIds": learners, "changedAt": stamp(d, 7, 45)})
-        row = b.add("session", fields)
-        if not cancelled:
-            session_of[(id(e), d, part)] = row
-
-    def trainer_on(e: dict, d: dt.date) -> str:
+    def trainer_on(self, e: dict, d: dt.date) -> str:
         return e["substitute"] if e.get("substitute") and d == e["days"][0] else e["trainer"]
 
-    # --- knowledge tests --------------------------------------------------------
-    exam_of: dict[int, dict] = {}
-    for e in sorted(editions, key=first_of):
-        course = e["course"]
-        if not course["exam"]:
-            continue
-        family, count, pass_mark, minutes = EXAMS[course["exam"]]
-        last_day = e["days"][-1]
-        last = session_of[(id(e), last_day, "middag")]
-        until = min(last_day + dt.timedelta(days=14), LAST_DAY)
-        exam_of[id(e)] = b.add("exam", {
-            "title": f"Kennistoets {course['name']}, {MAAND[e['days'][0].month - 1]} {e['days'][0].year}",
-            "description": f"{count} meerkeuzevragen; geslaagd vanaf {pass_mark} goed. Een herkansing binnen twee weken.",
-            "courseId": courses[course["key"]]["uuid"], "sessionId": last["uuid"], "cohortId": e["cohort"]["row"]["uuid"],
-            "itemRefs": [{"itemId": item["uuid"], "points": 1} for item in items[family][:count]], "itemSelectionMode": "fixed",
-            "shuffleItemOrder": True, "shuffleAnswerOptions": True, "scoringScheme": "passMark", "passMark": pass_mark,
-            "timeLimitMinutes": minutes, "maxAttempts": 2, "keepScore": "best",
-            "availableFrom": stamp(last_day, 15, 30), "availableUntil": stamp(until, 17, 0), "lifecycle": "closed",
-        })
-        e["exam_until"] = until
-    for test in sorted(tests, key=lambda t: (first_of(t["edition"]), t["attempt"], t["p"]["nc"])):
-        e = test["edition"]
-        last_day = e["days"][-1]
-        if test["attempt"] == 1:
-            day, start = last_day, (15, 30)
-        else:
-            day = last_day + dt.timedelta(days=7)
-            while not office_day(day):
-                day += dt.timedelta(days=1)
-            if day > e["exam_until"]:
-                day = e["exam_until"]
+    def add_sessions(self) -> None:
+        """The sessions."""
+        planned = []
+        for e in self.editions:
+            course = e["course"]
+            for index, (d, part) in enumerate(self.sched.slots_of(course, e["days"])):
+                planned.append((d, part, e, False))
+            if e.get("cancelled_day"):
+                for part in ("ochtend", "middag"):
+                    planned.append((e["cancelled_day"], part, e, True))
+        planned.sort(key=lambda x: (x[0], x[1] != "ochtend", x[2]["course"]["key"]))
+        self.session_of: dict[tuple[int, dt.date, str], dict] = {}
+        for d, part, e, cancelled in planned:
+            course = e["course"]
+            (h1, m1), (h2, m2) = slot_times(course, part)
+            day_number = (e["days"].index(d) + 1) if d in e["days"] else 1
+            lesson = next((row for row in self.lessons[course["key"]] if row["_day"] == day_number), None)
+            when = f"{d.day} {MAAND[d.month - 1]} {d.year}"
+            if course["half"]:
+                title = f"{course['name']} ({when})"
+            elif course["days"] == 1:
+                title = f"{course['name']}, {part} ({when})"
+            else:
+                title = f"{course['name']}, dag {day_number} {part} ({when})"
+            if e["programme"]:
+                title = f"{PROGRAMME['name']}: {title}"
+            fields = {
+                "cohortId": e["cohort"]["row"]["uuid"], "courseId": self.courses[course["key"]]["uuid"],
+                "lessonId": lesson["uuid"] if lesson else None, "title": title,
+                "startsAt": stamp(d, h1, m1), "endsAt": stamp(d, h2, m2), "location": ROOMS[course["room"]]["name"],
+                "roomId": self.rooms[course["room"]]["uuid"], "lifecycle": "cancelled" if cancelled else "completed",
+            }
+            learners = [p["nc"] for p in e["participants"] if not any(p is r for r in e["rebooked"])]
+            if cancelled:
+                fields.update({"changeReasonKind": "other", "changeReason": "Code oranje voor zware storm; de training is een week later gegeven.",
+                               "affectedLearnerIds": learners, "changedAt": stamp(d - dt.timedelta(days=1), 17, 0)})
+            elif e.get("substitute") and d == e["days"][0]:
+                fields.update({"substituteTeacherId": e["substitute"], "changeReasonKind": "teacher-absence",
+                               "changeReason": "De vaste trainer is ziek; een collega-instructeur neemt de dag over.",
+                               "affectedLearnerIds": learners, "changedAt": stamp(d, 7, 45)})
+            row = self.b.add("session", fields)
+            if not cancelled:
+                self.session_of[(id(e), d, part)] = row
+
+    def add_knowledge_tests(self) -> None:
+        """The knowledge tests."""
+        exam_of: dict[int, dict] = {}
+        for e in sorted(self.editions, key=self.first_of):
+            course = e["course"]
+            if not course["exam"]:
+                continue
+            family, count, pass_mark, minutes = EXAMS[course["exam"]]
+            last_day = e["days"][-1]
+            last = self.session_of[(id(e), last_day, "middag")]
+            until = min(last_day + dt.timedelta(days=14), LAST_DAY)
+            exam_of[id(e)] = self.b.add("exam", {
+                "title": f"Kennistoets {course['name']}, {MAAND[e['days'][0].month - 1]} {e['days'][0].year}",
+                "description": f"{count} meerkeuzevragen; geslaagd vanaf {pass_mark} goed. Een herkansing binnen twee weken.",
+                "courseId": self.courses[course["key"]]["uuid"], "sessionId": last["uuid"], "cohortId": e["cohort"]["row"]["uuid"],
+                "itemRefs": [{"itemId": item["uuid"], "points": 1} for item in self.items[family][:count]], "itemSelectionMode": "fixed",
+                "shuffleItemOrder": True, "shuffleAnswerOptions": True, "scoringScheme": "passMark", "passMark": pass_mark,
+                "timeLimitMinutes": minutes, "maxAttempts": 2, "keepScore": "best",
+                "availableFrom": stamp(last_day, 15, 30), "availableUntil": stamp(until, 17, 0), "lifecycle": "closed",
+            })
+            e["exam_until"] = until
+        for test in sorted(self.tests, key=lambda t: (self.first_of(t["edition"]), t["attempt"], t["p"]["nc"])):
+            e = test["edition"]
+            last_day = e["days"][-1]
+            if test["attempt"] == 1:
+                day, start = last_day, (15, 30)
+            else:
+                day = last_day + dt.timedelta(days=7)
                 while not office_day(day):
-                    day -= dt.timedelta(days=1)
-            start = (10, 0)
-        took = rng.randint(12, EXAMS[e["course"]["exam"]][3] - 2)
-        responses = []
-        for item, ok in test["answers"]:
-            wrong = rng.choice([x for x in "ABC" if x != item["_correct"]])
-            responses.append({"itemId": item["uuid"], "response": {"value": item["_correct"] if ok else wrong}, "autoScore": 1.0 if ok else 0.0})
-        test["obj"] = b.add("assessment-result", {
-            "assessmentId": exam_of[id(e)]["uuid"], "learnerId": test["p"]["nc"], "attemptNumber": test["attempt"], "responses": responses,
-            "startedAt": stamp(day, *start), "submittedAt": stamp(day, start[0], start[1] + took) if start[1] + took < 60
-            else stamp(day, start[0] + 1, start[1] + took - 60), "lifecycle": "graded",
-        })
-        test["day"] = day
+                    day += dt.timedelta(days=1)
+                if day > e["exam_until"]:
+                    day = e["exam_until"]
+                    while not office_day(day):
+                        day -= dt.timedelta(days=1)
+                start = (10, 0)
+            took = self.rng.randint(12, EXAMS[e["course"]["exam"]][3] - 2)
+            responses = []
+            for item, ok in test["answers"]:
+                wrong = self.rng.choice([x for x in "ABC" if x != item["_correct"]])
+                responses.append({"itemId": item["uuid"], "response": {"value": item["_correct"] if ok else wrong}, "autoScore": 1.0 if ok else 0.0})
+            test["obj"] = self.b.add("assessment-result", {
+                "assessmentId": exam_of[id(e)]["uuid"], "learnerId": test["p"]["nc"], "attemptNumber": test["attempt"], "responses": responses,
+                "startedAt": stamp(day, *start), "submittedAt": stamp(day, start[0], start[1] + took) if start[1] + took < 60
+                else stamp(day, start[0] + 1, start[1] + took - 60), "lifecycle": "graded",
+            })
+            test["day"] = day
 
-    # --- excuses and attendance -------------------------------------------------
-    excuse_of: dict[tuple[str, dt.date], dict] = {}
-    for m in sorted(marks, key=lambda m: (m["slot"][0], m["p"]["nc"])):
-        d = m["slot"][0]
-        if m["status"] != "absent-excused" or (m["p"]["nc"], d) in excuse_of:
-            continue
-        p = m["p"]
-        by_contact = p["contact"] is not None and rng.random() < 0.3
-        submitter = p["contact"] if by_contact else p["profile"]
-        excuse_of[(p["nc"], d)] = b.add("excuse-request", {
-            "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "submittedBy": submitter["ncUserId"], "submittedByRef": submitter["uuid"],
-            "dateFrom": d.isoformat(), "dateTo": d.isoformat(), "reason": rng.choice(["Griep", "Koorts", "Migraine", "Rugklachten", "Buikgriep"]),
-            "reasonKind": "illness", "submittedAuthLevel": "basic", "decidedBy": PLANNER, "decidedAt": stamp(d, 8, 45),
-            "decisionNote": None, "lifecycle": "approved",
-        })
-    for m in sorted(marks, key=lambda m: (m["slot"][0], m["slot"][1] != "ochtend", m["edition"]["course"]["key"], m["p"]["nc"])):
-        e, (d, part), p = m["edition"], m["slot"], m["p"]
-        session = session_of[(id(e), d, part)]
-        (h1, m1), _end = slot_times(e["course"], part)
-        marked = h1 * 60 + m1 + (25 if m["status"] == "late" else 10)
-        b.add("attendance-record", {
-            "sessionId": session["uuid"], "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "cohortId": e["cohort"]["row"]["uuid"],
-            "status": m["status"], "minutesAttended": m["minutes"], "markedBy": trainer_on(e, d), "markedAt": stamp(d, marked // 60, marked % 60),
-            "reason": m["reason"], "excuseRequestId": excuse_of[(p["nc"], d)]["uuid"] if m["status"] == "absent-excused" else None,
-        })
+    def add_excuses_and_attendance(self) -> None:
+        """Excuses and attendance."""
+        excuse_of: dict[tuple[str, dt.date], dict] = {}
+        for m in sorted(self.marks, key=lambda m: (m["slot"][0], m["p"]["nc"])):
+            d = m["slot"][0]
+            if m["status"] != "absent-excused" or (m["p"]["nc"], d) in excuse_of:
+                continue
+            p = m["p"]
+            by_contact = p["contact"] is not None and self.rng.random() < 0.3
+            submitter = p["contact"] if by_contact else p["profile"]
+            excuse_of[(p["nc"], d)] = self.b.add("excuse-request", {
+                "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "submittedBy": submitter["ncUserId"], "submittedByRef": submitter["uuid"],
+                "dateFrom": d.isoformat(), "dateTo": d.isoformat(), "reason": self.rng.choice(["Griep", "Koorts", "Migraine", "Rugklachten", "Buikgriep"]),
+                "reasonKind": "illness", "submittedAuthLevel": "basic", "decidedBy": PLANNER, "decidedAt": stamp(d, 8, 45),
+                "decisionNote": None, "lifecycle": "approved",
+            })
+        for m in sorted(self.marks, key=lambda m: (m["slot"][0], m["slot"][1] != "ochtend", m["edition"]["course"]["key"], m["p"]["nc"])):
+            e, (d, part), p = m["edition"], m["slot"], m["p"]
+            session = self.session_of[(id(e), d, part)]
+            (h1, m1), _end = slot_times(e["course"], part)
+            marked = h1 * 60 + m1 + (25 if m["status"] == "late" else 10)
+            self.b.add("attendance-record", {
+                "sessionId": session["uuid"], "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "cohortId": e["cohort"]["row"]["uuid"],
+                "status": m["status"], "minutesAttended": m["minutes"], "markedBy": self.trainer_on(e, d), "markedAt": stamp(d, marked // 60, marked % 60),
+                "reason": m["reason"], "excuseRequestId": excuse_of[(p["nc"], d)]["uuid"] if m["status"] == "absent-excused" else None,
+            })
 
-    # --- attestations and certificates -----------------------------------------
-    issued_rows = [r for r in enrolment_rows if r["status"] == "completed"]
-    issued_rows.sort(key=lambda r: (r["edition"]["days"][-1], r["edition"]["course"]["key"], r["p"]["nc"]))
-    for row in issued_rows:
-        e, p, course = row["edition"], row["p"], row["edition"]["course"]
-        if not course["regulation"]:
-            continue
-        best = max((t["score"] for t in row["tests"]), default=None)
-        fields = {
-            "learnerId": p["nc"], "lessonId": lessons[course["key"]][-1]["uuid"], "courseId": courses[course["key"]]["uuid"],
-            "regulationSlug": course["regulation"],
-            "actorIp": f"198.51.100.{10 + int(p['nc'][-3:]) % 200}" if course["room"] == "online" else "192.0.2.24",
-            "signature": f"voorbeeld-hmac-{len(b.buckets['attestation']) + 1:06d}-niet-geldig", "signingKeyId": "voorbeeld-sleutel-2025",
-            "lifecycle": "signed",
-        }
-        if best is not None:
-            fields["score"] = float(best)
-        b.add("attestation", fields)
-
-    def credential(p: dict, course_key: str, issued: dt.datetime | dt.date, fields: dict) -> dict:
+    def credential(self, p: dict, course_key: str, issued: dt.datetime | dt.date, fields: dict) -> dict:
         spec = BY_KEY[course_key]
-        obj = b.add("credential", {
+        obj = self.b.add("credential", {
             # learnerId is the LearnerProfile uuid; learnerUserId its Nextcloud user id, the read rule's key.
             "learnerId": p["profile"]["uuid"], "learnerUserId": p["profile"]["ncUserId"],
-            "courseId": courses[course_key]["uuid"], "kind": spec["credential"],
+            "courseId": self.courses[course_key]["uuid"], "kind": spec["credential"],
             "issuedAt": issued, "issuerDid": ISSUER_DID, "signature": "", "openbadges3Payload": {}, "issuedBy": INSTITUTE,
             **fields,
         })
@@ -1730,204 +1836,247 @@ def build() -> dict:
             obj["openbadges3Payload"]["validUntil"] = obj["expiresAt"]
         return obj
 
-    # Last year's BHV certificates, migrated from the old learning environment, expired and renewed this year.
-    for row in sorted(renewal_of.values(), key=lambda r: (r["old_expiry"], r["p"]["nc"])):
-        expired = row["old_expiry"]
-        issued = add_months(expired, -12)
-        credential(row["p"], rng.choice(["BHV-B", "BHV-H"]), stamp(issued, 10, 0), {
-            "expiresAt": stamp(expired, 10, 0), "source": "migrated", "regulationSlug": "ARBOWET-BHV",
-            "renewalEnrolmentId": row["obj"]["uuid"], "lifecycle": "expired",
-        })
-    for row in issued_rows:
-        e, p, course = row["edition"], row["p"], row["edition"]["course"]
-        done = row["tests"][-1]["day"] if row["tests"] else e["days"][-1]
-        issued = next_office_day(done + dt.timedelta(days=2))
-        fields = {"source": "auto", "enrolmentId": row["obj"]["uuid"], "lifecycle": "issued"}
-        if course["validity"]:
-            fields["expiresAt"] = stamp(add_months(issued, course["validity"]), 10, 0)
-        if course["regulation"]:
-            fields["regulationSlug"] = course["regulation"]
-        row["credential"] = credential(p, course["key"], stamp(issued, 10, 0), fields)
+    def add_credentials(self) -> None:
+        """Attestations and certificates."""
+        issued_rows = [r for r in self.enrolment_rows if r["status"] == "completed"]
+        issued_rows.sort(key=lambda r: (r["edition"]["days"][-1], r["edition"]["course"]["key"], r["p"]["nc"]))
+        for row in issued_rows:
+            e, p, course = row["edition"], row["p"], row["edition"]["course"]
+            if not course["regulation"]:
+                continue
+            best = max((t["score"] for t in row["tests"]), default=None)
+            fields = {
+                "learnerId": p["nc"], "lessonId": self.lessons[course["key"]][-1]["uuid"], "courseId": self.courses[course["key"]]["uuid"],
+                "regulationSlug": course["regulation"],
+                "actorIp": f"198.51.100.{10 + int(p['nc'][-3:]) % 200}" if course["room"] == "online" else "192.0.2.24",
+                "signature": f"voorbeeld-hmac-{len(self.b.buckets['attestation']) + 1:06d}-niet-geldig", "signingKeyId": "voorbeeld-sleutel-2025",
+                "lifecycle": "signed",
+            }
+            if best is not None:
+                fields["score"] = float(best)
+            self.b.add("attestation", fields)
 
-    # --- course evaluations and what they led to --------------------------------
-    def quarter_of(day: dt.date) -> int:
+        # Last year's BHV certificates, migrated from the old learning environment, expired and renewed this year.
+        for row in sorted(self.renewal_of.values(), key=lambda r: (r["old_expiry"], r["p"]["nc"])):
+            expired = row["old_expiry"]
+            issued = add_months(expired, -12)
+            self.credential(row["p"], self.rng.choice(["BHV-B", "BHV-H"]), stamp(issued, 10, 0), {
+                "expiresAt": stamp(expired, 10, 0), "source": "migrated", "regulationSlug": "ARBOWET-BHV",
+                "renewalEnrolmentId": row["obj"]["uuid"], "lifecycle": "expired",
+            })
+        for row in issued_rows:
+            e, p, course = row["edition"], row["p"], row["edition"]["course"]
+            done = row["tests"][-1]["day"] if row["tests"] else e["days"][-1]
+            issued = next_office_day(done + dt.timedelta(days=2))
+            fields = {"source": "auto", "enrolmentId": row["obj"]["uuid"], "lifecycle": "issued"}
+            if course["validity"]:
+                fields["expiresAt"] = stamp(add_months(issued, course["validity"]), 10, 0)
+            if course["regulation"]:
+                fields["regulationSlug"] = course["regulation"]
+            row["credential"] = self.credential(p, course["key"], stamp(issued, 10, 0), fields)
+
+    def quarter_of(self, day: dt.date) -> int:
         return next(i for i, (_label, start, end) in enumerate(QUARTERS) if start <= day <= end)
 
-    campaigns = []
-    for index, (label, start, end) in enumerate(QUARTERS):
-        eds = [e for e in editions if quarter_of(e["days"][-1]) == index]
-        closes = min(end + dt.timedelta(days=21), LAST_DAY)
-        campaigns.append(b.add("evaluation-campaign", {
-            "name": f"Cursusevaluatie {label.lower()} {YEAR}", "closesAt": stamp(closes, 23, 59),
-            "courseIds": list(dict.fromkeys(courses[e["course"]["key"]]["uuid"] for e in eds)),
-            "cohortIds": list(dict.fromkeys(e["cohort"]["row"]["uuid"] for e in eds)), "academicYear": YEAR, "period": label,
-            "instrumentKind": "built-in",
-            "questions": [{"questionId": q, "text": {"nl": nl, "en": en}, "kind": kind, "required": kind != "free-text"}
-                          for q, nl, en, kind in EVALUATION_QUESTIONS],
-            "anonymityPolicy": "fully-anonymous", "reminderSchedule": {"enabled": True, "leadDays": 5}, "lifecycle": "closed",
-        }))
-        campaigns[-1]["_closes"] = closes
-    after_action: set[tuple[str, int]] = set()
-    for key, _q, target, _state, _f, _a in IMPROVEMENTS:
-        t = [label for label, _s, _e in QUARTERS].index(target)
-        for later in range(t, len(QUARTERS)):
-            after_action.add((key, later))
-    invited = [r for r in enrolment_rows if r["status"] in ("completed", "failed")]
-    invited.sort(key=lambda r: (r["edition"]["days"][-1], r["edition"]["course"]["key"], r["p"]["nc"]))
-    responses = []
-    for row in invited:
-        e, p, course = row["edition"], row["p"], row["edition"]["course"]
-        q = quarter_of(e["days"][-1])
-        campaign = campaigns[q]
-        answered = rng.random() < 0.68
-        when = None
-        if answered:
-            day = min(e["days"][-1] + dt.timedelta(days=rng.randint(0, 12)), campaign["_closes"])
-            when = stamp(day, rng.randint(8, 21), rng.choice([2, 17, 33, 48]))
-        b.add("evaluation-invitation", {
-            "campaignId": campaign["uuid"], "courseId": courses[course["key"]]["uuid"], "cohortId": e["cohort"]["row"]["uuid"],
-            "learnerId": p["nc"], "hasResponded": answered, "respondedAt": when, "campaignClosesAt": campaign["closesAt"],
-            "academicYear": YEAR, "period": QUARTERS[q][0],
-        })
-        if answered:
-            responses.append((row, q, when))
-    rng.shuffle(responses)
-    responses.sort(key=lambda x: (x[1], x[0]["edition"]["course"]["key"], x[2]))
-    scores: dict[tuple[str, int], list[tuple[int, str]]] = {}
-    for row, q, when in responses:
-        e, course = row["edition"], row["edition"]["course"]
-        base = QUALITY_BASE.get(course["key"], (4.2, 4.3))[1 if (course["key"], q) in after_action else 0]
-        overall = max(1, min(5, round(rng.gauss(base, 0.7))))
-        answers = []
-        for qid, _nl, _en, kind in EVALUATION_QUESTIONS:
-            if kind == "likert-5":
-                penalty = 0.6 if qid == "q3" and course["key"] == "HEF" and (course["key"], q) not in after_action else 0
-                value = overall if qid == "q5" else max(1, min(5, round(overall + rng.gauss(0, 0.6) - penalty)))
-                answers.append({"questionId": qid, "ratingValue": value})
-            elif rng.random() < 0.3 and course["key"] in FREE_TEXT:
-                answers.append({"questionId": qid, "textValue": rng.choice(FREE_TEXT[course["key"]])})
-        b.add("course-evaluation-response", {
-            "campaignId": campaigns[q]["uuid"], "courseId": courses[course["key"]]["uuid"], "cohortId": e["cohort"]["row"]["uuid"],
-            "teacherId": e["trainer"], "academicYear": YEAR, "period": QUARTERS[q][0], "overallScore": float(overall), "answers": answers,
-            "submittedAt": when, "lifecycle": "submitted",
-        })
-        scores.setdefault((course["key"], q), []).append((overall, when))
-    invitations: dict[tuple[str, int], int] = {}
-    for row in invited:
-        key = (row["edition"]["course"]["key"], quarter_of(row["edition"]["days"][-1]))
-        invitations[key] = invitations.get(key, 0) + 1
-    quality: dict[tuple[str, int], dict] = {}
-    for key in sorted(invitations, key=lambda k: (k[1], [c["key"] for c in COURSES].index(k[0]))):
-        got = scores.get(key, [])
-        quality[key] = b.add("course-quality-score", {
-            "courseId": courses[key[0]]["uuid"], "teacherId": None, "academicYear": YEAR, "period": QUARTERS[key[1]][0],
-            "responseCount": len(got), "invitationCount": invitations[key],
-            "averageOverallScore": round(sum(s for s, _w in got) / len(got), 2) if got else None,
-            "responseRate": round(len(got) / invitations[key], 2), "lastRecomputedAt": max((w for _s, w in got), default=None),
-        })
-    for key, label, target, state, findings, action in IMPROVEMENTS:
-        q = [lab for lab, _s, _e in QUARTERS].index(label)
-        if (key, q) not in quality:
-            raise RuntimeError(f"improvement action for {key} in {label} has no quality score to answer")
-        reviewed = next_office_day(campaigns[q]["_closes"] + dt.timedelta(days=7))
-        b.add("improvement-action", {
-            "campaignId": campaigns[q]["uuid"], "courseId": courses[key]["uuid"], "reviewedBy": QUALITY, "reviewedAt": stamp(reviewed, 14, 0),
-            "findings": findings, "actionDescription": action, "targetPeriod": target, "lifecycle": state,
-        })
+    def add_evaluations(self) -> None:
+        """Course evaluations and what they led to."""
+        self.campaigns = []
+        for index, (label, start, end) in enumerate(QUARTERS):
+            eds = [e for e in self.editions if self.quarter_of(e["days"][-1]) == index]
+            closes = min(end + dt.timedelta(days=21), LAST_DAY)
+            self.campaigns.append(self.b.add("evaluation-campaign", {
+                "name": f"Cursusevaluatie {label.lower()} {YEAR}", "closesAt": stamp(closes, 23, 59),
+                "courseIds": list(dict.fromkeys(self.courses[e["course"]["key"]]["uuid"] for e in eds)),
+                "cohortIds": list(dict.fromkeys(e["cohort"]["row"]["uuid"] for e in eds)), "academicYear": YEAR, "period": label,
+                "instrumentKind": "built-in",
+                "questions": [{"questionId": q, "text": {"nl": nl, "en": en}, "kind": kind, "required": kind != "free-text"}
+                              for q, nl, en, kind in EVALUATION_QUESTIONS],
+                "anonymityPolicy": "fully-anonymous", "reminderSchedule": {"enabled": True, "leadDays": 5}, "lifecycle": "closed",
+            }))
+            self.campaigns[-1]["_closes"] = closes
+        self.after_action: set[tuple[str, int]] = set()
+        for key, _q, target, _state, _f, _a in IMPROVEMENTS:
+            t = [label for label, _s, _e in QUARTERS].index(target)
+            for later in range(t, len(QUARTERS)):
+                self.after_action.add((key, later))
+        self.invite_to_evaluations()
+        self.add_evaluation_responses()
+        self.add_quality_scores()
+        self.add_improvement_actions()
+        self.stamp_learner_group_labels()
 
-    stamp_group_labels(b)
+    def invite_to_evaluations(self) -> None:
+        """An evaluation invitation per participant who finished a course; about two in three answer."""
+        self.invited = [r for r in self.enrolment_rows if r["status"] in ("completed", "failed")]
+        self.invited.sort(key=lambda r: (r["edition"]["days"][-1], r["edition"]["course"]["key"], r["p"]["nc"]))
+        self.responses = []
+        for row in self.invited:
+            e, p, course = row["edition"], row["p"], row["edition"]["course"]
+            q = self.quarter_of(e["days"][-1])
+            campaign = self.campaigns[q]
+            answered = self.rng.random() < 0.68
+            when = None
+            if answered:
+                day = min(e["days"][-1] + dt.timedelta(days=self.rng.randint(0, 12)), campaign["_closes"])
+                when = stamp(day, self.rng.randint(8, 21), self.rng.choice([2, 17, 33, 48]))
+            self.b.add("evaluation-invitation", {
+                "campaignId": campaign["uuid"], "courseId": self.courses[course["key"]]["uuid"], "cohortId": e["cohort"]["row"]["uuid"],
+                "learnerId": p["nc"], "hasResponded": answered, "respondedAt": when, "campaignClosesAt": campaign["closesAt"],
+                "academicYear": YEAR, "period": QUARTERS[q][0],
+            })
+            if answered:
+                self.responses.append((row, q, when))
 
-    # --- assemble -----------------------------------------------------------------
-    for rows in b.buckets.values():
-        for obj in rows:
-            for private in [k for k in obj if k.startswith("_")]:
-                del obj[private]
-    # --- the regulations the courses and certificates answer to (D29) ------------
+    def add_evaluation_responses(self) -> None:
+        """The answered evaluations, scored higher once a course's improvement action has taken effect."""
+        self.rng.shuffle(self.responses)
+        self.responses.sort(key=lambda x: (x[1], x[0]["edition"]["course"]["key"], x[2]))
+        self.scores: dict[tuple[str, int], list[tuple[int, str]]] = {}
+        for row, q, when in self.responses:
+            e, course = row["edition"], row["edition"]["course"]
+            base = QUALITY_BASE.get(course["key"], (4.2, 4.3))[1 if (course["key"], q) in self.after_action else 0]
+            overall = max(1, min(5, round(self.rng.gauss(base, 0.7))))
+            answers = []
+            for qid, _nl, _en, kind in EVALUATION_QUESTIONS:
+                if kind == "likert-5":
+                    penalty = 0.6 if qid == "q3" and course["key"] == "HEF" and (course["key"], q) not in self.after_action else 0
+                    value = overall if qid == "q5" else max(1, min(5, round(overall + self.rng.gauss(0, 0.6) - penalty)))
+                    answers.append({"questionId": qid, "ratingValue": value})
+                elif self.rng.random() < 0.3 and course["key"] in FREE_TEXT:
+                    answers.append({"questionId": qid, "textValue": self.rng.choice(FREE_TEXT[course["key"]])})
+            self.b.add("course-evaluation-response", {
+                "campaignId": self.campaigns[q]["uuid"], "courseId": self.courses[course["key"]]["uuid"], "cohortId": e["cohort"]["row"]["uuid"],
+                "teacherId": e["trainer"], "academicYear": YEAR, "period": QUARTERS[q][0], "overallScore": float(overall), "answers": answers,
+                "submittedAt": when, "lifecycle": "submitted",
+            })
+            self.scores.setdefault((course["key"], q), []).append((overall, when))
+
+    def add_quality_scores(self) -> None:
+        """A quality score per course per quarter, from its invitations and responses."""
+        invitations: dict[tuple[str, int], int] = {}
+        for row in self.invited:
+            key = (row["edition"]["course"]["key"], self.quarter_of(row["edition"]["days"][-1]))
+            invitations[key] = invitations.get(key, 0) + 1
+        self.quality: dict[tuple[str, int], dict] = {}
+        for key in sorted(invitations, key=lambda k: (k[1], [c["key"] for c in COURSES].index(k[0]))):
+            got = self.scores.get(key, [])
+            self.quality[key] = self.b.add("course-quality-score", {
+                "courseId": self.courses[key[0]]["uuid"], "teacherId": None, "academicYear": YEAR, "period": QUARTERS[key[1]][0],
+                "responseCount": len(got), "invitationCount": invitations[key],
+                "averageOverallScore": round(sum(s for s, _w in got) / len(got), 2) if got else None,
+                "responseRate": round(len(got) / invitations[key], 2), "lastRecomputedAt": max((w for _s, w in got), default=None),
+            })
+
+    def add_improvement_actions(self) -> None:
+        """The improvement actions the quality scores led to."""
+        for key, label, target, state, findings, action in IMPROVEMENTS:
+            q = [lab for lab, _s, _e in QUARTERS].index(label)
+            if (key, q) not in self.quality:
+                raise RuntimeError(f"improvement action for {key} in {label} has no quality score to answer")
+            reviewed = next_office_day(self.campaigns[q]["_closes"] + dt.timedelta(days=7))
+            self.b.add("improvement-action", {
+                "campaignId": self.campaigns[q]["uuid"], "courseId": self.courses[key]["uuid"], "reviewedBy": QUALITY, "reviewedAt": stamp(reviewed, 14, 0),
+                "findings": findings, "actionDescription": action, "targetPeriod": target, "lifecycle": state,
+            })
+
+    def stamp_learner_group_labels(self) -> None:
+        """Every learner's group line, stamped once every enrolment exists."""
+        stamp_group_labels(self.b)
+
+    def strip_private_fields(self) -> None:
+        """Drops the private working fields every object carried while the set was built."""
+        for rows in self.b.buckets.values():
+            for obj in rows:
+                for private in [k for k in obj if k.startswith("_")]:
+                    del obj[private]
+
     # Regulation's own slug is its code (^[A-Z0-9_-]+$), and the contract takes the
     # slug from the object for such a schema. AVG is seeded by the register. The
     # institute trains people for their employers and obliges none of them itself,
     # so no audience is set: the rows name the certificate and how long it lasts.
-    def regulation(code: str, name: str, description: str, criteria: str, renewal: int | None, annual: bool) -> None:
+    def regulation(self, code: str, name: str, description: str, criteria: str, renewal: int | None, annual: bool) -> None:
         fields = {"slug": code, "name": name, "description": description, "applicabilityCriteria": criteria,
                   "audienceScope": "role-specific", "audienceRoles": [], "requiresAnnualRenewal": annual}
         if renewal is not None:
             fields["renewalCycleMonths"] = renewal
         fields.update({"active": True, "ragRedThreshold": 70, "ragAmberThreshold": 90, "lifecycle": "published"})
-        b.add("regulation", fields)
+        self.b.add("regulation", fields)
 
-    regulation("VCA", "VCA, veiligheid, gezondheid en milieu",
-               "Het VCA-diploma voor operationele medewerkers, tien jaar geldig.",
-               "Wie op locatie werkt, als de werkgever of opdrachtgever het vraagt.", 120, False)
-    regulation("ARBOWET-BHV", "Bedrijfshulpverlening (Arbowet artikel 15)",
-               "Het BHV-certificaat: eerste hulp, brand blussen en ontruimen, met een herhaling elk jaar.",
-               "Bedrijfshulpverleners die hun werkgever aanwijst.", 12, True)
-    regulation("ARBOWET-PREVENTIE", "Preventiemedewerker (Arbowet artikel 13)",
-               "De preventiemedewerker helpt de werkgever met de risico-inventarisatie en het plan van aanpak.",
-               "Medewerkers die hun werkgever als preventiemedewerker aanwijst.", None, False)
-    regulation("ARBOBESLUIT-HEFTRUCK", "Heftruckcertificaat (Arbobesluit artikel 7.32)",
-               "Een heftruck bedienen mag alleen met aantoonbare deskundigheid; het certificaat is vijf jaar geldig.",
-               "Heftruckchauffeurs in magazijn, bouw en installatie.", 60, False)
-    regulation("NIS2", "NIS2, informatiebeveiliging voor medewerkers",
-               "Wat de NIS2-richtlijn van medewerkers vraagt: phishing herkennen, incidenten melden en veilig werken.",
-               "Medewerkers van organisaties die onder NIS2 vallen, zoals zorg en gemeenten.", 12, True)
+    def assemble(self) -> dict:
+        """The regulations the courses and certificates answer to (D29), then the profile file's content."""
+        self.regulation("VCA", "VCA, veiligheid, gezondheid en milieu",
+                        "Het VCA-diploma voor operationele medewerkers, tien jaar geldig.",
+                        "Wie op locatie werkt, als de werkgever of opdrachtgever het vraagt.", 120, False)
+        self.regulation("ARBOWET-BHV", "Bedrijfshulpverlening (Arbowet artikel 15)",
+                        "Het BHV-certificaat: eerste hulp, brand blussen en ontruimen, met een herhaling elk jaar.",
+                        "Bedrijfshulpverleners die hun werkgever aanwijst.", 12, True)
+        self.regulation("ARBOWET-PREVENTIE", "Preventiemedewerker (Arbowet artikel 13)",
+                        "De preventiemedewerker helpt de werkgever met de risico-inventarisatie en het plan van aanpak.",
+                        "Medewerkers die hun werkgever als preventiemedewerker aanwijst.", None, False)
+        self.regulation("ARBOBESLUIT-HEFTRUCK", "Heftruckcertificaat (Arbobesluit artikel 7.32)",
+                        "Een heftruck bedienen mag alleen met aantoonbare deskundigheid; het certificaat is vijf jaar geldig.",
+                        "Heftruckchauffeurs in magazijn, bouw en installatie.", 60, False)
+        self.regulation("NIS2", "NIS2, informatiebeveiliging voor medewerkers",
+                        "Wat de NIS2-richtlijn van medewerkers vraagt: phishing herkennen, incidenten melden en veilig werken.",
+                        "Medewerkers van organisaties die onder NIS2 vallen, zoals zorg en gemeenten.", 12, True)
 
-    add_story(b, school, location)
-    stamp_employer_copies(b)
-    stamp_certificate_copies(b)
+        add_story(self.b, self.school, self.location)
+        stamp_employer_copies(self.b)
+        stamp_certificate_copies(self.b)
 
-    shipped = {r["slug"] for r in b.buckets["regulation"]}
-    for rows in b.buckets.values():
-        for row in rows:
-            code = row.get("regulationSlug")
-            if code is not None and code != "AVG" and code not in shipped:
-                raise RuntimeError(f"{row['slug']} points at regulation {code}, which this set does not ship")
+        shipped = {r["slug"] for r in self.b.buckets["regulation"]}
+        for rows in self.b.buckets.values():
+            for row in rows:
+                code = row.get("regulationSlug")
+                if code is not None and code != "AVG" and code not in shipped:
+                    raise RuntimeError(f"{row['slug']} points at regulation {code}, which this set does not ship")
 
-    objects = {name: rows for name, rows in b.buckets.items() if rows}
-    total = sum(len(rows) for rows in objects.values())
-    return {
-        "openapi": "3.0.0",
-        "info": {
-            "title": "Learniq example set: Training institute",
-            "version": "1.2.0",
-            "description": (f"{INSTITUTE}, a fictional trade academy for installers in the fictional town of {TOWN}, through the 2025-2026 year, "
-                            "and the autumn of 2026 for one client company, Jansen Installatietechniek BV, as the portal designs show it."),
-        },
-        "x-openregister": {
-            "type": "profile",
-            "app": "learniq",
-            "profile": {
-                "id": SET,
-                "segment": SET,
-                "label": "Training institute",
-                "description": "A fictional training institute with open courses, participants from client companies and a full year.",
-                "order": 6,
-                "objectCount": total,
-                "icon": "AccountSchoolOutline",
+        objects = {name: rows for name, rows in self.b.buckets.items() if rows}
+        total = sum(len(rows) for rows in objects.values())
+        return {
+            "openapi": "3.0.0",
+            "info": {
+                "title": "Learniq example set: Training institute",
+                "version": "1.2.0",
+                "description": (f"{INSTITUTE}, a fictional trade academy for installers in the fictional town of {TOWN}, through the 2025-2026 year, "
+                                "and the autumn of 2026 for one client company, Jansen Installatietechniek BV, as the portal designs show it."),
             },
-            "description": (
-                "An example set an operator picks in the first-time setup wizard (ADR-042, decision D21). NEVER imported on install. "
-                "Every object carries @self.configuration/register/schema and a fixed uuid in the ee06 namespace, so the import resolves "
-                "the live learniq register without this descriptor declaring components.registers (which would re-point the register at "
-                "this profile config id and overwrite its authorization block), a second load adds nothing, and occ "
-                "learniq:example-set:remove training removes exactly these objects. Generated by scripts/example-sets/training.py; the "
-                "contract is openspec/changes/archive/2026-09-28-segment-wizard-choice/contract.md. Every person, company, address and code in it is fictional."
-            ),
-            "seedData": {
+            "x-openregister": {
+                "type": "profile",
+                "app": "learniq",
+                "profile": {
+                    "id": SET,
+                    "segment": SET,
+                    "label": "Training institute",
+                    "description": "A fictional training institute with open courses, participants from client companies and a full year.",
+                    "order": 6,
+                    "objectCount": total,
+                    "icon": "AccountSchoolOutline",
+                },
                 "description": (
-                    "One training institute with one location and a public catalogue of fourteen courses with prices, about 150 "
-                    "participants from six client companies and private individuals, trainers who teach every edition, a morning and "
-                    "an afternoon session per training day with every participant marked, knowledge tests with resits, signed attestations, "
-                    "certificates with expiry and renewal, a leadership programme with intake rounds and a waiting list, quarterly course "
-                    "evaluations with quality scores and improvement actions, the course package imports and export round trips, "
-                    "the regulations the certificates answer to, and the autumn of 2026 for one client company: Jansen Installatietechniek BV, "
-                    "its four installers, their F-gassen and heat pump courses in October and November, and the certificates they hold."
+                    "An example set an operator picks in the first-time setup wizard (ADR-042, decision D21). NEVER imported on install. "
+                    "Every object carries @self.configuration/register/schema and a fixed uuid in the ee06 namespace, so the import resolves "
+                    "the live learniq register without this descriptor declaring components.registers (which would re-point the register at "
+                    "this profile config id and overwrite its authorization block), a second load adds nothing, and occ "
+                    "learniq:example-set:remove training removes exactly these objects. Generated by scripts/example-sets/training.py; the "
+                    "contract is openspec/changes/archive/2026-09-28-segment-wizard-choice/contract.md. Every person, company, address and code in it is fictional."
                 ),
-                "objects": objects,
+                "seedData": {
+                    "description": (
+                        "One training institute with one location and a public catalogue of fourteen courses with prices, about 150 "
+                        "participants from six client companies and private individuals, trainers who teach every edition, a morning and "
+                        "an afternoon session per training day with every participant marked, knowledge tests with resits, signed attestations, "
+                        "certificates with expiry and renewal, a leadership programme with intake rounds and a waiting list, quarterly course "
+                        "evaluations with quality scores and improvement actions, the course package imports and export round trips, "
+                        "the regulations the certificates answer to, and the autumn of 2026 for one client company: Jansen Installatietechniek BV, "
+                        "its four installers, their F-gassen and heat pump courses in October and November, and the certificates they hold."
+                    ),
+                    "objects": objects,
+                },
             },
-        },
-        "paths": {},
-        "components": {},
-    }
+            "paths": {},
+            "components": {},
+        }
 
 
 if __name__ == "__main__":

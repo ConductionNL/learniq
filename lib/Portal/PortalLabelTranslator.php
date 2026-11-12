@@ -122,6 +122,27 @@ class PortalLabelTranslator {
 	private const COUNTED_FORMS = ['one', 'other'];
 
 	/**
+	 * The only keys a reader sees in a context that names its own: a counted
+	 * word's two forms, a confirmation's sentences and a form step's title
+	 * and description (placement-steps-and-assessment-draft).
+	 *
+	 * @var array<string, array<int, string>>
+	 */
+	private const VISIBLE_KEYS_BY_CONTEXT = [
+		'counted'      => self::COUNTED_FORMS,
+		'confirmation' => ['title', 'body', 'next'],
+		'step'         => ['title', 'description'],
+	];
+
+	/**
+	 * The context the items of a list, or the maps of a summary's phrases,
+	 * are read in, by the context of their parent.
+	 *
+	 * @var array<string, string>
+	 */
+	private const CONTEXT_BY_PARENT = ['phrases' => 'values', 'sources' => 'source', 'steps' => 'step'];
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IL10N|null $l10n Learniq's catalogue in the reader's language, or null to keep the English source.
@@ -147,23 +168,49 @@ class PortalLabelTranslator {
 		}
 
 		foreach ($manifest as $key => $value) {
-			if ($key === self::VALUE_LABELS_KEY && is_array($value) === true) {
-				$manifest[$key] = $this->translateValueLabels(labels: $value);
-				continue;
-			}
-
-			if (is_array($value) === true) {
-				$manifest[$key] = $this->translate(manifest: $value, context: $this->contextOf(key: $key, context: $context));
-				continue;
-			}
-
-			if (is_string($value) === true && $this->isVisible(key: $key, context: $context) === true) {
-				$manifest[$key] = $this->l10n->t($value);
-			}
+			$manifest[$key] = $this->translateEntry(entry: new ManifestEntry(key: $key, value: $value), context: $context);
 		}
 
 		return $manifest;
-	}//end translate()
+		}//end translate()
+
+	/**
+	 * One manifest value in the reader's language: a nested array walked in
+	 * its own context, a visible string translated, anything else as it is.
+	 *
+	 * @param ManifestEntry $entry   The key and its value.
+	 * @param string        $context Where the key sits.
+	 *
+	 * @return mixed The value, translated where a reader sees it.
+	 */
+	private function translateEntry(ManifestEntry $entry, string $context): mixed {
+		if (is_array($entry->value) === true) {
+			return $this->translateNested(entry: $entry, context: $context);
+		}
+
+		if (is_string($entry->value) === true && $this->isVisible(key: $entry->key, context: $context) === true) {
+			return $this->l10n?->t($entry->value);
+		}
+
+		return $entry->value;
+	}//end translateEntry()
+
+	/**
+	 * A nested array in the reader's language: a `valueLabels` map by its
+	 * labels, any other array walked in the context its key gives it.
+	 *
+	 * @param ManifestEntry $entry   The key and its array value.
+	 * @param string        $context Where the key sits.
+	 *
+	 * @return array<array-key, mixed> The array, translated.
+	 */
+	private function translateNested(ManifestEntry $entry, string $context): array {
+		if ($entry->key === self::VALUE_LABELS_KEY) {
+			return $this->translateValueLabels(labels: $entry->value);
+		}
+
+		return $this->translate(manifest: $entry->value, context: $this->contextOf(key: $entry->key, context: $context));
+	}//end translateNested()
 
 	/**
 	 * The context the children of a key are read in: `sources` items are
@@ -180,11 +227,9 @@ class PortalLabelTranslator {
 			return (string)$key;
 		}
 
-		// A summary's phrases are maps of answer to words, one per field; a
-		// calendar's sources are a list of sources.
-		$byParent = ['phrases' => 'values', 'sources' => 'source', 'steps' => 'step'];
-		if (isset($byParent[$context]) === true && ($context === 'phrases' || is_int($key) === true)) {
-			return $byParent[$context];
+		$byParent = $this->contextByParent(key: $key, context: $context);
+		if ($byParent !== null) {
+			return $byParent;
 		}
 
 		if (is_string($key) === true && in_array($key, self::COUNTED_KEYS, true) === true) {
@@ -192,7 +237,29 @@ class PortalLabelTranslator {
 		}
 
 		return '';
-	}//end contextOf()
+		}//end contextOf()
+
+	/**
+	 * The context its parent gives a nested array: a summary's phrases are
+	 * maps of answer to words, one per field; a calendar's sources and a
+	 * form's steps are lists of sources and steps.
+	 *
+	 * @param int|string $key     The key of the nested array.
+	 * @param string     $context The context of its parent.
+	 *
+	 * @return string|null The context, or null when the parent gives none.
+	 */
+	private function contextByParent(int|string $key, string $context): ?string {
+		if (isset(self::CONTEXT_BY_PARENT[$context]) === false) {
+			return null;
+		}
+
+		if ($context === 'phrases' || is_int($key) === true) {
+			return self::CONTEXT_BY_PARENT[$context];
+		}
+
+		return null;
+	}//end contextByParent()
 
 	/**
 	 * Whether a string value under this key is one a reader sees.
@@ -207,26 +274,29 @@ class PortalLabelTranslator {
 			return true;
 		}
 
-		if ($context === 'counted') {
-			return in_array($key, self::COUNTED_FORMS, true) === true;
-		}
-
-		if ($context === 'confirmation') {
-			return in_array($key, ['title', 'body', 'next'], true) === true;
-		}
-
-		// A form step's title and description (placement-steps-and-assessment-draft).
-		if ($context === 'step') {
-			return in_array($key, ['title', 'description'], true) === true;
+		if (isset(self::VISIBLE_KEYS_BY_CONTEXT[$context]) === true) {
+			return in_array($key, self::VISIBLE_KEYS_BY_CONTEXT[$context], true) === true;
 		}
 
 		if (is_string($key) === false) {
 			return false;
 		}
 
+		return $this->isVisibleKey(key: $key, context: $context);
+		}//end isVisible()
+
+	/**
+	 * Whether a named key outside the special contexts is one a reader sees.
+	 *
+	 * @param string $key     The key.
+	 * @param string $context Where the key sits: '' or `source`.
+	 *
+	 * @return bool
+	 */
+	private function isVisibleKey(string $key, string $context): bool {
 		return in_array($key, self::VISIBLE_KEYS, true) === true
 			|| ($context === 'source' && in_array($key, self::SOURCE_KEYS, true) === true);
-	}//end isVisible()
+	}//end isVisibleKey()
 
 	/**
 	 * A `valueLabels` map with every string label in the reader's language;

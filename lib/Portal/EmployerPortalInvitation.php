@@ -3,6 +3,9 @@
 /**
  * Learniq EmployerPortalInvitation
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Invites a client company's contact person to the employer's portal. It
  * mirrors BpvPortalInvitation: portaliq provisions the account on the
  * `employer` audience, and learniq writes the claims the account needs:
@@ -28,8 +31,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *
@@ -141,33 +142,71 @@ class EmployerPortalInvitation {
 	 * @return array{status: string, reason?: string, subjectRef?: string}
 	 */
 	private function inviteReading(array $request, array $scope): array {
-		[$organisationRef, $tenant, $email] = $request;
+		[$organisationRef, $tenant] = $request;
 
 		try {
 			$company = $this->company(organisationRef: trim($organisationRef), scope: $scope);
 		} catch (Throwable $exception) {
-			$this->logger->warning(
-				'[EmployerPortalInvitation] Could not read company {ref}: {msg}',
-				['ref' => $organisationRef, 'msg' => $exception->getMessage()]
-			);
-			return self::refused(reason: 'portal-unavailable');
+			return $this->unreadable(organisationRef: $organisationRef, exception: $exception);
 		}
 
 		if ($company === null || $tenant->owns(row: $company) === false) {
 			return self::refused(reason: 'company-unknown');
 		}
 
+		return $this->inviteCompany(company: $company, request: $request);
+	}//end inviteReading()
+
+	/**
+	 * Invite the contact person of a company that lies in the portal's
+	 * organisation, at a valid address.
+	 *
+	 * @param array<string, mixed>                         $company The company.
+	 * @param array{0: string, 1: PortalTenant, 2: string} $request The client-organisation uuid, the portal organisation and the address override.
+	 *
+	 * @return array{status: string, reason?: string, subjectRef?: string}
+	 */
+	private function inviteCompany(array $company, array $request): array {
+		$address = $this->invitedAddress(email: $request[2], company: $company);
+		if (filter_var($address, FILTER_VALIDATE_EMAIL) === false) {
+			return self::refused(reason: 'email-invalid');
+		}
+
+		return $this->provisionAndClaim(company: $company, email: $address, organisation: $request[1]->slug);
+	}//end inviteCompany()
+
+	/**
+	 * Log a company that could not be read and refuse: the portal is unavailable.
+	 *
+	 * @param string    $organisationRef The client-organisation uuid, as given.
+	 * @param Throwable $exception       Why the read failed.
+	 *
+	 * @return array{status: string, reason: string}
+	 */
+	private function unreadable(string $organisationRef, Throwable $exception): array {
+		$this->logger->warning(
+			'[EmployerPortalInvitation] Could not read company {ref}: {msg}',
+			['ref' => $organisationRef, 'msg' => $exception->getMessage()]
+		);
+		return self::refused(reason: 'portal-unavailable');
+	}//end unreadable()
+
+	/**
+	 * The address to invite: the one given, or else the company's contact address.
+	 *
+	 * @param string               $email   The address given, possibly empty.
+	 * @param array<string, mixed> $company The company.
+	 *
+	 * @return string The address, trimmed.
+	 */
+	private function invitedAddress(string $email, array $company): string {
 		$address = trim($email);
 		if ($address === '') {
 			$address = trim((string)($company['contactEmail'] ?? ''));
 		}
 
-		if (filter_var($address, FILTER_VALIDATE_EMAIL) === false) {
-			return self::refused(reason: 'email-invalid');
-		}
-
-		return $this->provisionAndClaim(company: $company, email: $address, organisation: $tenant->slug);
-	}//end inviteReading()
+		return $address;
+	}//end invitedAddress()
 
 	/**
 	 * Ask portaliq for the account, then write each claim on it.
@@ -242,24 +281,63 @@ class EmployerPortalInvitation {
 			return null;
 		}
 
-		$objects = $this->objectService->findAll(
-			config: ['filters' => ['register' => self::REGISTER, 'schema' => self::SCHEMA], 'ids' => [$organisationRef], 'limit' => 1],
-			_rbac: $scope['_rbac'],
-			_multitenancy: $scope['_multitenancy']
-		);
-		foreach ($objects as $object) {
-			$row = $object;
-			if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-				$row = (array)$object->jsonSerialize();
-			}
-
-			if (is_array($row) === true && ($row['id'] ?? ($row['uuid'] ?? null)) === $organisationRef && ($row['lifecycle'] ?? 'active') === 'active') {
+		foreach ($this->companyRows(organisationRef: $organisationRef, scope: $scope) as $object) {
+			$row = $this->rowOf(object: $object);
+			if ($this->isActiveCompany(row: $row, organisationRef: $organisationRef) === true) {
 				return $row;
 			}
 		}
 
 		return null;
 	}//end company()
+
+	/**
+	 * The read results for one company uuid, in the given scope.
+	 *
+	 * @param string                                  $organisationRef The uuid.
+	 * @param array{_rbac: bool, _multitenancy: bool} $scope           How the company is read.
+	 *
+	 * @return array<int, mixed> The results.
+	 *
+	 * @throws \Throwable When OpenRegister cannot be read.
+	 */
+	private function companyRows(string $organisationRef, array $scope): array {
+		return $this->objectService->findAll(
+			config: ['filters' => ['register' => self::REGISTER, 'schema' => self::SCHEMA], 'ids' => [$organisationRef], 'limit' => 1],
+			_rbac: $scope['_rbac'],
+			_multitenancy: $scope['_multitenancy']
+		);
+	}//end companyRows()
+
+	/**
+	 * One read result as a row: an entity serialised, anything else as it is.
+	 *
+	 * @param mixed $object An array or an object entity.
+	 *
+	 * @return mixed The row.
+	 */
+	private function rowOf(mixed $object): mixed {
+		if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
+			return (array)$object->jsonSerialize();
+		}
+
+		return $object;
+	}//end rowOf()
+
+	/**
+	 * Whether a row is the active company with this uuid (by id, or uuid
+	 * when it has no id); a row without a lifecycle counts as active.
+	 *
+	 * @param mixed  $row             The row.
+	 * @param string $organisationRef The uuid.
+	 *
+	 * @return bool
+	 */
+	private function isActiveCompany(mixed $row, string $organisationRef): bool {
+		return is_array($row) === true
+			&& ($row['id'] ?? ($row['uuid'] ?? null)) === $organisationRef
+			&& ($row['lifecycle'] ?? 'active') === 'active';
+	}//end isActiveCompany()
 
 	/**
 	 * Ask portaliq for the account; answers its subjectRef or ''.

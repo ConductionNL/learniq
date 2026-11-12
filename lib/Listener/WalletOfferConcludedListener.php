@@ -3,6 +3,9 @@
 /**
  * Learniq Wallet Offer Concluded Listener
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Consumes an inbound `\OCA\OpenConnector\Event\WalletOfferConcludedEvent`
  * reporting that an EUDI wallet holder claimed an outstanding credential
  * offer, and drives the matching Credential's `recordWalletClaim`
@@ -34,8 +37,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *
