@@ -51,3 +51,28 @@ test('buildCmi5LaunchUrl: throws when any required launch field is missing', () 
 		)
 	}
 })
+
+test('buildCmi5LaunchUrl: a null or blank field, or no launch at all, throws for the first field missing', () => {
+	assert.throws(() => buildCmi5LaunchUrl('/au', null), { message: 'buildCmi5LaunchUrl: launch.endpoint is required' })
+	assert.throws(
+		() => buildCmi5LaunchUrl('/au', { ...VALID_LAUNCH, actor: null, registration: '' }),
+		{ message: 'buildCmi5LaunchUrl: launch.actor is required' },
+	)
+	assert.throws(
+		() => buildCmi5LaunchUrl('/au', { ...VALID_LAUNCH, registration: '' }),
+		{ message: 'buildCmi5LaunchUrl: launch.registration is required' },
+	)
+	assert.throws(() => buildCmi5LaunchUrl(null, null), { message: 'buildCmi5LaunchUrl: auLaunchUrl is required' })
+})
+
+test('buildCmi5LaunchUrl: parameters follow the AU own query in a fixed order', () => {
+	const result = buildCmi5LaunchUrl('au/start.html?lang=nl#top', { ...VALID_LAUNCH, actor: 'x' })
+	assert.equal(
+		result,
+		'/au/start.html?lang=nl&endpoint=https%3A%2F%2Flrs.example%2Fxapi%2F'
+			+ '&fetch=https%3A%2F%2Flearniq.example%2Fapps%2Flearniq%2Fapi%2Flessons%2Fl1%2Fcmi5-fetch%2Ftok123'
+			+ '&actor=%22x%22&activityId=https%3A%2F%2Flearniq.example%2Factivities%2Flessons%2Fl1'
+			+ '&registration=11111111-1111-1111-1111-111111111111#top',
+	)
+	assert.ok(buildCmi5LaunchUrl('HTTP://AU.example/x', VALID_LAUNCH).startsWith('http://au.example/x?endpoint='))
+})
