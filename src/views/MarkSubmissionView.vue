@@ -1,4 +1,7 @@
 <!--
+  SPDX-License-Identifier: EUPL-1.2
+  Copyright (C) 2026 Conduction B.V.
+
   MarkSubmissionView.vue
   Custom page component for the MarkSubmissionView manifest page (type: custom).
 
@@ -31,9 +34,6 @@
     - POST /api/objects/:id/transition           ({ action: 'return' })
 
   Uses Options API + direct fetch calls (no custom Pinia store modules).
-
-  SPDX-License-Identifier: EUPL-1.2
-  Copyright (C) 2026 Conduction B.V.
 
   @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-28
   @spec openspec/specs/assignments/spec.md#scenario-marksubmissionview-shows-peer-and-self-assessment-as-read-only-context

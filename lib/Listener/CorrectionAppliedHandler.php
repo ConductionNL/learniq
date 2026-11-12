@@ -3,6 +3,9 @@
 /**
  * Learniq Correction Applied Handler
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Listens for OpenRegister's ObjectTransitionedEvent on a GradeEntry
  * `publish` or `republish`. When an approved DataCorrectionRequest covered
  * that publish (the report period lock guard let it through on it), the
@@ -29,8 +32,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

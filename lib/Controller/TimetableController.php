@@ -3,6 +3,9 @@
 /**
  * Learniq Personal Timetable Controller
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Read-only personal timetable: returns the signed-in caller's own scheduled
  * `Session` objects for a time window. The caller's sessions are resolved by
  * first determining the cohorts the caller belongs to — as a teacher via
@@ -38,8 +41,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

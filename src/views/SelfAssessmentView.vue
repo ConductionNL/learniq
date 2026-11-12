@@ -1,4 +1,7 @@
 <!--
+  SPDX-License-Identifier: EUPL-1.2
+  Copyright (C) 2026 Conduction B.V.
+
   SelfAssessmentView.vue
   Custom page component for the SelfAssessmentView manifest page (type: custom).
 
@@ -28,9 +31,6 @@
 
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring MarkSubmissionView / PeerReviewMarkingView.
-
-  SPDX-License-Identifier: EUPL-1.2
-  Copyright (C) 2026 Conduction B.V.
 
   @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
   @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-after-submitting

@@ -3,6 +3,9 @@
 /**
  * Learniq AI Processing Disclosure Controller
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * One read-only endpoint (sovereign-ai-guarantee): composes Hermiq's
  * `agentaifeature` register (cross-app, when installed), Learniq's own
  * `AiFeature` AVG Art. 30 processing-activity carrier (`scholiq-ai-features`
@@ -31,8 +34,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

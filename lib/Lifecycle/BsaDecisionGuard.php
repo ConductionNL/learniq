@@ -3,6 +3,9 @@
 /**
  * Learniq BSA Decision Guard
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the BsaDecision schema's `drafted -> decided` transition.
  * Called by OpenRegister's lifecycle engine when a study-advisor / exam-board
  * member records a year-end bindend studieadvies (BSA) decision.
@@ -28,8 +31,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

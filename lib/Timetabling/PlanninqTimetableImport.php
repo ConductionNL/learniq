@@ -3,6 +3,9 @@
 /**
  * Learniq Planninq Timetable Import
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * The `timetable-import` job when planninq is the timetable source (decision
  * D10: planninq owns the timetable, the integriq rostering adapter delivers
  * into it, learniq reads from it). Learniq no longer fetches or writes a
@@ -27,8 +30,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

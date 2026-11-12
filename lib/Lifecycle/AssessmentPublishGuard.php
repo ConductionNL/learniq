@@ -3,6 +3,9 @@
 /**
  * Learniq Assessment Publish Guard
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the Assessment schema's `publish` transition. Enforces that:
  * 1. The assessment has a resolvable item source: either itemRefs is non-empty
  *    (itemSelectionMode `fixed`), or itemPoolConfig.itemBankId resolves to an
@@ -50,8 +53,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

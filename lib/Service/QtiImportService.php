@@ -3,6 +3,9 @@
 /**
  * Learniq QTI Import Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Imports QTI 2.x packages and IMS Common Cartridge archives, stores each
  * item's QTI 2.1 XML as found, and creates `Item` objects in the specified
  * ItemBank.
@@ -28,8 +31,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *
