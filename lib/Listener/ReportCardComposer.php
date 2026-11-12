@@ -61,6 +61,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\AttendanceWindowAggregator;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ReportCardTemplateSectionResolver;
+use OCA\Learniq\Support\EntityRow;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -516,10 +517,6 @@ class ReportCardComposer implements IEventListener {
 	 * @return array<string,mixed>
 	 */
 	private function normalise(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		return $row->jsonSerialize();
+		return (new EntityRow())->asArray(row: $row);
 	}//end normalise()
 }//end class
