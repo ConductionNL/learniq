@@ -112,7 +112,7 @@ class CredentialReissueService {
 	 */
 	public function preview(string $courseId): array {
 		$counts = ['issued' => 0, 'revoked' => 0, 'expired' => 0];
-		foreach ($this->credentials(courseId: $courseId, offset: 0, limit: 10000) as $credential) {
+		foreach ($this->credentials(courseId: $courseId, page: new CredentialPage(offset: 0, limit: 10000)) as $credential) {
 			$state = (string)($credential['lifecycle'] ?? 'issued');
 			if (array_key_exists($state, $counts) === true) {
 				$counts[$state]++;
@@ -179,7 +179,7 @@ class CredentialReissueService {
 		$offset = 0;
 		$more = true;
 		while ($more === true) {
-			$batch = $this->credentials(courseId: $courseId, offset: $offset, limit: self::BATCH);
+			$batch = $this->credentials(courseId: $courseId, page: new CredentialPage(offset: $offset, limit: self::BATCH));
 			foreach ($batch as $credential) {
 				$outcome = $this->reissueOne(credential: $credential, run: $run);
 				$totals[$outcome]++;
@@ -337,23 +337,33 @@ class CredentialReissueService {
 	/**
 	 * A page of the course's credentials.
 	 *
-	 * @param string $courseId The course uuid.
-	 * @param int    $offset   The offset.
-	 * @param int    $limit    The page size.
+	 * @param string         $courseId The course uuid.
+	 * @param CredentialPage $page     From where, and how many.
 	 *
 	 * @return list<array<string, mixed>>
 	 */
-	private function credentials(string $courseId, int $offset, int $limit): array {
+	private function credentials(string $courseId, CredentialPage $page): array {
 		$rows = $this->objects->findAll(
 			config: [
 				'filters' => ['register' => self::REGISTER, 'schema' => self::SCHEMA, 'courseId' => $courseId],
-				'limit' => $limit,
-				'offset' => $offset,
+				'limit' => $page->limit,
+				'offset' => $page->offset,
 			],
 			_rbac: false,
 			_multitenancy: false
 		);
 
+		return $this->credentialRows(rows: $rows);
+	}//end credentials()
+
+	/**
+	 * The found credentials as arrays, each with its id; anything that is not one is left out.
+	 *
+	 * @param array<int, mixed> $rows What findAll() answered.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	private function credentialRows(array $rows): array {
 		$credentials = [];
 		foreach ($rows as $row) {
 			if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
@@ -367,7 +377,7 @@ class CredentialReissueService {
 		}
 
 		return $credentials;
-	}//end credentials()
+	}//end credentialRows()
 
 	/**
 	 * Now, as an ATOM date-time.
