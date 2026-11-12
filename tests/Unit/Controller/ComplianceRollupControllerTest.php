@@ -48,6 +48,7 @@ use PHPUnit\Framework\TestCase;
  * @uses \OCA\Learniq\Service\RegulationCoverageService
  * @uses \OCA\Learniq\Service\RegulationAudienceResolver
  * @uses \OCA\Learniq\Service\RunningExemptions
+ * @uses \OCA\Learniq\Controller\AssignableRegulation
  */
 class ComplianceRollupControllerTest extends TestCase {
 

@@ -40,6 +40,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * @covers \OCA\Learniq\Controller\RegulationAssignPreviewController
  * @covers \OCA\Learniq\Controller\AssignableRegulation
+ * @uses \OCA\Learniq\Service\RegulationAssignmentService
  */
 class RegulationAssignPreviewControllerTest extends TestCase {
 
