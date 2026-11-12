@@ -108,6 +108,7 @@
 <script>
 import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
+import { assertOk, listOf, readAll, runLoad } from '../utils/objectListing.js'
 
 export default {
 	name: 'GroupTrendHeatmap',
@@ -221,62 +222,51 @@ export default {
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/student-analytics/spec.md#scenario-teacher-views-the-cohort-trend-heat-map
 		 */
-		async loadData() {
-			this.loading = true
-			this.error = null
+		loadData() {
+			return runLoad(this, {
+				read: () => this.readCohortsAndEntries(),
+				fail: (err) => this.reportLoadFailure(err),
+			})
+		},
 
-			try {
-				const [cohortsResp, entriesResp] = await Promise.all([
-					fetch(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/Cohort?_limit=200',
-						),
-						{
-							headers: {
-								'OCS-APIREQUEST': 'true',
-								Accept: 'application/json',
-							},
-						},
-					),
-					fetch(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/grade-entry?_limit=500&lifecycle=published',
-						),
-						{
-							headers: {
-								'OCS-APIREQUEST': 'true',
-								Accept: 'application/json',
-							},
-						},
-					),
-				])
+		/**
+		 * Read the Cohorts and the published GradeEntries that carry a cohortId;
+		 * rejects when either read fails.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/student-analytics/spec.md#scenario-teacher-views-the-cohort-trend-heat-map
+		 */
+		async readCohortsAndEntries() {
+			const [cohortsResp, entriesResp] = await readAll([
+				generateUrl('/apps/openregister/api/objects/learniq/Cohort?_limit=200'),
+				generateUrl('/apps/openregister/api/objects/learniq/grade-entry?_limit=500&lifecycle=published'),
+			])
+			assertOk(cohortsResp, 'Cohort fetch failed')
+			assertOk(entriesResp, 'GradeEntry fetch failed')
 
-				if (!cohortsResp.ok)
-					throw new Error(`Cohort fetch failed: ${cohortsResp.status}`)
-				if (!entriesResp.ok)
-					throw new Error(`GradeEntry fetch failed: ${entriesResp.status}`)
+			const cohortsJson = await cohortsResp.json()
+			const entriesJson = await entriesResp.json()
 
-				const cohortsJson = await cohortsResp.json()
-				const entriesJson = await entriesResp.json()
+			this.cohorts = listOf(cohortsJson)
+			this.gradeEntries = listOf(entriesJson).filter(
+				(e) => e.lifecycle === 'published' && !!e.cohortId,
+			)
+		},
 
-				this.cohorts =
-					cohortsJson.results ?? cohortsJson.objects ?? cohortsJson ?? []
-				this.gradeEntries = (
-					entriesJson.results
-					?? entriesJson.objects
-					?? entriesJson
-					?? []
-				).filter((e) => e.lifecycle === 'published' && !!e.cohortId)
-			} catch (err) {
-				this.error = this.t(
-					'learniq',
-					'Failed to load grade trend data. Please try again.',
-				)
-				// eslint-disable-next-line no-console
-				console.error('[GroupTrendHeatmap] loadData error', err)
-			} finally {
-				this.loading = false
-			}
+		/**
+		 * Tell the teacher the heat map could not load, and log why.
+		 *
+		 * @param {Error} err The failure
+		 * @return {void}
+		 * @spec openspec/specs/student-analytics/spec.md#scenario-teacher-views-the-cohort-trend-heat-map
+		 */
+		reportLoadFailure(err) {
+			this.error = this.t(
+				'learniq',
+				'Failed to load grade trend data. Please try again.',
+			)
+			// eslint-disable-next-line no-console
+			console.error('[GroupTrendHeatmap] loadData error', err)
 		},
 
 		/**
