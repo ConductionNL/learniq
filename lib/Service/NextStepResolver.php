@@ -51,6 +51,16 @@ class NextStepResolver {
 	private const KIND_SCORE_BELOW = 'score-below';
 
 	/**
+	 * The condition field each score kind compares the score with.
+	 *
+	 * @var array<string, string>
+	 */
+	private const THRESHOLD_KEYS = [
+		self::KIND_MIN_SCORE   => 'minScore',
+		self::KIND_SCORE_BELOW => 'belowScore',
+	];
+
+	/**
 	 * Constructor.
 	 *
 	 * @param LessonReleaseEvaluator $evaluator The release condition lookups (scores, completions).
@@ -104,20 +114,9 @@ class NextStepResolver {
 	 * @return array{nextLessonId: string|null, rule: int|null}
 	 */
 	private function pick(array $lesson, array $context): array {
-		$rules = ($lesson['nextStepRules'] ?? []);
-		if (is_array($rules) === false) {
-			$rules = [];
-		}
-
-		foreach (array_values($rules) as $index => $rule) {
-			$target = '';
-			$when = null;
-			if (is_array($rule) === true) {
-				$target = (string)($rule['goToLessonId'] ?? '');
-				$when = ($rule['when'] ?? null);
-			}
-
-			if ($target !== '' && is_array($when) === true && $this->holds(when: $when, context: $context) === true) {
+		foreach (array_values($this->rulesOf(lesson: $lesson)) as $index => $rule) {
+			$target = $this->firedTarget(rule: $rule, context: $context);
+			if ($target !== '') {
 				return ['nextLessonId' => $target, 'rule' => $index];
 			}
 		}
@@ -129,6 +128,45 @@ class NextStepResolver {
 
 		return ['nextLessonId' => $default, 'rule' => null];
 	}//end pick()
+
+	/**
+	 * The lesson's next-step rules, or none when the field is not a list.
+	 *
+	 * @param array<string, mixed> $lesson The Lesson row.
+	 *
+	 * @return array<mixed> The rules.
+	 */
+	private function rulesOf(array $lesson): array {
+		$rules = ($lesson['nextStepRules'] ?? []);
+		if (is_array($rules) === false) {
+			return [];
+		}
+
+		return $rules;
+	}//end rulesOf()
+
+	/**
+	 * The lesson a rule sends the learner to, or '' when the rule is
+	 * half-written or its condition does not hold.
+	 *
+	 * @param mixed                                                                       $rule    One rule.
+	 * @param array{learnerId: string, tenantId: string, score: float|null, preview: bool} $context Who asks, and the preview facts.
+	 *
+	 * @return string The target lesson id, or ''.
+	 */
+	private function firedTarget(mixed $rule, array $context): string {
+		if (is_array($rule) === false) {
+			return '';
+		}
+
+		$target = (string)($rule['goToLessonId'] ?? '');
+		$when   = ($rule['when'] ?? null);
+		if ($target === '' || is_array($when) === false || $this->holds(when: $when, context: $context) === false) {
+			return '';
+		}
+
+		return $target;
+	}//end firedTarget()
 
 	/**
 	 * Whether one rule's condition holds.
@@ -145,15 +183,25 @@ class NextStepResolver {
 			return $this->completed(lessonId: (string)($when['lessonId'] ?? ''), context: $context);
 		}
 
-		if ($kind !== self::KIND_MIN_SCORE && $kind !== self::KIND_SCORE_BELOW) {
+		if (isset(self::THRESHOLD_KEYS[$kind]) === false) {
 			// An unknown kind is an authoring error, never a match.
 			return false;
 		}
 
-		$threshold = ($when['minScore'] ?? null);
-		if ($kind === self::KIND_SCORE_BELOW) {
-			$threshold = ($when['belowScore'] ?? null);
-		}
+		return $this->scoreHolds(when: $when, context: $context);
+	}//end holds()
+
+	/**
+	 * Whether a score condition holds: at least the minimum, or below the bound.
+	 *
+	 * @param array<string, mixed>                                                        $when    The rule's score condition.
+	 * @param array{learnerId: string, tenantId: string, score: float|null, preview: bool} $context Who asks, and the preview facts.
+	 *
+	 * @return bool
+	 */
+	private function scoreHolds(array $when, array $context): bool {
+		$kind      = (string)$when['kind'];
+		$threshold = ($when[self::THRESHOLD_KEYS[$kind]] ?? null);
 
 		$score = $this->score(assessmentId: (string)($when['assessmentId'] ?? ''), context: $context);
 		if ($score === null || is_numeric($threshold) === false) {
@@ -166,7 +214,7 @@ class NextStepResolver {
 		}
 
 		return $score < (float)$threshold;
-	}//end holds()
+	}//end scoreHolds()
 
 	/**
 	 * Whether a lesson-completed condition holds: always in a preview,
