@@ -58,40 +58,94 @@ class ConferenceSlotSlicer {
 			return [];
 		}
 
-		$slots = [];
-
+		$pattern = new ConferenceSlotPattern(durationMinutes: $slotDurationMinutes, bufferMinutes: $bufferMinutes);
+		$slots   = [];
 		foreach ($blocks as $block) {
-			$startRaw = $block['startsAt'] ?? null;
-			$endRaw = $block['endsAt'] ?? null;
-
-			if ($startRaw === null || $endRaw === null) {
-				continue;
-			}
-
-			try {
-				$cursor = new DateTimeImmutable((string)$startRaw, new DateTimeZone('UTC'));
-				$blockEnds = new DateTimeImmutable((string)$endRaw, new DateTimeZone('UTC'));
-			} catch (\Exception) {
-				continue;
-			}
-
-			while (true) {
-				$slotEnd = $cursor->modify('+' . $slotDurationMinutes . ' minutes');
-				if ($slotEnd > $blockEnds) {
-					break;
-				}
-
-				$slots[] = [
-					'startsAt' => $cursor->format(DATE_ATOM),
-					'endsAt' => $slotEnd->format(DATE_ATOM),
-				];
-
-				$cursor = $slotEnd->modify('+' . $bufferMinutes . ' minutes');
-			}
-		}//end foreach
+			$slots = array_merge($slots, $this->blockSlots(block: $block, pattern: $pattern));
+		}
 
 		return $slots;
 	}//end slice()
+
+	/**
+	 * The slots of one free block, or none when the block is incomplete or unreadable.
+	 *
+	 * @param array<string,mixed>   $block   One free block: {startsAt, endsAt}.
+	 * @param ConferenceSlotPattern $pattern The slot length and the buffer.
+	 *
+	 * @return array<int,array{startsAt:string,endsAt:string}> The block's slots.
+	 */
+	private function blockSlots(array $block, ConferenceSlotPattern $pattern): array {
+		$range = $this->blockRange(block: $block);
+		if ($range === null) {
+			return [];
+		}
+
+		return $this->slotsWithin(range: $range, pattern: $pattern);
+	}//end blockSlots()
+
+	/**
+	 * A block's start and end as UTC instants, or null when either is missing or unreadable.
+	 *
+	 * @param array<string,mixed> $block One free block: {startsAt, endsAt}.
+	 *
+	 * @return array{0:DateTimeImmutable,1:DateTimeImmutable}|null Start and end.
+	 */
+	private function blockRange(array $block): ?array {
+		$startRaw = $block['startsAt'] ?? null;
+		$endRaw   = $block['endsAt'] ?? null;
+		if ($startRaw === null || $endRaw === null) {
+			return null;
+		}
+
+		try {
+			return [
+				new DateTimeImmutable((string)$startRaw, new DateTimeZone('UTC')),
+				new DateTimeImmutable((string)$endRaw, new DateTimeZone('UTC')),
+			];
+		} catch (\Exception) {
+			return null;
+		}
+	}//end blockRange()
+
+	/**
+	 * The slots that fit between a block's start and end, a buffer apart.
+	 *
+	 * @param array{0:DateTimeImmutable,1:DateTimeImmutable} $range   The block's start and end.
+	 * @param ConferenceSlotPattern                          $pattern The slot length and the buffer.
+	 *
+	 * @return array<int,array{startsAt:string,endsAt:string}> The slots, in order.
+	 */
+	private function slotsWithin(array $range, ConferenceSlotPattern $pattern): array {
+		$cursor = $range[0];
+		$slots  = [];
+		while (true) {
+			$slotEnd = $cursor->modify('+' . $pattern->durationMinutes . ' minutes');
+			if ($slotEnd > $range[1]) {
+				break;
+			}
+
+			$slots[] = $this->slotOf(start: $cursor, end: $slotEnd);
+			$cursor  = $slotEnd->modify('+' . $pattern->bufferMinutes . ' minutes');
+		}
+
+		return $slots;
+	}//end slotsWithin()
+
+	/**
+	 * One slot as written on the round.
+	 *
+	 * @param DateTimeImmutable $start The slot's start.
+	 * @param DateTimeImmutable $end   The slot's end.
+	 *
+	 * @return array{startsAt:string,endsAt:string} The slot.
+	 */
+	private function slotOf(DateTimeImmutable $start, DateTimeImmutable $end): array {
+		return [
+			'startsAt' => $start->format(DATE_ATOM),
+			'endsAt' => $end->format(DATE_ATOM),
+		];
+	}//end slotOf()
 
 	/**
 	 * Whether a candidate overlaps any interval (half open).
@@ -104,20 +158,46 @@ class ConferenceSlotSlicer {
 	 * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
 	 */
 	public function overlaps(array $candidate, array $intervals): bool {
-		$start = strtotime($candidate['startsAt']);
-		$end = strtotime($candidate['endsAt']);
+		$own = $this->bounds(interval: $candidate);
 		foreach ($intervals as $interval) {
-			$otherStart = strtotime($interval['startsAt']);
-			$otherEnd = strtotime($interval['endsAt']);
-			if ($start === false || $end === false || $otherStart === false || $otherEnd === false) {
-				continue;
-			}
-
-			if ($start < $otherEnd && $otherStart < $end) {
+			if ($this->intersects(own: $own, other: $this->bounds(interval: $interval)) === true) {
 				return true;
 			}
 		}
 
 		return false;
 	}//end overlaps()
+
+	/**
+	 * An interval's start and end as Unix times, or [] when either is unreadable.
+	 *
+	 * @param array{startsAt: string, endsAt: string} $interval The interval.
+	 *
+	 * @return array{0:int,1:int}|array{} Start and end, or [].
+	 */
+	private function bounds(array $interval): array {
+		$start = strtotime($interval['startsAt']);
+		$end   = strtotime($interval['endsAt']);
+		if ($start === false || $end === false) {
+			return [];
+		}
+
+		return [$start, $end];
+	}//end bounds()
+
+	/**
+	 * Whether two readable intervals overlap (half open); an unreadable one overlaps nothing.
+	 *
+	 * @param array{0:int,1:int}|array{} $own   The candidate's bounds, or [] when unreadable.
+	 * @param array{0:int,1:int}|array{} $other The held interval's bounds, or [] when unreadable.
+	 *
+	 * @return bool
+	 */
+	private function intersects(array $own, array $other): bool {
+		if ($own === [] || $other === []) {
+			return false;
+		}
+
+		return $own[0] < $other[1] && $other[0] < $own[1];
+	}//end intersects()
 }//end class
