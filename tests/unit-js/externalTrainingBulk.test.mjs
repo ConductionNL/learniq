@@ -109,3 +109,53 @@ test('missing fields are named before anything is posted', () => {
 		[],
 	)
 })
+
+test('the payload defaults the kind, keeps a validity date and skips a learner without a tenant', () => {
+	const payload = buildBulkPayload({
+		learners: [{ id: 'a' }, { id: '' }, { id: 'b', tenant_id: 't2' }],
+		training: {
+			title: 'VCA',
+			completedAt: '2026-09-01',
+			validUntil: '2028-09-01',
+			evidenceNote: ' certificate 12 ',
+		},
+	})
+	assert.deepEqual(payload, {
+		learnerIds: ['a', 'b'],
+		training: {
+			title: 'VCA',
+			provider: '',
+			kind: 'classroom',
+			completedAt: '2026-09-01T00:00:00.000Z',
+			validUntil: '2028-09-01T00:00:00.000Z',
+			evidenceNote: 'certificate 12',
+			tenant_id: 't2',
+		},
+	})
+	assert.deepEqual(Object.keys(payload.training), [
+		'title',
+		'provider',
+		'kind',
+		'completedAt',
+		'validUntil',
+		'evidenceNote',
+		'tenant_id',
+	])
+	assert.deepEqual(buildBulkPayload({ learners: null, training: { kind: 'online', completedAt: 'nope' } }), {
+		learnerIds: [],
+		training: { title: '', provider: '', kind: 'online', completedAt: '' },
+	})
+})
+
+test('missing fields treat a missing form and blank text as missing', () => {
+	assert.deepEqual(bulkMissingFields({ learners: 'a', training: null }), [
+		'learners',
+		'title',
+		'provider',
+		'completedAt',
+	])
+	assert.deepEqual(
+		bulkMissingFields({ learners: [{ id: 'a' }], training: { title: '  ', provider: 0, completedAt: 'x' } }),
+		['title'],
+	)
+})
