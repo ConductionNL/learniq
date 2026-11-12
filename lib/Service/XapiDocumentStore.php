@@ -37,6 +37,7 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use OCA\Learniq\Exception\XapiRequestException;
+use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Http;
 use Throwable;
@@ -91,6 +92,13 @@ class XapiDocumentStore {
 	private const MAX_LIST = 500;
 
 	/**
+	 * Turns one OpenRegister result into a plain array.
+	 *
+	 * @var ObjectRow
+	 */
+	private readonly ObjectRow $objectRow;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService     $objectService OpenRegister object access.
@@ -102,6 +110,7 @@ class XapiDocumentStore {
 		private readonly CallerTenantResolver $tenants,
 		private readonly XapiDocumentCodec $codec,
 	) {
+		$this->objectRow = new ObjectRow();
 	}//end __construct()
 
 	/**
@@ -456,15 +465,7 @@ class XapiDocumentStore {
 	 * @return array<string, mixed> The serialized object data.
 	 */
 	private function toArray(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-			return (array)$row->jsonSerialize();
-		}
-
-		return [];
+		return $this->objectRow->asArray(object: $row);
 	}//end toArray()
 
 	/**
