@@ -115,41 +115,74 @@ class AttestationSigningGuard implements LifecycleGuardInterface {
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
-		$learnerId = (string)($object['learnerId'] ?? '');
-		$lessonId = (string)($object['lessonId'] ?? '');
-		$tenantId = (string)($object['tenant_id'] ?? '');
+		$refusal = ($this->identifierRefusal(attestation: $object)
+			?? $this->completionRefusal(attestation: $object)
+			?? $this->missingKeyRefusal(tenantId: (string)($object['tenant_id'] ?? '')));
 
-		if ($learnerId === '' || $lessonId === '') {
-			$this->logger->warning(
-				'AttestationSigningGuard: missing learnerId or lessonId',
-				['object' => $object]
-			);
-			return GuardResult::deny('The attestation names no learner or no lesson, so it can not be signed.');
-		}
-
-		// Verify cmi5.completed (or cmi5.passed) XapiStatement exists.
-		if ($this->xapiCompletionExists(learnerId: $learnerId, lessonId: $lessonId, tenantId: $tenantId) === false) {
-			$this->logger->info(
-				'AttestationSigningGuard: no completion statement found',
-				['learnerId' => $learnerId, 'lessonId' => $lessonId]
-			);
-			return GuardResult::deny('The learner has not completed this lesson yet, so the attestation can not be signed.');
-		}
-
-		// Per spec: if the HMAC key is unavailable the attestation MUST fail.
-		if ($this->tenantKeyService->getCurrentTenantKey($tenantId) === '') {
-			$this->logger->error(
-				'AttestationSigningGuard: OR tenant key unavailable; refusing to sign without HMAC key',
-				['tenantId' => $tenantId]
-			);
-			return GuardResult::deny('No signing key is available for this organisation, so the attestation can not be signed.');
-		}
-
-		return GuardResult::allow();
+		return ($refusal ?? GuardResult::allow());
 	}//end check()
 
 	/**
-	 * Query OR for a completed or passed XapiStatement for the given pair.
+	 * The refusal of an attestation that names no learner or no lesson, or null.
+	 *
+	 * @param array<string,mixed> $attestation The Attestation as it would be saved.
+	 *
+	 * @return GuardResult|null
+	 */
+	private function identifierRefusal(array $attestation): ?GuardResult {
+		if ((string)($attestation['learnerId'] ?? '') !== '' && (string)($attestation['lessonId'] ?? '') !== '') {
+			return null;
+		}
+
+		$this->logger->warning(
+			'AttestationSigningGuard: missing learnerId or lessonId',
+			['object' => $attestation]
+		);
+		return GuardResult::deny('The attestation names no learner or no lesson, so it can not be signed.');
+	}//end identifierRefusal()
+
+	/**
+	 * The refusal of an attestation whose learner has no cmi5.completed (or
+	 * cmi5.passed) XapiStatement for the lesson, or null.
+	 *
+	 * @param array<string,mixed> $attestation The Attestation as it would be saved.
+	 *
+	 * @return GuardResult|null
+	 */
+	private function completionRefusal(array $attestation): ?GuardResult {
+		if ($this->xapiCompletionExists(attestation: $attestation) === true) {
+			return null;
+		}
+
+		$this->logger->info(
+			'AttestationSigningGuard: no completion statement found',
+			['learnerId' => (string)($attestation['learnerId'] ?? ''), 'lessonId' => (string)($attestation['lessonId'] ?? '')]
+		);
+		return GuardResult::deny('The learner has not completed this lesson yet, so the attestation can not be signed.');
+	}//end completionRefusal()
+
+	/**
+	 * The refusal when the organisation has no signing key, or null. Per spec:
+	 * if the HMAC key is unavailable the attestation MUST fail.
+	 *
+	 * @param string $tenantId The attestation's tenant.
+	 *
+	 * @return GuardResult|null
+	 */
+	private function missingKeyRefusal(string $tenantId): ?GuardResult {
+		if ($this->tenantKeyService->getCurrentTenantKey($tenantId) !== '') {
+			return null;
+		}
+
+		$this->logger->error(
+			'AttestationSigningGuard: OR tenant key unavailable; refusing to sign without HMAC key',
+			['tenantId' => $tenantId]
+		);
+		return GuardResult::deny('No signing key is available for this organisation, so the attestation can not be signed.');
+	}//end missingKeyRefusal()
+
+	/**
+	 * Query OR for a completed or passed XapiStatement for the attestation's learner and lesson.
 	 *
 	 * The read filters only on declared XapiStatement fields: the stamped
 	 * `lessonId` and the server-trusted `verified_actor_id` (C6). The verb is
@@ -159,29 +192,17 @@ class AttestationSigningGuard implements LifecycleGuardInterface {
 	 * The query is always scoped to the tenant so that a crafted xAPI statement
 	 * in another tenant cannot satisfy this guard. Fixes #178.
 	 *
-	 * @param string $learnerId Learner identifier.
-	 * @param string $lessonId Lesson UUID.
-	 * @param string $tenantId Tenant ID to scope the query. Fixes #178.
+	 * @param array<string,mixed> $attestation The Attestation: its learner, lesson and tenant.
 	 *
 	 * @return bool True when at least one matching statement exists.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-12
 	 */
-	private function xapiCompletionExists(string $learnerId, string $lessonId, string $tenantId): bool {
-		$filters = [
-			'verified_actor_id' => $learnerId,
-			'lessonId' => $lessonId,
-		];
-
-		// #178: always scope to tenant_id to prevent cross-tenant forgery.
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
+	private function xapiCompletionExists(array $attestation): bool {
 		$results = $this->objectService->findAll(
 			[
 				'filters' => array_merge(
-					$filters,
+					$this->statementFilters(attestation: $attestation),
 					[
 						'register' => 'learniq',
 						'schema' => 'xapi-statement',
@@ -191,6 +212,39 @@ class AttestationSigningGuard implements LifecycleGuardInterface {
 			]
 		);
 
+		return $this->anyCompletion(results: $results);
+	}//end xapiCompletionExists()
+
+	/**
+	 * The statement filters: the learner, the lesson and, when set, the tenant.
+	 *
+	 * @param array<string,mixed> $attestation The Attestation.
+	 *
+	 * @return array<string, string>
+	 */
+	private function statementFilters(array $attestation): array {
+		$tenantId = (string)($attestation['tenant_id'] ?? '');
+		$filters = [
+			'verified_actor_id' => (string)($attestation['learnerId'] ?? ''),
+			'lessonId' => (string)($attestation['lessonId'] ?? ''),
+		];
+
+		// #178: always scope to tenant_id to prevent cross-tenant forgery.
+		if ($tenantId !== '') {
+			$filters['tenant_id'] = $tenantId;
+		}
+
+		return $filters;
+	}//end statementFilters()
+
+	/**
+	 * Whether any found statement has a completion verb.
+	 *
+	 * @param array<int, mixed> $results What findAll() answered.
+	 *
+	 * @return bool
+	 */
+	private function anyCompletion(array $results): bool {
 		foreach ($results as $row) {
 			if (is_array($row) === false) {
 				$row = $row->jsonSerialize();
@@ -202,5 +256,5 @@ class AttestationSigningGuard implements LifecycleGuardInterface {
 		}
 
 		return false;
-	}//end xapiCompletionExists()
+	}//end anyCompletion()
 }//end class
