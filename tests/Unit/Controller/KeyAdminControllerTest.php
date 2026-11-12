@@ -69,6 +69,20 @@ class KeyAdminControllerTest extends TestCase {
 	private array $events = [];
 
 	/**
+	 * The tenant the signed-in admin is bound to; '' for a super-admin.
+	 *
+	 * @var string
+	 */
+	private string $boundTenant = self::TENANT;
+
+	/**
+	 * Whether nobody is signed in.
+	 *
+	 * @var boolean
+	 */
+	private bool $anonymous = false;
+
+	/**
 	 * Reset the in-memory stores.
 	 *
 	 * @return void
@@ -78,6 +92,8 @@ class KeyAdminControllerTest extends TestCase {
 		$this->appValues = [];
 		$this->privateKeys = [];
 		$this->events = [];
+		$this->boundTenant = self::TENANT;
+		$this->anonymous = false;
 	}//end setUp()
 
 	/**
@@ -318,13 +334,13 @@ class KeyAdminControllerTest extends TestCase {
 
 		$config = $this->createMock(IConfig::class);
 		$config->method('getUserValue')->willReturnCallback(
-			static fn (string $userId, string $appName, string $key, mixed $default = ''): mixed => ($key === 'tenant_id' ? self::TENANT : $default)
+			fn (string $userId, string $appName, string $key, mixed $default = ''): mixed => ($key === 'tenant_id' ? $this->boundTenant : $default)
 		);
 
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('admin');
 		$userSession = $this->createMock(IUserSession::class);
-		$userSession->method('getUser')->willReturn($user);
+		$userSession->method('getUser')->willReturn($this->anonymous === true ? null : $user);
 
 		$tenants = $this->createMock(CallerTenantResolver::class);
 		$tenants->method('resolve')->willReturn(self::TENANT);
@@ -346,4 +362,129 @@ class KeyAdminControllerTest extends TestCase {
 			dispatcher: $dispatcher,
 		);
 	}//end controller()
+
+	/**
+	 * The Cache-Control header a no-cache answer carries.
+	 *
+	 * @return string
+	 */
+	private static function noCache(): string {
+		$response = new JSONResponse([]);
+		$response->cacheFor(0);
+
+		return self::cacheControl(response: $response);
+	}//end noCache()
+
+	/**
+	 * The Cache-Control header a response set, read without the server's
+	 * default headers (which need a running Nextcloud).
+	 *
+	 * @param JSONResponse $response The response.
+	 *
+	 * @return string|null
+	 */
+	private static function cacheControl(JSONResponse $response): ?string {
+		$headers = (new \ReflectionProperty(\OCP\AppFramework\Http\Response::class, 'headers'))->getValue($response);
+
+		return ($headers['Cache-Control'] ?? null);
+	}//end cacheControl()
+
+	/**
+	 * Every generateKey answer names its reason exactly and is never cached.
+	 *
+	 * @return void
+	 */
+	public function testEveryGenerateKeyAnswerIsExactAndNeverCached(): void {
+		$answers = [];
+		$answers[] = [$this->controller(params: [])->generateKey(), 400, ['error' => 'tenantId is required']];
+		$answers[] = [$this->controller(params: ['tenantId' => 'tenant-b'])->generateKey(), 403, ['error' => 'tenantId does not match your bound tenant']];
+		$created   = $this->controller(params: ['tenantId' => self::TENANT])->generateKey();
+		$answers[] = [$created, 201, $created->getData()];
+		$answers[] = [
+			$this->controller(params: ['tenantId' => self::TENANT])->generateKey(),
+			400,
+			['error' => 'Key rotation requires confirm=true. This will invalidate the current signing key.'],
+		];
+		$answers[] = [
+			$this->controller(params: ['tenantId' => self::TENANT, 'confirm' => 'true'])->generateKey(),
+			429,
+			['error' => 'Key rotation throttled. Next rotation allowed in approximately 24 hour(s).'],
+		];
+
+		foreach ($answers as [$response, $status, $data]) {
+			self::assertSame($status, $response->getStatus());
+			self::assertSame($data, $response->getData());
+			self::assertSame(self::noCache(), self::cacheControl(response: $response));
+		}
+
+		self::assertEqualsWithDelta(time(), (int)$this->appValues['keygen.last_at.' . self::TENANT], 5);
+	}//end testEveryGenerateKeyAnswerIsExactAndNeverCached()
+
+	/**
+	 * ALLOWED: a super-admin with no bound tenant may generate any tenant's key.
+	 *
+	 * @return void
+	 */
+	public function testASuperAdminMayGenerateAnyTenantsKey(): void {
+		$this->boundTenant = '';
+
+		self::assertSame(Http::STATUS_CREATED, $this->controller(params: ['tenantId' => 'tenant-b'])->generateKey()->getStatus());
+	}//end testASuperAdminMayGenerateAnyTenantsKey()
+
+	/**
+	 * A failed generation answers 500 with the reason, never cached, and records nothing.
+	 *
+	 * @return void
+	 */
+	public function testAFailedGenerationIsA500WithTheReason(): void {
+		$keys = $this->createMock(KeyManagementService::class);
+		$keys->method('getTenantKeyStatus')->willReturn(null);
+		$keys->method('generateTenantKeypair')->willThrowException(new \RuntimeException('no openssl'));
+
+		foreach ([$this->controller(params: ['tenantId' => self::TENANT], keys: $keys)->generateKey(), $this->controller(params: [], keys: $keys)->rotateSigningKey()] as $response) {
+			self::assertSame(500, $response->getStatus());
+			self::assertSame(['error' => 'no openssl'], $response->getData());
+			self::assertSame(self::noCache(), self::cacheControl(response: $response));
+		}
+
+		self::assertSame([], $this->appValues);
+		self::assertSame([], $this->events);
+	}//end testAFailedGenerationIsA500WithTheReason()
+
+	/**
+	 * Every rotateSigningKey answer is exact and never cached, and the audit
+	 * event names the action, the actor, the tenant and the new fingerprint.
+	 *
+	 * @return void
+	 */
+	public function testEveryRotateSigningKeyAnswerIsExactAndAudited(): void {
+		$created = $this->controller(params: [])->rotateSigningKey();
+		$fingerprint = ((array)$created->getData())['fingerprint'];
+		self::assertSame(['fingerprint' => $fingerprint, 'rotated' => false], $created->getData());
+		self::assertSame(self::noCache(), self::cacheControl(response: $created));
+		self::assertSame('Credential signing key %s by "%s" for tenant "%s", new fingerprint "%s"', $this->events[0]->getLogMessage());
+		self::assertSame(['action' => 'generated', 'actor' => 'admin', 'tenantId' => self::TENANT, 'fingerprint' => $fingerprint], $this->events[0]->getParameters());
+
+		$refused = $this->controller(params: [])->rotateSigningKey();
+		self::assertSame([400, ['error' => 'Key rotation requires confirm=true.']], [$refused->getStatus(), $refused->getData()]);
+		self::assertSame(self::noCache(), self::cacheControl(response: $refused));
+
+		$throttled = $this->controller(params: ['confirm' => 'true'])->rotateSigningKey();
+		self::assertSame([429, ['error' => 'Key rotation throttled. Next rotation allowed in approximately 24 hour(s).']], [$throttled->getStatus(), $throttled->getData()]);
+		self::assertSame(self::noCache(), self::cacheControl(response: $throttled));
+	}//end testEveryRotateSigningKeyAnswerIsExactAndAudited()
+
+	/**
+	 * Without a signed-in user the default tenant gets the key and the actor is "unknown".
+	 *
+	 * @return void
+	 */
+	public function testAnAnonymousRotationIsAuditedAsUnknown(): void {
+		$this->anonymous = true;
+
+		$this->controller(params: [])->rotateSigningKey();
+
+		self::assertSame('unknown', $this->events[0]->getParameters()['actor']);
+		self::assertSame(CallerTenantResolver::DEFAULT_TENANT, $this->events[0]->getParameters()['tenantId']);
+	}//end testAnAnonymousRotationIsAuditedAsUnknown()
 }//end class

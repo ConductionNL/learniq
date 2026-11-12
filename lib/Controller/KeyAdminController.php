@@ -42,7 +42,6 @@ use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IRequest;
 use OCP\IUserSession;
-use OCP\Log\Audit\CriticalActionPerformedEvent;
 use RuntimeException;
 
 /**
@@ -109,66 +108,83 @@ class KeyAdminController extends Controller {
 	#[AuthorizedAdminSetting(AdminSettings::class)]
 	public function generateKey(): JSONResponse {
 		$tenantId = $this->request->getParam('tenantId', '');
+		$refusal  = $this->tenantRefusal(tenantId: $tenantId);
+		if ($refusal === null && $this->keyManagementService->getTenantKeyStatus(tenantId: $tenantId) !== null) {
+			// This is a rotation — require explicit confirmation + throttle.
+			$refusal = $this->rotationRefusal(
+				tenantId: $tenantId,
+				confirmError: 'Key rotation requires confirm=true. This will invalidate the current signing key.'
+			);
+		}
 
+		if ($refusal !== null) {
+			return $refusal;
+		}
+
+		return $this->generate(tenantId: $tenantId);
+	}//end generateKey()
+
+	/**
+	 * Refuse a missing tenant id, or one other than the caller's bound tenant.
+	 *
+	 * @param mixed $tenantId The requested tenant id.
+	 *
+	 * @return JSONResponse|null The refusal, or null when the tenant may be keyed.
+	 */
+	private function tenantRefusal(mixed $tenantId): ?JSONResponse {
 		if ($tenantId === '') {
-			$response = new JSONResponse(['error' => 'tenantId is required'], 400);
-			$response->cacheFor(0);
-			return $response;
+			return $this->noCache(response: new JSONResponse(['error' => 'tenantId is required'], 400));
 		}
 
 		// C2: resolve caller's bound tenant server-side and enforce it.
 		$callerTenantId = $this->resolveCallerTenant();
 		if ($callerTenantId !== null && $callerTenantId !== $tenantId) {
-			$response = new JSONResponse(
-				['error' => 'tenantId does not match your bound tenant'],
-				403
-			);
-			$response->cacheFor(0);
-			return $response;
+			return $this->noCache(response: new JSONResponse(['error' => 'tenantId does not match your bound tenant'], 403));
 		}
 
-		$existingKey = $this->keyManagementService->getTenantKeyStatus(tenantId: $tenantId);
+		return null;
+	}//end tenantRefusal()
 
-		if ($existingKey !== null) {
-			// This is a rotation — require explicit confirmation + throttle.
-			$confirm = $this->request->getParam('confirm', '');
-			if ($confirm !== 'true') {
-				$response = new JSONResponse(
-					['error' => 'Key rotation requires confirm=true. This will invalidate the current signing key.'],
-					400
-				);
-				$response->cacheFor(0);
-				return $response;
-			}
-
-			// M4: 24-hour throttle on rotations.
-			$throttleError = $this->checkRotationThrottle(tenantId: $tenantId);
-			if ($throttleError !== null) {
-				$response = new JSONResponse(['error' => $throttleError], 429);
-				$response->cacheFor(0);
-				return $response;
-			}
+	/**
+	 * Refuse a rotation without confirm=true, or one inside the 24-hour throttle (M4).
+	 *
+	 * @param string $tenantId     Tenant UUID.
+	 * @param string $confirmError The error a missing confirmation answers with.
+	 *
+	 * @return JSONResponse|null The refusal, or null when the rotation may run.
+	 */
+	private function rotationRefusal(string $tenantId, string $confirmError): ?JSONResponse {
+		if ($this->request->getParam('confirm', '') !== 'true') {
+			return $this->noCache(response: new JSONResponse(['error' => $confirmError], 400));
 		}
 
+		$throttleError = $this->checkRotationThrottle(tenantId: $tenantId);
+		if ($throttleError !== null) {
+			return $this->noCache(response: new JSONResponse(['error' => $throttleError], 429));
+		}
+
+		return null;
+	}//end rotationRefusal()
+
+	/**
+	 * Generate the tenant's keypair and record when, for the next rotation's throttle.
+	 *
+	 * @param string $tenantId Tenant UUID.
+	 *
+	 * @return JSONResponse {fingerprint, publicKey} with 201; {error} with 500.
+	 */
+	private function generate(string $tenantId): JSONResponse {
 		try {
 			$result = $this->keyManagementService->generateTenantKeypair(tenantId: $tenantId);
 
 			// Record the timestamp for throttle enforcement on the next rotation.
-			$this->appConfig->setValueString(
-				app: 'learniq',
-				key: self::KEYGEN_LAST_AT_PREFIX . $tenantId,
-				value: (string)time()
-			);
+			$this->recordKeygen(tenantId: $tenantId);
 
-			$response = new JSONResponse($result, 201);
-			$response->cacheFor(0);
-			return $response;
+			return $this->noCache(response: new JSONResponse($result, 201));
 		} catch (\RuntimeException $e) {
-			$response = new JSONResponse(['error' => $e->getMessage()], 500);
-			$response->cacheFor(0);
-			return $response;
+			return $this->noCache(response: new JSONResponse(['error' => $e->getMessage()], 500));
 		}
-	}//end generateKey()
+	}//end generate()
 
 	/**
 	 * Return the public key status (fingerprint + public key PEM) for a tenant.
@@ -238,59 +254,83 @@ class KeyAdminController extends Controller {
 	#[AuthorizedAdminSetting(AdminSettings::class)]
 	public function rotateSigningKey(): JSONResponse {
 		$tenantId = $this->callerTenantOrDefault();
-		$rotated = $this->keyManagementService->getTenantKeyStatus(tenantId: $tenantId) !== null;
+		$rotated  = $this->keyManagementService->getTenantKeyStatus(tenantId: $tenantId) !== null;
 
 		if ($rotated === true) {
-			if ($this->request->getParam('confirm', '') !== 'true') {
-				$response = new JSONResponse(['error' => 'Key rotation requires confirm=true.'], 400);
-				$response->cacheFor(0);
-				return $response;
-			}
-
-			$throttleError = $this->checkRotationThrottle(tenantId: $tenantId);
-			if ($throttleError !== null) {
-				$response = new JSONResponse(['error' => $throttleError], 429);
-				$response->cacheFor(0);
-				return $response;
+			$refusal = $this->rotationRefusal(tenantId: $tenantId, confirmError: 'Key rotation requires confirm=true.');
+			if ($refusal !== null) {
+				return $refusal;
 			}
 		}
 
+		$change           = new SigningKeyChange();
+		$change->tenantId = $tenantId;
+		$change->rotated  = $rotated;
+
+		return $this->changeSigningKey(change: $change);
+	}//end rotateSigningKey()
+
+	/**
+	 * Generate the new signing key, record when, and write the change to the audit log.
+	 *
+	 * @param SigningKeyChange $change The tenant and whether this replaces a key.
+	 *
+	 * @return JSONResponse {fingerprint, rotated} with 201; {error} with 500.
+	 */
+	private function changeSigningKey(SigningKeyChange $change): JSONResponse {
 		try {
-			$result = $this->keyManagementService->generateTenantKeypair(tenantId: $tenantId);
+			$result = $this->keyManagementService->generateTenantKeypair(tenantId: $change->tenantId);
 		} catch (RuntimeException $e) {
-			$response = new JSONResponse(['error' => $e->getMessage()], 500);
-			$response->cacheFor(0);
-			return $response;
+			return $this->noCache(response: new JSONResponse(['error' => $e->getMessage()], 500));
 		}
 
+		$this->recordKeygen(tenantId: $change->tenantId);
+
+		$change->fingerprint = $result['fingerprint'];
+		$this->auditSigningKeyChange(change: $change);
+
+		return $this->noCache(response: new JSONResponse(['fingerprint' => $result['fingerprint'], 'rotated' => $change->rotated], 201));
+	}//end changeSigningKey()
+
+	/**
+	 * Write a signing-key change to the admin audit log.
+	 *
+	 * @param SigningKeyChange $change The change, with its new fingerprint.
+	 *
+	 * @return void
+	 */
+	private function auditSigningKeyChange(SigningKeyChange $change): void {
+		$actor = $this->userSession->getUser()?->getUID() ?? 'unknown';
+
+		$this->dispatcher->dispatchTyped($change->auditEvent(actor: $actor));
+	}//end auditSigningKeyChange()
+
+	/**
+	 * Record when the tenant's key was generated, for the rotation throttle.
+	 *
+	 * @param string $tenantId Tenant UUID.
+	 *
+	 * @return void
+	 */
+	private function recordKeygen(string $tenantId): void {
 		$this->appConfig->setValueString(
 			app: 'learniq',
 			key: self::KEYGEN_LAST_AT_PREFIX . $tenantId,
 			value: (string)time()
 		);
+	}//end recordKeygen()
 
-		$actor = $this->userSession->getUser()?->getUID() ?? 'unknown';
-		$action = 'generated';
-		if ($rotated === true) {
-			$action = 'rotated';
-		}
-
-		$this->dispatcher->dispatchTyped(
-			new CriticalActionPerformedEvent(
-				'Credential signing key %s by "%s" for tenant "%s", new fingerprint "%s"',
-				[
-					'action' => $action,
-					'actor' => $actor,
-					'tenantId' => $tenantId,
-					'fingerprint' => $result['fingerprint'],
-				]
-			)
-		);
-
-		$response = new JSONResponse(['fingerprint' => $result['fingerprint'], 'rotated' => $rotated], 201);
+	/**
+	 * Mark an answer as never cached (L4), so clients always re-fetch key status.
+	 *
+	 * @param JSONResponse $response The answer.
+	 *
+	 * @return JSONResponse The same answer.
+	 */
+	private function noCache(JSONResponse $response): JSONResponse {
 		$response->cacheFor(0);
 		return $response;
-	}//end rotateSigningKey()
+	}//end noCache()
 
 	/**
 	 * The caller's tenant: the per-user binding, else the default tenant.
