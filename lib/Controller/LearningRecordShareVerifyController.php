@@ -166,40 +166,108 @@ class LearningRecordShareVerifyController extends Controller {
 			return new JSONResponse(['valid' => false, 'reason' => 'not_found'], 404);
 		}
 
-		$lifecycle = $share['lifecycle'] ?? '';
-		if ($lifecycle === 'revoked') {
-			return new JSONResponse(['valid' => false, 'reason' => 'revoked'], 200);
-		}
-
-		if (($share['isExpired'] ?? false) === true) {
-			return new JSONResponse(['valid' => false, 'reason' => 'expired'], 200);
-		}
-
-		$exportId = $share['learningRecordExportId'] ?? '';
-		$export = null;
-		if ($exportId !== '') {
-			$export = $this->fetchObject(id: (string)$exportId, schema: self::EXPORT_SCHEMA);
-		}
-
-		if ($export === null) {
-			return new JSONResponse(['valid' => false, 'reason' => 'export_not_found'], 200);
-		}
-
-		$bundle = $this->readBundle(export: $export);
-		if ($bundle === null) {
-			return new JSONResponse(['valid' => false, 'reason' => 'bundle_unreadable'], 200);
-		}
-
-		$jws = (string)($export['bundleSignature'] ?? '');
-		$tenantId = (string)($export['tenant_id'] ?? '');
-		if ($jws === '' || $this->signingService->verify(jws: $jws, bundle: $bundle, tenantId: $tenantId) === false) {
-			return new JSONResponse(['valid' => false, 'reason' => 'signature_invalid'], 200);
+		$verification = $this->verifyShare(share: $share);
+		if ($verification->reason !== null) {
+			return new JSONResponse(['valid' => false, 'reason' => $verification->reason], 200);
 		}
 
 		$this->stampAccess(share: $share);
 
-		return new JSONResponse(['valid' => true, 'bundle' => $bundle], 200);
+		return new JSONResponse(['valid' => true, 'bundle' => $verification->bundle], 200);
 	}//end verify()
+
+	/**
+	 * Verify a found share: not revoked, not expired, its export found, and
+	 * the export's bundle readable and correctly signed.
+	 *
+	 * @param array<string,mixed> $share The LearningRecordShare data array.
+	 *
+	 * @return ShareVerification The refusal reason, or the bundle.
+	 */
+	private function verifyShare(array $share): ShareVerification {
+		$refusal = $this->shareStateRefusal(share: $share);
+		if ($refusal !== null) {
+			return new ShareVerification(reason: $refusal);
+		}
+
+		$export = $this->exportOf(share: $share);
+		if ($export === null) {
+			return new ShareVerification(reason: 'export_not_found');
+		}
+
+		return $this->verifyExport(export: $export);
+	}//end verifyShare()
+
+	/**
+	 * Why a share's own state refuses it: revoked, or expired even while its
+	 * lifecycle is still active; null when neither.
+	 *
+	 * @param array<string,mixed> $share The LearningRecordShare data array.
+	 *
+	 * @return string|null
+	 */
+	private function shareStateRefusal(array $share): ?string {
+		if (($share['lifecycle'] ?? '') === 'revoked') {
+			return 'revoked';
+		}
+
+		if (($share['isExpired'] ?? false) === true) {
+			return 'expired';
+		}
+
+		return null;
+	}//end shareStateRefusal()
+
+	/**
+	 * The LearningRecordExport a share points at, or null.
+	 *
+	 * @param array<string,mixed> $share The LearningRecordShare data array.
+	 *
+	 * @return array<string,mixed>|null
+	 */
+	private function exportOf(array $share): ?array {
+		$exportId = $share['learningRecordExportId'] ?? '';
+		if ($exportId === '') {
+			return null;
+		}
+
+		return $this->fetchObject(id: (string)$exportId, schema: self::EXPORT_SCHEMA);
+	}//end exportOf()
+
+	/**
+	 * Verify an export: its bundle readable and signed by its JWS for its tenant.
+	 *
+	 * @param array<string,mixed> $export The LearningRecordExport data array.
+	 *
+	 * @return ShareVerification The refusal reason, or the bundle.
+	 */
+	private function verifyExport(array $export): ShareVerification {
+		$bundle = $this->readBundle(export: $export);
+		if ($bundle === null) {
+			return new ShareVerification(reason: 'bundle_unreadable');
+		}
+
+		if ($this->isSigned(export: $export, bundle: $bundle) === false) {
+			return new ShareVerification(reason: 'signature_invalid');
+		}
+
+		return new ShareVerification(reason: null, bundle: $bundle);
+	}//end verifyExport()
+
+	/**
+	 * Whether the export carries a JWS that signs this bundle for its tenant.
+	 *
+	 * @param array<string,mixed> $export The LearningRecordExport data array.
+	 * @param array<string,mixed> $bundle The decoded bundle.
+	 *
+	 * @return bool
+	 */
+	private function isSigned(array $export, array $bundle): bool {
+		$jws = (string)($export['bundleSignature'] ?? '');
+		$tenantId = (string)($export['tenant_id'] ?? '');
+
+		return $jws !== '' && $this->signingService->verify(jws: $jws, bundle: $bundle, tenantId: $tenantId) === true;
+	}//end isSigned()
 
 	/**
 	 * Read and decode the signed bundle file referenced by a
@@ -217,23 +285,36 @@ class LearningRecordShareVerifyController extends Controller {
 		}
 
 		try {
-			$userFolder = $this->rootFolder->getUserFolder($ownerUid);
-			$node = $userFolder->get(ltrim($bundleRef, '/'));
-			if (($node instanceof File) === false) {
-				return null;
-			}
-
-			$decoded = json_decode($node->getContent(), associative: true);
-
-			if (is_array($decoded) === true) {
-				return $decoded;
-			}
-
-			return null;
+			return $this->decodedFile(ownerUid: $ownerUid, path: ltrim($bundleRef, '/'));
 		} catch (\Throwable) {
 			return null;
 		}
 	}//end readBundle()
+
+	/**
+	 * A user's JSON file decoded to an array, or null when the path is not a
+	 * file or does not hold a JSON object or list.
+	 *
+	 * @param string $ownerUid The owner.
+	 * @param string $path     The path in the owner's folder.
+	 *
+	 * @return array<string,mixed>|null
+	 *
+	 * @throws \Throwable When the folder or file cannot be read.
+	 */
+	private function decodedFile(string $ownerUid, string $path): ?array {
+		$node = $this->rootFolder->getUserFolder($ownerUid)->get($path);
+		if (($node instanceof File) === false) {
+			return null;
+		}
+
+		$decoded = json_decode($node->getContent(), associative: true);
+		if (is_array($decoded) === true) {
+			return $decoded;
+		}
+
+		return null;
+	}//end decodedFile()
 
 	/**
 	 * Stamp `lastAccessedAt`/`accessCount` on a successful verification.
