@@ -32,6 +32,7 @@
     "check:specs": "npm run check:json-strict && npm run check:manifest && npm run check:board-detail && npm run check:register && npm run check:menu-role-gates && npm run check:structure-profile && npm run check:attention && npm run check:l10n",
     "seed:e2e": "node tests/e2e/seed-example-data.mjs",
     "test:js-unit": "node --test tests/unit-js/*.test.mjs",
+    "test:coverage": "c8 --all --src src --include 'src/**/*.js' --reporter=json-summary --reporter=text-summary --reports-dir=coverage-js node --test tests/unit-js/*.test.mjs",
     "prepare": "git config core.hooksPath .githooks || true"
   },
   "browserslist": [
@@ -78,6 +79,7 @@
     "@nextcloud/webpack-vue-config": "^7.0.0",
     "@playwright/test": "^1.63.0",
     "@typescript-eslint/parser": "^8.70.0",
+    "c8": "^12.0.0",
     "css-loader": "~7.1.5",
     "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.1.8",

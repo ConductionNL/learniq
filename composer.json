@@ -66,7 +66,8 @@
         "coverage:publish": [
             "@putenv XDEBUG_MODE=coverage",
             "@php -d pcov.enabled=1 -d pcov.directory=lib -d memory_limit=2G vendor/bin/phpunit -c phpunit.xml --do-not-fail-on-risky --coverage-clover=coverage/clover.xml",
-            "@php scripts/coverage-publish.php"
+            "npm run test:coverage",
+            "@php scripts/coverage-publish.php --vitest=coverage-js/coverage-summary.json"
         ],
         "quality:score": [
             "@quality:phpcs-score",
