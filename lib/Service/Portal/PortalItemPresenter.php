@@ -150,6 +150,22 @@ class PortalItemPresenter {
 			return $title;
 		}
 
+		$text = $this->promptText(xpath: $xpath);
+		if ($text !== '') {
+			return $text;
+		}
+
+		return $title;
+	}//end prompt()
+
+	/**
+	 * The text of the first prompt element, else the item body's own text; '' when both are empty.
+	 *
+	 * @param DOMXPath $xpath The parsed body.
+	 *
+	 * @return string
+	 */
+	private function promptText(DOMXPath $xpath): string {
 		$prompt = ($this->elements(xpath: $xpath, names: self::PROMPT_ELEMENTS, context: null)[0] ?? null);
 		if ($prompt !== null) {
 			$text = $this->clean(text: (string)$prompt->textContent);
@@ -158,16 +174,24 @@ class PortalItemPresenter {
 			}
 		}
 
+		return $this->bodyText(xpath: $xpath);
+	}//end promptText()
+
+	/**
+	 * The item body's own text, without its interactions; '' without a body.
+	 *
+	 * @param DOMXPath $xpath The parsed body.
+	 *
+	 * @return string
+	 */
+	private function bodyText(DOMXPath $xpath): string {
 		$body = ($this->elements(xpath: $xpath, names: self::BODY_ELEMENTS, context: null)[0] ?? null);
-		if ($body !== null) {
-			$text = $this->clean(text: $this->ownText(node: $body));
-			if ($text !== '') {
-				return $text;
-			}
+		if ($body === null) {
+			return '';
 		}
 
-		return $title;
-	}//end prompt()
+		return $this->clean(text: $this->ownText(node: $body));
+	}//end bodyText()
 
 	/**
 	 * The text of a node, skipping interactions and their options.
@@ -277,6 +301,18 @@ class PortalItemPresenter {
 			$byId[$option['id']] = $option;
 		}
 
+		return self::inOrder(byId: $byId, order: $order);
+	}//end ordered()
+
+	/**
+	 * The options the order names, in that order, then the rest in their own order.
+	 *
+	 * @param array<string, array{id: string, label: string}> $byId  The options by id.
+	 * @param array<int, mixed>                               $order The drawn optionOrder.
+	 *
+	 * @return array<int, array{id: string, label: string}>
+	 */
+	private static function inOrder(array $byId, array $order): array {
 		$result = [];
 		foreach ($order as $id) {
 			if (is_string($id) === true && isset($byId[$id]) === true) {
@@ -286,7 +322,7 @@ class PortalItemPresenter {
 		}
 
 		return array_merge($result, array_values($byId));
-	}//end ordered()
+	}//end inOrder()
 
 	/**
 	 * Collapse whitespace and cap the length.
