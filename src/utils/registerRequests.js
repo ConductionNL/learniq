@@ -135,3 +135,22 @@ export async function readRequiredObject(url, failure) {
 	}
 	return read.object ?? {}
 }
+
+/**
+ * Create an object; a refusal throws.
+ *
+ * @param {string} url The collection's URL.
+ * @param {{body: object, failure: string}} request The payload and the message
+ *   a refusal throws (followed by the status).
+ * @return {Promise<object>} The created object, `{}` when the answer is empty.
+ * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
+ */
+export async function createdObject(url, request) {
+	const resp = await sendJsonOrThrow(url, {
+		method: 'POST',
+		body: request.body,
+		failure: request.failure,
+	})
+	const json = await resp.json()
+	return json.object ?? json ?? {}
+}
