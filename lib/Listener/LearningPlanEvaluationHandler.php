@@ -239,26 +239,13 @@ class LearningPlanEvaluationHandler implements IEventListener {
 	private function applyOutcomesToGoals(array $goals, array $outcomeMap): array {
 		$changed = false;
 
-		foreach ($goals as &$goal) {
-			$goalId = $goal['goalId'] ?? null;
-			if ($goalId === null) {
-				continue;
-			}
-
-			$outcome = ($outcomeMap[$goalId] ?? null);
-			if ($outcome === null || isset(self::OUTCOME_TO_STATUS[$outcome]) === false) {
-				// Unmentioned, or 'continued' — leave the status as-is.
-				continue;
-			}
-
-			$newStatus = self::OUTCOME_TO_STATUS[$outcome];
-			if (($goal['status'] ?? 'open') !== $newStatus) {
-				$goal['status'] = $newStatus;
+		foreach ($goals as $key => $goal) {
+			$newStatus = self::statusFor(goal: $goal, outcomeMap: $outcomeMap);
+			if ($newStatus !== null && ($goal['status'] ?? 'open') !== $newStatus) {
+				$goals[$key]['status'] = $newStatus;
 				$changed = true;
 			}
-		}//end foreach
-
-		unset($goal);
+		}
 
 		return [
 			'goals' => $goals,
@@ -266,4 +253,27 @@ class LearningPlanEvaluationHandler implements IEventListener {
 		];
 
 	}//end applyOutcomesToGoals()
+
+	/**
+	 * The status the recorded outcome gives a goal, or null when it gives none.
+	 *
+	 * @param mixed               $goal       One of the plan's goals.
+	 * @param array<string,mixed> $outcomeMap Map of goalId => outcome.
+	 *
+	 * @return string|null
+	 */
+	private static function statusFor(mixed $goal, array $outcomeMap): ?string {
+		$goalId = $goal['goalId'] ?? null;
+		if ($goalId === null) {
+			return null;
+		}
+
+		$outcome = ($outcomeMap[$goalId] ?? null);
+		if ($outcome === null || isset(self::OUTCOME_TO_STATUS[$outcome]) === false) {
+			// Unmentioned, or 'continued' — leave the status as-is.
+			return null;
+		}
+
+		return self::OUTCOME_TO_STATUS[$outcome];
+	}//end statusFor()
 }//end class
