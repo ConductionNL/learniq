@@ -706,3 +706,33 @@ The vo example set MUST hold a published course Biologie leerjaar 3 havo/vwo wit
 - **AND** her timetable for the week of the load shows Frans cancelled and the mentor hour moved on the Wednesday
 - **AND** with `registry_url` set to `local` the store page lists three shared courses
 - @e2e exclude covered by PHPUnit `SecondarySchoolLessonAndStoreRecordsTest` and the generator check (`scripts/example-sets/vo.py --check`)
+
+### Requirement: The homes mark the lead photo, and Esdoornveen invites training companies with links
+
+The po, vo and mbo homes MUST mark where the lead news photo goes with the board's words. Esdoornveen's home MUST offer training companies a card with the links "Inloggen als leerbedrijf" and "Leerbedrijf worden", not a second sign-in card.
+
+#### Scenario: Esdoornveen's home
+- **GIVEN** the mbo set loaded on a fresh instance
+- **WHEN** a visitor opens Esdoornveen's home
+- **THEN** one dark sign-in card shows (Mijn Esdoornveen), and "Voor leerbedrijven" is a light card with two links
+- @e2e exclude declaration covered by PHPUnit `ExamplePortalDeclarationsTest::testTheHomesMarkTheLeadPhotoAndInviteCompaniesWithLinks`
+
+### Requirement: The board checks run against any instance that loaded the sets
+
+The board checks in `tests/e2e/portal-design/` MUST run against an instance that loaded the four example sets, without edits. Admin requests MUST send their credentials without waiting for a challenge. A text check MUST pass only on a visible match. The sign-in step MUST use the Nextcloud sign-in button the portal declares. Signed-in pages MUST be opened at the route portaliq gives them (`/mijn/<app>/<page>`). With `PORTAL_DESIGN_EXTERNAL_STUB=1` a sign-in test MUST use the stub broker that already answers at the issuer instead of starting its own.
+
+#### Scenario: The suite runs on the proof instance as checked in
+- **GIVEN** an instance that loaded po, vo, mbo and training, with a long-lived DigiD stub at the issuer
+- **WHEN** the operator runs `PORTAL_DESIGN_EXTERNAL_STUB=1 npx playwright test -c tests/e2e/portal-design.config.ts`
+- **THEN** the admin calls are answered, the sign-in reaches the account pages, and every failure names the portal, not the test
+- @e2e exclude this requirement is about the e2e suite itself; it is checked by running `tests/e2e/portal-design/`
+
+### Requirement: A school's menu and search show what its board shows
+
+The vo portal MUST leave the BPV hours page (`learniq:studentHourWeeks`) out of its pupils' menu. The po portal's search MUST search its news.
+
+#### Scenario: Noor's menu
+- **GIVEN** Noor, a pupil at Vaartveld College
+- **WHEN** she opens Mijn Vaartveld
+- **THEN** her menu has no "BPV en uren"
+- @e2e exclude declaration covered by PHPUnit `ExamplePortalDeclarationsTest::testEverySchoolPortalLeavesOutTheCaseItems`

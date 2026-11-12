@@ -6,3 +6,5 @@
 - [x] **T4**: `/mijn/learniq/studentBpvPlacements`, `/mijn/learniq/studentHourWeeks`, `/mijn/learniq/employerBookings`
 - [x] **T5**: `startBroker()` honours `PORTAL_DESIGN_EXTERNAL_STUB=1` (wilgenboom DigiD, warmtepompacademie eHerkenning)
 - [ ] **T6**: live: the suite on the proof instance (:8092) with the external stub
+
+Archived on 12 Nov 2026 with the open task above: T6 is a live run of test tooling; the fixes are in (tests/e2e/portal-design/boards.ts).

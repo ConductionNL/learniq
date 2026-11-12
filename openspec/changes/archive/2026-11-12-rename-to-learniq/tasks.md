@@ -199,3 +199,5 @@ boundary resolves at runtime.
 
 - Both `nl_NL` and `en_US` product-framing strings updated (Task 9).
 - All 37 existing locale files retain their translations; only the product-name token changes (Task 8).
+
+Archived on 12 Nov 2026 with the open task above: the rename landed (appinfo/info.xml id learniq, ConductionNL/learniq); the App Store listing check is outside this repository.
