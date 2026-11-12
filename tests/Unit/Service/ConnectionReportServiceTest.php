@@ -452,4 +452,56 @@ class ConnectionReportServiceTest extends TestCase {
 		$stored = json_decode($this->config['learniq.connection_observation_lti'] ?? '{}', true);
 		$this->assertSame('unavailable', $stored['status'] ?? null);
 	}//end testTheLtiRowFollowsIntegriqsLaunchEvent()
+
+	/**
+	 * Every stored shape: only a JSON object with string status, reason and
+	 * since is reported, key by key in the declared order; a key whose send
+	 * fails is logged and the next key is still reported.
+	 *
+	 * @return void
+	 */
+	public function testEveryStoredShapeAndEveryKeyInOrder(): void {
+		$garbled = [
+			'',
+			'not json',
+			'"a string"',
+			'{"status":"error","reason":"r"}',
+			'{"status":"error","reason":7,"since":"s"}',
+			'{"status":["error"],"reason":"r","since":"s"}',
+			'{"reason":"r","since":"s"}',
+		];
+		foreach ($garbled as $stored) {
+			$this->config['learniq.'.self::WALLET_CONFIG_KEY] = $stored;
+			$this->sent = [];
+			$this->service()->reportObservations();
+			$this->assertSame(expected: [], actual: $this->sent, message: $stored);
+		}
+
+		foreach (ConnectionReportService::REPORTED_KEYS as $key) {
+			$this->config['learniq.'.ConnectionReportService::OBSERVATION_KEY_PREFIX.$key] = json_encode(['status' => 'configured', 'reason' => 'R '.$key.'.', 'since' => 'S', 'extra' => 1]);
+		}
+
+		$this->sent = [];
+		$dispatcher = $this->createMock(originalClassName: IEventDispatcher::class);
+		$dispatcher->method('dispatchTyped')->willReturnCallback(
+			function (Event $event): void {
+				if ($event->key === ConnectionReportService::REPORTED_KEYS[1]) {
+					throw new RuntimeException('listener down');
+				}
+
+				$this->sent[] = $event;
+			}
+		);
+		$this->logger->expects($this->once())->method('warning')->with(
+			'Learniq: could not send a connection report to integriq',
+			['key' => ConnectionReportService::REPORTED_KEYS[1], 'exception' => 'listener down']
+		);
+
+		$this->service(dispatcher: $dispatcher)->reportObservations();
+
+		$expected = ConnectionReportService::REPORTED_KEYS;
+		unset($expected[1]);
+		$this->assertSame(expected: array_values($expected), actual: array_map(static fn (Event $event): string => $event->key, $this->sent));
+		$this->assertSame(expected: 'R '.$expected[0].'. Unchanged since S UTC.', actual: $this->sent[0]->message);
+	}//end testEveryStoredShapeAndEveryKeyInOrder()
 }//end class
