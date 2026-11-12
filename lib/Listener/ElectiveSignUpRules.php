@@ -102,47 +102,76 @@ class ElectiveSignUpRules implements IEventListener {
 	 * @spec openspec/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
 	 */
 	public function handle(Event $event): void {
-		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {
+		if ($this->isWrite(event: $event) === false) {
 			return;
 		}
 
-		$entity = $this->signUpEntity(event: $event);
+		$write = new SignUpWrite(event: $event);
+		$entity = $this->signUpEntity(write: $write);
 		$user = $this->userSession->getUser();
 		if ($entity === null || $user === null) {
 			return;
 		}
 
 		$caller = $this->electives->caller(uid: $user->getUID(), groups: $this->groupManager->getUserGroupIds($user));
+		$refusal = $this->checkedRefusal(signUp: $this->signUpOf(entity: $entity), caller: $caller);
+		$write->settle(refusal: $refusal, caller: $caller);
+	}//end handle()
+
+	/**
+	 * Whether an event writes an object: creating or updating it.
+	 *
+	 * @param Event $event The event.
+	 *
+	 * @return bool
+	 *
+	 * @phpstan-assert-if-true ObjectCreatingEvent|ObjectUpdatingEvent $event
+	 */
+	private function isWrite(Event $event): bool {
+		return $event instanceof ObjectCreatingEvent || $event instanceof ObjectUpdatingEvent;
+	}//end isWrite()
+
+	/**
+	 * The sign-up as it would be written, with its id (or uuid) as `id`.
+	 *
+	 * @param object $entity The sign-up entity.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function signUpOf(object $entity): array {
 		$signUp = (array)$entity->jsonSerialize();
 		$signUp['id'] = (string)($signUp['id'] ?? ($entity->getUuid() ?? ''));
 
+		return $signUp;
+	}//end signUpOf()
+
+	/**
+	 * Why a sign-up may not be written, now; a check that fails refuses it
+	 * as unchecked and is logged.
+	 *
+	 * @param array<string, mixed>                                                     $signUp The sign-up as it would be written.
+	 * @param array{uid: string, admin: bool, staff: bool, integration: bool, via: string} $caller The writer.
+	 *
+	 * @return string|null
+	 */
+	private function checkedRefusal(array $signUp, array $caller): ?string {
 		try {
-			$refusal = $this->refusal(signUp: $signUp, caller: $caller, now: new DateTimeImmutable('now'));
+			return $this->refusal(signUp: $signUp, caller: $caller, now: new DateTimeImmutable('now'));
 		} catch (Throwable $exception) {
 			$this->logger->warning('[ElectiveSignUpRules] Check failed: {msg}', ['msg' => $exception->getMessage()]);
-			$refusal = self::UNCHECKED;
+			return self::UNCHECKED;
 		}
-
-		if ($refusal !== null) {
-			$event->setErrors(['message' => $refusal]);
-			$event->stopPropagation();
-			return;
-		}
-
-		if ($event instanceof ObjectCreatingEvent) {
-			$event->setModifiedData(['madeBy' => $caller['uid'], 'madeVia' => $caller['via']]);
-		}
-	}//end handle()
+	}//end checkedRefusal()
 
 	/**
 	 * The sign-up an event is about, or null for any other object.
 	 *
-	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The event.
+	 * @param SignUpWrite $write The write.
 	 *
 	 * @return object|null The entity.
 	 */
-	private function signUpEntity(ObjectCreatingEvent|ObjectUpdatingEvent $event): ?object {
-		$entity = $this->entityOf(event: $event);
+	private function signUpEntity(SignUpWrite $write): ?object {
+		$entity = $write->object();
 		if ($this->schemaResolver->registerSlug(entity: $entity) !== ElectiveService::REGISTER
 			|| $this->schemaResolver->schemaSlug(entity: $entity) !== ElectiveService::SIGN_UP_SCHEMA
 		) {
@@ -151,21 +180,6 @@ class ElectiveSignUpRules implements IEventListener {
 
 		return $entity;
 	}//end signUpEntity()
-
-	/**
-	 * The object an event carries: the new object of an update.
-	 *
-	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The event.
-	 *
-	 * @return object
-	 */
-	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): object {
-		if ($event instanceof ObjectUpdatingEvent) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
-	}//end entityOf()
 
 	/**
 	 * Why a sign-up may not be written, or null when it may.
