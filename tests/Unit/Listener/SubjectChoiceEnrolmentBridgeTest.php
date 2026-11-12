@@ -276,4 +276,31 @@ class SubjectChoiceEnrolmentBridgeTest extends TestCase {
 			self::assertFalse($write['rbac'], 'enrolment is written with _rbac: false');
 		}
 	}//end testEnrolmentsAreWrittenAsTheSystem()
+
+	/**
+	 * Only an approved -> locked transition of a learniq subject choice
+	 * enrols: another target state or another register enrols nobody, while
+	 * the same choice under approved -> locked does.
+	 *
+	 * @return void
+	 */
+	public function testOnlyLockingAnApprovedChoiceInLearniqEnrols(): void {
+		$choice = ['id' => 'sc-9', 'learnerId' => 'ann', 'selectedElectiveCourseIds' => ['course-a'], 'tenant_id' => 't-1'];
+		foreach ([['learniq', 'approved', 'rejected'], ['elsewhere', 'approved', 'locked']] as [$register, $from, $to]) {
+			$objectEntity = $this->createMock(ObjectEntity::class);
+			$objectEntity->method('jsonSerialize')->willReturn($choice);
+			$event = $this->createMock(ObjectTransitionedEvent::class);
+			$event->method('getObject')->willReturn($objectEntity);
+			$event->method('getRegister')->willReturn($register);
+			$event->method('getSchema')->willReturn('subject-choice');
+			$event->method('getFrom')->willReturn($from);
+			$event->method('getTo')->willReturn($to);
+
+			$this->makeHandler(existingEnrolments: [])->handle($event);
+			self::assertCount(0, $this->savedObjects, $register . ' ' . $from . ' -> ' . $to);
+		}
+
+		$this->makeHandler(existingEnrolments: [])->handle($this->makeEvent(choiceData: $choice));
+		self::assertCount(1, $this->savedObjects);
+	}//end testOnlyLockingAnApprovedChoiceInLearniqEnrols()
 }//end class

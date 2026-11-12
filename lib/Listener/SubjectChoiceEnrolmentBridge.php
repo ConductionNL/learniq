@@ -88,16 +88,26 @@ class SubjectChoiceEnrolmentBridge implements IEventListener {
 			return;
 		}
 
-		if ($this->schemas->eventSchema(event: $event) !== self::SUBJECT_CHOICE_SCHEMA
-			|| $event->getFrom() !== 'approved'
-			|| $event->getTo() !== 'locked'
-		) {
+		if ($this->locksAnApprovedChoice(event: $event) === false) {
 			return;
 		}
 
 		$this->bridge(choice: $event->getObject()->jsonSerialize());
 
 	}//end handle()
+
+	/**
+	 * Whether the transition locks an approved subject choice.
+	 *
+	 * @param ObjectTransitionedEvent $event The learniq transition.
+	 *
+	 * @return bool
+	 */
+	private function locksAnApprovedChoice(ObjectTransitionedEvent $event): bool {
+		return $this->schemas->eventSchema(event: $event) === self::SUBJECT_CHOICE_SCHEMA
+			&& $event->getFrom() === 'approved'
+			&& $event->getTo() === 'locked';
+	}//end locksAnApprovedChoice()
 
 	/**
 	 * Create an Enrolment per selected course not already enrolled.
