@@ -215,6 +215,51 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 	}//end testResolvedServiceNotImplementingInterfaceIsNoOp()
 
 	/**
+	 * Each provider that cannot be used logs why, and the container is never
+	 * asked for a provider that is not named.
+	 *
+	 * @return void
+	 */
+	public function testEveryUnusableProviderLogsWhy(): void {
+		$cases = [
+			'not named' => ['', [], []],
+			'not a name' => [42, [], []],
+			'unresolvable' => ['MissingClass', ['MissingClass'], ['[BpvLeerbedrijfVerificationHandler] Configured provider "{class}" could not be resolved: {msg}', ['class' => 'MissingClass', 'msg' => 'no such service']]],
+			'not an adapter' => ['NotAnAdapter', ['NotAnAdapter'], ['[BpvLeerbedrijfVerificationHandler] Configured provider "{class}" does not implement ProvidesLeerbedrijfVerification.', ['class' => 'NotAnAdapter']]],
+		];
+
+		foreach ($cases as $label => [$provider, $asked, $warning]) {
+			$requests = [];
+			$container = $this->createMock(ContainerInterface::class);
+			$container->method('get')->willReturnCallback(
+				static function (string $id) use (&$requests): object {
+					$requests[] = $id;
+					if ($id === 'MissingClass') {
+						throw new \RuntimeException('no such service');
+					}
+
+					return new \stdClass();
+				}
+			);
+			$warnings = [];
+			$logger = $this->createMock(LoggerInterface::class);
+			$logger->method('warning')->willReturnCallback(
+				static function (string $message, array $context = []) use (&$warnings): void {
+					$warnings[] = [$message, $context];
+				}
+			);
+			$handler = new BpvLeerbedrijfVerificationHandler($this->createMock(ObjectService::class), $container, $logger, \OCA\Learniq\Tests\Support\TransitionScope::resolver());
+
+			$handler->handle(
+				$this->makeEvent(['id' => 'placement-1', 'trainingCompanyKvkNumber' => '12345678', 'trainingCompanyVerification' => ['provider' => $provider, 'status' => 'unverified']])
+			);
+
+			$this->assertSame($asked, $requests, $label);
+			$this->assertSame(($warning === [] ? [] : [$warning]), $warnings, $label);
+		}
+	}//end testEveryUnusableProviderLogsWhy()
+
+	/**
 	 * A `rejected`/`pending` result is written back without advancing the lifecycle (the
 	 * handler only ever writes the leerbedrijfVerification field — it never calls the
 	 * transition engine).
