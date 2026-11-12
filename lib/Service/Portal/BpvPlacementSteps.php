@@ -41,7 +41,6 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Portal;
 
 use DateTimeImmutable;
-use DateTimeZone;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IL10N;
 use OCP\L10N\IFactory;
@@ -57,22 +56,12 @@ class BpvPlacementSteps {
 
 	private const REGISTER = 'learniq';
 
-	private const ZONE = 'Europe/Amsterdam';
-
-	private const MONTHS = [
-		'januari',
-		'februari',
-		'maart',
-		'april',
-		'mei',
-		'juni',
-		'juli',
-		'augustus',
-		'september',
-		'oktober',
-		'november',
-		'december',
-	];
+	/**
+	 * Reads and formats dates the way the course-day lines do.
+	 *
+	 * @var CourseDayLines
+	 */
+	private readonly CourseDayLines $lines;
 
 	/**
 	 * Constructor.
@@ -88,6 +77,7 @@ class BpvPlacementSteps {
 		private readonly IFactory $l10n,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->lines = new CourseDayLines();
 	}//end __construct()
 
 	/**
@@ -142,7 +132,7 @@ class BpvPlacementSteps {
 
 		$finalLine = '';
 		if ($final === null && $end !== null) {
-			$finalLine = self::MONTHS[((int)$end->format('n') - 1)] . ' ' . $end->format('Y');
+			$finalLine = CourseDayLines::MONTHS[((int)$end->format('n') - 1)] . ' ' . $end->format('Y');
 		}
 
 		$steps = [
@@ -303,7 +293,7 @@ class BpvPlacementSteps {
 			return '';
 		}
 
-		return $day->format('j') . ' ' . self::MONTHS[((int)$day->format('n') - 1)] . ' ' . $day->format('Y');
+		return $this->lines->longDate(day: $day);
 	}//end longDate()
 
 	/**
@@ -314,15 +304,7 @@ class BpvPlacementSteps {
 	 * @return DateTimeImmutable|null
 	 */
 	private function date(mixed $value): ?DateTimeImmutable {
-		if (is_string($value) === false || trim($value) === '') {
-			return null;
-		}
-
-		try {
-			return (new DateTimeImmutable($value, new DateTimeZone(self::ZONE)))->setTimezone(new DateTimeZone(self::ZONE));
-		} catch (\Exception) {
-			return null;
-		}
+		return $this->lines->date(value: $value);
 	}//end date()
 
 	/**
