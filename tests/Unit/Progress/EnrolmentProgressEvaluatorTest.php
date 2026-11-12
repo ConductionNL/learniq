@@ -187,4 +187,43 @@ class EnrolmentProgressEvaluatorTest extends TestCase {
 		self::assertSame(50, $retake['progressPercent']);
 
 	}//end testARetakeCountsOnlyThisEnrolmentsCompletions()
+	/**
+	 * The completion query names the learner and the course; an entity row
+	 * counts like an array, and a lesson completed twice counts once.
+	 *
+	 * @return void
+	 */
+	public function testTheCompletionQueryAndEntityRowsAsRecorded(): void {
+		$entity = new class() implements \JsonSerializable {
+			/**
+			 * A completion as an entity serialises.
+			 *
+			 * @return array<string, mixed>
+			 */
+			public function jsonSerialize(): array {
+				return ['id' => 'c9', 'lessonId' => 'l9', 'enrolmentId' => 'enrol-1'];
+			}//end jsonSerialize()
+		};
+		$queries = [];
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			static function (array $config) use (&$queries, $entity) {
+				$queries[] = $config;
+				if ($config['filters']['schema'] === 'lesson-completion') {
+					return [$entity, ['id' => 'c1', 'lessonId' => 'l1', 'enrolmentId' => 'enrol-1'], ['id' => 'c2', 'lessonId' => 'l1', 'enrolmentId' => 'enrol-1']];
+				}
+
+				return array_fill(0, 3, ['id' => 'lesson']);
+			}
+		);
+
+		$result = (new EnrolmentProgressEvaluator($objectService))->evaluate(learnerId: 'learner-1', courseId: 'course-1', enrolment: ['id' => 'enrol-1']);
+
+		self::assertSame(['progressPercent' => 67, 'completedLessonCount' => 2, 'totalPublishedLessonCount' => 3], $result);
+		self::assertSame(
+			['filters' => ['register' => 'learniq', 'schema' => 'lesson-completion', 'learnerId' => 'learner-1', 'courseId' => 'course-1']],
+			$queries[0]
+		);
+		self::assertSame('lesson', $queries[1]['filters']['schema']);
+	}//end testTheCompletionQueryAndEntityRowsAsRecorded()
 }//end class
