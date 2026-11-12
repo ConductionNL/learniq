@@ -32,6 +32,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
+use OCA\Learniq\Repair\Support\RepairRowWalk;
+use OCA\Learniq\Repair\Support\RepairTally;
 use OCA\Learniq\Service\ReadableCopies;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
@@ -50,12 +52,12 @@ class BackfillReadableCopies implements IRepairStep {
 
 	private const SCHEMAS = ['grade-entry', 'enrolment', 'portfolio-share', 'teacher-availability', 'learner-profile'];
 
-	private const PAGE_SIZE = 200;
-
 	/**
-	 * Hard stop so a paging defect can never loop forever.
+	 * Pages through the schemas this step back-fills.
+	 *
+	 * @var RepairRowWalk
 	 */
-	private const MAX_PAGES = 10000;
+	private readonly RepairRowWalk $rows;
 
 	/**
 	 * Constructor.
@@ -71,6 +73,7 @@ class BackfillReadableCopies implements IRepairStep {
 		private readonly ReadableCopies $copies,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->rows = new RepairRowWalk(objectService: $objectService, logger: $logger, label: 'BackfillReadableCopies');
 	}//end __construct()
 
 	/**
@@ -98,8 +101,8 @@ class BackfillReadableCopies implements IRepairStep {
 		foreach (self::SCHEMAS as $schema) {
 			$counts = $this->backfill(schema: $schema);
 			$output->info(
-				'BackfillReadableCopies ' . $schema . ': ' . $counts['stamped'] . ' stamped, ' . $counts['failed']
-				. ' failed, of ' . $counts['scanned'] . ' scanned.'
+				'BackfillReadableCopies ' . $schema . ': ' . $counts->countOf(key: 'stamped') . ' stamped, ' . $counts->countOf(key: 'failed')
+				. ' failed, of ' . $counts->countOf(key: 'scanned') . ' scanned.'
 			);
 		}
 	}//end run()
@@ -109,74 +112,16 @@ class BackfillReadableCopies implements IRepairStep {
 	 *
 	 * @param string $schema The schema slug.
 	 *
-	 * @return array{scanned: int, stamped: int, failed: int}
+	 * @return RepairTally
 	 */
-	private function backfill(string $schema): array {
-		$counts = ['scanned' => 0, 'stamped' => 0, 'failed' => 0];
-
-		try {
-			for ($page = 0; $page < self::MAX_PAGES; $page++) {
-				$rows = $this->page(schema: $schema, offset: ($page * self::PAGE_SIZE));
-				foreach ($rows as $row) {
-					$counts['scanned']++;
-					$outcome = $this->stampRow(schema: $schema, row: $row);
-					if ($outcome !== null) {
-						$counts[$outcome]++;
-					}
-				}
-
-				if (count($rows) < self::PAGE_SIZE) {
-					break;
-				}
+	private function backfill(string $schema): RepairTally {
+		return $this->rows->walkNamingSchema(
+			schema: $schema,
+			visit: function (array $row) use ($schema): ?string {
+				return $this->stampRow(schema: $schema, row: $row);
 			}
-		} catch (Throwable $exception) {
-			// OpenRegister absent or the register not imported yet: the next
-			// upgrade retries.
-			$this->logger->warning(
-				'[BackfillReadableCopies] Stopped early on {schema}: {msg}',
-				['schema' => $schema, 'msg' => $exception->getMessage()]
-			);
-		}
-
-		return $counts;
-	}//end backfill()
-
-	/**
-	 * One page of rows as arrays.
-	 *
-	 * @param string $schema The schema slug.
-	 * @param int    $offset Row offset.
-	 *
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function page(string $schema, int $offset): array {
-		$objects = $this->objectService->findAll(
-			config: [
-				'filters' => [
-					'register' => self::REGISTER,
-					'schema'   => $schema,
-				],
-				'limit'   => self::PAGE_SIZE,
-				'offset'  => $offset,
-			],
-			_rbac: false,
-			_multitenancy: false
 		);
-
-		$rows = [];
-		foreach ($objects as $object) {
-			if (is_array($object) === true) {
-				$rows[] = $object;
-				continue;
-			}
-
-			if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-				$rows[] = (array)$object->jsonSerialize();
-			}
-		}
-
-		return $rows;
-	}//end page()
+	}//end backfill()
 
 	/**
 	 * Write one row when its stored copies differ from the derived ones.
