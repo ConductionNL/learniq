@@ -1,0 +1,27 @@
+# Screens
+
+- A mandatory enrolment shows its deadline to the learner: learniq/LqMijnLeren, learniq/LqLlMijnLeren, learniq/LqZoVandaag
+- A learner sees which of their courses is late: learniq/LqMijnLeren, learniq/LqLlMijnLeren
+- A certificate shows the days left before it lapses: learniq/LqCertificaten
+- Revoking a certificate requires a reason: learniq/LqCertificaten
+- A certificate is read by its holder and the certificate managers only: No screen: backend behaviour
+- A course is worked on in draft and published when ready: learniq/LqCursus
+- A course carries a Dutch name next to its English name: learniq/LqCursusInstellingen
+- Staff enrol one learner in a course: learniq/LqGroep, learniq/LqLeerling, learniq/LqLeerlingen
+- Applications are decided from the admissions review board: learniq/LqCoBeoordelen
+- Items in an item bank are reused by more than one test: learniq/LqItembank
+- A QTI package is imported into an item bank: learniq/LqItembank
+- A test is assembled from items with a time limit and a scoring scheme: learniq/LqLessen, learniq/LqItembank
+- A teacher sets an assignment with instructions and a hand-in date: learniq/LqLessen, learniq/LqOpdracht
+- A teacher marks a submission against a rubric with weighted criteria: learniq/LqInleveringNakijken
+- A grade shows what it does to the final grade: learniq/LqLlCijfers
+- A teacher reads one grid of every learner and every component: learniq/LqCijferlijst
+- A learning plan starts from a template for its kind: learniq/LqLeerplan
+- A learning plan is evaluated on its agreed date and the outcome is recorded: learniq/LqLeerplan
+- A behaviour incident is logged with what was done about it: learniq/LqDossier, learniq/LqNieuweNotitie
+- A lesson is scheduled with a time, a room and a teacher: learniq/LqLesBeheren
+- Reading a learner's record is logged, not only changing it: No screen: backend behaviour
+- Each processing purpose carries a review date: learniq/LqAppInstellingen, learniq/LqCfAuditpakket
+- The workplace supervisor is kept on record as a person: learniq/LqBpvPlaatsing
+- An attendance mark records late and excused next to present and absent: learniq/LqAanwezigheid, learniq/LqRegistratie
+- HR reads learners, enrolments, attendance and diplomas on one searchable page: learniq/LqHrPersonen
