@@ -39,6 +39,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
+use OCA\Learniq\Support\TextValue;
 use DateTimeImmutable;
 use DateTimeZone;
 use OCA\OpenRegister\Service\ObjectService;
@@ -383,10 +384,6 @@ class PortalEmployerBookings {
 	 * @return string
 	 */
 	private function text(mixed $value): string {
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return trim($value);
+		return (new TextValue())->trimmedOrEmpty(value: $value);
 	}//end text()
 }//end class
