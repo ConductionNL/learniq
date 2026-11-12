@@ -26,6 +26,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\NotFoundException;
+use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
 use Psr\Log\LoggerInterface;
@@ -110,30 +111,99 @@ class ArchiveRetiredPaymentObjects implements IRepairStep {
 	 * @spec openspec/specs/payments/spec.md#requirement-retired-payment-rows-are-archived-before-their-schemas-go
 	 */
 	public function run(IOutput $output): void {
+		$folder = $this->freshFolder(output: $output);
+		if ($folder !== null) {
+			$this->archive(folder: $folder, output: $output);
+		}
+	}//end run()
+
+	/**
+	 * The archive folder when no archive is in it yet, or null after saying why
+	 * nothing is written: the archive exists, or the folder is not writable.
+	 *
+	 * @param IOutput $output Repair output.
+	 *
+	 * @return ISimpleFolder|null
+	 */
+	private function freshFolder(IOutput $output): ?ISimpleFolder {
 		try {
 			$folder = $this->folder();
 			if ($folder->fileExists(self::FILE) === true) {
 				$output->info('Learniq payments archive: ' . self::FOLDER . '/' . self::FILE . ' already exists, nothing to do.');
-				return;
+				return null;
 			}
 		} catch (Throwable $exception) {
 			$output->warning('Learniq payments archive: the app data folder is not writable, nothing archived (' . $exception->getMessage() . ').');
-			return;
+			return null;
 		}
 
-		$rows = [];
-		$total = 0;
-		foreach (self::RETIRED_SCHEMAS as $schema) {
-			$rows[$schema] = $this->readAll(schema: $schema);
-			$total += count($rows[$schema]);
-		}
+		return $folder;
+	}//end freshFolder()
 
-		if ($total === 0) {
+	/**
+	 * Read every retired row and write the archive, unless there are none.
+	 *
+	 * @param ISimpleFolder $folder The archive folder.
+	 * @param IOutput       $output Repair output.
+	 *
+	 * @return void
+	 */
+	private function archive(ISimpleFolder $folder, IOutput $output): void {
+		$rows = $this->retiredRows();
+		if (array_sum(array_map('count', $rows)) === 0) {
 			$output->info('Learniq payments archive: no orders, order lines or payment transactions to archive.');
 			return;
 		}
 
-		$export = [
+		$export = $this->exportOf(rows: $rows);
+		try {
+			$this->write(folder: $folder, export: $export);
+		} catch (Throwable $exception) {
+			$output->warning('Learniq payments archive: could not write the archive (' . $exception->getMessage() . ').');
+			return;
+		}
+
+		$this->report(output: $output, rows: $rows);
+	}//end archive()
+
+	/**
+	 * Write the archive document to the archive file.
+	 *
+	 * @param ISimpleFolder        $folder The archive folder.
+	 * @param array<string, mixed> $export The archive document.
+	 *
+	 * @return void
+	 *
+	 * @throws \JsonException When the document does not encode.
+	 */
+	private function write(ISimpleFolder $folder, array $export): void {
+		$flags = (JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+		$folder->newFile(self::FILE, (string)json_encode($export, $flags));
+	}//end write()
+
+	/**
+	 * Every row of every retired schema, by schema slug in export order.
+	 *
+	 * @return array<string, array<int, array<string, mixed>>>
+	 */
+	private function retiredRows(): array {
+		$rows = [];
+		foreach (self::RETIRED_SCHEMAS as $schema) {
+			$rows[$schema] = $this->readAll(schema: $schema);
+		}
+
+		return $rows;
+	}//end retiredRows()
+
+	/**
+	 * The archive document: header, counts and the rows themselves.
+	 *
+	 * @param array<string, array<int, array<string, mixed>>> $rows Rows by schema slug.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function exportOf(array $rows): array {
+		return [
 			'exportedAt' => $this->timeFactory->getDateTime()->format(\DATE_ATOM),
 			'reason' => 'payments-to-shillinq-migration (D19): learniq no longer keeps orders or payment transactions. '
 				. 'School contributions are shillinq invoices paid from portaliq. These rows are history; an open order '
@@ -142,15 +212,17 @@ class ArchiveRetiredPaymentObjects implements IRepairStep {
 			'counts' => array_map('count', $rows),
 			'objects' => $rows,
 		];
+	}//end exportOf()
 
-		try {
-			$flags = (JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
-			$folder->newFile(self::FILE, (string)json_encode($export, $flags));
-		} catch (Throwable $exception) {
-			$output->warning('Learniq payments archive: could not write the archive (' . $exception->getMessage() . ').');
-			return;
-		}
-
+	/**
+	 * Say, in the repair output and the log, what the archive holds.
+	 *
+	 * @param IOutput                                         $output Repair output.
+	 * @param array<string, array<int, array<string, mixed>>> $rows   Rows by schema slug.
+	 *
+	 * @return void
+	 */
+	private function report(IOutput $output, array $rows): void {
 		$summary = sprintf(
 			'Learniq payments archive: %d order(s), %d order line(s), %d payment transaction(s) written to %s/%s.',
 			count($rows['order']),
@@ -161,7 +233,7 @@ class ArchiveRetiredPaymentObjects implements IRepairStep {
 		);
 		$output->info($summary);
 		$this->logger->info('[ArchiveRetiredPaymentObjects] ' . $summary);
-	}//end run()
+	}//end report()
 
 	/**
 	 * Whether every current row of one retired schema is in the archive, so
@@ -183,27 +255,66 @@ class ArchiveRetiredPaymentObjects implements IRepairStep {
 			return false;
 		}
 
-		try {
-			$folder = $this->folder();
-			if ($folder->fileExists(self::FILE) === false) {
-				return false;
-			}
-
-			$export = json_decode($folder->getFile(self::FILE)->getContent(), true, 512, JSON_THROW_ON_ERROR);
-		} catch (Throwable $exception) {
-			$this->logger->info(
-				'[ArchiveRetiredPaymentObjects] Archive not readable: {msg}',
-				['msg' => $exception->getMessage()]
-			);
+		$archived = $this->archivedIds(schema: $schema);
+		if ($archived === null) {
 			return false;
 		}
 
-		$archived = array_map(fn (mixed $row): string => $this->idOf(row: $row), (array)($export['objects'][$schema] ?? []));
 		$current = $this->readAll(schema: $schema);
 		if (count($current) !== $expectedRows) {
 			return false;
 		}
 
+		return $this->allArchived(current: $current, archived: $archived);
+	}//end isFullyArchived()
+
+	/**
+	 * The ids of the archived rows of one schema, or null when there is no
+	 * readable archive.
+	 *
+	 * @param string $schema Retired schema slug.
+	 *
+	 * @return array<int, string>|null
+	 */
+	private function archivedIds(string $schema): ?array {
+		try {
+			$folder = $this->folder();
+			if ($folder->fileExists(self::FILE) === false) {
+				return null;
+			}
+
+			$export = json_decode($folder->getFile(self::FILE)->getContent(), true, 512, JSON_THROW_ON_ERROR);
+		} catch (Throwable $exception) {
+			$this->logUnreadableArchive(exception: $exception);
+			return null;
+		}
+
+		return array_map(fn (mixed $row): string => $this->idOf(row: $row), (array)($export['objects'][$schema] ?? []));
+	}//end archivedIds()
+
+	/**
+	 * Log that the archive could not be read.
+	 *
+	 * @param Throwable $exception Why it could not be read.
+	 *
+	 * @return void
+	 */
+	private function logUnreadableArchive(Throwable $exception): void {
+		$this->logger->info(
+			'[ArchiveRetiredPaymentObjects] Archive not readable: {msg}',
+			['msg' => $exception->getMessage()]
+		);
+	}//end logUnreadableArchive()
+
+	/**
+	 * Whether every current row carries an id that is among the archived ids.
+	 *
+	 * @param array<int, array<string, mixed>> $current  The schema's current rows.
+	 * @param array<int, string>               $archived The archived ids.
+	 *
+	 * @return bool
+	 */
+	private function allArchived(array $current, array $archived): bool {
 		foreach ($current as $row) {
 			$id = $this->idOf(row: $row);
 			if ($id === '' || in_array($id, $archived, true) === false) {
@@ -212,7 +323,7 @@ class ArchiveRetiredPaymentObjects implements IRepairStep {
 		}
 
 		return true;
-	}//end isFullyArchived()
+	}//end allArchived()
 
 	/**
 	 * The object uuid of a serialised row: `id`, `uuid` or `@self.id`, or ''.
@@ -259,40 +370,77 @@ class ArchiveRetiredPaymentObjects implements IRepairStep {
 	private function readAll(string $schema): array {
 		$rows = [];
 		try {
-			for ($page = 0; $page < self::MAX_PAGES; $page++) {
-				$objects = $this->objectService->findAll(
-					config: [
-						'filters' => [
-							'register' => self::LEARNIQ_REGISTER,
-							'schema' => $schema,
-						],
-						'limit' => self::PAGE_SIZE,
-						'offset' => ($page * self::PAGE_SIZE),
-					],
-					_rbac: false,
-					_multitenancy: false
-				);
-
-				foreach ($objects as $object) {
-					if (is_array($object) === false) {
-						$object = (array)$object->jsonSerialize();
-					}
-
-					$rows[] = $object;
-				}
-
-				if (count($objects) < self::PAGE_SIZE) {
-					break;
-				}
-			}
+			$this->readPages(schema: $schema, rows: $rows);
 		} catch (Throwable $exception) {
 			// The schema is already gone or OpenRegister is down: nothing to read.
 			$this->logger->info(
 				'[ArchiveRetiredPaymentObjects] No {schema} rows read: {msg}',
 				['schema' => $schema, 'msg' => $exception->getMessage()]
 			);
-		}//end try
+		}
 
 		return $rows;
 	}//end readAll()
+
+	/**
+	 * Read one schema page by page into $rows, until a short page.
+	 *
+	 * The rows of every page read before a failure stay in $rows.
+	 *
+	 * @param string                           $schema Schema slug.
+	 * @param array<int, array<mixed>>         $rows   The rows read so far, appended to.
+	 *
+	 * @return void
+	 */
+	private function readPages(string $schema, array &$rows): void {
+		for ($page = 0; $page < self::MAX_PAGES; $page++) {
+			$objects = $this->findPage(schema: $schema, page: $page);
+			$this->collect(rows: $rows, objects: $objects);
+			if (count($objects) < self::PAGE_SIZE) {
+				return;
+			}
+		}
+	}//end readPages()
+
+	/**
+	 * One page of a schema's rows in the learniq register, unfiltered by RBAC
+	 * or tenancy.
+	 *
+	 * @param string $schema Schema slug.
+	 * @param int    $page   Zero-based page number.
+	 *
+	 * @return array<int, mixed>
+	 */
+	private function findPage(string $schema, int $page): array {
+		return $this->objectService->findAll(
+			config: [
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => $schema,
+				],
+				'limit' => self::PAGE_SIZE,
+				'offset' => ($page * self::PAGE_SIZE),
+			],
+			_rbac: false,
+			_multitenancy: false
+		);
+	}//end findPage()
+
+	/**
+	 * Append a page of objects to $rows as arrays.
+	 *
+	 * @param array<int, array<mixed>>         $rows    The rows read so far, appended to.
+	 * @param array<int, mixed>                $objects One page of objects or arrays.
+	 *
+	 * @return void
+	 */
+	private function collect(array &$rows, array $objects): void {
+		foreach ($objects as $object) {
+			if (is_array($object) === false) {
+				$object = (array)$object->jsonSerialize();
+			}
+
+			$rows[] = $object;
+		}
+	}//end collect()
 }//end class
