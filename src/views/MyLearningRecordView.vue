@@ -437,60 +437,88 @@ export default {
 			this.exportError = null
 
 			try {
-				const createUrl = generateUrl(
-					'/apps/openregister/api/objects/learniq/learning-record-export',
-				)
-				const createResp = await fetch(createUrl, {
-					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						periodFrom: this.periodFrom || null,
-						periodTo: this.periodTo || null,
-					}),
-				})
-
-				if (!createResp.ok) {
-					throw new Error(
-						`LearningRecordExport create failed: ${createResp.status}`,
-					)
-				}
-
-				const created = await createResp.json()
-				const exportId = created.id ?? created.uuid
-
-				const finalUrl = generateUrl(
-					`/apps/openregister/api/objects/learniq/learning-record-export/${exportId}`,
-				)
-				const finalResp = await fetch(finalUrl, {
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-					},
-				})
-				const finalJson = await finalResp.json()
-				const generated = finalJson.object ?? finalJson
-				if (!finalResp.ok || generated.lifecycle !== 'generated') {
-					throw new Error(
-						`LearningRecordExport ${exportId} was not generated`,
-					)
-				}
-				this.latestExport = generated
+				this.latestExport = await this.createGeneratedExport()
 
 				this.shares = []
 			} catch (err) {
-				this.exportError = this.t(
-					'learniq',
-					'Failed to generate the export. Please try again.',
-				)
-				// eslint-disable-next-line no-console
-				console.error('[MyLearningRecordView] generateExport error', err)
+				this.exportFailed(err)
 			} finally {
 				this.generating = false
 			}
+		},
+
+		/**
+		 * POST the export for the chosen period and read it back.
+		 *
+		 * @return {Promise<object>} The generated export.
+		 * @throws {Error} When the server refuses or does not generate it.
+		 */
+		async createGeneratedExport() {
+			const createResp = await this.postJson(
+				generateUrl('/apps/openregister/api/objects/learniq/learning-record-export'),
+				{
+					periodFrom: this.periodFrom || null,
+					periodTo: this.periodTo || null,
+				},
+			)
+			if (!createResp.ok) {
+				throw new Error(`LearningRecordExport create failed: ${createResp.status}`)
+			}
+			const created = await createResp.json()
+			return this.readGeneratedExport(created.id ?? created.uuid)
+		},
+
+		/**
+		 * Read an export back and fail unless the server generated it.
+		 *
+		 * @param {string} exportId LearningRecordExport id.
+		 * @return {Promise<object>} The generated export.
+		 * @throws {Error} When it is unreadable or not generated.
+		 */
+		async readGeneratedExport(exportId) {
+			const finalResp = await fetch(
+				generateUrl(`/apps/openregister/api/objects/learniq/learning-record-export/${exportId}`),
+				{ headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } },
+			)
+			const finalJson = await finalResp.json()
+			const generated = finalJson.object ?? finalJson
+			if (!finalResp.ok || generated.lifecycle !== 'generated') {
+				throw new Error(`LearningRecordExport ${exportId} was not generated`)
+			}
+			return generated
+		},
+
+		/**
+		 * Show and log a failed export.
+		 *
+		 * @param {Error} err What went wrong.
+		 */
+		exportFailed(err) {
+			this.exportError = this.t(
+				'learniq',
+				'Failed to generate the export. Please try again.',
+			)
+			// eslint-disable-next-line no-console
+			console.error('[MyLearningRecordView] generateExport error', err)
+		},
+
+		/**
+		 * POST a JSON body to OpenRegister.
+		 *
+		 * @param {string} url The URL.
+		 * @param {object} body The body.
+		 * @return {Promise<Response>}
+		 */
+		postJson(url, body) {
+			return fetch(url, {
+				method: 'POST',
+				headers: {
+					'OCS-APIREQUEST': 'true',
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(body),
+			})
 		},
 
 		/**
@@ -503,69 +531,106 @@ export default {
 		 */
 		async createShare() {
 			this.shareTouched = true
-			if (
-				!this.newShare.recipientName
-				|| !this.newShare.expiresAt
-				|| !this.latestExport
-			) {
-				return
-			}
+			if (!this.shareFormComplete()) return
 
 			this.creatingShare = true
 			this.shareError = null
 
 			try {
-				const createUrl = generateUrl(
-					'/apps/openregister/api/objects/learniq/learning-record-share',
-				)
-				const createResp = await fetch(createUrl, {
-					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						learningRecordExportId:
-							this.latestExport.id ?? this.latestExport.uuid,
-						recipientName: this.newShare.recipientName,
-						recipientEmail: this.newShare.recipientEmail || null,
-						expiresAt: new Date(this.newShare.expiresAt).toISOString(),
-					}),
-				})
-
-				if (!createResp.ok) {
-					throw new Error(
-						`LearningRecordShare create failed: ${createResp.status}`,
-					)
-				}
-
-				const created = await createResp.json()
-				const shareId = created.id ?? created.uuid
-
-				await this.loadShares()
-				const granted = this.shares.find(
-					(share) => (share.id ?? share.uuid) === shareId,
-				)
-				if (granted?.lifecycle !== 'active') {
-					throw new Error(`LearningRecordShare ${shareId} was not granted`)
-				}
-				this.newShare = {
-					recipientName: '',
-					recipientEmail: '',
-					expiresAt: '',
-				}
-				this.shareTouched = false
+				await this.grantShare()
+				this.resetShareForm()
 			} catch (err) {
-				this.shareError = this.t(
-					'learniq',
-					'Failed to create the share. Please try again.',
-				)
-				// eslint-disable-next-line no-console
-				console.error('[MyLearningRecordView] createShare error', err)
+				this.shareFailed(err)
 			} finally {
 				this.creatingShare = false
 			}
+		},
+
+		/**
+		 * Whether the share form names a recipient and an expiry, and there is
+		 * an export to share.
+		 *
+		 * @return {boolean}
+		 */
+		shareFormComplete() {
+			return !(
+				!this.newShare.recipientName
+				|| !this.newShare.expiresAt
+				|| !this.latestExport
+			)
+		},
+
+		/**
+		 * POST the share, reload the shares and fail unless the server granted it.
+		 *
+		 * @return {Promise<void>}
+		 * @throws {Error} When the server refuses or does not grant it.
+		 */
+		async grantShare() {
+			const createResp = await this.postJson(
+				generateUrl('/apps/openregister/api/objects/learniq/learning-record-share'),
+				this.shareBody(),
+			)
+			if (!createResp.ok) {
+				throw new Error(`LearningRecordShare create failed: ${createResp.status}`)
+			}
+			const created = await createResp.json()
+			const shareId = created.id ?? created.uuid
+			await this.loadShares()
+			this.assertShareGranted(shareId)
+		},
+
+		/**
+		 * Fail unless the reloaded shares hold the share as active.
+		 *
+		 * @param {string} shareId LearningRecordShare id.
+		 * @throws {Error} When the server did not grant it.
+		 */
+		assertShareGranted(shareId) {
+			const granted = this.shares.find((share) => (share.id ?? share.uuid) === shareId)
+			if (granted?.lifecycle !== 'active') {
+				throw new Error(`LearningRecordShare ${shareId} was not granted`)
+			}
+		},
+
+		/**
+		 * The share the form describes, for the latest export.
+		 *
+		 * @return {object} The LearningRecordShare body.
+		 */
+		shareBody() {
+			return {
+				learningRecordExportId: this.latestExport.id ?? this.latestExport.uuid,
+				recipientName: this.newShare.recipientName,
+				recipientEmail: this.newShare.recipientEmail || null,
+				expiresAt: new Date(this.newShare.expiresAt).toISOString(),
+			}
+		},
+
+		/**
+		 * Empty the share form after a granted share.
+		 */
+		resetShareForm() {
+			this.newShare = {
+				recipientName: '',
+				recipientEmail: '',
+				expiresAt: '',
+			}
+			this.shareTouched = false
+		},
+
+		/**
+		 * Show and log a failed share.
+		 *
+		 * @param {Error} err What went wrong.
+		 */
+		shareFailed(err) {
+			this.shareError = this.t(
+				'learniq',
+				'Failed to create the share. Please try again.',
+			)
+			// eslint-disable-next-line no-console
+			console.error('[MyLearningRecordView] createShare error', err)
 		},
 
 		/**
@@ -579,27 +644,28 @@ export default {
 			this.shareError = null
 			try {
 				const url = generateUrl(objectTransitionUrl(shareId))
-				const resp = await fetch(url, {
-					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ action: 'revoke' }),
-				})
+				const resp = await this.postJson(url, { action: 'revoke' })
 				await this.loadShares()
 				if (!resp.ok) {
 					throw new Error(`LearningRecordShare revoke failed: ${resp.status}`)
 				}
 			} catch (err) {
-				this.shareError = this.t(
-					'learniq',
-					'Could not revoke the share. Please try again.',
-				)
-				// eslint-disable-next-line no-console
-				console.error('[MyLearningRecordView] revokeShare error', err)
+				this.revokeFailed(err)
 			}
+		},
+
+		/**
+		 * Show and log a failed revoke.
+		 *
+		 * @param {Error} err What went wrong.
+		 */
+		revokeFailed(err) {
+			this.shareError = this.t(
+				'learniq',
+				'Could not revoke the share. Please try again.',
+			)
+			// eslint-disable-next-line no-console
+			console.error('[MyLearningRecordView] revokeShare error', err)
 		},
 
 		/**
@@ -622,9 +688,17 @@ export default {
 				this.shares = []
 				return
 			}
-			const json = await resp.json()
-			this.shares =
-				json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
+			this.shares = this.shareRows(await resp.json())
+		},
+
+		/**
+		 * The share rows of a list answer: results, objects or a bare list.
+		 *
+		 * @param {object|Array} json The answer body.
+		 * @return {Array<object>}
+		 */
+		shareRows(json) {
+			return json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
 		},
 
 		/**
