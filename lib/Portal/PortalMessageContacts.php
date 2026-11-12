@@ -136,24 +136,54 @@ class PortalMessageContacts {
 	 * @return array<int, array{staffRef: string, name: string, role: string}>
 	 */
 	private function contactsOf(array $cohorts): array {
-		$out  = [];
-		$seen = [];
-		foreach ($this->orderedTeacherIds(cohorts: $cohorts) as $userId) {
-			if (is_string($userId) === false || $userId === '' || isset($seen[$userId]) === true) {
-				continue;
+		$out = [];
+		foreach (self::distinctIds(ids: $this->orderedTeacherIds(cohorts: $cohorts)) as $userId) {
+			$contact = $this->contactFor(userId: $userId);
+			if ($contact !== null) {
+				$out[] = $contact;
 			}
-
-			$seen[$userId] = true;
-			$name          = $this->nameOf(userId: $userId);
-			if ($name === null) {
-				continue;
-			}
-
-			$out[] = ['staffRef' => $userId, 'name' => $name, 'role' => $this->roleOf(userId: $userId)];
 		}
 
 		return $out;
 	}//end contactsOf()
+
+	/**
+	 * The non-empty string ids, each once, in first-seen order.
+	 *
+	 * @param array<int, mixed> $ids The ids, duplicates and non-strings included.
+	 *
+	 * @return array<int, string>
+	 */
+	private static function distinctIds(array $ids): array {
+		$distinct = [];
+		$seen     = [];
+		foreach ($ids as $id) {
+			if (is_string($id) === false || $id === '' || isset($seen[$id]) === true) {
+				continue;
+			}
+
+			$seen[$id] = true;
+			$distinct[] = $id;
+		}
+
+		return $distinct;
+	}//end distinctIds()
+
+	/**
+	 * One teacher as a contact, or null when the account has no name of its own.
+	 *
+	 * @param string $userId The teacher's Nextcloud user id.
+	 *
+	 * @return array{staffRef: string, name: string, role: string}|null
+	 */
+	private function contactFor(string $userId): ?array {
+		$name = $this->nameOf(userId: $userId);
+		if ($name === null) {
+			return null;
+		}
+
+		return ['staffRef' => $userId, 'name' => $name, 'role' => $this->roleOf(userId: $userId)];
+	}//end contactFor()
 
 	/**
 	 * The teacher ids of some groups: every group's primary teachers first,
@@ -167,11 +197,7 @@ class PortalMessageContacts {
 	private function orderedTeacherIds(array $cohorts): array {
 		$ordered = [];
 		foreach ($cohorts as $cohort) {
-			foreach ((array)($cohort['teacherAssignments'] ?? []) as $assignment) {
-				if (is_array($assignment) === true && ($assignment['role'] ?? null) === 'primary') {
-					$ordered[] = ($assignment['teacherId'] ?? null);
-				}
-			}
+			$ordered = array_merge($ordered, self::primaryTeacherIds(cohort: $cohort));
 		}
 
 		foreach ($cohorts as $cohort) {
@@ -180,6 +206,24 @@ class PortalMessageContacts {
 
 		return $ordered;
 	}//end orderedTeacherIds()
+
+	/**
+	 * The teacher ids a group marks as primary, missing ids included as null.
+	 *
+	 * @param array<string, mixed> $cohort The group.
+	 *
+	 * @return array<int, mixed>
+	 */
+	private static function primaryTeacherIds(array $cohort): array {
+		$ids = [];
+		foreach ((array)($cohort['teacherAssignments'] ?? []) as $assignment) {
+			if (is_array($assignment) === true && ($assignment['role'] ?? null) === 'primary') {
+				$ids[] = ($assignment['teacherId'] ?? null);
+			}
+		}
+
+		return $ids;
+	}//end primaryTeacherIds()
 
 	/**
 	 * A staff member's display name, or null when the account has none of its
