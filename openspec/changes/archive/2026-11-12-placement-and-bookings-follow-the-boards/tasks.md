@@ -9,3 +9,5 @@
   - PHPUnit `PortalPublicIndexTest`
 - [x] **T5**: steps as bars; lead photo placeholders; "Voor leerbedrijven" as a card of links; the aside without `portal`
   - PHPUnit `PortalContributionProviderTest::testThePlacementReadsInWordsAndShowsTheHours`, `ExamplePortalDeclarationsTest::testTheHomesMarkTheLeadPhotoAndInviteCompaniesWithLinks`, `testTheSchoolHeroesHoldTheirAside`
+
+Archived on 12 Nov 2026 with the open task above: T3 moved to board-data-the-schemas-lacked and guardian-tasks-per-child-and-self-assessment.

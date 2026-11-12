@@ -689,3 +689,69 @@ Learniq MUST declare, through portaliq's options (portaliq change guardian-pages
 - **GIVEN** the po example set loaded on a new portal
 - **WHEN** a guardian opens her own area
 - **THEN** the menu reads Mijn Wilgenboom, Mijn kinderen with a row per child, Regelen, Van school and Uw gegevens
+
+### Requirement: The placement page reads in words and shows the hours
+
+Every field the student's placement collection projects, except her own reference, MUST carry a label. The page MUST group the agreed terms under "Afspraken". The placement's state MUST read in words for every state of the schema, as the current step under "Waar sta je?", and MUST NOT be a separate status field. The placement page MUST show the hours bar under the steps, with the agreed hours as its total. A step MUST NOT carry a date beside a line that names the same day.
+
+#### Scenario: Milan opens his placement
+- **GIVEN** Milan's placement at Bakker Techniek BV
+- **WHEN** he opens it from "BPV en uren"
+- **THEN** "Afspraken" reads "Periode", "Werkdagen", "Adres" and "Opleiding", the hours bar under "Waar sta je?" reads "96 van 480 uur goedgekeurd", "Tussenbeoordeling" is the current step, and "27 augustus" appears once
+- @e2e exclude covered by PHPUnit `PortalContributionProviderTest::testThePlacementReadsInWordsAndShowsTheHours` and `BpvPlacementStepsTest`; the page by `tests/e2e/portal-design/esdoornveen.spec.ts`
+
+### Requirement: A booking lists its participants, and the certificates group per certificate
+
+An opened booking MUST list its participants as rows, each with the participant's name, the certificate line and a pill for the details. The employer's certificates MUST group per certificate.
+
+#### Scenario: Linda opens the F-gassen booking
+- **GIVEN** Linda Jansen and the F-gassen booking for Tom, Youssef and Sanne
+- **WHEN** she opens it
+- **THEN** Youssef's row reads "Geboortedatum ontbreekt", each row names its certificate line, and "Geboortedatum invullen" is offered
+- @e2e exclude covered by PHPUnit `EmployerSitePagesTest::testABookingListsItsParticipantsAndCertificatesGroup`; the page by `tests/e2e/portal-design/warmtepompacademie.spec.ts`
+
+### Requirement: A course row names its weekdays, its kind and links to the course list
+
+Each course in a portal's public index MUST carry meta that starts with the weekdays of its next run, then its number of days, then its kind from its tags (certificate, basic or advanced). When the portal's declaration names a `publicIndex.courseHref`, the row MUST link there.
+
+#### Scenario: The academy's F-gassen course
+- **GIVEN** the training set with "F-gassen: herhaling en examen" on Thursday 8 October
+- **WHEN** a visitor opens the academy's home
+- **THEN** its row reads "Donderdag · 1 dag · certificaat" and links to /cursusaanbod
+- @e2e exclude covered by PHPUnit `PortalPublicIndexTest::testTheAcademyShowsItsCoursesWithTheirNextDates`
+
+### Requirement: A booking an employer makes belongs to the company's organisation
+
+When an employer books places through the portal, learniq SHALL create the booking acting for the OpenRegister organisation of the company row, when the company has one. Otherwise the booking SHALL be created as before. An organisation that does not exist SHALL create no booking.
+
+#### Scenario: The company has an organisation
+- **GIVEN** a company row whose `@self.organisation` is the training provider's organisation
+- **WHEN** its employer books one place on an open edition
+- **THEN** the booking is created acting for that organisation
+- @e2e exclude Context wiring; pinned by EmployerBookingOrganisationTest
+
+#### Scenario: The company has no organisation
+- **GIVEN** a company row without `@self.organisation`
+- **WHEN** its employer books one place
+- **THEN** the booking is created as before
+- @e2e exclude Fallback branch; pinned by EmployerBookingOrganisationTest
+
+### Requirement: The guardian overview and absence page are about both children
+
+The guardian's overview MUST NOT switch between children. Its task card MUST leave out a conference round where one of her children already has a time. The absence page MUST show the form and the reports of all her children, newest first, and MUST NOT be per child.
+
+#### Scenario: Fatima's overview with Vera booked
+- **GIVEN** Fatima, whose daughter Vera has a conversation time and whose son Sami has none
+- **WHEN** she opens Mijn Wilgenboom
+- **THEN** no switcher shows, both children's cards show, and only Sami's round asks her to pick a time
+- @e2e exclude declaration covered by PHPUnit `GuardianSitePagesTest::testTheGuardianOverviewIsHomeAndSwitchesChildren`; the rendered page by `tests/e2e/portal-design/wilgenboom.spec.ts`
+
+### Requirement: The participant reads his next course day once
+
+The participant's overview MUST show his next course day once, as the highlight. The list under it MUST be headed "After that" and MUST skip that day.
+
+#### Scenario: Tom's overview
+- **GIVEN** Tom, with course days on 8 October and 3 November
+- **WHEN** he opens Mijn academie
+- **THEN** the highlight shows 8 October, and "Daarna" lists 3 November
+- @e2e exclude covered by PHPUnit `ParticipantSitePagesTest::testTheNextCourseDayShowsOnce`

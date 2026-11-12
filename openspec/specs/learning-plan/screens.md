@@ -12,3 +12,4 @@
 - learniq/LqLeerplannen leerplannen van het zorgteam (zorgcoördinator) https://identity.conduction.nl/screens/board?id=learniq/LqLeerplannen
 
 Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAppNav, CnAuditTrailCard, CnBreadcrumbs, CnBuildiqEditButton, CnDashboardPage, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnFilterBar, CnIndexPage, CnJsonViewer, CnKpiGrid, CnNextStepCard, CnNoteCard, CnObjectListWidget, CnPageHeader, CnPagination, CnQuickFilterBar, CnRelatedCollections, CnSegmentedControl, CnSettingsPage, CnSettingsSection, CnStagesWidget, CnStatsBlock, CnStatusBadge, CnSubObjectsField, CnTabs, CnTimelineWidget, CnVersionHistory, CnWidgetWrapper
+- learniq/LqLeerplan versies naast elkaar met wat veranderde (row sup-plan-keeps-its-versions) https://identity.conduction.nl/screens/board?id=learniq/LqLeerplan
