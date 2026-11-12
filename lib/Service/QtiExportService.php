@@ -45,7 +45,6 @@ namespace OCA\Learniq\Service;
 use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
 use RuntimeException;
-use ZipArchive;
 
 /**
  * Builds a QTI 2.1 export package for an `ItemBank`.
@@ -198,27 +197,7 @@ class QtiExportService {
 	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-30-package
 	 */
 	private function buildZip(array $files): string {
-		$tmpFile = tempnam(sys_get_temp_dir(), 'learniq_qti_export_');
-		if ($tmpFile === false) {
-			return '';
-		}
-
-		$zip = new ZipArchive();
-		if ($zip->open($tmpFile, ZipArchive::OVERWRITE) !== true) {
-			unlink($tmpFile);
-			return '';
-		}
-
-		foreach ($files as $filename => $content) {
-			$zip->addFromString($filename, $content);
-		}
-
-		$zip->close();
-
-		$zipContent = (string)file_get_contents($tmpFile);
-		unlink($tmpFile);
-
-		return $zipContent;
+		return (new InMemoryZip(tempPrefix: 'learniq_qti_export_'))->build(files: $files);
 	}//end buildZip()
 
 	/**
