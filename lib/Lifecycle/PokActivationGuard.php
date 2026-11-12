@@ -329,10 +329,11 @@ class PokActivationGuard implements LifecycleGuardInterface {
 	 * @spec openspec/changes/archive/2026-07-13-bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-all-three-signatures
 	 */
 	private function fetchSignatures(array $pok): array {
+		$subjectFilters = $this->signatureFilters(pok: $pok);
 		$raw = $this->objectService->findAll(
 			[
 				'filters' => array_merge(
-					$this->signatureFilters(pok: $pok),
+					$subjectFilters,
 					[
 						'register' => self::LEARNIQ_REGISTER,
 						'schema' => self::POK_SIGNATURE_SCHEMA,
