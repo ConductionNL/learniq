@@ -5291,8 +5291,8 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/department-results-86769842.html; Department Results: \"the average results organized according to criteria groups and will be able to compare how departments meet the standards.\" For review and observation results"
       },
       "screen": {
-        "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
-        "board": "LqDekkingsmatrix"
+        "canvas": "design-system",
+        "board": ["LqVaardigheden", "LqDekkingsmatrix"]
       }
     },
     {
