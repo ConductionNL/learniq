@@ -1205,7 +1205,8 @@
         "owner": "ConductionNL/learniq",
         "reachedOn": "/enrolments/bulk",
         "change": "enrolment",
-        "requirement": "openspec/specs/enrolment :: Bulk enrolment via cohort, role, department or CSV"
+        "requirement": "openspec/specs/enrolment :: Bulk enrolment via cohort, role, department or CSV",
+        "plan": "openspec/changes/regulation-assign-by-audience"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -2091,7 +2092,8 @@
         "evidence": "lib/Settings/learniq_register.json Credential.x-openregister-lifecycle.transitions.revoke, properties.revocationReason",
         "owner": "ConductionNL/openregister",
         "change": "certification",
-        "requirement": "openspec/changes/parity-rows-written-as-requirements/specs/certification :: Revoking a certificate requires a reason"
+        "requirement": "openspec/changes/parity-rows-written-as-requirements/specs/certification :: Revoking a certificate requires a reason",
+        "plan": "openspec/changes/board-dialog-inputs-and-row-names"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -2425,7 +2427,8 @@
         "owner": "ConductionNL/learniq",
         "change": "certification",
         "spec": "openspec/specs/portable-learning-record",
-        "requirement": "openspec/specs/portable-learning-record :: `LearningRecordAggregationService` composes a learner's trajectory live, with no materialized rollup"
+        "requirement": "openspec/specs/portable-learning-record :: `LearningRecordAggregationService` composes a learner's trajectory live, with no materialized rollup",
+        "plan": "openspec/changes/participant-portal"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -3269,7 +3272,8 @@
         "owner": "ConductionNL/openregister",
         "change": "enrolment",
         "spec": "openspec/specs/enrolment",
-        "requirement": "openspec/specs/enrolment :: Enrolment carries a destination school on withdrawal"
+        "requirement": "openspec/specs/enrolment :: Enrolment carries a destination school on withdrawal",
+        "plan": "openspec/changes/board-dialog-inputs-and-row-names"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -4839,7 +4843,8 @@
         "requirement": [
           "openspec/specs/grading :: A teacher previews and batch-publishes a cohort's concept grades",
           "openspec/changes/learner-grade-read-follows-visible-from/specs/grading :: A learner reads their own grade only once it is released"
-        ]
+        ],
+        "plan": "openspec/changes/learner-grade-read-follows-visible-from"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -5104,7 +5109,8 @@
         "requirement": [
           "openspec/changes/report-card-pdf-to-guardians/specs/report-card :: Publishing a report card renders its PDF",
           "openspec/changes/report-card-pdf-to-guardians/specs/report-card :: A guardian downloads the published report card"
-        ]
+        ],
+        "plan": "openspec/changes/guardian-reports-and-documents"
       },
       "provider": "filinq",
       "providerHow": "read: this repository posts to Filinq and does not render the document itself",
@@ -6070,7 +6076,8 @@
         "evidence": "lib/Settings/learniq_register.json components.schemas.ExcuseRequest; src/manifest.d/people.json SubmitExcuseModal",
         "owner": "ConductionNL/learniq",
         "change": "attendance",
-        "requirement": "openspec/specs/attendance :: The server stamps who an excuse request is about and who filed it"
+        "requirement": "openspec/specs/attendance :: The server stamps who an excuse request is about and who filed it",
+        "plan": "openspec/changes/absence-reports-seen-and-ended"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6109,7 +6116,8 @@
         "requirement": [
           "openspec/changes/attendance-roll-call/specs/attendance :: An approved absence report fills in the register",
           "openspec/specs/attendance :: A decision on an absence report records who decided and when"
-        ]
+        ],
+        "plan": "openspec/changes/absence-reports-seen-and-ended"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6145,7 +6153,8 @@
         "owner": "ConductionNL/learniq",
         "change": "attendance",
         "spec": "openspec/specs/attendance",
-        "requirement": "openspec/specs/attendance :: Threshold crossing is a declared calculation trigger"
+        "requirement": "openspec/specs/attendance :: Threshold crossing is a declared calculation trigger",
+        "plan": "openspec/changes/attendance-warns-before-the-threshold"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6180,7 +6189,8 @@
         "evidence": "lib/Settings/learniq_register.json components.schemas.AttendanceFlag (not appendOnly since learniq#977, so its handling transitions run); lib/Lifecycle/AttendanceFlagCreationHandler.php",
         "owner": "ConductionNL/learniq",
         "change": "attendance",
-        "requirement": "openspec/specs/attendance :: Threshold crossing is a declared calculation trigger"
+        "requirement": "openspec/specs/attendance :: Threshold crossing is a declared calculation trigger",
+        "plan": "openspec/changes/attendance-warns-before-the-threshold"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6492,7 +6502,11 @@
         "evidence": "lib/Controller/TimetableController.php mine() (:125), route /api/timetable/mine, through lib/Service/PersonalTimetableService.php, which also reads sessionsForTeacher() so a substitute teacher sees the lessons they cover (learniq#1134 fixed); src/manifest.d/my-learning.json MyTimetable.",
         "owner": "ConductionNL/learniq",
         "change": "2026-07-07-personal-timetable",
-        "requirement": "openspec/specs/personal-timetable :: A signed-in user can see their own upcoming sessions"
+        "requirement": "openspec/specs/personal-timetable :: A signed-in user can see their own upcoming sessions",
+        "plan": [
+          "openspec/changes/site-pupil-portal-design",
+          "openspec/changes/week-timetable-grid"
+        ]
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6573,7 +6587,12 @@
         "owner": "ConductionNL/learniq",
         "change": "dashboard",
         "spec": "openspec/specs/dashboard",
-        "requirement": "openspec/specs/dashboard :: Per-role group-gated dashboard menu items"
+        "requirement": "openspec/specs/dashboard :: Per-role group-gated dashboard menu items",
+        "plan": [
+          "openspec/changes/site-pupil-portal-design",
+          "openspec/changes/participant-portal",
+          "openspec/changes/student-portal-reads-like-the-boards"
+        ]
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6610,7 +6629,11 @@
         "change": "integriq/portal-idp-broker-config",
         "note": "Missing half specified in integriq/portal-idp-broker-config (spec round part 3, 2026-10-07); delivered half: portal-parent-child-record.",
         "requirement": "openspec/specs/portal-contribution :: A guardian opens one child and sees everything about them",
-        "plan": "integriq/portal-idp-broker-config"
+        "plan": [
+          "integriq/portal-idp-broker-config",
+          "openspec/changes/guardian-reports-and-documents",
+          "openspec/changes/school-portals-match-their-boards"
+        ]
       },
       "provider": "portaliq",
       "providerHow": "read: this repository contributes to the portal, which ships in Portaliq",
@@ -6650,7 +6673,8 @@
         "evidence": "lib/Settings/learniq_register.json components.schemas.ConferenceRound; src/manifest.d/guardian-meetings.json",
         "owner": "ConductionNL/learniq",
         "change": "2026-07-13-parent-evening-planner",
-        "requirement": "openspec/specs/parent-conferences :: A conference round declares its scope, slot duration, and buffer time"
+        "requirement": "openspec/specs/parent-conferences :: A conference round declares its scope, slot duration, and buffer time",
+        "plan": "openspec/changes/pupil-books-support-lessons-and-mentor-talks"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6688,7 +6712,8 @@
         "requirement": [
           "openspec/specs/parent-conferences :: Teachers publish free times from their availability",
           "openspec/changes/capability-rows-say-what-they-do/specs/parent-conferences :: A teacher enters and submits their own free times for a conference round"
-        ]
+        ],
+        "plan": "openspec/changes/board-dialog-inputs-and-row-names"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6726,6 +6751,10 @@
         "requirement": [
           "openspec/specs/parent-conferences :: A guardian or self-signup submission is gated by a per-object authorization guard",
           "openspec/changes/capability-rows-say-what-they-do/specs/parent-conferences :: A guardian chooses which teachers they want to speak to in a signup"
+        ],
+        "plan": [
+          "openspec/changes/guardian-tasks-per-child-and-self-assessment",
+          "openspec/changes/parent-row-actions-only-where-they-apply"
         ]
       },
       "provider": "self",
@@ -7114,6 +7143,93 @@
       }
     },
     {
+      "id": "gua-write-to-the-childs-teacher",
+      "area": "guardians",
+      "name": "Let a guardian or a pupil write to the teachers of the pupil's current groups.",
+      "origin": "change",
+      "built": {
+        "state": "building",
+        "evidence": "Partly built through openspec/changes/portal-message-contacts; its open tasks carry the rest.",
+        "owner": "ConductionNL/learniq",
+        "change": "portal-message-contacts",
+        "requirement": "openspec/changes/portal-message-contacts/specs/portal-contribution :: A guardian and a pupil may write to the teachers of the pupil's current groups",
+        "plan": "openspec/changes/portal-message-contacts"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "portal-message-contacts",
+      "learniq": "partial",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change portal-message-contacts built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "wilgenboom/Berichten"
+      }
+    },
+    {
+      "id": "gua-ask-guardian-permission",
+      "area": "guardians",
+      "name": "Ask guardians for permission for a trip and see who has not answered yet.",
+      "origin": "change",
+      "built": {
+        "state": "specified",
+        "evidence": "Not built yet: openspec/changes/permission-slips carries the work.",
+        "owner": "ConductionNL/learniq",
+        "change": "permission-slips",
+        "requirement": "openspec/changes/permission-slips/specs/portal-contribution :: A school asks a guardian for permission, and the answer is recorded",
+        "plan": "openspec/changes/permission-slips"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "permission-slips",
+      "learniq": "no",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change permission-slips built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "LqToestemmingen"
+      }
+    },
+    {
+      "id": "gua-documents-on-the-portal",
+      "area": "guardians",
+      "name": "Offer guardians, pupils and employers their own documents on the portal, grouped per child or record.",
+      "origin": "change",
+      "built": {
+        "state": "specified",
+        "evidence": "Not built yet: openspec/changes/school-documents-on-the-portal carries the work.",
+        "owner": "ConductionNL/learniq",
+        "change": "school-documents-on-the-portal",
+        "requirement": "openspec/changes/school-documents-on-the-portal/specs/portal-contribution :: Each school audience offers its own documents, grouped per record",
+        "plan": "openspec/changes/school-documents-on-the-portal"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "school-documents-on-the-portal",
+      "learniq": "no",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change school-documents-on-the-portal built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "wilgenboom/Documenten"
+      }
+    },
+    {
       "id": "wpl-match-learner-to-employer",
       "area": "workplace",
       "name": "Match a learner to a company for their work placement.",
@@ -7230,7 +7346,8 @@
         "evidence": "lib/Settings/learniq_register.json components.schemas.PokSignature, append-only; src/manifest.d/work-placement.json SignPokModal",
         "owner": "ConductionNL/learniq",
         "change": "2026-07-13-bpv-praktijkovereenkomst",
-        "requirement": "openspec/specs/bpv :: Three-party POK signing reuses the Signature pattern via PokSignature"
+        "requirement": "openspec/specs/bpv :: Three-party POK signing reuses the Signature pattern via PokSignature",
+        "plan": "openspec/changes/an-invited-trainer-may-activate-a-placement"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -7268,6 +7385,10 @@
         "requirement": [
           "openspec/specs/bpv :: WerkprocesAssessment aligns to the kwalificatiedossier and emits a GradeEntry",
           "openspec/specs/bpv :: Praktijkopleider portal actions never trust client-supplied identity"
+        ],
+        "plan": [
+          "openspec/changes/site-workplace-trainer-portal-design",
+          "openspec/changes/an-invited-trainer-may-assess"
         ]
       },
       "provider": "self",
@@ -7377,7 +7498,8 @@
         "evidence": "lib/Settings/learniq_register.json components.schemas.Praktijkopleider",
         "owner": "ConductionNL/learniq",
         "change": "2026-07-13-bpv-praktijkovereenkomst",
-        "requirement": "openspec/changes/parity-rows-written-as-requirements/specs/bpv :: The workplace supervisor is kept on record as a person"
+        "requirement": "openspec/changes/parity-rows-written-as-requirements/specs/bpv :: The workplace supervisor is kept on record as a person",
+        "plan": "openspec/changes/site-workplace-trainer-portal-design"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -7412,7 +7534,11 @@
         "evidence": "lib/Settings/learniq_register.json components.schemas.ExternalAssessor and .PortfolioShare",
         "owner": "ConductionNL/learniq",
         "change": "2026-07-16-eportfolio",
-        "requirement": "openspec/specs/eportfolio :: BPV praktijkopleider and external-assessor sharing reuse the ADR-046 portal audience mechanism"
+        "requirement": "openspec/specs/eportfolio :: BPV praktijkopleider and external-assessor sharing reuse the ADR-046 portal audience mechanism",
+        "plan": [
+          "openspec/changes/invite-a-trainer-and-an-assessor",
+          "openspec/changes/site-external-assessor-portal-design"
+        ]
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -7471,6 +7597,64 @@
       "screen": {
         "canvas": "design-system",
         "board": "LqBpvPlaatsingen"
+      }
+    },
+    {
+      "id": "wpl-write-placement-hours-per-day",
+      "area": "workplace",
+      "name": "Let a student write placement hours per day and have the company approve or return the week.",
+      "origin": "change",
+      "built": {
+        "state": "specified",
+        "evidence": "Not built yet: openspec/changes/bpv-hours-per-day carries the work.",
+        "owner": "ConductionNL/learniq",
+        "change": "bpv-hours-per-day",
+        "requirement": "openspec/changes/bpv-hours-per-day/specs/bpv :: A week of BPV hours holds its days",
+        "plan": "openspec/changes/bpv-hours-per-day"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "bpv-hours-per-day",
+      "learniq": "no",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change bpv-hours-per-day built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "esdoornveen/MobielDetail"
+      }
+    },
+    {
+      "id": "wpl-follow-placements-by-phase",
+      "area": "workplace",
+      "name": "Follow every placement by its phase on one board, with late ones named and visits planned.",
+      "origin": "change",
+      "built": {
+        "state": "specified",
+        "evidence": "Not built yet: openspec/changes/bpv-coach-today-and-placement-board carries the work.",
+        "owner": "ConductionNL/learniq",
+        "change": "bpv-coach-today-and-placement-board",
+        "requirement": "openspec/changes/bpv-coach-today-and-placement-board/specs/bpv :: A placement has a phase that follows its facts, and says when it is late",
+        "plan": "openspec/changes/bpv-coach-today-and-placement-board"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "bpv-coach-today-and-placement-board",
+      "learniq": "no",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change bpv-coach-today-and-placement-board built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "esdoornveen/LqBord"
       }
     },
     {
@@ -8265,7 +8449,8 @@
         "requirement": [
           "openspec/specs/payments :: A school raises a fee's contributions in shillinq from learniq",
           "openspec/specs/payments :: A settled shillinq contribution grants the learner's entitlement"
-        ]
+        ],
+        "plan": "openspec/changes/academy-invoices-on-the-portal"
       },
       "provider": "shillinq",
       "providerHow": "read: learniq raises the fee and grants the entitlement; shillinq invoices and takes the payment",
@@ -8339,7 +8524,8 @@
         "requirement": [
           "openspec/specs/mcp-tool-surface :: Exactly five curated schemas declare the MCP dialect (REQ-001)",
           "openspec/specs/mcp-tool-surface :: Draft and archived content is not readable by non-admin callers (REQ-005)"
-        ]
+        ],
+        "plan": "openspec/changes/hermiq-ai-tooling"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -9404,6 +9590,64 @@
       }
     },
     {
+      "id": "cred-employer-sees-staff-certificates",
+      "area": "credentials",
+      "name": "Let a client company see its employees' certificates, the first to lapse first.",
+      "origin": "change",
+      "built": {
+        "state": "building",
+        "evidence": "Partly built through openspec/changes/portal-certificates; its open tasks carry the rest.",
+        "owner": "ConductionNL/learniq",
+        "change": "portal-certificates",
+        "requirement": "openspec/changes/portal-certificates/specs/portal-contribution :: An employer sees her people's certificates, the first to expire first",
+        "plan": "openspec/changes/portal-certificates"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "portal-certificates",
+      "learniq": "partial",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change portal-certificates built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "warmtepompacademie/Documenten"
+      }
+    },
+    {
+      "id": "cred-register-participants-for-the-exam",
+      "area": "credentials",
+      "name": "Register a course day's participants with the examining body through a list that closes at a set moment.",
+      "origin": "change",
+      "built": {
+        "state": "specified",
+        "evidence": "Not built yet: openspec/changes/exam-registration-and-certificate-issue carries the work.",
+        "owner": "ConductionNL/learniq",
+        "change": "exam-registration-and-certificate-issue",
+        "requirement": "openspec/changes/exam-registration-and-certificate-issue/specs/certification :: An exam registration list closes at its moment and names who is incomplete",
+        "plan": "openspec/changes/exam-registration-and-certificate-issue"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "exam-registration-and-certificate-issue",
+      "learniq": "no",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change exam-registration-and-certificate-issue built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "warmtepompacademie/LqRolC"
+      }
+    },
+    {
       "id": "att-learner-checks-in-with-qr",
       "area": "attendance",
       "name": "Let a learner mark their own attendance by scanning a code or opening a link.",
@@ -9715,6 +9959,64 @@
       }
     },
     {
+      "id": "ass-assess-a-practical-exam",
+      "area": "assessment",
+      "name": "Let two assigned assessors score a practical exam and sign the result together.",
+      "origin": "change",
+      "built": {
+        "state": "specified",
+        "evidence": "Not built yet: openspec/changes/practical-exam-assessment carries the work.",
+        "owner": "ConductionNL/learniq",
+        "change": "practical-exam-assessment",
+        "requirement": "openspec/changes/practical-exam-assessment/specs/exam-board :: A practical exam result needs both assessors",
+        "plan": "openspec/changes/practical-exam-assessment"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "practical-exam-assessment",
+      "learniq": "no",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change practical-exam-assessment built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "warmtepompacademie/LqExamenBeoordeling"
+      }
+    },
+    {
+      "id": "ass-object-against-a-result",
+      "area": "assessment",
+      "name": "Let a student object to a result and have the exam committee decide within its term.",
+      "origin": "change",
+      "built": {
+        "state": "specified",
+        "evidence": "Not built yet: openspec/changes/exam-committee-today-and-keuzedelen carries the work.",
+        "owner": "ConductionNL/learniq",
+        "change": "exam-committee-today-and-keuzedelen",
+        "requirement": "openspec/changes/exam-committee-today-and-keuzedelen/specs/exam-board :: A student objects against a result, and the committee decides within its term",
+        "plan": "openspec/changes/exam-committee-today-and-keuzedelen"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "exam-committee-today-and-keuzedelen",
+      "learniq": "no",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change exam-committee-today-and-keuzedelen built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "esdoornveen/LqRolC"
+      }
+    },
+    {
       "id": "gov-try-it-with-example-data",
       "area": "governance",
       "name": "Load a realistic example school or company to try the product, and remove it again.",
@@ -9726,6 +10028,13 @@
         "requirement": [
           "openspec/specs/example-sets :: An administrator removes a loaded example set on the admin page",
           "openspec/specs/example-sets :: Loading a set imports exactly its descriptor"
+        ],
+        "plan": [
+          "openspec/changes/demo-dates-follow-the-load-week",
+          "openspec/changes/example-portal-declares-its-site",
+          "openspec/changes/example-portal-install-steps",
+          "openspec/changes/school-portals-match-their-boards",
+          "openspec/changes/vo-timetable-every-school-day"
         ]
       },
       "provider": "self",
@@ -9932,6 +10241,149 @@
       }
     },
     {
+      "id": "att-absence-totals-per-school-year",
+      "area": "attendance",
+      "name": "Count each learner's absent days, with and without permission, and late arrivals per school year.",
+      "origin": "change",
+      "built": {
+        "state": "building",
+        "evidence": "Partly built through openspec/changes/attendance-summary-per-school-year; its open tasks carry the rest.",
+        "owner": "ConductionNL/learniq",
+        "change": "attendance-summary-per-school-year",
+        "requirement": "openspec/changes/attendance-summary-per-school-year/specs/attendance :: Absence and lateness are counted per learner per school year",
+        "plan": "openspec/changes/attendance-summary-per-school-year"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "attendance-summary-per-school-year",
+      "learniq": "partial",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change attendance-summary-per-school-year built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "wilgenboom/Detail"
+      }
+    },
+    {
+      "id": "att-decide-a-leave-request",
+      "area": "attendance",
+      "name": "Let a guardian ask leave for her child in advance and have the head of the school decide it.",
+      "origin": "change",
+      "built": {
+        "state": "specified",
+        "evidence": "Not built yet: openspec/changes/leave-requests-decided-by-the-school carries the work.",
+        "owner": "ConductionNL/learniq",
+        "change": "leave-requests-decided-by-the-school",
+        "requirement": "openspec/changes/leave-requests-decided-by-the-school/specs/attendance :: A leave request is asked in advance and decided by the head of the school",
+        "plan": "openspec/changes/leave-requests-decided-by-the-school"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "leave-requests-decided-by-the-school",
+      "learniq": "no",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change leave-requests-decided-by-the-school built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "wilgenboom/LqRolC"
+      }
+    },
+    {
+      "id": "att-run-a-school-activity",
+      "area": "attendance",
+      "name": "Set an activity's places, read its roster with photo consent and mark attendance per session.",
+      "origin": "change",
+      "built": {
+        "state": "specified",
+        "evidence": "Not built yet: openspec/changes/school-activities-staff-side carries the work.",
+        "owner": "ConductionNL/learniq",
+        "change": "school-activities-staff-side",
+        "requirement": "openspec/changes/school-activities-staff-side/specs/school-activities :: Staff MUST set an activity's places by capacity and supervision",
+        "plan": "openspec/changes/school-activities-staff-side"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "school-activities-staff-side",
+      "learniq": "no",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change school-activities-staff-side built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "LqActiviteiten"
+      }
+    },
+    {
+      "id": "att-join-an-online-lesson",
+      "area": "attendance",
+      "name": "Join an online lesson from the timetable or the lesson page.",
+      "origin": "change",
+      "built": {
+        "state": "built",
+        "evidence": "lib/Settings/learniq_register.json Session.properties.onlineMeetingUrl (learniq#1597); only the live check, Playwright and archive tasks are open",
+        "owner": "ConductionNL/learniq",
+        "change": "timetabling-online-lesson-link",
+        "requirement": "openspec/changes/timetabling-online-lesson-link/specs/timetable-online-lesson-link :: Online meeting link on a lesson"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "timetabling-online-lesson-link",
+      "learniq": "yes",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change timetabling-online-lesson-link built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "LqLes"
+      }
+    },
+    {
+      "id": "att-electives-in-my-timetable",
+      "area": "attendance",
+      "name": "Show a learner's chosen electives in their own timetable and warn when two choices overlap.",
+      "origin": "change",
+      "built": {
+        "state": "built",
+        "evidence": "TimetableSource::sessionsForCourses in lib/Timetabling, the clash warning in src/views/SubjectChoicePicker.vue",
+        "owner": "ConductionNL/learniq",
+        "change": "timetabling-student-choice-placement",
+        "requirement": "openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice :: Elective sessions in the personal timetable"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "timetabling-student-choice-placement",
+      "learniq": "yes",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change timetabling-student-choice-placement built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "LqLlVakkenKiezen"
+      }
+    },
+    {
       "id": "enr-sign-up-for-an-optional-lesson",
       "area": "enrolment",
       "name": "Sign up for or withdraw from a single optional lesson, and see free places and when sign-up opens or closes.",
@@ -9945,7 +10397,8 @@
         "requirement": [
           "openspec/specs/enrolment :: A learner signs up for an optional lesson inside the window",
           "openspec/changes/capability-rows-say-what-they-do/specs/enrolment :: A learner withdraws from an optional lesson and sees when sign-up opens"
-        ]
+        ],
+        "plan": "openspec/changes/pupil-books-support-lessons-and-mentor-talks"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -9997,6 +10450,34 @@
       }
     },
     {
+      "id": "cont-find-open-learning-material",
+      "area": "content",
+      "name": "Find open learning material from Edurep and add it to a lesson with its licence and makers kept.",
+      "origin": "change",
+      "built": {
+        "state": "built",
+        "evidence": "lib/Service/OpenMaterial/MaterialLicenceRules.php, src/modals/OpenMaterialSearchModal.vue, Material.accessRights in lib/Settings/learniq_register.json (learniq#2111; tasks.md not ticked)",
+        "owner": "ConductionNL/learniq",
+        "change": "open-learning-material",
+        "requirement": "openspec/changes/open-learning-material/specs/open-learning-material :: The search panel shows results with facets and three states"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "open-learning-material",
+      "learniq": "yes",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change open-learning-material built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "LqOpenLesmateriaal"
+      }
+    },
+    {
       "id": "sup-confidential-counsellor-notes",
       "area": "support",
       "name": "Keep confidential counsellor notes apart from the pupil file, readable only by the author and the people they add.",
@@ -10028,6 +10509,35 @@
           "LqZoNotitie",
           "LqZoNieuweNotitie"
         ]
+      }
+    },
+    {
+      "id": "sup-pupil-page-with-next-step",
+      "area": "support",
+      "name": "Open a pupil's page on her state today, one next step and the people around her.",
+      "origin": "change",
+      "built": {
+        "state": "specified",
+        "evidence": "Not built yet: openspec/changes/learner-list-and-page-follow-the-boards carries the work.",
+        "owner": "ConductionNL/learniq",
+        "change": "learner-list-and-page-follow-the-boards",
+        "requirement": "openspec/changes/learner-list-and-page-follow-the-boards/specs/pupil-dossier :: The pupil's page opens with a header, one next step and the people around the pupil",
+        "plan": "openspec/changes/learner-list-and-page-follow-the-boards"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "learner-list-and-page-follow-the-boards",
+      "learniq": "no",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change learner-list-and-page-follow-the-boards built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "wilgenboom/LqDetail"
       }
     },
     {
@@ -10122,6 +10632,92 @@
       }
     },
     {
+      "id": "gov-first-today-per-role",
+      "area": "governance",
+      "name": "Show each school role one card with the first thing it must act on today.",
+      "origin": "change",
+      "built": {
+        "state": "specified",
+        "evidence": "Not built yet: openspec/changes/today-first-per-school-role carries the work.",
+        "owner": "ConductionNL/learniq",
+        "change": "today-first-per-school-role",
+        "requirement": "openspec/changes/today-first-per-school-role/specs/dashboard :: Today shows one First today card per role, from the role's ordered rules",
+        "plan": "openspec/changes/today-first-per-school-role"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "today-first-per-school-role",
+      "learniq": "no",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change today-first-per-school-role built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "wilgenboom/LqVandaag"
+      }
+    },
+    {
+      "id": "gov-short-menu-per-role",
+      "area": "governance",
+      "name": "Give each role a short menu of at most ten entries, with the full menu one setting away.",
+      "origin": "change",
+      "built": {
+        "state": "built",
+        "evidence": "lib/Service/Settings/MenuStructure.php, src/menu-layout.simple.json",
+        "owner": "ConductionNL/learniq",
+        "change": "simple-structure-profile",
+        "requirement": "openspec/changes/simple-structure-profile/specs/navigation :: REQ-SSP-002 The simple menu shows at most ten entries per role under three captions"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "simple-structure-profile",
+      "learniq": "yes",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change simple-structure-profile built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "LqDashboard"
+      }
+    },
+    {
+      "id": "gov-today-start-page",
+      "area": "governance",
+      "name": "Open on Today, with what needs you first, your lessons and counts that open what they count.",
+      "origin": "change",
+      "built": {
+        "state": "building",
+        "evidence": "Partly built through openspec/changes/simple-today-dashboard; its open tasks carry the rest.",
+        "owner": "ConductionNL/learniq",
+        "change": "simple-today-dashboard",
+        "requirement": "openspec/changes/simple-today-dashboard/specs/dashboard :: REQ-STD-001 The start page is Today for the teaching roles in the simple structure",
+        "plan": "openspec/changes/simple-today-dashboard"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "simple-today-dashboard",
+      "learniq": "partial",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change simple-today-dashboard built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "LqDashboard"
+      }
+    },
+    {
       "id": "enr-one-people-overview-for-hr",
       "area": "enrolment",
       "name": "See learners, enrolments, attendance and diplomas of the whole school on one page, with search.",
@@ -10149,6 +10745,209 @@
       "screen": {
         "canvas": "QAAxpcsFKBCvDUGbQbwtCa",
         "board": "LqHrPersonen"
+      }
+    },
+    {
+      "id": "enr-set-the-school-year-start",
+      "area": "enrolment",
+      "name": "Set the day your school year starts.",
+      "origin": "change",
+      "built": {
+        "state": "specified",
+        "evidence": "Not built yet: openspec/changes/school-year-setting carries the work.",
+        "owner": "ConductionNL/learniq",
+        "change": "school-year-setting",
+        "requirement": "openspec/changes/school-year-setting/specs/school-structure :: The school year starts on the day the school sets",
+        "plan": "openspec/changes/school-year-setting"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "school-year-setting",
+      "learniq": "no",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change school-year-setting built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "LqInstellingen"
+      }
+    },
+    {
+      "id": "enr-see-places-left",
+      "area": "enrolment",
+      "name": "Show how many places are left on a course day.",
+      "origin": "change",
+      "built": {
+        "state": "building",
+        "evidence": "Partly built through openspec/changes/board-data-the-schemas-lacked; its open tasks carry the rest.",
+        "owner": "ConductionNL/learniq",
+        "change": "board-data-the-schemas-lacked",
+        "requirement": "openspec/changes/board-data-the-schemas-lacked/specs/portal-contribution :: A course row says how many places are left",
+        "plan": "openspec/changes/board-data-the-schemas-lacked"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "board-data-the-schemas-lacked",
+      "learniq": "partial",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change board-data-the-schemas-lacked built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "warmtepompacademie/Zoeken"
+      }
+    },
+    {
+      "id": "enr-employer-books-places",
+      "area": "enrolment",
+      "name": "Let a client company book places on a course and name its employees for them.",
+      "origin": "change",
+      "built": {
+        "state": "building",
+        "evidence": "Partly built through openspec/changes/employer-portal-audience; its open tasks carry the rest.",
+        "owner": "ConductionNL/learniq",
+        "change": "employer-portal-audience",
+        "requirement": "openspec/changes/employer-portal-audience/specs/portal-contribution :: An employer books places and names her participants",
+        "plan": "openspec/changes/employer-portal-audience"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "employer-portal-audience",
+      "learniq": "partial",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change employer-portal-audience built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "warmtepompacademie/MijnLijst"
+      }
+    },
+    {
+      "id": "enr-teacher-sees-own-groups",
+      "area": "enrolment",
+      "name": "Show a group teacher a dashboard of only their own groups, courses, lessons and assignments.",
+      "origin": "change",
+      "built": {
+        "state": "building",
+        "evidence": "Partly built through openspec/changes/teacher-dashboard-own-groups; its open tasks carry the rest.",
+        "owner": "ConductionNL/learniq",
+        "change": "teacher-dashboard-own-groups",
+        "requirement": "openspec/changes/teacher-dashboard-own-groups/specs/dashboard :: The teacher dashboard of a group teacher lists only their own groups",
+        "plan": "openspec/changes/teacher-dashboard-own-groups"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "teacher-dashboard-own-groups",
+      "learniq": "partial",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change teacher-dashboard-own-groups built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "LqTlVandaag"
+      }
+    },
+    {
+      "id": "enr-course-day-go-or-no-go",
+      "area": "enrolment",
+      "name": "Set a minimum on a course day and decide in time whether it goes ahead.",
+      "origin": "change",
+      "built": {
+        "state": "specified",
+        "evidence": "Not built yet: openspec/changes/training-provider-course-days carries the work.",
+        "owner": "ConductionNL/learniq",
+        "change": "training-provider-course-days",
+        "requirement": "openspec/changes/training-provider-course-days/specs/course-management :: A course day has a minimum, a decision date and a status that moves by itself",
+        "plan": "openspec/changes/training-provider-course-days"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "training-provider-course-days",
+      "learniq": "no",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change training-provider-course-days built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "warmtepompacademie/LqBord"
+      }
+    },
+    {
+      "id": "enr-employer-substitutes-a-participant",
+      "area": "enrolment",
+      "name": "Let an employer send a colleague in place of a booked participant before the deadline.",
+      "origin": "change",
+      "built": {
+        "state": "specified",
+        "evidence": "Not built yet: openspec/changes/employer-substitutes-a-colleague carries the work.",
+        "owner": "ConductionNL/learniq",
+        "change": "employer-substitutes-a-colleague",
+        "requirement": "openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution :: An employer sends a colleague in place of a participant, before the deadline",
+        "plan": "openspec/changes/employer-substitutes-a-colleague"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "employer-substitutes-a-colleague",
+      "learniq": "no",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change employer-substitutes-a-colleague built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "warmtepompacademie/Detail"
+      }
+    },
+    {
+      "id": "enr-public-index-on-the-website",
+      "area": "enrolment",
+      "name": "Show a school's offered courses, programmes and school days on its public website.",
+      "origin": "change",
+      "built": {
+        "state": "building",
+        "evidence": "lib/Portal/PortalPublicIndex.php builds the index; the test schedule (task T5) is not built",
+        "owner": "ConductionNL/learniq",
+        "change": "portal-public-index",
+        "requirement": "openspec/changes/portal-public-index/specs/portal-contribution :: A school offers its portal an index of its public courses, programmes and school days",
+        "plan": "openspec/changes/portal-public-index"
+      },
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "feature": "portal-public-index",
+      "learniq": "partial",
+      "moodle": "unknown",
+      "moodle-workplace": "unknown",
+      "ilias": "unknown",
+      "totara": "unknown",
+      "chamilo": "unknown",
+      "ispring-learn": "unknown",
+      "note": "Row added 12 Nov 2026 (decision 395): open change portal-public-index built a capability no row had.",
+      "screen": {
+        "canvas": "design-system",
+        "board": "wilgenboom/Zoeken"
       }
     }
   ],
