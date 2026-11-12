@@ -439,43 +439,12 @@ class LessonReleaseEvaluator {
 		$bestScore = null;
 		foreach ($results as $result) {
 			$data = $this->toArray(object: $result);
-			$sumScore = $this->sumResponses(responses: ($data['responses'] ?? []));
+			$sumScore = (new ResultResponseSum())->sumOf(responses: ($data['responses'] ?? []));
 			$bestScore = max(($bestScore ?? $sumScore), $sumScore);
 		}
 
 		return $bestScore;
 	}//end bestScore()
-
-	/**
-	 * Sum an AssessmentResult's per-item scores, preferring `autoScore` and
-	 * falling back to `manualScore`; a response with neither contributes 0.
-	 *
-	 * @param mixed $responses The AssessmentResult's `responses` array.
-	 *
-	 * @return float
-	 */
-	private function sumResponses($responses): float {
-		if (is_array($responses) === false) {
-			return 0.0;
-		}
-
-		$sum = 0.0;
-		foreach ($responses as $response) {
-			if (is_array($response) === false) {
-				continue;
-			}
-
-			$auto = ($response['autoScore'] ?? null);
-			$manual = ($response['manualScore'] ?? null);
-			if (is_numeric($auto) === true) {
-				$sum += (float)$auto;
-			} elseif (is_numeric($manual) === true) {
-				$sum += (float)$manual;
-			}
-		}
-
-		return $sum;
-	}//end sumResponses()
 
 	/**
 	 * Resolve a Lesson/Assessment's display name (`name` or `title`) by id.
