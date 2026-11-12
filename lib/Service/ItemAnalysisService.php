@@ -80,9 +80,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class ItemAnalysisService {
 
-	private const LEARNIQ_REGISTER = 'learniq';
 	private const ASSESSMENT_SCHEMA = 'exam';
-	private const ASSESSMENT_RESULT_SCHEMA = 'assessment-result';
 	private const ITEM_SCHEMA = 'item';
 
 	/**
@@ -97,6 +95,13 @@ class ItemAnalysisService {
 	private const DEFAULT_LOW_DISCRIMINATION_BELOW = 0.10;
 
 	/**
+	 * Reads the assessment objects this class works from.
+	 *
+	 * @var AssessmentObjectReads
+	 */
+	private readonly AssessmentObjectReads $reads;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
@@ -104,8 +109,9 @@ class ItemAnalysisService {
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ObjectService $objectService,
+		ObjectService $objectService,
 	) {
+		$this->reads = new AssessmentObjectReads(objectService: $objectService);
 	}//end __construct()
 
 	/**
@@ -121,10 +127,10 @@ class ItemAnalysisService {
 	 * @spec openspec/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
 	 */
 	public function computeItemStatistics(string $itemId, string $assessmentId): array {
-		$assessment = $this->fetchOne(schema: self::ASSESSMENT_SCHEMA, uuid: $assessmentId);
+		$assessment = $this->reads->one(schema: self::ASSESSMENT_SCHEMA, uuid: $assessmentId);
 		$tenantId = $assessment['tenant_id'] ?? '';
-		$item = $this->fetchOne(schema: self::ITEM_SCHEMA, uuid: $itemId, tenantId: $tenantId);
-		$gradedResults = $this->fetchGradedResults(assessmentId: $assessmentId, tenantId: $tenantId);
+		$item = $this->reads->inTenant(tenantId: $tenantId)->one(schema: self::ITEM_SCHEMA, uuid: $itemId);
+		$gradedResults = $this->reads->inTenant(tenantId: $tenantId)->gradedResults(assessmentId: $assessmentId);
 		$vectors = $this->collectItemVectors(gradedResults: $gradedResults, target: ['itemId' => $itemId, 'item' => $item]);
 
 		$statistics = self::emptyStatistics(sampleSize: count($vectors['itemScores']));
@@ -188,8 +194,8 @@ class ItemAnalysisService {
 	 * @spec openspec/specs/assessment/spec.md#requirement-per-assessment-reliability-cronbachs-alpha-is-computed-with-a-minimum-sample-size
 	 */
 	public function computeReliability(string $assessmentId): array {
-		$assessment = $this->fetchOne(schema: self::ASSESSMENT_SCHEMA, uuid: $assessmentId);
-		$gradedResults = $this->fetchGradedResults(assessmentId: $assessmentId, tenantId: $assessment['tenant_id'] ?? '');
+		$assessment = $this->reads->one(schema: self::ASSESSMENT_SCHEMA, uuid: $assessmentId);
+		$gradedResults = $this->reads->inTenant(tenantId: $assessment['tenant_id'] ?? '')->gradedResults(assessmentId: $assessmentId);
 		$itemIds = $this->resolveScoredItemIds(gradedResults: $gradedResults);
 		$completeResults = $this->filterCompleteResults(gradedResults: $gradedResults, itemIds: $itemIds);
 
@@ -637,83 +643,4 @@ class ItemAnalysisService {
 		return 0.0;
 	}//end scoreForItem()
 
-	/**
-	 * Fetch every `graded` AssessmentResult for an Assessment.
-	 *
-	 * @param string $assessmentId UUID of the Assessment.
-	 * @param string $tenantId Tenant ID, or '' to skip tenant scoping.
-	 *
-	 * @return array<int,array<string,mixed>>
-	 */
-	private function fetchGradedResults(string $assessmentId, string $tenantId): array {
-		$filters = ['assessmentId' => $assessmentId, 'lifecycle' => 'graded'];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$results = $this->objectService->findAll(
-			[
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::ASSESSMENT_RESULT_SCHEMA,
-					]
-				),
-			]
-		);
-
-		return array_map(
-			static function ($result) {
-				if (is_array($result) === true) {
-					return $result;
-				}
-
-				return $result->jsonSerialize();
-			},
-			$results
-		);
-
-	}//end fetchGradedResults()
-
-	/**
-	 * Fetch a single object by uuid, optionally scoped to a tenant.
-	 *
-	 * @param string $schema OR schema slug.
-	 * @param string $uuid Object UUID.
-	 * @param string $tenantId Tenant ID, or '' to skip tenant scoping.
-	 *
-	 * @return array<string,mixed>|null
-	 */
-	private function fetchOne(string $schema, string $uuid, string $tenantId = ''): ?array {
-		$filters = [];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$matches = $this->objectService->findAll(
-			[
-				'ids' => [$uuid],
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => $schema,
-					]
-				),
-				'limit' => 1,
-			]
-		);
-
-		if (empty($matches) === true) {
-			return null;
-		}
-
-		$match = $matches[0];
-		if (is_array($match) === true) {
-			return $match;
-		}
-
-		return $match->jsonSerialize();
-	}//end fetchOne()
 }//end class
