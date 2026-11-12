@@ -23,3 +23,4 @@
 - wilgenboom/Berichten berichten https://identity.conduction.nl/screens/board?id=wilgenboom/Berichten
 
 Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAdminSettingsShell, CnAppNav, CnBoardView, CnBreadcrumbs, CnBuildiqEditButton, CnConfirmDialog, CnDashboardGrid, CnDashboardPage, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnFilterBar, CnFormDialog, CnIndexPage, CnIntegrationCard, CnKpiGrid, CnMassDeleteDialog, CnMassImportDialog, CnNextStepCard, CnObjectCalendar, CnObjectListWidget, CnPageHeader, CnPagination, CnProgressBar, CnQuickFilterBar, CnRowActions, CnSegmentedControl, CnSettingsPage, CnSettingsSection, CnStatsBlock, CnStatusBadge, CnSubObjectsField, CnTableWidget, CnTabs, CnWeekStripWidget, CnWidgetWrapper
+- learniq/LqRooster les verplaatsen: wie bericht krijgt en de tekst van het bericht (row att-tell-people-a-lesson-moved) https://identity.conduction.nl/screens/board?id=learniq/LqRooster
