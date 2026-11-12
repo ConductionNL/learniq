@@ -8204,17 +8204,22 @@
       "area": "governance",
       "name": "Show users one page naming every AI feature and its locality.",
       "built": {
-        "state": "built",
-        "evidence": "lib/Controller/AiProcessingDisclosureController.php, route /api/ai-processing-disclosure",
+        "state": "specified",
+        "evidence": "Not built for users: the disclosure page and its navigation entry are gated to admin and compliance-officer (openspec/specs/ai-locality-guarantee), and there is no school text an admin can edit. Decision 399 (12 Nov 2026): every user can read the disclosure, admins edit it; specified in openspec/changes/ai-disclosure-for-every-user. What exists: lib/Controller/AiProcessingDisclosureController.php, route /api/ai-processing-disclosure (answers any signed-in user), src/views/LearniqAiProcessingDisclosure.vue.",
         "owner": "ConductionNL/learniq",
-        "change": "2026-07-16-sovereign-ai-guarantee",
-        "requirement": "openspec/specs/ai-locality-guarantee :: The system SHALL compose an AI-processing disclosure a school can hand to its DPO"
+        "change": "openspec/changes/ai-disclosure-for-every-user",
+        "requirement": [
+          "openspec/changes/ai-disclosure-for-every-user/specs/ai-locality-guarantee/spec.md :: The system SHALL compose an AI-processing disclosure a school can hand to its DPO",
+          "openspec/changes/ai-disclosure-for-every-user/specs/ai-locality-guarantee/spec.md :: The AI processing disclosure page SHALL be reachable by every signed-in user",
+          "openspec/changes/ai-disclosure-for-every-user/specs/ai-locality-guarantee/spec.md :: An admin SHALL edit the school's part of the AI disclosure"
+        ],
+        "plan": "openspec/changes/ai-disclosure-for-every-user"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "ai-surface",
       "featureConfidence": "high",
-      "learniq": "yes",
+      "learniq": "partial",
       "moodle": "partial",
       "moodle-workplace": "unknown",
       "ilias": "no",
