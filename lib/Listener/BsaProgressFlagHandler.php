@@ -105,19 +105,37 @@ class BsaProgressFlagHandler implements IEventListener {
 	 * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
 	 */
 	public function handle(Event $event): void {
-		if (($event instanceof ObjectTransitionedEvent) === false) {
+		if (($event instanceof ObjectTransitionedEvent) === false || $this->isPublishedGradeEntry(event: $event) === false) {
 			return;
 		}
 
+		$this->checkEntry(entry: $event->getObject()->jsonSerialize());
+
+	}//end handle()
+
+	/**
+	 * Whether the transition publishes a learniq GradeEntry.
+	 *
+	 * @param ObjectTransitionedEvent $event The transition.
+	 *
+	 * @return bool
+	 */
+	private function isPublishedGradeEntry(ObjectTransitionedEvent $event): bool {
 		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
-			return;
+			return false;
 		}
 
-		if ($this->schemas->eventSchema(event: $event) !== self::GRADE_ENTRY_SCHEMA || $event->getTo() !== 'published') {
-			return;
-		}
+		return $this->schemas->eventSchema(event: $event) === self::GRADE_ENTRY_SCHEMA && $event->getTo() === 'published';
+	}//end isPublishedGradeEntry()
 
-		$entry = $event->getObject()->jsonSerialize();
+	/**
+	 * Check the learner of a published GradeEntry against every Programme of its Course.
+	 *
+	 * @param array<string,mixed> $entry The GradeEntry.
+	 *
+	 * @return void
+	 */
+	private function checkEntry(array $entry): void {
 		$learnerId = $entry['learnerId'] ?? '';
 		$courseId = $entry['courseId'] ?? null;
 		$tenantId = $entry['tenant_id'] ?? '';
@@ -128,13 +146,10 @@ class BsaProgressFlagHandler implements IEventListener {
 			return;
 		}
 
-		$programmeIds = $this->resolveProgrammeIds(courseId: $courseId);
-
-		foreach ($programmeIds as $programmeId) {
+		foreach ($this->resolveProgrammeIds(courseId: $courseId) as $programmeId) {
 			$this->checkProgramme(programmeId: $programmeId, learnerId: $learnerId, tenantId: $tenantId);
 		}
-
-	}//end handle()
+	}//end checkEntry()
 
 	/**
 	 * Resolve the Programme(s) a Course belongs to.
