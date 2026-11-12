@@ -358,6 +358,91 @@ class GuardianPortalInvitationTest extends TestCase {
 	}//end testWhoIssuedTheInvitationIsRecordedWithoutTheCode()
 
 	/**
+	 * An invitation without an issuer is recorded as issued by "unknown".
+	 *
+	 * @return void
+	 */
+	public function testAnInvitationWithoutAnIssuerIsRecordedAsUnknown(): void {
+		$this->invitation(profile: $this->guardianProfile())->invite(self::GUARDIAN, 'a@example.org', 'de-wilgenboom');
+
+		$this->assertCount(1, $this->audited);
+		$this->assertSame(
+			['issuedBy' => 'unknown', 'guardianRef' => self::GUARDIAN, 'channel' => 'mail', 'organisation' => 'de-wilgenboom'],
+			$this->audited[0]->getParameters()
+		);
+	}//end testAnInvitationWithoutAnIssuerIsRecordedAsUnknown()
+
+	/**
+	 * An account portaliq does not provision is refused before the claim,
+	 * and records nothing.
+	 *
+	 * @return void
+	 */
+	public function testAnAccountThatIsNotProvisionedIsRefused(): void {
+		$this->dispatched = [];
+		$this->audited = [];
+		$dispatcher = $this->createMock(IEventDispatcher::class);
+		$dispatcher->method('dispatchTyped')->willReturnCallback(
+			function (Event $event): void {
+				$this->dispatched[] = $event;
+			}
+		);
+		$invitation = new GuardianPortalInvitation(
+			$this->profiles(profile: $this->guardianProfile()),
+			$dispatcher,
+			$this->createMock(LoggerInterface::class),
+			FakeProvisionEvent::class,
+			FakeClaimEvent::class,
+			FakeInvitationEvent::class
+		);
+
+		$result = $invitation->invite(self::GUARDIAN, 'a@example.org', 'org', GuardianPortalInvitation::CHANNEL_MAIL, 'po-directeur-01');
+
+		$this->assertSame(['status' => 'refused', 'reason' => 'provision-refused'], $result);
+		$this->assertCount(1, $this->dispatched);
+		$this->assertInstanceOf(FakeProvisionEvent::class, $this->dispatched[0]);
+	}//end testAnAccountThatIsNotProvisionedIsRefused()
+
+	/**
+	 * A portaliq that throws is logged with the guardian as asked for, the
+	 * answer says the portal is unavailable, and nothing is recorded.
+	 *
+	 * @return void
+	 */
+	public function testAThrowingPortalIsLoggedAndRefused(): void {
+		$this->audited = [];
+		$dispatcher = $this->createMock(IEventDispatcher::class);
+		$dispatcher->method('dispatchTyped')->willReturnCallback(
+			function (Event $event): void {
+				if ($event instanceof CriticalActionPerformedEvent) {
+					$this->audited[] = $event;
+					return;
+				}
+
+				throw new \RuntimeException('portaliq down');
+			}
+		);
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->expects($this->once())->method('warning')->with(
+			'[GuardianPortalInvitation] Could not invite guardian {guardian}: {msg}',
+			['guardian' => ' ' . self::GUARDIAN . ' ', 'msg' => 'portaliq down']
+		);
+		$invitation = new GuardianPortalInvitation(
+			$this->profiles(profile: $this->guardianProfile()),
+			$dispatcher,
+			$logger,
+			FakeProvisionEvent::class,
+			FakeClaimEvent::class,
+			FakeInvitationEvent::class
+		);
+
+		$result = $invitation->invite(' ' . self::GUARDIAN . ' ', ' a@example.org ', ' org ', GuardianPortalInvitation::CHANNEL_LETTER, 'po-directeur-01');
+
+		$this->assertSame(['status' => 'refused', 'reason' => 'portal-unavailable'], $result);
+		$this->assertSame([], $this->audited);
+	}//end testAThrowingPortalIsLoggedAndRefused()
+
+	/**
 	 * A mailed invitation never carries a code back, whatever portaliq says.
 	 *
 	 * @return void

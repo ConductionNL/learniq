@@ -76,15 +76,27 @@ class FlagReview {
 			return $removal;
 		}
 
-		$storedById = $this->byId(flags: $stored);
+		$write = new FlagWrite();
+		$write->storedById = $this->byId(flags: $stored);
+		$write->uid = $uid;
+		$write->staff = $staff;
+		$write->now = $now;
+
+		return $this->reviewedFlags(incoming: $incoming, write: $write);
+	}//end review()
+
+	/**
+	 * The incoming flags as they may be written, or the first refusal.
+	 *
+	 * @param array<int, array<string, mixed>> $incoming The flags in the write.
+	 * @param FlagWrite                        $write    The write under review.
+	 *
+	 * @return array<int, array<string, mixed>>|string
+	 */
+	private function reviewedFlags(array $incoming, FlagWrite $write): array|string {
 		$written = [];
 		foreach ($incoming as $flag) {
-			$old = ($storedById[($this->flagIdOf(flag: $flag) ?? '')] ?? null);
-			$next = $this->storedFlag(old: $old, flag: $flag, uid: $uid, staff: $staff, now: $now);
-			if ($old === null) {
-				$next = $this->newFlag(flag: $flag, uid: $uid, staff: $staff, now: $now);
-			}
-
+			$next = $this->reviewedFlag(flag: $flag, write: $write);
 			if (is_string($next) === true) {
 				return $next;
 			}
@@ -93,7 +105,34 @@ class FlagReview {
 		}
 
 		return $written;
-	}//end review()
+	}//end reviewedFlags()
+
+	/**
+	 * One incoming flag as it may be written, or why not: appended, sent back
+	 * as stored, or decided.
+	 *
+	 * @param array<string, mixed> $flag  The flag in the write.
+	 * @param FlagWrite            $write The write under review.
+	 *
+	 * @return array<string, mixed>|string
+	 */
+	private function reviewedFlag(array $flag, FlagWrite $write): array|string {
+		$old = ($write->storedById[($this->flagIdOf(flag: $flag) ?? '')] ?? null);
+		if ($old === null) {
+			return $this->newFlag(flag: $flag, write: $write);
+		}
+
+		$kept = $this->keptFlag(old: $old, flag: $flag);
+		if ($kept !== null) {
+			return $kept;
+		}
+
+		if ($write->staff === true && $this->decisionOf(flag: $old) !== self::PENDING) {
+			return self::DECIDED;
+		}
+
+		return $this->decided(flag: $flag, write: $write);
+	}//end reviewedFlag()
 
 	/**
 	 * Why a stored flag is missing from the write, or null when none is.
@@ -126,64 +165,50 @@ class FlagReview {
 	 * A flag the write appends.
 	 *
 	 * @param array<string, mixed> $flag  The flag in the write.
-	 * @param string               $uid   The writer.
-	 * @param bool                 $staff Whether the writer is staff.
-	 * @param DateTimeImmutable    $now   Server time.
+	 * @param FlagWrite            $write The write under review.
 	 *
 	 * @return array<string, mixed>|string
 	 */
-	private function newFlag(array $flag, string $uid, bool $staff, DateTimeImmutable $now): array|string {
+	private function newFlag(array $flag, FlagWrite $write): array|string {
 		if ($this->decisionOf(flag: $flag) === self::PENDING) {
 			return $this->withReview(flag: $flag, reviewedBy: null, reviewedAt: null);
 		}
 
-		return $this->decided(flag: $flag, uid: $uid, staff: $staff, now: $now);
+		return $this->decided(flag: $flag, write: $write);
 	}//end newFlag()
 
 	/**
-	 * A flag that is already stored.
+	 * A stored flag sent back: refused when its content changed, kept with
+	 * its stored review fields when its decision did not, null when the
+	 * write decides it.
 	 *
-	 * @param array<string, mixed>|null $old   The stored flag, or null.
-	 * @param array<string, mixed>      $flag  The flag in the write.
-	 * @param string                    $uid   The writer.
-	 * @param bool                      $staff Whether the writer is staff.
-	 * @param DateTimeImmutable         $now   Server time.
+	 * @param array<string, mixed> $old  The stored flag.
+	 * @param array<string, mixed> $flag The flag in the write.
 	 *
-	 * @return array<string, mixed>|string
+	 * @return array<string, mixed>|string|null
 	 */
-	private function storedFlag(?array $old, array $flag, string $uid, bool $staff, DateTimeImmutable $now): array|string {
-		if ($old === null) {
-			return $flag;
-		}
-
+	private function keptFlag(array $old, array $flag): array|string|null {
 		if ($this->normalised(value: $this->withoutReview(flag: $old)) !== $this->normalised(value: $this->withoutReview(flag: $flag))) {
 			return self::NO_CHANGE;
 		}
 
-		$oldDecision = $this->decisionOf(flag: $old);
-		if ($this->decisionOf(flag: $flag) === $oldDecision) {
+		if ($this->decisionOf(flag: $flag) === $this->decisionOf(flag: $old)) {
 			return $this->withReview(flag: $flag, reviewedBy: ($old['reviewedBy'] ?? null), reviewedAt: ($old['reviewedAt'] ?? null));
 		}
 
-		if ($staff === true && $oldDecision !== self::PENDING) {
-			return self::DECIDED;
-		}
-
-		return $this->decided(flag: $flag, uid: $uid, staff: $staff, now: $now);
-	}//end storedFlag()
+		return null;
+	}//end keptFlag()
 
 	/**
 	 * A decision: staff only, allowed or annulled, stamped by the server.
 	 *
 	 * @param array<string, mixed> $flag  The flag in the write.
-	 * @param string               $uid   The writer.
-	 * @param bool                 $staff Whether the writer is staff.
-	 * @param DateTimeImmutable    $now   Server time.
+	 * @param FlagWrite            $write The write under review.
 	 *
 	 * @return array<string, mixed>|string
 	 */
-	private function decided(array $flag, string $uid, bool $staff, DateTimeImmutable $now): array|string {
-		if ($staff === false) {
+	private function decided(array $flag, FlagWrite $write): array|string {
+		if ($write->staff === false) {
 			return self::ONLY_STAFF;
 		}
 
@@ -191,7 +216,7 @@ class FlagReview {
 			return self::BAD_DECISION;
 		}
 
-		return $this->withReview(flag: $flag, reviewedBy: $uid, reviewedAt: $now->format(DATE_ATOM));
+		return $this->withReview(flag: $flag, reviewedBy: $write->uid, reviewedAt: $write->now->format(DATE_ATOM));
 	}//end decided()
 
 	/**

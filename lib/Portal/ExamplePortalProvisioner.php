@@ -257,16 +257,7 @@ class ExamplePortalProvisioner {
 	 * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md#requirement-loading-a-set-writes-its-declared-site-once
 	 */
 	public function describe(array $result): string {
-		$line = 'Portal ' . ($result['slug'] ?? '-') . ': ' . (string)$result['status'];
-		if (isset($result['theme']) === true) {
-			$fallback = '';
-			if (($result['themeFallback'] ?? false) === true) {
-				$fallback = ', fallback';
-			}
-
-			$line .= ' (theme ' . $result['theme'] . $fallback . ')';
-		}
-
+		$line = 'Portal ' . ($result['slug'] ?? '-') . ': ' . (string)$result['status'] . self::themeNote(result: $result);
 		if (($result['missingModes'] ?? []) !== []) {
 			$line .= '; does not offer ' . implode(', ', $result['missingModes']);
 		}
@@ -279,6 +270,26 @@ class ExamplePortalProvisioner {
 
 		return $line;
 	}//end describe()
+
+	/**
+	 * The theme part of the summary line, or '' when the answer names no theme.
+	 *
+	 * @param array<string, mixed> $result The provisioner's answer.
+	 *
+	 * @return string
+	 */
+	private static function themeNote(array $result): string {
+		if (isset($result['theme']) === false) {
+			return '';
+		}
+
+		$fallback = '';
+		if (($result['themeFallback'] ?? false) === true) {
+			$fallback = ', fallback';
+		}
+
+		return ' (theme ' . $result['theme'] . $fallback . ')';
+	}//end themeNote()
 
 	/**
 	 * Create or name the accounts the set's declaration lists.
@@ -402,16 +413,16 @@ class ExamplePortalProvisioner {
 	private function missingModes(array $existing, array $portal): array {
 		$stored  = (array)($existing['authentication']['modes'] ?? []);
 		$missing = array_values(array_diff((array)($portal['authentication']['modes'] ?? []), $stored));
-		if ($missing !== [] && $stored !== []) {
+		if ($stored === []) {
+			// An empty list was filled with the declared one.
+			return [];
+		}
+
+		if ($missing !== []) {
 			$this->logger->warning(
 				'[ExamplePortalProvisioner] portal "{slug}" keeps its own sign-in modes and does not offer: {modes}.',
 				['slug' => (string)($portal['slug'] ?? ''), 'modes' => implode(', ', $missing)]
 			);
-		}
-
-		if ($stored === []) {
-			// An empty list was filled with the declared one.
-			return [];
 		}
 
 		return $missing;
@@ -459,21 +470,8 @@ class ExamplePortalProvisioner {
 	 * @throws RuntimeException When the stored portal carries no id.
 	 */
 	private function fill(array $existing, array $portal): string {
-		$merged  = $existing;
-		$changed = false;
-		foreach (self::FILLABLE as $key) {
-			if (array_key_exists($key, $portal) === false) {
-				continue;
-			}
-
-			$next = self::fillValue(current: ($existing[$key] ?? null), declared: $portal[$key]);
-			if ($next !== ($existing[$key] ?? null)) {
-				$merged[$key] = $next;
-				$changed      = true;
-			}
-		}
-
-		if ($changed === false) {
+		$merged = self::filledFields(existing: $existing, portal: $portal);
+		if ($merged === $existing) {
 			return 'unchanged';
 		}
 
@@ -490,6 +488,33 @@ class ExamplePortalProvisioner {
 	}//end fill()
 
 	/**
+	 * The stored portal with the declared value in every empty fillable field.
+	 *
+	 * A field is only set when its value changes, so a portal with nothing to
+	 * fill comes back identical.
+	 *
+	 * @param array<string, mixed> $existing The portal as stored.
+	 * @param array<string, mixed> $portal   The declared portal, theme resolved.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function filledFields(array $existing, array $portal): array {
+		$merged = $existing;
+		foreach (self::FILLABLE as $key) {
+			if (array_key_exists($key, $portal) === false) {
+				continue;
+			}
+
+			$next = self::fillValue(current: ($existing[$key] ?? null), declared: $portal[$key]);
+			if ($next !== ($existing[$key] ?? null)) {
+				$merged[$key] = $next;
+			}
+		}
+
+		return $merged;
+	}//end filledFields()
+
+	/**
 	 * The value a field gets: the declared one when the stored one is empty,
 	 * key by key for a settings object.
 	 *
@@ -503,9 +528,7 @@ class ExamplePortalProvisioner {
 			return $declared;
 		}
 
-		if (is_array($current) === true && is_array($declared) === true
-			&& array_is_list($current) === false && array_is_list($declared) === false
-		) {
+		if (self::areSettingsObjects(current: $current, declared: $declared) === true) {
 			foreach ($declared as $key => $value) {
 				$current[$key] = self::fillValue(current: ($current[$key] ?? null), declared: $value);
 			}
@@ -513,6 +536,20 @@ class ExamplePortalProvisioner {
 
 		return $current;
 	}//end fillValue()
+
+	/**
+	 * Whether both values are settings objects (keyed arrays), which are
+	 * filled key by key; a list is kept whole.
+	 *
+	 * @param mixed $current  The stored value.
+	 * @param mixed $declared The declared value.
+	 *
+	 * @return bool
+	 */
+	private static function areSettingsObjects(mixed $current, mixed $declared): bool {
+		return is_array($current) === true && is_array($declared) === true
+			&& array_is_list($current) === false && array_is_list($declared) === false;
+	}//end areSettingsObjects()
 
 	/**
 	 * Whether a stored value counts as not set.

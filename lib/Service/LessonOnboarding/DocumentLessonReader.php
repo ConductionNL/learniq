@@ -160,34 +160,70 @@ class DocumentLessonReader {
 	 * @return array{heading: string, paragraphs: list<string>, images: list<array{name: string, bytes: string}>, notes: string}|null
 	 */
 	private function section(array $section, DocumentImageLoader $images): ?array {
-		$lessonSection = ['heading' => trim((string)($section['heading'] ?? '')), 'paragraphs' => [], 'images' => [], 'notes' => ''];
-		$blockText = new DocumentBlockText();
-		foreach ((array)($section['blocks'] ?? []) as $block) {
-			if (is_array($block) === false) {
-				continue;
-			}
+		$heading = trim((string)($section['heading'] ?? ''));
+		$blocks = array_filter((array)($section['blocks'] ?? []), static fn (mixed $block): bool => is_array($block));
+		$lessonSection = [
+			'heading' => $heading,
+			'paragraphs' => $this->paragraphsOf(blocks: $blocks),
+			'images' => $this->imagesOf(blocks: $blocks, images: $images),
+			'notes' => '',
+		];
 
-			if (($block['type'] ?? '') === 'image') {
-				$image = $images->load(block: $block);
-				if ($image !== null) {
-					$lessonSection['images'][] = $image;
-				}
-
-				continue;
-			}
-
-			$text = $blockText->textOf(block: $block);
-			if ($text !== '') {
-				$lessonSection['paragraphs'][] = $text;
-			}
-		}//end foreach
-
-		if ($lessonSection['heading'] === '' && $lessonSection['paragraphs'] === [] && $lessonSection['images'] === []) {
+		if ($heading === '' && $lessonSection['paragraphs'] === [] && $lessonSection['images'] === []) {
 			return null;
 		}
 
 		return $lessonSection;
 	}//end section()
+
+	/**
+	 * The text of a section's non-picture blocks, one paragraph each; blocks
+	 * without text are dropped.
+	 *
+	 * @param array<array-key, array<string, mixed>> $blocks The section's blocks.
+	 *
+	 * @return list<string>
+	 */
+	private function paragraphsOf(array $blocks): array {
+		$blockText = new DocumentBlockText();
+		$paragraphs = [];
+		foreach ($blocks as $block) {
+			$text = '';
+			if (($block['type'] ?? '') !== 'image') {
+				$text = $blockText->textOf(block: $block);
+			}
+
+			if ($text !== '') {
+				$paragraphs[] = $text;
+			}
+		}
+
+		return $paragraphs;
+	}//end paragraphsOf()
+
+	/**
+	 * The pictures of a section's picture blocks that load, in order.
+	 *
+	 * @param array<array-key, array<string, mixed>> $blocks The section's blocks.
+	 * @param DocumentImageLoader                    $images Reads picture bytes from the package.
+	 *
+	 * @return list<array{name: string, bytes: string}>
+	 */
+	private function imagesOf(array $blocks, DocumentImageLoader $images): array {
+		$loaded = [];
+		foreach ($blocks as $block) {
+			$image = null;
+			if (($block['type'] ?? '') === 'image') {
+				$image = $images->load(block: $block);
+			}
+
+			if ($image !== null) {
+				$loaded[] = $image;
+			}
+		}
+
+		return $loaded;
+	}//end imagesOf()
 
 	/**
 	 * The file's bytes, or '' when they cannot be read (pictures are then skipped).

@@ -91,6 +91,23 @@ class KeyManagementService {
 			throw new InvalidArgumentException('tenantId must not be empty.');
 		}
 
+		$pems = $this->exportKeypair(resource: $this->newKey());
+
+		// #176: archive the current public key before overwriting the active key so that
+		// previously-issued credentials (which embed the old kid) remain verifiable.
+		$this->archiveCurrentPublicKey(tenantId: $tenantId);
+
+		return $this->storeKeypair(tenantId: $tenantId, pems: $pems);
+	}//end generateTenantKeypair()
+
+	/**
+	 * A new RSA-2048 key.
+	 *
+	 * @return \OpenSSLAsymmetricKey The key.
+	 *
+	 * @throws \RuntimeException If OpenSSL key generation fails.
+	 */
+	private function newKey(): \OpenSSLAsymmetricKey {
 		$resource = openssl_pkey_new(
 			[
 				'private_key_type' => OPENSSL_KEYTYPE_RSA,
@@ -102,6 +119,19 @@ class KeyManagementService {
 			throw new RuntimeException('OpenSSL key generation failed: ' . openssl_error_string());
 		}
 
+		return $resource;
+	}//end newKey()
+
+	/**
+	 * The private and public PEM of a key.
+	 *
+	 * @param \OpenSSLAsymmetricKey $resource The key.
+	 *
+	 * @return array{0: string, 1: string} The private PEM and the public PEM.
+	 *
+	 * @throws \RuntimeException If either cannot be exported.
+	 */
+	private function exportKeypair(\OpenSSLAsymmetricKey $resource): array {
 		$privateKeyPem = '';
 		// #212: check openssl_pkey_export return value — silent failure stores null key.
 		if (openssl_pkey_export($resource, $privateKeyPem) === false) {
@@ -115,36 +145,46 @@ class KeyManagementService {
 			throw new RuntimeException('Failed to export keypair from OpenSSL resource.');
 		}
 
-		// #193: use 32-char (full 128-bit) fingerprint to reduce birthday-attack collision risk.
-		$fingerprint = substr(hash('sha256', $publicKeyPem), 0, 32);
+		return [$privateKeyPem, $publicKeyPem];
+	}//end exportKeypair()
 
-		// #176: archive the current public key before overwriting the active key so that
-		// previously-issued credentials (which embed the old kid) remain verifiable.
-		$this->archiveCurrentPublicKey(tenantId: $tenantId);
-
+	/**
+	 * Store a tenant's new keypair as its active key: the private key
+	 * encrypted, the public key and its fingerprint.
+	 *
+	 * @param string                      $tenantId The tenant.
+	 * @param array{0: string, 1: string} $pems     The private PEM and the public PEM.
+	 *
+	 * @return array{fingerprint: string, publicKey: string} Public key data.
+	 */
+	private function storeKeypair(string $tenantId, array $pems): array {
+		[$privateKeyPem, $publicKeyPem] = $pems;
+		$fingerprint = $this->fingerprintOf(pem: $publicKeyPem);
 		$encryptedPrivKey = $this->crypto->encrypt($privateKeyPem);
 
-		$this->appConfig->setValueString(
-			app: 'learniq',
-			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PRIVATE, tenantId: $tenantId),
-			value: $encryptedPrivKey
-		);
-		$this->appConfig->setValueString(
-			app: 'learniq',
-			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
-			value: $publicKeyPem
-		);
-		$this->appConfig->setValueString(
-			app: 'learniq',
-			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::FINGERPRINT, tenantId: $tenantId),
-			value: $fingerprint
-		);
+		$this->store(key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PRIVATE, tenantId: $tenantId), value: $encryptedPrivKey);
+		$this->store(key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId), value: $publicKeyPem);
+		$this->store(key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::FINGERPRINT, tenantId: $tenantId), value: $fingerprint);
 
 		return [
 			'fingerprint' => $fingerprint,
 			'publicKey' => $publicKeyPem,
 		];
-	}//end generateTenantKeypair()
+	}//end storeKeypair()
+
+	/**
+	 * A public key's fingerprint.
+	 *
+	 * #193: the 32-char (full 128-bit) prefix of its SHA-256, to reduce
+	 * birthday-attack collision risk.
+	 *
+	 * @param string $pem The public key PEM.
+	 *
+	 * @return string The fingerprint.
+	 */
+	private function fingerprintOf(string $pem): string {
+		return substr(hash('sha256', $pem), 0, 32);
+	}//end fingerprintOf()
 
 	/**
 	 * Return the public key and fingerprint for a tenant, or null if absent.
@@ -192,34 +232,31 @@ class KeyManagementService {
 	 */
 	public function resolvePublicKeyByFingerprint(string $tenantId, string $fingerprint): ?string {
 		// Check the active key first.
-		$activePublicKey = $this->appConfig->getValueString(
-			app: 'learniq',
-			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
-			default: ''
-		);
-		if ($activePublicKey !== '' && substr(hash('sha256', $activePublicKey), 0, 32) === $fingerprint) {
+		$activePublicKey = $this->activePublicKey(tenantId: $tenantId);
+		if ($activePublicKey !== '' && $this->fingerprintOf(pem: $activePublicKey) === $fingerprint) {
 			return $activePublicKey;
 		}
 
-		// Check the archived keys.
-		$archivedJson = $this->appConfig->getValueString(
-			app: 'learniq',
-			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::ARCHIVED, tenantId: $tenantId),
-			default: '[]'
-		);
-		$archived = json_decode($archivedJson, true);
-		if (is_array($archived) === false) {
-			return null;
-		}
+		return $this->archivedKeyWithFingerprint(tenantId: $tenantId, fingerprint: $fingerprint);
+	}//end resolvePublicKeyByFingerprint()
 
-		foreach ($archived as $pemEntry) {
-			if (is_string($pemEntry) === true && substr(hash('sha256', $pemEntry), 0, 32) === $fingerprint) {
+	/**
+	 * The archived public key with this fingerprint, or null.
+	 *
+	 * @param string $tenantId    Tenant UUID.
+	 * @param string $fingerprint 32-char hex fingerprint.
+	 *
+	 * @return string|null PEM string of the matching public key, or null if not found.
+	 */
+	private function archivedKeyWithFingerprint(string $tenantId, string $fingerprint): ?string {
+		foreach (($this->archivedKeys(tenantId: $tenantId) ?? []) as $pemEntry) {
+			if (is_string($pemEntry) === true && $this->fingerprintOf(pem: $pemEntry) === $fingerprint) {
 				return $pemEntry;
 			}
 		}
 
 		return null;
-	}//end resolvePublicKeyByFingerprint()
+	}//end archivedKeyWithFingerprint()
 
 	/**
 	 * Archive the current active public key before rotation.
@@ -233,26 +270,13 @@ class KeyManagementService {
 	 * @return void
 	 */
 	private function archiveCurrentPublicKey(string $tenantId): void {
-		$current = $this->appConfig->getValueString(
-			app: 'learniq',
-			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
-			default: ''
-		);
-
+		$current = $this->activePublicKey(tenantId: $tenantId);
 		if ($current === '') {
 			// No active key to archive — first-time generation.
 			return;
 		}
 
-		$archivedJson = $this->appConfig->getValueString(
-			app: 'learniq',
-			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::ARCHIVED, tenantId: $tenantId),
-			default: '[]'
-		);
-		$archived = json_decode($archivedJson, true);
-		if (is_array($archived) === false) {
-			$archived = [];
-		}
+		$archived = ($this->archivedKeys(tenantId: $tenantId) ?? []);
 
 		// Avoid duplicates.
 		if (in_array($current, $archived, strict: true) === false) {
@@ -264,10 +288,72 @@ class KeyManagementService {
 			$archived = array_slice($archived, count($archived) - self::MAX_ARCHIVED_KEYS);
 		}
 
-		$this->appConfig->setValueString(
-			app: 'learniq',
+		$this->storeArchive(tenantId: $tenantId, archived: $archived);
+	}//end archiveCurrentPublicKey()
+
+	/**
+	 * Store a tenant's archive of public keys.
+	 *
+	 * @param string                  $tenantId Tenant UUID.
+	 * @param array<array-key, mixed> $archived The archive.
+	 *
+	 * @return void
+	 */
+	private function storeArchive(string $tenantId, array $archived): void {
+		$this->store(
 			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::ARCHIVED, tenantId: $tenantId),
 			value: (string)json_encode($archived)
 		);
-	}//end archiveCurrentPublicKey()
+	}//end storeArchive()
+
+	/**
+	 * A tenant's active public key, or '' when it has none.
+	 *
+	 * @param string $tenantId Tenant UUID.
+	 *
+	 * @return string The PEM, or ''.
+	 */
+	private function activePublicKey(string $tenantId): string {
+		return $this->appConfig->getValueString(
+			app: 'learniq',
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
+			default: ''
+		);
+	}//end activePublicKey()
+
+	/**
+	 * A tenant's archived public keys as stored, or null when the stored
+	 * value is not a JSON array.
+	 *
+	 * @param string $tenantId Tenant UUID.
+	 *
+	 * @return array<array-key, mixed>|null The archive.
+	 */
+	private function archivedKeys(string $tenantId): ?array {
+		$archived = json_decode(
+			$this->appConfig->getValueString(
+				app: 'learniq',
+				key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::ARCHIVED, tenantId: $tenantId),
+				default: '[]'
+			),
+			true
+		);
+		if (is_array($archived) === false) {
+			return null;
+		}
+
+		return $archived;
+	}//end archivedKeys()
+
+	/**
+	 * Store one of Learniq's app values.
+	 *
+	 * @param string $key   The config key.
+	 * @param string $value The value.
+	 *
+	 * @return void
+	 */
+	private function store(string $key, string $value): void {
+		$this->appConfig->setValueString(app: 'learniq', key: $key, value: $value);
+	}//end store()
 }//end class

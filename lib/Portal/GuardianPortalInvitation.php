@@ -169,14 +169,31 @@ class GuardianPortalInvitation {
 	 * @spec openspec/changes/portal-guardian-invitation-letter/specs/portal-identity/spec.md
 	 */
 	public function invite(string $guardianRef, string $email, string $organisation, string $channel=self::CHANNEL_MAIL, string $issuedBy=''): array {
-		$email = trim($email);
-		$organisation = trim($organisation);
-		$inputRefusal = $this->inputRefusal(email: $email, organisation: $organisation, channel: $channel);
+		$request = new GuardianInvitationRequest();
+		$request->guardianRef = $guardianRef;
+		$request->email = trim($email);
+		$request->organisation = trim($organisation);
+		$request->channel = $channel;
+		$request->issuedBy = $issuedBy;
+
+		return $this->inviteGuardian(request: $request);
+	}//end invite()
+
+	/**
+	 * Refuse unusable input, an unknown guardian or a missing portaliq before
+	 * anything is dispatched; otherwise issue the invitation.
+	 *
+	 * @param GuardianInvitationRequest $request The invitation being worked through.
+	 *
+	 * @return array{status: string, reason?: string, subjectRef?: string, invitation?: string, code?: string, expiresAt?: string}
+	 */
+	private function inviteGuardian(GuardianInvitationRequest $request): array {
+		$inputRefusal = $this->inputRefusal(request: $request);
 		if ($inputRefusal !== '') {
 			return self::refused(reason: $inputRefusal);
 		}
 
-		$guardian = $this->guardian(guardianRef: $guardianRef);
+		$guardian = $this->guardian(guardianRef: $request->guardianRef);
 		if ($guardian === null) {
 			return self::refused(reason: 'guardian-unknown');
 		}
@@ -185,32 +202,59 @@ class GuardianPortalInvitation {
 			return self::refused(reason: 'portal-unavailable');
 		}
 
+		$request->guardian = $guardian;
+		return $this->issue(request: $request);
+	}//end inviteGuardian()
+
+	/**
+	 * Provision, link and invite the guardian, and record who issued it once
+	 * it went through; a portaliq that throws is logged and refused.
+	 *
+	 * @param GuardianInvitationRequest $request The invitation, its guardian found.
+	 *
+	 * @return array{status: string, reason?: string, subjectRef?: string, invitation?: string, code?: string, expiresAt?: string}
+	 */
+	private function issue(GuardianInvitationRequest $request): array {
 		try {
-			$subjectRef = $this->provision(guardian: $guardian, email: $email, organisation: $organisation);
-			if ($subjectRef === '') {
-				return self::refused(reason: 'provision-refused');
-			}
-
-			if ($this->claim(subjectRef: $subjectRef, guardianRef: (string)$guardian['id']) === false) {
-				return self::refused(reason: 'claim-refused');
-			}
-
-			$sent = $this->sendInvitation(subjectRef: $subjectRef, channel: $channel);
+			$result = $this->provisionLinkAndSend(request: $request);
 		} catch (Throwable $exception) {
 			$this->logger->warning(
 				'[GuardianPortalInvitation] Could not invite guardian {guardian}: {msg}',
-				['guardian' => $guardianRef, 'msg' => $exception->getMessage()]
+				['guardian' => $request->guardianRef, 'msg' => $exception->getMessage()]
 			);
 			return self::refused(reason: 'portal-unavailable');
 		}
 
-		$this->recordIssue(issuedBy: $issuedBy, guardianRef: (string)$guardian['id'], channel: $channel, organisation: $organisation);
+		if ($result['status'] === 'invited') {
+			$this->recordIssue(request: $request);
+		}
+
+		return $result;
+	}//end issue()
+
+	/**
+	 * Have portaliq provision the account, write the claim on it and send the
+	 * invitation; refused when the account or the claim is not confirmed.
+	 *
+	 * @param GuardianInvitationRequest $request The invitation, its guardian found.
+	 *
+	 * @return array{status: string, reason?: string, subjectRef?: string, invitation?: string, code?: string, expiresAt?: string}
+	 */
+	private function provisionLinkAndSend(GuardianInvitationRequest $request): array {
+		$subjectRef = $this->provision(request: $request);
+		if ($subjectRef === '') {
+			return self::refused(reason: 'provision-refused');
+		}
+
+		if ($this->claim(subjectRef: $subjectRef, guardianRef: (string)$request->guardian['id']) === false) {
+			return self::refused(reason: 'claim-refused');
+		}
 
 		return ([
 			'status' => 'invited',
 			'subjectRef' => $subjectRef,
-		] + $sent);
-	}//end invite()
+		] + $this->sendInvitation(subjectRef: $subjectRef, channel: $request->channel));
+	}//end provisionLinkAndSend()
 
 	/**
 	 * Record who issued an invitation (security review L5): the issuer, the
@@ -218,24 +262,12 @@ class GuardianPortalInvitation {
 	 * link. Nextcloud's audit log (admin_audit) takes the event; the app log
 	 * gets the same line.
 	 *
-	 * @param string $issuedBy The staff user's uid, `occ`, or '' when unknown.
-	 * @param string $guardianRef The guardian's LearnerProfile uuid.
-	 * @param string $channel The channel.
-	 * @param string $organisation The portal organisation slug.
+	 * @param GuardianInvitationRequest $request The invitation that was issued.
 	 *
 	 * @return void
 	 */
-	private function recordIssue(string $issuedBy, string $guardianRef, string $channel, string $organisation): void {
-		if ($issuedBy === '') {
-			$issuedBy = 'unknown';
-		}
-
-		$facts = [
-			'issuedBy' => $issuedBy,
-			'guardianRef' => $guardianRef,
-			'channel' => $channel,
-			'organisation' => $organisation,
-		];
+	private function recordIssue(GuardianInvitationRequest $request): void {
+		$facts = $this->issueFacts(request: $request);
 		$this->dispatcher->dispatchTyped(
 			new CriticalActionPerformedEvent(
 				'Portal invitation issued by "%s" for guardian "%s" on channel "%s" in organisation "%s"',
@@ -246,24 +278,43 @@ class GuardianPortalInvitation {
 	}//end recordIssue()
 
 	/**
+	 * The facts an issued invitation is recorded with; an unknown issuer reads `unknown`.
+	 *
+	 * @param GuardianInvitationRequest $request The invitation that was issued.
+	 *
+	 * @return array{issuedBy: string, guardianRef: string, channel: string, organisation: string}
+	 */
+	private function issueFacts(GuardianInvitationRequest $request): array {
+		$issuedBy = $request->issuedBy;
+		if ($issuedBy === '') {
+			$issuedBy = 'unknown';
+		}
+
+		return [
+			'issuedBy' => $issuedBy,
+			'guardianRef' => (string)$request->guardian['id'],
+			'channel' => $request->channel,
+			'organisation' => $request->organisation,
+		];
+	}//end issueFacts()
+
+	/**
 	 * Why the caller's input is refused, or '' when it is usable.
 	 *
-	 * @param string $email The trimmed email address.
-	 * @param string $organisation The trimmed organisation slug.
-	 * @param string $channel The channel asked for.
+	 * @param GuardianInvitationRequest $request The trimmed address and organisation, and the channel asked for.
 	 *
 	 * @return string The refusal reason, or ''.
 	 */
-	private function inputRefusal(string $email, string $organisation, string $channel): string {
-		if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+	private function inputRefusal(GuardianInvitationRequest $request): string {
+		if (filter_var($request->email, FILTER_VALIDATE_EMAIL) === false) {
 			return 'email-invalid';
 		}
 
-		if ($organisation === '') {
+		if ($request->organisation === '') {
 			return 'organisation-missing';
 		}
 
-		if (in_array($channel, [self::CHANNEL_MAIL, self::CHANNEL_LETTER], true) === false) {
+		if (in_array($request->channel, [self::CHANNEL_MAIL, self::CHANNEL_LETTER], true) === false) {
 			return 'channel-unknown';
 		}
 
@@ -314,21 +365,19 @@ class GuardianPortalInvitation {
 	/**
 	 * Ask portaliq for the guardian's account; answers its subjectRef or ''.
 	 *
-	 * @param array<string, mixed> $guardian The guardian's profile.
-	 * @param string $email The verified email address.
-	 * @param string $organisation The portal organisation slug.
+	 * @param GuardianInvitationRequest $request The invitation: the guardian's profile, the verified address and the organisation.
 	 *
 	 * @return string
 	 */
-	private function provision(array $guardian, string $email, string $organisation): string {
-		$displayName = trim(((string)($guardian['givenName'] ?? '')) . ' ' . ((string)($guardian['familyName'] ?? '')));
+	private function provision(GuardianInvitationRequest $request): string {
+		$displayName = trim(((string)($request->guardian['givenName'] ?? '')) . ' ' . ((string)($request->guardian['familyName'] ?? '')));
 		$event = new ($this->provisionEventClass)(
 			appId: self::APP_ID,
 			audience: self::AUDIENCE,
-			organisation: $organisation,
+			organisation: $request->organisation,
 			identityType: '',
 			identityRef: '',
-			email: $email,
+			email: $request->email,
 			verifiedEmail: true,
 			displayName: $displayName,
 		);

@@ -109,3 +109,24 @@ test('the registry settings section calls the routed admin endpoint', () => {
 		)
 	}
 })
+
+test('refused rights overwrite flags a store page already carried; holes and other pages are skipped', () => {
+	const manifest = {
+		pages: [
+			null,
+			{ id: 'Store', type: 'store', config: { canInstall: true, canPublish: true, app: 'learniq' } },
+			{ id: 'Other', type: 'detail', config: { canInstall: true } },
+			{ id: 'Store2', type: 'store', config: 'broken' },
+		],
+	}
+	const returned = applyStoreAccess(manifest, { install: false, publish: 'yes' })
+	assert.equal(returned, manifest)
+	assert.deepEqual(manifest.pages[1].config, { canInstall: false, canPublish: false, app: 'learniq' })
+	assert.deepEqual(Object.keys(manifest.pages[1].config), ['canInstall', 'canPublish', 'app'])
+	assert.deepEqual(manifest.pages[2].config, { canInstall: true })
+	assert.deepEqual(manifest.pages[3].config, { canInstall: false, canPublish: false })
+	assert.equal(applyStoreAccess(null, { install: true }), null)
+	const publisher = { pages: [{ type: 'store', config: {} }] }
+	applyStoreAccess(publisher, { install: false, publish: true })
+	assert.deepEqual(publisher.pages[0].config, { canInstall: false, canPublish: true })
+})

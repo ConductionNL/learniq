@@ -96,34 +96,58 @@ class EdciPayloadBuilder {
 	 * @spec openspec/specs/certification/spec.md#scenario-a-training-certificate-gets-its-europass-form
 	 */
 	public function build(array $credential, ?array $course, ?array $learner, array $issuer, array $competences = []): array {
-		$credentialId = 'urn:uuid:' . (string)($credential['id'] ?? '');
-		$issuerId = (string)($credential['issuerDid'] ?? '');
+		$source = new EdciCredentialSource();
+		$source->credential = $credential;
+		$source->course = $course;
+		$source->learner = $learner;
+		$source->issuer = $issuer;
+		$source->competences = $competences;
+		$source->credentialId = 'urn:uuid:' . (string)($credential['id'] ?? '');
+		$source->issuerId = (string)($credential['issuerDid'] ?? '');
 
-		$payload = [
+		return $this->prune(value: $this->envelope(source: $source));
+	}//end build()
+
+	/**
+	 * The credential envelope: profile, issuer, validity and subject, before pruning.
+	 *
+	 * @param EdciCredentialSource $source What the credential is built from.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function envelope(EdciCredentialSource $source): array {
+		$credential = $source->credential;
+
+		return [
 			'@context' => ['https://www.w3.org/2018/credentials/v1', self::ELM_CONTEXT],
-			'id' => $credentialId,
+			'id' => $source->credentialId,
 			'type' => ['VerifiableCredential', 'EuropeanDigitalCredential'],
 			'credentialProfiles' => [$this->profile()],
-			'issuer' => $this->organisation(issuerId: $issuerId, issuer: $issuer),
+			'issuer' => $this->organisation(issuerId: $source->issuerId, issuer: $source->issuer),
 			'issuanceDate' => $credential['issuedAt'] ?? null,
 			'validFrom' => $credential['issuedAt'] ?? null,
 			'validUntil' => $credential['expiresAt'] ?? null,
-			'credentialSubject' => $this->person(credentialId: $credentialId, learner: $learner),
+			'credentialSubject' => $this->subject(source: $source),
 		];
+	}//end envelope()
 
-		$achievement = $this->achievement(
-			credentialId: $credentialId,
-			credential: $credential,
-			course: $course,
-			issuerId: $issuerId,
-			competences: $competences
-		);
+	/**
+	 * The holder, with the achievement it claims when the credential has a course.
+	 *
+	 * @param EdciCredentialSource $source What the credential is built from.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function subject(EdciCredentialSource $source): array {
+		$subject = $this->person(credentialId: $source->credentialId, learner: $source->learner);
+
+		$achievement = $this->achievement(source: $source);
 		if ($achievement !== null) {
-			$payload['credentialSubject']['hasClaim'] = [$achievement];
+			$subject['hasClaim'] = [$achievement];
 		}
 
-		return $this->prune(value: $payload);
-	}//end build()
+		return $subject;
+	}//end subject()
 
 	/**
 	 * The credential profile.
@@ -182,46 +206,75 @@ class EdciPayloadBuilder {
 	/**
 	 * The learning achievement the credential claims, or null without a course.
 	 *
-	 * @param string                     $credentialId The credential urn.
-	 * @param array<string, mixed>       $credential   The credential.
-	 * @param array<string, mixed>|null  $course       The course.
-	 * @param string                     $issuerId     The issuer DID.
-	 * @param list<array<string, mixed>> $competences  The course's competencies.
+	 * @param EdciCredentialSource $source What the credential is built from.
 	 *
 	 * @return array<string, mixed>|null
 	 */
-	private function achievement(string $credentialId, array $credential, ?array $course, string $issuerId, array $competences): ?array {
-		if ($course === null) {
+	private function achievement(EdciCredentialSource $source): ?array {
+		if ($source->course === null) {
 			return null;
 		}
 
-		$title = array_filter(
-			['en' => $course['name'] ?? null, 'nl' => $course['name_nl'] ?? null],
-			static fn (mixed $v): bool => is_string($v) && $v !== ''
-		);
-
-		$specification = [
-			'id' => 'urn:learniq:course:' . (string)($course['id'] ?? ''),
-			'type' => 'LearningAchievementSpecification',
-			'title' => $title,
-			'eqfLevel' => $this->eqf(levels: (array)($course['educationalLevels'] ?? [])),
-			'creditPoint' => $this->credits(ects: $course['ectsCredits'] ?? null),
-			'learningOutcome' => $this->outcomes(competences: $competences),
-		];
+		$title = $this->courseTitle(course: $source->course);
+		$specification = $this->specification(course: $source->course, source: $source);
 
 		return [
-			'id' => $credentialId . '#achievement',
+			'id' => $source->credentialId . '#achievement',
 			'type' => 'LearningAchievement',
 			'title' => $title,
-			'awardedBy' => [
-				'id' => $credentialId . '#awarding',
-				'type' => 'AwardingProcess',
-				'awardingBody' => [$issuerId],
-				'awardingDate' => $credential['issuedAt'] ?? null,
-			],
+			'awardedBy' => $this->awarding(source: $source),
 			'specifiedBy' => $specification,
 		];
 	}//end achievement()
+
+	/**
+	 * The course's title per language, only the languages it has.
+	 *
+	 * @param array<string, mixed> $course The course.
+	 *
+	 * @return array<string, string>
+	 */
+	private function courseTitle(array $course): array {
+		return array_filter(
+			['en' => $course['name'] ?? null, 'nl' => $course['name_nl'] ?? null],
+			static fn (mixed $v): bool => is_string($v) && $v !== ''
+		);
+	}//end courseTitle()
+
+	/**
+	 * The specification of the achievement: the course, its level, credits and outcomes.
+	 *
+	 * @param array<string, mixed> $course The course.
+	 * @param EdciCredentialSource $source What the credential is built from: the course's competencies.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function specification(array $course, EdciCredentialSource $source): array {
+		return [
+			'id' => 'urn:learniq:course:' . (string)($course['id'] ?? ''),
+			'type' => 'LearningAchievementSpecification',
+			'title' => $this->courseTitle(course: $course),
+			'eqfLevel' => $this->eqf(levels: (array)($course['educationalLevels'] ?? [])),
+			'creditPoint' => $this->credits(ects: $course['ectsCredits'] ?? null),
+			'learningOutcome' => $this->outcomes(competences: $source->competences),
+		];
+	}//end specification()
+
+	/**
+	 * The awarding process: the issuer, on the day the credential was issued.
+	 *
+	 * @param EdciCredentialSource $source What the credential is built from.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function awarding(EdciCredentialSource $source): array {
+		return [
+			'id' => $source->credentialId . '#awarding',
+			'type' => 'AwardingProcess',
+			'awardingBody' => [$source->issuerId],
+			'awardingDate' => $source->credential['issuedAt'] ?? null,
+		];
+	}//end awarding()
 
 	/**
 	 * The highest EQF level a course's education levels map onto, or null.

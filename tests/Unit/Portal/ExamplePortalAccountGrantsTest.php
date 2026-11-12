@@ -317,4 +317,171 @@ class ExamplePortalAccountGrantsTest extends TestCase {
 
 		$this->assertSame(['mbo-student-251', 'mbo-student-252', 'mbo-praktijkopleider-037', 'training-deelnemer-151', 'vo-leerling-121'], $granted);
 	}//end testTheDeclaredLearnersAreRealPeopleOfTheSet()
+	/**
+	 * The declaration directories goldenGrants() wrote.
+	 *
+	 * @var array<int, string>
+	 */
+	private array $declarationDirs = [];
+
+	/**
+	 * Remove the declaration directories the test wrote.
+	 *
+	 * @return void
+	 */
+	protected function tearDown(): void {
+		foreach ($this->declarationDirs as $directory) {
+			@unlink($directory . '/golden.json');
+			@rmdir($directory);
+		}
+
+		parent::tearDown();
+	}//end tearDown()
+
+	/**
+	 * Grants over a declaration written for the test, with portaliq answering per account.
+	 *
+	 * @param array<int, array<string, mixed>> $declared     The declared accounts.
+	 * @param string                           $organisation The portal's organisation.
+	 *
+	 * @return ExamplePortalAccountGrants
+	 */
+	private function goldenGrants(array $declared, string $organisation): ExamplePortalAccountGrants {
+		$directory = sys_get_temp_dir() . '/learniq-grants-' . bin2hex(random_bytes(4));
+		mkdir($directory);
+		$this->declarationDirs[] = $directory;
+		file_put_contents($directory . '/golden.json', json_encode(['set' => 'golden', 'portal' => ['slug' => 'warmtepompacademie'], 'accounts' => $declared]));
+
+		$this->dispatched = [];
+		$dispatcher = $this->createMock(IEventDispatcher::class);
+		$dispatcher->method('dispatchTyped')->willReturnCallback(
+			function (Event $event): void {
+				if ($event instanceof FakeNextcloudProvisionEvent) {
+					$event->subjectRef = $event->nextcloudUid;
+					$event->status     = 'active';
+					$event->refusal    = ($event->nextcloudUid === 'a-refused' ? 'conflict' : '');
+					if ($event->nextcloudUid === 'a-pending') {
+						$event->status = 'pending';
+					}
+
+					$this->dispatched[] = 'provision:' . $event->nextcloudUid . ':' . $event->displayName . ':' . $event->organisation . ':' . $event->portal;
+				}
+
+				if ($event instanceof FakeGrantClaimEvent) {
+					$event->result      = ($event->claimName === 'refuseMe' ? 'refused' : 'ok');
+					$this->dispatched[] = 'claim:' . $event->subjectRef . ':' . $event->claimName . '=' . $event->value;
+				}
+			}
+		);
+
+		$apps = $this->createMock(IAppManager::class);
+		$apps->method('isInstalled')->willReturn(true);
+
+		$stored = [
+			['subjectRef' => 'a-kept', 'audience' => 'participant', 'status' => 'active', 'claims' => ['learniq' => ['learnerRef' => 'r-kept']]],
+			['subjectRef' => 'a-inactive', 'audience' => 'participant', 'status' => 'blocked', 'claims' => []],
+			['subjectRef' => 'a-claim', 'audience' => 'participant', 'status' => 'active', 'claims' => ['learniq' => ['learnerRef' => 'old']]],
+		];
+		$content = $this->createMock(ExamplePortalContent::class);
+		$content->method('findOne')->willReturnCallback(
+			static function (string $schema, callable $match) use ($stored, $organisation): ?array {
+				if ($schema === 'portal') {
+					return ($match(['slug' => 'warmtepompacademie']) === true ? ['slug' => 'warmtepompacademie', 'organisation' => $organisation] : null);
+				}
+
+				if ($match(['subjectRef' => 'a-throws', 'audience' => 'participant']) === true) {
+					throw new \RuntimeException('store down');
+				}
+
+				foreach ($stored as $row) {
+					if ($match($row) === true) {
+						return $row;
+					}
+				}
+
+				return null;
+			}
+		);
+
+		return new ExamplePortalAccountGrants(
+			dispatcher: $dispatcher,
+			appManager: $apps,
+			content: $content,
+			declarations: new ExamplePortalDeclarations(directory: $directory),
+			logger: $this->createMock(LoggerInterface::class),
+			provisionEventClass: FakeNextcloudProvisionEvent::class,
+			claimEventClass: FakeGrantClaimEvent::class,
+		);
+	}//end goldenGrants()
+
+	/**
+	 * Every per-account outcome, in declaration order, with the events portaliq was sent.
+	 *
+	 * @return void
+	 */
+	public function testEveryAccountOutcomeIsCountedAndExplained(): void {
+		$declared = [
+			['userId' => 'no-portal-entry'],
+			['userId' => '  ', 'portal' => ['audience' => 'participant']],
+			['userId' => 'a-no-audience', 'portal' => ['audience' => ' ']],
+			['userId' => 'a-kept', 'portal' => ['audience' => 'participant', 'claims' => ['learnerRef' => 'r-kept', 'blank' => '']]],
+			['userId' => ' a-inactive ', 'displayName' => 'Ina Actief', 'portal' => ['audience' => ' participant ', 'claims' => ['learnerRef' => 'r-ina']]],
+			['userId' => 'a-new', 'portal' => ['audience' => 'participant']],
+			['userId' => 'a-refused', 'portal' => ['audience' => 'participant', 'claims' => ['learnerRef' => 'r-ref']]],
+			['userId' => 'a-pending', 'portal' => ['audience' => 'participant', 'claims' => ['learnerRef' => 'r-pen']]],
+			['userId' => 'a-claim', 'portal' => ['audience' => 'participant', 'claims' => ['learnerRef' => 'new', 'refuseMe' => 'x', 'after' => 'y']]],
+			['userId' => 'a-throws', 'portal' => ['audience' => 'participant']],
+		];
+
+		$result = $this->goldenGrants(declared: $declared, organisation: ' org-1 ')->grant(profileId: 'golden');
+
+		$this->assertSame(
+			[
+				'status'  => 'done',
+				'granted' => 2,
+				'kept'    => 1,
+				'waiting' => 0,
+				'failed'  => 6,
+				'reasons' => [
+					'  : refused',
+					'a-no-audience: refused',
+					'a-refused: conflict',
+					'a-pending: not_active',
+					'a-claim: claim-refused',
+					'a-throws: unavailable',
+				],
+			],
+			$result
+		);
+		$this->assertSame(
+			[
+				'provision:a-inactive:Ina Actief:org-1:warmtepompacademie',
+				'claim:a-inactive:learnerRef=r-ina',
+				'provision:a-new::org-1:warmtepompacademie',
+				'provision:a-refused::org-1:warmtepompacademie',
+				'provision:a-pending::org-1:warmtepompacademie',
+				'claim:a-claim:learnerRef=new',
+				'claim:a-claim:refuseMe=x',
+			],
+			$this->dispatched
+		);
+	}//end testEveryAccountOutcomeIsCountedAndExplained()
+
+	/**
+	 * Without an organisation an incomplete account waits and a complete one is kept.
+	 *
+	 * @return void
+	 */
+	public function testWithoutAnOrganisationOnlyCompleteAccountsAreKept(): void {
+		$declared = [
+			['userId' => 'a-kept', 'portal' => ['audience' => 'participant', 'claims' => ['learnerRef' => 'r-kept']]],
+			['userId' => 'a-claim', 'portal' => ['audience' => 'participant', 'claims' => ['learnerRef' => 'new']]],
+			['userId' => '', 'portal' => ['audience' => 'participant']],
+		];
+
+		$result = $this->goldenGrants(declared: $declared, organisation: '')->grant(profileId: 'golden');
+
+		$this->assertSame([0, 1, 1, 1, [': refused']], [$result['granted'], $result['kept'], $result['waiting'], $result['failed'], $result['reasons']]);
+		$this->assertSame([], $this->dispatched);
+	}//end testWithoutAnOrganisationOnlyCompleteAccountsAreKept()
 }//end class

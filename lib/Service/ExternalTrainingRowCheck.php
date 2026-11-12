@@ -62,27 +62,10 @@ class ExternalTrainingRowCheck {
 	 * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#scenario-an-invalid-date-is-refused-per-row
 	 */
 	public function check(array $row, DateTimeInterface $now): array {
-		$learner = $this->text(value: $row['learner'] ?? null);
-		$title = $this->text(value: $row['title'] ?? null);
-		$provider = $this->text(value: $row['provider'] ?? null);
-		$kind = ($this->text(value: $row['kind'] ?? null) ?? 'classroom');
-		$completed = $this->date(value: $row['completedAt'] ?? null);
-		$validText = $this->text(value: $row['validUntil'] ?? null);
-		$validUntil = $this->date(value: $validText);
+		$fields = $this->fields(row: $row);
+		$reason = ($this->fieldReason(fields: $fields) ?? $this->dateReason(fields: $fields, now: $now));
 
-		$reason = match (true) {
-			$learner === null => 'The learner is missing.',
-			$title === null => 'The title is missing.',
-			$provider === null => 'The provider is missing.',
-			in_array($kind, self::KINDS, true) === false => 'The kind must be one of: {kinds}.',
-			$completed === null => 'The completed on date is missing or not a date.',
-			$completed > $now => 'The completed on date is in the future.',
-			$validText !== null && $validUntil === null => 'The valid until date is not a date.',
-			$validUntil !== null && $validUntil <= $completed => 'The valid until date must be after the completed on date.',
-			default => null,
-		};
-
-		$result = ['reason' => $reason, 'params' => [], 'learner' => $learner, 'record' => []];
+		$result = ['reason' => $reason, 'params' => [], 'learner' => $fields['learner'], 'record' => []];
 		if ($reason !== null) {
 			if (str_contains($reason, '{kinds}') === true) {
 				$result['params'] = ['kinds' => implode(', ', self::KINDS)];
@@ -91,26 +74,109 @@ class ExternalTrainingRowCheck {
 			return $result;
 		}
 
-		$record = [
-			'title' => (string)$title,
-			'provider' => (string)$provider,
-			'kind' => $kind,
-			'completedAt' => $completed->format(DateTimeInterface::ATOM),
+		$result['record'] = $this->record(fields: $fields, row: $row);
+		return $result;
+	}//end check()
+
+	/**
+	 * The cells of one row the checks read, as text and dates.
+	 *
+	 * @param array<string,mixed> $row The row.
+	 *
+	 * @return array{learner:?string,title:?string,provider:?string,kind:string,completed:?DateTimeImmutable,validText:?string,validUntil:?DateTimeImmutable}
+	 */
+	private function fields(array $row): array {
+		$validText = $this->text(value: $row['validUntil'] ?? null);
+
+		return [
+			'learner'    => $this->text(value: $row['learner'] ?? null),
+			'title'      => $this->text(value: $row['title'] ?? null),
+			'provider'   => $this->text(value: $row['provider'] ?? null),
+			'kind'       => ($this->text(value: $row['kind'] ?? null) ?? 'classroom'),
+			'completed'  => $this->date(value: $row['completedAt'] ?? null),
+			'validText'  => $validText,
+			'validUntil' => $this->date(value: $validText),
 		];
-		if ($validUntil !== null) {
-			$record['validUntil'] = $validUntil->format(DateTimeInterface::ATOM);
+	}//end fields()
+
+	/**
+	 * Why a required text field or the kind is refused, or null.
+	 *
+	 * @param array<string,mixed> $fields The row's fields.
+	 *
+	 * @return string|null The reason.
+	 */
+	private function fieldReason(array $fields): ?string {
+		return match (true) {
+			$fields['learner'] === null => 'The learner is missing.',
+			$fields['title'] === null => 'The title is missing.',
+			$fields['provider'] === null => 'The provider is missing.',
+			in_array($fields['kind'], self::KINDS, true) === false => 'The kind must be one of: {kinds}.',
+			default => null,
+		};
+	}//end fieldReason()
+
+	/**
+	 * Why the completion or expiry date is refused, or null.
+	 *
+	 * @param array<string,mixed> $fields The row's fields.
+	 * @param DateTimeInterface   $now    Evaluation instant.
+	 *
+	 * @return string|null The reason.
+	 */
+	private function dateReason(array $fields, DateTimeInterface $now): ?string {
+		$completed  = $fields['completed'];
+		$validUntil = $fields['validUntil'];
+
+		return match (true) {
+			$completed === null => 'The completed on date is missing or not a date.',
+			$completed > $now => 'The completed on date is in the future.',
+			$fields['validText'] !== null && $validUntil === null => 'The valid until date is not a date.',
+			$validUntil !== null && $validUntil <= $completed => 'The valid until date must be after the completed on date.',
+			default => null,
+		};
+	}//end dateReason()
+
+	/**
+	 * The record fields of a valid row, without the learner.
+	 *
+	 * @param array<string,mixed> $fields The row's fields.
+	 * @param array<string,mixed> $row    The row, for its optional texts.
+	 *
+	 * @return array<string,string> The record fields.
+	 */
+	private function record(array $fields, array $row): array {
+		$record = [
+			'title' => (string)$fields['title'],
+			'provider' => (string)$fields['provider'],
+			'kind' => $fields['kind'],
+			'completedAt' => $fields['completed']->format(DateTimeInterface::ATOM),
+		];
+		if ($fields['validUntil'] !== null) {
+			$record['validUntil'] = $fields['validUntil']->format(DateTimeInterface::ATOM);
 		}
 
+		return $record + $this->optionalTexts(row: $row);
+	}//end record()
+
+	/**
+	 * The optional text cells of a row that are filled.
+	 *
+	 * @param array<string,mixed> $row The row.
+	 *
+	 * @return array<string,string> The regulation slug and evidence note, when given.
+	 */
+	private function optionalTexts(array $row): array {
+		$texts = [];
 		foreach (['regulationSlug', 'evidenceNote'] as $optional) {
 			$value = $this->text(value: $row[$optional] ?? null);
 			if ($value !== null) {
-				$record[$optional] = $value;
+				$texts[$optional] = $value;
 			}
 		}
 
-		$result['record'] = $record;
-		return $result;
-	}//end check()
+		return $texts;
+	}//end optionalTexts()
 
 	/**
 	 * A date cell as a UTC midnight, or null.
@@ -128,6 +194,22 @@ class ExternalTrainingRowCheck {
 			return null;
 		}
 
+		$parts = $this->dateParts(text: $text);
+		if ($parts === null || checkdate($parts[1], $parts[2], $parts[0]) === false) {
+			return null;
+		}
+
+		return new DateTimeImmutable(sprintf('%04d-%02d-%02d', $parts[0], $parts[1], $parts[2]), new DateTimeZone('UTC'));
+	}//end date()
+
+	/**
+	 * The year, month and day a date cell writes, or null for another shape.
+	 *
+	 * @param string $text The trimmed cell.
+	 *
+	 * @return array{0:int,1:int,2:int}|null Year, month and day.
+	 */
+	private function dateParts(string $text): ?array {
 		$parts = null;
 		if (preg_match('/^(\d{4})-(\d{2})-(\d{2})(T.*)?$/', $text, $match) === 1) {
 			$parts = [(int)$match[1], (int)$match[2], (int)$match[3]];
@@ -137,12 +219,8 @@ class ExternalTrainingRowCheck {
 			$parts = [(int)$match[3], (int)$match[2], (int)$match[1]];
 		}
 
-		if ($parts === null || checkdate($parts[1], $parts[2], $parts[0]) === false) {
-			return null;
-		}
-
-		return new DateTimeImmutable(sprintf('%04d-%02d-%02d', $parts[0], $parts[1], $parts[2]), new DateTimeZone('UTC'));
-	}//end date()
+		return $parts;
+	}//end dateParts()
 
 	/**
 	 * A cell as trimmed text, or null when empty.

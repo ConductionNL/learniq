@@ -123,10 +123,21 @@ class LvsResultFreezeListener implements IEventListener {
 			return;
 		}
 
-		if ($event instanceof ObjectUpdatingEvent === false) {
-			return;
+		if ($event instanceof ObjectUpdatingEvent === true) {
+			$this->refuseFrozenUpdate(event: $event);
 		}
+	}//end handle()
 
+	/**
+	 * Refuse an update that would change a verified or archived result.
+	 *
+	 * @param ObjectUpdatingEvent $event The update.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
+	 */
+	private function refuseFrozenUpdate(ObjectUpdatingEvent $event): void {
 		$old = $event->getOldObject();
 		if ($old === null || $this->isPoliced(entity: $event->getNewObject()) === false) {
 			return;
@@ -140,7 +151,7 @@ class LvsResultFreezeListener implements IEventListener {
 		$event->setErrors($block);
 		$event->stopPropagation();
 		$this->logger->info('[LvsResultFreezeListener] Refused a write: {reason}', ['reason' => $block['reason']]);
-	}//end handle()
+	}//end refuseFrozenUpdate()
 
 	/**
 	 * Refuse moving a verified or archived result out of its register or schema.
@@ -213,15 +224,47 @@ class LvsResultFreezeListener implements IEventListener {
 			return null;
 		}
 
+		if ($this->scoreChanged(old: $old, new: $new) === true) {
+			return [
+				'reason' => 'lvs-result-verified',
+				'message' => 'The score of a verified LVS result cannot be changed.',
+			];
+		}
+
+		return $this->lifecycleRefusal(state: $state, new: $new);
+	}//end evaluate()
+
+	/**
+	 * Whether any score field differs between the stored and the incoming result.
+	 *
+	 * @param array<string,mixed> $old The stored result.
+	 * @param array<string,mixed> $new The result as it would be saved.
+	 *
+	 * @return bool True when a score field changes.
+	 *
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
+	 */
+	private function scoreChanged(array $old, array $new): bool {
 		foreach (self::SCORE_FIELDS as $field) {
 			if ($this->same(left: ($old[$field] ?? null), right: ($new[$field] ?? null)) === false) {
-				return [
-					'reason' => 'lvs-result-verified',
-					'message' => 'The score of a verified LVS result cannot be changed.',
-				];
+				return true;
 			}
 		}
 
+		return false;
+	}//end scoreChanged()
+
+	/**
+	 * Refuse a lifecycle change of a frozen result other than archiving a verified one.
+	 *
+	 * @param string              $state The stored lifecycle state.
+	 * @param array<string,mixed> $new   The result as it would be saved.
+	 *
+	 * @return array{reason: string, message: string}|null The refusal, or null to allow.
+	 *
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
+	 */
+	private function lifecycleRefusal(string $state, array $new): ?array {
 		$newState = (string)($new['lifecycle'] ?? $state);
 		if ($newState !== $state && ($state !== 'verified' || $newState !== 'archived')) {
 			return [
@@ -231,7 +274,7 @@ class LvsResultFreezeListener implements IEventListener {
 		}
 
 		return null;
-	}//end evaluate()
+	}//end lifecycleRefusal()
 
 	/**
 	 * Compare two stored values the way they round-trip through JSON, so an

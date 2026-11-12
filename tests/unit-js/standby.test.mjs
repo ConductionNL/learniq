@@ -91,3 +91,21 @@ test('the school year runs from 1 August', () => {
 		validUntil: '2027-07-31',
 	})
 })
+
+test('a weekend or dated weekly slot opens no cell; rows sort by window and keep every weekday', () => {
+	const sat = { id: 's', weekday: 'saturday', startsAt: '12:00', endsAt: '13:00' }
+	const dated = { id: 'x', weekday: 'friday', date: '2026-10-02', startsAt: '07:00', endsAt: '08:00' }
+	const early = { id: 'e', weekday: 'friday', startsAt: '08:00', endsAt: '08:45' }
+	const rows = planningGrid([sat, dated, early])
+	assert.deepEqual(
+		rows.map((r) => [r.startsAt, r.endsAt]),
+		[
+			['08:00', '08:45'],
+			['12:00', '13:00'],
+		],
+	)
+	assert.deepEqual(Object.keys(rows[1].cells), ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'])
+	assert.equal(Object.values(rows[1].cells).flat().length, 0)
+	assert.deepEqual(rows[0].cells.friday, [early])
+	assert.deepEqual(planningGrid(null), [])
+})
