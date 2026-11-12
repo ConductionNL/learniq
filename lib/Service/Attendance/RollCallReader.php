@@ -158,8 +158,21 @@ class RollCallReader {
 			return [];
 		}
 
+		$rows = $this->rows(schema: 'attendance-record', filters: ['sessionId' => $sessionId], limit: self::MAX_ROWS);
+		return self::marksByPupil(rows: $rows, sessionId: $sessionId);
+	}//end recordsOf()
+
+	/**
+	 * The rows of one lesson that name a pupil, keyed by pupil; a later row wins.
+	 *
+	 * @param array<int, array<string, mixed>> $rows      The rows read.
+	 * @param string                           $sessionId The lesson.
+	 *
+	 * @return array<string, array<string, mixed>>
+	 */
+	private static function marksByPupil(array $rows, string $sessionId): array {
 		$records = [];
-		foreach ($this->rows(schema: 'attendance-record', filters: ['sessionId' => $sessionId], limit: self::MAX_ROWS) as $row) {
+		foreach ($rows as $row) {
 			$learnerId = (string)($row['learnerId'] ?? '');
 			if (($row['sessionId'] ?? null) === $sessionId && $learnerId !== '') {
 				$records[$learnerId] = $row;
@@ -167,7 +180,7 @@ class RollCallReader {
 		}
 
 		return $records;
-	}//end recordsOf()
+	}//end marksByPupil()
 
 	/**
 	 * The pupils' profiles, keyed by Nextcloud user id.
@@ -211,22 +224,47 @@ class RollCallReader {
 		}
 
 		$reports = [];
-		$filters = ['learnerId' => $learnerIds, 'lifecycle' => ['approved', 'submitted']];
-		$rows = $this->rows(schema: 'excuse-request', filters: $filters, limit: self::MAX_ROWS);
-		foreach ($rows as $row) {
+		foreach ($this->openOrApprovedReports(learnerIds: $learnerIds) as $row) {
 			$learnerId = (string)($row['learnerId'] ?? '');
 			if (in_array($learnerId, $learnerIds, true) === false || $this->covers(report: $row, date: $date) === false) {
 				continue;
 			}
 
-			// An approved report wins over one still waiting for a decision.
-			if (($reports[$learnerId]['lifecycle'] ?? '') !== 'approved') {
-				$reports[$learnerId] = $row;
-			}
+			$reports = self::withReport(reports: $reports, report: $row);
 		}
 
 		return $reports;
 	}//end reportsOn()
+
+	/**
+	 * The pupils' absence reports that are approved or still open.
+	 *
+	 * @param array<int, string> $learnerIds The pupils.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function openOrApprovedReports(array $learnerIds): array {
+		$filters = ['learnerId' => $learnerIds, 'lifecycle' => ['approved', 'submitted']];
+		return $this->rows(schema: 'excuse-request', filters: $filters, limit: self::MAX_ROWS);
+	}//end openOrApprovedReports()
+
+	/**
+	 * The reports with this one as its pupil's, unless that pupil already has an approved one.
+	 *
+	 * @param array<string, array<string, mixed>> $reports The reports so far, keyed by pupil.
+	 * @param array<string, mixed>                $report  A report that covers the day.
+	 *
+	 * @return array<string, array<string, mixed>>
+	 */
+	private static function withReport(array $reports, array $report): array {
+		$learnerId = (string)($report['learnerId'] ?? '');
+		// An approved report wins over one still waiting for a decision.
+		if (($reports[$learnerId]['lifecycle'] ?? '') !== 'approved') {
+			$reports[$learnerId] = $report;
+		}
+
+		return $reports;
+	}//end withReport()
 
 	/**
 	 * Whether an approved or open report covers a day.
@@ -299,17 +337,30 @@ class RollCallReader {
 	 * @return array<string, mixed>
 	 */
 	private function toRow(mixed $object): array {
-		$row = [];
-		if (is_array($object) === true) {
-			$row = $object;
-		} else if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-			$row = (array)$object->jsonSerialize();
-		}
-
+		$row = self::asArray(object: $object);
 		if ($row !== [] && isset($row['id']) === false) {
 			$row['id'] = $this->idOf(row: $row);
 		}
 
 		return $row;
 	}//end toRow()
+
+	/**
+	 * An array as it is, an entity as its serialisation, anything else as [].
+	 *
+	 * @param mixed $object An entity or an array.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function asArray(mixed $object): array {
+		if (is_array($object) === true) {
+			return $object;
+		}
+
+		if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
+			return (array)$object->jsonSerialize();
+		}
+
+		return [];
+	}//end asArray()
 }//end class
