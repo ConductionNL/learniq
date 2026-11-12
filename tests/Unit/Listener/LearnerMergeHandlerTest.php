@@ -322,6 +322,43 @@ class LearnerMergeHandlerTest extends TestCase {
 	}//end testGuardRefusesConflictingOpenEnrolments()
 
 	/**
+	 * Every refusal reason, in the order the merge is checked, and the
+	 * courses both accounts hold open, matched by user id or profile ref.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/parity/capabilities.json#gov-merge-duplicate-accounts
+	 */
+	public function testEveryRefusalReasonOfAMerge(): void {
+		$this->store['learner-profile'][] = ['id' => 'gone', 'ncUserId' => 'x', 'lifecycle' => 'deleted'];
+		$this->store['learner-profile'][] = ['id' => 'plain', 'ncUserId' => 'p'];
+		$service = new LearnerMergeService($this->makeObjectService(), new NullLogger());
+		$merged = ['id' => self::MERGED_UUID, 'ncUserId' => 'jan-old'];
+
+		self::assertSame('mergedInto is not set', $service->refusalReason(profile: $merged));
+		self::assertSame('mergedInto is not set', $service->refusalReason(profile: $merged + ['mergedInto' => '']));
+		self::assertSame('a profile cannot be merged into itself', $service->refusalReason(profile: ['uuid' => self::MERGED_UUID, 'mergedInto' => self::MERGED_UUID]));
+		self::assertSame('the surviving profile does not exist', $service->refusalReason(profile: $merged + ['mergedInto' => 'nobody']));
+		self::assertSame('the surviving profile is not active', $service->refusalReason(profile: $merged + ['mergedInto' => 'gone']));
+		self::assertNull($service->refusalReason(profile: $merged + ['mergedInto' => 'plain']));
+		self::assertNull($service->refusalReason(profile: $merged + ['mergedInto' => self::SURVIVOR_UUID]));
+
+		$this->store['enrolment'][] = ['id' => 'e1', 'learnerId' => 'jan-old', 'courseId' => 'course-c', 'lifecycle' => 'active'];
+		$this->store['enrolment'][] = ['id' => 'e2', 'learnerRef' => self::MERGED_UUID, 'courseId' => 'course-b', 'lifecycle' => 'pending'];
+		$this->store['enrolment'][] = ['id' => 'e3', 'learnerId' => 'jan-old', 'learnerRef' => self::MERGED_UUID, 'courseId' => 'course-c', 'lifecycle' => 'active'];
+		$this->store['enrolment'][] = ['id' => 'e4', 'learnerRef' => self::SURVIVOR_UUID, 'courseId' => 'course-c', 'lifecycle' => 'active'];
+		$this->store['enrolment'][] = ['id' => 'e5', 'learnerId' => 'jan-old', 'courseId' => '', 'lifecycle' => 'active'];
+		$this->store['enrolment'][] = ['id' => 'e6', 'learnerId' => 'jan', 'courseId' => 'course-d', 'lifecycle' => 'completed'];
+		$this->store['enrolment'][] = ['id' => 'e7', 'learnerId' => 'jan-old', 'courseId' => 'course-d', 'lifecycle' => 'active'];
+		$service = new LearnerMergeService($this->makeObjectService(), new NullLogger());
+
+		self::assertSame(
+			'both accounts hold an open enrolment in course(s) course-c, course-b',
+			$service->refusalReason(profile: $merged + ['mergedInto' => self::SURVIVOR_UUID])
+		);
+	}//end testEveryRefusalReasonOfAMerge()
+
+	/**
 	 * The register wires the guard onto the merge transition.
 	 *
 	 * @return void

@@ -135,7 +135,28 @@ class LearnerMergeService {
 	 */
 	public function refusalReason(array $profile): ?string {
 		$targetId = (string)($profile['mergedInto'] ?? '');
-		$ownId = $this->profileId(profile: $profile);
+		$reason = self::targetRefusal(targetId: $targetId, ownId: $this->profileId(profile: $profile));
+		if ($reason !== null) {
+			return $reason;
+		}
+
+		$survivor = $this->loadProfile(id: $targetId);
+		if ($survivor === null) {
+			return 'the surviving profile does not exist';
+		}
+
+		return $this->survivorRefusal(merged: $profile, survivor: $survivor);
+	}//end refusalReason()
+
+	/**
+	 * Why the named target cannot be merged into: none named, or the profile itself.
+	 *
+	 * @param string $targetId The `mergedInto` uuid, or ''.
+	 * @param string $ownId    The merged profile's own uuid.
+	 *
+	 * @return string|null
+	 */
+	private static function targetRefusal(string $targetId, string $ownId): ?string {
 		if ($targetId === '') {
 			return 'mergedInto is not set';
 		}
@@ -144,22 +165,30 @@ class LearnerMergeService {
 			return 'a profile cannot be merged into itself';
 		}
 
-		$survivor = $this->loadProfile(id: $targetId);
-		if ($survivor === null) {
-			return 'the surviving profile does not exist';
-		}
+		return null;
+	}//end targetRefusal()
 
+	/**
+	 * Why the surviving profile cannot take the merge: it is not active, or
+	 * both accounts hold an open enrolment in the same course.
+	 *
+	 * @param array<string,mixed> $merged   The profile being merged.
+	 * @param array<string,mixed> $survivor The surviving profile.
+	 *
+	 * @return string|null
+	 */
+	private function survivorRefusal(array $merged, array $survivor): ?string {
 		if (($survivor['lifecycle'] ?? 'active') !== 'active') {
 			return 'the surviving profile is not active';
 		}
 
-		$clashes = $this->conflictingCourses(merged: $profile, survivor: $survivor);
+		$clashes = $this->conflictingCourses(merged: $merged, survivor: $survivor);
 		if ($clashes !== []) {
 			return 'both accounts hold an open enrolment in course(s) '.implode(', ', $clashes);
 		}
 
 		return null;
-	}//end refusalReason()
+	}//end survivorRefusal()
 
 	/**
 	 * Move every learner-owned record from the merged profile to its survivor.
@@ -292,21 +321,34 @@ class LearnerMergeService {
 			['learnerRef', $this->profileId(profile: $profile)],
 		];
 		foreach ($lookups as [$field, $value]) {
-			if ($value === '') {
-				continue;
-			}
-
-			foreach ($this->findRows(schema: self::ENROLMENT_SCHEMA, filters: [$field => $value]) as $row) {
-				if (in_array($row['lifecycle'] ?? '', self::OPEN_ENROLMENT_STATES, true) === true
-					&& (string)($row['courseId'] ?? '') !== ''
-				) {
-					$courses[] = (string)$row['courseId'];
-				}
+			if ($value !== '') {
+				$courses = array_merge($courses, $this->openCoursesWhere(field: $field, value: $value));
 			}
 		}
 
 		return array_values(array_unique($courses));
 	}//end openCourses()
+
+	/**
+	 * Course ids of the open enrolments whose field holds the value.
+	 *
+	 * @param string $field `learnerId` or `learnerRef`.
+	 * @param string $value The user id or profile ref.
+	 *
+	 * @return array<int,string>
+	 */
+	private function openCoursesWhere(string $field, string $value): array {
+		$courses = [];
+		foreach ($this->findRows(schema: self::ENROLMENT_SCHEMA, filters: [$field => $value]) as $row) {
+			if (in_array($row['lifecycle'] ?? '', self::OPEN_ENROLMENT_STATES, true) === true
+				&& (string)($row['courseId'] ?? '') !== ''
+			) {
+				$courses[] = (string)$row['courseId'];
+			}
+		}
+
+		return $courses;
+	}//end openCoursesWhere()
 
 	/**
 	 * Load a LearnerProfile as an array.
