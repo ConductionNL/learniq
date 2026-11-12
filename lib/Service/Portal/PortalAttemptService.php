@@ -133,24 +133,59 @@ class PortalAttemptService {
 			return $this->refuse(status: 403, error: 'not_available', reason: PortalAssessmentCatalogue::NOT_AVAILABLE);
 		}
 
-		$extra = $this->closer->extraFor(learner: $learner, examId: $taskId);
-		$attempts = $this->reader->attemptsFor(examId: $taskId, ncUserId: $learner->ncUserId);
+		$request = new PortalAttemptStart();
+		$request->learner = $learner;
+		$request->taskId = $taskId;
+		$request->exam = $exam;
+		$request->accessCode = $accessCode;
 
-		$attempt = $this->closer->openAttempt(learner: $learner, exam: $exam, attempts: $attempts, extra: $extra);
-		if ($attempt === null) {
-			$refusal = $this->startRefusal(learner: $learner, exam: $exam, attemptsUsed: count($attempts), accessCode: $accessCode);
-			if ($refusal !== null) {
-				return $refusal;
-			}
+		return $this->startExam(request: $request);
+	}//end start()
 
-			$attempt = $this->create(learner: $learner, exam: $exam, attemptNumber: (count($attempts) + 1), accessCode: $accessCode);
+	/**
+	 * Resume the open attempt of a test that exists, or start a new one when
+	 * the rules allow it.
+	 *
+	 * @param PortalAttemptStart $request The start being worked through.
+	 *
+	 * @return PortalOutcome
+	 *
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 */
+	private function startExam(PortalAttemptStart $request): PortalOutcome {
+		$learner = $request->learner;
+		$request->extra = $this->closer->extraFor(learner: $learner, examId: $request->taskId);
+		$request->attempts = $this->reader->attemptsFor(examId: $request->taskId, ncUserId: $learner->ncUserId);
+
+		$attempt = $this->closer->openAttempt(learner: $learner, exam: $request->exam, attempts: $request->attempts, extra: $request->extra);
+		if ($attempt !== null) {
+			return $this->attemptOutcome(request: $request, attempt: $attempt);
 		}
 
+		$refusal = $this->startRefusal(request: $request);
+		if ($refusal !== null) {
+			return $refusal;
+		}
+
+		return $this->attemptOutcome(request: $request, attempt: $this->create(request: $request));
+	}//end startExam()
+
+	/**
+	 * The start payload of an attempt that is open now.
+	 *
+	 * @param PortalAttemptStart $request The start being worked through.
+	 * @param array<string, mixed> $attempt The resumed or created attempt.
+	 *
+	 * @return PortalOutcome
+	 *
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 */
+	private function attemptOutcome(PortalAttemptStart $request, array $attempt): PortalOutcome {
 		return new PortalOutcome(
 			status: 200,
-			body: $this->payload->attempt(exam: $exam, attempt: $attempt, extra: $extra, now: $this->closer->now())
+			body: $this->payload->attempt(exam: $request->exam, attempt: $attempt, extra: $request->extra, now: $this->closer->now())
 		);
-	}//end start()
+	}//end attemptOutcome()
 
 	/**
 	 * Save the answer to one question.
@@ -214,25 +249,36 @@ class PortalAttemptService {
 	 * Why a new attempt may not start, or null: the catalogue's rules, then the
 	 * access code.
 	 *
-	 * @param PortalLearner $learner The pupil.
-	 * @param array<string, mixed> $exam The test, raw.
-	 * @param int $attemptsUsed The pupil's attempts so far.
-	 * @param mixed $accessCode The typed code.
+	 * @param PortalAttemptStart $request The start being worked through.
 	 *
 	 * @return PortalOutcome|null
 	 */
-	private function startRefusal(PortalLearner $learner, array $exam, int $attemptsUsed, mixed $accessCode): ?PortalOutcome {
+	private function startRefusal(PortalAttemptStart $request): ?PortalOutcome {
+		$learner = $request->learner;
+		$exam = $request->exam;
 		$block = $this->catalogue->startBlock(
 			learner: $learner,
 			exam: $exam,
 			enrolment: $this->catalogue->enrolmentFor(learner: $learner, exam: $exam),
-			attemptsUsed: $attemptsUsed,
+			attemptsUsed: count($request->attempts),
 			now: $this->closer->now()
 		);
 		if ($block !== null) {
 			return $this->refuse(status: 403, error: 'not_available', reason: $block);
 		}
 
+		return $this->accessCodeRefusal(exam: $exam, accessCode: $request->accessCode);
+	}//end startRefusal()
+
+	/**
+	 * Why the typed access code does not open the test, or null when it does.
+	 *
+	 * @param array<string, mixed> $exam The test, raw.
+	 * @param mixed $accessCode The typed code.
+	 *
+	 * @return PortalOutcome|null
+	 */
+	private function accessCodeRefusal(array $exam, mixed $accessCode): ?PortalOutcome {
 		$codeBlock = $this->policy->accessCodeBlock(assessment: $exam, given: $accessCode);
 		if ($codeBlock === null) {
 			return null;
@@ -243,39 +289,18 @@ class PortalAttemptService {
 		}
 
 		return $this->refuse(status: 403, error: 'access_code_wrong', reason: 'access-code-wrong');
-	}//end startRefusal()
+	}//end accessCodeRefusal()
 
 	/**
 	 * Create the attempt as the pupil and read it back, so the draw that
 	 * AssessmentDrawResolver writes after the insert is in it.
 	 *
-	 * @param PortalLearner $learner The pupil.
-	 * @param array<string, mixed> $exam The test.
-	 * @param int $attemptNumber This attempt's number.
-	 * @param mixed $accessCode The typed code, for the attempt gate.
+	 * @param PortalAttemptStart $request The start being worked through.
 	 *
 	 * @return array<string, mixed>
 	 */
-	private function create(PortalLearner $learner, array $exam, int $attemptNumber, mixed $accessCode): array {
-		$code = null;
-		if (is_string($accessCode) === true) {
-			$code = $accessCode;
-		}
-
-		$created = $this->writer->createAttempt(
-			learner: $learner,
-			data: [
-				'assessmentId' => (string)$exam['id'],
-				'learnerId' => $learner->ncUserId,
-				'tenant_id' => (string)($exam['tenant_id'] ?? $learner->tenantId),
-				'attemptNumber' => $attemptNumber,
-				'startedAt' => $this->closer->now()->format(DateTimeInterface::ATOM),
-				'responses' => [],
-				'lifecycle' => PortalAttemptCloser::IN_PROGRESS,
-				// The attempt gate checks it again as the pupil and clears it.
-				'accessCode' => $code,
-			]
-		);
+	private function create(PortalAttemptStart $request): array {
+		$created = $this->writer->createAttempt(learner: $request->learner, data: $this->newAttemptRow(request: $request));
 
 		$id = (string)($created['id'] ?? '');
 		$attempt = ($this->reader->attempt(id: $id) ?? $created);
@@ -283,6 +308,45 @@ class PortalAttemptService {
 
 		return $attempt;
 	}//end create()
+
+	/**
+	 * The row of the pupil's next attempt, in progress from now.
+	 *
+	 * @param PortalAttemptStart $request The start being worked through.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function newAttemptRow(PortalAttemptStart $request): array {
+		$exam = $request->exam;
+		$learner = $request->learner;
+
+		return [
+			'assessmentId' => (string)$exam['id'],
+			'learnerId' => $learner->ncUserId,
+			'tenant_id' => (string)($exam['tenant_id'] ?? $learner->tenantId),
+			'attemptNumber' => (count($request->attempts) + 1),
+			'startedAt' => $this->closer->now()->format(DateTimeInterface::ATOM),
+			'responses' => [],
+			'lifecycle' => PortalAttemptCloser::IN_PROGRESS,
+			// The attempt gate checks it again as the pupil and clears it.
+			'accessCode' => $this->typedCode(accessCode: $request->accessCode),
+		];
+	}//end newAttemptRow()
+
+	/**
+	 * The typed code when it is a string, null otherwise.
+	 *
+	 * @param mixed $accessCode The typed code.
+	 *
+	 * @return string|null
+	 */
+	private function typedCode(mixed $accessCode): ?string {
+		if (is_string($accessCode) === true) {
+			return $accessCode;
+		}
+
+		return null;
+	}//end typedCode()
 
 	/**
 	 * The attempt, when it is this pupil's; null otherwise (no oracle).
