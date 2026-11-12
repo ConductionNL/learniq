@@ -2,6 +2,9 @@
 /**
  * Learniq SeedProfileService.
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lists the example sets shipped under `lib/Settings/profiles/*.json` and
  * imports the one an operator picked in the setup wizard. One set per kind of
  * organisation (decision D21): primary school, secondary school, MBO, HBO/WO,

@@ -3,6 +3,9 @@
 /**
  * Learniq Rubric Scores Completion Guard
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Shared lifecycle guard for PeerReview's `submit` (assigned -> submitted) and
  * SelfAssessment's `submit` (draft -> submitted) transitions. Blocks the transition
  * unless `rubricScores` covers every `criterionId` declared on the linked
@@ -30,8 +33,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

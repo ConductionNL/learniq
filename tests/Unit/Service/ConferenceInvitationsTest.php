@@ -280,4 +280,43 @@ class ConferenceInvitationsTest extends TestCase {
 
 		return $objectService;
 	}//end objectService()
+
+	/**
+	 * The fields an invitation copies from its round, and the uuid of a
+	 * stored row: blank or non-string values and unknown modes are left out,
+	 * a row is named by its id, else its uuid.
+	 *
+	 * @return void
+	 */
+	public function testTheCopiedFieldsAndTheStoredUuid(): void {
+		$fields = new \ReflectionMethod(ConferenceInvitations::class, 'fields');
+		$uuidOf = new \ReflectionMethod(ConferenceInvitations::class, 'uuidOf');
+
+		self::assertSame(
+			[
+				'conferenceRoundId' => '7',
+				'learnerRef' => 'lp-1',
+				'roundName' => 'Najaar',
+				'bookingClosesAt' => '2026-10-01',
+				'bookingMode' => 'preference',
+				'tenant_id' => 't1',
+			],
+			$fields->invoke(null, ['id' => 7, 'name' => 'Najaar', 'bookingClosesAt' => '2026-10-01', 'bookingMode' => 'preference', 'tenant_id' => 't1', 'other' => 'x'], 'lp-1')
+		);
+		self::assertSame(
+			['conferenceRoundId' => 'r', 'learnerRef' => 'lp-2'],
+			$fields->invoke(null, ['id' => 'r', 'name' => '', 'bookingClosesAt' => 5, 'bookingMode' => 'walk-in', 'tenant_id' => ''], 'lp-2')
+		);
+		self::assertSame(
+			['conferenceRoundId' => 'r', 'learnerRef' => 'lp-3', 'bookingMode' => 'direct'],
+			$fields->invoke(null, ['id' => 'r', 'bookingMode' => 'direct', 'tenant_id' => 9], 'lp-3')
+		);
+
+		self::assertNull($uuidOf->invoke(null, null));
+		self::assertSame('a', $uuidOf->invoke(null, ['id' => 'a', 'uuid' => 'b']));
+		self::assertSame('b', $uuidOf->invoke(null, ['uuid' => 'b']));
+		self::assertNull($uuidOf->invoke(null, ['id' => '', 'uuid' => 'b']));
+		self::assertNull($uuidOf->invoke(null, ['id' => 5]));
+		self::assertNull($uuidOf->invoke(null, []));
+	}//end testTheCopiedFieldsAndTheStoredUuid()
 }//end class

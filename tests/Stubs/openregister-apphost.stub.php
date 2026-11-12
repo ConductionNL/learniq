@@ -3,6 +3,9 @@
 /**
  * Static-analysis stub for OpenRegister's AppHost engine classes (ADR-040).
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Analysis-only — discovered by phpstan.neon `scanDirectories` (tests/Stubs)
  * and psalm.xml `<stubs>`, and NEVER loaded at runtime. The file name does not
  * match any class name, so PSR-4 autoloading can never reach it.
@@ -29,9 +32,6 @@
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * @link https://conduction.nl
- *
- * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
- * SPDX-License-Identifier: EUPL-1.2
  */
 
 declare(strict_types=1);

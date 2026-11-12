@@ -1,3 +1,7 @@
+/**
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ */
 import * as fs from 'fs'
 import * as path from 'path'
 import { effectiveManifest } from './effective-manifest.ts'

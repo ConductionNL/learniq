@@ -3,6 +3,9 @@
 /**
  * Learniq BPV Leerbedrijf Verification Handler
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * IEventListener for BpvPlacement lifecycle → `sbb-verification-pending`
  * (the OR ObjectTransitionedEvent with register=learniq, schema=bpv-placement,
  * to=sbb-verification-pending — the coordinator-triggered `checkLeerbedrijf`
@@ -34,8 +37,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

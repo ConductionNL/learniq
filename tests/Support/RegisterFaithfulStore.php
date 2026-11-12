@@ -3,6 +3,9 @@
 /**
  * An in-memory OpenRegister stand-in that answers the way the live one does.
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Most fakes in this suite answer whatever they are asked, so a call site that
  * passes the wrong config can only pass. This one copies two behaviours of
  * OpenRegister that decide whether a lookup works at all:
@@ -78,8 +81,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

@@ -129,6 +129,21 @@ import {
 
 const VALID_ROLES = ['admin', 'teacher', 'student']
 
+/**
+ * The scope of a teacher whose groups could not be read: empty lists, never
+ * the whole school.
+ *
+ * @return {{cohortIds: Array, courseIds: Array, programmeIds: Array, learnerIds: Array}}
+ */
+function noScopedRows() {
+	return {
+		cohortIds: [],
+		courseIds: [],
+		programmeIds: [],
+		learnerIds: [],
+	}
+}
+
 /** The admin dashboard grid: the KPI row, then the three manage lists. */
 const ADMIN_LAYOUT = [
 	{
@@ -702,35 +717,59 @@ export default {
 		 */
 		async loadTeacherScope() {
 			const userId = getCurrentUser()?.uid ?? ''
-			if (
-				this.activeRole !== 'teacher'
-				|| !isScopedTeacher(loadState('learniq', 'primaryRole', ''))
-			) {
-				this.scope = null
-				this.scopePending = false
+			if (!this.isScopedTeacherView()) {
+				this.clearTeacherScope()
 				return
 			}
 
 			this.scopePending = true
 			try {
-				const cohorts = await this.listObjects('Cohort', {
-					teacherIds: userId,
-				})
-				const { programmeIds } = teacherScope({ userId, cohorts })
-				const programmes = programmeIds.length
-					? await this.listObjects('Programme', { _ids: programmeIds })
-					: []
-				this.scope = teacherScope({ userId, cohorts, programmes })
+				this.scope = await this.readTeacherScope(userId)
 			} catch {
-				this.scope = {
-					cohortIds: [],
-					courseIds: [],
-					programmeIds: [],
-					learnerIds: [],
-				}
+				this.scope = noScopedRows()
 			} finally {
 				this.scopePending = false
 			}
+		},
+
+		/**
+		 * Whether this is the teacher dashboard of a group teacher, whose lists
+		 * show only their own groups.
+		 *
+		 * @return {boolean}
+		 */
+		isScopedTeacherView() {
+			return !(
+				this.activeRole !== 'teacher'
+				|| !isScopedTeacher(loadState('learniq', 'primaryRole', ''))
+			)
+		},
+
+		/**
+		 * No scope: the lists are not narrowed to a teacher's groups.
+		 *
+		 * @return {void}
+		 */
+		clearTeacherScope() {
+			this.scope = null
+			this.scopePending = false
+		},
+
+		/**
+		 * Read the cohorts that list the teacher, then the programmes they run.
+		 *
+		 * @param {string} userId The teacher's Nextcloud user id.
+		 * @return {Promise<object>} The teacher's scope.
+		 */
+		async readTeacherScope(userId) {
+			const cohorts = await this.listObjects('Cohort', {
+				teacherIds: userId,
+			})
+			const { programmeIds } = teacherScope({ userId, cohorts })
+			const programmes = programmeIds.length
+				? await this.listObjects('Programme', { _ids: programmeIds })
+				: []
+			return teacherScope({ userId, cohorts, programmes })
 		},
 
 		/**

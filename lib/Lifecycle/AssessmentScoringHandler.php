@@ -136,33 +136,57 @@ class AssessmentScoringHandler implements LifecycleGuardInterface {
 			return null;
 		}
 
-		$pointsByItemId = $this->pointsByItemId(itemRefs: ($assessment['itemRefs'] ?? []));
-
-		// Score each response.
-		foreach ($responses as &$response) {
-			$itemId = $response['itemId'] ?? null;
-			if ($itemId === null) {
-				continue;
-			}
-
-			$response['autoScore'] = $this->autoScoreFor(
-				itemId: $itemId,
-				response: $response,
-				tenantId: $tenantId,
-				pointsByItemId: $pointsByItemId,
-			);
-		}
-
-		unset($response);
-		$result['responses'] = $responses;
-
-		$this->logger->info(
-			'[AssessmentScoringHandler] Auto-scored {count} responses for AssessmentResult.',
-			['count' => count($responses)]
-		);
+		$scoring = new ResponseScoring(tenantId: $tenantId, pointsByItemId: $this->pointsByItemId(itemRefs: ($assessment['itemRefs'] ?? [])));
+		$result['responses'] = $this->scoredResponses(responses: $responses, scoring: $scoring);
 
 		return $result;
 	}//end score()
+
+	/**
+	 * Each response with its auto score, keys kept, and the count logged.
+	 *
+	 * @param array<mixed,mixed> $responses The result's responses.
+	 * @param ResponseScoring    $scoring   The tenant and per-item points.
+	 *
+	 * @return array<mixed,mixed>
+	 */
+	private function scoredResponses(array $responses, ResponseScoring $scoring): array {
+		$scored = [];
+		foreach ($responses as $key => $response) {
+			$scored[$key] = $this->withAutoScore(response: $response, scoring: $scoring);
+		}
+
+		$this->logger->info(
+			'[AssessmentScoringHandler] Auto-scored {count} responses for AssessmentResult.',
+			['count' => count($scored)]
+		);
+
+		return $scored;
+	}//end scoredResponses()
+
+	/**
+	 * One response with its auto score; a response that names no item stays as it came.
+	 *
+	 * @param mixed           $response The learner's response row.
+	 * @param ResponseScoring $scoring  The tenant and per-item points.
+	 *
+	 * @return mixed
+	 */
+	private function withAutoScore(mixed $response, ResponseScoring $scoring): mixed {
+		$itemId = $response['itemId'] ?? null;
+		if ($itemId === null) {
+			return $response;
+		}
+
+		$response['autoScore'] = $this->autoScoreFor(
+			itemId: $itemId,
+			response: $response,
+			tenantId: $scoring->tenantId,
+			pointsByItemId: $scoring->pointsByItemId,
+		);
+
+		return $response;
+	}//end withAutoScore()
 
 	/**
 	 * Resolve the parent Assessment within the result's own tenant.

@@ -149,3 +149,33 @@ test('the admin page carries the section and every new string has Dutch', () => 
 		assert.ok(nl[key], `"${key}" has a Dutch translation`)
 	}
 })
+
+test('only a plain yes removes; the fallback texts name the set; an error carries the server message', async () => {
+	let posts = 0
+	const post = async () => {
+		posts++
+		return { data: { success: true, message: '' } }
+	}
+	assert.deepEqual(await removeExampleSet(company, { confirm: async () => 'yes', post, t }), {
+		status: 'cancelled',
+		message: '',
+	})
+	assert.equal(posts, 0)
+	assert.deepEqual(await removeExampleSet(company, { confirm: () => true, post, t }), {
+		status: 'removed',
+		message: 'The example set "Company" was removed.',
+	})
+	assert.equal(posts, 1)
+	assert.deepEqual(
+		await removeExampleSet(company, { confirm: async () => true, post: async () => ({ data: null }), t }),
+		{ status: 'failed', message: 'The example set "Company" was removed.' },
+	)
+	const refused = await removeExampleSet(company, {
+		confirm: async () => true,
+		post: async () => {
+			throw Object.assign(new Error('403'), { response: { data: { message: 'Only an administrator can do this.' } } })
+		},
+		t,
+	})
+	assert.deepEqual(refused, { status: 'failed', message: 'Only an administrator can do this.' })
+})

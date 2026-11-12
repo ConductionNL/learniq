@@ -3,6 +3,9 @@
 /**
  * Learniq Rollover Execution Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * The write half of the annual jaarovergang (school-year rollover). Where
  * `RolloverService` proposes mappings and computes the side-effect-free dry-run
  * report, this collaborator performs the idempotent, resumable execution: it
@@ -27,8 +30,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

@@ -3,6 +3,9 @@
 /**
  * Learniq QTI Export Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Exports an `ItemBank` and its `Item`s as a QTI 2.1 package (a ZIP
  * containing `imsmanifest.xml` + one `assessmentItem` XML per Item),
  * completing the item import into a round-trip.
@@ -27,8 +30,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

@@ -3,6 +3,9 @@
 /**
  * Learniq LRS Document Controller
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * The xAPI 1.0.3 document resources of learniq's LRS, next to the statement
  * resource in {@see LrsController}:
  * - State: GET, PUT, POST (JSON merge) and DELETE on `/api/lrs/activities/state`,
@@ -29,8 +32,6 @@
  * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

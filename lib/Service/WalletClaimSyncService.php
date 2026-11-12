@@ -3,6 +3,9 @@
 /**
  * Learniq Wallet Claim Sync Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the Credential schema's `recordWalletClaim` transition.
  * System-triggered only (never a user-facing action) — invoked by
  * {@see \OCA\Learniq\Listener\WalletOfferConcludedListener} when openconnector
@@ -30,8 +33,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

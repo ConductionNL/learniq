@@ -26,6 +26,18 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
  */
 
+/** The launch-token fields a cmi5 launch needs, in the order they are checked. */
+const CMI5_LAUNCH_FIELDS = [
+	'endpoint',
+	'fetchUrl',
+	'actor',
+	'activityId',
+	'registration',
+]
+
+/** The origin a relative AU launch URL is resolved against, and stripped again. */
+const PLACEHOLDER_ORIGIN = 'https://placeholder.invalid'
+
 /**
  * Build a cmi5 AU launch URL from a launch-token response.
  *
@@ -45,36 +57,70 @@ export function buildCmi5LaunchUrl(auLaunchUrl, launch) {
 	if (!auLaunchUrl) {
 		throw new Error('buildCmi5LaunchUrl: auLaunchUrl is required')
 	}
-	for (const field of [
-		'endpoint',
-		'fetchUrl',
-		'actor',
-		'activityId',
-		'registration',
-	]) {
-		if (
-			!launch
-			|| launch[field] === undefined
-			|| launch[field] === null
-			|| launch[field] === ''
-		) {
+	assertLaunchComplete(launch)
+
+	const url = new URL(auLaunchUrl, PLACEHOLDER_ORIGIN + '/')
+	appendCmi5Params(url, launch)
+	return launchUrlText(url, auLaunchUrl)
+}
+
+/**
+ * Throw for the first launch field that is missing, null or blank.
+ *
+ * @param {object|null} launch The launch-token response.
+ * @throws {Error} When a field is missing.
+ */
+function assertLaunchComplete(launch) {
+	for (const field of CMI5_LAUNCH_FIELDS) {
+		if (isLaunchFieldMissing(launch, field)) {
 			throw new Error(`buildCmi5LaunchUrl: launch.${field} is required`)
 		}
 	}
+}
 
-	const url = new URL(auLaunchUrl, 'https://placeholder.invalid/')
+/**
+ * Whether a launch field is absent, null or blank (or there is no launch).
+ *
+ * @param {object|null} launch The launch-token response.
+ * @param {string} field The field name.
+ * @return {boolean}
+ */
+function isLaunchFieldMissing(launch, field) {
+	return (
+		!launch
+		|| launch[field] === undefined
+		|| launch[field] === null
+		|| launch[field] === ''
+	)
+}
+
+/**
+ * Append the five cmi5 launch parameters to the URL.
+ *
+ * @param {URL} url The AU launch URL.
+ * @param {object} launch The launch-token response.
+ */
+function appendCmi5Params(url, launch) {
 	url.searchParams.set('endpoint', launch.endpoint)
 	url.searchParams.set('fetch', launch.fetchUrl)
 	url.searchParams.set('actor', JSON.stringify(launch.actor))
 	url.searchParams.set('activityId', launch.activityId)
 	url.searchParams.set('registration', launch.registration)
+}
 
-	// auLaunchUrl may be relative (a path on this app) or absolute (an
-	// externally-hosted AU) — only fall back to the placeholder-stripped
-	// relative form when the input itself was relative.
+/**
+ * The URL as text. auLaunchUrl may be relative (a path on this app) or
+ * absolute (an externally-hosted AU); only fall back to the
+ * placeholder-stripped relative form when the input itself was relative.
+ *
+ * @param {URL} url The AU launch URL with its parameters.
+ * @param {string} auLaunchUrl The URL as given.
+ * @return {string}
+ */
+function launchUrlText(url, auLaunchUrl) {
 	const isAbsolute = /^[a-z][a-z0-9+.-]*:\/\//i.test(auLaunchUrl)
 	if (isAbsolute) {
 		return url.toString()
 	}
-	return url.toString().replace('https://placeholder.invalid', '')
+	return url.toString().replace(PLACEHOLDER_ORIGIN, '')
 }

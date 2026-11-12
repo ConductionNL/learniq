@@ -1,4 +1,7 @@
 <!--
+  SPDX-License-Identifier: EUPL-1.2
+  Copyright (C) 2026 Conduction B.V.
+
   LessonComposer.vue
   Custom page component for the LessonComposer manifest page (type: custom).
 
@@ -41,9 +44,6 @@
   (serialiseLessonBlocks). An added goal suggestion is saved into
   `competencyIds` with the next save. Goal titles for the panel come from
   the Course's and the Lesson's Competency rows.
-
-  SPDX-License-Identifier: EUPL-1.2
-  Copyright (C) 2026 Conduction B.V.
 
   @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
   @spec openspec/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard

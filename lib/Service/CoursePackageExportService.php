@@ -3,6 +3,9 @@
 /**
  * Learniq Course Package Export Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Exports a `Course` (and its `Lesson`/`Material`/`Assessment`/`Rubric`/
  * `LtiToolPlacement` descendants) as (a) an IMS Common Cartridge 1.3 package
  * for interoperability with other LMS platforms and (b) a scholiq-native
@@ -31,8 +34,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

@@ -3,6 +3,9 @@
 /**
  * Learniq Session Conflict Listener
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * IEventListener for Session create/update (OR's `ObjectCreatedEvent` and
  * `ObjectUpdatedEvent`, filtered to register=learniq, schema=session).
  * Delegates the actual pairwise overlap scan to
@@ -31,8 +34,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

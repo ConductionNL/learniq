@@ -2,10 +2,8 @@
   "$schema": "http://cyclonedx.org/schema/bom-1.5.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:632aceab-42c3-48ea-a1c8-98029e40a350",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-11T17:23:19Z",
     "tools": [
       {
         "name": "composer",
@@ -82,10 +80,10 @@
       }
     ],
     "component": {
-      "bom-ref": "conductionnl/learniq-dev-development",
+      "bom-ref": "conductionnl/learniq-0.1.0.0",
       "type": "application",
       "name": "learniq",
-      "version": "dev-development",
+      "version": "0.1.0",
       "group": "conductionnl",
       "description": "A template for creating new Nextcloud apps",
       "author": "Conduction b.v.",
@@ -96,16 +94,8 @@
           }
         }
       ],
-      "purl": "pkg:composer/conductionnl/learniq@dev-development",
+      "purl": "pkg:composer/conductionnl/learniq@0.1.0",
       "properties": [
-        {
-          "name": "cdx:composer:package:distReference",
-          "value": "e0de7fe6e4e6c71ac18f93c1ddf077eb42386354"
-        },
-        {
-          "name": "cdx:composer:package:sourceReference",
-          "value": "e0de7fe6e4e6c71ac18f93c1ddf077eb42386354"
-        },
         {
           "name": "cdx:composer:package:type",
           "value": "library"
@@ -26163,7 +26153,7 @@
   ],
   "dependencies": [
     {
-      "ref": "conductionnl/learniq-dev-development"
+      "ref": "conductionnl/learniq-0.1.0.0"
     }
   ]
 }

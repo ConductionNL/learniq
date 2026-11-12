@@ -416,71 +416,103 @@ def first_tuesday(year: int, month: int) -> dt.date:
 
 
 def build() -> dict:
-    rng = random.Random(20250901)
-    b = Builder(IDENTITY)
+    return CompanyYear().build()
 
-    def pick_day(lo: dt.date, hi: dt.date) -> dt.date:
-        return rng.choice(workdays(lo, hi))
 
-    def clock() -> tuple[int, int]:
-        return rng.randint(8, 15), rng.choice([0, 10, 15, 20, 30, 40, 45, 50])
+class CompanyYear:
+    """One run of the company set. The steps run in a fixed order and share one random
+    generator, so every draw, and therefore the file, is the same on each run."""
 
-    # --- company, sites, rooms ----------------------------------------------
-    company = b.add("school", {"brin": "00X5", "name": COMPANY})
-    sites = {
-        "hoofd": b.add("vestiging", {
-            "schoolId": company["uuid"], "vestigingscode": "00X500", "onderwijslocatiecode": None,
-            "name": "Hoofdkantoor", "street": "Esdoornlaan 1", "postalCode": "0512 EH", "city": TOWN,
-        }),
-        "haven": b.add("vestiging", {
-            "schoolId": company["uuid"], "vestigingscode": "00X501", "onderwijslocatiecode": None,
-            "name": "Werkplaats en magazijn Havenkwartier", "street": "Havenkade 40", "postalCode": "0514 HK", "city": TOWN,
-        }),
-    }
-    rooms = {
-        "training": b.add("room", {"name": "Trainingsruimte Esdoorn", "code": "TR-1", "capacity": 16, "kind": "classroom",
-                                   "facilities": ["beamer", "whiteboard"], "buildingCode": "00X500", "floor": "1"}),
-        "vergader": b.add("room", {"name": "Vergaderzaal Linde", "code": "VZ-2", "capacity": 10, "kind": "classroom",
-                                   "facilities": ["scherm", "videobellen"], "buildingCode": "00X500", "floor": "2"}),
-        "praktijk": b.add("room", {"name": "Praktijkhal", "code": "PH-1", "capacity": 20, "kind": "lab",
-                                   "facilities": ["installatiewand", "warmtepompopstelling", "meterkastopstelling"],
-                                   "buildingCode": "00X501", "floor": "0"}),
-        "kantine": b.add("room", {"name": "Kantine Havenkwartier", "code": "KH-0", "capacity": 80, "kind": "other",
-                                  "facilities": ["beamer"], "buildingCode": "00X501", "floor": "0"}),
-        "online": b.add("room", {"name": "Online via Talk", "code": "ONLINE", "capacity": 100, "kind": "online", "facilities": []}),
-    }
+    def pick_day(self, lo: dt.date, hi: dt.date) -> dt.date:
+        return self.rng.choice(workdays(lo, hi))
 
-    # --- competency framework -------------------------------------------------
-    framework = b.add("competency-framework", {
-        "name": "Competentieprofiel Esdoorn Techniek", "sourceAuthority": "other",
-        "sourceRef": "Eigen competentieprofiel, vastgesteld door directie en HR", "edition": "2025", "level": "corporate",
-        "description": "Wat het bedrijf per rol verwacht: veilig werken, vakmanschap, digitaal werken en leidinggeven.",
-        "proficiencyLevels": [
-            {"levelId": "basis", "label": "Basis", "order": 1, "minPercent": 0},
-            {"levelId": "gevorderd", "label": "Gevorderd", "order": 2, "minPercent": 65},
-            {"levelId": "expert", "label": "Expert", "order": 3, "minPercent": 85},
-        ],
-        "lifecycle": "published",
-    })
-    comp: dict[str, dict] = {}
+    def clock(self) -> tuple[int, int]:
+        return self.rng.randint(8, 15), self.rng.choice([0, 10, 15, 20, 30, 40, 45, 50])
 
-    def add_competencies() -> None:
+    def __init__(self) -> None:
+        self.rng = random.Random(20250901)
+        self.b = Builder(IDENTITY)
+
+    def build(self) -> dict:
+        self.add_company_and_rooms()
+        self.add_competency_framework()
+        self.add_courses_and_programmes()
+        self.add_people()
+        self.add_onboarding()
+        self.add_gedragscode()
+        self.add_informatiebeveiliging()
+        self.add_avg()
+        self.add_bhv()
+        self.add_vca()
+        self.add_nen_3140()
+        self.add_heftruck()
+        self.add_f_gassen()
+        self.add_leadership_and_paid_courses()
+        self.add_toolbox_meetings()
+        self.add_external_records()
+        self.add_attainments()
+        self.add_development_plans()
+        self.add_engagement()
+        self.add_gamification()
+        self.add_fees_and_entitlements()
+        self.strip_private_fields()
+        return self.assemble()
+
+    def add_company_and_rooms(self) -> None:
+        """The company, its sites and its rooms."""
+        self.company = self.b.add("school", {"brin": "00X5", "name": COMPANY})
+        self.sites = {
+            "hoofd": self.b.add("vestiging", {
+                "schoolId": self.company["uuid"], "vestigingscode": "00X500", "onderwijslocatiecode": None,
+                "name": "Hoofdkantoor", "street": "Esdoornlaan 1", "postalCode": "0512 EH", "city": TOWN,
+            }),
+            "haven": self.b.add("vestiging", {
+                "schoolId": self.company["uuid"], "vestigingscode": "00X501", "onderwijslocatiecode": None,
+                "name": "Werkplaats en magazijn Havenkwartier", "street": "Havenkade 40", "postalCode": "0514 HK", "city": TOWN,
+            }),
+        }
+        self.rooms = {
+            "training": self.b.add("room", {"name": "Trainingsruimte Esdoorn", "code": "TR-1", "capacity": 16, "kind": "classroom",
+                                            "facilities": ["beamer", "whiteboard"], "buildingCode": "00X500", "floor": "1"}),
+            "vergader": self.b.add("room", {"name": "Vergaderzaal Linde", "code": "VZ-2", "capacity": 10, "kind": "classroom",
+                                            "facilities": ["scherm", "videobellen"], "buildingCode": "00X500", "floor": "2"}),
+            "praktijk": self.b.add("room", {"name": "Praktijkhal", "code": "PH-1", "capacity": 20, "kind": "lab",
+                                            "facilities": ["installatiewand", "warmtepompopstelling", "meterkastopstelling"],
+                                            "buildingCode": "00X501", "floor": "0"}),
+            "kantine": self.b.add("room", {"name": "Kantine Havenkwartier", "code": "KH-0", "capacity": 80, "kind": "other",
+                                           "facilities": ["beamer"], "buildingCode": "00X501", "floor": "0"}),
+            "online": self.b.add("room", {"name": "Online via Talk", "code": "ONLINE", "capacity": 100, "kind": "online", "facilities": []}),
+        }
+
+    def add_competencies(self) -> None:
         for row in COMPETENCIES:
             code, title, description, parent, order, *rest = row
             roles = rest[0] if rest else None
-            fields = {"frameworkId": framework["uuid"]}
+            fields = {"frameworkId": self.framework["uuid"]}
             if parent is not None:
-                fields["parentId"] = comp[parent]["uuid"]
+                fields["parentId"] = self.comp[parent]["uuid"]
             fields.update({"code": code, "title": title, "description": description, "order": order,
                            "requiredForRoles": roles or [], "lifecycle": "published"})
-            comp[code] = b.add("competency", fields)
+            self.comp[code] = self.b.add("competency", fields)
 
-    add_competencies()
+    def add_competency_framework(self) -> None:
+        """The competency framework."""
+        self.framework = self.b.add("competency-framework", {
+            "name": "Competentieprofiel Esdoorn Techniek", "sourceAuthority": "other",
+            "sourceRef": "Eigen competentieprofiel, vastgesteld door directie en HR", "edition": "2025", "level": "corporate",
+            "description": "Wat het bedrijf per rol verwacht: veilig werken, vakmanschap, digitaal werken en leidinggeven.",
+            "proficiencyLevels": [
+                {"levelId": "basis", "label": "Basis", "order": 1, "minPercent": 0},
+                {"levelId": "gevorderd", "label": "Gevorderd", "order": 2, "minPercent": 65},
+                {"levelId": "expert", "label": "Expert", "order": 3, "minPercent": 85},
+            ],
+            "lifecycle": "published",
+        })
+        self.comp: dict[str, dict] = {}
 
-    # --- courses, lessons, programmes -------------------------------------------
-    courses: dict[str, dict] = {}
+        self.add_competencies()
 
-    def add_courses() -> None:
+    def add_courses(self) -> None:
         for row in COURSES:
             key, name, description, tags, mandatory, regulation, competencies, *parents = row
             parent = parents[0] if parents else None
@@ -490,150 +522,154 @@ def build() -> dict:
                 fields["regulationSlug"] = regulation
             fields["lifecycle"] = "published"
             if parent is not None:
-                fields["parentCourseId"] = courses[parent]["uuid"]
-            fields["competencyIds"] = [comp[c]["uuid"] for c in competencies]
-            courses[key] = b.add("course", fields)
+                fields["parentCourseId"] = self.courses[parent]["uuid"]
+            fields["competencyIds"] = [self.comp[c]["uuid"] for c in competencies]
+            self.courses[key] = self.b.add("course", fields)
 
-    add_courses()
-    for key, renewal in (("GED", "GED"), ("IBV", "IBV"), ("AVG", "AVG"), ("BHV-B", "BHV-H"), ("BHV-H", "BHV-H"), ("VCA-B", "VCA-B"),
-                         ("VCA-V", "VCA-V"), ("NEN-B", "NEN-H"), ("NEN-H", "NEN-H"), ("HEF-B", "HEF-H"), ("HEF-H", "HEF-H")):
-        courses[key]["renewalCourseSlug"] = courses[renewal]["slug"]
+    def add_courses_and_programmes(self) -> None:
+        """Courses, lessons and programmes."""
+        self.courses: dict[str, dict] = {}
 
-    lesson_plan = {
-        "ONB": [("Wie we zijn en hoe we werken", "video", 15, "Je kent de afdelingen en je eerste aanspreekpunten."),
-                ("Veilig beginnen op locatie en in de werkplaats", "text", 20, "Je weet welke veiligheidsregels vanaf dag een gelden."),
-                ("Afsluitende vragen", "quiz", 10, "Je laat zien dat je de belangrijkste afspraken kent.")],
-        "GED": [("De gedragscode in tien minuten", "video", 12, "Je kent de vijf kernregels van de gedragscode."),
-                ("Dilemma's uit de praktijk", "quiz", 15, "Je kiest in een dilemma de juiste vervolgstap.")],
-        "IBV": [("Phishing herkennen", "video", 15, "Je herkent de kenmerken van een phishingbericht."),
-                ("Wachtwoorden, MFA en je telefoon", "text", 15, "Je beveiligt je accounts met MFA en een wachtwoordmanager."),
-                ("Eindtoets informatiebeveiliging", "quiz", 10, "Je meldt een incident op de juiste manier.")],
-        "AVG": [("Wat zijn persoonsgegevens?", "text", 15, "Je herkent persoonsgegevens en bijzondere persoonsgegevens."),
-                ("Klantgegevens in de praktijk", "video", 15, "Je deelt klantgegevens alleen met wie ze nodig heeft."),
-                ("Eindtoets AVG", "quiz", 10, "Je herkent een datalek en weet wie je belt.")],
-        "EXC": [("Draaitabellen", "video", 30, "Je vat een grote tabel samen met een draaitabel."),
-                ("Zoek- en verwijzingsfuncties", "video", 30, "Je koppelt twee tabellen met X.ZOEKEN."),
-                ("Grafieken en dashboards", "video", 30, "Je bouwt een dashboard dat zichzelf bijwerkt."),
-                ("Eindopdracht", "quiz", 30, "Je maakt een maandrapportage uit ruwe gegevens.")],
-        "KLA": [("Voorbereiding op de trainingsdag", "video", 20, "Je brengt twee eigen klantgesprekken mee naar de training.")],
-    }
-    lessons: dict[str, list[dict]] = {}
-    for key, rows in lesson_plan.items():
-        c = courses[key]
-        lessons[key] = []
-        for order, (name, kind, minutes, objective) in enumerate(rows, start=1):
-            fields = {"courseId": c["uuid"], "name": name, "order": order, "contentType": kind, "durationMinutes": minutes,
-                      "learningObjectives": [objective], "competencyIds": c["competencyIds"], "mandatoryTraining": c["mandatoryTraining"]}
-            if "regulationSlug" in c:
-                fields["regulationSlug"] = c["regulationSlug"]
-            fields["lifecycle"] = "published"
-            lessons[key].append(b.add("lesson", fields))
+        self.add_courses()
+        for key, renewal in (("GED", "GED"), ("IBV", "IBV"), ("AVG", "AVG"), ("BHV-B", "BHV-H"), ("BHV-H", "BHV-H"), ("VCA-B", "VCA-B"),
+                             ("VCA-V", "VCA-V"), ("NEN-B", "NEN-H"), ("NEN-H", "NEN-H"), ("HEF-B", "HEF-H"), ("HEF-H", "HEF-H")):
+            self.courses[key]["renewalCourseSlug"] = self.courses[renewal]["slug"]
 
-    technician_programme = b.add("programme", {
-        "name": "Vakopleiding servicemonteur", "code": "ESD-PRG-SM", "level": "corporate",
-        "description": "Wat een servicemonteur moet kunnen en welke cursussen daarbij horen.",
-        "courseIds": [courses[k]["uuid"] for k in ("LL-SM", "FGAS", "WP")],
-        "requiredCompetencyIds": [comp[c]["uuid"] for c in ("VEI-01", "VEI-03", "VAK-01", "VAK-03")],
-        "lifecycle": "published",
-    })
-    leadership_programme = b.add("programme", {
-        "name": "Leiderschapsprogramma", "code": "ESD-PRG-LEI", "level": "corporate",
-        "description": "Het programma voor iedereen die een afdeling of ploeg leidt.",
-        "courseIds": [courses["LEI"]["uuid"]],
-        "requiredCompetencyIds": [comp["LEI-01"]["uuid"], comp["LEI-02"]["uuid"]],
-        "lifecycle": "published",
-    })
-    for key in ("LL-SM", "FGAS", "WP"):
-        courses[key]["programmeIds"] = [technician_programme["uuid"]]
-    courses["LEI"]["programmeIds"] = [leadership_programme["uuid"]]
+        lesson_plan = {
+            "ONB": [("Wie we zijn en hoe we werken", "video", 15, "Je kent de afdelingen en je eerste aanspreekpunten."),
+                    ("Veilig beginnen op locatie en in de werkplaats", "text", 20, "Je weet welke veiligheidsregels vanaf dag een gelden."),
+                    ("Afsluitende vragen", "quiz", 10, "Je laat zien dat je de belangrijkste afspraken kent.")],
+            "GED": [("De gedragscode in tien minuten", "video", 12, "Je kent de vijf kernregels van de gedragscode."),
+                    ("Dilemma's uit de praktijk", "quiz", 15, "Je kiest in een dilemma de juiste vervolgstap.")],
+            "IBV": [("Phishing herkennen", "video", 15, "Je herkent de kenmerken van een phishingbericht."),
+                    ("Wachtwoorden, MFA en je telefoon", "text", 15, "Je beveiligt je accounts met MFA en een wachtwoordmanager."),
+                    ("Eindtoets informatiebeveiliging", "quiz", 10, "Je meldt een incident op de juiste manier.")],
+            "AVG": [("Wat zijn persoonsgegevens?", "text", 15, "Je herkent persoonsgegevens en bijzondere persoonsgegevens."),
+                    ("Klantgegevens in de praktijk", "video", 15, "Je deelt klantgegevens alleen met wie ze nodig heeft."),
+                    ("Eindtoets AVG", "quiz", 10, "Je herkent een datalek en weet wie je belt.")],
+            "EXC": [("Draaitabellen", "video", 30, "Je vat een grote tabel samen met een draaitabel."),
+                    ("Zoek- en verwijzingsfuncties", "video", 30, "Je koppelt twee tabellen met X.ZOEKEN."),
+                    ("Grafieken en dashboards", "video", 30, "Je bouwt een dashboard dat zichzelf bijwerkt."),
+                    ("Eindopdracht", "quiz", 30, "Je maakt een maandrapportage uit ruwe gegevens.")],
+            "KLA": [("Voorbereiding op de trainingsdag", "video", 20, "Je brengt twee eigen klantgesprekken mee naar de training.")],
+        }
+        self.lessons: dict[str, list[dict]] = {}
+        for key, rows in lesson_plan.items():
+            c = self.courses[key]
+            self.lessons[key] = []
+            for order, (name, kind, minutes, objective) in enumerate(rows, start=1):
+                fields = {"courseId": c["uuid"], "name": name, "order": order, "contentType": kind, "durationMinutes": minutes,
+                          "learningObjectives": [objective], "competencyIds": c["competencyIds"], "mandatoryTraining": c["mandatoryTraining"]}
+                if "regulationSlug" in c:
+                    fields["regulationSlug"] = c["regulationSlug"]
+                fields["lifecycle"] = "published"
+                self.lessons[key].append(self.b.add("lesson", fields))
 
-    # --- people -------------------------------------------------------------------
-    people: list[dict] = []
-    members: dict[str, list[dict]] = {}
-    used_names: set[str] = set()
-    counter = 0
+        self.technician_programme = self.b.add("programme", {
+            "name": "Vakopleiding servicemonteur", "code": "ESD-PRG-SM", "level": "corporate",
+            "description": "Wat een servicemonteur moet kunnen en welke cursussen daarbij horen.",
+            "courseIds": [self.courses[k]["uuid"] for k in ("LL-SM", "FGAS", "WP")],
+            "requiredCompetencyIds": [self.comp[c]["uuid"] for c in ("VEI-01", "VEI-03", "VAK-01", "VAK-03")],
+            "lifecycle": "published",
+        })
+        self.leadership_programme = self.b.add("programme", {
+            "name": "Leiderschapsprogramma", "code": "ESD-PRG-LEI", "level": "corporate",
+            "description": "Het programma voor iedereen die een afdeling of ploeg leidt.",
+            "courseIds": [self.courses["LEI"]["uuid"]],
+            "requiredCompetencyIds": [self.comp["LEI-01"]["uuid"], self.comp["LEI-02"]["uuid"]],
+            "lifecycle": "published",
+        })
+        for key in ("LL-SM", "FGAS", "WP"):
+            self.courses[key]["programmeIds"] = [self.technician_programme["uuid"]]
+        self.courses["LEI"]["programmeIds"] = [self.leadership_programme["uuid"]]
 
-    def person(nc: str, dept: str, roles: list[str], manager: str | None) -> dict:
-        female = rng.random() < (0.2 if dept in TECHNICIANS or dept == "magazijn" else 0.55)
+    def person(self, nc: str, dept: str, roles: list[str], manager: str | None) -> dict:
+        female = self.rng.random() < (0.2 if dept in TECHNICIANS or dept == "magazijn" else 0.55)
         while True:
-            surname = rng.choice(SURNAME_HEAD) + rng.choice(SURNAME_TAIL)
-            if surname not in used_names or len(used_names) > 240:
-                used_names.add(surname)
+            surname = self.rng.choice(SURNAME_HEAD) + self.rng.choice(SURNAME_TAIL)
+            if surname not in self.used_names or len(self.used_names) > 240:
+                self.used_names.add(surname)
                 break
         p = {"nc": nc, "dept": dept, "roles": roles, "manager": manager, "start": None, "female": female,
-             "given": rng.choice(GIVEN_F if female else GIVEN_M), "family": surname,
-             "birth": dt.date(rng.randint(1961, 2003), rng.randint(1, 12), rng.randint(1, 28)),
-             "ability": rng.gauss(0, 1), "done": {}}
-        people.append(p)
+             "given": self.rng.choice(GIVEN_F if female else GIVEN_M), "family": surname,
+             "birth": dt.date(self.rng.randint(1961, 2003), self.rng.randint(1, 12), self.rng.randint(1, 28)),
+             "ability": self.rng.gauss(0, 1), "done": {}}
+        self.people.append(p)
         return p
 
-    for key, _name, _path, _site, size, head in DEPARTMENTS:
-        group = [person(head, key, ["learner", "manager"], None if head == DIRECTOR else DIRECTOR)]
-        for nc, roles in SPECIAL.get(key, []):
-            group.append(person(nc, key, roles, head))
-        while len(group) < size:
-            counter += 1
-            group.append(person(f"corporate-medewerker-{counter:03d}", key, ["learner"], head))
-        members[key] = group
-    for key in [d[0] for d in DEPARTMENTS]:
-        starts = [start for dept, start in NEW_HIRES if dept == key]
-        if starts:
-            plain = [p for p in members[key] if p["roles"] == ["learner"]]
-            for p, start in zip(plain[-len(starts):], starts):
-                p["start"] = start
-
-    by_nc = {p["nc"]: p for p in people}
-    dept_of = {d[0]: d for d in DEPARTMENTS}
-
-    def existing(p: dict) -> bool:
+    def existing(self, p: dict) -> bool:
         return p["start"] is None
 
-    def plain_existing(dept: str) -> list[dict]:
-        return [p for p in members[dept] if p["roles"] == ["learner"] and existing(p)]
+    def plain_existing(self, dept: str) -> list[dict]:
+        return [p for p in self.members[dept] if p["roles"] == ["learner"] and self.existing(p)]
 
-    for p in people:
-        fields = {"ncUserId": p["nc"], "givenName": p["given"], "familyName": p["family"], "birthDate": p["birth"].isoformat(),
-                  "schoolId": company["uuid"], "eduPersonAffiliation": ["employee"], "roles": p["roles"]}
-        if p["manager"] is not None:
-            fields["managerId"] = p["manager"]
-        fields["department"] = dept_of[p["dept"]][2]
-        fields["lifecycle"] = "active"
-        p["profile"] = b.add("learner-profile", fields)
+    def add_people(self) -> None:
+        """The people."""
+        self.people: list[dict] = []
+        self.members: dict[str, list[dict]] = {}
+        self.used_names: set[str] = set()
+        counter = 0
 
-    cohorts: dict[str, dict] = {}
-    for key, name, _path, site, _size, head in DEPARTMENTS:
-        cohorts[key] = b.add("cohort", {
-            "name": name, "period": "Opleidingsjaar", "academicYear": YEAR, "teacherIds": [head],
-            "learnerIds": [p["nc"] for p in members[key]], "lifecycle": "active", "locationId": sites[site]["uuid"],
-            "notes": DEPARTMENT_NOTES.get(key), "kind": "teaching",
+        for key, _name, _path, _site, size, head in DEPARTMENTS:
+            group = [self.person(head, key, ["learner", "manager"], None if head == DIRECTOR else DIRECTOR)]
+            for nc, roles in SPECIAL.get(key, []):
+                group.append(self.person(nc, key, roles, head))
+            while len(group) < size:
+                counter += 1
+                group.append(self.person(f"corporate-medewerker-{counter:03d}", key, ["learner"], head))
+            self.members[key] = group
+        for key in [d[0] for d in DEPARTMENTS]:
+            starts = [start for dept, start in NEW_HIRES if dept == key]
+            if starts:
+                plain = [p for p in self.members[key] if p["roles"] == ["learner"]]
+                for p, start in zip(plain[-len(starts):], starts):
+                    p["start"] = start
+
+        self.by_nc = {p["nc"]: p for p in self.people}
+        self.dept_of = {d[0]: d for d in DEPARTMENTS}
+
+        for p in self.people:
+            fields = {"ncUserId": p["nc"], "givenName": p["given"], "familyName": p["family"], "birthDate": p["birth"].isoformat(),
+                      "schoolId": self.company["uuid"], "eduPersonAffiliation": ["employee"], "roles": p["roles"]}
+            if p["manager"] is not None:
+                fields["managerId"] = p["manager"]
+            fields["department"] = self.dept_of[p["dept"]][2]
+            fields["lifecycle"] = "active"
+            p["profile"] = self.b.add("learner-profile", fields)
+
+        self.cohorts: dict[str, dict] = {}
+        for key, name, _path, site, _size, head in DEPARTMENTS:
+            self.cohorts[key] = self.b.add("cohort", {
+                "name": name, "period": "Opleidingsjaar", "academicYear": YEAR, "teacherIds": [head],
+                "learnerIds": [p["nc"] for p in self.members[key]], "lifecycle": "active", "locationId": self.sites[site]["uuid"],
+                "notes": DEPARTMENT_NOTES.get(key), "kind": "teaching",
+            })
+
+        for nc, roles, qualifications, days in [
+            (DIRECTOR, ["administrator"], ["algemeen directeur"], WEEKDAYS),
+            (HR, ["coordinator"], ["HR-adviseur", "ontwikkelgesprekken en opleidingsbudget"], WEEKDAYS[:4]),
+            (COMPLIANCE, ["coordinator"], ["compliance officer", "privacy officer"], WEEKDAYS),
+            (COORDINATOR, ["coordinator", "administrator"], ["opleidingscoördinator", "beheer leeromgeving"], ["monday", "tuesday", "thursday", "friday"]),
+            (TRAINER_BHV, ["teacher"], ["BHV-instructeur", "toolboxbegeleider"], ["tuesday", "wednesday", "thursday"]),
+            (TRAINER_TECH, ["teacher"], ["instructeur NEN 3140", "F-gassen gecertificeerd"], WEEKDAYS),
+        ]:
+            self.b.add("staff", {"ncUserId": nc, "roles": roles, "qualifications": qualifications, "workingDays": days})
+
+        self.template = self.b.add("learning-plan-template", {
+            "name": "Persoonlijk ontwikkelplan (POP)", "kind": "pdp",
+            "description": "Het ontwikkelplan dat medewerker en leidinggevende elk jaar samen opstellen en halverwege bespreken.",
+            "sections": [
+                {"sectionId": "terugblik", "label": "Terugblik op het afgelopen jaar", "order": 1},
+                {"sectionId": "ambities", "label": "Ambities", "order": 2},
+                {"sectionId": "doelen", "label": "Ontwikkeldoelen", "order": 3, "helpText": "Maak een doel concreet en zet er een datum bij."},
+                {"sectionId": "afspraken", "label": "Afspraken over tijd en budget", "order": 4},
+            ],
+            "goalDomains": ["veiligheid", "vakmanschap", "digitaal werken", "samenwerken", "leidinggeven"],
+            "requiredSignerRoles": [], "defaultReviewCadenceMonths": 6, "lifecycle": "active",
         })
 
-    for nc, roles, qualifications, days in [
-        (DIRECTOR, ["administrator"], ["algemeen directeur"], WEEKDAYS),
-        (HR, ["coordinator"], ["HR-adviseur", "ontwikkelgesprekken en opleidingsbudget"], WEEKDAYS[:4]),
-        (COMPLIANCE, ["coordinator"], ["compliance officer", "privacy officer"], WEEKDAYS),
-        (COORDINATOR, ["coordinator", "administrator"], ["opleidingscoördinator", "beheer leeromgeving"], ["monday", "tuesday", "thursday", "friday"]),
-        (TRAINER_BHV, ["teacher"], ["BHV-instructeur", "toolboxbegeleider"], ["tuesday", "wednesday", "thursday"]),
-        (TRAINER_TECH, ["teacher"], ["instructeur NEN 3140", "F-gassen gecertificeerd"], WEEKDAYS),
-    ]:
-        b.add("staff", {"ncUserId": nc, "roles": roles, "qualifications": qualifications, "workingDays": days})
-
-    template = b.add("learning-plan-template", {
-        "name": "Persoonlijk ontwikkelplan (POP)", "kind": "pdp",
-        "description": "Het ontwikkelplan dat medewerker en leidinggevende elk jaar samen opstellen en halverwege bespreken.",
-        "sections": [
-            {"sectionId": "terugblik", "label": "Terugblik op het afgelopen jaar", "order": 1},
-            {"sectionId": "ambities", "label": "Ambities", "order": 2},
-            {"sectionId": "doelen", "label": "Ontwikkeldoelen", "order": 3, "helpText": "Maak een doel concreet en zet er een datum bij."},
-            {"sectionId": "afspraken", "label": "Afspraken over tijd en budget", "order": 4},
-        ],
-        "goalDomains": ["veiligheid", "vakmanschap", "digitaal werken", "samenwerken", "leidinggeven"],
-        "requiredSignerRoles": [], "defaultReviewCadenceMonths": 6, "lifecycle": "active",
-    })
-
-    # --- enrolment, e-learning, classroom and credential helpers -------------------
-    def enrol(p: dict, key: str, source: str, cohort: dict, due: dt.date | None = None) -> dict:
-        c = courses[key]
+    def enrol(self, p: dict, key: str, source: str, cohort: dict, due: dt.date | None = None) -> dict:
+        c = self.courses[key]
         fields = {"learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "courseId": c["uuid"], "mandatory": c["mandatoryTraining"]}
         if due is not None:
             fields["dueDate"] = due.isoformat()
@@ -644,36 +680,36 @@ def build() -> dict:
             fields["regulationSlug"] = c["regulationSlug"]
         fields["cohortId"] = cohort["uuid"]
         fields["lifecycle"] = "active"
-        e = b.add("enrolment", fields)
+        e = self.b.add("enrolment", fields)
         e["_p"], e["_key"], e["_done"] = p, key, None
         return e
 
-    def complete(e: dict, when: dt.datetime) -> None:
+    def complete(self, e: dict, when: dt.datetime) -> None:
         e["lifecycle"] = "completed"
         e["_done"] = when
         e["_p"]["done"][e["_key"]] = when
 
-    def quiz_score(p: dict) -> int:
-        return max(60, min(100, round(80 + 9 * p["ability"] + rng.gauss(0, 5))))
+    def quiz_score(self, p: dict) -> int:
+        return max(60, min(100, round(80 + 9 * p["ability"] + self.rng.gauss(0, 5))))
 
-    def elearn(e: dict, start: dt.date, finish: dt.date | None, partial: int = 0) -> None:
+    def elearn(self, e: dict, start: dt.date, finish: dt.date | None, partial: int = 0) -> None:
         """Lesson completions on workdays from `start`; the last one on `finish`.
 
         With `finish` None the learner stopped after `partial` lessons and the
         enrolment stays active."""
-        p, rows = e["_p"], lessons[e["_key"]]
+        p, rows = e["_p"], self.lessons[e["_key"]]
         count = len(rows) if finish is not None else partial
         if count:
-            last = finish if finish is not None else pick_day(start, min(plus_workdays(start, 15), LAST_DAY))
-            days = sorted(pick_day(start, last) for _ in range(count - 1)) + [last]
-            score = quiz_score(p)
-            hour, minute = clock()
+            last = finish if finish is not None else self.pick_day(start, min(plus_workdays(start, 15), LAST_DAY))
+            days = sorted(self.pick_day(start, last) for _ in range(count - 1)) + [last]
+            score = self.quiz_score(p)
+            hour, minute = self.clock()
             previous = None
             e["_times"] = []
             for lesson, day in zip(rows, days):
                 when = moment(day, hour, minute)
                 if previous is not None and when <= previous:
-                    when = previous + dt.timedelta(minutes=rng.choice([20, 25, 35]))
+                    when = previous + dt.timedelta(minutes=self.rng.choice([20, 25, 35]))
                 previous = when
                 fields = {"learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "lessonId": lesson["uuid"],
                           "courseId": lesson["courseId"], "enrolmentId": e["uuid"], "source": "xapi",
@@ -681,18 +717,18 @@ def build() -> dict:
                 if lesson["contentType"] == "quiz":
                     fields["score"] = score
                 fields["completedAt"] = iso(when)
-                b.add("lesson-completion", fields)
+                self.b.add("lesson-completion", fields)
                 e["_times"].append((lesson, when))
             e["_score"] = score
         e["progressPercent"] = round(100 * count / len(rows))
         if finish is not None:
-            complete(e, e["_times"][-1][1])
+            self.complete(e, e["_times"][-1][1])
 
-    def credential(issue: Issue, link: tuple[str, dict] | None = None) -> dict:
+    def credential(self, issue: Issue, link: tuple[str, dict] | None = None) -> dict:
         """Issues the certificate; link names the enrolment field and the enrolment it points at."""
         p, key, issued, source = issue.person, issue.key, issue.issued, issue.source
         months, issuer = AWARDS[key]
-        c = courses[key]
+        c = self.courses[key]
         expires = add_months(issued, months) if months else None
         payload = {"@context": OB3_CONTEXT, "type": ["VerifiableCredential", "OpenBadgeCredential"],
                    "issuer": {"id": issuer[1], "type": ["Profile"], "name": issuer[0]}, "validFrom": iso(issued)}
@@ -711,34 +747,34 @@ def build() -> dict:
             fields[link[0]] = link[1]["uuid"]
         fields["competencyIds"] = c["competencyIds"]
         fields["lifecycle"] = "expired" if expires is not None and expires.date() <= LAST_DAY else "issued"
-        cred = b.add("credential", fields)
+        cred = self.b.add("credential", fields)
         cred["_p"], cred["_key"], cred["_expires"] = p, key, expires
         return cred
 
-    def training_group(spec: GroupSpec, plan: Schedule) -> dict:
+    def training_group(self, spec: GroupSpec, plan: Schedule) -> dict:
         key, name, (site, room), trainer = spec.key, spec.name, spec.place, spec.trainer
         days, (start, end), notes, lifecycle = plan.days, plan.hours, plan.notes, plan.lifecycle
-        c = courses[key]
-        group = b.add("cohort", {
+        c = self.courses[key]
+        group = self.b.add("cohort", {
             "name": name, "period": "Opleidingsjaar", "academicYear": YEAR, "courseId": c["uuid"],
             "teacherIds": [trainer] if trainer else [], "learnerIds": [], "lifecycle": lifecycle,
-            "locationId": sites[site]["uuid"], "notes": notes, "kind": "teaching",
+            "locationId": self.sites[site]["uuid"], "notes": notes, "kind": "teaching",
         })
         group["_sessions"] = []
         group["_marker"] = trainer or COORDINATOR
         for index, day in enumerate(days, start=1):
             title = f"{name}, {day.day} {MAAND[day.month - 1]} {day.year}" if len(days) == 1 else f"{name}, dag {index} ({day.day} {MAAND[day.month - 1]} {day.year})"
-            s = b.add("session", {
+            s = self.b.add("session", {
                 "cohortId": group["uuid"], "courseId": c["uuid"], "title": title,
                 "startsAt": iso(moment(day, *start)), "endsAt": iso(moment(day, *end)),
-                "location": rooms[room]["name"], "roomId": rooms[room]["uuid"], "lifecycle": "completed",
+                "location": self.rooms[room]["name"], "roomId": self.rooms[room]["uuid"], "lifecycle": "completed",
             })
             s["_day"], s["_start"], s["_end"] = day, moment(day, *start), moment(day, *end)
             s["_minutes"] = (end[0] - start[0]) * 60 + end[1] - start[1]
             group["_sessions"].append(s)
         return group
 
-    def attend(group: dict, e: dict, absent: tuple[int, ...] = ()) -> None:
+    def attend(self, group: dict, e: dict, absent: tuple[int, ...] = ()) -> None:
         p = e["_p"]
         if p["nc"] not in group["learnerIds"]:
             group["learnerIds"].append(p["nc"])
@@ -749,372 +785,382 @@ def build() -> dict:
                       "markedBy": group["_marker"], "markedAt": iso(s["_start"] + dt.timedelta(minutes=15))}
             if away:
                 fields["reason"] = "Ziek gemeld"
-            b.add("attendance-record", fields)
+            self.b.add("attendance-record", fields)
 
-    def first_group(groups: list[dict], day: dt.date) -> dict | None:
+    def first_group(self, groups: list[dict], day: dt.date) -> dict | None:
         return next((g for g in groups if g["_sessions"][0]["_day"] >= day), None)
 
-    # --- onboarding -----------------------------------------------------------------
-    for p in people:
-        if not existing(p):
-            e = enrol(p, "ONB", "hr", cohorts[p["dept"]], p["start"] + dt.timedelta(days=14))
-            elearn(e, p["start"], plus_workdays(p["start"], rng.randint(0, 7)))
+    def add_onboarding(self) -> None:
+        """Onboarding."""
+        for p in self.people:
+            if not self.existing(p):
+                e = self.enrol(p, "ONB", "hr", self.cohorts[p["dept"]], p["start"] + dt.timedelta(days=14))
+                self.elearn(e, p["start"], plus_workdays(p["start"], self.rng.randint(0, 7)))
 
-    # --- gedragscode: last year's certificates expire, renewal enrolments follow -----
-    renewals: list[dict] = []
-    olds = [p for p in people if existing(p)]
-    shuffled = list(olds)
-    rng.shuffle(shuffled)
-    campaign_2024 = shuffled[:160]
-    campaign_ids = {p["nc"] for p in campaign_2024}
-    ged_stuck = rng.sample([p for p in olds if p["roles"] == ["learner"]], 4)
-    ged_stuck_ids = {p["nc"] for p in ged_stuck}
-    for p in people:
-        if existing(p):
-            lo, hi = (dt.date(2024, 9, 16), dt.date(2024, 11, 15)) if p["nc"] in campaign_ids else (dt.date(2024, 12, 2), dt.date(2025, 6, 30))
-            issued = moment(pick_day(lo, hi), *clock())
-            expiry = add_months(issued, 12)
-            e = enrol(p, "GED", "credential-renewal", cohorts[p["dept"]])
-            credential(Issue(p, "GED", issued, "migrated"), ("renewalEnrolmentId", e))
-            start = on_or_after(expiry.date() + dt.timedelta(days=1))
-            if p["nc"] in ged_stuck_ids:
-                elearn(e, start, None, partial=1 if ged_stuck.index(p) < 2 else 0)
-                continue
-            finish = min(plus_workdays(start, rng.choices([1, 3, 6, 10, 15, 30], weights=[20, 30, 20, 15, 10, 5])[0]), LAST_DAY)
-        else:
-            start = p["start"]
-            e = enrol(p, "GED", "hr", cohorts[p["dept"]], start + dt.timedelta(days=30))
-            finish = plus_workdays(start, rng.randint(2, 18))
-        elearn(e, start, finish)
-        credential(Issue(p, "GED", e["_done"], "auto"), ("enrolmentId", e))
-
-    # --- informatiebeveiliging: new this year, bulk enrolment in October ------------
-    ibv_campaign = dt.date(2025, 10, 6)
-    ibv_due = dt.date(2026, 1, 31)
-    candidates = [p for p in olds if p["roles"] == ["learner"] and p["nc"] not in ged_stuck_ids]
-    ibv_stuck = rng.sample(candidates, 5)
-    ibv_stuck_ids = {p["nc"] for p in ibv_stuck}
-    ibv_enrolments = []
-    for p in people:
-        if existing(p):
-            start, due = ibv_campaign, ibv_due
-            e = enrol(p, "IBV", "bulk", cohorts[p["dept"]], due)
-        else:
-            start, due = p["start"], p["start"] + dt.timedelta(days=30)
-            e = enrol(p, "IBV", "hr", cohorts[p["dept"]], due)
-        ibv_enrolments.append(e)
-        if p["nc"] in ibv_stuck_ids:
-            elearn(e, start, None, partial=1 if ibv_stuck.index(p) < 3 else 0)
-            continue
-        if rng.random() < 0.88:
-            finish = pick_day(start, min(due, LAST_DAY))
-        else:
-            finish = pick_day(due + dt.timedelta(days=1), min(due + dt.timedelta(days=60), LAST_DAY))
-        elearn(e, start, finish)
-        credential(Issue(p, "IBV", e["_done"], "auto"), ("enrolmentId", e))
-
-    # --- AVG for the office departments, campaign in March ------------------------------
-    avg_campaign = dt.date(2026, 3, 2)
-    office = [p for d in OFFICE for p in members[d]]
-    avg_stuck = rng.sample([p for p in office if p["roles"] == ["learner"] and existing(p)], 3)
-    avg_stuck_ids = {p["nc"] for p in avg_stuck}
-    for p in office:
-        if existing(p) or p["start"] <= avg_campaign:
-            start, due = avg_campaign, dt.date(2026, 4, 30)
-        else:
-            start, due = p["start"], p["start"] + dt.timedelta(days=60)
-        e = enrol(p, "AVG", "hr", cohorts[p["dept"]], due)
-        if p["nc"] in avg_stuck_ids:
-            elearn(e, start, None, partial=1)
-            continue
-        finish = pick_day(start, due) if rng.random() < 0.9 else pick_day(due + dt.timedelta(days=1), LAST_DAY)
-        elearn(e, start, min(finish, LAST_DAY))
-        credential(Issue(p, "AVG", e["_done"], "auto"), ("enrolmentId", e))
-
-    # --- BHV: last September's certificates expire, herhaling in October and November --
-    bhv_team = []
-    for dept, n in (("installatie", 8), ("magazijn", 5), ("werkplaats", 3), ("directie", 2), ("financien", 2), ("ict", 1), ("verkoop", 5), ("planning", 3)):
-        bhv_team += rng.sample(plain_existing(dept), n)
-    haven = [p for p in bhv_team if dept_of[p["dept"]][3] == "haven"]
-    hoofd = [p for p in bhv_team if dept_of[p["dept"]][3] == "hoofd"]
-    bhv_sets = [(haven[:8], dt.date(2024, 9, 10)), (haven[8:], dt.date(2024, 9, 12)), (hoofd, dt.date(2024, 9, 17))]
-    bhv_groups = [
-        training_group(GroupSpec("BHV-H", "BHV herhaling, groep 1", ("haven", "praktijk"), TRAINER_BHV), Schedule([dt.date(2025, 10, 7)])),
-        training_group(GroupSpec("BHV-H", "BHV herhaling, groep 2", ("haven", "praktijk"), TRAINER_BHV), Schedule([dt.date(2025, 10, 21)])),
-        training_group(GroupSpec("BHV-H", "BHV herhaling, groep 3", ("hoofd", "training"), TRAINER_BHV), Schedule([dt.date(2025, 11, 4)])),
-    ]
-    catch_up = training_group(GroupSpec("BHV-H", "BHV herhaling, inhaaldag", ("hoofd", "training"), TRAINER_BHV),
-                              Schedule([dt.date(2026, 1, 20)]))
-    for (team, day), group in zip(bhv_sets, bhv_groups):
-        for index, p in enumerate(team):
-            issued = moment(day, 16, 30)
-            # The long-term ill employee in group 3 misses the day and is not rescheduled this year.
-            long_term = group is bhv_groups[2] and index == 0
-            rescheduled = (group is bhv_groups[1] and index == 0) or (group is bhv_groups[0] and index == 1)
-            e = enrol(p, "BHV-H", "credential-renewal", catch_up if rescheduled else group)
-            credential(Issue(p, "BHV-H", issued, "migrated"), ("renewalEnrolmentId", e))
-            if long_term:
-                attend(group, e, absent=(0,))
-                continue
-            if rescheduled:
-                attend(group, e, absent=(0,))
-                attend(catch_up, e)
-                done = catch_up["_sessions"][-1]["_end"]
-            else:
-                attend(group, e)
-                done = group["_sessions"][-1]["_end"]
-            complete(e, done)
-            credential(Issue(p, "BHV-H", done, "manual"), ("enrolmentId", e))
-    bhv_ids = {p["nc"] for p in bhv_team}
-    new_bhv = []
-    for dept, n in (("installatie", 2), ("magazijn", 1), ("verkoop", 1), ("financien", 1), ("planning", 1)):
-        new_bhv += rng.sample([p for p in plain_existing(dept) if p["nc"] not in bhv_ids], n)
-    basis = training_group(GroupSpec("BHV-B", "BHV basis, februari", ("hoofd", "training"), TRAINER_BHV),
-                           Schedule([dt.date(2026, 2, 10), dt.date(2026, 2, 11)]))
-    for p in new_bhv:
-        e = enrol(p, "BHV-B", "hr", basis)
-        attend(basis, e)
-        complete(e, basis["_sessions"][-1]["_end"])
-        credential(Issue(p, "BHV-B", e["_done"], "manual"), ("enrolmentId", e))
-
-    # --- VCA for everyone in Operatie -----------------------------------------------------
-    vca_groups = [
-        training_group(GroupSpec("VCA-B", "VCA Basis, groep 1", ("hoofd", "training"), None),
-                       Schedule([dt.date(2025, 10, 14)], ((8, 30), (17, 0)),
-                                notes="Externe docent; het examen neemt Voorbeeld Examencentrum Veiligheid af.")),
-        training_group(GroupSpec("VCA-B", "VCA Basis, groep 2", ("hoofd", "training"), None),
-                       Schedule([dt.date(2026, 3, 17)], ((8, 30), (17, 0)),
-                                notes="Externe docent; het examen neemt Voorbeeld Examencentrum Veiligheid af.")),
-    ]
-    vca_next = training_group(GroupSpec("VCA-B", "VCA Basis, groep 3 (september 2026)", ("hoofd", "training"), None),
-                              Schedule([], notes="Gepland voor september 2026, voor wie na maart in dienst kwam.", lifecycle="planned"))
-    vol = [members[d][0] for d in ("installatie", "magazijn", "werkplaats")]
-    vol += plain_existing("installatie")[:6] + plain_existing("magazijn")[:1] + [by_nc[TRAINER_BHV], by_nc[TRAINER_TECH]]
-    vol_ids = {p["nc"] for p in vol}
-    vca_renew = plain_existing("installatie")[6:9] + plain_existing("magazijn")[1:2] + plain_existing("planning")[:1]
-    vca_renew_ids = {p["nc"] for p in vca_renew}
-    vca_failed_once = next(p for p in people if p["dept"] == "installatie" and p["start"] == dt.date(2025, 9, 1))
-    for dept in OPERATIONS:
-        for p in members[dept]:
-            if existing(p):
-                key = "VCA-V" if p["nc"] in vol_ids else "VCA-B"
-                if p["nc"] in vca_renew_ids:
-                    issued = moment(pick_day(dt.date(2015, 9, 1), dt.date(2016, 2, 26)), 16, 45)
-                    expiry = add_months(issued, 120)
-                    group = first_group(vca_groups, expiry.date() + dt.timedelta(days=1))
-                    e = enrol(p, "VCA-B", "credential-renewal", group)
-                    credential(Issue(p, key, issued, "migrated"), ("renewalEnrolmentId", e))
-                    attend(group, e)
-                    complete(e, group["_sessions"][-1]["_end"])
-                    credential(Issue(p, "VCA-B", e["_done"], "manual"), ("enrolmentId", e))
-                else:
-                    issued = moment(pick_day(dt.date(2016, 8, 1), dt.date(2025, 6, 30)), 16, 45)
-                    credential(Issue(p, key, issued, "migrated"))
-                continue
-            group = first_group(vca_groups, p["start"] + dt.timedelta(days=7))
-            if group is None:
-                e = enrol(p, "VCA-B", "hr", vca_next, p["start"] + dt.timedelta(days=90))
-                vca_next["learnerIds"].append(p["nc"])
-                continue
-            if p is vca_failed_once:
-                failed = enrol(p, "VCA-B", "hr", group, p["start"] + dt.timedelta(days=90))
-                attend(group, failed)
-                failed["lifecycle"] = "failed"
-                failed["reason"] = "Examen niet gehaald; herkansing in groep 2."
-                group = vca_groups[1]
-            e = enrol(p, "VCA-B", "hr", group, p["start"] + dt.timedelta(days=90) if p is not vca_failed_once else dt.date(2026, 3, 31))
-            attend(group, e)
-            complete(e, group["_sessions"][-1]["_end"])
-            credential(Issue(p, "VCA-B", e["_done"], "manual"), ("enrolmentId", e))
-
-    # --- NEN 3140 for the technicians -------------------------------------------------------
-    nen_groups = [training_group(GroupSpec("NEN-H", f"NEN 3140 herinstructie, groep {i}", ("haven", "praktijk"), TRAINER_TECH),
-                                 Schedule([day], ((8, 30), (12, 30))))
-                  for i, day in enumerate([dt.date(2025, 10, 2), dt.date(2026, 1, 15), dt.date(2026, 4, 9), dt.date(2026, 6, 11)], start=1)]
-    nen_basis = [training_group(GroupSpec("NEN-B", f"NEN 3140 basis, groep {i}", ("haven", "praktijk"), TRAINER_TECH), Schedule([day]))
-                 for i, day in enumerate([dt.date(2025, 11, 20), dt.date(2026, 5, 21)], start=1)]
-    for dept in TECHNICIANS:
-        for p in members[dept]:
-            if existing(p):
-                day = dt.date(2025, 3, 3) if p["nc"] == TRAINER_TECH else pick_day(dt.date(2022, 8, 18), dt.date(2025, 7, 10))
-                issued = moment(day, 12, 30)
-                expiry = add_months(issued, 36)
-                if expiry.date() > LAST_DAY:
-                    credential(Issue(p, "NEN-B", issued, "migrated"))
+    def add_gedragscode(self) -> None:
+        """Gedragscode: last year's certificates expire, renewal enrolments follow."""
+        renewals: list[dict] = []
+        self.olds = [p for p in self.people if self.existing(p)]
+        shuffled = list(self.olds)
+        self.rng.shuffle(shuffled)
+        campaign_2024 = shuffled[:160]
+        campaign_ids = {p["nc"] for p in campaign_2024}
+        ged_stuck = self.rng.sample([p for p in self.olds if p["roles"] == ["learner"]], 4)
+        self.ged_stuck_ids = {p["nc"] for p in ged_stuck}
+        for p in self.people:
+            if self.existing(p):
+                lo, hi = (dt.date(2024, 9, 16), dt.date(2024, 11, 15)) if p["nc"] in campaign_ids else (dt.date(2024, 12, 2), dt.date(2025, 6, 30))
+                issued = moment(self.pick_day(lo, hi), *self.clock())
+                expiry = add_months(issued, 12)
+                e = self.enrol(p, "GED", "credential-renewal", self.cohorts[p["dept"]])
+                self.credential(Issue(p, "GED", issued, "migrated"), ("renewalEnrolmentId", e))
+                start = on_or_after(expiry.date() + dt.timedelta(days=1))
+                if p["nc"] in self.ged_stuck_ids:
+                    self.elearn(e, start, None, partial=1 if ged_stuck.index(p) < 2 else 0)
                     continue
-                group = first_group(nen_groups, expiry.date() + dt.timedelta(days=1))
-                e = enrol(p, "NEN-H", "credential-renewal", group or cohorts[dept])
-                credential(Issue(p, "NEN-B", issued, "migrated"), ("renewalEnrolmentId", e))
+                finish = min(plus_workdays(start, self.rng.choices([1, 3, 6, 10, 15, 30], weights=[20, 30, 20, 15, 10, 5])[0]), LAST_DAY)
+            else:
+                start = p["start"]
+                e = self.enrol(p, "GED", "hr", self.cohorts[p["dept"]], start + dt.timedelta(days=30))
+                finish = plus_workdays(start, self.rng.randint(2, 18))
+            self.elearn(e, start, finish)
+            self.credential(Issue(p, "GED", e["_done"], "auto"), ("enrolmentId", e))
+
+    def add_informatiebeveiliging(self) -> None:
+        """Informatiebeveiliging: new this year, bulk enrolment in October."""
+        ibv_campaign = dt.date(2025, 10, 6)
+        ibv_due = dt.date(2026, 1, 31)
+        candidates = [p for p in self.olds if p["roles"] == ["learner"] and p["nc"] not in self.ged_stuck_ids]
+        self.ibv_stuck = self.rng.sample(candidates, 5)
+        ibv_stuck_ids = {p["nc"] for p in self.ibv_stuck}
+        self.ibv_enrolments = []
+        for p in self.people:
+            if self.existing(p):
+                start, due = ibv_campaign, ibv_due
+                e = self.enrol(p, "IBV", "bulk", self.cohorts[p["dept"]], due)
+            else:
+                start, due = p["start"], p["start"] + dt.timedelta(days=30)
+                e = self.enrol(p, "IBV", "hr", self.cohorts[p["dept"]], due)
+            self.ibv_enrolments.append(e)
+            if p["nc"] in ibv_stuck_ids:
+                self.elearn(e, start, None, partial=1 if self.ibv_stuck.index(p) < 3 else 0)
+                continue
+            if self.rng.random() < 0.88:
+                finish = self.pick_day(start, min(due, LAST_DAY))
+            else:
+                finish = self.pick_day(due + dt.timedelta(days=1), min(due + dt.timedelta(days=60), LAST_DAY))
+            self.elearn(e, start, finish)
+            self.credential(Issue(p, "IBV", e["_done"], "auto"), ("enrolmentId", e))
+
+    def add_avg(self) -> None:
+        """AVG for the office departments, campaign in March."""
+        avg_campaign = dt.date(2026, 3, 2)
+        office = [p for d in OFFICE for p in self.members[d]]
+        avg_stuck = self.rng.sample([p for p in office if p["roles"] == ["learner"] and self.existing(p)], 3)
+        avg_stuck_ids = {p["nc"] for p in avg_stuck}
+        for p in office:
+            if self.existing(p) or p["start"] <= avg_campaign:
+                start, due = avg_campaign, dt.date(2026, 4, 30)
+            else:
+                start, due = p["start"], p["start"] + dt.timedelta(days=60)
+            e = self.enrol(p, "AVG", "hr", self.cohorts[p["dept"]], due)
+            if p["nc"] in avg_stuck_ids:
+                self.elearn(e, start, None, partial=1)
+                continue
+            finish = self.pick_day(start, due) if self.rng.random() < 0.9 else self.pick_day(due + dt.timedelta(days=1), LAST_DAY)
+            self.elearn(e, start, min(finish, LAST_DAY))
+            self.credential(Issue(p, "AVG", e["_done"], "auto"), ("enrolmentId", e))
+
+    def add_bhv(self) -> None:
+        """BHV: last September's certificates expire, herhaling in October and November."""
+        bhv_team = []
+        for dept, n in (("installatie", 8), ("magazijn", 5), ("werkplaats", 3), ("directie", 2), ("financien", 2), ("ict", 1), ("verkoop", 5), ("planning", 3)):
+            bhv_team += self.rng.sample(self.plain_existing(dept), n)
+        haven = [p for p in bhv_team if self.dept_of[p["dept"]][3] == "haven"]
+        hoofd = [p for p in bhv_team if self.dept_of[p["dept"]][3] == "hoofd"]
+        bhv_sets = [(haven[:8], dt.date(2024, 9, 10)), (haven[8:], dt.date(2024, 9, 12)), (hoofd, dt.date(2024, 9, 17))]
+        bhv_groups = [
+            self.training_group(GroupSpec("BHV-H", "BHV herhaling, groep 1", ("haven", "praktijk"), TRAINER_BHV), Schedule([dt.date(2025, 10, 7)])),
+            self.training_group(GroupSpec("BHV-H", "BHV herhaling, groep 2", ("haven", "praktijk"), TRAINER_BHV), Schedule([dt.date(2025, 10, 21)])),
+            self.training_group(GroupSpec("BHV-H", "BHV herhaling, groep 3", ("hoofd", "training"), TRAINER_BHV), Schedule([dt.date(2025, 11, 4)])),
+        ]
+        catch_up = self.training_group(GroupSpec("BHV-H", "BHV herhaling, inhaaldag", ("hoofd", "training"), TRAINER_BHV),
+                                       Schedule([dt.date(2026, 1, 20)]))
+        for (team, day), group in zip(bhv_sets, bhv_groups):
+            for index, p in enumerate(team):
+                issued = moment(day, 16, 30)
+                # The long-term ill employee in group 3 misses the day and is not rescheduled this year.
+                long_term = group is bhv_groups[2] and index == 0
+                rescheduled = (group is bhv_groups[1] and index == 0) or (group is bhv_groups[0] and index == 1)
+                e = self.enrol(p, "BHV-H", "credential-renewal", catch_up if rescheduled else group)
+                self.credential(Issue(p, "BHV-H", issued, "migrated"), ("renewalEnrolmentId", e))
+                if long_term:
+                    self.attend(group, e, absent=(0,))
+                    continue
+                if rescheduled:
+                    self.attend(group, e, absent=(0,))
+                    self.attend(catch_up, e)
+                    done = catch_up["_sessions"][-1]["_end"]
+                else:
+                    self.attend(group, e)
+                    done = group["_sessions"][-1]["_end"]
+                self.complete(e, done)
+                self.credential(Issue(p, "BHV-H", done, "manual"), ("enrolmentId", e))
+        bhv_ids = {p["nc"] for p in bhv_team}
+        new_bhv = []
+        for dept, n in (("installatie", 2), ("magazijn", 1), ("verkoop", 1), ("financien", 1), ("planning", 1)):
+            new_bhv += self.rng.sample([p for p in self.plain_existing(dept) if p["nc"] not in bhv_ids], n)
+        basis = self.training_group(GroupSpec("BHV-B", "BHV basis, februari", ("hoofd", "training"), TRAINER_BHV),
+                                    Schedule([dt.date(2026, 2, 10), dt.date(2026, 2, 11)]))
+        for p in new_bhv:
+            e = self.enrol(p, "BHV-B", "hr", basis)
+            self.attend(basis, e)
+            self.complete(e, basis["_sessions"][-1]["_end"])
+            self.credential(Issue(p, "BHV-B", e["_done"], "manual"), ("enrolmentId", e))
+
+    def add_vca(self) -> None:
+        """VCA for everyone in Operatie."""
+        vca_groups = [
+            self.training_group(GroupSpec("VCA-B", "VCA Basis, groep 1", ("hoofd", "training"), None),
+                                Schedule([dt.date(2025, 10, 14)], ((8, 30), (17, 0)),
+                                         notes="Externe docent; het examen neemt Voorbeeld Examencentrum Veiligheid af.")),
+            self.training_group(GroupSpec("VCA-B", "VCA Basis, groep 2", ("hoofd", "training"), None),
+                                Schedule([dt.date(2026, 3, 17)], ((8, 30), (17, 0)),
+                                         notes="Externe docent; het examen neemt Voorbeeld Examencentrum Veiligheid af.")),
+        ]
+        vca_next = self.training_group(GroupSpec("VCA-B", "VCA Basis, groep 3 (september 2026)", ("hoofd", "training"), None),
+                                       Schedule([], notes="Gepland voor september 2026, voor wie na maart in dienst kwam.", lifecycle="planned"))
+        vol = [self.members[d][0] for d in ("installatie", "magazijn", "werkplaats")]
+        vol += self.plain_existing("installatie")[:6] + self.plain_existing("magazijn")[:1] + [self.by_nc[TRAINER_BHV], self.by_nc[TRAINER_TECH]]
+        vol_ids = {p["nc"] for p in vol}
+        vca_renew = self.plain_existing("installatie")[6:9] + self.plain_existing("magazijn")[1:2] + self.plain_existing("planning")[:1]
+        vca_renew_ids = {p["nc"] for p in vca_renew}
+        vca_failed_once = next(p for p in self.people if p["dept"] == "installatie" and p["start"] == dt.date(2025, 9, 1))
+        for dept in OPERATIONS:
+            for p in self.members[dept]:
+                if self.existing(p):
+                    key = "VCA-V" if p["nc"] in vol_ids else "VCA-B"
+                    if p["nc"] in vca_renew_ids:
+                        issued = moment(self.pick_day(dt.date(2015, 9, 1), dt.date(2016, 2, 26)), 16, 45)
+                        expiry = add_months(issued, 120)
+                        group = self.first_group(vca_groups, expiry.date() + dt.timedelta(days=1))
+                        e = self.enrol(p, "VCA-B", "credential-renewal", group)
+                        self.credential(Issue(p, key, issued, "migrated"), ("renewalEnrolmentId", e))
+                        self.attend(group, e)
+                        self.complete(e, group["_sessions"][-1]["_end"])
+                        self.credential(Issue(p, "VCA-B", e["_done"], "manual"), ("enrolmentId", e))
+                    else:
+                        issued = moment(self.pick_day(dt.date(2016, 8, 1), dt.date(2025, 6, 30)), 16, 45)
+                        self.credential(Issue(p, key, issued, "migrated"))
+                    continue
+                group = self.first_group(vca_groups, p["start"] + dt.timedelta(days=7))
+                if group is None:
+                    e = self.enrol(p, "VCA-B", "hr", vca_next, p["start"] + dt.timedelta(days=90))
+                    vca_next["learnerIds"].append(p["nc"])
+                    continue
+                if p is vca_failed_once:
+                    failed = self.enrol(p, "VCA-B", "hr", group, p["start"] + dt.timedelta(days=90))
+                    self.attend(group, failed)
+                    failed["lifecycle"] = "failed"
+                    failed["reason"] = "Examen niet gehaald; herkansing in groep 2."
+                    group = vca_groups[1]
+                e = self.enrol(p, "VCA-B", "hr", group, p["start"] + dt.timedelta(days=90) if p is not vca_failed_once else dt.date(2026, 3, 31))
+                self.attend(group, e)
+                self.complete(e, group["_sessions"][-1]["_end"])
+                self.credential(Issue(p, "VCA-B", e["_done"], "manual"), ("enrolmentId", e))
+
+    def add_nen_3140(self) -> None:
+        """NEN 3140 for the technicians."""
+        nen_groups = [self.training_group(GroupSpec("NEN-H", f"NEN 3140 herinstructie, groep {i}", ("haven", "praktijk"), TRAINER_TECH),
+                                          Schedule([day], ((8, 30), (12, 30))))
+                      for i, day in enumerate([dt.date(2025, 10, 2), dt.date(2026, 1, 15), dt.date(2026, 4, 9), dt.date(2026, 6, 11)], start=1)]
+        nen_basis = [self.training_group(GroupSpec("NEN-B", f"NEN 3140 basis, groep {i}", ("haven", "praktijk"), TRAINER_TECH), Schedule([day]))
+                     for i, day in enumerate([dt.date(2025, 11, 20), dt.date(2026, 5, 21)], start=1)]
+        for dept in TECHNICIANS:
+            for p in self.members[dept]:
+                if self.existing(p):
+                    day = dt.date(2025, 3, 3) if p["nc"] == TRAINER_TECH else self.pick_day(dt.date(2022, 8, 18), dt.date(2025, 7, 10))
+                    issued = moment(day, 12, 30)
+                    expiry = add_months(issued, 36)
+                    if expiry.date() > LAST_DAY:
+                        self.credential(Issue(p, "NEN-B", issued, "migrated"))
+                        continue
+                    group = self.first_group(nen_groups, expiry.date() + dt.timedelta(days=1))
+                    e = self.enrol(p, "NEN-H", "credential-renewal", group or self.cohorts[dept])
+                    self.credential(Issue(p, "NEN-B", issued, "migrated"), ("renewalEnrolmentId", e))
+                    if group is None:
+                        continue
+                    self.attend(group, e)
+                    self.complete(e, group["_sessions"][-1]["_end"])
+                    self.credential(Issue(p, "NEN-H", e["_done"], "manual"), ("enrolmentId", e))
+                    continue
+                group = self.first_group(nen_basis, p["start"] + dt.timedelta(days=7))
+                e = self.enrol(p, "NEN-B", "hr", group or self.cohorts[dept], p["start"] + dt.timedelta(days=90))
                 if group is None:
                     continue
-                attend(group, e)
-                complete(e, group["_sessions"][-1]["_end"])
-                credential(Issue(p, "NEN-H", e["_done"], "manual"), ("enrolmentId", e))
-                continue
-            group = first_group(nen_basis, p["start"] + dt.timedelta(days=7))
-            e = enrol(p, "NEN-B", "hr", group or cohorts[dept], p["start"] + dt.timedelta(days=90))
-            if group is None:
-                continue
-            attend(group, e)
-            complete(e, group["_sessions"][-1]["_end"])
-            credential(Issue(p, "NEN-B", e["_done"], "manual"), ("enrolmentId", e))
+                self.attend(group, e)
+                self.complete(e, group["_sessions"][-1]["_end"])
+                self.credential(Issue(p, "NEN-B", e["_done"], "manual"), ("enrolmentId", e))
 
-    # --- heftruck for the warehouse -----------------------------------------------------------
-    forklift_renew = [training_group(GroupSpec("HEF-H", f"Heftruck herhaling, groep {i}", ("haven", "kantine"), None),
-                                     Schedule([day], ((8, 30), (12, 30)), notes="Externe instructeur van Voorbeeld Heftruckopleidingen."))
-                      for i, day in enumerate([dt.date(2026, 1, 22), dt.date(2026, 6, 4)], start=1)]
-    forklift_basis = [training_group(GroupSpec("HEF-B", f"Heftruckcertificaat basis, groep {i}", ("haven", "kantine"), None),
-                                     Schedule([day], notes="Externe instructeur van Voorbeeld Heftruckopleidingen."))
-                      for i, day in enumerate([dt.date(2025, 10, 23), dt.date(2026, 5, 28)], start=1)]
-    for p in members["magazijn"]:
-        if existing(p):
-            issued = moment(pick_day(dt.date(2020, 8, 18), dt.date(2025, 7, 10)), 16, 0)
-            expiry = add_months(issued, 60)
-            if expiry.date() > LAST_DAY:
-                credential(Issue(p, "HEF-B", issued, "migrated"))
-                continue
-            group = first_group(forklift_renew, expiry.date() + dt.timedelta(days=1))
-            e = enrol(p, "HEF-H", "credential-renewal", group or cohorts["magazijn"])
-            credential(Issue(p, "HEF-B", issued, "migrated"), ("renewalEnrolmentId", e))
-            if group is None:
-                continue
-            attend(group, e)
-            complete(e, group["_sessions"][-1]["_end"])
-            credential(Issue(p, "HEF-H", e["_done"], "manual"), ("enrolmentId", e))
-            continue
-        group = first_group(forklift_basis, p["start"] + dt.timedelta(days=7))
-        e = enrol(p, "HEF-B", "hr", group, p["start"] + dt.timedelta(days=60))
-        attend(group, e)
-        complete(e, group["_sessions"][-1]["_end"])
-        credential(Issue(p, "HEF-B", e["_done"], "manual"), ("enrolmentId", e))
-
-    # --- F-gassen, warmtepompen, and the technician leerlijn ------------------------------------
-    installers = plain_existing("installatie")
-    fgas_holders = rng.sample(installers[9:], 14)
-    fgas_ids = {p["nc"] for p in fgas_holders}
-    for p in fgas_holders:
-        credential(Issue(p, "FGAS", moment(pick_day(dt.date(2021, 9, 1), dt.date(2025, 6, 30)), 16, 0), "migrated"))
-    fgas_new = rng.sample([p for p in installers if p["nc"] not in fgas_ids], 6)
-    fgas_group = training_group(GroupSpec("FGAS", "F-gassen certificering, november", ("haven", "praktijk"), None),
-                                Schedule([dt.date(2025, 11, 25), dt.date(2025, 11, 26)],
-                                         notes="Externe docent en examen door Voorbeeld Examencentrum Koudetechniek."))
-    for p in fgas_new:
-        e = enrol(p, "FGAS", "manager", fgas_group)
-        attend(fgas_group, e)
-        complete(e, fgas_group["_sessions"][-1]["_end"])
-        credential(Issue(p, "FGAS", e["_done"], "manual"), ("enrolmentId", e))
-    heat_pump = rng.sample(installers, 12)
-    wp_groups = [
-        training_group(GroupSpec("WP", "Praktijkcursus warmtepompen, januari", ("haven", "praktijk"), None),
-                       Schedule([dt.date(2026, 1, 27), dt.date(2026, 1, 28)],
-                                notes="Externe cursus van Voorbeeld Warmtepompacademie, in onze eigen praktijkhal.")),
-        training_group(GroupSpec("WP", "Praktijkcursus warmtepompen, april", ("haven", "praktijk"), None),
-                       Schedule([dt.date(2026, 4, 14), dt.date(2026, 4, 15)],
-                                notes="Externe cursus van Voorbeeld Warmtepompacademie, in onze eigen praktijkhal.")),
-    ]
-    paid: list[tuple[dict, str, dt.date]] = []  # (enrolment, fee key, order day)
-    for index, p in enumerate(heat_pump):
-        group = wp_groups[0] if index < 6 else wp_groups[1]
-        e = enrol(p, "WP", "manager", group)
-        attend(group, e)
-        complete(e, group["_sessions"][-1]["_end"])
-        credential(Issue(p, "WP", e["_done"], "manual"), ("enrolmentId", e))
-        paid.append((e, "WP", dt.date(2026, 1, 5) if index < 6 else dt.date(2026, 3, 23)))
-    for p in members["installatie"]:
-        enrol(p, "LL-SM", "manager", cohorts["installatie"])
-
-    # --- leadership, customer contact, paid courses ----------------------------------------------
-    leaders = [members[d][0] for d in [d[0] for d in DEPARTMENTS] if d != "directie"]
-    lei = training_group(GroupSpec("LEI", "Coachend leidinggeven", ("hoofd", "vergader"), None),
-                         Schedule([dt.date(2025, 10, 9), dt.date(2025, 12, 4), dt.date(2026, 2, 5)], ((13, 0), (17, 0)),
-                                  notes="Drie middagen met een externe coach."))
-    for p in leaders:
-        e = enrol(p, "LEI", "hr", lei)
-        attend(lei, e, absent=(1,) if p["nc"] == "corporate-manager-03" else ())
-        complete(e, lei["_sessions"][-1]["_end"])
-
-    sales = [p for p in members["verkoop"] if p["roles"] == ["learner"] and (existing(p) or p["start"] <= dt.date(2026, 1, 12))]
-    kla_groups = [
-        training_group(GroupSpec("KLA", "Klantgericht communiceren, groep 1", ("hoofd", "training"), None),
-                       Schedule([dt.date(2025, 11, 13)], ((9, 0), (16, 0)))),
-        training_group(GroupSpec("KLA", "Klantgericht communiceren, groep 2", ("hoofd", "training"), None),
-                       Schedule([dt.date(2026, 1, 22)], ((9, 0), (16, 0)))),
-    ]
-    for index, p in enumerate(sales):
-        group = kla_groups[0] if index < len(sales) // 2 and existing(p) else kla_groups[1]
-        e = enrol(p, "KLA", "manager", group)
-        day = group["_sessions"][0]["_day"]
-        prep = pick_day(day - dt.timedelta(days=10), day - dt.timedelta(days=1))
-        when = moment(prep, *clock())
-        b.add("lesson-completion", {"learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "lessonId": lessons["KLA"][0]["uuid"],
-                                    "courseId": courses["KLA"]["uuid"], "enrolmentId": e["uuid"], "source": "xapi",
-                                    "verb": VERB_COMPLETED, "completedAt": iso(when)})
-        e["progressPercent"] = 100
-        attend(group, e)
-        complete(e, group["_sessions"][-1]["_end"])
-
-    spreadsheet = plain_existing("financien")[:4] + plain_existing("planning")[-2:] + plain_existing("ict")[:1] + plain_existing("verkoop")[-1:]
-    order_days = [dt.date(2025, 10, 6), dt.date(2025, 10, 20), dt.date(2025, 11, 10), dt.date(2025, 12, 1),
-                  dt.date(2026, 1, 19), dt.date(2026, 2, 9), dt.date(2026, 3, 9), dt.date(2026, 6, 29)]
-    for index, (p, day) in enumerate(zip(spreadsheet, order_days)):
-        e = enrol(p, "EXC", "self", cohorts[p["dept"]])
-        paid.append((e, "EXC", day))
-        if index == 7:
-            e["lifecycle"] = "pending"
-            e["progressPercent"] = 0
-            continue
-        start = plus_workdays(day, 2)
-        if index == 5:
-            elearn(e, start, None, partial=2)
-        else:
-            elearn(e, start, pick_day(plus_workdays(start, 10), plus_workdays(start, 40)))
-
-    project = plain_existing("planning")[1:4] + plain_existing("ict")[-2:]
-    prj = training_group(GroupSpec("PRJ", "Projectmatig werken, maart", ("hoofd", "vergader"), None),
-                         Schedule([dt.date(2026, 3, 3), dt.date(2026, 3, 10), dt.date(2026, 3, 17)], ((9, 0), (16, 0)),
-                                  notes="Externe trainer en examen van Voorbeeld Projectacademie."))
-    for index, p in enumerate(project):
-        e = enrol(p, "PRJ", "manager", prj)
-        paid.append((e, "PRJ", dt.date(2026, 2, 9)))
-        if index == 4:
-            e["lifecycle"] = "withdrawn"
-            e["reason"] = "Afgemeld wegens projectdrukte; volgend jaar opnieuw."
-            continue
-        attend(prj, e)
-        complete(e, prj["_sessions"][-1]["_end"])
-        credential(Issue(p, "PRJ", e["_done"], "manual"), ("enrolmentId", e))
-
-    # --- toolbox meetings: sessions every month, marks only for exceptions -----------------------
-    for dept, room, begin, finish in TOOLBOX:
-        head = members[dept][0]
-        for month_index, (year, month) in enumerate([(2025, 9), (2025, 10), (2025, 11), (2025, 12), (2026, 1),
-                                                     (2026, 2), (2026, 3), (2026, 4), (2026, 5), (2026, 6)]):
-            day = first_tuesday(year, month)
-            s = b.add("session", {
-                "cohortId": cohorts[dept]["uuid"], "title": f"Toolboxmeeting {dept_of[dept][1].lower()}, {MAAND[month - 1]} {year}: {TOOLBOX_TOPICS[month_index]}",
-                "startsAt": iso(moment(day, *begin)), "endsAt": iso(moment(day, *finish)),
-                "location": rooms[room]["name"], "roomId": rooms[room]["uuid"], "lifecycle": "completed",
-            })
-            for p in members[dept][1:]:
-                if not existing(p) and p["start"] > day:
+    def add_heftruck(self) -> None:
+        """Heftruck for the warehouse."""
+        forklift_renew = [self.training_group(GroupSpec("HEF-H", f"Heftruck herhaling, groep {i}", ("haven", "kantine"), None),
+                                              Schedule([day], ((8, 30), (12, 30)), notes="Externe instructeur van Voorbeeld Heftruckopleidingen."))
+                          for i, day in enumerate([dt.date(2026, 1, 22), dt.date(2026, 6, 4)], start=1)]
+        forklift_basis = [self.training_group(GroupSpec("HEF-B", f"Heftruckcertificaat basis, groep {i}", ("haven", "kantine"), None),
+                                              Schedule([day], notes="Externe instructeur van Voorbeeld Heftruckopleidingen."))
+                          for i, day in enumerate([dt.date(2025, 10, 23), dt.date(2026, 5, 28)], start=1)]
+        for p in self.members["magazijn"]:
+            if self.existing(p):
+                issued = moment(self.pick_day(dt.date(2020, 8, 18), dt.date(2025, 7, 10)), 16, 0)
+                expiry = add_months(issued, 60)
+                if expiry.date() > LAST_DAY:
+                    self.credential(Issue(p, "HEF-B", issued, "migrated"))
                     continue
-                roll = rng.random()
-                if roll < 0.07:
-                    status, minutes, reason = "absent-excused", 0, rng.choice(["Verlof", "Ziek gemeld", "Vrije dag"])
-                elif roll < 0.08:
-                    status, minutes, reason = "absent-unexcused", 0, "Niet afgemeld"
-                elif roll < 0.11:
-                    late = rng.choice([5, 10])
-                    status, minutes, reason = "late", 30 - late, "Te laat door file"
-                else:
+                group = self.first_group(forklift_renew, expiry.date() + dt.timedelta(days=1))
+                e = self.enrol(p, "HEF-H", "credential-renewal", group or self.cohorts["magazijn"])
+                self.credential(Issue(p, "HEF-B", issued, "migrated"), ("renewalEnrolmentId", e))
+                if group is None:
                     continue
-                b.add("attendance-record", {
-                    "sessionId": s["uuid"], "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "cohortId": cohorts[dept]["uuid"],
-                    "status": status, "minutesAttended": minutes, "markedBy": head["nc"], "markedAt": iso(moment(day, *finish) + dt.timedelta(minutes=5)), "reason": reason,
+                self.attend(group, e)
+                self.complete(e, group["_sessions"][-1]["_end"])
+                self.credential(Issue(p, "HEF-H", e["_done"], "manual"), ("enrolmentId", e))
+                continue
+            group = self.first_group(forklift_basis, p["start"] + dt.timedelta(days=7))
+            e = self.enrol(p, "HEF-B", "hr", group, p["start"] + dt.timedelta(days=60))
+            self.attend(group, e)
+            self.complete(e, group["_sessions"][-1]["_end"])
+            self.credential(Issue(p, "HEF-B", e["_done"], "manual"), ("enrolmentId", e))
+
+    def add_f_gassen(self) -> None:
+        """F-gassen, warmtepompen, and the technician leerlijn."""
+        self.installers = self.plain_existing("installatie")
+        fgas_holders = self.rng.sample(self.installers[9:], 14)
+        fgas_ids = {p["nc"] for p in fgas_holders}
+        for p in fgas_holders:
+            self.credential(Issue(p, "FGAS", moment(self.pick_day(dt.date(2021, 9, 1), dt.date(2025, 6, 30)), 16, 0), "migrated"))
+        fgas_new = self.rng.sample([p for p in self.installers if p["nc"] not in fgas_ids], 6)
+        fgas_group = self.training_group(GroupSpec("FGAS", "F-gassen certificering, november", ("haven", "praktijk"), None),
+                                         Schedule([dt.date(2025, 11, 25), dt.date(2025, 11, 26)],
+                                                  notes="Externe docent en examen door Voorbeeld Examencentrum Koudetechniek."))
+        for p in fgas_new:
+            e = self.enrol(p, "FGAS", "manager", fgas_group)
+            self.attend(fgas_group, e)
+            self.complete(e, fgas_group["_sessions"][-1]["_end"])
+            self.credential(Issue(p, "FGAS", e["_done"], "manual"), ("enrolmentId", e))
+        self.heat_pump = self.rng.sample(self.installers, 12)
+        wp_groups = [
+            self.training_group(GroupSpec("WP", "Praktijkcursus warmtepompen, januari", ("haven", "praktijk"), None),
+                                Schedule([dt.date(2026, 1, 27), dt.date(2026, 1, 28)],
+                                         notes="Externe cursus van Voorbeeld Warmtepompacademie, in onze eigen praktijkhal.")),
+            self.training_group(GroupSpec("WP", "Praktijkcursus warmtepompen, april", ("haven", "praktijk"), None),
+                                Schedule([dt.date(2026, 4, 14), dt.date(2026, 4, 15)],
+                                         notes="Externe cursus van Voorbeeld Warmtepompacademie, in onze eigen praktijkhal.")),
+        ]
+        self.paid: list[tuple[dict, str, dt.date]] = []  # (enrolment, fee key, order day)
+        for index, p in enumerate(self.heat_pump):
+            group = wp_groups[0] if index < 6 else wp_groups[1]
+            e = self.enrol(p, "WP", "manager", group)
+            self.attend(group, e)
+            self.complete(e, group["_sessions"][-1]["_end"])
+            self.credential(Issue(p, "WP", e["_done"], "manual"), ("enrolmentId", e))
+            self.paid.append((e, "WP", dt.date(2026, 1, 5) if index < 6 else dt.date(2026, 3, 23)))
+        for p in self.members["installatie"]:
+            self.enrol(p, "LL-SM", "manager", self.cohorts["installatie"])
+
+    def add_leadership_and_paid_courses(self) -> None:
+        """Leadership, customer contact, paid courses."""
+        self.leaders = [self.members[d][0] for d in [d[0] for d in DEPARTMENTS] if d != "directie"]
+        lei = self.training_group(GroupSpec("LEI", "Coachend leidinggeven", ("hoofd", "vergader"), None),
+                                  Schedule([dt.date(2025, 10, 9), dt.date(2025, 12, 4), dt.date(2026, 2, 5)], ((13, 0), (17, 0)),
+                                           notes="Drie middagen met een externe coach."))
+        for p in self.leaders:
+            e = self.enrol(p, "LEI", "hr", lei)
+            self.attend(lei, e, absent=(1,) if p["nc"] == "corporate-manager-03" else ())
+            self.complete(e, lei["_sessions"][-1]["_end"])
+
+        sales = [p for p in self.members["verkoop"] if p["roles"] == ["learner"] and (self.existing(p) or p["start"] <= dt.date(2026, 1, 12))]
+        kla_groups = [
+            self.training_group(GroupSpec("KLA", "Klantgericht communiceren, groep 1", ("hoofd", "training"), None),
+                                Schedule([dt.date(2025, 11, 13)], ((9, 0), (16, 0)))),
+            self.training_group(GroupSpec("KLA", "Klantgericht communiceren, groep 2", ("hoofd", "training"), None),
+                                Schedule([dt.date(2026, 1, 22)], ((9, 0), (16, 0)))),
+        ]
+        for index, p in enumerate(sales):
+            group = kla_groups[0] if index < len(sales) // 2 and self.existing(p) else kla_groups[1]
+            e = self.enrol(p, "KLA", "manager", group)
+            day = group["_sessions"][0]["_day"]
+            prep = self.pick_day(day - dt.timedelta(days=10), day - dt.timedelta(days=1))
+            when = moment(prep, *self.clock())
+            self.b.add("lesson-completion", {"learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "lessonId": self.lessons["KLA"][0]["uuid"],
+                                             "courseId": self.courses["KLA"]["uuid"], "enrolmentId": e["uuid"], "source": "xapi",
+                                             "verb": VERB_COMPLETED, "completedAt": iso(when)})
+            e["progressPercent"] = 100
+            self.attend(group, e)
+            self.complete(e, group["_sessions"][-1]["_end"])
+
+        spreadsheet = self.plain_existing("financien")[:4] + self.plain_existing("planning")[-2:] + self.plain_existing("ict")[:1] + self.plain_existing("verkoop")[-1:]
+        order_days = [dt.date(2025, 10, 6), dt.date(2025, 10, 20), dt.date(2025, 11, 10), dt.date(2025, 12, 1),
+                      dt.date(2026, 1, 19), dt.date(2026, 2, 9), dt.date(2026, 3, 9), dt.date(2026, 6, 29)]
+        for index, (p, day) in enumerate(zip(spreadsheet, order_days)):
+            e = self.enrol(p, "EXC", "self", self.cohorts[p["dept"]])
+            self.paid.append((e, "EXC", day))
+            if index == 7:
+                e["lifecycle"] = "pending"
+                e["progressPercent"] = 0
+                continue
+            start = plus_workdays(day, 2)
+            if index == 5:
+                self.elearn(e, start, None, partial=2)
+            else:
+                self.elearn(e, start, self.pick_day(plus_workdays(start, 10), plus_workdays(start, 40)))
+
+        project = self.plain_existing("planning")[1:4] + self.plain_existing("ict")[-2:]
+        prj = self.training_group(GroupSpec("PRJ", "Projectmatig werken, maart", ("hoofd", "vergader"), None),
+                                  Schedule([dt.date(2026, 3, 3), dt.date(2026, 3, 10), dt.date(2026, 3, 17)], ((9, 0), (16, 0)),
+                                           notes="Externe trainer en examen van Voorbeeld Projectacademie."))
+        for index, p in enumerate(project):
+            e = self.enrol(p, "PRJ", "manager", prj)
+            self.paid.append((e, "PRJ", dt.date(2026, 2, 9)))
+            if index == 4:
+                e["lifecycle"] = "withdrawn"
+                e["reason"] = "Afgemeld wegens projectdrukte; volgend jaar opnieuw."
+                continue
+            self.attend(prj, e)
+            self.complete(e, prj["_sessions"][-1]["_end"])
+            self.credential(Issue(p, "PRJ", e["_done"], "manual"), ("enrolmentId", e))
+
+    def add_toolbox_meetings(self) -> None:
+        """Toolbox meetings: sessions every month, marks only for exceptions."""
+        for dept, room, begin, finish in TOOLBOX:
+            head = self.members[dept][0]
+            for month_index, (year, month) in enumerate([(2025, 9), (2025, 10), (2025, 11), (2025, 12), (2026, 1),
+                                                         (2026, 2), (2026, 3), (2026, 4), (2026, 5), (2026, 6)]):
+                day = first_tuesday(year, month)
+                s = self.b.add("session", {
+                    "cohortId": self.cohorts[dept]["uuid"], "title": f"Toolboxmeeting {self.dept_of[dept][1].lower()}, {MAAND[month - 1]} {year}: {TOOLBOX_TOPICS[month_index]}",
+                    "startsAt": iso(moment(day, *begin)), "endsAt": iso(moment(day, *finish)),
+                    "location": self.rooms[room]["name"], "roomId": self.rooms[room]["uuid"], "lifecycle": "completed",
                 })
+                for p in self.members[dept][1:]:
+                    if not self.existing(p) and p["start"] > day:
+                        continue
+                    roll = self.rng.random()
+                    if roll < 0.07:
+                        status, minutes, reason = "absent-excused", 0, self.rng.choice(["Verlof", "Ziek gemeld", "Vrije dag"])
+                    elif roll < 0.08:
+                        status, minutes, reason = "absent-unexcused", 0, "Niet afgemeld"
+                    elif roll < 0.11:
+                        late = self.rng.choice([5, 10])
+                        status, minutes, reason = "late", 30 - late, "Te laat door file"
+                    else:
+                        continue
+                    self.b.add("attendance-record", {
+                        "sessionId": s["uuid"], "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "cohortId": self.cohorts[dept]["uuid"],
+                        "status": status, "minutesAttended": minutes, "markedBy": head["nc"], "markedAt": iso(moment(day, *finish) + dt.timedelta(minutes=5)), "reason": reason,
+                    })
 
-    # --- external training records (the promoted NIS2 seed row first) ----------------------------
-    def external(p: dict, record: ExternalRecord) -> None:
+    def external(self, p: dict, record: ExternalRecord) -> None:
         title, provider, kind, day = record.activity.title, record.activity.provider, record.activity.kind, record.activity.day
         submitted_by, verified_by, evidence, lifecycle = (record.review.submitted_by, record.review.verified_by,
                                                           record.review.evidence, record.review.lifecycle)
@@ -1140,275 +1186,283 @@ def build() -> dict:
         if batch is not None:
             fields["batchId"] = batch
         fields["lifecycle"] = lifecycle
-        b.add("external-training-record", fields)
+        self.b.add("external-training-record", fields)
 
-    board = [by_nc[DIRECTOR]] + leaders + [by_nc[COMPLIANCE]]
-    nis2 = ExternalRecord(Activity("NIS2 board awareness session", "Voorbeeld SecureBoard B.V.", "classroom", dt.date(2026, 3, 10)),
-                          Review(COMPLIANCE, COMPLIANCE, "Getekende presentielijst bijgevoegd"),
-                          RecordExtras(regulation="NIS2", valid_months=12, batch="nis2-bestuur-2026-03"))
-    for p in board:
-        external(p, nis2)
-    fair = [members["installatie"][0]] + rng.sample(installers, 5)
-    trade_fair = ExternalRecord(Activity("Vakbeurs installatietechniek", "Voorbeeld Beursorganisatie", "conference", dt.date(2025, 9, 25)),
-                                Review(members["installatie"][0]["nc"], COORDINATOR, "Toegangsbewijs en bezoekbevestiging"),
-                                RecordExtras(batch="vakbeurs-2025"))
-    for p in fair:
-        external(p, trade_fair)
-    congress = Activity("Congres duurzame inzetbaarheid", "Voorbeeld Congresbureau", "conference", dt.date(2025, 11, 20))
-    for nc in (HR, COORDINATOR):
-        external(by_nc[nc], ExternalRecord(congress, Review(nc, DIRECTOR, "Deelnamebevestiging van de organisator")))
-    external(by_nc[COMPLIANCE], ExternalRecord(
-        Activity("Webinar AVG-actualiteiten voor privacy officers", "Voorbeeld Privacyacademie", "external-elearning", dt.date(2026, 1, 28)),
-        Review(COMPLIANCE, HR, "Certificaat van deelname"), RecordExtras(regulation="AVG", valid_months=24)))
-    cloud = ExternalRecord(Activity("Praktijkcursus cloudbeheer", "Voorbeeld IT-opleidingen", "classroom", dt.date(2026, 2, 12)),
-                           Review(members["ict"][0]["nc"], COORDINATOR, "Certificaat van deelname"),
-                           RecordExtras(batch="cloudbeheer-2026-02"))
-    for p in plain_existing("ict")[1:3]:
-        external(p, cloud)
-    driving = ExternalRecord(Activity("Rijvaardigheidstraining bestelbus", "Voorbeeld Rijopleidingen Esdoornhaven", "other", dt.date(2026, 5, 12)),
-                             Review(COORDINATOR, COORDINATOR, "Presentielijst van de rijschool"), RecordExtras(batch="rijvaardigheid-2026-05"))
-    for p in rng.sample(installers, 6):
-        external(p, driving)
-    factory_day = ExternalRecord(Activity("Meeloopdag bij een warmtepompfabrikant", "Voorbeeld Warmtepompfabriek", "on-the-job", dt.date(2026, 3, 19)),
-                                 Review(members["installatie"][0]["nc"], COORDINATOR, "Verslag van de meeloopdag"),
-                                 RecordExtras(batch="meeloopdag-2026-03"))
-    for p in heat_pump[:3]:
-        external(p, factory_day)
-    rejected = plain_existing("verkoop")[2]
-    external(rejected, ExternalRecord(
-        Activity("Online cursus timemanagement", "Voorbeeld Online Leerplatform", "external-elearning", dt.date(2026, 2, 26)),
-        Review(rejected["nc"], None, None, "rejected"), RecordExtras(rejection="Er is geen certificaat of deelnamebewijs aangeleverd.")))
-    waiting = plain_existing("financien")[5]
-    external(waiting, ExternalRecord(
-        Activity("Workshop werken met macro's", "Voorbeeld Rekenacademie", "external-elearning", dt.date(2026, 6, 25)),
-        Review(waiting["nc"], None, "Deelnamebewijs volgt per mail", "submitted")))
+    def add_external_records(self) -> None:
+        """External training records (the promoted NIS2 seed row first)."""
+        board = [self.by_nc[DIRECTOR]] + self.leaders + [self.by_nc[COMPLIANCE]]
+        nis2 = ExternalRecord(Activity("NIS2 board awareness session", "Voorbeeld SecureBoard B.V.", "classroom", dt.date(2026, 3, 10)),
+                              Review(COMPLIANCE, COMPLIANCE, "Getekende presentielijst bijgevoegd"),
+                              RecordExtras(regulation="NIS2", valid_months=12, batch="nis2-bestuur-2026-03"))
+        for p in board:
+            self.external(p, nis2)
+        fair = [self.members["installatie"][0]] + self.rng.sample(self.installers, 5)
+        trade_fair = ExternalRecord(Activity("Vakbeurs installatietechniek", "Voorbeeld Beursorganisatie", "conference", dt.date(2025, 9, 25)),
+                                    Review(self.members["installatie"][0]["nc"], COORDINATOR, "Toegangsbewijs en bezoekbevestiging"),
+                                    RecordExtras(batch="vakbeurs-2025"))
+        for p in fair:
+            self.external(p, trade_fair)
+        congress = Activity("Congres duurzame inzetbaarheid", "Voorbeeld Congresbureau", "conference", dt.date(2025, 11, 20))
+        for nc in (HR, COORDINATOR):
+            self.external(self.by_nc[nc], ExternalRecord(congress, Review(nc, DIRECTOR, "Deelnamebevestiging van de organisator")))
+        self.external(self.by_nc[COMPLIANCE], ExternalRecord(
+            Activity("Webinar AVG-actualiteiten voor privacy officers", "Voorbeeld Privacyacademie", "external-elearning", dt.date(2026, 1, 28)),
+            Review(COMPLIANCE, HR, "Certificaat van deelname"), RecordExtras(regulation="AVG", valid_months=24)))
+        cloud = ExternalRecord(Activity("Praktijkcursus cloudbeheer", "Voorbeeld IT-opleidingen", "classroom", dt.date(2026, 2, 12)),
+                               Review(self.members["ict"][0]["nc"], COORDINATOR, "Certificaat van deelname"),
+                               RecordExtras(batch="cloudbeheer-2026-02"))
+        for p in self.plain_existing("ict")[1:3]:
+            self.external(p, cloud)
+        driving = ExternalRecord(Activity("Rijvaardigheidstraining bestelbus", "Voorbeeld Rijopleidingen Esdoornhaven", "other", dt.date(2026, 5, 12)),
+                                 Review(COORDINATOR, COORDINATOR, "Presentielijst van de rijschool"), RecordExtras(batch="rijvaardigheid-2026-05"))
+        for p in self.rng.sample(self.installers, 6):
+            self.external(p, driving)
+        factory_day = ExternalRecord(Activity("Meeloopdag bij een warmtepompfabrikant", "Voorbeeld Warmtepompfabriek", "on-the-job", dt.date(2026, 3, 19)),
+                                     Review(self.members["installatie"][0]["nc"], COORDINATOR, "Verslag van de meeloopdag"),
+                                     RecordExtras(batch="meeloopdag-2026-03"))
+        for p in self.heat_pump[:3]:
+            self.external(p, factory_day)
+        rejected = self.plain_existing("verkoop")[2]
+        self.external(rejected, ExternalRecord(
+            Activity("Online cursus timemanagement", "Voorbeeld Online Leerplatform", "external-elearning", dt.date(2026, 2, 26)),
+            Review(rejected["nc"], None, None, "rejected"), RecordExtras(rejection="Er is geen certificaat of deelnamebewijs aangeleverd.")))
+        waiting = self.plain_existing("financien")[5]
+        self.external(waiting, ExternalRecord(
+            Activity("Workshop werken met macro's", "Voorbeeld Rekenacademie", "external-elearning", dt.date(2026, 6, 25)),
+            Review(waiting["nc"], None, "Deelnamebewijs volgt per mail", "submitted")))
 
-    # --- competency attainments: what the skills gap dashboard reads ---------------------------------
-    def valid_at_year_end(p: dict, keys: tuple[str, ...]) -> dict | None:
-        for cred in b.buckets["credential"]:
+    def valid_at_year_end(self, p: dict, keys: tuple[str, ...]) -> dict | None:
+        for cred in self.b.buckets["credential"]:
             if cred["_p"] is p and cred["_key"] in keys and (cred["_expires"] is None or cred["_expires"].date() > LAST_DAY):
                 return cred
         return None
 
-    def attain(p: dict, code: str, level: str, when: dt.datetime) -> None:
-        b.add("competency-attainment", {"learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "competencyId": comp[code]["uuid"],
-                                        "frameworkId": framework["uuid"], "proficiencyLevelId": level, "gradeEntryIds": [],
-                                        "assessmentResultIds": [], "werkprocesAssessmentIds": [], "submissionIds": [],
-                                        "lastRecomputedAt": iso(when)})
+    def attain(self, p: dict, code: str, level: str, when: dt.datetime) -> None:
+        self.b.add("competency-attainment", {"learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "competencyId": self.comp[code]["uuid"],
+                                             "frameworkId": self.framework["uuid"], "proficiencyLevelId": level, "gradeEntryIds": [],
+                                             "assessmentResultIds": [], "werkprocesAssessmentIds": [], "submissionIds": [],
+                                             "lastRecomputedAt": iso(when)})
 
-    def level_for(score: int) -> str:
+    def level_for(self, score: int) -> str:
         return "expert" if score >= 85 else "gevorderd" if score >= 65 else "basis"
 
-    review = moment(dt.date(2025, 9, 15), 10, 0)
-    for e in ibv_enrolments:
-        if e["lifecycle"] == "completed":
-            attain(e["_p"], "DIG-01", level_for(e["_score"]), e["_done"])
-    for e in b.buckets["enrolment"]:
-        if e["_key"] == "AVG" and e["lifecycle"] == "completed":
-            attain(e["_p"], "DIG-02", level_for(e["_score"]), e["_done"])
-    for dept in TECHNICIANS:
-        for p in members[dept]:
-            vca = valid_at_year_end(p, ("VCA-B", "VCA-V"))
-            if vca is not None:
-                attain(p, "VEI-01", "gevorderd" if vca["_key"] == "VCA-V" else "basis", dt.datetime.fromisoformat(vca["issuedAt"]))
-            nen = valid_at_year_end(p, ("NEN-B", "NEN-H"))
-            if nen is not None:
-                attain(p, "VEI-03", "expert" if p["nc"] == TRAINER_TECH else "basis", dt.datetime.fromisoformat(nen["issuedAt"]))
-            if "WP" in p["done"]:
-                attain(p, "VAK-01", "gevorderd", p["done"]["WP"])
-            elif existing(p) and dept == "installatie" and rng.random() < 0.45:
-                attain(p, "VAK-01", rng.choice(["gevorderd", "expert"]), review)
-            fgas = valid_at_year_end(p, ("FGAS",))
-            if fgas is not None:
-                attain(p, "VAK-02", "gevorderd", dt.datetime.fromisoformat(fgas["issuedAt"]))
-            if existing(p) and rng.random() < 0.8:
-                attain(p, "VAK-03", rng.choice(["basis", "gevorderd", "gevorderd", "expert"]), review)
-    for index, p in enumerate(leaders):
-        attain(p, "LEI-01", "gevorderd" if index % 3 == 0 else "basis", p["done"]["LEI"])
-        if index < 4:
-            attain(p, "LEI-02", "basis", p["done"]["LEI"])
+    def add_attainments(self) -> None:
+        """Competency attainments: what the skills gap dashboard reads."""
+        review = moment(dt.date(2025, 9, 15), 10, 0)
+        for e in self.ibv_enrolments:
+            if e["lifecycle"] == "completed":
+                self.attain(e["_p"], "DIG-01", self.level_for(e["_score"]), e["_done"])
+        for e in self.b.buckets["enrolment"]:
+            if e["_key"] == "AVG" and e["lifecycle"] == "completed":
+                self.attain(e["_p"], "DIG-02", self.level_for(e["_score"]), e["_done"])
+        for dept in TECHNICIANS:
+            for p in self.members[dept]:
+                vca = self.valid_at_year_end(p, ("VCA-B", "VCA-V"))
+                if vca is not None:
+                    self.attain(p, "VEI-01", "gevorderd" if vca["_key"] == "VCA-V" else "basis", dt.datetime.fromisoformat(vca["issuedAt"]))
+                nen = self.valid_at_year_end(p, ("NEN-B", "NEN-H"))
+                if nen is not None:
+                    self.attain(p, "VEI-03", "expert" if p["nc"] == TRAINER_TECH else "basis", dt.datetime.fromisoformat(nen["issuedAt"]))
+                if "WP" in p["done"]:
+                    self.attain(p, "VAK-01", "gevorderd", p["done"]["WP"])
+                elif self.existing(p) and dept == "installatie" and self.rng.random() < 0.45:
+                    self.attain(p, "VAK-01", self.rng.choice(["gevorderd", "expert"]), review)
+                fgas = self.valid_at_year_end(p, ("FGAS",))
+                if fgas is not None:
+                    self.attain(p, "VAK-02", "gevorderd", dt.datetime.fromisoformat(fgas["issuedAt"]))
+                if self.existing(p) and self.rng.random() < 0.8:
+                    self.attain(p, "VAK-03", self.rng.choice(["basis", "gevorderd", "gevorderd", "expert"]), review)
+        for index, p in enumerate(self.leaders):
+            self.attain(p, "LEI-01", "gevorderd" if index % 3 == 0 else "basis", p["done"]["LEI"])
+            if index < 4:
+                self.attain(p, "LEI-02", "basis", p["done"]["LEI"])
 
-    # --- personal development plans and their mid-year review --------------------------------------
-    attained = {}
-    for row in b.buckets["competency-attainment"]:
-        attained.setdefault(row["learnerId"], set()).add(row["competencyId"])
-    code_of = {c["uuid"]: code for code, c in comp.items()}
-    development = {
-        "WP": ("vakmanschap", "Praktijkcursus warmtepompen afronden"),
-        "FGAS": ("vakmanschap", "F-gassencertificaat halen"),
-        "BHV-B": ("veiligheid", "Opleiding tot bedrijfshulpverlener volgen"),
-        "LEI": ("leidinggeven", "Coachend leidinggeven in de praktijk brengen"),
-        "KLA": ("samenwerken", "Klantgesprekken voeren volgens de nieuwe aanpak"),
-        "EXC": ("digitaal werken", "Excel gevorderd afronden"),
-        "PRJ": ("samenwerken", "Cursus projectmatig werken met examen afronden"),
-    }
-    generic = {
-        "directie": ("samenwerken", "Het jaarplan per kwartaal met het team bespreken"),
-        "financien": ("vakmanschap", "De maandafsluiting binnen vijf werkdagen rond krijgen"),
-        "ict": ("digitaal werken", "Certificering voor cloudbeheer voorbereiden"),
-        "verkoop": ("samenwerken", "Offertes binnen twee werkdagen opvolgen"),
-        "planning": ("vakmanschap", "De planningssoftware volledig benutten"),
-        "installatie": ("vakmanschap", "Storingsanalyse bij hybride warmtepompen oefenen"),
-        "magazijn": ("vakmanschap", "Cyclisch tellen zelfstandig uitvoeren"),
-        "werkplaats": ("vakmanschap", "Prefab-werk voor de monteurs verder standaardiseren"),
-    }
-    enrolments_of: dict[str, list[dict]] = {}
-    for e in b.buckets["enrolment"]:
-        enrolments_of.setdefault(e["learnerId"], []).append(e)
-    for p in people:
-        coordinator = p["manager"] or HR
-        created = p["start"] or dt.date(2025, 9, 29)
-        goals, measures, outcomes_by_goal = [], [], []
-        for e in enrolments_of[p["nc"]]:
-            if e["_key"] not in development:
+    def add_development_plans(self) -> None:
+        """Personal development plans and their mid-year review."""
+        attained = {}
+        for row in self.b.buckets["competency-attainment"]:
+            attained.setdefault(row["learnerId"], set()).add(row["competencyId"])
+        code_of = {c["uuid"]: code for code, c in self.comp.items()}
+        development = {
+            "WP": ("vakmanschap", "Praktijkcursus warmtepompen afronden"),
+            "FGAS": ("vakmanschap", "F-gassencertificaat halen"),
+            "BHV-B": ("veiligheid", "Opleiding tot bedrijfshulpverlener volgen"),
+            "LEI": ("leidinggeven", "Coachend leidinggeven in de praktijk brengen"),
+            "KLA": ("samenwerken", "Klantgesprekken voeren volgens de nieuwe aanpak"),
+            "EXC": ("digitaal werken", "Excel gevorderd afronden"),
+            "PRJ": ("samenwerken", "Cursus projectmatig werken met examen afronden"),
+        }
+        generic = {
+            "directie": ("samenwerken", "Het jaarplan per kwartaal met het team bespreken"),
+            "financien": ("vakmanschap", "De maandafsluiting binnen vijf werkdagen rond krijgen"),
+            "ict": ("digitaal werken", "Certificering voor cloudbeheer voorbereiden"),
+            "verkoop": ("samenwerken", "Offertes binnen twee werkdagen opvolgen"),
+            "planning": ("vakmanschap", "De planningssoftware volledig benutten"),
+            "installatie": ("vakmanschap", "Storingsanalyse bij hybride warmtepompen oefenen"),
+            "magazijn": ("vakmanschap", "Cyclisch tellen zelfstandig uitvoeren"),
+            "werkplaats": ("vakmanschap", "Prefab-werk voor de monteurs verder standaardiseren"),
+        }
+        enrolments_of: dict[str, list[dict]] = {}
+        for e in self.b.buckets["enrolment"]:
+            enrolments_of.setdefault(e["learnerId"], []).append(e)
+        for p in self.people:
+            coordinator = p["manager"] or HR
+            created = p["start"] or dt.date(2025, 9, 29)
+            goals, measures, outcomes_by_goal = [], [], []
+            for e in enrolments_of[p["nc"]]:
+                if e["_key"] not in development:
+                    continue
+                domain, text = development[e["_key"]]
+                status = "met" if e["lifecycle"] == "completed" else "dropped" if e["lifecycle"] == "withdrawn" else "open"
+                goal_id = f"doel-{len(goals) + 1}"
+                goals.append({"goalId": goal_id, "description": text, "domain": domain, "targetDate": "2026-06-30", "status": status})
+                measures.append({"measureId": f"maatregel-{len(measures) + 1}", "description": f"Tijd en opleidingsbudget voor {self.courses[e['_key']]['name']}",
+                                 "responsibleId": coordinator, "startDate": created.isoformat(), "endDate": "2026-06-30"})
+                outcomes_by_goal.append((goal_id, e))
+            required = set()
+            for e in enrolments_of[p["nc"]]:
+                for programme in (self.technician_programme, self.leadership_programme):
+                    if programme["uuid"] in self.courses[e["_key"]].get("programmeIds", []):
+                        required |= set(programme["requiredCompetencyIds"])
+            required |= {c["uuid"] for c in self.comp.values() if set(c["requiredForRoles"]) & set(p["roles"])}
+            for uuid in sorted(required - attained.get(p["nc"], set()), key=lambda u: code_of[u]):
+                goal_id = f"doel-{len(goals) + 1}"
+                goals.append({"goalId": goal_id, "description": f"{self.comp[code_of[uuid]]['title']}: aan de slag in het volgende opleidingsjaar",
+                              "domain": {"LEI": "leidinggeven", "DIG": "digitaal werken", "VEI": "veiligheid"}.get(code_of[uuid][:3], "vakmanschap"),
+                              "targetDate": "2026-12-31", "status": "open"})
+                outcomes_by_goal.append((goal_id, None))
+            if not goals:
+                domain, text = generic[p["dept"]]
+                goals.append({"goalId": "doel-1", "description": text, "domain": domain, "targetDate": "2026-06-30",
+                              "status": "met" if self.rng.random() < 0.6 else "open"})
+                outcomes_by_goal.append(("doel-1", None))
+            plan = self.b.add("learning-plan", {
+                "learnerId": p["nc"], "kind": "pdp", "templateId": self.template["uuid"], "cohortId": self.cohorts[p["dept"]]["uuid"],
+                "coordinatorId": coordinator, "goals": goals, "supportMeasures": measures, "period": YEAR,
+                "reviewCadenceMonths": 6, "nextReviewAt": "2026-09-30", "version": 1, "lifecycle": "active",
+            })
+            if not self.existing(p) and p["start"] > dt.date(2026, 1, 12):
                 continue
-            domain, text = development[e["_key"]]
-            status = "met" if e["lifecycle"] == "completed" else "dropped" if e["lifecycle"] == "withdrawn" else "open"
-            goal_id = f"doel-{len(goals) + 1}"
-            goals.append({"goalId": goal_id, "description": text, "domain": domain, "targetDate": "2026-06-30", "status": status})
-            measures.append({"measureId": f"maatregel-{len(measures) + 1}", "description": f"Tijd en opleidingsbudget voor {courses[e['_key']]['name']}",
-                             "responsibleId": coordinator, "startDate": created.isoformat(), "endDate": "2026-06-30"})
-            outcomes_by_goal.append((goal_id, e))
-        required = set()
-        for e in enrolments_of[p["nc"]]:
-            for programme in (technician_programme, leadership_programme):
-                if programme["uuid"] in courses[e["_key"]].get("programmeIds", []):
-                    required |= set(programme["requiredCompetencyIds"])
-        required |= {c["uuid"] for c in comp.values() if set(c["requiredForRoles"]) & set(p["roles"])}
-        for uuid in sorted(required - attained.get(p["nc"], set()), key=lambda u: code_of[u]):
-            goal_id = f"doel-{len(goals) + 1}"
-            goals.append({"goalId": goal_id, "description": f"{comp[code_of[uuid]]['title']}: aan de slag in het volgende opleidingsjaar",
-                          "domain": {"LEI": "leidinggeven", "DIG": "digitaal werken", "VEI": "veiligheid"}.get(code_of[uuid][:3], "vakmanschap"),
-                          "targetDate": "2026-12-31", "status": "open"})
-            outcomes_by_goal.append((goal_id, None))
-        if not goals:
-            domain, text = generic[p["dept"]]
-            goals.append({"goalId": "doel-1", "description": text, "domain": domain, "targetDate": "2026-06-30",
-                          "status": "met" if rng.random() < 0.6 else "open"})
-            outcomes_by_goal.append(("doel-1", None))
-        plan = b.add("learning-plan", {
-            "learnerId": p["nc"], "kind": "pdp", "templateId": template["uuid"], "cohortId": cohorts[p["dept"]]["uuid"],
-            "coordinatorId": coordinator, "goals": goals, "supportMeasures": measures, "period": YEAR,
-            "reviewCadenceMonths": 6, "nextReviewAt": "2026-09-30", "version": 1, "lifecycle": "active",
+            if self.rng.random() > 0.7:
+                continue
+            evaluated = self.pick_day(dt.date(2026, 2, 2), dt.date(2026, 3, 27))
+            outcomes = []
+            for goal_id, e in outcomes_by_goal:
+                done = e["_done"] if e is not None else None
+                if e is not None and e["lifecycle"] == "withdrawn" and evaluated >= dt.date(2026, 2, 20):
+                    outcome, note = "dropped", "Afgemeld; volgend jaar opnieuw inplannen."
+                elif done is not None and done.date() <= evaluated:
+                    outcome, note = "met", "Afgerond."
+                else:
+                    outcome, note = "continued", "Loopt door in de tweede helft van het jaar."
+                outcomes.append({"goalId": goal_id, "outcome": outcome, "note": note})
+            self.b.add("learning-plan-evaluation", {
+                "learningPlanId": plan["uuid"], "evaluatedAt": evaluated.isoformat(), "evaluatedBy": coordinator, "goalOutcomes": outcomes,
+                "narrative": self.rng.choice([
+                    "Goed gesprek over de voortgang. De afspraken blijven staan.",
+                    "Tussenstand besproken; de planning voor het voorjaar is concreet gemaakt.",
+                    "Voortgang is op koers. We kijken in september samen terug op het hele jaar.",
+                ]),
+                "attendeeIds": [p["nc"], coordinator], "nextReviewAt": "2026-09-30", "lifecycle": "recorded",
+            })
+
+    def add_engagement(self) -> None:
+        """Engagement in the informatiebeveiliging e-learning."""
+        threshold = self.b.add("engagement-risk-threshold", {
+            "name": "Dertig dagen geen activiteit in een verplichte e-learning", "kind": "low-engagement", "scope": "per-learner",
+            "metric": "recency-days-above", "limit": 30,
+            "onAtRisk": {"notify": True, "notifyRoles": ["manager", "compliance-officer"], "createFlag": True}, "lifecycle": "active",
         })
-        if not existing(p) and p["start"] > dt.date(2026, 1, 12):
-            continue
-        if rng.random() > 0.7:
-            continue
-        evaluated = pick_day(dt.date(2026, 2, 2), dt.date(2026, 3, 27))
-        outcomes = []
-        for goal_id, e in outcomes_by_goal:
-            done = e["_done"] if e is not None else None
-            if e is not None and e["lifecycle"] == "withdrawn" and evaluated >= dt.date(2026, 2, 20):
-                outcome, note = "dropped", "Afgemeld; volgend jaar opnieuw inplannen."
-            elif done is not None and done.date() <= evaluated:
-                outcome, note = "met", "Afgerond."
-            else:
-                outcome, note = "continued", "Loopt door in de tweede helft van het jaar."
-            outcomes.append({"goalId": goal_id, "outcome": outcome, "note": note})
-        b.add("learning-plan-evaluation", {
-            "learningPlanId": plan["uuid"], "evaluatedAt": evaluated.isoformat(), "evaluatedBy": coordinator, "goalOutcomes": outcomes,
-            "narrative": rng.choice([
-                "Goed gesprek over de voortgang. De afspraken blijven staan.",
-                "Tussenstand besproken; de planning voor het voorjaar is concreet gemaakt.",
-                "Voortgang is op koers. We kijken in september samen terug op het hele jaar.",
-            ]),
-            "attendeeIds": [p["nc"], coordinator], "nextReviewAt": "2026-09-30", "lifecycle": "recorded",
-        })
+        total_minutes = sum(lesson["durationMinutes"] for lesson in self.lessons["IBV"])
+        for e in self.ibv_enrolments:
+            times = e.get("_times", [])
+            if not times:
+                continue
+            spent = round(sum(lesson["durationMinutes"] for lesson, _when in times) * self.rng.uniform(0.85, 1.35), 1)
+            gap = (times[-1][1] - times[-2][1]).days if len(times) > 1 else 0
+            recency = 1 - min(1, gap / 14)
+            score = max(0, min(100, round(min(1, spent / total_minutes) * 70 + recency * 30)))
+            row = self.b.add("engagement-score", {"learnerId": e["learnerId"], "learnerRef": e["learnerRef"], "courseId": e["courseId"],
+                                                  "timeOnTaskMinutes": spent, "lastActivityAt": iso(times[-1][1]), "score": score})
+            if e["lifecycle"] != "completed":
+                flagged = times[-1][1] + dt.timedelta(days=31)
+                self.b.add("engagement-risk-flag", {"learnerId": e["learnerId"], "courseId": e["courseId"], "engagementRiskThresholdId": threshold["uuid"],
+                                                    "engagementScoreId": row["uuid"], "metricValueAtFlag": 31, "flaggedAt": iso(flagged),
+                                                    "lifecycle": "open" if e["learnerId"] == self.ibv_stuck[-3]["nc"] else "in-handling"})
 
-    # --- engagement in the informatiebeveiliging e-learning --------------------------------------------
-    threshold = b.add("engagement-risk-threshold", {
-        "name": "Dertig dagen geen activiteit in een verplichte e-learning", "kind": "low-engagement", "scope": "per-learner",
-        "metric": "recency-days-above", "limit": 30,
-        "onAtRisk": {"notify": True, "notifyRoles": ["manager", "compliance-officer"], "createFlag": True}, "lifecycle": "active",
-    })
-    total_minutes = sum(lesson["durationMinutes"] for lesson in lessons["IBV"])
-    for e in ibv_enrolments:
-        times = e.get("_times", [])
-        if not times:
-            continue
-        spent = round(sum(lesson["durationMinutes"] for lesson, _when in times) * rng.uniform(0.85, 1.35), 1)
-        gap = (times[-1][1] - times[-2][1]).days if len(times) > 1 else 0
-        recency = 1 - min(1, gap / 14)
-        score = max(0, min(100, round(min(1, spent / total_minutes) * 70 + recency * 30)))
-        row = b.add("engagement-score", {"learnerId": e["learnerId"], "learnerRef": e["learnerRef"], "courseId": e["courseId"],
-                                         "timeOnTaskMinutes": spent, "lastActivityAt": iso(times[-1][1]), "score": score})
-        if e["lifecycle"] != "completed":
-            flagged = times[-1][1] + dt.timedelta(days=31)
-            b.add("engagement-risk-flag", {"learnerId": e["learnerId"], "courseId": e["courseId"], "engagementRiskThresholdId": threshold["uuid"],
-                                           "engagementScoreId": row["uuid"], "metricValueAtFlag": 31, "flaggedAt": iso(flagged),
-                                           "lifecycle": "open" if e["learnerId"] == ibv_stuck[-3]["nc"] else "in-handling"})
+    def add_gamification(self) -> None:
+        """Points, levels, leaderboards."""
+        rule = self.b.add("point-rule", {"name": "Training afgerond", "kind": "enrolment-completed", "points": 50, "active": True, "lifecycle": "active"})
+        self.b.add("point-rule", {"name": "Zeven dagen achter elkaar leren", "kind": "streak-milestone", "points": 25, "milestoneDays": 7,
+                                  "active": False, "lifecycle": "draft"})
+        levels = [self.b.add("engagement-level", {"name": name, "order": order, "minPoints": points, "icon": icon})
+                  for order, (name, points, icon) in enumerate([("Starter", 0, "FlagOutline"), ("Op weg", 100, "StarOutline"),
+                                                               ("Gevorderd", 150, "MedalOutline"), ("Kampioen", 250, "TrophyOutline")], start=1)]
+        awards: dict[str, list[dt.datetime]] = {}
+        for e in self.b.buckets["enrolment"]:
+            if e["lifecycle"] == "completed":
+                self.b.add("point-award", {"learnerId": e["learnerId"], "pointRuleId": rule["uuid"], "points": 50, "sourceKind": "enrolment",
+                                           "sourceObjectId": e["uuid"], "awardedAt": iso(e["_done"])})
+                awards.setdefault(e["learnerId"], []).append(e["_done"])
+        for p in self.people:
+            moments = sorted(awards.get(p["nc"], []))
+            total = 50 * len(moments)
+            level = [lv for lv in levels if lv["minPoints"] <= total][-1]
+            fields = {"learnerId": p["nc"], "totalPoints": total, "levelId": level["uuid"], "currentStreakDays": 0}
+            dates = sorted({m.date() for m in moments})
+            longest, run = (1 if dates else 0), 1
+            for before, after in zip(dates, dates[1:]):
+                run = run + 1 if (after - before).days == 1 else 1
+                longest = max(longest, run)
+            fields["longestStreakDays"] = longest
+            if moments:
+                fields["lastActivityDate"] = moments[-1].date().isoformat()
+                fields["lastRecomputedAt"] = iso(moments[-1])
+            self.b.add("learner-engagement", fields)
+        self.b.add("leaderboard", {"name": "Leerkampioenen Esdoorn Techniek", "topN": 10, "lifecycle": "active"})
+        self.b.add("leaderboard", {"name": "Leerkampioenen installatie en service", "cohortId": self.cohorts["installatie"]["uuid"], "topN": 5, "lifecycle": "active"})
+        self.b.add("leaderboard", {"name": "Leerkampioenen verkoop en klantenservice", "cohortId": self.cohorts["verkoop"]["uuid"], "topN": 5, "lifecycle": "active"})
 
-    # --- points, levels, leaderboards -----------------------------------------------------------------
-    rule = b.add("point-rule", {"name": "Training afgerond", "kind": "enrolment-completed", "points": 50, "active": True, "lifecycle": "active"})
-    b.add("point-rule", {"name": "Zeven dagen achter elkaar leren", "kind": "streak-milestone", "points": 25, "milestoneDays": 7,
-                         "active": False, "lifecycle": "draft"})
-    levels = [b.add("engagement-level", {"name": name, "order": order, "minPoints": points, "icon": icon})
-              for order, (name, points, icon) in enumerate([("Starter", 0, "FlagOutline"), ("Op weg", 100, "StarOutline"),
-                                                           ("Gevorderd", 150, "MedalOutline"), ("Kampioen", 250, "TrophyOutline")], start=1)]
-    awards: dict[str, list[dt.datetime]] = {}
-    for e in b.buckets["enrolment"]:
-        if e["lifecycle"] == "completed":
-            b.add("point-award", {"learnerId": e["learnerId"], "pointRuleId": rule["uuid"], "points": 50, "sourceKind": "enrolment",
-                                  "sourceObjectId": e["uuid"], "awardedAt": iso(e["_done"])})
-            awards.setdefault(e["learnerId"], []).append(e["_done"])
-    for p in people:
-        moments = sorted(awards.get(p["nc"], []))
-        total = 50 * len(moments)
-        level = [lv for lv in levels if lv["minPoints"] <= total][-1]
-        fields = {"learnerId": p["nc"], "totalPoints": total, "levelId": level["uuid"], "currentStreakDays": 0}
-        dates = sorted({m.date() for m in moments})
-        longest, run = (1 if dates else 0), 1
-        for before, after in zip(dates, dates[1:]):
-            run = run + 1 if (after - before).days == 1 else 1
-            longest = max(longest, run)
-        fields["longestStreakDays"] = longest
-        if moments:
-            fields["lastActivityDate"] = moments[-1].date().isoformat()
-            fields["lastRecomputedAt"] = iso(moments[-1])
-        b.add("learner-engagement", fields)
-    b.add("leaderboard", {"name": "Leerkampioenen Esdoorn Techniek", "topN": 10, "lifecycle": "active"})
-    b.add("leaderboard", {"name": "Leerkampioenen installatie en service", "cohortId": cohorts["installatie"]["uuid"], "topN": 5, "lifecycle": "active"})
-    b.add("leaderboard", {"name": "Leerkampioenen verkoop en klantenservice", "cohortId": cohorts["verkoop"]["uuid"], "topN": 5, "lifecycle": "active"})
+    def add_fees_and_entitlements(self) -> None:
+        """Paid courses: fee items and entitlements; payment is shillinq's (D19)."""
+        fees = {
+            "WP": self.b.add("fee-item", {"name": "Praktijkcursus warmtepompen", "description": "Deelname aan de tweedaagse externe praktijkcursus.",
+                                          "kind": "course-enrolment", "amount": 895.0, "currency": "EUR", "voluntary": False, "taxPosture": "standard-rate",
+                                          "linkedCourseId": self.courses["WP"]["uuid"], "academicYear": YEAR, "validFrom": FIRST_DAY.isoformat(),
+                                          "validUntil": LAST_DAY.isoformat(), "lifecycle": "active"}),
+            "EXC": self.b.add("fee-item", {"name": "Licentie e-learning Excel gevorderd", "description": "Een jaar toegang tot de e-learning.",
+                                           "kind": "course-enrolment", "amount": 149.0, "currency": "EUR", "voluntary": False, "taxPosture": "standard-rate",
+                                           "linkedCourseId": self.courses["EXC"]["uuid"], "academicYear": YEAR, "validFrom": FIRST_DAY.isoformat(),
+                                           "validUntil": LAST_DAY.isoformat(), "lifecycle": "active"}),
+            "PRJ": self.b.add("fee-item", {"name": "Projectmatig werken, cursus met examen", "description": "Drie cursusdagen en het examen.",
+                                           "kind": "course-enrolment", "amount": 695.0, "currency": "EUR", "voluntary": False, "taxPosture": "standard-rate",
+                                           "linkedCourseId": self.courses["PRJ"]["uuid"], "academicYear": YEAR, "validFrom": FIRST_DAY.isoformat(),
+                                           "validUntil": LAST_DAY.isoformat(), "lifecycle": "active"}),
+        }
+        for e, key, day in self.paid:
+            fee, p = fees[key], e["_p"]
+            if e["lifecycle"] == "withdrawn":
+                continue
+            entitlement = {"feeItemId": fee["uuid"], "learnerId": p["nc"], "grantedResourceKind": "course-access",
+                           "grantedResourceId": self.courses[key]["uuid"]}
+            if e["lifecycle"] == "pending":
+                self.b.add("entitlement", {**entitlement, "lifecycle": "pending"})
+                continue
+            paid_at = moment(plus_workdays(day, 1), 11, 4)
+            self.b.add("entitlement", {**entitlement, "paymentSettledAt": iso(paid_at), "grantedAt": iso(paid_at), "lifecycle": "active"})
 
-    # --- paid courses: fee items and entitlements; payment is shillinq's (D19) ---------------------------
-    fees = {
-        "WP": b.add("fee-item", {"name": "Praktijkcursus warmtepompen", "description": "Deelname aan de tweedaagse externe praktijkcursus.",
-                                 "kind": "course-enrolment", "amount": 895.0, "currency": "EUR", "voluntary": False, "taxPosture": "standard-rate",
-                                 "linkedCourseId": courses["WP"]["uuid"], "academicYear": YEAR, "validFrom": FIRST_DAY.isoformat(),
-                                 "validUntil": LAST_DAY.isoformat(), "lifecycle": "active"}),
-        "EXC": b.add("fee-item", {"name": "Licentie e-learning Excel gevorderd", "description": "Een jaar toegang tot de e-learning.",
-                                  "kind": "course-enrolment", "amount": 149.0, "currency": "EUR", "voluntary": False, "taxPosture": "standard-rate",
-                                  "linkedCourseId": courses["EXC"]["uuid"], "academicYear": YEAR, "validFrom": FIRST_DAY.isoformat(),
-                                  "validUntil": LAST_DAY.isoformat(), "lifecycle": "active"}),
-        "PRJ": b.add("fee-item", {"name": "Projectmatig werken, cursus met examen", "description": "Drie cursusdagen en het examen.",
-                                  "kind": "course-enrolment", "amount": 695.0, "currency": "EUR", "voluntary": False, "taxPosture": "standard-rate",
-                                  "linkedCourseId": courses["PRJ"]["uuid"], "academicYear": YEAR, "validFrom": FIRST_DAY.isoformat(),
-                                  "validUntil": LAST_DAY.isoformat(), "lifecycle": "active"}),
-    }
-    for e, key, day in paid:
-        fee, p = fees[key], e["_p"]
-        if e["lifecycle"] == "withdrawn":
-            continue
-        entitlement = {"feeItemId": fee["uuid"], "learnerId": p["nc"], "grantedResourceKind": "course-access",
-                       "grantedResourceId": courses[key]["uuid"]}
-        if e["lifecycle"] == "pending":
-            b.add("entitlement", {**entitlement, "lifecycle": "pending"})
-            continue
-        paid_at = moment(plus_workdays(day, 1), 11, 4)
-        b.add("entitlement", {**entitlement, "paymentSettledAt": iso(paid_at), "grantedAt": iso(paid_at), "lifecycle": "active"})
+    def strip_private_fields(self) -> None:
+        """Drops the private working fields every object carried while the set was built."""
+        for rows in self.b.buckets.values():
+            for row in rows:
+                for key in [k for k in row if k.startswith("_")]:
+                    del row[key]
 
-    # --- assemble -------------------------------------------------------------------------------------
-    for rows in b.buckets.values():
-        for row in rows:
-            for key in [k for k in row if k.startswith("_")]:
-                del row[key]
-    # --- the regulations the courses, credentials and records point at (D29) ---------------------
     # Regulation's own slug is its code (^[A-Z0-9_-]+$), and the contract takes the slug from the
     # object for such a schema. AVG is left out: learniq_register.json seeds it, and a second row
     # with the same code would be a duplicate. Each audience follows who this script trains, so the
     # Compliance overview counts what the data shows (example-set-regulation-rows, design).
-    def add_regulations() -> None:
+    def add_regulations(self) -> None:
         for row in REGULATIONS:
             code, name, description, criteria, scope, renewal, annual, *audience = row
             fields = {"slug": code, "name": name, "description": description, "applicabilityCriteria": criteria,
@@ -1419,60 +1473,62 @@ def build() -> dict:
             if renewal is not None:
                 fields["renewalCycleMonths"] = renewal
             fields.update({"active": True, "ragRedThreshold": 70, "ragAmberThreshold": 90, "lifecycle": "published"})
-            b.add("regulation", fields)
+            self.b.add("regulation", fields)
 
-    add_regulations()
+    def assemble(self) -> dict:
+        """The regulations the courses, credentials and records point at (D29), then the profile file's content."""
+        self.add_regulations()
 
-    shipped = {r["slug"] for r in b.buckets["regulation"]}
-    for rows in b.buckets.values():
-        for row in rows:
-            code = row.get("regulationSlug")
-            if code is not None and code != "AVG" and code not in shipped:
-                raise RuntimeError(f"{row['slug']} points at regulation {code}, which this set does not ship")
+        shipped = {r["slug"] for r in self.b.buckets["regulation"]}
+        for rows in self.b.buckets.values():
+            for row in rows:
+                code = row.get("regulationSlug")
+                if code is not None and code != "AVG" and code not in shipped:
+                    raise RuntimeError(f"{row['slug']} points at regulation {code}, which this set does not ship")
 
-    objects = {name: rows for name, rows in b.buckets.items() if rows}
-    total = sum(len(rows) for rows in objects.values())
-    return {
-        "openapi": "3.0.0",
-        "info": {
-            "title": "Learniq example set: Company",
-            "version": "1.1.0",
-            "description": "Voorbeeldbedrijf Esdoorn Techniek B.V., a fictional installation and service company in the fictional town of Esdoornhaven, through the 2025-2026 training year.",
-        },
-        "x-openregister": {
-            "type": "profile",
-            "app": "learniq",
-            "profile": {
-                "id": SET,
-                "segment": SET,
-                "label": "Company",
-                "description": "A fictional company with two sites, employees, compliance training, certificates and one full training year.",
-                "order": 5,
-                "objectCount": total,
-                "icon": "OfficeBuilding",
+        objects = {name: rows for name, rows in self.b.buckets.items() if rows}
+        total = sum(len(rows) for rows in objects.values())
+        return {
+            "openapi": "3.0.0",
+            "info": {
+                "title": "Learniq example set: Company",
+                "version": "1.1.0",
+                "description": "Voorbeeldbedrijf Esdoorn Techniek B.V., a fictional installation and service company in the fictional town of Esdoornhaven, through the 2025-2026 training year.",
             },
-            "description": (
-                "An example set an operator picks in the first-time setup wizard (ADR-042, decision D21). NEVER imported on install. "
-                "Every object carries @self.configuration/register/schema and a fixed uuid in the ee05 namespace, so the import resolves "
-                "the live learniq register without this descriptor declaring components.registers (which would re-point the register at "
-                "this profile config id and overwrite its authorization block), a second load adds nothing, and occ "
-                "learniq:example-set:remove corporate removes exactly these objects. Generated by scripts/example-sets/corporate.py; the "
-                "contract is openspec/changes/archive/2026-09-28-segment-wizard-choice/contract.md. Every person, address, company and certificate in it is fictional."
-            ),
-            "seedData": {
+            "x-openregister": {
+                "type": "profile",
+                "app": "learniq",
+                "profile": {
+                    "id": SET,
+                    "segment": SET,
+                    "label": "Company",
+                    "description": "A fictional company with two sites, employees, compliance training, certificates and one full training year.",
+                    "order": 5,
+                    "objectCount": total,
+                    "icon": "OfficeBuilding",
+                },
                 "description": (
-                    "One company with a head office and a workshop and warehouse site, eight departments as cohorts, 200 employees with "
-                    "their managers, HR, compliance and training staff, compliance e-learning and classroom certification with the "
-                    "credentials they issue and the renewals their expiry opens, toolbox meetings with their attendance, external training "
-                    "records, a competency framework with the gaps it shows, a development plan per employee, engagement scores, points "
-                    "and leaderboards, orders with entitlements for three paid courses, and the regulations the courses answer to."
+                    "An example set an operator picks in the first-time setup wizard (ADR-042, decision D21). NEVER imported on install. "
+                    "Every object carries @self.configuration/register/schema and a fixed uuid in the ee05 namespace, so the import resolves "
+                    "the live learniq register without this descriptor declaring components.registers (which would re-point the register at "
+                    "this profile config id and overwrite its authorization block), a second load adds nothing, and occ "
+                    "learniq:example-set:remove corporate removes exactly these objects. Generated by scripts/example-sets/corporate.py; the "
+                    "contract is openspec/changes/archive/2026-09-28-segment-wizard-choice/contract.md. Every person, address, company and certificate in it is fictional."
                 ),
-                "objects": objects,
+                "seedData": {
+                    "description": (
+                        "One company with a head office and a workshop and warehouse site, eight departments as cohorts, 200 employees with "
+                        "their managers, HR, compliance and training staff, compliance e-learning and classroom certification with the "
+                        "credentials they issue and the renewals their expiry opens, toolbox meetings with their attendance, external training "
+                        "records, a competency framework with the gaps it shows, a development plan per employee, engagement scores, points "
+                        "and leaderboards, orders with entitlements for three paid courses, and the regulations the courses answer to."
+                    ),
+                    "objects": objects,
+                },
             },
-        },
-        "paths": {},
-        "components": {},
-    }
+            "paths": {},
+            "components": {},
+        }
 
 
 if __name__ == "__main__":

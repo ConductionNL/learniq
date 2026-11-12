@@ -3,6 +3,9 @@
 /**
  * Learniq Peer Review Allocation Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Batch-matching engine that allocates `PeerReview` rows for an Assignment's
  * Submissions. Draws its reviewer pool from the Assignment's own submitters
  * (mutual peer review among people who actually did the work, not the whole
@@ -37,8 +40,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

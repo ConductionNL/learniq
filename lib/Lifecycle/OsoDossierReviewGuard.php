@@ -117,19 +117,30 @@ class OsoDossierReviewGuard implements LifecycleGuardInterface {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-17
 	 */
 	private function allows(array $object, string $userId): bool {
-		$actor = $userId;
-		$tenantId = $object['tenant_id'] ?? '';
+		if ($this->namesActorAndLearner(object: $object, userId: $userId) === false) {
+			return false;
+		}
 
-		if ($actor === '') {
+		return $this->isParentOfLearner(object: $object, userId: $userId);
+	}//end allows()
+
+	/**
+	 * Whether there is an acting user and the review names its learner; logs which is missing.
+	 *
+	 * @param array<string,mixed> $object The review.
+	 * @param string              $userId The uid of the caller.
+	 *
+	 * @return bool
+	 */
+	private function namesActorAndLearner(array $object, string $userId): bool {
+		if ($userId === '') {
 			$this->logger->warning('[OsoDossierReviewGuard] No acting user — denying approveDossier.');
 			return false;
 		}
 
 		// The review names the learner's account; a DossierReview is created by
 		// learniq together with the exchange request (data-exchange-to-integriq).
-		$learnerId = (string)($object['learnerUserId'] ?? '');
-
-		if ($learnerId === '') {
+		if ((string)($object['learnerUserId'] ?? '') === '') {
 			$this->logger->warning(
 				'[OsoDossierReviewGuard] Review {id}: no learnerUserId — cannot verify parent.',
 				['id' => $object['id'] ?? '?']
@@ -137,32 +148,51 @@ class OsoDossierReviewGuard implements LifecycleGuardInterface {
 			return false;
 		}
 
-		// Fetch the learner's LearnerProfile to read parentIds.
-		// H1: scope to the same tenant.
-		$profileFilters = ['ncUserId' => $learnerId];
-		if ($tenantId !== '') {
-			$profileFilters['tenant_id'] = $tenantId;
+		return true;
+	}//end namesActorAndLearner()
+
+	/**
+	 * Whether the caller is listed in the parentIds of the review's learner; logs a refusal.
+	 *
+	 * @param array<string,mixed> $object The review, naming its learner.
+	 * @param string              $userId The uid of the caller.
+	 *
+	 * @return bool
+	 */
+	private function isParentOfLearner(array $object, string $userId): bool {
+		$learnerId = (string)($object['learnerUserId'] ?? '');
+		$profile = $this->learnerProfile(learnerId: $learnerId, tenantId: ($object['tenant_id'] ?? ''));
+		if ($profile === null) {
+			return false;
 		}
 
-		$profiles = $this->objectService->findAll(
-			[
-				'filters' => array_merge(
-					$profileFilters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::LEARNER_PROFILE_SCHEMA,
-					]
-				),
-				'limit' => 1,
-			]
-		);
+		if (in_array($userId, ($profile['parentIds'] ?? []), true) === false) {
+			$this->logger->info(
+				'[OsoDossierReviewGuard] Actor {a} is not in parentIds for learner {l} — denying.',
+				['a' => $userId, 'l' => $learnerId]
+			);
+			return false;
+		}
 
+		return true;
+	}//end isParentOfLearner()
+
+	/**
+	 * The learner's LearnerProfile, within the review's tenant (H1), or null (logged) when there is none.
+	 *
+	 * @param string $learnerId The learner's account.
+	 * @param mixed  $tenantId  The review's tenant, or ''.
+	 *
+	 * @return array<string,mixed>|null
+	 */
+	private function learnerProfile(string $learnerId, mixed $tenantId): ?array {
+		$profiles = $this->objectService->findAll(['filters' => self::profileFilters(learnerId: $learnerId, tenantId: $tenantId), 'limit' => 1]);
 		if (empty($profiles) === true) {
 			$this->logger->warning(
 				'[OsoDossierReviewGuard] No LearnerProfile found for learnerId {l} — denying.',
 				['l' => $learnerId]
 			);
-			return false;
+			return null;
 		}
 
 		$profile = $profiles[0];
@@ -170,16 +200,29 @@ class OsoDossierReviewGuard implements LifecycleGuardInterface {
 			$profile = $profiles[0]->jsonSerialize();
 		}
 
-		$parentIds = $profile['parentIds'] ?? [];
+		return $profile;
+	}//end learnerProfile()
 
-		if (in_array($actor, $parentIds, true) === false) {
-			$this->logger->info(
-				'[OsoDossierReviewGuard] Actor {a} is not in parentIds for learner {l} — denying.',
-				['a' => $actor, 'l' => $learnerId]
-			);
-			return false;
+	/**
+	 * The filters for the learner's profile, scoped to the tenant when it is known.
+	 *
+	 * @param string $learnerId The learner's account.
+	 * @param mixed  $tenantId  The review's tenant, or ''.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private static function profileFilters(string $learnerId, mixed $tenantId): array {
+		$profileFilters = ['ncUserId' => $learnerId];
+		if ($tenantId !== '') {
+			$profileFilters['tenant_id'] = $tenantId;
 		}
 
-		return true;
-	}//end allows()
+		return array_merge(
+			$profileFilters,
+			[
+				'register' => self::LEARNIQ_REGISTER,
+				'schema' => self::LEARNER_PROFILE_SCHEMA,
+			]
+		);
+	}//end profileFilters()
 }//end class

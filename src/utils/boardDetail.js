@@ -56,23 +56,37 @@ function historyWidget(id, history, maxDisplay) {
 }
 
 /**
- * Expand one page's `config.board` into its detail config.
+ * Whether a page is a detail page that declares a `config.board` object.
  *
  * @param {object} page A manifest page.
- * @return {object} The page, expanded when it declares `config.board`, else as given.
- * @spec openspec/changes/detail-pages-follow-the-boards/specs/nextcloud-app/spec.md#requirement-a-detail-page-follows-its-board
+ * @return {boolean}
  */
-export function expandBoardDetail(page) {
+function isBoardDetailPage(page) {
 	const board = page?.config?.board
-	if (page?.type !== 'detail' || !board || typeof board !== 'object') {
-		return page
-	}
-	const config = { ...page.config }
-	delete config.sidebar
-	delete config.layout
-	const history = board.history === false ? null : { tab: true, card: true, ...(board.history || {}) }
+	return !(page?.type !== 'detail' || !board || typeof board !== 'object')
+}
+
+/**
+ * The page's history options: null for none, else tab and card on by default.
+ *
+ * @param {object} board The page's `config.board`.
+ * @return {object|null}
+ */
+function historyOptions(board) {
+	return board.history === false ? null : { tab: true, card: true, ...(board.history || {}) }
+}
+
+/**
+ * The page's widgets without the generated ones, then the history widget when
+ * it is a tab, then the tab strip holding the board's tabs.
+ *
+ * @param {object} config The page config.
+ * @param {object|null} history Output of historyOptions().
+ * @return {Array<object>}
+ */
+function boardWidgets(config, history) {
 	const widgets = (config.widgets || []).filter((widget) => !GENERATED.has(widget?.id))
-	const tabs = (board.tabs || []).map((tab) => ({ ...tab }))
+	const tabs = (config.board.tabs || []).map((tab) => ({ ...tab }))
 	if (history?.tab) {
 		widgets.push(historyWidget(BOARD_HISTORY_ID, history, 50))
 		tabs.push({ widgetId: BOARD_HISTORY_ID, label: BOARD_HISTORY_TITLE })
@@ -83,21 +97,58 @@ export function expandBoardDetail(page) {
 		title: 'Panels',
 		content: { ariaLabel: 'Details', tabs },
 	})
+	return widgets
+}
+
+/**
+ * The page's side column without the generated cards, then the history card.
+ *
+ * @param {object} config The page config.
+ * @param {object|null} history Output of historyOptions().
+ * @return {Array<object|string>}
+ */
+function boardSideColumn(config, history) {
 	const sideColumn = (config.sideColumn || []).filter((entry) => !GENERATED.has(typeof entry === 'string' ? entry : entry?.id))
 	if (history?.card) {
 		sideColumn.push(historyWidget(BOARD_HISTORY_CARD_ID, history, 5))
 	}
+	return sideColumn
+}
+
+/**
+ * The expanded detail config: no Follow control and no card menus unless the
+ * page sets them, the board widgets, the side column and one full-width tab strip.
+ *
+ * @param {object} config The page config without sidebar and layout.
+ * @param {object|null} history Output of historyOptions().
+ * @return {object}
+ */
+function boardConfig(config, history) {
 	return {
-		...page,
-		config: {
-			...config,
-			follow: config.follow ?? false,
-			showWidgetActions: config.showWidgetActions ?? false,
-			widgets,
-			sideColumn,
-			layout: [{ id: '1', widgetId: BOARD_TABS_ID, gridX: 0, gridY: 0, gridWidth: 12, gridHeight: 18, showTitle: false }],
-		},
+		...config,
+		follow: config.follow ?? false,
+		showWidgetActions: config.showWidgetActions ?? false,
+		widgets: boardWidgets(config, history),
+		sideColumn: boardSideColumn(config, history),
+		layout: [{ id: '1', widgetId: BOARD_TABS_ID, gridX: 0, gridY: 0, gridWidth: 12, gridHeight: 18, showTitle: false }],
 	}
+}
+
+/**
+ * Expand one page's `config.board` into its detail config.
+ *
+ * @param {object} page A manifest page.
+ * @return {object} The page, expanded when it declares `config.board`, else as given.
+ * @spec openspec/changes/detail-pages-follow-the-boards/specs/nextcloud-app/spec.md#requirement-a-detail-page-follows-its-board
+ */
+export function expandBoardDetail(page) {
+	if (!isBoardDetailPage(page)) {
+		return page
+	}
+	const config = { ...page.config }
+	delete config.sidebar
+	delete config.layout
+	return { ...page, config: boardConfig(config, historyOptions(config.board)) }
 }
 
 /**

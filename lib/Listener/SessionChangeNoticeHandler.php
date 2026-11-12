@@ -3,6 +3,9 @@
 /**
  * Learniq Session Change Notice Handler
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * IEventListener for Session lifecycle -> `cancel` / `substitute-teacher` /
  * `substitute-teacher-in-progress` (the OR ObjectTransitionedEvent with
  * register=learniq, schema=session, action in that set). Materialises
@@ -29,8 +32,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

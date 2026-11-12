@@ -203,15 +203,8 @@ class RoomUtilisationController extends Controller {
 			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
 		}
 
-		$uid = $user->getUID();
-		if ($this->groupManager->isAdmin($uid) === true) {
+		if ($this->hasRole(uid: $user->getUID(), groups: $groups) === true) {
 			return null;
-		}
-
-		foreach ($groups as $group) {
-			if ($this->groupManager->isInGroup($uid, $group) === true) {
-				return null;
-			}
 		}
 
 		return new JSONResponse(
@@ -219,4 +212,26 @@ class RoomUtilisationController extends Controller {
 			statusCode: Http::STATUS_FORBIDDEN
 		);
 	}//end refusal()
+
+	/**
+	 * Whether a user is an admin or in one of the groups, asked in that order.
+	 *
+	 * @param string            $uid    The user.
+	 * @param array<int,string> $groups The allowed groups.
+	 *
+	 * @return bool
+	 */
+	private function hasRole(string $uid, array $groups): bool {
+		if ($this->groupManager->isAdmin($uid) === true) {
+			return true;
+		}
+
+		foreach ($groups as $group) {
+			if ($this->groupManager->isInGroup($uid, $group) === true) {
+				return true;
+			}
+		}
+
+		return false;
+	}//end hasRole()
 }//end class

@@ -3,6 +3,9 @@
 /**
  * Learniq Item Analysis Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Stateless classical-test-theory (CTT) calculation engine: p-value, corrected
  * item-total (item-rest) Pearson correlation, Kelley 27%-split distractor
  * analysis, and Cronbach's alpha, computed from graded `AssessmentResult`s.
@@ -38,8 +41,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

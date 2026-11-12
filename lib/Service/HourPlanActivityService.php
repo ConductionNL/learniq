@@ -206,15 +206,33 @@ class HourPlanActivityService {
 	 * @return array<string,mixed>|null
 	 */
 	private function activePlan(string $programmeId, string $intakeYear): ?array {
-		foreach ($this->read(schema: 'hour-plan', filters: ['programmeId' => $programmeId, 'intakeYear' => $intakeYear]) as $plan) {
-			$matches = (string)($plan['programmeId'] ?? '') === $programmeId && (string)($plan['intakeYear'] ?? '') === $intakeYear;
-			if ($matches === true && ($plan['lifecycle'] ?? '') === 'active') {
+		$filters = ['programmeId' => $programmeId, 'intakeYear' => $intakeYear];
+		foreach ($this->read(schema: 'hour-plan', filters: $filters) as $plan) {
+			if ($this->matches(row: $plan, filters: $filters) === true && ($plan['lifecycle'] ?? '') === 'active') {
 				return $plan;
 			}
 		}
 
 		return null;
 	}//end activePlan()
+
+	/**
+	 * Whether a row carries every filter value, compared as strings, in filter order.
+	 *
+	 * @param array<string,mixed>  $row     The row.
+	 * @param array<string,string> $filters The values by field.
+	 *
+	 * @return bool
+	 */
+	private function matches(array $row, array $filters): bool {
+		foreach ($filters as $field => $value) {
+			if ((string)($row[$field] ?? '') !== $value) {
+				return false;
+			}
+		}
+
+		return true;
+	}//end matches()
 
 	/**
 	 * The teachers of a cohort per course, from SubjectTeacherAssignment.
@@ -250,7 +268,7 @@ class HourPlanActivityService {
 		}
 
 		$names = [];
-		foreach ($this->read(schema: 'course', filters: [], ids: $courseIds) as $course) {
+		foreach ($this->readByIds(schema: 'course', ids: $courseIds) as $course) {
 			$names[$this->idOf(row: $course)] = (string)($course['name'] ?? '');
 		}
 
@@ -266,16 +284,39 @@ class HourPlanActivityService {
 	 *
 	 * @param string              $schema  Schema slug.
 	 * @param array<string,mixed> $filters Equality filters.
-	 * @param array<int,string>   $ids     Object ids to narrow to, if any.
 	 *
 	 * @return array<int,array<string,mixed>>
 	 */
-	private function read(string $schema, array $filters, array $ids = []): array {
-		$config = ['filters' => array_merge(['register' => self::REGISTER, 'schema' => $schema], $filters)];
+	private function read(string $schema, array $filters): array {
+		return $this->rows(schema: $schema, config: ['filters' => array_merge(['register' => self::REGISTER, 'schema' => $schema], $filters)]);
+	}//end read()
+
+	/**
+	 * The rows of a schema with these ids (every row for no ids), as the system.
+	 *
+	 * @param string            $schema The schema.
+	 * @param array<int,string> $ids    The ids.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function readByIds(string $schema, array $ids): array {
+		$config = ['filters' => ['register' => self::REGISTER, 'schema' => $schema]];
 		if ($ids !== []) {
 			$config['ids'] = array_values($ids);
 		}
 
+		return $this->rows(schema: $schema, config: $config);
+	}//end readByIds()
+
+	/**
+	 * The rows one read finds, as arrays; a read that fails is logged and finds none.
+	 *
+	 * @param string              $schema The schema, for the log.
+	 * @param array<string,mixed> $config The read.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function rows(string $schema, array $config): array {
 		try {
 			$rows = $this->objectService->findAll($config, _rbac: false);
 		} catch (Throwable $exception) {
@@ -283,6 +324,17 @@ class HourPlanActivityService {
 			return [];
 		}
 
+		return $this->asRows(rows: $rows);
+	}//end rows()
+
+	/**
+	 * The read results as arrays: an entity serialised, anything that is not a row dropped.
+	 *
+	 * @param array<int,mixed> $rows The read results.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function asRows(array $rows): array {
 		$out = [];
 		foreach ($rows as $row) {
 			if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
@@ -295,7 +347,7 @@ class HourPlanActivityService {
 		}
 
 		return $out;
-	}//end read()
+	}//end asRows()
 
 	/**
 	 * The id of a row.
