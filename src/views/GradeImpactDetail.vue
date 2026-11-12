@@ -181,6 +181,7 @@
 <script>
 import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
+import { readObject, readRequiredObject } from '../utils/registerRequests.js'
 
 export default {
 	name: 'GradeImpactDetail',
@@ -387,18 +388,12 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-30
 		 */
 		async loadEntry(entryId) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/grade-entry/${entryId}`,
+			this.entry = await readRequiredObject(
+				generateUrl(
+					`/apps/openregister/api/objects/learniq/grade-entry/${entryId}`,
+				),
+				'GradeEntry fetch failed',
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				throw new Error(`GradeEntry fetch failed: ${resp.status}`)
-			}
-
-			const json = await resp.json()
-			this.entry = json.object ?? json ?? null
 		},
 
 		/**
@@ -413,18 +408,14 @@ export default {
 				return
 			}
 
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/curriculum-plan/${planId}`,
+			const read = await readObject(
+				generateUrl(
+					`/apps/openregister/api/objects/learniq/curriculum-plan/${planId}`,
+				),
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				return
+			if (read.ok) {
+				this.plan = read.object ?? null
 			}
-
-			const json = await resp.json()
-			this.plan = json.object ?? json ?? null
 		},
 
 		/**
@@ -446,15 +437,10 @@ export default {
 			const url = generateUrl(
 				`/apps/openregister/api/objects/learniq/grade-entry?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&period=${encodeURIComponent(period)}&lifecycle=published&_limit=100`,
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				return
+			const rows = await this.fetchRows(url)
+			if (rows !== null) {
+				this.periodEntries = rows
 			}
-
-			const json = await resp.json()
-			this.periodEntries = json.results ?? json.objects ?? []
 		},
 
 		/**
@@ -476,16 +462,29 @@ export default {
 			const url = generateUrl(
 				`/apps/openregister/api/objects/learniq/final-grade?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&_limit=1`,
 			)
+			const rows = await this.fetchRows(url)
+			if (rows !== null) {
+				this.finalGrade = rows[0] ?? null
+			}
+		},
+
+		/**
+		 * The rows of a list answer (its `results`, else its `objects`), or
+		 * null when the read is refused.
+		 *
+		 * @param {string} url The list's URL.
+		 * @return {Promise<Array<object>|null>}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-30
+		 */
+		async fetchRows(url) {
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
 			if (!resp.ok) {
-				return
+				return null
 			}
-
 			const json = await resp.json()
-			const results = json.results ?? json.objects ?? []
-			this.finalGrade = results[0] ?? null
+			return json.results ?? json.objects ?? []
 		},
 
 		/**
