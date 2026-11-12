@@ -458,6 +458,26 @@ function cmi5Unavailable(res) {
 	return res.status === 404 || res.status === 503
 }
 
+/**
+ * The objects a lesson's blocks reference: the block type, the block field
+ * naming the object, its schema and the cache it is read into.
+ */
+const BLOCK_REFERENCES = [
+	{ type: 'media', key: 'materialId', schema: 'Material', cache: 'materialsById' },
+	{ type: 'quiz', key: 'assessmentId', schema: 'exam', cache: 'assessmentsById' },
+	{ type: 'assignment', key: 'assignmentId', schema: 'Assignment', cache: 'assignmentsById' },
+]
+
+/**
+ * The text of a thrown value: its message, else the value itself.
+ *
+ * @param {Error|object|string} e What was thrown.
+ * @return {string}
+ */
+function errorText(e) {
+	return e?.message ?? String(e)
+}
+
 // learning-progress-and-analytics: contentTypes that do NOT emit xAPI
 // statements and therefore need the learner self-serve manual-completion
 // path (progress-tracking spec "Learners can self-report completion of
@@ -1023,50 +1043,52 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
 		 */
 		async loadBlockReferences() {
-			const materialIds = new Set()
-			const assessmentIds = new Set()
-			const assignmentIds = new Set()
-			for (const block of this.sortedBlocks) {
-				if (block.type === 'media' && block.materialId)
-					materialIds.add(block.materialId)
-				if (block.type === 'quiz' && block.assessmentId)
-					assessmentIds.add(block.assessmentId)
-				if (block.type === 'assignment' && block.assignmentId)
-					assignmentIds.add(block.assignmentId)
-			}
+			await Promise.all(
+				BLOCK_REFERENCES.flatMap((reference) =>
+					this.referencedIds(reference).map((id) =>
+						this.fetchBlockReference(reference, id),
+					),
+				),
+			)
+		},
 
-			const fetchInto = async (schema, id, target) => {
-				try {
-					const resp = await fetch(
-						generateUrl(
-							`/apps/openregister/api/objects/learniq/${schema}/${id}`,
-						),
-						{
-							headers: {
-								'OCS-APIREQUEST': 'true',
-								Accept: 'application/json',
-							},
-						},
-					)
-					if (!resp.ok) return
-					const json = await resp.json()
-					target[id] = json.object ?? json ?? {}
-				} catch {
-					// Best-effort — the block renders its "unavailable" state.
+		/**
+		 * The distinct ids one kind of block references, in block order.
+		 *
+		 * @param {{type: string, key: string}} reference The block type and its id field.
+		 * @return {string[]}
+		 */
+		referencedIds(reference) {
+			const ids = new Set()
+			for (const block of this.sortedBlocks) {
+				if (block.type === reference.type && block[reference.key]) {
+					ids.add(block[reference.key])
 				}
 			}
+			return [...ids]
+		},
 
-			await Promise.all([
-				...[...materialIds].map((id) =>
-					fetchInto('Material', id, this.materialsById),
-				),
-				...[...assessmentIds].map((id) =>
-					fetchInto('exam', id, this.assessmentsById),
-				),
-				...[...assignmentIds].map((id) =>
-					fetchInto('Assignment', id, this.assignmentsById),
-				),
-			])
+		/**
+		 * Read one referenced object into its cache. Best-effort: a failed read
+		 * leaves the block in its "unavailable" state.
+		 *
+		 * @param {{schema: string, cache: string}} reference The schema and the cache to fill.
+		 * @param {string} id The object id.
+		 * @return {Promise<void>}
+		 */
+		async fetchBlockReference(reference, id) {
+			const target = this[reference.cache]
+			try {
+				const resp = await fetch(
+					generateUrl(`/apps/openregister/api/objects/learniq/${reference.schema}/${id}`),
+					{ headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } },
+				)
+				if (!resp.ok) return
+				const json = await resp.json()
+				target[id] = json.object ?? json ?? {}
+			} catch {
+				// Best-effort — the block renders its "unavailable" state.
+			}
 		},
 
 		/**
@@ -1288,45 +1310,76 @@ export default {
 		 */
 		async checkExistingManualCompletion() {
 			try {
-				const currentUser = getCurrentUser()
-				const learnerId = currentUser?.uid ?? ''
+				const learnerId = getCurrentUser()?.uid ?? ''
 				if (!learnerId) return
 
 				this.currentEnrolment = await this.loadCurrentEnrolment(learnerId)
 
-				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/lesson-completion',
-				)
-				const params = new URLSearchParams({
-					learnerId,
-					lessonId: this.lessonId,
-					_limit: '100',
-				})
-				const resp = await fetch(`${url}?${params.toString()}`, {
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-					},
-				})
-				if (!resp.ok) return
+				const results = await this.loadLessonCompletions(learnerId)
+				if (results === null) return
 
-				const json = await resp.json()
-				const results = json.results ?? json.objects ?? json ?? []
-				// learniq#945: only a completion of the CURRENT enrolment counts,
-				// so a retake starts with this lesson open again.
-				const existing = results.find(
-					(row) =>
-						row.learnerId === learnerId
-						&& row.lessonId === this.lessonId
-						&& completionBelongsTo(row, this.currentEnrolment),
-				)
-
-				this.manualCompletion.completed = !!existing
+				this.manualCompletion.completed = this.hasCurrentCompletion(results, learnerId)
 			} catch {
 				// Best-effort — swallow, action defaults to "not completed".
 			} finally {
 				this.manualCompletion.checked = true
 			}
+		},
+
+		/**
+		 * The learner's LessonCompletions of this lesson, or null when the
+		 * read is refused.
+		 *
+		 * @param {string} learnerId Nextcloud user id.
+		 * @return {Promise<Array<object>|null>} The rows.
+		 */
+		async loadLessonCompletions(learnerId) {
+			const resp = await fetch(this.lessonCompletionsUrl(learnerId), {
+				headers: {
+					'OCS-APIREQUEST': 'true',
+					Accept: 'application/json',
+				},
+			})
+			if (!resp.ok) return null
+			const json = await resp.json()
+			return json.results ?? json.objects ?? json ?? []
+		},
+
+		/**
+		 * The list URL of the learner's completions of this lesson.
+		 *
+		 * @param {string} learnerId Nextcloud user id.
+		 * @return {string}
+		 */
+		lessonCompletionsUrl(learnerId) {
+			const url = generateUrl(
+				'/apps/openregister/api/objects/learniq/lesson-completion',
+			)
+			const params = new URLSearchParams({
+				learnerId,
+				lessonId: this.lessonId,
+				_limit: '100',
+			})
+			return `${url}?${params.toString()}`
+		},
+
+		/**
+		 * Whether a row completes this lesson for this learner within the
+		 * current enrolment. learniq#945: only a completion of the CURRENT
+		 * enrolment counts, so a retake starts with this lesson open again.
+		 *
+		 * @param {Array<object>} results LessonCompletion rows.
+		 * @param {string} learnerId Nextcloud user id.
+		 * @return {boolean}
+		 */
+		hasCurrentCompletion(results, learnerId) {
+			const existing = results.find(
+				(row) =>
+					row.learnerId === learnerId
+					&& row.lessonId === this.lessonId
+					&& completionBelongsTo(row, this.currentEnrolment),
+			)
+			return !!existing
 		},
 
 		/**
@@ -1410,50 +1463,95 @@ export default {
 				return
 			}
 
+			await this.saveManualCompletion()
+		},
+
+		/**
+		 * Post the manual completion and keep its outcome on the screen.
+		 *
+		 * @return {Promise<void>}
+		 */
+		async saveManualCompletion() {
 			this.manualCompletion.saving = true
 			this.manualCompletion.error = ''
 
 			try {
-				const currentUser = getCurrentUser()
-				const learnerId = currentUser?.uid ?? ''
-
-				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/lesson-completion',
-				)
-				const resp = await fetch(url, {
-					method: 'POST',
-					headers: writeHeaders(this.preview, {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					}),
-					body: JSON.stringify({
-						learnerId,
-						lessonId: this.lessonId,
-						courseId: this.courseId,
-						enrolmentId: this.currentEnrolmentId,
-						source: 'manual',
-						completedAt: new Date().toISOString(),
-						tenant_id:
-							this.lesson?.tenant_id ?? this.course?.tenant_id ?? '',
-					}),
-				})
-
-				if (!resp.ok) {
-					throw new Error(
-						this.t(
-							'learniq',
-							'Failed to mark lesson complete (HTTP {status})',
-							{ status: resp.status },
-						),
-					)
-				}
-
+				await this.postManualCompletion()
 				this.manualCompletion.completed = true
 			} catch (e) {
-				this.manualCompletion.error = e?.message ?? String(e)
+				this.manualCompletion.error = errorText(e)
 			} finally {
 				this.manualCompletion.saving = false
+			}
+		},
+
+		/**
+		 * POST a LessonCompletion (source: manual) for the current learner.
+		 *
+		 * @return {Promise<void>}
+		 * @throws {Error} When the server refuses it.
+		 */
+		async postManualCompletion() {
+			const learnerId = getCurrentUser()?.uid ?? ''
+			const url = generateUrl(
+				'/apps/openregister/api/objects/learniq/lesson-completion',
+			)
+			const resp = await fetch(url, this.manualCompletionRequest(learnerId))
+			if (!resp.ok) {
+				throw this.completionRefused(resp.status)
+			}
+		},
+
+		/**
+		 * The error a refused manual completion shows.
+		 *
+		 * @param {number} status The HTTP status.
+		 * @return {Error}
+		 */
+		completionRefused(status) {
+			return new Error(
+				this.t(
+					'learniq',
+					'Failed to mark lesson complete (HTTP {status})',
+					{ status },
+				),
+			)
+		},
+
+		/**
+		 * The POST that records a manual completion, with the preview headers.
+		 *
+		 * @param {string} learnerId Nextcloud user id.
+		 * @return {object} The fetch options.
+		 */
+		manualCompletionRequest(learnerId) {
+			return {
+				method: 'POST',
+				headers: writeHeaders(this.preview, {
+					'OCS-APIREQUEST': 'true',
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				}),
+
+				body: JSON.stringify(this.manualCompletionBody(learnerId)),
+			}
+		},
+
+		/**
+		 * The LessonCompletion a manual completion creates.
+		 *
+		 * @param {string} learnerId Nextcloud user id.
+		 * @return {object} The body.
+		 */
+		manualCompletionBody(learnerId) {
+			return {
+				learnerId,
+				lessonId: this.lessonId,
+				courseId: this.courseId,
+				enrolmentId: this.currentEnrolmentId,
+				source: 'manual',
+				completedAt: new Date().toISOString(),
+				tenant_id: this.lesson?.tenant_id ?? this.course?.tenant_id ?? '',
 			}
 		},
 
