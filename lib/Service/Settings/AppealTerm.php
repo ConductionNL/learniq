@@ -24,7 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Settings;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCP\IAppConfig;
 
 /**
@@ -69,7 +69,7 @@ class AppealTerm {
 	 * @spec openspec/specs/exam-board/spec.md#scenario-the-school-sets-its-own-appeal-term
 	 */
 	public function days(): int {
-		return self::normalise(stored: $this->appConfig->getValueString(Application::APP_ID, self::KEY, ''));
+		return self::normalise(stored: $this->appConfig->getValueString(AppIdentity::APP_ID, self::KEY, ''));
 	}//end days()
 
 	/**

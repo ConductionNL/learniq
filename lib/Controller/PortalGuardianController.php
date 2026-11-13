@@ -30,7 +30,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Portal\CallerOrganisations;
 use OCA\Learniq\Portal\GuardianPortalInvitation;
 use OCA\Learniq\Service\CallerGroups;
@@ -92,7 +92,7 @@ class PortalGuardianController extends Controller {
 	) {
 		$this->userSession = $caller->userSession;
 		$this->groups = $caller->groupManager;
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

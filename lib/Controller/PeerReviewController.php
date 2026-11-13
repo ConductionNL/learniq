@@ -33,9 +33,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\CallerGroups;
 use OCA\Learniq\Service\PeerReviewAllocationService;
 use OCP\AppFramework\Controller;
@@ -90,7 +90,7 @@ class PeerReviewController extends Controller {
 	) {
 		$this->userSession = $caller->userSession;
 		$this->groupManager = $caller->groupManager;
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

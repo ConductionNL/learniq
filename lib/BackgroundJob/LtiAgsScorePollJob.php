@@ -64,8 +64,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\BackgroundJob;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\LtiAgsPullClient;
 use OCA\Learniq\Support\ObjectRow;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -160,14 +160,14 @@ class LtiAgsScorePollJob extends TimedJob {
 	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.1
 	 */
 	public function run(mixed $argument): void {
-		$subscriptionId = $this->appConfig->getValueString(app: Application::APP_ID, key: self::SUBSCRIPTION_ID_KEY, default: '');
+		$subscriptionId = $this->appConfig->getValueString(app: AppIdentity::APP_ID, key: self::SUBSCRIPTION_ID_KEY, default: '');
 		if ($subscriptionId === '') {
 			// Not yet bootstrapped (task 5.1) — no-op, not an error.
 			$this->logger->debug('[LtiAgsScorePollJob] No lti_ags_subscription_id configured; skipping sweep.');
 			return;
 		}
 
-		$cursor = $this->appConfig->getValueString(app: Application::APP_ID, key: self::PULL_CURSOR_KEY, default: '');
+		$cursor = $this->appConfig->getValueString(app: AppIdentity::APP_ID, key: self::PULL_CURSOR_KEY, default: '');
 		$pulled = $this->pullClient->pull(subscriptionId: $subscriptionId, cursor: $cursor);
 		if ($pulled === null) {
 			// Logged inside the pull client; one failed sweep does not wedge the cron schedule.
@@ -198,7 +198,7 @@ class LtiAgsScorePollJob extends TimedJob {
 
 		$newCursor = $pulled['cursor'] ?? null;
 		if (is_string($newCursor) === true && $newCursor !== '') {
-			$this->appConfig->setValueString(app: Application::APP_ID, key: self::PULL_CURSOR_KEY, value: $newCursor);
+			$this->appConfig->setValueString(app: AppIdentity::APP_ID, key: self::PULL_CURSOR_KEY, value: $newCursor);
 		}
 
 		$this->logger->info(

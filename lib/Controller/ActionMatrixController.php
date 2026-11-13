@@ -27,7 +27,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Settings\AdminSettings;
 use OCP\AppFramework\Controller;
@@ -57,7 +57,7 @@ class ActionMatrixController extends Controller {
 		private readonly IGroupManager $groupManager,
 	) {
 		parent::__construct(
-			appName: Application::APP_ID,
+			appName: AppIdentity::APP_ID,
 			request: $request
 		);
 	}//end __construct()

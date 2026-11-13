@@ -27,7 +27,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\OpenMaterial;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCP\IAppConfig;
 
 /**
@@ -123,11 +123,11 @@ class OpenMaterialSettings {
 	 * @return string The value.
 	 */
 	private function read(string $key, string $fallback): string {
-		if ($this->appConfig->hasKey(Application::APP_ID, $key) === false) {
+		if ($this->appConfig->hasKey(AppIdentity::APP_ID, $key) === false) {
 			return $fallback;
 		}
 
-		return trim($this->appConfig->getValueString(Application::APP_ID, $key, $fallback));
+		return trim($this->appConfig->getValueString(AppIdentity::APP_ID, $key, $fallback));
 	}//end read()
 
 	/**

@@ -41,7 +41,7 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeInterface;
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
@@ -132,7 +132,7 @@ class CredentialReissueService {
 	 * @spec openspec/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
 	 */
 	public function summary(string $runId): ?array {
-		$json = $this->config->getValueString(app: Application::APP_ID, key: self::RUN_KEY_PREFIX . $runId, default: '');
+		$json = $this->config->getValueString(app: AppIdentity::APP_ID, key: self::RUN_KEY_PREFIX . $runId, default: '');
 		$summary = json_decode($json, true);
 		if (is_array($summary) === false) {
 			return null;
@@ -158,7 +158,7 @@ class CredentialReissueService {
 		$totals = $this->reissueAll(courseId: $courseId, run: $run);
 
 		$this->config->setValueString(
-			app: Application::APP_ID,
+			app: AppIdentity::APP_ID,
 			key: self::RUN_KEY_PREFIX . $runId,
 			value: (string)json_encode($totals + ['courseId' => $courseId, 'finishedAt' => $this->now()])
 		);

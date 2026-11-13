@@ -24,7 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\SeedProfileService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
@@ -96,7 +96,7 @@ final class ExampleSetLoader {
 	private function importFailed(string $picked, \Throwable $error): JSONResponse {
 		$this->logger->error(
 			'Setup load-example-set failed for "' . $picked . '": ' . $error->getMessage(),
-			['app' => Application::APP_ID, 'exception' => $error]
+			['app' => AppIdentity::APP_ID, 'exception' => $error]
 		);
 
 		return new JSONResponse(
@@ -189,7 +189,7 @@ final class ExampleSetLoader {
 	private function removalFailed(string $picked, \Throwable $error): JSONResponse {
 		$this->logger->error(
 			'Setup remove-example-set failed for "' . $picked . '": ' . $error->getMessage(),
-			['app' => Application::APP_ID, 'exception' => $error]
+			['app' => AppIdentity::APP_ID, 'exception' => $error]
 		);
 
 		return new JSONResponse(

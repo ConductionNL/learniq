@@ -28,7 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\DisplayScreenBoard;
 use OCA\Learniq\Service\DisplayScreenService;
 use OCP\AppFramework\Controller;
@@ -72,7 +72,7 @@ class DisplayScreenPublicController extends Controller {
 		private readonly IThrottler $throttler,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -126,7 +126,7 @@ class DisplayScreenPublicController extends Controller {
 
 		$this->initialState->provideInitialState('display-token', $token);
 
-		return new TemplateResponse(Application::APP_ID, 'display', [], TemplateResponse::RENDER_AS_BASE);
+		return new TemplateResponse(AppIdentity::APP_ID, 'display', [], TemplateResponse::RENDER_AS_BASE);
 	}//end page()
 
 	/**

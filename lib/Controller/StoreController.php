@@ -42,8 +42,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Exception\SharingBlockedException;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CourseShareExportService;
 use OCA\Learniq\Service\CourseStore\CourseStoreDescriptor;
@@ -118,7 +118,7 @@ class StoreController extends Controller {
 		private readonly ActionAuthService $actionAuth,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 
 	}//end __construct()
 

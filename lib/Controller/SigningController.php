@@ -28,8 +28,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Exception\SigningRefusedException;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\Signing\SignatureRequest;
 use OCA\Learniq\Service\Signing\SigningService;
 use OCP\AppFramework\Controller;
@@ -60,7 +60,7 @@ class SigningController extends Controller {
 		private readonly IUserSession $userSession,
 		private readonly SigningService $signing,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

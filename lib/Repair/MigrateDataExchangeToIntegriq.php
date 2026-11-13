@@ -29,7 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\IntegriqExchangeClient;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -126,7 +126,7 @@ class MigrateDataExchangeToIntegriq implements IRepairStep {
 	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
 	 */
 	public function run(IOutput $output): void {
-		if ($this->appConfig->getValueString(Application::APP_ID, self::MIGRATED_KEY, '') !== '') {
+		if ($this->appConfig->getValueString(AppIdentity::APP_ID, self::MIGRATED_KEY, '') !== '') {
 			$output->info('Learniq data exchange: already moved to integriq, nothing to do.');
 			return;
 		}
@@ -178,7 +178,7 @@ class MigrateDataExchangeToIntegriq implements IRepairStep {
 	 */
 	private function archive(array $rows, IOutput $output): void {
 		try {
-			$appData = $this->appDataFactory->get(Application::APP_ID);
+			$appData = $this->appDataFactory->get(AppIdentity::APP_ID);
 			try {
 				$folder = $appData->getFolder(self::FOLDER);
 			} catch (NotFoundException $exception) {
@@ -433,7 +433,7 @@ class MigrateDataExchangeToIntegriq implements IRepairStep {
 	 */
 	private function markMigrated(): void {
 		$this->appConfig->setValueString(
-			Application::APP_ID,
+			AppIdentity::APP_ID,
 			self::MIGRATED_KEY,
 			$this->timeFactory->getDateTime()->format(\DATE_ATOM)
 		);

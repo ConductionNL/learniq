@@ -30,7 +30,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\CallerGroups;
 use OCA\Learniq\Service\OpeningHoursSettings;
 use OCA\Learniq\Service\RoomUtilisationService;
@@ -98,7 +98,7 @@ class RoomUtilisationController extends Controller {
 	) {
 		$this->userSession = $caller->userSession;
 		$this->groupManager = $caller->groupManager;
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

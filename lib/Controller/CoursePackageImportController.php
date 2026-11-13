@@ -33,7 +33,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerActions;
 use OCA\Learniq\Service\CallerTenantResolver;
@@ -89,7 +89,7 @@ class CoursePackageImportController extends Controller {
 	) {
 		$this->userSession = $caller->userSession;
 		$this->actionAuth = $caller->actionAuth;
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

@@ -32,7 +32,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\DashboardRoleService;
 use OCA\Learniq\Service\NextStepResolver;
 use OCA\Learniq\Support\FindOrNull;
@@ -84,7 +84,7 @@ class LessonNextStepController extends Controller {
 		private readonly NextStepResolver $resolver,
 		private readonly DashboardRoleService $dashboardRoleService,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

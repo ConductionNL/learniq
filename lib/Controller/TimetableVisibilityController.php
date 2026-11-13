@@ -31,7 +31,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\TimetableDirectory;
 use OCA\Learniq\Service\TimetableProjector;
 use OCA\Learniq\Service\TimetableVisibilityService;
@@ -69,7 +69,7 @@ class TimetableVisibilityController extends Controller {
 		private readonly TimetableProjector $projector,
 		private readonly TimetableDirectory $directory,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

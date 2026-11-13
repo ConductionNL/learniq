@@ -28,8 +28,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\BackgroundJob\CredentialReissueJob;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\CredentialReissueService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -81,7 +81,7 @@ class CredentialReissueController extends Controller {
 		private readonly ISecureRandom $random,
 		private readonly IAppConfig $config,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -99,7 +99,7 @@ class CredentialReissueController extends Controller {
 			return new JSONResponse(data: ['error' => 'forbidden'], statusCode: Http::STATUS_FORBIDDEN);
 		}
 
-		$lastRun = $this->config->getValueString(app: Application::APP_ID, key: self::LAST_RUN_PREFIX . md5($courseId), default: '');
+		$lastRun = $this->config->getValueString(app: AppIdentity::APP_ID, key: self::LAST_RUN_PREFIX . md5($courseId), default: '');
 		$summary = null;
 		if ($lastRun !== '') {
 			$summary = $this->reissues->summary(runId: $lastRun) ?? ['runId' => $lastRun, 'status' => 'queued'];
@@ -133,7 +133,7 @@ class CredentialReissueController extends Controller {
 			CredentialReissueJob::class,
 			['courseId' => $courseId, 'runId' => $runId, 'reason' => trim($reason), 'by' => (string)$this->userSession->getUser()?->getUID()]
 		);
-		$this->config->setValueString(app: Application::APP_ID, key: self::LAST_RUN_PREFIX . md5($courseId), value: $runId);
+		$this->config->setValueString(app: AppIdentity::APP_ID, key: self::LAST_RUN_PREFIX . md5($courseId), value: $runId);
 
 		return new JSONResponse(data: ['runId' => $runId], statusCode: Http::STATUS_ACCEPTED);
 	}//end start()

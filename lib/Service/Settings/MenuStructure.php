@@ -37,7 +37,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Settings;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCP\IAppConfig;
 
 /**
@@ -91,7 +91,7 @@ class MenuStructure {
 	 * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
 	 */
 	public function current(): string {
-		return self::normalise(stored: $this->appConfig->getValueString(Application::APP_ID, self::KEY, ''));
+		return self::normalise(stored: $this->appConfig->getValueString(AppIdentity::APP_ID, self::KEY, ''));
 	}//end current()
 
 	/**

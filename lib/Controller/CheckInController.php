@@ -29,7 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\CheckIn\CheckInMessages;
 use OCA\Learniq\Service\CheckIn\CheckInService;
 use OCA\Learniq\Service\Portal\PortalOutcome;
@@ -64,7 +64,7 @@ class CheckInController extends Controller {
 		private readonly CheckInService $checkIns,
 		private readonly CheckInMessages $messages,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

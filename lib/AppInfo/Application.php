@@ -25,6 +25,7 @@ namespace OCA\Learniq\AppInfo;
 
 use OCA\OpenRegister\AppHost\Bootstrap;
 use OCA\OpenRegister\AppHost\LeafAdoption;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Listener\Registrar\EventListenerWiring;
 use OCA\Learniq\Middleware\ActionForbiddenMiddleware;
 use OCA\Learniq\Middleware\LookupIntegrityMiddleware;
@@ -59,7 +60,7 @@ use OCP\EventDispatcher\IEventDispatcher;
  * not the ~40 listener classes behind them.
  */
 class Application extends App implements IBootstrap {
-	public const APP_ID = 'learniq';
+	public const APP_ID = AppIdentity::APP_ID;
 
 	/**
 	 * Constructor for the Application class.

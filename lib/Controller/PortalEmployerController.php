@@ -30,7 +30,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Portal\EmployerCompanyTenancy;
 use OCA\Learniq\Portal\PortalAssertionVerifier;
 use OCA\Learniq\Service\Portal\PortalEmployerBookings;
@@ -82,7 +82,7 @@ class PortalEmployerController extends Controller {
 		private readonly PortalEmployerBookings $bookings,
 		private readonly EmployerCompanyTenancy $tenancy,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

@@ -26,7 +26,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\OpenMaterial;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -87,7 +87,7 @@ class CommercialCourseCheck {
 		}
 
 		$rows = $this->objectService->findAll(
-			['filters' => ['register' => Application::APP_ID, 'schema' => 'fee-item', 'linkedCourseId' => $courseId], 'limit' => 50],
+			['filters' => ['register' => AppIdentity::APP_ID, 'schema' => 'fee-item', 'linkedCourseId' => $courseId], 'limit' => 50],
 			_rbac: false
 		);
 

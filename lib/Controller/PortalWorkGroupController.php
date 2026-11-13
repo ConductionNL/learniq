@@ -35,7 +35,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Portal\PortalAssertionVerifier;
 use OCA\Learniq\Portal\PortalForwardFailure;
 use OCA\Learniq\Portal\PortalForwardGate;
@@ -89,7 +89,7 @@ class PortalWorkGroupController extends Controller {
 		private readonly WorkGroupMessages $messages,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

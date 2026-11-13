@@ -27,7 +27,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\RegulationAssignmentService;
 use OCA\Learniq\Service\RegulationAssignPreview;
@@ -63,7 +63,7 @@ class RegulationAssignPreviewController extends Controller {
 		private readonly RegulationAssignPreview $preview,
 		private readonly ObjectService $objectService,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

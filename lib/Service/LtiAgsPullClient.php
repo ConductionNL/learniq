@@ -35,7 +35,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Support\FleetAppId;
 use OCP\App\IAppManager;
 use OCP\Http\Client\IClientService;
@@ -176,8 +176,8 @@ class LtiAgsPullClient {
 	 * @return array{0: string, 1: string}|null The [user, password] pair, or null when unconfigured.
 	 */
 	private function resolveBasicAuth(): ?array {
-		$apiUser = $this->appConfig->getValueString(app: Application::APP_ID, key: self::OPENCONNECTOR_USER_KEY, default: '');
-		$apiToken = $this->appConfig->getValueString(app: Application::APP_ID, key: self::OPENCONNECTOR_TOKEN_KEY, default: '');
+		$apiUser = $this->appConfig->getValueString(app: AppIdentity::APP_ID, key: self::OPENCONNECTOR_USER_KEY, default: '');
+		$apiToken = $this->appConfig->getValueString(app: AppIdentity::APP_ID, key: self::OPENCONNECTOR_TOKEN_KEY, default: '');
 
 		if ($apiUser !== '' && $apiToken !== '') {
 			return [$apiUser, $apiToken];

@@ -29,7 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -143,7 +143,7 @@ class EmployerAccounts {
 			return null;
 		}
 
-		$company = ($row['claims'][Application::APP_ID][EmployerSitePages::CLAIM] ?? null);
+		$company = ($row['claims'][AppIdentity::APP_ID][EmployerSitePages::CLAIM] ?? null);
 		if (is_string($company) === false || trim($company) === '') {
 			return null;
 		}

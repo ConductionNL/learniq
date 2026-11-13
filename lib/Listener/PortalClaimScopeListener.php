@@ -35,7 +35,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Portal\EmployerCompanyTenancy;
 use OCA\Learniq\Portal\EmployerSitePages;
 use OCA\Portaliq\Event\PortalClaimScopeEvent;
@@ -78,7 +78,7 @@ class PortalClaimScopeListener implements IEventListener {
 	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	public function handle(Event $event): void {
-		if ($event instanceof PortalClaimScopeEvent === false || $event->getAppId() !== Application::APP_ID) {
+		if ($event instanceof PortalClaimScopeEvent === false || $event->getAppId() !== AppIdentity::APP_ID) {
 			return;
 		}
 

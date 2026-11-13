@@ -31,7 +31,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\SubmissionMarkAllocationService;
 use OCA\Learniq\Service\SubmissionMarkReader;
 use OCA\Learniq\Support\FindOrNull;
@@ -84,7 +84,7 @@ class SubmissionMarkController extends Controller {
 		private readonly SubmissionMarkAllocationService $allocation,
 		private readonly SubmissionMarkReader $reader,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

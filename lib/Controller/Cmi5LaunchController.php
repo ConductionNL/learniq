@@ -33,7 +33,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\Cmi5LaunchTokenService;
 use OCA\Learniq\Service\Cmi5LaunchSessions;
 use OCA\OpenRegister\Service\ObjectService;
@@ -74,7 +74,7 @@ class Cmi5LaunchController extends Controller {
 		private readonly Cmi5LaunchSessions $sessions,
 		private readonly IURLGenerator $urlGenerator,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

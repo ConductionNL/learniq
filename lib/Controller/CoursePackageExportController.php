@@ -32,7 +32,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CoursePackageExportService;
 use OCP\AppFramework\Controller;
@@ -65,7 +65,7 @@ class CoursePackageExportController extends Controller {
 		private readonly IUserSession $userSession,
 		private readonly ActionAuthService $actionAuth,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

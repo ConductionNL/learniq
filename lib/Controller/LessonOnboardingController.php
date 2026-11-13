@@ -33,7 +33,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use InvalidArgumentException;
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\LessonOnboarding\LessonOnboardingImporter;
 use OCA\Learniq\Service\LessonOnboarding\OnboardingFolderSetting;
 use OCA\Learniq\Service\LessonOnboarding\OnboardingImportException;
@@ -67,7 +67,7 @@ class LessonOnboardingController extends Controller {
 		private readonly LessonOnboardingImporter $importer,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
