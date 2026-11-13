@@ -5735,7 +5735,14 @@
         "The extra time and invigilators could not be loaded.": "De extra tijd en surveillanten konden niet worden geladen.",
         "{name} could not be asked.": "{name} kon niet worden gevraagd.",
         "A learner": "Een leerling",
-        "Extra time and invigilators": "Extra tijd en surveillanten"
+        "Extra time and invigilators": "Extra tijd en surveillanten",
+        "Price": "Prijs",
+        "Amount excluding VAT": "Bedrag zonder btw",
+        "ISO 4217 currency code.": "ISO 4217-valutacode.",
+        "VAT rate": "Btw-tarief",
+        "Price note": "Toelichting bij de prijs",
+        "Invoice": "Factuur",
+        "Invoice status": "Factuurstatus"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
