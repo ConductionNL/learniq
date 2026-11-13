@@ -37,6 +37,10 @@ use OCA\Learniq\Tests\Support\TransitionScope;
 use OCA\Learniq\Service\EdciPayloadBuilder;
 use OCA\Learniq\Service\EuropassIssuer;
 use OCA\Learniq\Service\CredentialSigningService;
+use OCA\Learniq\Service\CertificatePdfDelegationService;
+use OCA\Learniq\Kernel\Contracts\ReadableCopiesInterface;
+use OCP\App\IAppManager;
+use OCP\Http\Client\IClientService;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\SigningKeyConfigKey;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -79,6 +83,13 @@ class CredentialIssuanceHandlerTest extends TestCase {
 	 * @var bool
 	 */
 	private bool $learnerHasProfile = true;
+
+	/**
+	 * The certificate template slug the course names, or null for none.
+	 *
+	 * @var string|null
+	 */
+	private ?string $courseTemplateSlug = null;
 
 	/**
 	 * Warnings the handler logged, as [message, context].
@@ -160,6 +171,35 @@ class CredentialIssuanceHandlerTest extends TestCase {
 		self::assertIsArray($credential['openbadges3Payload']);
 		self::assertArrayHasKey('proof', $credential['openbadges3Payload']);
 	}//end testACompletedEnrolmentSavesACredentialWithEveryRequiredProperty()
+
+	/**
+	 * A course that names a certificate template asks for the PDF on issue; without
+	 * filinq the certificate is still issued and signed, with the reason recorded.
+	 *
+	 * @return void
+	 */
+	public function testIssuingOnATemplateRecordsThePdfOutcomeWithoutBlocking(): void {
+		$this->courseTemplateSlug = 'bhv-basis';
+		$this->buildHandler(tenantHasKey: true)->handle($this->completionEvent());
+
+		self::assertCount(1, $this->saved);
+		$credential = $this->saved[0]['object'];
+		self::assertSame('unavailable', $credential['pdfRenderStatus']);
+		self::assertStringContainsString('filinq', (string)$credential['pdfRenderError']);
+		self::assertArrayHasKey('proof', $credential['openbadges3Payload']);
+	}//end testIssuingOnATemplateRecordsThePdfOutcomeWithoutBlocking()
+
+	/**
+	 * A course without a certificate template issues without any PDF fields.
+	 *
+	 * @return void
+	 */
+	public function testIssuingWithoutATemplateLeavesThePdfFieldsAlone(): void {
+		$this->buildHandler(tenantHasKey: true)->handle($this->completionEvent());
+
+		self::assertCount(1, $this->saved);
+		self::assertArrayNotHasKey('pdfRenderStatus', $this->saved[0]['object']);
+	}//end testIssuingWithoutATemplateLeavesThePdfFieldsAlone()
 
 	/**
 	 * A certificate is saved with its Europass form, signed with the same key
@@ -385,6 +425,15 @@ class CredentialIssuanceHandlerTest extends TestCase {
 				),
 				LoggerInterface::class => $this->logger(),
 				LearnerRefResolver::class => new LearnerRefResolver(objectService: $this->objectService()),
+				// The real render service on an instance without filinq: every render is unavailable.
+				CertificatePdfDelegationService::class => new CertificatePdfDelegationService(
+					$this->createStub(IClientService::class),
+					$this->createStub(IURLGenerator::class),
+					$this->createStub(IAppConfig::class),
+					$this->createStub(IAppManager::class),
+					$this->logger(),
+					$this->createStub(ReadableCopiesInterface::class)
+				),
 				ListenerSchemaResolver::class => TransitionScope::resolver(),
 				default => $this->createStub($type->getName()),
 			};
@@ -402,8 +451,9 @@ class CredentialIssuanceHandlerTest extends TestCase {
 	 */
 	private function objectService(): ObjectService {
 		$objectService = $this->createMock(ObjectService::class);
+		$slug = $this->courseTemplateSlug;
 		$objectService->method('find')->willReturnCallback(
-			static function (mixed $id): ?ObjectEntity {
+			static function (mixed $id) use ($slug): ?ObjectEntity {
 				if ($id !== 'course-bhv') {
 					return null;
 				}
@@ -414,6 +464,7 @@ class CredentialIssuanceHandlerTest extends TestCase {
 						'code' => 'BHV-BASIS',
 						'name' => 'BHV basisopleiding',
 						'certificateTemplate' => '/Certificaten/bhv.pdf',
+						'certificateTemplateSlug' => $slug,
 						'tenant_id' => self::TENANT,
 					],
 					'course'
