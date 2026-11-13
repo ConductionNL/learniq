@@ -608,11 +608,13 @@ test('the full profile is exactly the plain manifest build', () => {
 	const entries = flat(plain.menu)
 	const count = (section) =>
 		entries.filter((item) => sectionOf(item) === section).length
-	assert.equal(entries.length, 109)
-	assert.equal(plain.menu.length, 26)
+	// ai-disclosure-for-every-user added the AI processing disclosure to
+	// the footer for every signed-in user: 109 -> 110, footer 2 -> 3.
+	assert.equal(entries.length, 110)
+	assert.equal(plain.menu.length, 27)
 	assert.deepEqual(
 		[count('main'), count('footer'), count('settings')],
-		[100, 2, 7],
+		[100, 3, 7],
 	)
 	// 347 since the four unreached pages (BulkEnrol, CohortTimetable,
 	// MarkAttendanceView, SubmitExcuseModal) became actions; 348 with

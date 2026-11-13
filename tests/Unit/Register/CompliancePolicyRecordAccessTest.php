@@ -50,6 +50,8 @@ class CompliancePolicyRecordAccessTest extends TestCase {
 		'AccessibilityStatement',
 		'AccessibilityLimitation',
 		'AccessibilityCriterionResult',
+		// ai-disclosure-for-every-user: the school's own part of the AI disclosure.
+		'AiDisclosureText',
 	];
 
 	/**
@@ -104,7 +106,7 @@ class CompliancePolicyRecordAccessTest extends TestCase {
 	 */
 	public function testEverySignedInUserReadsThePolicyLimitationsAndResults(): void {
 		$schemas = $this->schemas();
-		foreach (['SovereigntyPolicy', 'AccessibilityLimitation', 'AccessibilityCriterionResult'] as $name) {
+		foreach (['SovereigntyPolicy', 'AccessibilityLimitation', 'AccessibilityCriterionResult', 'AiDisclosureText'] as $name) {
 			$this->assertSame(expected: ['authenticated'], actual: $schemas[$name]['authorization']['read'] ?? null, message: $name);
 		}
 	}//end testEverySignedInUserReadsThePolicyLimitationsAndResults()

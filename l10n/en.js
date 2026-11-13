@@ -1,7 +1,3 @@
-/**
- * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
- * SPDX-License-Identifier: EUPL-1.2
- */
 OC.L10N.register(
     "learniq",
     {
@@ -5174,7 +5170,22 @@ OC.L10N.register(
         "OpenRegister file attachment reference (nc:files path or OR attachment ID). The app does NOT store file bytes. Empty for a linked material, which has a sourceUrl instead.": "OpenRegister file attachment reference (nc:files path or OR attachment ID). The app does NOT store file bytes. Empty for a linked material, which has a sourceUrl instead.",
         "SPDX license identifier or rights statement. Open material from a source carries its normalised licence code, such as CC-BY-4.0, or other.": "SPDX license identifier or rights statement. Open material from a source carries its normalised licence code, such as CC-BY-4.0, or other.",
         "This material is not available in this course.": "This material is not available in this course.",
-        "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source."
+        "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.",
+        "About AI at this school": "About AI at this school",
+        "Questions? Contact: {contact}": "Questions? Contact: {contact}",
+        "Add an introduction and a contact for questions, in the school's own words.": "Add an introduction and a contact for questions, in the school's own words.",
+        "Edit the school's text": "Edit the school's text",
+        "Introduction": "Introduction",
+        "Contact for questions": "Contact for questions",
+        "Explanation of {feature}": "Explanation of {feature}",
+        "Save text": "Save text",
+        "Price": "Price",
+        "Amount excluding VAT": "Amount excluding VAT",
+        "ISO 4217 currency code.": "ISO 4217 currency code.",
+        "VAT rate": "VAT rate",
+        "Price note": "Price note",
+        "Invoice": "Invoice",
+        "Invoice status": "Invoice status"
     },
     "nplurals=2; plural=(n != 1);"
 )
