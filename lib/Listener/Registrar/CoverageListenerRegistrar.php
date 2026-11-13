@@ -10,8 +10,8 @@
  * narrowing helper, and lives in its own class so BootListenerRegistrar stays
  * under phpmd's coupling threshold.
  *
- * @category AppInfo
- * @package  OCA\Learniq\AppInfo\Registrar
+ * @category Listener
+ * @package  OCA\Learniq\Listener\Registrar
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -28,7 +28,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Learniq\AppInfo\Registrar;
+namespace OCA\Learniq\Listener\Registrar;
 
 use OCA\Learniq\Listener\CurriculumCoverageRollupHandler;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;

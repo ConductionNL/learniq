@@ -25,7 +25,7 @@ namespace OCA\Learniq\AppInfo;
 
 use OCA\OpenRegister\AppHost\Bootstrap;
 use OCA\OpenRegister\AppHost\LeafAdoption;
-use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
+use OCA\Learniq\Listener\Registrar\EventListenerWiring;
 use OCA\Learniq\Middleware\ActionForbiddenMiddleware;
 use OCA\Learniq\Middleware\LookupIntegrityMiddleware;
 use OCA\Learniq\SetupCheck\WalletOfferTokenCheck;
@@ -54,7 +54,7 @@ use OCP\EventDispatcher\IEventDispatcher;
  * Vue component) — no OCP\Settings\ISettings PHP class needed (per ADR-024).
  *
  * The listener wiring itself lives in domain-scoped registrars under
- * {@see \OCA\Learniq\AppInfo\Registrar}, reached through
+ * {@see \OCA\Learniq\Listener\Registrar}, reached through
  * {@see EventListenerWiring}. This class therefore names the bootstrap seams,
  * not the ~40 listener classes behind them.
  */
@@ -171,7 +171,7 @@ class Application extends App implements IBootstrap {
 	 * Every object-event listener that declares a register/schema interest is
 	 * subscribed here rather than in register(): OpenRegister's
 	 * `ObjectEventSubscription` is only guaranteed autoloadable once every app's
-	 * register() has run. See {@see \OCA\Learniq\AppInfo\Registrar\BootListenerRegistrar}.
+	 * register() has run. See {@see \OCA\Learniq\Listener\Registrar\BootListenerRegistrar}.
 	 *
 	 * @param IBootContext $context The boot context
 	 *

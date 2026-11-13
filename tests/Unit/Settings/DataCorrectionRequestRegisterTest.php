@@ -25,7 +25,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Settings;
 
-use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
+use OCA\Learniq\Listener\Registrar\EventListenerWiring;
 use OCA\Learniq\Lifecycle\Action\StampTransitionActorAction;
 use OCA\Learniq\Lifecycle\DataCorrectionDecisionGuard;
 use OCA\Learniq\Lifecycle\ReportPeriodLockGuard;
