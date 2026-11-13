@@ -38,7 +38,7 @@ use OCA\Learniq\Middleware\LookupIntegrityMiddleware;
 use OCA\Learniq\SetupCheck\WalletOfferTokenCheck;
 use OCA\Learniq\AppInfo\Registrar\ServiceOverrideRegistrar;
 use OCA\Learniq\Mcp\LearniqScannableServices;
-use OCA\Learniq\Service\ContractBindings;
+use OCA\Learniq\Service\ServiceRegistrar;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -158,9 +158,9 @@ class Application extends App implements IBootstrap {
 		// implementations, AFTER Bootstrap so they win over the generic aliases.
 		(new ServiceOverrideRegistrar())->register(context: $context, appId: self::APP_ID);
 
-		// Every Kernel contract that a caller type-hints resolves to its Service
-		// implementation.
-		(new ContractBindings())->register(context: $context);
+		// Every Kernel contract that a caller type-hints resolves to its
+		// implementation; each component binds the contracts its classes implement.
+		(new ServiceRegistrar())->register(context: $context);
 		(new TimetablingContractBindings())->register(context: $context);
 		(new ProctoringContractBindings())->register(context: $context);
 		(new PortalContractBindings())->register(context: $context);

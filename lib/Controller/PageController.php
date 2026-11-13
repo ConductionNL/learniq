@@ -30,11 +30,7 @@ use OCA\Learniq\Kernel\Contracts\LineManagerCheckInterface;
 use OCA\Learniq\Kernel\Contracts\LoadedExampleSetsInterface;
 use OCA\Learniq\Kernel\Contracts\MenuStructureInterface;
 use OCA\Learniq\Kernel\Contracts\SegmentServiceInterface;
-use OCA\Learniq\Service\CallerTenantResolver;
-use OCA\Learniq\Service\CourseStore\StoreAccessService;
-use OCA\Learniq\Service\LineManagerCheck;
-use OCA\Learniq\Service\SegmentService;
-use OCA\Learniq\Service\Settings\MenuStructure;
+use OCA\Learniq\Kernel\Contracts\StoreAccessServiceInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -145,7 +141,7 @@ class PageController extends Controller {
 	 */
 	private function resolveWorkspace(): array {
 		try {
-			return $this->container->get(SegmentService::class)->workspace();
+			return $this->container->get(SegmentServiceInterface::class)->workspace();
 		} catch (Throwable $e) {
 			return ['segment' => SegmentServiceInterface::DEFAULT_SEGMENT, 'chosenSegment' => null];
 		}
@@ -164,7 +160,7 @@ class PageController extends Controller {
 	 */
 	private function resolveMenuStructure(): string {
 		try {
-			return $this->container->get(MenuStructure::class)->current();
+			return $this->container->get(MenuStructureInterface::class)->current();
 		} catch (Throwable $e) {
 			return MenuStructureInterface::SIMPLE;
 		}
@@ -185,7 +181,7 @@ class PageController extends Controller {
 	 */
 	private function resolveStoreAccess(): array {
 		try {
-			return $this->container->get(StoreAccessService::class)->forCurrentUser();
+			return $this->container->get(StoreAccessServiceInterface::class)->forCurrentUser();
 		} catch (Throwable $e) {
 			return ['install' => false, 'publish' => false];
 		}
@@ -208,7 +204,7 @@ class PageController extends Controller {
 		}
 
 		try {
-			return $this->container->get(LineManagerCheck::class)->managesLearners(user: $user);
+			return $this->container->get(LineManagerCheckInterface::class)->managesLearners(user: $user);
 		} catch (Throwable $e) {
 			return false;
 		}
@@ -235,7 +231,7 @@ class PageController extends Controller {
 		}
 
 		try {
-			$tenant = $this->container->get(CallerTenantResolver::class)->resolve(user: $user);
+			$tenant = $this->container->get(CallerTenantResolverInterface::class)->resolve(user: $user);
 		} catch (Throwable $e) {
 			return null;
 		}
