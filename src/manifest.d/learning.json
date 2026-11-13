@@ -5074,7 +5074,7 @@
 				"register": "learniq",
 				"schema": "peer-feedback-summary",
 				"readOnly": true,
-				"_note": "PeerFeedbackSummary is a computed, read-only aggregate of a Submission's released PeerReviews (peer-and-self-assessment) — the only surface a submission's author reads peer feedback through; feedbackItems[].reviewerId is server-computed as null when the governing Assignment's peerReviewAnonymity is blind/double-blind. Mirrors FinalGrade's own read-only detail-page archetype. Body leads with the aggregate data (8-wide) and a Related panel resolving the submission/assignment. No lifecycle (fully derived). No comms leaves.",
+				"_note": "PeerFeedbackSummary is a computed, read-only aggregate of a Submission's released PeerReviews (peer-and-self-assessment) — the only surface a submission's author reads peer feedback through; it carries no reviewer identity in any anonymity mode. Mirrors FinalGrade's own read-only detail-page archetype. Body leads with the aggregate data (8-wide) and a Related panel resolving the submission/assignment. No lifecycle (fully derived). No comms leaves.",
 				"widgets": [
 					{
 						"id": "pfs-data",

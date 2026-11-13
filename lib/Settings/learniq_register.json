@@ -10596,7 +10596,8 @@
                             "type": "string"
                         },
                         "description": "Nextcloud user ids of the Submission's own learners, copied from Submission.learnerIds by PeerFeedbackAggregator so the read rule can let them in. Derived — do not set manually.",
-                        "title": "Learner IDs"
+                        "title": "Learner IDs",
+                        "visible": false
                     },
                     "reviewCount": {
                         "type": "integer",

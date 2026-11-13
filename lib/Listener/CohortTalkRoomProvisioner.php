@@ -209,7 +209,7 @@ class CohortTalkRoomProvisioner implements IEventListener {
 			return null;
 		}
 
-		if (is_string($roomToken) === false || $roomToken === '') {
+		if ($roomToken === '') {
 			return null;
 		}
 
