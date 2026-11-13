@@ -33,6 +33,7 @@ use OCA\Learniq\Service\DashboardRoleService;
 use OCA\Learniq\Service\LoadedExampleSets;
 use OCA\Learniq\Service\Settings\MenuStructure;
 use OCA\Learniq\Service\SettingsService;
+use OCA\Learniq\Tests\Support\ContractImplementations;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IAppConfig;
@@ -117,6 +118,7 @@ final class MenuStructureTest extends TestCase {
 		$container = $this->createMock(ContainerInterface::class);
 		$container->method('get')->willReturnCallback(
 			static function (string $id) use ($appConfig): object {
+				$id = ContractImplementations::concrete($id);
 				if ($id === MenuStructure::class) {
 					return new MenuStructure($appConfig);
 				}

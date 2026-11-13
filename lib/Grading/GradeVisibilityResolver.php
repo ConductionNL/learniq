@@ -49,13 +49,14 @@ use DateInterval;
 use DateTimeImmutable;
 use DateTimeZone;
 use Exception;
+use OCA\Learniq\Kernel\Contracts\GradeVisibilityResolverInterface;
 
 /**
  * Resolves the effective `visibleFrom` for a publishing GradeEntry.
  *
  * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
  */
-class GradeVisibilityResolver {
+class GradeVisibilityResolver implements GradeVisibilityResolverInterface {
 
 	private const DEFAULT_TIME = '00:00';
 	private const DEFAULT_TIMEZONE = 'Europe/Amsterdam';

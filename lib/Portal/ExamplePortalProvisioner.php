@@ -48,6 +48,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCA\Learniq\Kernel\Contracts\ExamplePortalProvisionerInterface;
 use OCP\App\IAppManager;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
@@ -58,7 +59,7 @@ use Throwable;
  *
  * @spec openspec/specs/example-sets/spec.md
  */
-class ExamplePortalProvisioner {
+class ExamplePortalProvisioner implements ExamplePortalProvisionerInterface {
 
 	/**
 	 * Portaliq's app id. Checked by name only: learniq keeps no code
@@ -75,56 +76,6 @@ class ExamplePortalProvisioner {
 	 * Portaliq's portal schema slug.
 	 */
 	public const SCHEMA = 'portal';
-
-	/**
-	 * The portal of a set that ships no declaration (he and corporate), and
-	 * the slug and fallback theme of the four that do.
-	 *
-	 * The theme ids are thematiq's example token sets (thematiq#765). The
-	 * four designed schools prefer their own token set and fall back to these
-	 * (their declaration names both). he borrows "college" and corporate the
-	 * training provider's set, as the closest match.
-	 *
-	 * @var array<string, array{slug: string, theme: string, title: string, tagline: string}>
-	 */
-	public const PORTALS = [
-		'po'        => [
-			'slug'    => 'wilgenboom',
-			'theme'   => 'example-basisschool',
-			'title'   => 'Mijn Wilgenboom',
-			'tagline' => 'Basisschool De Wilgenboom',
-		],
-		'vo'        => [
-			'slug'    => 'vaartveld',
-			'theme'   => 'example-voortgezet',
-			'title'   => 'Mijn Zuiddrecht',
-			'tagline' => 'Zuiddrecht College',
-		],
-		'mbo'       => [
-			'slug'    => 'esdoornveen',
-			'theme'   => 'example-college',
-			'title'   => 'Mijn Esdoornveen',
-			'tagline' => 'Esdoornveen, mbo college',
-		],
-		'he'        => [
-			'slug'    => 'esdoornstad',
-			'theme'   => 'example-college',
-			'title'   => 'Studentenportaal Esdoornstad',
-			'tagline' => 'Je vakken, studiepunten en resultaten op één plek',
-		],
-		'training'  => [
-			'slug'    => 'warmtepompacademie',
-			'theme'   => 'example-opleider',
-			'title'   => 'Mijn academie',
-			'tagline' => 'Warmtepompacademie',
-		],
-		'corporate' => [
-			'slug'    => 'esdoorn-techniek',
-			'theme'   => 'example-opleider',
-			'title'   => 'Leerportaal Esdoorn Techniek',
-			'tagline' => 'Je trainingen en certificaten op één plek',
-		],
-	];
 
 	/**
 	 * Portal fields filled on an existing portal when they are empty. The

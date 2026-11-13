@@ -42,6 +42,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Timetabling;
 
+use OCA\Learniq\Kernel\Contracts\PlanninqTimetableImportInterface;
 use OCA\Learniq\Kernel\Contracts\TimetableExchangeSettingsInterface;
 use OCA\Learniq\Timetabling\Source\PlanninqTimetableSource;
 use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
@@ -54,7 +55,7 @@ use RuntimeException;
  *
  * @spec openspec/specs/timetable-source/spec.md#requirement-a-timetable-import-job-delivers-into-planninq-when-planninq-is-the-source-req-003
  */
-class PlanninqTimetableImport {
+class PlanninqTimetableImport implements PlanninqTimetableImportInterface {
 
 	public const INTEGRIQ_EVENT = 'OCA\\Integriq\\Event\\RosterImportRequestedEvent';
 

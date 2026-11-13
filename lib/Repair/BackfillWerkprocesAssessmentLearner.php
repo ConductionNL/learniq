@@ -21,7 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
-use OCA\Learniq\Listener\WerkprocesAssessmentLearnerStamp;
+use OCA\Learniq\Kernel\Contracts\WerkprocesAssessmentLearnerStampInterface;
 use OCA\Learniq\Repair\Support\RepairRowWalk;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
@@ -57,14 +57,14 @@ class BackfillWerkprocesAssessmentLearner implements IRepairStep {
 	 * Constructor.
 	 *
 	 * @param ObjectService                    $objectService OpenRegister object access.
-	 * @param WerkprocesAssessmentLearnerStamp $stamp         Placement to learner, the same derivation as on every write.
+	 * @param WerkprocesAssessmentLearnerStampInterface $stamp         Placement to learner, the same derivation as on every write.
 	 * @param LoggerInterface                  $logger        PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly WerkprocesAssessmentLearnerStamp $stamp,
+		private readonly WerkprocesAssessmentLearnerStampInterface $stamp,
 		private readonly LoggerInterface $logger,
 	) {
 		$this->rows = new RepairRowWalk(objectService: $objectService, logger: $logger, label: 'BackfillWerkprocesAssessmentLearner');

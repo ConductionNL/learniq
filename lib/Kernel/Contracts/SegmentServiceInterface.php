@@ -118,4 +118,14 @@ interface SegmentServiceInterface {
 	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
 	 */
 	public function setSegment(string $segment, ?string $actor): void;
+
+	/**
+	 * The segment and the chosen segment from one read, for the page's
+	 * `runtime.workspace`.
+	 *
+	 * @return array{segment: string, chosenSegment: string|null} The two values.
+	 *
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
+	 */
+	public function workspace(): array;
 }//end interface

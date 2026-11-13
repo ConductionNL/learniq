@@ -46,11 +46,11 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PortalAssertionVerifierInterface;
 use OCA\Learniq\Kernel\Contracts\PortalAttemptServiceInterface;
 use OCA\Learniq\Kernel\Contracts\PortalLearnerResolverInterface;
 use OCA\Learniq\Kernel\Contracts\PortalMessagesInterface;
 use OCA\Learniq\Kernel\Contracts\PortalResultReaderInterface;
-use OCA\Learniq\Portal\PortalAssertionVerifier;
 use OCA\Learniq\Portal\PortalForwardFailure;
 use OCA\Learniq\Portal\PortalForwardGate;
 use OCA\Learniq\Portal\PortalLearnerForward;
@@ -83,7 +83,7 @@ class PortalAssessmentController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest $request The request.
-	 * @param PortalAssertionVerifier $verifier Verifies X-Portal-Subject.
+	 * @param PortalAssertionVerifierInterface $verifier Verifies X-Portal-Subject.
 	 * @param PortalLearnerResolverInterface $learners learnerRef to the pupil.
 	 * @param PortalAttemptServiceInterface $attempts available, start, answer, submit.
 	 * @param PortalResultReaderInterface $results result.
@@ -94,7 +94,7 @@ class PortalAssessmentController extends Controller {
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly PortalAssertionVerifier $verifier,
+		private readonly PortalAssertionVerifierInterface $verifier,
 		private readonly PortalLearnerResolverInterface $learners,
 		private readonly PortalAttemptServiceInterface $attempts,
 		private readonly PortalResultReaderInterface $results,

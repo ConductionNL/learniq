@@ -38,10 +38,10 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PortalAssertionVerifierInterface;
 use OCA\Learniq\Kernel\Contracts\PortalLearnerResolverInterface;
 use OCA\Learniq\Kernel\Contracts\PortalMessagesInterface;
 use OCA\Learniq\Kernel\Contracts\PortalSubmissionHandInInterface;
-use OCA\Learniq\Portal\PortalAssertionVerifier;
 use OCA\Learniq\Portal\PortalForwardFailure;
 use OCA\Learniq\Portal\PortalForwardGate;
 use OCA\Learniq\Portal\PortalLearnerForward;
@@ -75,7 +75,7 @@ class PortalSubmissionController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest $request The request.
-	 * @param PortalAssertionVerifier $verifier Verifies X-Portal-Subject.
+	 * @param PortalAssertionVerifierInterface $verifier Verifies X-Portal-Subject.
 	 * @param PortalLearnerResolverInterface $learners learnerRef to the pupil.
 	 * @param PortalSubmissionHandInInterface $handIns The hand-in rules and the transition.
 	 * @param PortalMessagesInterface $messages Pupil-facing refusal messages.
@@ -85,7 +85,7 @@ class PortalSubmissionController extends Controller {
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly PortalAssertionVerifier $verifier,
+		private readonly PortalAssertionVerifierInterface $verifier,
 		private readonly PortalLearnerResolverInterface $learners,
 		private readonly PortalSubmissionHandInInterface $handIns,
 		private readonly PortalMessagesInterface $messages,

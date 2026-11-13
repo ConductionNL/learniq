@@ -38,4 +38,13 @@ namespace OCA\Learniq\Kernel\Contracts;
 interface StoreAccessServiceInterface {
 
 
+
+	/**
+	 * The store actions the signed-in user may take; none without a session.
+	 *
+	 * @return array{install: bool, publish: bool}
+	 *
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
+	 */
+	public function forCurrentUser(): array;
 }//end interface

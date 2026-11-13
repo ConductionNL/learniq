@@ -38,13 +38,14 @@ declare(strict_types=1);
 namespace OCA\Learniq\Grading;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\GradeFormulaEvaluatorInterface;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
  * Evaluates CurriculumPlan formulas over a learner's published GradeEntries.
  */
-class GradeFormulaEvaluator {
+class GradeFormulaEvaluator implements GradeFormulaEvaluatorInterface {
 	use FindOrNull;
 
 	private const LEARNIQ_REGISTER = 'learniq';

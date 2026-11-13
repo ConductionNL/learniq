@@ -47,7 +47,6 @@ use OCA\Learniq\Exception\XapiRequestException;
 use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\XapiCallerResolverInterface;
 use OCA\Learniq\Kernel\Contracts\XapiStatementIngestInterface;
-use OCA\Learniq\Service\Cmi5LaunchTokenService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;

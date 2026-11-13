@@ -56,7 +56,7 @@ namespace OCA\Learniq\Controller;
 use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\PersonalTimetableServiceInterface;
 use OCA\Learniq\Kernel\Contracts\TimetableProjectorInterface;
-use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
+use OCA\Learniq\Kernel\Contracts\TimetableSourceResolverInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -88,7 +88,7 @@ class TimetableController extends Controller {
 	 * @param IUserSession $userSession Current user session.
 	 * @param ObjectService $objectService OR object query service (RBAC-scoped).
 	 * @param TimetableProjectorInterface $projector Window resolution and Session projection.
-	 * @param TimetableSourceResolver $sources Where sessions are read from: planninq when installed, else Session.
+	 * @param TimetableSourceResolverInterface $sources Where sessions are read from: planninq when installed, else Session.
 	 * @param PersonalTimetableServiceInterface $timetable The caller's own lessons, shared with the calendar feed.
 	 * @param LoggerInterface $logger Application logger.
 	 */
@@ -97,7 +97,7 @@ class TimetableController extends Controller {
 		private readonly IUserSession $userSession,
 		private readonly ObjectService $objectService,
 		private readonly TimetableProjectorInterface $projector,
-		private readonly TimetableSourceResolver $sources,
+		private readonly TimetableSourceResolverInterface $sources,
 		private readonly PersonalTimetableServiceInterface $timetable,
 		private readonly LoggerInterface $logger,
 	) {
