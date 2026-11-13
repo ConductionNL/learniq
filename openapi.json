@@ -16,8 +16,8 @@
     },
     "servers": [
         {
-            "url": "https://{host}/index.php/apps/learniq/api",
-            "description": "The Learniq API on a Nextcloud instance.",
+            "url": "https://{host}/index.php/apps/learniq/api/v1",
+            "description": "The Learniq API, major version 1, on a Nextcloud instance. Every path also answers without `/v1`.",
             "variables": {
                 "host": {
                     "default": "localhost",
@@ -224,6 +224,10 @@
             "description": "Admin-only declarative Prometheus metrics endpoint for AppHost adopters"
         },
         {
+            "name": "open-api",
+            "description": "The OpenAPI document of this API"
+        },
+        {
             "name": "open-material",
             "description": "Search open learning material and add a result as a Material"
         },
@@ -381,6 +385,63 @@
         }
     ],
     "paths": {
+        "/openapi.json": {
+            "get": {
+                "operationId": "open-api-show",
+                "summary": "The OpenAPI document of this API",
+                "description": "Returns this document. It needs no authentication and can be read from any origin.",
+                "tags": [
+                    "open-api"
+                ],
+                "security": [],
+                "responses": {
+                    "200": {
+                        "description": "The OpenAPI document.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            },
+                            "access-control-allow-origin": {
+                                "$ref": "#/components/headers/access-control-allow-origin"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The document is not installed.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            },
+                            "access-control-allow-origin": {
+                                "$ref": "#/components/headers/access-control-allow-origin"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "error"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/accessibility/evidence": {
             "get": {
                 "operationId": "accessibility-evidence-evidence",
@@ -8453,6 +8514,16 @@
                 "schema": {
                     "type": "string",
                     "example": "1.0.0"
+                }
+            },
+            "access-control-allow-origin": {
+                "description": "Lets a page on any origin read this document: always `*`.",
+                "schema": {
+                    "type": "string",
+                    "enum": [
+                        "*"
+                    ],
+                    "example": "*"
                 }
             }
         },
