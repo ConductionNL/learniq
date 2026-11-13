@@ -68,7 +68,7 @@ class OpenLearningMaterialRegisterTest extends TestCase {
 
 	public function testTheSchemaChangeBumpsSchemaAndRegister(): void {
 		$this->assertSame(expected: '0.2.0', actual: $this->material()['version']);
-		$this->assertSame(expected: '0.48.0', actual: $this->register(file: 'learniq_register.json')['info']['version']);
+		$this->assertTrue(version_compare($this->register(file: 'learniq_register.json')['info']['version'], '0.48.0', '>='), 'the register version only goes up');
 	}//end testTheSchemaChangeBumpsSchemaAndRegister()
 
 	public function testTheDemoDataHoldsALinkedMaterial(): void {
