@@ -5724,7 +5724,15 @@
         "OpenRegister file attachment reference (nc:files path or OR attachment ID). The app does NOT store file bytes. Empty for a linked material, which has a sourceUrl instead.": "Verwijzing naar de bijlage in OpenRegister (pad in Nextcloud Files of bijlage-id). De app bewaart zelf geen bestanden. Leeg bij een koppeling, die een adres bij de bron heeft.",
         "SPDX license identifier or rights statement. Open material from a source carries its normalised licence code, such as CC-BY-4.0, or other.": "SPDX-licentiecode of rechtenverklaring. Open materiaal uit een bron draagt zijn licentiecode, zoals CC-BY-4.0, of other.",
         "This material is not available in this course.": "Dit materiaal is niet beschikbaar in deze cursus.",
-        "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "De licentie staat een kopie toe, maar learniq kan nog geen bestanden uit Edurep ophalen, dus het maakt een koppeling. De leerling opent het materiaal bij de bron."
+        "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "De licentie staat een kopie toe, maar learniq kan nog geen bestanden uit Edurep ophalen, dus het maakt een koppeling. De leerling opent het materiaal bij de bron.",
+        "The day the school year starts. Contact hours and standby slots count the school year from it.": "De dag waarop het schooljaar begint. Contacturen en invaluren tellen het schooljaar vanaf die dag.",
+        "Loading the school year…": "Het schooljaar wordt geladen…",
+        "The school year starts on": "Het schooljaar begint op",
+        "Choose a day other than 29 February.": "Kies een andere dag dan 29 februari.",
+        "School year {year} runs from {from} to {until}. The year in the picker does not matter.": "Schooljaar {year} loopt van {from} tot en met {until}. Het jaar in de kiezer doet er niet toe.",
+        "The school year could not be loaded. Reload the page to try again.": "Het schooljaar kon niet worden geladen. Laad de pagina opnieuw om het nog eens te proberen.",
+        "School year start saved": "Begin van het schooljaar opgeslagen",
+        "The school year start could not be saved. Try again.": "Het begin van het schooljaar kon niet worden opgeslagen. Probeer het opnieuw."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
