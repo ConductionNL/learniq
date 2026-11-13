@@ -3724,6 +3724,8 @@ OC.L10N.register(
         "The last day or the end time. Leave empty for one day.": "De laatste dag of de eindtijd. Laat leeg voor één dag.",
         "Which kind of day this is.": "Wat voor dag dit is.",
         "Study day": "Studiedag",
+        "Study day or day off": "Studiedag of vrije dag",
+        "School activity": "Activiteit",
         "Sports day": "Sportdag",
         "Trip": "Schoolreis",
         "Celebration": "Feest",
