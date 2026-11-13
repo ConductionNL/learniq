@@ -15,6 +15,8 @@
  * - `migration-import`: onto the LearnerProfile of the pupil (by ncUserId),
  *   filling only fields the profile does not have yet; a new pupil gets a new
  *   profile.
+ * - `class-roster`: a class from the student administration system, kept in
+ *   step as a Cohort with its enrolments by ClassRosterSync.
  *
  * Runs inside integriq's background job, so every read and write is
  * system-level (no RBAC, no session). A rejection names a code and field
@@ -34,6 +36,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
+ * @spec openspec/changes/enrolment-sync-classes-from-student-administration/specs/enrolment/spec.md#requirement-classes-from-the-student-administration-land-as-cohorts
  */
 
 declare(strict_types=1);
@@ -93,15 +96,23 @@ class ExchangeImportLanding implements ExchangeImportLandingInterface {
 	private const OSO_FIELDS = ['sourceSchoolBrin', 'learnerEckId', 'receivedAt', 'categories', 'draftProfile', 'attachmentRefs'];
 
 	/**
+	 * Lands `class-roster` records.
+	 *
+	 * @var ClassRosterSync
+	 */
+	private readonly ClassRosterSync $rosterSync;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
-	 * @param ITimeFactory $time The receiving time for a dossier without one.
+	 * @param ITimeFactory $time The receiving time for a dossier without one, and the sync time of a class.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly ITimeFactory $time,
 	) {
+		$this->rosterSync = new ClassRosterSync(objectService: $objectService, time: $time);
 	}//end __construct()
 
 	/**
@@ -161,6 +172,10 @@ class ExchangeImportLanding implements ExchangeImportLandingInterface {
 
 		if ($target === 'oso') {
 			return $this->landOso(jobId: $jobId, data: $data);
+		}
+
+		if ($target === 'class-roster') {
+			return $this->rosterSync->sync(data: $data);
 		}
 
 		return $this->landMigration(data: $data);
