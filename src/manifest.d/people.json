@@ -2659,6 +2659,26 @@
 								{
 									"path": "groupLabel",
 									"label": "Group"
+								},
+								{
+									"path": "mergedInto",
+									"label": "Merged into",
+									"when": {
+										"field": "lifecycle",
+										"op": "eq",
+										"value": "merged"
+									},
+									"resolve": {
+										"register": "learniq",
+										"schema": "learner-profile",
+										"labelField": "fullName"
+									},
+									"route": {
+										"name": "LearnerProfileDetail",
+										"params": {
+											"id": "@source.mergedInto"
+										}
+									}
 								}
 							],
 							"columns": 2

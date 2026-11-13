@@ -5408,7 +5408,7 @@
                 },
                 "slug": "learner-profile",
                 "icon": "AccountOutline",
-                "version": "0.3.8",
+                "version": "0.3.9",
                 "title": "Learner profile",
                 "description": "Learniq learner profile. Owns role assignment and is the actor reference for enrolments, credentials, and attestations.",
                 "configuration": {
@@ -5907,7 +5907,14 @@
                             "from": "active",
                             "to": "merged",
                             "description": "Merges this profile into another LearnerProfile. The surviving profile is referenced via mergedInto. LearnerMergeGuard refuses the merge unless mergedInto names another active profile and the two accounts hold no open enrolment in the same course; LearnerMergeHandler then moves the merged account's records to the surviving profile.",
-                            "requires": "OCA\\Learniq\\Lifecycle\\LearnerMergeGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\LearnerMergeGuard",
+                            "label": "Merge into another account",
+                            "inputs": [
+                                {
+                                    "field": "mergedInto",
+                                    "required": true
+                                }
+                            ]
                         },
                         "delete": {
                             "from": "active",
