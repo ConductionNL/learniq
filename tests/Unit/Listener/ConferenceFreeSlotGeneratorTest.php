@@ -24,7 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Listener;
 
 use DateTimeZone;
-use OCA\Learniq\AppInfo\Registrar\CollaborationListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\CollaborationListenerRegistrar;
 use OCA\Learniq\Listener\ConferenceFreeSlotGenerator;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;

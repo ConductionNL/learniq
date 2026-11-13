@@ -8,8 +8,8 @@
  * evidence objects immutable where a schema flag cannot: today the
  * AssessmentResult integrity rules that replace `appendOnly` (learniq#948).
  *
- * @category AppInfo
- * @package  OCA\Learniq\AppInfo\Registrar
+ * @category Listener
+ * @package  OCA\Learniq\Listener\Registrar
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Learniq\AppInfo\Registrar;
+namespace OCA\Learniq\Listener\Registrar;
 
 use OCA\Learniq\Listener\CompetencyAlignmentListener;
 use OCA\Learniq\Listener\CheckInWindowStamp;

@@ -11,8 +11,8 @@
  * preference flow's listeners (ConferenceScheduleGenerator,
  * ConferenceSignupPortalStamp) stay where they were.
  *
- * @category AppInfo
- * @package  OCA\Learniq\AppInfo\Registrar
+ * @category Listener
+ * @package  OCA\Learniq\Listener\Registrar
  *
  * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2026 Conduction B.V.
@@ -30,7 +30,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Learniq\AppInfo\Registrar;
+namespace OCA\Learniq\Listener\Registrar;
 
 use OCA\Learniq\Listener\ConferenceFreeSlotGenerator;
 use OCA\Learniq\Listener\ConferenceInvitationSync;

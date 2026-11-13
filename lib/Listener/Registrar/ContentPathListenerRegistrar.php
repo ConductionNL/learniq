@@ -9,8 +9,8 @@
  * a preview request is refused. Both veto with stopPropagation(), so they are
  * registered directly and not through the shared post-event proxy.
  *
- * @category AppInfo
- * @package  OCA\Learniq\AppInfo\Registrar
+ * @category Listener
+ * @package  OCA\Learniq\Listener\Registrar
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -28,7 +28,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Learniq\AppInfo\Registrar;
+namespace OCA\Learniq\Listener\Registrar;
 
 use OCA\Learniq\Listener\LessonNextStepGuard;
 use OCA\Learniq\Listener\PreviewWriteGuard;

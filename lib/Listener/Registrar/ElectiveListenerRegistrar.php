@@ -7,8 +7,8 @@
  * (timetabling-elective-lesson-signup): eligibility, the window, capacity and
  * one sign-up per learner per lesson, on every create and update.
  *
- * @category AppInfo
- * @package  OCA\Learniq\AppInfo\Registrar
+ * @category Listener
+ * @package  OCA\Learniq\Listener\Registrar
  *
  * @author    Conduction Development Team <dev@conduction.nl>
  * @copyright 2026 Conduction B.V.
@@ -25,7 +25,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Learniq\AppInfo\Registrar;
+namespace OCA\Learniq\Listener\Registrar;
 
 use OCA\Learniq\Listener\ElectiveSignUpRules;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;

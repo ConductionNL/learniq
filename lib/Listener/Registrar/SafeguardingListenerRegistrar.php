@@ -11,8 +11,8 @@
  * the server decides who asked, because the requester may not grant it, and
  * scopes a line manager's request to their direct reports.
  *
- * @category AppInfo
- * @package  OCA\Learniq\AppInfo\Registrar
+ * @category Listener
+ * @package  OCA\Learniq\Listener\Registrar
  *
  * @author    Conduction Development Team <dev@conduction.nl>
  * @copyright 2026 Conduction B.V.
@@ -30,7 +30,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Learniq\AppInfo\Registrar;
+namespace OCA\Learniq\Listener\Registrar;
 
 use OCA\Learniq\Listener\AccessibilityFeedbackReporterStamp;
 use OCA\Learniq\Listener\ConcernReportReporterStamp;

@@ -30,7 +30,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\IntegrityListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\IntegrityListenerRegistrar;
 use OCA\Learniq\Listener\HourWeekSubmissionStamp;
 use OCA\Learniq\Listener\HourWeekTotalRollup;
 use OCA\Learniq\Service\ListenerSchemaResolver;

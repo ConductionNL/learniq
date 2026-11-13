@@ -23,7 +23,7 @@ namespace OCA\Learniq\Tests\Unit\Listener;
 
 use DateTime;
 use OCA\Integriq\Event\ExchangeRecordsReceivedEvent;
-use OCA\Learniq\AppInfo\Registrar\CaseListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\CaseListenerRegistrar;
 use OCA\Learniq\Listener\ExchangeImportLandingListener;
 use OCA\Learniq\Service\ExchangeImportLanding;
 use OCA\OpenRegister\Service\ObjectService;

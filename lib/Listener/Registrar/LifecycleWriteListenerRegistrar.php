@@ -12,8 +12,8 @@
  * next to the LearnerProfile uuid on every create and update of
  * ExternalTrainingRecord, ExemptionCase and FraudCase.
  *
- * @category AppInfo
- * @package  OCA\Learniq\AppInfo\Registrar
+ * @category Listener
+ * @package  OCA\Learniq\Listener\Registrar
  *
  * @author    Conduction Development Team <dev@conduction.nl>
  * @copyright 2026 Conduction B.V.
@@ -30,7 +30,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Learniq\AppInfo\Registrar;
+namespace OCA\Learniq\Listener\Registrar;
 
 use OCA\Learniq\Listener\CredentialWalletTransitionListener;
 use OCA\Learniq\Listener\LearnerUserIdStamp;

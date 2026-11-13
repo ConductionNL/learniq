@@ -9,8 +9,8 @@
  * reviews. Kept in its own registrar because it is the app's only listener on
  * a Nextcloud Files event rather than an OpenRegister object event.
  *
- * @category AppInfo
- * @package  OCA\Learniq\AppInfo\Registrar
+ * @category Listener
+ * @package  OCA\Learniq\Listener\Registrar
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -27,7 +27,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Learniq\AppInfo\Registrar;
+namespace OCA\Learniq\Listener\Registrar;
 
 use OCA\Learniq\Listener\LessonOnboardingFileListener;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;

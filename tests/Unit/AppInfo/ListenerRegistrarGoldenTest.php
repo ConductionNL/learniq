@@ -21,10 +21,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\AppInfo;
 
-use OCA\Learniq\AppInfo\Registrar\BootListenerRegistrar;
-use OCA\Learniq\AppInfo\Registrar\GradingListenerRegistrar;
-use OCA\Learniq\AppInfo\Registrar\SafeguardingListenerRegistrar;
-use OCA\Learniq\AppInfo\Registrar\SchedulingListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\BootListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\GradingListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\SafeguardingListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\SchedulingListenerRegistrar;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\EventDispatcher\IEventDispatcher;
 use PHPUnit\Framework\TestCase;
@@ -35,14 +35,14 @@ use PHPUnit\Framework\TestCase;
  * tests/Unit/AppInfo/golden/ListenerRegistrars.json. With RECORD_GOLDEN=1 the
  * file is written instead of compared.
  *
- * @covers \OCA\Learniq\AppInfo\Registrar\BootListenerRegistrar
- * @covers \OCA\Learniq\AppInfo\Registrar\GradingListenerRegistrar
- * @covers \OCA\Learniq\AppInfo\Registrar\SafeguardingListenerRegistrar
- * @covers \OCA\Learniq\AppInfo\Registrar\SchedulingListenerRegistrar
- * @covers \OCA\Learniq\AppInfo\Registrar\RegistersEventListeners
+ * @covers \OCA\Learniq\Listener\Registrar\BootListenerRegistrar
+ * @covers \OCA\Learniq\Listener\Registrar\GradingListenerRegistrar
+ * @covers \OCA\Learniq\Listener\Registrar\SafeguardingListenerRegistrar
+ * @covers \OCA\Learniq\Listener\Registrar\SchedulingListenerRegistrar
+ * @covers \OCA\Learniq\Listener\Registrar\RegistersEventListeners
  * @uses   \OCA\Learniq\AppInfo\OpenRegisterAutoloader
- * @uses   \OCA\Learniq\AppInfo\Registrar\AttemptLimitListenerRegistrar
- * @uses   \OCA\Learniq\AppInfo\Registrar\GovernanceListenerRegistrar
+ * @uses   \OCA\Learniq\Listener\Registrar\AttemptLimitListenerRegistrar
+ * @uses   \OCA\Learniq\Listener\Registrar\GovernanceListenerRegistrar
  */
 class ListenerRegistrarGoldenTest extends TestCase {
 
