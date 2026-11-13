@@ -4732,7 +4732,7 @@
 						}
 					]
 				},
-				"_note": "A Submission is a learner's handed-in work for an assignment (attachments, feedback, rubric scores, proposed grade, linked grade entry) — a result/score record. Body leads with the submission data including feedback and rubric scores (8-wide), a proposed-grade KPI stat, and a Related panel resolving the assignment and grade entry. The submitted work renders as a Files leaf (attachments are the point of a submission). No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"_note": "A Submission is a learner's handed-in work for an assignment (attachments, feedback, rubric scores, proposed grade, linked grade entry) — a result/score record. Body leads with the submission data including feedback and rubric scores (8-wide), a proposed-grade KPI stat, and a Related panel resolving the assignment and grade entry. The submitted work renders as a Files leaf (attachments are the point of a submission). No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail. Peer feedback is the Submission's PeerFeedbackSummary (average score, number of released reviews): its read rule lets the Submission's own learner in once a review is released, and it names no reviewer (cohort-room-and-feedback-summary-for-the-learner).",
 				"widgets": [
 					{
 						"id": "sub-data",
@@ -4755,6 +4755,27 @@
 						"integrationId": "files",
 						"title": "Submitted work",
 						"icon": "FolderOutline"
+					},
+					{
+						"id": "sub-peer-feedback",
+						"type": "record-list",
+						"title": "Peer feedback",
+						"icon": "MessageTextOutline",
+						"content": {
+							"register": "learniq",
+							"schema": "peer-feedback-summary",
+							"filter": {
+								"submissionId": "@objectId"
+							},
+							"limit": 1,
+							"presentation": "rows",
+							"title": "Average score {averageScore}",
+							"meta": "{reviewCount} released reviews",
+							"trailing": [
+								"{lastComputedAt|date}"
+							],
+							"emptyText": "No peer feedback released yet"
+						}
 					}
 				],
 				"layout": [
@@ -4784,6 +4805,15 @@
 						"gridWidth": 12,
 						"gridHeight": 3,
 						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "sub-peer-feedback",
+						"gridX": 0,
+						"gridY": 8,
+						"gridWidth": 12,
+						"gridHeight": 2,
+						"showTitle": true
 					}
 				],
 				"sidebar": {
