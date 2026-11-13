@@ -39,8 +39,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\AuditPackBuilderInterface;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Service\AuditPackBuilder;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -72,13 +72,13 @@ class AuditPackExportController extends Controller {
 	 * @param IRequest $request HTTP request.
 	 * @param IUserSession $userSession Nextcloud user session.
 	 * @param ActionAuthService $actionAuth ADR-023 action authorization service.
-	 * @param AuditPackBuilder $packBuilder Audit-pack assembly (query, verify, render, zip).
+	 * @param AuditPackBuilderInterface $packBuilder Audit-pack assembly (query, verify, render, zip).
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly ActionAuthService $actionAuth,
-		private readonly AuditPackBuilder $packBuilder,
+		private readonly AuditPackBuilderInterface $packBuilder,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()

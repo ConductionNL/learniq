@@ -34,6 +34,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ContributionBeneficiaryResolverInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -41,7 +42,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/specs/payments/spec.md#requirement-an-entitlement-is-granted-only-once-shillinq-reports-its-payment-request-settled
  */
-class ContributionBeneficiaryResolver {
+class ContributionBeneficiaryResolver implements ContributionBeneficiaryResolverInterface {
 
 	public const APP = 'learniq';
 	private const REGISTER = 'learniq';

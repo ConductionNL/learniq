@@ -63,6 +63,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -72,7 +73,7 @@ use Throwable;
  * Turns an OpenRegister entity's schema id into its slug, scoped to Learniq's
  * own register.
  */
-class ListenerSchemaResolver {
+class ListenerSchemaResolver implements ListenerSchemaResolverInterface {
 
 	/**
 	 * The OpenRegister register slug owning Learniq's schemas.

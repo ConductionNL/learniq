@@ -36,6 +36,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\LtiAgsPullClientInterface;
 use OCA\Learniq\Support\FleetAppId;
 use OCP\App\IAppManager;
 use OCP\Http\Client\IClientService;
@@ -51,7 +52,7 @@ use Throwable;
  *
  * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.1
  */
-class LtiAgsPullClient {
+class LtiAgsPullClient implements LtiAgsPullClientInterface {
 
 	/**
 	 * The real (verified at HEAD) OpenConnector `events-cloudevents` pull

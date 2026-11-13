@@ -52,9 +52,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\ItemAnalysisServiceInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Service\AssessmentObjectReads;
-use OCA\Learniq\Service\ItemAnalysisService;
-use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -116,17 +116,17 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object access.
-	 * @param ItemAnalysisService $itemAnalysisService CTT statistics calculation engine.
+	 * @param ItemAnalysisServiceInterface $itemAnalysisService CTT statistics calculation engine.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly ItemAnalysisService $itemAnalysisService,
+		private readonly ItemAnalysisServiceInterface $itemAnalysisService,
 		private readonly ITimeFactory $timeFactory,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 		$this->reads = new AssessmentObjectReads(objectService: $objectService);
 	}//end __construct()

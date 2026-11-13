@@ -29,8 +29,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\RollCallServiceInterface;
 use OCA\Learniq\Service\Attendance\RollCallException;
-use OCA\Learniq\Service\Attendance\RollCallService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -53,7 +53,7 @@ class RollCallController extends Controller {
 	 *
 	 * @param IRequest        $request     The request.
 	 * @param IUserSession    $userSession The signed-in user.
-	 * @param RollCallService $rollCall    The register rules.
+	 * @param RollCallServiceInterface $rollCall    The register rules.
 	 * @param LoggerInterface $logger      PSR logger.
 	 * @param IL10N           $l10n        Messages.
 	 *
@@ -62,7 +62,7 @@ class RollCallController extends Controller {
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
-		private readonly RollCallService $rollCall,
+		private readonly RollCallServiceInterface $rollCall,
 		private readonly LoggerInterface $logger,
 		private readonly IL10N $l10n,
 	) {

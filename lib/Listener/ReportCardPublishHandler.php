@@ -39,8 +39,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\ReportSubjectGradeRows;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ReportSubjectGradeRowsInterface;
 use OCA\Learniq\Support\EntityRow;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -71,9 +71,9 @@ class ReportCardPublishHandler implements IEventListener {
 	 * @param ObjectService $objectService OR object access service.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 * @param IFactory $l10nFactory The instance's language, for the readable subject of the notice.
-	 * @param ReportSubjectGradeRows $subjectRows Writes the card's per-subject rows for the parent portal.
+	 * @param ReportSubjectGradeRowsInterface $subjectRows Writes the card's per-subject rows for the parent portal.
 	 *
 	 * @return void
 	 */
@@ -81,9 +81,9 @@ class ReportCardPublishHandler implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly ITimeFactory $timeFactory,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 		private readonly IFactory $l10nFactory,
-		private readonly ReportSubjectGradeRows $subjectRows,
+		private readonly ReportSubjectGradeRowsInterface $subjectRows,
 	) {
 	}//end __construct()
 

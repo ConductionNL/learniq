@@ -36,6 +36,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\RoomUtilisationServiceInterface;
 use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
 use OCA\OpenRegister\Service\ObjectService;
 use RuntimeException;
@@ -46,7 +47,7 @@ use Throwable;
  *
  * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
  */
-class RoomUtilisationService {
+class RoomUtilisationService implements RoomUtilisationServiceInterface {
 
 	private const REGISTER = 'learniq';
 

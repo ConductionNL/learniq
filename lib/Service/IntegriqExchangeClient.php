@@ -29,6 +29,7 @@ namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Exception\ExchangeRequestRefusedException;
 use OCA\Learniq\Exception\IntegriqUnavailableException;
+use OCA\Learniq\Kernel\Contracts\IntegriqExchangeClientInterface;
 use OCA\Learniq\Support\EventGetter;
 use OCP\App\IAppManager;
 use OCP\EventDispatcher\Event;
@@ -44,7 +45,7 @@ use OCP\EventDispatcher\IEventDispatcher;
  *
  * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
  */
-class IntegriqExchangeClient {
+class IntegriqExchangeClient implements IntegriqExchangeClientInterface {
 
 	public const INTEGRIQ_APP = 'integriq';
 	public const OWNER_APP = 'learniq';

@@ -45,6 +45,7 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use OCA\Learniq\Kernel\Contracts\ConferenceSlotClaimInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Lock\ILockingProvider;
 use OCP\Lock\LockedException;
@@ -54,7 +55,7 @@ use OCP\Lock\LockedException;
  *
  * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
  */
-class ConferenceSlotClaim {
+class ConferenceSlotClaim implements ConferenceSlotClaimInterface {
 
 	private const REGISTER = 'learniq';
 

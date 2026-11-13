@@ -29,7 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
-use OCA\Learniq\Service\Programme\ProgrammeProgress;
+use OCA\Learniq\Kernel\Contracts\ProgrammeProgressInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -47,14 +47,14 @@ class ProgrammeProgressController extends Controller {
 	 *
 	 * @param IRequest          $request     The request.
 	 * @param IUserSession      $userSession The signed-in user.
-	 * @param ProgrammeProgress $progress    Progress per programme.
+	 * @param ProgrammeProgressInterface $progress    Progress per programme.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
-		private readonly ProgrammeProgress $progress,
+		private readonly ProgrammeProgressInterface $progress,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()

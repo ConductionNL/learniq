@@ -35,6 +35,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\SubstitutionCandidateServiceInterface;
 use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserManager;
@@ -45,7 +46,7 @@ use Throwable;
  *
  * @spec openspec/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
  */
-class SubstitutionCandidateService {
+class SubstitutionCandidateService implements SubstitutionCandidateServiceInterface {
 
 	private const REGISTER = 'learniq';
 

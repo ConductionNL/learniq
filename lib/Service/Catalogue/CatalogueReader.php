@@ -32,6 +32,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Catalogue;
 
+use OCA\Learniq\Kernel\Contracts\CatalogueReaderInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -39,7 +40,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
  */
-class CatalogueReader {
+class CatalogueReader implements CatalogueReaderInterface {
 
 	private const REGISTER = 'learniq';
 

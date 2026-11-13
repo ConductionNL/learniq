@@ -23,7 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
-use OCA\Learniq\Service\Portal\PortalLearnerResolver;
+use OCA\Learniq\Kernel\Contracts\PortalLearnerResolverInterface;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use Throwable;
@@ -46,11 +46,11 @@ final class PortalLearnerForward {
 	 * Constructor.
 	 *
 	 * @param PortalForwardGate     $gate     Admits the forward.
-	 * @param PortalLearnerResolver $learners learnerRef to the pupil.
+	 * @param PortalLearnerResolverInterface $learners learnerRef to the pupil.
 	 */
 	public function __construct(
 		private readonly PortalForwardGate $gate,
-		private readonly PortalLearnerResolver $learners,
+		private readonly PortalLearnerResolverInterface $learners,
 	) {
 	}//end __construct()
 

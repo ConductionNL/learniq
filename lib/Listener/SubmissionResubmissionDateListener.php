@@ -38,7 +38,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -69,7 +69,7 @@ class SubmissionResubmissionDateListener implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
 	 * @param IUserSession $userSession The signed-in user, if any.
 	 * @param IGroupManager $groupManager Group membership and admin checks.
 	 * @param LoggerInterface $logger PSR logger.
@@ -77,7 +77,7 @@ class SubmissionResubmissionDateListener implements IEventListener {
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
 		private readonly LoggerInterface $logger,

@@ -31,8 +31,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\QtiExportServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Service\QtiExportService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -51,7 +51,7 @@ class QtiExportController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest $request HTTP request.
-	 * @param QtiExportService $qtiExportService QTI export service.
+	 * @param QtiExportServiceInterface $qtiExportService QTI export service.
 	 * @param IUserSession $userSession Nextcloud user session.
 	 * @param ActionAuthService $actionAuth ADR-023 action authorization service.
 	 *
@@ -59,7 +59,7 @@ class QtiExportController extends Controller {
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly QtiExportService $qtiExportService,
+		private readonly QtiExportServiceInterface $qtiExportService,
 		private readonly IUserSession $userSession,
 		private readonly ActionAuthService $actionAuth,
 	) {

@@ -35,6 +35,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\SubmissionMarkReaderInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -42,7 +43,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/specs/assignments/spec.md#requirement-a-marker-sees-other-marks-only-after-submitting-their-own
  */
-class SubmissionMarkReader {
+class SubmissionMarkReader implements SubmissionMarkReaderInterface {
 
 	private const REGISTER = 'learniq';
 	private const MARK_SCHEMA = 'submission-mark';

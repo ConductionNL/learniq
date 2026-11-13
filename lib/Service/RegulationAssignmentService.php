@@ -37,13 +37,14 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\RegulationAssignmentServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
 /**
  * Creates mandatory enrolments for the learners a regulation covers.
  */
-class RegulationAssignmentService {
+class RegulationAssignmentService implements RegulationAssignmentServiceInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const PAGE_LIMIT = 10000;

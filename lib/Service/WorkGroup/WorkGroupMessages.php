@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\WorkGroup;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\WorkGroupMessagesInterface;
 use OCP\IUser;
 use OCP\L10N\IFactory;
 
@@ -35,7 +36,7 @@ use OCP\L10N\IFactory;
  *
  * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
  */
-class WorkGroupMessages {
+class WorkGroupMessages implements WorkGroupMessagesInterface {
 
 	/**
 	 * English source text per reason; translated through l10n.

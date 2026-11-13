@@ -31,7 +31,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
-use OCA\Learniq\Service\Accessibility\ConformanceEvidence;
+use OCA\Learniq\Kernel\Contracts\ConformanceEvidenceInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
@@ -58,13 +58,13 @@ class AccessibilityEvidenceController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest $request The HTTP request.
-	 * @param ConformanceEvidence $evidence Builds the public conformance table.
+	 * @param ConformanceEvidenceInterface $evidence Builds the public conformance table.
 	 * @param IURLGenerator $urlGenerator Builds the download links.
 	 * @param LoggerInterface $logger PSR logger.
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly ConformanceEvidence $evidence,
+		private readonly ConformanceEvidenceInterface $evidence,
 		private readonly IURLGenerator $urlGenerator,
 		private readonly LoggerInterface $logger,
 	) {

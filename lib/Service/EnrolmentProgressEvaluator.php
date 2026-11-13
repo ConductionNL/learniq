@@ -37,12 +37,13 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\EnrolmentProgressEvaluatorInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
  * Computes progressPercent = round(completedLessonCount / totalPublishedLessonCount * 100).
  */
-class EnrolmentProgressEvaluator {
+class EnrolmentProgressEvaluator implements EnrolmentProgressEvaluatorInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const LESSON_SCHEMA = 'lesson';

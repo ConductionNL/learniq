@@ -42,6 +42,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\QtiExportServiceInterface;
 use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
 use RuntimeException;
@@ -49,7 +50,7 @@ use RuntimeException;
 /**
  * Builds a QTI 2.1 export package for an `ItemBank`.
  */
-class QtiExportService {
+class QtiExportService implements QtiExportServiceInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 

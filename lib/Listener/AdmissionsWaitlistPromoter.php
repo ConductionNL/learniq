@@ -45,7 +45,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Support\EntityRow;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
@@ -79,7 +79,7 @@ class AdmissionsWaitlistPromoter implements IEventListener {
 	 * @param ObjectService $objectService OR object access service.
 	 * @param TransitionEngine $transitionEngine OR lifecycle engine used to dispatch the `promote` transition.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -87,7 +87,7 @@ class AdmissionsWaitlistPromoter implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly TransitionEngine $transitionEngine,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 

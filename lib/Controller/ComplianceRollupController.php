@@ -33,10 +33,10 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\ComplianceRollupServiceInterface;
+use OCA\Learniq\Kernel\Contracts\RegulationAssignmentServiceInterface;
+use OCA\Learniq\Kernel\Contracts\RegulationCoverageServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Service\ComplianceRollupService;
-use OCA\Learniq\Service\RegulationAssignmentService;
-use OCA\Learniq\Service\RegulationCoverageService;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -57,19 +57,19 @@ class ComplianceRollupController extends Controller {
 	 * @param IRequest                    $request       HTTP request.
 	 * @param IUserSession                $userSession   Current user session.
 	 * @param ActionAuthService           $actionAuth    ADR-023 action authorization.
-	 * @param ComplianceRollupService     $rollup        Roll-up computation.
-	 * @param RegulationAssignmentService $assignment    Audience-scoped assignment.
+	 * @param ComplianceRollupServiceInterface     $rollup        Roll-up computation.
+	 * @param RegulationAssignmentServiceInterface $assignment    Audience-scoped assignment.
 	 * @param ObjectService               $objectService OR object access.
-	 * @param RegulationCoverageService   $coverage      Coverage per regulation.
+	 * @param RegulationCoverageServiceInterface   $coverage      Coverage per regulation.
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly ActionAuthService $actionAuth,
-		private readonly ComplianceRollupService $rollup,
-		private readonly RegulationAssignmentService $assignment,
+		private readonly ComplianceRollupServiceInterface $rollup,
+		private readonly RegulationAssignmentServiceInterface $assignment,
 		private readonly ObjectService $objectService,
-		private readonly RegulationCoverageService $coverage,
+		private readonly RegulationCoverageServiceInterface $coverage,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()

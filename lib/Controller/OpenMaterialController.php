@@ -31,9 +31,9 @@ namespace OCA\Learniq\Controller;
 use OCA\Learniq\Exception\IntegriqUnavailableException;
 use OCA\Learniq\Exception\MaterialImportRefusedException;
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\OpenMaterialImportServiceInterface;
+use OCA\Learniq\Kernel\Contracts\OpenMaterialSearchInterface;
 use OCA\Learniq\Service\CallerActions;
-use OCA\Learniq\Service\OpenMaterial\OpenMaterialImportService;
-use OCA\Learniq\Service\OpenMaterial\OpenMaterialSearch;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -59,14 +59,14 @@ class OpenMaterialController extends Controller {
 	 *
 	 * @param IRequest                  $request HTTP request.
 	 * @param CallerActions             $caller  The user session and the action matrix.
-	 * @param OpenMaterialSearch        $search  Searches the source.
-	 * @param OpenMaterialImportService $imports Adds a record as a Material.
+	 * @param OpenMaterialSearchInterface        $search  Searches the source.
+	 * @param OpenMaterialImportServiceInterface $imports Adds a record as a Material.
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly CallerActions $caller,
-		private readonly OpenMaterialSearch $search,
-		private readonly OpenMaterialImportService $imports,
+		private readonly OpenMaterialSearchInterface $search,
+		private readonly OpenMaterialImportServiceInterface $imports,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()

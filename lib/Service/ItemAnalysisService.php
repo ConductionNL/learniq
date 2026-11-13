@@ -55,6 +55,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\ItemAnalysisServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -78,7 +79,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
-class ItemAnalysisService {
+class ItemAnalysisService implements ItemAnalysisServiceInterface {
 
 	private const ASSESSMENT_SCHEMA = 'exam';
 	private const ITEM_SCHEMA = 'item';

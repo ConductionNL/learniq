@@ -35,7 +35,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle\Action;
 
-use OCA\Learniq\Service\LearningRecordImportService;
+use OCA\Learniq\Kernel\Contracts\LearningRecordImportServiceInterface;
 use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 
@@ -49,12 +49,12 @@ class LearningRecordImportParseAction implements LifecycleActionInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param LearningRecordImportService $importService The bundle parser.
+	 * @param LearningRecordImportServiceInterface $importService The bundle parser.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly LearningRecordImportService $importService,
+		private readonly LearningRecordImportServiceInterface $importService,
 	) {
 	}//end __construct()
 

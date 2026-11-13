@@ -47,7 +47,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use OCA\Learniq\Service\Grading\ReportPeriodLocks;
+use OCA\Learniq\Kernel\Contracts\ReportPeriodLocksInterface;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use Psr\Log\LoggerInterface;
@@ -71,13 +71,13 @@ class ReportPeriodComposeGuard implements LifecycleGuardInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param ReportPeriodLocks $locks Whether a report period is locked.
+	 * @param ReportPeriodLocksInterface $locks Whether a report period is locked.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ReportPeriodLocks $locks,
+		private readonly ReportPeriodLocksInterface $locks,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()

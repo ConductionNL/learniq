@@ -34,8 +34,8 @@ namespace OCA\Learniq\Controller;
 
 use InvalidArgumentException;
 use OCA\Learniq\Kernel\AppIdentity;
-use OCA\Learniq\Service\LessonOnboarding\LessonOnboardingImporter;
-use OCA\Learniq\Service\LessonOnboarding\OnboardingFolderSetting;
+use OCA\Learniq\Kernel\Contracts\LessonOnboardingImporterInterface;
+use OCA\Learniq\Kernel\Contracts\OnboardingFolderSettingInterface;
 use OCA\Learniq\Service\LessonOnboarding\OnboardingImportException;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -56,15 +56,15 @@ class LessonOnboardingController extends Controller {
 	 *
 	 * @param IRequest $request The request.
 	 * @param IUserSession $userSession The signed-in user.
-	 * @param OnboardingFolderSetting $folderSetting The per-teacher folder.
-	 * @param LessonOnboardingImporter $importer Turns a confirmed file into a lesson draft.
+	 * @param OnboardingFolderSettingInterface $folderSetting The per-teacher folder.
+	 * @param LessonOnboardingImporterInterface $importer Turns a confirmed file into a lesson draft.
 	 * @param LoggerInterface $logger Logs an unexpected failure.
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
-		private readonly OnboardingFolderSetting $folderSetting,
-		private readonly LessonOnboardingImporter $importer,
+		private readonly OnboardingFolderSettingInterface $folderSetting,
+		private readonly LessonOnboardingImporterInterface $importer,
 		private readonly LoggerInterface $logger,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);

@@ -25,7 +25,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
-use OCA\Learniq\Service\ConnectionReportService;
+use OCA\Learniq\Kernel\Contracts\ConnectionReportServiceInterface;
 use OCA\Learniq\Service\SettingsService;
 use OCA\Learniq\Settings\AdminSettings;
 use OCP\AppFramework\Controller;
@@ -52,14 +52,14 @@ class SettingsController extends Controller {
 	 *
 	 * @param IRequest $request The request object
 	 * @param SettingsService $settingsService The settings service
-	 * @param ConnectionReportService|null $connectionReports Sends integriq the recorded connection outcomes after a save
+	 * @param ConnectionReportServiceInterface|null $connectionReports Sends integriq the recorded connection outcomes after a save
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
 		private SettingsService $settingsService,
-		private ?ConnectionReportService $connectionReports = null,
+		private ?ConnectionReportServiceInterface $connectionReports = null,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()

@@ -35,6 +35,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\SubmissionMarkAllocationServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -42,7 +43,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
  */
-class SubmissionMarkAllocationService {
+class SubmissionMarkAllocationService implements SubmissionMarkAllocationServiceInterface {
 
 	private const REGISTER = 'learniq';
 	private const SUBMISSION_SCHEMA = 'submission';

@@ -52,6 +52,7 @@ use DateInterval;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Exception;
+use OCA\Learniq\Kernel\Contracts\LessonReleaseEvaluatorInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -59,7 +60,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
  */
-class LessonReleaseEvaluator {
+class LessonReleaseEvaluator implements LessonReleaseEvaluatorInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 

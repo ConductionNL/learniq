@@ -21,7 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
-use OCA\Learniq\Service\ReportCardGradeLines;
+use OCA\Learniq\Kernel\Contracts\ReportCardGradeLinesInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -69,14 +69,14 @@ class BackfillReportCardGradeLines implements IRepairStep {
 	 * Constructor.
 	 *
 	 * @param ObjectService        $objectService OpenRegister object access.
-	 * @param ReportCardGradeLines $gradeLines    Derives the readable copies.
+	 * @param ReportCardGradeLinesInterface $gradeLines    Derives the readable copies.
 	 * @param LoggerInterface      $logger        PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly ReportCardGradeLines $gradeLines,
+		private readonly ReportCardGradeLinesInterface $gradeLines,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()

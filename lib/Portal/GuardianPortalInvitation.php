@@ -38,7 +38,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
-use OCA\Learniq\Service\LearnerRefResolver;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Log\Audit\CriticalActionPerformedEvent;
@@ -117,7 +117,7 @@ class GuardianPortalInvitation {
 	/**
 	 * Constructor.
 	 *
-	 * @param LearnerRefResolver $profiles LearnerProfile by uuid.
+	 * @param LearnerRefResolverInterface $profiles LearnerProfile by uuid.
 	 * @param IEventDispatcher $dispatcher Dispatches portaliq's typed events.
 	 * @param LoggerInterface $logger PSR logger.
 	 * @param string $provisionEventClass The provision event class (overridable in tests).
@@ -127,7 +127,7 @@ class GuardianPortalInvitation {
 	 * @return void
 	 */
 	public function __construct(
-		private readonly LearnerRefResolver $profiles,
+		private readonly LearnerRefResolverInterface $profiles,
 		private readonly IEventDispatcher $dispatcher,
 		private readonly LoggerInterface $logger,
 		private readonly string $provisionEventClass=self::PROVISION_EVENT,

@@ -24,11 +24,15 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
+use OCA\Learniq\Kernel\Contracts\DashboardRoleServiceInterface;
+use OCA\Learniq\Kernel\Contracts\LineManagerCheckInterface;
+use OCA\Learniq\Kernel\Contracts\LoadedExampleSetsInterface;
+use OCA\Learniq\Kernel\Contracts\MenuStructureInterface;
+use OCA\Learniq\Kernel\Contracts\SegmentServiceInterface;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CourseStore\StoreAccessService;
-use OCA\Learniq\Service\DashboardRoleService;
 use OCA\Learniq\Service\LineManagerCheck;
-use OCA\Learniq\Service\LoadedExampleSets;
 use OCA\Learniq\Service\SegmentService;
 use OCA\Learniq\Service\Settings\MenuStructure;
 use OCP\AppFramework\Controller;
@@ -64,9 +68,9 @@ class PageController extends Controller {
 	 * @param IRequest $request The request object.
 	 * @param IUserSession $userSession The user session.
 	 * @param IInitialState $initialState The initial-state service.
-	 * @param DashboardRoleService $dashboardRoleSvc Resolves the user's role + dashboard views.
+	 * @param DashboardRoleServiceInterface $dashboardRoleSvc Resolves the user's role + dashboard views.
 	 * @param ContainerInterface $container Resolves SegmentService lazily (see resolveSegment()).
-	 * @param LoadedExampleSets $loadedSets The example sets the wizard loaded (app config only).
+	 * @param LoadedExampleSetsInterface $loadedSets The example sets the wizard loaded (app config only).
 	 *
 	 * @return void
 	 */
@@ -74,9 +78,9 @@ class PageController extends Controller {
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly IInitialState $initialState,
-		private readonly DashboardRoleService $dashboardRoleSvc,
+		private readonly DashboardRoleServiceInterface $dashboardRoleSvc,
 		private readonly ContainerInterface $container,
-		private readonly LoadedExampleSets $loadedSets,
+		private readonly LoadedExampleSetsInterface $loadedSets,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
@@ -119,7 +123,7 @@ class PageController extends Controller {
 			$this->initialState->provideInitialState('callerTenant', $this->resolveCallerTenant());
 			// Which structure `src/main.js` builds: the simple menu (the default)
 			// or the full one (simple-structure-profile).
-			$this->initialState->provideInitialState(MenuStructure::KEY, $this->resolveMenuStructure());
+			$this->initialState->provideInitialState(MenuStructureInterface::KEY, $this->resolveMenuStructure());
 		}
 
 		return new TemplateResponse(AppIdentity::APP_ID, 'index');
@@ -143,7 +147,7 @@ class PageController extends Controller {
 		try {
 			return $this->container->get(SegmentService::class)->workspace();
 		} catch (Throwable $e) {
-			return ['segment' => SegmentService::DEFAULT_SEGMENT, 'chosenSegment' => null];
+			return ['segment' => SegmentServiceInterface::DEFAULT_SEGMENT, 'chosenSegment' => null];
 		}
 	}//end resolveWorkspace()
 
@@ -162,7 +166,7 @@ class PageController extends Controller {
 		try {
 			return $this->container->get(MenuStructure::class)->current();
 		} catch (Throwable $e) {
-			return MenuStructure::SIMPLE;
+			return MenuStructureInterface::SIMPLE;
 		}
 	}//end resolveMenuStructure()
 
@@ -192,7 +196,7 @@ class PageController extends Controller {
 	 * `user.managesLearners` menu gate.
 	 *
 	 * Resolved lazily and degraded to false on failure, for the same reason
-	 * as resolveWorkspace(): LineManagerCheck reads OpenRegister, and this is
+	 * as resolveWorkspace(): LineManagerCheckInterface reads OpenRegister, and this is
 	 * the app's default route.
 	 *
 	 * @return bool True when at least one learner names the user as manager.
@@ -218,7 +222,7 @@ class PageController extends Controller {
 	 * tenant context `src/main.js` feeds with this initial state.
 	 *
 	 * Resolved lazily and degraded to null on failure, for the same reason
-	 * as resolveWorkspace(): CallerTenantResolver takes OpenRegister's
+	 * as resolveWorkspace(): CallerTenantResolverInterface takes OpenRegister's
 	 * ObjectService, and this is the app's default route. Null means no
 	 * tenant context, so the dialog leaves the key out rather than guess.
 	 *

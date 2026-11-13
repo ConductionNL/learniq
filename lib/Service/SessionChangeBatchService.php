@@ -37,6 +37,7 @@ namespace OCA\Learniq\Service;
 
 use DateTimeZone;
 use InvalidArgumentException;
+use OCA\Learniq\Kernel\Contracts\SessionChangeBatchServiceInterface;
 use OCA\Learniq\Lifecycle\SessionChangeGuard;
 use OCA\Learniq\Listener\SessionChangeNoticeHandler;
 use OCA\Learniq\Timetabling\SessionChangeInput;
@@ -51,7 +52,7 @@ use Throwable;
  *
  * @spec openspec/specs/timetabling/spec.md#requirement-every-lesson-in-a-batch-passes-the-same-checks
  */
-class SessionChangeBatchService {
+class SessionChangeBatchService implements SessionChangeBatchServiceInterface {
 
 	private const REGISTER = 'learniq';
 	private const SESSION_SCHEMA = 'session';

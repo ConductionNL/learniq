@@ -32,6 +32,7 @@ use OCA\Learniq\Middleware\LookupIntegrityMiddleware;
 use OCA\Learniq\SetupCheck\WalletOfferTokenCheck;
 use OCA\Learniq\AppInfo\Registrar\ServiceOverrideRegistrar;
 use OCA\Learniq\Mcp\LearniqScannableServices;
+use OCA\Learniq\Service\ContractBindings;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -150,6 +151,10 @@ class Application extends App implements IBootstrap {
 		// the action-auth service and the install repair step at Learniq's own
 		// implementations, AFTER Bootstrap so they win over the generic aliases.
 		(new ServiceOverrideRegistrar())->register(context: $context, appId: self::APP_ID);
+
+		// Every Kernel contract that a caller type-hints resolves to its Service
+		// implementation.
+		(new ContractBindings())->register(context: $context);
 
 		// The curated agent tools (hermiq-ai-tooling): OpenRegister's attribute
 		// scan enumerates this alias to find learniq's `#[McpTool]` methods. It is

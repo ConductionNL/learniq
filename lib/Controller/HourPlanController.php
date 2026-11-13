@@ -30,7 +30,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
-use OCA\Learniq\Service\HourPlanActivityService;
+use OCA\Learniq\Kernel\Contracts\HourPlanActivityServiceInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -58,7 +58,7 @@ class HourPlanController extends Controller {
 	 * @param IRequest                $request      HTTP request.
 	 * @param IUserSession            $userSession  The caller.
 	 * @param IGroupManager           $groupManager Group checks.
-	 * @param HourPlanActivityService $activities   Derives the activities.
+	 * @param HourPlanActivityServiceInterface $activities   Derives the activities.
 	 *
 	 * @return void
 	 */
@@ -66,7 +66,7 @@ class HourPlanController extends Controller {
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
-		private readonly HourPlanActivityService $activities,
+		private readonly HourPlanActivityServiceInterface $activities,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()

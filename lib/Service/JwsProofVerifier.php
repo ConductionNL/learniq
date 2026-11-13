@@ -29,12 +29,14 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\JwsProofVerifierInterface;
+
 /**
  * Checks a payload's detached JWS proof.
  *
  * @spec openspec/specs/certification/spec.md#requirement-the-europass-form-is-checkable-on-the-verification-route
  */
-class JwsProofVerifier {
+class JwsProofVerifier implements JwsProofVerifierInterface {
 
 	/**
 	 * Constructor.

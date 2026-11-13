@@ -42,7 +42,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Timetabling;
 
-use OCA\Learniq\Service\TimetableExchangeSettings;
+use OCA\Learniq\Kernel\Contracts\TimetableExchangeSettingsInterface;
 use OCA\Learniq\Timetabling\Source\PlanninqTimetableSource;
 use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -90,9 +90,9 @@ class PlanninqTimetableImport {
 	/**
 	 * The group code maps the administrator keeps per rostering system.
 	 *
-	 * @var TimetableExchangeSettings
+	 * @var TimetableExchangeSettingsInterface
 	 */
-	private readonly TimetableExchangeSettings $groupMaps;
+	private readonly TimetableExchangeSettingsInterface $groupMaps;
 
 	/**
 	 * Constructor.

@@ -30,7 +30,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle\Action;
 
-use OCA\Learniq\Service\PokParentSignatureRule;
+use OCA\Learniq\Kernel\Contracts\PokParentSignatureRuleInterface;
 use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -52,11 +52,11 @@ class PokParentSignatureStampAction implements LifecycleActionInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param PokParentSignatureRule $parentRule Whether a parent signs.
+	 * @param PokParentSignatureRuleInterface $parentRule Whether a parent signs.
 	 * @param ObjectService $objectService Reads the version's signatures for the student's signing date.
 	 */
 	public function __construct(
-		private readonly PokParentSignatureRule $parentRule,
+		private readonly PokParentSignatureRuleInterface $parentRule,
 		private readonly ObjectService $objectService,
 	) {
 	}//end __construct()

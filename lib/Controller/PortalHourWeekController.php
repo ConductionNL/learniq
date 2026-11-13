@@ -32,8 +32,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PortalHourWeekApprovalInterface;
 use OCA\Learniq\Portal\PortalAssertionVerifier;
-use OCA\Learniq\Service\Portal\PortalHourWeekApproval;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
@@ -79,7 +79,7 @@ class PortalHourWeekController extends Controller {
 	 *
 	 * @param IRequest                   $request     The request.
 	 * @param PortalAssertionVerifier    $verifier    Verifies X-Portal-Subject.
-	 * @param PortalHourWeekApproval $approvals Checks, stamps and stores the approval.
+	 * @param PortalHourWeekApprovalInterface $approvals Checks, stamps and stores the approval.
 	 * @param LoggerInterface            $logger      PSR logger.
 	 *
 	 * @return void
@@ -87,7 +87,7 @@ class PortalHourWeekController extends Controller {
 	public function __construct(
 		IRequest $request,
 		private readonly PortalAssertionVerifier $verifier,
-		private readonly PortalHourWeekApproval $approvals,
+		private readonly PortalHourWeekApprovalInterface $approvals,
 		private readonly LoggerInterface $logger,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);

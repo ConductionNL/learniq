@@ -32,6 +32,7 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\RegulationCoverageServiceInterface;
 
 /**
  * Coverage per active regulation.
@@ -40,7 +41,7 @@ use DateTimeZone;
  *
  * @spec openspec/changes/compliance-rule-coverage-table/specs/compliance-rule-coverage/spec.md#requirement-per-rule-coverage-table
  */
-class RegulationCoverageService {
+class RegulationCoverageService implements RegulationCoverageServiceInterface {
 
 	/**
 	 * Regulation.ragRedThreshold and ragAmberThreshold defaults, as the register declares them.

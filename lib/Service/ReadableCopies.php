@@ -33,6 +33,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ReadableCopiesInterface;
 use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserManager;
@@ -42,7 +43,7 @@ use OCP\IUserManager;
  *
  * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
  */
-class ReadableCopies {
+class ReadableCopies implements ReadableCopiesInterface {
 
 	private const REGISTER = 'learniq';
 

@@ -33,6 +33,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\PersonalTimetableServiceInterface;
 use OCA\Learniq\Support\ObjectRow;
 use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
 use OCA\OpenRegister\Service\ObjectService;
@@ -44,7 +45,7 @@ use RuntimeException;
  *
  * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
  */
-class PersonalTimetableService {
+class PersonalTimetableService implements PersonalTimetableServiceInterface {
 	/**
 	 * OpenRegister register slug that owns the Learniq schemas.
 	 *

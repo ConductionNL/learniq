@@ -31,7 +31,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
-use OCA\Learniq\Service\ExamSittingOverview;
+use OCA\Learniq\Kernel\Contracts\ExamSittingOverviewInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -56,7 +56,7 @@ class ExamScheduleController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest $request The request.
-	 * @param ExamSittingOverview $overview Sitting overview reads.
+	 * @param ExamSittingOverviewInterface $overview Sitting overview reads.
 	 * @param IUserSession $userSession The caller.
 	 * @param IGroupManager $groupManager Group membership.
 	 *
@@ -64,7 +64,7 @@ class ExamScheduleController extends Controller {
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly ExamSittingOverview $overview,
+		private readonly ExamSittingOverviewInterface $overview,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
 	) {

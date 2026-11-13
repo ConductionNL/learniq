@@ -52,6 +52,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\PeerReviewAllocationServiceInterface;
 use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -63,7 +64,7 @@ use Psr\Log\LoggerInterface;
  * @spec openspec/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
  * @spec openspec/specs/assignments/spec.md#requirement-allocation-reads-and-writes-as-the-system-after-the-controllers-check
  */
-class PeerReviewAllocationService {
+class PeerReviewAllocationService implements PeerReviewAllocationServiceInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const ASSIGNMENT_SCHEMA = 'assignment';

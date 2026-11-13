@@ -39,6 +39,7 @@ namespace OCA\Learniq\Service\Attendance;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use OCA\Learniq\Kernel\Contracts\AttendanceSummaryServiceInterface;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\PupilGroupTeachers;
 use OCA\Learniq\Support\ObjectRow;
@@ -52,7 +53,7 @@ use Throwable;
  *
  * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
  */
-class AttendanceSummaryService {
+class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 
 	private const REGISTER = 'learniq';
 	private const RECORD_SCHEMA = 'attendance-record';

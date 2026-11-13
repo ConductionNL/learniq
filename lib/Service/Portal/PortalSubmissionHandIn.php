@@ -31,6 +31,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
+use OCA\Learniq\Kernel\Contracts\PortalSubmissionHandInInterface;
 use OCA\Learniq\Lifecycle\SubmissionWindowGuard;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
@@ -44,7 +45,7 @@ use Throwable;
  *
  * @spec openspec/specs/assignments/spec.md#requirement-a-pupil-hands-in-a-portal-draft-through-learniqs-own-endpoint
  */
-class PortalSubmissionHandIn {
+class PortalSubmissionHandIn implements PortalSubmissionHandInInterface {
 	use FindOrNull;
 
 	private const REGISTER = 'learniq';

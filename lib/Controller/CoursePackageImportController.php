@@ -34,10 +34,10 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
+use OCA\Learniq\Kernel\Contracts\CoursePackageImportServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerActions;
-use OCA\Learniq\Service\CallerTenantResolver;
-use OCA\Learniq\Service\CoursePackageImportService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -75,17 +75,17 @@ class CoursePackageImportController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest $request HTTP request.
-	 * @param CoursePackageImportService $importService Course-package import service.
+	 * @param CoursePackageImportServiceInterface $importService Course-package import service.
 	 * @param CallerActions $caller The user session and the ADR-023 action matrix.
-	 * @param CallerTenantResolver $tenants Resolves the tenant: the per-user binding, else the default tenant.
+	 * @param CallerTenantResolverInterface $tenants Resolves the tenant: the per-user binding, else the default tenant.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly CoursePackageImportService $importService,
+		private readonly CoursePackageImportServiceInterface $importService,
 		CallerActions $caller,
-		private readonly CallerTenantResolver $tenants,
+		private readonly CallerTenantResolverInterface $tenants,
 	) {
 		$this->userSession = $caller->userSession;
 		$this->actionAuth = $caller->actionAuth;

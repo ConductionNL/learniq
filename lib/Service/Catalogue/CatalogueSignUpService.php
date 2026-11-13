@@ -51,6 +51,7 @@ namespace OCA\Learniq\Service\Catalogue;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use OCA\Learniq\Kernel\Contracts\CatalogueSignUpServiceInterface;
 use OCA\Learniq\Service\Portal\PortalLearner;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCA\Learniq\Service\Programme\ProgrammeRequirements;
@@ -64,7 +65,7 @@ use Throwable;
  *
  * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
  */
-class CatalogueSignUpService {
+class CatalogueSignUpService implements CatalogueSignUpServiceInterface {
 	use FindOrNull;
 
 	private const REGISTER = 'learniq';

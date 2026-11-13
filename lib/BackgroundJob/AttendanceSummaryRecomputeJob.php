@@ -20,7 +20,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\BackgroundJob;
 
-use OCA\Learniq\Service\Attendance\AttendanceSummaryService;
+use OCA\Learniq\Kernel\Contracts\AttendanceSummaryServiceInterface;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -44,12 +44,12 @@ class AttendanceSummaryRecomputeJob extends ForwardedJob {
 	 *
 	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface          $logger       Logger; the base declares it protected.
-	 * @param AttendanceSummaryService $summaries    The recount.
+	 * @param AttendanceSummaryServiceInterface $summaries    The recount.
 	 */
 	public function __construct(
 		ActorForwarding $forwarding,
 		LoggerInterface $logger,
-		private readonly AttendanceSummaryService $summaries,
+		private readonly AttendanceSummaryServiceInterface $summaries,
 	) {
 		parent::__construct(forwarding: $forwarding, logger: $logger);
 	}//end __construct()

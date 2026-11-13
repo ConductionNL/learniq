@@ -36,6 +36,7 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\ExternalTrainingServiceInterface;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
@@ -46,7 +47,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
  */
-class ExternalTrainingService {
+class ExternalTrainingService implements ExternalTrainingServiceInterface {
 	use FindOrNull;
 
 	/**

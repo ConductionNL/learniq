@@ -31,9 +31,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PortalEmployerBookingsInterface;
 use OCA\Learniq\Portal\EmployerCompanyTenancy;
 use OCA\Learniq\Portal\PortalAssertionVerifier;
-use OCA\Learniq\Service\Portal\PortalEmployerBookings;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -71,7 +71,7 @@ class PortalEmployerController extends Controller {
 	 *
 	 * @param IRequest                $request   The request.
 	 * @param PortalAssertionVerifier $verifier  Verifies X-Portal-Subject.
-	 * @param PortalEmployerBookings  $bookings  Checks and stores the writes.
+	 * @param PortalEmployerBookingsInterface  $bookings  Checks and stores the writes.
 	 * @param EmployerCompanyTenancy  $tenancy   Checks the company lies in the portal's organisation.
 	 *
 	 * @return void
@@ -79,7 +79,7 @@ class PortalEmployerController extends Controller {
 	public function __construct(
 		IRequest $request,
 		private readonly PortalAssertionVerifier $verifier,
-		private readonly PortalEmployerBookings $bookings,
+		private readonly PortalEmployerBookingsInterface $bookings,
 		private readonly EmployerCompanyTenancy $tenancy,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);

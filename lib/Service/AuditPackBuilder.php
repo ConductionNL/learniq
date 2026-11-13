@@ -36,6 +36,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\AuditPackBuilderInterface;
 use OCA\OpenRegister\Service\AuditHashService;
 use OCP\IUser;
 
@@ -55,7 +56,7 @@ use OCP\IUser;
  *
  * @spec openspec/specs/avg-verwerkingsregister/spec.md
  */
-class AuditPackBuilder {
+class AuditPackBuilder implements AuditPackBuilderInterface {
 	/**
 	 * Constructor.
 	 *

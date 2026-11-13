@@ -29,6 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use InvalidArgumentException;
+use OCA\Learniq\Kernel\Contracts\KeyManagementServiceInterface;
 use OCP\IAppConfig;
 use OCP\Security\ICrypto;
 use RuntimeException;
@@ -43,10 +44,7 @@ use RuntimeException;
  *
  * Cryptographic operation — legitimate PHP seam per ADR-031.
  */
-class KeyManagementService {
-
-
-
+class KeyManagementService implements KeyManagementServiceInterface {
 
 	/**
 	 * Maximum number of archived public keys retained per tenant.

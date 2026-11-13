@@ -29,6 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\LineManagerCheckInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUser;
 use Throwable;
@@ -38,7 +39,7 @@ use Throwable;
  *
  * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-request-waits-for-a-teacher-or-manager
  */
-class LineManagerCheck {
+class LineManagerCheck implements LineManagerCheckInterface {
 	/**
 	 * Constructor.
 	 *

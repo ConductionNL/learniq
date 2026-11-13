@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Settings;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\AppealTermInterface;
 use OCP\IAppConfig;
 
 /**
@@ -34,17 +35,12 @@ use OCP\IAppConfig;
  *
  * @spec openspec/specs/exam-board/spec.md#requirement-a-decided-fraudcase-stamps-the-appeal-deadline-from-the-schools-appeal-term
  */
-class AppealTerm {
+class AppealTerm implements AppealTermInterface {
 
 	/**
 	 * The app config key.
 	 */
 	public const KEY = 'examBoardAppealDays';
-
-	/**
-	 * The term when the school set none.
-	 */
-	public const DEFAULT_DAYS = 42;
 
 	/**
 	 * The longest term the setting accepts.

@@ -23,6 +23,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\LoadedExampleSetsInterface;
 use OCP\IAppConfig;
 
 /**
@@ -37,7 +38,7 @@ use OCP\IAppConfig;
  *
  * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
  */
-class LoadedExampleSets {
+class LoadedExampleSets implements LoadedExampleSetsInterface {
 	/**
 	 * App-config key holding the loaded sets as a JSON list of `{id, label}`.
 	 *

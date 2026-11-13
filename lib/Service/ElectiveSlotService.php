@@ -31,6 +31,7 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\ElectiveSlotServiceInterface;
 use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
 use OCA\OpenRegister\Service\ObjectService;
 use RuntimeException;
@@ -39,20 +40,13 @@ use Throwable;
 /**
  * Weekly slots of courses and of the caller's core lessons.
  */
-class ElectiveSlotService {
+class ElectiveSlotService implements ElectiveSlotServiceInterface {
 	/**
 	 * Days ahead the slots are read from.
 	 *
 	 * @var int
 	 */
 	private const DAYS_AHEAD = 28;
-
-	/**
-	 * Most courses asked for at once.
-	 *
-	 * @var int
-	 */
-	public const MAX_COURSES = 20;
 
 	/**
 	 * Constructor.

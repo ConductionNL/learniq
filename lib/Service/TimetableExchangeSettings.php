@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\TimetableExchangeSettingsInterface;
 use OCA\Learniq\Listener\SupportRequestSubmitHandler;
 use OCP\IAppConfig;
 
@@ -32,21 +33,13 @@ use OCP\IAppConfig;
  *
  * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
  */
-class TimetableExchangeSettings {
+class TimetableExchangeSettings implements TimetableExchangeSettingsInterface {
 	/**
 	 * App-config key holding `{rosterSource: {groupCode: cohortId}}` as JSON.
 	 *
 	 * @var string
 	 */
 	public const GROUP_MAPS_KEY = 'timetable_group_maps';
-
-	/**
-	 * The rostering systems integriq delivers from: its Source row ids, as
-	 * PlanninqTimetableImport posts them (`roster-zermelo`, ...).
-	 *
-	 * @var array<int, string>
-	 */
-	public const ROSTER_SOURCES = ['roster-zermelo', 'roster-untis-oneroster', 'roster-xedule', 'roster-timeedit'];
 
 	/**
 	 * A receiver id: lowercase words joined by hyphens, as integriq names them.

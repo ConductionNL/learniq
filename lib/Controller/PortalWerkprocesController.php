@@ -31,8 +31,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PortalWerkprocesAssessmentInterface;
 use OCA\Learniq\Portal\PortalAssertionVerifier;
-use OCA\Learniq\Service\Portal\PortalWerkprocesAssessment;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
@@ -85,7 +85,7 @@ class PortalWerkprocesController extends Controller {
 	 *
 	 * @param IRequest                   $request     The request.
 	 * @param PortalAssertionVerifier    $verifier    Verifies X-Portal-Subject.
-	 * @param PortalWerkprocesAssessment $assessments Checks, stamps and stores the assessment.
+	 * @param PortalWerkprocesAssessmentInterface $assessments Checks, stamps and stores the assessment.
 	 * @param LoggerInterface            $logger      PSR logger.
 	 *
 	 * @return void
@@ -93,7 +93,7 @@ class PortalWerkprocesController extends Controller {
 	public function __construct(
 		IRequest $request,
 		private readonly PortalAssertionVerifier $verifier,
-		private readonly PortalWerkprocesAssessment $assessments,
+		private readonly PortalWerkprocesAssessmentInterface $assessments,
 		private readonly LoggerInterface $logger,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);

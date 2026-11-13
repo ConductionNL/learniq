@@ -49,10 +49,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Bpv\ProvidesLeerbedrijfVerification;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Bpv\ProvidesLeerbedrijfVerification;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Container\ContainerInterface;
@@ -82,7 +82,7 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 	 * @param ContainerInterface $container DI container used to resolve the configured
 	 *                                      ProvidesLeerbedrijfVerification adapter by FQCN.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -90,7 +90,7 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly ContainerInterface $container,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 

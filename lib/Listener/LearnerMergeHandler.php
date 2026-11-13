@@ -32,8 +32,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\LearnerMergeService;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\LearnerMergeServiceInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -52,16 +52,16 @@ class LearnerMergeHandler implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param LearnerMergeService $mergeService Record mover.
+	 * @param LearnerMergeServiceInterface $mergeService Record mover.
 	 * @param LoggerInterface     $logger       PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly LearnerMergeService $mergeService,
+		private readonly LearnerMergeServiceInterface $mergeService,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 

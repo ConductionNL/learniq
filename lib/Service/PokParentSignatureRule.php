@@ -45,6 +45,7 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use Exception;
+use OCA\Learniq\Kernel\Contracts\PokParentSignatureRuleInterface;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -54,18 +55,13 @@ use OCP\AppFramework\Utility\ITimeFactory;
  *
  * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
  */
-class PokParentSignatureRule {
+class PokParentSignatureRule implements PokParentSignatureRuleInterface {
 	use FindOrNull;
 
 	/**
 	 * The student was under 18 on the day that counts.
 	 */
 	public const REASON_MINOR = 'minor';
-
-	/**
-	 * The student's age cannot be established.
-	 */
-	public const REASON_UNKNOWN_AGE = 'unknown-age';
 
 	/**
 	 * The student was 18 or older on the day that counts.

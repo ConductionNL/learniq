@@ -34,10 +34,10 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PeerReviewAllocationServiceInterface;
+use OCA\Learniq\Service\CallerGroups;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Service\CallerGroups;
-use OCA\Learniq\Service\PeerReviewAllocationService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -80,13 +80,13 @@ class PeerReviewController extends Controller {
 	 * @param IRequest $request HTTP request.
 	 * @param CallerGroups $caller      The user session and the group manager.
 	 * @param ObjectService $objectService OR object query/persistence.
-	 * @param PeerReviewAllocationService $allocationService Reviewer allocation logic.
+	 * @param PeerReviewAllocationServiceInterface $allocationService Reviewer allocation logic.
 	 */
 	public function __construct(
 		IRequest $request,
 		CallerGroups $caller,
 		private readonly ObjectService $objectService,
-		private readonly PeerReviewAllocationService $allocationService,
+		private readonly PeerReviewAllocationServiceInterface $allocationService,
 	) {
 		$this->userSession = $caller->userSession;
 		$this->groupManager = $caller->groupManager;

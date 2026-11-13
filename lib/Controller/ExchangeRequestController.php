@@ -29,9 +29,9 @@ namespace OCA\Learniq\Controller;
 use OCA\Learniq\Exception\ExchangeRequestRefusedException;
 use OCA\Learniq\Exception\IntegriqUnavailableException;
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\IntegriqExchangeClientInterface;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerActions;
-use OCA\Learniq\Service\IntegriqExchangeClient;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -98,13 +98,13 @@ class ExchangeRequestController extends Controller {
 	 *
 	 * @param IRequest               $request       HTTP request.
 	 * @param CallerActions $caller The user session and the ADR-023 action matrix.
-	 * @param IntegriqExchangeClient $integriq      Asks integriq for the job.
+	 * @param IntegriqExchangeClientInterface $integriq      Asks integriq for the job.
 	 * @param ObjectService          $objectService Opens the parents' review.
 	 */
 	public function __construct(
 		IRequest $request,
 		CallerActions $caller,
-		private readonly IntegriqExchangeClient $integriq,
+		private readonly IntegriqExchangeClientInterface $integriq,
 		private readonly ObjectService $objectService,
 	) {
 		$this->userSession = $caller->userSession;

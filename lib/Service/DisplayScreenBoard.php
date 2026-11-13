@@ -33,6 +33,7 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\DisplayScreenBoardInterface;
 use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\ICacheFactory;
@@ -43,7 +44,7 @@ use Throwable;
  *
  * @spec openspec/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
  */
-class DisplayScreenBoard {
+class DisplayScreenBoard implements DisplayScreenBoardInterface {
 
 	public const KEYS = ['startsAt', 'endsAt', 'group', 'subject', 'room', 'teacherCode', 'change'];
 	private const REGISTER = 'learniq';

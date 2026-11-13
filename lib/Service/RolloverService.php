@@ -36,6 +36,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\RolloverServiceInterface;
 use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -45,7 +46,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
  *
  * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
  */
-class RolloverService {
+class RolloverService implements RolloverServiceInterface {
 	/**
 	 * OpenRegister register slug.
 	 */

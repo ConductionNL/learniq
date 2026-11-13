@@ -22,8 +22,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
-use OCA\Learniq\Service\ExampleSetSizes;
-use OCA\Learniq\Service\SeedProfileService;
+use OCA\Learniq\Kernel\Contracts\ExampleSetSizesInterface;
+use OCA\Learniq\Kernel\Contracts\SeedProfileServiceInterface;
 use OCA\Learniq\Settings\AdminSettings;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\AuthorizedAdminSetting;
@@ -53,13 +53,13 @@ class ExampleSetsController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest           $request      The request.
-	 * @param SeedProfileService $seedProfiles Reads which example sets are loaded.
-	 * @param ExampleSetSizes    $sizes        Counts the objects of each set.
+	 * @param SeedProfileServiceInterface $seedProfiles Reads which example sets are loaded.
+	 * @param ExampleSetSizesInterface    $sizes        Counts the objects of each set.
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly SeedProfileService $seedProfiles,
-		private readonly ExampleSetSizes $sizes,
+		private readonly SeedProfileServiceInterface $seedProfiles,
+		private readonly ExampleSetSizesInterface $sizes,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()

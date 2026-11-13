@@ -25,7 +25,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -57,13 +57,13 @@ final class SchemaWrite {
 	 * write, or a write whose schema can not be resolved.
 	 *
 	 * @param Event                  $event          The dispatched event.
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
 	 *
 	 * @return self|null
 	 *
 	 * @spec exclude Listener plumbing, not a behavioural requirement.
 	 */
-	public static function of(Event $event, ListenerSchemaResolver $schemaResolver): ?self {
+	public static function of(Event $event, ListenerSchemaResolverInterface $schemaResolver): ?self {
 		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {
 			return null;
 		}

@@ -36,7 +36,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\LearnerRefResolver;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -52,14 +52,14 @@ final class LearnerRefStamping {
 	/**
 	 * Constructor.
 	 *
-	 * @param LearnerRefResolver $learnerRefs Nextcloud user id to LearnerProfile UUID.
+	 * @param LearnerRefResolverInterface $learnerRefs Nextcloud user id to LearnerProfile UUID.
 	 * @param LoggerInterface $logger PSR logger.
 	 * @param string $label The owning listener's name, prefixed to its warnings.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly LearnerRefResolver $learnerRefs,
+		private readonly LearnerRefResolverInterface $learnerRefs,
 		private readonly LoggerInterface $logger,
 		private readonly string $label,
 	) {

@@ -31,8 +31,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
-use OCA\Learniq\Service\CallerTenantResolver;
-use OCA\Learniq\Service\KeyManagementService;
+use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
+use OCA\Learniq\Kernel\Contracts\KeyManagementServiceInterface;
 use OCA\Learniq\Settings\AdminSettings;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\AuthorizedAdminSetting;
@@ -70,22 +70,22 @@ class KeyAdminController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest $request The HTTP request.
-	 * @param KeyManagementService $keyManagementService Key management service.
+	 * @param KeyManagementServiceInterface $keyManagementService Key management service.
 	 * @param IAppConfig $appConfig App config for throttle timestamps.
 	 * @param IConfig $config System config for tenant binding lookup.
 	 * @param IUserSession $userSession User session for caller identity.
-	 * @param CallerTenantResolver $tenants Resolves the caller's tenant: the per-user binding, else the default tenant.
+	 * @param CallerTenantResolverInterface $tenants Resolves the caller's tenant: the per-user binding, else the default tenant.
 	 * @param IEventDispatcher $dispatcher Dispatches the admin audit event of a rotation.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly KeyManagementService $keyManagementService,
+		private readonly KeyManagementServiceInterface $keyManagementService,
 		private readonly IAppConfig $appConfig,
 		private readonly IConfig $config,
 		private readonly IUserSession $userSession,
-		private readonly CallerTenantResolver $tenants,
+		private readonly CallerTenantResolverInterface $tenants,
 		private readonly IEventDispatcher $dispatcher,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
@@ -340,7 +340,7 @@ class KeyAdminController extends Controller {
 	private function callerTenantOrDefault(): string {
 		$user = $this->userSession->getUser();
 		if ($user === null) {
-			return CallerTenantResolver::DEFAULT_TENANT;
+			return CallerTenantResolverInterface::DEFAULT_TENANT;
 		}
 
 		return $this->tenants->resolve(user: $user);

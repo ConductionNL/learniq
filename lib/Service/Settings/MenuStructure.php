@@ -38,6 +38,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Settings;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\MenuStructureInterface;
 use OCP\IAppConfig;
 
 /**
@@ -45,21 +46,7 @@ use OCP\IAppConfig;
  *
  * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
  */
-class MenuStructure {
-
-	/**
-	 * The appconfig key, and the initial-state key the frontend reads.
-	 *
-	 * @var string
-	 */
-	public const KEY = 'menu_structure';
-
-	/**
-	 * The default structure.
-	 *
-	 * @var string
-	 */
-	public const SIMPLE = 'simple';
+class MenuStructure implements MenuStructureInterface {
 
 	/**
 	 * The structure as it was before the profile existed.

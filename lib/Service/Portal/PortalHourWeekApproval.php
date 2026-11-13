@@ -40,10 +40,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
+use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\PortalHourWeekApprovalInterface;
 use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
-use DateTimeImmutable;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -52,7 +53,7 @@ use Throwable;
  *
  * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
  */
-class PortalHourWeekApproval {
+class PortalHourWeekApproval implements PortalHourWeekApprovalInterface {
 
 	private const REGISTER = 'learniq';
 

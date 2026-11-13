@@ -28,9 +28,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\DisplayScreenServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerActions;
-use OCA\Learniq\Service\DisplayScreenService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -68,13 +68,13 @@ class DisplayScreenController extends Controller {
 	 *
 	 * @param IRequest             $request     HTTP request.
 	 * @param CallerActions $caller The user session and the ADR-023 action matrix.
-	 * @param DisplayScreenService $screens     Issues and revokes addresses.
+	 * @param DisplayScreenServiceInterface $screens     Issues and revokes addresses.
 	 * @param IURLGenerator        $urls        Builds the screen's address.
 	 */
 	public function __construct(
 		IRequest $request,
 		CallerActions $caller,
-		private readonly DisplayScreenService $screens,
+		private readonly DisplayScreenServiceInterface $screens,
 		private readonly IURLGenerator $urls,
 	) {
 		$this->userSession = $caller->userSession;

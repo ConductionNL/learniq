@@ -49,6 +49,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\AiLocalityClassifierInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\App\IAppManager;
 use OCP\IAppConfig;
@@ -62,7 +63,7 @@ use Throwable;
  *
  * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-derive-an-ai-feature-s-processing-locality-from-real-code-enforced-configuration-never-a-hand-typed-field
  */
-class AiLocalityClassifier {
+class AiLocalityClassifier implements AiLocalityClassifierInterface {
 
 	/**
 	 * App id of the central AI governance/inference app (Hermiq).

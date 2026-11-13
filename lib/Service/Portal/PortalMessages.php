@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Portal;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PortalMessagesInterface;
 use OCP\IUser;
 use OCP\L10N\IFactory;
 
@@ -35,7 +36,7 @@ use OCP\L10N\IFactory;
  *
  * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
  */
-class PortalMessages {
+class PortalMessages implements PortalMessagesInterface {
 
 	/**
 	 * English source text per reason; translated through l10n.

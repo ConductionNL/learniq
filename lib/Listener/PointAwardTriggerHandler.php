@@ -65,10 +65,10 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Grading\GradeFormulaEvaluator;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Grading\GradeFormulaEvaluator;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -95,7 +95,7 @@ class PointAwardTriggerHandler implements IEventListener {
 	 * @param ObjectService $objectService OpenRegister object access.
 	 * @param GradeFormulaEvaluator $evaluator Pass/fail evaluation engine.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -103,7 +103,7 @@ class PointAwardTriggerHandler implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly GradeFormulaEvaluator $evaluator,
 		private readonly ITimeFactory $timeFactory,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 

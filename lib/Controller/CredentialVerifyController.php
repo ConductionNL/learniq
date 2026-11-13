@@ -35,15 +35,15 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\JwsProofVerifierInterface;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Service\JwsProofVerifier;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
-use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
-use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 use OCP\Security\Bruteforce\IThrottler;
@@ -93,7 +93,7 @@ class CredentialVerifyController extends Controller {
 	 *
 	 * @param IRequest $request The HTTP request.
 	 * @param ObjectService $objectService OR object-read service.
-	 * @param JwsProofVerifier $proofs Verifies a payload's detached JWS against the tenant key.
+	 * @param JwsProofVerifierInterface $proofs Verifies a payload's detached JWS against the tenant key.
 	 * @param IThrottler $throttler Brute-force throttler counting failed verifications.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
@@ -102,7 +102,7 @@ class CredentialVerifyController extends Controller {
 	public function __construct(
 		IRequest $request,
 		private readonly ObjectService $objectService,
-		private readonly JwsProofVerifier $proofs,
+		private readonly JwsProofVerifierInterface $proofs,
 		private readonly IThrottler $throttler,
 		private readonly LoggerInterface $logger,
 	) {

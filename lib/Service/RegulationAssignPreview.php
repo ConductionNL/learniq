@@ -29,10 +29,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\RegulationAssignPreviewInterface;
+
 /**
  * Read-only preview of an audience-narrowed regulation assignment.
  */
-class RegulationAssignPreview {
+class RegulationAssignPreview implements RegulationAssignPreviewInterface {
 
 	/**
 	 * Rows returned with a preview; the counts cover every learner.

@@ -30,7 +30,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Repair;
 
 use OCA\Learniq\Kernel\AppIdentity;
-use OCA\Learniq\Service\IntegriqExchangeClient;
+use OCA\Learniq\Kernel\Contracts\IntegriqExchangeClientInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\AppData\IAppDataFactory;
@@ -87,7 +87,7 @@ class MigrateDataExchangeToIntegriq implements IRepairStep {
 	 * Constructor.
 	 *
 	 * @param ObjectService            $objectService  OpenRegister object access.
-	 * @param IntegriqExchangeClient   $integriq       Hands rows to integriq.
+	 * @param IntegriqExchangeClientInterface   $integriq       Hands rows to integriq.
 	 * @param LegacyExchangeTranslator $translator     Turns old rows into integriq requests.
 	 * @param IAppDataFactory          $appDataFactory Learniq's app data folder.
 	 * @param IAppConfig               $appConfig      Remembers that the move ran.
@@ -96,7 +96,7 @@ class MigrateDataExchangeToIntegriq implements IRepairStep {
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly IntegriqExchangeClient $integriq,
+		private readonly IntegriqExchangeClientInterface $integriq,
 		private readonly LegacyExchangeTranslator $translator,
 		private readonly IAppDataFactory $appDataFactory,
 		private readonly IAppConfig $appConfig,

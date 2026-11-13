@@ -46,10 +46,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Timetabling\TimetableConflictDetector;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Timetabling\TimetableConflictDetector;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 
@@ -69,13 +69,13 @@ class SessionConflictListener implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param TimetableConflictDetector $detector The pairwise overlap scan engine.
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the entity's register/schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly TimetableConflictDetector $detector,
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 	) {
 	}//end __construct()
 
