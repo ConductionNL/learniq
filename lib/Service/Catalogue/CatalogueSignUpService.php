@@ -342,13 +342,28 @@ class CatalogueSignUpService implements CatalogueSignUpServiceInterface {
 			return new PortalOutcome(status: Http::STATUS_UNPROCESSABLE_ENTITY, body: ['error' => 'prerequisite_missing', 'message' => $message]);
 		}
 
-		$enrolmentId = '';
+		return new PortalOutcome(
+			status: Http::STATUS_OK,
+			body: ['enrolmentId' => $this->savedUuid(saved: $saved), 'courseId' => $courseId, 'lifecycle' => $lifecycle]
+		);
+	}//end create()
+
+	/**
+	 * The uuid of the saved enrolment, or '' when the save returned no entity.
+	 *
+	 * @param mixed $saved What saveObject() returned.
+	 *
+	 * @return string
+	 *
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-course-or-programme-says-whether-learners-may-sign-up
+	 */
+	private function savedUuid(mixed $saved): string {
 		if (is_object($saved) === true && method_exists($saved, 'getUuid') === true) {
-			$enrolmentId = (string)$saved->getUuid();
+			return (string)$saved->getUuid();
 		}
 
-		return new PortalOutcome(status: Http::STATUS_OK, body: ['enrolmentId' => $enrolmentId, 'courseId' => $courseId, 'lifecycle' => $lifecycle]);
-	}//end create()
+		return '';
+	}//end savedUuid()
 
 	/**
 	 * A published course or programme open for sign-up, or the refusal.

@@ -292,6 +292,31 @@ class ReportCardComposer implements IEventListener {
 
 		$periodData = $this->normalise(row: $period);
 
+		[$subjectGrades, $attendanceSummary] = $this->recomposedSections(card: $card, periodData: $periodData);
+
+		$updated = $card;
+		$updated['subjectGrades'] = $subjectGrades;
+		$updated['attendanceSummary'] = $attendanceSummary;
+		$updated['composedAt'] = $this->now();
+
+		$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA, object: $updated);
+
+		$this->logger->info('[ReportCardComposer] ReportCard {id} recomposed.', ['id' => $cardId]);
+
+	}//end recomposeCard()
+
+	/**
+	 * The grade and attendance sections of a card, recomputed against its period.
+	 *
+	 * @param array<string, mixed> $card       The ReportCard.
+	 * @param array<string, mixed> $periodData Its governing ReportPeriod.
+	 *
+	 * @return array{0: array<int, mixed>, 1: mixed} subjectGrades and attendanceSummary.
+	 *
+	 * @spec openspec/specs/report-card/spec.md#requirement-composition-is-a-declared-transition-triggered-php-composer-not-a-dataexchangejob-and-not-a-timedjob
+	 */
+	private function recomposedSections(array $card, array $periodData): array {
+		$learnerId = (string)($card['learnerId'] ?? '');
 		$periodCode = (string)($periodData['periodCode'] ?? '');
 		$curriculumPlanIds = $this->stringList(value: $periodData['curriculumPlanIds'] ?? []);
 		$attendanceIncluded = ($periodData['attendanceIncluded'] ?? true) === true;
@@ -314,16 +339,8 @@ class ReportCardComposer implements IEventListener {
 			$attendanceSummary = $this->attendance->buildAttendanceSummary(learnerId: $learnerId, sessionIds: $sessionIds);
 		}
 
-		$updated = $card;
-		$updated['subjectGrades'] = $subjectGrades;
-		$updated['attendanceSummary'] = $attendanceSummary;
-		$updated['composedAt'] = $this->now();
-
-		$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA, object: $updated);
-
-		$this->logger->info('[ReportCardComposer] ReportCard {id} recomposed.', ['id' => $cardId]);
-
-	}//end recomposeCard()
+		return [$subjectGrades, $attendanceSummary];
+	}//end recomposedSections()
 
 	/**
 	 * Filter `curriculumPlanIds` down to those whose `CurriculumPlan.components[]`

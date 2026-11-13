@@ -567,15 +567,8 @@ class GradeRollupHandler implements IEventListener {
 		$componentId = $result['gradeEntryComponentId'] ?? null;
 		$planId = $result['curriculumPlanId'] ?? null;
 		$scaleId = $result['gradeScaleId'] ?? null;
-		$existingId = $result['gradeEntryId'] ?? null;
 
-		if ($learnerId === '' || $totalScore === null || $componentId === null || $planId === null) {
-			// Insufficient data to create a meaningful GradeEntry — skip.
-			return;
-		}
-
-		// Do not create a duplicate if gradeEntryId is already set.
-		if ($existingId !== null) {
+		if ($this->needsGradeEntry(result: $result) === false) {
 			return;
 		}
 
@@ -615,4 +608,24 @@ class GradeRollupHandler implements IEventListener {
 		);
 
 	}//end handleAssessmentResultGraded()
+
+	/**
+	 * Whether a graded AssessmentResult should get a GradeEntry: it carries a learner,
+	 * a score, a component and a plan (otherwise no meaningful entry can be made), and
+	 * has no gradeEntryId yet (otherwise it would be a duplicate).
+	 *
+	 * @param array<string, mixed> $result The AssessmentResult.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-21
+	 */
+	private function needsGradeEntry(array $result): bool {
+		$complete = ($result['learnerId'] ?? '') !== ''
+			&& ($result['totalScore'] ?? null) !== null
+			&& ($result['gradeEntryComponentId'] ?? null) !== null
+			&& ($result['curriculumPlanId'] ?? null) !== null;
+
+		return $complete === true && ($result['gradeEntryId'] ?? null) === null;
+	}//end needsGradeEntry()
 }//end class
