@@ -190,12 +190,14 @@ class PeerReviewWorkControllerTest extends TestCase {
 		$routes = require __DIR__ . '/../../../appinfo/routes.php';
 		$byName = [];
 		foreach (($routes['routes'] ?? []) as $route) {
-			$byName[$route['name']] = $route;
+			// Keyed with the postfix: every /api/ route also has a /api/v1/ twin (postfix 'v1', see ApiPathAliases).
+			$byName[$route['name'] . ($route['postfix'] ?? '')] = $route;
 		}
 
 		self::assertSame('/api/peer-review/{peerReviewId}/work', $byName['peerReviewWork#show']['url'] ?? null);
 		self::assertSame('GET', $byName['peerReviewWork#show']['verb'] ?? null);
 		self::assertSame('/api/peer-review/{peerReviewId}/work/files/{fileId}', $byName['peerReviewWork#file']['url'] ?? null);
 		self::assertSame('GET', $byName['peerReviewWork#file']['verb'] ?? null);
+		self::assertSame('/api/v1/peer-review/{peerReviewId}/work', $byName['peerReviewWork#showv1']['url'] ?? null);
 	}//end testTheRoutesAreRegistered()
 }//end class

@@ -6,17 +6,19 @@
  * Publishes the app's OpenAPI document at `/api/openapi.json`, as the NL API
  * Design Rules require (/core/publish-openapi).
  *
- * @category  Controller
- * @package   OCA\Learniq\Controller
- * @author    Conduction Development Team <info@conduction.nl>
+ * @category Controller
+ * @package  OCA\Learniq\Controller
+ *
+ * @author    Conduction Development Team <dev@conduction.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @link      https://conduction.nl
  *
- * @spec openspec/specs/api-contract/spec.md
- *
- * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <dev@conduction.nl>
  * SPDX-License-Identifier: EUPL-1.2
+ *
+ * @version GIT: <git-id>
+ *
+ * @link https://conduction.nl
  */
 
 declare(strict_types=1);
@@ -39,11 +41,15 @@ use stdClass;
  *
  * @category Controller
  * @package  OCA\Learniq\Controller
- * @author   Conduction Development Team <info@conduction.nl>
- * @license  EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @link     https://conduction.nl
  *
- * @spec openspec/specs/api-contract/spec.md
+ * @author  Conduction Development Team <dev@conduction.nl>
+ * @license EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * @link https://conduction.nl
+ *
+ * @psalm-suppress UnusedClass Instantiated by the Nextcloud router.
+ *
+ * @spec exclude framework glue — serves the shipped openapi.json (NL API Design Rules /core/publish-openapi)
  */
 class OpenApiController extends Controller {
 
@@ -66,31 +72,33 @@ class OpenApiController extends Controller {
 	 * The OpenAPI document of this app, readable from any origin.
 	 *
 	 * The document describes the API, not its data, so it is public. Its
-	 * `info.version` is the installed app version, which is also what every
-	 * API response carries in `API-Version`.
+	 * `info.version` is the installed app version, which the response also
+	 * carries in `API-Version`.
 	 *
 	 * @return JSONResponse The document, or 404 when it is not installed.
 	 *
+	 * @spec exclude framework glue — serves the shipped openapi.json
+	 *
 	 * @PublicPage
 	 * @NoCSRFRequired
-	 *
-	 * @spec openspec/specs/api-contract/spec.md
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
 	#[AnonRateLimit(limit: 120, period: 60)]
 	public function show(): JSONResponse {
+		$version  = $this->appManager->getAppVersion(Application::APP_ID);
 		$document = $this->document();
 		$response = new JSONResponse(
-			data: ['error' => 'The OpenAPI document is not installed'],
-			statusCode: Http::STATUS_NOT_FOUND
+			['error' => 'The OpenAPI document is not installed'],
+			Http::STATUS_NOT_FOUND
 		);
 		if ($document !== null) {
-			$document->info->version = $this->appManager->getAppVersion(appId: Application::APP_ID);
-			$response = new JSONResponse(data: $document);
+			$document->info->version = $version;
+			$response = new JSONResponse($document);
 		}
 
-		$response->addHeader(name: 'Access-Control-Allow-Origin', value: '*');
+		$response->addHeader('Access-Control-Allow-Origin', '*');
+		$response->addHeader('API-Version', $version);
 
 		return $response;
 	}//end show()
@@ -100,10 +108,10 @@ class OpenApiController extends Controller {
 	 *
 	 * @return stdClass|null The document, or null when it is missing or not a document.
 	 *
-	 * @spec openspec/specs/api-contract/spec.md
+	 * @psalm-suppress MixedAssignment json_decode() is mixed; the result is checked with instanceof before use.
 	 */
 	private function document(): ?stdClass {
-		$path = $this->appManager->getAppPath(appId: Application::APP_ID).'/openapi.json';
+		$path = $this->appManager->getAppPath(Application::APP_ID).'/openapi.json';
 		if (is_readable($path) === false) {
 			return null;
 		}
