@@ -1,6 +1,6 @@
 # Tasks: leave-requests-decided-by-the-school
 
-- [ ] **T1**: register: `leave-request` (`learnerRef`, `requestedByRef`, `dateFrom`, `dateTo`, `kind`, `reason`, `attachmentRef`, `schoolDays`, `decideBy`, `decidedBy`, `decidedAt`, `decisionNote`, `lifecycle`, `teacherIds`, `tenant_id`); the lifecycle with the decider guard
+- [x] **T1**: register: `leave-request` (`learnerRef`, `requestedByRef`, `dateFrom`, `dateTo`, `kind`, `reason`, `attachmentRef`, `schoolDays`, `decideBy`, `decidedBy`, `decidedAt`, `decisionNote`, `lifecycle`, `teacherIds`, `tenant_id`); the lifecycle with the decider guard
   - `npm run check:register`; a payload test against the shipped fragment
 - [ ] **T2**: school days in the range and the deadline (`decideBy`, setting `leave_decision_school_days`, default 5)
 - [ ] **T3**: an allowed request writes absent-with-permission for its days, through the same path as an approved excuse
