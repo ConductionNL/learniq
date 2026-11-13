@@ -175,7 +175,8 @@ class RegulationAssignmentService implements RegulationAssignmentServiceInterfac
 				continue;
 			}
 
-			$result['outOfScope'] = array_merge($result['outOfScope'], $this->markOutOfScope(slug: (string)$regulation['slug'], enrolments: $enrolments, today: $today));
+			$marked = $this->markOutOfScope(slug: (string)$regulation['slug'], enrolments: $enrolments, today: $today);
+			$result['outOfScope'] = array_merge($result['outOfScope'], $marked);
 		}
 
 		return $result;
