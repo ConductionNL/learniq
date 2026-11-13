@@ -18,7 +18,7 @@
                 "slug": "learniq",
                 "title": "Learniq Register",
                 "description": "Learniq — open-source LVS + LMS for Nextcloud compliance training, certification, and learning management. Holds every learner, enrolment, assessment, grade, attendance, portfolio, credential and exchange object the app reads and writes.",
-                "version": "0.26.3",
+                "version": "0.26.4",
                 "schemas": [
                     "AiFeature",
                     "accessibility-feedback",
@@ -124,6 +124,7 @@
                     "session",
                     "signature",
                     "sovereignty-policy",
+                    "ai-disclosure-text",
                     "subject-choice",
                     "submission",
                     "support-request",
@@ -1275,6 +1276,60 @@
                         "default": null,
                         "description": "Derived: when this policy record was last created or updated, supplied by the writing client (LearniqAiProcessingDisclosure.vue) at create/update time.",
                         "title": "Set At"
+                    }
+                },
+                "authorization": {
+                    "read": [
+                        "authenticated"
+                    ],
+                    "create": [
+                        "compliance-officers"
+                    ],
+                    "update": [
+                        "compliance-officers"
+                    ]
+                },
+                "x-openregister-seed": []
+            },
+            "AiDisclosureText": {
+                "slug": "ai-disclosure-text",
+                "icon": "TextBoxOutline",
+                "version": "0.1.0",
+                "title": "AiDisclosureText",
+                "description": "The school's own part of the AI processing disclosure (ai-disclosure-for-every-user): an introduction, a contact for questions and a plain-language explanation per AI feature slug. A flat, un-lifecycled, singleton record beside SovereigntyPolicy. Every signed-in user reads it on LearniqAiProcessingDisclosure.vue next to the composed facts; only an admin or compliance officer writes it. The composed facts themselves (features, processing-activity fields, locality verdicts) are never stored here and cannot be edited.",
+                "type": "object",
+                "x-openregister": {
+                    "active": true,
+                    "hardDelete": false,
+                    "searchable": false
+                },
+                "required": [],
+                "properties": {
+                    "introduction": {
+                        "type": "string",
+                        "nullable": true,
+                        "default": null,
+                        "maxLength": 5000,
+                        "description": "Plain-language introduction shown at the top of the disclosure page.",
+                        "title": "Introduction"
+                    },
+                    "contact": {
+                        "type": "string",
+                        "nullable": true,
+                        "default": null,
+                        "maxLength": 500,
+                        "description": "Who to ask about the school's use of AI: a name, an e-mail address or a page.",
+                        "title": "Contact for questions"
+                    },
+                    "featureNotes": {
+                        "type": "object",
+                        "default": {},
+                        "additionalProperties": {
+                            "type": "string",
+                            "maxLength": 5000
+                        },
+                        "description": "The school's explanation per AI feature, keyed by the feature's slug in Hermiq's agentaifeature register.",
+                        "title": "Explanation per feature"
                     }
                 },
                 "authorization": {
