@@ -41,7 +41,7 @@ use PHPUnit\Framework\TestCase;
  * @covers \OCA\Learniq\Service\Accessibility\ConformanceEvidence
  * @covers \OCA\Learniq\Service\Accessibility\WcagCriteriaCatalogue
  * @uses \OCA\Learniq\Service\CsvCellSanitizer
- * @uses   \OCA\Learniq\Support\RowId
+ * @uses \OCA\Learniq\Support\RowId
  */
 class ConformanceEvidenceTest extends TestCase {
 

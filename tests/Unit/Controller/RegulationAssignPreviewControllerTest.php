@@ -41,7 +41,7 @@ use PHPUnit\Framework\TestCase;
  * @covers \OCA\Learniq\Controller\RegulationAssignPreviewController
  * @covers \OCA\Learniq\Controller\AssignableRegulation
  * @uses \OCA\Learniq\Service\RegulationAssignmentService
- * @uses   \OCA\Learniq\Service\ExternalTrainingLearnerMatch
+ * @uses \OCA\Learniq\Service\ExternalTrainingLearnerMatch
  */
 class RegulationAssignPreviewControllerTest extends TestCase {
 

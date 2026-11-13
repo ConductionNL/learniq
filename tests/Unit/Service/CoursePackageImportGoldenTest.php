@@ -85,8 +85,8 @@ use ReflectionMethod;
  * @uses   \OCA\Learniq\Service\QtiPackageExtractor
  * @uses \OCA\Learniq\Service\ExtractionTarget
  * @uses \OCA\Learniq\Service\QtiItemTarget
- * @uses   \OCA\Learniq\Service\FolderFileWriter
- * @uses   \OCA\Learniq\Service\XmlChildText
+ * @uses \OCA\Learniq\Service\FolderFileWriter
+ * @uses \OCA\Learniq\Service\XmlChildText
  */
 class CoursePackageImportGoldenTest extends TestCase {
 

@@ -50,8 +50,8 @@ use ReflectionNamedType;
  * @uses \OCA\Learniq\Service\ExternalTrainingImport
  * @uses \OCA\Learniq\Service\ExternalTrainingLearnerMatch
  * @uses \OCA\Learniq\Service\ExternalTrainingRowCheck
- * @uses   \OCA\Learniq\Support\ResultArrays
- * @uses   \OCA\Learniq\Support\RowId
+ * @uses \OCA\Learniq\Support\ResultArrays
+ * @uses \OCA\Learniq\Support\RowId
  */
 class ExternalTrainingControllerImportTest extends TestCase {
 	private const CALLER_TENANT = 'tenant-a';

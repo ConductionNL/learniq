@@ -6759,39 +6759,6 @@
           "name": "cdx:npm:package:path",
           "value": "node_modules/@toast-ui/editor"
         }
-      ],
-      "components": [
-        {
-          "type": "library",
-          "name": "dompurify",
-          "version": "2.5.9",
-          "bom-ref": "learniq@0.1.0|@toast-ui/editor@3.2.2|dompurify@2.5.9",
-          "licenses": [
-            {
-              "expression": "(MPL-2.0 OR Apache-2.0)"
-            }
-          ],
-          "purl": "pkg:npm/dompurify@2.5.9",
-          "externalReferences": [
-            {
-              "url": "https://registry.npmjs.org/dompurify/-/dompurify-2.5.9.tgz",
-              "type": "distribution",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "8ba9af56658de31a3d2eb842399ac3812b3d9e85ba9ce6a16eb9b38d16cf177e983f28f951ee658289343070d6906ef1ce95853b6398b6d5ddccceeb2711ef34"
-                }
-              ],
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-            }
-          ],
-          "properties": [
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/@toast-ui/editor/node_modules/dompurify"
-            }
-          ]
-        }
       ]
     },
     {

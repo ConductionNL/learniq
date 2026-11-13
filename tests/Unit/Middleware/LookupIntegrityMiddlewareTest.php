@@ -54,7 +54,7 @@ use RuntimeException;
  * @covers \OCA\Learniq\Controller\LessonNextStepController
  * @covers \OCA\Learniq\Controller\LessonReleaseController
  * @covers \OCA\Learniq\Controller\SubmissionMarkController
- * @uses   \OCA\Learniq\Service\StaffGroupCheck
+ * @uses \OCA\Learniq\Service\StaffGroupCheck
  */
 class LookupIntegrityMiddlewareTest extends TestCase {
 

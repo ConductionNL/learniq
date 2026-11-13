@@ -42,8 +42,8 @@ use RuntimeException;
  * @covers \OCA\Learniq\Service\ExternalTrainingImport
  * @covers \OCA\Learniq\Service\ExternalTrainingLearnerMatch
  * @covers \OCA\Learniq\Service\ExternalTrainingRowCheck
- * @uses   \OCA\Learniq\Support\ResultArrays
- * @uses   \OCA\Learniq\Support\RowId
+ * @uses \OCA\Learniq\Support\ResultArrays
+ * @uses \OCA\Learniq\Support\RowId
  */
 class ExternalTrainingImportTest extends TestCase {
 	use RegisterSchemaPayloads;

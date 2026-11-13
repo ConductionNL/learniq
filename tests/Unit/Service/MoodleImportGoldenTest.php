@@ -34,7 +34,7 @@ use RuntimeException;
  *
  * @covers \OCA\Learniq\Service\MoodleBackupParser
  * @covers \OCA\Learniq\Service\MoodleQuizQuestionMapper
- * @uses   \OCA\Learniq\Service\XmlChildText
+ * @uses \OCA\Learniq\Service\XmlChildText
  */
 class MoodleImportGoldenTest extends TestCase {
 
