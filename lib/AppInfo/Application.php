@@ -27,6 +27,7 @@ use OCA\OpenRegister\AppHost\Bootstrap;
 use OCA\OpenRegister\AppHost\LeafAdoption;
 use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
 use OCA\Learniq\Middleware\ActionForbiddenMiddleware;
+use OCA\Learniq\Middleware\ApiContractMiddleware;
 use OCA\Learniq\Middleware\LookupIntegrityMiddleware;
 use OCA\Learniq\SetupCheck\WalletOfferTokenCheck;
 use OCA\Learniq\AppInfo\Registrar\ServiceOverrideRegistrar;
@@ -88,6 +89,11 @@ class Application extends App implements IBootstrap {
 	 * published AppHost entry point in a sibling app.
 	 */
 	public function register(IRegistrationContext $context): void {
+		// The API contract (version header, deprecation of unversioned paths,
+		// problem details). Registered first: Nextcloud runs afterController in
+		// reverse order, so it sees the final response of every other middleware,
+		// the 403 below included.
+		$context->registerMiddleware(ApiContractMiddleware::class);
 		// An action-matrix refusal (OCSForbiddenException) from a plain
 		// controller is a 403, not Nextcloud's 500 page (live pass D1, D7).
 		// First, so nothing below that throws can leave it unregistered.
