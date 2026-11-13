@@ -18897,7 +18897,7 @@
             "AttendanceThreshold": {
                 "slug": "attendance-threshold",
                 "icon": "AlertCircleOutline",
-                "version": "0.1.4",
+                "version": "0.1.5",
                 "title": "AttendanceThreshold",
                 "description": "Configurable threshold rule that watches learner attendance over a window and fires when the metric crosses the limit. The leerplicht-16uur kind is the Dutch Leerplichtwet art. 21a profile. Crossing detection uses the same calculatedChange mechanism as Regulation.ragStatus — NOT a TimedJob (ADR-022).",
                 "type": "object",
@@ -19018,6 +19018,13 @@
                         "default": 60,
                         "description": "Minutes per lesuur, used when metric is unexcused-lesuren. Default 60.",
                         "title": "Minutes per Lesuur"
+                    },
+                    "warnAtHours": {
+                        "type": "number",
+                        "minimum": 0,
+                        "nullable": true,
+                        "description": "The count at which staff see a pupil as nearing the limit, before any flag. Default: three quarters of the limit.",
+                        "title": "Warn at"
                     },
                     "onCross": {
                         "type": "object",
@@ -32731,7 +32738,7 @@
             "AttendanceSummary": {
                 "slug": "attendance-summary",
                 "icon": "ChartBoxOutline",
-                "version": "0.1.0",
+                "version": "0.2.0",
                 "title": "Attendance summary",
                 "description": "How often a learner was absent or late in one school year.",
                 "x-notes": "Read model kept by the server: one row per learner per school year, recomputed by AttendanceSummaryListener (deferred to AttendanceSummaryRecomputeJob) on every AttendanceRecord create, update and delete, and back-filled by the BackfillAttendanceSummaries repair step. Never written by a client: the authorization block grants no create or update, and the server writes with the system identity as owner. A school year runs from 1 August to 31 July. The day of a record is the calendar date of its Session's startsAt. A date with at least one absence is an absent day; it is unauthorised when at least one of its absences is absent-unexcused, otherwise authorised, so absentDays = absentAuthorisedDays + absentUnauthorisedDays. Every late record counts once in lateCount; lateMinutes sums AttendanceRecord.lateMinutes, falling back to the session length minus minutesAttended. left-early is not counted. See openspec/changes/attendance-summary-per-school-year.",
@@ -32808,6 +32815,34 @@
                         "format": "date-time",
                         "title": "Updated at",
                         "description": "When these numbers were last worked out."
+                    },
+                    "unauthorisedHoursWindow": {
+                        "type": "number",
+                        "minimum": 0,
+                        "nullable": true,
+                        "title": "Hours without permission, last weeks",
+                        "description": "Lesuren absent without permission in the window of the pupil's attendance threshold, ending today.",
+                        "x-notes": "Set on the row of the current school year only, from the active per-learner threshold with metric unexcused-lesuren and a rolling-weeks window; null when no such threshold applies. Recounted on every AttendanceRecord change. See openspec/changes/attendance-warns-before-the-threshold."
+                    },
+                    "thresholdHours": {
+                        "type": "number",
+                        "minimum": 0,
+                        "nullable": true,
+                        "title": "Limit",
+                        "description": "The limit of the attendance threshold the count is read against, for example 16."
+                    },
+                    "windowLabel": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "Hours of the limit",
+                        "description": "The count against the limit as staff read it, for example \"14 van 16 uur\"."
+                    },
+                    "thresholdNearing": {
+                        "type": "boolean",
+                        "default": false,
+                        "title": "Nearing the limit",
+                        "description": "True when the count is at or above the threshold's warning level and still under its limit. A warning only: no flag and no report.",
+                        "x-notes": "The staff list Bijna 16 uur filters on this field."
                     },
                     "teacherIds": {
                         "type": "array",

@@ -338,6 +338,11 @@ class AttendanceSummaryCalculator {
 			$stored = $this->intOrNull(value: $stored);
 		}
 
+		// A stored 14.0 comes back from JSON as 14.
+		if (is_float($value) === true && is_numeric($stored) === true) {
+			$stored = (float)$stored;
+		}
+
 		return $stored === $value;
 	}//end sameValue()
 

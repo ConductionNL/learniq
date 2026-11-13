@@ -97,7 +97,12 @@ class AttendanceSummaryRegisterTest extends TestCase {
 	 */
 	public function testTheSummaryFieldsAreDeclaredAndTranslated(): void {
 		$schema = self::shippedSchema(slug: 'attendance-summary');
-		$fields = ['learnerId', 'learnerRef', 'schoolYear', 'absentDays', 'absentAuthorisedDays', 'absentUnauthorisedDays', 'lateCount', 'lateMinutes', 'updatedAt', 'teacherIds', 'tenant_id'];
+		$fields = [
+			'learnerId', 'learnerRef', 'schoolYear', 'absentDays', 'absentAuthorisedDays', 'absentUnauthorisedDays', 'lateCount', 'lateMinutes', 'updatedAt',
+			// attendance-warns-before-the-threshold: the rolling count against the limit.
+			'unauthorisedHoursWindow', 'thresholdHours', 'windowLabel', 'thresholdNearing',
+			'teacherIds', 'tenant_id',
+		];
 		self::assertSame($fields, array_keys($schema['properties']));
 		foreach (['absentDays', 'absentAuthorisedDays', 'absentUnauthorisedDays', 'lateCount', 'lateMinutes'] as $count) {
 			self::assertSame('integer', $schema['properties'][$count]['type']);

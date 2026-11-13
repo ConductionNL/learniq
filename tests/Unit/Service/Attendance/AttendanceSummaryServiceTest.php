@@ -64,6 +64,9 @@ class AttendanceSummaryServiceTest extends TestCase {
 	/** @var array<int, string>|null */
 	private ?array $teachers = ['juf-7'];
 
+	/** @var array<int, array<string, mixed>> */
+	private array $thresholds = [];
+
 	/**
 	 * Reset the fakes.
 	 *
@@ -81,6 +84,7 @@ class AttendanceSummaryServiceTest extends TestCase {
 		$this->saved = [];
 		$this->recordQueries = [];
 		$this->teachers = ['juf-7'];
+		$this->thresholds = [];
 	}//end setUp()
 
 	/**
@@ -106,6 +110,10 @@ class AttendanceSummaryServiceTest extends TestCase {
 						static fn (array $s): ObjectEntity => OrEntityFactory::make($s, 'session'),
 						array_values(array_filter($this->sessions, static fn (array $s): bool => in_array($s['id'], $ids, true)))
 					);
+				}
+
+				if ($filters['schema'] === 'attendance-threshold') {
+					return array_map(static fn (array $t): ObjectEntity => OrEntityFactory::make($t, 'attendance-threshold'), $this->thresholds);
 				}
 
 				if ($filters['schema'] === 'attendance-summary') {
@@ -342,4 +350,39 @@ class AttendanceSummaryServiceTest extends TestCase {
 	public function testSchoolYearsOfSessions(): void {
 		self::assertSame(['2025-2026', '2026-2027'], $this->service()->schoolYearsOf(sessionIds: ['s-mon', 's-tue', 's-sep', 'unknown']));
 	}//end testSchoolYearsOfSessions()
+	/**
+	 * The current school year's row carries the window count against the threshold; no flag is written.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 */
+	public function testTheCurrentYearCarriesTheWindowCount(): void {
+		$this->sessions = [];
+		$this->records = [];
+		for ($i = 0; $i < 14; $i++) {
+			$this->sessions[] = ['id' => 's-w' . $i, 'startsAt' => '2026-09-14T08:30:00+02:00', 'endsAt' => '2026-09-14T09:30:00+02:00'];
+			$this->records[] = self::record('s-w' . $i, 'absent-unexcused');
+		}
+
+		$this->sessions[] = ['id' => 's-mon', 'startsAt' => '2026-03-02T08:30:00+01:00', 'endsAt' => '2026-03-02T09:30:00+01:00'];
+		$this->records[] = self::record('s-mon', 'absent-unexcused');
+		$this->thresholds = [
+			['id' => 't-cohort', 'name' => 'Klas 2B', 'metric' => 'unexcused-lesuren', 'limit' => 8, 'window' => ['type' => 'rolling-weeks', 'weeks' => 4], 'cohortId' => 'c-2b', 'active' => true, 'tenant_id' => self::TENANT],
+			['id' => 't-16', 'name' => 'Leerplicht', 'metric' => 'unexcused-lesuren', 'limit' => 16, 'window' => ['type' => 'rolling-weeks', 'weeks' => 4], 'scope' => 'per-learner', 'active' => true, 'tenant_id' => self::TENANT],
+		];
+
+		$this->service()->recompute(learnerId: 'pupil-1');
+
+		$current = $this->savedFor('2026-2027')[0]['object'];
+		self::assertSame(14.0, $current['unauthorisedHoursWindow']);
+		self::assertSame(16.0, $current['thresholdHours']);
+		self::assertSame('14 van 16 uur', $current['windowLabel']);
+		self::assertTrue($current['thresholdNearing']);
+
+		$earlier = $this->savedFor('2025-2026')[0]['object'];
+		self::assertArrayNotHasKey('unauthorisedHoursWindow', $earlier);
+
+		self::assertSame([], array_filter($this->saved, static fn (array $s): bool => $s['schema'] !== 'attendance-summary'), 'the warning writes no flag');
+	}//end testTheCurrentYearCarriesTheWindowCount()
 }//end class
