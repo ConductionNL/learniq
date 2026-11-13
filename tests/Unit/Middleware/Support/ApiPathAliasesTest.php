@@ -96,8 +96,8 @@ class ApiPathAliasesTest extends TestCase {
 		$this->assertSame(
 			expected: [
 				$original['routes'][0],
-				['name' => 'things#index', 'url' => '/api/v1/things/{id}/parts', 'verb' => 'GET', 'requirements' => ['id' => '\d+'], 'postfix' => 'v1'],
-				['name' => 'things#update', 'url' => '/api/v1/things/all/parts', 'verb' => 'PUT', 'postfix' => 'putv1'],
+				['name' => 'things#index', 'url' => '/api/v1/things/{id}/parts', 'verb' => 'GET', 'requirements' => ['id' => '\d+'], 'postfix' => 'V1'],
+				['name' => 'things#update', 'url' => '/api/v1/things/all/parts', 'verb' => 'PUT', 'postfix' => 'putV1'],
 			],
 			actual: array_slice($declared['routes'], 0, 3)
 		);
@@ -261,7 +261,7 @@ class ApiPathAliasesTest extends TestCase {
 	 */
 	private static function isAlias(array $route): bool {
 		return $route !== []
-			&& str_ends_with((string) ($route['postfix'] ?? ''), 'v1') === true
+			&& str_ends_with((string) ($route['postfix'] ?? ''), 'V1') === true
 			&& str_starts_with(self::url(route: $route), '/api/v1/') === true;
 	}//end isAlias()
 

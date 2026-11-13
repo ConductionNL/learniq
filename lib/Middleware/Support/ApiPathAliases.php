@@ -178,7 +178,7 @@ final class ApiPathAliases {
 				$route,
 				[
 					'url'     => self::versioned(path: self::renamed(path: $url)),
-					'postfix' => ($route['postfix'] ?? '').'v1',
+					'postfix' => ($route['postfix'] ?? '').'V1',
 				]
 			);
 			if (isset($declared[self::key(route: $alias)]) === false) {
