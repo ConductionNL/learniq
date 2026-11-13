@@ -78,6 +78,13 @@ class PruneRetiredSchemasTest extends TestCase {
 	private array $failingDeletes = [];
 
 	/**
+	 * Applications whose schema lookup throws.
+	 *
+	 * @var array<int, string>
+	 */
+	private array $failingLookups = [];
+
+	/**
 	 * The registers, with their stored schema lists.
 	 *
 	 * @var array<int, Register>
@@ -157,7 +164,13 @@ class PruneRetiredSchemasTest extends TestCase {
 	private function makeStep(bool $openRegisterPresent = true): PruneRetiredSchemas {
 		$schemaMapper = $this->createMock(originalClassName: SchemaMapper::class);
 		$schemaMapper->method('findAllByApplicationAndSlug')->willReturnCallback(
-			fn (string $slug, string $application): array => ($this->schemas[$application . '/' . $slug] ?? [])
+			function (string $slug, string $application): array {
+				if (in_array($application, $this->failingLookups, true) === true) {
+					throw new RuntimeException('lookup failed for ' . $application);
+				}
+
+				return ($this->schemas[$application . '/' . $slug] ?? []);
+			}
 		);
 
 		$registerMapper = $this->createMock(originalClassName: RegisterMapper::class);
@@ -282,6 +295,34 @@ class PruneRetiredSchemasTest extends TestCase {
 
 		self::assertSame(['unlink:learniq:[]', 'delete:40'], $this->log);
 	}//end testAPaymentSchemaWithArchivedRowsIsPruned()
+
+	/**
+	 * A failing lookup under one application does not stop the schema found
+	 * under the other from being pruned.
+	 *
+	 * @return void
+	 */
+	public function testAFailingLookupForOneApplicationStillPrunesTheOther(): void {
+		$this->failingLookups = ['learniq'];
+		$this->seed(slug: 'order-line', id: 41, application: 'scholiq');
+		$this->register(slug: 'learniq', schemas: [41, 12]);
+
+		$this->makeStep()->run($this->repairOutput());
+
+		self::assertSame(['unlink:learniq:[12]', 'delete:41'], $this->log);
+	}//end testAFailingLookupForOneApplicationStillPrunesTheOther()
+
+	/**
+	 * The step names what it removes.
+	 *
+	 * @return void
+	 */
+	public function testNameSaysWhatIsRemoved(): void {
+		self::assertSame(
+			'Remove the retired order, payment and privacy request schemas from OpenRegister',
+			$this->makeStep()->getName()
+		);
+	}//end testNameSaysWhatIsRemoved()
 
 	/**
 	 * Privacy requests are AVG records: a schema that still owns any stays,

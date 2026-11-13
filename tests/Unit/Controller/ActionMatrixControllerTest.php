@@ -53,6 +53,13 @@ class ActionMatrixControllerTest extends TestCase {
 	private int $writes = 0;
 
 	/**
+	 * Whether the matrix store fails to encode what it is given.
+	 *
+	 * @var bool
+	 */
+	private bool $failEncode = false;
+
+	/**
 	 * With nothing stored, every action the seed declares is listed.
 	 *
 	 * @return void
@@ -181,6 +188,26 @@ class ActionMatrixControllerTest extends TestCase {
 	}//end testACompleteMatrixWithExtrasIsAllowed()
 
 	/**
+	 * A matrix the store cannot encode answers 400 with the reason, not a 500.
+	 *
+	 * @return void
+	 */
+	public function testAnUnencodableMatrixIsRefused(): void {
+		$this->stored = ['rollover.plan' => ['admin']];
+		$this->failEncode = true;
+
+		$response = $this->controller(params: ['matrix' => $this->completeMatrix()])->setMatrix();
+
+		self::assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		self::assertSame(
+			'Could not encode the action matrix: Malformed UTF-8 characters',
+			((array)$response->getData())['error']
+		);
+		self::assertSame(0, $this->writes);
+		self::assertSame(['rollover.plan' => ['admin']], $this->stored);
+	}//end testAnUnencodableMatrixIsRefused()
+
+	/**
 	 * A matrix naming every seeded action, admin-only.
 	 *
 	 * @return array<string, array<int, string>>
@@ -224,6 +251,10 @@ class ActionMatrixControllerTest extends TestCase {
 		$actionAuth->method('getMatrix')->willReturnCallback(fn (): array => $this->stored);
 		$actionAuth->method('setMatrix')->willReturnCallback(
 			function (array $matrix): void {
+				if ($this->failEncode === true) {
+					throw new \JsonException('Malformed UTF-8 characters');
+				}
+
 				$this->writes++;
 				$this->stored = $matrix;
 			}

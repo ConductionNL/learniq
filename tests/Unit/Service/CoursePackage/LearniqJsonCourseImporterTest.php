@@ -14,6 +14,7 @@ use OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
 use OCA\Learniq\Service\CoursePackage\ImportOrigin;
 use OCA\Learniq\Service\CoursePackage\LearniqJsonCourseImporter;
+use OCA\Learniq\Tests\Support\CapturingLogger;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Files\File;
@@ -21,229 +22,377 @@ use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
 
 /**
- * Imports a learniq-native JSON course tree: one object per course, child
- * course, lesson, material, rubric, assessment and LTI placement, each
- * reported with its own outcome; a file without a top-level course is a
- * failed report and writes nothing else.
+ * Tests LearniqJsonCourseImporter::importPackage(): the objects a
+ * scholiq-native JSON export re-creates, the Material bytes written back to
+ * nc:files, and the import report it persists.
+ *
+ * The object writer, file writer and reporter are real, built over a mocked
+ * ObjectService and a mocked IRootFolder.
  *
  * @covers \OCA\Learniq\Service\CoursePackage\LearniqJsonCourseImporter
- * @uses   \OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter
- * @uses   \OCA\Learniq\Service\CoursePackage\CourseMetadataFilter
- * @uses   \OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter
- * @uses   \OCA\Learniq\Service\FolderFileWriter
- * @uses   \OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter
- * @uses   \OCA\Learniq\Service\CoursePackage\ImportOrigin
- * @uses   \OCA\Learniq\Service\CoursePackage\ImportReportOutcome
- *
- * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
+ * @uses \OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter
+ * @uses \OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter
+ * @uses \OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter
+ * @uses \OCA\Learniq\Service\CoursePackage\CourseMetadataFilter
+ * @uses \OCA\Learniq\Service\CoursePackage\ImportOrigin
+ * @uses \OCA\Learniq\Service\CoursePackage\ImportReportOutcome
+ * @uses \OCA\Learniq\Service\FolderFileWriter
  */
 class LearniqJsonCourseImporterTest extends TestCase {
 
+	private const REPORT_SCHEMA = 'course-package-import-report';
+
 	/**
-	 * Objects saved, per schema, in order.
+	 * Every saveObject() call: schema and payload, in order.
 	 *
-	 * @var array<string, list<array<string, mixed>>>
+	 * @var list<array{schema: string, object: array<string, mixed>}>
 	 */
 	private array $saved = [];
 
 	/**
-	 * Files written into the importer's Nextcloud folder: path => content.
+	 * Every call on the user folders, in order.
 	 *
-	 * @var array<string, string>
+	 * @var list<array<string, mixed>>
 	 */
-	private array $files = [];
+	private array $fileCalls = [];
 
 	/**
-	 * Temporary package files to remove.
+	 * Temp directory of the current test.
 	 *
-	 * @var list<string>
+	 * @var string
 	 */
-	private array $temp = [];
+	private string $dir = '';
 
 	/**
-	 * Remove the package files.
+	 * Fresh recorders and temp directory per test.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		$this->saved = [];
+		$this->fileCalls = [];
+		$this->dir = sys_get_temp_dir() . '/learniq-ljci-' . uniqid('', true);
+		mkdir($this->dir, 0777, true);
+	}//end setUp()
+
+	/**
+	 * Remove the temp directory.
 	 *
 	 * @return void
 	 */
 	protected function tearDown(): void {
-		foreach ($this->temp as $path) {
-			@unlink($path);
+		foreach ((array)glob($this->dir . '/*') as $file) {
+			@unlink((string)$file);
 		}
 
-		parent::tearDown();
+		@rmdir($this->dir);
 	}//end tearDown()
 
 	/**
-	 * The importer over a recording object store and user folder.
+	 * A file that is not JSON persists a failed report and creates nothing else.
+	 *
+	 * @return void
+	 */
+	public function testInvalidJsonPersistsAFailedReport(): void {
+		$report = $this->importer()->importPackage(packagePath: $this->write('not json {'), origin: $this->origin());
+
+		$this->assertSame([self::REPORT_SCHEMA], array_column($this->saved, 'schema'));
+		$this->assertSame(
+			[
+				'sourceFormat' => 'scholiq-json',
+				'sourceFilename' => 'export.json',
+				'courseId' => null,
+				'importedBy' => 'anna',
+				'importedAt' => '2026-01-01T00:00:00+00:00',
+				'lifecycle' => 'failed',
+				'resourcesTotal' => 0,
+				'resourcesImported' => 0,
+				'resourcesDegraded' => 0,
+				'resourcesDropped' => 0,
+				'errorMessage' => 'File is not a valid scholiq-native course export (missing top-level "course" object).',
+				'entries' => [],
+				'tenant_id' => 't-1',
+			],
+			$this->saved[0]['object']
+		);
+		$this->assertSame('failed', $report['lifecycle']);
+		$this->assertSame(self::REPORT_SCHEMA . '-1', $report['id']);
+		$this->assertSame([], $this->fileCalls);
+	}//end testInvalidJsonPersistsAFailedReport()
+
+	/**
+	 * Valid JSON without a top-level `course` object is rejected the same way.
+	 *
+	 * @return void
+	 */
+	public function testJsonWithoutACourseIsRejected(): void {
+		$report = $this->importer()->importPackage(
+			packagePath: $this->write((string)json_encode(['lessons' => [['name' => 'L']]])),
+			origin: $this->origin()
+		);
+
+		$this->assertSame([self::REPORT_SCHEMA], array_column($this->saved, 'schema'));
+		$this->assertSame('failed', $report['lifecycle']);
+		$this->assertStringContainsString('missing top-level "course" object', (string)$report['errorMessage']);
+	}//end testJsonWithoutACourseIsRejected()
+
+	/**
+	 * A bare course re-creates one Course from its metadata, reported under
+	 * the fallback identifier, and the report succeeds.
+	 *
+	 * @return void
+	 */
+	public function testBareCourseSucceeds(): void {
+		$report = $this->importer()->importPackage(
+			packagePath: $this->write((string)json_encode(['course' => ['level' => 'mbo', 'license' => 'CC-BY-4.0']])),
+			origin: $this->origin()
+		);
+
+		$this->assertSame(['course', self::REPORT_SCHEMA], array_column($this->saved, 'schema'));
+		$course = $this->saved[0]['object'];
+		$this->assertSame('Imported course', $course['name']);
+		$this->assertNull($course['parentCourseId']);
+		$this->assertSame('mbo', $course['level']);
+		$this->assertSame('CC-BY-4.0', $course['license']);
+		$this->assertSame('t-1', $course['tenant_id']);
+
+		$this->assertSame('succeeded', $report['lifecycle']);
+		$this->assertSame('course-1', $report['courseId']);
+		$this->assertNull($report['errorMessage']);
+		$this->assertSame(1, $report['resourcesTotal']);
+		$this->assertSame(1, $report['resourcesImported']);
+		$this->assertSame(
+			[
+				[
+					'resourceIdentifier' => 'course',
+					'resourceType' => 'course',
+					'title' => '',
+					'outcome' => 'imported',
+					'targetType' => 'course',
+					'targetId' => 'course-1',
+					'reason' => null,
+				],
+			],
+			$report['entries']
+		);
+	}//end testBareCourseSucceeds()
+
+	/**
+	 * A full export re-creates every kind of object under the new Course,
+	 * writes base64 Material bytes into nc:files, and reports Assessments and
+	 * LTI placements as degraded, so the report is partial.
+	 *
+	 * @return void
+	 */
+	public function testFullTreeReCreatesEveryObjectAndReportsPartial(): void {
+		$tree = [
+			'course' => ['id' => 'src-course', 'name' => 'Rekenen', 'language' => 'nl'],
+			'childCourses' => [
+				['uuid' => 'src-child', 'name' => 'Module A'],
+				[],
+			],
+			'lessons' => [
+				['id' => 'src-lesson', 'name' => 'Les 1', 'order' => 2, 'contentType' => 'html', 'contentRef' => 'ref-1'],
+				[],
+			],
+			'materials' => [
+				['id' => 'src-mat', 'title' => 'Werkblad 1.pdf', 'kind' => 'document', 'contentBase64' => base64_encode('PDF')],
+				['title' => 'Broken', 'contentBase64' => '***'],
+				['title' => 'Link', 'kind' => 'link', 'url' => 'https://example.org'],
+			],
+			'rubrics' => [
+				['id' => 'src-rubric', 'name' => 'Rubric', 'criteria' => [['c' => 1]], 'maxPoints' => 20],
+				[],
+			],
+			'assessments' => [
+				['id' => 'src-exam', 'title' => 'Toets'],
+			],
+			'ltiPlacements' => [
+				['id' => 'src-lti'],
+			],
+		];
+
+		$report = $this->importer()->importPackage(packagePath: $this->write((string)json_encode($tree)), origin: $this->origin());
+
+		$this->assertSame(
+			[
+				'course',
+				'course',
+				'course',
+				'lesson',
+				'lesson',
+				'material',
+				'material',
+				'material',
+				'rubric',
+				'rubric',
+				'exam',
+				'lti-tool-placement',
+				self::REPORT_SCHEMA,
+			],
+			array_column($this->saved, 'schema')
+		);
+		$objects = array_column($this->saved, 'object');
+
+		$this->assertSame('Rekenen', $objects[0]['name']);
+		$this->assertSame('nl', $objects[0]['language']);
+		$this->assertSame(['Module A', 'course-1'], [$objects[1]['name'], $objects[1]['parentCourseId']]);
+		$this->assertSame(['Imported module', 'course-1'], [$objects[2]['name'], $objects[2]['parentCourseId']]);
+		// A child course does not inherit the source metadata.
+		$this->assertSame('en', $objects[1]['language']);
+
+		$this->assertSame(
+			['courseId' => 'course-1', 'name' => 'Les 1', 'order' => 2, 'contentType' => 'html', 'contentRef' => 'ref-1', 'lifecycle' => 'draft', 'tenant_id' => 't-1'],
+			$objects[3]
+		);
+		$this->assertSame(
+			['courseId' => 'course-1', 'name' => '', 'order' => 0, 'contentType' => 'text', 'contentRef' => '', 'lifecycle' => 'draft', 'tenant_id' => 't-1'],
+			$objects[4]
+		);
+
+		$this->assertSame(
+			['title' => 'Werkblad 1.pdf', 'kind' => 'document', 'fileRef' => '/Learniq/t-1/course-imports/Werkblad-1.pdf', 'url' => null, 'courseId' => 'course-1', 'tenant_id' => 't-1'],
+			$objects[5]
+		);
+		$this->assertSame(
+			['title' => 'Broken', 'kind' => 'document', 'fileRef' => '', 'url' => null, 'courseId' => 'course-1', 'tenant_id' => 't-1'],
+			$objects[6]
+		);
+		$this->assertSame(
+			['title' => 'Link', 'kind' => 'link', 'fileRef' => '', 'url' => 'https://example.org', 'courseId' => 'course-1', 'tenant_id' => 't-1'],
+			$objects[7]
+		);
+
+		$this->assertSame(
+			['name' => 'Rubric', 'criteria' => [['c' => 1]], 'maxPoints' => 20, 'lifecycle' => 'draft', 'tenant_id' => 't-1'],
+			$objects[8]
+		);
+		$this->assertSame(['name' => '', 'criteria' => [], 'maxPoints' => 100, 'lifecycle' => 'draft', 'tenant_id' => 't-1'], $objects[9]);
+		$this->assertSame(['title' => 'Toets', 'courseId' => 'course-1', 'lifecycle' => 'draft', 'tenant_id' => 't-1'], $objects[10]);
+		$this->assertSame('course-1', $objects[11]['courseId']);
+		$this->assertSame('', $objects[11]['openconnectorDeploymentId']);
+
+		// Only the valid base64 content reaches nc:files, in the importer's folder.
+		$this->assertSame(
+			[
+				['getUserFolder' => 'anna'],
+				['newFolder' => 'Learniq'],
+				['newFolder' => 'Learniq/t-1'],
+				['newFolder' => 'Learniq/t-1/course-imports'],
+				['newFile' => ['Learniq/t-1/course-imports/Werkblad-1.pdf', 'PDF']],
+			],
+			$this->fileCalls
+		);
+
+		$this->assertSame(
+			[
+				['src-course', 'course', 'Rekenen', 'imported', 'course', 'course-1'],
+				['src-child', 'course', 'Module A', 'imported', 'course', 'course-2'],
+				['child-course', 'course', '', 'imported', 'course', 'course-3'],
+				['src-lesson', 'lesson', 'Les 1', 'imported', 'lesson', 'lesson-1'],
+				['lesson', 'lesson', '', 'imported', 'lesson', 'lesson-2'],
+				['src-mat', 'material', 'Werkblad 1.pdf', 'imported', 'material', 'material-1'],
+				['material', 'material', 'Broken', 'imported', 'material', 'material-2'],
+				['material', 'material', 'Link', 'imported', 'material', 'material-3'],
+				['src-rubric', 'rubric', 'Rubric', 'imported', 'rubric', 'rubric-1'],
+				['rubric', 'rubric', '', 'imported', 'rubric', 'rubric-2'],
+				['src-exam', 'assessment', 'Toets', 'degraded', 'assessment', 'exam-1'],
+				['src-lti', 'lti-tool-placement', 'LTI tool placement', 'degraded', 'lti-tool-placement', 'lti-tool-placement-1'],
+			],
+			array_map(
+				static fn (array $e): array => [$e['resourceIdentifier'], $e['resourceType'], $e['title'], $e['outcome'], $e['targetType'], $e['targetId']],
+				$report['entries']
+			)
+		);
+		$reasons = array_column($report['entries'], 'reason');
+		$this->assertSame(array_fill(0, 10, null), array_slice($reasons, 0, 10));
+		$this->assertSame(
+			'Item references are source-tenant UUIDs and do not resolve here; re-import the ItemBank via QTI package import to relink.',
+			$reasons[10]
+		);
+		$this->assertSame(
+			'LTI placement re-created without a configured OpenConnector deployment; an admin must bind a deployment before this tool can be launched.',
+			$reasons[11]
+		);
+
+		$this->assertSame('partial', $report['lifecycle']);
+		$this->assertSame('course-1', $report['courseId']);
+		$this->assertSame(12, $report['resourcesTotal']);
+		$this->assertSame(10, $report['resourcesImported']);
+		$this->assertSame(2, $report['resourcesDegraded']);
+		$this->assertSame(0, $report['resourcesDropped']);
+	}//end testFullTreeReCreatesEveryObjectAndReportsPartial()
+
+	/**
+	 * The importer under test, over a recording ObjectService and root folder.
 	 *
 	 * @return LearniqJsonCourseImporter
 	 */
 	private function importer(): LearniqJsonCourseImporter {
-		$objects = $this->createMock(ObjectService::class);
-		$objects->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null) {
-				$this->saved[(string)$schema][] = $object;
-				return OrEntityFactory::make($object, (string)$schema, (string)$register, $schema . '-' . count($this->saved[(string)$schema]));
+		$counters = [];
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('saveObject')->willReturnCallback(
+			function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$counters) {
+				$schema = (string)$schema;
+				$this->assertSame('learniq', $register);
+				$this->saved[] = ['schema' => $schema, 'object' => $object];
+				$counters[$schema] = ($counters[$schema] ?? 0) + 1;
+
+				return OrEntityFactory::make($object, $schema, 'learniq', $schema . '-' . $counters[$schema]);
 			}
 		);
 
 		$folder = $this->createMock(Folder::class);
-		$folder->method('get')->willThrowException(new NotFoundException('not found'));
+		$folder->method('get')->willThrowException(new NotFoundException('missing'));
+		$folder->method('newFolder')->willReturnCallback(
+			function (string $path): Folder {
+				$this->fileCalls[] = ['newFolder' => $path];
+				return $this->createMock(Folder::class);
+			}
+		);
 		$folder->method('nodeExists')->willReturn(false);
-		$folder->method('newFolder')->willReturn($this->createMock(Folder::class));
 		$folder->method('newFile')->willReturnCallback(
-			function (string $path, string $content): File {
-				$this->files[$path] = $content;
+			function (string $path, $content = null): File {
+				$this->fileCalls[] = ['newFile' => [$path, $content]];
 				return $this->createMock(File::class);
 			}
 		);
 		$root = $this->createMock(IRootFolder::class);
-		$root->method('getUserFolder')->with('docent')->willReturn($folder);
+		$root->method('getUserFolder')->willReturnCallback(
+			function (string $uid) use ($folder): Folder {
+				$this->fileCalls[] = ['getUserFolder' => $uid];
+				return $folder;
+			}
+		);
 
 		return new LearniqJsonCourseImporter(
-			new CoursePackageObjectWriter($objects),
-			new CoursePackageFileWriter($root, new NullLogger()),
-			new CoursePackageImportReporter($objects)
+			new CoursePackageObjectWriter($objectService),
+			new CoursePackageFileWriter($root, new CapturingLogger()),
+			new CoursePackageImportReporter($objectService),
 		);
 	}//end importer()
 
 	/**
-	 * A package file holding the given text.
-	 *
-	 * @param string $content The file content.
-	 *
-	 * @return string The path.
-	 */
-	private function package(string $content): string {
-		$path = (string)tempnam(sys_get_temp_dir(), 'learniq-json-');
-		file_put_contents($path, $content);
-		$this->temp[] = $path;
-		return $path;
-	}//end package()
-
-	/**
-	 * Where the import came from.
+	 * The import origin used throughout.
 	 *
 	 * @return ImportOrigin
 	 */
 	private function origin(): ImportOrigin {
-		return new ImportOrigin(sourceFilename: 'rekenen.json', importedBy: 'docent', importedAt: '2026-11-13T08:00:00+00:00', tenantId: 'school-1');
+		return new ImportOrigin('export.json', 'anna', '2026-01-01T00:00:00+00:00', 't-1');
 	}//end origin()
 
 	/**
-	 * Every part of the tree is written under the new course and reported.
+	 * Write a package file into the temp directory.
 	 *
-	 * @return void
-	 */
-	public function testEveryPartOfTheTreeIsWrittenAndReported(): void {
-		$tree = [
-			'course' => ['id' => 'src-course', 'name' => 'Rekenen 3F'],
-			'childCourses' => [['uuid' => 'src-mod', 'name' => 'Breuken'], []],
-			'lessons' => [['id' => 'src-les', 'name' => 'Teller en noemer', 'order' => 2, 'contentType' => 'video', 'contentRef' => 'yt:abc'], []],
-			'materials' => [
-				['id' => 'src-mat', 'title' => 'Werkblad 1.pdf', 'kind' => 'worksheet', 'contentBase64' => base64_encode('%PDF-1.4')],
-				['title' => 'Uitlegvideo', 'url' => 'https://video.example/uitleg'],
-			],
-			'rubrics' => [['id' => 'src-rub', 'name' => 'Toetsrubric', 'criteria' => [['name' => 'Juist']], 'maxPoints' => 10], []],
-			'assessments' => [['id' => 'src-exam', 'title' => 'Eindtoets']],
-			'ltiPlacements' => [['id' => 'src-lti']],
-		];
-
-		$this->importer()->importPackage($this->package((string)json_encode($tree)), $this->origin());
-
-		self::assertSame('Rekenen 3F', $this->saved['course'][0]['name']);
-		self::assertNull($this->saved['course'][0]['parentCourseId']);
-		self::assertSame(['Breuken', 'course-1', 'school-1'], [$this->saved['course'][1]['name'], $this->saved['course'][1]['parentCourseId'], $this->saved['course'][1]['tenant_id']]);
-		self::assertSame('Imported module', $this->saved['course'][2]['name']);
-
-		self::assertSame(
-			['courseId' => 'course-1', 'name' => 'Teller en noemer', 'order' => 2, 'contentType' => 'video', 'contentRef' => 'yt:abc', 'lifecycle' => 'draft', 'tenant_id' => 'school-1'],
-			$this->saved['lesson'][0]
-		);
-		self::assertSame(['', 0, 'text', ''], [$this->saved['lesson'][1]['name'], $this->saved['lesson'][1]['order'], $this->saved['lesson'][1]['contentType'], $this->saved['lesson'][1]['contentRef']]);
-
-		self::assertSame(['/Learniq/school-1/course-imports/Werkblad-1.pdf' => '%PDF-1.4'], array_combine(array_map(static fn (string $p): string => '/' . $p, array_keys($this->files)), array_values($this->files)));
-		self::assertSame(
-			['title' => 'Werkblad 1.pdf', 'kind' => 'worksheet', 'fileRef' => '/Learniq/school-1/course-imports/Werkblad-1.pdf', 'url' => null, 'courseId' => 'course-1', 'tenant_id' => 'school-1'],
-			$this->saved['material'][0]
-		);
-		self::assertSame(['document', '', 'https://video.example/uitleg'], [$this->saved['material'][1]['kind'], $this->saved['material'][1]['fileRef'], $this->saved['material'][1]['url']]);
-
-		self::assertSame(
-			['name' => 'Toetsrubric', 'criteria' => [['name' => 'Juist']], 'maxPoints' => 10, 'lifecycle' => 'draft', 'tenant_id' => 'school-1'],
-			$this->saved['rubric'][0]
-		);
-		self::assertSame(['name' => '', 'criteria' => [], 'maxPoints' => 100, 'lifecycle' => 'draft', 'tenant_id' => 'school-1'], $this->saved['rubric'][1]);
-		self::assertSame(['title' => 'Eindtoets', 'courseId' => 'course-1', 'lifecycle' => 'draft', 'tenant_id' => 'school-1'], $this->saved['exam'][0]);
-		self::assertSame('course-1', $this->saved['lti-tool-placement'][0]['courseId']);
-		self::assertSame('', $this->saved['lti-tool-placement'][0]['openconnectorDeploymentId']);
-
-		$report = $this->saved['course-package-import-report'][0];
-		self::assertSame('scholiq-json', $report['sourceFormat']);
-		self::assertSame('course-1', $report['courseId']);
-		self::assertSame('partial', $report['lifecycle']);
-		self::assertSame([11, 9, 2, 0], [$report['resourcesTotal'], $report['resourcesImported'], $report['resourcesDegraded'], $report['resourcesDropped']]);
-		self::assertSame(
-			[
-				['src-course', 'course', 'imported', 'course-1'],
-				['src-mod', 'course', 'imported', 'course-2'],
-				['child-course', 'course', 'imported', 'course-3'],
-				['src-les', 'lesson', 'imported', 'lesson-1'],
-				['lesson', 'lesson', 'imported', 'lesson-2'],
-				['src-mat', 'material', 'imported', 'material-1'],
-				['material', 'material', 'imported', 'material-2'],
-				['src-rub', 'rubric', 'imported', 'rubric-1'],
-				['rubric', 'rubric', 'imported', 'rubric-2'],
-				['src-exam', 'assessment', 'degraded', 'exam-1'],
-				['src-lti', 'lti-tool-placement', 'degraded', 'lti-tool-placement-1'],
-			],
-			array_map(static fn (array $e): array => [$e['resourceIdentifier'], $e['resourceType'], $e['outcome'], $e['targetId']], $report['entries'])
-		);
-		self::assertStringContainsString('re-import the ItemBank via QTI package import', (string)$report['entries'][9]['reason']);
-		self::assertStringContainsString('an admin must bind a deployment', (string)$report['entries'][10]['reason']);
-		self::assertSame('LTI tool placement', $report['entries'][10]['title']);
-		self::assertSame('school-1', $report['tenant_id']);
-	}//end testEveryPartOfTheTreeIsWrittenAndReported()
-
-	/**
-	 * A course alone imports cleanly; an undecodable material is kept without a file.
+	 * @param string $content File content.
 	 *
-	 * @return void
+	 * @return string Its path.
 	 */
-	public function testACourseWithAnUndecodableMaterialSucceedsWithoutAFile(): void {
-		$tree = ['course' => ['name' => 'Taal'], 'materials' => [['title' => 'Kapot', 'contentBase64' => '***']]];
-
-		$this->importer()->importPackage($this->package((string)json_encode($tree)), $this->origin());
-
-		self::assertSame([], $this->files);
-		self::assertSame('', $this->saved['material'][0]['fileRef']);
-		$report = $this->saved['course-package-import-report'][0];
-		self::assertSame('succeeded', $report['lifecycle']);
-		self::assertSame('course', $report['entries'][0]['resourceIdentifier']);
-		self::assertSame(2, $report['resourcesTotal']);
-	}//end testACourseWithAnUndecodableMaterialSucceedsWithoutAFile()
-
-	/**
-	 * A file without a top-level course, or not JSON at all, is a failed report and nothing else.
-	 *
-	 * @return void
-	 */
-	public function testAFileWithoutACourseIsAFailedReport(): void {
-		$importer = $this->importer();
-		$importer->importPackage($this->package('{"lessons": []}'), $this->origin());
-		$importer->importPackage($this->package('not json'), $this->origin());
-
-		self::assertSame(['course-package-import-report'], array_keys($this->saved));
-		foreach ($this->saved['course-package-import-report'] as $report) {
-			self::assertSame('failed', $report['lifecycle']);
-			self::assertNull($report['courseId']);
-			self::assertSame([], $report['entries']);
-			self::assertSame('File is not a valid scholiq-native course export (missing top-level "course" object).', $report['errorMessage']);
-		}
-
-		self::assertCount(2, $this->saved['course-package-import-report']);
-	}//end testAFileWithoutACourseIsAFailedReport()
+	private function write(string $content): string {
+		$path = $this->dir . '/export.json';
+		file_put_contents($path, $content);
+		return $path;
+	}//end write()
 }//end class

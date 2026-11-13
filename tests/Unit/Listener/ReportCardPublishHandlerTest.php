@@ -227,4 +227,30 @@ class ReportCardPublishHandlerTest extends TestCase {
 		self::assertCount(0, $notificationSaves);
 
 	}//end testUnresolvableProfileYieldsNoNotifications()
+	/**
+	 * An empty entry in parentIds is skipped; a card without a learner fans out nothing.
+	 *
+	 * @return void
+	 */
+	public function testEmptyParentIdsAndLearnerlessCardsAreSkipped(): void {
+		$now = new DateTime('2026-07-13T09:00:00+00:00');
+		$handler = $this->makeHandler(
+			profiles: ['learner-1' => ['parentIds' => ['', 'parent-3', null], 'givenName' => '  Sem ']],
+			now: $now
+		);
+
+		$handler->handle($this->makeEvent(['uuid' => 'card-2', 'learnerId' => 'learner-1', 'tenant_id' => 'tenant-b']));
+		$handler->handle($this->makeEvent(['id' => 'card-3', 'learnerId' => '', 'tenant_id' => 'tenant-b']));
+
+		$notificationSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'report-card-parent-notification'));
+		self::assertCount(1, $notificationSaves);
+		self::assertSame('parent-3', $notificationSaves[0]['object']['recipient']);
+		self::assertSame('card-2', $notificationSaves[0]['object']['sourceId']);
+		self::assertSame('card-2-parent-parent-3', $notificationSaves[0]['object']['idempotencyKey']);
+		self::assertNull($notificationSaves[0]['object']['learnerRef']);
+		self::assertSame('Het rapport van Sem staat klaar', $notificationSaves[0]['object']['subject']);
+		self::assertSame($now->format(\DATE_ATOM), $notificationSaves[0]['object']['visibleFrom']);
+		self::assertCount(1, $this->store->reads, 'A card without a learner reads no profile.');
+
+	}//end testEmptyParentIdsAndLearnerlessCardsAreSkipped()
 }//end class

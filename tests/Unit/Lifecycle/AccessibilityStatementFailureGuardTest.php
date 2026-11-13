@@ -42,6 +42,7 @@ use Psr\Log\LoggerInterface;
  *
  * @covers \OCA\Learniq\Lifecycle\AccessibilityStatementPublishGuard
  * @uses \OCA\Learniq\Service\Accessibility\WcagCriteriaCatalogue
+ * @uses \OCA\Learniq\Support\ResultArrays
  */
 class AccessibilityStatementFailureGuardTest extends TestCase {
 

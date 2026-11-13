@@ -13,91 +13,178 @@ use OCA\Learniq\Service\CoursePackage\PackageXmlValueReader;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Reads the first attribute or text value of a tag from a package XML file,
- * and answers null for a missing file, unparsable XML, a missing tag or an
- * empty value.
+ * PackageXmlValueReader reads one attribute or text value from a side-car XML
+ * file, answering null for anything it cannot resolve.
  *
  * @covers \OCA\Learniq\Service\CoursePackage\PackageXmlValueReader
  */
 class PackageXmlValueReaderTest extends TestCase {
 
 	/**
-	 * Temporary files to remove.
+	 * Fixture directory.
 	 *
-	 * @var list<string>
+	 * @var string
 	 */
-	private array $temp = [];
+	private string $dir;
 
 	/**
-	 * Remove the files.
+	 * The reader under test.
+	 *
+	 * @var PackageXmlValueReader
+	 */
+	private PackageXmlValueReader $reader;
+
+	/**
+	 * Create the fixture directory.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		$this->dir = sys_get_temp_dir() . '/learniq-pxvr-' . uniqid('', true);
+		mkdir($this->dir, 0777, true);
+		$this->reader = new PackageXmlValueReader();
+	}//end setUp()
+
+	/**
+	 * Remove the fixture directory.
 	 *
 	 * @return void
 	 */
 	protected function tearDown(): void {
-		foreach ($this->temp as $path) {
-			@unlink($path);
+		foreach ((array)glob($this->dir . '/*') as $file) {
+			unlink((string)$file);
 		}
 
-		parent::tearDown();
+		rmdir($this->dir);
 	}//end tearDown()
 
 	/**
-	 * A file holding the given XML.
+	 * Write a fixture file.
 	 *
-	 * @param string $xml The content.
+	 * @param string $name    File name.
+	 * @param string $content File content.
 	 *
-	 * @return string The path.
+	 * @return string The absolute path.
 	 */
-	private function file(string $xml): string {
-		$path = (string)tempnam(sys_get_temp_dir(), 'learniq-xml-');
-		file_put_contents($path, $xml);
-		$this->temp[] = $path;
+	private function fixture(string $name, string $content): string {
+		$path = $this->dir . '/' . $name;
+		file_put_contents($path, $content);
 		return $path;
-	}//end file()
+	}//end fixture()
 
 	/**
-	 * The first matching element's attribute, or null when it is absent or empty.
+	 * The attribute of the first matching element is returned.
 	 *
 	 * @return void
 	 */
-	public function testReadsTheFirstElementsAttribute(): void {
-		$reader = new PackageXmlValueReader();
-		$path = $this->file('<activity><file href="a.pdf" empty=""/><file href="b.pdf"/><note>x</note></activity>');
+	public function testReadAttributeReturnsTheFirstElementsValue(): void {
+		$path = $this->fixture(
+			name: 'weblink.xml',
+			content: '<webLink xmlns="http://www.imsglobal.org/xsd/imsccv1p1/imswl_v1p1">'
+			. '<title>Docs</title><url href="https://example.org/a"/><url href="https://example.org/b"/></webLink>'
+		);
 
-		self::assertSame('a.pdf', $reader->readAttribute(path: $path, tagName: 'file', attribute: 'href'));
-		self::assertNull($reader->readAttribute(path: $path, tagName: 'file', attribute: 'empty'));
-		self::assertNull($reader->readAttribute(path: $path, tagName: 'file', attribute: 'missing'));
-		self::assertNull($reader->readAttribute(path: $path, tagName: 'resource', attribute: 'href'));
-	}//end testReadsTheFirstElementsAttribute()
+		$this->assertSame('https://example.org/a', $this->reader->readAttribute(path: $path, tagName: 'url', attribute: 'href'));
+	}//end testReadAttributeReturnsTheFirstElementsValue()
 
 	/**
-	 * The first matching element's trimmed text, or null when it is absent or blank.
+	 * A missing file resolves to null.
 	 *
 	 * @return void
 	 */
-	public function testReadsTheFirstElementsTrimmedText(): void {
-		$reader = new PackageXmlValueReader();
-		$path = $this->file("<url><externalurl>\n  https://example.org/les \n</externalurl><blank>   </blank></url>");
-
-		self::assertSame('https://example.org/les', $reader->readTextContent(path: $path, tagName: 'externalurl'));
-		self::assertNull($reader->readTextContent(path: $path, tagName: 'blank'));
-		self::assertNull($reader->readTextContent(path: $path, tagName: 'name'));
-	}//end testReadsTheFirstElementsTrimmedText()
+	public function testReadAttributeOfMissingFileIsNull(): void {
+		$this->assertNull($this->reader->readAttribute(path: $this->dir . '/absent.xml', tagName: 'url', attribute: 'href'));
+	}//end testReadAttributeOfMissingFileIsNull()
 
 	/**
-	 * A missing file or a file that is not XML reads as nothing, without a warning.
+	 * Malformed XML resolves to null and leaves no libxml errors behind.
 	 *
 	 * @return void
 	 */
-	public function testAMissingOrBrokenFileReadsAsNothing(): void {
-		$reader = new PackageXmlValueReader();
-		$missing = sys_get_temp_dir() . '/learniq-xml-does-not-exist-' . getmypid() . '.xml';
-		$broken = $this->file('<activity><file href="a.pdf">');
+	public function testReadAttributeOfMalformedXmlIsNullAndClearsErrors(): void {
+		$path = $this->fixture(name: 'broken.xml', content: '<webLink><url href="x"></webLink');
 
-		self::assertNull($reader->readAttribute(path: $missing, tagName: 'file', attribute: 'href'));
-		self::assertNull($reader->readTextContent(path: $missing, tagName: 'file'));
-		self::assertNull($reader->readAttribute(path: $broken, tagName: 'file', attribute: 'href'));
-		self::assertNull($reader->readTextContent(path: $broken, tagName: 'file'));
-		self::assertSame([], libxml_get_errors());
-	}//end testAMissingOrBrokenFileReadsAsNothing()
+		$this->assertNull($this->reader->readAttribute(path: $path, tagName: 'url', attribute: 'href'));
+		$this->assertSame([], libxml_get_errors());
+	}//end testReadAttributeOfMalformedXmlIsNullAndClearsErrors()
+
+	/**
+	 * A document without the element resolves to null.
+	 *
+	 * @return void
+	 */
+	public function testReadAttributeWithoutTheElementIsNull(): void {
+		$path = $this->fixture(name: 'other.xml', content: '<webLink><title>Docs</title></webLink>');
+
+		$this->assertNull($this->reader->readAttribute(path: $path, tagName: 'url', attribute: 'href'));
+	}//end testReadAttributeWithoutTheElementIsNull()
+
+	/**
+	 * An absent or empty attribute resolves to null.
+	 *
+	 * @return void
+	 */
+	public function testReadAttributeThatIsEmptyOrAbsentIsNull(): void {
+		$path = $this->fixture(name: 'empty.xml', content: '<webLink><url href="" target="_blank"/></webLink>');
+
+		$this->assertNull($this->reader->readAttribute(path: $path, tagName: 'url', attribute: 'href'));
+		$this->assertNull($this->reader->readAttribute(path: $path, tagName: 'url', attribute: 'rel'));
+		$this->assertSame('_blank', $this->reader->readAttribute(path: $path, tagName: 'url', attribute: 'target'));
+	}//end testReadAttributeThatIsEmptyOrAbsentIsNull()
+
+	/**
+	 * Text content is trimmed and taken from the first matching element.
+	 *
+	 * @return void
+	 */
+	public function testReadTextContentIsTrimmed(): void {
+		$path = $this->fixture(
+			name: 'url.xml',
+			content: "<activity><url><externalurl>\n  https://moodle.example/x  \n</externalurl>"
+			. '<externalurl>https://second.example</externalurl></url></activity>'
+		);
+
+		$this->assertSame('https://moodle.example/x', $this->reader->readTextContent(path: $path, tagName: 'externalurl'));
+	}//end testReadTextContentIsTrimmed()
+
+	/**
+	 * A missing file, malformed XML and a missing element all resolve to null.
+	 *
+	 * @return void
+	 */
+	public function testReadTextContentUnresolvableIsNull(): void {
+		$broken = $this->fixture(name: 'broken.xml', content: '<activity><externalurl>x</activity>');
+		$other = $this->fixture(name: 'other.xml', content: '<activity><name>N</name></activity>');
+
+		$this->assertNull($this->reader->readTextContent(path: $this->dir . '/absent.xml', tagName: 'externalurl'));
+		$this->assertNull($this->reader->readTextContent(path: $broken, tagName: 'externalurl'));
+		$this->assertNull($this->reader->readTextContent(path: $other, tagName: 'externalurl'));
+	}//end testReadTextContentUnresolvableIsNull()
+
+	/**
+	 * Whitespace-only text resolves to null.
+	 *
+	 * @return void
+	 */
+	public function testReadTextContentOfBlankElementIsNull(): void {
+		$path = $this->fixture(name: 'blank.xml', content: "<activity><externalurl>  \n\t </externalurl></activity>");
+
+		$this->assertNull($this->reader->readTextContent(path: $path, tagName: 'externalurl'));
+	}//end testReadTextContentOfBlankElementIsNull()
+
+	/**
+	 * An external entity is not expanded into the value (XXE-safe load).
+	 *
+	 * @return void
+	 */
+	public function testExternalEntityIsNotExpanded(): void {
+		$secret = $this->fixture(name: 'secret.txt', content: 'top-secret');
+		$path = $this->fixture(
+			name: 'xxe.xml',
+			content: '<!DOCTYPE activity [<!ENTITY e SYSTEM "file://' . $secret . '">]>'
+			. '<activity><externalurl>&e;</externalurl></activity>'
+		);
+
+		$this->assertNull($this->reader->readTextContent(path: $path, tagName: 'externalurl'));
+	}//end testExternalEntityIsNotExpanded()
 }//end class

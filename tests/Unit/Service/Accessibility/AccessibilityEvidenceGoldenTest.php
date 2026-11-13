@@ -41,6 +41,8 @@ use ReflectionMethod;
  * @covers \OCA\Learniq\Lifecycle\AccessibilityStatementPublishGuard
  * @uses   \OCA\Learniq\Service\Accessibility\WcagCriteriaCatalogue
  * @uses   \OCA\Learniq\Service\CsvCellSanitizer
+ * @uses   \OCA\Learniq\Support\ResultArrays
+ * @uses   \OCA\Learniq\Support\RowId
  */
 class AccessibilityEvidenceGoldenTest extends TestCase {
 
