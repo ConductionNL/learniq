@@ -290,6 +290,13 @@ class StudentPortalPages {
 		'hoursSubmitted' => ['label' => 'Hours you worked', 'required' => true],
 	];
 
+	/**
+	 * Work to hand in on the overview. Her own submission is looked up per
+	 * assignment; work handed in, handed in late or marked leaves the list,
+	 * a draft or no submission keeps it (portaliq REQ-SMO-025).
+	 *
+	 * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md
+	 */
 	private const STUDENT_HOMEWORK_TASKS_BLOCK = [
 		'type' => 'tasks',
 		'label' => 'Homework and tests',
@@ -297,6 +304,15 @@ class StudentPortalPages {
 		'collection' => 'studentHomework',
 		'dueField' => 'dueAt',
 		'titleFields' => ['title'],
+		'lookups' => [
+			[
+				'as' => 'submission',
+				'collection' => 'studentSubmissions',
+				'matchField' => 'assignmentId',
+				'valueField' => 'lifecycle',
+			],
+		],
+		'excludeWhen' => ['lookup' => 'submission', 'in' => ['submitted', 'late', 'returned']],
 	];
 
 	private const STUDENT_LATEST_GRADES_BLOCK = [

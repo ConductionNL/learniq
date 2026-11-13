@@ -287,6 +287,12 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertSame('studentHomework', $overview['blocks'][3]['collection']);
 		self::assertSame('dueAt', $overview['blocks'][3]['dueField']);
 		self::assertSame('highlight', $overview['blocks'][3]['display']);
+		// Handed-in work leaves the list: her own submission per assignment, by its lifecycle (portaliq REQ-SMO-025).
+		self::assertSame(
+			[['as' => 'submission', 'collection' => 'studentSubmissions', 'matchField' => 'assignmentId', 'valueField' => 'lifecycle']],
+			$overview['blocks'][3]['lookups']
+		);
+		self::assertSame(['lookup' => 'submission', 'in' => ['submitted', 'late', 'returned']], $overview['blocks'][3]['excludeWhen']);
 		self::assertSame(['studentGrades', 3], [$overview['blocks'][4]['collection'], $overview['blocks'][4]['limit']]);
 		self::assertSame('studentAttendanceSummary', $overview['blocks'][5]['collection']);
 		self::assertSame(['absentDays', 'lateCount', 'absentUnauthorisedDays'], array_column($overview['blocks'][5]['cards'], 'field'));
