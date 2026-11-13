@@ -26,6 +26,7 @@ use RuntimeException;
  * (or for a user id a lesson carries) changes the golden.
  *
  * @covers \OCA\Learniq\Service\LessonNoteReader
+ * @uses   \OCA\Learniq\Service\StaffGroupCheck
  */
 class LessonNoteReaderGoldenTest extends TestCase {
 	use GoldenFile;

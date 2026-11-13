@@ -21,6 +21,7 @@ use PHPUnit\Framework\TestCase;
  *
  * @covers \OCA\Learniq\Service\ItemAnalysisService
  * @uses   \OCA\Learniq\Service\ItemDistractorAnalysis
+ * @uses   \OCA\Learniq\Service\AssessmentObjectReads
  */
 class ItemAnalysisStatisticsGoldenTest extends TestCase {
 	use GoldenFile;

@@ -36,6 +36,7 @@ use Psr\Log\NullLogger;
  * @covers \OCA\Learniq\Service\RegulationAssignmentService
  * @covers \OCA\Learniq\Service\RegulationAssignPreview
  * @covers \OCA\Learniq\Service\RegulationAudienceResolver
+ * @uses   \OCA\Learniq\Service\SchemaRows
  */
 class RegulationAssignByAudienceTest extends TestCase {
 

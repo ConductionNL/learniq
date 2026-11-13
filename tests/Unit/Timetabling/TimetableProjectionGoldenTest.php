@@ -45,6 +45,7 @@ use RuntimeException;
  * @covers \OCA\Learniq\Service\TimetableProjector
  * @covers \OCA\Learniq\Timetabling\SessionSeries
  * @covers \OCA\Learniq\Timetabling\Source\PlanninqTimetableSource
+ * @uses   \OCA\Learniq\Support\ObjectRow
  */
 class TimetableProjectionGoldenTest extends TestCase {
 

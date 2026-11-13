@@ -48,6 +48,7 @@ use PHPUnit\Framework\TestCase;
  * @covers \OCA\Learniq\Service\ItemDistractorAnalysis
  * @covers \OCA\Learniq\Service\ParsesQtiBody
  * @uses   \OCA\Learniq\Service\ListenerSchemaResolver
+ * @uses   \OCA\Learniq\Service\AssessmentObjectReads
  */
 class ItemAnalysisGoldenTest extends TestCase {
 

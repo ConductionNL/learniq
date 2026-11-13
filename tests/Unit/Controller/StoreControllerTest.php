@@ -44,6 +44,7 @@ use Psr\Log\NullLogger;
  * @covers \OCA\Learniq\Controller\StoreController
  * @uses   \OCA\Learniq\Service\CourseStore\CourseStoreDescriptor
  * @uses   \OCA\Learniq\Exception\SharingBlockedException
+ * @uses   \OCA\Learniq\Controller\CourseInstallRequest
  */
 class StoreControllerTest extends TestCase {
 

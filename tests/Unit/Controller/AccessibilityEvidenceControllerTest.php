@@ -53,6 +53,7 @@ use RuntimeException;
  * @uses \OCA\Learniq\Service\Accessibility\ConformanceEvidence
  * @uses \OCA\Learniq\Service\Accessibility\WcagCriteriaCatalogue
  * @uses \OCA\Learniq\Service\CsvCellSanitizer
+ * @uses   \OCA\Learniq\Support\RowId
  */
 class AccessibilityEvidenceControllerTest extends TestCase {
 
