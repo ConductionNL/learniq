@@ -38,6 +38,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\Learniq\Kernel\Contracts\AssessmentScoringHandlerInterface;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -55,7 +56,7 @@ use Psr\Log\LoggerInterface;
  * and refuses it (fail-closed) when the parent Assessment cannot be resolved, so
  * client-controlled autoScore values cannot persist.
  */
-class AssessmentScoringHandler implements LifecycleGuardInterface {
+class AssessmentScoringHandler implements LifecycleGuardInterface, AssessmentScoringHandlerInterface {
 
 	/**
 	 * Interaction types that can be auto-scored.

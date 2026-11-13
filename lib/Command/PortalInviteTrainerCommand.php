@@ -28,7 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Command;
 
-use OCA\Learniq\Portal\BpvPortalInvitation;
+use OCA\Learniq\Kernel\Contracts\BpvPortalInvitationInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -44,12 +44,12 @@ class PortalInviteTrainerCommand extends Command {
 	/**
 	 * Constructor.
 	 *
-	 * @param BpvPortalInvitation $invitations Provisions the account and writes the claim.
+	 * @param BpvPortalInvitationInterface $invitations Provisions the account and writes the claim.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly BpvPortalInvitation $invitations,
+		private readonly BpvPortalInvitationInterface $invitations,
 	) {
 		parent::__construct();
 	}//end __construct()

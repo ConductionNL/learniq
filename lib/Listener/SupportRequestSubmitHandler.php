@@ -43,6 +43,7 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Kernel\Contracts\IntegriqExchangeClientInterface;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\SupportRequestSubmitHandlerInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -56,18 +57,13 @@ use Throwable;
  *
  * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
  */
-class SupportRequestSubmitHandler implements IEventListener {
+class SupportRequestSubmitHandler implements IEventListener, SupportRequestSubmitHandlerInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const SUPPORT_REQUEST_SCHEMA = 'support-request';
 	private const DOSSIER_REVIEW_SCHEMA = 'dossier-review';
 	private const SWV_TARGET = 'swv';
 	public const SWV_MAPPING = 'learniq-swv-export-zorgvraag';
-
-	/**
-	 * App config key naming the integriq SWV receiver (`swv-kindkans`, `swv-ldos`).
-	 */
-	public const RECEIVER_CONFIG_KEY = 'swv_receiver_id';
 
 	/**
 	 * Constructor.

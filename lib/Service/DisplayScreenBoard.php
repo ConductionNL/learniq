@@ -34,7 +34,7 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeZone;
 use OCA\Learniq\Kernel\Contracts\DisplayScreenBoardInterface;
-use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
+use OCA\Learniq\Kernel\Contracts\TimetableSourceResolverInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\ICacheFactory;
 use Throwable;
@@ -55,12 +55,12 @@ class DisplayScreenBoard implements DisplayScreenBoardInterface {
 	 * Constructor.
 	 *
 	 * @param ObjectService           $objectService OpenRegister objects, read as the system.
-	 * @param TimetableSourceResolver $sources       Planninq or learniq's own sessions.
+	 * @param TimetableSourceResolverInterface $sources       Planninq or learniq's own sessions.
 	 * @param ICacheFactory           $cacheFactory  The one-minute cache.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly TimetableSourceResolver $sources,
+		private readonly TimetableSourceResolverInterface $sources,
 		private readonly ICacheFactory $cacheFactory,
 	) {
 	}//end __construct()

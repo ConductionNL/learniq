@@ -62,6 +62,7 @@ namespace OCA\Learniq\Timetabling;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\TimetableConflictDetectorInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -71,7 +72,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/specs/timetabling/spec.md#requirement-conflict-detection-flags-double-bookings-and-capacity-overruns-without-resolving-them
  */
-class TimetableConflictDetector {
+class TimetableConflictDetector implements TimetableConflictDetectorInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const TIMETABLE_CONFLICT_SCHEMA = 'timetable-conflict';

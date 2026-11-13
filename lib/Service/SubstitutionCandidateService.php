@@ -36,7 +36,7 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\SubstitutionCandidateServiceInterface;
-use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
+use OCA\Learniq\Kernel\Contracts\TimetableSourceResolverInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserManager;
 use Throwable;
@@ -56,7 +56,7 @@ class SubstitutionCandidateService implements SubstitutionCandidateServiceInterf
 	 * Constructor.
 	 *
 	 * @param ObjectService           $objectService Slots, staff and cohorts.
-	 * @param TimetableSourceResolver $sources       Where lessons are read from.
+	 * @param TimetableSourceResolverInterface $sources       Where lessons are read from.
 	 * @param IUserManager            $userManager   Display names.
 	 * @param StandbyCalendar         $calendar      Whether a slot covers a lesson.
 	 *
@@ -64,7 +64,7 @@ class SubstitutionCandidateService implements SubstitutionCandidateServiceInterf
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly TimetableSourceResolver $sources,
+		private readonly TimetableSourceResolverInterface $sources,
 		private readonly IUserManager $userManager,
 		private readonly StandbyCalendar $calendar,
 	) {

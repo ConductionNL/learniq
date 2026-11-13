@@ -36,8 +36,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Kernel\AppIdentity;
-use OCA\Learniq\Portal\EmployerCompanyTenancy;
-use OCA\Learniq\Portal\EmployerSitePages;
+use OCA\Learniq\Kernel\Contracts\EmployerCompanyTenancyInterface;
+use OCA\Learniq\Kernel\Contracts\EmployerSitePagesInterface;
 use OCA\Portaliq\Event\PortalClaimScopeEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -59,12 +59,12 @@ class PortalClaimScopeListener implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param EmployerCompanyTenancy $tenancy Checks the company or location lies in the portal's organisation.
+	 * @param EmployerCompanyTenancyInterface $tenancy Checks the company or location lies in the portal's organisation.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly EmployerCompanyTenancy $tenancy,
+		private readonly EmployerCompanyTenancyInterface $tenancy,
 	) {
 	}//end __construct()
 
@@ -96,8 +96,8 @@ class PortalClaimScopeListener implements IEventListener {
 	 */
 	private function stands(PortalClaimScopeEvent $event): bool {
 		return match ($event->getClaimName()) {
-			EmployerSitePages::CLAIM => $this->tenancy->holds(organisationRef: $event->getValue(), organisation: $event->getOrganisation()),
-			EmployerSitePages::LOCATION_CLAIM => $this->tenancy->holdsLocation(locationRef: $event->getValue(), organisation: $event->getOrganisation()),
+			EmployerSitePagesInterface::CLAIM => $this->tenancy->holds(organisationRef: $event->getValue(), organisation: $event->getOrganisation()),
+			EmployerSitePagesInterface::LOCATION_CLAIM => $this->tenancy->holdsLocation(locationRef: $event->getValue(), organisation: $event->getOrganisation()),
 			default => true,
 		};
 	}//end stands()

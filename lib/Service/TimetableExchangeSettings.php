@@ -24,8 +24,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\SupportRequestSubmitHandlerInterface;
 use OCA\Learniq\Kernel\Contracts\TimetableExchangeSettingsInterface;
-use OCA\Learniq\Listener\SupportRequestSubmitHandler;
 use OCP\IAppConfig;
 
 /**
@@ -98,7 +98,7 @@ class TimetableExchangeSettings implements TimetableExchangeSettingsInterface {
 	 * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
 	 */
 	public function swvReceiverId(): string {
-		return $this->appConfig->getValueString(AppIdentity::APP_ID, SupportRequestSubmitHandler::RECEIVER_CONFIG_KEY, '');
+		return $this->appConfig->getValueString(AppIdentity::APP_ID, SupportRequestSubmitHandlerInterface::RECEIVER_CONFIG_KEY, '');
 	}//end swvReceiverId()
 
 	/**
@@ -149,7 +149,7 @@ class TimetableExchangeSettings implements TimetableExchangeSettingsInterface {
 		}
 
 		$this->appConfig->setValueString(AppIdentity::APP_ID, self::GROUP_MAPS_KEY, (string)json_encode($clean));
-		$this->appConfig->setValueString(AppIdentity::APP_ID, SupportRequestSubmitHandler::RECEIVER_CONFIG_KEY, $receiverId);
+		$this->appConfig->setValueString(AppIdentity::APP_ID, SupportRequestSubmitHandlerInterface::RECEIVER_CONFIG_KEY, $receiverId);
 	}//end save()
 
 	/**

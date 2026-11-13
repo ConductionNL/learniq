@@ -34,8 +34,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\Contracts\PersonalTimetableServiceInterface;
+use OCA\Learniq\Kernel\Contracts\TimetableSourceResolverInterface;
 use OCA\Learniq\Support\ObjectRow;
-use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
@@ -72,13 +72,13 @@ class PersonalTimetableService implements PersonalTimetableServiceInterface {
 	 *
 	 * @param ObjectService           $objectService OR object query service (RBAC-scoped).
 	 * @param TimetableProjector      $projector     Window resolution and Session projection.
-	 * @param TimetableSourceResolver $sources       Where sessions are read from: planninq when installed, else Session.
+	 * @param TimetableSourceResolverInterface $sources       Where sessions are read from: planninq when installed, else Session.
 	 * @param LoggerInterface         $logger        Application logger.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly TimetableProjector $projector,
-		private readonly TimetableSourceResolver $sources,
+		private readonly TimetableSourceResolverInterface $sources,
 		private readonly LoggerInterface $logger,
 	) {
 		$this->objectRow = new ObjectRow();

@@ -30,9 +30,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Command;
 
+use OCA\Learniq\Kernel\Contracts\ExamplePortalAccountGrantsInterface;
+use OCA\Learniq\Kernel\Contracts\ExamplePortalProvisionerInterface;
 use OCA\Learniq\Kernel\Contracts\SeedProfileServiceInterface;
-use OCA\Learniq\Portal\ExamplePortalAccountGrants;
-use OCA\Learniq\Portal\ExamplePortalProvisioner;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -51,15 +51,15 @@ class ExampleSetLoadCommand extends Command {
 	 * Constructor.
 	 *
 	 * @param SeedProfileServiceInterface         $sets    Imports the set and provisions its portal.
-	 * @param ExamplePortalProvisioner   $portals Creates or names the set's accounts.
-	 * @param ExamplePortalAccountGrants $grants  Gives the declared learners their portal account.
+	 * @param ExamplePortalProvisionerInterface   $portals Creates or names the set's accounts.
+	 * @param ExamplePortalAccountGrantsInterface $grants  Gives the declared learners their portal account.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly SeedProfileServiceInterface $sets,
-		private readonly ExamplePortalProvisioner $portals,
-		private readonly ExamplePortalAccountGrants $grants,
+		private readonly ExamplePortalProvisionerInterface $portals,
+		private readonly ExamplePortalAccountGrantsInterface $grants,
 	) {
 		parent::__construct();
 	}//end __construct()

@@ -30,9 +30,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PlanninqTimetableImportInterface;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerActions;
-use OCA\Learniq\Timetabling\PlanninqTimetableImport;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -76,13 +76,13 @@ class TimetableImportController extends Controller {
 	 *
 	 * @param IRequest                $request       HTTP request.
 	 * @param CallerActions $caller The user session and the ADR-023 action matrix.
-	 * @param PlanninqTimetableImport $planninq      Delivers through integriq into planninq.
+	 * @param PlanninqTimetableImportInterface $planninq      Delivers through integriq into planninq.
 	 * @param ISecureRandom           $secureRandom  Correlation id for the delivery.
 	 */
 	public function __construct(
 		IRequest $request,
 		CallerActions $caller,
-		private readonly PlanninqTimetableImport $planninq,
+		private readonly PlanninqTimetableImportInterface $planninq,
 		private readonly ISecureRandom $secureRandom,
 	) {
 		$this->userSession = $caller->userSession;
