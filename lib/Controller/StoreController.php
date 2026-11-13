@@ -48,6 +48,7 @@ use OCA\Learniq\Kernel\Contracts\CourseShareExportServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CourseStoreDescriptorInterface;
 use OCA\Learniq\Kernel\Contracts\CourseStoreInstallerInterface;
 use OCA\Learniq\Kernel\Contracts\CourseStorePublisherInterface;
+use OCA\Learniq\Kernel\Contracts\StoreActionsInterface;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\OpenRegister\AppHost\Service\GenericStoreService;
 use OCP\AppFramework\Controller;
@@ -66,15 +67,7 @@ use Throwable;
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects) One collaborator per store operation (plane, descriptor,
  *   installer, publisher, sharing gate); grouping them would hide which path each action takes.
  */
-class StoreController extends Controller {
-
-	/**
-	 * Installing a shared course as a copy (D27: any teacher). Not
-	 * `course-package.import`, which also guards the Canvas and Moodle upload.
-	 */
-	public const ACTION_INSTALL = 'course-store.install';
-
-	public const ACTION_PUBLISH = 'course-package.share';
+class StoreController extends Controller implements StoreActionsInterface {
 
 	/**
 	 * Publish outcome => HTTP status.

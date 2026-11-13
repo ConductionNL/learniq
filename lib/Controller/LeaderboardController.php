@@ -361,6 +361,44 @@ class LeaderboardController extends Controller {
 	 * @spec openspec/specs/engagement/spec.md#scenario-an-opted-out-learner-is-excluded-from-the-ranking-but-keeps-their-own-view
 	 */
 	private function buildRankings(array $learnerIds, string $tenantId, array $levelNames): array {
+		$byLearnerId = $this->engagementByLearner(tenantId: $tenantId);
+
+		$entries = [];
+		foreach ($learnerIds as $learnerId) {
+			if (is_string($learnerId) === false || $learnerId === '') {
+				continue;
+			}
+
+			if ($this->isOptedOut(learnerId: $learnerId) === true) {
+				continue;
+			}
+
+			$entries[] = $this->rankingEntry(learnerId: $learnerId, lookups: ['row' => $byLearnerId[$learnerId] ?? null, 'levelNames' => $levelNames]);
+		}
+
+		usort($entries, static fn (array $a, array $b) => $b['totalPoints'] <=> $a['totalPoints']);
+
+		$rank = 0;
+		return array_map(
+			static function (array $entry) use (&$rank) {
+				$rank++;
+				$entry['rank'] = $rank;
+				return $entry;
+			},
+			$entries
+		);
+	}//end buildRankings()
+
+	/**
+	 * The tenant's LearnerEngagement rows keyed by learnerId.
+	 *
+	 * @param string $tenantId The tenant.
+	 *
+	 * @return array<string|int, array<string, mixed>>
+	 *
+	 * @spec openspec/specs/engagement/spec.md#scenario-an-opted-out-learner-is-excluded-from-the-ranking-but-keeps-their-own-view
+	 */
+	private function engagementByLearner(string $tenantId): array {
 		$engagementRows = $this->objectService->findAll(
 			[
 				'filters' => [
@@ -385,44 +423,35 @@ class LeaderboardController extends Controller {
 			$byLearnerId[$learnerId] = $row;
 		}
 
-		$entries = [];
-		foreach ($learnerIds as $learnerId) {
-			if (is_string($learnerId) === false || $learnerId === '') {
-				continue;
-			}
+		return $byLearnerId;
+	}//end engagementByLearner()
 
-			if ($this->isOptedOut(learnerId: $learnerId) === true) {
-				continue;
-			}
+	/**
+	 * One leaderboard entry before ranking.
+	 *
+	 * @param string               $learnerId The learner.
+	 * @param array<string, mixed> $lookups   row: the learner's engagement row or null; levelNames: level id => name.
+	 *
+	 * @return array{learnerId: string, totalPoints: float, level: mixed}
+	 *
+	 * @spec openspec/specs/engagement/spec.md#scenario-an-opted-out-learner-is-excluded-from-the-ranking-but-keeps-their-own-view
+	 */
+	private function rankingEntry(string $learnerId, array $lookups): array {
+		$row = $lookups['row'];
+		$totalPoints = (float)($row['totalPoints'] ?? 0);
+		$levelId = $row['levelId'] ?? null;
 
-			$row = $byLearnerId[$learnerId] ?? null;
-			$totalPoints = (float)($row['totalPoints'] ?? 0);
-			$levelId = $row['levelId'] ?? null;
+		$levelName = null;
+		if ($levelId !== null) {
+			$levelName = $lookups['levelNames'][$levelId] ?? null;
+		}
 
-			$levelName = null;
-			if ($levelId !== null) {
-				$levelName = $levelNames[$levelId] ?? null;
-			}
-
-			$entries[] = [
-				'learnerId' => $learnerId,
-				'totalPoints' => $totalPoints,
-				'level' => $levelName,
-			];
-		}//end foreach
-
-		usort($entries, static fn (array $a, array $b) => $b['totalPoints'] <=> $a['totalPoints']);
-
-		$rank = 0;
-		return array_map(
-			static function (array $entry) use (&$rank) {
-				$rank++;
-				$entry['rank'] = $rank;
-				return $entry;
-			},
-			$entries
-		);
-	}//end buildRankings()
+		return [
+			'learnerId' => $learnerId,
+			'totalPoints' => $totalPoints,
+			'level' => $levelName,
+		];
+	}//end rankingEntry()
 
 	/**
 	 * True when the learner has set the standing leaderboard opt-out preference.

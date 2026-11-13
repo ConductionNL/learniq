@@ -183,47 +183,24 @@ class ReportCardComposer implements IEventListener {
 
 		$createdCount = 0;
 
+		$context = [
+			'periodId' => $periodId,
+			'periodCode' => $periodCode,
+			'qualifyingPlanIds' => $qualifyingPlanIds,
+			'attendanceIncluded' => $attendanceIncluded,
+			'sessionIds' => $sessionIds,
+			'tenantId' => $tenantId,
+		];
 		foreach ($learnerIds as $learnerId) {
 			$cohortId = $learnerCohortMap[$learnerId] ?? null;
-			$templateId = $cohortTemplateMap[$cohortId] ?? null;
-			$sectionKinds = $this->templateSections->resolveSectionKinds(rawTemplateId: $templateId);
-
-			$subjectGrades = [];
-			if ($this->templateSections->sectionEnabled(kind: 'grades', sectionKinds: $sectionKinds) === true) {
-				$subjectGrades = $this->buildSubjectGrades(
-					learnerId: $learnerId,
-					curriculumPlanIds: $qualifyingPlanIds,
-					periodCode: $periodCode
-				);
-			}
-
-			$attendanceSummary = null;
-			if ($this->templateSections->attendanceSectionEnabled(attendanceIncluded: $attendanceIncluded, sectionKinds: $sectionKinds) === true) {
-				$attendanceSummary = $this->attendance->buildAttendanceSummary(learnerId: $learnerId, sessionIds: $sessionIds);
-			}
-
-			$reportCard = [
-				'learnerId' => $learnerId,
-				'learnerRef' => $this->learnerRefs->resolve(learnerId: $learnerId),
-				'reportPeriodId' => $periodId,
-				'cohortId' => $cohortId,
-				'templateId' => $templateId,
-				'subjectGrades' => $subjectGrades,
-				'attendanceSummary' => $attendanceSummary,
-				'mentorComment' => null,
-				'competencyAttainment' => null,
-				'composedAt' => $this->now(),
-				'docudeskRenderStatus' => null,
-				'docudeskRequestedAt' => null,
-				'docudeskDocumentRef' => null,
-				'docudeskRenderError' => null,
-				'tenant_id' => $tenantId,
-				'lifecycle' => 'draft',
-			];
+			$reportCard = $this->composeCard(
+				learnerId: $learnerId,
+				context: $context + ['cohortId' => $cohortId, 'templateId' => $cohortTemplateMap[$cohortId] ?? null]
+			);
 
 			$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA, object: $reportCard);
 			$createdCount++;
-		}//end foreach
+		}
 
 		$this->logger->info(
 			'[ReportCardComposer] ReportPeriod {period}: {count} ReportCard(s) composed.',
@@ -231,6 +208,54 @@ class ReportCardComposer implements IEventListener {
 		);
 
 	}//end composeForPeriod()
+
+	/**
+	 * The draft ReportCard of one learner in the period being composed.
+	 *
+	 * @param string               $learnerId The learner.
+	 * @param array<string, mixed> $context   periodId, periodCode, qualifyingPlanIds, attendanceIncluded,
+	 *                                        sessionIds, tenantId, and the learner's cohortId and templateId.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
+	 */
+	private function composeCard(string $learnerId, array $context): array {
+		$sectionKinds = $this->templateSections->resolveSectionKinds(rawTemplateId: $context['templateId']);
+
+		$subjectGrades = [];
+		if ($this->templateSections->sectionEnabled(kind: 'grades', sectionKinds: $sectionKinds) === true) {
+			$subjectGrades = $this->buildSubjectGrades(
+				learnerId: $learnerId,
+				curriculumPlanIds: $context['qualifyingPlanIds'],
+				periodCode: $context['periodCode']
+			);
+		}
+
+		$attendanceSummary = null;
+		if ($this->templateSections->attendanceSectionEnabled(attendanceIncluded: $context['attendanceIncluded'], sectionKinds: $sectionKinds) === true) {
+			$attendanceSummary = $this->attendance->buildAttendanceSummary(learnerId: $learnerId, sessionIds: $context['sessionIds']);
+		}
+
+		return [
+			'learnerId' => $learnerId,
+			'learnerRef' => $this->learnerRefs->resolve(learnerId: $learnerId),
+			'reportPeriodId' => $context['periodId'],
+			'cohortId' => $context['cohortId'],
+			'templateId' => $context['templateId'],
+			'subjectGrades' => $subjectGrades,
+			'attendanceSummary' => $attendanceSummary,
+			'mentorComment' => null,
+			'competencyAttainment' => null,
+			'composedAt' => $this->now(),
+			'docudeskRenderStatus' => null,
+			'docudeskRequestedAt' => null,
+			'docudeskDocumentRef' => null,
+			'docudeskRenderError' => null,
+			'tenant_id' => $context['tenantId'],
+			'lifecycle' => 'draft',
+		];
+	}//end composeCard()
 
 	/**
 	 * Re-run composition for a single, already-existing `draft` ReportCard
@@ -267,6 +292,31 @@ class ReportCardComposer implements IEventListener {
 
 		$periodData = $this->normalise(row: $period);
 
+		[$subjectGrades, $attendanceSummary] = $this->recomposedSections(card: $card, periodData: $periodData);
+
+		$updated = $card;
+		$updated['subjectGrades'] = $subjectGrades;
+		$updated['attendanceSummary'] = $attendanceSummary;
+		$updated['composedAt'] = $this->now();
+
+		$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA, object: $updated);
+
+		$this->logger->info('[ReportCardComposer] ReportCard {id} recomposed.', ['id' => $cardId]);
+
+	}//end recomposeCard()
+
+	/**
+	 * The grade and attendance sections of a card, recomputed against its period.
+	 *
+	 * @param array<string, mixed> $card       The ReportCard.
+	 * @param array<string, mixed> $periodData Its governing ReportPeriod.
+	 *
+	 * @return array{0: array<int, mixed>, 1: mixed} subjectGrades and attendanceSummary.
+	 *
+	 * @spec openspec/specs/report-card/spec.md#requirement-composition-is-a-declared-transition-triggered-php-composer-not-a-dataexchangejob-and-not-a-timedjob
+	 */
+	private function recomposedSections(array $card, array $periodData): array {
+		$learnerId = (string)($card['learnerId'] ?? '');
 		$periodCode = (string)($periodData['periodCode'] ?? '');
 		$curriculumPlanIds = $this->stringList(value: $periodData['curriculumPlanIds'] ?? []);
 		$attendanceIncluded = ($periodData['attendanceIncluded'] ?? true) === true;
@@ -289,16 +339,8 @@ class ReportCardComposer implements IEventListener {
 			$attendanceSummary = $this->attendance->buildAttendanceSummary(learnerId: $learnerId, sessionIds: $sessionIds);
 		}
 
-		$updated = $card;
-		$updated['subjectGrades'] = $subjectGrades;
-		$updated['attendanceSummary'] = $attendanceSummary;
-		$updated['composedAt'] = $this->now();
-
-		$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA, object: $updated);
-
-		$this->logger->info('[ReportCardComposer] ReportCard {id} recomposed.', ['id' => $cardId]);
-
-	}//end recomposeCard()
+		return [$subjectGrades, $attendanceSummary];
+	}//end recomposedSections()
 
 	/**
 	 * Filter `curriculumPlanIds` down to those whose `CurriculumPlan.components[]`

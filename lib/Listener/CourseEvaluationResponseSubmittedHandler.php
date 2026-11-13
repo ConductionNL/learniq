@@ -99,46 +99,8 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 			return;
 		}
 
-		// The response itself carries no identity field to read — the caller
-		// is re-resolved from the session, exactly as CourseEvaluationEligibilityGuard
-		// did moments earlier for the same request.
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			$this->logger->warning(
-				'[CourseEvaluationResponseSubmittedHandler] No authenticated user in session after a '
-				. 'CourseEvaluationResponse submit; cannot flip any EvaluationInvitation.'
-			);
-			return;
-		}
-
-		$callerUid = $user->getUID();
-
-		$response = $event->getObject()->jsonSerialize();
-		$campaignId = $response['campaignId'] ?? '';
-
-		if ($campaignId === '') {
-			$this->logger->warning(
-				'[CourseEvaluationResponseSubmittedHandler] Submitted CourseEvaluationResponse has no '
-				. 'campaignId; cannot resolve which EvaluationInvitation to flip.'
-			);
-			return;
-		}
-
-		$invitation = $this->findInvitation(
-			campaignId: (string)$campaignId,
-			callerUid: $callerUid,
-			tenantId: (string)($response['tenant_id'] ?? '')
-		);
-
+		$invitation = $this->invitationFor(event: $event);
 		if ($invitation === null) {
-			// The guard already required this invitation to exist; a miss here
-			// means it was removed between the guard check and this listener
-			// firing — log and no-op rather than fabricate one.
-			$this->logger->warning(
-				'[CourseEvaluationResponseSubmittedHandler] No EvaluationInvitation found for caller '
-				. '{caller} / campaign {campaignId} at submit-handling time.',
-				['caller' => $callerUid, 'campaignId' => $campaignId]
-			);
 			return;
 		}
 
@@ -163,6 +125,62 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 		);
 
 	}//end handle()
+
+	/**
+	 * The submitting caller's EvaluationInvitation for the response's campaign, or null (logged).
+	 *
+	 * @param ObjectTransitionedEvent $event The response's submit transition.
+	 *
+	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
+	 */
+	private function invitationFor(ObjectTransitionedEvent $event): ?array {
+		// The response itself carries no identity field to read — the caller
+		// is re-resolved from the session, exactly as CourseEvaluationEligibilityGuard
+		// did moments earlier for the same request.
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			$this->logger->warning(
+				'[CourseEvaluationResponseSubmittedHandler] No authenticated user in session after a '
+				. 'CourseEvaluationResponse submit; cannot flip any EvaluationInvitation.'
+			);
+			return null;
+		}
+
+		$callerUid = $user->getUID();
+
+		$response = $event->getObject()->jsonSerialize();
+		$campaignId = $response['campaignId'] ?? '';
+
+		if ($campaignId === '') {
+			$this->logger->warning(
+				'[CourseEvaluationResponseSubmittedHandler] Submitted CourseEvaluationResponse has no '
+				. 'campaignId; cannot resolve which EvaluationInvitation to flip.'
+			);
+			return null;
+		}
+
+		$invitation = $this->findInvitation(
+			campaignId: (string)$campaignId,
+			callerUid: $callerUid,
+			tenantId: (string)($response['tenant_id'] ?? '')
+		);
+
+		if ($invitation === null) {
+			// The guard already required this invitation to exist; a miss here
+			// means it was removed between the guard check and this listener
+			// firing — log and no-op rather than fabricate one.
+			$this->logger->warning(
+				'[CourseEvaluationResponseSubmittedHandler] No EvaluationInvitation found for caller '
+				. '{caller} / campaign {campaignId} at submit-handling time.',
+				['caller' => $callerUid, 'campaignId' => $campaignId]
+			);
+			return null;
+		}
+
+		return $invitation;
+	}//end invitationFor()
 
 	/**
 	 * Whether this transition is a CourseEvaluationResponse entering `submitted`.
