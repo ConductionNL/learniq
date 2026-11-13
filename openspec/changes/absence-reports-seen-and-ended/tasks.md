@@ -1,6 +1,6 @@
 # Tasks: absence-reports-seen-and-ended
 
-- [ ] **T1**: register: `excuse-request` gains `seenBy`, `seenAt`, `fromLessonHour`, `toLessonHour`; `dateTo` may be empty for `reasonKind: illness`
+- [x] **T1**: register: `excuse-request` gains `seenBy`, `seenAt`, `fromLessonHour`, `toLessonHour`; `dateTo` may be empty for `reasonKind: illness`
   - `npm run check:register`; a payload test against the shipped fragment
 - [ ] **T2**: stamp seen on the first open by a group teacher (detail and register), idempotent
 - [ ] **T3**: lesson hours narrow the attendance write of an approved report; an open illness covers each school day until ended

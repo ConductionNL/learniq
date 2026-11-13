@@ -139,7 +139,10 @@ class ReportSeenStamp {
 	 */
 	private function idOf(array $report): string {
 		$id = ($report['id'] ?? ($report['uuid'] ?? ''));
+		if (is_string($id) === false) {
+			return '';
+		}
 
-		return is_string($id) === true ? $id : '';
+		return $id;
 	}//end idOf()
 }//end class
