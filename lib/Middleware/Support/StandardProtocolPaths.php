@@ -68,7 +68,8 @@ final class StandardProtocolPaths {
 	 * @spec openspec/specs/api-contract/spec.md
 	 */
 	public static function matches(string $path): bool {
-		$relative = self::appRelative(path: $path);
+		// The /api/v1/ alias of a protocol path speaks the same protocol.
+		$relative = (string) preg_replace('#^/api/v1/#', '/api/', self::appRelative(path: $path));
 		foreach (self::PATTERNS as $pattern) {
 			if (preg_match($pattern, $relative) === 1) {
 				return true;

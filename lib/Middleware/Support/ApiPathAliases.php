@@ -170,7 +170,9 @@ final class ApiPathAliases {
 		$aliases = [];
 		foreach (($routes['routes'] ?? []) as $route) {
 			$url = '/'.ltrim((string) ($route['url'] ?? ''), '/');
-			if (self::isDeprecated(path: $url) === false || self::isApiFallback(route: $route) === true) {
+			if ((self::isDeprecated(path: $url) === false && self::isStandardProtocolBase(path: $url) === false)
+				|| self::isApiFallback(route: $route) === true
+			) {
 				continue;
 			}
 
@@ -191,6 +193,24 @@ final class ApiPathAliases {
 
 		return $routes;
 	}//end withVersionedAliases()
+
+	/**
+	 * Whether a path is the unversioned base of a standard protocol endpoint.
+	 *
+	 * Those paths are not deprecated, but they still get a /api/v1/ alias, so the
+	 * versioned base answers on every path it answered before.
+	 *
+	 * @param string $path An app-relative path.
+	 *
+	 * @return bool True for an unversioned standard protocol path.
+	 *
+	 * @spec openspec/specs/api-contract/spec.md
+	 */
+	private static function isStandardProtocolBase(string $path): bool {
+		return str_starts_with($path, '/api/') === true
+			&& preg_match(self::VERSIONED, $path) !== 1
+			&& StandardProtocolPaths::matches(path: $path) === true;
+	}//end isStandardProtocolBase()
 
 	/**
 	 * Whether a route is the API fallback, a single placeholder after `/api/` that spans segments.

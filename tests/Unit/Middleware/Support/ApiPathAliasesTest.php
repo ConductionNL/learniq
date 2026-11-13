@@ -122,6 +122,24 @@ class ApiPathAliasesTest extends TestCase {
 	}//end testTheApiFallbackHasNoAlias()
 
 	/**
+	 * A standard protocol path is not deprecated but still answers under /api/v1/, as before.
+	 *
+	 * @return void
+	 */
+	public function testAStandardProtocolPathKeepsItsVersionedTwin(): void {
+		$lrs    = ['name' => 'lrs#postStatements', 'url' => '/api/lrs/statements', 'verb' => 'POST'];
+		$health = ['name' => 'health#index', 'url' => '/api/health', 'verb' => 'GET'];
+
+		$this->assertNull(actual: ApiPathAliases::successorOf(path: '/api/lrs/statements'));
+		$routes = ApiPathAliases::withVersionedAliases(routes: ['routes' => [$lrs, $health]])['routes'];
+		$this->assertSame(
+			expected: ['/api/v1/lrs/statements', '/api/v1/health', '/api/lrs/statements', '/api/health'],
+			actual: array_column($routes, 'url')
+		);
+		$this->assertSame(expected: ['lrs#postStatements', 'V1'], actual: [$routes[0]['name'], $routes[0]['postfix']]);
+	}//end testAStandardProtocolPathKeepsItsVersionedTwin()
+
+	/**
 	 * Every deprecated route of the shipped routes.php has a `/api/v1/` twin with
 	 * the same controller, requirements and defaults, and a request on the twin's
 	 * path reaches it, or an alias that already answered the original path first.

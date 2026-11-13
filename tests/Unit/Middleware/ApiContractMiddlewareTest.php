@@ -226,6 +226,20 @@ class ApiContractMiddlewareTest extends TestCase {
 	}//end testStandardProtocolPathIsUntouched()
 
 	/**
+	 * The /api/v1/ twin of a standard protocol path keeps that protocol's formats too.
+	 *
+	 * @return void
+	 */
+	public function testVersionedStandardProtocolPathIsUntouched(): void {
+		$response = $this->decorate(path: '/apps/learniq/api/v1/lrs/statements', response: new JSONResponse(data: ['error' => 'x'], statusCode: 400));
+		$headers  = $this->headersOf(response: $response);
+
+		$this->assertSame(expected: ['error' => 'x'], actual: $response->getData());
+		$this->assertArrayNotHasKey(key: 'API-Version', array: $headers);
+		$this->assertArrayNotHasKey(key: 'Deprecation', array: $headers);
+	}//end testVersionedStandardProtocolPathIsUntouched()
+
+	/**
 	 * The headers a response set, read without the server container that
 	 * Response::getHeaders() needs.
 	 *
