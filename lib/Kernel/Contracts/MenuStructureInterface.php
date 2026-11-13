@@ -50,4 +50,16 @@ interface MenuStructureInterface {
 	 * @var string
 	 */
 	public const SIMPLE = 'simple';
+
+	/**
+	 * The structure this instance shows.
+	 *
+	 * An instance that never set the key reads as `simple`: the default is
+	 * decided here, not by whatever default the caller passes to app config.
+	 *
+	 * @return string `simple` or `full`.
+	 *
+	 * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
+	 */
+	public function current(): string;
 }//end interface
