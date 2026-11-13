@@ -83,6 +83,8 @@ use ReflectionMethod;
  * @uses   \OCA\Learniq\Service\QtiImportService
  * @uses   \OCA\Learniq\Service\QtiManifestScanner
  * @uses   \OCA\Learniq\Service\QtiPackageExtractor
+ * @uses \OCA\Learniq\Service\ExtractionTarget
+ * @uses \OCA\Learniq\Service\QtiItemTarget
  */
 class CoursePackageImportGoldenTest extends TestCase {
 
