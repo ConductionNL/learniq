@@ -6329,8 +6329,8 @@
         "owner": "ConductionNL/learniq",
         "change": "2026-07-16-timetabling-and-substitution",
         "requirement": [
-          "openspec/specs/timetabling :: Conflict detection flags double-bookings and capacity overruns without resolving them",
-          "openspec/changes/capability-rows-say-what-they-do/specs/timetabling :: A planner books a room or lab for a session and an overfull booking is flagged"
+          "openspec/changes/capability-rows-say-what-they-do/specs/timetabling :: A planner books a room or lab for a session and an overfull booking is flagged",
+          "openspec/changes/capability-rows-say-what-they-do/specs/timetabling :: Conflict detection flags double-bookings and capacity overruns without resolving them"
         ],
         "plan": "openspec/changes/capability-rows-say-what-they-do"
       },
