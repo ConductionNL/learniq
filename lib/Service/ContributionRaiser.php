@@ -49,6 +49,7 @@ namespace OCA\Learniq\Service;
 
 use InvalidArgumentException;
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\ContributionRaiserInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
 use OCP\IUserManager;
@@ -58,7 +59,7 @@ use OCP\IUserManager;
  *
  * @spec openspec/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
  */
-class ContributionRaiser {
+class ContributionRaiser implements ContributionRaiserInterface {
 
 	private const REGISTER = 'learniq';
 	private const MAX_ROWS = 1000;

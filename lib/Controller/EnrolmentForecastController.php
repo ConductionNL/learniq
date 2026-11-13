@@ -30,9 +30,9 @@ namespace OCA\Learniq\Controller;
 
 use InvalidArgumentException;
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\EnrolmentForecastServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerActions;
-use OCA\Learniq\Service\EnrolmentForecastService;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -73,13 +73,13 @@ class EnrolmentForecastController extends Controller {
 	 *
 	 * @param IRequest                 $request       HTTP request.
 	 * @param CallerActions $caller The user session and the ADR-023 action matrix.
-	 * @param EnrolmentForecastService $forecasts     Computes the forecast.
+	 * @param EnrolmentForecastServiceInterface $forecasts     Computes the forecast.
 	 * @param ObjectService            $objectService Reads and writes the scenario as the caller.
 	 */
 	public function __construct(
 		IRequest $request,
 		CallerActions $caller,
-		private readonly EnrolmentForecastService $forecasts,
+		private readonly EnrolmentForecastServiceInterface $forecasts,
 		private readonly ObjectService $objectService,
 	) {
 		$this->userSession = $caller->userSession;

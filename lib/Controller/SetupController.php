@@ -32,8 +32,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
-use OCA\Learniq\Service\SeedProfileService;
-use OCA\Learniq\Service\SegmentService;
+use OCA\Learniq\Kernel\Contracts\SeedProfileServiceInterface;
+use OCA\Learniq\Kernel\Contracts\SegmentServiceInterface;
 use OCA\Learniq\Settings\AdminSettings;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -148,8 +148,8 @@ class SetupController extends Controller {
 	 * @param IRequest           $request      The request.
 	 * @param IAppConfig         $appConfig    Records the example-set answer.
 	 * @param LoggerInterface    $logger       Records a failed import or removal.
-	 * @param SeedProfileService $seedProfiles Lists and imports the example sets.
-	 * @param SegmentService     $segments     Lists the six kinds and stores the answer.
+	 * @param SeedProfileServiceInterface $seedProfiles Lists and imports the example sets.
+	 * @param SegmentServiceInterface     $segments     Lists the six kinds and stores the answer.
 	 * @param IUserSession       $userSession  Names the admin who chose the segment.
 	 * @param IGroupManager      $groups       Checks who may write the segment.
 	 *
@@ -159,8 +159,8 @@ class SetupController extends Controller {
 		IRequest $request,
 		private readonly IAppConfig $appConfig,
 		private readonly LoggerInterface $logger,
-		private readonly SeedProfileService $seedProfiles,
-		private readonly SegmentService $segments,
+		private readonly SeedProfileServiceInterface $seedProfiles,
+		private readonly SegmentServiceInterface $segments,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groups,
 	) {
@@ -249,7 +249,7 @@ class SetupController extends Controller {
 		$segment = $this->request->getParam(self::SEGMENT_KEY);
 		if ($segment !== null) {
 			$code = $this->scalarAnswer(value: $segment);
-			if (in_array($code, SegmentService::SEGMENTS, true) === false) {
+			if (in_array($code, SegmentServiceInterface::SEGMENTS, true) === false) {
 				return $this->badRequest(message: 'No kind of organisation is called "' . $code . '".');
 			}
 
@@ -309,7 +309,7 @@ class SetupController extends Controller {
 	 * @return JSONResponse `{ success, message }`.
 	 */
 	private function removeNamedSet(string $setId): JSONResponse {
-		if ($setId !== SeedProfileService::GENERATED_PROFILE && $this->seedProfiles->isKnown(profileId: $setId) === false) {
+		if ($setId !== SeedProfileServiceInterface::GENERATED_PROFILE && $this->seedProfiles->isKnown(profileId: $setId) === false) {
 			return $this->badRequest(message: 'No example set is called "' . $setId . '".');
 		}
 
@@ -340,7 +340,7 @@ class SetupController extends Controller {
 	 * @return JSONResponse `{ success, message }`.
 	 */
 	private function declineExampleSet(): JSONResponse {
-		$this->appConfig->setValueString(AppIdentity::APP_ID, self::PROFILE_KEY, SeedProfileService::NONE_PROFILE);
+		$this->appConfig->setValueString(AppIdentity::APP_ID, self::PROFILE_KEY, SeedProfileServiceInterface::NONE_PROFILE);
 		$this->appConfig->setValueString(AppIdentity::APP_ID, self::DEMO_DECIDED_KEY, 'skipped');
 
 		return new JSONResponse(data: ['success' => true, 'message' => 'No example data was loaded.']);
@@ -391,7 +391,7 @@ class SetupController extends Controller {
 		// The legacy id carries no answer, so it means the generated set. A
 		// caller that posts it has said which one by posting it.
 		if ($actionId === 'install-demo-data' && $picked === '') {
-			$picked = SeedProfileService::GENERATED_PROFILE;
+			$picked = SeedProfileServiceInterface::GENERATED_PROFILE;
 		}
 
 		// 🔴 NO SILENT DEFAULT. Importing here because the operator clicked Run
@@ -400,7 +400,7 @@ class SetupController extends Controller {
 			return $this->badRequest(message: 'Pick an example set first.');
 		}
 
-		if ($picked === SeedProfileService::NONE_PROFILE) {
+		if ($picked === SeedProfileServiceInterface::NONE_PROFILE) {
 			return $this->declineExampleSet();
 		}
 
@@ -517,7 +517,7 @@ class SetupController extends Controller {
 	 * @return bool True when it names a set, or declines one.
 	 */
 	private function isSelectableProfile(string $profileId): bool {
-		if ($profileId === SeedProfileService::NONE_PROFILE) {
+		if ($profileId === SeedProfileServiceInterface::NONE_PROFILE) {
 			return true;
 		}
 

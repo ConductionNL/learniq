@@ -33,6 +33,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Programme;
 
+use OCA\Learniq\Kernel\Contracts\ProgrammeProgressInterface;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Service\ObjectService;
@@ -51,7 +52,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *     complete: bool, mandatory: list<ProgrammePart>, optional: list<ProgrammePart>
  * }
  */
-class ProgrammeProgress {
+class ProgrammeProgress implements ProgrammeProgressInterface {
 	use FindOrNull;
 
 	/**

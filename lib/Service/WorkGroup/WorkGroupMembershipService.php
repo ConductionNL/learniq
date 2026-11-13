@@ -37,6 +37,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\WorkGroup;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\WorkGroupMembershipServiceInterface;
 use OCA\Learniq\Service\Portal\PortalLearner;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCA\OpenRegister\Service\ObjectService;
@@ -50,7 +51,7 @@ use Throwable;
  *
  * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
  */
-class WorkGroupMembershipService {
+class WorkGroupMembershipService implements WorkGroupMembershipServiceInterface {
 
 	private const REGISTER = 'learniq';
 	private const SCHEMA = 'work-group';

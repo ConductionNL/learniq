@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\XapiEnrolmentCompletionInterface;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -40,17 +41,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/specs/progress-tracking/spec.md#requirement-the-follow-up-of-an-xapi-statement-runs-outside-the-save-that-records-it
  */
-class XapiEnrolmentCompletion {
-
-	/**
-	 * XAPI verb IRIs that indicate successful completion, for every xAPI listener.
-	 *
-	 * @var array<int, string>
-	 */
-	public const COMPLETION_VERBS = [
-		'http://adlnet.gov/expapi/verbs/completed',
-		'http://adlnet.gov/expapi/verbs/passed',
-	];
+class XapiEnrolmentCompletion implements XapiEnrolmentCompletionInterface {
 
 	/**
 	 * OR register slug for Learniq objects.

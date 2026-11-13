@@ -35,8 +35,8 @@ namespace OCA\Learniq\Controller;
 
 use InvalidArgumentException;
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\ContributionRaiserInterface;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Service\ContributionRaiser;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -60,7 +60,7 @@ class ContributionController extends Controller {
 	 * @param IRequest $request HTTP request.
 	 * @param IUserSession $userSession Current user session.
 	 * @param ActionAuthService $actionAuth ADR-023 action matrix.
-	 * @param ContributionRaiser $raiser Finds the fee and the administration, builds and sends the raise.
+	 * @param ContributionRaiserInterface $raiser Finds the fee and the administration, builds and sends the raise.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
@@ -69,7 +69,7 @@ class ContributionController extends Controller {
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly ActionAuthService $actionAuth,
-		private readonly ContributionRaiser $raiser,
+		private readonly ContributionRaiserInterface $raiser,
 		private readonly LoggerInterface $logger,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);

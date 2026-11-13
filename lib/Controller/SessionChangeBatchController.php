@@ -30,9 +30,9 @@ namespace OCA\Learniq\Controller;
 
 use InvalidArgumentException;
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\SessionChangeBatchServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerActions;
-use OCA\Learniq\Service\SessionChangeBatchService;
 use OCA\Learniq\Timetabling\SessionSeries;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -71,13 +71,13 @@ class SessionChangeBatchController extends Controller {
 	 *
 	 * @param IRequest                  $request     HTTP request.
 	 * @param CallerActions $caller The user session and the ADR-023 action matrix.
-	 * @param SessionChangeBatchService $batches     Applies the change.
+	 * @param SessionChangeBatchServiceInterface $batches     Applies the change.
 	 * @param SessionSeries             $series      Finds the weekly slot.
 	 */
 	public function __construct(
 		IRequest $request,
 		CallerActions $caller,
-		private readonly SessionChangeBatchService $batches,
+		private readonly SessionChangeBatchServiceInterface $batches,
 		private readonly SessionSeries $series,
 	) {
 		$this->userSession = $caller->userSession;

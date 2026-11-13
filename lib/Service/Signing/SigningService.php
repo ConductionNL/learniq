@@ -33,6 +33,7 @@ namespace OCA\Learniq\Service\Signing;
 
 use DateTimeZone;
 use OCA\Learniq\Exception\SigningRefusedException;
+use OCA\Learniq\Kernel\Contracts\SigningServiceInterface;
 use OCA\Learniq\Service\PokParentSignatureRule;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
@@ -45,7 +46,7 @@ use OCP\IGroupManager;
  *
  * @spec openspec/specs/learning-plan/spec.md#requirement-a-signature-is-recorded-by-the-server-in-a-role-the-signer-holds
  */
-class SigningService {
+class SigningService implements SigningServiceInterface {
 	use FindOrNull;
 
 	private const REGISTER = 'learniq';

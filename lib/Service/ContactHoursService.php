@@ -31,6 +31,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ContactHoursServiceInterface;
 use OCA\Learniq\Timetabling\ContactHoursCalendar;
 use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
 use OCP\IAppConfig;
@@ -41,7 +42,7 @@ use RuntimeException;
  *
  * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
  */
-class ContactHoursService {
+class ContactHoursService implements ContactHoursServiceInterface {
 
 	public const MARGIN_KEY = 'contact_hours_margin_percent';
 	private const ATTENDED = ['present', 'late', 'left-early'];

@@ -30,8 +30,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
-use OCA\Learniq\Service\CheckIn\CheckInMessages;
-use OCA\Learniq\Service\CheckIn\CheckInService;
+use OCA\Learniq\Kernel\Contracts\CheckInMessagesInterface;
+use OCA\Learniq\Kernel\Contracts\CheckInServiceInterface;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -53,16 +53,16 @@ class CheckInController extends Controller {
 	 *
 	 * @param IRequest           $request      The request.
 	 * @param IUserSession       $userSession  The signed-in user.
-	 * @param CheckInService     $checkIns     The check-in rules and write.
-	 * @param CheckInMessages    $messages     Plain refusal reasons.
+	 * @param CheckInServiceInterface     $checkIns     The check-in rules and write.
+	 * @param CheckInMessagesInterface    $messages     Plain refusal reasons.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
-		private readonly CheckInService $checkIns,
-		private readonly CheckInMessages $messages,
+		private readonly CheckInServiceInterface $checkIns,
+		private readonly CheckInMessagesInterface $messages,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()

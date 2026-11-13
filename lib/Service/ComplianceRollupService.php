@@ -40,16 +40,16 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\ComplianceRollupServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
  * Per-department compliance figures, aggregated up the department path.
  */
-class ComplianceRollupService {
+class ComplianceRollupService implements ComplianceRollupServiceInterface {
 
 	private const OPEN_ENROLMENT_STATES = ['pending', 'active'];
 	private const PAGE_LIMIT = 10000;
-
 
 	/**
 	 * Reads the rows of one learniq schema.

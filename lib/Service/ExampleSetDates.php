@@ -31,6 +31,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\ExampleSetDatesInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IAppConfig;
@@ -42,7 +43,7 @@ use Throwable;
  *
  * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
  */
-class ExampleSetDates {
+class ExampleSetDates implements ExampleSetDatesInterface {
 
 	/**
 	 * The app config key, per set, of the offset its dates carry.

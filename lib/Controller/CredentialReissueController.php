@@ -30,7 +30,7 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\BackgroundJob\CredentialReissueJob;
 use OCA\Learniq\Kernel\AppIdentity;
-use OCA\Learniq\Service\CredentialReissueService;
+use OCA\Learniq\Kernel\Contracts\CredentialReissueServiceInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -65,7 +65,7 @@ class CredentialReissueController extends Controller {
 	 * @param IRequest                 $request      The request.
 	 * @param IUserSession             $userSession  The signed-in user.
 	 * @param IGroupManager            $groupManager Group membership and admin checks.
-	 * @param CredentialReissueService $reissues     Preview and run summaries.
+	 * @param CredentialReissueServiceInterface $reissues     Preview and run summaries.
 	 * @param IJobList                 $jobs         Queues the run.
 	 * @param ISecureRandom            $random       Makes the run id.
 	 * @param IAppConfig               $config       Remembers the last run per course.
@@ -76,7 +76,7 @@ class CredentialReissueController extends Controller {
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
-		private readonly CredentialReissueService $reissues,
+		private readonly CredentialReissueServiceInterface $reissues,
 		private readonly IJobList $jobs,
 		private readonly ISecureRandom $random,
 		private readonly IAppConfig $config,

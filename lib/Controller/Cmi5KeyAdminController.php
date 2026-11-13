@@ -30,7 +30,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
-use OCA\Learniq\Service\Cmi5LaunchTokenService;
+use OCA\Learniq\Kernel\Contracts\Cmi5LaunchTokenServiceInterface;
 use OCA\Learniq\Settings\AdminSettings;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -65,12 +65,12 @@ class Cmi5KeyAdminController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest               $request   The current request.
-	 * @param Cmi5LaunchTokenService $tokens    Owns the key-pair.
+	 * @param Cmi5LaunchTokenServiceInterface $tokens    Owns the key-pair.
 	 * @param IAppConfig             $appConfig Holds the rotation timestamp.
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly Cmi5LaunchTokenService $tokens,
+		private readonly Cmi5LaunchTokenServiceInterface $tokens,
 		private readonly IAppConfig $appConfig,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);

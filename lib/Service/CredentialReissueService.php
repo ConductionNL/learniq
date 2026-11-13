@@ -42,6 +42,7 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CredentialReissueServiceInterface;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
@@ -55,7 +56,7 @@ use Throwable;
  *
  * @spec openspec/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
  */
-class CredentialReissueService {
+class CredentialReissueService implements CredentialReissueServiceInterface {
 
 	private const REGISTER = 'learniq';
 	private const SCHEMA = 'credential';

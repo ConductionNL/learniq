@@ -29,6 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IConfig;
@@ -50,15 +51,8 @@ use OCP\IUser;
  *
  * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
  */
-class CallerTenantResolver {
+class CallerTenantResolver implements CallerTenantResolverInterface {
 	use FindOrNull;
-
-	/**
-	 * The tenant of every user without a per-user binding.
-	 *
-	 * @var string
-	 */
-	public const DEFAULT_TENANT = '00000000-0000-4000-8000-000000000000';
 
 	/**
 	 * Constructor.

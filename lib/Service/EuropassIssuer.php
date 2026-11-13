@@ -35,6 +35,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\EuropassIssuerInterface;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
@@ -44,7 +45,7 @@ use OCP\IAppConfig;
  *
  * @spec openspec/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
  */
-class EuropassIssuer {
+class EuropassIssuer implements EuropassIssuerInterface {
 	use FindOrNull;
 
 	private const REGISTER = 'learniq';

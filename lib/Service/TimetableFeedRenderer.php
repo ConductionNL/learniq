@@ -28,13 +28,14 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\TimetableFeedRendererInterface;
 use OCP\IUser;
 use OCP\L10N\IFactory;
 
 /**
  * Sessions to an iCalendar feed for one owner.
  */
-class TimetableFeedRenderer {
+class TimetableFeedRenderer implements TimetableFeedRendererInterface {
 	/**
 	 * Constructor.
 	 *

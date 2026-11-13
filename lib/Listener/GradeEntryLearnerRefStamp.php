@@ -45,8 +45,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\LearnerRefResolver;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
@@ -72,15 +72,15 @@ class GradeEntryLearnerRefStamp implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
-	 * @param LearnerRefResolver $learnerRefs Nextcloud user id to LearnerProfile UUID.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
+	 * @param LearnerRefResolverInterface $learnerRefs Nextcloud user id to LearnerProfile UUID.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
-		LearnerRefResolver $learnerRefs,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		LearnerRefResolverInterface $learnerRefs,
 		LoggerInterface $logger,
 	) {
 		$this->stamping = new LearnerRefStamping(learnerRefs: $learnerRefs, logger: $logger, label: 'GradeEntryLearnerRefStamp');

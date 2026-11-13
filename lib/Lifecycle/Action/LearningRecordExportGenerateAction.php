@@ -35,7 +35,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle\Action;
 
-use OCA\Learniq\Service\LearningRecordExportService;
+use OCA\Learniq\Kernel\Contracts\LearningRecordExportServiceInterface;
 use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 
@@ -49,12 +49,12 @@ class LearningRecordExportGenerateAction implements LifecycleActionInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param LearningRecordExportService $exportService The bundle assembler.
+	 * @param LearningRecordExportServiceInterface $exportService The bundle assembler.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly LearningRecordExportService $exportService,
+		private readonly LearningRecordExportServiceInterface $exportService,
 	) {
 	}//end __construct()
 

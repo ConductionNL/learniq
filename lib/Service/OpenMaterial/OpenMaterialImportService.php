@@ -29,6 +29,7 @@ namespace OCA\Learniq\Service\OpenMaterial;
 
 use OCA\Learniq\Exception\MaterialImportRefusedException;
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\OpenMaterialImportServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUser;
 
@@ -37,7 +38,7 @@ use OCP\IUser;
  *
  * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
  */
-class OpenMaterialImportService {
+class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 
 	/**
 	 * The reason in words, per reason code a teacher can meet.

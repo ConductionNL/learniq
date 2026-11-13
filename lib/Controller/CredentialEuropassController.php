@@ -31,8 +31,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
-use OCA\Learniq\Service\CredentialLearner;
-use OCA\Learniq\Service\EuropassIssuer;
+use OCA\Learniq\Kernel\Contracts\CredentialLearnerInterface;
+use OCA\Learniq\Kernel\Contracts\EuropassIssuerInterface;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
@@ -69,8 +69,8 @@ class CredentialEuropassController extends Controller {
 	 * @param IUserSession   $userSession  The signed-in user.
 	 * @param IGroupManager  $groupManager Group membership and admin checks.
 	 * @param ObjectService  $objects      OpenRegister object access.
-	 * @param EuropassIssuer $europass     Builds and signs the Europass form.
-	 * @param CredentialLearner $learners  Whose credential it is, as a Nextcloud user id.
+	 * @param EuropassIssuerInterface $europass     Builds and signs the Europass form.
+	 * @param CredentialLearnerInterface $learners  Whose credential it is, as a Nextcloud user id.
 	 *
 	 * @return void
 	 */
@@ -79,8 +79,8 @@ class CredentialEuropassController extends Controller {
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
 		private readonly ObjectService $objects,
-		private readonly EuropassIssuer $europass,
-		private readonly CredentialLearner $learners,
+		private readonly EuropassIssuerInterface $europass,
+		private readonly CredentialLearnerInterface $learners,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()

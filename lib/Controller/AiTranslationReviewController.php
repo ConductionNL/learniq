@@ -29,7 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
-use OCA\Learniq\Service\AiTranslatedCatalogue;
+use OCA\Learniq\Kernel\Contracts\AiTranslatedCatalogueInterface;
 use OCA\Learniq\Settings\AdminSettings;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -47,11 +47,11 @@ class AiTranslationReviewController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest $request The request.
-	 * @param AiTranslatedCatalogue $catalogue The sidecar.
+	 * @param AiTranslatedCatalogueInterface $catalogue The sidecar.
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly AiTranslatedCatalogue $catalogue,
+		private readonly AiTranslatedCatalogueInterface $catalogue,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
@@ -80,11 +80,11 @@ class AiTranslationReviewController extends Controller {
 	#[AuthorizedAdminSetting(AdminSettings::class)]
 	public function reviewed(string $key = ''): JSONResponse {
 		$outcome = $this->catalogue->markReviewed(key: $key);
-		if ($outcome === AiTranslatedCatalogue::NOT_LISTED) {
+		if ($outcome === AiTranslatedCatalogueInterface::NOT_LISTED) {
 			return new JSONResponse(['error' => 'not-listed'], Http::STATUS_NOT_FOUND);
 		}
 
-		if ($outcome === AiTranslatedCatalogue::READ_ONLY) {
+		if ($outcome === AiTranslatedCatalogueInterface::READ_ONLY) {
 			return new JSONResponse(
 				[
 					'error'  => 'read-only',

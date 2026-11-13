@@ -44,8 +44,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
-use OCA\Learniq\Service\Portal\BpvPlacementSteps;
-use OCA\Learniq\Service\Portal\EmployerBookingSteps;
+use OCA\Learniq\Kernel\Contracts\BpvPlacementStepsInterface;
+use OCA\Learniq\Kernel\Contracts\EmployerBookingStepsInterface;
 use OCP\L10N\IFactory;
 
 /**
@@ -255,15 +255,15 @@ class PortalContributionProvider {
 	 * Constructor; the container hands in the factory, `new` with no arguments answers in English.
 	 *
 	 * @param IFactory|null             $l10nFactory    Puts parent labels in the request's language (PortalLabelTranslator).
-	 * @param EmployerBookingSteps|null $bookingSteps   Answers a company booking's steps (employer-portal-audience).
-	 * @param BpvPlacementSteps|null    $placementSteps Answers a work placement's steps (site-workplace-trainer-portal-design).
+	 * @param EmployerBookingStepsInterface|null $bookingSteps   Answers a company booking's steps (employer-portal-audience).
+	 * @param BpvPlacementStepsInterface|null    $placementSteps Answers a work placement's steps (site-workplace-trainer-portal-design).
 	 * @param PortalRecordProviders|null $records        Who a resident may write to and what a guardian may download, per row.
 	 * @param PortalPublicIndex|null     $publicIndex     What a visitor may find (portal-public-index).
 	 */
 	public function __construct(
 		private readonly ?IFactory $l10nFactory=null,
-		private readonly ?EmployerBookingSteps $bookingSteps=null,
-		private readonly ?BpvPlacementSteps $placementSteps=null,
+		private readonly ?EmployerBookingStepsInterface $bookingSteps=null,
+		private readonly ?BpvPlacementStepsInterface $placementSteps=null,
 		private readonly ?PortalRecordProviders $records=null,
 		private readonly ?PortalPublicIndex $publicIndex=null,
 	) {

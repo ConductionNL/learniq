@@ -28,8 +28,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\ContactHoursServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Service\ContactHoursService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -55,13 +55,13 @@ class ContactHoursController extends Controller {
 	 * @param IRequest            $request     HTTP request.
 	 * @param IUserSession        $userSession Current user session.
 	 * @param ActionAuthService   $actionAuth  ADR-023 action matrix.
-	 * @param ContactHoursService $report      Computes the report.
+	 * @param ContactHoursServiceInterface $report      Computes the report.
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly ActionAuthService $actionAuth,
-		private readonly ContactHoursService $report,
+		private readonly ContactHoursServiceInterface $report,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()

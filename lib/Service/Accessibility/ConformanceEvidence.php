@@ -32,6 +32,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Accessibility;
 
+use OCA\Learniq\Kernel\Contracts\ConformanceEvidenceInterface;
 use OCA\Learniq\Service\CsvCellSanitizer;
 use OCA\Learniq\Support\RowId;
 use OCA\OpenRegister\Service\ObjectService;
@@ -43,7 +44,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-evidence-on-request
  */
-class ConformanceEvidence {
+class ConformanceEvidence implements ConformanceEvidenceInterface {
 
 	/**
 	 * OR register slug for Learniq objects.

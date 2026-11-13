@@ -33,8 +33,8 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Exception\DraftSubmitException;
 use OCA\Learniq\Kernel\AppIdentity;
-use OCA\Learniq\Service\DraftSubmitter;
-use OCA\Learniq\Service\LearnerRefResolver;
+use OCA\Learniq\Kernel\Contracts\DraftSubmitterInterface;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -64,8 +64,8 @@ class RequestSubmitController extends Controller {
 	 * @param IRequest           $request       The request.
 	 * @param IUserSession       $userSession   The signed-in user.
 	 * @param ObjectService      $objectService Reads the plan or the round as the caller.
-	 * @param LearnerRefResolver $profiles      The learner's profile reference.
-	 * @param DraftSubmitter     $submitter     Creates and submits.
+	 * @param LearnerRefResolverInterface $profiles      The learner's profile reference.
+	 * @param DraftSubmitterInterface     $submitter     Creates and submits.
 	 *
 	 * @return void
 	 */
@@ -73,8 +73,8 @@ class RequestSubmitController extends Controller {
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly ObjectService $objectService,
-		private readonly LearnerRefResolver $profiles,
-		private readonly DraftSubmitter $submitter,
+		private readonly LearnerRefResolverInterface $profiles,
+		private readonly DraftSubmitterInterface $submitter,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()

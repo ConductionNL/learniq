@@ -44,11 +44,11 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Exception\SharingBlockedException;
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CourseShareExportServiceInterface;
+use OCA\Learniq\Kernel\Contracts\CourseStoreDescriptorInterface;
+use OCA\Learniq\Kernel\Contracts\CourseStoreInstallerInterface;
+use OCA\Learniq\Kernel\Contracts\CourseStorePublisherInterface;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Service\CourseShareExportService;
-use OCA\Learniq\Service\CourseStore\CourseStoreDescriptor;
-use OCA\Learniq\Service\CourseStore\CourseStoreInstaller;
-use OCA\Learniq\Service\CourseStore\CourseStorePublisher;
 use OCA\OpenRegister\AppHost\Service\GenericStoreService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -80,16 +80,16 @@ class StoreController extends Controller {
 	 * Publish outcome => HTTP status.
 	 */
 	private const PUBLISH_STATUS = [
-		CourseStorePublisher::OUTCOME_OK              => Http::STATUS_OK,
-		CourseStorePublisher::OUTCOME_NOT_CONFIGURED  => Http::STATUS_OK,
-		CourseStorePublisher::OUTCOME_TOO_LARGE       => Http::STATUS_REQUEST_ENTITY_TOO_LARGE,
-		CourseStorePublisher::OUTCOME_RATE_LIMITED    => Http::STATUS_TOO_MANY_REQUESTS,
-		CourseStorePublisher::OUTCOME_UNREACHABLE     => Http::STATUS_BAD_GATEWAY,
-		CourseStorePublisher::OUTCOME_REJECTED        => Http::STATUS_BAD_GATEWAY,
-		CourseStorePublisher::OUTCOME_INVALID         => Http::STATUS_BAD_GATEWAY,
+		CourseStorePublisherInterface::OUTCOME_OK              => Http::STATUS_OK,
+		CourseStorePublisherInterface::OUTCOME_NOT_CONFIGURED  => Http::STATUS_OK,
+		CourseStorePublisherInterface::OUTCOME_TOO_LARGE       => Http::STATUS_REQUEST_ENTITY_TOO_LARGE,
+		CourseStorePublisherInterface::OUTCOME_RATE_LIMITED    => Http::STATUS_TOO_MANY_REQUESTS,
+		CourseStorePublisherInterface::OUTCOME_UNREACHABLE     => Http::STATUS_BAD_GATEWAY,
+		CourseStorePublisherInterface::OUTCOME_REJECTED        => Http::STATUS_BAD_GATEWAY,
+		CourseStorePublisherInterface::OUTCOME_INVALID         => Http::STATUS_BAD_GATEWAY,
 		// The descriptor did not opt in: a learniq defect, not the user's.
-		CourseStorePublisher::OUTCOME_NOT_PUBLISHABLE => Http::STATUS_INTERNAL_SERVER_ERROR,
-		CourseStorePublisher::OUTCOME_NOT_SUPPORTED   => Http::STATUS_NOT_IMPLEMENTED,
+		CourseStorePublisherInterface::OUTCOME_NOT_PUBLISHABLE => Http::STATUS_INTERNAL_SERVER_ERROR,
+		CourseStorePublisherInterface::OUTCOME_NOT_SUPPORTED   => Http::STATUS_NOT_IMPLEMENTED,
 	];
 
 	/**
@@ -97,10 +97,10 @@ class StoreController extends Controller {
 	 *
 	 * @param IRequest                 $request      HTTP request.
 	 * @param GenericStoreService      $storeService OpenRegister's store plane client.
-	 * @param CourseStoreDescriptor    $descriptor   Learniq's store parameters.
-	 * @param CourseStoreInstaller     $installer    Imports a shared course as a copy.
-	 * @param CourseStorePublisher     $publisher    Sends a gated package to the registry.
-	 * @param CourseShareExportService $shareService The sharing gate and consent record.
+	 * @param CourseStoreDescriptorInterface    $descriptor   Learniq's store parameters.
+	 * @param CourseStoreInstallerInterface     $installer    Imports a shared course as a copy.
+	 * @param CourseStorePublisherInterface     $publisher    Sends a gated package to the registry.
+	 * @param CourseShareExportServiceInterface $shareService The sharing gate and consent record.
 	 * @param IUserSession             $userSession  Nextcloud user session.
 	 * @param ActionAuthService        $actionAuth   ADR-023 action authorization.
 	 * @param LoggerInterface          $logger       Server-side diagnostics only.
@@ -110,10 +110,10 @@ class StoreController extends Controller {
 	public function __construct(
 		IRequest $request,
 		private readonly GenericStoreService $storeService,
-		private readonly CourseStoreDescriptor $descriptor,
-		private readonly CourseStoreInstaller $installer,
-		private readonly CourseStorePublisher $publisher,
-		private readonly CourseShareExportService $shareService,
+		private readonly CourseStoreDescriptorInterface $descriptor,
+		private readonly CourseStoreInstallerInterface $installer,
+		private readonly CourseStorePublisherInterface $publisher,
+		private readonly CourseShareExportServiceInterface $shareService,
 		private readonly IUserSession $userSession,
 		private readonly ActionAuthService $actionAuth,
 		private readonly LoggerInterface $logger,
@@ -153,7 +153,7 @@ class StoreController extends Controller {
 			data: [
 				'outcome' => $result['outcome'],
 				'cards'   => $result['cards'],
-				'kinds'   => [CourseStoreDescriptor::KIND],
+				'kinds'   => [CourseStoreDescriptorInterface::KIND],
 				'builtIn' => [],
 			]
 		);
@@ -306,7 +306,7 @@ class StoreController extends Controller {
 	private function publishBlocked(IUser $user): ?JSONResponse {
 		// No registry, no gate run and no consent record: nothing would leave.
 		if ($this->publisher->isConfigured() === false) {
-			return new JSONResponse(data: ['outcome' => CourseStorePublisher::OUTCOME_NOT_CONFIGURED, 'slug' => '']);
+			return new JSONResponse(data: ['outcome' => CourseStorePublisherInterface::OUTCOME_NOT_CONFIGURED, 'slug' => '']);
 		}
 
 		return $this->publishRefusal(user: $user);
@@ -354,7 +354,7 @@ class StoreController extends Controller {
 			userId: $userId,
 			noPupilData: $this->confirmed(key: 'noPupilData'),
 			rightsCleared: $this->confirmed(key: 'rightsCleared'),
-			purpose: CourseShareExportService::PURPOSE_STORE
+			purpose: CourseShareExportServiceInterface::PURPOSE_STORE
 		);
 	}//end storePackage()
 
@@ -372,14 +372,14 @@ class StoreController extends Controller {
 	private function publishRefusal(IUser $user): ?JSONResponse {
 		if ($this->publisher->supportsPublish() === false) {
 			return new JSONResponse(
-				data: ['outcome' => CourseStorePublisher::OUTCOME_NOT_SUPPORTED, 'slug' => ''],
+				data: ['outcome' => CourseStorePublisherInterface::OUTCOME_NOT_SUPPORTED, 'slug' => ''],
 				statusCode: Http::STATUS_NOT_IMPLEMENTED
 			);
 		}
 
 		if ($this->publisher->mayPublish(user: $user) === false) {
 			return new JSONResponse(
-				data: ['outcome' => CourseStorePublisher::OUTCOME_FORBIDDEN, 'slug' => ''],
+				data: ['outcome' => CourseStorePublisherInterface::OUTCOME_FORBIDDEN, 'slug' => ''],
 				statusCode: Http::STATUS_FORBIDDEN
 			);
 		}

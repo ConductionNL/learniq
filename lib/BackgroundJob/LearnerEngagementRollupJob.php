@@ -21,7 +21,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\BackgroundJob;
 
 use DateTimeImmutable;
-use OCA\Learniq\Service\PointEngagementEvaluator;
+use OCA\Learniq\Kernel\Contracts\PointEngagementEvaluatorInterface;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -56,14 +56,14 @@ class LearnerEngagementRollupJob extends ForwardedJob {
 	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface         $logger        Logger; the base declares it protected.
 	 * @param ObjectService           $objectService OR object access.
-	 * @param PointEngagementEvaluator $evaluator    Points/level/streak calculation engine.
+	 * @param PointEngagementEvaluatorInterface $evaluator    Points/level/streak calculation engine.
 	 * @param ITimeFactory            $timeFactory   Clock for the written timestamps.
 	 */
 	public function __construct(
 		ActorForwarding $forwarding,
 		LoggerInterface $logger,
 		private readonly ObjectService $objectService,
-		private readonly PointEngagementEvaluator $evaluator,
+		private readonly PointEngagementEvaluatorInterface $evaluator,
 		private readonly ITimeFactory $timeFactory,
 	) {
 		parent::__construct(forwarding: $forwarding, logger: $logger);

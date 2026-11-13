@@ -32,7 +32,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use OCA\Learniq\Service\DashboardRoleService;
+use OCA\Learniq\Kernel\Contracts\DashboardRoleServiceInterface;
 use OCP\IGroupManager;
 use OCP\IUser;
 use Psr\Log\LoggerInterface;
@@ -149,7 +149,7 @@ class RoleSelector {
 		// the role->group map lives in exactly one place. The old
 		// `'scholiq-' . $role` form named groups that never existed on any
 		// instance, so this branch could never be true.
-		$groupName = DashboardRoleService::GROUP_BACKED_ROLES[$role] ?? null;
+		$groupName = DashboardRoleServiceInterface::GROUP_BACKED_ROLES[$role] ?? null;
 		if ($groupName === null) {
 			return false;
 		}

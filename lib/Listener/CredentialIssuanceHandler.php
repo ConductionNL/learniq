@@ -41,10 +41,10 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
-use OCA\Learniq\Service\CredentialSigningService;
-use OCA\Learniq\Service\EuropassIssuer;
-use OCA\Learniq\Service\LearnerRefResolver;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\CredentialSigningServiceInterface;
+use OCA\Learniq\Kernel\Contracts\EuropassIssuerInterface;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -65,21 +65,21 @@ class CredentialIssuanceHandler implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService Reads Course and School, writes Credential via OpenRegister.
-	 * @param CredentialSigningService $signingService Signs the credential before it is saved.
+	 * @param CredentialSigningServiceInterface $signingService Signs the credential before it is saved.
 	 * @param LoggerInterface $logger Records a credential that could not be signed.
-	 * @param EuropassIssuer $europass Adds the signed Europass form.
-	 * @param LearnerRefResolver $profiles Finds the learner's LearnerProfile in the enrolment's tenant.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param EuropassIssuerInterface $europass Adds the signed Europass form.
+	 * @param LearnerRefResolverInterface $profiles Finds the learner's LearnerProfile in the enrolment's tenant.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly CredentialSigningService $signingService,
+		private readonly CredentialSigningServiceInterface $signingService,
 		private readonly LoggerInterface $logger,
-		private readonly EuropassIssuer $europass,
-		private readonly LearnerRefResolver $profiles,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly EuropassIssuerInterface $europass,
+		private readonly LearnerRefResolverInterface $profiles,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 

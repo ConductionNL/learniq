@@ -34,8 +34,8 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Exception\SharingBlockedException;
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CourseShareExportServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Service\CourseShareExportService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -55,13 +55,13 @@ class CourseSharingController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest                 $request      HTTP request.
-	 * @param CourseShareExportService $shareService Gate, strip, record.
+	 * @param CourseShareExportServiceInterface $shareService Gate, strip, record.
 	 * @param IUserSession             $userSession  Nextcloud user session.
 	 * @param ActionAuthService        $actionAuth   ADR-023 action authorization.
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly CourseShareExportService $shareService,
+		private readonly CourseShareExportServiceInterface $shareService,
 		private readonly IUserSession $userSession,
 		private readonly ActionAuthService $actionAuth,
 	) {

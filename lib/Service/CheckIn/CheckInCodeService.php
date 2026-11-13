@@ -35,6 +35,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\CheckIn;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CheckInCodeServiceInterface;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IConfig;
 use OCP\Security\ISecureRandom;
@@ -44,7 +45,7 @@ use OCP\Security\ISecureRandom;
  *
  * @spec openspec/specs/attendance/spec.md#requirement-the-check-in-code-changes-every-thirty-seconds-in-the-room
  */
-class CheckInCodeService {
+class CheckInCodeService implements CheckInCodeServiceInterface {
 
 	/**
 	 * Seconds one rotating code lives.

@@ -29,13 +29,14 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\TimetableFeedTokenServiceInterface;
 use OCP\Config\IUserConfig;
 use OCP\Security\ISecureRandom;
 
 /**
  * Creates, resolves and revokes a user's calendar feed token.
  */
-class TimetableFeedTokenService {
+class TimetableFeedTokenService implements TimetableFeedTokenServiceInterface {
 	/**
 	 * User preference key holding the token hash.
 	 *

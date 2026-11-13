@@ -35,8 +35,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\BackgroundJob\SchoolAdviesVoorlopigRodJob;
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\SchoolAdviesRodTiming;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\SchoolAdviesRodTimingInterface;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
@@ -59,13 +59,13 @@ class SchoolAdviesVoorlopigRodHandler implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ListenerDeferralService $deferral Queues the request with the acting user.
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the saved object's register and schema.
-	 * @param SchoolAdviesRodTiming $timing Whether the advice is due for ROD.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the saved object's register and schema.
+	 * @param SchoolAdviesRodTimingInterface $timing Whether the advice is due for ROD.
 	 */
 	public function __construct(
 		private readonly ListenerDeferralService $deferral,
-		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly SchoolAdviesRodTiming $timing,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		private readonly SchoolAdviesRodTimingInterface $timing,
 	) {
 	}//end __construct()
 

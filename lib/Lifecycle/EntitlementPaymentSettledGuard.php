@@ -52,7 +52,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use OCA\Learniq\Service\ContributionBeneficiaryResolver;
+use OCA\Learniq\Kernel\Contracts\ContributionBeneficiaryResolverInterface;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -82,7 +82,7 @@ class EntitlementPaymentSettledGuard implements LifecycleGuardInterface {
 	 *
 	 * @param ObjectService $objectService OpenRegister object access (reads shillinq's register).
 	 * @param IAppManager $appManager Tells "shillinq absent" from "not paid".
-	 * @param ContributionBeneficiaryResolver $contributions Reads the request's chargeable and beneficiary.
+	 * @param ContributionBeneficiaryResolverInterface $contributions Reads the request's chargeable and beneficiary.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
@@ -90,7 +90,7 @@ class EntitlementPaymentSettledGuard implements LifecycleGuardInterface {
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly IAppManager $appManager,
-		private readonly ContributionBeneficiaryResolver $contributions,
+		private readonly ContributionBeneficiaryResolverInterface $contributions,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()

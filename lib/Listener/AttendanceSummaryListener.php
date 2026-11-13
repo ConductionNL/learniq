@@ -36,7 +36,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\BackgroundJob\AttendanceSummaryRecomputeJob;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Support\TextValue;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
@@ -61,13 +61,13 @@ class AttendanceSummaryListener implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ListenerDeferralService $deferral       Buffers the recount for after the request.
-	 * @param ListenerSchemaResolver  $schemaResolver Resolves the entity's register and schema slugs.
+	 * @param ListenerSchemaResolverInterface  $schemaResolver Resolves the entity's register and schema slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ListenerDeferralService $deferral,
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 	) {
 	}//end __construct()
 

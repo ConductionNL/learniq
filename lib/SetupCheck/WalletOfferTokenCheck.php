@@ -27,7 +27,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\SetupCheck;
 
 use OCA\Learniq\Kernel\AppIdentity;
-use OCA\Learniq\Service\ConnectionReportService;
+use OCA\Learniq\Kernel\Contracts\ConnectionReportServiceInterface;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\SetupCheck\ISetupCheck;
@@ -52,14 +52,14 @@ class WalletOfferTokenCheck implements ISetupCheck {
 	 * Constructor.
 	 *
 	 * @param IAppConfig              $appConfig         App config, for the token.
-	 * @param ConnectionReportService $connectionReports What the last wallet offer met.
+	 * @param ConnectionReportServiceInterface $connectionReports What the last wallet offer met.
 	 * @param IL10N                   $l10n              Translations.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly IAppConfig $appConfig,
-		private readonly ConnectionReportService $connectionReports,
+		private readonly ConnectionReportServiceInterface $connectionReports,
 		private readonly IL10N $l10n,
 	) {
 	}//end __construct()
@@ -106,7 +106,7 @@ class WalletOfferTokenCheck implements ISetupCheck {
 			'No integriq API token is set (%s), so a certificate cannot be offered to a wallet.',
 			[AppIdentity::APP_ID . '.' . self::TOKEN_KEY]
 		);
-		if ($this->connectionReports->lastStatus(key: ConnectionReportService::WALLET_KEY) === 'unconfigured') {
+		if ($this->connectionReports->lastStatus(key: ConnectionReportServiceInterface::WALLET_KEY) === 'unconfigured') {
 			return SetupResult::warning($message);
 		}
 

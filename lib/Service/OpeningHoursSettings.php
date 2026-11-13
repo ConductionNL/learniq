@@ -30,6 +30,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\OpeningHoursSettingsInterface;
 use OCP\IAppConfig;
 
 /**
@@ -37,7 +38,7 @@ use OCP\IAppConfig;
  *
  * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
  */
-class OpeningHoursSettings {
+class OpeningHoursSettings implements OpeningHoursSettingsInterface {
 
 	public const CONFIG_KEY = 'room_opening_hours';
 

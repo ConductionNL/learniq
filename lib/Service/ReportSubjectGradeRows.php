@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ReportSubjectGradeRowsInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -36,7 +37,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/specs/portal-contribution/spec.md#requirement-the-latest-report-reads-as-one-bar-per-subject
  */
-class ReportSubjectGradeRows {
+class ReportSubjectGradeRows implements ReportSubjectGradeRowsInterface {
 
 	private const REGISTER = 'learniq';
 

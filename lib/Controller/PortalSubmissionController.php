@@ -38,16 +38,16 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PortalLearnerResolverInterface;
+use OCA\Learniq\Kernel\Contracts\PortalMessagesInterface;
+use OCA\Learniq\Kernel\Contracts\PortalSubmissionHandInInterface;
 use OCA\Learniq\Portal\PortalAssertionVerifier;
 use OCA\Learniq\Portal\PortalForwardFailure;
 use OCA\Learniq\Portal\PortalForwardGate;
 use OCA\Learniq\Portal\PortalLearnerForward;
 use OCA\Learniq\Portal\PortalLearnerStep;
 use OCA\Learniq\Service\Portal\PortalLearner;
-use OCA\Learniq\Service\Portal\PortalLearnerResolver;
 use OCA\Learniq\Service\Portal\PortalOutcome;
-use OCA\Learniq\Service\Portal\PortalMessages;
-use OCA\Learniq\Service\Portal\PortalSubmissionHandIn;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
@@ -76,9 +76,9 @@ class PortalSubmissionController extends Controller {
 	 *
 	 * @param IRequest $request The request.
 	 * @param PortalAssertionVerifier $verifier Verifies X-Portal-Subject.
-	 * @param PortalLearnerResolver $learners learnerRef to the pupil.
-	 * @param PortalSubmissionHandIn $handIns The hand-in rules and the transition.
-	 * @param PortalMessages $messages Pupil-facing refusal messages.
+	 * @param PortalLearnerResolverInterface $learners learnerRef to the pupil.
+	 * @param PortalSubmissionHandInInterface $handIns The hand-in rules and the transition.
+	 * @param PortalMessagesInterface $messages Pupil-facing refusal messages.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
@@ -86,9 +86,9 @@ class PortalSubmissionController extends Controller {
 	public function __construct(
 		IRequest $request,
 		private readonly PortalAssertionVerifier $verifier,
-		private readonly PortalLearnerResolver $learners,
-		private readonly PortalSubmissionHandIn $handIns,
-		private readonly PortalMessages $messages,
+		private readonly PortalLearnerResolverInterface $learners,
+		private readonly PortalSubmissionHandInInterface $handIns,
+		private readonly PortalMessagesInterface $messages,
 		private readonly LoggerInterface $logger,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);

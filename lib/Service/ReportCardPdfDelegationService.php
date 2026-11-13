@@ -60,6 +60,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ReportCardPdfDelegationServiceInterface;
 use OCA\Learniq\Support\FleetAppId;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
@@ -84,7 +85,7 @@ use Throwable;
  *
  * @spec openspec/specs/report-card/spec.md#requirement-docudesk-pdf-rendering-is-fail-soft-non-blocking-and-its-contract-is-explicitly-proposed
  */
-class ReportCardPdfDelegationService implements LifecycleGuardInterface {
+class ReportCardPdfDelegationService implements LifecycleGuardInterface, ReportCardPdfDelegationServiceInterface {
 
 	/**
 	 * Proposed, not-yet-verified docudesk REST contract for rendering a

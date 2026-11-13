@@ -20,7 +20,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\BackgroundJob;
 
-use OCA\Learniq\Service\CohortNameRestamp;
+use OCA\Learniq\Kernel\Contracts\CohortNameRestampInterface;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use Psr\Log\LoggerInterface;
 
@@ -40,12 +40,12 @@ class CohortNameRestampJob extends ForwardedJob {
 	 *
 	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface     $logger       Logger; the base declares it protected.
-	 * @param CohortNameRestamp   $restamp      Writes the name on the enrolments.
+	 * @param CohortNameRestampInterface   $restamp      Writes the name on the enrolments.
 	 */
 	public function __construct(
 		ActorForwarding $forwarding,
 		LoggerInterface $logger,
-		private readonly CohortNameRestamp $restamp,
+		private readonly CohortNameRestampInterface $restamp,
 	) {
 		parent::__construct(forwarding: $forwarding, logger: $logger);
 	}//end __construct()

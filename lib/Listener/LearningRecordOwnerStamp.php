@@ -42,9 +42,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\CallerTenantResolver;
-use OCA\Learniq\Service\LearningRecordAggregationService;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
+use OCA\Learniq\Kernel\Contracts\LearningRecordAggregationServiceInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -82,9 +82,9 @@ class LearningRecordOwnerStamp implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver           $schemaResolver  Entity schema id to slug.
-	 * @param CallerTenantResolver             $tenants         The learner's tenant.
-	 * @param LearningRecordAggregationService $learningRecords The learner's own profile.
+	 * @param ListenerSchemaResolverInterface           $schemaResolver  Entity schema id to slug.
+	 * @param CallerTenantResolverInterface             $tenants         The learner's tenant.
+	 * @param LearningRecordAggregationServiceInterface $learningRecords The learner's own profile.
 	 * @param IGroupManager                    $groupManager    Whether the caller is an administrator.
 	 * @param IUserSession                     $userSession     The signed-in user.
 	 * @param ITimeFactory                     $timeFactory     The server's clock.
@@ -92,9 +92,9 @@ class LearningRecordOwnerStamp implements IEventListener {
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly CallerTenantResolver $tenants,
-		private readonly LearningRecordAggregationService $learningRecords,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		private readonly CallerTenantResolverInterface $tenants,
+		private readonly LearningRecordAggregationServiceInterface $learningRecords,
 		private readonly IGroupManager $groupManager,
 		private readonly IUserSession $userSession,
 		private readonly ITimeFactory $timeFactory,

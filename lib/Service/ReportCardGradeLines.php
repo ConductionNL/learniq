@@ -33,6 +33,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ReportCardGradeLinesInterface;
 use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
 
@@ -41,7 +42,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/changes/portal-parent-report-card-grades/specs/report-card/spec.md#requirement-a-report-card-carries-its-subject-grades-in-readable-form
  */
-class ReportCardGradeLines {
+class ReportCardGradeLines implements ReportCardGradeLinesInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const COURSE_SCHEMA = 'course';

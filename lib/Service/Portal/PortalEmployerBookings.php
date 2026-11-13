@@ -39,9 +39,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
-use OCA\Learniq\Support\TextValue;
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\PortalEmployerBookingsInterface;
+use OCA\Learniq\Support\TextValue;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -51,7 +52,7 @@ use Throwable;
  *
  * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
  */
-class PortalEmployerBookings {
+class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 
 	private const REGISTER = 'learniq';
 

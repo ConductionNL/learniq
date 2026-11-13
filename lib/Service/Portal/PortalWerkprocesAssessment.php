@@ -38,8 +38,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
-use OCA\Learniq\Support\ObjectRow;
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\PortalWerkprocesAssessmentInterface;
+use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
@@ -50,7 +51,7 @@ use Throwable;
  *
  * @spec openspec/changes/an-invited-trainer-may-assess/specs/bpv/spec.md#requirement-an-invited-trainer-may-submit-a-werkproces-assessment
  */
-class PortalWerkprocesAssessment {
+class PortalWerkprocesAssessment implements PortalWerkprocesAssessmentInterface {
 
 	private const REGISTER = 'learniq';
 

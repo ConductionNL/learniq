@@ -65,9 +65,9 @@ namespace OCA\Learniq\BackgroundJob;
 
 use DateTimeImmutable;
 use OCA\Learniq\Kernel\AppIdentity;
-use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Service\LtiAgsPullClient;
+use OCA\Learniq\Kernel\Contracts\LtiAgsPullClientInterface;
 use OCA\Learniq\Support\ObjectRow;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
 use OCP\BackgroundJob\TimedJob;
@@ -124,14 +124,14 @@ class LtiAgsScorePollJob extends TimedJob {
 	 *
 	 * @param ITimeFactory $time Time factory for job scheduling.
 	 * @param ObjectService $objectService OR object access service.
-	 * @param LtiAgsPullClient $pullClient OpenConnector AGS pull transport.
+	 * @param LtiAgsPullClientInterface $pullClient OpenConnector AGS pull transport.
 	 * @param IAppConfig $appConfig NC app config for subscription/cursor lookup.
 	 * @param LoggerInterface $logger PSR logger.
 	 */
 	public function __construct(
 		ITimeFactory $time,
 		private readonly ObjectService $objectService,
-		private readonly LtiAgsPullClient $pullClient,
+		private readonly LtiAgsPullClientInterface $pullClient,
 		private readonly IAppConfig $appConfig,
 		private readonly LoggerInterface $logger,
 	) {

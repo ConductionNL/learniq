@@ -43,8 +43,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
-use OCA\Learniq\Service\ElectiveService;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ElectiveServiceInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\EventDispatcher\Event;
@@ -77,15 +77,15 @@ class ElectiveSignUpRules implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ElectiveService        $electives      Offers, lessons and places.
-	 * @param ListenerSchemaResolver $schemaResolver Which schema an event is about.
+	 * @param ElectiveServiceInterface        $electives      Offers, lessons and places.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Which schema an event is about.
 	 * @param IUserSession           $userSession    The writer.
 	 * @param IGroupManager          $groupManager   The writer's groups.
 	 * @param LoggerInterface        $logger         Logger.
 	 */
 	public function __construct(
-		private readonly ElectiveService $electives,
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ElectiveServiceInterface $electives,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
 		private readonly LoggerInterface $logger,
@@ -172,8 +172,8 @@ class ElectiveSignUpRules implements IEventListener {
 	 */
 	private function signUpEntity(SignUpWrite $write): ?object {
 		$entity = $write->object();
-		if ($this->schemaResolver->registerSlug(entity: $entity) !== ElectiveService::REGISTER
-			|| $this->schemaResolver->schemaSlug(entity: $entity) !== ElectiveService::SIGN_UP_SCHEMA
+		if ($this->schemaResolver->registerSlug(entity: $entity) !== ElectiveServiceInterface::REGISTER
+			|| $this->schemaResolver->schemaSlug(entity: $entity) !== ElectiveServiceInterface::SIGN_UP_SCHEMA
 		) {
 			return null;
 		}
@@ -212,7 +212,7 @@ class ElectiveSignUpRules implements IEventListener {
 		}
 
 		$window = $this->electives->window(offer: $offer, startsAt: $lesson['startsAt']);
-		if (($signUp['status'] ?? 'signed-up') === ElectiveService::WITHDRAWN) {
+		if (($signUp['status'] ?? 'signed-up') === ElectiveServiceInterface::WITHDRAWN) {
 			return $this->withdrawalRefusal(lessonStart: $lesson['startsAt'], window: $window, caller: $caller, now: $now);
 		}
 

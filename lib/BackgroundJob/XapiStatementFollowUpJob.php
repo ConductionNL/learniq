@@ -29,8 +29,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\BackgroundJob;
 
-use OCA\Learniq\Service\LessonProgress;
-use OCA\Learniq\Service\XapiEnrolmentCompletion;
+use OCA\Learniq\Kernel\Contracts\LessonProgressInterface;
+use OCA\Learniq\Kernel\Contracts\XapiEnrolmentCompletionInterface;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -57,14 +57,14 @@ class XapiStatementFollowUpJob extends ForwardedJob {
 	 *
 	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface         $logger       Logger.
-	 * @param LessonProgress          $progress     Records the lesson completion.
-	 * @param XapiEnrolmentCompletion $completion   Completes the enrolment.
+	 * @param LessonProgressInterface          $progress     Records the lesson completion.
+	 * @param XapiEnrolmentCompletionInterface $completion   Completes the enrolment.
 	 */
 	public function __construct(
 		ActorForwarding $forwarding,
 		LoggerInterface $logger,
-		private readonly LessonProgress $progress,
-		private readonly XapiEnrolmentCompletion $completion,
+		private readonly LessonProgressInterface $progress,
+		private readonly XapiEnrolmentCompletionInterface $completion,
 	) {
 		parent::__construct(forwarding: $forwarding, logger: $logger);
 	}//end __construct()

@@ -33,6 +33,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\ExamSittingOverviewInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -40,7 +41,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/specs/exam-schedule/spec.md#requirement-accommodations-in-the-schedule
  */
-class ExamSittingOverview {
+class ExamSittingOverview implements ExamSittingOverviewInterface {
 
 	private const REGISTER = 'learniq';
 

@@ -43,6 +43,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Exception\RolloverInterruptedException;
+use OCA\Learniq\Kernel\Contracts\RolloverExecutionServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IGroupManager;
 use Psr\Log\LoggerInterface;
@@ -55,7 +56,7 @@ use Throwable;
  *
  * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
  */
-class RolloverExecutionService {
+class RolloverExecutionService implements RolloverExecutionServiceInterface {
 	/**
 	 * OpenRegister register slug.
 	 */

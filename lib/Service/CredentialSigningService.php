@@ -34,6 +34,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\CredentialSigningServiceInterface;
 use OCP\IAppConfig;
 use OCP\IURLGenerator;
 use OCP\Security\ICrypto;
@@ -44,8 +45,7 @@ use OCP\Security\ICrypto;
  * Single responsibility: sign. No CRUD, no notifications, no state
  * management; all of that is declared in the schema.
  */
-class CredentialSigningService {
-
+class CredentialSigningService implements CredentialSigningServiceInterface {
 
 	/**
 	 * Constructor.

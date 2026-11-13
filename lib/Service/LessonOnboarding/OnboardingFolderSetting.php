@@ -31,6 +31,7 @@ namespace OCA\Learniq\Service\LessonOnboarding;
 
 use InvalidArgumentException;
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\OnboardingFolderSettingInterface;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -40,7 +41,7 @@ use OCP\IConfig;
 /**
  * Reads and stores a teacher's lesson onboarding folder.
  */
-class OnboardingFolderSetting {
+class OnboardingFolderSetting implements OnboardingFolderSettingInterface {
 
 	/**
 	 * Per-user config key holding the folder's file id.

@@ -52,13 +52,13 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\LearningRecordExportSigningServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Service\LearningRecordExportSigningService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
-use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
@@ -122,7 +122,7 @@ class LearningRecordShareVerifyController extends Controller {
 	 *
 	 * @param IRequest $request HTTP request.
 	 * @param ObjectService $objectService OR object read/update service.
-	 * @param LearningRecordExportSigningService $signingService JWS verification.
+	 * @param LearningRecordExportSigningServiceInterface $signingService JWS verification.
 	 * @param IRootFolder $rootFolder NC root folder for reading the bundle file.
 	 * @param IThrottler $throttler Bruteforce throttler for failed verification attempts.
 	 * @param LoggerInterface $logger Logger.
@@ -132,7 +132,7 @@ class LearningRecordShareVerifyController extends Controller {
 	public function __construct(
 		IRequest $request,
 		private readonly ObjectService $objectService,
-		private readonly LearningRecordExportSigningService $signingService,
+		private readonly LearningRecordExportSigningServiceInterface $signingService,
 		private readonly IRootFolder $rootFolder,
 		private readonly IThrottler $throttler,
 		private readonly LoggerInterface $logger,

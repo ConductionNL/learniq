@@ -46,12 +46,12 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Grading\GradeFormulaEvaluator;
+use OCA\Learniq\Grading\GradeVisibilityResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Grading\GradeFormulaEvaluator;
-use OCA\Learniq\Grading\GradeVisibilityResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -83,7 +83,7 @@ class GradeRollupHandler implements IEventListener {
 	 * @param GradeFormulaEvaluator $evaluator Formula evaluation engine.
 	 * @param GradeVisibilityResolver $visibilityResolver Scheduled-visibility-window resolver.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 * @param LoggerInterface        $logger  Logs a roll-up that failed.
 	 *
 	 * @return void
@@ -93,7 +93,7 @@ class GradeRollupHandler implements IEventListener {
 		private readonly GradeFormulaEvaluator $evaluator,
 		private readonly GradeVisibilityResolver $visibilityResolver,
 		private readonly ITimeFactory $timeFactory,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 		private readonly LoggerInterface $logger=new NullLogger(),
 	) {
 	}//end __construct()

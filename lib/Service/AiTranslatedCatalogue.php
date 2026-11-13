@@ -29,12 +29,14 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\AiTranslatedCatalogueInterface;
+
 /**
  * The AI-translated catalogue sidecar: read it, and remove a reviewed key.
  *
  * @spec openspec/specs/ai-translated-catalogue/spec.md#requirement-the-admin-settings-list-the-keys-with-source-and-dutch-value
  */
-class AiTranslatedCatalogue {
+class AiTranslatedCatalogue implements AiTranslatedCatalogueInterface {
 	/**
 	 * The sidecar's file name inside the l10n directory.
 	 */
@@ -44,16 +46,6 @@ class AiTranslatedCatalogue {
 	 * Outcome: the key left the list.
 	 */
 	public const REVIEWED = 'reviewed';
-
-	/**
-	 * Outcome: the key is not on the list.
-	 */
-	public const NOT_LISTED = 'not-listed';
-
-	/**
-	 * Outcome: the sidecar cannot be written here (an app store install).
-	 */
-	public const READ_ONLY = 'read-only';
 
 	/**
 	 * The l10n directory the sidecar and the catalogues live in.

@@ -55,13 +55,13 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\AttendanceWindowAggregatorInterface;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ReportCardTemplateSectionResolverInterface;
+use OCA\Learniq\Support\EntityRow;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Service\AttendanceWindowAggregator;
-use OCA\Learniq\Service\LearnerRefResolver;
-use OCA\Learniq\Service\ReportCardTemplateSectionResolver;
-use OCA\Learniq\Support\EntityRow;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -96,12 +96,12 @@ class ReportCardComposer implements IEventListener {
 	 * @param ObjectService $objectService OR object access service.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param AttendanceWindowAggregator $attendance Resolves window Sessions and aggregates attendance.
-	 * @param ReportCardTemplateSectionResolver $templateSections Resolves a template's declared
+	 * @param AttendanceWindowAggregatorInterface $attendance Resolves window Sessions and aggregates attendance.
+	 * @param ReportCardTemplateSectionResolverInterface $templateSections Resolves a template's declared
 	 *                                                            sections and gates population by
 	 *                                                            them (report-card-templates change).
-	 * @param LearnerRefResolver $learnerRefs Nextcloud user id to LearnerProfile UUID, the card's learnerRef.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param LearnerRefResolverInterface $learnerRefs Nextcloud user id to LearnerProfile UUID, the card's learnerRef.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -109,10 +109,10 @@ class ReportCardComposer implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly ITimeFactory $timeFactory,
 		private readonly LoggerInterface $logger,
-		private readonly AttendanceWindowAggregator $attendance,
-		private readonly ReportCardTemplateSectionResolver $templateSections,
-		private readonly LearnerRefResolver $learnerRefs,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly AttendanceWindowAggregatorInterface $attendance,
+		private readonly ReportCardTemplateSectionResolverInterface $templateSections,
+		private readonly LearnerRefResolverInterface $learnerRefs,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 

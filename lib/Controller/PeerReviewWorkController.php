@@ -36,7 +36,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
-use OCA\Learniq\Service\PeerReviewWorkProjection;
+use OCA\Learniq\Kernel\Contracts\PeerReviewWorkProjectionInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -59,14 +59,14 @@ class PeerReviewWorkController extends Controller {
 	 *
 	 * @param IRequest $request The request.
 	 * @param IUserSession $userSession The signed-in user.
-	 * @param PeerReviewWorkProjection $projection Builds and authorizes the projection.
+	 * @param PeerReviewWorkProjectionInterface $projection Builds and authorizes the projection.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
-		private readonly PeerReviewWorkProjection $projection,
+		private readonly PeerReviewWorkProjectionInterface $projection,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
@@ -88,11 +88,11 @@ class PeerReviewWorkController extends Controller {
 		}
 
 		$context = $this->projection->resolve(peerReviewId: $peerReviewId, callerId: $user->getUID());
-		if ($context['verdict'] === PeerReviewWorkProjection::FORBIDDEN) {
+		if ($context['verdict'] === PeerReviewWorkProjectionInterface::FORBIDDEN) {
 			return new JSONResponse(data: ['error' => 'Only the reviewer can see this work.'], statusCode: Http::STATUS_FORBIDDEN);
 		}
 
-		if ($context['verdict'] !== PeerReviewWorkProjection::ALLOWED) {
+		if ($context['verdict'] !== PeerReviewWorkProjectionInterface::ALLOWED) {
 			return new JSONResponse(data: ['error' => 'Peer review not found'], statusCode: Http::STATUS_NOT_FOUND);
 		}
 
@@ -120,12 +120,12 @@ class PeerReviewWorkController extends Controller {
 		}
 
 		$context = $this->projection->resolve(peerReviewId: $peerReviewId, callerId: $user->getUID());
-		if ($context['verdict'] === PeerReviewWorkProjection::FORBIDDEN) {
+		if ($context['verdict'] === PeerReviewWorkProjectionInterface::FORBIDDEN) {
 			return new JSONResponse(data: ['error' => 'Only the reviewer can see this work.'], statusCode: Http::STATUS_FORBIDDEN);
 		}
 
 		$found = null;
-		if ($context['verdict'] === PeerReviewWorkProjection::ALLOWED) {
+		if ($context['verdict'] === PeerReviewWorkProjectionInterface::ALLOWED) {
 			$found = $this->projection->file(context: $context, fileId: $fileId);
 		}
 

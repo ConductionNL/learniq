@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\CheckIn;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CheckInMessagesInterface;
 use OCP\IUser;
 use OCP\L10N\IFactory;
 
@@ -35,7 +36,7 @@ use OCP\L10N\IFactory;
  *
  * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
  */
-class CheckInMessages {
+class CheckInMessages implements CheckInMessagesInterface {
 
 	/**
 	 * English source text per reason; translated through l10n.

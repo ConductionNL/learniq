@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Catalogue;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CatalogueMessagesInterface;
 use OCP\IUser;
 use OCP\L10N\IFactory;
 
@@ -35,7 +36,7 @@ use OCP\L10N\IFactory;
  *
  * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
  */
-class CatalogueMessages {
+class CatalogueMessages implements CatalogueMessagesInterface {
 
 	/**
 	 * English source text per reason; translated through l10n.
