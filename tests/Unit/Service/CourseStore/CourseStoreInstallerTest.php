@@ -32,6 +32,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * @covers \OCA\Learniq\Service\CourseStore\CourseStoreInstaller
  * @uses   \OCA\Learniq\Service\CallerTenantResolver
+ * @uses   \OCA\Learniq\Service\CourseStore\CourseStoreRequest
  */
 class CourseStoreInstallerTest extends TestCase {
 

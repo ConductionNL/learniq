@@ -37,6 +37,7 @@ use RuntimeException;
  * @covers \OCA\Learniq\Listener\ConferenceFreeSlotGenerator
  * @uses   \OCA\Learniq\Service\ConferenceBookingMode
  * @uses   \OCA\Learniq\Service\ConferenceSlotSlicer
+ * @uses   \OCA\Learniq\Service\ConferenceSlotPattern
  */
 class ConferenceFreeSlotGoldenTest extends TestCase {
 	use GoldenFile;
