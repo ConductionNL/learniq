@@ -115,6 +115,12 @@ class PortalLabelTranslator {
 	private const NESTED_CONTEXTS = ['sources', 'values', 'phrases', 'confirmation', 'steps'];
 
 	/**
+	 * Maps from a field to the words a reader sees, whose every value is
+	 * visible: a template block's words for an empty field (portaliq REQ-SMO-027).
+	 */
+	private const WORDS_BY_FIELD_KEYS = ['whenEmpty'];
+
+	/**
 	 * The two forms of a counted word.
 	 *
 	 * @var array<int, string>
@@ -225,6 +231,10 @@ class PortalLabelTranslator {
 	private function contextOf(int|string $key, string $context): string {
 		if (in_array($key, self::NESTED_CONTEXTS, true) === true) {
 			return (string)$key;
+		}
+
+		if (in_array($key, self::WORDS_BY_FIELD_KEYS, true) === true) {
+			return 'values';
 		}
 
 		$byParent = $this->contextByParent(key: $key, context: $context);

@@ -2904,6 +2904,9 @@
         "{present} present, {late} late, {authorised} absent with permission, {unauthorised} absent without permission",
         "{programme}, intake {year}, {status}",
         "{revoked} revoked and {expired} expired certificates are left as they are. Learners keep their certificate number, issue date and expiry.",
-        "{shown} of {total} strings"
+        "{shown} of {total} strings",
+        "Shared parts",
+        "Your access runs until {expiresAt}.",
+        "Your access has no end date. The school ends the access."
     ]
 }
