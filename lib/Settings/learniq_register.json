@@ -22423,7 +22423,7 @@
             "ConferenceRound": {
                 "slug": "conference-round",
                 "icon": "CalendarMultiselectOutline",
-                "version": "0.2.2",
+                "version": "0.3.0",
                 "title": "Conference Round",
                 "description": "One oudergesprekken-cyclus (parent-teacher conference round) for a report period: scope (cohorts, teachers), slot duration/buffer, and a booking window. Drives invitations, guardian/self signup, and the ConferenceScheduleGenerator's greedy conflict-free slot generation.",
                 "type": "object",
@@ -22557,6 +22557,12 @@
                         "minimum": 1,
                         "description": "How many times a family may book per child in this round. Empty means one.",
                         "title": "Bookings per child"
+                    },
+                    "pupilMayBook": {
+                        "type": "boolean",
+                        "default": false,
+                        "title": "Pupils may book",
+                        "description": "Whether a pupil may book a time of this round for herself, as for a mentor talk. Off, only her guardians book. A booking by the pupil and one by a guardian count as the same child's booking."
                     },
                     "isBookingClosed": {
                         "type": "boolean",
