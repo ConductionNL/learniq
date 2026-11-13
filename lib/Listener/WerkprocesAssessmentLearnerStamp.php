@@ -48,6 +48,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -204,18 +205,7 @@ class WerkprocesAssessmentLearnerStamp implements IEventListener {
 	 * @return array<string, mixed>
 	 */
 	private function row(mixed $object): array {
-		if (is_array($object) === true) {
-			return $object;
-		}
-
-		if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-			$row = $object->jsonSerialize();
-			if (is_array($row) === true) {
-				return $row;
-			}
-		}
-
-		return [];
+		return (new SerialisedRow())->asArray(object: $object);
 	}//end row()
 
 	/**
@@ -242,11 +232,7 @@ class WerkprocesAssessmentLearnerStamp implements IEventListener {
 	 * @return ObjectEntity
 	 */
 	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
+		return (new WrittenObject())->entityOf(event: $event);
 	}//end entityOf()
 
 	/**

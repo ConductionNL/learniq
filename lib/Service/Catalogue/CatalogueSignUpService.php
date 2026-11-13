@@ -150,24 +150,23 @@ class CatalogueSignUpService {
 			return $programme;
 		}
 
-		$mine = $this->reader->enrolmentsByCourse(userId: $learner->ncUserId);
+		$enrolment = new ProgrammeEnrolment(programme: $programme, programmeId: $programmeId);
+		return new PortalOutcome(status: Http::STATUS_OK, body: $this->enrolEachCourse(learner: $learner, enrolment: $enrolment));
+	}//end signUpProgramme()
+
+	/**
+	 * Enrol the learner in each course of the programme they are not on yet, in order.
+	 *
+	 * @param PortalLearner      $learner   The learner.
+	 * @param ProgrammeEnrolment $enrolment The programme and its requested id.
+	 *
+	 * @return array{created: array<int, mixed>, refused: array<int, array{courseId: string, message: string}>}
+	 */
+	private function enrolEachCourse(PortalLearner $learner, ProgrammeEnrolment $enrolment): array {
 		$created = [];
 		$refused = [];
-		foreach (array_unique(array_map('strval', (array)($programme['courseIds'] ?? []))) as $courseId) {
-			if ($courseId === '' || in_array(($mine[$courseId]['lifecycle'] ?? ''), CatalogueReader::LIVE_STATES, true) === true) {
-				continue;
-			}
-
-			$outcome = $this->create(
-				learner: $learner,
-				target: [
-					'courseId' => $courseId,
-					'mode' => (string)$programme['selfEnrolment'],
-					'programmeId' => $programmeId,
-					'mandatory' => $this->requirements->mandatoryFor(programme: $programme, courseId: $courseId),
-					'tenantId' => (string)($programme['tenant_id'] ?? ''),
-				]
-			);
+		foreach ($this->pendingCourseIds(enrolment: $enrolment, userId: $learner->ncUserId) as $courseId) {
+			$outcome = $this->create(learner: $learner, target: $this->programmeTarget(enrolment: $enrolment, courseId: $courseId));
 			if ($outcome->status === Http::STATUS_OK) {
 				$created[] = $outcome->body;
 				continue;
@@ -176,8 +175,48 @@ class CatalogueSignUpService {
 			$refused[] = ['courseId' => $courseId, 'message' => (string)($outcome->body['message'] ?? '')];
 		}
 
-		return new PortalOutcome(status: Http::STATUS_OK, body: ['created' => $created, 'refused' => $refused]);
-	}//end signUpProgramme()
+		return ['created' => $created, 'refused' => $refused];
+	}//end enrolEachCourse()
+
+	/**
+	 * The programme's distinct course ids the learner holds no live enrolment for.
+	 *
+	 * @param ProgrammeEnrolment $enrolment The programme and its requested id.
+	 * @param string             $userId    The learner's Nextcloud user id.
+	 *
+	 * @return array<int, string>
+	 */
+	private function pendingCourseIds(ProgrammeEnrolment $enrolment, string $userId): array {
+		$mine = $this->reader->enrolmentsByCourse(userId: $userId);
+		$pending = [];
+		foreach (array_unique(array_map('strval', (array)($enrolment->programme['courseIds'] ?? []))) as $courseId) {
+			if ($courseId === '' || in_array(($mine[$courseId]['lifecycle'] ?? ''), CatalogueReader::LIVE_STATES, true) === true) {
+				continue;
+			}
+
+			$pending[] = $courseId;
+		}
+
+		return $pending;
+	}//end pendingCourseIds()
+
+	/**
+	 * The enrolment target for one course of the programme.
+	 *
+	 * @param ProgrammeEnrolment $enrolment The programme and its requested id.
+	 * @param string             $courseId  The course uuid.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function programmeTarget(ProgrammeEnrolment $enrolment, string $courseId): array {
+		return [
+			'courseId' => $courseId,
+			'mode' => (string)$enrolment->programme['selfEnrolment'],
+			'programmeId' => $enrolment->programmeId,
+			'mandatory' => $this->requirements->mandatoryFor(programme: $enrolment->programme, courseId: $courseId),
+			'tenantId' => (string)($enrolment->programme['tenant_id'] ?? ''),
+		];
+	}//end programmeTarget()
 
 	/**
 	 * Withdraw the learner's own sign-up.

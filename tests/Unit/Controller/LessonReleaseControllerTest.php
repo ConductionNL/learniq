@@ -344,4 +344,107 @@ class LessonReleaseControllerTest extends TestCase {
 		self::assertSame(Http::STATUS_NOT_FOUND, $response->getStatus());
 
 	}//end testUnknownLessonThrowingFromObjectServiceReturns404()
+
+	/**
+	 * A controller whose collaborators record every call into $calls.
+	 *
+	 * @param \ArrayObject<int,mixed> $calls The record.
+	 * @param array<string,mixed>     $item  The item find() answers, keyed by schema.
+	 *
+	 * @return LessonReleaseController
+	 */
+	private function recordingController(\ArrayObject $calls, array $item): LessonReleaseController {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willReturnCallback(
+			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($calls, $item) {
+				$calls[] = 'find ' . $schema . ' ' . $id;
+				if (isset($item[$schema]) === false) {
+					return null;
+				}
+
+				return OrEntityFactory::make($item[$schema], (string)$schema);
+			}
+		);
+		$objectService->method('findAll')->willReturnCallback(
+			function (array $config) use ($calls) {
+				$calls[] = ['findAll', $config];
+				return OrEntityFactory::makeMany(($this->db['enrolment'] ?? []), 'enrolment');
+			}
+		);
+		$this->dashboardRoleService->method('resolveViews')->willReturnCallback(
+			function () use ($calls): array {
+				$calls[] = 'views';
+				return ($this->db['views'][0] ?? ['student']);
+			}
+		);
+		$evaluator = $this->createMock(LessonReleaseEvaluator::class);
+		$evaluator->method('evaluate')->willReturnCallback(
+			static function (array $item, string $itemSchema, string $learnerId, array $enrolment) use ($calls): array {
+				unset($item['@self'], $enrolment['@self']);
+				$calls[] = ['evaluate', $item, $itemSchema, $learnerId, $enrolment];
+				return ['available' => false, 'reason' => 'Later.', 'availableAt' => '2026-12-01', 'extra' => 'dropped'];
+			}
+		);
+		$accessFacts = $this->createMock(AssessmentAccessFacts::class);
+		$accessFacts->method('assessmentAccess')->willReturnCallback(
+			static function (string $assessmentId, array $item) use ($calls): array {
+				$calls[] = 'facts ' . $assessmentId;
+				return ['reasonCode' => 'x', 'available' => 'overridden'];
+			}
+		);
+
+		return new LessonReleaseController(
+			request: $this->createMock(IRequest::class),
+			userSession: $this->userSession,
+			objectService: $objectService,
+			releaseEvaluator: $evaluator,
+			dashboardRoleService: $this->dashboardRoleService,
+			accessFacts: $accessFacts,
+		);
+	}//end recordingController()
+
+	/**
+	 * Each answer is exact, the staff check runs before the enrolment read,
+	 * the enrolment is read only for an item with a course, and the evaluator
+	 * and the assessment facts get exactly what the item and caller say.
+	 *
+	 * @return void
+	 */
+	public function testEachReleaseAnswerAndItsCallsAreExact(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('learner-1');
+		$this->userSession->method('getUser')->willReturn($user);
+
+		$calls = new \ArrayObject();
+		self::assertSame(['error' => 'Lesson not found'], $this->recordingController($calls, [])->status('l1')->getData());
+		self::assertSame(['error' => 'Assessment not found'], $this->recordingController($calls, [])->assessmentStatus('e1')->getData());
+		self::assertSame(['find lesson l1', 'find exam e1'], $calls->getArrayCopy());
+
+		$calls = new \ArrayObject();
+		$denied = $this->recordingController($calls, ['lesson' => ['id' => 'l1']])->status('l1');
+		self::assertSame([403, ['error' => 'Not enrolled in the course this item belongs to']], [$denied->getStatus(), $denied->getData()]);
+		self::assertSame(['find lesson l1', 'views'], $calls->getArrayCopy());
+
+		$this->db['enrolment'] = [['id' => 'en-1', 'learnerId' => 'learner-1']];
+		$calls = new \ArrayObject();
+		$lesson = $this->recordingController($calls, ['lesson' => ['id' => 'l1', 'courseId' => 'c1']])->status('l1');
+		self::assertSame(['available' => false, 'reason' => 'Later.', 'availableAt' => '2026-12-01'], $lesson->getData());
+		self::assertSame(
+			[
+				'find lesson l1',
+				'views',
+				['findAll', ['filters' => ['register' => 'learniq', 'schema' => 'enrolment', 'learnerId' => 'learner-1', 'courseId' => 'c1'], 'limit' => 1]],
+				['evaluate', ['id' => 'l1', 'courseId' => 'c1'], 'lesson', 'learner-1', ['id' => 'en-1', 'learnerId' => 'learner-1']],
+			],
+			$calls->getArrayCopy()
+		);
+
+		$this->db['enrolment'] = [];
+		$this->db['views'] = [['teacher']];
+		$calls = new \ArrayObject();
+		$exam = $this->recordingController($calls, ['exam' => ['id' => 'e1', 'courseId' => 'c1']])->assessmentStatus('e1');
+		self::assertSame(['available' => 'overridden', 'reason' => 'Later.', 'availableAt' => '2026-12-01', 'reasonCode' => 'x'], $exam->getData());
+		self::assertSame('facts e1', $calls[4]);
+		self::assertSame([], $calls[3][4]);
+	}//end testEachReleaseAnswerAndItsCallsAreExact()
 }//end class

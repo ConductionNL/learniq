@@ -187,7 +187,7 @@ class ReportSubjectGradeRows {
 	 * @throws \Throwable When OpenRegister cannot be read.
 	 */
 	private function rowsOf(string $learnerRef): array {
-		return $this->read(filters: ['learnerRef' => $learnerRef], schema: self::SCHEMA, limit: 200);
+		return $this->rows(config: ['filters' => ['register' => self::REGISTER, 'schema' => self::SCHEMA, 'learnerRef' => $learnerRef], 'limit' => 200]);
 	}//end rowsOf()
 
 	/**
@@ -202,17 +202,12 @@ class ReportSubjectGradeRows {
 	private function names(array $card): array {
 		$names = [];
 		foreach (['course' => 'courseId', 'curriculum-plan' => 'curriculumPlanId'] as $schema => $field) {
-			$ids = [];
-			foreach ((array)($card['subjectGrades'] ?? []) as $grade) {
-				$ids[] = (string)(((array)$grade)[$field] ?? '');
-			}
-
-			$ids = array_values(array_unique(array_filter($ids)));
+			$ids = $this->gradeIds(card: $card, field: $field);
 			if ($ids === []) {
 				continue;
 			}
 
-			foreach ($this->read(filters: [], schema: $schema, limit: count($ids), ids: $ids) as $row) {
+			foreach ($this->readByIds(schema: $schema, ids: $ids) as $row) {
 				$id = (string)($row['id'] ?? ($row['uuid'] ?? ''));
 				$names[$id] = ($names[$id] ?? trim((string)($row['name'] ?? '')));
 			}
@@ -220,6 +215,23 @@ class ReportSubjectGradeRows {
 
 		return array_filter($names, static fn (string $name): bool => $name !== '');
 	}//end names()
+
+	/**
+	 * The distinct, non-empty ids the card's subject grades name in one field.
+	 *
+	 * @param array<string, mixed> $card  The report card.
+	 * @param string               $field `courseId` or `curriculumPlanId`.
+	 *
+	 * @return array<int, string>
+	 */
+	private function gradeIds(array $card, string $field): array {
+		$ids = [];
+		foreach ((array)($card['subjectGrades'] ?? []) as $grade) {
+			$ids[] = (string)(((array)$grade)[$field] ?? '');
+		}
+
+		return array_values(array_unique(array_filter($ids)));
+	}//end gradeIds()
 
 	/**
 	 * The name of the card's group, or ''.
@@ -235,27 +247,33 @@ class ReportSubjectGradeRows {
 			return '';
 		}
 
-		return trim((string)(($this->read(filters: [], schema: 'cohort', limit: 1, ids: [$cohortId])[0] ?? [])['name'] ?? ''));
+		return trim((string)(($this->readByIds(schema: 'cohort', ids: [$cohortId])[0] ?? [])['name'] ?? ''));
 	}//end groupName()
 
 	/**
-	 * Rows of a learniq schema as arrays.
+	 * The rows of a learniq schema with these ids, as arrays.
 	 *
-	 * @param array<string, mixed> $filters Property filters.
-	 * @param string               $schema  The schema slug.
-	 * @param int                  $limit   The cap.
-	 * @param array<int, string>   $ids     Ids to read, or none.
+	 * @param string             $schema The schema slug.
+	 * @param array<int, string> $ids    Ids to read.
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read.
 	 */
-	private function read(array $filters, string $schema, int $limit, array $ids = []): array {
-		$config = ['filters' => array_merge(['register' => self::REGISTER, 'schema' => $schema], $filters), 'limit' => $limit];
-		if ($ids !== []) {
-			$config['ids'] = $ids;
-		}
+	private function readByIds(string $schema, array $ids): array {
+		return $this->rows(config: ['filters' => ['register' => self::REGISTER, 'schema' => $schema], 'limit' => count($ids), 'ids' => $ids]);
+	}//end readByIds()
 
+	/**
+	 * The rows a query finds, across tenants and without RBAC, as arrays.
+	 *
+	 * @param array<string, mixed> $config The findAll() query.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 *
+	 * @throws \Throwable When OpenRegister cannot be read.
+	 */
+	private function rows(array $config): array {
 		$out = [];
 		foreach ($this->objectService->findAll(config: $config, _rbac: false, _multitenancy: false) as $row) {
 			if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
@@ -268,5 +286,5 @@ class ReportSubjectGradeRows {
 		}
 
 		return $out;
-	}//end read()
+	}//end rows()
 }//end class

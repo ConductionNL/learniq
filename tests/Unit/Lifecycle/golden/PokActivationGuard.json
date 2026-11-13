@@ -1,0 +1,126 @@
+{
+    "complete": {
+        "allowed": true,
+        "message": null,
+        "queries": [
+            {
+                "filters": {
+                    "subjectId": "pok-1",
+                    "subjectVersion": 1,
+                    "tenant_id": "tenant-a",
+                    "register": "learniq",
+                    "schema": "pok-signature"
+                },
+                "limit": 200
+            }
+        ],
+        "log": "[{\"level\":\"info\",\"message\":\"[PokActivationGuard] Praktijkovereenkomst {id} v{v} fully signed \\u2014 allowing activation.\",\"context\":{\"id\":\"pok-1\",\"v\":1}}]"
+    },
+    "a missing role": {
+        "allowed": false,
+        "message": "The practical training agreement needs the signatures of the student, the school and the workplace trainer.",
+        "queries": [
+            {
+                "filters": {
+                    "subjectId": "pok-1",
+                    "subjectVersion": 1,
+                    "tenant_id": "tenant-a",
+                    "register": "learniq",
+                    "schema": "pok-signature"
+                },
+                "limit": 200
+            }
+        ],
+        "log": "[{\"level\":\"info\",\"message\":\"[PokActivationGuard] Praktijkovereenkomst {id} v{v} missing signatures for role(s): {missing}; parent missing: {parent} ({reason}).\",\"context\":{\"id\":\"pok-1\",\"v\":1,\"missing\":\"praktijkopleider\",\"parent\":\"false\",\"reason\":\"adult\"}}]"
+    },
+    "a minor without a parent": {
+        "allowed": false,
+        "message": "The student was under 18 when they signed, so a parent or guardian listed on their learner profile also signs the practical training agreement.",
+        "queries": [
+            {
+                "filters": {
+                    "subjectId": "pok-1",
+                    "subjectVersion": 1,
+                    "tenant_id": "tenant-a",
+                    "register": "learniq",
+                    "schema": "pok-signature"
+                },
+                "limit": 200
+            }
+        ],
+        "log": "[{\"level\":\"info\",\"message\":\"[PokActivationGuard] Praktijkovereenkomst {id} v{v} missing signatures for role(s): {missing}; parent missing: {parent} ({reason}).\",\"context\":{\"id\":\"pok-1\",\"v\":1,\"missing\":\"\",\"parent\":\"true\",\"reason\":\"minor\"}}]"
+    },
+    "an unknown age": {
+        "allowed": false,
+        "message": "The student's date of birth is not recorded, so a parent or guardian listed on their learner profile also signs the practical training agreement. Record the date of birth if the student is 18 or older.",
+        "queries": [
+            {
+                "filters": {
+                    "subjectId": "pok-1",
+                    "subjectVersion": 1,
+                    "tenant_id": "tenant-a",
+                    "register": "learniq",
+                    "schema": "pok-signature"
+                },
+                "limit": 200
+            }
+        ],
+        "log": "[{\"level\":\"info\",\"message\":\"[PokActivationGuard] Praktijkovereenkomst {id} v{v} missing signatures for role(s): {missing}; parent missing: {parent} ({reason}).\",\"context\":{\"id\":\"pok-1\",\"v\":1,\"missing\":\"\",\"parent\":\"true\",\"reason\":\"unknown-age\"}}]"
+    },
+    "a missing role and parent": {
+        "allowed": false,
+        "message": "The practical training agreement needs the signatures of the student, the school and the workplace trainer. The student was under 18 when they signed, so a parent or guardian listed on their learner profile also signs the practical training agreement.",
+        "queries": [
+            {
+                "filters": {
+                    "subjectId": "pok-1",
+                    "subjectVersion": 3,
+                    "tenant_id": "tenant-a",
+                    "register": "learniq",
+                    "schema": "pok-signature"
+                },
+                "limit": 200
+            }
+        ],
+        "log": "[{\"level\":\"info\",\"message\":\"[PokActivationGuard] Praktijkovereenkomst {id} v{v} missing signatures for role(s): {missing}; parent missing: {parent} ({reason}).\",\"context\":{\"id\":\"pok-1\",\"v\":3,\"missing\":\"school, praktijkopleider\",\"parent\":\"true\",\"reason\":\"minor\"}}]"
+    },
+    "no tenant": {
+        "allowed": true,
+        "message": null,
+        "queries": [
+            {
+                "filters": {
+                    "subjectId": "pok-1",
+                    "subjectVersion": 1,
+                    "register": "learniq",
+                    "schema": "pok-signature"
+                },
+                "limit": 200
+            }
+        ],
+        "log": "[{\"level\":\"info\",\"message\":\"[PokActivationGuard] Praktijkovereenkomst {id} v{v} fully signed \\u2014 allowing activation.\",\"context\":{\"id\":\"pok-1\",\"v\":1}}]"
+    },
+    "a uuid only": {
+        "allowed": true,
+        "message": null,
+        "queries": [
+            {
+                "filters": {
+                    "subjectId": "pok-2",
+                    "subjectVersion": 1,
+                    "tenant_id": "tenant-a",
+                    "register": "learniq",
+                    "schema": "pok-signature"
+                },
+                "limit": 200
+            }
+        ],
+        "log": "[{\"level\":\"info\",\"message\":\"[PokActivationGuard] Praktijkovereenkomst {id} v{v} fully signed \\u2014 allowing activation.\",\"context\":{\"id\":\"pok-2\",\"v\":1}}]"
+    },
+    "no id": {
+        "allowed": false,
+        "message": "The practical training agreement needs the signatures of the student, the school and the workplace trainer.",
+        "queries": [],
+        "log": "[{\"level\":\"warning\",\"message\":\"[PokActivationGuard] Praktijkovereenkomst has no id; blocking activation.\",\"context\":[]}]"
+    }
+}

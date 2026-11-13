@@ -33,6 +33,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Accessibility;
 
 use OCA\Learniq\Service\CsvCellSanitizer;
+use OCA\Learniq\Support\RowId;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -416,16 +417,7 @@ class ConformanceEvidence {
 	 * @return string The uuid, or '' when there is none.
 	 */
 	private static function idOf(array $row): string {
-		$id = $row['id'] ?? $row['uuid'] ?? null;
-		if ($id === null && is_array($row['@self'] ?? null) === true) {
-			$id = $row['@self']['id'] ?? null;
-		}
-
-		if (is_string($id) === false) {
-			return '';
-		}
-
-		return $id;
+		return (new RowId())->idOf(row: $row);
 	}//end idOf()
 
 	/**

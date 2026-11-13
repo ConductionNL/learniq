@@ -168,6 +168,30 @@ function objectOf(response) {
 	return data.object ?? data
 }
 
+/**
+ * The distinct item ids an assessment references, in order.
+ *
+ * @param {object} assessment The assessment.
+ * @return {string[]}
+ */
+function referencedItemIds(assessment) {
+	return [
+		...new Set((assessment.itemRefs || []).map((ref) => ref.itemId)),
+	].filter(Boolean)
+}
+
+/**
+ * The submitted attempts, each with its id under `id`.
+ *
+ * @param {Array<object>} rows AssessmentResult rows.
+ * @return {Array<object>}
+ */
+function submittedResults(rows) {
+	return rows
+		.map((r) => ({ ...r, id: r.id || r.uuid }))
+		.filter((r) => r.lifecycle === 'submitted')
+}
+
 export default {
 	name: 'AssessmentScoringView',
 
@@ -242,55 +266,85 @@ export default {
 			const assessmentId = this.$route?.params?.assessmentId
 			this.loading = true
 			try {
-				const assessment = objectOf(
-					await axios.get(
-						generateUrl(
-							`${OBJECTS}/exam/${encodeURIComponent(assessmentId)}`,
-						),
-					),
-				)
-				const itemIds = [
-					...new Set((assessment.itemRefs || []).map((ref) => ref.itemId)),
-				].filter(Boolean)
-				const loaded = await Promise.all(
-					itemIds.map((id) =>
-						axios
-							.get(
-								generateUrl(
-									`${OBJECTS}/item/${encodeURIComponent(id)}`,
-								),
-							)
-							.then((response) => [id, objectOf(response)])
-							.catch(() => [id, null]),
-					),
-				)
-				const itemsById = Object.fromEntries(
-					loaded.filter(([, item]) => item !== null),
-				)
-				this.items = manualItems(assessment, itemsById)
-
-				const response = await axios.get(
-					generateUrl(`${OBJECTS}/assessment-result`),
-					{ params: { assessmentId, _limit: 500 } },
-				)
-				const rows = response.data?.results || response.data?.objects || []
-				this.results = rows
-					.map((r) => ({ ...r, id: r.id || r.uuid }))
-					.filter((r) => r.lifecycle === 'submitted')
-				this.drafts = Object.fromEntries(
-					this.results.map((result) => [
-						result.id,
-						this.draftsFor(result),
-					]),
-				)
+				const assessment = await this.readAssessment(assessmentId)
+				this.items = manualItems(assessment, await this.readItems(assessment))
+				this.results = submittedResults(await this.readResultRows(assessmentId))
+				this.seedDrafts()
 			} catch {
-				this.loadError = this.t(
-					'learniq',
-					'The attempts could not be loaded.',
-				)
+				this.loadFailed()
 			} finally {
 				this.loading = false
 			}
+		},
+
+		/**
+		 * Start each attempt's typed scores from its saved ones.
+		 *
+		 * @return {void}
+		 */
+		seedDrafts() {
+			this.drafts = Object.fromEntries(
+				this.results.map((result) => [result.id, this.draftsFor(result)]),
+			)
+		},
+
+		/**
+		 * Show that the attempts could not be loaded.
+		 *
+		 * @return {void}
+		 */
+		loadFailed() {
+			this.loadError = this.t(
+				'learniq',
+				'The attempts could not be loaded.',
+			)
+		},
+
+		/**
+		 * Read the assessment.
+		 *
+		 * @param {string} assessmentId The assessment.
+		 * @return {Promise<object>}
+		 */
+		async readAssessment(assessmentId) {
+			return objectOf(
+				await axios.get(
+					generateUrl(`${OBJECTS}/exam/${encodeURIComponent(assessmentId)}`),
+				),
+			)
+		},
+
+		/**
+		 * Read every item the assessment references, once each; an item that
+		 * cannot be read is left out.
+		 *
+		 * @param {object} assessment The assessment.
+		 * @return {Promise<{[key: string]: object}>} Items by id.
+		 */
+		async readItems(assessment) {
+			const loaded = await Promise.all(
+				referencedItemIds(assessment).map((id) =>
+					axios
+						.get(generateUrl(`${OBJECTS}/item/${encodeURIComponent(id)}`))
+						.then((response) => [id, objectOf(response)])
+						.catch(() => [id, null]),
+				),
+			)
+			return Object.fromEntries(loaded.filter(([, item]) => item !== null))
+		},
+
+		/**
+		 * Read the assessment's attempts.
+		 *
+		 * @param {string} assessmentId The assessment.
+		 * @return {Promise<Array<object>>}
+		 */
+		async readResultRows(assessmentId) {
+			const response = await axios.get(
+				generateUrl(`${OBJECTS}/assessment-result`),
+				{ params: { assessmentId, _limit: 500 } },
+			)
+			return response.data?.results || response.data?.objects || []
 		},
 
 		/**

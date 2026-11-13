@@ -22,6 +22,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Repair;
 
 use OCA\Learniq\Listener\WerkprocesAssessmentLearnerStamp;
+use OCA\Learniq\Repair\Support\RepairRowWalk;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -44,12 +45,13 @@ class BackfillWerkprocesAssessmentLearner implements IRepairStep {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const ASSESSMENT_SCHEMA = 'werkproces-assessment';
-	private const PAGE_SIZE = 200;
 
 	/**
-	 * Hard stop so a paging defect can never loop forever.
+	 * Pages through the schema this step back-fills.
+	 *
+	 * @var RepairRowWalk
 	 */
-	private const MAX_PAGES = 10000;
+	private readonly RepairRowWalk $rows;
 
 	/**
 	 * Constructor.
@@ -65,6 +67,7 @@ class BackfillWerkprocesAssessmentLearner implements IRepairStep {
 		private readonly WerkprocesAssessmentLearnerStamp $stamp,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->rows = new RepairRowWalk(objectService: $objectService, logger: $logger, label: 'BackfillWerkprocesAssessmentLearner');
 	}//end __construct()
 
 	/**
@@ -88,74 +91,19 @@ class BackfillWerkprocesAssessmentLearner implements IRepairStep {
 	 * @spec openspec/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
 	 */
 	public function run(IOutput $output): void {
-		$counts = ['scanned' => 0, 'stamped' => 0, 'noLearner' => 0, 'failed' => 0];
 		$cache = [];
-
-		try {
-			for ($page = 0; $page < self::MAX_PAGES; $page++) {
-				$rows = $this->page(offset: ($page * self::PAGE_SIZE));
-				foreach ($rows as $row) {
-					$counts['scanned']++;
-					$outcome = $this->stampRow(row: $row, cache: $cache);
-					if ($outcome !== null) {
-						$counts[$outcome]++;
-					}
-				}
-
-				if (count($rows) < self::PAGE_SIZE) {
-					break;
-				}
+		$counts = $this->rows->walk(
+			schema: self::ASSESSMENT_SCHEMA,
+			visit: function (array $row) use (&$cache): ?string {
+				return $this->stampRow(row: $row, cache: $cache);
 			}
-		} catch (Throwable $exception) {
-			// OpenRegister absent or the register not imported yet: nothing
-			// to back-fill on this run, the next upgrade retries.
-			$this->logger->warning(
-				'[BackfillWerkprocesAssessmentLearner] Stopped early: {msg}',
-				['msg' => $exception->getMessage()]
-			);
-		}//end try
+		);
 
 		$output->info(
-			'BackfillWerkprocesAssessmentLearner: ' . $counts['stamped'] . ' stamped, ' . $counts['noLearner']
-			. ' whose placement names no learner, ' . $counts['failed'] . ' failed, of ' . $counts['scanned'] . ' scanned.'
+			'BackfillWerkprocesAssessmentLearner: ' . $counts->countOf(key: 'stamped') . ' stamped, ' . $counts->countOf(key: 'noLearner')
+			. ' whose placement names no learner, ' . $counts->countOf(key: 'failed') . ' failed, of ' . $counts->countOf(key: 'scanned') . ' scanned.'
 		);
 	}//end run()
-
-	/**
-	 * One page of WerkprocesAssessment rows as arrays.
-	 *
-	 * @param int $offset Row offset.
-	 *
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function page(int $offset): array {
-		$objects = $this->objectService->findAll(
-			config: [
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::ASSESSMENT_SCHEMA,
-				],
-				'limit' => self::PAGE_SIZE,
-				'offset' => $offset,
-			],
-			_rbac: false,
-			_multitenancy: false
-		);
-
-		$rows = [];
-		foreach ($objects as $object) {
-			if (is_array($object) === true) {
-				$rows[] = $object;
-				continue;
-			}
-
-			if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-				$rows[] = (array)$object->jsonSerialize();
-			}
-		}
-
-		return $rows;
-	}//end page()
 
 	/**
 	 * Stamp one row when it needs it.

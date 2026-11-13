@@ -106,32 +106,13 @@ export default {
 	 */
 	async mounted() {
 		try {
-			const resp = await fetch(
-				generateUrl(
-					'/apps/learniq/api/courses/'
-						+ encodeURIComponent(this.courseId)
-						+ '/preview',
-				),
-				{ headers: { Accept: 'application/json' } },
-			)
-			if (resp.status === 403) {
-				this.error = this.t(
-					'learniq',
-					'Only course authors can preview a course.',
-				)
+			const resp = await fetch(this.previewUrl(), { headers: { Accept: 'application/json' } })
+			const refusal = this.previewRefusal(resp)
+			if (refusal) {
+				this.error = refusal
 				return
 			}
-			if (!resp.ok) {
-				this.error = this.t(
-					'learniq',
-					'Failed to load course (HTTP {status})',
-					{ status: resp.status },
-				)
-				return
-			}
-			const body = await resp.json()
-			this.courseName = body.name ?? ''
-			this.lessons = Array.isArray(body.lessons) ? body.lessons : []
+			this.showPreview(await resp.json())
 		} catch (e) {
 			this.error = e?.message ?? String(e)
 		} finally {
@@ -140,6 +121,60 @@ export default {
 	},
 
 	methods: {
+		/**
+		 * The preview endpoint of this course.
+		 *
+		 * @return {string}
+		 */
+		previewUrl() {
+			return generateUrl(
+				'/apps/learniq/api/courses/'
+					+ encodeURIComponent(this.courseId)
+					+ '/preview',
+			)
+		},
+
+		/**
+		 * What to say when the preview is refused or fails, '' when it loaded.
+		 *
+		 * @param {Response} resp The preview response.
+		 * @return {string}
+		 */
+		previewRefusal(resp) {
+			if (resp.status === 403) {
+				return this.t(
+					'learniq',
+					'Only course authors can preview a course.',
+				)
+			}
+			return resp.ok ? '' : this.loadFailureText(resp.status)
+		},
+
+		/**
+		 * The message for a preview the server could not give.
+		 *
+		 * @param {number} status The HTTP status.
+		 * @return {string}
+		 */
+		loadFailureText(status) {
+			return this.t(
+				'learniq',
+				'Failed to load course (HTTP {status})',
+				{ status },
+			)
+		},
+
+		/**
+		 * Show the course name and its lessons.
+		 *
+		 * @param {object} body The preview answer.
+		 * @return {void}
+		 */
+		showPreview(body) {
+			this.courseName = body.name ?? ''
+			this.lessons = Array.isArray(body.lessons) ? body.lessons : []
+		},
+
 		/**
 		 * Open a lesson in the player in preview mode.
 		 *

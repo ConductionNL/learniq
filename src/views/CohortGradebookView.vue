@@ -212,6 +212,7 @@ import {
 	publishReport,
 	scopeEntries,
 } from '../utils/gradebookPublish.js'
+import { fetchNamesByUser } from '../utils/learnerName.js'
 
 export default {
 	name: 'CohortGradebookView',
@@ -358,21 +359,10 @@ export default {
 		 */
 		async loadNames() {
 			try {
-				const profiles = listRows(
-					(
-						await axios.get(generateUrl(objectsUrl('learner-profile')), {
-							params: { _limit: 1000 },
-						})
-					).data,
-				)
-				const names = {}
-				for (const p of profiles) {
-					const name = [p.givenName, p.familyName]
-						.filter(Boolean)
-						.join(' ')
-					if (p.ncUserId && name) names[p.ncUserId] = name
-				}
-				this.names = names
+				this.names = await fetchNamesByUser({
+					get: (url, config) => axios.get(url, config),
+					urlFor: generateUrl,
+				})
 			} catch {
 				this.names = {}
 			}

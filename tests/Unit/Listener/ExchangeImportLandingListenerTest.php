@@ -235,6 +235,54 @@ class ExchangeImportLandingListenerTest extends TestCase {
 	}//end testAnswersOnlyItsOwnJobs()
 
 	/**
+	 * The exact rows each target writes: an imported LVS result merged over
+	 * the stored one, an archived one frozen; a dossier keyed without an ECK
+	 * id and keeping its own receiving time; a complete profile untouched.
+	 *
+	 * @return void
+	 */
+	public function testTheRowsEachTargetWrites(): void {
+		$this->db['learner-profile'] = [
+			['id' => 'p1', 'ncUserId' => 'pupil1', 'givenName' => 'Anna', 'familyName' => 'Jansen'],
+			['id' => 'p2', 'ncUserId' => 'pupil2'],
+		];
+		$this->db['lvs-result'] = [
+			['id' => 'lvs-a', 'provider' => 'cito', 'instrument' => 'Rekenen', 'moment' => 'M6', 'learnerId' => 'pupil1', 'note' => 'kept', 'lifecycle' => 'imported'],
+			['id' => 'lvs-b', 'provider' => 'cito', 'instrument' => 'Taal', 'moment' => 'M6', 'learnerId' => 'pupil1', 'lifecycle' => 'archived'],
+		];
+
+		$this->receive(
+			'lvs-results',
+			[
+				['recordId' => 'r1', 'data' => ['provider' => 'cito', 'instrument' => 'Rekenen', 'moment' => 'M6', 'learnerId' => 'pupil1', 'vaardigheidsscore' => 190, 'extra' => 'dropped', 'tenant_id' => 't9']],
+				['recordId' => 'r2', 'data' => ['provider' => 'cito', 'instrument' => 'Taal', 'moment' => 'M6', 'learnerId' => 'pupil1', 'vaardigheidsscore' => 1]],
+				['recordId' => '', 'data' => ['provider' => 'cito']],
+				['recordId' => 'r4', 'data' => 'not a record'],
+			]
+		);
+		self::assertCount(1, $this->writes);
+		self::assertSame('lvs-a', $this->writes[0]['row']['id']);
+		self::assertSame('kept', $this->writes[0]['row']['note']);
+		self::assertSame(190, $this->writes[0]['row']['vaardigheidsscore']);
+		self::assertArrayNotHasKey('extra', $this->writes[0]['row']);
+		self::assertSame(['job-1', 't9', 'imported'], [$this->writes[0]['row']['dataExchangeJobId'], $this->writes[0]['row']['tenant_id'], $this->writes[0]['row']['lifecycle']]);
+
+		$this->writes = [];
+		$this->receive('oso', [['recordId' => 'd1', 'data' => ['sourceSchoolBrin' => '12AB', 'receivedAt' => '2026-09-01T08:00:00+00:00']]]);
+		$this->receive('oso', [['recordId' => 'd1', 'data' => ['sourceSchoolBrin' => '12AB', 'receivedAt' => '2026-09-01T08:00:00+00:00', 'learnerEckId' => '']]]);
+		$this->receive('oso', [['recordId' => 'd1', 'data' => ['sourceSchoolBrin' => '12AB', 'receivedAt' => '2026-09-01T08:00:00+00:00', 'learnerEckId' => 'eck-7']]]);
+		self::assertCount(2, $this->writes);
+		self::assertSame('eck-7', $this->writes[1]['row']['learnerEckId']);
+		self::assertSame('2026-09-01T08:00:00+00:00', $this->writes[0]['row']['receivedAt']);
+		self::assertSame(['job-1', 't1', 'received'], [$this->writes[0]['row']['dataExchangeJobId'], $this->writes[0]['row']['tenant_id'], $this->writes[0]['row']['status']]);
+
+		$this->writes = [];
+		$event = $this->receive('migration-import', [['recordId' => 'm1', 'data' => ['ncUserId' => 'pupil1', 'givenName' => 'Other']], ['recordId' => 'm2', 'data' => ['ncUserId' => 'pupil2', 'givenName' => 'Bo']]]);
+		self::assertSame(2, $event->getAcceptedCount());
+		self::assertSame([['id' => 'p2', 'ncUserId' => 'pupil2', 'givenName' => 'Bo']], array_column($this->writes, 'row'));
+	}//end testTheRowsEachTargetWrites()
+
+	/**
 	 * The listener is registered for integriq's event.
 	 *
 	 * @return void

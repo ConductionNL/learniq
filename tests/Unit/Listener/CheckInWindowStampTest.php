@@ -191,4 +191,46 @@ class CheckInWindowStampTest extends TestCase {
 		self::assertContains(ObjectCreatingEvent::class . ' => ' . CheckInWindowStamp::class, $registered);
 		self::assertContains(ObjectUpdatingEvent::class . ' => ' . CheckInWindowStamp::class, $registered);
 	}//end testTheStampIsRegisteredForCreateAndUpdate()
+	/**
+	 * Times that are not times fall back to the server's, a close before the
+	 * lesson's end stays, a late margin that is not a whole non-negative
+	 * number is the default, and a session that cannot be read caps nothing.
+	 *
+	 * @return void
+	 */
+	public function testEveryFallbackOfANewWindow(): void {
+		$event = new ObjectCreatingEvent(OrEntityFactory::make(['sessionId' => self::SESSION, 'opensAt' => 'soon', 'closesAt' => '', 'lateAfterMinutes' => -1], 'check-in-window'));
+		$this->makeStamp(userId: null)->handle($event);
+		self::assertSame(
+			['openedBy' => null, 'tenant_id' => self::TENANT, 'opensAt' => '2026-10-21T09:00:00+00:00', 'closesAt' => '2026-10-21T09:15:00+00:00', 'lateAfterMinutes' => 5],
+			$event->getModifiedData()
+		);
+
+		$event = new ObjectCreatingEvent(OrEntityFactory::make(['sessionId' => self::SESSION, 'closesAt' => '2026-10-21T09:05:00+00:00', 'lateAfterMinutes' => '3'], 'check-in-window'));
+		$event->setModifiedData(['lateAfterMinutes' => 0, 'note' => 'kept']);
+		$this->makeStamp(userId: 'teacher-1')->handle($event);
+		self::assertSame(
+			['lateAfterMinutes' => 0, 'note' => 'kept', 'openedBy' => 'teacher-1', 'tenant_id' => self::TENANT, 'opensAt' => '2026-10-21T09:00:00+00:00', 'closesAt' => '2026-10-21T09:05:00+00:00'],
+			$event->getModifiedData()
+		);
+
+		$event = new ObjectCreatingEvent(OrEntityFactory::make(['sessionId' => '', 'closesAt' => '2026-10-21T23:00:00+00:00'], 'check-in-window'));
+		$this->makeStamp(userId: 'teacher-1')->handle($event);
+		self::assertSame([null, '2026-10-21T23:00:00+00:00'], [$event->getModifiedData()['tenant_id'], $event->getModifiedData()['closesAt']]);
+	}//end testEveryFallbackOfANewWindow()
+
+	/**
+	 * A stopped write and an event that is not a write are left alone.
+	 *
+	 * @return void
+	 */
+	public function testAStoppedOrOtherEventIsLeftAlone(): void {
+		$event = new ObjectCreatingEvent(OrEntityFactory::make(['sessionId' => self::SESSION], 'check-in-window'));
+		$event->stopPropagation();
+		$this->makeStamp(userId: 'teacher-1')->handle($event);
+		self::assertSame([], $event->getModifiedData());
+
+		$this->makeStamp(userId: 'teacher-1')->handle(new \OCP\EventDispatcher\Event());
+		self::assertTrue(true);
+	}//end testAStoppedOrOtherEventIsLeftAlone()
 }//end class

@@ -231,7 +231,9 @@ import {
 import { attemptCreateError } from '../utils/attemptRefusal.js'
 import { transitionUrl } from '../utils/manualScoring.js'
 import { sendJson, sendJsonOrFail } from '../utils/ocsJson.js'
+import { lookupObject } from '../utils/portfolioEvidence.js'
 import { orderChoices, parseSimpleChoices } from '../utils/qtiChoices.js'
+import { readObject } from '../utils/registerRequests.js'
 
 export default {
 	name: 'TakeAssessmentView',
@@ -658,24 +660,14 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
 		async loadAssessment(id) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/exam/${id}`,
+			// `notFound` marks the single-object lookup — see the same guard
+			// in PortfolioBuilder.vue. init() also awaits list-shaped loads,
+			// and a 404 from one of those means a schema did not resolve
+			// rather than that this assessment is gone.
+			this.assessment = await lookupObject(
+				generateUrl(`/apps/openregister/api/objects/learniq/exam/${id}`),
+				'Assessment',
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				// `notFound` marks the single-object lookup — see the same guard
-				// in PortfolioBuilder.vue. init() also awaits list-shaped loads,
-				// and a 404 from one of those means a schema did not resolve
-				// rather than that this assessment is gone.
-				const err = new Error(`Assessment fetch failed: ${resp.status}`)
-				err.status = resp.status
-				err.notFound = resp.status === 404
-				throw err
-			}
-			const json = await resp.json()
-			this.assessment = json.object ?? json ?? {}
 		},
 
 		/**
@@ -700,18 +692,10 @@ export default {
 			// Fetch each item individually (OR REST supports single object fetch).
 			const fetched = await Promise.all(
 				itemIds.map(async (itemId) => {
-					const url = generateUrl(
-						`/apps/openregister/api/objects/learniq/Item/${itemId}`,
+					const read = await readObject(
+						generateUrl(`/apps/openregister/api/objects/learniq/Item/${itemId}`),
 					)
-					const resp = await fetch(url, {
-						headers: {
-							'OCS-APIREQUEST': 'true',
-							Accept: 'application/json',
-						},
-					})
-					if (!resp.ok) return null
-					const json = await resp.json()
-					return json.object ?? json ?? null
+					return read.ok ? (read.object ?? null) : null
 				}),
 			)
 

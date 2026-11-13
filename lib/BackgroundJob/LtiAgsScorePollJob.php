@@ -67,6 +67,7 @@ use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\LtiAgsPullClient;
+use OCA\Learniq\Support\ObjectRow;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
 use OCP\BackgroundJob\TimedJob;
@@ -112,6 +113,13 @@ class LtiAgsScorePollJob extends TimedJob {
 	private const PULL_CURSOR_KEY = 'lti_ags_pull_cursor';
 
 	/**
+	 * Turns one OpenRegister result into a plain array.
+	 *
+	 * @var ObjectRow
+	 */
+	private readonly ObjectRow $objectRow;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ITimeFactory $time Time factory for job scheduling.
@@ -132,6 +140,7 @@ class LtiAgsScorePollJob extends TimedJob {
 		$this->setInterval(seconds: self::DEFAULT_INTERVAL);
 		$this->setTimeSensitivity(sensitivity: IJob::TIME_INSENSITIVE);
 		$this->setAllowParallelRuns(allow: false);
+		$this->objectRow = new ObjectRow();
 
 	}//end __construct()
 
@@ -557,14 +566,6 @@ class LtiAgsScorePollJob extends TimedJob {
 	 * @return array<string,mixed> The serialized object data.
 	 */
 	private function toArray(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-			return (array)$row->jsonSerialize();
-		}
-
-		return [];
+		return $this->objectRow->asArray(object: $row);
 	}//end toArray()
 }//end class

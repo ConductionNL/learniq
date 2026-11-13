@@ -135,3 +135,58 @@ export async function readRequiredObject(url, failure) {
 	}
 	return read.object ?? {}
 }
+
+/**
+ * Read the first row of a list. A refusal reads nothing; an answer without
+ * rows reads null.
+ *
+ * @param {string} url The list's URL.
+ * @return {Promise<{ok: boolean, row: (object|null|undefined)}>} What came back.
+ * @spec openspec/specs/assignments/spec.md#scenario-marksubmissionview-shows-peer-and-self-assessment-as-read-only-context
+ */
+export async function readFirstRow(url) {
+	const resp = await fetch(url, { headers: readHeaders() })
+	if (!resp.ok) {
+		return { ok: false, row: undefined }
+	}
+	const json = await resp.json()
+	const results =
+		json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
+	return { ok: true, row: results.length > 0 ? results[0] : null }
+}
+
+/**
+ * Whether every criterion of a rubric has a selected level. A missing rubric,
+ * or one without criteria, is complete. A client-side hint only: the server
+ * enforces this via RubricScoresCompletionGuard regardless.
+ *
+ * @param {object|null} rubric The rubric.
+ * @param {Record<string, object|null>} selectedLevels Criterion id to level.
+ * @return {boolean}
+ * @spec openspec/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
+ */
+export function rubricComplete(rubric, selectedLevels) {
+	if (!rubric || !rubric.criteria || rubric.criteria.length === 0) {
+		return true
+	}
+	return rubric.criteria.every(
+		(c) => (selectedLevels[c.criterionId] ?? null) !== null,
+	)
+}
+
+/**
+ * Put saved rubric scores back into the selected levels, in place.
+ *
+ * @param {Record<string, {levelId: string, points: number}>} selectedLevels Criterion id to level.
+ * @param {Array<{criterionId: string, levelId: string, points: number}>} scores The saved scores.
+ * @return {void}
+ * @spec openspec/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
+ */
+export function restoreLevels(selectedLevels, scores) {
+	for (const score of scores) {
+		selectedLevels[score.criterionId] = {
+			levelId: score.levelId,
+			points: score.points,
+		}
+	}
+}

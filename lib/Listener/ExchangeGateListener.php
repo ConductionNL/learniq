@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\ExchangeGateService;
+use OCA\Learniq\Support\EventGetter;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
@@ -141,10 +142,6 @@ class ExchangeGateListener implements IEventListener {
 	 * @return mixed The value, or null when the getter does not exist.
 	 */
 	private function read(Event $event, string $getter): mixed {
-		if (method_exists($event, $getter) === false) {
-			return null;
-		}
-
-		return $event->$getter();
+		return (new EventGetter())->value(event: $event, getter: $getter);
 	}//end read()
 }//end class

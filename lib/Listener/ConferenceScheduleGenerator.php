@@ -65,6 +65,7 @@ use OCA\Learniq\Service\ConferenceSignupRequest;
 use OCA\Learniq\Service\ConferenceSlotPass;
 use OCA\Learniq\Service\ConferenceSlotSlicer;
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Support\EntityRow;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -614,10 +615,6 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 * @return array<string,mixed>
 	 */
 	private function normalise(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		return $row->jsonSerialize();
+		return (new EntityRow())->asArray(row: $row);
 	}//end normalise()
 }//end class
