@@ -32988,7 +32988,7 @@
             "BpvHourWeek": {
                 "slug": "bpv-hour-week",
                 "icon": "ClockOutline",
-                "version": "0.2.1",
+                "version": "0.3.0",
                 "title": "BpvHourWeek",
                 "description": "One week of realised BPV hours for one placement. The hours the student submitted and the hours the trainer approved are kept as two values, so a correction is readable afterwards instead of overwriting what the student said.",
                 "type": "object",
@@ -33001,8 +33001,7 @@
                 "required": [
                     "bpvPlacementId",
                     "learnerRef",
-                    "isoWeek",
-                    "hoursSubmitted"
+                    "isoWeek"
                 ],
                 "properties": {
                     "bpvPlacementId": {
@@ -33028,9 +33027,85 @@
                     "hoursSubmitted": {
                         "type": "number",
                         "title": "Hours submitted",
-                        "description": "The hours the student entered for this week.",
+                        "description": "The hours the student entered for this week. On a week with day lines the server writes it as the sum of their hours; a value sent for it is replaced.",
                         "minimum": 0,
                         "maximum": 80
+                    },
+                    "days": {
+                        "type": "array",
+                        "title": "Days",
+                        "default": [],
+                        "description": "One line per day worked in this week. The server works out each day's hours as the time between start and end less the break, keeps the lines in date order and refuses a date outside the week or a second line for the same date.",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "date",
+                                "startTime",
+                                "endTime"
+                            ],
+                            "properties": {
+                                "date": {
+                                    "type": "string",
+                                    "format": "date",
+                                    "title": "Date",
+                                    "description": "The day, inside the week."
+                                },
+                                "startTime": {
+                                    "type": "string",
+                                    "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+                                    "title": "Started at",
+                                    "description": "When the student started, as HH:MM."
+                                },
+                                "endTime": {
+                                    "type": "string",
+                                    "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+                                    "title": "Stopped at",
+                                    "description": "When the student stopped, as HH:MM."
+                                },
+                                "breakMinutes": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "default": 0,
+                                    "title": "Break",
+                                    "description": "The break in minutes."
+                                },
+                                "hours": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 24,
+                                    "title": "Hours",
+                                    "description": "The hours of the day: the time between start and end less the break. The server works it out; a value sent for it is replaced."
+                                },
+                                "description": {
+                                    "type": "string",
+                                    "maxLength": 2000,
+                                    "title": "What was done",
+                                    "description": "What the student did that day, in her own words."
+                                },
+                                "werkprocesCodes": {
+                                    "type": "array",
+                                    "default": [],
+                                    "title": "Work processes",
+                                    "description": "The work process codes the day belongs to; more than one is allowed.",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "photoRef": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "title": "Photo",
+                                    "description": "A photo the student added to the day, as a file reference."
+                                },
+                                "returnedQuestion": {
+                                    "type": "string",
+                                    "maxLength": 1000,
+                                    "nullable": true,
+                                    "title": "Question",
+                                    "description": "The trainer's question when she sent the week back about this day. The server writes it from the trainer's return."
+                                }
+                            }
+                        }
                     },
                     "submittedBy": {
                         "type": "string",
@@ -33090,7 +33165,7 @@
                     "lifecycle": {
                         "type": "string",
                         "title": "Lifecycle",
-                        "description": "`submitted` while it waits for the trainer, `approved` when she approved what the student entered, `corrected` when she approved another number, `rejected` when she approved none.",
+                        "description": "`submitted` while it waits for the trainer, `approved` when she approved what the student entered, `corrected` when she approved another number, `rejected` when she sent it back: approving none, or naming the day she has a question about.",
                         "enum": [
                             "submitted",
                             "approved",
