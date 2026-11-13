@@ -38,6 +38,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCA\Learniq\Kernel\Contracts\GuardianPortalInvitationInterface;
 use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -50,7 +51,7 @@ use Throwable;
  *
  * @spec openspec/changes/portal-guardian-invitation/specs/portal-identity/spec.md
  */
-class GuardianPortalInvitation {
+class GuardianPortalInvitation implements GuardianPortalInvitationInterface {
 
 	/**
 	 * Portaliq's provision event (portal-identity-space REQ-PIS-001/003).
@@ -67,37 +68,6 @@ class GuardianPortalInvitation {
 	 * link (invitation-secret-joins-the-signed-in-account REQ-PIS-007).
 	 */
 	public const INVITATION_EVENT = 'OCA\\Portaliq\\Event\\PortalAccountInvitationRequestedEvent';
-
-	/**
-	 * The invitation mail left.
-	 */
-	public const MAIL_SENT = 'sent';
-
-	/**
-	 * Portaliq made the invitation but its mail did not leave.
-	 */
-	public const MAIL_NOT_SENT = 'not-sent';
-
-	/**
-	 * This portaliq sends no invitation mail (an older version), or it
-	 * refused this account.
-	 */
-	public const MAIL_UNAVAILABLE = 'unavailable';
-
-	/**
-	 * Portaliq made a code for a paper letter; the answer carries it.
-	 */
-	public const LETTER_CODE = 'code';
-
-	/**
-	 * The invitation goes out by mail, inside a link.
-	 */
-	public const CHANNEL_MAIL = 'mail';
-
-	/**
-	 * The invitation goes out on paper, as a short code the school prints.
-	 */
-	public const CHANNEL_LETTER = 'letter';
 
 	/**
 	 * The claim the parent contribution scopes by.

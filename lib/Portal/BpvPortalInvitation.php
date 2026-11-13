@@ -35,6 +35,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCA\Learniq\Kernel\Contracts\BpvPortalInvitationInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -46,7 +47,7 @@ use Throwable;
  *
  * @spec openspec/changes/invite-a-trainer-and-an-assessor/specs/portal-identity/spec.md#requirement-a-school-invites-a-trainer-or-an-assessor-it-already-created
  */
-class BpvPortalInvitation {
+class BpvPortalInvitation implements BpvPortalInvitationInterface {
 
 	/**
 	 * Portaliq's provision event (portal-identity-space REQ-PIS-001/003).

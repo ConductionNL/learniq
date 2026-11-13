@@ -24,7 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Command;
 
-use OCA\Learniq\Portal\GuardianPortalInvitation;
+use OCA\Learniq\Kernel\Contracts\GuardianPortalInvitationInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -42,21 +42,22 @@ class PortalInviteGuardianCommand extends Command {
 	 * What the command says about the invitation mail.
 	 */
 	private const MAIL_LINES = [
-		GuardianPortalInvitation::MAIL_SENT => 'The portal mailed the guardian a link. It works once, for seven days.',
-		GuardianPortalInvitation::MAIL_NOT_SENT => '<comment>The invitation mail did not leave. Check the mail settings and invite again.</comment>',
-		GuardianPortalInvitation::MAIL_UNAVAILABLE => '<comment>No invitation was sent: this portal does not make one.'
+		GuardianPortalInvitationInterface::MAIL_SENT => 'The portal mailed the guardian a link. It works once, for seven days.',
+		GuardianPortalInvitationInterface::MAIL_NOT_SENT =>
+			'<comment>The invitation mail did not leave. Check the mail settings and invite again.</comment>',
+		GuardianPortalInvitationInterface::MAIL_UNAVAILABLE => '<comment>No invitation was sent: this portal does not make one.'
 			. ' The guardian is still linked on the verified address.</comment>',
 	];
 
 	/**
 	 * Constructor.
 	 *
-	 * @param GuardianPortalInvitation $invitations Provisions and links the account.
+	 * @param GuardianPortalInvitationInterface $invitations Provisions and links the account.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly GuardianPortalInvitation $invitations,
+		private readonly GuardianPortalInvitationInterface $invitations,
 	) {
 		parent::__construct();
 	}//end __construct()
@@ -105,13 +106,13 @@ class PortalInviteGuardianCommand extends Command {
 		}
 
 		$output->writeln('Invited. Portal account: ' . ($result['subjectRef'] ?? ''));
-		if (($result['invitation'] ?? '') === GuardianPortalInvitation::LETTER_CODE) {
+		if (($result['invitation'] ?? '') === GuardianPortalInvitationInterface::LETTER_CODE) {
 			$output->writeln('Code for the letter: ' . ($result['code'] ?? ''));
 			$output->writeln('It works once, until ' . ($result['expiresAt'] ?? '') . '. The guardian signs in and types it under "My account".');
 			return self::SUCCESS;
 		}
 
-		$output->writeln(self::MAIL_LINES[($result['invitation'] ?? '')] ?? self::MAIL_LINES[GuardianPortalInvitation::MAIL_UNAVAILABLE]);
+		$output->writeln(self::MAIL_LINES[($result['invitation'] ?? '')] ?? self::MAIL_LINES[GuardianPortalInvitationInterface::MAIL_UNAVAILABLE]);
 		return self::SUCCESS;
 	}//end execute()
 
@@ -124,9 +125,9 @@ class PortalInviteGuardianCommand extends Command {
 	 */
 	private function channel(InputInterface $input): string {
 		if ($input->getOption('letter') === true) {
-			return GuardianPortalInvitation::CHANNEL_LETTER;
+			return GuardianPortalInvitationInterface::CHANNEL_LETTER;
 		}
 
-		return GuardianPortalInvitation::CHANNEL_MAIL;
+		return GuardianPortalInvitationInterface::CHANNEL_MAIL;
 	}//end channel()
 }//end class

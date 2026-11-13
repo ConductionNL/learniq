@@ -36,10 +36,10 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PortalAssertionVerifierInterface;
 use OCA\Learniq\Kernel\Contracts\PortalLearnerResolverInterface;
 use OCA\Learniq\Kernel\Contracts\WorkGroupMembershipServiceInterface;
 use OCA\Learniq\Kernel\Contracts\WorkGroupMessagesInterface;
-use OCA\Learniq\Portal\PortalAssertionVerifier;
 use OCA\Learniq\Portal\PortalForwardFailure;
 use OCA\Learniq\Portal\PortalForwardGate;
 use OCA\Learniq\Portal\PortalLearnerForward;
@@ -73,7 +73,7 @@ class PortalWorkGroupController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest                $request  The request.
-	 * @param PortalAssertionVerifier $verifier Verifies X-Portal-Subject.
+	 * @param PortalAssertionVerifierInterface $verifier Verifies X-Portal-Subject.
 	 * @param PortalLearnerResolverInterface   $learners learnerRef to the pupil.
 	 * @param WorkGroupMembershipServiceInterface $memberships The overview and the join, move and leave rules.
 	 * @param WorkGroupMessagesInterface          $messages    Plain refusal reasons.
@@ -83,7 +83,7 @@ class PortalWorkGroupController extends Controller {
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly PortalAssertionVerifier $verifier,
+		private readonly PortalAssertionVerifierInterface $verifier,
 		private readonly PortalLearnerResolverInterface $learners,
 		private readonly WorkGroupMembershipServiceInterface $memberships,
 		private readonly WorkGroupMessagesInterface $messages,

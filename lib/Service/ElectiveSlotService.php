@@ -32,7 +32,7 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeZone;
 use OCA\Learniq\Kernel\Contracts\ElectiveSlotServiceInterface;
-use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
+use OCA\Learniq\Kernel\Contracts\TimetableSourceResolverInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use RuntimeException;
 use Throwable;
@@ -52,12 +52,12 @@ class ElectiveSlotService implements ElectiveSlotServiceInterface {
 	 * Constructor.
 	 *
 	 * @param ObjectService            $objectService OR object service; a course is read with RBAC on first.
-	 * @param TimetableSourceResolver  $sources       Where sessions are read from.
+	 * @param TimetableSourceResolverInterface  $sources       Where sessions are read from.
 	 * @param PersonalTimetableService $timetable     The caller's own lessons.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly TimetableSourceResolver $sources,
+		private readonly TimetableSourceResolverInterface $sources,
 		private readonly PersonalTimetableService $timetable,
 	) {
 	}//end __construct()
