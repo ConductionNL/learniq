@@ -23,7 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Listener\SupportRequestSubmitHandler;
 use OCP\IAppConfig;
 
@@ -75,7 +75,7 @@ class TimetableExchangeSettings {
 	 * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
 	 */
 	public function groupMaps(): array {
-		$decoded = json_decode($this->appConfig->getValueString(Application::APP_ID, self::GROUP_MAPS_KEY, ''), true);
+		$decoded = json_decode($this->appConfig->getValueString(AppIdentity::APP_ID, self::GROUP_MAPS_KEY, ''), true);
 		$maps    = [];
 		foreach (self::ROSTER_SOURCES as $source) {
 			$maps[$source] = $this->cleanMap(value: ($decoded[$source] ?? null));
@@ -105,7 +105,7 @@ class TimetableExchangeSettings {
 	 * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
 	 */
 	public function swvReceiverId(): string {
-		return $this->appConfig->getValueString(Application::APP_ID, SupportRequestSubmitHandler::RECEIVER_CONFIG_KEY, '');
+		return $this->appConfig->getValueString(AppIdentity::APP_ID, SupportRequestSubmitHandler::RECEIVER_CONFIG_KEY, '');
 	}//end swvReceiverId()
 
 	/**
@@ -155,8 +155,8 @@ class TimetableExchangeSettings {
 			}
 		}
 
-		$this->appConfig->setValueString(Application::APP_ID, self::GROUP_MAPS_KEY, (string)json_encode($clean));
-		$this->appConfig->setValueString(Application::APP_ID, SupportRequestSubmitHandler::RECEIVER_CONFIG_KEY, $receiverId);
+		$this->appConfig->setValueString(AppIdentity::APP_ID, self::GROUP_MAPS_KEY, (string)json_encode($clean));
+		$this->appConfig->setValueString(AppIdentity::APP_ID, SupportRequestSubmitHandler::RECEIVER_CONFIG_KEY, $receiverId);
 	}//end save()
 
 	/**

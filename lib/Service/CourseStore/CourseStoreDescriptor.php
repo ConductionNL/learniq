@@ -43,7 +43,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\CourseStore;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\OpenRegister\AppHost\Service\StoreDescriptor;
 
@@ -126,7 +126,7 @@ class CourseStoreDescriptor {
 	 */
 	public function descriptor(): StoreDescriptor {
 		$arguments = [
-			'appId'           => Application::APP_ID,
+			'appId'           => AppIdentity::APP_ID,
 			'schema'          => self::SCHEMA,
 			'defaultRegister' => self::DEFAULT_REGISTER,
 			'cardFields'      => self::CARD_FIELDS,

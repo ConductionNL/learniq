@@ -43,8 +43,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use InvalidArgumentException;
-use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Exception\XapiRequestException;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\Cmi5LaunchTokenService;
 use OCA\Learniq\Service\XapiCallerResolver;
 use OCA\Learniq\Service\XapiStatementIngest;
@@ -86,7 +86,7 @@ class LrsController extends Controller {
 		private readonly XapiStatementIngest $ingest,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

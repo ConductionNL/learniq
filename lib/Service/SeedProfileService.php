@@ -40,7 +40,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
@@ -247,7 +247,7 @@ class SeedProfileService {
 		$result = $importer->importFromApp(
 			appId: $this->importAppId(profileId: $profileId),
 			data: $this->preparation->sharedCodes->withoutCodesHeldElsewhere(data: $data),
-			version: $this->sources->appManager->getAppVersion(Application::APP_ID),
+			version: $this->sources->appManager->getAppVersion(AppIdentity::APP_ID),
 			force: true
 		);
 
@@ -264,7 +264,7 @@ class SeedProfileService {
 
 		$this->logger->info(
 			'[SeedProfileService] imported example set "' . $profileId . '": ' . $objects . ' object(s).',
-			['app' => Application::APP_ID]
+			['app' => AppIdentity::APP_ID]
 		);
 
 		return [
@@ -290,7 +290,7 @@ class SeedProfileService {
 			return DemoDataService::CONFIG_APP_ID;
 		}
 
-		return Application::APP_ID . '.profile.' . $profileId;
+		return AppIdentity::APP_ID . '.profile.' . $profileId;
 	}//end importAppId()
 
 	/**
@@ -341,7 +341,7 @@ class SeedProfileService {
 		$this->logger->info(
 			'[SeedProfileService] removed example set "' . $profileId . '": ' . $answer['softDeleted'] . ' object(s) soft-deleted, '
 			. $answer['errors'] . ' error(s).',
-			['app' => Application::APP_ID]
+			['app' => AppIdentity::APP_ID]
 		);
 
 		return $answer;
@@ -444,7 +444,7 @@ class SeedProfileService {
 	 * @return array<int, string> The paths.
 	 */
 	private function descriptorFiles(): array {
-		$dir = ($this->sources->appManager->getAppPath(Application::APP_ID) . self::PROFILE_DIR);
+		$dir = ($this->sources->appManager->getAppPath(AppIdentity::APP_ID) . self::PROFILE_DIR);
 		if (is_dir($dir) === false) {
 			return [];
 		}

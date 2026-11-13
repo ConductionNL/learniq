@@ -43,7 +43,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -82,7 +82,7 @@ class EngagementController extends Controller {
 		private readonly IL10N $l10n,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -133,7 +133,7 @@ class EngagementController extends Controller {
 	private function readFailed(Throwable $error): JSONResponse {
 		$this->logger->error(
 			'Could not read the caller\'s LearnerEngagement row',
-			['app' => Application::APP_ID, 'exception' => $error]
+			['app' => AppIdentity::APP_ID, 'exception' => $error]
 		);
 		return new JSONResponse(
 			data: ['error' => 'Could not read your engagement record'],
@@ -301,7 +301,7 @@ class EngagementController extends Controller {
 		} catch (Throwable $e) {
 			$this->logger->warning(
 				'LearnerEngagement.levelId does not resolve to an EngagementLevel',
-				['app' => Application::APP_ID, 'levelId' => $levelId, 'exception' => $e]
+				['app' => AppIdentity::APP_ID, 'levelId' => $levelId, 'exception' => $e]
 			);
 			return null;
 		}
@@ -309,7 +309,7 @@ class EngagementController extends Controller {
 		if ($level === null) {
 			$this->logger->warning(
 				'LearnerEngagement.levelId does not resolve to an EngagementLevel',
-				['app' => Application::APP_ID, 'levelId' => $levelId]
+				['app' => AppIdentity::APP_ID, 'levelId' => $levelId]
 			);
 			return null;
 		}

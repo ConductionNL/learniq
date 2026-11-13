@@ -28,9 +28,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Exception\IntegriqUnavailableException;
 use OCA\Learniq\Exception\MaterialImportRefusedException;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\CallerActions;
 use OCA\Learniq\Service\OpenMaterial\OpenMaterialImportService;
 use OCA\Learniq\Service\OpenMaterial\OpenMaterialSearch;
@@ -68,7 +68,7 @@ class OpenMaterialController extends Controller {
 		private readonly OpenMaterialSearch $search,
 		private readonly OpenMaterialImportService $imports,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

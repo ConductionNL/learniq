@@ -30,7 +30,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\Portal\PortalLearner;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCA\Learniq\Service\WorkGroup\WorkGroupMembershipService;
@@ -65,7 +65,7 @@ class WorkGroupController extends Controller {
 		private readonly WorkGroupMembershipService $memberships,
 		private readonly WorkGroupMessages $messages,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

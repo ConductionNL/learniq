@@ -44,8 +44,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Exception\XapiRequestException;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\XapiCallerResolver;
 use OCA\Learniq\Service\XapiDocumentStore;
 use OCA\Learniq\Service\XapiDocumentRequest;
@@ -91,7 +91,7 @@ class LrsDocumentController extends Controller {
 		private readonly XapiDocumentRequest $reader,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

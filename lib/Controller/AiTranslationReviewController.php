@@ -28,7 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\AiTranslatedCatalogue;
 use OCA\Learniq\Settings\AdminSettings;
 use OCP\AppFramework\Controller;
@@ -53,7 +53,7 @@ class AiTranslationReviewController extends Controller {
 		IRequest $request,
 		private readonly AiTranslatedCatalogue $catalogue,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

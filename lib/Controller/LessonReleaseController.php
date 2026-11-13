@@ -29,9 +29,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\AssessmentAccessFacts;
 use OCA\Learniq\Service\LessonReleaseEvaluator;
 use OCA\Learniq\Service\DashboardRoleService;
@@ -88,7 +88,7 @@ class LessonReleaseController extends Controller {
 		private readonly DashboardRoleService $dashboardRoleService,
 		private readonly AssessmentAccessFacts $accessFacts,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 
 	}//end __construct()
 

@@ -23,7 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CourseStore\StoreAccessService;
 use OCA\Learniq\Service\DashboardRoleService;
@@ -78,7 +78,7 @@ class PageController extends Controller {
 		private readonly ContainerInterface $container,
 		private readonly LoadedExampleSets $loadedSets,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -122,7 +122,7 @@ class PageController extends Controller {
 			$this->initialState->provideInitialState(MenuStructure::KEY, $this->resolveMenuStructure());
 		}
 
-		return new TemplateResponse(Application::APP_ID, 'index');
+		return new TemplateResponse(AppIdentity::APP_ID, 'index');
 	}//end index()
 
 	/**

@@ -34,7 +34,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
@@ -153,8 +153,8 @@ class EuropassIssuer {
 	private function issuer(array $credential): array {
 		$issuer = [
 			'name' => $credential['issuedBy'] ?? null,
-			'identifier' => $this->config->getValueString(app: Application::APP_ID, key: self::IDENTIFIER_KEY, default: ''),
-			'identifierScheme' => $this->config->getValueString(app: Application::APP_ID, key: self::SCHEME_KEY, default: 'KvK'),
+			'identifier' => $this->config->getValueString(app: AppIdentity::APP_ID, key: self::IDENTIFIER_KEY, default: ''),
+			'identifierScheme' => $this->config->getValueString(app: AppIdentity::APP_ID, key: self::SCHEME_KEY, default: 'KvK'),
 		];
 		if ($issuer['identifier'] !== '') {
 			return $issuer;

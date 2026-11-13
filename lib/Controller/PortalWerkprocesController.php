@@ -30,7 +30,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Portal\PortalAssertionVerifier;
 use OCA\Learniq\Service\Portal\PortalWerkprocesAssessment;
 use OCP\AppFramework\Controller;
@@ -96,7 +96,7 @@ class PortalWerkprocesController extends Controller {
 		private readonly PortalWerkprocesAssessment $assessments,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

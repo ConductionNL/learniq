@@ -28,7 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCP\Config\IUserConfig;
 use OCP\Security\ISecureRandom;
 
@@ -75,7 +75,7 @@ class TimetableFeedTokenService {
 		$token = $this->random->generate(64, '0123456789abcdef');
 		$this->userConfig->setValueString(
 			$uid,
-			Application::APP_ID,
+			AppIdentity::APP_ID,
 			self::CONFIG_KEY,
 			$this->hash(token: $token),
 			false,
@@ -95,7 +95,7 @@ class TimetableFeedTokenService {
 	 * @spec openspec/changes/attendance-timetable-calendar-feed/specs/timetable-calendar-feed/spec.md#requirement-calendar-subscription-feed
 	 */
 	public function exists(string $uid): bool {
-		return $this->userConfig->getValueString($uid, Application::APP_ID, self::CONFIG_KEY) !== '';
+		return $this->userConfig->getValueString($uid, AppIdentity::APP_ID, self::CONFIG_KEY) !== '';
 	}//end exists()
 
 	/**
@@ -108,7 +108,7 @@ class TimetableFeedTokenService {
 	 * @spec openspec/changes/attendance-timetable-calendar-feed/specs/timetable-calendar-feed/spec.md#requirement-revoking-the-feed-address
 	 */
 	public function revoke(string $uid): void {
-		$this->userConfig->deleteUserConfig($uid, Application::APP_ID, self::CONFIG_KEY);
+		$this->userConfig->deleteUserConfig($uid, AppIdentity::APP_ID, self::CONFIG_KEY);
 	}//end revoke()
 
 	/**
@@ -130,7 +130,7 @@ class TimetableFeedTokenService {
 
 		$hash = $this->hash(token: $token);
 		$users = [];
-		foreach ($this->userConfig->searchUsersByValueString(Application::APP_ID, self::CONFIG_KEY, $hash) as $uid) {
+		foreach ($this->userConfig->searchUsersByValueString(AppIdentity::APP_ID, self::CONFIG_KEY, $hash) as $uid) {
 			$users[] = (string)$uid;
 		}
 
@@ -140,7 +140,7 @@ class TimetableFeedTokenService {
 
 		// The lookup matched on the stored value; compare again in constant
 		// time against the user's own value before trusting it.
-		$stored = $this->userConfig->getValueString($users[0], Application::APP_ID, self::CONFIG_KEY);
+		$stored = $this->userConfig->getValueString($users[0], AppIdentity::APP_ID, self::CONFIG_KEY);
 		if ($stored === '' || hash_equals($stored, $hash) === false) {
 			return null;
 		}

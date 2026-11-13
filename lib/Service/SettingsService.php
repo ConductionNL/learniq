@@ -26,7 +26,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\Calendar\SchoolYear;
 use OCA\Learniq\Service\OpenMaterial\OpenMaterialSettings;
 use OCA\Learniq\Service\Settings\AppealTerm;
@@ -112,7 +112,7 @@ class SettingsService {
 	public function getSettings(): array {
 		$settings = [];
 		foreach (self::CONFIG_KEYS as $key) {
-			$settings[$key] = $this->appConfig->getValueString(Application::APP_ID, $key, '');
+			$settings[$key] = $this->appConfig->getValueString(AppIdentity::APP_ID, $key, '');
 		}
 
 		$user = $this->userSession->getUser();
@@ -139,7 +139,7 @@ class SettingsService {
 	public function updateSettings(array $data): array {
 		foreach (self::CONFIG_KEYS as $key) {
 			if (isset($data[$key]) === true) {
-				$this->appConfig->setValueString(Application::APP_ID, $key, (string)$data[$key]);
+				$this->appConfig->setValueString(AppIdentity::APP_ID, $key, (string)$data[$key]);
 			}
 		}
 
@@ -236,7 +236,7 @@ class SettingsService {
 			}
 
 			$configurationService = $this->container->get('OCA\OpenRegister\Service\ConfigurationService');
-			$result = $configurationService->importFromApp(appId: Application::APP_ID, data: $configData, version: $configVersion, force: $force);
+			$result = $configurationService->importFromApp(appId: AppIdentity::APP_ID, data: $configData, version: $configVersion, force: $force);
 
 			if (empty($result) === false) {
 				$this->logger->info('Learniq: register configuration imported successfully');

@@ -51,8 +51,8 @@ namespace OCA\Learniq\Controller;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\LearningRecordExportSigningService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -137,7 +137,7 @@ class LearningRecordShareVerifyController extends Controller {
 		private readonly IThrottler $throttler,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

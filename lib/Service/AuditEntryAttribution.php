@@ -32,7 +32,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\OpenRegister\Service\ObjectService;
 use Throwable;
 
@@ -179,7 +179,7 @@ class AuditEntryAttribution {
 		try {
 			$rows = $this->objectService->findAll(
 				config: [
-					'filters' => ['register' => Application::APP_ID, 'schema' => $schema],
+					'filters' => ['register' => AppIdentity::APP_ID, 'schema' => $schema],
 					'ids'     => $uuids,
 					'limit'   => count($uuids),
 				],

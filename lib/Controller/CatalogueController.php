@@ -30,7 +30,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\Catalogue\CatalogueMessages;
 use OCA\Learniq\Service\Catalogue\CatalogueReader;
 use OCA\Learniq\Service\Catalogue\CatalogueSignUpService;
@@ -71,7 +71,7 @@ class CatalogueController extends Controller {
 		private readonly CatalogueMessages $messages,
 		private readonly LearnerRefResolver $profiles,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

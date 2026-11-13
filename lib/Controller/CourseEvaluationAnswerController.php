@@ -31,7 +31,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use DateTimeImmutable;
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\CourseEvaluationAnswerService;
 use OCA\Learniq\Service\DashboardRoleService;
 use OCP\AppFramework\Controller;
@@ -70,7 +70,7 @@ class CourseEvaluationAnswerController extends Controller {
 		private readonly CourseEvaluationAnswerService $answers,
 		private readonly DashboardRoleService $dashboardRoleService,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

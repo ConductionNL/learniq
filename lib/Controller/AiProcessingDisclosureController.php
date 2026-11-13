@@ -46,8 +46,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\AiLocalityClassifier;
 use OCA\Learniq\Service\SovereigntyPolicyService;
 use OCP\App\IAppManager;
@@ -118,7 +118,7 @@ class AiProcessingDisclosureController extends Controller {
 		private readonly SovereigntyPolicyService $policyService,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

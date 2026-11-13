@@ -36,8 +36,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CredentialSigningService;
@@ -78,7 +78,7 @@ class ExternalTrainingController extends Controller {
 		private readonly CallerTenantResolver $callerTenant,
 		private readonly ExternalTrainingImport $trainingImport,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

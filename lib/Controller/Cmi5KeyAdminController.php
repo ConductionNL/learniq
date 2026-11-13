@@ -29,7 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\Cmi5LaunchTokenService;
 use OCA\Learniq\Settings\AdminSettings;
 use OCP\AppFramework\Controller;
@@ -73,7 +73,7 @@ class Cmi5KeyAdminController extends Controller {
 		private readonly Cmi5LaunchTokenService $tokens,
 		private readonly IAppConfig $appConfig,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -98,7 +98,7 @@ class Cmi5KeyAdminController extends Controller {
 			return $this->noCache(response: new JSONResponse(data: ['error' => $e->getMessage()], statusCode: Http::STATUS_INTERNAL_SERVER_ERROR));
 		}
 
-		$this->appConfig->setValueString(app: Application::APP_ID, key: self::LAST_AT_KEY, value: (string)time());
+		$this->appConfig->setValueString(app: AppIdentity::APP_ID, key: self::LAST_AT_KEY, value: (string)time());
 
 		return $this->noCache(response: new JSONResponse(data: $result, statusCode: Http::STATUS_CREATED));
 	}//end generateKey()
@@ -135,7 +135,7 @@ class Cmi5KeyAdminController extends Controller {
 			);
 		}
 
-		$lastAt = (int)$this->appConfig->getValueString(app: Application::APP_ID, key: self::LAST_AT_KEY, default: '0');
+		$lastAt = (int)$this->appConfig->getValueString(app: AppIdentity::APP_ID, key: self::LAST_AT_KEY, default: '0');
 		if (time() - $lastAt < self::MIN_INTERVAL_SECONDS) {
 			return $this->noCache(
 				response: new JSONResponse(

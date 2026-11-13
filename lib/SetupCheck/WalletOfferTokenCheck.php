@@ -26,7 +26,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\SetupCheck;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\ConnectionReportService;
 use OCP\IAppConfig;
 use OCP\IL10N;
@@ -97,14 +97,14 @@ class WalletOfferTokenCheck implements ISetupCheck {
 	 * @spec openspec/changes/credential-wallet-offer-for-the-learner/specs/certification/spec.md#requirement-the-setup-check-names-the-missing-wallet-token
 	 */
 	public function run(): SetupResult {
-		$token = $this->appConfig->getValueString(app: Application::APP_ID, key: self::TOKEN_KEY, default: '');
+		$token = $this->appConfig->getValueString(app: AppIdentity::APP_ID, key: self::TOKEN_KEY, default: '');
 		if ($token !== '') {
 			return SetupResult::success($this->l10n->t('Certificates can be offered to a wallet through integriq.'));
 		}
 
 		$message = $this->l10n->t(
 			'No integriq API token is set (%s), so a certificate cannot be offered to a wallet.',
-			[Application::APP_ID . '.' . self::TOKEN_KEY]
+			[AppIdentity::APP_ID . '.' . self::TOKEN_KEY]
 		);
 		if ($this->connectionReports->lastStatus(key: ConnectionReportService::WALLET_KEY) === 'unconfigured') {
 			return SetupResult::warning($message);

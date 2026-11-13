@@ -48,7 +48,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use InvalidArgumentException;
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
 use OCP\IUserManager;
@@ -150,7 +150,7 @@ class ContributionRaiser {
 			return $given;
 		}
 
-		return $this->appConfig->getValueString(Application::APP_ID, self::ADMINISTRATION_KEY, '');
+		return $this->appConfig->getValueString(AppIdentity::APP_ID, self::ADMINISTRATION_KEY, '');
 	}//end administrationId()
 
 	/**

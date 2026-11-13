@@ -32,7 +32,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\StandbyCalendar;
 use OCA\Learniq\Service\SubstitutionCandidateService;
 use OCA\OpenRegister\Service\ObjectService;
@@ -78,7 +78,7 @@ class StandbyController extends Controller {
 		private readonly SubstitutionCandidateService $candidates,
 		private readonly StandbyCalendar $calendar,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

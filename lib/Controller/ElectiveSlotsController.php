@@ -29,7 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\ElectiveSlotService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -61,7 +61,7 @@ class ElectiveSlotsController extends Controller {
 		private readonly IDateTimeZone $zone,
 		private readonly ITimeFactory $time,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
