@@ -451,25 +451,9 @@ class GradeRollupHandler implements IEventListener {
 		// LearnerProfile keys the pupil on ncUserId; it has no learnerId, and a
 		// filter on an undeclared property matches nothing. Read without RBAC:
 		// the publisher may not read LearnerProfile, and only parentIds is used.
-		$profiles = $this->objectService->findAll(
-			[
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::LEARNER_PROFILE_SCHEMA,
-					'ncUserId' => $learnerId,
-				],
-				'limit' => 1,
-			],
-			_rbac: false
-		);
-
-		if (empty($profiles) === true) {
+		$profile = $this->parentProfile(learnerId: $learnerId);
+		if ($profile === null) {
 			return;
-		}
-
-		$profile = $profiles[0];
-		if (is_array($profiles[0]) === false) {
-			$profile = $profiles[0]->jsonSerialize();
 		}
 
 		$parentIds = $profile['parentIds'] ?? [];
@@ -526,6 +510,40 @@ class GradeRollupHandler implements IEventListener {
 		}//end foreach
 
 	}//end fanOutParentNotifications()
+
+	/**
+	 * The pupil's LearnerProfile as an array, or null when there is none.
+	 *
+	 * @param string $learnerId The pupil's Nextcloud user id.
+	 *
+	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+	 */
+	private function parentProfile(string $learnerId): ?array {
+		$profiles = $this->objectService->findAll(
+			[
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LEARNER_PROFILE_SCHEMA,
+					'ncUserId' => $learnerId,
+				],
+				'limit' => 1,
+			],
+			_rbac: false
+		);
+
+		if (empty($profiles) === true) {
+			return null;
+		}
+
+		$profile = $profiles[0];
+		if (is_array($profiles[0]) === false) {
+			$profile = $profiles[0]->jsonSerialize();
+		}
+
+		return $profile;
+	}//end parentProfile()
 
 	/**
 	 * Create a concept GradeEntry when an AssessmentResult reaches `graded`.
