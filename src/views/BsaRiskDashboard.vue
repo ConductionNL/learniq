@@ -106,6 +106,7 @@
 <script>
 import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
+import { assertOk, listOf, readJson, runLoad } from '../utils/objectListing.js'
 
 export default {
 	name: 'BsaRiskDashboard',
@@ -145,34 +146,43 @@ export default {
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/study-progress/spec.md#scenario-coordinator-sees-at-risk-learners-on-the-risk-dashboard
 		 */
-		async loadFlags() {
-			this.loading = true
-			this.error = null
+		loadFlags() {
+			return runLoad(this, {
+				read: () => this.readFlags(),
+				fail: (err) => this.reportLoadFailure(err),
+			})
+		},
 
-			try {
-				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/bsa-progress-flag?_limit=100',
-				)
-				const resp = await fetch(url, {
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-					},
-				})
-				if (!resp.ok)
-					throw new Error(`BsaProgressFlag fetch failed: ${resp.status}`)
-				const json = await resp.json()
-				this.flags = json.results ?? json.objects ?? json ?? []
-			} catch (err) {
-				this.error = this.t(
-					'learniq',
-					'Failed to load at-risk learners. Please try again.',
-				)
-				// eslint-disable-next-line no-console
-				console.error('[BsaRiskDashboard] loadFlags error', err)
-			} finally {
-				this.loading = false
-			}
+		/**
+		 * Read every BsaProgressFlag; rejects when the read fails.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/study-progress/spec.md#scenario-coordinator-sees-at-risk-learners-on-the-risk-dashboard
+		 */
+		async readFlags() {
+			const url = generateUrl(
+				'/apps/openregister/api/objects/learniq/bsa-progress-flag?_limit=100',
+			)
+			const resp = await readJson(url)
+			assertOk(resp, 'BsaProgressFlag fetch failed')
+			const json = await resp.json()
+			this.flags = listOf(json)
+		},
+
+		/**
+		 * Tell the coordinator the flags could not load, and log why.
+		 *
+		 * @param {Error} err The failure
+		 * @return {void}
+		 * @spec openspec/specs/study-progress/spec.md#scenario-coordinator-sees-at-risk-learners-on-the-risk-dashboard
+		 */
+		reportLoadFailure(err) {
+			this.error = this.t(
+				'learniq',
+				'Failed to load at-risk learners. Please try again.',
+			)
+			// eslint-disable-next-line no-console
+			console.error('[BsaRiskDashboard] loadFlags error', err)
 		},
 
 		/**

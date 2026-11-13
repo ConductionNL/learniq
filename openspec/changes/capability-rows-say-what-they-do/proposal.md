@@ -52,7 +52,7 @@ Where the code does not do what the row says, the row loses `built` (decision 38
 | `sup-group-plan-with-subgroups` | Plan instruction for a whole class in three ability groups. | `learning-plan` | A coordinator plans a class in ability subgroups with learners assigned to each |
 | `sup-apply-for-extra-support` | Apply for an extra-support ruling and trace it back to the request. | `learning-plan` | A TLV application is made for a support request and points back to it |
 | `sup-municipality-must-answer` | Hold the file open until the municipality has given its view. | `attendance` | A reported attendance flag is not closed until the municipality's feedback is recorded |
-| `att-book-a-room` | Book a room or a lab, and respect its capacity. | `timetabling` | A planner books a room or lab for a session and an overfull booking is flagged |
+| `att-book-a-room` | Book a room or a lab, and respect its capacity. | `timetabling` | A planner books a room or lab for a session and an overfull booking is flagged; Conflict detection flags double-bookings and capacity overruns without resolving them (modified: capacity for every session, not only exams) |
 | `att-never-auto-resolve-a-clash` | Leave a clash for a person to resolve, never guess at it. | `timetabling` | A coordinator acknowledges and resolves a timetable conflict by hand |
 | `att-import-a-timetable` | Import a timetable from your scheduling software. | `timetabling` | An import started from the timetable page reports its outcome and refreshes the conflicts |
 | `att-tell-people-a-lesson-moved` | Tell everyone when a lesson moves or is cancelled. | `timetabling` | A lesson moved to another room or time notifies the affected learners and parents |

@@ -69,13 +69,6 @@ class SubjectChoiceValidator implements IEventListener {
 	private const CURRICULUM_PLAN_SCHEMA = 'curriculum-plan';
 
 	/**
-	 * SubjectChoice lifecycle states that occupy capacityByCourseId seats.
-	 *
-	 * @var string[]
-	 */
-	private const OCCUPYING_STATES = ['approved', 'locked'];
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object access service.
@@ -227,18 +220,35 @@ class SubjectChoiceValidator implements IEventListener {
 		}
 
 		foreach ($combinations as $combination) {
-			if (is_array($combination) === false || count($combination) === 0) {
-				continue;
-			}
-
-			$missing = array_values(array_diff($combination, $selected));
-			if (count($missing) > 0) {
-				$errors[] = sprintf('Mandatory combination not fully selected: missing %s.', implode(', ', $missing));
+			$error = self::combinationError(combination: $combination, selected: $selected);
+			if ($error !== null) {
+				$errors[] = $error;
 			}
 		}
 
 		return $errors;
 	}//end checkMandatoryCombinations()
+
+	/**
+	 * What one mandatory combination misses, or null when it is selected in full or is no combination.
+	 *
+	 * @param mixed            $combination The named combination.
+	 * @param array<int,mixed> $selected    selectedElectiveCourseIds.
+	 *
+	 * @return string|null
+	 */
+	private static function combinationError(mixed $combination, array $selected): ?string {
+		if (is_array($combination) === false || count($combination) === 0) {
+			return null;
+		}
+
+		$missing = array_values(array_diff($combination, $selected));
+		if (count($missing) > 0) {
+			return sprintf('Mandatory combination not fully selected: missing %s.', implode(', ', $missing));
+		}
+
+		return null;
+	}//end combinationError()
 
 	/**
 	 * MutuallyExclusive check — at most one course per named set.
@@ -287,22 +297,34 @@ class SubjectChoiceValidator implements IEventListener {
 			return $errors;
 		}
 
-		$siblings = $this->fetchOccupyingSiblings(choice: $choice);
-
-		foreach ($capacityByCourseId as $courseId => $limit) {
-			if (in_array($courseId, $selected, true) === false || is_int($limit) === false) {
-				continue;
-			}
-
-			$occupied = $this->countOccupied(siblings: $siblings, courseId: (string)$courseId);
-
-			if ($occupied >= $limit) {
+		$siblings = (new OccupyingSubjectChoices(objectService: $this->objectService))->forChoice(choice: $choice);
+		foreach (self::selectedLimits(capacityByCourseId: $capacityByCourseId, selected: $selected) as $courseId => $limit) {
+			if ($this->countOccupied(siblings: $siblings, courseId: (string)$courseId) >= $limit) {
 				$errors[] = sprintf('Capacity reached for course %s (limit %d).', $courseId, $limit);
 			}
 		}
 
 		return $errors;
 	}//end checkCapacity()
+
+	/**
+	 * The whole-number limits of the selected courses, in the rules' order.
+	 *
+	 * @param array<mixed,mixed> $capacityByCourseId The capacity rule.
+	 * @param array<int,mixed>   $selected           selectedElectiveCourseIds.
+	 *
+	 * @return array<mixed,int>
+	 */
+	private static function selectedLimits(array $capacityByCourseId, array $selected): array {
+		$limits = [];
+		foreach ($capacityByCourseId as $courseId => $limit) {
+			if (in_array($courseId, $selected, true) === true && is_int($limit) === true) {
+				$limits[$courseId] = $limit;
+			}
+		}
+
+		return $limits;
+	}//end selectedLimits()
 
 	/**
 	 * Count how many sibling SubjectChoice rows already occupy a seat on `$courseId`.
@@ -324,57 +346,6 @@ class SubjectChoiceValidator implements IEventListener {
 
 		return $occupied;
 	}//end countOccupied()
-
-	/**
-	 * Fetch sibling SubjectChoice rows in an occupying state for the same plan.
-	 *
-	 * @param array{curriculumPlanId: string, tenantId: string, choiceId: string} $choice The governing CurriculumPlan UUID, the tenant and
-	 *     the SubjectChoice id being validated, excluded from results.
-	 *
-	 * @return array<int,array<string,mixed>>
-	 */
-	private function fetchOccupyingSiblings(array $choice): array {
-		['curriculumPlanId' => $curriculumPlanId, 'tenantId' => $tenantId, 'choiceId' => $excludeId] = $choice;
-		$siblings = [];
-
-		foreach (self::OCCUPYING_STATES as $lifecycle) {
-			$filters = [
-				'curriculumPlanId' => $curriculumPlanId,
-				'lifecycle' => $lifecycle,
-			];
-			if ($tenantId !== '') {
-				$filters['tenant_id'] = $tenantId;
-			}
-
-			$rows = $this->objectService->findAll(
-				[
-					'filters' => array_merge(
-						$filters,
-						[
-							'register' => self::LEARNIQ_REGISTER,
-							'schema' => self::SUBJECT_CHOICE_SCHEMA,
-						]
-					),
-					'limit' => 5000,
-				]
-			);
-
-			foreach ($rows as $row) {
-				if (is_array($row) === false) {
-					$row = $row->jsonSerialize();
-				}
-
-				$id = (string)($row['id'] ?? ($row['uuid'] ?? ''));
-				if ($id !== '' && $id === $excludeId) {
-					continue;
-				}
-
-				$siblings[] = $row;
-			}
-		}//end foreach
-
-		return $siblings;
-	}//end fetchOccupyingSiblings()
 
 	/**
 	 * Fetch the referenced CurriculumPlan, normalised to a plain array.

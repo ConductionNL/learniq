@@ -29,6 +29,7 @@ namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Exception\ExchangeRequestRefusedException;
 use OCA\Learniq\Exception\IntegriqUnavailableException;
+use OCA\Learniq\Support\EventGetter;
 use OCP\App\IAppManager;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -201,11 +202,7 @@ class IntegriqExchangeClient {
 	 * @return mixed The value, or null when the getter does not exist.
 	 */
 	private function read(Event $event, string $getter): mixed {
-		if (method_exists($event, $getter) === false) {
-			return null;
-		}
-
-		return $event->$getter();
+		return (new EventGetter())->value(event: $event, getter: $getter);
 	}//end read()
 
 	/**

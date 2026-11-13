@@ -1,0 +1,118 @@
+{
+    "a full card": {
+        "written": 3,
+        "reads": [
+            [
+                {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "report-subject-grade",
+                        "learnerRef": "vera"
+                    },
+                    "limit": 200
+                },
+                false,
+                false
+            ],
+            [
+                {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "course"
+                    },
+                    "limit": 2,
+                    "ids": [
+                        "c-rek",
+                        "c-taal"
+                    ]
+                },
+                false,
+                false
+            ],
+            [
+                {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "curriculum-plan"
+                    },
+                    "limit": 1,
+                    "ids": [
+                        "p-1"
+                    ]
+                },
+                false,
+                false
+            ],
+            [
+                {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "limit": 1,
+                    "ids": [
+                        "g7"
+                    ]
+                },
+                false,
+                false
+            ]
+        ],
+        "saved": [
+            {
+                "learnerRef": "vera",
+                "learnerId": "",
+                "reportCardId": "card-2",
+                "subjectName": "Rekenen",
+                "periodAverage": 7.9,
+                "passed": null,
+                "position": 0,
+                "caption": "Rapport 2 \u00b7 juli 2026 \u00b7 Groep 7",
+                "mentorComment": null,
+                "tenant_id": "t"
+            },
+            {
+                "learnerRef": "vera",
+                "learnerId": "",
+                "reportCardId": "card-2",
+                "subjectName": "Taal",
+                "periodAverage": 8.3,
+                "passed": null,
+                "position": 1,
+                "caption": "Rapport 2 \u00b7 juli 2026 \u00b7 Groep 7",
+                "mentorComment": null,
+                "tenant_id": "t"
+            },
+            {
+                "learnerRef": "vera",
+                "learnerId": "",
+                "reportCardId": "card-2",
+                "subjectName": "Rekenen",
+                "periodAverage": null,
+                "passed": null,
+                "position": 2,
+                "caption": "Rapport 2 \u00b7 juli 2026 \u00b7 Groep 7",
+                "mentorComment": null,
+                "tenant_id": "t"
+            }
+        ]
+    },
+    "no group, no grades": {
+        "written": 0,
+        "reads": [
+            [
+                {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "report-subject-grade",
+                        "learnerRef": "sem"
+                    },
+                    "limit": 200
+                },
+                false,
+                false
+            ]
+        ],
+        "saved": []
+    }
+}

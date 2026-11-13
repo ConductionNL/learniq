@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Timetabling;
 
+use OCA\Learniq\Support\ObjectRow;
 use DateTimeImmutable;
 use DateTimeZone;
 use OCA\OpenRegister\Service\ObjectService;
@@ -47,6 +48,13 @@ class SessionSeries {
 	public const OPEN_STATES = ['scheduled', 'in-progress'];
 
 	/**
+	 * Turns one OpenRegister result into a plain array.
+	 *
+	 * @var ObjectRow
+	 */
+	private readonly ObjectRow $objectRow;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister objects, as the caller.
@@ -54,6 +62,7 @@ class SessionSeries {
 	public function __construct(
 		private readonly ObjectService $objectService,
 	) {
+		$this->objectRow = new ObjectRow();
 	}//end __construct()
 
 	/**
@@ -265,14 +274,6 @@ class SessionSeries {
 	 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
 	 */
 	public function toArray(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-			return (array)$row->jsonSerialize();
-		}
-
-		return [];
+		return $this->objectRow->asArray(object: $row);
 	}//end toArray()
 }//end class

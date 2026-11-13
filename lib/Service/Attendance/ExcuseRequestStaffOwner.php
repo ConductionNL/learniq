@@ -30,6 +30,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Attendance;
 
 use OCA\Learniq\Service\LearnerRefResolver;
+use OCA\Learniq\Support\TextValue;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -143,10 +144,6 @@ class ExcuseRequestStaffOwner {
 	 * @return string
 	 */
 	private static function text(mixed $value): string {
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return $value;
+		return (new TextValue())->orEmpty(value: $value);
 	}//end text()
 }//end class

@@ -124,6 +124,7 @@
 import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCanonicalLocale } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
+import { assertOk, listOf, readAll, runLoad } from '../utils/objectListing.js'
 
 export default {
 	name: 'AdmissionsReviewBoard',
@@ -167,65 +168,49 @@ export default {
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
-		async loadData() {
-			this.loading = true
-			this.error = null
+		loadData() {
+			return runLoad(this, {
+				read: () => this.readApplicationsAndRounds(),
+				fail: (err) => this.reportLoadFailure(err),
+			})
+		},
 
-			try {
-				const [applicationsResp, roundsResp] = await Promise.all([
-					fetch(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/admission?_limit=200',
-						),
-						{
-							headers: {
-								'OCS-APIREQUEST': 'true',
-								Accept: 'application/json',
-							},
-						},
-					),
-					fetch(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/admissions-round?_limit=200',
-						),
-						{
-							headers: {
-								'OCS-APIREQUEST': 'true',
-								Accept: 'application/json',
-							},
-						},
-					),
-				])
+		/**
+		 * Read the open Applications and the AdmissionsRounds; rejects when
+		 * either read fails.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+		 */
+		async readApplicationsAndRounds() {
+			const [applicationsResp, roundsResp] = await readAll([
+				generateUrl('/apps/openregister/api/objects/learniq/admission?_limit=200'),
+				generateUrl('/apps/openregister/api/objects/learniq/admissions-round?_limit=200'),
+			])
+			assertOk(applicationsResp, 'Application fetch failed')
+			assertOk(roundsResp, 'AdmissionsRound fetch failed')
 
-				if (!applicationsResp.ok)
-					throw new Error(
-						`Application fetch failed: ${applicationsResp.status}`,
-					)
-				if (!roundsResp.ok)
-					throw new Error(
-						`AdmissionsRound fetch failed: ${roundsResp.status}`,
-					)
+			const applicationsJson = await applicationsResp.json()
+			const roundsJson = await roundsResp.json()
 
-				const applicationsJson = await applicationsResp.json()
-				const roundsJson = await roundsResp.json()
+			this.applications = listOf(applicationsJson)
+			this.rounds = listOf(roundsJson)
+		},
 
-				this.applications =
-					applicationsJson.results
-					?? applicationsJson.objects
-					?? applicationsJson
-					?? []
-				this.rounds =
-					roundsJson.results ?? roundsJson.objects ?? roundsJson ?? []
-			} catch (err) {
-				this.error = this.t(
-					'learniq',
-					'Failed to load pending applications. Please try again.',
-				)
-				// eslint-disable-next-line no-console
-				console.error('[AdmissionsReviewBoard] loadData error', err)
-			} finally {
-				this.loading = false
-			}
+		/**
+		 * Tell the coordinator the board could not load, and log why.
+		 *
+		 * @param {Error} err The failure
+		 * @return {void}
+		 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+		 */
+		reportLoadFailure(err) {
+			this.error = this.t(
+				'learniq',
+				'Failed to load pending applications. Please try again.',
+			)
+			// eslint-disable-next-line no-console
+			console.error('[AdmissionsReviewBoard] loadData error', err)
 		},
 
 		/**

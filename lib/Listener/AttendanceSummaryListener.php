@@ -37,6 +37,7 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\BackgroundJob\AttendanceSummaryRecomputeJob;
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Support\TextValue;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectDeletedEvent;
@@ -170,10 +171,6 @@ class AttendanceSummaryListener implements IEventListener {
 	 * @return string
 	 */
 	private function text(mixed $value): string {
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return $value;
+		return (new TextValue())->orEmpty(value: $value);
 	}//end text()
 }//end class

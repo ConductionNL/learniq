@@ -37,6 +37,7 @@ use PHPUnit\Framework\TestCase;
  * @covers \OCA\Learniq\Service\QtiImportService
  * @uses   \OCA\Learniq\Service\QtiManifestScanner
  * @uses   \OCA\Learniq\Service\QtiPackageExtractor
+ * @uses \OCA\Learniq\Service\QtiItemTarget
  */
 class QtiItemImportGoldenTest extends TestCase {
 

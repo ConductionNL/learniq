@@ -119,7 +119,7 @@ npm run check:manifest  # validates src/manifest.json against nc-vue schema
 ### Test coverage
 
 <!-- coverage:start -->
-Measured test coverage: 90.0% of statements (PHP 91.0% of 37,826 statements, JavaScript 87.3% of 13,242 statements), at commit `92638984` on 2026-11-12. The figures come from [`coverage-summary.json`](coverage-summary.json); refresh them with `composer coverage:publish`.
+Measured test coverage: 90.2% of statements (PHP 90.6% of 37,601 statements, JavaScript 89.0% of 13,690 statements), at commit `ca0282cf` on 2026-11-13. The figures come from [`coverage-summary.json`](coverage-summary.json); refresh them with `composer coverage:publish`.
 <!-- coverage:end -->
 
 ### Frontend development

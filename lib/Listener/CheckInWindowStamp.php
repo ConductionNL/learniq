@@ -92,28 +92,52 @@ class CheckInWindowStamp implements IEventListener {
 	 * @spec openspec/specs/attendance/spec.md#requirement-a-teacher-opens-a-self-check-in-window-for-a-lesson
 	 */
 	public function handle(Event $event): void {
-		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {
-			return;
-		}
-
-		if ($event->isPropagationStopped() === true || $this->isWindow(event: $event) === false) {
+		if ($this->isWindowWrite(event: $event) === false) {
 			return;
 		}
 
 		if ($event instanceof ObjectUpdatingEvent === true) {
-			$old = ($event->getOldObject()?->getObject() ?? []);
-			$event->setModifiedData(
-				array_merge(
-					$event->getModifiedData(),
-					['openedBy' => ($old['openedBy'] ?? null), 'tenant_id' => ($old['tenant_id'] ?? null)]
-				)
-			);
+			self::keepOwner(event: $event);
 			return;
 		}
 
-		$payload = array_merge(($event->getObject()->getObject() ?? []), $event->getModifiedData());
-		$event->setModifiedData(array_merge($event->getModifiedData(), $this->createStamp(payload: $payload)));
+		if ($event instanceof ObjectCreatingEvent === true) {
+			$payload = array_merge(($event->getObject()->getObject() ?? []), $event->getModifiedData());
+			$event->setModifiedData(array_merge($event->getModifiedData(), $this->createStamp(payload: $payload)));
+		}
 	}//end handle()
+
+	/**
+	 * Whether the event is a create or update of a check-in window that is still going ahead.
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return bool
+	 */
+	private function isWindowWrite(Event $event): bool {
+		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {
+			return false;
+		}
+
+		return $event->isPropagationStopped() === false && $this->isWindow(event: $event) === true;
+	}//end isWindowWrite()
+
+	/**
+	 * On an update, keep the stored owner and tenant whatever the client sent.
+	 *
+	 * @param ObjectUpdatingEvent $event The update.
+	 *
+	 * @return void
+	 */
+	private static function keepOwner(ObjectUpdatingEvent $event): void {
+		$old = ($event->getOldObject()?->getObject() ?? []);
+		$event->setModifiedData(
+			array_merge(
+				$event->getModifiedData(),
+				['openedBy' => ($old['openedBy'] ?? null), 'tenant_id' => ($old['tenant_id'] ?? null)]
+			)
+		);
+	}//end keepOwner()
 
 	/**
 	 * What a new window stores for its owner, tenant and times.
@@ -124,34 +148,83 @@ class CheckInWindowStamp implements IEventListener {
 	 */
 	private function createStamp(array $payload): array {
 		$session = $this->session(id: self::text(value: ($payload['sessionId'] ?? null)));
-		$opens = $this->time(value: ($payload['opensAt'] ?? null));
-		if ($opens === null) {
-			$opens = (new DateTimeImmutable())->setTimestamp($this->timeFactory->getTime());
-		}
-
-		$closes = $this->time(value: ($payload['closesAt'] ?? null));
-		if ($closes === null) {
-			$closes = $opens->modify('+' . self::OPEN_MINUTES . ' minutes');
-		}
-
-		$ends = $this->time(value: ($session['endsAt'] ?? null));
-		if ($ends !== null && $ends < $closes) {
-			$closes = $ends;
-		}
-
-		$late = ($payload['lateAfterMinutes'] ?? null);
-		if (is_int($late) === false || $late < 0) {
-			$late = self::LATE_AFTER_MINUTES;
-		}
+		$opens = $this->opensAt(payload: $payload);
+		$closes = self::cappedAt(closes: $this->closesAt(payload: $payload, opens: $opens), ends: $this->time(value: ($session['endsAt'] ?? null)));
 
 		return [
 			'openedBy' => ($this->userSession->getUser()?->getUID() ?? null),
 			'tenant_id' => ($session['tenant_id'] ?? null),
 			'opensAt' => $opens->format(DateTimeInterface::ATOM),
 			'closesAt' => $closes->format(DateTimeInterface::ATOM),
-			'lateAfterMinutes' => $late,
+			'lateAfterMinutes' => self::lateAfter(payload: $payload),
 		];
 	}//end createStamp()
+
+	/**
+	 * When the window opens: the time it names, else now by the server's clock.
+	 *
+	 * @param array<string, mixed> $payload The window being created.
+	 *
+	 * @return DateTimeImmutable
+	 */
+	private function opensAt(array $payload): DateTimeImmutable {
+		$opens = $this->time(value: ($payload['opensAt'] ?? null));
+		if ($opens === null) {
+			$opens = (new DateTimeImmutable())->setTimestamp($this->timeFactory->getTime());
+		}
+
+		return $opens;
+	}//end opensAt()
+
+	/**
+	 * When the window closes: the time it names, else OPEN_MINUTES after it opens.
+	 *
+	 * @param array<string, mixed> $payload The window being created.
+	 * @param DateTimeImmutable    $opens   When it opens.
+	 *
+	 * @return DateTimeImmutable
+	 */
+	private function closesAt(array $payload, DateTimeImmutable $opens): DateTimeImmutable {
+		$closes = $this->time(value: ($payload['closesAt'] ?? null));
+		if ($closes === null) {
+			$closes = $opens->modify('+' . self::OPEN_MINUTES . ' minutes');
+		}
+
+		return $closes;
+	}//end closesAt()
+
+	/**
+	 * The close time, never after the end of the lesson.
+	 *
+	 * @param DateTimeImmutable      $closes The close time.
+	 * @param DateTimeImmutable|null $ends   The lesson's end, or null.
+	 *
+	 * @return DateTimeImmutable
+	 */
+	private static function cappedAt(DateTimeImmutable $closes, ?DateTimeImmutable $ends): DateTimeImmutable {
+		if ($ends !== null && $ends < $closes) {
+			return $ends;
+		}
+
+		return $closes;
+	}//end cappedAt()
+
+	/**
+	 * The minutes after opening a check-in counts as late: the window's own
+	 * whole, non-negative number, else LATE_AFTER_MINUTES.
+	 *
+	 * @param array<string, mixed> $payload The window being created.
+	 *
+	 * @return int
+	 */
+	private static function lateAfter(array $payload): int {
+		$late = ($payload['lateAfterMinutes'] ?? null);
+		if (is_int($late) === false || $late < 0) {
+			return self::LATE_AFTER_MINUTES;
+		}
+
+		return $late;
+	}//end lateAfter()
 
 	/**
 	 * The lesson the window is for, or an empty array.

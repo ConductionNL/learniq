@@ -419,4 +419,38 @@ class SubjectChoiceValidatorTest extends TestCase {
 			self::assertSame($expected, $actual[$name], $name);
 		}
 	}//end testCapacityMatchesGolden()
+	/**
+	 * Each mandatory combination not fully selected names what it misses, in
+	 * the combination's order; empty or malformed combinations are skipped.
+	 *
+	 * @return void
+	 */
+	public function testEveryMandatoryCombinationNamesWhatItMisses(): void {
+		$cases = [
+			'two missing, one complete, malformed skipped' => [
+				[['course-x', 'course-y', 'course-z'], 'not-a-list', [], ['course-a'], ['course-q', 'course-a']],
+				[
+					'Mandatory combination not fully selected: missing course-y, course-z.',
+					'Mandatory combination not fully selected: missing course-q.',
+				],
+			],
+			'combinations not a list' => ['course-x', null],
+		];
+
+		foreach ($cases as $label => [$combinations, $errors]) {
+			$this->savedObjects = [];
+			$plan = ['id' => 'plan-1', 'electiveRules' => ['mandatoryCombinations' => $combinations]];
+			$choice = ['id' => 'choice-2', 'curriculumPlanId' => 'plan-1', 'selectedElectiveCourseIds' => ['course-x', 'course-a'], 'tenant_id' => 'tenant-a'];
+
+			$this->makeHandler(plan: $plan)->handle($this->makeEvent($choice));
+
+			if ($errors === null) {
+				self::assertSame('validated', $this->savedObjects[0]['object']['lifecycle'], $label);
+				continue;
+			}
+
+			self::assertSame('needs-revision', $this->savedObjects[0]['object']['lifecycle'], $label);
+			self::assertSame($errors, $this->savedObjects[0]['object']['validationErrors'], $label);
+		}
+	}//end testEveryMandatoryCombinationNamesWhatItMisses()
 }//end class

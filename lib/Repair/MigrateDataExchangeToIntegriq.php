@@ -257,31 +257,58 @@ class MigrateDataExchangeToIntegriq implements IRepairStep {
 	private function migrateMappings(array $profiles): int {
 		$stored = 0;
 		foreach ($profiles as $profile) {
-			$name = (string)($profile['name'] ?? '');
-			if ($name === '' || isset(self::SEEDED_PROFILES[$name]) === true) {
-				continue;
-			}
-
-			$rules = $this->translator->rulesOf(profile: $profile);
-			if ($rules === []) {
-				continue;
-			}
-
-			try {
-				$this->integriq->requestMapping(
-					slug: $this->translator->slugOf(profile: $profile),
-					name: 'learniq: ' . $name,
-					description: 'Migrated from learniq DataMappingProfile "' . $name . '" (target ' . (string)($profile['target'] ?? '') . ').',
-					mapping: $rules
-				);
+			if ($this->migrateMapping(profile: $profile) === true) {
 				$stored++;
-			} catch (Throwable $exception) {
-				$this->logger->warning('[MigrateDataExchangeToIntegriq] mapping "' . $name . '" not moved: ' . $exception->getMessage());
 			}
 		}
 
 		return $stored;
 	}//end migrateMappings()
+
+	/**
+	 * Move one custom profile to integriq: a named, non-seeded profile with rules.
+	 *
+	 * @param array<string,mixed> $profile The DataMappingProfile.
+	 *
+	 * @return bool Whether integriq stored it.
+	 */
+	private function migrateMapping(array $profile): bool {
+		$name = (string)($profile['name'] ?? '');
+		if ($name === '' || isset(self::SEEDED_PROFILES[$name]) === true) {
+			return false;
+		}
+
+		$rules = $this->translator->rulesOf(profile: $profile);
+		if ($rules === []) {
+			return false;
+		}
+
+		return $this->sendMapping(profile: $profile, rules: $rules);
+	}//end migrateMapping()
+
+	/**
+	 * Ask integriq to store a profile's rules as a mapping; a refusal is logged.
+	 *
+	 * @param array<string,mixed> $profile The DataMappingProfile.
+	 * @param array<string,mixed> $rules   Its rules, translated.
+	 *
+	 * @return bool Whether integriq stored it.
+	 */
+	private function sendMapping(array $profile, array $rules): bool {
+		$name = (string)($profile['name'] ?? '');
+		try {
+			$this->integriq->requestMapping(
+				slug: $this->translator->slugOf(profile: $profile),
+				name: 'learniq: ' . $name,
+				description: 'Migrated from learniq DataMappingProfile "' . $name . '" (target ' . (string)($profile['target'] ?? '') . ').',
+				mapping: $rules
+			);
+			return true;
+		} catch (Throwable $exception) {
+			$this->logger->warning('[MigrateDataExchangeToIntegriq] mapping "' . $name . '" not moved: ' . $exception->getMessage());
+			return false;
+		}
+	}//end sendMapping()
 
 	/**
 	 * Point the rows that named the old job at its integriq job.

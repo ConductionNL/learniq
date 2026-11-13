@@ -71,6 +71,11 @@ import axios from '@nextcloud/axios'
 import { translatePlural as n, translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcNoteCard } from '@nextcloud/vue'
+import {
+	lessonDateTime,
+	lessonReference,
+	refusalReason,
+} from '../utils/electiveLessons.js'
 
 export default {
 	name: 'ElectiveRosterView',
@@ -144,9 +149,7 @@ export default {
 		async place(lesson, learnerId) {
 			this.busy = true
 			this.error = ''
-			const where = lesson.sessionId
-				? { sessionId: lesson.sessionId }
-				: { timetableSessionRef: lesson.timetableSessionRef }
+			const where = lessonReference(lesson)
 			try {
 				await axios.post(
 					generateUrl('/apps/learniq/api/electives/{id}/place', {
@@ -170,15 +173,7 @@ export default {
 		 * @spec openspec/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
 		 */
 		formatDate(iso) {
-			const date = new Date(iso)
-			if (!iso || Number.isNaN(date.getTime())) return ''
-			return date.toLocaleString(undefined, {
-				weekday: 'short',
-				day: 'numeric',
-				month: 'short',
-				hour: '2-digit',
-				minute: '2-digit',
-			})
+			return lessonDateTime(iso)
 		},
 
 		/**
@@ -189,10 +184,7 @@ export default {
 		 * @spec openspec/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
 		 */
 		reason(e) {
-			return (
-				e?.response?.data?.error
-				|| t('learniq', 'Something went wrong. Try again.')
-			)
+			return refusalReason(e, t)
 		},
 	},
 }

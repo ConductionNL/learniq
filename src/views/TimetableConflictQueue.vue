@@ -145,6 +145,7 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
 import TimetableImportDialog from '../dialogs/TimetableImportDialog.vue'
+import { displayDateTime } from '../utils/displayDateTime.js'
 import { IMPORT_ACCESS_URL } from '../utils/timetableExchangeSettings.js'
 
 export default {
@@ -325,18 +326,7 @@ export default {
 		 * @return {string}
 		 */
 		formatDate(dt) {
-			if (!dt) return ''
-			try {
-				return new Intl.DateTimeFormat(navigator.language, {
-					year: 'numeric',
-					month: 'short',
-					day: 'numeric',
-					hour: '2-digit',
-					minute: '2-digit',
-				}).format(new Date(dt))
-			} catch {
-				return dt
-			}
+			return displayDateTime(dt)
 		},
 	},
 }

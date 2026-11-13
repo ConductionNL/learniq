@@ -222,6 +222,17 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 			return null;
 		}
 
+		return $this->providerFrom(providerClass: $providerClass);
+	}//end resolveProvider()
+
+	/**
+	 * Build the named provider through the DI container; null (logged) when it cannot be built.
+	 *
+	 * @param string $providerClass The provider FQCN.
+	 *
+	 * @return ProvidesLeerbedrijfVerification|null
+	 */
+	private function providerFrom(string $providerClass): ?ProvidesLeerbedrijfVerification {
 		try {
 			$service = $this->container->get($providerClass);
 		} catch (\Throwable $e) {
@@ -232,6 +243,18 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 			return null;
 		}
 
+		return $this->asProvider(service: $service, providerClass: $providerClass);
+	}//end providerFrom()
+
+	/**
+	 * The built service as a provider; null (logged) when it does not implement ProvidesLeerbedrijfVerification.
+	 *
+	 * @param mixed  $service       What the container built.
+	 * @param string $providerClass The provider FQCN, for the log.
+	 *
+	 * @return ProvidesLeerbedrijfVerification|null
+	 */
+	private function asProvider(mixed $service, string $providerClass): ?ProvidesLeerbedrijfVerification {
 		if (($service instanceof ProvidesLeerbedrijfVerification) === false) {
 			$this->logger->warning(
 				'[BpvLeerbedrijfVerificationHandler] Configured provider "{class}" does not implement '
@@ -242,5 +265,5 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 		}
 
 		return $service;
-	}//end resolveProvider()
+	}//end asProvider()
 }//end class

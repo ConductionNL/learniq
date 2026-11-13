@@ -112,16 +112,9 @@ class ExcuseApprovalHandler implements IEventListener {
 	 */
 	private function flipAttendanceRecords(ObjectTransitionedEvent $event): void {
 		$request = $event->getObject()->jsonSerialize();
-		$requestId = $request['id'] ?? '';
-		if ($requestId === '') {
-			$requestId = $request['uuid'] ?? '';
-		}
+		$requestId = $this->requestIdOf(request: $request);
 
-		$learnerId = $request['learnerId'] ?? '';
-		$dateFrom = $request['dateFrom'] ?? '';
-		$dateTo = $request['dateTo'] ?? '';
-
-		if ($learnerId === '' || $dateFrom === '' || $dateTo === '') {
+		if ($this->hasExcuseFields(request: $request) === false) {
 			$this->logger->warning(
 				'[ExcuseApprovalHandler] ExcuseRequest {id} missing learnerId/dateFrom/dateTo — skipping.',
 				['id' => $requestId]
@@ -129,13 +122,76 @@ class ExcuseApprovalHandler implements IEventListener {
 			return;
 		}
 
-		$window = $this->resolveExcuseWindow(dateFrom: $dateFrom, dateTo: $dateTo, requestId: (string)$requestId);
-		if ($window === null) {
-			return;
+		$window = $this->resolveExcuseWindow(dateFrom: $request['dateFrom'], dateTo: $request['dateTo'], requestId: (string)$requestId);
+		if ($window !== null) {
+			$this->flipForLearner(request: $request, window: $window);
 		}
 
-		// Fetch all absent-unexcused records for this learner.
-		$records = $this->objectService->findAll(
+	}//end flipAttendanceRecords()
+
+	/**
+	 * An excuse request's id, or its uuid when it has no id.
+	 *
+	 * @param array<string,mixed> $request The ExcuseRequest.
+	 *
+	 * @return mixed
+	 */
+	private function requestIdOf(array $request): mixed {
+		$requestId = $request['id'] ?? '';
+		if ($requestId === '') {
+			$requestId = $request['uuid'] ?? '';
+		}
+
+		return $requestId;
+	}//end requestIdOf()
+
+	/**
+	 * Whether an excuse request names its learner and both dates.
+	 *
+	 * @param array<string,mixed> $request The ExcuseRequest.
+	 *
+	 * @return bool
+	 */
+	private function hasExcuseFields(array $request): bool {
+		return ($request['learnerId'] ?? '') !== ''
+			&& ($request['dateFrom'] ?? '') !== ''
+			&& ($request['dateTo'] ?? '') !== '';
+	}//end hasExcuseFields()
+
+	/**
+	 * Flip the learner's absent-unexcused records inside the excuse window and log how many.
+	 *
+	 * @param array<string,mixed>              $request The approved ExcuseRequest.
+	 * @param array{fromDay: int, toDay: int} $window  The excuse window.
+	 *
+	 * @return void
+	 */
+	private function flipForLearner(array $request, array $window): void {
+		$requestId = $this->requestIdOf(request: $request);
+		$learnerId = $request['learnerId'];
+
+		$flippedCount = $this->flipRecordsInWindow(
+			records: $this->unexcusedRecordsOf(learnerId: $learnerId),
+			fromDay: $window['fromDay'],
+			toDay: $window['toDay'],
+			requestId: (string)$requestId
+		);
+
+		$this->logger->info(
+			'[ExcuseApprovalHandler] ExcuseRequest {id} approved — flipped {n} AttendanceRecord(s) to absent-excused for learner {learner}.',
+			['id' => $requestId, 'n' => $flippedCount, 'learner' => $learnerId]
+		);
+	}//end flipForLearner()
+
+	/**
+	 * All absent-unexcused records of a learner.
+	 *
+	 * @param mixed $learnerId The learner.
+	 *
+	 * @return array<int,mixed>
+	 */
+	private function unexcusedRecordsOf(mixed $learnerId): array {
+		return $this->objectService->findAll(
 			[
 				'filters' => [
 					'register' => self::LEARNIQ_REGISTER,
@@ -146,20 +202,7 @@ class ExcuseApprovalHandler implements IEventListener {
 				'limit' => 1000,
 			]
 		);
-
-		$flippedCount = $this->flipRecordsInWindow(
-			records: $records,
-			fromDay: $window['fromDay'],
-			toDay: $window['toDay'],
-			requestId: (string)$requestId
-		);
-
-		$this->logger->info(
-			'[ExcuseApprovalHandler] ExcuseRequest {id} approved — flipped {n} AttendanceRecord(s) to absent-excused for learner {learner}.',
-			['id' => $requestId, 'n' => $flippedCount, 'learner' => $learnerId]
-		);
-
-	}//end flipAttendanceRecords()
+	}//end unexcusedRecordsOf()
 
 	/**
 	 * Resolve an ExcuseRequest's date range to an inclusive `Ymd` day window.

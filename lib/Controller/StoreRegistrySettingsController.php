@@ -53,7 +53,14 @@ class StoreRegistrySettingsController extends Controller {
 
 	public const KEY_REGISTER = 'registry_register';
 
-	public const KEY_TOKEN = 'registry_token';
+	public const KEY_REGISTRY_AUTH = 'registry_token';
+
+	/**
+	 * Former name of KEY_REGISTRY_AUTH.
+	 *
+	 * @deprecated Use KEY_REGISTRY_AUTH.
+	 */
+	public const KEY_TOKEN = self::KEY_REGISTRY_AUTH;
 
 	/**
 	 * A register segment: lowercase slug, as registers are named.
@@ -151,13 +158,13 @@ class StoreRegistrySettingsController extends Controller {
 	 */
 	private function saveToken(): void {
 		if (filter_var($this->request->getParam('clearToken', false), FILTER_VALIDATE_BOOLEAN) === true) {
-			$this->appConfig->deleteKey(Application::APP_ID, self::KEY_TOKEN);
+			$this->appConfig->deleteKey(Application::APP_ID, self::KEY_REGISTRY_AUTH);
 			return;
 		}
 
 		$token = $this->request->getParam('token');
 		if (is_string($token) === true && trim($token) !== '') {
-			$this->appConfig->setValueString(Application::APP_ID, self::KEY_TOKEN, trim($token), sensitive: true);
+			$this->appConfig->setValueString(Application::APP_ID, self::KEY_REGISTRY_AUTH, trim($token), sensitive: true);
 		}
 
 	}//end saveToken()
@@ -171,7 +178,7 @@ class StoreRegistrySettingsController extends Controller {
 		return [
 			'url'      => $this->appConfig->getValueString(Application::APP_ID, self::KEY_URL, ''),
 			'register' => $this->appConfig->getValueString(Application::APP_ID, self::KEY_REGISTER, ''),
-			'tokenSet' => $this->appConfig->getValueString(Application::APP_ID, self::KEY_TOKEN, '') !== '',
+			'tokenSet' => $this->appConfig->getValueString(Application::APP_ID, self::KEY_REGISTRY_AUTH, '') !== '',
 		];
 
 	}//end current()

@@ -55,6 +55,13 @@ class RegulationAssignmentService {
 	private const ENDED_STATES = ['withdrawn', 'failed'];
 
 	/**
+	 * Reads the rows of one learniq schema.
+	 *
+	 * @var SchemaRows
+	 */
+	private readonly SchemaRows $schemaRows;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService              $objectService OR object access.
@@ -68,6 +75,7 @@ class RegulationAssignmentService {
 		private readonly RegulationAudienceResolver $audience,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->schemaRows = new SchemaRows(objectService: $objectService, limit: self::PAGE_LIMIT);
 	}//end __construct()
 
 	/**
@@ -267,26 +275,6 @@ class RegulationAssignmentService {
 	 * @return array<int,array<string,mixed>>
 	 */
 	private function rows(string $schema, array $filters=[]): array {
-		$config = [
-			'filters' => array_merge(
-				$filters,
-				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => $schema,
-				]
-			),
-			'limit' => self::PAGE_LIMIT,
-		];
-
-		$out = [];
-		foreach ($this->objectService->findAll($config) as $row) {
-			if (is_array($row) === false) {
-				$row = $row->jsonSerialize();
-			}
-
-			$out[] = $row;
-		}
-
-		return $out;
+		return $this->schemaRows->serialised(schema: $schema, filters: $filters);
 	}//end rows()
 }//end class

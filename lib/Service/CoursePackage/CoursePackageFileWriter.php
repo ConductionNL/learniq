@@ -29,10 +29,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\CoursePackage;
 
-use OCP\Files\File;
+use OCA\Learniq\Service\FolderFileWriter;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
-use OCP\Files\NotFoundException;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -159,9 +158,9 @@ class CoursePackageFileWriter {
 			$ncBaseDir = $this->importFolder(tenantId: $tenantId);
 			$ncPath = $ncBaseDir . '/' . $filename;
 
-			$userFolder = $this->rootFolder->getUserFolder($importedBy);
-			$this->ensureFolder(userFolder: $userFolder, path: $ncBaseDir);
-			$this->putFileContent(userFolder: $userFolder, file: ['path' => $ncPath, 'content' => $content]);
+			$files = new FolderFileWriter(userFolder: $this->rootFolder->getUserFolder($importedBy));
+			$files->ensureFolder(path: $ncBaseDir);
+			$files->put(path: $ncPath, content: $content);
 
 			return '/' . $ncPath;
 		} catch (\Throwable $e) {
@@ -242,55 +241,4 @@ class CoursePackageFileWriter {
 		unlink($path);
 	}//end removeEntry()
 
-	/**
-	 * Write (or overwrite) a file node at the given nc:files path.
-	 *
-	 * @param Folder                           $userFolder The root user folder.
-	 * @param array{path:string,content:string} $file       Folder-relative destination path and raw file bytes.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
-	 */
-	private function putFileContent(Folder $userFolder, array $file): void {
-		['path' => $path, 'content' => $content] = $file;
-		if ($userFolder->nodeExists($path) === false) {
-			$userFolder->newFile($path, $content);
-			return;
-		}
-
-		$existingNode = $userFolder->get($path);
-		if ($existingNode instanceof File) {
-			$existingNode->putContent($content);
-		}
-	}//end putFileContent()
-
-	/**
-	 * Ensure a nested nc:files folder path exists under the given folder.
-	 *
-	 * @param Folder $userFolder The root user folder.
-	 * @param string $path Slash-separated relative path to ensure.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
-	 */
-	private function ensureFolder(Folder $userFolder, string $path): void {
-		$segments = array_filter(explode('/', $path));
-		$current = '';
-		foreach ($segments as $segment) {
-			$prefix = '';
-			if ($current !== '') {
-				$prefix = $current . '/';
-			}
-
-			$current = $prefix . $segment;
-
-			try {
-				$userFolder->get($current);
-			} catch (NotFoundException $e) {
-				$userFolder->newFolder($current);
-			}
-		}
-	}//end ensureFolder()
 }//end class

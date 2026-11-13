@@ -47,10 +47,16 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class ComplianceRollupService {
 
-	private const LEARNIQ_REGISTER = 'learniq';
 	private const OPEN_ENROLMENT_STATES = ['pending', 'active'];
 	private const PAGE_LIMIT = 10000;
 
+
+	/**
+	 * Reads the rows of one learniq schema.
+	 *
+	 * @var SchemaRows
+	 */
+	private readonly SchemaRows $schemaRows;
 
 	/**
 	 * Constructor.
@@ -63,11 +69,12 @@ class ComplianceRollupService {
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ObjectService $objectService,
+		ObjectService $objectService,
 		private readonly RegulationAudienceResolver $audience,
 		private readonly ExternalTrainingService $trainingService,
 		private readonly RunningExemptions $runningExemptions=new RunningExemptions(),
 	) {
+		$this->schemaRows = new SchemaRows(objectService: $objectService, limit: self::PAGE_LIMIT);
 	}//end __construct()
 
 	/**
@@ -386,26 +393,6 @@ class ComplianceRollupService {
 	 * @return array<int,array<string,mixed>>
 	 */
 	private function rows(string $schema, array $filters=[]): array {
-		$config = [
-			'filters' => array_merge(
-				$filters,
-				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => $schema,
-				]
-			),
-			'limit' => self::PAGE_LIMIT,
-		];
-
-		$out = [];
-		foreach ($this->objectService->findAll($config) as $row) {
-			if (is_array($row) === false) {
-				$row = $row->jsonSerialize();
-			}
-
-			$out[] = $row;
-		}
-
-		return $out;
+		return $this->schemaRows->serialised(schema: $schema, filters: $filters);
 	}//end rows()
 }//end class

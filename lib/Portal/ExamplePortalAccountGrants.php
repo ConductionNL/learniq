@@ -200,10 +200,7 @@ class ExamplePortalAccountGrants {
 			return 'portaliq-absent';
 		}
 
-		// The Nextcloud provisioning came with portaliq #1381; an older event has no getNextcloudUid().
-		if (class_exists($this->provisionEventClass) === false || class_exists($this->claimEventClass) === false
-			|| method_exists($this->provisionEventClass, 'getNextcloudUid') === false
-		) {
+		if ($this->portaliqProvisionsNextcloudAccounts() === false) {
 			return 'portaliq-too-old';
 		}
 
@@ -395,4 +392,16 @@ class ExamplePortalAccountGrants {
 			$this->dispatcher->dispatchTyped($event);
 		}
 	}//end dispatch()
+
+	/**
+	 * Whether portaliq's events exist and provision Nextcloud accounts.
+	 *
+	 * The Nextcloud provisioning came with portaliq #1381; an older event has no getNextcloudUid().
+	 *
+	 * @return bool
+	 */
+	private function portaliqProvisionsNextcloudAccounts(): bool {
+		return class_exists($this->provisionEventClass) === true && class_exists($this->claimEventClass) === true
+			&& method_exists($this->provisionEventClass, 'getNextcloudUid') === true;
+	}//end portaliqProvisionsNextcloudAccounts()
 }//end class
