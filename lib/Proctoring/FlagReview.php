@@ -40,13 +40,14 @@ declare(strict_types=1);
 namespace OCA\Learniq\Proctoring;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\FlagReviewInterface;
 
 /**
  * Compares incoming flags with stored ones and stamps who decided.
  *
  * @spec openspec/changes/proctoring-flag-review-page/specs/assessment/spec.md#requirement-only-staff-decide-a-flag-and-the-server-records-who-did
  */
-class FlagReview {
+class FlagReview implements FlagReviewInterface {
 
 	public const ONLY_STAFF = 'Only an instructor or compliance officer can decide a proctoring flag.';
 	public const NO_CHANGE = 'A recorded proctoring flag cannot be changed.';

@@ -29,8 +29,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Command;
 
-use OCA\Learniq\Portal\EmployerPortalInvitation;
-use OCA\Learniq\Portal\PortalTenants;
+use OCA\Learniq\Kernel\Contracts\EmployerPortalInvitationInterface;
+use OCA\Learniq\Kernel\Contracts\PortalTenantsInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -46,14 +46,14 @@ class PortalInviteEmployerCommand extends Command {
 	/**
 	 * Constructor.
 	 *
-	 * @param EmployerPortalInvitation $invitations Provisions the account and writes the claims.
-	 * @param PortalTenants            $tenants     Finds the portal organisation.
+	 * @param EmployerPortalInvitationInterface $invitations Provisions the account and writes the claims.
+	 * @param PortalTenantsInterface            $tenants     Finds the portal organisation.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly EmployerPortalInvitation $invitations,
-		private readonly PortalTenants $tenants,
+		private readonly EmployerPortalInvitationInterface $invitations,
+		private readonly PortalTenantsInterface $tenants,
 	) {
 		parent::__construct();
 	}//end __construct()

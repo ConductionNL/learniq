@@ -47,6 +47,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCA\Learniq\Kernel\Contracts\PortalAssertionVerifierInterface;
 use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
 
@@ -58,12 +59,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
  */
-class PortalAssertionVerifier {
-
-	/**
-	 * The header portaliq attaches the assertion to.
-	 */
-	public const HEADER = 'X-Portal-Subject';
+class PortalAssertionVerifier implements PortalAssertionVerifierInterface {
 
 	/**
 	 * The only accepted algorithm. An exact match refuses `none` and any

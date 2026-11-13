@@ -48,6 +48,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\SessionChangeNoticeHandlerInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -62,7 +63,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/specs/timetabling/spec.md#requirement-cancellation-or-substitution-notifies-affected-learners-and-parents
  */
-class SessionChangeNoticeHandler implements IEventListener {
+class SessionChangeNoticeHandler implements IEventListener, SessionChangeNoticeHandlerInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const SESSION_SCHEMA = 'session';

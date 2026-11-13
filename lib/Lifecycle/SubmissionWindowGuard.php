@@ -37,6 +37,7 @@ namespace OCA\Learniq\Lifecycle;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\SubmissionWindowGuardInterface;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -60,17 +61,12 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/specs/assignments/spec.md#requirement-a-learner-hands-in-their-own-work-and-the-teacher-marks-it
  */
-class SubmissionWindowGuard implements LifecycleGuardInterface {
+class SubmissionWindowGuard implements LifecycleGuardInterface, SubmissionWindowGuardInterface {
 
 	/**
 	 * OR register slug for Learniq objects.
 	 */
 	private const LEARNIQ_REGISTER = 'learniq';
-
-	/**
-	 * The late hand-in transition.
-	 */
-	public const LATE_ACTION = 'submitLate';
 
 	/**
 	 * Refusal: The submission names no assignment.
@@ -96,11 +92,6 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 	 * Refusal: `submitLate` before the deadline.
 	 */
 	public const DENY_NOT_LATE_YET = 'The deadline has not passed, so hand the work in normally.';
-
-	/**
-	 * Refusal: After the deadline, on an assignment that takes no late work.
-	 */
-	public const DENY_LATE_NOT_ACCEPTED = 'The deadline has passed and this assignment does not accept late work.';
 
 	/**
 	 * Refusal: `submit` after the deadline, on an assignment that takes late work.

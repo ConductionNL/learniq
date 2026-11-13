@@ -39,6 +39,7 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\OCS\OCSForbiddenException;
 use OCP\IRequest;
+use OCP\IUser;
 use OCP\IUserSession;
 
 /**
@@ -138,6 +139,27 @@ class ExchangeRequestController extends Controller {
 		}
 
 		$learnerId = trim((string)$this->request->getParam('learnerId', ''));
+		$jobId = $this->requestExport(user: $user, request: ['target' => $target, 'scope' => $this->scopeFor(target: $target, learnerId: $learnerId)]);
+		if ($jobId instanceof JSONResponse) {
+			return $jobId;
+		}
+
+		$this->openDossierReview(jobId: $jobId, request: ['target' => $target, 'learnerId' => $learnerId]);
+
+		return new JSONResponse(data: ['jobId' => $jobId], statusCode: Http::STATUS_CREATED);
+	}//end create()
+
+	/**
+	 * The export scope: the target's schema, the learner filter and an optional cohort.
+	 *
+	 * @param string $target    The exchange target.
+	 * @param string $learnerId The learner to export, or ''.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 */
+	private function scopeFor(string $target, string $learnerId): array {
 		$schema = self::TARGETS[$target]['schema'];
 		$scope = ['schema' => $schema, 'filters' => $this->filters(schema: $schema, learnerId: $learnerId)];
 		$cohortId = trim((string)$this->request->getParam('cohortId', ''));
@@ -145,12 +167,27 @@ class ExchangeRequestController extends Controller {
 			$scope['cohortId'] = $cohortId;
 		}
 
+		return $scope;
+	}//end scopeFor()
+
+	/**
+	 * Ask integriq for the export job; the error response when it is unavailable or refuses.
+	 *
+	 * @param IUser                $user    The requesting user.
+	 * @param array<string, mixed> $request target and scope.
+	 *
+	 * @return string|JSONResponse The job id, or the response to answer with.
+	 *
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 */
+	private function requestExport(IUser $user, array $request): string|JSONResponse {
+		$target = $request['target'];
 		try {
-			$jobId = $this->integriq->requestJob(
+			return $this->integriq->requestJob(
 				target: $target,
 				direction: 'export',
 				ownerRef: 'user/' . $user->getUID(),
-				scope: $scope,
+				scope: $request['scope'],
 				mappingSlug: self::TARGETS[$target]['mapping'],
 				requestedBy: $user->getUID(),
 				name: 'Export ' . $target
@@ -163,17 +200,27 @@ class ExchangeRequestController extends Controller {
 				statusCode: Http::STATUS_CONFLICT
 			);
 		}
+	}//end requestExport()
 
-		if ($learnerId !== '' && in_array($target, self::REVIEWED_TARGETS, true) === true) {
+	/**
+	 * Open a pending dossier review for a reviewed target's per-learner export.
+	 *
+	 * @param string               $jobId   The export job.
+	 * @param array<string, mixed> $request target and learnerId.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 */
+	private function openDossierReview(string $jobId, array $request): void {
+		if ($request['learnerId'] !== '' && in_array($request['target'], self::REVIEWED_TARGETS, true) === true) {
 			$this->objectService->saveObject(
 				register: self::LEARNIQ_REGISTER,
 				schema: self::DOSSIER_REVIEW_SCHEMA,
-				object: ['exchangeJobId' => $jobId, 'target' => $target, 'learnerUserId' => $learnerId, 'status' => 'pending']
+				object: ['exchangeJobId' => $jobId, 'target' => $request['target'], 'learnerUserId' => $request['learnerId'], 'status' => 'pending']
 			);
 		}
-
-		return new JSONResponse(data: ['jobId' => $jobId], statusCode: Http::STATUS_CREATED);
-	}//end create()
+	}//end openDossierReview()
 
 	/**
 	 * The scope filters for one learner, named as the schema names its field.

@@ -27,6 +27,7 @@ use OCA\Learniq\Controller\PortalEmployerInviteController;
 use OCA\Learniq\Portal\CallerOrganisations;
 use OCA\Learniq\Portal\EmployerPortalInvitation;
 use OCA\Learniq\Portal\PortalTenant;
+use OCA\Learniq\Tests\Support\ContractImplementations;
 use OCA\Learniq\Tests\Unit\Portal\FakeEmployerClaimEvent;
 use OCA\Learniq\Tests\Unit\Portal\FakeEmployerProvisionEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -187,7 +188,7 @@ class PortalEmployerInviteTenantTest extends TestCase {
 		foreach ((new \ReflectionClass(PortalEmployerInviteController::class))->getConstructor()->getParameters() as $parameter) {
 			$type = $parameter->getType();
 			self::assertInstanceOf(expected: \ReflectionNamedType::class, actual: $type);
-			$arguments[] = $given[$type->getName()] ?? $this->bundle(class: $type->getName(), given: $given);
+			$arguments[] = $given[ContractImplementations::concrete($type->getName())] ?? $this->bundle(class: ContractImplementations::concrete($type->getName()), given: $given);
 		}
 
 		return new PortalEmployerInviteController(...$arguments);
@@ -206,7 +207,7 @@ class PortalEmployerInviteTenantTest extends TestCase {
 		foreach ((new \ReflectionClass($class))->getConstructor()->getParameters() as $parameter) {
 			$type = $parameter->getType();
 			self::assertInstanceOf(expected: \ReflectionNamedType::class, actual: $type);
-			$arguments[] = $given[$type->getName()];
+			$arguments[] = $given[ContractImplementations::concrete($type->getName())];
 		}
 
 		return new $class(...$arguments);

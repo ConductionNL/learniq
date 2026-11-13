@@ -43,27 +43,19 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCA\Learniq\Kernel\Contracts\EmployerSitePagesInterface;
+
 /**
  * Builds the employer's collections, actions and pages.
  *
  * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
  */
-class EmployerSitePages {
+class EmployerSitePages implements EmployerSitePagesInterface {
 
 	/**
 	 * The audience.
 	 */
 	public const AUDIENCE = 'employer';
-
-	/**
-	 * The claim every employer collection is scoped by.
-	 */
-	public const CLAIM = 'organisationRef';
-
-	/**
-	 * The claim the booking form's editions are scoped by.
-	 */
-	public const LOCATION_CLAIM = 'editionLocationRef';
 
 	/**
 	 * The provider method that answers a booking's steps.

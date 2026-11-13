@@ -48,6 +48,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\WerkprocesAssessmentLearnerStampInterface;
 use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
@@ -65,7 +66,7 @@ use Throwable;
  *
  * @spec openspec/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
  */
-class WerkprocesAssessmentLearnerStamp implements IEventListener {
+class WerkprocesAssessmentLearnerStamp implements IEventListener, WerkprocesAssessmentLearnerStampInterface {
 
 	private const REGISTER = 'learniq';
 

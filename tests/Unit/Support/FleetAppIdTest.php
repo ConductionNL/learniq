@@ -167,4 +167,41 @@ class FleetAppIdTest extends TestCase {
 
 		$this->assertTrue(FleetAppId::isEnabledForUser($appManager, 'integriq'));
 	}//end testIsEnabledForUserAsksAboutTheResolvedId()
+
+	/**
+	 * isInstalled() is true for an app present under its old or new id and
+	 * false for one present under neither.
+	 *
+	 * @return void
+	 */
+	public function testIsInstalledAcceptsEitherIdOfTheApp(): void {
+		$this->assertTrue(FleetAppId::isInstalled($this->appManager(['openconnector']), 'integriq'));
+		$this->assertTrue(FleetAppId::isInstalled($this->appManager(['integriq']), 'integriq'));
+		$this->assertFalse(FleetAppId::isInstalled($this->appManager(['docudesk']), 'integriq'));
+	}//end testIsInstalledAcceptsEitherIdOfTheApp()
+
+	/**
+	 * An app that is not installed is not enabled, and the enabled check is
+	 * never asked about an id the instance does not have.
+	 *
+	 * @return void
+	 */
+	public function testIsEnabledForUserIsFalseForAnAbsentApp(): void {
+		$appManager = $this->appManager([]);
+		$appManager->expects($this->never())->method('isEnabledForUser');
+
+		$this->assertFalse(FleetAppId::isEnabledForUser($appManager, 'integriq'));
+	}//end testIsEnabledForUserIsFalseForAnAbsentApp()
+
+	/**
+	 * An enabled check that throws reads as not enabled rather than escaping.
+	 *
+	 * @return void
+	 */
+	public function testAThrowingEnabledCheckReadsAsNotEnabled(): void {
+		$appManager = $this->appManager(['integriq']);
+		$appManager->method('isEnabledForUser')->willThrowException(new RuntimeException('no user session'));
+
+		$this->assertFalse(FleetAppId::isEnabledForUser($appManager, 'integriq'));
+	}//end testAThrowingEnabledCheckReadsAsNotEnabled()
 }//end class

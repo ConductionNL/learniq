@@ -31,8 +31,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Command;
 
+use OCA\Learniq\Kernel\Contracts\EmployerCompanyTenancyInterface;
 use OCA\Learniq\Portal\EmployerAccounts;
-use OCA\Learniq\Portal\EmployerCompanyTenancy;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -50,13 +50,13 @@ class PortalEmployerTenancyReportCommand extends Command {
 	 * Constructor.
 	 *
 	 * @param EmployerAccounts       $accounts Lists the employer accounts.
-	 * @param EmployerCompanyTenancy $tenancy  Checks each account's company.
+	 * @param EmployerCompanyTenancyInterface $tenancy  Checks each account's company.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly EmployerAccounts $accounts,
-		private readonly EmployerCompanyTenancy $tenancy,
+		private readonly EmployerCompanyTenancyInterface $tenancy,
 	) {
 		parent::__construct();
 	}//end __construct()
@@ -105,7 +105,7 @@ class PortalEmployerTenancyReportCommand extends Command {
 		$affected = 0;
 		foreach ($accounts as $account) {
 			$verdict = $this->tenancy->verdict(organisationRef: $account['organisationRef'], organisation: $account['organisation']);
-			if ($verdict !== EmployerCompanyTenancy::HOLDS) {
+			if ($verdict !== EmployerCompanyTenancyInterface::HOLDS) {
 				$affected++;
 				$output->writeln(implode("\t", [$account['subjectRef'], $account['organisation'], $account['organisationRef'], $verdict]));
 			}

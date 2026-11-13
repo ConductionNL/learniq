@@ -32,7 +32,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Portal;
 
 use OCA\Learniq\Kernel\Contracts\PortalSubmissionHandInInterface;
-use OCA\Learniq\Lifecycle\SubmissionWindowGuard;
+use OCA\Learniq\Kernel\Contracts\SubmissionWindowGuardInterface;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
@@ -62,7 +62,7 @@ class PortalSubmissionHandIn implements PortalSubmissionHandInInterface {
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
 	 * @param TransitionEngine $transitionEngine OpenRegister lifecycle transitions.
-	 * @param SubmissionWindowGuard $guard The hand-in rules.
+	 * @param SubmissionWindowGuardInterface $guard The hand-in rules.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
@@ -70,7 +70,7 @@ class PortalSubmissionHandIn implements PortalSubmissionHandInInterface {
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly TransitionEngine $transitionEngine,
-		private readonly SubmissionWindowGuard $guard,
+		private readonly SubmissionWindowGuardInterface $guard,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -117,12 +117,12 @@ class PortalSubmissionHandIn implements PortalSubmissionHandInInterface {
 			return 'submit';
 		}
 
-		$late = $this->guard->check($submission, SubmissionWindowGuard::LATE_ACTION, $learner->ncUserId);
+		$late = $this->guard->check($submission, SubmissionWindowGuardInterface::LATE_ACTION, $learner->ncUserId);
 		if ($late->isAllowed() === false) {
 			return $this->refused(message: (string)$late->getMessage());
 		}
 
-		return SubmissionWindowGuard::LATE_ACTION;
+		return SubmissionWindowGuardInterface::LATE_ACTION;
 	}//end handInAction()
 
 	/**
@@ -154,7 +154,7 @@ class PortalSubmissionHandIn implements PortalSubmissionHandInInterface {
 		}
 
 		$lifecycle = 'submitted';
-		if ($action === SubmissionWindowGuard::LATE_ACTION) {
+		if ($action === SubmissionWindowGuardInterface::LATE_ACTION) {
 			$lifecycle = 'late';
 		}
 
@@ -175,7 +175,7 @@ class PortalSubmissionHandIn implements PortalSubmissionHandInInterface {
 	 * @return PortalOutcome
 	 */
 	private function refused(string $message): PortalOutcome {
-		if ($message === SubmissionWindowGuard::DENY_LATE_NOT_ACCEPTED) {
+		if ($message === SubmissionWindowGuardInterface::DENY_LATE_NOT_ACCEPTED) {
 			return new PortalOutcome(
 				status: Http::STATUS_UNPROCESSABLE_ENTITY,
 				body: ['error' => 'late_not_accepted'],

@@ -39,8 +39,8 @@ namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\FlagReviewInterface;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
-use OCA\Learniq\Proctoring\FlagReview;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -72,13 +72,13 @@ class ProctoringFlagReviewGuard implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param FlagReview             $rules          The flag rules.
+	 * @param FlagReviewInterface             $rules          The flag rules.
 	 * @param ListenerSchemaResolverInterface $schemaResolver Which schema an event is about.
 	 * @param IUserSession           $userSession    The writer.
 	 * @param IGroupManager          $groupManager   Admin and staff checks.
 	 */
 	public function __construct(
-		private readonly FlagReview $rules,
+		private readonly FlagReviewInterface $rules,
 		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
