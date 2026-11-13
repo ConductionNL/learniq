@@ -234,11 +234,175 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
  * @link     https://github.com/ConductionNL/learniq
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
- * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
  *
  * @spec exclude Structural composition, no functional requirement.
  */
 final class ContractBindings {
+
+	/**
+	 * Contract => the class that implements it.
+	 *
+	 * @var array<class-string, class-string>
+	 */
+	private const BINDINGS = [
+		AiLocalityClassifierInterface::class => AiLocalityClassifier::class,
+		AiTranslatedCatalogueInterface::class => AiTranslatedCatalogue::class,
+		AppealTermInterface::class => AppealTerm::class,
+		AssessmentAccessFactsInterface::class => AssessmentAccessFacts::class,
+		AssessmentAttemptLimitsInterface::class => AssessmentAttemptLimits::class,
+		AssessmentResultAudienceInterface::class => AssessmentResultAudience::class,
+		AssessmentResultPortalStampInterface::class => AssessmentResultPortalStamp::class,
+		AttendanceSummaryServiceInterface::class => AttendanceSummaryService::class,
+		AttendanceWindowAggregatorInterface::class => AttendanceWindowAggregator::class,
+		AuditPackBuilderInterface::class => AuditPackBuilder::class,
+		BpvPlacementStepsInterface::class => BpvPlacementSteps::class,
+		BsaProgressEvaluatorInterface::class => BsaProgressEvaluator::class,
+		BulkEnrolServiceInterface::class => BulkEnrolService::class,
+		CallerTenantResolverInterface::class => CallerTenantResolver::class,
+		CatalogueMessagesInterface::class => CatalogueMessages::class,
+		CatalogueReaderInterface::class => CatalogueReader::class,
+		CatalogueSignUpServiceInterface::class => CatalogueSignUpService::class,
+		CheckInCodeServiceInterface::class => CheckInCodeService::class,
+		CheckInMessagesInterface::class => CheckInMessages::class,
+		CheckInServiceInterface::class => CheckInService::class,
+		Cmi5LaunchSessionsInterface::class => Cmi5LaunchSessions::class,
+		Cmi5LaunchTokenServiceInterface::class => Cmi5LaunchTokenService::class,
+		CohortNameRestampInterface::class => CohortNameRestamp::class,
+		CompetencyAlignmentNormaliserInterface::class => CompetencyAlignmentNormaliser::class,
+		CompetencyAttainmentRollupInterface::class => CompetencyAttainmentRollup::class,
+		ComplianceRollupServiceInterface::class => ComplianceRollupService::class,
+		ConferenceInvitationsInterface::class => ConferenceInvitations::class,
+		ConferenceSlotClaimInterface::class => ConferenceSlotClaim::class,
+		ConformanceEvidenceInterface::class => ConformanceEvidence::class,
+		ConnectionReportServiceInterface::class => ConnectionReportService::class,
+		ContactHoursServiceInterface::class => ContactHoursService::class,
+		ContributionBeneficiaryResolverInterface::class => ContributionBeneficiaryResolver::class,
+		ContributionRaiserInterface::class => ContributionRaiser::class,
+		CorrectionApprovalsInterface::class => CorrectionApprovals::class,
+		CourseEvaluationAnswerServiceInterface::class => CourseEvaluationAnswerService::class,
+		CoursePackageExportServiceInterface::class => CoursePackageExportService::class,
+		CoursePackageImportServiceInterface::class => CoursePackageImportService::class,
+		CourseQualityScoreEvaluatorInterface::class => CourseQualityScoreEvaluator::class,
+		CourseShareExportServiceInterface::class => CourseShareExportService::class,
+		CourseStoreDescriptorInterface::class => CourseStoreDescriptor::class,
+		CourseStoreInstallerInterface::class => CourseStoreInstaller::class,
+		CourseStorePublisherInterface::class => CourseStorePublisher::class,
+		CourseTemplateServiceInterface::class => CourseTemplateService::class,
+		CredentialLearnerInterface::class => CredentialLearner::class,
+		CredentialReissueServiceInterface::class => CredentialReissueService::class,
+		CredentialSigningServiceInterface::class => CredentialSigningService::class,
+		CurriculumCoverageRollupInterface::class => CurriculumCoverageRollup::class,
+		DashboardRoleServiceInterface::class => DashboardRoleService::class,
+		DisplayScreenBoardInterface::class => DisplayScreenBoard::class,
+		DisplayScreenServiceInterface::class => DisplayScreenService::class,
+		DraftSubmitterInterface::class => DraftSubmitter::class,
+		ElectiveBoardInterface::class => ElectiveBoard::class,
+		ElectiveServiceInterface::class => ElectiveService::class,
+		ElectiveSlotServiceInterface::class => ElectiveSlotService::class,
+		EmployerBookingProjectionInterface::class => EmployerBookingProjection::class,
+		EmployerBookingStepsInterface::class => EmployerBookingSteps::class,
+		EngagementScoreEvaluatorInterface::class => EngagementScoreEvaluator::class,
+		EnrolmentForecastServiceInterface::class => EnrolmentForecastService::class,
+		EnrolmentProgressEvaluatorInterface::class => EnrolmentProgressEvaluator::class,
+		EuropassIssuerInterface::class => EuropassIssuer::class,
+		ExamSittingOverviewInterface::class => ExamSittingOverview::class,
+		ExampleSetDatesInterface::class => ExampleSetDates::class,
+		ExampleSetSizesInterface::class => ExampleSetSizes::class,
+		ExchangeDisclosureInterface::class => ExchangeDisclosure::class,
+		ExchangeGateServiceInterface::class => ExchangeGateService::class,
+		ExchangeImportLandingInterface::class => ExchangeImportLanding::class,
+		ExcuseRequestStaffOwnerInterface::class => ExcuseRequestStaffOwner::class,
+		ExternalTrainingImportInterface::class => ExternalTrainingImport::class,
+		ExternalTrainingServiceInterface::class => ExternalTrainingService::class,
+		HourPlanActivityServiceInterface::class => HourPlanActivityService::class,
+		IntegriqExchangeClientInterface::class => IntegriqExchangeClient::class,
+		ItemAnalysisServiceInterface::class => ItemAnalysisService::class,
+		ItemPoolFilterInterface::class => ItemPoolFilter::class,
+		JwsProofVerifierInterface::class => JwsProofVerifier::class,
+		KeyManagementServiceInterface::class => KeyManagementService::class,
+		LearnerGroupLabelRestampInterface::class => LearnerGroupLabelRestamp::class,
+		LearnerMergeServiceInterface::class => LearnerMergeService::class,
+		LearnerRefResolverInterface::class => LearnerRefResolver::class,
+		LearningRecordAggregationServiceInterface::class => LearningRecordAggregationService::class,
+		LearningRecordExportServiceInterface::class => LearningRecordExportService::class,
+		LearningRecordExportSigningServiceInterface::class => LearningRecordExportSigningService::class,
+		LearningRecordImportIntakeServiceInterface::class => LearningRecordImportIntakeService::class,
+		LearningRecordImportServiceInterface::class => LearningRecordImportService::class,
+		LearniqAgentToolsInterface::class => LearniqAgentTools::class,
+		LessonOnboardingImporterInterface::class => LessonOnboardingImporter::class,
+		LessonProgressInterface::class => LessonProgress::class,
+		LessonReleaseEvaluatorInterface::class => LessonReleaseEvaluator::class,
+		LineManagerCheckInterface::class => LineManagerCheck::class,
+		ListenerSchemaResolverInterface::class => ListenerSchemaResolver::class,
+		LoadedExampleSetsInterface::class => LoadedExampleSets::class,
+		LtiAgsPullClientInterface::class => LtiAgsPullClient::class,
+		MenuStructureInterface::class => MenuStructure::class,
+		NextStepResolverInterface::class => NextStepResolver::class,
+		OnboardingFolderSettingInterface::class => OnboardingFolderSetting::class,
+		OpenMaterialImportServiceInterface::class => OpenMaterialImportService::class,
+		OpenMaterialSearchInterface::class => OpenMaterialSearch::class,
+		OpeningHoursSettingsInterface::class => OpeningHoursSettings::class,
+		PeerReviewAllocationServiceInterface::class => PeerReviewAllocationService::class,
+		PeerReviewWorkProjectionInterface::class => PeerReviewWorkProjection::class,
+		PersonalTimetableServiceInterface::class => PersonalTimetableService::class,
+		PointEngagementEvaluatorInterface::class => PointEngagementEvaluator::class,
+		PokParentSignatureRuleInterface::class => PokParentSignatureRule::class,
+		PortalAttemptServiceInterface::class => PortalAttemptService::class,
+		PortalEmployerBookingsInterface::class => PortalEmployerBookings::class,
+		PortalHourWeekApprovalInterface::class => PortalHourWeekApproval::class,
+		PortalLearnerResolverInterface::class => PortalLearnerResolver::class,
+		PortalMessagesInterface::class => PortalMessages::class,
+		PortalResultReaderInterface::class => PortalResultReader::class,
+		PortalSubmissionHandInInterface::class => PortalSubmissionHandIn::class,
+		PortalWerkprocesAssessmentInterface::class => PortalWerkprocesAssessment::class,
+		PortalWriteSubjectInterface::class => PortalWriteSubject::class,
+		ProgrammeProgressInterface::class => ProgrammeProgress::class,
+		ProgrammeRequirementsInterface::class => ProgrammeRequirements::class,
+		PupilGroupTeachersInterface::class => PupilGroupTeachers::class,
+		QtiChoiceOrderResolverInterface::class => QtiChoiceOrderResolver::class,
+		QtiExportServiceInterface::class => QtiExportService::class,
+		QtiImportServiceInterface::class => QtiImportService::class,
+		ReadableCopiesInterface::class => ReadableCopies::class,
+		RegulationAssignPreviewInterface::class => RegulationAssignPreview::class,
+		RegulationAssignmentServiceInterface::class => RegulationAssignmentService::class,
+		RegulationCoverageServiceInterface::class => RegulationCoverageService::class,
+		ReportCardGradeLinesInterface::class => ReportCardGradeLines::class,
+		ReportCardPdfDelegationServiceInterface::class => ReportCardPdfDelegationService::class,
+		ReportCardTemplateSectionResolverInterface::class => ReportCardTemplateSectionResolver::class,
+		ReportPeriodLocksInterface::class => ReportPeriodLocks::class,
+		ReportSubjectGradeRowsInterface::class => ReportSubjectGradeRows::class,
+		RollCallServiceInterface::class => RollCallService::class,
+		RolloverExecutionServiceInterface::class => RolloverExecutionService::class,
+		RolloverServiceInterface::class => RolloverService::class,
+		RoomUtilisationServiceInterface::class => RoomUtilisationService::class,
+		SchoolAdviesRodTimingInterface::class => SchoolAdviesRodTiming::class,
+		SeedProfileServiceInterface::class => SeedProfileService::class,
+		SegmentServiceInterface::class => SegmentService::class,
+		SessionChangeBatchServiceInterface::class => SessionChangeBatchService::class,
+		SigningServiceInterface::class => SigningService::class,
+		SovereigntyPolicyServiceInterface::class => SovereigntyPolicyService::class,
+		StandbyCalendarInterface::class => StandbyCalendar::class,
+		StoreAccessServiceInterface::class => StoreAccessService::class,
+		SubmissionMarkAllocationServiceInterface::class => SubmissionMarkAllocationService::class,
+		SubmissionMarkReaderInterface::class => SubmissionMarkReader::class,
+		SubstitutionCandidateServiceInterface::class => SubstitutionCandidateService::class,
+		TimetableDirectoryInterface::class => TimetableDirectory::class,
+		TimetableExchangeSettingsInterface::class => TimetableExchangeSettings::class,
+		TimetableFeedRendererInterface::class => TimetableFeedRenderer::class,
+		TimetableFeedTokenServiceInterface::class => TimetableFeedTokenService::class,
+		TimetableProjectorInterface::class => TimetableProjector::class,
+		TimetableVisibilityServiceInterface::class => TimetableVisibilityService::class,
+		WalletClaimSyncServiceInterface::class => WalletClaimSyncService::class,
+		WalletOfferDelegationServiceInterface::class => WalletOfferDelegationService::class,
+		WalletRevocationPropagationServiceInterface::class => WalletRevocationPropagationService::class,
+		WorkGroupMembershipServiceInterface::class => WorkGroupMembershipService::class,
+		WorkGroupMessagesInterface::class => WorkGroupMessages::class,
+		XapiCallerResolverInterface::class => XapiCallerResolver::class,
+		XapiDocumentRequestInterface::class => XapiDocumentRequest::class,
+		XapiDocumentStoreInterface::class => XapiDocumentStore::class,
+		XapiEnrolmentCompletionInterface::class => XapiEnrolmentCompletion::class,
+		XapiStatementIngestInterface::class => XapiStatementIngest::class,
+	];
 
 	/**
 	 * Alias every contract to its implementation.
@@ -250,162 +414,8 @@ final class ContractBindings {
 	 * @spec exclude Structural composition, no functional requirement.
 	 */
 	public function register(IRegistrationContext $context): void {
-		$context->registerServiceAlias(AiLocalityClassifierInterface::class, AiLocalityClassifier::class);
-		$context->registerServiceAlias(AiTranslatedCatalogueInterface::class, AiTranslatedCatalogue::class);
-		$context->registerServiceAlias(AppealTermInterface::class, AppealTerm::class);
-		$context->registerServiceAlias(AssessmentAccessFactsInterface::class, AssessmentAccessFacts::class);
-		$context->registerServiceAlias(AssessmentAttemptLimitsInterface::class, AssessmentAttemptLimits::class);
-		$context->registerServiceAlias(AssessmentResultAudienceInterface::class, AssessmentResultAudience::class);
-		$context->registerServiceAlias(AssessmentResultPortalStampInterface::class, AssessmentResultPortalStamp::class);
-		$context->registerServiceAlias(AttendanceSummaryServiceInterface::class, AttendanceSummaryService::class);
-		$context->registerServiceAlias(AttendanceWindowAggregatorInterface::class, AttendanceWindowAggregator::class);
-		$context->registerServiceAlias(AuditPackBuilderInterface::class, AuditPackBuilder::class);
-		$context->registerServiceAlias(BpvPlacementStepsInterface::class, BpvPlacementSteps::class);
-		$context->registerServiceAlias(BsaProgressEvaluatorInterface::class, BsaProgressEvaluator::class);
-		$context->registerServiceAlias(BulkEnrolServiceInterface::class, BulkEnrolService::class);
-		$context->registerServiceAlias(CallerTenantResolverInterface::class, CallerTenantResolver::class);
-		$context->registerServiceAlias(CatalogueMessagesInterface::class, CatalogueMessages::class);
-		$context->registerServiceAlias(CatalogueReaderInterface::class, CatalogueReader::class);
-		$context->registerServiceAlias(CatalogueSignUpServiceInterface::class, CatalogueSignUpService::class);
-		$context->registerServiceAlias(CheckInCodeServiceInterface::class, CheckInCodeService::class);
-		$context->registerServiceAlias(CheckInMessagesInterface::class, CheckInMessages::class);
-		$context->registerServiceAlias(CheckInServiceInterface::class, CheckInService::class);
-		$context->registerServiceAlias(Cmi5LaunchSessionsInterface::class, Cmi5LaunchSessions::class);
-		$context->registerServiceAlias(Cmi5LaunchTokenServiceInterface::class, Cmi5LaunchTokenService::class);
-		$context->registerServiceAlias(CohortNameRestampInterface::class, CohortNameRestamp::class);
-		$context->registerServiceAlias(CompetencyAlignmentNormaliserInterface::class, CompetencyAlignmentNormaliser::class);
-		$context->registerServiceAlias(CompetencyAttainmentRollupInterface::class, CompetencyAttainmentRollup::class);
-		$context->registerServiceAlias(ComplianceRollupServiceInterface::class, ComplianceRollupService::class);
-		$context->registerServiceAlias(ConferenceInvitationsInterface::class, ConferenceInvitations::class);
-		$context->registerServiceAlias(ConferenceSlotClaimInterface::class, ConferenceSlotClaim::class);
-		$context->registerServiceAlias(ConformanceEvidenceInterface::class, ConformanceEvidence::class);
-		$context->registerServiceAlias(ConnectionReportServiceInterface::class, ConnectionReportService::class);
-		$context->registerServiceAlias(ContactHoursServiceInterface::class, ContactHoursService::class);
-		$context->registerServiceAlias(ContributionBeneficiaryResolverInterface::class, ContributionBeneficiaryResolver::class);
-		$context->registerServiceAlias(ContributionRaiserInterface::class, ContributionRaiser::class);
-		$context->registerServiceAlias(CorrectionApprovalsInterface::class, CorrectionApprovals::class);
-		$context->registerServiceAlias(CourseEvaluationAnswerServiceInterface::class, CourseEvaluationAnswerService::class);
-		$context->registerServiceAlias(CoursePackageExportServiceInterface::class, CoursePackageExportService::class);
-		$context->registerServiceAlias(CoursePackageImportServiceInterface::class, CoursePackageImportService::class);
-		$context->registerServiceAlias(CourseQualityScoreEvaluatorInterface::class, CourseQualityScoreEvaluator::class);
-		$context->registerServiceAlias(CourseShareExportServiceInterface::class, CourseShareExportService::class);
-		$context->registerServiceAlias(CourseStoreDescriptorInterface::class, CourseStoreDescriptor::class);
-		$context->registerServiceAlias(CourseStoreInstallerInterface::class, CourseStoreInstaller::class);
-		$context->registerServiceAlias(CourseStorePublisherInterface::class, CourseStorePublisher::class);
-		$context->registerServiceAlias(CourseTemplateServiceInterface::class, CourseTemplateService::class);
-		$context->registerServiceAlias(CredentialLearnerInterface::class, CredentialLearner::class);
-		$context->registerServiceAlias(CredentialReissueServiceInterface::class, CredentialReissueService::class);
-		$context->registerServiceAlias(CredentialSigningServiceInterface::class, CredentialSigningService::class);
-		$context->registerServiceAlias(CurriculumCoverageRollupInterface::class, CurriculumCoverageRollup::class);
-		$context->registerServiceAlias(DashboardRoleServiceInterface::class, DashboardRoleService::class);
-		$context->registerServiceAlias(DisplayScreenBoardInterface::class, DisplayScreenBoard::class);
-		$context->registerServiceAlias(DisplayScreenServiceInterface::class, DisplayScreenService::class);
-		$context->registerServiceAlias(DraftSubmitterInterface::class, DraftSubmitter::class);
-		$context->registerServiceAlias(ElectiveBoardInterface::class, ElectiveBoard::class);
-		$context->registerServiceAlias(ElectiveServiceInterface::class, ElectiveService::class);
-		$context->registerServiceAlias(ElectiveSlotServiceInterface::class, ElectiveSlotService::class);
-		$context->registerServiceAlias(EmployerBookingProjectionInterface::class, EmployerBookingProjection::class);
-		$context->registerServiceAlias(EmployerBookingStepsInterface::class, EmployerBookingSteps::class);
-		$context->registerServiceAlias(EngagementScoreEvaluatorInterface::class, EngagementScoreEvaluator::class);
-		$context->registerServiceAlias(EnrolmentForecastServiceInterface::class, EnrolmentForecastService::class);
-		$context->registerServiceAlias(EnrolmentProgressEvaluatorInterface::class, EnrolmentProgressEvaluator::class);
-		$context->registerServiceAlias(EuropassIssuerInterface::class, EuropassIssuer::class);
-		$context->registerServiceAlias(ExamSittingOverviewInterface::class, ExamSittingOverview::class);
-		$context->registerServiceAlias(ExampleSetDatesInterface::class, ExampleSetDates::class);
-		$context->registerServiceAlias(ExampleSetSizesInterface::class, ExampleSetSizes::class);
-		$context->registerServiceAlias(ExchangeDisclosureInterface::class, ExchangeDisclosure::class);
-		$context->registerServiceAlias(ExchangeGateServiceInterface::class, ExchangeGateService::class);
-		$context->registerServiceAlias(ExchangeImportLandingInterface::class, ExchangeImportLanding::class);
-		$context->registerServiceAlias(ExcuseRequestStaffOwnerInterface::class, ExcuseRequestStaffOwner::class);
-		$context->registerServiceAlias(ExternalTrainingImportInterface::class, ExternalTrainingImport::class);
-		$context->registerServiceAlias(ExternalTrainingServiceInterface::class, ExternalTrainingService::class);
-		$context->registerServiceAlias(HourPlanActivityServiceInterface::class, HourPlanActivityService::class);
-		$context->registerServiceAlias(IntegriqExchangeClientInterface::class, IntegriqExchangeClient::class);
-		$context->registerServiceAlias(ItemAnalysisServiceInterface::class, ItemAnalysisService::class);
-		$context->registerServiceAlias(ItemPoolFilterInterface::class, ItemPoolFilter::class);
-		$context->registerServiceAlias(JwsProofVerifierInterface::class, JwsProofVerifier::class);
-		$context->registerServiceAlias(KeyManagementServiceInterface::class, KeyManagementService::class);
-		$context->registerServiceAlias(LearnerGroupLabelRestampInterface::class, LearnerGroupLabelRestamp::class);
-		$context->registerServiceAlias(LearnerMergeServiceInterface::class, LearnerMergeService::class);
-		$context->registerServiceAlias(LearnerRefResolverInterface::class, LearnerRefResolver::class);
-		$context->registerServiceAlias(LearningRecordAggregationServiceInterface::class, LearningRecordAggregationService::class);
-		$context->registerServiceAlias(LearningRecordExportServiceInterface::class, LearningRecordExportService::class);
-		$context->registerServiceAlias(LearningRecordExportSigningServiceInterface::class, LearningRecordExportSigningService::class);
-		$context->registerServiceAlias(LearningRecordImportIntakeServiceInterface::class, LearningRecordImportIntakeService::class);
-		$context->registerServiceAlias(LearningRecordImportServiceInterface::class, LearningRecordImportService::class);
-		$context->registerServiceAlias(LearniqAgentToolsInterface::class, LearniqAgentTools::class);
-		$context->registerServiceAlias(LessonOnboardingImporterInterface::class, LessonOnboardingImporter::class);
-		$context->registerServiceAlias(LessonProgressInterface::class, LessonProgress::class);
-		$context->registerServiceAlias(LessonReleaseEvaluatorInterface::class, LessonReleaseEvaluator::class);
-		$context->registerServiceAlias(LineManagerCheckInterface::class, LineManagerCheck::class);
-		$context->registerServiceAlias(ListenerSchemaResolverInterface::class, ListenerSchemaResolver::class);
-		$context->registerServiceAlias(LoadedExampleSetsInterface::class, LoadedExampleSets::class);
-		$context->registerServiceAlias(LtiAgsPullClientInterface::class, LtiAgsPullClient::class);
-		$context->registerServiceAlias(MenuStructureInterface::class, MenuStructure::class);
-		$context->registerServiceAlias(NextStepResolverInterface::class, NextStepResolver::class);
-		$context->registerServiceAlias(OnboardingFolderSettingInterface::class, OnboardingFolderSetting::class);
-		$context->registerServiceAlias(OpenMaterialImportServiceInterface::class, OpenMaterialImportService::class);
-		$context->registerServiceAlias(OpenMaterialSearchInterface::class, OpenMaterialSearch::class);
-		$context->registerServiceAlias(OpeningHoursSettingsInterface::class, OpeningHoursSettings::class);
-		$context->registerServiceAlias(PeerReviewAllocationServiceInterface::class, PeerReviewAllocationService::class);
-		$context->registerServiceAlias(PeerReviewWorkProjectionInterface::class, PeerReviewWorkProjection::class);
-		$context->registerServiceAlias(PersonalTimetableServiceInterface::class, PersonalTimetableService::class);
-		$context->registerServiceAlias(PointEngagementEvaluatorInterface::class, PointEngagementEvaluator::class);
-		$context->registerServiceAlias(PokParentSignatureRuleInterface::class, PokParentSignatureRule::class);
-		$context->registerServiceAlias(PortalAttemptServiceInterface::class, PortalAttemptService::class);
-		$context->registerServiceAlias(PortalEmployerBookingsInterface::class, PortalEmployerBookings::class);
-		$context->registerServiceAlias(PortalHourWeekApprovalInterface::class, PortalHourWeekApproval::class);
-		$context->registerServiceAlias(PortalLearnerResolverInterface::class, PortalLearnerResolver::class);
-		$context->registerServiceAlias(PortalMessagesInterface::class, PortalMessages::class);
-		$context->registerServiceAlias(PortalResultReaderInterface::class, PortalResultReader::class);
-		$context->registerServiceAlias(PortalSubmissionHandInInterface::class, PortalSubmissionHandIn::class);
-		$context->registerServiceAlias(PortalWerkprocesAssessmentInterface::class, PortalWerkprocesAssessment::class);
-		$context->registerServiceAlias(PortalWriteSubjectInterface::class, PortalWriteSubject::class);
-		$context->registerServiceAlias(ProgrammeProgressInterface::class, ProgrammeProgress::class);
-		$context->registerServiceAlias(ProgrammeRequirementsInterface::class, ProgrammeRequirements::class);
-		$context->registerServiceAlias(PupilGroupTeachersInterface::class, PupilGroupTeachers::class);
-		$context->registerServiceAlias(QtiChoiceOrderResolverInterface::class, QtiChoiceOrderResolver::class);
-		$context->registerServiceAlias(QtiExportServiceInterface::class, QtiExportService::class);
-		$context->registerServiceAlias(QtiImportServiceInterface::class, QtiImportService::class);
-		$context->registerServiceAlias(ReadableCopiesInterface::class, ReadableCopies::class);
-		$context->registerServiceAlias(RegulationAssignPreviewInterface::class, RegulationAssignPreview::class);
-		$context->registerServiceAlias(RegulationAssignmentServiceInterface::class, RegulationAssignmentService::class);
-		$context->registerServiceAlias(RegulationCoverageServiceInterface::class, RegulationCoverageService::class);
-		$context->registerServiceAlias(ReportCardGradeLinesInterface::class, ReportCardGradeLines::class);
-		$context->registerServiceAlias(ReportCardPdfDelegationServiceInterface::class, ReportCardPdfDelegationService::class);
-		$context->registerServiceAlias(ReportCardTemplateSectionResolverInterface::class, ReportCardTemplateSectionResolver::class);
-		$context->registerServiceAlias(ReportPeriodLocksInterface::class, ReportPeriodLocks::class);
-		$context->registerServiceAlias(ReportSubjectGradeRowsInterface::class, ReportSubjectGradeRows::class);
-		$context->registerServiceAlias(RollCallServiceInterface::class, RollCallService::class);
-		$context->registerServiceAlias(RolloverExecutionServiceInterface::class, RolloverExecutionService::class);
-		$context->registerServiceAlias(RolloverServiceInterface::class, RolloverService::class);
-		$context->registerServiceAlias(RoomUtilisationServiceInterface::class, RoomUtilisationService::class);
-		$context->registerServiceAlias(SchoolAdviesRodTimingInterface::class, SchoolAdviesRodTiming::class);
-		$context->registerServiceAlias(SeedProfileServiceInterface::class, SeedProfileService::class);
-		$context->registerServiceAlias(SegmentServiceInterface::class, SegmentService::class);
-		$context->registerServiceAlias(SessionChangeBatchServiceInterface::class, SessionChangeBatchService::class);
-		$context->registerServiceAlias(SigningServiceInterface::class, SigningService::class);
-		$context->registerServiceAlias(SovereigntyPolicyServiceInterface::class, SovereigntyPolicyService::class);
-		$context->registerServiceAlias(StandbyCalendarInterface::class, StandbyCalendar::class);
-		$context->registerServiceAlias(StoreAccessServiceInterface::class, StoreAccessService::class);
-		$context->registerServiceAlias(SubmissionMarkAllocationServiceInterface::class, SubmissionMarkAllocationService::class);
-		$context->registerServiceAlias(SubmissionMarkReaderInterface::class, SubmissionMarkReader::class);
-		$context->registerServiceAlias(SubstitutionCandidateServiceInterface::class, SubstitutionCandidateService::class);
-		$context->registerServiceAlias(TimetableDirectoryInterface::class, TimetableDirectory::class);
-		$context->registerServiceAlias(TimetableExchangeSettingsInterface::class, TimetableExchangeSettings::class);
-		$context->registerServiceAlias(TimetableFeedRendererInterface::class, TimetableFeedRenderer::class);
-		$context->registerServiceAlias(TimetableFeedTokenServiceInterface::class, TimetableFeedTokenService::class);
-		$context->registerServiceAlias(TimetableProjectorInterface::class, TimetableProjector::class);
-		$context->registerServiceAlias(TimetableVisibilityServiceInterface::class, TimetableVisibilityService::class);
-		$context->registerServiceAlias(WalletClaimSyncServiceInterface::class, WalletClaimSyncService::class);
-		$context->registerServiceAlias(WalletOfferDelegationServiceInterface::class, WalletOfferDelegationService::class);
-		$context->registerServiceAlias(WalletRevocationPropagationServiceInterface::class, WalletRevocationPropagationService::class);
-		$context->registerServiceAlias(WorkGroupMembershipServiceInterface::class, WorkGroupMembershipService::class);
-		$context->registerServiceAlias(WorkGroupMessagesInterface::class, WorkGroupMessages::class);
-		$context->registerServiceAlias(XapiCallerResolverInterface::class, XapiCallerResolver::class);
-		$context->registerServiceAlias(XapiDocumentRequestInterface::class, XapiDocumentRequest::class);
-		$context->registerServiceAlias(XapiDocumentStoreInterface::class, XapiDocumentStore::class);
-		$context->registerServiceAlias(XapiEnrolmentCompletionInterface::class, XapiEnrolmentCompletion::class);
-		$context->registerServiceAlias(XapiStatementIngestInterface::class, XapiStatementIngest::class);
+		foreach (self::BINDINGS as $contract => $implementation) {
+			$context->registerServiceAlias($contract, $implementation);
+		}
 	}//end register()
 }//end class

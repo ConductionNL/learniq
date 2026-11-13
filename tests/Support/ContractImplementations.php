@@ -22,7 +22,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Support;
 
 /**
- * Reads the registerServiceAlias() lines of every lib/<Component>/ContractBindings.php,
+ * Reads the BINDINGS table of every lib/<Component>/ContractBindings.php,
  * so a test that builds collaborators by declared type sees the implementation
  * a contract stands for, exactly as the container resolves it.
  */
@@ -66,7 +66,7 @@ final class ContractImplementations {
 				$uses[substr($import, (int)strrpos($import, '\\') + 1)] = $import;
 			}
 
-			preg_match_all('/registerServiceAlias\((\w+)::class, (\w+)::class\)/', $source, $aliases, PREG_SET_ORDER);
+			preg_match_all('/^\s*(\w+)::class => (\w+)::class,$/m', $source, $aliases, PREG_SET_ORDER);
 			foreach ($aliases as [, $contract, $implementation]) {
 				$contractName = $uses[$contract] ?? ($namespace[1] . '\\' . $contract);
 				self::$map[$contractName] = $uses[$implementation] ?? ($namespace[1] . '\\' . $implementation);
