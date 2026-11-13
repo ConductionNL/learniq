@@ -49,6 +49,7 @@ use stdClass;
  * @uses   \OCA\Learniq\Service\CourseStore\CourseStoreDefinition
  * @uses   \OCA\Learniq\Service\CourseStore\CourseStoreDescriptor
  * @uses   \OCA\Learniq\Service\CourseStore\CourseStoreRegistryObject
+ * @uses   \OCA\Learniq\Support\TextValue
  */
 class CourseStorePublisherTest extends TestCase {
 

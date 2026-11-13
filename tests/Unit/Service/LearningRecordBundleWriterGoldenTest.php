@@ -24,6 +24,7 @@ use RuntimeException;
  * returned path, and the warning on a failed write.
  *
  * @covers \OCA\Learniq\Service\LearningRecordBundleWriter
+ * @uses \OCA\Learniq\Service\FolderFileWriter
  */
 class LearningRecordBundleWriterGoldenTest extends TestCase {
 

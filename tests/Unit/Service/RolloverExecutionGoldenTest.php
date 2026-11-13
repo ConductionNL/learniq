@@ -41,6 +41,8 @@ use ReflectionMethod;
  *
  * @covers \OCA\Learniq\Service\RolloverExecutionService
  * @uses   \OCA\Learniq\Service\RolloverService
+ * @uses   \OCA\Learniq\Service\NextProgrammeYear
+ * @uses   \OCA\Learniq\Support\ObjectRow
  */
 class RolloverExecutionGoldenTest extends TestCase {
 
