@@ -37,6 +37,7 @@ namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\Learniq\Listener\Registrar\EventListenerWiring;
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Tests\Support\ContractImplementations;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\Learniq\Tests\Support\RegisterSchemaPayloads;
@@ -238,6 +239,7 @@ class PublishedGradeFreezeWiringTest extends TestCase {
 	 * @return object
 	 */
 	private function build(string $class, array $known): object {
+		$class = ContractImplementations::concrete($class);
 		if (isset($known[$class]) === true) {
 			return $known[$class];
 		}

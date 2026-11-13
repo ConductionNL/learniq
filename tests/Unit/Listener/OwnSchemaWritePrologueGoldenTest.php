@@ -36,6 +36,7 @@ use OCA\Learniq\Listener\ReadableCopyStamp;
 use OCA\Learniq\Listener\RegulationExemptionRequestStamp;
 use OCA\Learniq\Listener\SovereigntyPolicySetByStamp;
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Tests\Support\ContractImplementations;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -85,7 +86,7 @@ class OwnSchemaWritePrologueGoldenTest extends TestCase {
 	private function listener(string $class, ListenerSchemaResolver $resolver): object {
 		$args = [];
 		foreach ((new ReflectionClass($class))->getConstructor()->getParameters() as $parameter) {
-			$type = (string)$parameter->getType();
+			$type = ContractImplementations::concrete((string)$parameter->getType());
 			$args[] = $type === ListenerSchemaResolver::class ? $resolver : $this->createMock($type);
 		}
 
