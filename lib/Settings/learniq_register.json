@@ -3107,7 +3107,7 @@
             "Enrolment": {
                 "slug": "enrolment",
                 "icon": "AccountSchoolOutline",
-                "version": "0.4.0",
+                "version": "0.4.1",
                 "title": "Enrolment",
                 "description": "Learner enrolment in a course (Schema.org EnrollmentRequest)",
                 "type": "object",
@@ -3715,6 +3715,10 @@
                             "intervalSec": 86400,
                             "filter": {
                                 "mandatory": true,
+                                "lifecycle": [
+                                    "pending",
+                                    "active"
+                                ],
                                 "dueDate": {
                                     "operator": "withinNext",
                                     "value": "P3D"
@@ -3742,6 +3746,10 @@
                             "intervalSec": 86400,
                             "filter": {
                                 "mandatory": true,
+                                "lifecycle": [
+                                    "pending",
+                                    "active"
+                                ],
                                 "dueDate": {
                                     "operator": "olderThan",
                                     "value": "PT0S"
