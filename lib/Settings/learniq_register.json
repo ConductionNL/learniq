@@ -19282,7 +19282,7 @@
                 "slug": "attendance-flag",
                 "appendOnly": false,
                 "icon": "FlagOutline",
-                "version": "0.2.4",
+                "version": "0.2.5",
                 "title": "AttendanceFlag",
                 "description": "Created when an AttendanceThreshold is crossed. appendOnly: true per ADR-008 (immutable audit evidence). The flag tracks the mentor's intervention and any outbound leerplicht report via its lifecycle. It NEVER auto-acts against the learner — human-in-the-loop throughout.",
                 "type": "object",
@@ -19480,7 +19480,8 @@
                             "in-handling": "purple",
                             "reported": "teal",
                             "resolved": "success"
-                        }
+                        },
+                        "facetable": true
                     },
                     "tenant_id": {
                         "type": "string",
@@ -19577,11 +19578,13 @@
                     "transitions": {
                         "startHandling": {
                             "from": "open",
-                            "to": "in-handling"
+                            "to": "in-handling",
+                            "label": "Take up"
                         },
                         "report": {
                             "from": "in-handling",
                             "to": "reported",
+                            "label": "Mark as reported",
                             "requires": "OCA\\Learniq\\Lifecycle\\AttendanceFlagReportGuard",
                             "description": "The leerplicht report was sent: AttendanceFlagReportGuard allows this only once integriq concluded the flag's exchange job succeeded, or when no job is linked."
                         },
@@ -19591,17 +19594,23 @@
                                 "in-handling",
                                 "reported"
                             ],
-                            "to": "resolved"
+                            "to": "resolved",
+                            "label": "Close"
                         },
                         "recordMunicipalityFeedback": {
                             "from": "reported",
                             "to": "reported",
+                            "label": "Record the municipality's answer",
                             "requires": "OCA\\Learniq\\Lifecycle\\MunicipalityFeedbackGuard",
                             "description": "A coordinator or administrator records the municipality's MAS route for a reported flag. A self-loop: the flag stays reported. The stamp is written by MunicipalityFeedbackStampListener.",
                             "inputs": [
                                 {
                                     "field": "municipalityFeedback",
-                                    "required": false
+                                    "required": false,
+                                    "fields": [
+                                        "masRoute",
+                                        "note"
+                                    ]
                                 }
                             ]
                         }
