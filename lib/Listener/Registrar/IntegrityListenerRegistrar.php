@@ -45,6 +45,7 @@ use OCA\Learniq\Listener\LearningRecordOwnerStamp;
 use OCA\Learniq\Listener\WerkprocesAssessmentLearnerStamp;
 use OCA\Learniq\Listener\HourWeekTotalRollup;
 use OCA\Learniq\Listener\LearnerGroupLabelCascade;
+use OCA\Learniq\Listener\CourseDayStatusCascade;
 use OCA\Learniq\Listener\EmployerBookingCascade;
 use OCA\Learniq\Listener\ReadableCopyStamp;
 use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
@@ -334,6 +335,16 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatedEvent::class,
 			listener: EmployerBookingCascade::class
+		);
+		// A course day's status follows its bookings, enrolments, sessions,
+		// minimum and decision, deferred (training-provider-course-days).
+		$context->registerEventListener(
+			event: ObjectCreatedEvent::class,
+			listener: CourseDayStatusCascade::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatedEvent::class,
+			listener: CourseDayStatusCascade::class
 		);
 		// Who entered a week of hours, when, for which student and for which
 		// school, all from the placement the week names: the pupil's form may

@@ -1,7 +1,8 @@
 # Tasks: training-provider-course-days
 
-- [ ] **T1**: register: `cohort.minParticipants`, `goDecisionBy`, `dayStatus` (derived); `course.bringList[]`
+- [x] **T1**: register: `cohort.minParticipants`, `goDecisionBy`, `dayStatus` (derived); `course.bringList[]` (plus `cohort.goDecision`, the go/no-go the derivation reads)
 - [ ] **T2**: status derivation on every booking, enrolment, decision and date change; manual move log
+  - Derivation built: `CourseDayStatus` (rules), `CourseDayStatusService::restamp()`, queued by `CourseDayStatusCascade` and run by `CourseDayRestampJob`. The manual move log is not built yet, so the task stays open.
 - [ ] **T3**: go/no-go action and moving participants to another day of the course
 - [ ] **T4**: the course days board per status (library board view) and the calendar tab
 - [ ] **T5**: session parts and attendance per part with arrival time; the trainer's Today
