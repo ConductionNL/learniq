@@ -27,6 +27,9 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\App\IAppManager;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
+use OCA\OpenRegister\Service\Lifecycle\TransitionActor;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
@@ -167,6 +170,68 @@ class ReportCardPdfTransitionListenerTest extends TestCase {
 		self::assertNotEmpty($captured['object']['docudeskRenderError']);
 		self::assertSame('published-to-parents', $captured['object']['lifecycle']);
 	}//end testFailedRerenderSavesTheFailure()
+
+	/**
+	 * A real transitioned event, as OpenRegister dispatches it.
+	 *
+	 * @param string $action The transition that ran.
+	 * @param array<string, mixed> $card The report card as saved.
+	 *
+	 * @return ObjectTransitionedEvent
+	 */
+	private function realEvent(string $action, array $card): ObjectTransitionedEvent {
+		return new ObjectTransitionedEvent(
+			object: OrEntityFactory::make($card, 'report-card'),
+			move: new TransitionMove(action: $action, from: 'finalised', to: 'published-to-parents'),
+			scope: new RegisterSchemaRef(register: 'learniq', schema: 'report-card'),
+			actor: new TransitionActor(userId: 'mentor-1')
+		);
+	}//end realEvent()
+
+	/**
+	 * Publishing a card that has no PDF renders it after the publish (REQ: publishing renders its PDF).
+	 *
+	 * @return void
+	 */
+	public function testPublishToParentsRendersTheMissingPdf(): void {
+		$captured = $this->captureSave();
+		$card = ['id' => 'card-1', 'lifecycle' => 'published-to-parents', 'subjectGrades' => [], 'mentorComment' => 'Goed gedaan.'];
+
+		$this->listener('{"documentRef":"doc-7"}')->handle($this->realEvent('publishToParents', $card));
+
+		self::assertSame('rendered', $captured['object']['docudeskRenderStatus']);
+		self::assertSame('doc-7', $captured['object']['docudeskDocumentRef']);
+		self::assertSame('published-to-parents', $captured['object']['lifecycle']);
+		self::assertSame('card-1', $captured['uuid']);
+	}//end testPublishToParentsRendersTheMissingPdf()
+
+	/**
+	 * filinq down at publish: the card stays published and the failure is recorded.
+	 *
+	 * @return void
+	 */
+	public function testAFailedRenderAtPublishLeavesTheCardPublished(): void {
+		$captured = $this->captureSave();
+		$card = ['id' => 'card-1', 'lifecycle' => 'published-to-parents', 'docudeskRenderStatus' => 'failed', 'subjectGrades' => []];
+
+		$this->listener('not json')->handle($this->realEvent('publishToParents', $card));
+
+		self::assertSame('failed', $captured['object']['docudeskRenderStatus']);
+		self::assertNotEmpty($captured['object']['docudeskRenderError']);
+		self::assertSame('published-to-parents', $captured['object']['lifecycle']);
+	}//end testAFailedRenderAtPublishLeavesTheCardPublished()
+
+	/**
+	 * A card already rendered before the meeting is not rendered again on publish.
+	 *
+	 * @return void
+	 */
+	public function testPublishToParentsKeepsAnAlreadyRenderedPdf(): void {
+		$this->objectService->expects($this->never())->method('saveObject');
+		$card = ['id' => 'card-1', 'lifecycle' => 'published-to-parents', 'docudeskRenderStatus' => 'rendered', 'docudeskDocumentRef' => 'doc-1'];
+
+		$this->listener('{"documentRef":"doc-2"}')->handle($this->realEvent('publishToParents', $card));
+	}//end testPublishToParentsKeepsAnAlreadyRenderedPdf()
 
 	/**
 	 * Another schema or another transition saves nothing.

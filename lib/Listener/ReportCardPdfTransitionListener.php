@@ -56,6 +56,13 @@ class ReportCardPdfTransitionListener implements IEventListener {
 	private const RENDER_ACTIONS = ['renderToPdf', 'rerenderToPdf'];
 
 	/**
+	 * Publishing to parents renders the PDF when none was rendered yet (report-card-pdf-to-guardians D1).
+	 *
+	 * @var string
+	 */
+	private const PUBLISH_ACTION = 'publishToParents';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object service, to save the ReportCard.
@@ -86,12 +93,14 @@ class ReportCardPdfTransitionListener implements IEventListener {
 		if (($event instanceof ObjectTransitionedEvent) === false
 			|| $this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER
 			|| $this->schemas->eventSchema(event: $event) !== self::REPORT_CARD_SCHEMA
-			|| in_array($event->getAction(), self::RENDER_ACTIONS, true) === false
 		) {
 			return;
 		}
 
 		$entity = $event->getObject();
+		if ($this->rendersOn(action: $event->getAction(), reportCard: $entity->getObject()) === false) {
+			return;
+		}
 
 		$this->objectService->saveObject(
 			object: $this->pdfService->render(reportCard: $entity->getObject()),
@@ -105,4 +114,26 @@ class ReportCardPdfTransitionListener implements IEventListener {
 			['action' => $event->getAction(), 'id' => $entity->getUuid()]
 		);
 	}//end handle()
+
+	/**
+	 * Whether this transition renders the PDF.
+	 *
+	 * `renderToPdf` and `rerenderToPdf` always do. `publishToParents` does when
+	 * no PDF was rendered yet: publishing is when the card goes home, and it
+	 * runs after the publish is saved, so a filinq outage never blocks it.
+	 *
+	 * @param string $action The transition that ran.
+	 * @param array<string, mixed> $reportCard The report card as saved.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/report-card-pdf-to-guardians/specs/report-card/spec.md#requirement-publishing-a-report-card-renders-its-pdf
+	 */
+	private function rendersOn(string $action, array $reportCard): bool {
+		if (in_array($action, self::RENDER_ACTIONS, true) === true) {
+			return true;
+		}
+
+		return $action === self::PUBLISH_ACTION && ($reportCard['docudeskRenderStatus'] ?? null) !== 'rendered';
+	}//end rendersOn()
 }//end class

@@ -917,6 +917,10 @@ class PortalContributionProvider {
 				// subject or a period (portal-parent-report-card-grades).
 				'fields' => self::PARENT_REPORT_CARDS_FIELDS,
 				'columns' => self::PARENT_REPORT_CARDS_COLUMNS,
+				// The rendered PDF is a file on the published card, so the guardian
+				// downloads it through portaliq's opt-in, scoped by the same join
+				// and filter as the read (report-card-pdf-to-guardians D2).
+				'filesDownload' => true,
 			],
 		];
 
