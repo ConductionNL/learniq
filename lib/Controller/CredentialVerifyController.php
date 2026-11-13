@@ -130,6 +130,22 @@ class CredentialVerifyController extends Controller {
 	#[AnonRateLimit(limit: 60, period: 60)]
 	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
 	public function verify(string $id): JSONResponse {
+		$found = $this->findCredential(id: $id);
+		if ($found instanceof JSONResponse) {
+			return $found;
+		}
+
+		return $this->verdictFor(data: $found);
+	}//end verify()
+
+	/**
+	 * The stored credential's data, or the answer for a credential that cannot be read.
+	 *
+	 * @param string $id Credential UUID.
+	 *
+	 * @return array<string, mixed>|JSONResponse The data, or a 404 (a counted guess) or 500 answer.
+	 */
+	private function findCredential(string $id): array|JSONResponse {
 		// ABSENCE REACHES THIS METHOD IN TWO SHAPES, NOT ONE. `find()`
 		// documents `@throws Exception If the object is not found`, and
 		// resolving the `learniq` register / `credential` schema slug goes
@@ -175,8 +191,17 @@ class CredentialVerifyController extends Controller {
 			return new JSONResponse(['valid' => false, 'error' => 'not_found'], 404);
 		}
 
-		$data = $credentialObj->jsonSerialize();
+		return $credentialObj->jsonSerialize();
+	}//end findCredential()
 
+	/**
+	 * The verification answer for a found credential: revoked, signature invalid, or its validity.
+	 *
+	 * @param array<string, mixed> $data The credential data.
+	 *
+	 * @return JSONResponse
+	 */
+	private function verdictFor(array $data): JSONResponse {
 		$lifecycle = $data['lifecycle'] ?? 'issued';
 		$isExpired = $data['isExpired'] ?? false;
 
@@ -213,7 +238,7 @@ class CredentialVerifyController extends Controller {
 				'issuerName' => $data['issuedBy'] ?? null,
 			]
 		);
-	}//end verify()
+	}//end verdictFor()
 
 	/**
 	 * Check a Europass file for a credential (credentials-europass-edci-export).
