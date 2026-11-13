@@ -43,7 +43,8 @@ class PortalInviteGuardianCommand extends Command {
 	 */
 	private const MAIL_LINES = [
 		GuardianPortalInvitationInterface::MAIL_SENT => 'The portal mailed the guardian a link. It works once, for seven days.',
-		GuardianPortalInvitationInterface::MAIL_NOT_SENT => '<comment>The invitation mail did not leave. Check the mail settings and invite again.</comment>',
+		GuardianPortalInvitationInterface::MAIL_NOT_SENT =>
+			'<comment>The invitation mail did not leave. Check the mail settings and invite again.</comment>',
 		GuardianPortalInvitationInterface::MAIL_UNAVAILABLE => '<comment>No invitation was sent: this portal does not make one.'
 			. ' The guardian is still linked on the verified address.</comment>',
 	];

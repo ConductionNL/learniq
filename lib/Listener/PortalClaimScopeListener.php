@@ -97,7 +97,10 @@ class PortalClaimScopeListener implements IEventListener {
 	private function stands(PortalClaimScopeEvent $event): bool {
 		return match ($event->getClaimName()) {
 			EmployerSitePagesInterface::CLAIM => $this->tenancy->holds(organisationRef: $event->getValue(), organisation: $event->getOrganisation()),
-			EmployerSitePagesInterface::LOCATION_CLAIM => $this->tenancy->holdsLocation(locationRef: $event->getValue(), organisation: $event->getOrganisation()),
+			EmployerSitePagesInterface::LOCATION_CLAIM => $this->tenancy->holdsLocation(
+				locationRef: $event->getValue(),
+				organisation: $event->getOrganisation()
+			),
 			default => true,
 		};
 	}//end stands()
