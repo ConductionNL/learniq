@@ -46,6 +46,7 @@ use PHPUnit\Framework\TestCase;
  *
  * @covers \OCA\Learniq\Listener\AssessmentDrawResolver
  * @uses   \OCA\Learniq\Service\ItemPoolFilter
+ * @uses   \OCA\Learniq\Service\AssessmentObjectReads
  */
 class AssessmentDrawGoldenTest extends TestCase {
 

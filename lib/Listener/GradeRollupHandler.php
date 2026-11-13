@@ -284,27 +284,7 @@ class GradeRollupHandler implements IEventListener {
 			learnerId: $learnerId
 		);
 
-		// Find existing FinalGrade for this pair.
-		$existing = $this->objectService->findAll(
-			[
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::FINAL_GRADE_SCHEMA,
-					'learnerId' => $learnerId,
-					'curriculumPlanId' => $curriculumPlanId,
-				],
-				'limit' => 1,
-			]
-		);
-
-		$existingObj = null;
-		if (empty($existing) === false && is_array($existing[0]) === true) {
-			$existingObj = $existing[0];
-		}
-
-		if (empty($existing) === false && is_array($existing[0]) === false) {
-			$existingObj = $existing[0]->jsonSerialize();
-		}
+		$existingObj = $this->storedFinalGrade(learnerId: $learnerId, curriculumPlanId: $curriculumPlanId);
 
 		// FinalGrade declares no cohortId and no reader uses one (the programme
 		// KPI filters on programmeId), so a row written before this was fixed
@@ -335,6 +315,39 @@ class GradeRollupHandler implements IEventListener {
 		);
 
 	}//end recomputeFinalGrade()
+
+	/**
+	 * The stored FinalGrade for a learner and plan as an array, or null when there is none.
+	 *
+	 * @param string $learnerId        NC user ID.
+	 * @param string $curriculumPlanId Plan UUID.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private function storedFinalGrade(string $learnerId, string $curriculumPlanId): ?array {
+		$existing = $this->objectService->findAll(
+			[
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::FINAL_GRADE_SCHEMA,
+					'learnerId' => $learnerId,
+					'curriculumPlanId' => $curriculumPlanId,
+				],
+				'limit' => 1,
+			]
+		);
+
+		if (empty($existing) === true) {
+			return null;
+		}
+
+		if (is_array($existing[0]) === true) {
+			return $existing[0];
+		}
+
+		return $existing[0]->jsonSerialize();
+
+	}//end storedFinalGrade()
 
 	/**
 	 * The Programme a final grade belongs to: the one whose curriculum plan it
