@@ -26,6 +26,7 @@ use RuntimeException;
  * reference, every call on the user folder in order, and what was logged.
  *
  * @covers \OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter
+ * @uses   \OCA\Learniq\Service\FolderFileWriter
  */
 class CoursePackageFileWriterGoldenTest extends TestCase {
 	use GoldenFile;
