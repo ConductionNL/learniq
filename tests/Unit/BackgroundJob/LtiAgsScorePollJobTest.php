@@ -678,6 +678,132 @@ class LtiAgsScorePollJobTest extends TestCase {
 	}//end testAPlacementWithoutComponentOrPlanIsSkipped()
 
 	/**
+	 * A message without a deployment, a placement without an id, and a score
+	 * without a learner are each skipped with their own log line.
+	 *
+	 * @return void
+	 */
+	public function testUnusableMessagesAreSkippedWithTheirReason(): void {
+		$this->placementFixture = [
+			'id' => 'placement-1',
+			'openconnectorDeploymentId' => 'deployment-1',
+			'curriculumPlanId' => 'plan-1',
+			'gradeEntryComponentId' => 'component-1',
+		];
+
+		$noDeployment = $this->integriqMessage(messageUuid: 'msg-a', deploymentUuid: 'deployment-1', lineItemId: 'placement-1', score: ['userId' => 'l-1', 'scoreGiven' => 1]);
+		$noDeployment['payload']['data']['deploymentUuid'] = '';
+		$noLearner = $this->integriqMessage(messageUuid: 'msg-b', deploymentUuid: 'deployment-1', lineItemId: 'placement-1', score: ['scoreGiven' => 7]);
+		$noScore = $this->integriqMessage(messageUuid: 'msg-c', deploymentUuid: 'deployment-1', lineItemId: 'placement-1', score: ['userId' => 'l-1']);
+
+		$lines = $this->sweepLog([$noDeployment, $noLearner, $noScore]);
+
+		self::assertSame([], $this->savedObjects);
+		self::assertContains(['warning', '[LtiAgsScorePollJob] Message {id} has no deploymentUuid — skipping.', ['id' => 'msg-a']], $lines);
+		$insufficient = '[LtiAgsScorePollJob] AGS score for message {id} has no userId/scoreGiven — insufficient data, skipping.';
+		self::assertContains(['info', $insufficient, ['id' => 'msg-b']], $lines);
+		self::assertContains(['info', $insufficient, ['id' => 'msg-c']], $lines);
+		self::assertContains(
+			['info', '[LtiAgsScorePollJob] Sweep complete. pulled={pulled}, created={created}, skipped={skipped}.', ['pulled' => 3, 'created' => 0, 'skipped' => 3]],
+			$lines
+		);
+	}//end testUnusableMessagesAreSkippedWithTheirReason()
+
+	/**
+	 * A placement found for the deployment but carrying no id is skipped.
+	 *
+	 * @return void
+	 */
+	public function testAPlacementWithoutIdIsSkipped(): void {
+		$this->placementFixture = [
+			'openconnectorDeploymentId' => 'deployment-1',
+			'curriculumPlanId' => 'plan-1',
+			'gradeEntryComponentId' => 'component-1',
+		];
+
+		$lines = $this->sweepLog([
+			$this->integriqMessage(messageUuid: 'msg-d', deploymentUuid: 'deployment-1', lineItemId: '', score: ['userId' => 'l-1', 'scoreGiven' => 1]),
+		]);
+
+		self::assertSame([], $this->savedObjects);
+		self::assertContains(['warning', '[LtiAgsScorePollJob] Resolved placement has no id — skipping message {id}.', ['id' => 'msg-d']], $lines);
+	}//end testAPlacementWithoutIdIsSkipped()
+
+	/**
+	 * A failing line-item lookup falls back to the deployment; a message whose
+	 * processing throws is logged and the next message is still written.
+	 *
+	 * @return void
+	 */
+	public function testAThrowingMessageDoesNotStopTheSweep(): void {
+		$this->placementFixture = [
+			'id' => 'placement-1',
+			'openconnectorDeploymentId' => 'deployment-1',
+			'curriculumPlanId' => 'plan-1',
+			'gradeEntryComponentId' => 'component-1',
+			'gradeScaleId' => 'scale-broken',
+		];
+		$this->objectService->method('find')->willReturnCallback(
+			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
+				if ((string)$schema === 'grade-scale') {
+					throw new \RuntimeException('scale store down');
+				}
+
+				throw new \RuntimeException('placement lookup down');
+			}
+		);
+
+		$lines = $this->sweepLog([
+			$this->integriqMessage(messageUuid: 'msg-e', deploymentUuid: 'deployment-1', lineItemId: 'placement-1', score: ['userId' => 'l-1', 'scoreGiven' => 5, 'scoreMaximum' => 10]),
+			$this->integriqMessage(messageUuid: 'msg-f', deploymentUuid: 'deployment-1', lineItemId: 'placement-1', score: ['userId' => 'l-2', 'scoreGiven' => 6]),
+		]);
+
+		self::assertContains(['error', '[LtiAgsScorePollJob] Failed to process a pulled AGS message: {msg}', ['msg' => 'scale store down']], $lines);
+		self::assertCount(1, $this->savedObjects);
+		self::assertSame('l-2', $this->savedObjects[0]['object']['learnerId']);
+		self::assertSame(6.0, $this->savedObjects[0]['object']['value']);
+		self::assertContains(
+			['info', '[LtiAgsScorePollJob] Sweep complete. pulled={pulled}, created={created}, skipped={skipped}.', ['pulled' => 2, 'created' => 1, 'skipped' => 0]],
+			$lines
+		);
+	}//end testAThrowingMessageDoesNotStopTheSweep()
+
+	/**
+	 * A pull that fails writes nothing and keeps the cursor.
+	 *
+	 * @return void
+	 */
+	public function testAFailedPullKeepsTheCursor(): void {
+		$this->configValues['lti_ags_pull_cursor'] = 'cursor-0';
+		$response = $this->createMock(IResponse::class);
+		$response->method('getBody')->willReturn('<html>gateway</html>');
+		$client = $this->createMock(IClient::class);
+		$client->method('get')->willReturn($response);
+		$this->clientService->method('newClient')->willReturn($client);
+
+		$pullClient = new LtiAgsPullClient(
+			clientService: $this->clientService,
+			urlGenerator: $this->urlGenerator,
+			appConfig: $this->appConfig,
+			appManager: $this->createMock(IAppManager::class),
+			logger: new NullLogger()
+		);
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->expects(self::never())->method('info');
+
+		(new LtiAgsScorePollJob(
+			time: $this->createMock(ITimeFactory::class),
+			objectService: $this->objectService,
+			pullClient: $pullClient,
+			appConfig: $this->appConfig,
+			logger: $logger
+		))->run(null);
+
+		self::assertSame([], $this->savedObjects);
+		self::assertSame('cursor-0', $this->configValues['lti_ags_pull_cursor']);
+	}//end testAFailedPullKeepsTheCursor()
+
+	/**
 	 * The GradeEntry carries every field in order, written as the system, with no tenant when the placement has none.
 	 *
 	 * @return void
