@@ -5667,7 +5667,14 @@ OC.L10N.register(
         "Introduction": "Inleiding",
         "Contact for questions": "Contact voor vragen",
         "Explanation of {feature}": "Toelichting op {feature}",
-        "Save text": "Tekst opslaan"
+        "Save text": "Tekst opslaan",
+        "Price": "Prijs",
+        "Amount excluding VAT": "Bedrag zonder btw",
+        "ISO 4217 currency code.": "ISO 4217-valutacode.",
+        "VAT rate": "Btw-tarief",
+        "Price note": "Toelichting bij de prijs",
+        "Invoice": "Factuur",
+        "Invoice status": "Factuurstatus"
     },
     "nplurals=2; plural=(n != 1);"
 )

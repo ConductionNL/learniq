@@ -5178,7 +5178,14 @@ OC.L10N.register(
         "Introduction": "Introduction",
         "Contact for questions": "Contact for questions",
         "Explanation of {feature}": "Explanation of {feature}",
-        "Save text": "Save text"
+        "Save text": "Save text",
+        "Price": "Price",
+        "Amount excluding VAT": "Amount excluding VAT",
+        "ISO 4217 currency code.": "ISO 4217 currency code.",
+        "VAT rate": "VAT rate",
+        "Price note": "Price note",
+        "Invoice": "Invoice",
+        "Invoice status": "Invoice status"
     },
     "nplurals=2; plural=(n != 1);"
 )
