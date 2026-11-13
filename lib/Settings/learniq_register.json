@@ -18636,7 +18636,7 @@
             "ExcuseRequest": {
                 "slug": "excuse-request",
                 "icon": "FileDocumentEditOutline",
-                "version": "0.4.3",
+                "version": "0.5.0",
                 "title": "Excuse request",
                 "description": "Absence excuse submitted by a learner, parent, or 18+ learner-self for a date range. On approval, matching AttendanceRecords are flipped to absent-excused by ExcuseApprovalHandler.",
                 "type": "object",
@@ -18647,7 +18647,6 @@
                 },
                 "required": [
                     "dateFrom",
-                    "dateTo",
                     "reason",
                     "reasonKind",
                     "learnerRef"
@@ -18687,8 +18686,25 @@
                     "dateTo": {
                         "type": "string",
                         "format": "date",
-                        "description": "Last date of the absence period (inclusive, ISO 8601 date).",
-                        "title": "Absence To Date"
+                        "description": "Last date of the absence period (inclusive, ISO 8601 date). An illness may leave it empty until the pupil is reported better; it then covers each following school day.",
+                        "title": "Absence To Date",
+                        "nullable": true
+                    },
+                    "fromLessonHour": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 12,
+                        "nullable": true,
+                        "title": "From lesson hour",
+                        "description": "First lesson hour of a report for part of a single day (1 is the first lesson). Empty for whole days."
+                    },
+                    "toLessonHour": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 12,
+                        "nullable": true,
+                        "title": "To lesson hour",
+                        "description": "Last lesson hour of a report for part of a single day, inclusive. Empty for whole days."
                     },
                     "reason": {
                         "type": "string",
@@ -18752,6 +18768,19 @@
                         "nullable": true,
                         "description": "Optional note from the coordinator explaining the decision.",
                         "title": "Decision Note"
+                    },
+                    "seenBy": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "Seen by",
+                        "description": "Nextcloud user ID of the group teacher who first opened the report, or the register that lists it. Stamped once by the server; later openings change nothing."
+                    },
+                    "seenAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "title": "Seen at",
+                        "description": "ISO 8601 timestamp of that first look. Seeing does not change the lifecycle."
                     },
                     "lifecycle": {
                         "type": "string",
@@ -18892,7 +18921,29 @@
                         "coordinators",
                         "compliance-officers"
                     ]
-                }
+                },
+                "allOf": [
+                    {
+                        "_comment": "absence-reports-seen-and-ended: an illness may leave dateTo empty until the pupil is reported better (reportRecovered sets it); every other reason names its last day. Mirrors PortfolioEntry's if/then conditional-requiredness-by-discriminator shape.",
+                        "if": {
+                            "not": {
+                                "properties": {
+                                    "reasonKind": {
+                                        "const": "illness"
+                                    }
+                                },
+                                "required": [
+                                    "reasonKind"
+                                ]
+                            }
+                        },
+                        "then": {
+                            "required": [
+                                "dateTo"
+                            ]
+                        }
+                    }
+                ]
             },
             "AttendanceThreshold": {
                 "slug": "attendance-threshold",

@@ -122,12 +122,42 @@ class ExcuseApprovalHandler implements IEventListener {
 			return;
 		}
 
-		$window = $this->resolveExcuseWindow(dateFrom: $request['dateFrom'], dateTo: $request['dateTo'], requestId: (string)$requestId);
+		$window = $this->resolveExcuseWindow(dateFrom: $request['dateFrom'], dateTo: $this->lastDayOf(request: $request), requestId: (string)$requestId);
 		if ($window !== null) {
 			$this->flipForLearner(request: $request, window: $window);
 		}
 
 	}//end flipAttendanceRecords()
+
+	/**
+	 * Whether a report is an illness without a last day yet: it covers every
+	 * day from its first until the pupil is reported better.
+	 *
+	 * @param array<string, mixed> $request The ExcuseRequest.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-report-may-cover-lesson-hours-and-an-illness-may-stay-open-until-the-pupil-is-better
+	 */
+	private static function isOpenIllness(array $request): bool {
+		return ($request['reasonKind'] ?? null) === 'illness' && ($request['dateTo'] ?? '') === '';
+	}//end isOpenIllness()
+
+	/**
+	 * The last day a report covers: its `dateTo`, or for an open illness the
+	 * furthest date, so every record from the first day on follows it.
+	 *
+	 * @param array<string, mixed> $request The ExcuseRequest.
+	 *
+	 * @return string
+	 */
+	private function lastDayOf(array $request): string {
+		if (self::isOpenIllness(request: $request) === true) {
+			return '9999-12-31';
+		}
+
+		return (string)$request['dateTo'];
+	}//end lastDayOf()
 
 	/**
 	 * An excuse request's id, or its uuid when it has no id.
@@ -155,7 +185,7 @@ class ExcuseApprovalHandler implements IEventListener {
 	private function hasExcuseFields(array $request): bool {
 		return ($request['learnerId'] ?? '') !== ''
 			&& ($request['dateFrom'] ?? '') !== ''
-			&& ($request['dateTo'] ?? '') !== '';
+			&& (($request['dateTo'] ?? '') !== '' || self::isOpenIllness(request: $request) === true);
 	}//end hasExcuseFields()
 
 	/**

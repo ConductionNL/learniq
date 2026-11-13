@@ -30,6 +30,7 @@ use OCA\Learniq\Service\Attendance\RollCallLessons;
 use OCA\Learniq\Service\Attendance\RollCallMarks;
 use OCA\Learniq\Service\Attendance\RollCallReader;
 use OCA\Learniq\Service\Attendance\RollCallService;
+use OCA\Learniq\Service\Attendance\ReportSeenStamp;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\RegisterSchemaPayloads;
 use OCA\OpenRegister\Db\ObjectEntity;
@@ -180,7 +181,8 @@ class RollCallServiceTest extends TestCase {
 			marks: new RollCallMarks(),
 			objectService: $objects,
 			time: $time,
-			l10n: $l10n
+			l10n: $l10n,
+			seen: new ReportSeenStamp(objectService: $objects, time: $time)
 		);
 	}//end service()
 
@@ -596,4 +598,76 @@ class RollCallServiceTest extends TestCase {
 		$this->expectException(RollCallException::class);
 		$this->service()->open(user: $this->user('juf-7'), cohortId: null, date: '02-10-2026', sessionId: null);
 	}//end testABadDateIsRefused()
+
+	/**
+	 * The first group teacher to open the register stamps an open report as
+	 * seen; the lifecycle stays, later openings change nothing, and neither a
+	 * decided report nor a coordinator outside teacherIds is stamped.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#scenario-juf-esra-opens-the-register
+	 */
+	public function testAGroupTeachersFirstLookIsRecordedOnce(): void {
+		$this->store['excuse-request'] = [
+			['id' => 'x-daan', 'learnerId' => 'daan', 'dateFrom' => '2026-10-02', 'dateTo' => '2026-10-02', 'reason' => 'Ziek', 'reasonKind' => 'illness', 'lifecycle' => 'submitted', 'teacherIds' => ['juf-7']],
+			['id' => 'x-vera', 'learnerId' => 'vera', 'dateFrom' => '2026-10-02', 'dateTo' => '2026-10-02', 'reason' => 'Griep', 'reasonKind' => 'illness', 'lifecycle' => 'approved', 'teacherIds' => ['juf-7']],
+		];
+
+		$this->service()->open(user: $this->user('ib'), cohortId: self::G7, date: null, sessionId: null);
+		self::assertSame([], $this->savedReports(), 'a coordinator outside teacherIds does not count as the teacher having seen it');
+
+		$register = $this->service()->open(user: $this->user('juf-7'), cohortId: null, date: null, sessionId: null);
+		$saved = $this->savedReports();
+		self::assertSame(['x-daan'], array_keys($saved), 'only the open report of her own group is stamped');
+		self::assertSame('juf-7', $saved['x-daan']['object']['seenBy']);
+		self::assertSame('2026-10-02T07:00:00+00:00', $saved['x-daan']['object']['seenAt']);
+		self::assertSame('submitted', $saved['x-daan']['object']['lifecycle'], 'seeing does not decide');
+		self::assertFalse($saved['x-daan']['rbac']);
+		self::assertSame('juf-7', self::pupil($register, 'daan')['report']['seenBy']);
+
+		$this->store['excuse-request'][0] = array_merge($this->store['excuse-request'][0], ['seenBy' => 'juf-7', 'seenAt' => '2026-10-02T07:00:00+00:00']);
+		$this->saved = [];
+		$this->service(now: self::FRIDAY_0900 + 3600)->open(user: $this->user('juf-7'), cohortId: null, date: null, sessionId: null);
+		self::assertSame([], $this->savedReports(), 'a second look changes nothing');
+	}//end testAGroupTeachersFirstLookIsRecordedOnce()
+
+	/**
+	 * An illness without a last day covers every following day, until it is ended.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#scenario-better-on-wednesday
+	 */
+	public function testAnOpenIllnessCoversEachDayUntilEnded(): void {
+		$this->store['excuse-request'] = [
+			['id' => 'x-noor', 'learnerId' => 'noor', 'dateFrom' => '2026-09-30', 'reason' => 'Ziek', 'reasonKind' => 'illness', 'lifecycle' => 'approved'],
+			['id' => 'x-daan', 'learnerId' => 'daan', 'dateFrom' => '2026-09-30', 'reason' => 'Tandarts', 'reasonKind' => 'medical-appointment', 'lifecycle' => 'approved'],
+		];
+
+		$register = $this->service()->open(user: $this->user('juf-7'), cohortId: null, date: null, sessionId: null);
+		self::assertSame('x-noor', self::pupil($register, 'noor')['report']['id']);
+		self::assertSame('absent-excused', self::pupil($register, 'noor')['status']);
+		self::assertNull(self::pupil($register, 'daan')['report'], 'only an illness may stay open');
+
+		$this->store['excuse-request'][0]['dateTo'] = '2026-10-01';
+		$register = $this->service()->open(user: $this->user('juf-7'), cohortId: null, date: null, sessionId: null);
+		self::assertNull(self::pupil($register, 'noor')['report'], 'better on Thursday: Friday no longer lists it');
+	}//end testAnOpenIllnessCoversEachDayUntilEnded()
+
+	/**
+	 * The excuse-request saves, keyed by report id.
+	 *
+	 * @return array<string, array<string, mixed>>
+	 */
+	private function savedReports(): array {
+		$reports = [];
+		foreach ($this->saved as $save) {
+			if ($save['schema'] === 'excuse-request') {
+				$reports[(string)$save['uuid']] = $save;
+			}
+		}
+
+		return $reports;
+	}//end savedReports()
 }//end class
