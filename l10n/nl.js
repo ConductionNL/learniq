@@ -953,7 +953,7 @@ OC.L10N.register(
         "Import course package": "Cursuspakket importeren",
         "Export course package": "Cursuspakket exporteren",
         "Course package import reports": "Importrapporten cursuspakketten",
-        "Upload an IMS Common Cartridge 1.3 (.imscc/.zip) or Moodle backup (.mbz) package. Every resource in the package is reported — imported, degraded, or dropped — nothing is silently lost.": "Upload een IMS Common Cartridge 1.3 (.imscc/.zip) of Moodle-back-up (.mbz) pakket. Elke bron in het pakket wordt gerapporteerd — geïmporteerd, verminderd of vervallen — er gaat nooit iets stilzwijgend verloren.",
+        "Upload an IMS Common Cartridge 1.3 (.imscc/.zip), a Moodle backup (.mbz) or a SCORM 1.2 or 2004 package (.zip). Every resource in the package is reported — imported, degraded, or dropped — nothing is silently lost.": "Upload een IMS Common Cartridge 1.3 (.imscc/.zip), een Moodle-back-up (.mbz) of een SCORM 1.2- of 2004-pakket (.zip). Elke bron in het pakket wordt gerapporteerd — geïmporteerd, verminderd of vervallen — er gaat nooit iets stilzwijgend verloren.",
         "Course package file": "Cursuspakketbestand",
         "Importing…": "Bezig met importeren…",
         "Import package": "Pakket importeren",
