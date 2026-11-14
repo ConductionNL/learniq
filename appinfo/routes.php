@@ -57,6 +57,9 @@ $routes = [
         ['name' => 'credentialEuropass#download', 'url' => '/api/credentials/{id}/europass', 'verb' => 'GET'],
         ['name' => 'credentialEuropass#download', 'url' => '/api/credentials/{id}/europass/download', 'verb' => 'POST', 'postfix' => 'post'],
         ['name' => 'credentialEuropass#create', 'url' => '/api/credentials/{id}/europass', 'verb' => 'POST'],
+        // Certificate PDF (credentials-certificate-pdf): the holder, hr and
+        // compliance officers download the rendered PDF; others get a 404.
+        ['name' => 'credential#pdf', 'url' => '/api/credentials/{id}/pdf', 'verb' => 'GET'],
 
         // Admin key management — admin-only via #[AuthorizedAdminSetting], cryptographic operation (ADR-031).
         // Controller: KeyAdminController (slug: keyAdmin).

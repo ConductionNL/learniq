@@ -12,7 +12,7 @@
 
 ## 3. Download
 
-- [ ] 3.1 Add a route and controller method `credential#pdf` that checks holder, hr or compliance-officers, then streams the filinq document. Declare `#[NoAdminRequired]` and an explicit object check. Verify: PHPUnit for holder, officer and another learner (refused).
+- [x] 3.1 Add a route and controller method `credential#pdf` that checks holder, hr or compliance-officers, then streams the filinq document. Declare `#[NoAdminRequired]` and an explicit object check. Verify: PHPUnit for holder, officer and another learner (refused).
 
 ## 4. UI
 
