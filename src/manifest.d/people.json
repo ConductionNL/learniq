@@ -3152,7 +3152,7 @@
 							"register": "learniq",
 							"schema": "learning-plan",
 							"filter": {
-								"learnerId": "@objectId"
+								"learnerId": "@object.ncUserId"
 							},
 							"sort": {
 								"field": "id",
@@ -3176,7 +3176,7 @@
 							"rowRoute": "LearningPlanDetail",
 							"viewAllRoute": "LearningPlans",
 							"viewAllQuery": {
-								"learnerId": "@objectId"
+								"learnerId": "@object.ncUserId"
 							},
 							"emptyText": "No learning plans found."
 						},
