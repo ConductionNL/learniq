@@ -5174,7 +5174,22 @@ OC.L10N.register(
         "OpenRegister file attachment reference (nc:files path or OR attachment ID). The app does NOT store file bytes. Empty for a linked material, which has a sourceUrl instead.": "OpenRegister file attachment reference (nc:files path or OR attachment ID). The app does NOT store file bytes. Empty for a linked material, which has a sourceUrl instead.",
         "SPDX license identifier or rights statement. Open material from a source carries its normalised licence code, such as CC-BY-4.0, or other.": "SPDX license identifier or rights statement. Open material from a source carries its normalised licence code, such as CC-BY-4.0, or other.",
         "This material is not available in this course.": "This material is not available in this course.",
-        "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source."
+        "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.",
+        "Price": "Price",
+        "Amount excluding VAT": "Amount excluding VAT",
+        "ISO 4217 currency code.": "ISO 4217 currency code.",
+        "VAT rate": "VAT rate",
+        "Price note": "Price note",
+        "Invoice": "Invoice",
+        "Invoice status": "Invoice status",
+        "From lesson hour": "From lesson hour",
+        "To lesson hour": "To lesson hour",
+        "Seen at": "Seen at",
+        "Seen by": "Seen by",
+        "First lesson hour of a report for part of a single day (1 is the first lesson). Empty for whole days.": "First lesson hour of a report for part of a single day (1 is the first lesson). Empty for whole days.",
+        "Last lesson hour of a report for part of a single day, inclusive. Empty for whole days.": "Last lesson hour of a report for part of a single day, inclusive. Empty for whole days.",
+        "ISO 8601 timestamp of that first look. Seeing does not change the lifecycle.": "ISO 8601 timestamp of that first look. Seeing does not change the lifecycle.",
+        "Nextcloud user ID of the group teacher who first opened the report, or the register that lists it. Stamped once by the server; later openings change nothing.": "Nextcloud user ID of the group teacher who first opened the report, or the register that lists it. Stamped once by the server; later openings change nothing."
     },
     "nplurals=2; plural=(n != 1);"
 )
