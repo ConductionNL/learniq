@@ -349,6 +349,38 @@ class CredentialSigningServiceTest extends TestCase {
 	}//end testCheckInjectsDataIntegrityProof()
 
 	/**
+	 * A certificate taken over from the previous system is never signed as
+	 * learniq's own: check() refuses it and leaves it untouched, sign()
+	 * returns null (credentials-migrate-with-validity task 2.3).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#requirement-a-migrated-certificate-keeps-its-dates-and-is-not-signed-as-learniqs-own
+	 */
+	public function testAMigratedCredentialIsNotSigned(): void {
+		$service = $this->makeService('tenant-test');
+		$credential = [
+			'id' => 'cred-migrated-001',
+			'learnerId' => 'learner-1',
+			'courseId' => null,
+			'issuedAt' => '2023-01-01T00:00:00+00:00',
+			'tenant_id' => 'tenant-test',
+			'source' => 'migrated',
+			'legacyNumber' => 'VCA-2023-0112',
+		];
+		$context = ['object' => $credential];
+
+		self::assertFalse($service->check($context));
+		self::assertSame($credential, $context['object']);
+		self::assertNull($service->sign($credential));
+
+		$manual = ['source' => 'manual'] + $credential;
+		$signed = $service->sign($manual);
+		self::assertIsArray($signed);
+		self::assertArrayHasKey('signature', $signed);
+	}//end testAMigratedCredentialIsNotSigned()
+
+	/**
 	 * check() verificationMethod fragment must equal the public key fingerprint (kid).
 	 *
 	 * @return void

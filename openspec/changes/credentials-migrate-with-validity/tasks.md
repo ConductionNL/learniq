@@ -8,7 +8,7 @@
 
 - [x] 2.1 `lib/Service/CredentialMigrationService.php`: match learner by id or email, course by code or regulation by slug, dedupe on learner, course and old number; return per-row results; write only on commit. Verify: PHPUnit for clean, unknown learner, unknown course, duplicate, no end date.
 - [x] 2.2 `POST /api/credentials/migrate` with `dryRun`, for hr and compliance-officers (action matrix entry `credential.migrate`). Verify: controller test, including a refused learner role.
-- [ ] 2.3 Make `CredentialIssuanceHandler` and `CredentialSigningService` skip `source: migrated`. Verify: PHPUnit on the real event.
+- [x] 2.3 Make `CredentialIssuanceHandler` and `CredentialSigningService` skip `source: migrated`. Verify: PHPUnit on the real event. — `CredentialSigningService::check()`/`sign()` refuse a `source: migrated` credential (`isMigrated()`), and the bulk reissue counts one as skipped instead of failed. The handler acts on enrolment completions only and issues `source: auto`, so a migrated certificate's own transitions already pass it by; `CredentialIssuanceHandlerTest` pins that on the real `ObjectTransitionedEvent`.
 
 ## 3. Verification page
 

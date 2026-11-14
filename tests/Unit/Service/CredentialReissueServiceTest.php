@@ -203,6 +203,24 @@ class CredentialReissueServiceTest extends TestCase {
 	}//end testAWalletOfferIsClearedWithANote()
 
 	/**
+	 * A migrated certificate is left as it is, counted as skipped, not failed
+	 * (credentials-migrate-with-validity task 2.3).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#requirement-a-migrated-certificate-keeps-its-dates-and-is-not-signed-as-learniqs-own
+	 */
+	public function testAMigratedCertificateIsSkipped(): void {
+		$service = $this->service();
+		$this->store->rows['credential'][] = ['id' => 'cr-6', 'lifecycle' => 'issued', 'courseId' => 'c-bhv', 'learnerId' => 'l-2', 'kind' => 'certificate', 'issuedAt' => '2023-01-10T10:00:00+00:00', 'tenant_id' => 't1', 'source' => 'migrated', 'legacyNumber' => 'OLD-6'];
+
+		$totals = $service->run(courseId: 'c-bhv', runId: 'run-m', reason: 'r', actor: $this->hr());
+
+		self::assertSame(['processed' => 3, 'skipped' => 3, 'failed' => 0], $totals);
+		self::assertSame(['cr-1', 'cr-2', 'cr-5'], array_column($this->fired, 'id'));
+	}//end testAMigratedCertificateIsSkipped()
+
+	/**
 	 * One failure is counted and the run goes on.
 	 *
 	 * @return void

@@ -72,7 +72,8 @@ class CredentialSigningService implements CredentialSigningServiceInterface {
 	 *
 	 * @param array<string,mixed> $transitionContext Context array whose 'object' key holds the Credential data.
 	 *
-	 * @return bool True if signing succeeded; false when the credential cannot be signed.
+	 * @return bool True if signing succeeded; false when the credential cannot be signed
+	 *              or was migrated from the previous system.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
 	 */
@@ -80,7 +81,7 @@ class CredentialSigningService implements CredentialSigningServiceInterface {
 		$object = &$transitionContext['object'];
 
 		$tenantId = $object['tenant_id'] ?? '';
-		if (($object['learnerId'] ?? '') === '' || $tenantId === '') {
+		if (($object['learnerId'] ?? '') === '' || $tenantId === '' || self::isMigrated(credential: $object) === true) {
 			return false;
 		}
 
@@ -100,6 +101,21 @@ class CredentialSigningService implements CredentialSigningServiceInterface {
 
 		return true;
 	}//end check()
+
+	/**
+	 * Whether a credential was taken over from the previous system. Learniq
+	 * did not issue it, so it never gets a learniq signature
+	 * (credentials-migrate-with-validity design D2).
+	 *
+	 * @param array<string,mixed> $credential The Credential data.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#requirement-a-migrated-certificate-keeps-its-dates-and-is-not-signed-as-learniqs-own
+	 */
+	public static function isMigrated(array $credential): bool {
+		return (($credential['source'] ?? null) === 'migrated');
+	}//end isMigrated()
 
 	/**
 	 * The fields signing stamps on a credential: its signed Open Badges
