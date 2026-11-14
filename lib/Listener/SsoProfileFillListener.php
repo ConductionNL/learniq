@@ -191,18 +191,33 @@ class SsoProfileFillListener implements IEventListener {
 			['filters' => ['ncUserId' => $userId, 'register' => self::REGISTER, 'schema' => self::PROFILE_SCHEMA], 'limit' => 1]
 		);
 		foreach ($rows as $row) {
-			$profile = $row;
-			if (is_array($row) === false) {
-				$profile = $row->jsonSerialize();
-			}
-
-			if (is_array($profile) === true && (string)($profile['ncUserId'] ?? '') === $userId) {
+			$profile = self::rowArray(row: $row);
+			if ((string)($profile['ncUserId'] ?? '') === $userId) {
 				return $profile;
 			}
 		}
 
 		return null;
 	}//end profileOf()
+
+	/**
+	 * A findAll row as an array, an empty one when it serialises to none.
+	 *
+	 * @param mixed $row The row: an array or an entity.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private static function rowArray(mixed $row): array {
+		if (is_array($row) === false) {
+			$row = $row->jsonSerialize();
+		}
+
+		if (is_array($row) === false) {
+			return [];
+		}
+
+		return $row;
+	}//end rowArray()
 
 	/**
 	 * The attributes with single-valued lists taken as their one value.
