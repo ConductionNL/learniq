@@ -333,10 +333,6 @@ $routes = [
         // (rules in RollCallService). Controller: RollCallController (slug: rollCall).
         ['name' => 'rollCall#show', 'url' => '/api/attendance/roll-call', 'verb' => 'GET'],
         ['name' => 'rollCall#save', 'url' => '/api/attendance/roll-call', 'verb' => 'POST'],
-        // The staff page of one pupil (learner-list-and-page-follow-the-boards): header,
-        // today's state, the "Wat nu?" next step and the people around the pupil.
-        // Controller: PupilPageController (slug: pupilPage); access as the group's register.
-        ['name' => 'pupilPage#show', 'url' => '/api/pupils/{learnerId}/page', 'verb' => 'GET'],
         // Work groups (enrolment-self-join-work-group): the signed-in learner
         // sees the work groups of their classes and joins, moves or leaves
         // while sign-up is open (rules in WorkGroupMembershipService).
@@ -349,6 +345,10 @@ $routes = [
         ['name' => 'portalWorkGroup#mine', 'url' => '/api/portal/work-groups', 'verb' => 'POST'],
         ['name' => 'portalWorkGroup#join', 'url' => '/api/portal/work-groups/join', 'verb' => 'POST'],
         ['name' => 'portalWorkGroup#leave', 'url' => '/api/portal/work-groups/leave', 'verb' => 'POST'],
+        // The staff page of one pupil (learner-list-and-page-follow-the-boards): header,
+        // today's state, the "Wat nu?" next step and the people around the pupil.
+        // Controller: PupilPageController (slug: pupilPage); access as the group's register.
+        ['name' => 'pupilPage#show', 'url' => '/api/pupils/{learnerId}/page', 'verb' => 'GET'],
         // Course catalogue (enrolment-catalogue-self-signup): the signed-in
         // learner lists what they may sign up for, signs up for a course or a
         // programme, and withdraws an own sign-up; every write is for the
