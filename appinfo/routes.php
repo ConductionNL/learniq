@@ -60,6 +60,7 @@ $routes = [
         // Certificate PDF (credentials-certificate-pdf): the holder, hr and
         // compliance officers download the rendered PDF; others get a 404.
         ['name' => 'credential#pdf', 'url' => '/api/credentials/{id}/pdf', 'verb' => 'GET'],
+        ['name' => 'credential#pdf', 'url' => '/api/credentials/{id}/pdf/download', 'verb' => 'POST', 'postfix' => 'post'],
 
         // Admin key management — admin-only via #[AuthorizedAdminSetting], cryptographic operation (ADR-031).
         // Controller: KeyAdminController (slug: keyAdmin).

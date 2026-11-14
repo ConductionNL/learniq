@@ -1343,7 +1343,7 @@
             "Course": {
                 "slug": "course",
                 "icon": "BookOpenPageVariantOutline",
-                "version": "0.6.1",
+                "version": "0.6.2",
                 "title": "Course",
                 "description": "A course or training program (Schema.org Course). Lifecycle: draft → published → archived.",
                 "type": "object",
@@ -1443,7 +1443,7 @@
                     "certificateTemplateSlug": {
                         "type": "string",
                         "nullable": true,
-                        "title": "Certificaatsjabloon",
+                        "title": "Certificate template",
                         "description": "The slug of the filinq document template this course's certificates are printed on (for example \"vca-basis\"). filinq resolves it per tenant."
                     },
                     "lifecycle": {

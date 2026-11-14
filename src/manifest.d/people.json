@@ -446,7 +446,8 @@
 					"walletOfferedAt",
 					"walletOfferError",
 					"walletOfferNote",
-					"walletOfferStatus"
+					"walletOfferStatus",
+					"pdfRenderStatus"
 				],
 				"actions": [
 					{
@@ -946,6 +947,23 @@
 						"filename": "europass.jsonld",
 						"refresh": false,
 						"errorMessage": "This certificate has no Europass version yet, or you may not download it."
+					},
+					{
+						"id": "download-certificate-pdf",
+						"label": "Download PDF",
+						"icon": "FileDocumentOutline",
+						"type": "api-call",
+						"url": "/apps/learniq/api/credentials/@objectId/pdf/download",
+						"method": "POST",
+						"download": true,
+						"filename": "certificaat.pdf",
+						"refresh": false,
+						"errorMessage": "The PDF of this certificate is not available, or you may not download it.",
+						"visibleWhen": {
+							"field": "pdfRenderStatus",
+							"op": "eq",
+							"value": "rendered"
+						}
 					},
 					{
 						"id": "create-europass",

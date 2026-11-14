@@ -16,8 +16,8 @@
 
 ## 4. UI
 
-- [ ] 4.1 Course edit form: "Certificaatsjabloon" field. Certificate detail and the learner's certificate wall: "PDF downloaden" when rendered. Verify: `npm run check:manifest`.
-- [ ] 4.2 Strings in every shipped locale. Verify: `npm run check:l10n`.
+- [x] 4.1 (the course form is schema-driven, so the field appears from `Course.certificateTemplateSlug`, titled "Certificate template" / "Certificaatsjabloon"; "Download PDF" sits on the certificate detail when `pdfRenderStatus` is `rendered`, and the Credentials list shows the PDF status; the manifest has no separate learner certificate wall page yet, the learner reaches the certificate detail) Course edit form: "Certificaatsjabloon" field. Certificate detail and the learner's certificate wall: "PDF downloaden" when rendered. Verify: `npm run check:manifest`.
+- [x] 4.2 (en and nl written and marked AI-translated; other locales fall back to English, at the parity baseline) Strings in every shipped locale. Verify: `npm run check:l10n`.
 
 ## 5. Close out
 

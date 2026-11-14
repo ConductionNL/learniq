@@ -5235,7 +5235,21 @@
         "VAT rate": "VAT rate",
         "Price note": "Price note",
         "Invoice": "Invoice",
-        "Invoice status": "Invoice status"
+        "Invoice status": "Invoice status",
+        "Certificate template": "Certificate template",
+        "The slug of the filinq document template this course's certificates are printed on (for example \"vca-basis\"). filinq resolves it per tenant.": "The slug of the filinq document template this course's certificates are printed on (for example \"vca-basis\"). filinq resolves it per tenant.",
+        "Certificate PDF": "Certificate PDF",
+        "The filinq document the certificate's PDF was rendered into. Written by the server when the certificate is issued or reissued.": "The filinq document the certificate's PDF was rendered into. Written by the server when the certificate is issued or reissued.",
+        "PDF render status": "PDF render status",
+        "Whether the certificate's PDF was rendered: pending, rendered, failed, or unavailable when filinq or its token is missing. A failed render never blocks the certificate.": "Whether the certificate's PDF was rendered: pending, rendered, failed, or unavailable when filinq or its token is missing. A failed render never blocks the certificate.",
+        "Being rendered": "Being rendered",
+        "PDF ready": "PDF ready",
+        "PDF failed": "PDF failed",
+        "PDF unavailable": "PDF unavailable",
+        "PDF render error": "PDF render error",
+        "Why the certificate's PDF was not rendered, when it was not.": "Why the certificate's PDF was not rendered, when it was not.",
+        "Download PDF": "Download PDF",
+        "The PDF of this certificate is not available, or you may not download it.": "The PDF of this certificate is not available, or you may not download it."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
