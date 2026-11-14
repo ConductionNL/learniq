@@ -33108,7 +33108,7 @@
             "SchoolEvent": {
                 "slug": "school-event",
                 "icon": "CalendarStar",
-                "version": "0.1.0",
+                "version": "0.2.0",
                 "title": "School event",
                 "authorization": {
                     "read": [
@@ -33185,7 +33185,10 @@
                             "sports-day",
                             "trip",
                             "celebration",
-                            "other"
+                            "other",
+                            "holiday",
+                            "day-off",
+                            "parent-evening"
                         ],
                         "default": "event",
                         "title": "Kind",
@@ -33197,7 +33200,7 @@
                             "celebration": "Celebration",
                             "other": "Other"
                         },
-                        "description": "Which kind of day this is."
+                        "description": "Which kind of day this is. A public calendar groups the kinds into holidays, study days and days off, school activities and parent evenings."
                     },
                     "audience": {
                         "type": "string",

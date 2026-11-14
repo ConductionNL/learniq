@@ -3272,6 +3272,8 @@ OC.L10N.register(
         "The last day or the end time. Leave empty for one day.": "The last day or the end time. Leave empty for one day.",
         "Which kind of day this is.": "Which kind of day this is.",
         "Study day": "Study day",
+        "Study day or day off": "Study day or day off",
+        "School activity": "School activity",
         "Sports day": "Sports day",
         "Trip": "Trip",
         "Celebration": "Celebration",
