@@ -3103,6 +3103,7 @@
 					"location",
 					"materialIds",
 					"onlineMeetingUrl",
+					"parts",
 					"roomId",
 					"sessionDayBucket",
 					"startsAt",

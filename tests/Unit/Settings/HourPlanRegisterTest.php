@@ -103,8 +103,10 @@ class HourPlanRegisterTest extends TestCase {
 	public function testCohortProgrammeYear(): void {
 		$cohort = $this->schemas['Cohort'];
 
-		// 0.3.0: the optional capacity (board-data-the-schemas-lacked); programmeYear came with 0.2.0.
-		self::assertSame('0.3.0', $cohort['version']);
+		// 0.5.0: the manual status move and the course day log, 0.4.0: minimum, decision and
+		// course day status (training-provider-course-days); 0.3.0 the optional capacity
+		// (board-data-the-schemas-lacked); programmeYear came with 0.2.0.
+		self::assertTrue(version_compare($cohort['version'], '0.5.0', '>='));
 		self::assertSame('integer', $cohort['properties']['programmeYear']['type']);
 		self::assertTrue($cohort['properties']['programmeYear']['nullable']);
 	}//end testCohortProgrammeYear()
