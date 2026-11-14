@@ -354,6 +354,21 @@
 					}
 				},
 				{
+					"id": "ProctoringReviewMenu",
+					"label": "Proctoring review",
+					"icon": "ShieldAlertOutline",
+					"route": "ProctoringReviewQueue",
+					"order": 51,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "Grades",
 					"label": "Grades",
 					"icon": "Gauge",
@@ -6132,6 +6147,15 @@
 				"register": "learniq",
 				"schema": "proctoring-session",
 				"readOnly": true,
+				"headerActions": [
+					{
+						"id": "review-flags",
+						"label": "Review flags",
+						"icon": "ShieldAlertOutline",
+						"handler": "navigate",
+						"route": "ProctoringReviewQueue"
+					}
+				],
 				"columns": [
 					{
 						"key": "learnerId",
@@ -6280,7 +6304,7 @@
 			"config": {
 				"register": "learniq",
 				"schema": "grade-scale",
-				"_note": "Board LqCijferschaal (G2): figures (lowest and highest grade, pass mark, entries in use), the scale as a card, its bands from the record, and the grades on this scale as a tab.",
+				"_note": "Board LqCijferschaal (G2): figures (lowest and highest grade, pass mark, entries in use), the scale as a card, its bands from the record, and the grades on this scale as a tab. @spec openspec/specs/grading/spec.md#requirement-a-school-defines-its-own-grade-scales @spec openspec/specs/grading/spec.md#requirement-the-scale-decides-how-a-final-grade-is-rounded-and-whether-it-passes",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
