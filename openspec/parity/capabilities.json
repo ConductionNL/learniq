@@ -6007,8 +6007,8 @@
       "area": "support",
       "name": "Hold the file open until the municipality has given its view.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Lifecycle/MunicipalityFeedbackGuard.php Not built: the AttendanceFlag resolve transition has no guard, so a flag can be closed with no municipalityFeedback.",
+        "state": "built",
+        "evidence": "lib/Lifecycle/AttendanceFlagResolveGuard.php (on the AttendanceFlag resolve transition); lib/Lifecycle/MunicipalityFeedbackGuard.php; tests/Unit/Lifecycle/AttendanceFlagResolveGuardTest.php",
         "owner": "ConductionNL/learniq",
         "change": "2026-07-13-zorgvraag-swv-tlv-chain",
         "requirement": [
@@ -6324,8 +6324,8 @@
       "area": "attendance",
       "name": "Book a room or a lab, and respect its capacity.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.Room; lib/Timetabling/SessionOverlapEvaluator.php Not built: TimetableConflictDetector::exceedsRoomCapacity checks capacity only for sessions linked to an Assessment; an ordinary lesson over capacity is not flagged.",
+        "state": "built",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.Room; lib/Timetabling/TimetableConflictDetector.php (capacity for every session); lib/Timetabling/SessionOverlapEvaluator.php; tests/Unit/Timetabling/TimetableConflictDetectorTest.php::testAnOrdinaryLessonInARoomTooSmallIsFlagged",
         "owner": "ConductionNL/learniq",
         "change": "2026-07-16-timetabling-and-substitution",
         "requirement": [
@@ -10095,8 +10095,8 @@
       "area": "governance",
       "name": "Fill learner profiles from what the school sign-in sends along.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.SsoAttributeMapping; lib/Service/SsoAttributeMappingApplier.php Not built: SsoAttributeMappingApplier computes the update but no listener calls it on a Nextcloud login, so nothing writes the profile at sign-in.",
+        "state": "built",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.SsoAttributeMapping; lib/Service/SsoAttributeMappingApplier.php; lib/Listener/SsoProfileFillListener.php (on UserLoggedInEvent, from the SAML sign-in attributes); tests/Unit/Listener/SsoProfileFillListenerTest.php",
         "owner": "ConductionNL/learniq",
         "spec": "openspec/specs/identity-federation",
         "requirement": [
