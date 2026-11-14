@@ -5223,7 +5223,14 @@
         "Nearing the limit": "Nearing the limit",
         "True when the count is at or above the threshold's warning level and still under its limit. A warning only: no flag and no report.": "True when the count is at or above the threshold's warning level and still under its limit. A warning only: no flag and no report.",
         "Warn at": "Warn at",
-        "The count at which staff see a pupil as nearing the limit, before any flag. Default: three quarters of the limit.": "The count at which staff see a pupil as nearing the limit, before any flag. Default: three quarters of the limit."
+        "The count at which staff see a pupil as nearing the limit, before any flag. Default: three quarters of the limit.": "The count at which staff see a pupil as nearing the limit, before any flag. Default: three quarters of the limit.",
+        "Price": "Price",
+        "Amount excluding VAT": "Amount excluding VAT",
+        "ISO 4217 currency code.": "ISO 4217 currency code.",
+        "VAT rate": "VAT rate",
+        "Price note": "Price note",
+        "Invoice": "Invoice",
+        "Invoice status": "Invoice status"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
