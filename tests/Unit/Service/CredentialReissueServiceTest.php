@@ -166,7 +166,8 @@ class CredentialReissueServiceTest extends TestCase {
 				$slug = (string)$course['certificateTemplateSlug'];
 				$this->renders[] = [(string)$credential['id'], $slug];
 				if ($this->pdfOutcome === 'failed') {
-					return $credential + ['pdfDocumentRef' => null, 'pdfRenderStatus' => 'failed', 'pdfRenderError' => 'filinq render error: down'];
+					// As the real service does: status and reason, the stored document left as it was.
+					return ['pdfRenderStatus' => 'failed', 'pdfRenderError' => 'filinq render error: down'] + $credential;
 				}
 
 				return ['pdfDocumentRef' => 'doc-' . $slug . '-' . $credential['id'], 'pdfRenderStatus' => 'rendered', 'pdfRenderError' => null] + $credential;
@@ -362,6 +363,7 @@ class CredentialReissueServiceTest extends TestCase {
 		$service = $this->service();
 		$this->course = ['id' => 'c-bhv', 'certificateTemplateSlug' => 'vca-basis-2027'];
 		$this->pdfOutcome = 'failed';
+		$this->store->rows['credential'][0] += ['pdfDocumentRef' => 'doc-old', 'pdfRenderStatus' => 'rendered'];
 
 		$totals = $service->run(courseId: 'c-bhv', runId: 'run-8', reason: 'r', actor: $this->hr());
 		$byId = array_column($this->fired, 'data', 'id');

@@ -293,6 +293,12 @@ class CredentialReissueService implements CredentialReissueServiceInterface {
 			$data[$field] = $rendered[$field] ?? null;
 		}
 
+		// The render keeps a document it did not make; the reissued
+		// certificate must not point at the one from before the reissue.
+		if ($data['pdfRenderStatus'] !== 'rendered') {
+			$data['pdfDocumentRef'] = null;
+		}
+
 		return $data;
 	}//end withPdf()
 
