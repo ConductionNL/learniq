@@ -95,7 +95,8 @@ class PortalPublicIndex {
 		return array_merge(
 			(new PublicCourseIndex(reads: $reads, courseHref: $this->courseHrefOf(portal: $portal)))->items(namespace: $namespace, today: $day),
 			(new PublicProgrammeIndex(reads: $reads))->items(namespace: $namespace),
-			(new PublicEventIndex(reads: $reads))->items(namespace: $namespace, today: $day)
+			(new PublicEventIndex(reads: $reads))->items(namespace: $namespace, today: $day),
+			(new PublicTestScheduleIndex(reads: $reads))->items(namespace: $namespace, today: $day)
 		);
 	}//end forPortal()
 

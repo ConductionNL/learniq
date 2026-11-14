@@ -46,15 +46,21 @@ class PortalPublicIndexTest extends TestCase {
 	 * An index over ALL example sets at once, as the proof instance carries
 	 * them: OpenRegister answers from every set's seed objects together.
 	 *
+	 * @param callable|null $edit Changes the seeded objects first (schema => rows in, the same out).
+	 *
 	 * @return PortalPublicIndex
 	 */
-	private function index(): PortalPublicIndex {
+	private function index(?callable $edit=null): PortalPublicIndex {
 		$objects = [];
 		foreach (['po', 'vo', 'mbo', 'training'] as $set) {
 			$seed = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/profiles/' . $set . '.json'), true)['x-openregister']['seedData']['objects'];
 			foreach ($seed as $schema => $rows) {
 				$objects[$schema] = array_merge(($objects[$schema] ?? []), $rows);
 			}
+		}
+
+		if ($edit !== null) {
+			$objects = $edit($objects);
 		}
 
 		$store = $this->createMock(ObjectService::class);
@@ -242,4 +248,127 @@ class PortalPublicIndexTest extends TestCase {
 		self::assertSame([], (new PortalContributionProvider())->getPublicIndex('wilgenboom'));
 		self::assertNotSame([], (new PortalContributionProvider(publicIndex: $this->index()))->getPublicIndex('esdoornveen'));
 	}//end testTheProviderAnswersThroughTheService()
+	/**
+	 * Vaartveld's public toetsweek 1: the four papers of 4 havo with day, time,
+	 * subject, room and class, what to bring and the weight, and no name of a
+	 * pupil or an invigilator. Toetsweek 2, not marked public, is not in it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-the-public-index-carries-a-schools-published-test-schedule
+	 */
+	public function testAPublicTestWeekIsInTheIndexWithoutNames(): void {
+		$tests = $this->items(portal: 'vaartveld', type: 'test');
+
+		self::assertSame(['Economie', 'Engels', 'Nederlands', 'Wiskunde A'], $this->sorted(array_keys($tests)));
+		$wiskunde = $tests['Wiskunde A'];
+		self::assertSame('Di 10 nov, 08.30 - 10.10, Wiskunde A', $wiskunde['meta']);
+		self::assertSame(['2026-11-10', '08:30', '10:10'], [$wiskunde['date'], $wiskunde['startTime'], $wiskunde['endTime']]);
+		self::assertSame('Aula', $wiskunde['room']);
+		self::assertSame(['4 havo'], $wiskunde['groups']);
+		self::assertSame('Toetsweek 1, 9 - 13 november', $wiskunde['period']);
+		self::assertSame(['Department and year' => ['4 havo'], 'Test week' => ['Toetsweek 1, 9 - 13 november']], $wiskunde['facets']);
+		self::assertSame('Je schoolpas, pennen, een geodriehoek en een rekenmachine.', $wiskunde['bringList']);
+		self::assertSame(1, $wiskunde['weight']);
+		self::assertSame('Ma 9 nov, 08.30 - 10.10, Nederlands', $tests['Nederlands']['meta']);
+
+		$seed = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/profiles/vo.json'), true)['x-openregister']['seedData']['objects'];
+		$text = json_encode(array_values($tests));
+		foreach (array_slice($seed['learner-profile'], 0, 400) as $person) {
+			$name = trim(($person['givenName'] ?? '') . ' ' . ($person['familyName'] ?? ''));
+			self::assertStringNotContainsString($name, (string)$text, 'a sitting names no pupil or guardian');
+		}
+
+		foreach (['learnerIds', 'learnerRefs', 'invigilatorIds', 'headcount'] as $key) {
+			self::assertArrayNotHasKey($key, $wiskunde);
+		}
+
+		self::assertSame([], array_filter($tests, static fn (array $t): bool => str_starts_with($t['period'], 'Toetsweek 2')), 'a week not marked public stays out');
+	}//end testAPublicTestWeekIsInTheIndexWithoutNames()
+
+	/**
+	 * A sitting the roostermaker moves is read on its new day; a cancelled
+	 * sitting, a week still in planning and a week that is over stay out.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-the-public-index-carries-a-schools-published-test-schedule
+	 */
+	public function testTheIndexFollowsTheSchedule(): void {
+		$moved = $this->testsOf(
+			edit: static function (array $objects): array {
+				foreach ($objects['exam-sitting'] as &$sitting) {
+					if (str_contains($sitting['startsAt'], '2026-11-10T08:30') === true) {
+						$sitting['startsAt'] = '2026-11-11T13:00:00+01:00';
+						$sitting['endsAt']   = '2026-11-11T14:40:00+01:00';
+					}
+
+					if (str_contains($sitting['startsAt'], '2026-11-12') === true) {
+						$sitting['lifecycle'] = 'cancelled';
+					}
+				}
+
+				return $objects;
+			}
+		);
+		self::assertSame('Wo 11 nov, 13.00 - 14.40, Wiskunde A', $moved['Wiskunde A']['meta']);
+		self::assertArrayNotHasKey('Economie', $moved, 'a cancelled sitting stays out');
+
+		$planning = $this->testsOf(edit: static fn (array $objects): array => self::periods(objects: $objects, fields: ['lifecycle' => 'planning']));
+		self::assertSame([], $planning, 'a week still in planning stays out');
+
+		$private = $this->testsOf(edit: static fn (array $objects): array => self::periods(objects: $objects, fields: ['public' => false]));
+		self::assertSame([], $private, 'a week not marked public stays out');
+
+		$over = array_filter(
+			$this->index()->forPortal(portal: 'vaartveld', today: new DateTimeImmutable('2026-11-14')),
+			static fn (array $i): bool => $i['type'] === 'test'
+		);
+		self::assertSame([], $over, 'a week that is over stays out');
+	}//end testTheIndexFollowsTheSchedule()
+
+	/**
+	 * Vaartveld's test items after an edit of the seeds, by title.
+	 *
+	 * @param callable $edit Changes the seeded objects.
+	 *
+	 * @return array<string, array<string, mixed>>
+	 */
+	private function testsOf(callable $edit): array {
+		$items = array_filter(
+			$this->index(edit: $edit)->forPortal(portal: 'vaartveld', today: new DateTimeImmutable(self::MONDAY)),
+			static fn (array $i): bool => $i['type'] === 'test'
+		);
+
+		return array_column(array_values($items), null, 'title');
+	}//end testsOf()
+
+	/**
+	 * The seeds with the given fields set on every test week.
+	 *
+	 * @param array<string, array<int, array<string, mixed>>> $objects The seeded objects.
+	 * @param array<string, mixed>                            $fields  The fields to set.
+	 *
+	 * @return array<string, array<int, array<string, mixed>>>
+	 */
+	private static function periods(array $objects, array $fields): array {
+		foreach ($objects['exam-period'] as &$period) {
+			$period = array_merge($period, $fields);
+		}
+
+		return $objects;
+	}//end periods()
+
+	/**
+	 * A list sorted, for a comparison that does not depend on order.
+	 *
+	 * @param array<int, string> $values The values.
+	 *
+	 * @return array<int, string>
+	 */
+	private function sorted(array $values): array {
+		sort($values);
+
+		return $values;
+	}//end sorted()
 }//end class

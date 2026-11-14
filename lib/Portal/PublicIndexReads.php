@@ -162,6 +162,19 @@ class PublicIndexReads {
 	}//end month()
 
 	/**
+	 * A day as "9 november": the day of the month and the month's full name.
+	 *
+	 * @param string $day The day, `YYYY-MM-DD`.
+	 *
+	 * @return string
+	 *
+	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-the-public-index-carries-a-schools-published-test-schedule
+	 */
+	public function dayAndMonth(string $day): string {
+		return ((int)substr($day, 8, 2)) . ' ' . (self::MONTHS[((int)substr($day, 5, 2)) - 1] ?? '');
+	}//end dayAndMonth()
+
+	/**
 	 * An object as an array, or null.
 	 *
 	 * @param mixed $object The object.
