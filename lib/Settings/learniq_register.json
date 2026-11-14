@@ -36,6 +36,7 @@
                     "attestation",
                     "behaviour-incident",
                     "bpv-placement",
+                    "bpv-visit",
                     "bpv-visit-report",
                     "bsa-decision",
                     "bsa-progress-flag",
@@ -22287,10 +22288,169 @@
                 },
                 "x-openregister-seed": []
             },
+            "BpvVisit": {
+                "slug": "bpv-visit",
+                "icon": "CalendarAccount",
+                "version": "0.1.0",
+                "title": "BPV Visit",
+                "description": "A planned company visit for one BpvPlacement: its kind, the moment the school coach proposed, the moment agreed with the praktijkopleider, and its state. The coach proposes a date; the praktijkopleider accepts it, or answers with a note that sends it back to unplanned. The visit report of a held visit links it through bpvVisitId (bpv-coach-today-and-placement-board).",
+                "type": "object",
+                "x-openregister": {
+                    "active": true,
+                    "hardDelete": false,
+                    "searchable": true
+                },
+                "required": [
+                    "bpvPlacementId",
+                    "visitKind",
+                    "schoolCoachId",
+                    "tenant_id"
+                ],
+                "properties": {
+                    "bpvPlacementId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "$ref": "BpvPlacement",
+                        "description": "UUID of the BpvPlacement this visit belongs to.",
+                        "title": "BPV Placement ID"
+                    },
+                    "learnerRef": {
+                        "type": "string",
+                        "description": "The learner the placement is for, as on the placement.",
+                        "title": "Learner"
+                    },
+                    "visitKind": {
+                        "type": "string",
+                        "enum": [
+                            "voortgangsbezoek",
+                            "tussentijds-gesprek",
+                            "eindgesprek"
+                        ],
+                        "description": "Kind of visit.",
+                        "title": "Visit Kind"
+                    },
+                    "schoolCoachId": {
+                        "type": "string",
+                        "description": "The BPV-begeleider (school coach) who plans and makes the visit.",
+                        "title": "School Coach"
+                    },
+                    "practicalTrainerId": {
+                        "type": "string",
+                        "description": "The praktijkopleider at the company who agrees the date.",
+                        "title": "Practical Trainer"
+                    },
+                    "proposedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The moment the school coach proposed.",
+                        "title": "Proposed Moment"
+                    },
+                    "plannedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The moment agreed with the company.",
+                        "title": "Planned Moment"
+                    },
+                    "trainerResponse": {
+                        "type": "string",
+                        "description": "The praktijkopleider's answer when she does not accept the proposed moment.",
+                        "title": "Company Answer"
+                    },
+                    "tenant_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Tenant identifier for multi-tenant isolation.",
+                        "title": "Tenant ID"
+                    },
+                    "lifecycle": {
+                        "type": "string",
+                        "enum": [
+                            "unplanned",
+                            "proposed",
+                            "planned",
+                            "done",
+                            "cancelled"
+                        ],
+                        "default": "unplanned",
+                        "description": "unplanned until the coach proposes a moment; proposed until the company accepts (planned) or answers (back to unplanned); done once held; cancelled when it will not take place.",
+                        "title": "State"
+                    }
+                },
+                "x-openregister-lifecycle": {
+                    "field": "lifecycle",
+                    "initial": "unplanned",
+                    "transitions": {
+                        "propose": {
+                            "from": [
+                                "unplanned",
+                                "proposed"
+                            ],
+                            "to": "proposed"
+                        },
+                        "accept": {
+                            "from": [
+                                "proposed"
+                            ],
+                            "to": "planned"
+                        },
+                        "answer": {
+                            "from": [
+                                "proposed"
+                            ],
+                            "to": "unplanned"
+                        },
+                        "complete": {
+                            "from": [
+                                "planned"
+                            ],
+                            "to": "done"
+                        },
+                        "cancel": {
+                            "from": [
+                                "unplanned",
+                                "proposed",
+                                "planned"
+                            ],
+                            "to": "cancelled"
+                        }
+                    }
+                },
+                "x-openregister-seed": [],
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads",
+                        "coordinators",
+                        "administration-managers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "schoolCoachId": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads",
+                        "coordinators"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads",
+                        "coordinators"
+                    ]
+                }
+            },
             "BpvVisitReport": {
                 "slug": "bpv-visit-report",
                 "icon": "MapMarkerCheckOutline",
-                "version": "0.1.1",
+                "version": "0.2.0",
                 "title": "BPV Visit Report",
                 "description": "A visit or three-way-conversation report for one BpvPlacement, linked to the learner's LearnerProfile dossier via learnerRef. Declares a visitDueReminder notification off nextVisitDue, targeting the internal schoolCoachId (the praktijkopleider has no NC-reachable channel).",
                 "type": "object",
@@ -22314,6 +22474,13 @@
                         "$ref": "BpvPlacement",
                         "description": "UUID of the BpvPlacement this visit report belongs to.",
                         "title": "BPV Placement ID"
+                    },
+                    "bpvVisitId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "$ref": "BpvVisit",
+                        "description": "UUID of the BpvVisit this report records, when the visit was planned as one.",
+                        "title": "BPV Visit ID"
                     },
                     "learnerRef": {
                         "type": "string",
