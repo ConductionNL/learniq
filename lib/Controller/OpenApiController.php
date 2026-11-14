@@ -89,9 +89,16 @@ class OpenApiController extends Controller {
 		$version  = $this->appManager->getAppVersion(AppIdentity::APP_ID);
 		$document = $this->document();
 		$response = new JSONResponse(
-			['error' => 'The OpenAPI document is not installed'],
+			[
+				'type'   => 'about:blank',
+				'title'  => 'Not Found',
+				'status' => Http::STATUS_NOT_FOUND,
+				'detail' => 'The OpenAPI document is not installed',
+				'error'  => 'The OpenAPI document is not installed',
+			],
 			Http::STATUS_NOT_FOUND
 		);
+		$response->addHeader('Content-Type', 'application/problem+json; charset=utf-8');
 		if ($document !== null) {
 			$document->info->version = $version;
 			$response = new JSONResponse($document);

@@ -81,6 +81,24 @@ class CredentialIssuanceHandlerTest extends TestCase {
 	private bool $learnerHasProfile = true;
 
 	/**
+	 * Extra properties of the course under test.
+	 * @var array<string, mixed>
+	 */
+	private array $courseExtra = [];
+
+	/**
+	 * The Regulation rows the register holds, as data.
+	 * @var array<int, array<string, mixed>>
+	 */
+	private array $regulations = [];
+
+	/**
+	 * When the enrolment under test completed.
+	 * @var string
+	 */
+	private string $completedAt = '2026-09-28T10:00:00+02:00';
+
+	/**
 	 * Warnings the handler logged, as [message, context].
 	 *
 	 * @var array<int, array{0: string, 1: array<string, mixed>}>
@@ -125,6 +143,9 @@ class CredentialIssuanceHandlerTest extends TestCase {
 		$this->saved = [];
 		$this->warnings = [];
 		$this->learnerHasProfile = true;
+		$this->courseExtra = [];
+		$this->regulations = [];
+		$this->completedAt = '2026-09-28T10:00:00+02:00';
 	}//end setUp()
 
 	/**
@@ -338,6 +359,113 @@ class CredentialIssuanceHandlerTest extends TestCase {
 	}//end testTheHandlerIsRegisteredForTheTransitionEvent()
 
 	/**
+	 * The expiry of the one credential a completion saved.
+	 *
+	 * @return string|null
+	 */
+	private function issuedExpiry(): ?string {
+		$this->buildHandler(tenantHasKey: true)->handle($this->completionEvent());
+		self::assertCount(1, $this->saved);
+
+		return $this->saved[0]['object']['expiresAt'];
+	}//end issuedExpiry()
+
+	/**
+	 * A published rule in the tenant.
+	 *
+	 * @param array<string, mixed> $overrides Properties to set on it.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function rule(array $overrides=[]): array {
+		return array_merge(
+			['slug' => 'BHV', 'name' => 'Bedrijfshulpverlening', 'renewalCycleMonths' => 24, 'lifecycle' => 'published', 'tenant_id' => self::TENANT],
+			$overrides
+		);
+	}//end rule()
+
+	/**
+	 * A course bound to a rule, with no validity of its own, expires after the rule's cycle.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-a-rule-says-how-often-retraining-is-due
+	 */
+	public function testARulesRenewalCycleSetsTheExpiry(): void {
+		$this->completedAt = '2026-03-01T09:00:00+01:00';
+		$this->courseExtra = ['regulationSlug' => 'BHV'];
+		$this->regulations = [self::rule()];
+
+		self::assertSame('2028-03-01T09:00:00+01:00', $this->issuedExpiry());
+	}//end testARulesRenewalCycleSetsTheExpiry()
+
+	/**
+	 * The course's own validity wins over the rule's cycle.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-a-rule-says-how-often-retraining-is-due
+	 */
+	public function testTheCoursesOwnValidityWins(): void {
+		$this->completedAt = '2026-03-01T09:00:00+01:00';
+		$this->courseExtra = ['regulationSlug' => 'BHV', 'defaultExpiresAfterDays' => 365];
+		$this->regulations = [self::rule()];
+
+		self::assertSame('2027-03-01T09:00:00+01:00', $this->issuedExpiry());
+	}//end testTheCoursesOwnValidityWins()
+
+	/**
+	 * A course with neither a validity nor a rule issues a credential that does not expire.
+	 *
+	 * @return void
+	 */
+	public function testNeitherValidityNorRuleMeansNoExpiry(): void {
+		$this->regulations = [self::rule()];
+
+		self::assertNull($this->issuedExpiry());
+	}//end testNeitherValidityNorRuleMeansNoExpiry()
+
+	/**
+	 * Only a published rule of the enrolment's own tenant counts.
+	 *
+	 * @return void
+	 */
+	public function testADraftRuleOrAnotherTenantsRuleSetsNoExpiry(): void {
+		$this->courseExtra = ['regulationSlug' => 'BHV'];
+		$this->regulations = [self::rule(['lifecycle' => 'draft']), self::rule(['tenant_id' => 'tenant-other'])];
+
+		self::assertNull($this->issuedExpiry());
+	}//end testADraftRuleOrAnotherTenantsRuleSetsNoExpiry()
+
+	/**
+	 * A rule that leaves its cycle unset renews yearly, as the schema defaults it.
+	 *
+	 * @return void
+	 */
+	public function testARuleWithoutACycleRenewsYearly(): void {
+		$this->completedAt = '2026-03-01T09:00:00+01:00';
+		$this->courseExtra = ['regulationSlug' => 'BHV'];
+		$rule = self::rule();
+		unset($rule['renewalCycleMonths']);
+		$this->regulations = [$rule];
+
+		self::assertSame('2027-03-01T09:00:00+01:00', $this->issuedExpiry());
+	}//end testARuleWithoutACycleRenewsYearly()
+
+	/**
+	 * A completion on the 31st expires on the last day of a shorter month, not in the month after.
+	 *
+	 * @return void
+	 */
+	public function testACycleEndingInAShorterMonthKeepsToItsLastDay(): void {
+		$this->completedAt = '2026-01-31T09:00:00+01:00';
+		$this->courseExtra = ['regulationSlug' => 'BHV'];
+		$this->regulations = [self::rule(['renewalCycleMonths' => 1])];
+
+		self::assertSame('2026-02-28T09:00:00+01:00', $this->issuedExpiry());
+	}//end testACycleEndingInAShorterMonthKeepsToItsLastDay()
+
+	/**
 	 * The real event OpenRegister dispatches when an enrolment completes.
 	 *
 	 * @return ObjectTransitionedEvent
@@ -349,7 +477,7 @@ class CredentialIssuanceHandlerTest extends TestCase {
 				'courseId' => 'course-bhv',
 				'learnerId' => self::LEARNER_UID,
 				'tenant_id' => self::TENANT,
-				'completedAt' => '2026-09-28T10:00:00+02:00',
+				'completedAt' => $this->completedAt,
 				'lifecycle' => 'completed',
 			],
 			'enrolment',
@@ -403,19 +531,22 @@ class CredentialIssuanceHandlerTest extends TestCase {
 	private function objectService(): ObjectService {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			static function (mixed $id): ?ObjectEntity {
+			function (mixed $id): ?ObjectEntity {
 				if ($id !== 'course-bhv') {
 					return null;
 				}
 
 				return OrEntityFactory::make(
-					[
-						'id' => 'course-bhv',
-						'code' => 'BHV-BASIS',
-						'name' => 'BHV basisopleiding',
-						'certificateTemplate' => '/Certificaten/bhv.pdf',
-						'tenant_id' => self::TENANT,
-					],
+					array_merge(
+						[
+							'id' => 'course-bhv',
+							'code' => 'BHV-BASIS',
+							'name' => 'BHV basisopleiding',
+							'certificateTemplate' => '/Certificaten/bhv.pdf',
+							'tenant_id' => self::TENANT,
+						],
+						$this->courseExtra
+					),
 					'course'
 				);
 			}
@@ -429,6 +560,17 @@ class CredentialIssuanceHandlerTest extends TestCase {
 					&& ($filters['tenant_id'] ?? null) === self::TENANT
 				) {
 					return [OrEntityFactory::make(['id' => self::LEARNER_PROFILE, 'ncUserId' => self::LEARNER_UID, 'tenant_id' => self::TENANT], 'learner-profile')];
+				}
+
+				if (($filters['schema'] ?? null) === 'regulation') {
+					$rows = [];
+					foreach ($this->regulations as $index => $rule) {
+						if (($rule['slug'] ?? null) === ($filters['slug'] ?? null) && ($rule['tenant_id'] ?? null) === ($filters['tenant_id'] ?? null)) {
+							$rows[] = OrEntityFactory::make(array_merge(['id' => 'regulation-' . $index], $rule), 'regulation');
+						}
+					}
+
+					return $rows;
 				}
 
 				if (($filters['schema'] ?? null) === 'school' && ($filters['tenant_id'] ?? null) === self::TENANT) {
