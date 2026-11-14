@@ -38,7 +38,7 @@ class CourseDayStatusTest extends TestCase {
 	 */
 	private static function dayStatusOf(array $facts): string {
 		$facts += ['participants' => 0, 'capacity' => 12, 'minimum' => 6, 'decision' => null, 'dayDate' => '2026-10-22', 'today' => '2026-10-05', 'openResults' => false];
-		return CourseDayStatus::derive(...$facts);
+		return CourseDayStatus::derive(facts: $facts);
 	}//end dayStatusOf()
 
 	/**

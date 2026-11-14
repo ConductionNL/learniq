@@ -88,13 +88,8 @@ class CourseDayStatusCascade implements IEventListener {
 		}
 
 		[$entity, $old] = self::sides(event: $event);
-		try {
-			$slug = $this->schemaResolver->guardSchemaSlug(entity: $entity);
-		} catch (Throwable $exception) {
-			return;
-		}
-
-		if (isset(self::WATCHED[$slug]) === false) {
+		$slug = $this->watchedSlug(entity: $entity);
+		if ($slug === null) {
 			return;
 		}
 
@@ -109,6 +104,27 @@ class CourseDayStatusCascade implements IEventListener {
 	}//end handle()
 
 	/**
+	 * The entity's schema slug when it is one this cascade watches, else null.
+	 *
+	 * @param object|null $entity The saved object.
+	 *
+	 * @return string|null
+	 */
+	private function watchedSlug(?object $entity): ?string {
+		try {
+			$slug = $this->schemaResolver->guardSchemaSlug(entity: $entity);
+		} catch (Throwable $exception) {
+			return null;
+		}
+
+		if (isset(self::WATCHED[$slug]) === false) {
+			return null;
+		}
+
+		return $slug;
+	}//end watchedSlug()
+
+	/**
 	 * The course days a changed row touches: its day now and, when it moved, its day before.
 	 *
 	 * @param string               $slug The schema slug.
@@ -120,23 +136,12 @@ class CourseDayStatusCascade implements IEventListener {
 	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	public static function cohorts(string $slug, array $new, array $old): array {
+		$sides = [$new['cohortId'] ?? '', $old['cohortId'] ?? ''];
 		if ($slug === 'cohort') {
-			$id = (string)($new['id'] ?? '');
-			if ($id === '') {
-				return [];
-			}
-
-			return [$id];
+			$sides = [$new['id'] ?? ''];
 		}
 
-		$ids = [];
-		foreach ([(string)($new['cohortId'] ?? ''), (string)($old['cohortId'] ?? '')] as $id) {
-			if ($id !== '') {
-				$ids[$id] = true;
-			}
-		}
-
-		return array_keys($ids);
+		return array_values(array_unique(array_filter(array_map('strval', $sides), static fn (string $id): bool => $id !== '')));
 	}//end cohorts()
 
 	/**

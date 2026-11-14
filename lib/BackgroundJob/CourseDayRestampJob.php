@@ -63,21 +63,29 @@ class CourseDayRestampJob extends ForwardedJob {
 	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	protected function runDeferred(DeferredListenerContext $context): void {
-		$cohorts = [];
-		foreach ($context->getEntries() as $entry) {
-			$id = (string)($entry['cohortId'] ?? '');
-			if ($id !== '') {
-				$cohorts[$id] = true;
-			}
-		}
-
-		foreach (array_keys($cohorts) as $cohortId) {
+		foreach (self::cohortIds(entries: $context->getEntries()) as $cohortId) {
 			try {
-				$this->status->restamp(cohortId: (string)$cohortId);
+				$this->status->restamp(cohortId: $cohortId);
 			} catch (Throwable $exception) {
 				$context = ['msg' => $exception->getMessage(), 'cohortId' => $cohortId];
 				$this->log->warning('[CourseDayRestampJob] A course day could not be re-derived: {msg}', $context);
 			}
 		}
 	}//end runDeferred()
+
+	/**
+	 * The distinct non-empty cohort ids of the deferred entries, in order.
+	 *
+	 * @param iterable<array<string, mixed>> $entries The entries.
+	 *
+	 * @return list<string>
+	 */
+	private static function cohortIds(iterable $entries): array {
+		$cohorts = [];
+		foreach ($entries as $entry) {
+			$cohorts[] = (string)($entry['cohortId'] ?? '');
+		}
+
+		return array_values(array_unique(array_filter($cohorts, static fn (string $id): bool => $id !== '')));
+	}//end cohortIds()
 }//end class

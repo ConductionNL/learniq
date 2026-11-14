@@ -76,31 +76,50 @@ final class SessionPartAttendance {
 		$parts = [];
 		$due   = null;
 		foreach (self::parts(session: $session) as $key => $startsAt) {
-			$begun     = ($startsAt !== null && $startsAt <= $now);
-			$mine      = array_values(array_filter($records, static fn (array $record): bool => ($record['part'] ?? null) === $key));
-			$there     = [];
-			$late      = [];
-			foreach ($mine as $record) {
-				$learner = (string)($record['learnerId'] ?? ($record['learnerRef'] ?? ''));
-				if (in_array((string)($record['status'] ?? ''), self::THERE, true) === true) {
-					$there[$learner] = true;
-				}
-
-				if (($record['status'] ?? null) === 'late') {
-					$late[] = ['learnerId' => $learner, 'arrivedAt' => self::time(value: ($record['arrivedAt'] ?? null))];
-				}
-			}
-
+			$begun      = ($startsAt !== null && $startsAt <= $now);
+			$mine       = array_values(array_filter($records, static fn (array $record): bool => ($record['part'] ?? null) === $key));
+			$tally      = self::tally(records: $mine);
 			$registered = ($mine !== []);
 			if ($begun === true && $registered === false) {
 				$due = $key;
 			}
 
-			$parts[] = ['key' => $key, 'begun' => $begun, 'registered' => $registered, 'there' => count($there), 'of' => $participants, 'late' => $late];
+			$parts[] = [
+				'key' => $key,
+				'begun' => $begun,
+				'registered' => $registered,
+				'there' => $tally['there'],
+				'of' => $participants,
+				'late' => $tally['late'],
+			];
 		}
 
 		return ['parts' => $parts, 'due' => $due];
 	}//end summarise()
+
+	/**
+	 * Who of one part's records was there, and who came late and when.
+	 *
+	 * @param list<array<string, mixed>> $records The part's attendance records.
+	 *
+	 * @return array{there: int, late: list<array{learnerId: string, arrivedAt: string|null}>}
+	 */
+	private static function tally(array $records): array {
+		$there = [];
+		$late  = [];
+		foreach ($records as $record) {
+			$learner = (string)($record['learnerId'] ?? ($record['learnerRef'] ?? ''));
+			if (in_array((string)($record['status'] ?? ''), self::THERE, true) === true) {
+				$there[$learner] = true;
+			}
+
+			if (($record['status'] ?? null) === 'late') {
+				$late[] = ['learnerId' => $learner, 'arrivedAt' => self::time(value: ($record['arrivedAt'] ?? null))];
+			}
+		}
+
+		return ['there' => count($there), 'late' => $late];
+	}//end tally()
 
 	/**
 	 * The session's parts in day order, each with its start (or null when it has none).
@@ -111,18 +130,8 @@ final class SessionPartAttendance {
 	 */
 	private static function parts(array $session): array {
 		$found = [];
-		$parts = ($session['parts'] ?? null);
-		if (is_array($parts) === false) {
-			$parts = [];
-		}
-
-		foreach ($parts as $part) {
-			if (is_array($part) === false || in_array(($part['key'] ?? null), self::PARTS, true) === false) {
-				continue;
-			}
-
-			$key = (string)$part['key'];
-			$found[$key] = self::moment(value: ($part['startsAt'] ?? null));
+		foreach (self::knownParts(session: $session) as $part) {
+			$found[(string)$part['key']] = self::moment(value: ($part['startsAt'] ?? null));
 		}
 
 		$ordered = [];
@@ -134,6 +143,27 @@ final class SessionPartAttendance {
 
 		return $ordered;
 	}//end parts()
+
+	/**
+	 * The session's parts that are arrays with a known key, in stored order.
+	 *
+	 * @param array<string, mixed> $session The session.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	private static function knownParts(array $session): array {
+		$parts = ($session['parts'] ?? null);
+		if (is_array($parts) === false) {
+			return [];
+		}
+
+		return array_values(
+			array_filter(
+				$parts,
+				static fn (mixed $part): bool => is_array($part) === true && in_array(($part['key'] ?? null), self::PARTS, true) === true
+			)
+		);
+	}//end knownParts()
 
 	/**
 	 * A stored timestamp, or null.

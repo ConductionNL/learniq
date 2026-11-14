@@ -59,47 +59,94 @@ final class CourseDayStatus {
 	 * done. Before that: full at its maximum, goes ahead at its minimum or on a
 	 * go decision, otherwise open. A day without a minimum goes ahead only by decision.
 	 *
-	 * @param int         $participants The places taken.
-	 * @param int|null    $capacity     The maximum, or null when there is none.
-	 * @param int|null    $minimum      The minimum, or null when there is none.
-	 * @param string|null $decision     `go`, `no-go`, or null while undecided.
-	 * @param string|null $dayDate      The day's last date (Y-m-d), or null when unknown.
-	 * @param string      $today        Today (Y-m-d).
-	 * @param bool        $openResults  Whether results or certificates of the day are still open.
+	 * @param array<string, mixed> $facts The facts: `participants` (int, the places taken),
+	 *                                    `capacity` and `minimum` (int, or null when there is none),
+	 *                                    `decision` (`go`, `no-go`, or null while undecided),
+	 *                                    `dayDate` (the day's last date, Y-m-d, or null when unknown),
+	 *                                    `today` (Y-m-d) and `openResults` (bool, whether results
+	 *                                    or certificates of the day are still open).
 	 *
 	 * @return string One of {@see self::ALL}.
 	 *
 	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
-	public static function derive(
-		int $participants,
-		?int $capacity,
-		?int $minimum,
-		?string $decision,
-		?string $dayDate,
-		string $today,
-		bool $openResults
-	): string {
-		if ($decision === 'no-go') {
+	public static function derive(array $facts): string {
+		if (($facts['decision'] ?? null) === 'no-go') {
 			return self::CANCELLED;
 		}
 
-		if ($dayDate !== null && $dayDate !== '' && $dayDate < $today) {
-			if ($openResults === true) {
-				return self::ROUNDING_OFF;
-			}
-
-			return self::DONE;
+		if (self::isPast(facts: $facts) === true) {
+			return self::pastStatus(facts: $facts);
 		}
 
-		if ($capacity !== null && $capacity > 0 && $participants >= $capacity) {
+		if (self::isFull(facts: $facts) === true) {
 			return self::FULL;
 		}
 
-		if ($decision === 'go' || ($minimum !== null && $participants >= $minimum)) {
+		if (self::goesAhead(facts: $facts) === true) {
 			return self::GOES_AHEAD;
 		}
 
 		return self::OPEN;
 	}//end derive()
+
+	/**
+	 * Whether the day's last date lies before today.
+	 *
+	 * @param array<string, mixed> $facts The facts, see {@see self::derive()}.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 */
+	public static function isPast(array $facts): bool {
+		$day = ($facts['dayDate'] ?? null);
+
+		return $day !== null && $day !== '' && $day < (string)($facts['today'] ?? '');
+	}//end isPast()
+
+	/**
+	 * A past day is rounding off while results or certificates are open, else done.
+	 *
+	 * @param array<string, mixed> $facts The facts, see {@see self::derive()}.
+	 *
+	 * @return string
+	 */
+	private static function pastStatus(array $facts): string {
+		if (($facts['openResults'] ?? false) === true) {
+			return self::ROUNDING_OFF;
+		}
+
+		return self::DONE;
+	}//end pastStatus()
+
+	/**
+	 * Whether the day has reached its maximum.
+	 *
+	 * @param array<string, mixed> $facts The facts, see {@see self::derive()}.
+	 *
+	 * @return bool
+	 */
+	private static function isFull(array $facts): bool {
+		$capacity = ($facts['capacity'] ?? null);
+
+		return $capacity !== null && $capacity > 0 && (int)($facts['participants'] ?? 0) >= $capacity;
+	}//end isFull()
+
+	/**
+	 * Whether the day goes ahead: by a go decision or at its minimum.
+	 *
+	 * @param array<string, mixed> $facts The facts, see {@see self::derive()}.
+	 *
+	 * @return bool
+	 */
+	private static function goesAhead(array $facts): bool {
+		if (($facts['decision'] ?? null) === 'go') {
+			return true;
+		}
+
+		$minimum = ($facts['minimum'] ?? null);
+
+		return $minimum !== null && (int)($facts['participants'] ?? 0) >= $minimum;
+	}//end goesAhead()
 }//end class

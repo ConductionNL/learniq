@@ -96,6 +96,24 @@ class SessionPartsService {
 			throw new CourseDayException(message: 'Only a trainer of this course day or a planner may read its attendance.', status: 403);
 		}
 
+		$summary = SessionPartAttendance::summarise(
+			session: $session,
+			records: $this->records(sessionId: $sessionId),
+			participants: $this->days->placesTakenOn(cohortId: $cohortId),
+			now: $this->time->getDateTime()
+		);
+
+		return ['sessionId' => $sessionId, 'cohortId' => $cohortId, 'parts' => $summary['parts'], 'due' => $summary['due']];
+	}//end forSession()
+
+	/**
+	 * The attendance records of one session.
+	 *
+	 * @param string $sessionId The session uuid.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	private function records(string $sessionId): array {
 		$records = [];
 		foreach ($this->objectService->findAll(
 			config: ['filters' => ['register' => self::REGISTER, 'schema' => 'attendance-record', 'sessionId' => $sessionId], 'limit' => 500],
@@ -108,15 +126,8 @@ class SessionPartsService {
 			}
 		}
 
-		$summary = SessionPartAttendance::summarise(
-			session: $session,
-			records: $records,
-			participants: $this->days->placesTakenOn(cohortId: $cohortId),
-			now: $this->time->getDateTime()
-		);
-
-		return ['sessionId' => $sessionId, 'cohortId' => $cohortId, 'parts' => $summary['parts'], 'due' => $summary['due']];
-	}//end forSession()
+		return $records;
+	}//end records()
 
 	/**
 	 * Whether the user trains this course day or plans course days.
