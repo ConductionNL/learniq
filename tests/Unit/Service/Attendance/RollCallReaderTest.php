@@ -124,4 +124,47 @@ class RollCallReaderTest extends TestCase {
 		self::assertSame([], $reader->reportsOn(learnerIds: [], date: '2026-10-02'));
 		self::assertCount(1, $this->queries);
 	}//end testTheReportsThatCoverTheDay()
+
+	/**
+	 * Allowed leave of the pupils asked for, matched through their profiles, reads as an
+	 * approved report of the day; an approved report of the same pupil wins over it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+	 */
+	public function testAllowedLeaveReadsAsAnApprovedReport(): void {
+		$this->queries = [];
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			function (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array {
+				$this->queries[] = [$config['filters'], $_rbac];
+				return match ($config['filters']['schema']) {
+					'learner-profile' => [['id' => 'p-ann', 'ncUserId' => 'ann'], ['id' => 'p-bob', 'ncUserId' => 'bob']],
+					'leave-request' => [
+						['id' => 'l1', 'learnerRef' => 'p-ann', 'dateFrom' => '2026-10-01', 'dateTo' => '2026-10-02', 'kind' => 'funeral', 'reason' => 'Uitvaart', 'lifecycle' => 'allowed'],
+						['id' => 'l2', 'learnerRef' => 'p-bob', 'dateFrom' => '2026-10-05', 'dateTo' => '2026-10-06', 'kind' => 'wedding', 'reason' => 'Later', 'lifecycle' => 'allowed'],
+						['id' => 'l3', 'learnerRef' => 'p-bob', 'dateFrom' => '2026-10-02', 'dateTo' => '2026-10-02', 'kind' => 'wedding', 'reason' => 'Open', 'lifecycle' => 'submitted'],
+						['id' => 'l4', 'learnerRef' => 'p-other', 'dateFrom' => '2026-10-02', 'dateTo' => '2026-10-02', 'kind' => 'other', 'reason' => 'Niet van ons', 'lifecycle' => 'allowed'],
+					],
+					default => [],
+				};
+			}
+		);
+		$reader = new RollCallReader(objectService: $objectService);
+
+		$leave = $reader->allowedLeaveOn(learnerIds: ['ann', 'bob'], date: '2026-10-02');
+
+		self::assertSame(
+			['ann' => ['id' => 'l1', 'learnerId' => 'ann', 'lifecycle' => 'approved', 'reasonKind' => 'bereavement', 'reason' => 'Uitvaart', 'dateFrom' => '2026-10-01', 'dateTo' => '2026-10-02', 'leaveRequestId' => 'l1']],
+			$leave
+		);
+		self::assertSame(['register' => 'learniq', 'schema' => 'leave-request', 'learnerRef' => ['p-ann', 'p-bob'], 'lifecycle' => 'allowed'], $this->queries[1][0]);
+		self::assertFalse($this->queries[1][1]);
+		self::assertSame([], $reader->allowedLeaveOn(learnerIds: [], date: '2026-10-02'));
+
+		$approved = ['ann' => ['id' => 'e1', 'lifecycle' => 'approved'], 'bob' => ['id' => 'e2', 'lifecycle' => 'submitted']];
+		$merged = RollCallReader::withLeave(reports: $approved, leave: ['ann' => ['id' => 'l1'], 'bob' => ['id' => 'l9'], 'cas' => ['id' => 'l8']]);
+		self::assertSame(['ann' => 'e1', 'bob' => 'l9', 'cas' => 'l8'], array_map(static fn (array $row): string => $row['id'], $merged));
+	}//end testAllowedLeaveReadsAsAnApprovedReport()
 }//end class

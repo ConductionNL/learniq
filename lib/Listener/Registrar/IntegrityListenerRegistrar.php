@@ -32,6 +32,7 @@ use OCA\Learniq\Listener\CompetencyAlignmentListener;
 use OCA\Learniq\Listener\CheckInWindowStamp;
 use OCA\Learniq\Listener\ConferenceSignupPortalStamp;
 use OCA\Learniq\Listener\ExcuseRequestOwnerStamp;
+use OCA\Learniq\Listener\LeaveRequestSchoolDaysStamp;
 use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
 use OCA\Learniq\Listener\LessonNoteAuthorGuard;
 use OCA\Learniq\Listener\LvsResultLearnerRefStamp;
@@ -224,6 +225,18 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: ExcuseRequestOwnerStamp::class
+		);
+
+		// LeaveRequest school days (leave-requests-decided-by-the-school T2):
+		// the server counts the school days of the range, which decide who may
+		// decide, and stamps the date the school answers by on a new request.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: LeaveRequestSchoolDaysStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: LeaveRequestSchoolDaysStamp::class
 		);
 
 		// ConferenceSignup from the parent portal (portal-parent-conference-

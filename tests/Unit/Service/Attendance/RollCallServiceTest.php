@@ -477,6 +477,39 @@ class RollCallServiceTest extends TestCase {
 	}//end testAnApprovedReportPrefillsAnAuthorisedAbsence()
 
 	/**
+	 * Allowed leave covering the day pre-fills an absence with permission, as an approved
+	 * report does; leave still waiting for a decision, or of another day, changes nothing,
+	 * and an approved report of the same pupil stays.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+	 */
+	public function testAllowedLeavePrefillsAnAbsenceWithPermission(): void {
+		$this->store['leave-request'] = [
+			['id' => 'l-vera', 'learnerRef' => 'b0000000-0000-4000-8000-000000000001', 'dateFrom' => '2026-10-01', 'dateTo' => '2026-10-02', 'kind' => 'wedding', 'reason' => 'Bruiloft in de familie', 'lifecycle' => 'allowed'],
+			['id' => 'l-daan', 'learnerRef' => 'b0000000-0000-4000-8000-000000000002', 'dateFrom' => '2026-10-02', 'dateTo' => '2026-10-02', 'kind' => 'funeral', 'reason' => 'Uitvaart opa', 'lifecycle' => 'submitted'],
+			['id' => 'l-noor', 'learnerRef' => 'b0000000-0000-4000-8000-000000000003', 'dateFrom' => '2026-10-05', 'dateTo' => '2026-10-06', 'kind' => 'other', 'reason' => 'Later', 'lifecycle' => 'allowed'],
+		];
+
+		$register = $this->service()->open(user: $this->user('juf-7'), cohortId: null, date: null, sessionId: null);
+
+		$vera = self::pupil($register, 'vera');
+		self::assertSame('absent-excused', $vera['status']);
+		self::assertSame('other', $vera['absenceReasonKind']);
+		self::assertSame('Bruiloft in de familie', $vera['reason']);
+		self::assertSame(['id' => 'l-vera', 'lifecycle' => 'approved', 'reasonKind' => 'family-circumstance'], array_intersect_key($vera['report'], ['id' => 1, 'lifecycle' => 1, 'reasonKind' => 1]));
+		self::assertSame('present', self::pupil($register, 'daan')['status'], 'leave not yet decided changes nothing');
+		self::assertNull(self::pupil($register, 'noor')['report'], 'leave of another day changes nothing');
+
+		$this->store['excuse-request'] = [
+			['id' => 'x-vera', 'learnerId' => 'vera', 'dateFrom' => '2026-10-02', 'dateTo' => '2026-10-02', 'reason' => 'Griep', 'reasonKind' => 'illness', 'lifecycle' => 'approved'],
+		];
+		$register = $this->service()->open(user: $this->user('juf-7'), cohortId: null, date: null, sessionId: null);
+		self::assertSame('x-vera', self::pupil($register, 'vera')['report']['id'], 'an approved report of the same day stays');
+	}//end testAllowedLeavePrefillsAnAbsenceWithPermission()
+
+	/**
 	 * A teacher's saved earlier day is read-only for them; an unsaved one is not; school-wide staff may change it.
 	 *
 	 * @return void
