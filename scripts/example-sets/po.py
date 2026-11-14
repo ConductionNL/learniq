@@ -1059,7 +1059,13 @@ STORY_EVENTS = [
     ("Naar de kinderboerderij", "2026-10-07T10:00:00+02:00", "2026-10-07T12:00:00+02:00", "trip", ["Groep 7"], "Laarzen en een regenjas mee."),
     ("Studiedag", "2026-10-09", None, "study-day", None, "Alle kinderen zijn die dag vrij."),
     ("Boekenmarkt op het plein", "2026-10-14T12:30:00+02:00", "2026-10-14T14:00:00+02:00", "event", None, "Kinderen verkopen en ruilen boeken die ze uit hebben. Bij regen in de hal."),
-    ("Ouderavond", "2026-10-29T18:00:00+01:00", "2026-10-29T20:00:00+01:00", "event", None, "Tien minuten met de leerkracht. Kies een tijd in Mijn Wilgenboom."),
+    ("Ouderavond", "2026-10-29T18:00:00+01:00", "2026-10-29T20:00:00+01:00", "parent-evening", None, "Tien minuten met de leerkracht. Kies een tijd in Mijn Wilgenboom."),
+]
+# The holidays of 2026-2027 that a parent plans around: (title, first day, last day, description). Added
+# after STORY_EVENTS so the uuids of every earlier school event stay where they were.
+SCHOOL_HOLIDAYS = [
+    ("Herfstvakantie", "2026-10-17", "2026-10-25", "De school is dicht."),
+    ("Kerstvakantie", "2026-12-19", "2027-01-03", "De school is dicht. Maandag 4 januari beginnen we weer."),
 ]
 # Homework for groep 7 this week: (subject course code, title, due date, instructions).
 STORY_HOMEWORK = [
@@ -1229,6 +1235,11 @@ class HulstkampStory:
                 "title": title, "description": description, "startsAt": starts, "endsAt": ends, "kind": kind,
                 "audience": "groups" if groups else "school", "schoolId": self.school["uuid"],
                 "cohortIds": [self.cohorts[g]["uuid"] for g in groups or []],
+            })
+        for title, starts, ends, description in SCHOOL_HOLIDAYS:
+            self.b.add("school-event", {
+                "title": title, "description": description, "startsAt": starts, "endsAt": ends, "kind": "holiday",
+                "audience": "school", "schoolId": self.school["uuid"], "cohortIds": [],
             })
 
     def add_group7_homework(self) -> None:

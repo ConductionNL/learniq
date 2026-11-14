@@ -48,7 +48,7 @@ class LeaveRequestRegisterTest extends TestCase {
 		$this->assertContains('leave-request', $this->register()['components']['registers']['learniq']['schemas']);
 		$this->assertSame('leave-request', $this->schema()['slug']);
 		$this->assertSame('0.1.0', $this->schema()['version']);
-		$this->assertTrue(version_compare((string)$this->register()['info']['version'], '0.49.0', '>='));
+		$this->assertTrue(version_compare((string)$this->register()['info']['version'], '0.50.0', '>='));
 		$this->assertSame(['learnerRef', 'dateFrom', 'dateTo', 'kind', 'reason'], $this->schema()['required']);
 
 		$fields = ['learnerRef', 'requestedByRef', 'dateFrom', 'dateTo', 'kind', 'reason', 'attachmentRef', 'schoolDays', 'decideBy', 'decidedBy', 'decidedAt', 'decisionNote', 'lifecycle', 'teacherIds', 'tenant_id'];

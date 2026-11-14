@@ -128,7 +128,8 @@ function surfaces(state, all = false) {
 // leads under My learning duplicate the admin's People entry, and the line
 // manager's Request an exemption entry duplicates the admin's Exemptions entry
 // under Compliance. The compliance officer's Absence reports entry under
-// Compliance duplicates the admin's Absence reports entry under People. They
+// Compliance duplicates the admin's Absence reports entry under People, and
+// their Proctoring review entry under Compliance the admin's under Learning. They
 // are role gates, not segment gates, so they are left out of what this test
 // compares.
 const ADMIN_REACHES_ELSEWHERE = new Set([
@@ -136,6 +137,7 @@ const ADMIN_REACHES_ELSEWHERE = new Set([
 	'menu:TeamLeadSignUpRequestsMenu',
 	'menu:RequestExemptionMenu',
 	'menu:AbsenceReportsComplianceMenu',
+	'menu:ProctoringReviewComplianceMenu',
 ])
 const ALL = surfaces(NEVER, true)
 function hiddenIn(state) {

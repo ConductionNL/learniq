@@ -284,6 +284,11 @@ $routes = [
         ['name' => 'elective#signUp', 'url' => '/api/electives/{offerId}/sign-up', 'verb' => 'POST', 'requirements' => ['offerId' => '[^/]+']],
         ['name' => 'elective#roster', 'url' => '/api/electives/{offerId}/roster', 'verb' => 'GET', 'requirements' => ['offerId' => '[^/]+']],
         ['name' => 'elective#place', 'url' => '/api/electives/{offerId}/place', 'verb' => 'POST', 'requirements' => ['offerId' => '[^/]+']],
+        // school-activities-staff-side: the staff side of portaliq's term-long activities, behind activity.manage.
+        ['name' => 'schoolActivity#index', 'url' => '/api/school-activities', 'verb' => 'GET'],
+        ['name' => 'schoolActivity#open', 'url' => '/api/school-activities/{id}/open', 'verb' => 'PUT', 'requirements' => ['id' => '[^/]+']],
+        ['name' => 'schoolActivity#roster', 'url' => '/api/school-activities/{id}/roster', 'verb' => 'GET', 'requirements' => ['id' => '[^/]+']],
+        ['name' => 'schoolActivity#attendance', 'url' => '/api/school-activities/{id}/attendance', 'verb' => 'PUT', 'requirements' => ['id' => '[^/]+']],
         ['name' => 'elective#withdraw', 'url' => '/api/elective-sign-ups/{id}/withdraw', 'verb' => 'POST', 'requirements' => ['id' => '[^/]+']],
 
         // Peer review reviewer allocation — genuine batch-matching business logic

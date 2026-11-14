@@ -379,6 +379,7 @@ const KNOWN_UNLINKED = {
 		'MyElectivesMenu',
 		'MyEvaluationsMenu',
 		'MyWorkGroupsMenu',
+		'ProctoringReviewMenu',
 		'RegulationExemptionsMenu',
 		'SchoolAdviezenMenu',
 		'SchoolEventsMenu',
@@ -396,6 +397,7 @@ const KNOWN_UNLINKED = {
 		'AbsenceReportsComplianceMenu',
 		'DashboardAdmin',
 		'DashboardStudent',
+		'ProctoringReviewComplianceMenu',
 	],
 	hr: [...CONCERN, 'DashboardAdmin', 'DashboardStudent'],
 	'administration-manager': [
@@ -453,6 +455,7 @@ const KNOWN_UNLINKED = {
 		'GroupPeople',
 		'HourPlanActivitiesMenu',
 		'MyLearningRecordMenu',
+		'ProctoringReviewMenu',
 		'SubjectChoicesMenu',
 		'TeacherAvailabilitiesMenu',
 		'TimetablesMenu',
@@ -608,11 +611,13 @@ test('the full profile is exactly the plain manifest build', () => {
 	const entries = flat(plain.menu)
 	const count = (section) =>
 		entries.filter((item) => sectionOf(item) === section).length
-	assert.equal(entries.length, 109)
+	// 111 since proctoring-flag-review-page added the Proctoring review entry
+	// under Learning and its twin under Compliance.
+	assert.equal(entries.length, 111)
 	assert.equal(plain.menu.length, 26)
 	assert.deepEqual(
 		[count('main'), count('footer'), count('settings')],
-		[100, 2, 7],
+		[102, 2, 7],
 	)
 	// 347 since the four unreached pages (BulkEnrol, CohortTimetable,
 	// MarkAttendanceView, SubmitExcuseModal) became actions; 348 with
