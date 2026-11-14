@@ -150,6 +150,55 @@ class AssessorSitePages {
 		'whenEmpty' => ['expiresAt' => 'Your access has no end date. The school ends the access.'],
 	];
 
+	/**
+	 * The assessment form (practical-exam-assessment): through learniq's own
+	 * endpoint, because only a forwarded request carries the assertion, and
+	 * the assertion is where his sign-in level is. The server only accepts it
+	 * for a candidate at a sitting he holds a live assignment for, writes who
+	 * assessed and at which assurance level, and keeps every step as a draft.
+	 */
+	public const ASSESS_ACTION = [
+		'id' => 'assessPracticalExam',
+		'type' => 'endpoint-forward',
+		'label' => 'Assess a practical exam',
+		'endpoint' => '/apps/learniq/api/portal/practical-exam-assessments',
+		'method' => 'POST',
+		'minTrust' => 'low',
+		'subjectField' => 'externalAssessorId',
+		'scopeClaim' => 'externalAssessorId',
+		'fields' => ['examSittingId', 'learnerRef', 'assessmentModelId', 'criteria', 'outcome'],
+		'requiredFields' => ['examSittingId', 'learnerRef', 'outcome'],
+		// He picks the exam and the candidate from his own assignments: the
+		// collection provider reads the subject-scoped `eaExams`.
+		'optionsProviders' => [
+			'examSittingId' => [
+				'type' => 'collection',
+				'register' => self::REGISTER,
+				'schema' => 'exam-assessor-assignment',
+				'labelField' => 'examTitle',
+				'valueField' => 'examSittingId',
+			],
+			'learnerRef' => [
+				'type' => 'collection',
+				'register' => self::REGISTER,
+				'schema' => 'exam-assessor-assignment',
+				'labelField' => 'learnerName',
+				'valueField' => 'learnerRef',
+			],
+		],
+		'fieldConfigs' => [
+			'examSittingId' => ['label' => 'The exam', 'required' => true],
+			'learnerRef' => ['label' => 'The candidate', 'required' => true],
+			'criteria' => ['label' => 'The criteria you scored'],
+			'outcome' => ['label' => 'Your judgement', 'required' => true],
+		],
+		'submitLabel' => 'Send the assessment',
+		'confirmation' => [
+			'title' => 'Your assessment has been sent',
+			'body' => 'It reaches the exam board once the second assessor has signed it too.',
+		],
+	];
+
 	private const ASSESSOR_COLLECTIONS = [
 		[
 			'id' => 'eaSharedPortfolios',
@@ -348,7 +397,8 @@ class AssessorSitePages {
 		$contribution = [
 			'label' => 'Learniq',
 			'collections' => self::ASSESSOR_COLLECTIONS,
-			'actions' => [],
+			// Read-only apart from the assessment he is assigned to (practical-exam-assessment).
+			'actions' => [self::ASSESS_ACTION],
 			'notifications' => [],
 		];
 		// The share names its candidate and portfolio, and the assessor gets an

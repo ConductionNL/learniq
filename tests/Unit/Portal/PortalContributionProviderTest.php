@@ -865,7 +865,13 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame('Learniq', $manifest['label']);
 		$this->assertSame([], $manifest['notifications']);
 		// Read-only — zero create-actions.
-		$this->assertSame([], $manifest['actions']);
+		// Read-only apart from the assessment he is assigned to, through learniq's own endpoint.
+		$this->assertSame(['assessPracticalExam'], array_column($manifest['actions'], 'id'));
+		$this->assertSame('endpoint-forward', $manifest['actions'][0]['type']);
+		$this->assertSame('/apps/learniq/api/portal/practical-exam-assessments', $manifest['actions'][0]['endpoint']);
+		$this->assertSame('externalAssessorId', $manifest['actions'][0]['subjectField']);
+		$this->assertNotContains('assessorName', $manifest['actions'][0]['fields']);
+		$this->assertNotContains('assuranceLevel', $manifest['actions'][0]['fields']);
 
 		$collections = $manifest['collections'];
 		// The shares, then the entries those shares open: selected, or a whole portfolio (site-external-assessor-portal-design T3).

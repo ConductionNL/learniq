@@ -8,7 +8,9 @@
 - [x] **T4**: register: the signature route from T1, with `assuranceLevel` on every signature
   - Built: `Signature` 0.3.0 accepts `subjectKind: practical-exam-assessment` and `signerRole: assessor`; `assuranceLevel` stays required on every signature; register 0.50.0. `PracticalExamRegisterTest::testBothAssessorsSignTheAssessmentWithTheirAssuranceLevel`.
 - [ ] **T5**: assessor portal: `eaExamsToday` (his assignments for today, joined to their sitting), `eaExams` (all of them), and the assessment form as an `endpoint-forward`, so the assertion names who assessed
+  - In progress: `eaExams` is built (his live assignments, earliest first on his overview, reading time, candidate and exam from readable copies on `ExamAssessorAssignment` 0.2.0), and the form is an `endpoint-forward` to `POST /api/portal/practical-exam-assessments`, which accepts only a candidate at a sitting he holds a live assignment for and stamps `assessorId`, `assessorName` and `assuranceLevel`. Left: `eaExamsToday`, which needs a date-relative collection filter portaliq does not offer yet.
 - [ ] **T6**: the form saves a draft on every step, and a reconnect resumes it
+  - Server side built: a save with `lifecycle: draft` keeps the step on the assessor's own record, the next save carries that record on, `GET /api/portal/practical-exam-assessments/draft` hands it back, and a submitted assessment is final (409). Left: the portal form posting each step as a draft and prefilling from the draft endpoint, which needs portaliq's multi-step form to call an endpoint per step.
 - [ ] **T7**: the result reaches the exam board only when both assessors have signed
 - [ ] **T8**: the sitting's documents (assessment model, regulations) are readable by an assigned assessor and by nobody else
 - [ ] **T9**: e2e in `assessor-flows.spec.ts`: his day lists only his own candidates, he fills a form, a second assessor signs, and a sitting he is not assigned to resolves nothing

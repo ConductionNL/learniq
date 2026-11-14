@@ -644,9 +644,10 @@ class GuardianSitePagesTest extends TestCase {
 
 		// The sort field is projected, or portaliq drops the sort.
 		self::assertSame(['Candidate', 'Portfolio', 'Access until'], array_column($shares['columns'], 'label'));
-		// Only an active grant resolves, and the audience stays read-only.
+		// Only an active grant resolves, and the audience stays read-only apart
+		// from the assessment he is assigned to (practical-exam-assessment).
 		self::assertSame(['lifecycle' => 'active'], $shares['filter']);
-		self::assertSame([], $manifest['actions']);
+		self::assertSame(['assessPracticalExam'], array_column($manifest['actions'], 'id'));
 	}//end testTheAssessorOverviewNamesCandidates()
 
 	/**
