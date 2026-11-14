@@ -7,7 +7,7 @@
 ## 2. Render
 
 - [x] 2.1 Add `lib/Service/CertificatePdfDelegationService.php`, modelled on `ReportCardPdfDelegationService`: same token key and path constant, payload per design D4, fail soft. Verify: PHPUnit for success, no filinq, HTTP error, malformed body.
-- [ ] 2.2 (partial: called from issuance, with a wiring test from the real completion event; the reissue run is not wired yet) Call it from `lib/Listener/CredentialIssuanceHandler.php` after signing, and from the reissue run of `credentials-bulk-reissue`. Verify: a wiring test from the real issuance event; a reissue test that asserts a new `pdfDocumentRef`.
+- [x] 2.2 Call it from `lib/Listener/CredentialIssuanceHandler.php` after signing, and from the reissue run of `credentials-bulk-reissue`. Verify: a wiring test from the real issuance event; a reissue test that asserts a new `pdfDocumentRef`.
 - [ ] 2.3 Validate the payload the service writes onto `Credential` against the real schema fragment (Opis), so a value the schema refuses fails the test.
 
 ## 3. Download
