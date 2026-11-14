@@ -130,7 +130,7 @@ class PupilPageService {
 		if ($learnerId !== '') {
 			foreach ($this->access->cohortsFor(user: $user) as $cohort) {
 				$holdsPupil = in_array($learnerId, (array)($cohort['learnerIds'] ?? []), true);
-				if ($holdsPupil === true && ($cohortId === null || $cohortId === '' || $this->reader->idOf(row: $cohort) === $cohortId)) {
+				if ($holdsPupil === true && $this->isAsked(cohort: $cohort, cohortId: $cohortId) === true) {
 					return $cohort;
 				}
 			}
@@ -138,6 +138,18 @@ class PupilPageService {
 
 		throw new RollCallException(message: $this->l10n->t('You cannot open the page of this pupil.'), status: RollCallException::FORBIDDEN);
 	}//end cohortOf()
+
+	/**
+	 * Whether a group is the one asked for; any group is when none is asked.
+	 *
+	 * @param array<string, mixed> $cohort   The group.
+	 * @param string|null          $cohortId The asked group, or null.
+	 *
+	 * @return bool
+	 */
+	private function isAsked(array $cohort, ?string $cohortId): bool {
+		return $cohortId === null || $cohortId === '' || $this->reader->idOf(row: $cohort) === $cohortId;
+	}//end isAsked()
 
 	/**
 	 * The slots, each with the name of the guardian who booked it when known.
@@ -155,11 +167,7 @@ class PupilPageService {
 			}
 
 			if (array_key_exists($guardianRef, $names) === false) {
-				$guardian = $this->reader->profileById(profileId: $guardianRef);
-				$names[$guardianRef] = '';
-				if ($guardian !== null) {
-					$names[$guardianRef] = PupilPage::nameOf(profile: $guardian);
-				}
+				$names[$guardianRef] = $this->guardianName(profileId: $guardianRef);
 			}
 
 			$slots[$index]['guardianName'] = $names[$guardianRef];
@@ -167,6 +175,22 @@ class PupilPageService {
 
 		return $slots;
 	}//end withGuardianNames()
+
+	/**
+	 * The name of a guardian's profile; empty when it cannot be read.
+	 *
+	 * @param string $profileId The guardian's profile id.
+	 *
+	 * @return string
+	 */
+	private function guardianName(string $profileId): string {
+		$guardian = $this->reader->profileById(profileId: $profileId);
+		if ($guardian === null) {
+			return '';
+		}
+
+		return PupilPage::nameOf(profile: $guardian);
+	}//end guardianName()
 
 	/**
 	 * The people with the display name of each Nextcloud user among them.

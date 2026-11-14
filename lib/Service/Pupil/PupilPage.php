@@ -187,32 +187,7 @@ final class PupilPage {
 	 * @return array<string, string>
 	 */
 	private static function teachers(array $cohort): array {
-		$roles = [];
-		foreach ((array)($cohort['teacherAssignments'] ?? []) as $assignment) {
-			if (is_array($assignment) === false) {
-				continue;
-			}
-
-			$teacherId = self::stringOrNull(value: ($assignment['teacherId'] ?? null));
-			$role = match ($assignment['role'] ?? null) {
-				'primary' => self::MENTOR,
-				'duo-partner' => self::DUO_PARTNER,
-				default => null,
-			};
-			if ($teacherId !== null && $role !== null && isset($roles[$role]) === false) {
-				$roles[$role] = $teacherId;
-			}
-		}
-
-		if (isset($roles[self::MENTOR]) === false) {
-			foreach ((array)($cohort['teacherIds'] ?? []) as $teacherId) {
-				$teacherId = self::stringOrNull(value: $teacherId);
-				if ($teacherId !== null && $teacherId !== ($roles[self::DUO_PARTNER] ?? null)) {
-					$roles[self::MENTOR] = $teacherId;
-					break;
-				}
-			}
-		}
+		$roles = self::withFirstTeacherAsMentor(roles: self::assignedRoles(cohort: $cohort), cohort: $cohort);
 
 		$ordered = [];
 		foreach ([self::MENTOR, self::DUO_PARTNER] as $role) {
@@ -223,6 +198,86 @@ final class PupilPage {
 
 		return $ordered;
 	}//end teachers()
+
+	/**
+	 * The first teacher per role among the group's teacher assignments.
+	 *
+	 * @param array<string, mixed> $cohort The group.
+	 *
+	 * @return array<string, string> Role => teacher id.
+	 */
+	private static function assignedRoles(array $cohort): array {
+		$roles = [];
+		foreach ((array)($cohort['teacherAssignments'] ?? []) as $assignment) {
+			$pair = self::assignmentPair(assignment: $assignment);
+			if ($pair !== null && isset($roles[$pair[0]]) === false) {
+				$roles[$pair[0]] = $pair[1];
+			}
+		}
+
+		return $roles;
+	}//end assignedRoles()
+
+	/**
+	 * The role and teacher id of one teacher assignment.
+	 *
+	 * @param mixed $assignment The assignment as stored.
+	 *
+	 * @return array{0: string, 1: string}|null Role and teacher id; null when it names no teacher or another role.
+	 */
+	private static function assignmentPair(mixed $assignment): ?array {
+		if (is_array($assignment) === false) {
+			return null;
+		}
+
+		$teacherId = self::stringOrNull(value: ($assignment['teacherId'] ?? null));
+		$role = self::roleOf(assignment: $assignment);
+		if ($teacherId === null || $role === null) {
+			return null;
+		}
+
+		return [$role, $teacherId];
+	}//end assignmentPair()
+
+	/**
+	 * The page role of a teacher assignment.
+	 *
+	 * @param array<string, mixed> $assignment The assignment.
+	 *
+	 * @return string|null The mentor or duo partner role, or null for another role.
+	 */
+	private static function roleOf(array $assignment): ?string {
+		return match ($assignment['role'] ?? null) {
+			'primary' => self::MENTOR,
+			'duo-partner' => self::DUO_PARTNER,
+			default => null,
+		};
+	}//end roleOf()
+
+	/**
+	 * The roles, with the group's first teacher who is not the duo partner as
+	 * mentor when no assignment names one.
+	 *
+	 * @param array<string, string> $roles  Role => teacher id.
+	 * @param array<string, mixed>  $cohort The group.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function withFirstTeacherAsMentor(array $roles, array $cohort): array {
+		if (isset($roles[self::MENTOR]) === true) {
+			return $roles;
+		}
+
+		foreach ((array)($cohort['teacherIds'] ?? []) as $teacherId) {
+			$teacherId = self::stringOrNull(value: $teacherId);
+			if ($teacherId !== null && $teacherId !== ($roles[self::DUO_PARTNER] ?? null)) {
+				$roles[self::MENTOR] = $teacherId;
+				break;
+			}
+		}
+
+		return $roles;
+	}//end withFirstTeacherAsMentor()
 
 	/**
 	 * The coordinator of the running learning plan, or null when none runs.
@@ -273,16 +328,12 @@ final class PupilPage {
 		$given = trim((string)($profile['givenName'] ?? ''));
 		$family = preg_split('/\s+/', trim((string)($profile['familyName'] ?? '')), -1, PREG_SPLIT_NO_EMPTY);
 		if ($given === '' || $family === false || $family === []) {
-			$parts = preg_split('/\s+/', $name, -1, PREG_SPLIT_NO_EMPTY);
-			if ($parts === false || $parts === []) {
+			$parts = self::nameParts(name: $name);
+			if ($parts === null) {
 				return '';
 			}
 
-			$given = $parts[0];
-			$family = [];
-			if (count($parts) > 1) {
-				$family = [$parts[count($parts) - 1]];
-			}
+			[$given, $family] = $parts;
 		}
 
 		$initials = mb_strtoupper(mb_substr($given, 0, 1));
@@ -292,6 +343,27 @@ final class PupilPage {
 
 		return $initials;
 	}//end initialsOf()
+
+	/**
+	 * The given name and last family name part read from a full name.
+	 *
+	 * @param string $name The name.
+	 *
+	 * @return array{0: string, 1: list<string>}|null The first word and the last one (none for one word); null for no words.
+	 */
+	private static function nameParts(string $name): ?array {
+		$parts = preg_split('/\s+/', $name, -1, PREG_SPLIT_NO_EMPTY);
+		if ($parts === false || $parts === []) {
+			return null;
+		}
+
+		$family = [];
+		if (count($parts) > 1) {
+			$family = [$parts[count($parts) - 1]];
+		}
+
+		return [$parts[0], $family];
+	}//end nameParts()
 
 	/**
 	 * A non-empty string, or null.
