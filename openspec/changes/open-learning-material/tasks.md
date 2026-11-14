@@ -6,58 +6,66 @@ Code is generic (decision 182): no Edurep-specific class names outside the integ
 
 ## 1. Material schema
 
-- [ ] 1.1 In `lib/Settings/learniq_register.json` add to `Material`: `source` (enum `own`, `edurep`,
+- [x] 1.1 In `lib/Settings/learniq_register.json` add to `Material`: `source` (enum `own`, `edurep`,
       `edusources`, default `own`), `sourceId`, `sourceUrl` (uri), `authors` (array of string),
       `accessRights` (enum `OpenAccess`, `RestrictedAccess`, `ClosedAccess`), `nonCommercial` (boolean,
       default false). Drop `fileRef` from `required`. Schema `version` 0.1.0 to 0.2.0.
-- [ ] 1.2 Bump register `info.version` 0.21.0 to 0.22.0 and say so in the PR body. Mirror in
+- [x] 1.2 Bump register `info.version` 0.21.0 to 0.22.0 and say so in the PR body. Mirror in
       `learniq_mock_register.json`.
-- [ ] 1.3 Unit test: a Material without `fileRef` but with `sourceUrl` validates; one with neither is
+  - Built in #2111 with the versions current then: Material schema 0.1.1 to 0.2.0, register `info.version` 0.47.4 to 0.48.0 (the 0.21.0/0.22.0 above were stale when it was built).
+- [x] 1.3 Unit test: a Material without `fileRef` but with `sourceUrl` validates; one with neither is
       rejected.
+  - `tests/Unit/Settings/OpenLearningMaterialRegisterTest.php` (`testALinkedMaterialNeedsNoFile`, `testMaterialCarriesSourceAndAttribution`).
 
 ## 2. Licence rules, server-side
 
-- [ ] 2.1 Add a service under `lib/Service/` that takes a normalised source record (title, description, url,
+- [x] 2.1 Add a service under `lib/Service/` that takes a normalised source record (title, description, url,
       files[], embedUrl, authors[], license, accessRights, levels[], disciplines[], materialType, language,
       sourceId) and returns a decision: `link`, `copy` or `refused`, with `nonCommercial` and a reason.
       Rules and order: spec `open-learning-material`, requirement "Licence rules are enforced on the server".
-- [ ] 2.2 Golden tests in `tests/unit/`: one case per licence and access-rights combination. They prove ND
+- [x] 2.2 Golden tests in `tests/unit/`: one case per licence and access-rights combination. They prove ND
       never copies, RestrictedAccess and ClosedAccess files never land, attribution is always stored, NC is
       flagged, Schooltv is link only, `yes`/`no` rights are never copied.
+  - `MaterialLicenceRulesTest` (golden table per licence and access right), `OpenMaterialImportServiceTest` (ND never copies, restricted never lands, NC refused in a paid course, Schooltv link only, no open licence refused).
 - [ ] 2.3 The add endpoint calls the service before any object or file write; refusal returns 422 with the
       reason. Copy fetches the file through integriq, never from the browser.
+  - Partial: `OpenMaterialController::add` runs `MaterialLicenceRules` before any write and answers 422 on refusal. Open: copy through integriq. Integriq offers no download yet, so a record the rules allow to copy is added as a link (`testACopyableRecordIsLinkedWhileIntegriqOffersNoDownload`).
 - [ ] 2.4 Paid or corporate course: a `nonCommercial` Material shows as not allowed on the Lesmateriaal
       tab and is not served to learners. Test with a course that changes from free to paid.
+  - Partial: `CommercialCourseCheck` refuses adding NC material to a paid or corporate course, and the Lesmateriaal tab and `LessonPlayer.vue` show it as not allowed. Open: "not served to learners" is enforced only in the client; the Material object is still readable through the OpenRegister API, and there is no free-to-paid test.
 
 ## 3. Search panel
 
-- [ ] 3.1 Panel on nextcloud-vue components (dialog, search field, facet checkboxes with counts, result
+- [x] 3.1 Panel on nextcloud-vue components (dialog, search field, facet checkboxes with counts, result
       cards, pagination) opened from the media block in the lesson editor and from the Lesmateriaal tab.
       Pixel target: `LqOpenLesmateriaal`. A missing widget goes into nextcloud-vue (decision 153 to 156).
-- [ ] 3.2 Result detail with the licence in plain Dutch and the link-or-copy sentence, target
+- [x] 3.2 Result detail with the licence in plain Dutch and the link-or-copy sentence, target
       `LqOpenLesmateriaalDetail`. The texts per licence live in `l10n`, keyed by licence code.
-- [ ] 3.3 The three states, target `LqOpenLesmateriaalStaten`: not searched yet (suggestions from the
+- [x] 3.3 The three states, target `LqOpenLesmateriaalStaten`: not searched yet (suggestions from the
       course subject), nothing found (fewer words, filters off, include KlasCement with its count), source
       unreachable (retry, own files keep working, status under Koppelingen).
-- [ ] 3.4 School profile (po/vo/mbo/he/corporate) sets the default level filter; KlasCement off by default.
-- [ ] 3.5 `tests/e2e/spec-coverage/open-learning-material.spec.ts` against recorded integriq responses:
+- [x] 3.4 School profile (po/vo/mbo/he/corporate) sets the default level filter; KlasCement off by default.
+- [x] 3.5 `tests/e2e/spec-coverage/open-learning-material.spec.ts` against recorded integriq responses:
       search from the editor, add as link, the source-down state.
+  - `tests/e2e/spec-coverage/open-learning-material.spec.ts`: search and add as a link, filters, source down.
 
 ## 4. Material cards and attribution
 
-- [ ] 4.1 Material card shows source line ("Uit Edurep · Wikiwijs Maken" or "Nextcloud, map ...") and the
+- [x] 4.1 Material card shows source line ("Uit Edurep · Wikiwijs Maken" or "Nextcloud, map ...") and the
       attribution sentence from `authors`, `license`, collection; badge Koppeling, Kopie in Nextcloud or
       Eigen bestand. Target `LqLesmateriaal`.
-- [ ] 4.2 Learner view renders the same attribution under the material; Schooltv opens at schooltv.nl in a
+- [x] 4.2 Learner view renders the same attribution under the material; Schooltv opens at schooltv.nl in a
       new tab, no player.
 - [ ] 4.3 Editing the title keeps attribution: unit test.
+  - Open: learniq has no screen that edits a Material's title (materials are created from a file or from the search panel), so there is nothing in-app to test yet. The rule belongs with the edit surface when one is added.
 
 ## 5. Connections
 
-- [ ] 5.1 Declare Open lesmateriaal via Edurep (on/off, collections on/off, terms link to Kennisnet) and
+- [x] 5.1 Declare Open lesmateriaal via Edurep (on/off, collections on/off, terms link to Kennisnet) and
       Open lesmateriaal via Edusources (not available, reason) where learniq declares its connections, so
       `LqKoppelingen` shows them with the status integriq reports.
-- [ ] 5.2 Edurep off hides Zoek open lesmateriaal in the editor and on the tab; existing links keep working.
+- [x] 5.2 Edurep off hides Zoek open lesmateriaal in the editor and on the tab; existing links keep working.
+  - `LessonComposer.vue` and the Lesmateriaal tab show the search only when the panel reports `enabled`; existing linked materials keep their `sourceUrl`.
 
 ## 6. Verify
 
