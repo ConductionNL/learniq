@@ -2488,6 +2488,29 @@
 						}
 					},
 					{
+						"id": "coh-source",
+						"type": "facts",
+						"title": "Student administration",
+						"content": {
+							"fields": [
+								{
+									"path": "externalSource",
+									"label": "Name, year, learners and teachers from"
+								},
+								{
+									"path": "syncedAt",
+									"label": "Last synced",
+									"format": "longdatetime"
+								},
+								{
+									"path": "syncChanges",
+									"label": "Changes in the last sync"
+								}
+							],
+							"hideEmpty": true
+						}
+					},
+					{
 						"id": "coh-notes",
 						"type": "facts",
 						"title": "Notes",
