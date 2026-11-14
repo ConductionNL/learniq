@@ -40,6 +40,7 @@ namespace OCA\Learniq\Service\Attendance;
 use DateTimeImmutable;
 use DateTimeInterface;
 use OCA\Learniq\Kernel\Contracts\AttendanceSummaryServiceInterface;
+use OCA\Learniq\Service\LearnerManagerLookup;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\PupilGroupTeachers;
 use OCA\Learniq\Support\ObjectRow;
@@ -105,6 +106,13 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 	private readonly UnauthorisedHoursWindow $window;
 
 	/**
+	 * Resolves the pupil's mentor, who may read their rows.
+	 *
+	 * @var LearnerManagerLookup
+	 */
+	private readonly LearnerManagerLookup $mentors;
+
+	/**
 	 * Turns one OpenRegister result into a plain array.
 	 *
 	 * @var ObjectRow
@@ -121,6 +129,7 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 	 * @param ITimeFactory                $time          Clock for updatedAt.
 	 * @param LoggerInterface             $logger        PSR logger.
 	 * @param UnauthorisedHoursWindow|null $window Counts the lesuren without permission in the threshold's window.
+	 * @param LearnerManagerLookup|null    $mentors Resolves the pupil's mentor.
 	 *
 	 * @return void
 	 */
@@ -132,9 +141,11 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 		private readonly ITimeFactory $time,
 		private readonly LoggerInterface $logger,
 		?UnauthorisedHoursWindow $window = null,
+		?LearnerManagerLookup $mentors = null,
 	) {
 		$this->objectRow = new ObjectRow();
 		$this->window = ($window ?? new UnauthorisedHoursWindow());
+		$this->mentors = ($mentors ?? new LearnerManagerLookup(objectService: $objectService));
 	}//end __construct()
 
 	/**
@@ -170,6 +181,7 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 		$tenantId = ($this->firstText(rows: $records, field: 'tenant_id') ?? $tenantId);
 		$learnerRef = ($this->firstText(rows: $records, field: 'learnerRef') ?? $learnerRef);
 		$teachers = $this->teachersOf(learnerId: $learnerId);
+		$mentor = $this->mentorOf(learnerId: $learnerId);
 		$today = $this->today();
 		$windowFields = $this->window->fields(
 			records: $records,
@@ -181,6 +193,12 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 		$saved = 0;
 		foreach ($years as $year) {
 			$row = ($existing[$year] ?? null);
+			// A failed lookup keeps the stored mentor; a new row gets nobody.
+			$rowMentor = $mentor;
+			if ($mentor === false) {
+				$rowMentor = $this->text(value: ($row['mentorId'] ?? null));
+			}
+
 			$data = array_merge(
 				[
 					'learnerId' => $learnerId,
@@ -190,6 +208,7 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 				($counts[$year] ?? $this->calculator->emptyCounts()),
 				[
 					'teacherIds' => ($teachers ?? $this->storedTeachers(row: $row)),
+					'mentorId' => $rowMentor,
 					'tenant_id' => ($this->text(value: ($row['tenant_id'] ?? null)) ?? $tenantId),
 				]
 			);
@@ -474,6 +493,28 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 			return null;
 		}
 	}//end teachersOf()
+
+	/**
+	 * The pupil's mentor: their id, null when none is set, false when the
+	 * profile cannot be read.
+	 *
+	 * @param string $learnerId Nextcloud user id.
+	 *
+	 * @return string|null|false
+	 *
+	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 */
+	private function mentorOf(string $learnerId): string|null|false {
+		try {
+			return $this->mentors->forLearner(learnerId: $learnerId);
+		} catch (Throwable $exception) {
+			$this->logger->warning(
+				'[AttendanceSummaryService] Could not read the mentor of {learner}, keeping the stored one: {msg}',
+				['learner' => $learnerId, 'msg' => $exception->getMessage()]
+			);
+			return false;
+		}
+	}//end mentorOf()
 
 	/**
 	 * The teachers stored on a row; none for a new row, which never widens who reads it.

@@ -623,7 +623,8 @@ test('the full profile is exactly the plain manifest build', () => {
 	// MarkAttendanceView, SubmitExcuseModal) became actions; 348 with
 	// SignUpRequests (Aanmeldverzoeken); 349 with MyGrades (LqLlCijfers); 348 once
 	// MyGrades became the learner lens of GradeEntries.
-	assert.equal(plain.pages.length, 348)
+	// 349 with AttendanceNearingLimit (attendance-warns-before-the-threshold).
+	assert.equal(plain.pages.length, 349)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {
@@ -1676,7 +1677,8 @@ test('the two lists on Today open what they show', () => {
 	const lists = TEACHER.widgets.filter(
 		(widget) => widget.type === 'object-table',
 	)
-	assert.equal(lists.length, 2)
+	// Three since attendance-warns-before-the-threshold added Nearly 16 hours.
+	assert.equal(lists.length, 3)
 	for (const list of lists) {
 		const { source, columns, rowRoute, viewAllRoute } = list.content
 		const schema = schemaOf(source.schema)
@@ -1689,10 +1691,13 @@ test('the two lists on Today open what they show', () => {
 				`${list.id}: no field ${field}`,
 			)
 		}
-		const detail = pageOf(rowRoute)
-		assert.equal(detail.type, 'detail', list.id)
-		assert.ok(detail.route.endsWith('/:id'), list.id)
-		assert.equal(schemaOf(detail.config.schema).slug, schema.slug, list.id)
+		// A read model with nothing beyond its list (the summary) opens no row.
+		if (rowRoute !== undefined) {
+			const detail = pageOf(rowRoute)
+			assert.equal(detail.type, 'detail', list.id)
+			assert.ok(detail.route.endsWith('/:id'), list.id)
+			assert.equal(schemaOf(detail.config.schema).slug, schema.slug, list.id)
+		}
 		const index = pageOf(viewAllRoute.name)
 		assert.equal(index.type, 'index', list.id)
 		assert.ok(!index.route.includes(':'), list.id)

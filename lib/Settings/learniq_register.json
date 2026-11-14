@@ -33109,6 +33109,14 @@
                         "description": "The teachers of the pupil's group. The school fills this in.",
                         "x-notes": "Nextcloud user ids, stamped by the server from PupilGroupTeachers on every recompute. The read rule matches on it."
                     },
+                    "mentorId": {
+                        "type": "string",
+                        "nullable": true,
+                        "readOnly": true,
+                        "title": "Mentor",
+                        "description": "The pupil's mentor, who may read this row. The school fills this in.",
+                        "x-notes": "Nextcloud user id, stamped by the server from LearnerProfile.managerId on every recompute; kept when the profile cannot be read. Backs the mentor read rule. See openspec/changes/attendance-warns-before-the-threshold."
+                    },
                     "tenant_id": {
                         "type": "string",
                         "format": "uuid",
@@ -33125,6 +33133,12 @@
                                 "teacherIds": {
                                     "$contains": "$userId"
                                 }
+                            }
+                        },
+                        {
+                            "group": "instructors",
+                            "match": {
+                                "mentorId": "$userId"
                             }
                         },
                         "coordinators",

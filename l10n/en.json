@@ -5244,7 +5244,10 @@
         "VAT rate": "VAT rate",
         "Price note": "Price note",
         "Invoice": "Invoice",
-        "Invoice status": "Invoice status"
+        "Invoice status": "Invoice status",
+        "Nearly 16 hours": "Nearly 16 hours",
+        "The pupil's mentor, who may read this row. The school fills this in.": "The pupil's mentor, who may read this row. The school fills this in.",
+        "Nobody is close to the limit": "Nobody is close to the limit"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

@@ -69,7 +69,7 @@ class AttendanceSummaryRegisterTest extends TestCase {
 	}//end strings()
 
 	/**
-	 * Teachers read their own pupils' rows, school-wide staff read all, nobody writes through the API.
+	 * Teachers read their own pupils' rows, the mentor reads their pupils' rows, school-wide staff read all, nobody writes through the API.
 	 *
 	 * @return void
 	 */
@@ -80,6 +80,8 @@ class AttendanceSummaryRegisterTest extends TestCase {
 			[
 				'read' => [
 					['group' => 'instructors', 'match' => ['teacherIds' => ['$contains' => '$userId']]],
+					// attendance-warns-before-the-threshold: the pupil's mentor reads their rows.
+					['group' => 'instructors', 'match' => ['mentorId' => '$userId']],
 					'coordinators',
 					'administration-managers',
 					'compliance-officers',
@@ -101,7 +103,7 @@ class AttendanceSummaryRegisterTest extends TestCase {
 			'learnerId', 'learnerRef', 'schoolYear', 'absentDays', 'absentAuthorisedDays', 'absentUnauthorisedDays', 'lateCount', 'lateMinutes', 'updatedAt',
 			// attendance-warns-before-the-threshold: the rolling count against the limit.
 			'unauthorisedHoursWindow', 'thresholdHours', 'windowLabel', 'thresholdNearing',
-			'teacherIds', 'tenant_id',
+			'teacherIds', 'mentorId', 'tenant_id',
 		];
 		self::assertSame($fields, array_keys($schema['properties']));
 		foreach (['absentDays', 'absentAuthorisedDays', 'absentUnauthorisedDays', 'lateCount', 'lateMinutes'] as $count) {

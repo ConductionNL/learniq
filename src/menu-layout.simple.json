@@ -954,6 +954,43 @@
 								}
 							}
 						}
+					},
+					{
+						"id": "today-nearing",
+						"type": "object-table",
+						"title": "Nearly 16 hours",
+						"content": {
+							"source": {
+								"register": "learniq",
+								"schema": "attendance-summary",
+								"filter": {
+									"thresholdNearing": true
+								},
+								"order": {
+									"unauthorisedHoursWindow": "desc"
+								},
+								"limit": 5
+							},
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Pupil",
+									"widget": "avatar"
+								},
+								{
+									"key": "windowLabel",
+									"label": "Hours of the limit",
+									"cellClass": "cn-cell--muted"
+								}
+							],
+							"viewAllRoute": {
+								"name": "AttendanceNearingLimit"
+							},
+							"viewAllLabel": "View all",
+							"hideHeader": true,
+							"borderless": true,
+							"emptyText": "Nobody is close to the limit"
+						}
 					}
 				],
 				"layout": [],
@@ -1047,6 +1084,15 @@
 								}
 							},
 							{
+								"id": "t11",
+								"widgetId": "today-nearing",
+								"gridX": 8,
+								"gridY": 7,
+								"gridWidth": 4,
+								"gridHeight": 5,
+								"showTitle": true
+							},
+							{
 								"id": "t8",
 								"widgetId": "today-dashboards",
 								"gridX": 0,
@@ -1080,6 +1126,15 @@
 								"gridHeight": 2,
 								"showTitle": false,
 								"dateChip": false
+							},
+							{
+								"id": "m4",
+								"widgetId": "today-nearing",
+								"gridX": 8,
+								"gridY": 3,
+								"gridWidth": 4,
+								"gridHeight": 4,
+								"showTitle": true
 							},
 							{
 								"id": "m3",
@@ -1260,6 +1315,13 @@
 						"icon": "CalendarRemoveOutline",
 						"handler": "navigate",
 						"route": "ExcuseRequests"
+					},
+					{
+						"id": "open-nearing-limit",
+						"label": "Nearly 16 hours",
+						"icon": "AlertCircleOutline",
+						"handler": "navigate",
+						"route": "AttendanceNearingLimit"
 					}
 				]
 			}

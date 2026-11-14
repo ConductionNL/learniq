@@ -5769,7 +5769,10 @@
         "VAT rate": "Btw-tarief",
         "Price note": "Toelichting bij de prijs",
         "Invoice": "Factuur",
-        "Invoice status": "Factuurstatus"
+        "Invoice status": "Factuurstatus",
+        "Nearly 16 hours": "Bijna 16 uur",
+        "The pupil's mentor, who may read this row. The school fills this in.": "De mentor van de leerling, die deze rij mag lezen. De school vult dit in.",
+        "Nobody is close to the limit": "Niemand zit dicht bij de grens"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

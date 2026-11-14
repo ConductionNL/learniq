@@ -2197,6 +2197,51 @@
 			}
 		},
 		{
+			"id": "AttendanceNearingLimit",
+			"route": "/attendance/nearing-limit",
+			"type": "index",
+			"title": "Nearly 16 hours",
+			"_note": "attendance-warns-before-the-threshold (boards esdoornveen/LqVandaag, wilgenboom/LqRolC, esdoornveen/Nodig): the pupils whose lesson hours missed without permission in the threshold's window are at or above its warning level and still under its limit, as \"14 van 16 uur\", before any flag exists. A read model: nothing here reports or creates a flag. The attendance-summary read rules decide who sees which pupil: the teachers of the pupil's groups, the mentor, and school-wide staff.",
+			"config": {
+				"showTitle": true,
+				"register": "learniq",
+				"schema": "attendance-summary",
+				"readOnly": true,
+				"filter": {
+					"thresholdNearing": true
+				},
+				"columns": [
+					{
+						"key": "learnerRef",
+						"label": "Learner",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "learner-profile"
+						}
+					},
+					{
+						"key": "windowLabel",
+						"label": "Hours of the limit"
+					},
+					{
+						"key": "unauthorisedHoursWindow",
+						"label": "Hours without permission, last weeks"
+					},
+					{
+						"key": "updatedAt",
+						"label": "Updated at",
+						"formatter": "date"
+					}
+				],
+				"defaultSort": {
+					"field": "unauthorisedHoursWindow",
+					"direction": "desc"
+				},
+				"countText": "{shown} of {total} learners"
+			}
+		},
+		{
 			"id": "AttendanceFlagDetail",
 			"route": "/attendance/flags/:id",
 			"type": "detail",
