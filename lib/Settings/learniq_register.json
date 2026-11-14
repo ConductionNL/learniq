@@ -219,7 +219,7 @@
                 "slug": "credential",
                 "appendOnly": false,
                 "icon": "CertificateOutline",
-                "version": "0.3.5",
+                "version": "0.4.0",
                 "title": "Credential",
                 "description": "Verifiable Credential (W3C VC + Open Badges 3.0). Append-only compliance evidence; issued on enrolment completion; supports expiry detection with tiered reminders.",
                 "type": "object",
@@ -232,9 +232,6 @@
                     "learnerId",
                     "kind",
                     "issuedAt",
-                    "issuerDid",
-                    "signature",
-                    "openbadges3Payload",
                     "tenant_id"
                 ],
                 "properties": {
@@ -334,6 +331,37 @@
                             "manual": "Issued by hand",
                             "migrated": "Migrated"
                         }
+                    },
+                    "legacyNumber": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "The certificate's number in the system it was migrated from. With the learner and the course, the key a repeated migration matches on.",
+                        "title": "Old Certificate Number"
+                    },
+                    "legacyIssuer": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Who issued the certificate in the system it was migrated from. learniq did not issue or sign a migrated certificate.",
+                        "title": "Old Issuer"
+                    },
+                    "migratedAt": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "date-time",
+                        "description": "When the certificate was migrated into learniq.",
+                        "title": "Migrated At"
+                    },
+                    "migratedBy": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "The user who committed the migration.",
+                        "title": "Migrated By"
+                    },
+                    "migrationRunId": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "The migration run that created this certificate.",
+                        "title": "Migration Run"
                     },
                     "regulationSlug": {
                         "type": "string",
@@ -1173,7 +1201,24 @@
                 },
                 "linkedTypes": [
                     "calendar"
-                ]
+                ],
+                "if": {
+                    "properties": {
+                        "source": {
+                            "const": "migrated"
+                        }
+                    },
+                    "required": [
+                        "source"
+                    ]
+                },
+                "else": {
+                    "required": [
+                        "issuerDid",
+                        "signature",
+                        "openbadges3Payload"
+                    ]
+                }
             },
             "AiFeature": {
                 "x-openregister-processing": {
@@ -5501,7 +5546,7 @@
                 },
                 "slug": "learner-profile",
                 "icon": "AccountOutline",
-                "version": "0.4.0",
+                "version": "0.4.1",
                 "title": "Learner profile",
                 "description": "Learniq learner profile. Owns role assignment and is the actor reference for enrolments, credentials, and attestations.",
                 "configuration": {
@@ -6019,7 +6064,14 @@
                             "from": "active",
                             "to": "merged",
                             "description": "Merges this profile into another LearnerProfile. The surviving profile is referenced via mergedInto. LearnerMergeGuard refuses the merge unless mergedInto names another active profile and the two accounts hold no open enrolment in the same course; LearnerMergeHandler then moves the merged account's records to the surviving profile.",
-                            "requires": "OCA\\Learniq\\Lifecycle\\LearnerMergeGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\LearnerMergeGuard",
+                            "label": "Merge into another account",
+                            "inputs": [
+                                {
+                                    "field": "mergedInto",
+                                    "required": true
+                                }
+                            ]
                         },
                         "delete": {
                             "from": "active",
@@ -19709,7 +19761,9 @@
                                 "reported"
                             ],
                             "to": "resolved",
-                            "label": "Close"
+                            "label": "Close",
+                            "requires": "OCA\\Learniq\\Lifecycle\\AttendanceFlagResolveGuard",
+                            "description": "Close the flag. A flag that was reported stays reported until the municipality's MAS route is recorded: AttendanceFlagResolveGuard refuses the close until then."
                         },
                         "recordMunicipalityFeedback": {
                             "from": "reported",
@@ -26222,7 +26276,7 @@
             "CoursePackageImportReport": {
                 "slug": "course-package-import-report",
                 "icon": "PackageVariant",
-                "version": "0.2.0",
+                "version": "0.3.0",
                 "title": "CoursePackageImportReport",
                 "description": "The anti-Canvas promise made structural: one record per course-package import attempt (IMS Common Cartridge 1.3 or Moodle .mbz), naming every source resource's outcome (imported/degraded/dropped) so nothing is silently lost. Created by CoursePackageImportService for every import, whether the package fully succeeds, partially succeeds, or fails to parse at all.",
                 "type": "object",
@@ -26244,7 +26298,8 @@
                         "enum": [
                             "common-cartridge-1.3",
                             "moodle-backup",
-                            "scholiq-json"
+                            "scholiq-json",
+                            "scorm"
                         ],
                         "description": "Detected format of the uploaded package. scholiq-json is the lossless round-trip target of this change's own CoursePackageExportService::exportScholiqJson() output.",
                         "example": "common-cartridge-1.3",
