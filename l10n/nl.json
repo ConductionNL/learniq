@@ -5755,7 +5755,14 @@
         "Assessor name": "Naam examinator",
         "The name of the person who assessed, as the school reads it afterwards. Written by the server; a value sent for it is replaced.": "De naam van wie beoordeelde, zoals de school die achteraf leest. De server vult dit in; een meegestuurde waarde wordt vervangen.",
         "How sure the school is who assessed: the level the assessor's sign-in reached. An invitation or a school account is basic. Written by the server; a value sent for it is replaced.": "Hoe zeker de school is van wie beoordeelde: het niveau dat de aanmelding van de examinator haalde. Een uitnodiging of een schoolaccount is basis. De server vult dit in; een meegestuurde waarde wordt vervangen.",
-        "A draft while the assessor fills in the form, submitted when it is complete.": "Een concept zolang de examinator het formulier invult, ingediend als het compleet is."
+        "A draft while the assessor fills in the form, submitted when it is complete.": "Een concept zolang de examinator het formulier invult, ingediend als het compleet is.",
+        "Price": "Prijs",
+        "Amount excluding VAT": "Bedrag zonder btw",
+        "ISO 4217 currency code.": "ISO 4217-valutacode.",
+        "VAT rate": "Btw-tarief",
+        "Price note": "Toelichting bij de prijs",
+        "Invoice": "Factuur",
+        "Invoice status": "Factuurstatus"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

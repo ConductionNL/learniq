@@ -5246,7 +5246,14 @@
         "Assessor name": "Assessor name",
         "The name of the person who assessed, as the school reads it afterwards. Written by the server; a value sent for it is replaced.": "The name of the person who assessed, as the school reads it afterwards. Written by the server; a value sent for it is replaced.",
         "How sure the school is who assessed: the level the assessor's sign-in reached. An invitation or a school account is basic. Written by the server; a value sent for it is replaced.": "How sure the school is who assessed: the level the assessor's sign-in reached. An invitation or a school account is basic. Written by the server; a value sent for it is replaced.",
-        "A draft while the assessor fills in the form, submitted when it is complete.": "A draft while the assessor fills in the form, submitted when it is complete."
+        "A draft while the assessor fills in the form, submitted when it is complete.": "A draft while the assessor fills in the form, submitted when it is complete.",
+        "Price": "Price",
+        "Amount excluding VAT": "Amount excluding VAT",
+        "ISO 4217 currency code.": "ISO 4217 currency code.",
+        "VAT rate": "VAT rate",
+        "Price note": "Price note",
+        "Invoice": "Invoice",
+        "Invoice status": "Invoice status"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
