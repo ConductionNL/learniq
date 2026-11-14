@@ -4563,8 +4563,8 @@
       "area": "assignments",
       "name": "Stop a mark being released while a rubric criterion is unscored.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Lifecycle/RubricScoresCompletionGuard.php Not built: RubricScoresCompletionGuard guards only PeerReview and SelfAssessment submit; Submission return, GradeEntry publish and MarkSubmissionView have no check for unscored criteria.",
+        "state": "built",
+        "evidence": "lib/Lifecycle/RubricScoresCompletionGuard.php (PeerReview and SelfAssessment submit); lib/Lifecycle/MarkRubricCompletionGuard.php (Submission return refuses while a rubric criterion is unscored and names it); tests/Unit/Lifecycle/MarkRubricCompletionGuardTest.php",
         "owner": "ConductionNL/learniq",
         "change": "assignments",
         "requirement": [

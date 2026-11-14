@@ -10203,7 +10203,9 @@
                                 "submitted",
                                 "late"
                             ],
-                            "to": "returned"
+                            "to": "returned",
+                            "requires": "OCA\\Learniq\\Lifecycle\\MarkRubricCompletionGuard",
+                            "description": "Release the teacher's mark to the learner. Refused while a criterion of the assignment's rubric has no score; the refusal names the unscored criteria."
                         },
                         "reopen": {
                             "from": "returned",
