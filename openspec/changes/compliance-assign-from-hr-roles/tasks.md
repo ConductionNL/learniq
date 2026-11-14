@@ -2,17 +2,17 @@
 
 ## 1. Register
 
-- [ ] 1.1 `LearnerProfile`: add `jobTitle`, `hrSource`, `hrSyncedAt`. `Enrolment`: add `outOfScopeSince`. `Regulation`: add `audienceJobTitles`. Bump the register version. Verify: `npm run check:register`.
+- [x] 1.1 `LearnerProfile`: add `jobTitle`, `hrSource`, `hrSyncedAt`. `Enrolment`: add `outOfScopeSince`. `Regulation`: add `audienceJobTitles`. Bump the register version. Verify: `npm run check:register`.
 
 ## 2. Ownership of HR fields
 
-- [ ] 2.1 Add an updating listener that refuses manual changes to the four HR fields on a profile with `hrSource`, and lets the integriq service account through. Verify: PHPUnit on the real event: hr refused, feed allowed, hand-made profile allowed.
+- [x] 2.1 Add an updating listener that refuses manual changes to the four HR fields on a profile with `hrSource`, and lets the integriq service account through. Verify: PHPUnit on the real event: hr refused, feed allowed, hand-made profile allowed.
 
 ## 3. Re-assignment
 
-- [ ] 3.1 `RegulationAudienceResolver::covers()`: read `audienceJobTitles`. Verify: PHPUnit.
-- [ ] 3.2 `RegulationAssignmentService::assignPerson(array $profile)`: enrol in scope, skip existing, return created ids. Verify: PHPUnit with a replay.
-- [ ] 3.3 `lib/Listener/ProfileScopeChangeHandler.php` on the profile updated event: compare old and new department, roles, job title; call `assignPerson`; set `outOfScopeSince` on enrolments that fell out of scope. Register it. Verify: a wiring test on the real `ObjectUpdatedEvent`, including a create.
+- [x] 3.1 `RegulationAudienceResolver::covers()`: read `audienceJobTitles`. Verify: PHPUnit.
+- [x] 3.2 `RegulationAssignmentService::assignPerson(array $profile)`: enrol in scope, skip existing, return created ids. Verify: PHPUnit with a replay.
+- [x] 3.3 `lib/Listener/ProfileScopeChangeHandler.php` on the profile updated event: compare old and new department, roles, job title; call `assignPerson`; set `outOfScopeSince` on enrolments that fell out of scope. Register it. Verify: a wiring test on the real `ObjectUpdatedEvent`, including a create.
 
 ## 4. Screen
 
