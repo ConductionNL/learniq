@@ -20,6 +20,7 @@
 		"Compliance": "GroupCompliance",
 		"ExternalTraining": "GroupCompliance",
 		"AbsenceReportsComplianceMenu": "GroupCompliance",
+		"ProctoringReviewComplianceMenu": "GroupCompliance",
 		"Accessibility": "GroupCompliance",
 		"AccessibilityLimitationsMenu": "GroupCompliance",
 		"AiProcessingDisclosureMenu": "GroupCompliance",

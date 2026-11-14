@@ -92,6 +92,7 @@ class RegulationAssignmentService implements RegulationAssignmentServiceInterfac
 	 *
 	 * @spec openspec/parity/capabilities.json#comp-assign-from-hr-roles
 	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-a-course-is-bound-to-the-rule-it-trains-for
 	 */
 	public function assign(array $regulation, ?array $audience=null, ?string $dueDate=null): array {
 		$result = ['created' => 0, 'skipped' => 0, 'inScope' => 0, 'courses' => 0];

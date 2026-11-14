@@ -179,6 +179,8 @@ use OCA\Learniq\Kernel\Contracts\XapiDocumentRequestInterface;
 use OCA\Learniq\Kernel\Contracts\XapiDocumentStoreInterface;
 use OCA\Learniq\Kernel\Contracts\XapiEnrolmentCompletionInterface;
 use OCA\Learniq\Kernel\Contracts\XapiStatementIngestInterface;
+use OCA\Learniq\Kernel\Contracts\SchoolActivityStaffInterface;
+use OCA\Learniq\Service\SchoolActivity\SchoolActivityStaff;
 use OCA\Learniq\Service\Accessibility\ConformanceEvidence;
 use OCA\Learniq\Service\Attendance\AttendanceSummaryService;
 use OCA\Learniq\Service\Attendance\ExcuseRequestStaffOwner;
@@ -301,6 +303,7 @@ final class ContractBindings {
 		ElectiveBoardInterface::class => ElectiveBoard::class,
 		ElectiveServiceInterface::class => ElectiveService::class,
 		ElectiveSlotServiceInterface::class => ElectiveSlotService::class,
+		SchoolActivityStaffInterface::class => SchoolActivityStaff::class,
 		EmployerBookingProjectionInterface::class => EmployerBookingProjection::class,
 		EmployerBookingStepsInterface::class => EmployerBookingSteps::class,
 		EngagementScoreEvaluatorInterface::class => EngagementScoreEvaluator::class,

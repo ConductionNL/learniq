@@ -36,6 +36,7 @@
                     "attestation",
                     "behaviour-incident",
                     "bpv-placement",
+                    "bpv-visit",
                     "bpv-visit-report",
                     "bsa-decision",
                     "bsa-progress-flag",
@@ -3189,7 +3190,7 @@
             "Enrolment": {
                 "slug": "enrolment",
                 "icon": "AccountSchoolOutline",
-                "version": "0.4.0",
+                "version": "0.4.1",
                 "title": "Enrolment",
                 "description": "Learner enrolment in a course (Schema.org EnrollmentRequest)",
                 "type": "object",
@@ -3797,6 +3798,10 @@
                             "intervalSec": 86400,
                             "filter": {
                                 "mandatory": true,
+                                "lifecycle": [
+                                    "pending",
+                                    "active"
+                                ],
                                 "dueDate": {
                                     "operator": "withinNext",
                                     "value": "P3D"
@@ -3824,6 +3829,10 @@
                             "intervalSec": 86400,
                             "filter": {
                                 "mandatory": true,
+                                "lifecycle": [
+                                    "pending",
+                                    "active"
+                                ],
                                 "dueDate": {
                                     "operator": "olderThan",
                                     "value": "PT0S"
@@ -4970,7 +4979,7 @@
                 "slug": "attestation",
                 "appendOnly": false,
                 "icon": "FileCertificateOutline",
-                "version": "0.1.1",
+                "version": "0.2.0",
                 "title": "Attestation",
                 "description": "Signed learner attestation that mandatory training was completed and understood. Append-only per ADR-008; HMAC-signed at lifecycle transition via AttestationSigningGuard.",
                 "type": "object",
@@ -5058,6 +5067,19 @@
                         "description": "Tenant identifier for multi-tenant isolation.",
                         "title": "Tenant ID"
                     },
+                    "revocationReason": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.",
+                        "title": "Revocation Reason"
+                    },
+                    "signedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "description": "When the attestation was signed. Stamped by the sign transition; part of the signed payload.",
+                        "title": "Signed At"
+                    },
                     "lifecycle": {
                         "type": "string",
                         "enum": [
@@ -5080,13 +5102,26 @@
                             "requires": "OCA\\Learniq\\Lifecycle\\AttestationSigningGuard",
                             "actions": [
                                 {
+                                    "action": "OCA\\Learniq\\Lifecycle\\Action\\StampTransitionTimeAction",
+                                    "actionParameters": {
+                                        "timeField": "signedAt"
+                                    }
+                                },
+                                {
                                     "action": "OCA\\Learniq\\Lifecycle\\Action\\TenantSignatureAction"
                                 }
                             ]
                         },
                         "revoke": {
                             "from": "signed",
-                            "to": "revoked"
+                            "to": "revoked",
+                            "requires": "OCA\\Learniq\\Lifecycle\\AttestationRevocationGuard",
+                            "inputs": [
+                                {
+                                    "field": "revocationReason",
+                                    "required": true
+                                }
+                            ]
                         }
                     }
                 },
@@ -19364,7 +19399,7 @@
                 "slug": "attendance-flag",
                 "appendOnly": false,
                 "icon": "FlagOutline",
-                "version": "0.2.4",
+                "version": "0.2.5",
                 "title": "AttendanceFlag",
                 "description": "Created when an AttendanceThreshold is crossed. appendOnly: true per ADR-008 (immutable audit evidence). The flag tracks the mentor's intervention and any outbound leerplicht report via its lifecycle. It NEVER auto-acts against the learner — human-in-the-loop throughout.",
                 "type": "object",
@@ -19562,7 +19597,8 @@
                             "in-handling": "purple",
                             "reported": "teal",
                             "resolved": "success"
-                        }
+                        },
+                        "facetable": true
                     },
                     "tenant_id": {
                         "type": "string",
@@ -19659,11 +19695,13 @@
                     "transitions": {
                         "startHandling": {
                             "from": "open",
-                            "to": "in-handling"
+                            "to": "in-handling",
+                            "label": "Take up"
                         },
                         "report": {
                             "from": "in-handling",
                             "to": "reported",
+                            "label": "Mark as reported",
                             "requires": "OCA\\Learniq\\Lifecycle\\AttendanceFlagReportGuard",
                             "description": "The leerplicht report was sent: AttendanceFlagReportGuard allows this only once integriq concluded the flag's exchange job succeeded, or when no job is linked."
                         },
@@ -19673,17 +19711,23 @@
                                 "in-handling",
                                 "reported"
                             ],
-                            "to": "resolved"
+                            "to": "resolved",
+                            "label": "Close"
                         },
                         "recordMunicipalityFeedback": {
                             "from": "reported",
                             "to": "reported",
+                            "label": "Record the municipality's answer",
                             "requires": "OCA\\Learniq\\Lifecycle\\MunicipalityFeedbackGuard",
                             "description": "A coordinator or administrator records the municipality's MAS route for a reported flag. A self-loop: the flag stays reported. The stamp is written by MunicipalityFeedbackStampListener.",
                             "inputs": [
                                 {
                                     "field": "municipalityFeedback",
-                                    "required": false
+                                    "required": false,
+                                    "fields": [
+                                        "masRoute",
+                                        "note"
+                                    ]
                                 }
                             ]
                         }
@@ -22330,10 +22374,169 @@
                 },
                 "x-openregister-seed": []
             },
+            "BpvVisit": {
+                "slug": "bpv-visit",
+                "icon": "CalendarAccount",
+                "version": "0.1.0",
+                "title": "BPV Visit",
+                "description": "A planned company visit for one BpvPlacement: its kind, the moment the school coach proposed, the moment agreed with the praktijkopleider, and its state. The coach proposes a date; the praktijkopleider accepts it, or answers with a note that sends it back to unplanned. The visit report of a held visit links it through bpvVisitId (bpv-coach-today-and-placement-board).",
+                "type": "object",
+                "x-openregister": {
+                    "active": true,
+                    "hardDelete": false,
+                    "searchable": true
+                },
+                "required": [
+                    "bpvPlacementId",
+                    "visitKind",
+                    "schoolCoachId",
+                    "tenant_id"
+                ],
+                "properties": {
+                    "bpvPlacementId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "$ref": "BpvPlacement",
+                        "description": "UUID of the BpvPlacement this visit belongs to.",
+                        "title": "BPV Placement ID"
+                    },
+                    "learnerRef": {
+                        "type": "string",
+                        "description": "The learner the placement is for, as on the placement.",
+                        "title": "Learner"
+                    },
+                    "visitKind": {
+                        "type": "string",
+                        "enum": [
+                            "voortgangsbezoek",
+                            "tussentijds-gesprek",
+                            "eindgesprek"
+                        ],
+                        "description": "Kind of visit.",
+                        "title": "Visit Kind"
+                    },
+                    "schoolCoachId": {
+                        "type": "string",
+                        "description": "The BPV-begeleider (school coach) who plans and makes the visit.",
+                        "title": "School Coach"
+                    },
+                    "practicalTrainerId": {
+                        "type": "string",
+                        "description": "The praktijkopleider at the company who agrees the date.",
+                        "title": "Practical Trainer"
+                    },
+                    "proposedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The moment the school coach proposed.",
+                        "title": "Proposed Moment"
+                    },
+                    "plannedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The moment agreed with the company.",
+                        "title": "Planned Moment"
+                    },
+                    "trainerResponse": {
+                        "type": "string",
+                        "description": "The praktijkopleider's answer when she does not accept the proposed moment.",
+                        "title": "Company Answer"
+                    },
+                    "tenant_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Tenant identifier for multi-tenant isolation.",
+                        "title": "Tenant ID"
+                    },
+                    "lifecycle": {
+                        "type": "string",
+                        "enum": [
+                            "unplanned",
+                            "proposed",
+                            "planned",
+                            "done",
+                            "cancelled"
+                        ],
+                        "default": "unplanned",
+                        "description": "unplanned until the coach proposes a moment; proposed until the company accepts (planned) or answers (back to unplanned); done once held; cancelled when it will not take place.",
+                        "title": "State"
+                    }
+                },
+                "x-openregister-lifecycle": {
+                    "field": "lifecycle",
+                    "initial": "unplanned",
+                    "transitions": {
+                        "propose": {
+                            "from": [
+                                "unplanned",
+                                "proposed"
+                            ],
+                            "to": "proposed"
+                        },
+                        "accept": {
+                            "from": [
+                                "proposed"
+                            ],
+                            "to": "planned"
+                        },
+                        "answer": {
+                            "from": [
+                                "proposed"
+                            ],
+                            "to": "unplanned"
+                        },
+                        "complete": {
+                            "from": [
+                                "planned"
+                            ],
+                            "to": "done"
+                        },
+                        "cancel": {
+                            "from": [
+                                "unplanned",
+                                "proposed",
+                                "planned"
+                            ],
+                            "to": "cancelled"
+                        }
+                    }
+                },
+                "x-openregister-seed": [],
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads",
+                        "coordinators",
+                        "administration-managers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "schoolCoachId": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads",
+                        "coordinators"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads",
+                        "coordinators"
+                    ]
+                }
+            },
             "BpvVisitReport": {
                 "slug": "bpv-visit-report",
                 "icon": "MapMarkerCheckOutline",
-                "version": "0.1.1",
+                "version": "0.2.0",
                 "title": "BPV Visit Report",
                 "description": "A visit or three-way-conversation report for one BpvPlacement, linked to the learner's LearnerProfile dossier via learnerRef. Declares a visitDueReminder notification off nextVisitDue, targeting the internal schoolCoachId (the praktijkopleider has no NC-reachable channel).",
                 "type": "object",
@@ -22357,6 +22560,13 @@
                         "$ref": "BpvPlacement",
                         "description": "UUID of the BpvPlacement this visit report belongs to.",
                         "title": "BPV Placement ID"
+                    },
+                    "bpvVisitId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "$ref": "BpvVisit",
+                        "description": "UUID of the BpvVisit this report records, when the visit was planned as one.",
+                        "title": "BPV Visit ID"
                     },
                     "learnerRef": {
                         "type": "string",
@@ -22505,7 +22715,7 @@
             "ConferenceRound": {
                 "slug": "conference-round",
                 "icon": "CalendarMultiselectOutline",
-                "version": "0.2.2",
+                "version": "0.3.0",
                 "title": "Conference Round",
                 "description": "One oudergesprekken-cyclus (parent-teacher conference round) for a report period: scope (cohorts, teachers), slot duration/buffer, and a booking window. Drives invitations, guardian/self signup, and the ConferenceScheduleGenerator's greedy conflict-free slot generation.",
                 "type": "object",
@@ -22639,6 +22849,12 @@
                         "minimum": 1,
                         "description": "How many times a family may book per child in this round. Empty means one.",
                         "title": "Bookings per child"
+                    },
+                    "pupilMayBook": {
+                        "type": "boolean",
+                        "default": false,
+                        "title": "Pupils may book",
+                        "description": "Whether a pupil may book a time of this round for herself, as for a mentor talk. Off, only her guardians book. A booking by the pupil and one by a guardian count as the same child's booking."
                     },
                     "isBookingClosed": {
                         "type": "boolean",
@@ -32935,7 +33151,7 @@
             "SchoolEvent": {
                 "slug": "school-event",
                 "icon": "CalendarStar",
-                "version": "0.1.0",
+                "version": "0.2.0",
                 "title": "School event",
                 "authorization": {
                     "read": [
@@ -33012,7 +33228,10 @@
                             "sports-day",
                             "trip",
                             "celebration",
-                            "other"
+                            "other",
+                            "holiday",
+                            "day-off",
+                            "parent-evening"
                         ],
                         "default": "event",
                         "title": "Kind",
@@ -33024,7 +33243,7 @@
                             "celebration": "Celebration",
                             "other": "Other"
                         },
-                        "description": "Which kind of day this is."
+                        "description": "Which kind of day this is. A public calendar groups the kinds into holidays, study days and days off, school activities and parent evenings."
                     },
                     "audience": {
                         "type": "string",
@@ -33070,7 +33289,7 @@
             "BpvHourWeek": {
                 "slug": "bpv-hour-week",
                 "icon": "ClockOutline",
-                "version": "0.2.1",
+                "version": "0.3.0",
                 "title": "BpvHourWeek",
                 "description": "One week of realised BPV hours for one placement. The hours the student submitted and the hours the trainer approved are kept as two values, so a correction is readable afterwards instead of overwriting what the student said.",
                 "type": "object",
@@ -33083,8 +33302,7 @@
                 "required": [
                     "bpvPlacementId",
                     "learnerRef",
-                    "isoWeek",
-                    "hoursSubmitted"
+                    "isoWeek"
                 ],
                 "properties": {
                     "bpvPlacementId": {
@@ -33110,9 +33328,85 @@
                     "hoursSubmitted": {
                         "type": "number",
                         "title": "Hours submitted",
-                        "description": "The hours the student entered for this week.",
+                        "description": "The hours the student entered for this week. On a week with day lines the server writes it as the sum of their hours; a value sent for it is replaced.",
                         "minimum": 0,
                         "maximum": 80
+                    },
+                    "days": {
+                        "type": "array",
+                        "title": "Days",
+                        "default": [],
+                        "description": "One line per day worked in this week. The server works out each day's hours as the time between start and end less the break, keeps the lines in date order and refuses a date outside the week or a second line for the same date.",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "date",
+                                "startTime",
+                                "endTime"
+                            ],
+                            "properties": {
+                                "date": {
+                                    "type": "string",
+                                    "format": "date",
+                                    "title": "Date",
+                                    "description": "The day, inside the week."
+                                },
+                                "startTime": {
+                                    "type": "string",
+                                    "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+                                    "title": "Started at",
+                                    "description": "When the student started, as HH:MM."
+                                },
+                                "endTime": {
+                                    "type": "string",
+                                    "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+                                    "title": "Stopped at",
+                                    "description": "When the student stopped, as HH:MM."
+                                },
+                                "breakMinutes": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "default": 0,
+                                    "title": "Break",
+                                    "description": "The break in minutes."
+                                },
+                                "hours": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 24,
+                                    "title": "Hours",
+                                    "description": "The hours of the day: the time between start and end less the break. The server works it out; a value sent for it is replaced."
+                                },
+                                "description": {
+                                    "type": "string",
+                                    "maxLength": 2000,
+                                    "title": "What was done",
+                                    "description": "What the student did that day, in her own words."
+                                },
+                                "werkprocesCodes": {
+                                    "type": "array",
+                                    "default": [],
+                                    "title": "Work processes",
+                                    "description": "The work process codes the day belongs to; more than one is allowed.",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "photoRef": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "title": "Photo",
+                                    "description": "A photo the student added to the day, as a file reference."
+                                },
+                                "returnedQuestion": {
+                                    "type": "string",
+                                    "maxLength": 1000,
+                                    "nullable": true,
+                                    "title": "Question",
+                                    "description": "The trainer's question when she sent the week back about this day. The server writes it from the trainer's return."
+                                }
+                            }
+                        }
                     },
                     "submittedBy": {
                         "type": "string",
@@ -33172,7 +33466,7 @@
                     "lifecycle": {
                         "type": "string",
                         "title": "Lifecycle",
-                        "description": "`submitted` while it waits for the trainer, `approved` when she approved what the student entered, `corrected` when she approved another number, `rejected` when she approved none.",
+                        "description": "`submitted` while it waits for the trainer, `approved` when she approved what the student entered, `corrected` when she approved another number, `rejected` when she sent it back: approving none, or naming the day she has a question about.",
                         "enum": [
                             "submitted",
                             "approved",
