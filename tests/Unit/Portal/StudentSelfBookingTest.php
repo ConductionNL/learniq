@@ -86,7 +86,10 @@ class StudentSelfBookingTest extends TestCase {
 	 */
 	public function testSheBooksHerOwnTimeFromTheTimesSheMayBook(): void {
 		$booking = new StudentSelfBooking();
-		[$times, $talks] = $booking->conferenceCollections();
+		[$invitations, $times, $talks] = $booking->conferenceCollections();
+		self::assertSame(['studentConferenceInvitations', 'conference-invitation', 'learnerRef'], [$invitations['id'], $invitations['schema'], $invitations['scopeField']]);
+		self::assertSame(['status' => 'open', 'pupilMayBook' => true], $invitations['filter']);
+		self::assertFalse($invitations['listable']);
 
 		self::assertSame(['studentConferenceTimes', 'conference-slot', 'eligibleLearnerRefs', 'learnerRef'], [$times['id'], $times['schema'], $times['scopeField'], $times['scopeClaim']]);
 		self::assertSame(['lifecycle' => 'free', 'pupilMayBook' => true], $times['filter']);
@@ -101,4 +104,29 @@ class StudentSelfBookingTest extends TestCase {
 		self::assertSame(['slotId'], $action['requiredFields']);
 		self::assertSame('conference-slot', $action['optionsProviders']['slotId']['schema']);
 	}//end testSheBooksHerOwnTimeFromTheTimesSheMayBook()
+
+	/**
+	 * Her task names the talk and opens the booking page; that page holds
+	 * the invitation, the booking form and the times, out of the menu. The
+	 * task carries no time itself.
+	 *
+	 * @return void
+	 */
+	public function testTheInvitationLinksToTheBookingPage(): void {
+		$booking = new StudentSelfBooking();
+		$task = $booking->invitationTasksBlock();
+		self::assertSame(['tasks', 'studentConferenceInvitations', 'Choose a time'], [$task['type'], $task['collection'], $task['buttonLabel']]);
+		self::assertSame(['roundName'], $task['titleFields']);
+
+		$page = $booking->pickATimePage();
+		self::assertSame([StudentSelfBooking::PICK_A_TIME_PAGE, false], [$page['id'], $page['menu']]);
+		self::assertSame(
+			[
+				['type' => 'detail', 'collection' => 'studentConferenceInvitations'],
+				['type' => 'action', 'action' => 'bookConferenceSlotAsPupil'],
+				['type' => 'collection', 'collection' => 'studentConferenceTimes'],
+			],
+			$page['blocks']
+		);
+	}//end testTheInvitationLinksToTheBookingPage()
 }//end class

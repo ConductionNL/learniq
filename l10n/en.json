@@ -5257,7 +5257,9 @@
         "Anything your mentor should know beforehand": "Anything your mentor should know beforehand",
         "The time is yours. Your parents get a message about it.": "The time is yours. Your parents get a message about it.",
         "Talks your child booked": "Talks your child booked",
-        "A parent": "A parent"
+        "A parent": "A parent",
+        "Talks still to book": "Talks still to book",
+        "Choose a time for your mentor talk": "Choose a time for your mentor talk"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

@@ -136,6 +136,35 @@ class StudentSelfBooking {
 		['field' => 'declineNote', 'label' => 'Reason for declining'],
 	];
 
+	/**
+	 * Her invitations to a round she books herself, still to book: one row
+	 * per round (ConferenceInvitations), open while the round is open and she
+	 * has no time yet. Not in the menu: the overview's task opens the page
+	 * with the times (D-5: the invitation links to the booking, it does not
+	 * carry the times).
+	 */
+	private const CONFERENCE_INVITATIONS = [
+		'id' => 'studentConferenceInvitations',
+		'register' => self::REGISTER,
+		'schema' => 'conference-invitation',
+		'scopeField' => 'learnerRef',
+		'scopeClaim' => 'learnerRef',
+		'filter' => ['status' => 'open', 'pupilMayBook' => true],
+		'label' => 'Talks still to book',
+		'listable' => false,
+		'minTrust' => 'low',
+		'fields' => ['learnerRef', 'conferenceRoundId', 'roundName', 'bookingClosesAt', 'status'],
+		'columns' => [
+			['field' => 'roundName', 'label' => 'Conversation'],
+			['field' => 'bookingClosesAt', 'label' => 'Book before', 'render' => 'date'],
+		],
+	];
+
+	/**
+	 * The page her task opens.
+	 */
+	public const PICK_A_TIME_PAGE = 'studentPickATime';
+
 	private const BOOK_TIME_OPTIONS = [
 		'type' => 'collection',
 		'register' => self::REGISTER,
@@ -239,6 +268,7 @@ class StudentSelfBooking {
 	 */
 	public function conferenceCollections(): array {
 		return [
+			self::CONFERENCE_INVITATIONS,
 			[
 				'id' => 'studentConferenceTimes',
 				'register' => self::REGISTER,
@@ -296,4 +326,48 @@ class StudentSelfBooking {
 			'successMessage' => 'The time is yours. Your parents get a message about it.',
 		];
 	}//end bookConferenceSlotAction()
+	/**
+	 * "Kies een tijd voor het mentorgesprek": one task per invitation still
+	 * to book, on her overview. Its button opens the booking page; the
+	 * times themselves are never part of the task.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/parent-conferences/spec.md#requirement-a-conference-round-says-whether-pupils-may-book
+	 */
+	public function invitationTasksBlock(): array {
+		return [
+			'type' => 'tasks',
+			'label' => 'Choose a time',
+			'display' => 'highlight',
+			'collection' => 'studentConferenceInvitations',
+			'dueField' => 'bookingClosesAt',
+			'titleFields' => ['roundName'],
+			'titleTemplate' => 'Choose a time for your mentor talk',
+			'buttonLabel' => 'Choose a time',
+			'dueInLine' => true,
+		];
+	}//end invitationTasksBlock()
+
+	/**
+	 * The page the task opens: the invitation, the booking form and the free
+	 * times. Out of the menu; portaliq opens a task on the page that shows
+	 * its collection, with the row selected.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/parent-conferences/spec.md#requirement-a-conference-round-says-whether-pupils-may-book
+	 */
+	public function pickATimePage(): array {
+		return [
+			'id' => self::PICK_A_TIME_PAGE,
+			'label' => 'Choose a time',
+			'menu' => false,
+			'blocks' => [
+				['type' => 'detail', 'collection' => 'studentConferenceInvitations'],
+				['type' => 'action', 'action' => 'bookConferenceSlotAsPupil'],
+				['type' => 'collection', 'collection' => 'studentConferenceTimes'],
+			],
+		];
+	}//end pickATimePage()
 }//end class

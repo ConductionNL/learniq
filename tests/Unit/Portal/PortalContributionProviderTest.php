@@ -201,7 +201,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(20, $collections);
+		$this->assertCount(21, $collections);
 		$this->assertSame(
 			[
 				'studentGrades',
@@ -229,7 +229,8 @@ class PortalContributionProviderTest extends TestCase {
 				// pupil-books-support-lessons-and-mentor-talks: the support lessons of her groups and her sign-ups.
 				'studentElectiveOffers',
 				'studentElectiveSignUps',
-				// The free times of a mentor talk she may book herself, and her talks.
+				// Her invitation to a talk she books herself, its free times, and her talks.
+				'studentConferenceInvitations',
 				'studentConferenceTimes',
 				'studentConferenceSignups',
 			],

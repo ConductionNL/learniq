@@ -5782,7 +5782,9 @@
         "Anything your mentor should know beforehand": "Wat je mentor vooraf moet weten",
         "The time is yours. Your parents get a message about it.": "De tijd is van jou. Je ouders krijgen er een bericht over.",
         "Talks your child booked": "Gesprekken die uw kind boekte",
-        "A parent": "Een ouder"
+        "A parent": "Een ouder",
+        "Talks still to book": "Gesprekken nog te boeken",
+        "Choose a time for your mentor talk": "Kies een tijd voor het mentorgesprek"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
