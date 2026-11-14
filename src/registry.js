@@ -16,6 +16,8 @@ import CourseOpenMaterials from './components/openMaterial/CourseOpenMaterials.v
 import AssignmentHandInStatus from './components/sections/AssignmentHandInStatus.vue'
 import AssignmentPeerReviewAllocation from './components/sections/AssignmentPeerReviewAllocation.vue'
 import CredentialWalletOffer from './components/sections/CredentialWalletOffer.vue'
+// exam-sitting-overview-section: body section on ExamSittingDetail.
+import ExamSittingOverview from './components/sections/ExamSittingOverview.vue'
 // lqb-c board dialogs: purpose-built create and decision dialogs (G5, G11).
 import AccessibilityBarrierDialog from './dialogs/AccessibilityBarrierDialog.vue'
 import CohortCreateDialog from './dialogs/CohortCreateDialog.vue'
@@ -396,6 +398,11 @@ export default {
 		kind: 'section',
 		component: AssignmentHandInStatus,
 		_note: 'Hand-in status on AssignmentDetail: the cohort roster minus the learners who handed in, split into started and not started, overdue after dueAt. Staff only; self-fetches assignment, cohort(s), submissions and learner names.',
+	},
+	ExamSittingOverview: {
+		kind: 'section',
+		component: ExamSittingOverview,
+		_note: 'Extra time and invigilators on ExamSittingDetail: each accommodated learner with the extra time, the end time and a separate room, the invigilator places, and the colleagues free for the whole sitting with an Ask button that writes a pending invigilator-assignment through OpenRegister. Self-fetches the exam schedule overview and available-invigilators routes; hidden for a caller they refuse.',
 	},
 	CredentialWalletOffer: {
 		kind: 'section',
