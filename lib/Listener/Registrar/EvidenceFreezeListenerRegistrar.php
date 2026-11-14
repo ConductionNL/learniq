@@ -29,6 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener\Registrar;
 
 use OCA\Learniq\Listener\AssessmentResultIntegrityListener;
+use OCA\Learniq\Listener\AttestationFreezeListener;
 use OCA\Learniq\Listener\LvsResultFreezeListener;
 use OCA\Learniq\Listener\ProctoringFlagReviewGuard;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
@@ -84,6 +85,20 @@ class EvidenceFreezeListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectLeavingEvent::class,
 			listener: LvsResultFreezeListener::class
+		);
+
+		// Attestation freeze (compliance-attestation-locked-after-signing):
+		// a signed attestation's evidence fields are fixed for every writer,
+		// admins included; only `revoke` may move it on, writing the lifecycle
+		// and its reason. A pre-write veto, registered directly for the same
+		// reason as the two above.
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: AttestationFreezeListener::class
+		);
+		$context->registerEventListener(
+			event: ObjectLeavingEvent::class,
+			listener: AttestationFreezeListener::class
 		);
 
 		// Proctoring flag review (proctoring-flag-review-page D2): a learner

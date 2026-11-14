@@ -383,11 +383,11 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertTrue($overview['home']);
 		self::assertSame('My space', $overview['group']);
 		self::assertSame(
-			['greeting', 'tasks', 'collection', 'collection', 'cta', 'cta', 'cta', 'inbox'],
+			['greeting', 'tasks', 'collection', 'collection', 'collection', 'cta', 'cta', 'cta', 'inbox'],
 			array_column($overview['blocks'], 'type')
 		);
-		self::assertSame(['field' => 'assessedAt', 'direction' => 'desc'], $overview['blocks'][3]['sort']);
-		self::assertSame(3, $overview['blocks'][3]['limit']);
+		self::assertSame(['field' => 'assessedAt', 'direction' => 'desc'], $overview['blocks'][4]['sort']);
+		self::assertSame(3, $overview['blocks'][4]['limit']);
 
 		// internship-hours: what is waiting for her comes first, oldest
 		// submission at the top, and the week is what she reads on the row.
@@ -399,11 +399,11 @@ class GuardianSitePagesTest extends TestCase {
 
 		// site-workplace-trainer-portal-design T6b: the placement cards carry their heading (lane L2's
 		// contract gives a collection block a label); the assessments still stand on their columns.
-		self::assertSame('My BPV placements', $overview['blocks'][2]['label']);
-		self::assertArrayNotHasKey('label', $overview['blocks'][3]);
+		self::assertSame('My BPV placements', $overview['blocks'][3]['label']);
+		self::assertArrayNotHasKey('label', $overview['blocks'][4]);
 
 		self::assertSame(
-			['poOverview', 'poBpvPlacements', 'poSharedPortfolios', 'poWerkprocesAssessments', 'poHourWeeks'],
+			['poOverview', 'poBpvPlacements', 'poSharedPortfolios', 'poWerkprocesAssessments', 'poHourWeeks', 'poLearners'],
 			array_keys($pages)
 		);
 
@@ -414,6 +414,71 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertSame('low', $assessments['minTrust']);
 		self::assertSame('Assessments I wrote', $assessments['label']);
 	}//end testTheTrainerOverviewAndMenu()
+
+	/**
+	 * T1: she reads her students by name, through her own placements, and a
+	 * placement that ended early no longer reveals who the student was.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md
+	 */
+	public function testTheTrainerReadsHerStudentsByNameOnly(): void {
+		$manifest = self::manifest(audience: 'praktijkopleider');
+		$learners = array_column($manifest['collections'], null, 'id')['poLearners'];
+
+		self::assertSame('learner-profile', $learners['schema']);
+		self::assertSame('practicalTrainerId', $learners['scopeClaim']);
+		self::assertSame('low', $learners['minTrust']);
+		self::assertSame('My students', $learners['label']);
+		// Names, nothing more: no birth date, address, contacts or care data.
+		self::assertSame(['givenName', 'familyName'], $learners['fields']);
+
+		// Forward through HER placements: the join reads placements on her
+		// claim and keeps the learner profiles their `learnerRef` names.
+		$via = $learners['via'];
+		self::assertSame('bpv-placement', $via['schema']);
+		self::assertSame('practicalTrainerId', $via['scopeField']);
+		self::assertSame('learnerRef', $via['targetField']);
+		self::assertSame('id', $via['match']);
+
+		// Every placement state but `terminated` grants, and nothing else.
+		self::assertSame(['field', 'in'], array_keys($via['when']));
+		self::assertSame('lifecycle', $via['when']['field']);
+		self::assertNotContains('terminated', $via['when']['in']);
+		self::assertSame(['proposed', 'sbb-verification-pending', 'confirmed', 'active', 'completed'], $via['when']['in']);
+
+		// The overview shows them as cards right after what waits for her,
+		// each with its placement period looked up on her placements.
+		$cards = array_column($manifest['pages'], null, 'id')['poOverview']['blocks'][2];
+		self::assertSame('poLearners', $cards['collection']);
+		self::assertSame('My students', $cards['label']);
+		self::assertSame('cards', $cards['display']);
+		self::assertSame(['givenName', 'familyName'], $cards['titleFields']);
+		self::assertSame(
+			[
+				['as' => 'periodFrom', 'collection' => 'poBpvPlacements', 'matchField' => 'learnerRef', 'valueField' => 'periodFrom'],
+				['as' => 'periodTo', 'collection' => 'poBpvPlacements', 'matchField' => 'learnerRef', 'valueField' => 'periodTo'],
+			],
+			$cards['lookups']
+		);
+	}//end testTheTrainerReadsHerStudentsByNameOnly()
+
+	/**
+	 * The placement states a trainer's join may grant through are exactly
+	 * the schema's lifecycle states minus `terminated`, so a state added to
+	 * the schema later is a decision, not an accident.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md
+	 */
+	public function testTheJoinStatesAreThePlacementStatesButTerminated(): void {
+		$register = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'), true);
+		$states = $register['components']['schemas']['BpvPlacement']['properties']['lifecycle']['enum'];
+
+		self::assertSame(array_values(array_diff($states, ['terminated'])), TrainerSitePages::PO_LEARNERS_PLACEMENT_STATES);
+	}//end testTheJoinStatesAreThePlacementStatesButTerminated()
 
 	/**
 	 * Her hours page opens with the bar of the board: approved, waiting and
@@ -456,7 +521,7 @@ class GuardianSitePagesTest extends TestCase {
 		$overview = array_column($manifest['pages'], null, 'id')['poOverview'];
 		$placements = array_column($manifest['collections'], null, 'id')['poBpvPlacements'];
 
-		$cards = $overview['blocks'][2];
+		$cards = $overview['blocks'][3];
 		self::assertSame('poBpvPlacements', $cards['collection']);
 		self::assertSame('cards', $cards['display']);
 		self::assertSame(
