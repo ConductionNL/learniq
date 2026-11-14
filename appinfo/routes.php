@@ -333,6 +333,14 @@ $routes = [
         // (rules in RollCallService). Controller: RollCallController (slug: rollCall).
         ['name' => 'rollCall#show', 'url' => '/api/attendance/roll-call', 'verb' => 'GET'],
         ['name' => 'rollCall#save', 'url' => '/api/attendance/roll-call', 'verb' => 'POST'],
+        // Course days (training-provider-course-days): the planner moves a day on
+        // the board, decides go or no-go and moves the participants of a cancelled
+        // day to another day of the course. Guarded by course-day.plan.
+        // Controller: CourseDayController (slug: courseDay).
+        ['name' => 'courseDay#move', 'url' => '/api/course-days/{id}/status', 'verb' => 'POST'],
+        ['name' => 'courseDay#decide', 'url' => '/api/course-days/{id}/decision', 'verb' => 'POST'],
+        ['name' => 'courseDay#alternatives', 'url' => '/api/course-days/{id}/alternatives', 'verb' => 'GET'],
+        ['name' => 'courseDay#moveParticipants', 'url' => '/api/course-days/{id}/move-participants', 'verb' => 'POST'],
         // Work groups (enrolment-self-join-work-group): the signed-in learner
         // sees the work groups of their classes and joins, moves or leaves
         // while sign-up is open (rules in WorkGroupMembershipService).

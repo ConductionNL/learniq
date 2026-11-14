@@ -106,7 +106,14 @@ class CourseDayStatusServiceTest extends TestCase {
 		$this->objects->expects(self::once())
 			->method('saveObject')
 			->with(
-				['id' => 'c-22', 'courseId' => 'hybride', 'capacity' => 12, 'minParticipants' => 6, 'dayStatus' => 'goes-ahead'],
+				[
+					'id' => 'c-22',
+					'courseId' => 'hybride',
+					'capacity' => 12,
+					'minParticipants' => 6,
+					'dayStatus' => 'goes-ahead',
+					'dayStatusLog' => [['kind' => 'derived', 'from' => 'open', 'to' => 'goes-ahead', 'by' => null, 'at' => '2026-10-05T09:00:00+02:00']],
+				],
 				self::anything(),
 				'learniq',
 				'cohort',
