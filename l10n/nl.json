@@ -5813,7 +5813,10 @@
         "Invoice": "Factuur",
         "Invoice status": "Factuurstatus",
         "When the attestation was signed. Stamped by the sign transition; part of the signed payload.": "Wanneer de verklaring is ondertekend. Vastgelegd bij het ondertekenen; maakt deel uit van de ondertekende gegevens.",
-        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Waarom een ondertekende verklaring is ingetrokken. Vastgelegd bij het intrekken, dat een lege reden weigert."
+        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Waarom een ondertekende verklaring is ingetrokken. Vastgelegd bij het intrekken, dat een lege reden weigert.",
+        "No longer in scope": "Niet meer in scope",
+        "No mandatory enrolment has fallen out of scope.": "Er is geen verplichte inschrijving buiten de scope gevallen.",
+        "These details come from {hrSource}. Change them there: a change made here is refused.": "Deze gegevens komen uit {hrSource}. Wijzig ze daar: een wijziging hier wordt geweigerd."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

@@ -5233,7 +5233,14 @@ OC.L10N.register(
         "OpenRegister file attachment reference (nc:files path or OR attachment ID). The app does NOT store file bytes. Empty for a linked material, which has a sourceUrl instead.": "OpenRegister file attachment reference (nc:files path or OR attachment ID). The app does NOT store file bytes. Empty for a linked material, which has a sourceUrl instead.",
         "SPDX license identifier or rights statement. Open material from a source carries its normalised licence code, such as CC-BY-4.0, or other.": "SPDX license identifier or rights statement. Open material from a source carries its normalised licence code, such as CC-BY-4.0, or other.",
         "This material is not available in this course.": "This material is not available in this course.",
-        "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source."
+        "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.",
+        "No longer in scope": "No longer in scope",
+        "Out of scope since": "Out of scope since",
+        "No mandatory enrolment has fallen out of scope.": "No mandatory enrolment has fallen out of scope.",
+        "These details come from {hrSource}. Change them there: a change made here is refused.": "These details come from {hrSource}. Change them there: a change made here is refused.",
+        "Job title": "Job title",
+        "HR source": "HR source",
+        "HR synced at": "HR synced at"
     },
     "nplurals=2; plural=(n != 1);"
 )

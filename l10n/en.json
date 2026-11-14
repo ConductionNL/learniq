@@ -5289,7 +5289,10 @@
         "Invoice status": "Invoice status",
         "Signed At": "Signed At",
         "When the attestation was signed. Stamped by the sign transition; part of the signed payload.": "When the attestation was signed. Stamped by the sign transition; part of the signed payload.",
-        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason."
+        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.",
+        "No longer in scope": "No longer in scope",
+        "No mandatory enrolment has fallen out of scope.": "No mandatory enrolment has fallen out of scope.",
+        "These details come from {hrSource}. Change them there: a change made here is refused.": "These details come from {hrSource}. Change them there: a change made here is refused."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
