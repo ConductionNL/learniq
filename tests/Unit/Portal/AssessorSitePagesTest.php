@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Portal;
 
+use OCA\Learniq\Service\ReadableCopies;
 use OCA\Learniq\Portal\AssessorSitePages;
 use OCA\Learniq\Portal\PortalContributionProvider;
 use OCA\Learniq\Portal\PortalLabelTranslator;
@@ -75,8 +76,110 @@ class AssessorSitePagesTest extends TestCase {
 			$entries['via']
 		);
 		// No join on portfolioId: it would open entries a selection left out.
+		// A whole-portfolio share joins on the stamped wholePortfolioId instead.
 		self::assertNotSame('portfolioId', $entries['via']['targetField']);
 	}//end testTheEntriesComeThroughHisLiveSharesSelections()
+
+	/**
+	 * A whole-portfolio share opens its entries through a second join on the
+	 * stamped `wholePortfolioId`, matched on the entries' portfolioId, with
+	 * the same live-share conditions and the same projection.
+	 *
+	 * @return void
+	 */
+	public function testAWholePortfolioShareOpensItsEntriesThroughTheStampedPortfolio(): void {
+		$whole = self::collections()['eaWholePortfolioEntries'];
+		$selection = self::collections()['eaSharedPortfolioEntries'];
+
+		self::assertSame('portfolio-entry', $whole['schema']);
+		self::assertSame('portfolioId', $whole['scopeField']);
+		self::assertSame('externalAssessorId', $whole['scopeClaim']);
+		self::assertSame('low', $whole['minTrust']);
+		self::assertSame('wholePortfolioId', $whole['via']['targetField']);
+		self::assertSame('scopeField', $whole['via']['match']);
+		foreach (['register', 'schema', 'scopeField', 'when', 'validUntilField'] as $condition) {
+			self::assertSame($selection['via'][$condition], $whole['via'][$condition], $condition);
+		}
+
+		self::assertSame($selection['fields'], $whole['fields']);
+		self::assertContains(
+			['type' => 'collection', 'collection' => 'eaWholePortfolioEntries', 'recordField' => 'portfolioId', 'recordKey' => 'portfolioId'],
+			(new AssessorSitePages())->sharePage()['blocks']
+		);
+	}//end testAWholePortfolioShareOpensItsEntriesThroughTheStampedPortfolio()
+
+	/**
+	 * The two joins together, over shares as the server stamps them: a
+	 * selection opens only what it selects, a whole share opens its whole
+	 * portfolio, and a revoked or expired share opens nothing. The join is
+	 * evaluated as portaliq documents it (REQ-SMO-023): live rows only, the
+	 * union of their targetField, matched by id or by the entry's scopeField.
+	 *
+	 * @return void
+	 */
+	public function testTheJoinsOpenExactlyWhatEachShareGrants(): void {
+		$shares = array_map(
+			static fn (array $share): array => array_merge($share, ['wholePortfolioId' => ReadableCopies::wholePortfolioOf(share: $share)]),
+			[
+				['portfolioId' => 'p-selected', 'entryIds' => ['e-1'], 'lifecycle' => 'active', 'expiresAt' => '2999-01-01T00:00:00+00:00'],
+				['portfolioId' => 'p-whole', 'entryIds' => null, 'lifecycle' => 'active', 'expiresAt' => null],
+				['portfolioId' => 'p-revoked', 'entryIds' => [], 'lifecycle' => 'revoked', 'expiresAt' => null],
+				['portfolioId' => 'p-expired', 'entryIds' => null, 'lifecycle' => 'active', 'expiresAt' => '2000-01-01T00:00:00+00:00'],
+			]
+		);
+		$entries = [
+			['id' => 'e-1', 'portfolioId' => 'p-selected'],
+			['id' => 'e-2', 'portfolioId' => 'p-selected'],
+			['id' => 'e-3', 'portfolioId' => 'p-whole'],
+			['id' => 'e-4', 'portfolioId' => 'p-whole'],
+			['id' => 'e-5', 'portfolioId' => 'p-revoked'],
+			['id' => 'e-6', 'portfolioId' => 'p-expired'],
+		];
+
+		$opened = [];
+		foreach (['eaSharedPortfolioEntries', 'eaWholePortfolioEntries'] as $id) {
+			$collection = self::collections()[$id];
+			$opened = array_merge($opened, self::joined(via: $collection['via'], scopeField: $collection['scopeField'], shares: $shares, entries: $entries));
+		}
+
+		sort($opened);
+		self::assertSame(['e-1', 'e-3', 'e-4'], $opened);
+	}//end testTheJoinsOpenExactlyWhatEachShareGrants()
+
+	/**
+	 * The entry ids one via join opens.
+	 *
+	 * @param array<string, mixed>             $via        The via declaration.
+	 * @param string                           $scopeField The outer collection's scope field.
+	 * @param array<int, array<string, mixed>> $shares     The join rows.
+	 * @param array<int, array<string, mixed>> $entries    The outer rows.
+	 *
+	 * @return array<int, string>
+	 */
+	private static function joined(array $via, string $scopeField, array $shares, array $entries): array {
+		$targets = [];
+		foreach ($shares as $share) {
+			$live = in_array($share[$via['when']['field']], $via['when']['in'], true)
+				&& ($share[$via['validUntilField']] === null || strtotime((string) $share[$via['validUntilField']]) > time());
+			if ($live === true) {
+				$targets = array_merge($targets, array_filter((array) ($share[$via['targetField']] ?? []), 'is_string'));
+			}
+		}
+
+		$key = 'id';
+		if ($via['match'] === 'scopeField') {
+			$key = $scopeField;
+		}
+
+		$opened = [];
+		foreach ($entries as $entry) {
+			if (in_array($entry[$key], $targets, true) === true) {
+				$opened[] = $entry['id'];
+			}
+		}
+
+		return $opened;
+	}//end joined()
 
 	/**
 	 * An entry shows its title, kind, file and reflection, and none of the

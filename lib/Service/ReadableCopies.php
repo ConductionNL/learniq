@@ -56,7 +56,8 @@ class ReadableCopies implements ReadableCopiesInterface {
 		'grade-entry'     => ['courseName' => null],
 		// The employer's portal reads a participant's name, course and company on the row (employer-portal-audience).
 		'enrolment'       => ['cohortName' => null, 'learnerName' => null, 'courseName' => null, 'organisationRef' => null],
-		'portfolio-share' => ['portfolioTitle' => null, 'learnerName' => null],
+		// The wholePortfolioId copy: the portfolio a share opens whole, for the assessor portal's second join (site-external-assessor-portal-design T3).
+		'portfolio-share' => ['portfolioTitle' => null, 'learnerName' => null, 'wholePortfolioId' => null],
 		'teacher-availability' => ['teacherName' => null],
 		// The line under a child's name in the guardian's menu (school-portals-use-the-new-blocks).
 		// With the group's teacher for the child page's "Bericht aan {teacherName}" (wilgenboom/Detail).
@@ -144,7 +145,10 @@ class ReadableCopies implements ReadableCopiesInterface {
 		}
 
 		if ($slug === 'portfolio-share') {
-			return $this->shareCopies(portfolioId: $row['portfolioId'] ?? null);
+			return array_merge(
+				$this->shareCopies(portfolioId: $row['portfolioId'] ?? null),
+				['wholePortfolioId' => self::wholePortfolioOf(share: $row)]
+			);
 		}
 
 		if ($slug === 'teacher-availability') {
@@ -231,6 +235,33 @@ class ReadableCopies implements ReadableCopiesInterface {
 	private function personName(array $profile): ?string {
 		return $this->orNull(value: trim($this->text(value: $profile['givenName'] ?? null) . ' ' . $this->text(value: $profile['familyName'] ?? null)));
 	}//end personName()
+
+	/**
+	 * The portfolio a share opens as a whole, or null when it selects entries.
+	 *
+	 * A share without a selection (entryIds null or empty) opens the whole
+	 * portfolio, as PortfolioShareGrantHandler reads it too. The copy lets a
+	 * portal join on it without telling the two kinds apart by a condition.
+	 *
+	 * @param array<string, mixed> $share The share as written.
+	 *
+	 * @return string|null The portfolio UUID, or null.
+	 *
+	 * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-new-an-external-assessor-opens-the-shared-entries-and-only-those
+	 */
+	public static function wholePortfolioOf(array $share): ?string {
+		$selection = ($share['entryIds'] ?? null);
+		if (is_array($selection) === true && $selection !== []) {
+			return null;
+		}
+
+		$portfolioId = ($share['portfolioId'] ?? null);
+		if (is_string($portfolioId) === false || trim($portfolioId) === '') {
+			return null;
+		}
+
+		return trim($portfolioId);
+	}//end wholePortfolioOf()
 
 	/**
 	 * The portfolio title and the learner's name for a share.

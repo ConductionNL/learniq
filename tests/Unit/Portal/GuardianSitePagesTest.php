@@ -561,10 +561,11 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertSame(['collection', 'inbox'], array_column($overview['blocks'], 'type'));
 		self::assertSame(['field' => 'expiresAt', 'direction' => 'desc'], $overview['blocks'][0]['sort']);
 		self::assertSame(expected: 'Shared with you', actual: $overview['blocks'][0]['label']);
-		self::assertSame(['eaOverview', 'eaSharedPortfolios', 'eaSharedPortfolioEntries', 'eaShare'], array_keys($pages));
+		self::assertSame(['eaOverview', 'eaSharedPortfolios', 'eaSharedPortfolioEntries', 'eaWholePortfolioEntries', 'eaShare'], array_keys($pages));
 		// The menu is Overzicht and Gedeeld met mij; the entries and a share's own page stay out of it.
 		self::assertArrayNotHasKey('menu', $pages['eaSharedPortfolios']);
 		self::assertFalse($pages['eaSharedPortfolioEntries']['menu']);
+		self::assertFalse($pages['eaWholePortfolioEntries']['menu']);
 		self::assertFalse($pages['eaShare']['menu']);
 
 		$shares = $manifest['collections'][0];

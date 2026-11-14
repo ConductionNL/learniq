@@ -93,10 +93,8 @@ class AssessorSitePages {
 	 * entries it selects. A revoked or expired share grants nothing, and a
 	 * share's own selection is the only thing it opens.
 	 *
-	 * A share of a whole portfolio (no `entryIds`) grants no entry here. A
-	 * second join on `portfolioId` cannot tell such a share from one with a
-	 * selection, because `when` compares a scalar and the share holds none
-	 * that says "whole", so it would open the entries a selection left out.
+	 * A share of a whole portfolio (no `entryIds`) grants no entry here; it
+	 * grants through {@see self::WHOLE_PORTFOLIO_VIA}.
 	 */
 	public const SHARED_ENTRIES_VIA = [
 		'register' => self::REGISTER,
@@ -107,6 +105,31 @@ class AssessorSitePages {
 		'when' => ['field' => 'lifecycle', 'in' => ['active']],
 		'validUntilField' => 'expiresAt',
 	];
+
+	/**
+	 * The live-share join behind a whole-portfolio share: the same live,
+	 * unexpired shares, and from each the portfolio it opens whole. The server
+	 * stamps `wholePortfolioId` only on a share without a selection
+	 * (ReadableCopies), so a share that selects entries contributes nothing
+	 * here and its left-out entries stay closed. The entries are matched on
+	 * their `portfolioId`.
+	 */
+	public const WHOLE_PORTFOLIO_VIA = [
+		'register' => self::REGISTER,
+		'schema' => 'portfolio-share',
+		'scopeField' => 'sharedWithExternalAssessorId',
+		'targetField' => 'wholePortfolioId',
+		'match' => 'scopeField',
+		'when' => ['field' => 'lifecycle', 'in' => ['active']],
+		'validUntilField' => 'expiresAt',
+	];
+
+	/**
+	 * The entry fields an assessor reads. The submission, assessment, training
+	 * record and credential an entry may point at stay out: he has no scope on
+	 * those records.
+	 */
+	private const ENTRY_FIELDS = ['portfolioId', 'title', 'evidenceKind', 'attachmentRef', 'reflectionText'];
 
 	/**
 	 * The access sentence on a share's own page (portaliq REQ-SMO-027), with
@@ -137,9 +160,22 @@ class AssessorSitePages {
 			'listable' => true,
 			'minTrust' => 'low',
 			'via' => self::SHARED_ENTRIES_VIA,
-			// The submission, assessment, training record and credential an
-			// entry may point at stay out: he has no scope on those records.
-			'fields' => ['portfolioId', 'title', 'evidenceKind', 'attachmentRef', 'reflectionText'],
+			'fields' => self::ENTRY_FIELDS,
+			'columns' => [
+				['field' => 'title', 'label' => 'Part'],
+			],
+		],
+		[
+			'id' => 'eaWholePortfolioEntries',
+			'register' => self::REGISTER,
+			'schema' => 'portfolio-entry',
+			'scopeField' => 'portfolioId',
+			'scopeClaim' => 'externalAssessorId',
+			'label' => 'Shared parts',
+			'listable' => true,
+			'minTrust' => 'low',
+			'via' => self::WHOLE_PORTFOLIO_VIA,
+			'fields' => self::ENTRY_FIELDS,
 			'columns' => [
 				['field' => 'title', 'label' => 'Part'],
 			],
@@ -210,7 +246,8 @@ class AssessorSitePages {
 
 	/**
 	 * One share's own page: until when his access runs, in a sentence, and the
-	 * parts of that portfolio the share opens to him. Out of the menu.
+	 * parts of that portfolio the share opens to him: the selected ones, or
+	 * all of them for a whole-portfolio share. Out of the menu.
 	 *
 	 * @return array<string, mixed>
 	 *
@@ -227,6 +264,12 @@ class AssessorSitePages {
 				[
 					'type' => 'collection',
 					'collection' => 'eaSharedPortfolioEntries',
+					'recordField' => 'portfolioId',
+					'recordKey' => 'portfolioId',
+				],
+				[
+					'type' => 'collection',
+					'collection' => 'eaWholePortfolioEntries',
 					'recordField' => 'portfolioId',
 					'recordKey' => 'portfolioId',
 				],
