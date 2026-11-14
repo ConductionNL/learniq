@@ -5629,6 +5629,7 @@ OC.L10N.register(
         "Everything the lessons of this course use. Own files live in Nextcloud. Open learning material comes from Edurep and always carries its licence and its makers.": "Alles wat de lessen van deze cursus gebruiken. Eigen bestanden staan in Nextcloud. Open lesmateriaal komt uit Edurep en draagt altijd zijn licentie en zijn makers.",
         "Loading the materials…": "Het lesmateriaal laden…",
         "Open at the source": "Openen bij de bron",
+        "My students": "Mijn studenten",
         "The licence and the makers belong to the material and stay, also when you change the title. A link opens the source. A copy lives in Nextcloud and you may change it when the licence allows it.": "De licentie en de makers horen bij het materiaal en blijven staan, ook als je de titel aanpast. Een koppeling opent de bron. Een kopie staat in Nextcloud en mag je aanpassen als de licentie dat toestaat.",
         "Everything": "Alles",
         "Own files": "Eigen bestanden",

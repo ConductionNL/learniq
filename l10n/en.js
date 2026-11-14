@@ -5137,6 +5137,7 @@ OC.L10N.register(
         "Everything the lessons of this course use. Own files live in Nextcloud. Open learning material comes from Edurep and always carries its licence and its makers.": "Everything the lessons of this course use. Own files live in Nextcloud. Open learning material comes from Edurep and always carries its licence and its makers.",
         "Loading the materials…": "Loading the materials…",
         "Open at the source": "Open at the source",
+        "My students": "My students",
         "The licence and the makers belong to the material and stay, also when you change the title. A link opens the source. A copy lives in Nextcloud and you may change it when the licence allows it.": "The licence and the makers belong to the material and stay, also when you change the title. A link opens the source. A copy lives in Nextcloud and you may change it when the licence allows it.",
         "Everything": "Everything",
         "Own files": "Own files",
