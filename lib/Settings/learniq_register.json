@@ -103,6 +103,8 @@
                     "material",
                     "peer-feedback-summary",
                     "peer-review",
+                    "permission-request",
+                    "permission-response",
                     "point-award",
                     "point-rule",
                     "pok-signature",
@@ -1227,6 +1229,213 @@
                     }
                 },
                 "x-openregister-seed": []
+            },
+            "PermissionRequest": {
+                "slug": "permission-request",
+                "icon": "FileSignOutline",
+                "version": "0.1.0",
+                "title": "Permission Request",
+                "description": "A school asking the guardians of a cohort or of named learners for permission (a school trip, a photo, an activity): what it is about, the date, and the deadline to answer by. Silence counts as a refusal unless the school says otherwise. Answers are PermissionResponse objects, one per learner (permission-slips).",
+                "type": "object",
+                "x-openregister": {
+                    "active": true,
+                    "hardDelete": false,
+                    "searchable": true
+                },
+                "required": [
+                    "title",
+                    "happensOn",
+                    "respondBy",
+                    "tenant_id"
+                ],
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "description": "What the permission is for, as the guardian reads it.",
+                        "title": "Title"
+                    },
+                    "explanation": {
+                        "type": "string",
+                        "description": "The explanation the guardian reads before answering.",
+                        "title": "Explanation"
+                    },
+                    "happensOn": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "The date the permission is about.",
+                        "title": "Happens On"
+                    },
+                    "cohortId": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uuid",
+                        "$ref": "Cohort",
+                        "description": "The cohort whose guardians are asked. With learnerRefs, both are asked.",
+                        "title": "Cohort"
+                    },
+                    "learnerRefs": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": [],
+                        "description": "Named learners whose guardians are asked, besides or instead of a cohort.",
+                        "title": "Learners"
+                    },
+                    "respondBy": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The deadline to answer by.",
+                        "title": "Respond By"
+                    },
+                    "treatSilenceAsRefusal": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Whether an unanswered request counts as a refusal. Defaults to true: silence is not permission.",
+                        "title": "Silence Counts As Refusal"
+                    },
+                    "lifecycle": {
+                        "type": "string",
+                        "enum": [
+                            "open",
+                            "closed"
+                        ],
+                        "default": "open",
+                        "description": "open while guardians may answer; closed refuses any further answer.",
+                        "title": "State"
+                    },
+                    "tenant_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Tenant identifier for multi-tenant isolation.",
+                        "title": "Tenant ID"
+                    }
+                },
+                "x-openregister-lifecycle": {
+                    "property": "lifecycle",
+                    "initial": "open",
+                    "transitions": {
+                        "close": {
+                            "from": "open",
+                            "to": "closed"
+                        }
+                    }
+                },
+                "x-openregister-seed": [],
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "coordinators",
+                        "team-leads",
+                        "administration-managers"
+                    ],
+                    "create": [
+                        "instructors",
+                        "coordinators",
+                        "team-leads",
+                        "administration-managers"
+                    ],
+                    "update": [
+                        "instructors",
+                        "coordinators",
+                        "team-leads",
+                        "administration-managers"
+                    ]
+                }
+            },
+            "PermissionResponse": {
+                "slug": "permission-response",
+                "icon": "CheckboxMarkedCircleOutline",
+                "version": "0.1.0",
+                "title": "Permission Response",
+                "description": "One guardian's answer to a PermissionRequest for one learner: yes or no, who answered, when, and at which assurance level her session was. One per learner per request (permission-slips).",
+                "type": "object",
+                "x-openregister": {
+                    "active": true,
+                    "hardDelete": false,
+                    "searchable": true
+                },
+                "required": [
+                    "permissionRequestId",
+                    "learnerRef",
+                    "answer",
+                    "answeredByRef",
+                    "answeredAt",
+                    "assuranceLevel",
+                    "tenant_id"
+                ],
+                "properties": {
+                    "permissionRequestId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "$ref": "PermissionRequest",
+                        "description": "The request answered.",
+                        "title": "Permission Request"
+                    },
+                    "learnerRef": {
+                        "type": "string",
+                        "description": "The learner the answer is for.",
+                        "title": "Learner"
+                    },
+                    "answer": {
+                        "type": "string",
+                        "enum": [
+                            "yes",
+                            "no"
+                        ],
+                        "description": "The guardian's answer.",
+                        "title": "Answer"
+                    },
+                    "answeredByRef": {
+                        "type": "string",
+                        "description": "The guardian who answered.",
+                        "title": "Answered By"
+                    },
+                    "answeredAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "When the answer was given.",
+                        "title": "Answered At"
+                    },
+                    "assuranceLevel": {
+                        "type": "string",
+                        "enum": [
+                            "basic",
+                            "substantial",
+                            "high"
+                        ],
+                        "description": "The assurance level of the guardian's session when she answered.",
+                        "title": "Assurance Level"
+                    },
+                    "tenant_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Tenant identifier for multi-tenant isolation.",
+                        "title": "Tenant ID"
+                    }
+                },
+                "x-openregister-seed": [],
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "coordinators",
+                        "team-leads",
+                        "administration-managers"
+                    ],
+                    "create": [
+                        "instructors",
+                        "coordinators",
+                        "team-leads",
+                        "administration-managers"
+                    ],
+                    "update": [
+                        "instructors",
+                        "coordinators",
+                        "team-leads",
+                        "administration-managers"
+                    ]
+                }
             },
             "SovereigntyPolicy": {
                 "slug": "sovereignty-policy",

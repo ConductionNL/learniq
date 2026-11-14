@@ -126,6 +126,7 @@ use OCA\Learniq\Kernel\Contracts\PokParentSignatureRuleInterface;
 use OCA\Learniq\Kernel\Contracts\PortalAttemptServiceInterface;
 use OCA\Learniq\Kernel\Contracts\PortalEmployerBookingsInterface;
 use OCA\Learniq\Kernel\Contracts\PortalHourWeekApprovalInterface;
+use OCA\Learniq\Kernel\Contracts\PortalPermissionAnswerInterface;
 use OCA\Learniq\Kernel\Contracts\PortalLearnerResolverInterface;
 use OCA\Learniq\Kernel\Contracts\PortalMessagesInterface;
 use OCA\Learniq\Kernel\Contracts\PortalResultReaderInterface;
@@ -208,6 +209,7 @@ use OCA\Learniq\Service\Portal\EmployerBookingSteps;
 use OCA\Learniq\Service\Portal\PortalAttemptService;
 use OCA\Learniq\Service\Portal\PortalEmployerBookings;
 use OCA\Learniq\Service\Portal\PortalHourWeekApproval;
+use OCA\Learniq\Service\Portal\PortalPermissionAnswer;
 use OCA\Learniq\Service\Portal\PortalLearnerResolver;
 use OCA\Learniq\Service\Portal\PortalMessages;
 use OCA\Learniq\Service\Portal\PortalResultReader;
@@ -353,6 +355,7 @@ final class ContractBindings {
 		PortalAttemptServiceInterface::class => PortalAttemptService::class,
 		PortalEmployerBookingsInterface::class => PortalEmployerBookings::class,
 		PortalHourWeekApprovalInterface::class => PortalHourWeekApproval::class,
+		PortalPermissionAnswerInterface::class => PortalPermissionAnswer::class,
 		PortalLearnerResolverInterface::class => PortalLearnerResolver::class,
 		PortalMessagesInterface::class => PortalMessages::class,
 		PortalResultReaderInterface::class => PortalResultReader::class,
