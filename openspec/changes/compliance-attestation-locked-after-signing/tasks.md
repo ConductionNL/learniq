@@ -18,7 +18,10 @@
 
 ## 3. Audit pack and UI
 
-- [ ] 3.1 `lib/Service/AuditPackBuilder.php`: add `signedAt` and "frozen since signing" per attestation line. Verify: `AuditPackBuilderTest`.
+- [x] 3.1 `lib/Service/AuditPackBuilder.php`: add `signedAt` and "frozen since signing" per attestation line. Verify: `AuditPackBuilderTest`.
+      Built as `FrozenAttestationLines` (the regulation's signed and revoked attestations of the
+      caller's tenant, earliest `signedAt` first); `signature-verification.txt` lists them.
+      Verified by `FrozenAttestationLinesTest` and the re-recorded `AuditPackBuilderGoldenTest`.
 - [ ] 3.2 Attestation detail page in `src/manifest.d/`: fields read only when the state is not `drafted`; the revoke action asks for the reason. Verify: `npm run check:manifest`.
 - [ ] 3.3 Add the new strings to every shipped locale. Verify: `npm run check:l10n`.
 
