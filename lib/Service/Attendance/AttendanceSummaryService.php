@@ -40,6 +40,7 @@ namespace OCA\Learniq\Service\Attendance;
 use DateTimeImmutable;
 use DateTimeInterface;
 use OCA\Learniq\Kernel\Contracts\AttendanceSummaryServiceInterface;
+use OCA\Learniq\Service\LearnerManagerLookup;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\PupilGroupTeachers;
 use OCA\Learniq\Support\ObjectRow;
@@ -58,6 +59,13 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 	private const REGISTER = 'learniq';
 	private const RECORD_SCHEMA = 'attendance-record';
 	private const SESSION_SCHEMA = 'session';
+
+	/**
+	 * The schema of the attendance thresholds a pupil's window is read against.
+	 *
+	 * @var string
+	 */
+	private const THRESHOLD_SCHEMA = 'attendance-threshold';
 	public const SUMMARY_SCHEMA = 'attendance-summary';
 
 	/**
@@ -84,6 +92,27 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 	private array $sessionCache = [];
 
 	/**
+	 * The threshold per tenant, read once per request.
+	 *
+	 * @var array<string, array<string, mixed>|null>
+	 */
+	private array $thresholdCache = [];
+
+	/**
+	 * Counts the lesuren without permission in the threshold's window.
+	 *
+	 * @var UnauthorisedHoursWindow
+	 */
+	private readonly UnauthorisedHoursWindow $window;
+
+	/**
+	 * Resolves the pupil's mentor, who may read their rows.
+	 *
+	 * @var LearnerManagerLookup
+	 */
+	private readonly LearnerManagerLookup $mentors;
+
+	/**
 	 * Turns one OpenRegister result into a plain array.
 	 *
 	 * @var ObjectRow
@@ -99,6 +128,8 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 	 * @param LearnerRefResolver          $profiles      The learner's profile uuid.
 	 * @param ITimeFactory                $time          Clock for updatedAt.
 	 * @param LoggerInterface             $logger        PSR logger.
+	 * @param UnauthorisedHoursWindow|null $window Counts the lesuren without permission in the threshold's window.
+	 * @param LearnerManagerLookup|null    $mentors Resolves the pupil's mentor.
 	 *
 	 * @return void
 	 */
@@ -109,8 +140,12 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 		private readonly LearnerRefResolver $profiles,
 		private readonly ITimeFactory $time,
 		private readonly LoggerInterface $logger,
+		?UnauthorisedHoursWindow $window = null,
+		?LearnerManagerLookup $mentors = null,
 	) {
 		$this->objectRow = new ObjectRow();
+		$this->window = ($window ?? new UnauthorisedHoursWindow());
+		$this->mentors = ($mentors ?? new LearnerManagerLookup(objectService: $objectService));
 	}//end __construct()
 
 	/**
@@ -146,10 +181,24 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 		$tenantId = ($this->firstText(rows: $records, field: 'tenant_id') ?? $tenantId);
 		$learnerRef = ($this->firstText(rows: $records, field: 'learnerRef') ?? $learnerRef);
 		$teachers = $this->teachersOf(learnerId: $learnerId);
+		$mentor = $this->mentorOf(learnerId: $learnerId);
+		$today = $this->today();
+		$windowFields = $this->window->fields(
+			records: $records,
+			sessions: $sessions,
+			threshold: $this->thresholdFor(tenantId: $tenantId),
+			today: $today
+		);
 
 		$saved = 0;
 		foreach ($years as $year) {
 			$row = ($existing[$year] ?? null);
+			// A failed lookup keeps the stored mentor; a new row gets nobody.
+			$rowMentor = $mentor;
+			if ($mentor === false) {
+				$rowMentor = $this->text(value: ($row['mentorId'] ?? null));
+			}
+
 			$data = array_merge(
 				[
 					'learnerId' => $learnerId,
@@ -159,9 +208,14 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 				($counts[$year] ?? $this->calculator->emptyCounts()),
 				[
 					'teacherIds' => ($teachers ?? $this->storedTeachers(row: $row)),
+					'mentorId' => $rowMentor,
 					'tenant_id' => ($this->text(value: ($row['tenant_id'] ?? null)) ?? $tenantId),
 				]
 			);
+			// The rolling count belongs to the school year that holds today.
+			if ($year === $this->calculator->schoolYearOf(date: $today)) {
+				$data = array_merge($data, $windowFields);
+			}
 
 			if ($data['tenant_id'] === '' || ($row !== null && $this->calculator->unchanged(row: $row, data: $data) === true)) {
 				continue;
@@ -173,6 +227,70 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 
 		return $saved;
 	}//end recompute()
+
+	/**
+	 * Today, in the server's time zone, as the last day of the rolling window.
+	 *
+	 * @return string Y-m-d.
+	 */
+	private function today(): string {
+		return (new DateTimeImmutable('@' . $this->time->getTime()))
+			->setTimezone(new \DateTimeZone(date_default_timezone_get()))
+			->format('Y-m-d');
+	}//end today()
+
+	/**
+	 * The attendance threshold a pupil's window is read against: the tenant's
+	 * active per-learner unexcused-lesuren threshold over rolling weeks that is
+	 * not tied to one cohort, the lowest limit first.
+	 *
+	 * @param string $tenantId The pupil's tenant.
+	 *
+	 * @return array<string, mixed>|null The threshold, or null when none applies.
+	 *
+	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 */
+	private function thresholdFor(string $tenantId): ?array {
+		if ($tenantId === '') {
+			return null;
+		}
+
+		if (array_key_exists($tenantId, $this->thresholdCache) === true) {
+			return $this->thresholdCache[$tenantId];
+		}
+
+		$rows = $this->objectService->findAll(
+			config: [
+				'filters' => [
+					'register' => self::REGISTER,
+					'schema' => self::THRESHOLD_SCHEMA,
+					'tenant_id' => $tenantId,
+					'metric' => 'unexcused-lesuren',
+				],
+				'limit' => 50,
+			],
+			_rbac: false,
+			_multitenancy: false
+		);
+
+		$chosen = null;
+		foreach ($rows as $row) {
+			$threshold = $this->toRow(object: $row);
+			if (($threshold['tenant_id'] ?? null) !== $tenantId || (string)($threshold['cohortId'] ?? '') !== ''
+				|| $this->window->applies(threshold: $threshold) === false
+			) {
+				continue;
+			}
+
+			if ($chosen === null || (float)$threshold['limit'] < (float)$chosen['limit']) {
+				$chosen = $threshold;
+			}
+		}
+
+		$this->thresholdCache[$tenantId] = $chosen;
+
+		return $chosen;
+	}//end thresholdFor()
 
 	/**
 	 * The school years the given lessons fall in.
@@ -375,6 +493,28 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 			return null;
 		}
 	}//end teachersOf()
+
+	/**
+	 * The pupil's mentor: their id, null when none is set, false when the
+	 * profile cannot be read.
+	 *
+	 * @param string $learnerId Nextcloud user id.
+	 *
+	 * @return string|null|false
+	 *
+	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 */
+	private function mentorOf(string $learnerId): string|null|false {
+		try {
+			return $this->mentors->forLearner(learnerId: $learnerId);
+		} catch (Throwable $exception) {
+			$this->logger->warning(
+				'[AttendanceSummaryService] Could not read the mentor of {learner}, keeping the stored one: {msg}',
+				['learner' => $learnerId, 'msg' => $exception->getMessage()]
+			);
+			return false;
+		}
+	}//end mentorOf()
 
 	/**
 	 * The teachers stored on a row; none for a new row, which never widens who reads it.
