@@ -49,11 +49,13 @@ use RuntimeException;
 class TenantSignatureAction implements LifecycleActionInterface {
 
 	/**
-	 * Fields left out of the signed payload.
+	 * Fields left out of the signed payload. `revocationReason` is written by
+	 * a later `revoke` (Attestation); leaving it out keeps the signature of a
+	 * revoked record verifiable over what was signed.
 	 *
 	 * @var string[]
 	 */
-	private const EXCLUDED = ['signature', 'signingKeyId', 'lifecycle'];
+	private const EXCLUDED = ['signature', 'signingKeyId', 'lifecycle', 'revocationReason'];
 
 	/**
 	 * Constructor.

@@ -64,6 +64,7 @@ use Throwable;
  * Composes the AI-processing disclosure a school hands to its DPO.
  *
  * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-compose-an-ai-processing-disclosure-a-school-can-hand-to-its-dpo
+ * @spec openspec/specs/platform-properties/spec.md#REQ-PLAT-003
  */
 class AiProcessingDisclosureController extends Controller {
 

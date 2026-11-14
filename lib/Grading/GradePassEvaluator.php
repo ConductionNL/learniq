@@ -66,11 +66,13 @@ class GradePassEvaluator {
 	 * @param array $passRules passRules from the CurriculumPlan.
 	 * @param float|null $passThreshold Threshold from the GradeScale.
 	 * @param array<string, array> $components The plan's component index (componentId => component).
+	 * @param GradeScaleRule|null $scale The plan's scale: on a letter, ECTS or band scale its band decides, not the threshold.
 	 *
 	 * @return bool|null Null if insufficient data.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-5
 	 * @spec openspec/specs/grading/spec.md#requirement-a-plan-satisfied-entirely-by-exemptions-passes
+	 * @spec openspec/specs/grading/spec.md#requirement-the-scale-decides-how-a-final-grade-is-rounded-and-whether-it-passes
 	 */
 	public function evaluatePassed(
 		string $formula,
@@ -79,14 +81,20 @@ class GradePassEvaluator {
 		array $passRules,
 		?float $passThreshold,
 		array $components = [],
+		?GradeScaleRule $scale = null,
 	): ?bool {
 		$plan = new GradePlan(passRules: $passRules, components: $components);
 		if ($value === null) {
 			return $this->exemptionsCoverThePlan(entries: $entries, plan: $plan);
 		}
 
-		// Threshold check (applies to all formulas).
-		if ($passThreshold !== null && $value < $passThreshold) {
+		// The scale's verdict (applies to all formulas): the band on a band
+		// scale, else the threshold. Pass rules still apply on top.
+		if ($scale !== null && $scale->passesByBand() === true) {
+			if ($scale->passes(value: $value) === false) {
+				return false;
+			}
+		} else if ($passThreshold !== null && $value < $passThreshold) {
 			return false;
 		}
 

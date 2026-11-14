@@ -45,6 +45,7 @@ namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Service\HourDayLines;
 use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
@@ -79,6 +80,12 @@ class HourWeekSubmissionStamp implements IEventListener {
 		'hour-week-placement-unknown' => 'These hours could not be linked to a placement. Choose your placement again or ask the school.',
 		'hour-week-lookup-failed' => 'The placement for these hours could not be checked. Try again later.',
 		'hour-week-owner-missing' => 'A week of hours needs the student it is about and the school it belongs to.',
+		'hour-week-hours-missing' => 'A week of hours needs its hours, or the days they were worked.',
+		HourDayLines::DATE_OUTSIDE_WEEK => 'Each day of these hours must be a date inside the week.',
+		HourDayLines::TIMES_INVALID => 'Each day needs a start and an end time, and the end must be after the start.',
+		HourDayLines::BREAK_TOO_LONG => 'The break of a day must be shorter than the time between start and end.',
+		HourDayLines::DUPLICATE_DAY => 'A week holds one line per day. Change the day that is already there.',
+		HourDayLines::LINE_INVALID => 'A day of these hours could not be read.',
 	];
 
 	/**
@@ -133,14 +140,36 @@ class HourWeekSubmissionStamp implements IEventListener {
 			return;
 		}
 
+		$this->apply(event: $event, payload: $payload, placement: $placement);
+	}//end handle()
+
+	/**
+	 * Stamp the owner fields and the hours on the write, or refuse it when the
+	 * owner is still missing or the hours cannot be read.
+	 *
+	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event     The write.
+	 * @param array<string, mixed>                    $payload   The stored week with the write applied.
+	 * @param array<string, mixed>                    $placement The week's placement.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/bpv-hours-per-day/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-holds-its-days
+	 */
+	private function apply(ObjectCreatingEvent|ObjectUpdatingEvent $event, array $payload, array $placement): void {
 		$stamp = $this->stamp(event: $event, payload: $payload, placement: $placement);
 		if ($this->ownerMissing(data: array_merge($payload, $stamp)) === true) {
 			$this->refuse(event: $event, reason: 'hour-week-owner-missing');
 			return;
 		}
 
-		$event->setModifiedData(array_merge($event->getModifiedData(), $stamp));
-	}//end handle()
+		$hours = $this->hours(payload: $payload);
+		if (is_string($hours) === true) {
+			$this->refuse(event: $event, reason: $hours);
+			return;
+		}
+
+		$event->setModifiedData(array_merge($event->getModifiedData(), $stamp, $hours));
+	}//end apply()
 
 	/**
 	 * What this write stores about whose week it is: the student and the
@@ -176,6 +205,35 @@ class HourWeekSubmissionStamp implements IEventListener {
 
 		return $stamp;
 	}//end stamp()
+
+	/**
+	 * The week's day lines with their hours worked out and the week's hours as
+	 * their sum, or the reason the week is refused. A week without day lines
+	 * keeps the hours it was sent, and needs them.
+	 *
+	 * @param array<string, mixed> $payload The stored week with the write applied.
+	 *
+	 * @return array<string, mixed>|string The fields to stamp, or the refusal reason.
+	 *
+	 * @spec openspec/changes/bpv-hours-per-day/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-holds-its-days
+	 */
+	private function hours(array $payload): array|string {
+		$days = ($payload['days'] ?? null);
+		if (is_array($days) === false || $days === []) {
+			if (is_numeric(($payload['hoursSubmitted'] ?? null)) === false) {
+				return 'hour-week-hours-missing';
+			}
+
+			return [];
+		}
+
+		$lines = (new HourDayLines())->normalise(days: $days, isoWeek: $this->text(value: ($payload['isoWeek'] ?? null)));
+		if ($lines['refusal'] !== null) {
+			return $lines['refusal'];
+		}
+
+		return ['days' => $lines['days'], 'hoursSubmitted' => $lines['total']];
+	}//end hours()
 
 	/**
 	 * Whether the week still lacks the student or the school after stamping.

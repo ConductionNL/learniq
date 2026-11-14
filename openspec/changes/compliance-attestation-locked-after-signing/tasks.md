@@ -2,14 +2,19 @@
 
 ## 1. Register
 
-- [ ] 1.1 Add `revocationReason` (string, nullable) and `signedAt` (date-time, readOnly) to `Attestation` in `lib/Settings/learniq_register.json`; bump the register version. Verify: `npm run check:register`.
-- [ ] 1.2 Make the `sign` transition stamp `signedAt` through a transition action (the readOnly field is written on the transition path, as `StampTransitionActorAction` does for corrections). Verify: PHPUnit through the register-faithful store.
-- [ ] 1.3 Add a guard on `revoke` that refuses an empty `revocationReason`. Verify: PHPUnit, both scenarios of the revoke requirement.
+- [x] 1.1 Add `revocationReason` (string, nullable) and `signedAt` (date-time, readOnly) to `Attestation` in `lib/Settings/learniq_register.json`; bump the register version. Verify: `npm run check:register`.
+- [x] 1.2 Make the `sign` transition stamp `signedAt` through a transition action (the readOnly field is written on the transition path, as `StampTransitionActorAction` does for corrections). Verify: PHPUnit through the register-faithful store.
+      Built as `StampTransitionTimeAction` (`timeField: signedAt`), declared before
+      `TenantSignatureAction` so the stamp is signed; `revocationReason` is left out of the signed payload.
+- [x] 1.3 Add a guard on `revoke` that refuses an empty `revocationReason`. Verify: PHPUnit, both scenarios of the revoke requirement.
 
 ## 2. Freeze
 
-- [ ] 2.1 Add `lib/Listener/AttestationFreezeListener.php` on OpenRegister's updating event, modelled on `AssessmentResultIntegrityListener`. It refuses a change to any evidence field when the stored state is `signed` or `revoked`, and lets the `revoke` write of `lifecycle` and `revocationReason` through. Register it in `lib/AppInfo/Application.php`. Verify: PHPUnit on the real event class: officer edit refused, admin edit refused, drafted edit allowed, revoke allowed.
-- [ ] 2.2 `git grep -n "Attestation" lib/` for every writer of the schema; confirm none rewrites a signed attestation. Write the list in the PR body.
+- [x] 2.1 Add `lib/Listener/AttestationFreezeListener.php` on OpenRegister's updating event, modelled on `AssessmentResultIntegrityListener`. It refuses a change to any evidence field when the stored state is `signed` or `revoked`, and lets the `revoke` write of `lifecycle` and `revocationReason` through. Register it in `lib/AppInfo/Application.php`. Verify: PHPUnit on the real event class: officer edit refused, admin edit refused, drafted edit allowed, revoke allowed.
+- [x] 2.2 `git grep -n "Attestation" lib/` for every writer of the schema; confirm none rewrites a signed attestation. Write the list in the PR body.
+      Found one: `LearnerMergeService` re-pointed `learnerId` on every attestation. A signed or
+      revoked attestation now stays with the account it was signed under (the freeze would
+      otherwise stop the merge half way); a drafted one still moves.
 
 ## 3. Audit pack and UI
 
