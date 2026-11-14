@@ -1617,6 +1617,45 @@
                         "default": [],
                         "title": "What to bring",
                         "description": "Short lines a participant brings to the course day, shown on the next course day and the public course page (training-provider-course-days)."
+                    },
+                    "price": {
+                        "type": "object",
+                        "nullable": true,
+                        "title": "Price",
+                        "description": "The course price excluding VAT, shown on the public course page and the employer's booking form. Empty when the course has no price; then no price line shows. The invoice itself lives in shillinq.",
+                        "properties": {
+                            "amount": {
+                                "type": "number",
+                                "minimum": 0,
+                                "title": "Amount excluding VAT",
+                                "description": "Price per participant, excluding VAT."
+                            },
+                            "currency": {
+                                "type": "string",
+                                "pattern": "^[A-Z]{3}$",
+                                "default": "EUR",
+                                "title": "Currency",
+                                "description": "ISO 4217 currency code."
+                            }
+                        },
+                        "required": [
+                            "amount"
+                        ]
+                    },
+                    "vatRate": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100,
+                        "nullable": true,
+                        "title": "VAT rate",
+                        "description": "VAT percentage that applies to the price, such as 21."
+                    },
+                    "priceNote": {
+                        "type": "string",
+                        "nullable": true,
+                        "maxLength": 200,
+                        "title": "Price note",
+                        "description": "What the price includes, shown under it, such as \"met examen en lunch\"."
                     }
                 },
                 "x-openregister-lifecycle": {
@@ -33398,7 +33437,7 @@
             "CourseBooking": {
                 "slug": "course-booking",
                 "icon": "CalendarAccountOutline",
-                "version": "0.1.0",
+                "version": "0.2.0",
                 "title": "CourseBooking",
                 "description": "One booking (inschrijving) a company makes: some of its employees on one edition of a course. Each participant also has an enrolment that points back here (bookingRef). The readable copies and the status are written by EmployerBookingProjection, so the employer's portal reads one row per booking with its people, its day and what still waits for the employer (employer-portal-audience).",
                 "type": "object",
@@ -33564,6 +33603,24 @@
                         "nullable": true,
                         "title": "Confirmed on",
                         "description": "When the planner confirmed the places."
+                    },
+                    "invoiceRef": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "Invoice",
+                        "description": "Reference of the invoice shillinq raised for this booking. Written by the server once shillinq answers; learniq holds no invoice of its own."
+                    },
+                    "invoiceStatus": {
+                        "type": "string",
+                        "enum": [
+                            "open",
+                            "paid",
+                            "overdue",
+                            "credited"
+                        ],
+                        "nullable": true,
+                        "title": "Invoice status",
+                        "description": "Where the booking's invoice stands in shillinq: open, paid, overdue or credited. Written by the server from shillinq's status changes."
                     },
                     "lifecycle": {
                         "type": "string",
