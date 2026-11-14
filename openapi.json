@@ -8102,11 +8102,11 @@
                 }
             }
         },
-        "/timetable/feed/{token}.ics": {
+        "/timetable/feed/{feedFile}": {
             "get": {
                 "operationId": "timetable-feed-feed",
                 "summary": "Serve the feed of the token's owner as iCalendar",
-                "description": "Serve the feed of the token's owner as iCalendar.\n\nAn unknown, replaced or malformed token, and an owner who no longer exists or is disabled, all answer 404 with no body.",
+                "description": "Serve the feed of the token's owner as iCalendar.\n\nThe last path segment is the feed file name: the 64-character feed token followed by `.ics`.\n\nAn unknown, replaced or malformed token, and an owner who no longer exists or is disabled, all answer 404 with no body. When the timetable source is unavailable the feed answers 503 with no body and a `Retry-After` header.",
                 "tags": [
                     "timetable-feed"
                 ],
@@ -8120,33 +8120,40 @@
                             }
                         },
                         "content": {
-                            "*/*": {
+                            "text/calendar": {
                                 "schema": {
-                                    "type": "string",
-                                    "format": "binary"
+                                    "type": "string"
                                 }
                             }
                         }
                     },
                     "404": {
-                        "$ref": "#/components/responses/Problem404"
+                        "description": "No feed for this token. The body is empty."
                     },
                     "500": {
                         "$ref": "#/components/responses/Problem500"
                     },
                     "503": {
-                        "$ref": "#/components/responses/Problem503"
+                        "description": "The timetable source is unavailable. The body is empty.",
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait before asking again.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
                     }
                 },
                 "parameters": [
                     {
-                        "name": "token",
+                        "name": "feedFile",
                         "in": "path",
                         "required": true,
-                        "description": "The feed token.",
+                        "description": "The feed token followed by `.ics`.",
                         "schema": {
                             "type": "string",
-                            "pattern": "^(?:[a-f0-9]{64})$"
+                            "pattern": "^[a-f0-9]{64}\\.ics$"
                         }
                     }
                 ]
