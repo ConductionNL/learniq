@@ -5135,6 +5135,7 @@ OC.L10N.register(
         "Everything the lessons of this course use. Own files live in Nextcloud. Open learning material comes from Edurep and always carries its licence and its makers.": "Everything the lessons of this course use. Own files live in Nextcloud. Open learning material comes from Edurep and always carries its licence and its makers.",
         "Loading the materials…": "Loading the materials…",
         "Open at the source": "Open at the source",
+        "My students": "My students",
         "The licence and the makers belong to the material and stay, also when you change the title. A link opens the source. A copy lives in Nextcloud and you may change it when the licence allows it.": "The licence and the makers belong to the material and stay, also when you change the title. A link opens the source. A copy lives in Nextcloud and you may change it when the licence allows it.",
         "Everything": "Everything",
         "Own files": "Own files",
@@ -5174,8 +5175,7 @@ OC.L10N.register(
         "OpenRegister file attachment reference (nc:files path or OR attachment ID). The app does NOT store file bytes. Empty for a linked material, which has a sourceUrl instead.": "OpenRegister file attachment reference (nc:files path or OR attachment ID). The app does NOT store file bytes. Empty for a linked material, which has a sourceUrl instead.",
         "SPDX license identifier or rights statement. Open material from a source carries its normalised licence code, such as CC-BY-4.0, or other.": "SPDX license identifier or rights statement. Open material from a source carries its normalised licence code, such as CC-BY-4.0, or other.",
         "This material is not available in this course.": "This material is not available in this course.",
-        "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.",
-        "My students": "My students"
+        "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source."
     },
     "nplurals=2; plural=(n != 1);"
 )

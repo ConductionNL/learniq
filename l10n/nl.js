@@ -5624,6 +5624,7 @@ OC.L10N.register(
         "Everything the lessons of this course use. Own files live in Nextcloud. Open learning material comes from Edurep and always carries its licence and its makers.": "Alles wat de lessen van deze cursus gebruiken. Eigen bestanden staan in Nextcloud. Open lesmateriaal komt uit Edurep en draagt altijd zijn licentie en zijn makers.",
         "Loading the materials…": "Het lesmateriaal laden…",
         "Open at the source": "Openen bij de bron",
+        "My students": "Mijn studenten",
         "The licence and the makers belong to the material and stay, also when you change the title. A link opens the source. A copy lives in Nextcloud and you may change it when the licence allows it.": "De licentie en de makers horen bij het materiaal en blijven staan, ook als je de titel aanpast. Een koppeling opent de bron. Een kopie staat in Nextcloud en mag je aanpassen als de licentie dat toestaat.",
         "Everything": "Alles",
         "Own files": "Eigen bestanden",
@@ -5663,8 +5664,7 @@ OC.L10N.register(
         "OpenRegister file attachment reference (nc:files path or OR attachment ID). The app does NOT store file bytes. Empty for a linked material, which has a sourceUrl instead.": "Verwijzing naar de bijlage in OpenRegister (pad in Nextcloud Files of bijlage-id). De app bewaart zelf geen bestanden. Leeg bij een koppeling, die een adres bij de bron heeft.",
         "SPDX license identifier or rights statement. Open material from a source carries its normalised licence code, such as CC-BY-4.0, or other.": "SPDX-licentiecode of rechtenverklaring. Open materiaal uit een bron draagt zijn licentiecode, zoals CC-BY-4.0, of other.",
         "This material is not available in this course.": "Dit materiaal is niet beschikbaar in deze cursus.",
-        "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "De licentie staat een kopie toe, maar learniq kan nog geen bestanden uit Edurep ophalen, dus het maakt een koppeling. De leerling opent het materiaal bij de bron.",
-        "My students": "Mijn studenten"
+        "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "De licentie staat een kopie toe, maar learniq kan nog geen bestanden uit Edurep ophalen, dus het maakt een koppeling. De leerling opent het materiaal bij de bron."
     },
     "nplurals=2; plural=(n != 1);"
 )
