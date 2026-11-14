@@ -2666,7 +2666,7 @@
 			"config": {
 				"register": "learniq",
 				"schema": "learner-profile",
-				"_note": "Board LqLeerling (G2): the overview stacks recent grades, the latest attendance, the learner as a card and what else is in the dossier (counts); the other lists are tabs; the contact card beside it. Mentor, guardians and the parent portal wait on lanes D/E (learner-list-and-page-follow-the-boards). Actions holds Merge into another account (learner-merge-page-action): on an active learner it asks for the surviving account from a picker of the other active learners, confirms, and runs the merge transition; LearnerMergeGuard refuses a pair with an open enrolment in the same course and the dialog shows its reason. The HR system card (compliance-assign-from-hr-roles) shows department, job title, roles, manager and the HR source read only, only on a profile with hrSource; HrFieldOwnershipGuard refuses a manual change to them.",
+				"_note": "Board LqLeerling (G2): the overview stacks recent grades, the latest attendance, the learner as a card and what else is in the dossier (counts); the other lists are tabs; the contact card beside it. The 'What now?' card and the people beside it read the pupil page endpoint (learner-list-and-page-follow-the-boards T3/T4); the header shows no learner number, because personalNumber is the BSN-type number. The conversation with the guardians waits on portaliq (T5). Actions holds Merge into another account (learner-merge-page-action): on an active learner it asks for the surviving account from a picker of the other active learners, confirms, and runs the merge transition; LearnerMergeGuard refuses a pair with an open enrolment in the same course and the dialog shows its reason. The HR system card (compliance-assign-from-hr-roles) shows department, job title, roles, manager and the HR source read only, only on a profile with hrSource; HrFieldOwnershipGuard refuses a manual change to them.",
 				"lifecycleActions": {
 					"field": "lifecycle",
 					"transitions": [
@@ -2705,11 +2705,80 @@
 					"route": "LearnerProfiles"
 				},
 				"titleField": "fullName",
-				"headerMeta": "{ageYears} years · learner number {personalNumber}",
+				"headerMeta": "{ageYears} years",
 				"typePill": {
 					"field": "groupLabel"
 				},
 				"widgets": [
+					{
+						"id": "lprof-next-step",
+						"type": "facts",
+						"title": "What now?",
+						"icon": "ArrowRightCircleOutline",
+						"_note": "learner-list-and-page-follow-the-boards T3 (board LqLeerling 'Wat nu?'): the first applicable next step PupilPageController answers (a booked parent conference in the coming 14 days, else the next planned placement visit, else the oldest open attendance signal), with at most three things to prepare. Read from GET /api/pupils/{ncUserId}/page, which answers only a teacher of a group holding the pupil or school-wide staff. spec: openspec/changes/learner-list-and-page-follow-the-boards/specs/pupil-dossier/spec.md#requirement-the-pupils-page-opens-with-a-header-one-next-step-and-the-people-around-the-pupil",
+						"content": {
+							"endpointSource": {
+								"url": "/apps/learniq/api/pupils/@object.ncUserId/page",
+								"responsePath": "nextStep"
+							},
+							"fields": [
+								{
+									"path": "kind",
+									"as": "title",
+									"map": {
+										"conference": "Parent conference",
+										"placement-visit": "Placement visit",
+										"signal": "Open attendance signal"
+									}
+								},
+								{
+									"path": "at",
+									"label": "When",
+									"format": "longdatetime"
+								},
+								{
+									"path": "chosenBy",
+									"label": "Time chosen by"
+								},
+								{
+									"text": "Confirmed",
+									"label": "Status",
+									"when": {
+										"field": "confirmed",
+										"op": "eq",
+										"value": true
+									}
+								},
+								{
+									"path": "detail",
+									"label": "Details",
+									"map": {
+										"signal-verzuim": "Absence signal",
+										"signal-te-laat": "Late signal",
+										"intake": "Intake visit",
+										"midterm": "Midterm visit",
+										"final": "Final visit"
+									}
+								},
+								{
+									"path": "lines",
+									"label": "To prepare",
+									"format": "list",
+									"map": {
+										"review-results": "Look at the recent results",
+										"review-attendance": "Look at the attendance",
+										"review-notes": "Read the latest dossier notes",
+										"review-bpv-hours": "Check the approved placement hours",
+										"review-werkprocessen": "Check the work processes assessed so far",
+										"agree-with-trainer": "Agree the visit with the workplace trainer",
+										"contact-guardians": "Contact the guardians",
+										"report-to-attendance-officer": "Report to the attendance officer"
+									}
+								}
+							],
+							"emptyText": "Nothing to prepare right now"
+						}
+					},
 					{
 						"id": "lprof-facts",
 						"type": "facts",
@@ -3382,6 +3451,32 @@
 						"icon": "AccountBoxOutline"
 					},
 					{
+						"id": "lprof-people",
+						"type": "record-list",
+						"title": "People around the pupil",
+						"icon": "AccountGroupOutline",
+						"_note": "learner-list-and-page-follow-the-boards T4: mentor (primary teacher, else the first), duo partner, the care coordinator of the running learning plan (or that no plan runs), and for a placement the workplace trainer and the placement supervisor, read from the same endpoint as the next step. spec: openspec/changes/learner-list-and-page-follow-the-boards/specs/pupil-dossier/spec.md#requirement-the-pupils-page-opens-with-a-header-one-next-step-and-the-people-around-the-pupil",
+						"content": {
+							"endpointSource": {
+								"url": "/apps/learniq/api/pupils/@object.ncUserId/page",
+								"responsePath": "people"
+							},
+							"presentation": "rows",
+							"title": "{name}",
+							"meta": "{role}",
+							"valueLabels": {
+								"role": {
+									"mentor": "Mentor",
+									"duo-partner": "Duo partner",
+									"care-coordinator": "Care coordinator",
+									"praktijkopleider": "Workplace trainer",
+									"bpv-begeleider": "Placement supervisor"
+								}
+							},
+							"emptyText": "Nobody is linked to this pupil yet"
+						}
+					},
+					{
 						"id": "board-history",
 						"type": "audit-trail",
 						"title": "Record history",
@@ -3404,6 +3499,7 @@
 								{
 									"label": "Overview",
 									"widgetIds": [
+										"lprof-next-step",
 										"lprof-finals",
 										"lprof-attendance",
 										"lprof-facts",
@@ -3459,24 +3555,7 @@
 					}
 				],
 				"sideColumn": [
-					{
-						"id": "lprof-mentor",
-						"type": "facts",
-						"title": "Mentor",
-						"content": {
-							"fields": [
-								{
-									"as": "title",
-									"path": "teacherName"
-								},
-								{
-									"path": "groupLabel",
-									"label": "Group"
-								}
-							],
-							"emptyText": "No mentor yet"
-						}
-					},
+					"lprof-people",
 					"lp-contact",
 					{
 						"id": "board-history-card",
@@ -3497,6 +3576,7 @@
 						{
 							"label": "Overview",
 							"widgetIds": [
+								"lprof-next-step",
 								"lprof-finals",
 								"lprof-attendance",
 								"lprof-facts",
