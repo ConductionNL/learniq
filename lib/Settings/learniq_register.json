@@ -3280,7 +3280,7 @@
                             "pending": "Pending",
                             "active": "Active",
                             "completed": "Completed",
-                            "withdrawn": "No longer assigned",
+                            "withdrawn": "Withdrawn",
                             "failed": "Not passed"
                         },
                         "x-color-map": {
@@ -34126,7 +34126,7 @@
                         ],
                         "x-enum-labels": {
                             "assigned": "Assigned",
-                            "withdrawn": "Withdrawn"
+                            "withdrawn": "No longer assigned"
                         },
                         "default": "assigned",
                         "title": "Status",
