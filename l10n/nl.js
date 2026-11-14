@@ -1,7 +1,3 @@
-/**
- * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
- * SPDX-License-Identifier: EUPL-1.2
- */
 OC.L10N.register(
     "learniq",
     {
@@ -1895,6 +1891,27 @@ OC.L10N.register(
         "Review partner approvals": "Koppelpartner-goedkeuringen bekijken",
         "unknown": "onbekend",
         "Requires Partner Approval": "Vereist goedkeuring partner",
+        "Proctoring: review flags": "Proctoring: vlaggen beoordelen",
+        "Session for {assessment}": "Sessie bij {assessment}",
+        "Learner: {name} · provider: {provider}": "Leerling: {name} · aanbieder: {provider}",
+        "Switched tab or minimised the window": "Van tabblad gewisseld of venster geminimaliseerd",
+        "Left full screen": "Volledig scherm verlaten",
+        "Tried to leave the test page": "Probeerde de toetspagina te verlaten",
+        "Allowed by {name} on {date}": "Toegestaan door {name} op {date}",
+        "Annulled by {name} on {date}": "Geannuleerd door {name} op {date}",
+        "Annulling a flag does not invalidate the result automatically. Use the assessment result page for a next step.": "Het annuleren van een vlag maakt het resultaat niet automatisch ongeldig. Gebruik de pagina van het toetsresultaat voor een volgende stap.",
+        "Proctoring review": "Proctoringbeoordeling",
+        "Review flags": "Vlaggen beoordelen",
+        "_%n session with open flags_::_%n sessions with open flags_": ["%n sessie met openstaande vlaggen","%n sessies met openstaande vlaggen"],
+        "_%n open flag_::_%n open flags_": ["%n openstaande vlag","%n openstaande vlaggen"],
+        "_{time}, after %n minute_::_{time}, after %n minutes_": ["{time}, na %n minuut","{time}, na %n minuten"],
+        "Price": "Prijs",
+        "Amount excluding VAT": "Bedrag zonder btw",
+        "ISO 4217 currency code.": "ISO 4217-valutacode.",
+        "VAT rate": "Btw-tarief",
+        "Price note": "Toelichting bij de prijs",
+        "Invoice": "Factuur",
+        "Invoice status": "Factuurstatus",
         "Whether this target requires a standing, school-approved partner-link before any job for it may run (privacy-governance-surfaces P-new-7 — mirrors ParnasSys's \"Beoordeel koppelverzoek\"). Defaults to false so no existing target is newly blocked; an operator opts a target in per its own privacy review.": "Of dit doel een staande, door de school goedgekeurde koppeling vereist voordat een taak ervoor mag draaien (privacy-governance-surfaces P-new-7, vergelijkbaar met ParnasSys' \"Beoordeel koppelverzoek\"). Standaard onwaar, zodat geen bestaand doel opnieuw wordt geblokkeerd; een beheerder zet dit per doel aan na een eigen privacytoets.",
         "Partner Approval Status": "Goedkeuringsstatus partner",
         "Standing approval state for this job’s target partner link. Only consulted by DataExchangeRunGuard when requiresPartnerApproval is true.": "Staande goedkeuringsstatus van de partnerkoppeling van deze taak. Wordt alleen geraadpleegd door DataExchangeRunGuard wanneer requiresPartnerApproval waar is.",

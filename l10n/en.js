@@ -1,7 +1,3 @@
-/**
- * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
- * SPDX-License-Identifier: EUPL-1.2
- */
 OC.L10N.register(
     "learniq",
     {
@@ -1729,6 +1725,24 @@ OC.L10N.register(
         "All rights reserved": "All rights reserved",
         "Primary school (PO)": "Primary school (PO)",
         "Special education (SO)": "Special education (SO)",
+        "Proctoring: review flags": "Proctoring: review flags",
+        "Session for {assessment}": "Session for {assessment}",
+        "Learner: {name} · provider: {provider}": "Learner: {name} · provider: {provider}",
+        "Switched tab or minimised the window": "Switched tab or minimised the window",
+        "Left full screen": "Left full screen",
+        "Tried to leave the test page": "Tried to leave the test page",
+        "Allowed by {name} on {date}": "Allowed by {name} on {date}",
+        "Annulled by {name} on {date}": "Annulled by {name} on {date}",
+        "Annulling a flag does not invalidate the result automatically. Use the assessment result page for a next step.": "Annulling a flag does not invalidate the result automatically. Use the assessment result page for a next step.",
+        "Proctoring review": "Proctoring review",
+        "Review flags": "Review flags",
+        "Price": "Price",
+        "Amount excluding VAT": "Amount excluding VAT",
+        "ISO 4217 currency code.": "ISO 4217 currency code.",
+        "VAT rate": "VAT rate",
+        "Price note": "Price note",
+        "Invoice": "Invoice",
+        "Invoice status": "Invoice status",
         "VMBO": "VMBO",
         "HAVO": "HAVO",
         "VWO": "VWO",
