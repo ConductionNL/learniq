@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Portal;
 
+use OCA\Learniq\Portal\ParentPermissionSlips;
 use OCA\Learniq\Portal\ParentSitePages;
 use OCA\Learniq\Portal\PortalContributionProvider;
 use OCA\Learniq\Portal\StudentPortalPages;
@@ -91,16 +92,19 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertSame('Pick a time for the parent-teacher conversation of {childName}', $overview['blocks'][1]['titleTemplate']);
 		self::assertSame([ParentSitePages::childNameLookup()], $overview['blocks'][1]['lookups']);
 		self::assertArrayNotHasKey('excludeWhen', $overview['blocks'][1]);
-		$events = array_values(array_filter($overview['blocks'][4]['sources'], static fn (array $src): bool => $src['collection'] === 'parentSchoolEvents'))[0];
+		// An open permission request is the second kind of task, with its deadline (permission-slips T4).
+		self::assertSame(expected: ParentPermissionSlips::tasksBlock(), actual: $overview['blocks'][2]);
+		self::assertSame(expected: ['parentPermissionRequests', 'respondBy'], actual: [$overview['blocks'][2]['collection'], $overview['blocks'][2]['dueField']]);
+		$events = array_values(array_filter($overview['blocks'][5]['sources'], static fn (array $src): bool => $src['collection'] === 'parentSchoolEvents'))[0];
 		self::assertSame('description', $events['metaField'], 'the line under each tile');
 		self::assertSame('parentOverview', $manifest['pages'][0]['id']);
 		// The board's order (school-design wilgenboom MijnOverzicht): greeting, the task, the children, news, this month,
 		// the latest grades with the link to the reports, and nothing else.
 		self::assertSame(
-			expected: ['greeting', 'tasks', 'collection', 'news', 'calendar', 'collection', 'cta'],
+			expected: ['greeting', 'tasks', 'tasks', 'collection', 'news', 'calendar', 'collection', 'cta'],
 			actual: array_column(array: $overview['blocks'], column_key: 'type')
 		);
-		$grades = $overview['blocks'][5];
+		$grades = $overview['blocks'][6];
 		self::assertSame(expected: ParentSitePages::latestGradesBlock(), actual: $grades);
 		self::assertSame(expected: ['parentGrades', 'Latest grades', 'value'], actual: [$grades['collection'], $grades['label'], $grades['statusField']]);
 		$projected = array_column(array: $manifest['collections'], column_key: null, index_key: 'id')['parentGrades']['fields'];
@@ -108,25 +112,25 @@ class GuardianSitePagesTest extends TestCase {
 			self::assertContains(needle: $field, haystack: $projected, message: $field);
 		}
 
-		self::assertSame(expected: ['type' => 'cta', 'page' => 'parentChildren', 'label' => 'Reports'], actual: $overview['blocks'][6]);
+		self::assertSame(expected: ['type' => 'cta', 'page' => 'parentChildren', 'label' => 'Reports'], actual: $overview['blocks'][7]);
 		// Lane L2's greeting: `label` plus exactly one target.
 		self::assertSame(['type' => 'greeting', 'label' => 'Report absent', 'action' => 'createExcuseRequest'], $overview['blocks'][0]);
-		self::assertSame(['groupLabel'], $overview['blocks'][2]['subtitleFields']);
+		self::assertSame(['groupLabel'], $overview['blocks'][3]['subtitleFields']);
 		// "Deze maand" is this month only, and a booked conversation reads as words with the teacher under it.
-		self::assertSame('month', $overview['blocks'][4]['range']);
-		$slots = array_values(array_filter($overview['blocks'][4]['sources'], static fn (array $src): bool => $src['collection'] === 'parentConferenceSlots'))[0];
+		self::assertSame('month', $overview['blocks'][5]['range']);
+		$slots = array_values(array_filter($overview['blocks'][5]['sources'], static fn (array $src): bool => $src['collection'] === 'parentConferenceSlots'))[0];
 		self::assertArrayNotHasKey('titleField', $slots);
 		self::assertSame(['Parent-teacher conversation', 'teacherName'], [$slots['title'], $slots['metaField']]);
 		self::assertSame(['type' => 'tasks', 'label' => 'Still to do', 'display' => 'highlight', 'collection' => 'parentConferenceInvitations', 'dueField' => 'bookingClosesAt', 'titleFields' => ['roundName'], 'buttonLabel' => 'Pick a time', 'dueInLine' => true], array_diff_key($overview['blocks'][1], ['lookups' => 1, 'titleTemplate' => 1]));
-		self::assertSame(['parentChildren', 'cards'], [$overview['blocks'][2]['collection'], $overview['blocks'][2]['display']]);
+		self::assertSame(['parentChildren', 'cards'], [$overview['blocks'][3]['collection'], $overview['blocks'][3]['display']]);
 		// The child's chip is derived from the guardian's own reports, every field it reads projected.
-		$status = $overview['blocks'][2]['status'];
+		$status = $overview['blocks'][3]['status'];
 		self::assertSame(['parentExcuseRequests', 'Reported sick', 'At school'], [$status['collection'], $status['label'], $status['otherLabel']]);
 		$reports = array_column($manifest['collections'], null, 'id')['parentExcuseRequests'];
 		foreach ([$status['matchField'], $status['fromField'], $status['toField'], $status['only']['field']] as $field) {
 			self::assertContains($field, $reports['fields'], $field);
 		}
-		self::assertSame('tiles', $overview['blocks'][4]['display']);
+		self::assertSame('tiles', $overview['blocks'][5]['display']);
 		$absence = self::pages(audience: 'parent')['parentAbsence'];
 		$reports = array_values(array_filter($absence['blocks'], static fn (array $b): bool => ($b['collection'] ?? '') === 'parentExcuseRequests'))[0];
 		self::assertSame(['rows', 'dateFrom', 'lifecycle', 'decidedBy'], [$reports['display'], $reports['dateField'], $reports['statusField'], $reports['statusNoteField']]);

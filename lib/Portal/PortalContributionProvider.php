@@ -724,11 +724,13 @@ class PortalContributionProvider {
 			[$extras->groupMembershipsCollection(childJoin: $childJoin)],
 			[$extras->reportSubjectGradesCollection(childJoin: $childJoin)],
 			$record->collections(childJoin: $childJoin),
-			[(new ParentDocumentsPage())->schoolsCollection(childJoin: $childJoin)]
+			[(new ParentDocumentsPage())->schoolsCollection(childJoin: $childJoin)],
+			(new ParentPermissionSlips())->collections(childJoin: $childJoin)
 		);
 		$actions = array_merge(
 			$this->parentActions(childJoin: $childJoin),
-			$extras->conferenceActions()
+			$extras->conferenceActions(),
+			(new ParentPermissionSlips())->actions()
 		);
 
 		return [

@@ -5760,7 +5760,16 @@
         "VAT rate": "Btw-tarief",
         "Price note": "Toelichting bij de prijs",
         "Invoice": "Factuur",
-        "Invoice status": "Factuurstatus"
+        "Invoice status": "Factuurstatus",
+        "Permission asked by the school": "Toestemming gevraagd door school",
+        "Answer by": "Antwoorden vóór",
+        "Give permission: {title}": "Geef toestemming: {title}",
+        "Give your answer": "Geef uw antwoord",
+        "Yes, I give permission": "Ja, ik geef toestemming",
+        "No, I do not give permission": "Nee, ik geef geen toestemming",
+        "Send my answer": "Mijn antwoord versturen",
+        "Your answer is sent to the school.": "Uw antwoord is naar school gestuurd.",
+        "Your choice": "Uw keuze"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

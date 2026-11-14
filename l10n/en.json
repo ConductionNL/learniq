@@ -5235,7 +5235,16 @@
         "VAT rate": "VAT rate",
         "Price note": "Price note",
         "Invoice": "Invoice",
-        "Invoice status": "Invoice status"
+        "Invoice status": "Invoice status",
+        "Permission asked by the school": "Permission asked by the school",
+        "Answer by": "Answer by",
+        "Give permission: {title}": "Give permission: {title}",
+        "Give your answer": "Give your answer",
+        "Yes, I give permission": "Yes, I give permission",
+        "No, I do not give permission": "No, I do not give permission",
+        "Send my answer": "Send my answer",
+        "Your answer is sent to the school.": "Your answer is sent to the school.",
+        "Your choice": "Your choice"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
