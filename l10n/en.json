@@ -2655,6 +2655,9 @@
         "The reissue could not be started.": "The reissue could not be started.",
         "Reissued at": "Reissued at",
         "When the certificate was last reissued.": "When the certificate was last reissued.",
+        "No longer in scope": "No longer in scope",
+        "No mandatory enrolment has fallen out of scope.": "No mandatory enrolment has fallen out of scope.",
+        "These details come from {hrSource}. Change them there: a change made here is refused.": "These details come from {hrSource}. Change them there: a change made here is refused.",
         "Times reissued": "Times reissued",
         "How often the certificate was reissued.": "How often the certificate was reissued.",
         "Reason for the last reissue": "Reason for the last reissue",
@@ -5289,10 +5292,7 @@
         "Invoice status": "Invoice status",
         "Signed At": "Signed At",
         "When the attestation was signed. Stamped by the sign transition; part of the signed payload.": "When the attestation was signed. Stamped by the sign transition; part of the signed payload.",
-        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.",
-        "No longer in scope": "No longer in scope",
-        "No mandatory enrolment has fallen out of scope.": "No mandatory enrolment has fallen out of scope.",
-        "These details come from {hrSource}. Change them there: a change made here is refused.": "These details come from {hrSource}. Change them there: a change made here is refused."
+        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
