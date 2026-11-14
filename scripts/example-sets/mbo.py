@@ -2048,6 +2048,20 @@ STORY_UNITS = [
 ]
 
 
+def story_days(monday: dt.date, count: int, questions: dict) -> list[dict]:
+    """`count` day lines from `monday`, each 08.00 to 16.30 with 30 minutes break (8 hours) on the
+    placement's first work processes; `questions` puts the trainer's question on a day by its index."""
+    lines = []
+    for i in range(count):
+        line = {"date": (monday + dt.timedelta(days=i)).isoformat(), "startTime": "08:00", "endTime": "16:30",
+                "breakMinutes": 30, "hours": 8, "werkprocesCodes": [STORY_PROGRESS[2][0]],
+                "description": "Aan de transportbandopstelling gewerkt."}
+        if i in questions:
+            line["returnedQuestion"] = questions[i]
+        lines.append(line)
+    return lines
+
+
 def stamp_hour_totals(b: Builder) -> None:
     """Every placement's waiting and returned hours, as HourWeekTotalRollup keeps them on a live save
     (bpv-hours-match-the-board): waiting is the hours submitted on a week still `submitted`, returned the
@@ -2378,19 +2392,25 @@ class StoryAutumn:
             self.b.add("werkproces-progress", row)
 
     # Weeks of BPV hours. Milan: weeks 36 to 39 approved (4 x 24 = 96). Week
-    # 40 is two records, because a week record has no per-day lines (D-7):
-    # Monday and Wednesday (16 hours) still wait for Petra, and the Tuesday
-    # (8 hours) she sent back with her question. Approving none of a record is
-    # `rejected`; her note names the day. Aylin: weeks 35 to 39 approved
-    # (5 x 32 = 160) and week 40 waiting.
+    # 40 holds its days (bpv-hours-per-day): Monday 28, Tuesday 29 and
+    # Wednesday 30 September, each 08.00 to 16.30 with 30 minutes break (24
+    # hours). Petra sent the week back about the Tuesday with her question, so
+    # nothing of it is approved yet (D-7: she approves the week, a return names
+    # the day). Week 41 is a draft he keeps for later with Monday 5 October.
+    # Aylin: weeks 35 to 39 approved (5 x 32 = 160) and week 40 waiting.
     def add_hour_weeks(self) -> None:
         self.add_approved_weeks(MILAN, (dt.date(2026, 8, 31), 4, 24, 2, (9, 20)))
-        self.week(MILAN, (dt.date(2026, 9, 28), 16, 2, None))
-        self.week(MILAN, (dt.date(2026, 9, 28), 8, 1, {
-            "approved": 0, "at": stamp(dt.date(2026, 10, 2), 16, 42), "lifecycle": "rejected",
-            "note": ("Dinsdag 29 september: je schreef 8 uur. Volgens mij ging je om 14.00 uur naar de tandarts. "
-                     "Wil je de uren aanpassen? Dan keur ik de hele week goed."),
+        question = ("Je schreef 8 uur op dinsdag 29 september. Volgens mij ging je om 14.00 uur naar de tandarts. "
+                    "Wil je de uren aanpassen? Dan keur ik de hele week goed.")
+        returned = self.week(MILAN, (dt.date(2026, 9, 28), 24, 2, {
+            "approved": 0, "at": stamp(dt.date(2026, 10, 2), 16, 42), "lifecycle": "rejected", "note": question,
         }))
+        returned["days"] = story_days(dt.date(2026, 9, 28), 3, {1: question})
+        returned["returnSubject"] = "Vraag over je uren van dinsdag 29 september"
+        draft = self.week(MILAN, (dt.date(2026, 10, 5), 8, 0, None))
+        draft["days"] = story_days(dt.date(2026, 10, 5), 1, {})
+        draft["lifecycle"] = "draft"
+        del draft["submittedAt"]
         self.add_approved_weeks(AYLIN, (dt.date(2026, 8, 24), 5, 32, 3, (9, 30)))
         self.week(AYLIN, (dt.date(2026, 9, 28), 32, 3, None))
 
