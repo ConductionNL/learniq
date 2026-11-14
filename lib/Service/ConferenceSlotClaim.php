@@ -159,12 +159,18 @@ class ConferenceSlotClaim implements ConferenceSlotClaimInterface {
 			return ['refuse' => 'child-already-booked'];
 		}
 
+		// A pupil's own booking names no guardian (pupil-books-support-lessons-and-mentor-talks).
+		$guardianRef = null;
+		if ($booking['guardianRef'] !== '') {
+			$guardianRef = $booking['guardianRef'];
+		}
+
 		$booked = array_merge(
 			$slot,
 			[
 				'learnerId' => $booking['learnerId'],
 				'learnerRef' => $booking['learnerRef'],
-				'guardianRef' => $booking['guardianRef'],
+				'guardianRef' => $guardianRef,
 				'signupId' => $booking['signupId'],
 				'bookedAt' => (new DateTimeImmutable())->format(DateTimeInterface::ATOM),
 				'lifecycle' => 'booked',

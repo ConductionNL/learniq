@@ -2,7 +2,7 @@
 
 ## 1. Parse
 
-- [ ] 1.1 Add `lib/Service/CoursePackage/ScormManifestParser.php`: read `imsmanifest.xml`, return version (1.2 or 2004), the SCOs in organization order with title and launch href, and the resource file list. Verify: PHPUnit on three fixtures under `tests/fixtures/scorm/` (single SCO 1.2, three SCOs 1.2, one SCO 2004).
+- [x] 1.1 Add `lib/Service/CoursePackage/ScormManifestParser.php`: read `imsmanifest.xml`, return version (1.2 or 2004), the SCOs in organization order with title and launch href, and the resource file list. Verify: PHPUnit on three fixtures under `tests/fixtures/scorm/` (single SCO 1.2, three SCOs 1.2, one SCO 2004).
 
 ## 2. Import
 
