@@ -126,6 +126,34 @@
 					}
 				},
 				{
+					"id": "BpvVisitsMenu",
+					"label": "Company visits",
+					"icon": "CalendarAccount",
+					"route": "BpvVisits",
+					"order": 735,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"corporate"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
+						}
+					}
+				},
+				{
 					"id": "BpvVisitReportsMenu",
 					"label": "Visit reports",
 					"icon": "ChartBoxOutline",
@@ -343,6 +371,53 @@
 					"werkprocesCode",
 					"werkprocesLabel"
 				]
+			}
+		},
+		{
+			"id": "BpvVisits",
+			"route": "/bpv/visits",
+			"type": "index",
+			"title": "Company visits",
+			"config": {
+				"showTitle": true,
+				"register": "learniq",
+				"schema": "bpv-visit",
+				"_note": "bpv-coach-today-and-placement-board T3: the coach's planned company visits. Datum voorstellen is filling in the proposed moment: the visit then reads proposed and waits on the praktijkopleider's portal, who accepts it (planned) or answers with a note (back to unplanned, her answer in the list). Soonest moment first.",
+				"columns": [
+					{
+						"key": "learnerRef",
+						"label": "Learner",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "learner-profile"
+						}
+					},
+					{
+						"key": "visitKind",
+						"label": "Visit"
+					},
+					{
+						"key": "proposedAt",
+						"label": "Proposed moment"
+					},
+					{
+						"key": "plannedAt",
+						"label": "Planned moment"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					},
+					{
+						"key": "trainerResponse",
+						"label": "Company answer"
+					}
+				],
+				"defaultSort": {
+					"field": "proposedAt",
+					"direction": "asc"
+				}
 			}
 		},
 		{

@@ -799,9 +799,10 @@ class PortalContributionProviderTest extends TestCase {
 		// Her placements, the portfolios shared with her, the assessments she
 		// wrote (site-workplace-trainer-portal-design) and the weeks of hours
 		// waiting for her (internship-hours), and her students by name
-		// (site-workplace-trainer-portal-design T1).
+		// (site-workplace-trainer-portal-design T1), and the visit dates
+		// waiting for her answer (bpv-coach-today-and-placement-board T3).
 		$this->assertSame(
-			['poBpvPlacements', 'poSharedPortfolios', 'poWerkprocesAssessments', 'poHourWeeks', 'poLearners'],
+			['poBpvPlacements', 'poSharedPortfolios', 'poWerkprocesAssessments', 'poHourWeeks', 'poLearners', 'poBpvVisits'],
 			array_column($collections, 'id')
 		);
 		$collection = $collections[0];
@@ -899,7 +900,7 @@ class PortalContributionProviderTest extends TestCase {
 		$actions = $manifest['actions'];
 
 		$this->assertSame(
-			['createWerkprocesAssessment', 'approveHourWeek', 'signPraktijkovereenkomst'],
+			['createWerkprocesAssessment', 'approveHourWeek', 'answerBpvVisit', 'signPraktijkovereenkomst'],
 			array_column($actions, 'id')
 		);
 		$byId = array_column($actions, null, 'id');
@@ -950,6 +951,19 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame(['hourWeekId', 'hoursApproved', 'note'], $approval['fields']);
 		foreach (['approvedBy', 'approvedByName', 'approvedAt', 'assuranceLevel', 'lifecycle', 'hoursSubmitted', 'learnerRef'] as $server) {
 			$this->assertNotContains($server, $approval['fields'], $server);
+		}
+
+		// bpv-coach-today-and-placement-board T3: she answers a proposed visit
+		// date through learniq's endpoint. The visit and her answer are hers to
+		// send; the planned moment and the state are the server's.
+		$visit = $byId['answerBpvVisit'];
+		$this->assertSame('endpoint-forward', $visit['type']);
+		$this->assertSame('/apps/learniq/api/portal/bpv-visits/answer', $visit['endpoint']);
+		$this->assertSame('practicalTrainerId', $visit['subjectField']);
+		$this->assertSame('practicalTrainerId', $visit['scopeClaim']);
+		$this->assertSame(['bpvVisitId', 'outcome', 'trainerResponse'], $visit['fields']);
+		foreach (['plannedAt', 'lifecycle', 'practicalTrainerId', 'schoolCoachId'] as $server) {
+			$this->assertNotContains($server, $visit['fields'], $server);
 		}
 
 		// The POK signature is a contract signature, not an assessment: it keeps
