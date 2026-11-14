@@ -1,7 +1,3 @@
-/**
- * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
- * SPDX-License-Identifier: EUPL-1.2
- */
 OC.L10N.register(
     "learniq",
     {
@@ -5667,7 +5663,14 @@ OC.L10N.register(
         "Student administration": "Leerlingadministratie",
         "Name, year, learners and teachers from": "Naam, jaar, leerlingen en docenten uit",
         "Last synced": "Laatst bijgewerkt",
-        "Changes in the last sync": "Wijzigingen bij de laatste update"
+        "Changes in the last sync": "Wijzigingen bij de laatste update",
+        "Price": "Prijs",
+        "Amount excluding VAT": "Bedrag zonder btw",
+        "ISO 4217 currency code.": "ISO 4217-valutacode.",
+        "VAT rate": "Btw-tarief",
+        "Price note": "Toelichting bij de prijs",
+        "Invoice": "Factuur",
+        "Invoice status": "Factuurstatus"
     },
     "nplurals=2; plural=(n != 1);"
 )
