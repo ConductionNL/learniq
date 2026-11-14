@@ -381,6 +381,10 @@ $routes = [
         // Bulk reissue of a course's certificates (credentials-bulk-reissue):
         // preview and queue a run; hr, compliance officers or admin, checked
         // in the method. Controller: CredentialReissueController (slug: credentialReissue).
+        // Certificates taken over from the previous system (credentials-migrate-with-validity):
+        // dry run and commit, authorized by the `credential.migrate` action.
+        // Controller: CredentialMigrationController (slug: credentialMigration).
+        ['name' => 'credentialMigration#migrate', 'url' => '/api/credentials/migrate', 'verb' => 'POST'],
         ['name' => 'credentialReissue#preview', 'url' => '/api/courses/{courseId}/credentials/reissue', 'verb' => 'GET'],
         ['name' => 'credentialReissue#start', 'url' => '/api/courses/{courseId}/credentials/reissue', 'verb' => 'POST'],
 
