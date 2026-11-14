@@ -5218,7 +5218,14 @@
         "Student administration": "Student administration",
         "Name, year, learners and teachers from": "Name, year, learners and teachers from",
         "Last synced": "Last synced",
-        "Changes in the last sync": "Changes in the last sync"
+        "Changes in the last sync": "Changes in the last sync",
+        "Price": "Price",
+        "Amount excluding VAT": "Amount excluding VAT",
+        "ISO 4217 currency code.": "ISO 4217 currency code.",
+        "VAT rate": "VAT rate",
+        "Price note": "Price note",
+        "Invoice": "Invoice",
+        "Invoice status": "Invoice status"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
