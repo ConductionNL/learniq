@@ -5220,7 +5220,14 @@
         "HR synced at": "HR synced at",
         "Out of scope since": "Out of scope since",
         "Per job title": "Per job title",
-        "Audience job titles": "Audience job titles"
+        "Audience job titles": "Audience job titles",
+        "Price": "Price",
+        "Amount excluding VAT": "Amount excluding VAT",
+        "ISO 4217 currency code.": "ISO 4217 currency code.",
+        "VAT rate": "VAT rate",
+        "Price note": "Price note",
+        "Invoice": "Invoice",
+        "Invoice status": "Invoice status"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
