@@ -5762,7 +5762,8 @@
         "VAT rate": "Btw-tarief",
         "Price note": "Toelichting bij de prijs",
         "Invoice": "Factuur",
-        "Invoice status": "Factuurstatus"
+        "Invoice status": "Factuurstatus",
+        "Merge this learner into the account you picked? Their records move to that account and this one is closed.": "Deze leerling samenvoegen met het gekozen account? De gegevens gaan naar dat account en dit account wordt gesloten."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

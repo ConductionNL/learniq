@@ -5237,7 +5237,8 @@
         "VAT rate": "VAT rate",
         "Price note": "Price note",
         "Invoice": "Invoice",
-        "Invoice status": "Invoice status"
+        "Invoice status": "Invoice status",
+        "Merge this learner into the account you picked? Their records move to that account and this one is closed.": "Merge this learner into the account you picked? Their records move to that account and this one is closed."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
