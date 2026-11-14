@@ -868,7 +868,8 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['actions']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(1, $collections);
+		// The shares, then the entries those shares open: selected, or a whole portfolio (site-external-assessor-portal-design T3).
+		$this->assertSame(['eaSharedPortfolios', 'eaSharedPortfolioEntries', 'eaWholePortfolioEntries'], array_column($collections, 'id'));
 		$collection = $collections[0];
 
 		$this->assertSame('eaSharedPortfolios', $collection['id']);
