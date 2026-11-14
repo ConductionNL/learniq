@@ -57,7 +57,7 @@ class RegulationSettingsRegisterTest extends TestCase {
 		self::assertSame('^[A-Z0-9_-]+$', $schema['properties']['slug']['pattern']);
 		self::assertSame('string', $schema['properties']['name']['type']);
 		self::assertSame(
-			['all-employees', 'board', 'role-specific', 'department'],
+			['all-employees', 'board', 'role-specific', 'department', 'job-title'],
 			$schema['properties']['audienceScope']['enum']
 		);
 		self::assertSame([], array_diff(['slug', 'name', 'audienceScope'], $schema['required']));
