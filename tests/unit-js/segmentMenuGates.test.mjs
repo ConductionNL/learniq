@@ -149,9 +149,11 @@ function hiddenIn(state) {
 
 const BPV_CARDS = [
 	'BpvPlacementsMenu',
+	'BpvPlacementBoardMenu',
 	'PraktijkovereenkomstenMenu',
 	'WerkprocesAssessmentsMenu',
 	'BpvVisitReportsMenu',
+	'BpvVisitsMenu',
 	'PraktijkopleidersMenu',
 ].map((id) => `card:ProgressLanding:${id}`)
 const BSA_CARDS = [

@@ -622,8 +622,9 @@ test('the full profile is exactly the plain manifest build', () => {
 	// 347 since the four unreached pages (BulkEnrol, CohortTimetable,
 	// MarkAttendanceView, SubmitExcuseModal) became actions; 348 with
 	// SignUpRequests (Aanmeldverzoeken); 349 with MyGrades (LqLlCijfers); 348 once
-	// MyGrades became the learner lens of GradeEntries.
-	assert.equal(plain.pages.length, 348)
+	// MyGrades became the learner lens of GradeEntries; 350 with the BPV
+	// placement board and company visits (bpv-coach-today-and-placement-board).
+	assert.equal(plain.pages.length, 350)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {
