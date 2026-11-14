@@ -217,7 +217,7 @@
                 "slug": "credential",
                 "appendOnly": false,
                 "icon": "CertificateOutline",
-                "version": "0.3.5",
+                "version": "0.4.0",
                 "title": "Credential",
                 "description": "Verifiable Credential (W3C VC + Open Badges 3.0). Append-only compliance evidence; issued on enrolment completion; supports expiry detection with tiered reminders.",
                 "type": "object",
@@ -230,9 +230,6 @@
                     "learnerId",
                     "kind",
                     "issuedAt",
-                    "issuerDid",
-                    "signature",
-                    "openbadges3Payload",
                     "tenant_id"
                 ],
                 "properties": {
@@ -332,6 +329,37 @@
                             "manual": "Issued by hand",
                             "migrated": "Migrated"
                         }
+                    },
+                    "legacyNumber": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "The certificate's number in the system it was migrated from. With the learner and the course, the key a repeated migration matches on.",
+                        "title": "Old Certificate Number"
+                    },
+                    "legacyIssuer": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Who issued the certificate in the system it was migrated from. learniq did not issue or sign a migrated certificate.",
+                        "title": "Old Issuer"
+                    },
+                    "migratedAt": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "date-time",
+                        "description": "When the certificate was migrated into learniq.",
+                        "title": "Migrated At"
+                    },
+                    "migratedBy": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "The user who committed the migration.",
+                        "title": "Migrated By"
+                    },
+                    "migrationRunId": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "The migration run that created this certificate.",
+                        "title": "Migration Run"
                     },
                     "regulationSlug": {
                         "type": "string",
@@ -1171,7 +1199,24 @@
                 },
                 "linkedTypes": [
                     "calendar"
-                ]
+                ],
+                "if": {
+                    "properties": {
+                        "source": {
+                            "const": "migrated"
+                        }
+                    },
+                    "required": [
+                        "source"
+                    ]
+                },
+                "else": {
+                    "required": [
+                        "issuerDid",
+                        "signature",
+                        "openbadges3Payload"
+                    ]
+                }
             },
             "AiFeature": {
                 "x-openregister-processing": {

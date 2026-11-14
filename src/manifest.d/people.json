@@ -461,6 +461,15 @@
 							"value": "issued"
 						}
 					}
+				],
+				"headerActions": [
+					{
+						"id": "take-over-certificates",
+						"label": "Take over certificates",
+						"icon": "FileUploadOutline",
+						"type": "open-modal",
+						"target": "CredentialMigrationDialog"
+					}
 				]
 			}
 		},
