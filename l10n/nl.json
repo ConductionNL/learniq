@@ -5766,7 +5766,31 @@
         "VAT rate": "Btw-tarief",
         "Price note": "Toelichting bij de prijs",
         "Invoice": "Factuur",
-        "Invoice status": "Factuurstatus"
+        "Invoice status": "Factuurstatus",
+        "Support lessons": "Steunlessen",
+        "My support lessons": "Mijn steunlessen",
+        "Support lesson": "Steunles",
+        "Next lesson": "Volgende les",
+        "Placed by the school": "Geplaatst door de school",
+        "Sign up for the next lesson": "Inschrijven voor de volgende les",
+        "No places left": "Geen plekken meer",
+        "_%n place left_::_%n places left_": [
+            "Nog %n plek",
+            "Nog %n plekken"
+        ],
+        "This support lesson could not be found.": "Deze steunles is niet gevonden.",
+        "This support lesson is full.": "Deze steunles is vol.",
+        "Sign-up for this support lesson is closed.": "Inschrijven voor deze steunles is gesloten.",
+        "You are already signed up for this lesson.": "Je bent al ingeschreven voor deze les.",
+        "Your sign-up could not be checked. Try again later.": "Je inschrijving kon niet worden gecontroleerd. Probeer het later opnieuw.",
+        "Times for your mentor talk": "Tijden voor je mentorgesprek",
+        "My mentor talks": "Mijn mentorgesprekken",
+        "Anything your mentor should know beforehand": "Wat je mentor vooraf moet weten",
+        "The time is yours. Your parents get a message about it.": "De tijd is van jou. Je ouders krijgen er een bericht over.",
+        "Talks your child booked": "Gesprekken die uw kind boekte",
+        "A parent": "Een ouder",
+        "Talks still to book": "Gesprekken nog te boeken",
+        "Choose a time for your mentor talk": "Kies een tijd voor het mentorgesprek"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

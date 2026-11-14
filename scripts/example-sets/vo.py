@@ -1985,7 +1985,11 @@ class FennaStory:
             "description": "Elke dinsdag het 8e uur, van 15.20 tot 16.10 uur in lokaal 2.14. Meneer Bos legt uit wat je lastig vindt.",
             "sessionIds": [self.steunles["uuid"]], "timetableSessionRefs": [], "capacityPerLesson": 12,
             "eligibleCohortIds": [self.h4b["uuid"]], "windowMode": "relative", "opensDaysBefore": 7, "closesHoursBefore": 12,
-            "lifecycle": "open",
+            "lifecycle": "open", "teacherName": "Meneer Bos",
+            # What ElectiveOfferCopiesStamp writes on a live save: the next lesson and its places left,
+            # the line Noor reads on her portal (pupil-books-support-lessons-and-mentor-talks).
+            "nextLessonStartsAt": self.steunles["startsAt"], "nextLessonEndsAt": self.steunles["endsAt"],
+            "nextLessonLocation": self.steunles["location"], "placesLeft": 6, "placesLeftLine": "Nog 6 plekken",
         })
         self.others = [p for p in self.havo3 if p is not self.noor]
         for p in self.others[:6]:
@@ -2004,6 +2008,8 @@ class FennaStory:
             "bookingOpensAt": stamp(TODAY, 7, 50), "bookingClosesAt": stamp(dt.date(2026, 10, 9), 23, 59),
             "invitedLearnerIds": list(self.h4b["learnerIds"]), "invitedLearnerRefs": self.learner_refs,
             "bookingMode": "direct", "maxBookingsPerChild": 1, "lifecycle": "booking-open",
+            # Noor books her own talk; her father gets a notice (pupil-books-support-lessons-and-mentor-talks).
+            "pupilMayBook": True,
             "evenings": [{"date": d.isoformat(), "from": f"{sh:02d}:{sm:02d}", "until": f"{eh:02d}:{em:02d}"}
                          for d, (sh, sm), (eh, em) in blocks],
         })
@@ -2024,6 +2030,7 @@ class FennaStory:
                     "startsAt": start.isoformat(), "endsAt": end.isoformat(),
                     "slotLabel": f"{start:%d-%m-%Y %H:%M}-{end:%H:%M}, {mentor_name}",
                     "eligibleLearnerRefs": self.learner_refs, "location": "Lokaal 1.12", "lifecycle": "free",
+                    "pupilMayBook": True,
                 }
                 booked = taken.get((day, start.hour, start.minute))
                 if booked is not None:

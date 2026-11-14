@@ -41,6 +41,7 @@ class PortalRowActionConditionsTest extends TestCase {
 	private const CONDITIONS = [
 		'cancelConferenceTime' => ['field' => 'lifecycle', 'in' => ['booked', 'acknowledged']],
 		'handIn' => ['field' => 'lifecycle', 'in' => ['draft']],
+		'signUpForElective' => ['field' => 'lifecycle', 'in' => ['open']],
 	];
 
 	/**
