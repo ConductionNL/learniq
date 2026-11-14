@@ -123,7 +123,8 @@ class CredentialVerifyController extends Controller {
 	 * @NoCSRFRequired
 	 * @PublicPage
 	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
+	 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-anyone-checks-a-certificate-from-its-link-without-logging-in
+	 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-rotating-the-signing-key-keeps-earlier-certificates-checkable
 	 */
 	#[NoCSRFRequired]
 	#[PublicPage]
