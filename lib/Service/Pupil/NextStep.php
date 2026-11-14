@@ -238,11 +238,11 @@ final class NextStep {
 		$bestAt = null;
 		foreach ($rows as $row) {
 			$when = $this->moment(value: ($row[$field] ?? null));
-			if ($when === null || $when < $from || ($until !== null && $when > $until)) {
+			if ($when === null || self::within(when: $when, from: $from, until: $until) === false) {
 				continue;
 			}
 
-			if ($bestAt === null || $when < $bestAt) {
+			if (self::isEarlier(when: $when, bestAt: $bestAt) === true) {
 				$best = $row;
 				$bestAt = $when;
 			}
@@ -251,6 +251,31 @@ final class NextStep {
 		return $best;
 
 	}//end earliest()
+
+	/**
+	 * Whether a moment lies in [from, until].
+	 *
+	 * @param DateTimeImmutable      $when  The moment.
+	 * @param DateTimeImmutable      $from  The earliest moment that counts.
+	 * @param DateTimeImmutable|null $until The latest, or null for no end.
+	 *
+	 * @return bool
+	 */
+	private static function within(DateTimeImmutable $when, DateTimeImmutable $from, ?DateTimeImmutable $until): bool {
+		return $when >= $from && ($until === null || $when <= $until);
+	}//end within()
+
+	/**
+	 * Whether a moment comes before the best one so far.
+	 *
+	 * @param DateTimeImmutable      $when   The moment.
+	 * @param DateTimeImmutable|null $bestAt The best so far, or null for none yet.
+	 *
+	 * @return bool
+	 */
+	private static function isEarlier(DateTimeImmutable $when, ?DateTimeImmutable $bestAt): bool {
+		return $bestAt === null || $when < $bestAt;
+	}//end isEarlier()
 
 	/**
 	 * A stored moment, or null when it is missing or unreadable.
@@ -264,7 +289,23 @@ final class NextStep {
 			return new DateTimeImmutable($value->format(DateTimeInterface::ATOM));
 		}
 
-		if (is_string($value) === false || trim($value) === '') {
+		if (is_string($value) === false) {
+			return null;
+		}
+
+		return self::parsed(value: $value);
+
+	}//end moment()
+
+	/**
+	 * A moment written as text, or null when it is blank or unreadable.
+	 *
+	 * @param string $value The text.
+	 *
+	 * @return DateTimeImmutable|null
+	 */
+	private static function parsed(string $value): ?DateTimeImmutable {
+		if (trim($value) === '') {
 			return null;
 		}
 
@@ -273,6 +314,5 @@ final class NextStep {
 		} catch (Exception $e) {
 			return null;
 		}
-
-	}//end moment()
+	}//end parsed()
 }//end class
