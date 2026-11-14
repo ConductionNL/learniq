@@ -45,7 +45,9 @@ use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\RedirectResponse;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use OCP\Security\Bruteforce\IThrottler;
 use Psr\Log\LoggerInterface;
 
@@ -96,6 +98,7 @@ class CredentialVerifyController extends Controller {
 	 * @param JwsProofVerifierInterface $proofs Verifies a payload's detached JWS against the tenant key.
 	 * @param IThrottler $throttler Brute-force throttler counting failed verifications.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param IURLGenerator $urlGenerator Builds the public page's address for a browser.
 	 *
 	 * @return void
 	 */
@@ -105,6 +108,7 @@ class CredentialVerifyController extends Controller {
 		private readonly JwsProofVerifierInterface $proofs,
 		private readonly IThrottler $throttler,
 		private readonly LoggerInterface $logger,
+		private readonly IURLGenerator $urlGenerator,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
@@ -116,21 +120,32 @@ class CredentialVerifyController extends Controller {
 	 * before returning valid:true. Returns valid:false + error:'signature_invalid'
 	 * when the JWS fails cryptographic verification (C1).
 	 *
+	 * A browser that opens the link (it asks for text/html, not JSON) is sent
+	 * to the readable page, whose script asks this route again for JSON; the
+	 * redirect reads nothing, so it reveals nothing about the id.
+	 *
 	 * @param string $id Credential UUID.
 	 *
-	 * @return JSONResponse {valid, issuedAt, expiresAt, issuerName} or error response.
+	 * @return JSONResponse|RedirectResponse {valid, issuedAt, expiresAt, issuerName}, an error response, or the page for a browser.
 	 *
 	 * @NoCSRFRequired
 	 * @PublicPage
 	 *
 	 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-anyone-checks-a-certificate-from-its-link-without-logging-in
 	 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-rotating-the-signing-key-keeps-earlier-certificates-checkable
+	 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-the-verification-link-opens-a-page-that-says-in-words-what-was-checked
 	 */
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[AnonRateLimit(limit: 60, period: 60)]
 	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
-	public function verify(string $id): JSONResponse {
+	public function verify(string $id): JSONResponse|RedirectResponse {
+		if (CredentialVerifyPageController::wantsPage(request: $this->request) === true) {
+			return new RedirectResponse(
+				$this->urlGenerator->linkToRoute('learniq.credentialVerifyPage.show', ['id' => $id])
+			);
+		}
+
 		$found = $this->findCredential(id: $id);
 		if ($found instanceof JSONResponse) {
 			return $found;

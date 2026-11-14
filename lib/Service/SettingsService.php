@@ -31,6 +31,7 @@ use OCA\Learniq\Service\Calendar\SchoolYear;
 use OCA\Learniq\Service\OpenMaterial\OpenMaterialSettings;
 use OCA\Learniq\Service\Settings\AppealTerm;
 use OCA\Learniq\Service\Settings\MenuStructure;
+use OCA\Learniq\Service\Settings\SchoolPhone;
 use OCP\App\IAppManager;
 use OCP\IAppConfig;
 use OCP\IGroupManager;
@@ -64,6 +65,8 @@ class SettingsService {
 		OpenMaterialSettings::ENABLED_KEY,
 		OpenMaterialSettings::COLLECTIONS_OFF_KEY,
 		OpenMaterialSettings::LINK_COLLECTIONS_KEY,
+		// The phone number the public certificate page shows (certificate-verification-and-key-rotation).
+		SchoolPhone::KEY,
 	];
 
 	/**

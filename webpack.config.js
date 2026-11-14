@@ -29,6 +29,11 @@ webpackConfig.entry = {
 		import: path.join(__dirname, 'src', 'display.js'),
 		filename: appId + '-display.js',
 	},
+	// The public certificate check page (certificate-verification-and-key-rotation): no app shell.
+	verify: {
+		import: path.join(__dirname, 'src', 'verify.js'),
+		filename: appId + '-verify.js',
+	},
 }
 
 /**
