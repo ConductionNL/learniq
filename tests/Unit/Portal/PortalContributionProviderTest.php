@@ -804,9 +804,10 @@ class PortalContributionProviderTest extends TestCase {
 		$collections = $manifest['collections'];
 		// Her placements, the portfolios shared with her, the assessments she
 		// wrote (site-workplace-trainer-portal-design) and the weeks of hours
-		// waiting for her (internship-hours).
+		// waiting for her (internship-hours), and her students by name
+		// (site-workplace-trainer-portal-design T1).
 		$this->assertSame(
-			['poBpvPlacements', 'poSharedPortfolios', 'poWerkprocesAssessments', 'poHourWeeks'],
+			['poBpvPlacements', 'poSharedPortfolios', 'poWerkprocesAssessments', 'poHourWeeks', 'poLearners'],
 			array_column($collections, 'id')
 		);
 		$collection = $collections[0];
