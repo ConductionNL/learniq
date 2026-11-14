@@ -41,6 +41,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\CertificatePdfDelegationServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CredentialSigningServiceInterface;
 use OCA\Learniq\Kernel\Contracts\EuropassIssuerInterface;
 use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
@@ -75,6 +76,7 @@ class CredentialIssuanceHandler implements IEventListener {
 	 * @param EuropassIssuerInterface $europass Adds the signed Europass form.
 	 * @param LearnerRefResolverInterface $profiles Finds the learner's LearnerProfile in the enrolment's tenant.
 	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param CertificatePdfDelegationServiceInterface $certificatePdf Prints the signed certificate on the course's template, fail soft.
 	 *
 	 * @return void
 	 */
@@ -85,6 +87,7 @@ class CredentialIssuanceHandler implements IEventListener {
 		private readonly EuropassIssuerInterface $europass,
 		private readonly LearnerRefResolverInterface $profiles,
 		private readonly ListenerSchemaResolverInterface $schemas,
+		private readonly CertificatePdfDelegationServiceInterface $certificatePdf,
 	) {
 	}//end __construct()
 
@@ -187,6 +190,7 @@ class CredentialIssuanceHandler implements IEventListener {
 		$expiresAt = $this->resolveExpiresAt(course: $course, completedAt: $completedAt, tenantId: $tenantId);
 
 		$this->saveSignedCredential(
+			course: $course,
 			credential: [
 				'learnerId' => $profileId,
 				'learnerUserId' => $learnerId,
@@ -211,13 +215,19 @@ class CredentialIssuanceHandler implements IEventListener {
 	 * required. `lifecycle` is left to OR's declared initial `issued`. A
 	 * credential that cannot be signed is logged and not saved.
 	 *
+	 * The PDF is asked for after signing and before the save, on the course's
+	 * `certificateTemplateSlug`; a render that fails is recorded on the
+	 * credential and never stops the issue.
+	 *
+	 * @param array<string, mixed> $course     The course being certified.
 	 * @param array<string, mixed> $credential The unsigned credential fields.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
+	 * @spec openspec/changes/credentials-certificate-pdf/specs/certification/spec.md#requirement-issuing-a-certificate-renders-its-pdf-fail-soft
 	 */
-	private function saveSignedCredential(array $credential): void {
+	private function saveSignedCredential(array $course, array $credential): void {
 		$signed = $this->signingService->sign(credential: $credential);
 
 		if ($signed === null) {
@@ -232,6 +242,7 @@ class CredentialIssuanceHandler implements IEventListener {
 		// The Europass form (credentials-europass-edci-export), signed with the
 		// same key, for a certificate, diploma or microcredential.
 		$signed = $this->europass->withEuropass(credential: $signed);
+		$signed = $this->certificatePdf->render(credential: $signed, course: $course);
 		$credentialId = (string)$signed['id'];
 		unset($signed['id']);
 

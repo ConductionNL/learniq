@@ -23,9 +23,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Kernel\Contracts\CertificatePdfDelegationServiceInterface;
 use OCA\Learniq\Service\CredentialReissueService;
 use OCA\Learniq\Service\CredentialSigningService;
 use OCA\Learniq\Service\EuropassIssuer;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
@@ -76,6 +78,27 @@ class CredentialReissueServiceTest extends TestCase {
 	 * @var list<array<int, mixed>>
 	 */
 	private array $queries = [];
+
+	/**
+	 * The course under test, as data; null when the register holds none.
+	 *
+	 * @var array<string, mixed>|null
+	 */
+	private ?array $course = null;
+
+	/**
+	 * What the PDF render answers: `rendered` with a new document, or `failed`.
+	 *
+	 * @var string
+	 */
+	private string $pdfOutcome = 'rendered';
+
+	/**
+	 * The renders asked for, as [credential id, template slug].
+	 *
+	 * @var array<int, array{0: string, 1: string}>
+	 */
+	private array $renders = [];
 
 	/**
 	 * The service; credential ids in `$failing` make the transition throw.
@@ -133,13 +156,31 @@ class CredentialReissueServiceTest extends TestCase {
 		$europass = $this->createMock(EuropassIssuer::class);
 		$europass->method('withEuropass')->willReturnCallback(static fn (array $credential): array => $credential + ['edciPayload' => ['id' => 'urn:uuid:' . $credential['id']]]);
 
+		$objects->method('find')->willReturnCallback(
+			fn (mixed $id): ?ObjectEntity => ($this->course !== null && $id === 'c-bhv') ? OrEntityFactory::make($this->course, 'course') : null
+		);
+
+		$certificatePdf = $this->createMock(CertificatePdfDelegationServiceInterface::class);
+		$certificatePdf->method('render')->willReturnCallback(
+			function (array $credential, array $course): array {
+				$slug = (string)$course['certificateTemplateSlug'];
+				$this->renders[] = [(string)$credential['id'], $slug];
+				if ($this->pdfOutcome === 'failed') {
+					// As the real service does: status and reason, the stored document left as it was.
+					return ['pdfRenderStatus' => 'failed', 'pdfRenderError' => 'filinq render error: down'] + $credential;
+				}
+
+				return ['pdfDocumentRef' => 'doc-' . $slug . '-' . $credential['id'], 'pdfRenderStatus' => 'rendered', 'pdfRenderError' => null] + $credential;
+			}
+		);
+
 		$config = $this->createMock(IAppConfig::class);
 		$config->method('setValueString')->willReturnCallback(function (string $app, string $key, string $value): bool {
 			$this->config[$key] = $value;
 			return true;
 		});
 
-		return new CredentialReissueService(objects: $objects, transitions: $transitions, signer: $signer, europass: $europass, config: $config, logger: new NullLogger());
+		return new CredentialReissueService(objects: $objects, transitions: $transitions, signer: $signer, europass: $europass, config: $config, logger: new NullLogger(), certificatePdf: $certificatePdf);
 	}//end service()
 
 	/**
@@ -282,4 +323,73 @@ class CredentialReissueServiceTest extends TestCase {
 		self::assertSame([$page(0, 10000)], $preview);
 		self::assertSame([$page(0, CredentialReissueService::BATCH)], $credentialPages);
 	}//end testTheCredentialPagesReadAsRecorded()
+
+	/**
+	 * A course on a new template renders every reissued certificate again on
+	 * it, and the new document replaces the old one (credentials-certificate-pdf).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/credentials-certificate-pdf/specs/certification/spec.md#requirement-reissuing-renders-the-pdf-again
+	 */
+	public function testAReissueRendersThePdfAgainOnTheCurrentTemplate(): void {
+		$service = $this->service();
+		$this->course = ['id' => 'c-bhv', 'name' => 'BHV', 'certificateTemplateSlug' => 'vca-basis-2027'];
+		foreach ($this->store->rows['credential'] as $index => $row) {
+			$this->store->rows['credential'][$index] = $row + ['pdfDocumentRef' => 'doc-vca-basis-' . $row['id'], 'pdfRenderStatus' => 'rendered'];
+		}
+
+		$service->run(courseId: 'c-bhv', runId: 'run-7', reason: 'Huisstijl', actor: $this->hr());
+		$byId = array_column($this->fired, 'data', 'id');
+
+		self::assertSame([['cr-1', 'vca-basis-2027'], ['cr-2', 'vca-basis-2027'], ['cr-5', 'vca-basis-2027']], $this->renders);
+		self::assertSame('doc-vca-basis-2027-cr-1', $byId['cr-1']['pdfDocumentRef']);
+		self::assertSame('rendered', $byId['cr-1']['pdfRenderStatus']);
+		self::assertNull($byId['cr-1']['pdfRenderError']);
+		self::assertSame('doc-vca-basis-2027-cr-2', $byId['cr-2']['pdfDocumentRef']);
+		self::assertSame(['pdfDocumentRef', 'pdfRenderStatus', 'pdfRenderError'], array_slice(array_keys($byId['cr-1']), -3));
+		self::assertSame([], array_diff(array_keys($byId['cr-2']), CredentialReissueService::REISSUE_INPUTS));
+	}//end testAReissueRendersThePdfAgainOnTheCurrentTemplate()
+
+	/**
+	 * A failed render does not stop the reissue: it is recorded, and the old
+	 * document is no longer offered as the current one.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/credentials-certificate-pdf/specs/certification/spec.md#requirement-issuing-a-certificate-renders-its-pdf-fail-soft
+	 */
+	public function testAFailedRenderIsRecordedAndTheReissueGoesOn(): void {
+		$service = $this->service();
+		$this->course = ['id' => 'c-bhv', 'certificateTemplateSlug' => 'vca-basis-2027'];
+		$this->pdfOutcome = 'failed';
+		$this->store->rows['credential'][0] += ['pdfDocumentRef' => 'doc-old', 'pdfRenderStatus' => 'rendered'];
+
+		$totals = $service->run(courseId: 'c-bhv', runId: 'run-8', reason: 'r', actor: $this->hr());
+		$byId = array_column($this->fired, 'data', 'id');
+
+		self::assertSame(['processed' => 3, 'skipped' => 2, 'failed' => 0], $totals);
+		self::assertNull($byId['cr-1']['pdfDocumentRef']);
+		self::assertSame('failed', $byId['cr-1']['pdfRenderStatus']);
+		self::assertSame('filinq render error: down', $byId['cr-1']['pdfRenderError']);
+		self::assertSame('new', $byId['cr-1']['signature']);
+	}//end testAFailedRenderIsRecordedAndTheReissueGoesOn()
+
+	/**
+	 * A course without a template asks for no PDF and leaves the stored PDF fields out of the data.
+	 *
+	 * @return void
+	 */
+	public function testACourseWithoutATemplateRendersNothing(): void {
+		$service = $this->service();
+		$this->course = ['id' => 'c-bhv', 'certificateTemplateSlug' => '  '];
+
+		$service->run(courseId: 'c-bhv', runId: 'run-6', reason: 'r', actor: $this->hr());
+
+		self::assertSame([], $this->renders);
+		self::assertCount(3, $this->fired);
+		foreach ($this->fired as $fired) {
+			self::assertArrayNotHasKey('pdfRenderStatus', $fired['data']);
+		}
+	}//end testACourseWithoutATemplateRendersNothing()
 }//end class

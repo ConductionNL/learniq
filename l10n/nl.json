@@ -5760,7 +5760,21 @@
         "VAT rate": "Btw-tarief",
         "Price note": "Toelichting bij de prijs",
         "Invoice": "Factuur",
-        "Invoice status": "Factuurstatus"
+        "Invoice status": "Factuurstatus",
+        "Certificate template": "Certificaatsjabloon",
+        "The slug of the filinq document template this course's certificates are printed on (for example \"vca-basis\"). filinq resolves it per tenant.": "De slug van het filinq-documentsjabloon waarop de certificaten van deze cursus worden gedrukt (bijvoorbeeld \"vca-basis\"). filinq zoekt het per tenant op.",
+        "Certificate PDF": "Certificaat-pdf",
+        "The filinq document the certificate's PDF was rendered into. Written by the server when the certificate is issued or reissued.": "Het filinq-document waarin de pdf van het certificaat is aangemaakt. Wordt door de server geschreven wanneer het certificaat wordt uitgegeven of opnieuw uitgegeven.",
+        "PDF render status": "Status pdf",
+        "Whether the certificate's PDF was rendered: pending, rendered, failed, or unavailable when filinq or its token is missing. A failed render never blocks the certificate.": "Of de pdf van het certificaat is aangemaakt: bezig, aangemaakt, mislukt, of niet beschikbaar wanneer filinq of het token ontbreekt. Een mislukte pdf houdt het certificaat nooit tegen.",
+        "Being rendered": "Wordt aangemaakt",
+        "PDF ready": "Pdf klaar",
+        "PDF failed": "Pdf mislukt",
+        "PDF unavailable": "Pdf niet beschikbaar",
+        "PDF render error": "Foutmelding pdf",
+        "Why the certificate's PDF was not rendered, when it was not.": "Waarom de pdf van het certificaat niet is aangemaakt, als dat zo is.",
+        "Download PDF": "PDF downloaden",
+        "The PDF of this certificate is not available, or you may not download it.": "De pdf van dit certificaat is niet beschikbaar, of u mag hem niet downloaden."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

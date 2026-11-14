@@ -38,6 +38,8 @@ use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
 use OCA\Learniq\Kernel\Contracts\CatalogueMessagesInterface;
 use OCA\Learniq\Kernel\Contracts\CatalogueReaderInterface;
 use OCA\Learniq\Kernel\Contracts\CatalogueSignUpServiceInterface;
+use OCA\Learniq\Kernel\Contracts\CertificatePdfDelegationServiceInterface;
+use OCA\Learniq\Kernel\Contracts\CertificatePdfFileInterface;
 use OCA\Learniq\Kernel\Contracts\CheckInCodeServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CheckInMessagesInterface;
 use OCA\Learniq\Kernel\Contracts\CheckInServiceInterface;
@@ -264,6 +266,8 @@ final class ContractBindings {
 		CatalogueMessagesInterface::class => CatalogueMessages::class,
 		CatalogueReaderInterface::class => CatalogueReader::class,
 		CatalogueSignUpServiceInterface::class => CatalogueSignUpService::class,
+		CertificatePdfDelegationServiceInterface::class => CertificatePdfDelegationService::class,
+		CertificatePdfFileInterface::class => CertificatePdfFile::class,
 		CheckInCodeServiceInterface::class => CheckInCodeService::class,
 		CheckInMessagesInterface::class => CheckInMessages::class,
 		CheckInServiceInterface::class => CheckInService::class,

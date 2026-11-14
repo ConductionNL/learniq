@@ -112,6 +112,10 @@
             "description": "Course tree, Save as template and New course from template"
         },
         {
+            "name": "credential",
+            "description": "Certificate PDF download"
+        },
+        {
             "name": "credential-europass",
             "description": "Europass download and backfill"
         },
@@ -2580,6 +2584,51 @@
                                 "additionalProperties": true
                             }
                         }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The credential uuid.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
+        "/credentials/{id}/pdf": {
+            "get": {
+                "operationId": "credential-pdf",
+                "summary": "Download the certificate's rendered PDF as `certificaat-<course code>-<issued date>.pdf`",
+                "description": "Download the certificate's rendered PDF, for its holder, hr and compliance officers; anyone else, and a certificate without a rendered PDF, gets a 404.",
+                "tags": [
+                    "credential"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The result.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/pdf": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/Problem404"
                     }
                 },
                 "parameters": [
