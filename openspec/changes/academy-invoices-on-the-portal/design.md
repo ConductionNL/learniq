@@ -19,3 +19,27 @@ learniq supplies the enrolment and the price. It stores only `invoiceRef` and `i
 ## Dependency
 
 The shillinq contribution contract (create an invoice from enrolment and price; return reference, status and document link; emit status changes) is confirmed in T0 before T2 is built.
+
+## T0 finding (2026-11-14): the existing contract does not fit yet
+
+Read at shillinq development on 2026-11-14. The nearest contract is shillinq's
+school contribution raise (`POST /apps/shillinq/api/contributions/raise`,
+`ContributionRaiseService::raise()`, contract version 1 of
+`extracurricular-fee-to-shillinq`), which learniq already calls for fee items
+through `ShillinqContributionClient`. It creates one issued invoice and one
+payment request per recipient for a chargeable, and returns the invoice id and
+number. For a booking it falls short in three places:
+
+1. **VAT.** `ContributionInvoiceBuilder` writes every contribution invoice as
+   exempt (`vatCategory` E, `vatRate` 0, `vatAmount` 0: education). An academy
+   course carries `vatRate` (T1), so a booking invoiced through this call would
+   leave out the VAT it owes.
+2. **Document link.** The response names `invoiceId`, `invoiceNumber` and
+   `paymentRequestId`, no link to the invoice document the employer opens.
+3. **Status.** The only signal is the settled edge (`settledAt`) on the payment
+   request. `invoiceStatus` needs `overdue` and `credited` as well.
+
+T2 to T4 wait for shillinq to accept a VAT rate per charge (or a booking kind
+that is not exempt), to return a document link, and to signal overdue and
+credited. Nothing in learniq can work around the first point without writing
+wrong invoices.
