@@ -155,6 +155,8 @@ class PortalHourWeekApprovalTest extends TestCase {
 		self::assertArrayNotHasKey('returnedQuestion', $week['days'][0]);
 		self::assertSame('Volgens mij ging je om 14.00 uur naar de tandarts.', $week['days'][1]['returnedQuestion']);
 		self::assertSame('Karin Smit', $week['approvedByName']);
+		// The line the student reads in her messages names the day.
+		self::assertSame('Vraag over je uren van dinsdag 29 september', $week['returnSubject']);
 	}//end testAReturnWritesTheQuestionOnTheDayItNames()
 
 	/**
@@ -203,6 +205,7 @@ class PortalHourWeekApprovalTest extends TestCase {
 		self::assertSame('rejected', $outcome->body['lifecycle']);
 		self::assertSame('Klopt week 39?', $this->store->rows['bpv-hour-week'][0]['note']);
 		self::assertArrayNotHasKey('days', $this->store->rows['bpv-hour-week'][0]);
+		self::assertSame('Vraag over je uren van week 39', $this->store->rows['bpv-hour-week'][0]['returnSubject']);
 
 		$refused = $this->approvals()->approve(trainerRef: self::TRAINER, trust: 'low', body: ['hourWeekId' => self::WEEK, 'outcome' => 'returned']);
 		self::assertSame(422, $refused->status);

@@ -753,9 +753,9 @@ class VocationalCollegeExampleSetTest extends TestCase {
 
 			$total = 0.0;
 			foreach ($rows as $week) {
-				if ($week['lifecycle'] === 'submitted') {
-					// Nobody has decided it, so there is no approved number and
-					// no trainer on it yet.
+				if (in_array($week['lifecycle'], ['submitted', 'draft'], true) === true) {
+					// Nobody has decided it (a draft is not even sent), so there
+					// is no approved number and no trainer on it yet.
 					self::assertArrayNotHasKey('hoursApproved', $week, $week['slug']);
 					self::assertArrayNotHasKey('approvedBy', $week, $week['slug']);
 					continue;
@@ -892,6 +892,7 @@ class VocationalCollegeExampleSetTest extends TestCase {
 
 		// The hours, counted from the weeks the way the student page counts them.
 		$hours = ['approved' => 0.0, 'waiting' => 0.0, 'returned' => 0.0];
+		$drafts = [];
 		foreach (self::of('bpv-hour-week') as $week) {
 			if ($week['bpvPlacementId'] !== $placement['uuid']) {
 				continue;
@@ -901,14 +902,23 @@ class VocationalCollegeExampleSetTest extends TestCase {
 				'approved', 'corrected' => $hours['approved'] += (float)$week['hoursApproved'],
 				'submitted' => $hours['waiting'] += (float)$week['hoursSubmitted'],
 				'rejected' => $hours['returned'] += (float)$week['hoursSubmitted'],
+				// Kept for later: no hours of any kind yet (bpv-hours-per-day).
+				'draft' => $drafts[] = $week['isoWeek'],
 			};
 			if ($week['lifecycle'] === 'rejected') {
+				// Week 40 holds its three days and is returned about the Tuesday.
 				self::assertSame('2026-W40', $week['isoWeek']);
 				self::assertStringContainsString('29 september', $week['note']);
+				self::assertSame(['2026-09-28', '2026-09-29', '2026-09-30'], array_column($week['days'], 'date'));
+				self::assertSame($week['note'], $week['days'][1]['returnedQuestion']);
+				self::assertArrayNotHasKey('returnedQuestion', $week['days'][0]);
+				self::assertSame('Vraag over je uren van dinsdag 29 september', $week['returnSubject']);
+				self::assertEquals($week['hoursSubmitted'], array_sum(array_column($week['days'], 'hours')));
 			}
 		}
 
-		self::assertEquals(['approved' => 96, 'waiting' => 16, 'returned' => 8], $hours);
+		self::assertSame(['2026-W41'], $drafts, 'week 41 is a draft he keeps for later');
+		self::assertEquals(['approved' => 96, 'waiting' => 0, 'returned' => 24], $hours);
 		self::assertEquals(360, $placement['agreedHours'] - array_sum($hours), 'still to do');
 		self::assertEquals(96, $placement['hoursApprovedTotal']);
 

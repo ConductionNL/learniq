@@ -43,6 +43,7 @@ namespace OCA\Learniq\Service\Portal;
 use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\PortalHourWeekApprovalInterface;
 use OCA\Learniq\Service\HourDayLines;
+use OCA\Learniq\Service\HourReturnSubject;
 use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
@@ -247,7 +248,7 @@ class PortalHourWeekApproval implements PortalHourWeekApprovalInterface {
 	 * @param array<string, mixed> $trainer    The Praktijkopleider record.
 	 * @param string               $assurance  The eIDAS level of the session.
 	 * @param array<string, mixed> $body       What the form sent.
-	 * @param array{days: array<int, array<string, mixed>>|null, question: string}|null $return The return, when she sends the week back.
+	 * @param array{days: array<int, array<string, mixed>>|null, question: string, date: string}|null $return The return, when she sends the week back.
 	 *
 	 * @return array<string, mixed>
 	 */
@@ -261,6 +262,9 @@ class PortalHourWeekApproval implements PortalHourWeekApprovalInterface {
 			if ($return['days'] !== null) {
 				$week['days'] = $return['days'];
 			}
+
+			// The line the student reads in her messages (bpv-hours-per-day).
+			$week['returnSubject'] = HourReturnSubject::of(date: $return['date'], isoWeek: $this->text(value: ($week['isoWeek'] ?? null)));
 		}
 
 		$lifecycle = self::lifecycleOf(approved: $approved, submitted: $submitted);
@@ -332,7 +336,7 @@ class PortalHourWeekApproval implements PortalHourWeekApprovalInterface {
 	 * @param array<string, mixed> $week The stored week.
 	 * @param array<string, mixed> $body What the form sent.
 	 *
-	 * @return array{days: array<int, array<string, mixed>>|null, question: string}|PortalOutcome|null
+	 * @return array{days: array<int, array<string, mixed>>|null, question: string, date: string}|PortalOutcome|null
 	 *
 	 * @spec openspec/changes/bpv-hours-per-day/specs/bpv/spec.md#requirement-a-returned-week-names-the-day-and-the-question
 	 */
@@ -354,7 +358,7 @@ class PortalHourWeekApproval implements PortalHourWeekApprovalInterface {
 		}
 
 		if ($hasDays === false) {
-			return ['days' => null, 'question' => $question];
+			return ['days' => null, 'question' => $question, 'date' => ''];
 		}
 
 		return self::returnedDays(days: $days, date: $date, question: $question);
@@ -397,7 +401,7 @@ class PortalHourWeekApproval implements PortalHourWeekApprovalInterface {
 	 * @param string                   $date     The day the question is about.
 	 * @param string                   $question The question.
 	 *
-	 * @return array{days: array<int, array<string, mixed>>, question: string}|PortalOutcome
+	 * @return array{days: array<int, array<string, mixed>>, question: string, date: string}|PortalOutcome
 	 */
 	private static function returnedDays(array $days, string $date, string $question): array|PortalOutcome {
 		$lines = HourDayLines::withQuestion(days: $days, date: $date, question: $question);
@@ -409,7 +413,7 @@ class PortalHourWeekApproval implements PortalHourWeekApprovalInterface {
 			);
 		}
 
-		return ['days' => $lines, 'question' => $question];
+		return ['days' => $lines, 'question' => $question, 'date' => $date];
 	}//end returnedDays()
 
 	/**

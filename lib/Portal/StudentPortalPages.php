@@ -290,6 +290,61 @@ class StudentPortalPages {
 		'hoursSubmitted' => ['label' => 'Hours you worked', 'required' => true],
 	];
 
+	/**
+	 * The phone form of one day (board MobielDetail): the placement and the
+	 * day, when she started and stopped, her break, what she did and the work
+	 * processes it belongs to, and whether she keeps the week or sends it.
+	 */
+	private const WRITE_HOUR_DAY_FIELDS = [
+		'bpvPlacementId',
+		'date',
+		'startTime',
+		'endTime',
+		'breakMinutes',
+		'description',
+		'werkprocesCodes',
+		'send',
+	];
+
+	private const WRITE_HOUR_DAY_OPTIONS_PROVIDERS = [
+		'bpvPlacementId' => self::PLACEMENT_OPTIONS,
+		'breakMinutes' => [
+			'type' => 'static',
+			'options' => [
+				['value' => '0', 'label' => 'No break'],
+				['value' => '30', 'label' => '30 minutes'],
+				['value' => '60', 'label' => '60 minutes'],
+			],
+		],
+		// Her own work process rows: portaliq fills a collection provider
+		// from her subject-scoped read of the schema.
+		'werkprocesCodes' => [
+			'type' => 'collection',
+			'register' => self::REGISTER,
+			'schema' => 'werkproces-progress',
+			'labelField' => 'werkprocesLabel',
+			'valueField' => 'werkprocesCode',
+		],
+		'send' => [
+			'type' => 'static',
+			'options' => [
+				['value' => 'keep', 'label' => 'Keep for later'],
+				['value' => 'send', 'label' => 'Send to your workplace trainer'],
+			],
+		],
+	];
+
+	private const WRITE_HOUR_DAY_FIELD_CONFIGS = [
+		'bpvPlacementId' => ['label' => 'Your placement', 'required' => true],
+		'date' => ['label' => 'Which day, as 2026-10-05', 'required' => true],
+		'startTime' => ['label' => 'Started at, as 08:00', 'required' => true],
+		'endTime' => ['label' => 'Stopped at, as 16:30', 'required' => true],
+		'breakMinutes' => ['label' => 'Break', 'widget' => 'choices'],
+		'description' => ['label' => 'What did you do?', 'size' => 'large'],
+		'werkprocesCodes' => ['label' => 'Which work process does this belong to? You may choose more than one.'],
+		'send' => ['label' => 'Send now or later?', 'required' => true, 'widget' => 'choices'],
+	];
+
 	private const STUDENT_HOMEWORK_TASKS_BLOCK = [
 		'type' => 'tasks',
 		'label' => 'Homework and tests',
@@ -571,6 +626,40 @@ class StudentPortalPages {
 		];
 
 	}//end hourWeekAction()
+
+	/**
+	 * She writes the hours of one day (board MobielDetail): the day becomes a
+	 * line of her week, created as a draft when she has none for it, and she
+	 * keeps the week for later or sends it to her workplace trainer.
+	 *
+	 * Through learniq's own endpoint, because a day is a line inside the week
+	 * that must be added or replaced, not a record of its own. The placement
+	 * is checked there to be hers, and the hours are worked out there, never
+	 * taken from the form. The photo of the board is not part of the form:
+	 * portaliq writes files only through its own upload into a record's
+	 * folder, and a day line is not a record.
+	 *
+	 * @return array<string, mixed> The endpoint-forward action.
+	 *
+	 * @spec openspec/changes/bpv-hours-per-day/specs/portal-contribution/spec.md#requirement-a-student-writes-hours-per-day-and-keeps-a-draft
+	 */
+	public function hourDayAction(): array {
+		return [
+			'id' => 'writeHourDay',
+			'type' => 'endpoint-forward',
+			'label' => 'Write the hours of a day',
+			'endpoint' => '/apps/learniq/api/portal/hour-weeks/day',
+			'method' => 'POST',
+			'minTrust' => 'low',
+			'subjectField' => 'learnerRef',
+			'scopeClaim' => 'learnerRef',
+			'fields' => self::WRITE_HOUR_DAY_FIELDS,
+			'optionsProviders' => self::WRITE_HOUR_DAY_OPTIONS_PROVIDERS,
+			'fieldConfigs' => self::WRITE_HOUR_DAY_FIELD_CONFIGS,
+			'submitLabel' => 'Save this day',
+			'successMessage' => 'Your day is saved. A week you sent is with your workplace trainer; a week you keep waits for you.',
+		];
+	}//end hourDayAction()
 
 	/**
 	 * The pupil's pages: the overview, the menu pages, then every other

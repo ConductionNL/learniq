@@ -33246,7 +33246,7 @@
             "BpvHourWeek": {
                 "slug": "bpv-hour-week",
                 "icon": "ClockOutline",
-                "version": "0.3.0",
+                "version": "0.4.0",
                 "title": "BpvHourWeek",
                 "description": "One week of realised BPV hours for one placement. The hours the student submitted and the hours the trainer approved are kept as two values, so a correction is readable afterwards instead of overwriting what the student said.",
                 "type": "object",
@@ -33420,17 +33420,26 @@
                         "description": "Why the hours were corrected, in the trainer’s own words.",
                         "maxLength": 1000
                     },
+                    "returnSubject": {
+                        "type": "string",
+                        "title": "Message line",
+                        "nullable": true,
+                        "maxLength": 200,
+                        "description": "The line the student reads in her messages when the trainer sends the week back, naming the day: the server writes it from the return."
+                    },
                     "lifecycle": {
                         "type": "string",
                         "title": "Lifecycle",
-                        "description": "`submitted` while it waits for the trainer, `approved` when she approved what the student entered, `corrected` when she approved another number, `rejected` when she sent it back: approving none, or naming the day she has a question about.",
+                        "description": "`draft` while the student keeps it for later, `submitted` while it waits for the trainer, `approved` when she approved what the student entered, `corrected` when she approved another number, `rejected` when she sent it back: approving none, or naming the day she has a question about.",
                         "enum": [
+                            "draft",
                             "submitted",
                             "approved",
                             "corrected",
                             "rejected"
                         ],
                         "x-enum-labels": {
+                            "draft": "Kept for later",
                             "submitted": "Waiting for approval",
                             "approved": "Approved",
                             "corrected": "Approved with a correction",
@@ -33449,6 +33458,13 @@
                     "field": "lifecycle",
                     "initial": "submitted",
                     "transitions": {
+                        "submit": {
+                            "from": [
+                                "draft",
+                                "rejected"
+                            ],
+                            "to": "submitted"
+                        },
                         "approve": {
                             "from": [
                                 "submitted"

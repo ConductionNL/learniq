@@ -316,7 +316,9 @@ class TrainerSitePages {
 		'minTrust' => 'low',
 		'subjectField' => 'practicalTrainerId',
 		'scopeClaim' => 'practicalTrainerId',
-		'fields' => ['hourWeekId', 'hoursApproved', 'note'],
+		// A return names the day she has a question about and the question
+		// (bpv-hours-per-day): portaliq forwards declared fields only.
+		'fields' => ['hourWeekId', 'outcome', 'hoursApproved', 'note', 'returnedDate', 'question'],
 		// She picks the week from the weeks waiting for her instead of
 		// typing a uuid. Portaliq fills a `collection` provider from the
 		// SUBJECT-SCOPED collection over that schema, which for her is
@@ -331,11 +333,22 @@ class TrainerSitePages {
 				'labelField' => 'isoWeek',
 				'valueField' => 'id',
 			],
+			'outcome' => [
+				'type' => 'static',
+				'options' => [
+					['value' => 'approved', 'label' => 'Approve the week'],
+					['value' => 'returned', 'label' => 'Send it back with a question'],
+				],
+			],
 		],
 		'fieldConfigs' => [
 			'hourWeekId' => ['label' => 'The week you are approving', 'required' => true],
-			'hoursApproved' => ['label' => 'Hours you approve', 'required' => true],
+			'outcome' => ['label' => 'Your decision', 'widget' => 'choices'],
+			// Left empty, she approves the hours the student wrote.
+			'hoursApproved' => ['label' => 'Hours you approve'],
 			'note' => ['label' => 'Why you approve another number'],
+			'returnedDate' => ['label' => 'The day you have a question about (YYYY-MM-DD)'],
+			'question' => ['label' => 'Your question', 'size' => 'large'],
 		],
 		'submitLabel' => 'Approve these hours',
 		'successMessage' => 'The hours are approved. Your student sees your decision and your note.',
