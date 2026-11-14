@@ -75,4 +75,15 @@ interface RegulationAssignmentServiceInterface {
 	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
 	 */
 	public function dueDateOf(string $value): string|false|null;
+
+	/**
+	 * Check every published regulation against one person: enrol where now
+	 * covered, mark open enrolments out of scope where no longer covered.
+	 *
+	 * @param array<string, mixed> $profile The LearnerProfile.
+	 * @param string               $today   Today, `Y-m-d`.
+	 *
+	 * @return array{created: list<string>, outOfScope: list<string>}
+	 */
+	public function assignPerson(array $profile, string $today): array;
 }//end interface

@@ -179,6 +179,14 @@
         [
             "registerEventListener",
             [
+                "OCP\\User\\Events\\UserLoggedInEvent",
+                "OCA\\Learniq\\Listener\\SsoProfileFillListener",
+                "int"
+            ]
+        ],
+        [
+            "registerEventListener",
+            [
                 "OCA\\OpenRegister\\Event\\ObjectCreatingEvent",
                 "OCA\\Learniq\\Listener\\EnrolmentPrerequisiteListener",
                 "int"
