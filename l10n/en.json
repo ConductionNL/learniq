@@ -1746,6 +1746,9 @@
         "CC BY-ND 4.0 (credit, no changes)": "CC BY-ND 4.0 (credit, no changes)",
         "CC BY-NC-ND 4.0 (credit, no commercial use, no changes)": "CC BY-NC-ND 4.0 (credit, no commercial use, no changes)",
         "All rights reserved": "All rights reserved",
+        "Merged into": "Merged into",
+        "Merge into another account": "Merge into another account",
+        "Merge this learner into the account you picked? Their records move to that account and this one is closed.": "Merge this learner into the account you picked? Their records move to that account and this one is closed.",
         "Primary school (PO)": "Primary school (PO)",
         "Special education (SO)": "Special education (SO)",
         "VMBO": "VMBO",
@@ -5229,16 +5232,13 @@
         "SPDX license identifier or rights statement. Open material from a source carries its normalised licence code, such as CC-BY-4.0, or other.": "SPDX license identifier or rights statement. Open material from a source carries its normalised licence code, such as CC-BY-4.0, or other.",
         "This material is not available in this course.": "This material is not available in this course.",
         "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.",
-        "Merged into": "Merged into",
-        "Merge into another account": "Merge into another account",
         "Price": "Price",
         "Amount excluding VAT": "Amount excluding VAT",
         "ISO 4217 currency code.": "ISO 4217 currency code.",
         "VAT rate": "VAT rate",
         "Price note": "Price note",
         "Invoice": "Invoice",
-        "Invoice status": "Invoice status",
-        "Merge this learner into the account you picked? Their records move to that account and this one is closed.": "Merge this learner into the account you picked? Their records move to that account and this one is closed."
+        "Invoice status": "Invoice status"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

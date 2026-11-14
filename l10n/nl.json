@@ -2239,6 +2239,9 @@
         "CC BY-ND 4.0 (credit, no changes)": "CC BY-ND 4.0 (naamsvermelding, geen afgeleide werken)",
         "CC BY-NC-ND 4.0 (credit, no commercial use, no changes)": "CC BY-NC-ND 4.0 (naamsvermelding, niet commercieel, geen afgeleide werken)",
         "All rights reserved": "Alle rechten voorbehouden",
+        "Merged into": "Samengevoegd met",
+        "Merge into another account": "Samenvoegen met ander account",
+        "Merge this learner into the account you picked? Their records move to that account and this one is closed.": "Deze leerling samenvoegen met het gekozen account? De gegevens gaan naar dat account en dit account wordt gesloten.",
         "Primary school (PO)": "Basisonderwijs (PO)",
         "Special education (SO)": "Speciaal onderwijs (SO)",
         "VMBO": "VMBO",
@@ -5754,16 +5757,13 @@
         "SPDX license identifier or rights statement. Open material from a source carries its normalised licence code, such as CC-BY-4.0, or other.": "SPDX-licentiecode of rechtenverklaring. Open materiaal uit een bron draagt zijn licentiecode, zoals CC-BY-4.0, of other.",
         "This material is not available in this course.": "Dit materiaal is niet beschikbaar in deze cursus.",
         "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "De licentie staat een kopie toe, maar learniq kan nog geen bestanden uit Edurep ophalen, dus het maakt een koppeling. De leerling opent het materiaal bij de bron.",
-        "Merged into": "Samengevoegd met",
-        "Merge into another account": "Samenvoegen met ander account",
         "Price": "Prijs",
         "Amount excluding VAT": "Bedrag zonder btw",
         "ISO 4217 currency code.": "ISO 4217-valutacode.",
         "VAT rate": "Btw-tarief",
         "Price note": "Toelichting bij de prijs",
         "Invoice": "Factuur",
-        "Invoice status": "Factuurstatus",
-        "Merge this learner into the account you picked? Their records move to that account and this one is closed.": "Deze leerling samenvoegen met het gekozen account? De gegevens gaan naar dat account en dit account wordt gesloten."
+        "Invoice status": "Factuurstatus"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
