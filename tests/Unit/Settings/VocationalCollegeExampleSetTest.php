@@ -31,6 +31,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Settings;
 
+use OCA\Learniq\Bpv\PlacementPhase;
 use DateTimeImmutable;
 use OCA\Learniq\Service\ExampleSetPreparation;
 use OCA\Learniq\Service\ExampleSetSources;
@@ -290,6 +291,14 @@ class VocationalCollegeExampleSetTest extends TestCase {
 		foreach ($agreements as $uuid => $agreement) {
 			$placement = $placements[$agreement['bpvPlacementId']];
 			self::assertSame([$placement['periodFrom'], $placement['periodTo']], [$agreement['periodFrom'], $agreement['periodTo']]);
+			if ($agreement['lifecycle'] === 'draft') {
+				// The placement board's agreement phase: an agreement still
+				// being signed, of a placement that is only confirmed.
+				self::assertSame('confirmed', $placement['lifecycle'], $agreement['slug']);
+				self::assertLessThan(3, count($signatures[$uuid] ?? []), $agreement['slug']);
+				continue;
+			}
+
 			$roles = ['student', 'school', 'praktijkopleider'];
 			if ($agreement['parentSignatureRequired'] === true) {
 				$roles[] = 'parent';
@@ -303,7 +312,9 @@ class VocationalCollegeExampleSetTest extends TestCase {
 			}
 		}
 
-		self::assertEqualsCanonicalizing(array_keys($placements), array_column($agreements, 'bpvPlacementId'), 'one agreement per placement');
+		// A placement still searching for a company has no agreement yet.
+		$agreed = array_keys(array_filter($placements, static fn (array $p): bool => $p['lifecycle'] !== 'proposed'));
+		self::assertEqualsCanonicalizing($agreed, array_column($agreements, 'bpvPlacementId'), 'one agreement per placement');
 
 		foreach (self::of('bpv-visit-report') as $visit) {
 			$placement = $placements[$visit['bpvPlacementId']];
@@ -590,6 +601,12 @@ class VocationalCollegeExampleSetTest extends TestCase {
 
 		foreach (self::of('praktijkovereenkomst') as $agreement) {
 			$pok = array_merge($agreement, ['id' => $agreement['uuid']]);
+			if ($agreement['lifecycle'] === 'draft') {
+				// Still being signed: the guard refuses to activate it, which is the point.
+				self::assertFalse($guard->check($pok, 'activate', 'mbo-stagecoordinator-01')->isAllowed(), $agreement['slug'] . ' is not signed yet');
+				continue;
+			}
+
 			self::assertTrue($guard->check($pok, 'activate', 'mbo-stagecoordinator-01')->isAllowed(), $agreement['slug'] . ' passes the activation guard');
 			$stamped = $stamp->execute(new LifecycleActionContext(objectData: $pok, previousData: [], parameters: [], actionName: 'activate'));
 			self::assertSame($stamped['parentSignatureRequired'], $agreement['parentSignatureRequired'], $agreement['slug']);
@@ -609,6 +626,71 @@ class VocationalCollegeExampleSetTest extends TestCase {
 		self::assertGreaterThan(0, $minors);
 		self::assertLessThan(count(self::of('praktijkovereenkomst')), $minors);
 	}//end testEveryAgreementPassesTheActivationGuardAndCarriesTheRightParentFlag()
+
+	/**
+	 * The placement board of MT4-2A on Monday 5 October 2026: a placement in
+	 * every phase, each showing the phase, due date and late line that
+	 * PlacementPhase works out from its facts and its visits. Daan Smits has
+	 * no company five weeks into the period, and Jesse Kok's tussentijdse
+	 * beoordeling has no date yet.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/bpv-coach-today-and-placement-board/specs/bpv/spec.md#requirement-a-placement-has-a-phase-that-follows-its-facts-and-says-when-it-is-late
+	 */
+	public function testThePlacementBoardHasAPlacementInEveryPhase(): void {
+		$visits = [];
+		foreach (self::of('bpv-visit') as $visit) {
+			$visits[$visit['bpvPlacementId']][] = $visit;
+		}
+
+		$people = [];
+		foreach (self::of('learner-profile') as $profile) {
+			$people[$profile['uuid']] = $profile['givenName'] . ' ' . $profile['familyName'];
+		}
+
+		$monday = new DateTimeImmutable('2026-10-05');
+		$shown  = [];
+		foreach (self::of('bpv-placement') as $placement) {
+			if (array_key_exists('phase', $placement) === false) {
+				continue;
+			}
+
+			$derived = (new PlacementPhase())->derive(placement: $placement, visits: ($visits[$placement['uuid']] ?? []), today: $monday);
+			self::assertSame(
+				$derived,
+				['phase' => $placement['phase'], 'phaseDueAt' => $placement['phaseDueAt'], 'lateLabel' => $placement['lateLabel']],
+				$placement['slug']
+			);
+			$shown[$people[$placement['learnerRef']]] = $placement['phase'];
+		}
+
+		self::assertSame(
+			[
+				'Milan de Groot' => 'assessment',
+				'Aylin Demir' => 'running',
+				'Daan Smits' => 'searching',
+				'Jesse Kok' => 'running',
+				'Sanne de Wit' => 'agreement',
+				'Thijs Visser' => 'rounding-off',
+				'Bram Jansen' => 'done',
+			],
+			$shown
+		);
+		self::assertEqualsCanonicalizing(PlacementPhase::PHASES, array_values(array_unique($shown)));
+
+		$daan = array_values(array_filter(self::of('bpv-placement'), static fn (array $p): bool => $p['learnerId'] === 'mbo-student-253'))[0];
+		self::assertArrayNotHasKey('trainingCompanyName', $daan);
+		self::assertSame('5 weken te laat', $daan['lateLabel']);
+		self::assertNull(self::schemaError(slug: 'bpv-placement', payload: array_diff_key($daan, ['@self' => true, 'uuid' => true, 'slug' => true])));
+
+		$jesse = array_values(array_filter(self::of('bpv-visit'), static fn (array $v): bool => $people[$v['learnerRef']] === 'Jesse Kok'))[0];
+		self::assertSame(['tussentijds-gesprek', 'unplanned'], [$jesse['visitKind'], $jesse['lifecycle']]);
+		self::assertArrayNotHasKey('plannedAt', $jesse);
+		foreach (self::of('bpv-visit') as $visit) {
+			self::assertNull(self::schemaError(slug: 'bpv-visit', payload: array_diff_key($visit, ['@self' => true, 'uuid' => true, 'slug' => true])), $visit['slug']);
+		}
+	}//end testThePlacementBoardHasAPlacementInEveryPhase()
 
 	/**
 	 * The file is what the generator produces, so nobody edits the JSON by
@@ -855,7 +937,12 @@ class VocationalCollegeExampleSetTest extends TestCase {
 		$milan = $people['Milan de Groot'];
 		$aylin = $people['Aylin Demir'];
 		self::assertSame('mbo-student-251', $milan['ncUserId']);
-		self::assertSame(['mbo-student-251', 'mbo-student-252'], $cohort['learnerIds']);
+		// Milan and Aylin, then the five students of the placement board
+		// (bpv-coach-today-and-placement-board T6).
+		self::assertSame(
+			['mbo-student-251', 'mbo-student-252', 'mbo-student-253', 'mbo-student-254', 'mbo-student-255', 'mbo-student-256', 'mbo-student-257'],
+			$cohort['learnerIds']
+		);
 		$enrolment = self::by(self::of('enrolment'), 'learnerId')[$milan['ncUserId']];
 		self::assertSame(2, $enrolment['leerjaar']);
 		self::assertSame($cohort['uuid'], $enrolment['cohortId']);

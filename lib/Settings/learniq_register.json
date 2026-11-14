@@ -21491,10 +21491,7 @@
                     "learnerId",
                     "learnerRef",
                     "curriculumPlanId",
-                    "practicalTrainerId",
                     "schoolCoachId",
-                    "trainingCompanyName",
-                    "trainingCompanyKvkNumber",
                     "periodFrom",
                     "periodTo",
                     "tenant_id"
@@ -21541,7 +21538,7 @@
                     },
                     "trainingCompanyName": {
                         "type": "string",
-                        "description": "Trade name of the leerbedrijf hosting this placement.",
+                        "description": "Trade name of the leerbedrijf hosting this placement. Absent while the student is still looking for a company: the placement is then in the searching phase on the board, and the company, its KvK number and the praktijkopleider are filled in once one is found.",
                         "example": "Bakkerij De Vries",
                         "title": "Leerbedrijf Name"
                     },
