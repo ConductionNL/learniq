@@ -21,7 +21,7 @@
 - School-year rollover wizard (propose mapping, side-effect-free preview)
 - IMS QTI 2.x / 3.0 and Common Cartridge item-bank import
 - Open Badges 3.0 credential issuance and public verification endpoint
-- Launch cmi5 lessons and keep every xAPI result in learniq's own learning record store
+- Launch cmi5 lessons and keep every xAPI result in learniq's own learning record store (an administrator generates the launch key once, before the first launch)
 
 **Later phases**
 
@@ -55,7 +55,7 @@ Free and open source under the EUPL-1.2 license.
 - Wizard voor schooljaarovergang (voorstel + side-effect-vrije preview)
 - Import van IMS QTI 2.x/3.0- en Common Cartridge-itembanken
 - Uitgifte en publieke verificatie van Open Badges 3.0-credentials
-- Start cmi5-lessen en bewaar elk xAPI-resultaat in de eigen leerregistratie van learniq
+- Start cmi5-lessen en bewaar elk xAPI-resultaat in de eigen leerregistratie van learniq (een beheerder maakt eenmalig de startsleutel aan, vóór de eerste start)
 
 **Latere fasen**
 

@@ -5727,7 +5727,14 @@
         "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "De licentie staat een kopie toe, maar learniq kan nog geen bestanden uit Edurep ophalen, dus het maakt een koppeling. De leerling opent het materiaal bij de bron.",
         "Take up": "Oppakken",
         "Mark as reported": "Gemeld bij leerplicht",
-        "Record the municipality's answer": "Reactie gemeente vastleggen"
+        "Record the municipality's answer": "Reactie gemeente vastleggen",
+        "Price": "Prijs",
+        "Amount excluding VAT": "Bedrag zonder btw",
+        "ISO 4217 currency code.": "ISO 4217-valutacode.",
+        "VAT rate": "Btw-tarief",
+        "Price note": "Toelichting bij de prijs",
+        "Invoice": "Factuur",
+        "Invoice status": "Factuurstatus"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
