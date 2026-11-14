@@ -116,6 +116,10 @@
             "description": "Europass download and backfill"
         },
         {
+            "name": "credential-migration",
+            "description": "Certificates taken over from the previous system."
+        },
+        {
             "name": "credential-reissue",
             "description": "Preview and start a bulk reissue"
         },
@@ -2649,6 +2653,64 @@
                         }
                     }
                 ]
+            }
+        },
+        "/credentials/migrate": {
+            "post": {
+                "operationId": "credential-migration-migrate",
+                "summary": "Check, and on confirm write, the rows of an uploaded certificate list",
+                "description": "Check, and on confirm write, the rows of an uploaded certificate list.\n\nCertificates taken over from the previous system. Authorized via the `credential.migrate` action. The organisation is the caller's, resolved on the server; a tenant in a row is ignored. `dryRun` (the default) writes nothing. A written row becomes a Credential with `source: migrated`, its dates as given, its old number and issuer, and no learniq signature.",
+                "tags": [
+                    "credential-migration"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The per-row report, or an error.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Problem400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Problem403"
+                    }
+                },
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "rows": {
+                                        "type": "object",
+                                        "additionalProperties": true,
+                                        "description": "The parsed rows (learner, course or regulation, issuedAt, expiresAt, legacyNumber, legacyIssuer, kind)."
+                                    },
+                                    "dryRun": {
+                                        "type": "boolean",
+                                        "description": "True for the preview, false to write the ready rows."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/credentials/{id}/verify": {
