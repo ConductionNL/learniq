@@ -361,6 +361,9 @@ class PrimarySchoolExampleSetTest extends TestCase {
 		self::assertSame('Sami heeft buikgriep', $today[0]['reason']);
 		self::assertSame('submitted', $today[0]['lifecycle']);
 		self::assertSame($fatima['uuid'], $today[0]['submittedByRef']);
+		// Seen by juf Esra at 8.12, before anyone decided (absence-reports-seen-and-ended T6).
+		self::assertSame('po-leerkracht-07', $today[0]['seenBy']);
+		self::assertSame('2026-10-05T08:12:00+02:00', $today[0]['seenAt']);
 		$marks = array_values(array_filter(self::of('attendance-record'), static fn (array $m): bool => $m['excuseRequestId'] === $today[0]['uuid']));
 		self::assertCount(1, $marks);
 		self::assertSame('2026-10-05T08:12:00+02:00', $marks[0]['markedAt']);
