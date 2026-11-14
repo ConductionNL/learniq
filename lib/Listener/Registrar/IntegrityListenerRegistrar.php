@@ -34,6 +34,8 @@ use OCA\Learniq\Listener\ConferenceSignupPortalStamp;
 use OCA\Learniq\Listener\ExcuseRequestOwnerStamp;
 use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
 use OCA\Learniq\Listener\LessonNoteAuthorGuard;
+use OCA\Learniq\Listener\HrFieldOwnershipGuard;
+use OCA\Learniq\Listener\ProfileScopeChangeHandler;
 use OCA\Learniq\Listener\LvsResultLearnerRefStamp;
 use OCA\Learniq\Listener\ReportCardGradeLinesStamp;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
@@ -107,6 +109,24 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: LessonNoteAuthorGuard::class
+		);
+
+		// HR-fed profiles (compliance-assign-from-hr-roles): the HR system
+		// owns department, roles, manager and job title on a profile with
+		// hrSource, so a manual change is vetoed before the write; and a
+		// created profile or a change of department, roles or job title
+		// re-runs the mandatory-training assignment for that one person.
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: HrFieldOwnershipGuard::class
+		);
+		$context->registerEventListener(
+			event: ObjectCreatedEvent::class,
+			listener: ProfileScopeChangeHandler::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatedEvent::class,
+			listener: ProfileScopeChangeHandler::class
 		);
 
 		// Competency alignments (goal-alignment-depth): keeps competencyIds
