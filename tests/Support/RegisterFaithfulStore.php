@@ -504,7 +504,8 @@ final class RegisterFaithfulStore {
 	 *
 	 * An unresolved `$variable` or an operator object denies (fail closed,
 	 * as MagicRbacHandler emits the impossible predicate for an unresolved
-	 * variable); this store models equality only.
+	 * variable); this store models equality, plus `$exists` and a literal
+	 * `$eq` (absent or null counts as not set, as the SQL column is NULL).
 	 *
 	 * @param array<string, mixed> $row   The row.
 	 * @param array<string, mixed> $match The rule's match.
@@ -513,6 +514,20 @@ final class RegisterFaithfulStore {
 	 */
 	private function rowMatches(array $row, array $match): bool {
 		foreach ($match as $property => $expected) {
+			if (is_array($expected) === true && count($expected) === 1 && array_key_exists('$exists', $expected) === true) {
+				if ((($row[$property] ?? null) !== null) !== (bool)$expected['$exists']) {
+					return false;
+				}
+
+				continue;
+			}
+
+			if (is_array($expected) === true && count($expected) === 1 && array_key_exists('$eq', $expected) === true
+				&& (is_array($expected['$eq']) === false && (is_string($expected['$eq']) === false || str_starts_with($expected['$eq'], '$') === false))
+			) {
+				$expected = $expected['$eq'];
+			}
+
 			if ($expected === '$userId' || $expected === '$user') {
 				$expected = $this->actingUser;
 				if ($expected === '') {
