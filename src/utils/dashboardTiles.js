@@ -110,6 +110,48 @@ export function customTile(id, title) {
 }
 
 /**
+ * The mandatory enrolments a change of department, roles or job title took
+ * out of the scope of their regulation: open, never withdrawn, and listed
+ * so the compliance officer decides what happens to them.
+ *
+ * Declared, not written: `type: 'object-table'` resolves to the shared
+ * CnWidgetObjectTable, which fetches the enrolments itself. The filter is
+ * OpenRegister's `isnull` operator, so only enrolments with
+ * `outOfScopeSince` set are read; the newest drop-out comes first.
+ *
+ * @param {string} id The widget id.
+ * @param {string} title The translated title.
+ * @param {{learner: string, course: string, regulation: string, dueDate: string, outOfScopeSince: string, empty: string}} labels The translated column labels and empty text.
+ * @return {{id: string, title: string, type: string, content: object}} The widget.
+ * @spec openspec/changes/compliance-assign-from-hr-roles/tasks.md#task-4.1
+ */
+export function outOfScopeTile(id, title, labels) {
+	return {
+		id,
+		title,
+		type: 'object-table',
+		content: {
+			source: {
+				register: 'learniq',
+				schema: 'enrolment',
+				filter: { outOfScopeSince: { isnull: false } },
+				order: { outOfScopeSince: 'desc' },
+				limit: 20,
+			},
+			columns: [
+				{ key: 'learnerName', label: labels.learner },
+				{ key: 'courseName', label: labels.course },
+				{ key: 'regulationSlug', label: labels.regulation },
+				{ key: 'dueDate', label: labels.dueDate, format: 'date' },
+				{ key: 'outOfScopeSince', label: labels.outOfScopeSince, format: 'date' },
+			],
+			rowRoute: 'EnrolmentDetail',
+			emptyText: labels.empty,
+		},
+	}
+}
+
+/**
  * Copies of a layout's tiles, so the grid can move a tile without changing
  * the declaration it came from.
  *
