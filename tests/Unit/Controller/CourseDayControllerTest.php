@@ -26,6 +26,7 @@ use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerActions;
 use OCA\Learniq\Service\CourseDay\CourseDayException;
 use OCA\Learniq\Service\CourseDay\CourseDayStatusService;
+use OCA\Learniq\Service\CourseDay\SessionPartsService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\OCS\OCSForbiddenException;
 use OCP\IRequest;
@@ -48,6 +49,8 @@ class CourseDayControllerTest extends TestCase {
 
 	private CourseDayStatusService&MockObject $days;
 
+	private SessionPartsService&MockObject $parts;
+
 	private function controller(bool $allowed=true, bool $loggedIn=true): CourseDayController {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('sophie');
@@ -60,12 +63,14 @@ class CourseDayControllerTest extends TestCase {
 			$call->willThrowException(new OCSForbiddenException('Not allowed.'));
 		}
 
-		$this->days = $this->createMock(CourseDayStatusService::class);
+		$this->days  = $this->createMock(CourseDayStatusService::class);
+		$this->parts = $this->createMock(SessionPartsService::class);
 
 		return new CourseDayController(
 			request: $this->createMock(IRequest::class),
 			caller: new CallerActions(userSession: $session, actionAuth: $auth),
 			days: $this->days,
+			parts: $this->parts,
 			logger: $this->createMock(LoggerInterface::class)
 		);
 	}//end controller()
@@ -116,11 +121,29 @@ class CourseDayControllerTest extends TestCase {
 		self::assertSame(Http::STATUS_FORBIDDEN, $controller->moveParticipants(id: 'c-22', targetId: 'c-26')->getStatus());
 	}//end testAUserWithoutTheActionIsRefusedBeforeAnything()
 
+	public function testATrainerReadsTheSessionPartsWithoutThePlannerAction(): void {
+		$controller = $this->controller(allowed: false);
+		$this->parts->expects($this->once())->method('forSession')
+			->with('s-1', $this->callback(static fn (IUser $user): bool => $user->getUID() === 'sophie'))
+			->willReturn(['sessionId' => 's-1', 'cohortId' => 'c-5', 'parts' => [], 'due' => 'afternoon']);
+
+		self::assertSame('afternoon', $controller->sessionParts(sessionId: 's-1')->getData()['due']);
+	}//end testATrainerReadsTheSessionPartsWithoutThePlannerAction()
+
+	public function testTheServiceRefusesAnotherTrainer(): void {
+		$controller = $this->controller();
+		$this->parts->method('forSession')->willThrowException(new CourseDayException(message: 'Only a trainer of this course day or a planner may read its attendance.', status: 403));
+
+		self::assertSame(Http::STATUS_FORBIDDEN, $controller->sessionParts(sessionId: 's-1')->getStatus());
+	}//end testTheServiceRefusesAnotherTrainer()
+
 	public function testNoSessionIsUnauthorised(): void {
 		$controller = $this->controller(loggedIn: false);
 		$this->days->expects($this->never())->method('move');
+		$this->parts->expects($this->never())->method('forSession');
 
 		self::assertSame(Http::STATUS_UNAUTHORIZED, $controller->move(id: 'c-22', status: 'done')->getStatus());
+		self::assertSame(Http::STATUS_UNAUTHORIZED, $controller->sessionParts(sessionId: 's-1')->getStatus());
 	}//end testNoSessionIsUnauthorised()
 
 	public function testARefusalKeepsItsStatusAndAFailureIsUnavailable(): void {

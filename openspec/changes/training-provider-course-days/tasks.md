@@ -8,6 +8,7 @@
   - `CourseDayController` (action `course-day.plan`): `decide`, `alternatives` (coming days of the course with places) and `moveParticipants` (open bookings and placed enrolments of a cancelled day). The buttons on the course day page are part of T4.
 - [ ] **T4**: the course days board per status (library board view) and the calendar tab
 - [ ] **T5**: session parts and attendance per part with arrival time; the trainer's Today
+  - Built: `session.parts[]` (morning, afternoon with their start and end), `attendance-record.part` and `arrivedAt`; `SessionPartAttendance` (per part: begun, registered, there of expected, late arrivals; the begun part still due) served to a trainer of the day or a planner by `SessionPartsService` at `GET /api/course-days/sessions/{sessionId}/parts`. Left: the trainer's Today card and the group with a column per part and per practical assignment (manifest pages), so the task stays open.
 - [ ] **T6**: the planner's Today: first-today rules, enrolments to confirm, occupancy, trainers and rooms
 - [ ] **T7**: participants list columns with the certificate colour rule; participant page header with steps and "Wat nu?"
 - [ ] **T8**: training example set: 22 October at 4 of 6, the 5 October practical day in parts, Tom's next day with the bring list

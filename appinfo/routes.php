@@ -341,6 +341,7 @@ $routes = [
         ['name' => 'courseDay#decide', 'url' => '/api/course-days/{id}/decision', 'verb' => 'POST'],
         ['name' => 'courseDay#alternatives', 'url' => '/api/course-days/{id}/alternatives', 'verb' => 'GET'],
         ['name' => 'courseDay#moveParticipants', 'url' => '/api/course-days/{id}/move-participants', 'verb' => 'POST'],
+        ['name' => 'courseDay#sessionParts', 'url' => '/api/course-days/sessions/{sessionId}/parts', 'verb' => 'GET'],
         // Work groups (enrolment-self-join-work-group): the signed-in learner
         // sees the work groups of their classes and joins, moves or leaves
         // while sign-up is open (rules in WorkGroupMembershipService).

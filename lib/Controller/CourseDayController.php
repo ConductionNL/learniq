@@ -30,6 +30,7 @@ use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\CallerActions;
 use OCA\Learniq\Service\CourseDay\CourseDayException;
 use OCA\Learniq\Service\CourseDay\CourseDayStatusService;
+use OCA\Learniq\Service\CourseDay\SessionPartsService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -59,6 +60,7 @@ class CourseDayController extends Controller {
 	 * @param IRequest               $request The request.
 	 * @param CallerActions          $caller  The signed-in user and the action matrix.
 	 * @param CourseDayStatusService $days    The course day rules.
+	 * @param SessionPartsService    $parts   Attendance per part of the day.
 	 * @param LoggerInterface        $logger  PSR logger.
 	 *
 	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
@@ -67,6 +69,7 @@ class CourseDayController extends Controller {
 		IRequest $request,
 		private readonly CallerActions $caller,
 		private readonly CourseDayStatusService $days,
+		private readonly SessionPartsService $parts,
 		private readonly LoggerInterface $logger,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
@@ -143,6 +146,30 @@ class CourseDayController extends Controller {
 	}//end moveParticipants()
 
 	/**
+	 * A session's attendance per part of the day, for the trainer's Today. The
+	 * service admits a trainer of the course day or a planner, nobody else.
+	 *
+	 * @param string $sessionId The session uuid.
+	 *
+	 * @return JSONResponse
+	 *
+	 * @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
+	 *
+	 * @no-admin-idor-exempt the per-object guard is in the service: SessionPartsService::mayRead()
+	 *  admits only a trainer in the cohort's teacherIds or a holder of course-day.plan and answers
+	 *  403 for anyone else, with the session user, never a caller-supplied identity.
+	 */
+	#[NoAdminRequired]
+	public function sessionParts(string $sessionId): JSONResponse {
+		$user = $this->caller->userSession->getUser();
+		if ($user instanceof IUser === false) {
+			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
+		}
+
+		return $this->run(call: fn (): array => $this->parts->forSession(sessionId: $sessionId, user: $user));
+	}//end sessionParts()
+
+	/**
 	 * Check the action, run the call for the signed-in user and answer with its result or refusal.
 	 *
 	 * @param callable(IUser): array<string, mixed> $call The call.
@@ -160,8 +187,19 @@ class CourseDayController extends Controller {
 			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
 		}
 
+		return $this->run(call: fn (): array => $call($user));
+	}//end answer()
+
+	/**
+	 * Run a call and answer with its result or its refusal.
+	 *
+	 * @param callable(): array<string, mixed> $call The call.
+	 *
+	 * @return JSONResponse
+	 */
+	private function run(callable $call): JSONResponse {
 		try {
-			return new JSONResponse(data: $call($user));
+			return new JSONResponse(data: $call());
 		} catch (CourseDayException $exception) {
 			return new JSONResponse(data: ['error' => $exception->getMessage()], statusCode: $exception->getStatus());
 		} catch (Throwable $exception) {
@@ -171,5 +209,5 @@ class CourseDayController extends Controller {
 			);
 			return new JSONResponse(data: ['error' => 'The course day could not be read or saved. Try again.'], statusCode: Http::STATUS_SERVICE_UNAVAILABLE);
 		}
-	}//end answer()
+	}//end run()
 }//end class

@@ -328,6 +328,21 @@ class CourseDayStatusService {
 	}//end moveParticipants()
 
 	/**
+	 * The places taken on a course day, as the status counts them.
+	 *
+	 * @param string $cohortId The cohort uuid.
+	 *
+	 * @return int
+	 *
+	 * @throws \Throwable When OpenRegister cannot be read.
+	 *
+	 * @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
+	 */
+	public function placesTakenOn(string $cohortId): int {
+		return $this->placesTaken(cohortId: $cohortId);
+	}//end placesTakenOn()
+
+	/**
 	 * The places taken on a course day.
 	 *
 	 * @param string $cohortId The cohort uuid.
@@ -347,7 +362,10 @@ class CourseDayStatusService {
 	 * @param array<string, mixed> $cohort   The cohort row.
 	 * @param string               $cohortId The cohort uuid.
 	 *
-	 * @return array{participants: int, capacity: int|null, minimum: int|null, decision: string|null, dayDate: string|null, today: string, openResults: bool}
+	 * @return array{
+	 *     participants: int, capacity: int|null, minimum: int|null, decision: string|null,
+	 *     dayDate: string|null, today: string, openResults: bool
+	 * }
 	 */
 	private function facts(array $cohort, string $cohortId): array {
 		$enrolments = $this->many(schema: 'enrolment', filters: ['cohortId' => $cohortId]);
