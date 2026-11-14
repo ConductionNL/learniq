@@ -27,14 +27,15 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\TimetableFeedRendererInterface;
 use OCP\IUser;
 use OCP\L10N\IFactory;
 
 /**
  * Sessions to an iCalendar feed for one owner.
  */
-class TimetableFeedRenderer {
+class TimetableFeedRenderer implements TimetableFeedRendererInterface {
 	/**
 	 * Constructor.
 	 *
@@ -61,7 +62,7 @@ class TimetableFeedRenderer {
 	 * @spec openspec/changes/attendance-timetable-calendar-feed/specs/timetable-calendar-feed/spec.md#requirement-calendar-subscription-feed
 	 */
 	public function render(IUser $owner, array $sessions, int $now): string {
-		$l10n = $this->l10nFactory->get(Application::APP_ID, $this->l10nFactory->getUserLanguage($owner));
+		$l10n = $this->l10nFactory->get(AppIdentity::APP_ID, $this->l10nFactory->getUserLanguage($owner));
 
 		return $this->writer->write(
 			name: $l10n->t('My timetable'),

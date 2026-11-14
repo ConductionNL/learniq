@@ -46,12 +46,12 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\GradeFormulaEvaluatorInterface;
+use OCA\Learniq\Kernel\Contracts\GradeVisibilityResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Grading\GradeFormulaEvaluator;
-use OCA\Learniq\Grading\GradeVisibilityResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -80,20 +80,20 @@ class GradeRollupHandler implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
-	 * @param GradeFormulaEvaluator $evaluator Formula evaluation engine.
-	 * @param GradeVisibilityResolver $visibilityResolver Scheduled-visibility-window resolver.
+	 * @param GradeFormulaEvaluatorInterface $evaluator Formula evaluation engine.
+	 * @param GradeVisibilityResolverInterface $visibilityResolver Scheduled-visibility-window resolver.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 * @param LoggerInterface        $logger  Logs a roll-up that failed.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly GradeFormulaEvaluator $evaluator,
-		private readonly GradeVisibilityResolver $visibilityResolver,
+		private readonly GradeFormulaEvaluatorInterface $evaluator,
+		private readonly GradeVisibilityResolverInterface $visibilityResolver,
 		private readonly ITimeFactory $timeFactory,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 		private readonly LoggerInterface $logger=new NullLogger(),
 	) {
 	}//end __construct()
@@ -284,27 +284,7 @@ class GradeRollupHandler implements IEventListener {
 			learnerId: $learnerId
 		);
 
-		// Find existing FinalGrade for this pair.
-		$existing = $this->objectService->findAll(
-			[
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::FINAL_GRADE_SCHEMA,
-					'learnerId' => $learnerId,
-					'curriculumPlanId' => $curriculumPlanId,
-				],
-				'limit' => 1,
-			]
-		);
-
-		$existingObj = null;
-		if (empty($existing) === false && is_array($existing[0]) === true) {
-			$existingObj = $existing[0];
-		}
-
-		if (empty($existing) === false && is_array($existing[0]) === false) {
-			$existingObj = $existing[0]->jsonSerialize();
-		}
+		$existingObj = $this->storedFinalGrade(learnerId: $learnerId, curriculumPlanId: $curriculumPlanId);
 
 		// FinalGrade declares no cohortId and no reader uses one (the programme
 		// KPI filters on programmeId), so a row written before this was fixed
@@ -335,6 +315,39 @@ class GradeRollupHandler implements IEventListener {
 		);
 
 	}//end recomputeFinalGrade()
+
+	/**
+	 * The stored FinalGrade for a learner and plan as an array, or null when there is none.
+	 *
+	 * @param string $learnerId        NC user ID.
+	 * @param string $curriculumPlanId Plan UUID.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private function storedFinalGrade(string $learnerId, string $curriculumPlanId): ?array {
+		$existing = $this->objectService->findAll(
+			[
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::FINAL_GRADE_SCHEMA,
+					'learnerId' => $learnerId,
+					'curriculumPlanId' => $curriculumPlanId,
+				],
+				'limit' => 1,
+			]
+		);
+
+		if (empty($existing) === true) {
+			return null;
+		}
+
+		if (is_array($existing[0]) === true) {
+			return $existing[0];
+		}
+
+		return $existing[0]->jsonSerialize();
+
+	}//end storedFinalGrade()
 
 	/**
 	 * The Programme a final grade belongs to: the one whose curriculum plan it
@@ -438,25 +451,9 @@ class GradeRollupHandler implements IEventListener {
 		// LearnerProfile keys the pupil on ncUserId; it has no learnerId, and a
 		// filter on an undeclared property matches nothing. Read without RBAC:
 		// the publisher may not read LearnerProfile, and only parentIds is used.
-		$profiles = $this->objectService->findAll(
-			[
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::LEARNER_PROFILE_SCHEMA,
-					'ncUserId' => $learnerId,
-				],
-				'limit' => 1,
-			],
-			_rbac: false
-		);
-
-		if (empty($profiles) === true) {
+		$profile = $this->parentProfile(learnerId: $learnerId);
+		if ($profile === null) {
 			return;
-		}
-
-		$profile = $profiles[0];
-		if (is_array($profiles[0]) === false) {
-			$profile = $profiles[0]->jsonSerialize();
 		}
 
 		$parentIds = $profile['parentIds'] ?? [];
@@ -515,6 +512,40 @@ class GradeRollupHandler implements IEventListener {
 	}//end fanOutParentNotifications()
 
 	/**
+	 * The pupil's LearnerProfile as an array, or null when there is none.
+	 *
+	 * @param string $learnerId The pupil's Nextcloud user id.
+	 *
+	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+	 */
+	private function parentProfile(string $learnerId): ?array {
+		$profiles = $this->objectService->findAll(
+			[
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LEARNER_PROFILE_SCHEMA,
+					'ncUserId' => $learnerId,
+				],
+				'limit' => 1,
+			],
+			_rbac: false
+		);
+
+		if (empty($profiles) === true) {
+			return null;
+		}
+
+		$profile = $profiles[0];
+		if (is_array($profiles[0]) === false) {
+			$profile = $profiles[0]->jsonSerialize();
+		}
+
+		return $profile;
+	}//end parentProfile()
+
+	/**
 	 * Create a concept GradeEntry when an AssessmentResult reaches `graded`.
 	 *
 	 * Bridges the auto-scored / teacher-scored result into the grading pipeline
@@ -536,15 +567,8 @@ class GradeRollupHandler implements IEventListener {
 		$componentId = $result['gradeEntryComponentId'] ?? null;
 		$planId = $result['curriculumPlanId'] ?? null;
 		$scaleId = $result['gradeScaleId'] ?? null;
-		$existingId = $result['gradeEntryId'] ?? null;
 
-		if ($learnerId === '' || $totalScore === null || $componentId === null || $planId === null) {
-			// Insufficient data to create a meaningful GradeEntry — skip.
-			return;
-		}
-
-		// Do not create a duplicate if gradeEntryId is already set.
-		if ($existingId !== null) {
+		if ($this->needsGradeEntry(result: $result) === false) {
 			return;
 		}
 
@@ -584,4 +608,24 @@ class GradeRollupHandler implements IEventListener {
 		);
 
 	}//end handleAssessmentResultGraded()
+
+	/**
+	 * Whether a graded AssessmentResult should get a GradeEntry: it carries a learner,
+	 * a score, a component and a plan (otherwise no meaningful entry can be made), and
+	 * has no gradeEntryId yet (otherwise it would be a duplicate).
+	 *
+	 * @param array<string, mixed> $result The AssessmentResult.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-21
+	 */
+	private function needsGradeEntry(array $result): bool {
+		$complete = ($result['learnerId'] ?? '') !== ''
+			&& ($result['totalScore'] ?? null) !== null
+			&& ($result['gradeEntryComponentId'] ?? null) !== null
+			&& ($result['curriculumPlanId'] ?? null) !== null;
+
+		return $complete === true && ($result['gradeEntryId'] ?? null) === null;
+	}//end needsGradeEntry()
 }//end class

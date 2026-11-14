@@ -21,7 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\CoverageListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\CoverageListenerRegistrar;
 use OCA\Learniq\Listener\CurriculumCoverageRollupHandler;
 use OCA\Learniq\Service\CompetencyAlignmentNormaliser;
 use OCA\Learniq\Service\CurriculumCoverageRollup;

@@ -31,9 +31,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Portal\PortalAssertionVerifier;
-use OCA\Learniq\Service\Portal\PortalHourWeekApproval;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PortalAssertionVerifierInterface;
+use OCA\Learniq\Kernel\Contracts\PortalHourWeekApprovalInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
@@ -78,19 +78,19 @@ class PortalHourWeekController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest                   $request     The request.
-	 * @param PortalAssertionVerifier    $verifier    Verifies X-Portal-Subject.
-	 * @param PortalHourWeekApproval $approvals Checks, stamps and stores the approval.
+	 * @param PortalAssertionVerifierInterface    $verifier    Verifies X-Portal-Subject.
+	 * @param PortalHourWeekApprovalInterface $approvals Checks, stamps and stores the approval.
 	 * @param LoggerInterface            $logger      PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly PortalAssertionVerifier $verifier,
-		private readonly PortalHourWeekApproval $approvals,
+		private readonly PortalAssertionVerifierInterface $verifier,
+		private readonly PortalHourWeekApprovalInterface $approvals,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -105,7 +105,7 @@ class PortalHourWeekController extends Controller {
 	#[AnonRateLimit(limit: 600, period: 60)]
 	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
 	public function approve(): JSONResponse {
-		$claims = $this->verifier->verify(jwt: (string)$this->request->getHeader(PortalAssertionVerifier::HEADER));
+		$claims = $this->verifier->verify(jwt: (string)$this->request->getHeader(PortalAssertionVerifierInterface::HEADER));
 		if ($claims === null) {
 			$response = new JSONResponse(data: ['error' => 'unauthorized'], statusCode: Http::STATUS_UNAUTHORIZED);
 			$response->throttle(['action' => self::THROTTLE_ACTION]);

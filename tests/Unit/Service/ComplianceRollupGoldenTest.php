@@ -43,6 +43,7 @@ use ReflectionMethod;
  * @covers \OCA\Learniq\Service\ComplianceSnapshot
  * @uses   \OCA\Learniq\Service\RegulationAudienceResolver
  * @uses   \OCA\Learniq\Service\RunningExemptions
+ * @uses   \OCA\Learniq\Service\SchemaRows
  */
 class ComplianceRollupGoldenTest extends TestCase {
 

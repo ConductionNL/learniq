@@ -34,7 +34,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -105,7 +105,7 @@ class LtiToolPlacementController extends Controller {
 		private readonly IURLGenerator $urlGenerator,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 
 	}//end __construct()
 
@@ -190,7 +190,7 @@ class LtiToolPlacementController extends Controller {
 
 		try {
 			$event = new $eventClass(
-				sourceApp: Application::APP_ID,
+				sourceApp: AppIdentity::APP_ID,
 				placementId: $placementId,
 				deploymentUuid: (string)$placement['openconnectorDeploymentId'],
 				userId: $uid,

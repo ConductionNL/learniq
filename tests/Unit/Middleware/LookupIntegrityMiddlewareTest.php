@@ -30,6 +30,7 @@ use OCA\Learniq\Controller\SubmissionMarkController;
 use OCA\Learniq\Middleware\LookupIntegrityMiddleware;
 use OCA\Learniq\Service\DashboardRoleService;
 use OCA\Learniq\Tests\Support\CapturingLogger;
+use OCA\Learniq\Tests\Support\ContractImplementations;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -54,6 +55,7 @@ use RuntimeException;
  * @covers \OCA\Learniq\Controller\LessonNextStepController
  * @covers \OCA\Learniq\Controller\LessonReleaseController
  * @covers \OCA\Learniq\Controller\SubmissionMarkController
+ * @uses \OCA\Learniq\Service\StaffGroupCheck
  */
 class LookupIntegrityMiddlewareTest extends TestCase {
 
@@ -156,7 +158,7 @@ class LookupIntegrityMiddlewareTest extends TestCase {
 		foreach ((new ReflectionClass($class))->getConstructor()->getParameters() as $parameter) {
 			$type = $parameter->getType();
 			self::assertInstanceOf(ReflectionNamedType::class, $type);
-			$double = $this->createMock($type->getName());
+			$double = $this->createMock(ContractImplementations::concrete($type->getName()));
 			if ($double instanceof IUserSession) {
 				$double->method('getUser')->willReturn($user);
 			}

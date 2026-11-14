@@ -46,6 +46,7 @@ namespace OCA\Learniq\Service;
 use DOMDocument;
 use DOMElement;
 use DOMNodeList;
+use OCA\Learniq\Kernel\Contracts\QtiImportServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -55,7 +56,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-4
  */
-class QtiImportService {
+class QtiImportService implements QtiImportServiceInterface {
 
 	/**
 	 * Map of QTI interaction element names → Learniq interactionType slugs.

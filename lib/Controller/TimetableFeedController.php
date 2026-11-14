@@ -34,10 +34,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\PersonalTimetableService;
-use OCA\Learniq\Service\TimetableFeedRenderer;
-use OCA\Learniq\Service\TimetableFeedTokenService;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PersonalTimetableServiceInterface;
+use OCA\Learniq\Kernel\Contracts\TimetableFeedRendererInterface;
+use OCA\Learniq\Kernel\Contracts\TimetableFeedTokenServiceInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
@@ -76,9 +76,9 @@ class TimetableFeedController extends Controller {
 	 * @param IRequest                  $request     HTTP request.
 	 * @param IUserSession              $userSession The feed owner, as volatile user for the read.
 	 * @param IUserManager              $userManager Looks up the feed owner.
-	 * @param TimetableFeedTokenService $tokens      Feed tokens.
-	 * @param PersonalTimetableService  $timetable   The user's own lessons, as on My timetable.
-	 * @param TimetableFeedRenderer     $renderer    Lessons to iCalendar in the owner's language.
+	 * @param TimetableFeedTokenServiceInterface $tokens      Feed tokens.
+	 * @param PersonalTimetableServiceInterface  $timetable   The user's own lessons, as on My timetable.
+	 * @param TimetableFeedRendererInterface     $renderer    Lessons to iCalendar in the owner's language.
 	 * @param ITimeFactory              $time        The clock.
 	 * @param LoggerInterface           $logger      Application logger.
 	 */
@@ -86,13 +86,13 @@ class TimetableFeedController extends Controller {
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly IUserManager $userManager,
-		private readonly TimetableFeedTokenService $tokens,
-		private readonly PersonalTimetableService $timetable,
-		private readonly TimetableFeedRenderer $renderer,
+		private readonly TimetableFeedTokenServiceInterface $tokens,
+		private readonly PersonalTimetableServiceInterface $timetable,
+		private readonly TimetableFeedRendererInterface $renderer,
 		private readonly ITimeFactory $time,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

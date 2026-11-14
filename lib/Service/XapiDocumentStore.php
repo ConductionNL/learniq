@@ -37,6 +37,7 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use OCA\Learniq\Exception\XapiRequestException;
+use OCA\Learniq\Kernel\Contracts\XapiDocumentStoreInterface;
 use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Http;
@@ -47,7 +48,7 @@ use Throwable;
  *
  * @spec openspec/specs/course-management/spec.md#requirement-run-cmi5--xapi-natively-with-scorm-shim
  */
-class XapiDocumentStore {
+class XapiDocumentStore implements XapiDocumentStoreInterface {
 
 	/**
 	 * The learniq register slug.
@@ -62,20 +63,6 @@ class XapiDocumentStore {
 	 * @var string
 	 */
 	public const SCHEMA = 'xapi-document';
-
-	/**
-	 * Document kind: an activity State document.
-	 *
-	 * @var string
-	 */
-	public const KIND_STATE = 'state';
-
-	/**
-	 * Document kind: an Agent Profile document.
-	 *
-	 * @var string
-	 */
-	public const KIND_AGENT_PROFILE = 'agent-profile';
 
 	/**
 	 * Largest document accepted, in bytes.

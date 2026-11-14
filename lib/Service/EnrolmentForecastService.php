@@ -33,13 +33,14 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use InvalidArgumentException;
+use OCA\Learniq\Kernel\Contracts\EnrolmentForecastServiceInterface;
 
 /**
  * Next year's learners and groups from this year's groups and a scenario.
  *
  * @spec openspec/specs/student-analytics/spec.md#requirement-a-planner-forecasts-next-years-learners-per-programme-year-and-subject
  */
-class EnrolmentForecastService {
+class EnrolmentForecastService implements EnrolmentForecastServiceInterface {
 
 	public const DEFAULT_RATES = ['upRate' => 0.9, 'repeatRate' => 0.05, 'leaveRate' => 0.05];
 	private const TOLERANCE = 0.001;

@@ -40,6 +40,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\CompetencyAlignmentNormaliserInterface;
 use OCA\Learniq\Support\TextValue;
 
 /**
@@ -47,7 +48,7 @@ use OCA\Learniq\Support\TextValue;
  *
  * @spec openspec/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
  */
-class CompetencyAlignmentNormaliser {
+class CompetencyAlignmentNormaliser implements CompetencyAlignmentNormaliserInterface {
 
 	/**
 	 * Normalise a raw `competencyAlignments` value to a list of

@@ -66,9 +66,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use OCA\Learniq\Service\AiLocalityClassifier;
-use OCA\Learniq\Service\ItemPoolFilter;
-use OCA\Learniq\Service\SovereigntyPolicyService;
+use OCA\Learniq\Kernel\Contracts\AiLocalityClassifierInterface;
+use OCA\Learniq\Kernel\Contracts\ItemPoolFilterInterface;
+use OCA\Learniq\Kernel\Contracts\SovereigntyPolicyServiceInterface;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -134,10 +134,10 @@ class AssessmentPublishGuard implements LifecycleGuardInterface {
 	 *                                     lookup and, since
 	 *                                     assessment-item-pools-and-analysis, the
 	 *                                     random-draw item-pool resolvability check.
-	 * @param ItemPoolFilter $poolFilter Pool filter/variant-grouping collaborator (assessment-item-pools-and-analysis).
+	 * @param ItemPoolFilterInterface $poolFilter Pool filter/variant-grouping collaborator (assessment-item-pools-and-analysis).
 	 * @param IAppManager $appManager Used to tell "Hermiq absent" from "feature not enabled".
-	 * @param AiLocalityClassifier $localityClassifier Derives the active AI provider's locality verdict (sovereign-ai-guarantee).
-	 * @param SovereigntyPolicyService $policyService Evaluates the locality verdict against the
+	 * @param AiLocalityClassifierInterface $localityClassifier Derives the active AI provider's locality verdict (sovereign-ai-guarantee).
+	 * @param SovereigntyPolicyServiceInterface $policyService Evaluates the locality verdict against the
 	 *                                                school's SovereigntyPolicy (sovereign-ai-guarantee).
 	 * @param LoggerInterface $logger PSR logger.
 	 *
@@ -145,10 +145,10 @@ class AssessmentPublishGuard implements LifecycleGuardInterface {
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly ItemPoolFilter $poolFilter,
+		private readonly ItemPoolFilterInterface $poolFilter,
 		private readonly IAppManager $appManager,
-		private readonly AiLocalityClassifier $localityClassifier,
-		private readonly SovereigntyPolicyService $policyService,
+		private readonly AiLocalityClassifierInterface $localityClassifier,
+		private readonly SovereigntyPolicyServiceInterface $policyService,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()

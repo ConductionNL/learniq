@@ -33,6 +33,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\Cmi5LaunchTokenServiceInterface;
 use OCP\IAppConfig;
 use OCP\IURLGenerator;
 use OCP\Security\ICrypto;
@@ -48,7 +49,7 @@ use Throwable;
  *
  * @spec openspec/specs/course-management/spec.md#requirement-run-cmi5--xapi-natively-with-scorm-shim
  */
-class Cmi5LaunchTokenService {
+class Cmi5LaunchTokenService implements Cmi5LaunchTokenServiceInterface {
 
 	/**
 	 * App-config key holding the ICrypto-encrypted private key PEM.

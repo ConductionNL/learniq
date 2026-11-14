@@ -31,7 +31,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ExchangeImportLanding;
+use OCA\Learniq\Kernel\Contracts\ExchangeImportLandingInterface;
 use OCA\Learniq\Support\EventGetter;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -57,11 +57,11 @@ class ExchangeImportLandingListener implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ExchangeImportLanding $landing Writes the records.
+	 * @param ExchangeImportLandingInterface $landing Writes the records.
 	 * @param LoggerInterface $logger Logger (never record content).
 	 */
 	public function __construct(
-		private readonly ExchangeImportLanding $landing,
+		private readonly ExchangeImportLandingInterface $landing,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -78,7 +78,7 @@ class ExchangeImportLandingListener implements IEventListener {
 	public function handle(Event $event): void {
 		if (is_a($event, self::RECEIVED_EVENT) === false
 			|| (string)$this->read(event: $event, getter: 'getOwnerApp') !== self::OWNER_APP
-			|| in_array((string)$this->read(event: $event, getter: 'getTarget'), ExchangeImportLanding::TARGETS, true) === false
+			|| in_array((string)$this->read(event: $event, getter: 'getTarget'), ExchangeImportLandingInterface::TARGETS, true) === false
 		) {
 			return;
 		}

@@ -40,7 +40,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -75,14 +75,14 @@ class LearningPlanEvaluationHandler implements IEventListener {
 	 *
 	 * @param ObjectService $objectService OR object access.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -136,29 +136,9 @@ class LearningPlanEvaluationHandler implements IEventListener {
 			return;
 		}
 
-		// Fetch the parent LearningPlan.
-		$plans = $this->objectService->findAll(
-			[
-				'ids' => [$planId],
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::LEARNING_PLAN_SCHEMA,
-				],
-				'limit' => 1,
-			]
-		);
-
-		if (empty($plans) === true) {
-			$this->logger->warning(
-				'[LearningPlanEvaluationHandler] LearningPlan {id} not found — skipping.',
-				['id' => $planId]
-			);
+		$plan = $this->fetchPlan(planId: $planId);
+		if ($plan === null) {
 			return;
-		}
-
-		$plan = $plans[0];
-		if (is_array($plans[0]) === false) {
-			$plan = $plans[0]->jsonSerialize();
 		}
 
 		$applied = $this->applyOutcomesToGoals(
@@ -197,6 +177,43 @@ class LearningPlanEvaluationHandler implements IEventListener {
 		);
 
 	}//end handleEvaluationRecorded()
+
+	/**
+	 * The parent LearningPlan as an array, or null (logged) when it does not exist.
+	 *
+	 * @param mixed $planId The evaluation's learningPlanId.
+	 *
+	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-23
+	 */
+	private function fetchPlan(mixed $planId): ?array {
+		$plans = $this->objectService->findAll(
+			[
+				'ids' => [$planId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LEARNING_PLAN_SCHEMA,
+				],
+				'limit' => 1,
+			]
+		);
+
+		if (empty($plans) === true) {
+			$this->logger->warning(
+				'[LearningPlanEvaluationHandler] LearningPlan {id} not found — skipping.',
+				['id' => $planId]
+			);
+			return null;
+		}
+
+		$plan = $plans[0];
+		if (is_array($plans[0]) === false) {
+			$plan = $plans[0]->jsonSerialize();
+		}
+
+		return $plan;
+	}//end fetchPlan()
 
 	/**
 	 * Build the goalId => outcome map for O(1) lookups.

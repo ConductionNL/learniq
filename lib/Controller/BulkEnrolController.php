@@ -27,8 +27,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\Enrolment\BulkEnrolService;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\BulkEnrolServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -53,7 +53,7 @@ class BulkEnrolController extends Controller {
 	 * @param IRequest         $request       The request.
 	 * @param IUserSession     $userSession   The signed-in user.
 	 * @param ObjectService    $objectService Reads the course and the group as the caller.
-	 * @param BulkEnrolService $bulkEnrol     Creates the enrolments.
+	 * @param BulkEnrolServiceInterface $bulkEnrol     Creates the enrolments.
 	 *
 	 * @return void
 	 */
@@ -61,9 +61,9 @@ class BulkEnrolController extends Controller {
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly ObjectService $objectService,
-		private readonly BulkEnrolService $bulkEnrol,
+		private readonly BulkEnrolServiceInterface $bulkEnrol,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

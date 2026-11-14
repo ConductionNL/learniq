@@ -26,10 +26,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\ExchangeGateServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerActions;
-use OCA\Learniq\Service\ExchangeGateService;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -75,17 +75,17 @@ class ExchangeGateController extends Controller {
 	 * @param IRequest            $request       HTTP request.
 	 * @param CallerActions $caller The user session and the ADR-023 action matrix.
 	 * @param ObjectService       $objectService Reads integriq's job row.
-	 * @param ExchangeGateService $gate          Decides for the job.
+	 * @param ExchangeGateServiceInterface $gate          Decides for the job.
 	 */
 	public function __construct(
 		IRequest $request,
 		CallerActions $caller,
 		private readonly ObjectService $objectService,
-		private readonly ExchangeGateService $gate,
+		private readonly ExchangeGateServiceInterface $gate,
 	) {
 		$this->userSession = $caller->userSession;
 		$this->actionAuth = $caller->actionAuth;
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

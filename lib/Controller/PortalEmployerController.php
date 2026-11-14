@@ -30,10 +30,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Portal\EmployerCompanyTenancy;
-use OCA\Learniq\Portal\PortalAssertionVerifier;
-use OCA\Learniq\Service\Portal\PortalEmployerBookings;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\EmployerCompanyTenancyInterface;
+use OCA\Learniq\Kernel\Contracts\PortalAssertionVerifierInterface;
+use OCA\Learniq\Kernel\Contracts\PortalEmployerBookingsInterface;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -70,19 +70,19 @@ class PortalEmployerController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest                $request   The request.
-	 * @param PortalAssertionVerifier $verifier  Verifies X-Portal-Subject.
-	 * @param PortalEmployerBookings  $bookings  Checks and stores the writes.
-	 * @param EmployerCompanyTenancy  $tenancy   Checks the company lies in the portal's organisation.
+	 * @param PortalAssertionVerifierInterface $verifier  Verifies X-Portal-Subject.
+	 * @param PortalEmployerBookingsInterface  $bookings  Checks and stores the writes.
+	 * @param EmployerCompanyTenancyInterface  $tenancy   Checks the company lies in the portal's organisation.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly PortalAssertionVerifier $verifier,
-		private readonly PortalEmployerBookings $bookings,
-		private readonly EmployerCompanyTenancy $tenancy,
+		private readonly PortalAssertionVerifierInterface $verifier,
+		private readonly PortalEmployerBookingsInterface $bookings,
+		private readonly EmployerCompanyTenancyInterface $tenancy,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -148,7 +148,7 @@ class PortalEmployerController extends Controller {
 	 * @return JSONResponse
 	 */
 	private function answer(array $fields, callable $work): JSONResponse {
-		$claims = $this->verifier->verify(jwt: (string)$this->request->getHeader(PortalAssertionVerifier::HEADER));
+		$claims = $this->verifier->verify(jwt: (string)$this->request->getHeader(PortalAssertionVerifierInterface::HEADER));
 		if ($claims === null) {
 			$response = new JSONResponse(data: ['error' => 'unauthorized'], statusCode: Http::STATUS_UNAUTHORIZED);
 			$response->throttle(['action' => self::THROTTLE_ACTION]);

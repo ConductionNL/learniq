@@ -27,8 +27,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\OpenMaterial;
 
-use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Exception\MaterialImportRefusedException;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\OpenMaterialImportServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUser;
 
@@ -37,7 +38,7 @@ use OCP\IUser;
  *
  * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
  */
-class OpenMaterialImportService {
+class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 
 	/**
 	 * The reason in words, per reason code a teacher can meet.
@@ -211,7 +212,7 @@ class OpenMaterialImportService {
 	 * @return array<string, mixed> The saved Material.
 	 */
 	private function save(array $material): array {
-		return $this->objectService->saveObject(object: $material, register: Application::APP_ID, schema: 'material')->jsonSerialize();
+		return $this->objectService->saveObject(object: $material, register: AppIdentity::APP_ID, schema: 'material')->jsonSerialize();
 	}//end save()
 
 	/**

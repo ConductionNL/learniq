@@ -25,8 +25,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\TimetableExchangeSettings;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\TimetableExchangeSettingsInterface;
 use OCA\Learniq\Settings\AdminSettings;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -45,17 +45,17 @@ class TimetableExchangeSettingsController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest                  $request  The request.
-	 * @param TimetableExchangeSettings $settings The settings store.
+	 * @param TimetableExchangeSettingsInterface $settings The settings store.
 	 * @param IL10N                     $l10n     Learniq's translations, for the refusal the page shows.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly TimetableExchangeSettings $settings,
+		private readonly TimetableExchangeSettingsInterface $settings,
 		private readonly IL10N $l10n,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -99,7 +99,7 @@ class TimetableExchangeSettingsController extends Controller {
 	 */
 	private function current(): array {
 		return [
-			'sources'       => TimetableExchangeSettings::ROSTER_SOURCES,
+			'sources'       => TimetableExchangeSettingsInterface::ROSTER_SOURCES,
 			'groupMaps'     => $this->settings->groupMaps(),
 			'swvReceiverId' => $this->settings->swvReceiverId(),
 		];

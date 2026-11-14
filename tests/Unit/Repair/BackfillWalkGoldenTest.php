@@ -34,6 +34,7 @@ use OCA\Learniq\Repair\BackfillRequiredLearnerRefs;
 use OCA\Learniq\Repair\BackfillSubmissionLearnerRefs;
 use OCA\Learniq\Repair\BackfillWerkprocesAssessmentLearner;
 use OCA\Learniq\Service\ReportCardGradeLines;
+use OCA\Learniq\Tests\Support\ContractImplementations;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -99,7 +100,7 @@ class BackfillWalkGoldenTest extends TestCase {
 		$args = [];
 		foreach ((new ReflectionClass($class))->getConstructor()->getParameters() as $parameter) {
 			$type = $parameter->getType();
-			$name = ($type instanceof ReflectionNamedType) ? $type->getName() : '';
+			$name = ($type instanceof ReflectionNamedType) ? ContractImplementations::concrete($type->getName()) : '';
 			$args[$parameter->getName()] = match ($name) {
 				ObjectService::class => $objectService,
 				LoggerInterface::class => $logger,

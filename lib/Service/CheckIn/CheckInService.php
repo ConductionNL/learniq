@@ -45,6 +45,7 @@ namespace OCA\Learniq\Service\CheckIn;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\CheckInServiceInterface;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
@@ -58,7 +59,7 @@ use Throwable;
  *
  * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
  */
-class CheckInService {
+class CheckInService implements CheckInServiceInterface {
 	use FindOrNull;
 
 	private const REGISTER = 'learniq';

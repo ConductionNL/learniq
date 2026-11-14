@@ -63,6 +63,8 @@ use RuntimeException;
  * @uses   \OCA\Learniq\Service\CoursePackage\PackageXmlValueReader
  * @uses   \OCA\Learniq\Service\QtiImportService
  * @uses   \OCA\Learniq\Service\QtiManifestScanner
+ * @uses \OCA\Learniq\Service\QtiItemTarget
+ * @uses \OCA\Learniq\Service\FolderFileWriter
  */
 class CommonCartridgeImportGoldenTest extends TestCase {
 

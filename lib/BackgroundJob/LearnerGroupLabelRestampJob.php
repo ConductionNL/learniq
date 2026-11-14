@@ -24,7 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\BackgroundJob;
 
-use OCA\Learniq\Service\LearnerGroupLabelRestamp;
+use OCA\Learniq\Kernel\Contracts\LearnerGroupLabelRestampInterface;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use Psr\Log\LoggerInterface;
 
@@ -41,14 +41,14 @@ class LearnerGroupLabelRestampJob extends ForwardedJob {
 	 *
 	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface          $logger       Logger.
-	 * @param LearnerGroupLabelRestamp $restamp      Writes one profile's line.
+	 * @param LearnerGroupLabelRestampInterface $restamp      Writes one profile's line.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		ActorForwarding $forwarding,
 		LoggerInterface $logger,
-		private readonly LearnerGroupLabelRestamp $restamp,
+		private readonly LearnerGroupLabelRestampInterface $restamp,
 	) {
 		parent::__construct(forwarding: $forwarding, logger: $logger);
 	}//end __construct()

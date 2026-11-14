@@ -23,8 +23,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\XapiEnrolmentCompletion;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\XapiEnrolmentCompletionInterface;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCP\EventDispatcher\Event;
 
@@ -51,13 +51,13 @@ final class CompletedXapiStatement {
 	 * Learniq XapiStatement with a completion verb.
 	 *
 	 * @param Event                  $event          The dispatched event.
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the entity's register/schema ids to slugs.
 	 *
 	 * @return array<string,mixed>|null
 	 *
 	 * @spec openspec/specs/progress-tracking/spec.md#requirement-the-follow-up-of-an-xapi-statement-runs-outside-the-save-that-records-it
 	 */
-	public static function fromEvent(Event $event, ListenerSchemaResolver $schemaResolver): ?array {
+	public static function fromEvent(Event $event, ListenerSchemaResolverInterface $schemaResolver): ?array {
 		if ($event instanceof ObjectCreatedEvent === false) {
 			return null;
 		}
@@ -70,7 +70,7 @@ final class CompletedXapiStatement {
 		}
 
 		$statement = $entity->jsonSerialize();
-		if (in_array(($statement['verb']['id'] ?? ''), XapiEnrolmentCompletion::COMPLETION_VERBS, true) === false) {
+		if (in_array(($statement['verb']['id'] ?? ''), XapiEnrolmentCompletionInterface::COMPLETION_VERBS, true) === false) {
 			return null;
 		}
 

@@ -30,11 +30,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\Catalogue\CatalogueMessages;
-use OCA\Learniq\Service\Catalogue\CatalogueReader;
-use OCA\Learniq\Service\Catalogue\CatalogueSignUpService;
-use OCA\Learniq\Service\LearnerRefResolver;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CatalogueMessagesInterface;
+use OCA\Learniq\Kernel\Contracts\CatalogueReaderInterface;
+use OCA\Learniq\Kernel\Contracts\CatalogueSignUpServiceInterface;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
 use OCA\Learniq\Service\Portal\PortalLearner;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCP\AppFramework\Controller;
@@ -56,22 +56,22 @@ class CatalogueController extends Controller {
 	 *
 	 * @param IRequest               $request     The request.
 	 * @param IUserSession           $userSession The signed-in user.
-	 * @param CatalogueReader        $reader      The catalogue.
-	 * @param CatalogueSignUpService $signUps     Sign-up and withdraw rules.
-	 * @param CatalogueMessages      $messages    Plain refusal reasons.
-	 * @param LearnerRefResolver     $profiles    The caller's profile uuid.
+	 * @param CatalogueReaderInterface        $reader      The catalogue.
+	 * @param CatalogueSignUpServiceInterface $signUps     Sign-up and withdraw rules.
+	 * @param CatalogueMessagesInterface      $messages    Plain refusal reasons.
+	 * @param LearnerRefResolverInterface     $profiles    The caller's profile uuid.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
-		private readonly CatalogueReader $reader,
-		private readonly CatalogueSignUpService $signUps,
-		private readonly CatalogueMessages $messages,
-		private readonly LearnerRefResolver $profiles,
+		private readonly CatalogueReaderInterface $reader,
+		private readonly CatalogueSignUpServiceInterface $signUps,
+		private readonly CatalogueMessagesInterface $messages,
+		private readonly LearnerRefResolverInterface $profiles,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

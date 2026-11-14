@@ -43,13 +43,14 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\AttendanceWindowAggregatorInterface;
 use OCA\Learniq\Support\EntityRow;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
  * Resolves a report window's Sessions and aggregates a learner's attendance over them.
  */
-class AttendanceWindowAggregator {
+class AttendanceWindowAggregator implements AttendanceWindowAggregatorInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const SESSION_SCHEMA = 'session';

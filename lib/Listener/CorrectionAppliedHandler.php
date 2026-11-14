@@ -44,8 +44,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\Grading\CorrectionApprovals;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\CorrectionApprovalsInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -67,16 +67,16 @@ class CorrectionAppliedHandler implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemas   Resolves the event's register and schema to slugs.
-	 * @param CorrectionApprovals    $approvals The approved correction for a grade entry.
+	 * @param ListenerSchemaResolverInterface $schemas   Resolves the event's register and schema to slugs.
+	 * @param CorrectionApprovalsInterface    $approvals The approved correction for a grade entry.
 	 * @param ObjectService          $objects   OpenRegister object access.
 	 * @param LoggerInterface        $logger    PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemas,
-		private readonly CorrectionApprovals $approvals,
+		private readonly ListenerSchemaResolverInterface $schemas,
+		private readonly CorrectionApprovalsInterface $approvals,
 		private readonly ObjectService $objects,
 		private readonly LoggerInterface $logger,
 	) {

@@ -46,10 +46,10 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Service\ConferenceBookingMode;
 use OCA\Learniq\Service\ConferenceSlotSlicer;
-use OCA\Learniq\Service\LearnerRefResolver;
-use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -87,8 +87,8 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService Reads availability, slots and cohorts; writes slots.
-	 * @param ListenerSchemaResolver $schemas Resolves the event's register and schema.
-	 * @param LearnerRefResolver $profiles Nextcloud user id to LearnerProfile uuid.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the event's register and schema.
+	 * @param LearnerRefResolverInterface $profiles Nextcloud user id to LearnerProfile uuid.
 	 * @param IUserManager $users The teacher's display name.
 	 * @param IDateTimeZone $timeZone The caller's or the instance's time zone, for a label of a UTC time.
 	 * @param LoggerInterface $logger PSR logger.
@@ -97,8 +97,8 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly ListenerSchemaResolver $schemas,
-		private readonly LearnerRefResolver $profiles,
+		private readonly ListenerSchemaResolverInterface $schemas,
+		private readonly LearnerRefResolverInterface $profiles,
 		private readonly IUserManager $users,
 		private readonly IDateTimeZone $timeZone,
 		private readonly LoggerInterface $logger,

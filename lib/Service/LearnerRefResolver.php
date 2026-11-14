@@ -48,6 +48,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Service\ObjectService;
@@ -57,7 +58,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/specs/grading/spec.md#requirement-every-gradeentry-carries-a-server-stamped-learnerref
  */
-class LearnerRefResolver {
+class LearnerRefResolver implements LearnerRefResolverInterface {
 	use FindOrNull;
 
 	private const LEARNIQ_REGISTER = 'learniq';

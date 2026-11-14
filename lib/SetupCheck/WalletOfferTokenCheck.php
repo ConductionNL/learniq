@@ -26,8 +26,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\SetupCheck;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\ConnectionReportService;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\ConnectionReportServiceInterface;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\SetupCheck\ISetupCheck;
@@ -52,14 +52,14 @@ class WalletOfferTokenCheck implements ISetupCheck {
 	 * Constructor.
 	 *
 	 * @param IAppConfig              $appConfig         App config, for the token.
-	 * @param ConnectionReportService $connectionReports What the last wallet offer met.
+	 * @param ConnectionReportServiceInterface $connectionReports What the last wallet offer met.
 	 * @param IL10N                   $l10n              Translations.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly IAppConfig $appConfig,
-		private readonly ConnectionReportService $connectionReports,
+		private readonly ConnectionReportServiceInterface $connectionReports,
 		private readonly IL10N $l10n,
 	) {
 	}//end __construct()
@@ -97,16 +97,16 @@ class WalletOfferTokenCheck implements ISetupCheck {
 	 * @spec openspec/changes/credential-wallet-offer-for-the-learner/specs/certification/spec.md#requirement-the-setup-check-names-the-missing-wallet-token
 	 */
 	public function run(): SetupResult {
-		$token = $this->appConfig->getValueString(app: Application::APP_ID, key: self::TOKEN_KEY, default: '');
+		$token = $this->appConfig->getValueString(app: AppIdentity::APP_ID, key: self::TOKEN_KEY, default: '');
 		if ($token !== '') {
 			return SetupResult::success($this->l10n->t('Certificates can be offered to a wallet through integriq.'));
 		}
 
 		$message = $this->l10n->t(
 			'No integriq API token is set (%s), so a certificate cannot be offered to a wallet.',
-			[Application::APP_ID . '.' . self::TOKEN_KEY]
+			[AppIdentity::APP_ID . '.' . self::TOKEN_KEY]
 		);
-		if ($this->connectionReports->lastStatus(key: ConnectionReportService::WALLET_KEY) === 'unconfigured') {
+		if ($this->connectionReports->lastStatus(key: ConnectionReportServiceInterface::WALLET_KEY) === 'unconfigured') {
 			return SetupResult::warning($message);
 		}
 

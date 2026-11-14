@@ -32,7 +32,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
+use OCA\Learniq\Kernel\Contracts\TimetableDirectoryInterface;
+use OCA\Learniq\Kernel\Contracts\TimetableSourceResolverInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use RuntimeException;
 
@@ -41,7 +42,7 @@ use RuntimeException;
  *
  * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
  */
-class TimetableDirectory {
+class TimetableDirectory implements TimetableDirectoryInterface {
 
 	private const REGISTER = 'learniq';
 
@@ -49,13 +50,13 @@ class TimetableDirectory {
 	 * Constructor.
 	 *
 	 * @param ObjectService           $objectService OpenRegister object access.
-	 * @param TimetableSourceResolver $sources       Where lessons are read from.
+	 * @param TimetableSourceResolverInterface $sources       Where lessons are read from.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly TimetableSourceResolver $sources,
+		private readonly TimetableSourceResolverInterface $sources,
 	) {
 	}//end __construct()
 

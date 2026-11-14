@@ -29,9 +29,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
+use OCA\Learniq\Listener\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\CredentialIssuanceHandler;
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Tests\Support\ContractImplementations;
 use OCA\Learniq\Tests\Support\TransitionScope;
 use OCA\Learniq\Service\EdciPayloadBuilder;
 use OCA\Learniq\Service\EuropassIssuer;
@@ -373,7 +374,7 @@ class CredentialIssuanceHandlerTest extends TestCase {
 		foreach (($class->getConstructor()?->getParameters() ?? []) as $parameter) {
 			$type = $parameter->getType();
 			self::assertInstanceOf(ReflectionNamedType::class, $type);
-			$arguments[$parameter->getName()] = match ($type->getName()) {
+			$arguments[$parameter->getName()] = match (ContractImplementations::concrete($type->getName())) {
 				ObjectService::class => $this->objectService(),
 				CredentialSigningService::class => $this->signingService(tenantHasKey: $tenantHasKey),
 				EuropassIssuer::class => new EuropassIssuer(

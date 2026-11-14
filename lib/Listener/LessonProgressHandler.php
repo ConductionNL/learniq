@@ -51,7 +51,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\BackgroundJob\XapiStatementFollowUpJob;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -71,12 +71,12 @@ class LessonProgressHandler implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ListenerDeferralService $deferral       Queues the work with the acting user.
-	 * @param ListenerSchemaResolver  $schemaResolver Resolves the entity's register/schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface  $schemaResolver Resolves the entity's register/schema ids to slugs.
 	 * @param ITimeFactory            $timeFactory    Stamps the completion time when the statement is queued.
 	 */
 	public function __construct(
 		private readonly ListenerDeferralService $deferral,
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly ITimeFactory $timeFactory,
 	) {
 	}//end __construct()

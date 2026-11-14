@@ -23,6 +23,7 @@ namespace OCA\Learniq\Tests\Unit\Lifecycle\Action;
 
 use OCA\Learniq\Lifecycle\Action\PokParentSignatureStampAction;
 use OCA\Learniq\Service\PokParentSignatureRule;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
@@ -163,4 +164,50 @@ class PokParentSignatureStampActionTest extends TestCase {
 		));
 		self::assertSame([], $asked);
 	}//end testAPokWithoutAnIdIsLeftAlone()
+	/**
+	 * Signature rows that come back as entities are read through their
+	 * serialised form; the tenant narrows the lookup.
+	 *
+	 * @return void
+	 */
+	public function testEntitySignatureRowsAreRead(): void {
+		$asked = [];
+		$rows  = OrEntityFactory::makeMany(
+			[
+				['id' => 's-1', 'signerRole' => 'student', 'signedAt' => '2025-08-24T08:00:00+02:00'],
+				['id' => 's-2', 'signerRole' => 'student', 'signedAt' => '2025-08-21T12:00:00+02:00'],
+			],
+			'pok-signature'
+		);
+		$rule = $this->getMockBuilder(PokParentSignatureRule::class)
+			->disableOriginalConstructor()
+			->onlyMethods(['evaluate'])
+			->getMock();
+		$rule->method('evaluate')->willReturnCallback(
+			static function (array $pok, ?string $studentSignedAt) use (&$asked): array {
+				$asked[] = $studentSignedAt;
+				return ['required' => false, 'reason' => 'adult', 'parentIds' => []];
+			}
+		);
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->expects($this->once())->method('findAll')->willReturnCallback(
+			static function (array $config) use ($rows): array {
+				self::assertSame('tenant-a', $config['filters']['tenant_id']);
+				self::assertSame(1, $config['filters']['subjectVersion']);
+				return $rows;
+			}
+		);
+
+		$pok = (new PokParentSignatureStampAction($rule, $objectService))->execute(
+			new LifecycleActionContext(
+				objectData: ['uuid' => 'pok-9', 'tenant_id' => 'tenant-a'],
+				previousData: [],
+				parameters: [],
+				actionName: 'activate'
+			)
+		);
+
+		self::assertSame(['2025-08-21T12:00:00+02:00'], $asked);
+		self::assertFalse($pok['parentSignatureRequired']);
+	}//end testEntitySignatureRowsAreRead()
 }//end class

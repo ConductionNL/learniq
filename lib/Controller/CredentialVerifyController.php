@@ -34,16 +34,16 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\JwsProofVerifierInterface;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\JwsProofVerifier;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
-use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
-use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 use OCP\Security\Bruteforce\IThrottler;
@@ -93,7 +93,7 @@ class CredentialVerifyController extends Controller {
 	 *
 	 * @param IRequest $request The HTTP request.
 	 * @param ObjectService $objectService OR object-read service.
-	 * @param JwsProofVerifier $proofs Verifies a payload's detached JWS against the tenant key.
+	 * @param JwsProofVerifierInterface $proofs Verifies a payload's detached JWS against the tenant key.
 	 * @param IThrottler $throttler Brute-force throttler counting failed verifications.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
@@ -102,11 +102,11 @@ class CredentialVerifyController extends Controller {
 	public function __construct(
 		IRequest $request,
 		private readonly ObjectService $objectService,
-		private readonly JwsProofVerifier $proofs,
+		private readonly JwsProofVerifierInterface $proofs,
 		private readonly IThrottler $throttler,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -130,6 +130,22 @@ class CredentialVerifyController extends Controller {
 	#[AnonRateLimit(limit: 60, period: 60)]
 	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
 	public function verify(string $id): JSONResponse {
+		$found = $this->findCredential(id: $id);
+		if ($found instanceof JSONResponse) {
+			return $found;
+		}
+
+		return $this->verdictFor(data: $found);
+	}//end verify()
+
+	/**
+	 * The stored credential's data, or the answer for a credential that cannot be read.
+	 *
+	 * @param string $id Credential UUID.
+	 *
+	 * @return array<string, mixed>|JSONResponse The data, or a 404 (a counted guess) or 500 answer.
+	 */
+	private function findCredential(string $id): array|JSONResponse {
 		// ABSENCE REACHES THIS METHOD IN TWO SHAPES, NOT ONE. `find()`
 		// documents `@throws Exception If the object is not found`, and
 		// resolving the `learniq` register / `credential` schema slug goes
@@ -175,8 +191,17 @@ class CredentialVerifyController extends Controller {
 			return new JSONResponse(['valid' => false, 'error' => 'not_found'], 404);
 		}
 
-		$data = $credentialObj->jsonSerialize();
+		return $credentialObj->jsonSerialize();
+	}//end findCredential()
 
+	/**
+	 * The verification answer for a found credential: revoked, signature invalid, or its validity.
+	 *
+	 * @param array<string, mixed> $data The credential data.
+	 *
+	 * @return JSONResponse
+	 */
+	private function verdictFor(array $data): JSONResponse {
 		$lifecycle = $data['lifecycle'] ?? 'issued';
 		$isExpired = $data['isExpired'] ?? false;
 
@@ -213,7 +238,7 @@ class CredentialVerifyController extends Controller {
 				'issuerName' => $data['issuedBy'] ?? null,
 			]
 		);
-	}//end verify()
+	}//end verdictFor()
 
 	/**
 	 * Check a Europass file for a credential (credentials-europass-edci-export).

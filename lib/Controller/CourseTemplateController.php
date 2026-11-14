@@ -29,9 +29,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Exception\CourseTemplateRefusedException;
-use OCA\Learniq\Service\Course\CourseTemplateService;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CourseTemplateServiceInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -51,16 +51,16 @@ class CourseTemplateController extends Controller {
 	 *
 	 * @param IRequest              $request     The request.
 	 * @param IUserSession          $userSession The signed-in user.
-	 * @param CourseTemplateService $templates   Course trees and templates.
+	 * @param CourseTemplateServiceInterface $templates   Course trees and templates.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
-		private readonly CourseTemplateService $templates,
+		private readonly CourseTemplateServiceInterface $templates,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

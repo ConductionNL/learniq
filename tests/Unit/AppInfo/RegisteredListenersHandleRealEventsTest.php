@@ -22,7 +22,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\AppInfo;
 
 use Error;
-use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
+use OCA\Learniq\Listener\Registrar\EventListenerWiring;
 use OCA\Learniq\Event\HourPlanActivitiesQueryEvent;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
 use OCA\Learniq\Listener\SessionConflictListener;

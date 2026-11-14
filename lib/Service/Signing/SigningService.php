@@ -33,6 +33,7 @@ namespace OCA\Learniq\Service\Signing;
 
 use DateTimeZone;
 use OCA\Learniq\Exception\SigningRefusedException;
+use OCA\Learniq\Kernel\Contracts\SigningServiceInterface;
 use OCA\Learniq\Service\PokParentSignatureRule;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
@@ -45,7 +46,7 @@ use OCP\IGroupManager;
  *
  * @spec openspec/specs/learning-plan/spec.md#requirement-a-signature-is-recorded-by-the-server-in-a-role-the-signer-holds
  */
-class SigningService {
+class SigningService implements SigningServiceInterface {
 	use FindOrNull;
 
 	private const REGISTER = 'learniq';
@@ -161,15 +162,7 @@ class SigningService {
 			);
 		}
 
-		$held = $this->heldRoles(subject: $request->subject, record: $record, userId: $userId);
-		$role = $request->role;
-		if ($role === '' && $held !== []) {
-			$role = $held[0];
-		}
-
-		if (in_array($role, $held, true) === false) {
-			throw new SigningRefusedException(status: Http::STATUS_FORBIDDEN, reason: 'role-not-held', message: 'You cannot sign this document in that role.');
-		}
+		$role = $this->signingRole(userId: $userId, job: ['request' => $request, 'record' => $record]);
 
 		$version = (int)($record['version'] ?? 1);
 		$signer = [
@@ -207,6 +200,34 @@ class SigningService {
 			'subjectVersion' => $version,
 		];
 	}//end sign()
+
+	/**
+	 * The role the user signs in: the requested one, or the first role held when
+	 * none was requested. Refused when the user does not hold it.
+	 *
+	 * @param string               $userId The signer.
+	 * @param array<string, mixed> $job    request: the SignatureRequest; record: the document.
+	 *
+	 * @return string
+	 *
+	 * @throws SigningRefusedException When the user does not hold the role.
+	 *
+	 * @spec openspec/specs/learning-plan/spec.md#requirement-a-signature-is-recorded-by-the-server-in-a-role-the-signer-holds
+	 */
+	private function signingRole(string $userId, array $job): string {
+		$request = $job['request'];
+		$held = $this->heldRoles(subject: $request->subject, record: $job['record'], userId: $userId);
+		$role = $request->role;
+		if ($role === '' && $held !== []) {
+			$role = $held[0];
+		}
+
+		if (in_array($role, $held, true) === false) {
+			throw new SigningRefusedException(status: Http::STATUS_FORBIDDEN, reason: 'role-not-held', message: 'You cannot sign this document in that role.');
+		}
+
+		return $role;
+	}//end signingRole()
 
 	/**
 	 * The configuration of a subject slug.

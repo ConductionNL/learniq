@@ -35,7 +35,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
-use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
+use OCA\Learniq\Kernel\Contracts\SubstitutionCandidateServiceInterface;
+use OCA\Learniq\Kernel\Contracts\TimetableSourceResolverInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserManager;
 use Throwable;
@@ -45,7 +46,7 @@ use Throwable;
  *
  * @spec openspec/specs/timetabling/spec.md#requirement-the-substitution-dialog-offers-standby-teachers-first
  */
-class SubstitutionCandidateService {
+class SubstitutionCandidateService implements SubstitutionCandidateServiceInterface {
 
 	private const REGISTER = 'learniq';
 
@@ -55,7 +56,7 @@ class SubstitutionCandidateService {
 	 * Constructor.
 	 *
 	 * @param ObjectService           $objectService Slots, staff and cohorts.
-	 * @param TimetableSourceResolver $sources       Where lessons are read from.
+	 * @param TimetableSourceResolverInterface $sources       Where lessons are read from.
 	 * @param IUserManager            $userManager   Display names.
 	 * @param StandbyCalendar         $calendar      Whether a slot covers a lesson.
 	 *
@@ -63,7 +64,7 @@ class SubstitutionCandidateService {
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly TimetableSourceResolver $sources,
+		private readonly TimetableSourceResolverInterface $sources,
 		private readonly IUserManager $userManager,
 		private readonly StandbyCalendar $calendar,
 	) {

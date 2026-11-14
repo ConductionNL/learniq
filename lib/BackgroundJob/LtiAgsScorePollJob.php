@@ -64,10 +64,10 @@ declare(strict_types=1);
 namespace OCA\Learniq\BackgroundJob;
 
 use DateTimeImmutable;
-use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\LtiAgsPullClient;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\LtiAgsPullClientInterface;
 use OCA\Learniq\Support\ObjectRow;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
 use OCP\BackgroundJob\TimedJob;
@@ -124,14 +124,14 @@ class LtiAgsScorePollJob extends TimedJob {
 	 *
 	 * @param ITimeFactory $time Time factory for job scheduling.
 	 * @param ObjectService $objectService OR object access service.
-	 * @param LtiAgsPullClient $pullClient OpenConnector AGS pull transport.
+	 * @param LtiAgsPullClientInterface $pullClient OpenConnector AGS pull transport.
 	 * @param IAppConfig $appConfig NC app config for subscription/cursor lookup.
 	 * @param LoggerInterface $logger PSR logger.
 	 */
 	public function __construct(
 		ITimeFactory $time,
 		private readonly ObjectService $objectService,
-		private readonly LtiAgsPullClient $pullClient,
+		private readonly LtiAgsPullClientInterface $pullClient,
 		private readonly IAppConfig $appConfig,
 		private readonly LoggerInterface $logger,
 	) {
@@ -160,14 +160,14 @@ class LtiAgsScorePollJob extends TimedJob {
 	 * @spec openspec/changes/archive/2026-07-13-lti-tool-placement/tasks.md#task-4.1
 	 */
 	public function run(mixed $argument): void {
-		$subscriptionId = $this->appConfig->getValueString(app: Application::APP_ID, key: self::SUBSCRIPTION_ID_KEY, default: '');
+		$subscriptionId = $this->appConfig->getValueString(app: AppIdentity::APP_ID, key: self::SUBSCRIPTION_ID_KEY, default: '');
 		if ($subscriptionId === '') {
 			// Not yet bootstrapped (task 5.1) — no-op, not an error.
 			$this->logger->debug('[LtiAgsScorePollJob] No lti_ags_subscription_id configured; skipping sweep.');
 			return;
 		}
 
-		$cursor = $this->appConfig->getValueString(app: Application::APP_ID, key: self::PULL_CURSOR_KEY, default: '');
+		$cursor = $this->appConfig->getValueString(app: AppIdentity::APP_ID, key: self::PULL_CURSOR_KEY, default: '');
 		$pulled = $this->pullClient->pull(subscriptionId: $subscriptionId, cursor: $cursor);
 		if ($pulled === null) {
 			// Logged inside the pull client; one failed sweep does not wedge the cron schedule.
@@ -198,7 +198,7 @@ class LtiAgsScorePollJob extends TimedJob {
 
 		$newCursor = $pulled['cursor'] ?? null;
 		if (is_string($newCursor) === true && $newCursor !== '') {
-			$this->appConfig->setValueString(app: Application::APP_ID, key: self::PULL_CURSOR_KEY, value: $newCursor);
+			$this->appConfig->setValueString(app: AppIdentity::APP_ID, key: self::PULL_CURSOR_KEY, value: $newCursor);
 		}
 
 		$this->logger->info(
@@ -233,17 +233,8 @@ class LtiAgsScorePollJob extends TimedJob {
 			return false;
 		}
 
-		// The message payload is integriq's whole CloudEvent (the `event` object's
-		// serialisation, see integriq EventService::createEventMessage()); the
-		// score, deployment and line item are its `data`.
-		$envelope = $message['payload'] ?? null;
-		$data     = null;
-		if (is_array($envelope) === true) {
-			$data = $envelope['data'] ?? null;
-		}
-
-		if (is_array($data) === false) {
-			$this->logger->warning('[LtiAgsScorePollJob] Message {id} carries no CloudEvent data — skipping.', ['id' => $resultId]);
+		$data = $this->cloudEventData(message: $message, resultId: $resultId);
+		if ($data === null) {
 			return false;
 		}
 
@@ -260,15 +251,8 @@ class LtiAgsScorePollJob extends TimedJob {
 			return false;
 		}
 
-		// A GradeEntry needs a curriculum plan AND a component within it; a
-		// placement carrying only one of the two has nothing to write to.
-		$componentId = ($placement['gradeEntryComponentId'] ?? null);
-		$planId = ($placement['curriculumPlanId'] ?? null);
-		if (in_array($componentId, [null, ''], true) === true || in_array($planId, [null, ''], true) === true) {
-			$this->logger->info(
-				'[LtiAgsScorePollJob] Placement {pid} is not configured for grade passback — skipping message {id}.',
-				['pid' => $placementId, 'id' => $resultId]
-			);
+		$target = $this->passbackTarget(placement: $placement, placementId: $placementId, resultId: $resultId);
+		if ($target === null) {
 			return false;
 		}
 
@@ -277,12 +261,98 @@ class LtiAgsScorePollJob extends TimedJob {
 			return false;
 		}
 
+		// System context: the job runs without a user, as cron does, and a
+		// GradeEntry may only be created by teaching staff. Which grade is
+		// written is decided above (placement, line item, learner), not by the
+		// caller's rights.
+		$this->objectService->saveObject(
+			register: self::LEARNIQ_REGISTER,
+			schema: self::GRADE_ENTRY_SCHEMA,
+			object: $this->gradeEntryFor(
+				score: $score,
+				target: $target,
+				placement: $placement,
+				placementId: $placementId,
+				resultId: $resultId
+			),
+			_rbac: false,
+			_multitenancy: false
+		);
+
+		return true;
+	}//end processMessage()
+
+	/**
+	 * The CloudEvent `data` of a pulled message, or null (logged) when it carries none.
+	 *
+	 * The message payload is integriq's whole CloudEvent (the `event` object's
+	 * serialisation, see integriq EventService::createEventMessage()); the
+	 * score, deployment and line item are its `data`.
+	 *
+	 * @param array<string,mixed> $message  The pulled event_message row.
+	 * @param string              $resultId The AGS result id, for the log line.
+	 *
+	 * @return array<string,mixed>|null
+	 */
+	private function cloudEventData(array $message, string $resultId): ?array {
+		$envelope = $message['payload'] ?? null;
+		$data     = null;
+		if (is_array($envelope) === true) {
+			$data = $envelope['data'] ?? null;
+		}
+
+		if (is_array($data) === false) {
+			$this->logger->warning('[LtiAgsScorePollJob] Message {id} carries no CloudEvent data — skipping.', ['id' => $resultId]);
+			return null;
+		}
+
+		return $data;
+	}//end cloudEventData()
+
+	/**
+	 * The curriculum plan and component a placement passes grades back to, or null (logged) when it lacks either.
+	 *
+	 * A GradeEntry needs a curriculum plan AND a component within it; a
+	 * placement carrying only one of the two has nothing to write to.
+	 *
+	 * @param array<string,mixed> $placement   The LtiToolPlacement.
+	 * @param string              $placementId The placement id, for the log line.
+	 * @param string              $resultId    The AGS result id, for the log line.
+	 *
+	 * @return array{planId: mixed, componentId: mixed}|null
+	 */
+	private function passbackTarget(array $placement, string $placementId, string $resultId): ?array {
+		$componentId = ($placement['gradeEntryComponentId'] ?? null);
+		$planId = ($placement['curriculumPlanId'] ?? null);
+		if (in_array($componentId, [null, ''], true) === true || in_array($planId, [null, ''], true) === true) {
+			$this->logger->info(
+				'[LtiAgsScorePollJob] Placement {pid} is not configured for grade passback — skipping message {id}.',
+				['pid' => $placementId, 'id' => $resultId]
+			);
+			return null;
+		}
+
+		return ['planId' => $planId, 'componentId' => $componentId];
+	}//end passbackTarget()
+
+	/**
+	 * The concept GradeEntry for one returned score.
+	 *
+	 * @param array<string,mixed>                        $score       The extracted score (learnerId, scoreGiven, scoreMaximum).
+	 * @param array{planId: mixed, componentId: mixed} $target      The placement's plan and component.
+	 * @param array<string,mixed>                        $placement   The LtiToolPlacement.
+	 * @param string                                     $placementId The placement id.
+	 * @param string                                     $resultId    The AGS result id.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function gradeEntryFor(array $score, array $target, array $placement, string $placementId, string $resultId): array {
 		$scaleId = (string)($placement['gradeScaleId'] ?? '');
 
-		$gradeEntry = [
+		return [
 			'learnerId' => $score['learnerId'],
-			'curriculumPlanId' => $planId,
-			'componentId' => $componentId,
+			'curriculumPlanId' => $target['planId'],
+			'componentId' => $target['componentId'],
 			'sourceKind' => 'lti-ags',
 			'ltiToolPlacementId' => $placementId,
 			'ltiAgsResultId' => $resultId,
@@ -297,21 +367,7 @@ class LtiAgsScorePollJob extends TimedJob {
 			'tenant_id' => (string)($placement['tenant_id'] ?? ''),
 			'lifecycle' => 'concept',
 		];
-
-		// System context: the job runs without a user, as cron does, and a
-		// GradeEntry may only be created by teaching staff. Which grade is
-		// written is decided above (placement, line item, learner), not by the
-		// caller's rights.
-		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::GRADE_ENTRY_SCHEMA,
-			object: $gradeEntry,
-			_rbac: false,
-			_multitenancy: false
-		);
-
-		return true;
-	}//end processMessage()
+	}//end gradeEntryFor()
 
 	/**
 	 * Resolve the LtiToolPlacement an AGS message belongs to.

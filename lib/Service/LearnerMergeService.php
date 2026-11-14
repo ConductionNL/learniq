@@ -37,13 +37,14 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\LearnerMergeServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
 /**
  * Validates a learner merge and re-points the merged learner's records.
  */
-class LearnerMergeService {
+class LearnerMergeService implements LearnerMergeServiceInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const PROFILE_SCHEMA = 'learner-profile';

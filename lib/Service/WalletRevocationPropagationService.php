@@ -54,6 +54,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\WalletRevocationPropagationServiceInterface;
 use OCA\Learniq\Support\FleetAppId;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
@@ -76,7 +77,7 @@ use Throwable;
  * config, HTTP error, thrown exception) is logged and swallowed — the
  * `revoke` transition itself is never blocked.
  */
-class WalletRevocationPropagationService implements LifecycleGuardInterface {
+class WalletRevocationPropagationService implements LifecycleGuardInterface, WalletRevocationPropagationServiceInterface {
 
 	/**
 	 * OpenConnector REST endpoint template for consumer-gated offer

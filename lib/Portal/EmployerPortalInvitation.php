@@ -43,6 +43,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCA\Learniq\Kernel\Contracts\EmployerPortalInvitationInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -54,7 +55,7 @@ use Throwable;
  *
  * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
  */
-class EmployerPortalInvitation {
+class EmployerPortalInvitation implements EmployerPortalInvitationInterface {
 
 	private const APP_ID = 'learniq';
 

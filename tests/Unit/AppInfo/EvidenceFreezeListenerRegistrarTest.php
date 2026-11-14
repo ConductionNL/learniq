@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\AppInfo;
 
-use OCA\Learniq\AppInfo\Registrar\EvidenceFreezeListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\EvidenceFreezeListenerRegistrar;
 use OCA\Learniq\Listener\AssessmentResultIntegrityListener;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use PHPUnit\Framework\TestCase;
@@ -21,7 +21,7 @@ use PHPUnit\Framework\TestCase;
  * move takes an object out of its register, so a guard on the delete event alone
  * is skipped by a move.
  *
- * @covers \OCA\Learniq\AppInfo\Registrar\EvidenceFreezeListenerRegistrar
+ * @covers \OCA\Learniq\Listener\Registrar\EvidenceFreezeListenerRegistrar
  */
 final class EvidenceFreezeListenerRegistrarTest extends TestCase {
 	/**

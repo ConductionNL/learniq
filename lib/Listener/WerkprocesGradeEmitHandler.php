@@ -48,7 +48,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Service\ObjectRowReader;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -93,14 +93,14 @@ class WerkprocesGradeEmitHandler implements IEventListener {
 	 *
 	 * @param ObjectService $objectService OR object access service.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 		$this->rows = new ObjectRowReader(objectService: $objectService);
 	}//end __construct()
@@ -146,73 +146,23 @@ class WerkprocesGradeEmitHandler implements IEventListener {
 	 */
 	private function emitGradeEntry(ObjectTransitionedEvent $event): void {
 		$assessment = $event->getObject()->jsonSerialize();
-		$bpvPlacement = $assessment['bpvPlacementId'] ?? '';
-		$curriculumId = $assessment['curriculumPlanId'] ?? '';
-		$componentId = $assessment['componentId'] ?? '';
-		$beoordeling = $assessment['assessment'] ?? '';
-
-		if ($bpvPlacement === '' || $curriculumId === '' || $componentId === '') {
-			$this->logger->warning(
-				'[WerkprocesGradeEmitHandler] Confirmed WerkprocesAssessment {id} missing bpvPlacementId/'
-				. 'curriculumPlanId/componentId — cannot emit GradeEntry.',
-				['id' => $assessment['id'] ?? ($assessment['uuid'] ?? '')]
-			);
+		$refs = $this->assessmentRefs(assessment: $assessment);
+		if ($refs === null) {
 			return;
 		}
 
-		if (array_key_exists($beoordeling, self::BEOORDELING_VALUE) === false) {
-			$this->logger->warning(
-				'[WerkprocesGradeEmitHandler] Confirmed WerkprocesAssessment {id} has unrecognised beoordeling '
-				. '"{b}" — cannot map to a GradeEntry value.',
-				['id' => $assessment['id'] ?? ($assessment['uuid'] ?? ''), 'b' => $beoordeling]
-			);
+		$learner = $this->placementLearner(placementId: $refs['placement']);
+		if ($learner === null) {
 			return;
 		}
 
-		$placement = $this->loadObject(schema: self::PLACEMENT_SCHEMA, id: $bpvPlacement);
-		if ($placement === null) {
-			$this->logger->warning(
-				'[WerkprocesGradeEmitHandler] BpvPlacement {id} referenced by WerkprocesAssessment not found.',
-				['id' => $bpvPlacement]
-			);
-			return;
-		}
-
-		$learnerId = $placement['learnerId'] ?? '';
-		$tenantId = $placement['tenant_id'] ?? '';
-
-		if ($learnerId === '') {
-			$this->logger->warning(
-				'[WerkprocesGradeEmitHandler] BpvPlacement {id} has no learnerId — cannot emit GradeEntry.',
-				['id' => $bpvPlacement]
-			);
-			return;
-		}
-
-		$curriculumPlan = $this->loadObject(schema: self::CURRICULUM_SCHEMA, id: $curriculumId);
-		$gradeScaleId = $curriculumPlan['gradeScaleId'] ?? '';
+		$curriculumPlan = $this->loadObject(schema: self::CURRICULUM_SCHEMA, id: $refs['curriculum']);
 
 		$existing = $this->findExistingGradeEntry(
-			learnerId: $learnerId,
-			curriculumPlanId: $curriculumId,
-			componentId: $componentId,
-			tenantId: $tenantId
-		);
-
-		$data = array_merge(
-			$existing ?? [],
-			[
-				'learnerId' => $learnerId,
-				'curriculumPlanId' => $curriculumId,
-				'componentId' => $componentId,
-				'sourceKind' => 'manual',
-				'value' => self::BEOORDELING_VALUE[$beoordeling],
-				'gradeScaleId' => $gradeScaleId,
-				'grader' => 'praktijkopleider',
-				'gradedAt' => (new DateTimeImmutable())->format(\DATE_ATOM),
-				'tenant_id' => $tenantId,
-				'lifecycle' => $existing['lifecycle'] ?? 'concept',
-			]
+			learnerId: $learner['learnerId'],
+			curriculumPlanId: $refs['curriculum'],
+			componentId: $refs['component'],
+			tenantId: $learner['tenantId']
 		);
 
 		// System context (grade-entry): coordinators and praktijkopleiders confirm a werkproces
@@ -221,7 +171,12 @@ class WerkprocesGradeEmitHandler implements IEventListener {
 		$this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: self::GRADE_ENTRY_SCHEMA,
-			object: $data,
+			object: $this->gradeEntryData(
+				refs: $refs,
+				learner: $learner,
+				gradeScaleId: ($curriculumPlan['gradeScaleId'] ?? ''),
+				existing: $existing
+			),
 			_rbac: false
 		);
 
@@ -234,14 +189,118 @@ class WerkprocesGradeEmitHandler implements IEventListener {
 			'[WerkprocesGradeEmitHandler] WerkprocesAssessment {aid} confirmed → GradeEntry {kind} for learner '
 			. '{learner}, component {component}.',
 			[
-				'aid' => $assessment['id'] ?? ($assessment['uuid'] ?? ''),
+				'aid' => self::assessmentId(assessment: $assessment),
 				'kind' => $kind,
-				'learner' => $learnerId,
-				'component' => $componentId,
+				'learner' => $learner['learnerId'],
+				'component' => $refs['component'],
 			]
 		);
 
 	}//end emitGradeEntry()
+
+	/**
+	 * The references and beoordeling of a confirmed assessment, or null (logged) when one is missing or unmappable.
+	 *
+	 * @param array<string, mixed> $assessment The assessment data.
+	 *
+	 * @return array{placement: string, curriculum: string, component: string, beoordeling: string}|null
+	 */
+	private function assessmentRefs(array $assessment): ?array {
+		$refs = [
+			'placement' => $assessment['bpvPlacementId'] ?? '',
+			'curriculum' => $assessment['curriculumPlanId'] ?? '',
+			'component' => $assessment['componentId'] ?? '',
+			'beoordeling' => $assessment['assessment'] ?? '',
+		];
+
+		if ($refs['placement'] === '' || $refs['curriculum'] === '' || $refs['component'] === '') {
+			$this->logger->warning(
+				'[WerkprocesGradeEmitHandler] Confirmed WerkprocesAssessment {id} missing bpvPlacementId/'
+				. 'curriculumPlanId/componentId — cannot emit GradeEntry.',
+				['id' => self::assessmentId(assessment: $assessment)]
+			);
+			return null;
+		}
+
+		if (array_key_exists($refs['beoordeling'], self::BEOORDELING_VALUE) === false) {
+			$this->logger->warning(
+				'[WerkprocesGradeEmitHandler] Confirmed WerkprocesAssessment {id} has unrecognised beoordeling '
+				. '"{b}" — cannot map to a GradeEntry value.',
+				['id' => self::assessmentId(assessment: $assessment), 'b' => $refs['beoordeling']]
+			);
+			return null;
+		}
+
+		return $refs;
+	}//end assessmentRefs()
+
+	/**
+	 * The learner and tenant of a BPV placement, or null (logged) when the placement or its learner is missing.
+	 *
+	 * @param string $placementId The BpvPlacement id.
+	 *
+	 * @return array{learnerId: string, tenantId: string}|null
+	 */
+	private function placementLearner(string $placementId): ?array {
+		$placement = $this->loadObject(schema: self::PLACEMENT_SCHEMA, id: $placementId);
+		if ($placement === null) {
+			$this->logger->warning(
+				'[WerkprocesGradeEmitHandler] BpvPlacement {id} referenced by WerkprocesAssessment not found.',
+				['id' => $placementId]
+			);
+			return null;
+		}
+
+		$learnerId = $placement['learnerId'] ?? '';
+		if ($learnerId === '') {
+			$this->logger->warning(
+				'[WerkprocesGradeEmitHandler] BpvPlacement {id} has no learnerId — cannot emit GradeEntry.',
+				['id' => $placementId]
+			);
+			return null;
+		}
+
+		return ['learnerId' => $learnerId, 'tenantId' => $placement['tenant_id'] ?? ''];
+	}//end placementLearner()
+
+	/**
+	 * The GradeEntry to write: the existing entry, if any, with the assessment's fields over it.
+	 *
+	 * @param array{placement: string, curriculum: string, component: string, beoordeling: string} $refs         The assessment references.
+	 * @param array{learnerId: string, tenantId: string}                                          $learner      The placement's learner and tenant.
+	 * @param mixed                                                                               $gradeScaleId The curriculum plan's grade scale.
+	 * @param array<string, mixed>|null                                                           $existing     The existing GradeEntry, if any.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function gradeEntryData(array $refs, array $learner, mixed $gradeScaleId, ?array $existing): array {
+		return array_merge(
+			$existing ?? [],
+			[
+				'learnerId' => $learner['learnerId'],
+				'curriculumPlanId' => $refs['curriculum'],
+				'componentId' => $refs['component'],
+				'sourceKind' => 'manual',
+				'value' => self::BEOORDELING_VALUE[$refs['beoordeling']],
+				'gradeScaleId' => $gradeScaleId,
+				'grader' => 'praktijkopleider',
+				'gradedAt' => (new DateTimeImmutable())->format(\DATE_ATOM),
+				'tenant_id' => $learner['tenantId'],
+				'lifecycle' => $existing['lifecycle'] ?? 'concept',
+			]
+		);
+	}//end gradeEntryData()
+
+	/**
+	 * The id a log line names an assessment by: its id, else its uuid.
+	 *
+	 * @param array<string, mixed> $assessment The assessment data.
+	 *
+	 * @return mixed
+	 */
+	private static function assessmentId(array $assessment): mixed {
+		return $assessment['id'] ?? ($assessment['uuid'] ?? '');
+	}//end assessmentId()
 
 	/**
 	 * Load a single OpenRegister object by id.

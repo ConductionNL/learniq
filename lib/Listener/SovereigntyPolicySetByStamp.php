@@ -30,7 +30,7 @@ namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
 use DateTimeInterface;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -52,14 +52,14 @@ class SovereigntyPolicySetByStamp implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
 	 * @param IUserSession           $userSession    The signed-in user.
 	 * @param ITimeFactory           $timeFactory    The server's clock.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly IUserSession $userSession,
 		private readonly ITimeFactory $timeFactory,
 	) {

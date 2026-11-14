@@ -46,10 +46,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Kernel\Contracts\ConferenceSlotClaimInterface;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Service\ConferenceBookingMode;
-use OCA\Learniq\Service\ConferenceSlotClaim;
-use OCA\Learniq\Service\LearnerRefResolver;
-use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -92,20 +92,20 @@ class ConferenceSlotBookingStamp implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
-	 * @param LearnerRefResolver $profiles LearnerProfile by uuid.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
+	 * @param LearnerRefResolverInterface $profiles LearnerProfile by uuid.
 	 * @param ObjectService $objectService Reads the slot's round.
-	 * @param ConferenceSlotClaim $claim Takes the slot under a lock.
+	 * @param ConferenceSlotClaimInterface $claim Takes the slot under a lock.
 	 * @param IUserSession $userSession Tells a portal write (no session) from an app write.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly LearnerRefResolver $profiles,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		private readonly LearnerRefResolverInterface $profiles,
 		private readonly ObjectService $objectService,
-		private readonly ConferenceSlotClaim $claim,
+		private readonly ConferenceSlotClaimInterface $claim,
 		private readonly IUserSession $userSession,
 		private readonly LoggerInterface $logger,
 	) {

@@ -29,6 +29,7 @@ use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\ExternalTrainingImport;
 use OCA\Learniq\Service\ExternalTrainingLearnerMatch;
+use OCA\Learniq\Tests\Support\ContractImplementations;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
@@ -50,6 +51,8 @@ use ReflectionNamedType;
  * @uses \OCA\Learniq\Service\ExternalTrainingImport
  * @uses \OCA\Learniq\Service\ExternalTrainingLearnerMatch
  * @uses \OCA\Learniq\Service\ExternalTrainingRowCheck
+ * @uses \OCA\Learniq\Support\ResultArrays
+ * @uses \OCA\Learniq\Support\RowId
  */
 class ExternalTrainingControllerImportTest extends TestCase {
 	private const CALLER_TENANT = 'tenant-a';
@@ -109,7 +112,7 @@ class ExternalTrainingControllerImportTest extends TestCase {
 		foreach (($class->getConstructor()?->getParameters() ?? []) as $parameter) {
 			$type = $parameter->getType();
 			self::assertInstanceOf(ReflectionNamedType::class, $type);
-			$arguments[$parameter->getName()] = match ($type->getName()) {
+			$arguments[$parameter->getName()] = match (ContractImplementations::concrete($type->getName())) {
 				IUserSession::class => $userSession,
 				ObjectService::class => $objectService,
 				CallerTenantResolver::class => new CallerTenantResolver($config, $objectService),

@@ -29,8 +29,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ExamSittingOverview;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ExamSittingOverviewInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -61,15 +61,15 @@ class InvigilatorAssignmentCheck implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
-	 * @param ExamSittingOverview $overview Sittings, bookings and availability.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
+	 * @param ExamSittingOverviewInterface $overview Sittings, bookings and availability.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly ExamSittingOverview $overview,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		private readonly ExamSittingOverviewInterface $overview,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()

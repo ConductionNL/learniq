@@ -77,6 +77,18 @@ class WalletOfferTokenCheckTest extends TestCase {
 	}//end testNoTokenBeforeAnyOfferIsANote()
 
 	/**
+	 * The check is a system check, named for wallet offers in the user's language.
+	 *
+	 * @return void
+	 */
+	public function testTheCheckIsASystemCheckNamedForWalletOffers(): void {
+		$check = $this->check(token: '', observation: '');
+
+		self::assertSame('system', $check->getCategory());
+		self::assertSame('Learniq wallet offers', $check->getName());
+	}//end testTheCheckIsASystemCheckNamedForWalletOffers()
+
+	/**
 	 * The check over an app config holding the token and the wallet observation.
 	 *
 	 * @param string $token       The stored token.

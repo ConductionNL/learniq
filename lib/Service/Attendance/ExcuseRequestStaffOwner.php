@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Attendance;
 
+use OCA\Learniq\Kernel\Contracts\ExcuseRequestStaffOwnerInterface;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Support\TextValue;
 use OCP\IUserSession;
@@ -40,7 +41,7 @@ use Throwable;
  *
  * @spec openspec/specs/attendance/spec.md#requirement-the-server-stamps-who-an-excuse-request-is-about-and-who-filed-it
  */
-class ExcuseRequestStaffOwner {
+class ExcuseRequestStaffOwner implements ExcuseRequestStaffOwnerInterface {
 
 	/**
 	 * Constructor.

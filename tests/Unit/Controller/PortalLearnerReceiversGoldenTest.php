@@ -43,6 +43,7 @@ use OCA\Learniq\Service\Portal\PortalLearnerResolver;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCA\Learniq\Service\Portal\PortalSubmissionHandIn;
 use OCA\Learniq\Service\WorkGroup\WorkGroupMembershipService;
+use OCA\Learniq\Tests\Support\ContractImplementations;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 use OCP\IUser;
@@ -173,7 +174,7 @@ class PortalLearnerReceiversGoldenTest extends TestCase {
 
 		$args = [];
 		foreach ((new ReflectionClass($class))->getConstructor()->getParameters() as $parameter) {
-			$type = (string)$parameter->getType();
+			$type = ContractImplementations::concrete((string)$parameter->getType());
 			$args[] = match (true) {
 				$type === IRequest::class => $request,
 				$type === PortalAssertionVerifier::class => $verifier,

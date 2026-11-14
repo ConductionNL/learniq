@@ -503,6 +503,39 @@ class EngagementSignalJobTest extends TestCase {
 	}//end testCohortScopedThresholdSkipsNonMember()
 
 	/**
+	 * Thresholds without a limit, not crossed, without an id, or scoped to a
+	 * cohort that is missing or has no learner list raise no flag; a crossed,
+	 * complete threshold beside them still does.
+	 *
+	 * @return void
+	 */
+	public function testIncompleteOrUncrossedThresholdsRaiseNoFlag(): void {
+		$now = new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));
+
+		$this->seed('cohort', ['id' => 'cohort-bad', 'learnerIds' => 'learner-1']);
+		$base = ['metric' => 'engagement-score-below', 'limit' => 30, 'lifecycle' => 'active', 'cohortId' => null];
+		$this->seed('engagement-risk-threshold', ['id' => 't-no-limit', 'limit' => null] + $base);
+		$this->seed('engagement-risk-threshold', ['id' => 't-not-crossed', 'limit' => 10] + $base);
+		$this->seed('engagement-risk-threshold', $base);
+		$this->seed('engagement-risk-threshold', ['id' => 't-missing-cohort', 'cohortId' => 'cohort-gone'] + $base);
+		$this->seed('engagement-risk-threshold', ['id' => 't-bad-cohort', 'cohortId' => 'cohort-bad'] + $base);
+		$this->seed('engagement-risk-threshold', ['id' => 't-ok'] + $base);
+
+		$handler = $this->makeHandler(
+			evaluated: ['timeOnTaskMinutes' => 1.0, 'lastActivityAt' => '2026-07-13T09:00:00+02:00', 'score' => 20],
+			now: $now
+		);
+
+		$this->runOne($handler, $this->entryFrom(
+				['verified_actor_id' => 'learner-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']
+			)
+		);
+
+		self::assertSame(['t-ok'], array_column($this->savedFor('engagement-risk-flag'), 'engagementRiskThresholdId'));
+
+	}//end testIncompleteOrUncrossedThresholdsRaiseNoFlag()
+
+	/**
 	 * No AI/ML client, HTTP call, or Hermiq dependency is constructed
 	 * anywhere by this handler — verified structurally: it depends only on
 	 * ObjectService, EngagementScoreEvaluator, ListenerSchemaResolver, and

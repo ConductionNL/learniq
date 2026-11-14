@@ -43,6 +43,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\CourseStore;
 
+use OCA\Learniq\Kernel\Contracts\CourseStorePublisherInterface;
 use OCA\OpenRegister\AppHost\Service\GenericStoreService;
 use OCP\IUser;
 use Psr\Container\ContainerInterface;
@@ -52,39 +53,13 @@ use Throwable;
 /**
  * Publishes a gated share package through the store plane.
  */
-class CourseStorePublisher {
-
-	public const OUTCOME_OK = GenericStoreService::OUTCOME_OK;
-
-	public const OUTCOME_NOT_CONFIGURED = GenericStoreService::OUTCOME_NOT_CONFIGURED;
-
-	public const OUTCOME_UNREACHABLE = GenericStoreService::OUTCOME_UNREACHABLE;
-
-	public const OUTCOME_INVALID = GenericStoreService::OUTCOME_INVALID;
+class CourseStorePublisher implements CourseStorePublisherInterface {
 
 	/*
 	 * The next four are literals on purpose, not references to the plane's
 	 * constants: an OpenRegister before #4079 lacks those constants, and a
 	 * missing constant in a constant expression is fatal when this class loads.
 	 */
-
-	public const OUTCOME_REJECTED = 'store_rejected';
-
-	public const OUTCOME_TOO_LARGE = 'too_large';
-
-	public const OUTCOME_RATE_LIMITED = 'rate_limited';
-
-	public const OUTCOME_NOT_PUBLISHABLE = 'not_publishable';
-
-	/**
-	 * Learniq's own refusal: the plane did not admit this user.
-	 */
-	public const OUTCOME_FORBIDDEN = 'forbidden';
-
-	/**
-	 * Learniq's own refusal: the installed OpenRegister has no publish path.
-	 */
-	public const OUTCOME_NOT_SUPPORTED = 'publish_not_supported';
 
 	/**
 	 * OpenRegister's store authorizer, resolved lazily (see mayPublish()).

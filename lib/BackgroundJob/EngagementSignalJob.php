@@ -21,7 +21,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\BackgroundJob;
 
 use DateTimeImmutable;
-use OCA\Learniq\Service\EngagementScoreEvaluator;
+use OCA\Learniq\Kernel\Contracts\EngagementScoreEvaluatorInterface;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -71,14 +71,14 @@ class EngagementSignalJob extends ForwardedJob {
 	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface          $logger        Logger; the base declares it protected.
 	 * @param ObjectService            $objectService OR object access.
-	 * @param EngagementScoreEvaluator $evaluator     Score calculation engine.
+	 * @param EngagementScoreEvaluatorInterface $evaluator     Score calculation engine.
 	 * @param ITimeFactory             $timeFactory   Clock for the written timestamps.
 	 */
 	public function __construct(
 		ActorForwarding $forwarding,
 		LoggerInterface $logger,
 		private readonly ObjectService $objectService,
-		private readonly EngagementScoreEvaluator $evaluator,
+		private readonly EngagementScoreEvaluatorInterface $evaluator,
 		private readonly ITimeFactory $timeFactory,
 	) {
 		parent::__construct(forwarding: $forwarding, logger: $logger);

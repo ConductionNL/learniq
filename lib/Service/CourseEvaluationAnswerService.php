@@ -35,8 +35,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\Support\SerialisedRow;
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\CourseEvaluationAnswerServiceInterface;
+use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -48,7 +49,7 @@ use Throwable;
  *
  * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
  */
-class CourseEvaluationAnswerService {
+class CourseEvaluationAnswerService implements CourseEvaluationAnswerServiceInterface {
 
 	/**
 	 * The register every evaluation object lives in.

@@ -36,6 +36,7 @@ use RuntimeException;
  * @covers \OCA\Learniq\Service\SessionChangeBatchService
  * @uses   \OCA\Learniq\Timetabling\SessionSeries
  * @uses   \OCA\Learniq\Timetabling\SessionChangeInput
+ * @uses   \OCA\Learniq\Support\ObjectRow
  */
 class SessionChangeBatchGoldenTest extends TestCase {
 	use GoldenFile;

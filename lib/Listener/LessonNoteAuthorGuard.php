@@ -36,7 +36,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Service\StaffGroupCheck;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
@@ -73,7 +73,7 @@ class LessonNoteAuthorGuard implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the event entity's schema slug.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the event entity's schema slug.
 	 * @param IUserSession           $userSession    The acting user.
 	 * @param IGroupManager          $groupManager   Admin and staff checks.
 	 * @param ObjectService          $objectService  Reads the lesson and its cohort.
@@ -82,7 +82,7 @@ class LessonNoteAuthorGuard implements IEventListener {
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
 		private readonly ObjectService $objectService,

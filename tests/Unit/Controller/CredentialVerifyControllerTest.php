@@ -30,6 +30,7 @@ use OCA\Learniq\Controller\CredentialVerifyController;
 use OCA\Learniq\Service\JwsProofVerifier;
 use OCA\Learniq\Service\KeyManagementService;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 use RuntimeException;
@@ -267,6 +268,57 @@ class CredentialVerifyControllerTest extends TestCase {
 		self::assertArrayHasKey('revocationReason', $data);
 		self::assertSame('2026-03-15T10:00:00+00:00', $data['revokedAt']);
 	}//end testVerifyReturnsRevocationDataForRevokedCredential()
+
+	/**
+	 * An ambiguous id is answered as an unknown one: 404, and the guess is counted.
+	 *
+	 * @return void
+	 */
+	public function testVerifyTranslatesMultipleObjectsReturnedTo404AndThrottles(): void {
+		$this->objectService->method('find')->willThrowException(new MultipleObjectsReturnedException('two credentials'));
+		$this->throttler->expects(self::once())->method('registerAttempt');
+
+		$response = $this->controller->verify('ambiguous');
+
+		self::assertSame(404, $response->getStatus());
+		self::assertSame(['valid' => false, 'error' => 'not_found'], $response->getData());
+	}//end testVerifyTranslatesMultipleObjectsReturnedTo404AndThrottles()
+
+	/**
+	 * A credential that is neither issued nor revoked is answered with its dates and issuer, but not valid.
+	 *
+	 * @return void
+	 */
+	public function testVerifyAnswersANonIssuedCredentialAsNotValid(): void {
+		$this->objectService->method('find')->willReturn($this->stubEntity([
+			'lifecycle' => 'suspended',
+			'issuedAt' => '2025-01-01T00:00:00+00:00',
+			'issuedBy' => 'Test School',
+		]));
+		$this->throttler->expects(self::never())->method('registerAttempt');
+
+		$response = $this->controller->verify('cred-uuid-009');
+
+		self::assertSame(200, $response->getStatus());
+		self::assertSame(
+			['valid' => false, 'issuedAt' => '2025-01-01T00:00:00+00:00', 'expiresAt' => null, 'issuerName' => 'Test School'],
+			$response->getData()
+		);
+	}//end testVerifyAnswersANonIssuedCredentialAsNotValid()
+
+	/**
+	 * A revoked credential without a recorded reason or date answers nulls for them, without checking a proof.
+	 *
+	 * @return void
+	 */
+	public function testVerifyAnswersARevokedCredentialWithoutDetails(): void {
+		$this->objectService->method('find')->willReturn($this->stubEntity(['lifecycle' => 'revoked']));
+		$this->keyManagementService->expects(self::never())->method('resolvePublicKeyByFingerprint');
+
+		$response = $this->controller->verify('cred-uuid-010');
+
+		self::assertSame(['valid' => false, 'revokedAt' => null, 'revocationReason' => null], $response->getData());
+	}//end testVerifyAnswersARevokedCredentialWithoutDetails()
 
 	/**
 	 * An unknown credential ID returns {valid:false} with HTTP 404.

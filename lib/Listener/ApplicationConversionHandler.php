@@ -52,8 +52,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\Programme\ProgrammeRequirements;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ProgrammeRequirementsInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
@@ -82,8 +82,8 @@ class ApplicationConversionHandler implements IEventListener {
 	 * @param ObjectService $objectService OR object access service.
 	 * @param TransitionEngine $transitionEngine OR lifecycle engine used to dispatch the `convert` transition.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
-	 * @param ProgrammeRequirements $requirements Which programme parts are mandatory by default.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ProgrammeRequirementsInterface $requirements Which programme parts are mandatory by default.
 	 *
 	 * @return void
 	 */
@@ -91,8 +91,8 @@ class ApplicationConversionHandler implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly TransitionEngine $transitionEngine,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
-		private readonly ProgrammeRequirements $requirements,
+		private readonly ListenerSchemaResolverInterface $schemas,
+		private readonly ProgrammeRequirementsInterface $requirements,
 	) {
 	}//end __construct()
 

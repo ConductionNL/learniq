@@ -29,7 +29,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\OpeningHoursSettingsInterface;
 use OCP\IAppConfig;
 
 /**
@@ -37,7 +38,7 @@ use OCP\IAppConfig;
  *
  * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
  */
-class OpeningHoursSettings {
+class OpeningHoursSettings implements OpeningHoursSettingsInterface {
 
 	public const CONFIG_KEY = 'room_opening_hours';
 
@@ -84,7 +85,7 @@ class OpeningHoursSettings {
 	 * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
 	 */
 	public function get(): array {
-		$decoded = json_decode($this->appConfig->getValueString(Application::APP_ID, self::CONFIG_KEY, ''), true);
+		$decoded = json_decode($this->appConfig->getValueString(AppIdentity::APP_ID, self::CONFIG_KEY, ''), true);
 		if (is_array($decoded) === false || $this->validate(value: $decoded) !== null) {
 			return $this->defaults();
 		}
@@ -136,7 +137,7 @@ class OpeningHoursSettings {
 	 */
 	public function save(array $value): array {
 		$clean = $this->clean(value: $value);
-		$this->appConfig->setValueString(Application::APP_ID, self::CONFIG_KEY, (string)json_encode($clean));
+		$this->appConfig->setValueString(AppIdentity::APP_ID, self::CONFIG_KEY, (string)json_encode($clean));
 		return $clean;
 	}//end save()
 

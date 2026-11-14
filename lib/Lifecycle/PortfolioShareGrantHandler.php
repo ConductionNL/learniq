@@ -55,9 +55,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Service\ObjectRowReader;
+use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -104,7 +104,7 @@ class PortfolioShareGrantHandler implements IEventListener, LifecycleGuardInterf
 	 * @param IManager $shareManager NC share manager for the teacher-kind NC Files share.
 	 * @param IRootFolder $rootFolder NC root folder for resolving attachmentRef paths to Nodes.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -113,7 +113,7 @@ class PortfolioShareGrantHandler implements IEventListener, LifecycleGuardInterf
 		private readonly IManager $shareManager,
 		private readonly IRootFolder $rootFolder,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 

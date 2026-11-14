@@ -46,7 +46,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Service\ObjectRowReader;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -80,14 +80,14 @@ class PortfolioGradeEmitHandler implements IEventListener {
 	 *
 	 * @param ObjectService $objectService OR object access service.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 		$this->rows = new ObjectRowReader(objectService: $objectService);
 	}//end __construct()
@@ -135,12 +135,39 @@ class PortfolioGradeEmitHandler implements IEventListener {
 	private function emitGradeEntry(ObjectTransitionedEvent $event): void {
 		$portfolio = $event->getObject()->jsonSerialize();
 		$portfolioId = $portfolio['id'] ?? ($portfolio['uuid'] ?? '');
+
+		if ($this->mayEmit(portfolio: $portfolio, portfolioId: $portfolioId) === false) {
+			return;
+		}
+
+		$saved = $this->objectService->saveObject(
+			register: self::LEARNIQ_REGISTER,
+			schema: self::GRADE_ENTRY_SCHEMA,
+			object: $this->gradeEntryFor(portfolio: $portfolio, portfolioId: $portfolioId, grader: $event->getUserId() ?? '')
+		);
+
+		$gradeEntryId = $saved->jsonSerialize()['id'] ?? null;
+
+		if ($gradeEntryId === null) {
+			return;
+		}
+
+		$this->linkGradeEntry(portfolio: $portfolio, portfolioId: $portfolioId, gradeEntryId: $gradeEntryId);
+
+	}//end emitGradeEntry()
+
+	/**
+	 * Whether a GradeEntry may be emitted: none exists yet and the required fields are present.
+	 *
+	 * @param array<string, mixed> $portfolio   The graded Portfolio.
+	 * @param mixed                $portfolioId The Portfolio's id, for the log.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/specs/eportfolio/spec.md#scenario-re-triggering-the-graded-transition-does-not-create-a-duplicate-gradeentry
+	 */
+	private function mayEmit(array $portfolio, mixed $portfolioId): bool {
 		$existingId = $portfolio['gradeEntryId'] ?? null;
-		$learnerId = $portfolio['learnerId'] ?? '';
-		$curriculumId = $portfolio['curriculumPlanId'] ?? '';
-		$componentId = $portfolio['curriculumPlanComponentId'] ?? '';
-		$gradeValue = $portfolio['gradeValue'] ?? null;
-		$tenantId = $portfolio['tenant_id'] ?? '';
 
 		// Idempotency: never create a duplicate when gradeEntryId is already set.
 		if ($existingId !== null && $existingId !== '') {
@@ -148,50 +175,67 @@ class PortfolioGradeEmitHandler implements IEventListener {
 				'[PortfolioGradeEmitHandler] Portfolio {id} already has gradeEntryId {geid}; skipping.',
 				['id' => $portfolioId, 'geid' => $existingId]
 			);
-			return;
+			return false;
 		}
 
-		if ($learnerId === '' || $curriculumId === '' || $componentId === '' || $gradeValue === null) {
+		if (($portfolio['learnerId'] ?? '') === ''
+			|| ($portfolio['curriculumPlanId'] ?? '') === ''
+			|| ($portfolio['curriculumPlanComponentId'] ?? '') === ''
+			|| ($portfolio['gradeValue'] ?? null) === null
+		) {
 			$this->logger->warning(
 				'[PortfolioGradeEmitHandler] Graded Portfolio {id} missing learnerId/curriculumPlanId/'
 				. 'curriculumPlanComponentId/gradeValue — cannot emit GradeEntry.',
 				['id' => $portfolioId]
 			);
-			return;
+			return false;
 		}
 
-		$curriculumPlan = $this->loadObject(schema: self::CURRICULUM_SCHEMA, id: $curriculumId);
-		$gradeScaleId = $curriculumPlan['gradeScaleId'] ?? '';
+		return true;
 
-		$gradeEntry = [
-			'learnerId' => $learnerId,
+	}//end mayEmit()
+
+	/**
+	 * The concept GradeEntry a graded Portfolio bridges to.
+	 *
+	 * @param array<string, mixed> $portfolio   The graded Portfolio.
+	 * @param mixed                $portfolioId The Portfolio's id.
+	 * @param string               $grader      The user who graded it.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/specs/eportfolio/spec.md#scenario-transitioning-a-course-bound-portfolio-to-graded-emits-a-concept-gradeentry
+	 */
+	private function gradeEntryFor(array $portfolio, mixed $portfolioId, string $grader): array {
+		$curriculumId = $portfolio['curriculumPlanId'];
+		$curriculumPlan = $this->loadObject(schema: self::CURRICULUM_SCHEMA, id: $curriculumId);
+
+		return [
+			'learnerId' => $portfolio['learnerId'],
 			'curriculumPlanId' => $curriculumId,
-			'componentId' => $componentId,
+			'componentId' => $portfolio['curriculumPlanComponentId'],
 			'sourceKind' => 'portfolio',
 			'portfolioId' => $portfolioId,
-			'value' => (float)$gradeValue,
-			'gradeScaleId' => $gradeScaleId,
-			'grader' => $event->getUserId() ?? '',
+			'value' => (float)$portfolio['gradeValue'],
+			'gradeScaleId' => $curriculumPlan['gradeScaleId'] ?? '',
+			'grader' => $grader,
 			'gradedAt' => (new DateTimeImmutable())->format(\DATE_ATOM),
-			'tenant_id' => $tenantId,
+			'tenant_id' => $portfolio['tenant_id'] ?? '',
 			'lifecycle' => 'concept',
 		];
 
-		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::GRADE_ENTRY_SCHEMA,
-			object: $gradeEntry
-		);
+	}//end gradeEntryFor()
 
-		$savedData = $saved->jsonSerialize();
-
-		$gradeEntryId = $savedData['id'] ?? null;
-
-		if ($gradeEntryId === null) {
-			return;
-		}
-
-		// Back-link the GradeEntry to the Portfolio.
+	/**
+	 * Back-link the GradeEntry onto the Portfolio.
+	 *
+	 * @param array<string, mixed> $portfolio    The graded Portfolio.
+	 * @param mixed                $portfolioId  The Portfolio's id, for the log.
+	 * @param mixed                $gradeEntryId The created GradeEntry's id.
+	 *
+	 * @return void
+	 */
+	private function linkGradeEntry(array $portfolio, mixed $portfolioId, mixed $gradeEntryId): void {
 		$this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: self::PORTFOLIO_SCHEMA,
@@ -204,12 +248,12 @@ class PortfolioGradeEmitHandler implements IEventListener {
 			[
 				'id' => $portfolioId,
 				'geid' => $gradeEntryId,
-				'learner' => $learnerId,
-				'component' => $componentId,
+				'learner' => $portfolio['learnerId'],
+				'component' => $portfolio['curriculumPlanComponentId'],
 			]
 		);
 
-	}//end emitGradeEntry()
+	}//end linkGradeEntry()
 
 	/**
 	 * Load a single OpenRegister object by id.

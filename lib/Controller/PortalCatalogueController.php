@@ -36,16 +36,16 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Portal\PortalAssertionVerifier;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CatalogueMessagesInterface;
+use OCA\Learniq\Kernel\Contracts\CatalogueSignUpServiceInterface;
+use OCA\Learniq\Kernel\Contracts\PortalAssertionVerifierInterface;
+use OCA\Learniq\Kernel\Contracts\PortalLearnerResolverInterface;
 use OCA\Learniq\Portal\PortalForwardFailure;
 use OCA\Learniq\Portal\PortalForwardGate;
 use OCA\Learniq\Portal\PortalLearnerForward;
 use OCA\Learniq\Portal\PortalLearnerStep;
-use OCA\Learniq\Service\Catalogue\CatalogueMessages;
-use OCA\Learniq\Service\Catalogue\CatalogueSignUpService;
 use OCA\Learniq\Service\Portal\PortalLearner;
-use OCA\Learniq\Service\Portal\PortalLearnerResolver;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -74,23 +74,23 @@ class PortalCatalogueController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest                $request  The request.
-	 * @param PortalAssertionVerifier $verifier Verifies X-Portal-Subject.
-	 * @param PortalLearnerResolver   $learners learnerRef to the pupil.
-	 * @param CatalogueSignUpService  $signUps  The catalogue, sign-up and withdraw rules.
-	 * @param CatalogueMessages       $messages Plain refusal reasons.
+	 * @param PortalAssertionVerifierInterface $verifier Verifies X-Portal-Subject.
+	 * @param PortalLearnerResolverInterface   $learners learnerRef to the pupil.
+	 * @param CatalogueSignUpServiceInterface  $signUps  The catalogue, sign-up and withdraw rules.
+	 * @param CatalogueMessagesInterface       $messages Plain refusal reasons.
 	 * @param LoggerInterface         $logger   PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly PortalAssertionVerifier $verifier,
-		private readonly PortalLearnerResolver $learners,
-		private readonly CatalogueSignUpService $signUps,
-		private readonly CatalogueMessages $messages,
+		private readonly PortalAssertionVerifierInterface $verifier,
+		private readonly PortalLearnerResolverInterface $learners,
+		private readonly CatalogueSignUpServiceInterface $signUps,
+		private readonly CatalogueMessagesInterface $messages,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

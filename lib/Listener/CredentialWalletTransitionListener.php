@@ -35,9 +35,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\WalletClaimSyncService;
-use OCA\Learniq\Service\WalletOfferDelegationService;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\WalletClaimSyncServiceInterface;
+use OCA\Learniq\Kernel\Contracts\WalletOfferDelegationServiceInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -61,19 +61,19 @@ class CredentialWalletTransitionListener implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object service, to save the Credential.
-	 * @param WalletClaimSyncService $claimService Writes the wallet claim.
-	 * @param WalletOfferDelegationService $offerService Pushes the wallet offer.
+	 * @param WalletClaimSyncServiceInterface $claimService Writes the wallet claim.
+	 * @param WalletOfferDelegationServiceInterface $offerService Pushes the wallet offer.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly WalletClaimSyncService $claimService,
-		private readonly WalletOfferDelegationService $offerService,
+		private readonly WalletClaimSyncServiceInterface $claimService,
+		private readonly WalletOfferDelegationServiceInterface $offerService,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 

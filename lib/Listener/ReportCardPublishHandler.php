@@ -39,8 +39,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\ReportSubjectGradeRows;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ReportSubjectGradeRowsInterface;
 use OCA\Learniq\Support\EntityRow;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -71,9 +71,9 @@ class ReportCardPublishHandler implements IEventListener {
 	 * @param ObjectService $objectService OR object access service.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 * @param IFactory $l10nFactory The instance's language, for the readable subject of the notice.
-	 * @param ReportSubjectGradeRows $subjectRows Writes the card's per-subject rows for the parent portal.
+	 * @param ReportSubjectGradeRowsInterface $subjectRows Writes the card's per-subject rows for the parent portal.
 	 *
 	 * @return void
 	 */
@@ -81,9 +81,9 @@ class ReportCardPublishHandler implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly ITimeFactory $timeFactory,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 		private readonly IFactory $l10nFactory,
-		private readonly ReportSubjectGradeRows $subjectRows,
+		private readonly ReportSubjectGradeRowsInterface $subjectRows,
 	) {
 	}//end __construct()
 
@@ -144,29 +144,8 @@ class ReportCardPublishHandler implements IEventListener {
 			return;
 		}
 
-		// LearnerProfile keys the pupil on ncUserId; it has no learnerId, and a
-		// filter on an undeclared property matches nothing. Read without RBAC:
-		// the publisher may not read LearnerProfile, and only parentIds is used.
-		$profiles = $this->objectService->findAll(
-			[
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::LEARNER_PROFILE_SCHEMA,
-					'ncUserId' => $learnerId,
-				],
-				'limit' => 1,
-			],
-			_rbac: false
-		);
-
-		if (empty($profiles) === true) {
-			return;
-		}
-
-		$profile = $this->normalise(row: $profiles[0]);
-		$parentIds = $profile['parentIds'] ?? [];
-
-		if (is_array($parentIds) === false || empty($parentIds) === true) {
+		$profile = $this->profileWithParents(learnerId: $learnerId);
+		if ($profile === null) {
 			return;
 		}
 
@@ -180,7 +159,7 @@ class ReportCardPublishHandler implements IEventListener {
 
 		$notifiedCount = 0;
 
-		foreach ($parentIds as $parentId) {
+		foreach ($profile['parentIds'] as $parentId) {
 			if (empty($parentId) === true) {
 				continue;
 			}
@@ -209,6 +188,47 @@ class ReportCardPublishHandler implements IEventListener {
 		);
 
 	}//end fanOutParentNotifications()
+
+	/**
+	 * The learner's LearnerProfile when it lists at least one parent, else null.
+	 *
+	 * LearnerProfile keys the pupil on ncUserId; it has no learnerId, and a
+	 * filter on an undeclared property matches nothing. Read without RBAC:
+	 * the publisher may not read LearnerProfile, and only parentIds is used.
+	 *
+	 * @param string $learnerId The learner's Nextcloud user id.
+	 *
+	 * @return array<string, mixed>|null The profile, its `parentIds` a non-empty array.
+	 *
+	 * @spec openspec/specs/report-card/spec.md#requirement-report-card-parent-notifications-find-the-learners-profile-on-ncuserid
+	 */
+	private function profileWithParents(string $learnerId): ?array {
+		$profiles = $this->objectService->findAll(
+			[
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LEARNER_PROFILE_SCHEMA,
+					'ncUserId' => $learnerId,
+				],
+				'limit' => 1,
+			],
+			_rbac: false
+		);
+
+		if (empty($profiles) === true) {
+			return null;
+		}
+
+		$profile = $this->normalise(row: $profiles[0]);
+		$parentIds = $profile['parentIds'] ?? [];
+
+		if (is_array($parentIds) === false || empty($parentIds) === true) {
+			return null;
+		}
+
+		return $profile;
+
+	}//end profileWithParents()
 
 	/**
 	 * Normalise an ObjectService row to a plain array.

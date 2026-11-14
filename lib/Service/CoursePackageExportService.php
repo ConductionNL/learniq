@@ -46,6 +46,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\CoursePackageExportServiceInterface;
 use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Files\File;
@@ -57,7 +58,7 @@ use RuntimeException;
 /**
  * Builds Common Cartridge and scholiq-native JSON exports of a `Course`.
  */
-class CoursePackageExportService {
+class CoursePackageExportService implements CoursePackageExportServiceInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 

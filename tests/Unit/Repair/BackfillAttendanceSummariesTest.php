@@ -105,6 +105,62 @@ class BackfillAttendanceSummariesTest extends TestCase {
 	}//end testAFailingReadDoesNotFailTheUpgrade()
 
 	/**
+	 * A learner whose recount throws is logged and counted as failed; the others are still saved.
+	 *
+	 * @return void
+	 */
+	public function testAFailingLearnerIsCountedAndTheRestContinue(): void {
+		$records = [
+			['learnerId' => 'pupil-a', 'sessionId' => 's-1', 'tenant_id' => 't', 'learnerRef' => 'ref-a', 'status' => 'present'],
+			['learnerId' => 'pupil-b', 'sessionId' => 's-2', 'tenant_id' => 't', 'learnerRef' => 'ref-b', 'status' => 'late'],
+		];
+		$objects = $this->createMock(ObjectService::class);
+		$objects->method('findAll')->willReturnCallback(
+			static fn (array $config=[]): array => array_map(
+				static fn (array $r) => OrEntityFactory::make($r, 'attendance-record'),
+				array_slice($records, $config['offset'], $config['limit'])
+			)
+		);
+		$service = $this->createMock(AttendanceSummaryService::class);
+		$service->method('schoolYearsOf')->willReturn(['2026-2027']);
+		$service->method('recompute')->willReturnCallback(
+			static function (string $learnerId): int {
+				if ($learnerId === 'pupil-a') {
+					throw new RuntimeException('summary schema missing');
+				}
+
+				return 2;
+			}
+		);
+		$logger = $this->createMock(\Psr\Log\LoggerInterface::class);
+		$logger->expects(self::once())
+			->method('warning')
+			->with(
+				'[BackfillAttendanceSummaries] Could not count {learner}: {msg}',
+				['learner' => 'pupil-a', 'msg' => 'summary schema missing']
+			);
+
+		(new BackfillAttendanceSummaries(objectService: $objects, summaries: $service, logger: $logger))->run($this->repairOutput());
+
+		self::assertSame(['BackfillAttendanceSummaries: 2 saved, 1 failed, for 2 learners.'], $this->messages);
+	}//end testAFailingLearnerIsCountedAndTheRestContinue()
+
+	/**
+	 * The step names what it does.
+	 *
+	 * @return void
+	 */
+	public function testNameSaysWhatIsCounted(): void {
+		$step = new BackfillAttendanceSummaries(
+			objectService: $this->createMock(ObjectService::class),
+			summaries: $this->createMock(AttendanceSummaryService::class),
+			logger: new NullLogger()
+		);
+
+		self::assertSame('Count absences and late arrivals per learner per school year', $step->getName());
+	}//end testNameSaysWhatIsCounted()
+
+	/**
 	 * A repair output that records its messages.
 	 *
 	 * @return IOutput

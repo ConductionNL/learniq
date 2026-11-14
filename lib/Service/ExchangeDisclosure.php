@@ -26,6 +26,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ExchangeDisclosureInterface;
+
 /**
  * Per-mapping field lists (design D2).
  *
@@ -36,10 +38,9 @@ namespace OCA\Learniq\Service;
  *
  * @spec openspec/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
  */
-class ExchangeDisclosure {
+class ExchangeDisclosure implements ExchangeDisclosureInterface {
 
 	public const ROD_LEARNER_MAPPING = 'learniq-bron-rod-export-learner';
-	public const ROD_SCHOOL_ADVICE_MAPPING = 'learniq-bron-rod-export-schooladvies';
 
 	/**
 	 * DUO's AanleverenAdviesVO field set (PvE ROD-PO 1.14.2, 7.9.1), and nothing else.

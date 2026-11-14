@@ -60,11 +60,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Service\ConferenceBookingMode;
 use OCA\Learniq\Service\ConferenceSignupRequest;
 use OCA\Learniq\Service\ConferenceSlotPass;
 use OCA\Learniq\Service\ConferenceSlotSlicer;
-use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Support\EntityRow;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -101,7 +101,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 *
 	 * @param ObjectService $objectService OR object access service.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 * @param IUserManager|null $users The teacher's display name for the parent portal (direct-conference-booking).
 	 *
 	 * @return void
@@ -109,7 +109,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 		private readonly ?IUserManager $users=null,
 	) {
 	}//end __construct()

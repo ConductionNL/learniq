@@ -32,10 +32,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
+use OCA\Learniq\Listener\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\CorrectionAppliedHandler;
 use OCA\Learniq\Listener\GradeRollupHandler;
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Tests\Support\ContractImplementations;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\TransitionScope;
 use OCA\OpenRegister\Db\ObjectEntity;
@@ -196,6 +197,7 @@ class CorrectionAppliedAfterRollupFailureTest extends TestCase {
 	 * @return object
 	 */
 	private function build(string $class, array $known): object {
+		$class = ContractImplementations::concrete($class);
 		if (isset($known[$class]) === true) {
 			return $known[$class];
 		}

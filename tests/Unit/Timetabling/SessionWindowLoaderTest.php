@@ -33,6 +33,7 @@ use PHPUnit\Framework\TestCase;
  *
  * @covers \OCA\Learniq\Timetabling\SessionWindowLoader
  * @uses   \OCA\Learniq\Timetabling\ConflictScan
+ * @uses   \OCA\Learniq\Support\EntityRow
  */
 class SessionWindowLoaderTest extends TestCase {
 

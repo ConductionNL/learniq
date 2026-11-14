@@ -30,7 +30,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\LessonOnboarding;
 
 use InvalidArgumentException;
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\OnboardingFolderSettingInterface;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -40,7 +41,7 @@ use OCP\IConfig;
 /**
  * Reads and stores a teacher's lesson onboarding folder.
  */
-class OnboardingFolderSetting {
+class OnboardingFolderSetting implements OnboardingFolderSettingInterface {
 
 	/**
 	 * Per-user config key holding the folder's file id.
@@ -73,7 +74,7 @@ class OnboardingFolderSetting {
 	 * @spec openspec/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
 	 */
 	public function folderId(string $userId): int {
-		$value = $this->config->getUserValue($userId, Application::APP_ID, self::CONFIG_KEY, '');
+		$value = $this->config->getUserValue($userId, AppIdentity::APP_ID, self::CONFIG_KEY, '');
 		if (is_numeric($value) === false) {
 			return 0;
 		}
@@ -124,7 +125,7 @@ class OnboardingFolderSetting {
 	public function choose(string $userId, string $path): array {
 		$path = trim($path);
 		if ($path === '') {
-			$this->config->deleteUserValue($userId, Application::APP_ID, self::CONFIG_KEY);
+			$this->config->deleteUserValue($userId, AppIdentity::APP_ID, self::CONFIG_KEY);
 			return ['folderId' => null, 'path' => null];
 		}
 
@@ -143,7 +144,7 @@ class OnboardingFolderSetting {
 			throw new InvalidArgumentException('Choose one folder inside your files, not all of your files.');
 		}
 
-		$this->config->setUserValue($userId, Application::APP_ID, self::CONFIG_KEY, (string)$node->getId());
+		$this->config->setUserValue($userId, AppIdentity::APP_ID, self::CONFIG_KEY, (string)$node->getId());
 
 		return ['folderId' => (int)$node->getId(), 'path' => $userFolder->getRelativePath($node->getPath())];
 	}//end choose()

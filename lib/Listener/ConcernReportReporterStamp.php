@@ -38,8 +38,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\LearnerRefResolver;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\EventDispatcher\Event;
@@ -70,16 +70,16 @@ class ConcernReportReporterStamp implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
-	 * @param LearnerRefResolver     $profiles       LearnerProfile by user id and by uuid.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
+	 * @param LearnerRefResolverInterface     $profiles       LearnerProfile by user id and by uuid.
 	 * @param IUserSession           $userSession    The signed-in user.
 	 * @param LoggerInterface        $logger         PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly LearnerRefResolver $profiles,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		private readonly LearnerRefResolverInterface $profiles,
 		private readonly IUserSession $userSession,
 		private readonly LoggerInterface $logger,
 	) {

@@ -40,6 +40,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ExchangeImportLandingInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use Throwable;
@@ -49,12 +50,7 @@ use Throwable;
  *
  * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
  */
-class ExchangeImportLanding {
-
-	/**
-	 * The targets this service lands.
-	 */
-	public const TARGETS = ['lvs-results', 'oso', 'migration-import'];
+class ExchangeImportLanding implements ExchangeImportLandingInterface {
 
 	private const REGISTER = 'learniq';
 

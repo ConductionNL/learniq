@@ -37,6 +37,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\CoursePackageImportServiceInterface;
 use OCA\Learniq\Service\CoursePackage\ArchivePackage;
 use OCA\Learniq\Service\CoursePackage\CoursePackageImporters;
 use OCA\Learniq\Service\CoursePackage\CoursePackageOutput;
@@ -49,7 +50,7 @@ use Psr\Log\LoggerInterface;
  * Orchestrates course-package import: format detection, extraction,
  * manifest-driven object creation, and the resulting import report.
  */
-class CoursePackageImportService {
+class CoursePackageImportService implements CoursePackageImportServiceInterface {
 
 	private const FORMAT_COMMON_CARTRIDGE = 'common-cartridge-1.3';
 	private const FORMAT_MOODLE_BACKUP = 'moodle-backup';

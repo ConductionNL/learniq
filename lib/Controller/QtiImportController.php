@@ -33,11 +33,11 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use Closure;
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
+use OCA\Learniq\Kernel\Contracts\QtiImportServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerActions;
-use OCA\Learniq\Service\CallerTenantResolver;
-use OCA\Learniq\Service\QtiImportService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -78,21 +78,21 @@ class QtiImportController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest $request HTTP request.
-	 * @param QtiImportService $qtiImportService QTI import service.
+	 * @param QtiImportServiceInterface $qtiImportService QTI import service.
 	 * @param CallerActions $caller The user session and the ADR-023 action matrix.
-	 * @param CallerTenantResolver $tenants Resolves the tenant: the per-user binding, else the default tenant.
+	 * @param CallerTenantResolverInterface $tenants Resolves the tenant: the per-user binding, else the default tenant.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly QtiImportService $qtiImportService,
+		private readonly QtiImportServiceInterface $qtiImportService,
 		CallerActions $caller,
-		private readonly CallerTenantResolver $tenants,
+		private readonly CallerTenantResolverInterface $tenants,
 	) {
 		$this->userSession = $caller->userSession;
 		$this->actionAuth = $caller->actionAuth;
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

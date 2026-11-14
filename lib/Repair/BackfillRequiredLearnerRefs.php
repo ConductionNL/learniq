@@ -33,9 +33,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
 use OCA\Learniq\Repair\Support\RepairRowWalk;
 use OCA\Learniq\Repair\Support\RepairTally;
-use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -64,14 +64,14 @@ class BackfillRequiredLearnerRefs implements IRepairStep {
 	 * Constructor.
 	 *
 	 * @param ObjectService      $objectService OpenRegister object access.
-	 * @param LearnerRefResolver $learnerRefs   Nextcloud user id to learner profile uuid.
+	 * @param LearnerRefResolverInterface $learnerRefs   Nextcloud user id to learner profile uuid.
 	 * @param LoggerInterface    $logger        PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly LearnerRefResolver $learnerRefs,
+		private readonly LearnerRefResolverInterface $learnerRefs,
 		private readonly LoggerInterface $logger,
 	) {
 		$this->rows = new RepairRowWalk(objectService: $objectService, logger: $logger, label: 'BackfillRequiredLearnerRefs');

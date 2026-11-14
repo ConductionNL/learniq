@@ -22,7 +22,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\LoadedExampleSetsInterface;
 use OCP\IAppConfig;
 
 /**
@@ -37,7 +38,7 @@ use OCP\IAppConfig;
  *
  * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
  */
-class LoadedExampleSets {
+class LoadedExampleSets implements LoadedExampleSetsInterface {
 	/**
 	 * App-config key holding the loaded sets as a JSON list of `{id, label}`.
 	 *
@@ -75,7 +76,7 @@ class LoadedExampleSets {
 	 * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
 	 */
 	public function all(): array {
-		$raw     = $this->appConfig->getValueString(Application::APP_ID, self::CONFIG_KEY, '');
+		$raw     = $this->appConfig->getValueString(AppIdentity::APP_ID, self::CONFIG_KEY, '');
 		$decoded = json_decode($raw, true);
 		if (is_array($decoded) === false) {
 			return [];
@@ -236,6 +237,6 @@ class LoadedExampleSets {
 	 * @return void
 	 */
 	private function store(array $sets): void {
-		$this->appConfig->setValueString(Application::APP_ID, self::CONFIG_KEY, (string)json_encode($sets));
+		$this->appConfig->setValueString(AppIdentity::APP_ID, self::CONFIG_KEY, (string)json_encode($sets));
 	}//end store()
 }//end class

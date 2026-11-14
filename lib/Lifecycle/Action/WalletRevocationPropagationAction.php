@@ -36,7 +36,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle\Action;
 
-use OCA\Learniq\Service\WalletRevocationPropagationService;
+use OCA\Learniq\Kernel\Contracts\WalletRevocationPropagationServiceInterface;
 use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 
@@ -50,12 +50,12 @@ class WalletRevocationPropagationAction implements LifecycleActionInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param WalletRevocationPropagationService $propagationService The wallet revocation bridge.
+	 * @param WalletRevocationPropagationServiceInterface $propagationService The wallet revocation bridge.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly WalletRevocationPropagationService $propagationService,
+		private readonly WalletRevocationPropagationServiceInterface $propagationService,
 	) {
 	}//end __construct()
 
