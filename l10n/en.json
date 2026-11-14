@@ -5235,7 +5235,13 @@
         "VAT rate": "VAT rate",
         "Price note": "Price note",
         "Invoice": "Invoice",
-        "Invoice status": "Invoice status"
+        "Invoice status": "Invoice status",
+        "Test schedule": "Test schedule",
+        "Department and year": "Department and year",
+        "Public": "Public",
+        "What to bring": "What to bring",
+        "Whether the school shows this test week's schedule on its public website (portal-public-index): day, time, subject, room, department and year of each sitting, never a name.": "Whether the school shows this test week's schedule on its public website (portal-public-index): day, time, subject, room, department and year of each sitting, never a name.",
+        "What pupils bring to every sitting of this test week, shown with the public schedule when the website block asks for it.": "What pupils bring to every sitting of this test week, shown with the public schedule when the website block asks for it."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

@@ -138,6 +138,8 @@ SCHEMAS = [
     "peer-review",
     "item-bank",
     "item",
+    # The public test week (add_public_test_week, portal-public-index): appended for the same reason.
+    "exam-sitting",
 ]
 
 # The same fictional region as the primary school set, so both sets agree.
@@ -1619,6 +1621,7 @@ class SchoolYear:
         add_board_pupils(self.b, self.courses)
         add_lesson_and_store_boards(self.b, self.courses)
         add_guardian_and_item_bank_boards(self.b)
+        add_public_test_week(self.b, self.courses)
 
     def assemble(self) -> dict:
         """The profile file's content, without the private working fields."""
@@ -2611,6 +2614,47 @@ def add_guardian_and_item_bank_boards(b: Builder) -> None:
             **({"difficulty": difficulty} if difficulty is not None else {}),
         })
         bank["itemIds"].append(item["uuid"])
+
+
+# Toetsweek 1 of 2026-2027 as the Vaartveld Editor board's "Toetsrooster" block shows it for 4 havo: subject, day,
+# time slot (an index into SLOTS). Wiskunde A on Tuesday 10 November, 08.30 to 10.10, is the spec's scenario.
+PUBLIC_TEST_WEEK = ("Toetsweek 1", dt.date(2026, 11, 9), dt.date(2026, 11, 13))
+PUBLIC_SITTINGS_4H = [
+    ("NE", dt.date(2026, 11, 9), 0),
+    ("WA", dt.date(2026, 11, 10), 0),
+    ("EN", dt.date(2026, 11, 11), 1),
+    ("EC", dt.date(2026, 11, 12), 0),
+]
+
+
+def add_public_test_week(b: Builder, courses: dict) -> None:
+    """Toetsweek 1 of the story year, published and public, with the four papers of 4 havo in the aula
+    (portal-public-index T7): the test schedule the school's website shows. Runs last and draws no random number,
+    so no earlier uuid moves; the papers and sittings are new rows at the end of their buckets."""
+    cohort = next(c for c in b.buckets["cohort"] if c["name"] == "4H1")
+    aula = next(r for r in b.buckets["room"] if r.get("code") == "H0.01")
+    name, first, last = PUBLIC_TEST_WEEK
+    period = b.add("exam-period", {
+        "name": name, "startsOn": first.isoformat(), "endsOn": last.isoformat(),
+        "cohortIds": [cohort["uuid"]], "courseIds": [courses[s]["uuid"] for s, _d, _slot in PUBLIC_SITTINGS_4H],
+        "lifecycle": "published", "public": True,
+        "bringList": "Je schoolpas, pennen, een geodriehoek en een rekenmachine.",
+    })
+    for subject, day, slot in PUBLIC_SITTINGS_4H:
+        (sh, sm), (eh, em) = SLOTS[slot]
+        paper = b.add("exam", {
+            "title": f"Toetsweek 1: {SUBJECTS[subject][0].lower()}, 4 havo",
+            "description": f"Schriftelijke toets in de aula, {dutch_date(day)}.",
+            "courseId": courses[subject]["uuid"], "cohortId": cohort["uuid"],
+            "curriculumPlanComponentId": "tw1", "gradeEntryComponentId": "tw1",
+            "scoringScheme": "points", "timeLimitMinutes": 100, "maxAttempts": 1,
+            "availableFrom": stamp(day, sh, sm), "availableUntil": stamp(day, eh, em), "lifecycle": "published",
+        })
+        b.add("exam-sitting", {
+            "examPeriodId": period["uuid"], "assessmentId": paper["uuid"], "cohortIds": [cohort["uuid"]],
+            "startsAt": stamp(day, sh, sm), "endsAt": stamp(day, eh, em), "roomIds": [aula["uuid"]],
+            "headcount": len(cohort.get("learnerIds") or []), "invigilatorsNeeded": 2, "lifecycle": "planned",
+        })
 
 
 def stamp_group_labels(b: Builder) -> None:
