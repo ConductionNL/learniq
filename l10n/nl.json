@@ -5828,7 +5828,20 @@
         "Your answer is sent to the school.": "Uw antwoord is naar school gestuurd.",
         "Your choice": "Uw keuze",
         "When the attestation was signed. Stamped by the sign transition; part of the signed payload.": "Wanneer de verklaring is ondertekend. Vastgelegd bij het ondertekenen; maakt deel uit van de ondertekende gegevens.",
-        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Waarom een ondertekende verklaring is ingetrokken. Vastgelegd bij het intrekken, dat een lege reden weigert."
+        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Waarom een ondertekende verklaring is ingetrokken. Vastgelegd bij het intrekken, dat een lege reden weigert.",
+        "Permission slips": "Toestemmingen",
+        "Permission slip": "Toestemming",
+        "Answers": "Antwoorden",
+        "No learners asked": "Geen leerlingen gevraagd",
+        "Name the learners on the request to see who has answered.": "Noem de leerlingen op het verzoek om te zien wie heeft geantwoord.",
+        "{answered} of {asked} answered": "{answered} van {asked} beantwoord",
+        "Not answered counts as no.": "Niet geantwoord telt als nee.",
+        "Not answered counts as yes.": "Niet geantwoord telt als ja.",
+        "Nobody": "Niemand",
+        "Not answered": "Niet geantwoord",
+        "Answered yes": "Ja geantwoord",
+        "Answered no": "Nee geantwoord",
+        "The answers could not be loaded.": "De antwoorden konden niet worden geladen."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

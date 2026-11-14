@@ -6,7 +6,7 @@
 - [x] **T3**: the guardian's portal: collection `parentPermissionRequests` (through her existing child join) and action `answerPermissionRequest`, with the answer stamped to her own child
 - [x] **T4**: the request appears as a task on her overview with its deadline, like the conference booking already does
 - [x] **T5**: a school floor for the assurance level of an answer, defaulting to `basic`, refused below it with the required level named
-- [ ] **T6**: the teacher's screen: answered yes, answered no, not answered, per request
+- [x] **T6**: the teacher's screen: answered yes, answered no, not answered, per request
 - [ ] **T7**: e2e in `po-parent-flows.spec.ts`: the teacher opens a request, the guardian answers for her own child and not for another, the teacher sees the outcome
 - [ ] **T8**: example set: the po profile seeds one open request for Vera's group and one closed one
 
@@ -26,4 +26,11 @@
   answered, because the collection has no per-child answered state yet.
 - T5: `permission_answer_min_assurance` (default `basic`); below it the answer
   is refused with the required level named.
-- Left: T6 (the teacher's screen), T7 (Playwright), T8 (example set).
+- T6: `Permission slips` (`/permission-slips`, staff roles, school segment)
+  lists the requests; `PermissionRequestDetail` carries the close action and
+  the `PermissionRequestOutcome` body section: the learners the request names,
+  split into not answered, answered yes and answered no, by name, with whether
+  silence counts as no. The split is `utils/permissionOutcome.js`, pinned by
+  `tests/unit-js/permissionOutcome.test.mjs`; the latest answer per child
+  counts. Like T3, only `learnerRefs` are counted, not a bare `cohortId`.
+- Left: T7 (Playwright), T8 (example set).

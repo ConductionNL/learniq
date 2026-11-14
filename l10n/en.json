@@ -5304,7 +5304,20 @@
         "Your choice": "Your choice",
         "Signed At": "Signed At",
         "When the attestation was signed. Stamped by the sign transition; part of the signed payload.": "When the attestation was signed. Stamped by the sign transition; part of the signed payload.",
-        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason."
+        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.",
+        "Permission slips": "Permission slips",
+        "Permission slip": "Permission slip",
+        "Answers": "Answers",
+        "No learners asked": "No learners asked",
+        "Name the learners on the request to see who has answered.": "Name the learners on the request to see who has answered.",
+        "{answered} of {asked} answered": "{answered} of {asked} answered",
+        "Not answered counts as no.": "Not answered counts as no.",
+        "Not answered counts as yes.": "Not answered counts as yes.",
+        "Nobody": "Nobody",
+        "Not answered": "Not answered",
+        "Answered yes": "Answered yes",
+        "Answered no": "Answered no",
+        "The answers could not be loaded.": "The answers could not be loaded."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
