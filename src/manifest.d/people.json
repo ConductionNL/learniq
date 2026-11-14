@@ -2612,7 +2612,40 @@
 			"config": {
 				"register": "learniq",
 				"schema": "learner-profile",
-				"_note": "Board LqLeerling (G2): the overview stacks recent grades, the latest attendance, the learner as a card and what else is in the dossier (counts); the other lists are tabs; the contact card beside it. Mentor, guardians and the parent portal wait on lanes D/E (learner-list-and-page-follow-the-boards).",
+				"_note": "Board LqLeerling (G2): the overview stacks recent grades, the latest attendance, the learner as a card and what else is in the dossier (counts); the other lists are tabs; the contact card beside it. Mentor, guardians and the parent portal wait on lanes D/E (learner-list-and-page-follow-the-boards). Actions holds Merge into another account (learner-merge-page-action): on an active learner it asks for the surviving account from a picker of the other active learners, confirms, and runs the merge transition; LearnerMergeGuard refuses a pair with an open enrolment in the same course and the dialog shows its reason.",
+				"lifecycleActions": {
+					"field": "lifecycle",
+					"transitions": [
+						{
+							"from": "active",
+							"to": "merged",
+							"action": "merge",
+							"label": "Merge into another account",
+							"confirm": "Merge this learner into the account you picked? Their records move to that account and this one is closed.",
+							"variant": "error",
+							"inputs": [
+								{
+									"field": "mergedInto",
+									"required": true
+								}
+							]
+						}
+					],
+					"inputs": {
+						"merge": [
+							{
+								"field": "mergedInto",
+								"picker": {
+									"filter": {
+										"lifecycle": "active"
+									},
+									"excludeSelf": true,
+									"labelField": "fullName"
+								}
+							}
+						]
+					}
+				},
 				"breadcrumb": {
 					"label": "Learners",
 					"route": "LearnerProfiles"
@@ -2662,6 +2695,26 @@
 								{
 									"path": "groupLabel",
 									"label": "Group"
+								},
+								{
+									"path": "mergedInto",
+									"label": "Merged into",
+									"when": {
+										"field": "lifecycle",
+										"op": "eq",
+										"value": "merged"
+									},
+									"resolve": {
+										"register": "learniq",
+										"schema": "learner-profile",
+										"labelField": "fullName"
+									},
+									"route": {
+										"name": "LearnerProfileDetail",
+										"params": {
+											"id": "@source.mergedInto"
+										}
+									}
 								}
 							],
 							"columns": 2
