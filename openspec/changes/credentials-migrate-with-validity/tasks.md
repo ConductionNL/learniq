@@ -12,7 +12,7 @@
 
 ## 3. Verification page
 
-- [ ] 3.1 `CredentialVerifyController`: return the migration facts and no signature check for a migrated row. Verify: PHPUnit.
+- [x] 3.1 `CredentialVerifyController`: return the migration facts and no signature check for a migrated row. Verify: PHPUnit.
 
 ## 4. Screen
 
