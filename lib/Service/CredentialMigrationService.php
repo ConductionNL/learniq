@@ -92,30 +92,77 @@ class CredentialMigrationService {
 	 * @spec openspec/changes/credentials-migrate-with-validity/tasks.md
 	 */
 	public function migrate(array $rows, string $tenantId, string $migratedBy, bool $commit, ?DateTimeImmutable $now = null): array {
-		$now = ($now ?? new DateTimeImmutable('now', new DateTimeZone('UTC')));
-		$runId = null;
-		if ($commit === true) {
-			$runId = bin2hex(random_bytes(16));
-		}
+		$run = [
+			'id' => self::runIdFor(commit: $commit),
+			'by' => $migratedBy,
+			'at' => ($now ?? new DateTimeImmutable('now', new DateTimeZone('UTC'))),
+		];
 
 		$seen = [];
 		$report = [];
 		foreach (array_values($rows) as $index => $row) {
-			if (is_array($row) === false) {
-				$row = [];
-			}
-
-			$line = ($index + 1);
-			$checked = $this->check(row: $row, tenantId: $tenantId) + ['row' => $line];
-			$checked = $this->againstEarlier(checked: $checked, line: $line, seen: $seen);
-			if ($checked['status'] === 'ready' && $commit === true) {
-				$checked = $this->write(checked: $checked, run: ['id' => (string)$runId, 'by' => $migratedBy, 'at' => $now], tenantId: $tenantId);
-			}
-
-			unset($checked['record'], $checked['key']);
-			$report[] = $checked;
+			$report[] = $this->reportRow(row: $row, line: ($index + 1), tenantId: $tenantId, run: $run, commit: $commit, seen: $seen);
 		}
 
+		$summary = self::summarise(report: $report);
+		$runId = $run['id'];
+		if ($summary['created'] === 0) {
+			$runId = null;
+		}
+
+		return ['commit' => $commit, 'runId' => $runId, 'summary' => $summary, 'rows' => $report];
+	}//end migrate()
+
+	/**
+	 * A new run id when the run commits, else null.
+	 *
+	 * @param bool $commit Whether the run writes.
+	 *
+	 * @return string|null
+	 */
+	private static function runIdFor(bool $commit): ?string {
+		if ($commit === false) {
+			return null;
+		}
+
+		return bin2hex(random_bytes(16));
+	}//end runIdFor()
+
+	/**
+	 * One row's report line: checked, compared with the earlier rows, and written when ready on commit.
+	 *
+	 * @param mixed                                                   $row      The row.
+	 * @param int                                                     $line     The row number.
+	 * @param string                                                  $tenantId The organisation.
+	 * @param array{id: string|null, by: string, at: DateTimeImmutable} $run      The run.
+	 * @param bool                                                    $commit   False for the preview.
+	 * @param array<int|string, int>                                  $seen     The row number of each key seen so far.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function reportRow(mixed $row, int $line, string $tenantId, array $run, bool $commit, array &$seen): array {
+		if (is_array($row) === false) {
+			$row = [];
+		}
+
+		$checked = $this->check(row: $row, tenantId: $tenantId) + ['row' => $line];
+		$checked = $this->againstEarlier(checked: $checked, line: $line, seen: $seen);
+		if ($checked['status'] === 'ready' && $commit === true) {
+			$checked = $this->write(checked: $checked, run: ['id' => (string)$run['id'], 'by' => $run['by'], 'at' => $run['at']], tenantId: $tenantId);
+		}
+
+		unset($checked['record'], $checked['key']);
+		return $checked;
+	}//end reportRow()
+
+	/**
+	 * The count of each outcome, of rows without an end date, and of all rows.
+	 *
+	 * @param array<int, array<string, mixed>> $report The report lines.
+	 *
+	 * @return array<string, int>
+	 */
+	private static function summarise(array $report): array {
 		$summary = ['ready' => 0, 'created' => 0, 'skipped' => 0, 'failed' => 0, 'withoutEndDate' => 0, 'total' => count($report)];
 		foreach ($report as $line) {
 			$summary[self::bucket(status: $line['status'])]++;
@@ -124,12 +171,8 @@ class CredentialMigrationService {
 			}
 		}
 
-		if ($summary['created'] === 0) {
-			$runId = null;
-		}
-
-		return ['commit' => $commit, 'runId' => $runId, 'summary' => $summary, 'rows' => $report];
-	}//end migrate()
+		return $summary;
+	}//end summarise()
 
 	/**
 	 * One row's check: its fields, its learner, its course or regulation, and an earlier migration of it.
@@ -163,6 +206,26 @@ class CredentialMigrationService {
 			return ['status' => 'unmatched', 'reason' => 'No course with this code and no regulation with this slug in your organisation.'] + $checked;
 		}
 
+		$checked['record'] = self::recordFor(fields: $fields, match: $match, target: $target, tenantId: $tenantId);
+		$checked['key'] = self::keyOf(record: $checked['record']);
+		if ($this->alreadyMigrated(record: $checked['record']) === true) {
+			return ['status' => 'duplicate', 'reason' => 'This certificate was migrated before.'] + $checked;
+		}
+
+		return $checked;
+	}//end check()
+
+	/**
+	 * The certificate record a checked row writes.
+	 *
+	 * @param array<string, mixed>                                   $fields   The row's fields.
+	 * @param array<string, mixed>                                   $match    The matched learner.
+	 * @param array{courseId: string|null, regulationSlug: string|null} $target   The course or regulation.
+	 * @param string                                                 $tenantId The organisation.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function recordFor(array $fields, array $match, array $target, string $tenantId): array {
 		$record = [
 			'learnerId' => $match['id'],
 			'courseId' => $target['courseId'],
@@ -179,14 +242,19 @@ class CredentialMigrationService {
 			$record['learnerUserId'] = $match['userId'];
 		}
 
-		$checked['record'] = $record;
-		$checked['key'] = $match['id'] . '|' . ($target['courseId'] ?? 'regulation:' . $target['regulationSlug']) . '|' . $fields['legacyNumber'];
-		if ($this->alreadyMigrated(record: $record) === true) {
-			return ['status' => 'duplicate', 'reason' => 'This certificate was migrated before.'] + $checked;
-		}
+		return $record;
+	}//end recordFor()
 
-		return $checked;
-	}//end check()
+	/**
+	 * The key that makes a record a repeat: learner, course or regulation, and old number.
+	 *
+	 * @param array<string, mixed> $record The record.
+	 *
+	 * @return string
+	 */
+	private static function keyOf(array $record): string {
+		return $record['learnerId'] . '|' . ($record['courseId'] ?? 'regulation:' . $record['regulationSlug']) . '|' . $record['legacyNumber'];
+	}//end keyOf()
 
 	/**
 	 * The row's fields, or why it cannot be read.
@@ -196,14 +264,7 @@ class CredentialMigrationService {
 	 * @return array<string, mixed>
 	 */
 	private static function fields(array $row): array {
-		$text = static function (string $key) use ($row): string {
-			$value = ($row[$key] ?? null);
-			if (is_scalar($value) === false) {
-				return '';
-			}
-
-			return trim((string)$value);
-		};
+		$text = static fn (string $key): string => self::text(row: $row, key: $key);
 		$fields = [
 			'learner' => $text('learner'),
 			'course' => $text('course'),
@@ -225,19 +286,80 @@ class CredentialMigrationService {
 			$fields['expiresAt'] = self::date(value: $expires);
 		}
 
-		$fields['reason'] = match (true) {
-			$fields['learner'] === '' => 'The learner is missing.',
-			$fields['course'] === '' && $fields['regulation'] === '' => 'Give a course code or a regulation.',
-			$fields['legacyNumber'] === '' => 'The old certificate number is missing.',
-			in_array($fields['kind'], self::KINDS, true) === false => 'The kind is not one of diploma, certificate, badge or microcredential.',
-			$fields['issuedAt'] === null => 'The issue date is not a date (YYYY-MM-DD).',
-			$expires !== '' && $fields['expiresAt'] === null => 'The end date is not a date (YYYY-MM-DD).',
-			$fields['expiresAt'] !== null && $fields['expiresAt'] < $fields['issuedAt'] => 'The end date is before the issue date.',
-			default => null,
-		};
+		$fields['reason'] = (self::identityReason(fields: $fields) ?? self::dateReason(fields: $fields, expires: $expires));
 
 		return $fields;
 	}//end fields()
+
+	/**
+	 * A row's value as trimmed text; empty when it is missing or not a scalar.
+	 *
+	 * @param array<string, mixed> $row The row.
+	 * @param string               $key The column.
+	 *
+	 * @return string
+	 */
+	private static function text(array $row, string $key): string {
+		$value = ($row[$key] ?? null);
+		if (is_scalar($value) === false) {
+			return '';
+		}
+
+		return trim((string)$value);
+	}//end text()
+
+	/**
+	 * Why the row's learner, target, old number or kind cannot be used, or null.
+	 *
+	 * @param array<string, mixed> $fields The row's fields.
+	 *
+	 * @return string|null
+	 */
+	private static function identityReason(array $fields): ?string {
+		return self::firstFailed(
+			checks: [
+				'The learner is missing.' => $fields['learner'] === '',
+				'Give a course code or a regulation.' => ($fields['course'] === '' && $fields['regulation'] === ''),
+				'The old certificate number is missing.' => $fields['legacyNumber'] === '',
+				'The kind is not one of diploma, certificate, badge or microcredential.' => in_array($fields['kind'], self::KINDS, true) === false,
+			]
+		);
+	}//end identityReason()
+
+	/**
+	 * Why the row's issue or end date cannot be used, or null.
+	 *
+	 * @param array<string, mixed> $fields  The row's fields.
+	 * @param string               $expires The end date as given.
+	 *
+	 * @return string|null
+	 */
+	private static function dateReason(array $fields, string $expires): ?string {
+		return self::firstFailed(
+			checks: [
+				'The issue date is not a date (YYYY-MM-DD).' => $fields['issuedAt'] === null,
+				'The end date is not a date (YYYY-MM-DD).' => ($expires !== '' && $fields['expiresAt'] === null),
+				'The end date is before the issue date.' => ($fields['expiresAt'] !== null && $fields['expiresAt'] < $fields['issuedAt']),
+			]
+		);
+	}//end dateReason()
+
+	/**
+	 * The message of the first failed check, in order, or null when all pass.
+	 *
+	 * @param array<string, bool> $checks Each message with whether its check failed.
+	 *
+	 * @return string|null
+	 */
+	private static function firstFailed(array $checks): ?string {
+		foreach ($checks as $message => $failed) {
+			if ($failed === true) {
+				return $message;
+			}
+		}
+
+		return null;
+	}//end firstFailed()
 
 	/**
 	 * A `YYYY-MM-DD` date as an ISO 8601 timestamp at midnight UTC, or null.
@@ -265,17 +387,7 @@ class CredentialMigrationService {
 	 */
 	private function target(array $fields, string $tenantId): ?array {
 		if ($fields['course'] !== '') {
-			$course = $this->first(schema: 'course', filters: ['code' => $fields['course'], 'tenant_id' => $tenantId]);
-			if ($course === null) {
-				return null;
-			}
-
-			$regulation = ($course['regulationSlug'] ?? null);
-			if (is_string($regulation) === false || $regulation === '') {
-				$regulation = null;
-			}
-
-			return ['courseId' => self::idOf(row: $course), 'regulationSlug' => $regulation];
+			return $this->courseTarget(code: $fields['course'], tenantId: $tenantId);
 		}
 
 		if ($this->first(schema: 'regulation', filters: ['slug' => $fields['regulation'], 'tenant_id' => $tenantId]) === null) {
@@ -284,6 +396,28 @@ class CredentialMigrationService {
 
 		return ['courseId' => null, 'regulationSlug' => $fields['regulation']];
 	}//end target()
+
+	/**
+	 * The course with this code and its regulation, or null when the organisation has no such course.
+	 *
+	 * @param string $code     The course code.
+	 * @param string $tenantId The organisation.
+	 *
+	 * @return array{courseId: string, regulationSlug: string|null}|null
+	 */
+	private function courseTarget(string $code, string $tenantId): ?array {
+		$course = $this->first(schema: 'course', filters: ['code' => $code, 'tenant_id' => $tenantId]);
+		if ($course === null) {
+			return null;
+		}
+
+		$regulation = ($course['regulationSlug'] ?? null);
+		if (is_string($regulation) === false || $regulation === '') {
+			$regulation = null;
+		}
+
+		return ['courseId' => self::idOf(row: $course), 'regulationSlug' => $regulation];
+	}//end courseTarget()
 
 	/**
 	 * Whether a migrated certificate with this learner, course or regulation and old number exists.
