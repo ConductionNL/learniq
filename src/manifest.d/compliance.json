@@ -6,7 +6,8 @@
 		"adr": "ADR-037 modular manifest fragment — never edit src/manifest.json",
 		"description": "ExternalTraining only — Compliance itself stays inside GroupInsight/dashboard.json per Decision 1 (no cross-file children split); see design.md \"Why compliance.json is nearly empty today\".",
 		"menuNotes": {
-			"AbsenceReportsComplianceMenu": "Compliance officers read every absence report (ExcuseRequest grants compliance-officers), but the People group that holds AbsenceReportsMenu does not reach them. menu-layout.json relocates this entry into GroupCompliance. Only compliance-officer: the admin reaches the page under People, and hr has no read on ExcuseRequest."
+			"AbsenceReportsComplianceMenu": "Compliance officers read every absence report (ExcuseRequest grants compliance-officers), but the People group that holds AbsenceReportsMenu does not reach them. menu-layout.json relocates this entry into GroupCompliance. Only compliance-officer: the admin reaches the page under People, and hr has no read on ExcuseRequest.",
+			"ProctoringReviewComplianceMenu": "proctoring-flag-review-page: compliance officers decide proctoring flags (ProctoringSession grants compliance-officers read and update), but GroupLearning, which holds ProctoringReviewMenu, does not reach them. menu-layout.json relocates this entry into GroupCompliance."
 		}
 	},
 	"menu": [
@@ -85,6 +86,20 @@
 				"workspace.chosenSegment": {
 					"notIn": [
 						"corporate"
+					]
+				}
+			}
+		},
+		{
+			"id": "ProctoringReviewComplianceMenu",
+			"label": "Proctoring review",
+			"icon": "ShieldAlertOutline",
+			"route": "ProctoringReviewQueue",
+			"order": 56,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"compliance-officer"
 					]
 				}
 			}

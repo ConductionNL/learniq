@@ -2204,8 +2204,11 @@
 			"config": {
 				"register": "learniq",
 				"schema": "attendance-flag",
-				"_note": "Board LqVerzuimsignaal (G2, G7): figures (missed, reported on, waiting), the municipality response, what the school already did, and a What now card per stage. Recording the response is lane C/E (attendance-flag-report-actions).",
+				"_note": "Board LqVerzuimsignaal (G2, G7): figures (missed, reported on, waiting), the municipality response, what the school already did, and a What now card per stage. attendance-flag-report-actions: the fields stay read only; the header's Actions run the lifecycle transitions OpenRegister allows the caller on the current state (Take up, Mark as reported, Close, Record the municipality's answer), so a flag is handled without the API.",
 				"readOnly": true,
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
 				"statusPill": {
 					"field": "lifecycle",
 					"labels": {

@@ -68,8 +68,12 @@ class OpenLearningMaterialRegisterTest extends TestCase {
 
 	public function testTheSchemaChangeBumpsSchemaAndRegister(): void {
 		$this->assertSame(expected: '0.2.0', actual: $this->material()['version']);
-		// 0.49.0 came after with the class roster sync (enrolment-sync-classes-from-student-administration).
-		$this->assertSame(expected: '0.49.0', actual: $this->register(file: 'learniq_register.json')['info']['version']);
+		// The register version moves on with every later schema change; this
+		// change needed it at 0.48.0 at least.
+		$this->assertTrue(
+			condition: version_compare($this->register(file: 'learniq_register.json')['info']['version'], '0.48.0', '>='),
+			message: 'the register version went back below the one this change bumped it to'
+		);
 	}//end testTheSchemaChangeBumpsSchemaAndRegister()
 
 	public function testTheDemoDataHoldsALinkedMaterial(): void {
