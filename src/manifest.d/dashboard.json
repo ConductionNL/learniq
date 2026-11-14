@@ -1112,11 +1112,18 @@
 			"route": "/compliance/attestations/:id",
 			"type": "detail",
 			"title": "Attestation",
-			"_note": "An Attestation is an immutable proof-of-completion record (learner, course/lesson, regulation, score, signature, signing key, actor IP, xAPI statement) — the education document/record archetype, read-only. Body leads with the attestation fields 8-wide + a Related panel resolving learner + course + lesson + regulation. Signed evidence renders as a Files leaf below (the attestation IS a signed document a compliance officer downloads). No email/calendar: an attestation is a sealed record, not a conversation (HARD RULE 1). Sidebar keeps metadata + audit-trail — the tamper-evidence trail is the whole point of an attestation.",
+			"_note": "An Attestation is a proof-of-completion record (learner, course/lesson, regulation, score, signature, signing key, actor IP, xAPI statement) — the education document/record archetype. Editable while drafted; read only once signed or revoked (readOnlyWhen, matching AttestationFreezeListener on the server). Sign and revoke run as lifecycle actions; revoke asks for the revocationReason the register declares as its required input. Body leads with the attestation fields 8-wide + a Related panel resolving learner + course + lesson + regulation. Signed evidence renders as a Files leaf below (the attestation IS a signed document a compliance officer downloads). No email/calendar: an attestation is a sealed record, not a conversation (HARD RULE 1). Sidebar keeps metadata + audit-trail — the tamper-evidence trail is the whole point of an attestation.",
 			"config": {
 				"register": "learniq",
 				"schema": "Attestation",
-				"readOnly": true,
+				"readOnlyWhen": {
+					"field": "lifecycle",
+					"op": "neq",
+					"value": "drafted"
+				},
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
 				"widgets": [
 					{
 						"id": "att-data",

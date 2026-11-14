@@ -5760,7 +5760,9 @@
         "VAT rate": "Btw-tarief",
         "Price note": "Toelichting bij de prijs",
         "Invoice": "Factuur",
-        "Invoice status": "Factuurstatus"
+        "Invoice status": "Factuurstatus",
+        "When the attestation was signed. Stamped by the sign transition; part of the signed payload.": "Wanneer de verklaring is ondertekend. Vastgelegd bij het ondertekenen; maakt deel uit van de ondertekende gegevens.",
+        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Waarom een ondertekende verklaring is ingetrokken. Vastgelegd bij het intrekken, dat een lege reden weigert."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
