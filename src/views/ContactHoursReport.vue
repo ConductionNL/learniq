@@ -8,43 +8,45 @@
  @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
 -->
 <template>
-	<div class="contact-hours">
-		<h2>{{ t('learniq', 'Contact hours') }}</h2>
-		<form class="contact-hours__filters" @submit.prevent="load">
-			<label>
-				{{ t('learniq', 'From') }}
-				<input v-model="from" type="date" required />
-			</label>
-			<label>
-				{{ t('learniq', 'To') }}
-				<input v-model="to" type="date" required />
-			</label>
-			<label>
-				{{ t('learniq', 'Group (optional)') }}
-				<input
-					v-model="cohortId"
-					type="text"
-					:placeholder="t('learniq', 'All groups')" />
-			</label>
-			<NcButton type="submit" variant="primary" :disabled="loading">
-				{{ t('learniq', 'Show') }}
-			</NcButton>
-			<NcButton v-if="report" :disabled="loading" @click="exportCsv">
-				{{ t('learniq', 'Export CSV') }}
-			</NcButton>
-		</form>
+	<div class="contact-hours lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Contact hours')" />
+		<CnDetailCard>
+			<form class="contact-hours__filters" @submit.prevent="load">
+				<label>
+					{{ t('learniq', 'From') }}
+					<input v-model="from" type="date" required />
+				</label>
+				<label>
+					{{ t('learniq', 'To') }}
+					<input v-model="to" type="date" required />
+				</label>
+				<label>
+					{{ t('learniq', 'Group (optional)') }}
+					<input
+						v-model="cohortId"
+						type="text"
+						:placeholder="t('learniq', 'All groups')" />
+				</label>
+				<NcButton type="submit" variant="primary" :disabled="loading">
+					{{ t('learniq', 'Show') }}
+				</NcButton>
+				<NcButton v-if="report" :disabled="loading" @click="exportCsv">
+					{{ t('learniq', 'Export CSV') }}
+				</NcButton>
+			</form>
+		</CnDetailCard>
 		<NcNoteCard v-if="error" type="error">
 			{{ error }}
 		</NcNoteCard>
 		<p v-if="loading">
 			{{ t('learniq', 'Loading…') }}
 		</p>
-		<section
+		<CnDetailCard
 			v-for="cohort in report?.cohorts || []"
 			:key="cohort.cohortId"
+			:title="cohort.cohortName"
 			class="contact-hours__cohort"
 			data-testid="contact-hours-cohort">
-			<h3>{{ cohort.cohortName }}</h3>
 			<p v-if="!cohort.hasHourPlan" class="contact-hours__note">
 				{{
 					t(
@@ -144,20 +146,69 @@
 					</template>
 				</tbody>
 			</table>
-		</section>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcNoteCard } from '@nextcloud/vue'
 
+/** The CSV columns. */
+const CSV_HEADER = [
+	'group',
+	'course',
+	'owed',
+	'given',
+	'difference',
+	'learner',
+	'attended',
+]
+
+/**
+ * A course's CSV row: owed, given and the difference, no learner.
+ *
+ * @param {object} cohort The group's report.
+ * @param {object} course The course's report.
+ * @return {Array}
+ */
+function courseCsvRow(cohort, course) {
+	return [
+		cohort.cohortName,
+		course.courseName,
+		course.owed ?? '',
+		course.given,
+		course.difference ?? '',
+		'',
+		'',
+	]
+}
+
+/**
+ * Rows as CSV text, every cell quoted.
+ *
+ * @param {Array<Array>} rows The rows.
+ * @return {string}
+ */
+function csvText(rows) {
+	return rows
+		.map((row) =>
+			row
+				.map((cell) => `"${String(cell).replaceAll('"', '""')}"`)
+				.join(','),
+		)
+		.join('\n')
+}
+
 export default {
 	name: 'ContactHoursReport',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcButton,
 		NcNoteCard,
 	},
@@ -252,50 +303,53 @@ export default {
 		 * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
 		 */
 		exportCsv() {
-			const rows = [
-				[
-					'group',
-					'course',
-					'owed',
-					'given',
-					'difference',
-					'learner',
-					'attended',
-				],
-			]
+			const rows = [[...CSV_HEADER]]
 			for (const cohort of this.report?.cohorts || []) {
-				for (const course of cohort.courses) {
-					rows.push([
-						cohort.cohortName,
-						course.courseName,
-						course.owed ?? '',
-						course.given,
-						course.difference ?? '',
-						'',
-						'',
-					])
-				}
-				for (const learner of cohort.learners) {
-					for (const course of learner.courses) {
-						rows.push([
-							cohort.cohortName,
-							this.courseName(cohort, course.courseId),
-							'',
-							course.given,
-							'',
-							learner.learnerId,
-							course.attended,
-						])
-					}
-				}
+				rows.push(...this.cohortCsvRows(cohort))
 			}
-			const csv = rows
-				.map((row) =>
-					row
-						.map((cell) => `"${String(cell).replaceAll('"', '""')}"`)
-						.join(','),
-				)
-				.join('\n')
+			this.downloadCsv(csvText(rows))
+		},
+
+		/**
+		 * A group's CSV rows: one per course, then one per learner course.
+		 *
+		 * @param {object} cohort The group's report.
+		 * @return {Array<Array>}
+		 */
+		cohortCsvRows(cohort) {
+			const rows = cohort.courses.map((course) => courseCsvRow(cohort, course))
+			for (const learner of cohort.learners) {
+				rows.push(...this.learnerCsvRows(cohort, learner))
+			}
+			return rows
+		},
+
+		/**
+		 * A learner's CSV rows: given and attended hours per course.
+		 *
+		 * @param {object} cohort The group's report.
+		 * @param {object} learner The learner's report.
+		 * @return {Array<Array>}
+		 */
+		learnerCsvRows(cohort, learner) {
+			return learner.courses.map((course) => [
+				cohort.cohortName,
+				this.courseName(cohort, course.courseId),
+				'',
+				course.given,
+				'',
+				learner.learnerId,
+				course.attended,
+			])
+		},
+
+		/**
+		 * Hand the CSV to the browser as a file named after the window.
+		 *
+		 * @param {string} csv The CSV text.
+		 * @return {void}
+		 */
+		downloadCsv(csv) {
 			const link = document.createElement('a')
 			link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
 			link.download = `contact-hours-${this.from}-${this.to}.csv`
@@ -307,27 +361,17 @@ export default {
 </script>
 
 <style scoped>
-.contact-hours {
-	padding: 16px;
-	max-width: 1100px;
-}
-
 .contact-hours__filters {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: end;
 	gap: 12px;
-	margin-bottom: 16px;
 }
 
 .contact-hours__filters label {
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
-}
-
-.contact-hours__cohort {
-	margin-bottom: 24px;
 }
 
 .contact-hours__table {

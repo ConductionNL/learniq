@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ */
+
 declare(strict_types=1);
 
 // Define that we're running PHPUnit.
@@ -17,6 +22,9 @@ $autoloader = require __DIR__ . '/../vendor/autoload.php';
 // below is irrelevant.
 $autoloader->addPsr4('OCA\\OpenRegister\\', __DIR__ . '/Stubs/');
 $autoloader->addPsr4('OCA\\Talk\\', __DIR__ . '/Stubs/Talk/');
+// Integriq's exchange events, copied verbatim (data-exchange-to-integriq): learniq talks to
+// integriq only through them, and its tests construct the real contract classes.
+$autoloader->addPsr4('OCA\\Integriq\\', __DIR__ . '/Stubs/Integriq/');
 
 // Register Nextcloud OCP interfaces (provided by nextcloud/ocp dev dependency).
 // The OCP package ships as a path-based library without its own autoload entry
@@ -72,6 +80,10 @@ if (learniq_nc_base_is_safe_to_load($learniqNcRoot) === true) {
 		. "  skipping lib/base.php and running in pure-unit mode.\n"
 	);
 }
+
+// Doctrine\DBAL\ParameterType stub: IQueryBuilder references it in its own
+// constant declarations, so doubling OCP\IDBConnection loads it. Self-guarding.
+require_once __DIR__ . '/Stubs/DoctrineParameterType.php';
 
 // Register Test\ namespace for NC test classes.
 $serverTestsLib = __DIR__ . '/../../../tests/lib/';
@@ -168,7 +180,16 @@ require_once __DIR__ . '/Support/OrEntityFactory.php';
 require_once __DIR__ . '/Support/GuardVerdicts.php';
 require_once __DIR__ . '/Support/RegisterFaithfulStore.php';
 require_once __DIR__ . '/Support/CapturingLogger.php';
+require_once __DIR__ . '/Support/ContractImplementations.php';
 require_once __DIR__ . '/Support/XapiDocumentsInMemory.php';
+require_once __DIR__ . '/Support/DelegatingDouble.php';
+require_once __DIR__ . '/Support/ExamScheduleFixture.php';
+require_once __DIR__ . '/Support/SlugMapper.php';
+require_once __DIR__ . '/Support/TransitionScope.php';
+require_once __DIR__ . '/Support/OrReadVerdict.php';
+require_once __DIR__ . '/Support/RegisterSchemaPayloads.php';
+require_once __DIR__ . '/Support/PassedArguments.php';
+require_once __DIR__ . '/Support/GoldenFile.php';
 
 // Integriq's connection-registry event (adopt-connection-registry).
 // ConnectionReportService sends it by string class name behind class_exists
@@ -177,4 +198,11 @@ require_once __DIR__ . '/Support/XapiDocumentsInMemory.php';
 // real class is absent.
 if (class_exists('\\OCA\\Integriq\\Event\\ConnectionStatusReportedEvent') === false) {
 	require_once __DIR__ . '/Stubs/Integriq/Event/ConnectionStatusReportedEvent.php';
+}
+
+// Portaliq's claim scope event. PortalClaimScopeListener matches it by class
+// name, so learniq stays installable without portaliq. The stub mirrors
+// portaliq's class and loads only when the real class is absent.
+if (class_exists('\\OCA\\Portaliq\\Event\\PortalClaimScopeEvent') === false) {
+	require_once __DIR__ . '/Stubs/Portaliq/Event/PortalClaimScopeEvent.php';
 }

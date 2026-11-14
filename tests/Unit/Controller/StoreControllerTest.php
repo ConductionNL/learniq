@@ -37,12 +37,14 @@ use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
 /**
  * @covers \OCA\Learniq\Controller\StoreController
  * @uses   \OCA\Learniq\Service\CourseStore\CourseStoreDescriptor
  * @uses   \OCA\Learniq\Exception\SharingBlockedException
+ * @uses   \OCA\Learniq\Controller\CourseInstallRequest
  */
 class StoreControllerTest extends TestCase {
 
@@ -55,6 +57,20 @@ class StoreControllerTest extends TestCase {
 	private CourseShareExportService&MockObject $shareService;
 
 	private ActionAuthService&MockObject $actionAuth;
+
+	/**
+	 * A logger that records errors, when a test sets one.
+	 *
+	 * @var LoggerInterface|null
+	 */
+	private ?LoggerInterface $logger = null;
+
+	/**
+	 * Errors logged through $logger.
+	 *
+	 * @var list<string>
+	 */
+	private array $errors = [];
 
 	/**
 	 * Fresh doubles per test.
@@ -102,7 +118,7 @@ class StoreControllerTest extends TestCase {
 			shareService: $this->shareService,
 			userSession: $userSession,
 			actionAuth: $this->actionAuth,
-			logger: new NullLogger(),
+			logger: ($this->logger ?? new NullLogger()),
 		);
 	}//end controller()
 
@@ -325,4 +341,81 @@ class StoreControllerTest extends TestCase {
 
 		self::assertSame($status, $this->controller()->publish('course-1')->getStatus());
 	}//end testEveryPlaneOutcomeMapsToAStatus()
+
+	/**
+	 * Record every error the controller logs.
+	 *
+	 * @return void
+	 */
+	private function recordErrors(): void {
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->method('error')->willReturnCallback(
+			function (string|\Stringable $message): void {
+				$this->errors[] = (string)$message;
+			}
+		);
+		$this->logger = $logger;
+	}//end recordErrors()
+
+	/**
+	 * Install failures: a resolve that throws is logged and answers like an
+	 * unknown course; an install that throws is logged and answers 500; the
+	 * installer gets the resolved item and the caller's id.
+	 *
+	 * @return void
+	 */
+	public function testInstallFailuresAreLoggedAndAnswered(): void {
+		$this->recordErrors();
+		$item = ['slug' => 'course-package-betoog-1a2b3c4d'];
+		$this->storeService->method('resolve')->willReturnCallback(
+			static function (StoreDescriptor $descriptor, string $slug) use ($item): array {
+				if ($slug === 'course-package-boom-1a2b3c4d') {
+					throw new \RuntimeException('registry down');
+				}
+
+				return $item;
+			}
+		);
+		$this->installer->method('install')->with($item, 'docent-07')->willThrowException(new \RuntimeException('disk full'));
+
+		$gone = $this->controller()->install('course-package-boom-1a2b3c4d');
+		self::assertSame(Http::STATUS_NOT_FOUND, $gone->getStatus());
+		self::assertSame(['success' => false, 'message' => 'The shared course could not be found.'], $gone->getData());
+
+		$failed = $this->controller()->install('course-package-betoog-1a2b3c4d');
+		self::assertSame(Http::STATUS_INTERNAL_SERVER_ERROR, $failed->getStatus());
+		self::assertSame(['success' => false, 'message' => 'The shared course could not be installed.'], $failed->getData());
+
+		self::assertSame(
+			[
+				'Learniq course store: resolve failed for course-package-boom-1a2b3c4d: registry down',
+				'Learniq course store: install failed for course-package-betoog-1a2b3c4d: disk full',
+			],
+			$this->errors
+		);
+	}//end testInstallFailuresAreLoggedAndAnswered()
+
+	/**
+	 * Publish refusals in order: no course id before the registry is asked,
+	 * and a package that cannot be built is logged and answers 500.
+	 *
+	 * @return void
+	 */
+	public function testPublishWithoutACourseOrAPackage(): void {
+		$this->recordErrors();
+		$this->publisher->expects(self::once())->method('isConfigured')->willReturn(true);
+		$this->publisher->method('supportsPublish')->willReturn(true);
+		$this->publisher->method('mayPublish')->willReturn(true);
+		$this->shareService->method('buildPackage')->willThrowException(new \RuntimeException('course gone'));
+		$this->publisher->expects(self::never())->method('publish');
+
+		$missing = $this->controller()->publish('');
+		self::assertSame(Http::STATUS_BAD_REQUEST, $missing->getStatus());
+		self::assertSame(['error' => 'courseId is required'], $missing->getData());
+
+		$broken = $this->controller()->publish('course-1');
+		self::assertSame(Http::STATUS_INTERNAL_SERVER_ERROR, $broken->getStatus());
+		self::assertSame(['error' => 'The course could not be prepared for the store.'], $broken->getData());
+		self::assertSame(['Learniq course store: publish failed for course-1: course gone'], $this->errors);
+	}//end testPublishWithoutACourseOrAPackage()
 }//end class

@@ -3,12 +3,15 @@
 /**
  * Learniq Submission learnerRefs Stamp
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Stamps `learnerRefs` (the LearnerProfile UUIDs the portal scopes on) onto
  * every Submission as it is created or updated, derived from `learnerIds`.
  *
  * The portal's student submissions collection matches the pupil's
  * LearnerProfile UUID against `Submission.learnerRefs`
- * (`PortalContributionProvider::studentActivityCollections()`), but no code
+ * (`StudentPortalCollections::studentActivityCollections()`), but no code
  * path set it, so the collection stayed empty for every pupil. Stamping on the
  * write path covers the portal upload, the learner's own form and every
  * teacher-side create, and the next one.
@@ -32,8 +35,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -45,8 +46,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\LearnerRefResolver;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -69,15 +70,15 @@ class SubmissionLearnerRefsStamp implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
-	 * @param LearnerRefResolver $learnerRefs Nextcloud user id to LearnerProfile UUID.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
+	 * @param LearnerRefResolverInterface $learnerRefs Nextcloud user id to LearnerProfile UUID.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly LearnerRefResolver $learnerRefs,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		private readonly LearnerRefResolverInterface $learnerRefs,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -138,11 +139,7 @@ class SubmissionLearnerRefsStamp implements IEventListener {
 	 * @return ObjectEntity
 	 */
 	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
+		return (new WrittenObject())->entityOf(event: $event);
 	}//end entityOf()
 
 	/**

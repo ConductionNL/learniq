@@ -36,6 +36,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Timetabling;
 
+use OCA\Learniq\Support\EntityRow;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -106,60 +107,27 @@ class SessionWindowLoader {
 	}//end dayBuckets()
 
 	/**
-	 * Load the scan window: every non-cancelled Session sharing one of the
-	 * given day buckets (same tenant), merged with the input Sessions
+	 * Load the scan window: every non-cancelled Session sharing a day bucket
+	 * with the given Sessions (same tenant), merged with the input Sessions
 	 * themselves (in case a freshly-saved row has not yet materialised its
 	 * `sessionDayBucket`) — never a full-register scan.
 	 *
 	 * @param array<int,array<string,mixed>> $sessions The input Session data arrays.
-	 * @param array<int,int|string> $buckets Distinct day-bucket values.
-	 * @param string $tenantId Tenant scope.
+	 * @param string                         $tenantId Tenant scope.
 	 *
 	 * @return array<string,array<string,mixed>> Window sessions keyed by id, lifecycle-filtered.
 	 *
 	 * @spec openspec/specs/timetabling/spec.md#scenario-two-sessions-imported-for-the-same-room-at-overlapping-times-are-flagged-not-auto-moved
 	 */
-	public function loadWindow(array $sessions, array $buckets, string $tenantId): array {
-		$window = [];
-
-		foreach ($sessions as $session) {
-			$id = (string)($session['id'] ?? ($session['uuid'] ?? ''));
-			if ($id === '' || in_array(($session['lifecycle'] ?? ''), self::EXCLUDED_LIFECYCLES, true) === true) {
-				continue;
-			}
-
-			$window[$id] = $session;
-		}
-
-		foreach ($buckets as $bucket) {
-			$filters = ['sessionDayBucket' => $bucket];
-			if ($tenantId !== '') {
-				$filters['tenant_id'] = $tenantId;
-			}
-
-			$results = $this->objectService->findAll(
-				[
-					'filters' => array_merge(
-						$filters,
-						[
-							'register' => self::LEARNIQ_REGISTER,
-							'schema' => self::SESSION_SCHEMA,
-						]
-					),
-					'limit' => 2000,
-				]
+	public function loadWindow(array $sessions, string $tenantId): array {
+		$window = self::liveById(rows: $sessions);
+		foreach ($this->dayBuckets(sessions: $sessions) as $bucket) {
+			$rows = $this->query(
+				schema: self::SESSION_SCHEMA,
+				query: ['filters' => self::tenantScoped(filters: ['sessionDayBucket' => $bucket], tenantId: $tenantId), 'limit' => 2000]
 			);
-
-			foreach ($results as $row) {
-				$data = $this->normalise(row: $row);
-				$id = (string)($data['id'] ?? ($data['uuid'] ?? ''));
-				if ($id === '' || in_array(($data['lifecycle'] ?? ''), self::EXCLUDED_LIFECYCLES, true) === true) {
-					continue;
-				}
-
-				$window[$id] = $data;
-			}
-		}//end foreach
+			$window = array_replace($window, self::liveById(rows: $rows));
+		}
 
 		return $window;
 	}//end loadWindow()
@@ -174,186 +142,191 @@ class SessionWindowLoader {
 	 * @spec openspec/specs/timetabling/spec.md#scenario-re-scanning-an-unchanged-window-does-not-create-duplicate-conflicts
 	 */
 	public function loadOpenConflicts(string $tenantId): array {
-		$filters = ['lifecycle' => 'open'];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$results = $this->objectService->findAll(
-			[
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::TIMETABLE_CONFLICT_SCHEMA,
-					]
-				),
-				'limit' => 5000,
-			]
+		$rows = $this->query(
+			schema: self::TIMETABLE_CONFLICT_SCHEMA,
+			query: ['filters' => self::tenantScoped(filters: ['lifecycle' => 'open'], tenantId: $tenantId), 'limit' => 5000]
 		);
 
-		$rows = [];
-		foreach ($results as $row) {
-			$rows[] = $this->normalise(row: $row);
-		}
-
-		return $rows;
+		return array_values($rows);
 	}//end loadOpenConflicts()
 
 	/**
-	 * Whether a Session has at least one linked Assessment (Assessment.sessionId === this Session).
+	 * Whether a Session has at least one linked Assessment (Assessment.sessionId === this Session),
+	 * cached on the scan.
 	 *
-	 * @param string $sessionId Session UUID.
-	 * @param string $tenantId Tenant scope.
-	 * @param array<string,string|null> $cache Per-scan cache, keyed by sessionId (mutated: entries added).
+	 * @param string       $sessionId Session UUID.
+	 * @param ConflictScan $scan      The running scan (assessment cache mutated: a miss is cached as null).
 	 *
 	 * @return bool True when a linked Assessment exists.
 	 *
 	 * @spec openspec/specs/timetabling/spec.md#scenario-an-exam-session-exceeding-room-capacity-is-flagged-as-room-capacity-exceeded
 	 */
-	public function hasLinkedAssessment(string $sessionId, string $tenantId, array &$cache): bool {
+	public function hasLinkedAssessment(string $sessionId, ConflictScan $scan): bool {
 		if ($sessionId === '') {
 			return false;
 		}
 
-		if (array_key_exists($sessionId, $cache) === true) {
-			return $cache[$sessionId] !== null;
+		if (array_key_exists($sessionId, $scan->assessmentCache) === false) {
+			$assessment = $this->first(
+				schema: self::ASSESSMENT_SCHEMA,
+				query: ['filters' => self::tenantScoped(filters: ['sessionId' => $sessionId], tenantId: $scan->tenantId), 'limit' => 1]
+			);
+			$scan->assessmentCache[$sessionId] = self::assessmentRef(assessment: $assessment);
 		}
 
-		$filters = ['sessionId' => $sessionId];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$results = $this->objectService->findAll(
-			[
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::ASSESSMENT_SCHEMA,
-					]
-				),
-				'limit' => 1,
-			]
-		);
-
-		if (empty($results) === true) {
-			$cache[$sessionId] = null;
-			return false;
-		}
-
-		$assessment = $this->normalise(row: $results[0]);
-		$cache[$sessionId] = (string)($assessment['id'] ?? ($assessment['uuid'] ?? 'unknown'));
-
-		return true;
+		return $scan->assessmentCache[$sessionId] !== null;
 	}//end hasLinkedAssessment()
 
 	/**
-	 * Load a Cohort by UUID, cached per scan.
+	 * Load a Cohort by UUID, cached on the scan.
 	 *
-	 * @param string $cohortId Cohort UUID.
-	 * @param string $tenantId Tenant scope.
-	 * @param array<string,array<string,mixed>|null> $cache Per-scan cache (mutated: entries added).
-	 *        The `|null` is load-bearing: a MISS is cached as null so a repeat
-	 *        lookup short-circuits instead of re-querying — see
-	 *        `$cache[$cohortId] = $cohort` at the end of this method, and
-	 *        hasLinkedAssessment(), which already declared `string|null` for the
-	 *        same reason. The type this replaces claimed the cache never holds
-	 *        null while the method's own last statement writes it.
+	 * @param string       $cohortId Cohort UUID.
+	 * @param ConflictScan $scan     The running scan (cohort cache mutated: a miss is cached as null,
+	 *                               so a repeat lookup short-circuits instead of re-querying).
 	 *
 	 * @return array<string,mixed>|null The cohort data, or null.
 	 *
 	 * @spec openspec/specs/timetabling/spec.md#requirement-conflict-detection-flags-double-bookings-and-capacity-overruns-without-resolving-them
 	 */
-	public function loadCohort(string $cohortId, string $tenantId, array &$cache): ?array {
+	public function loadCohort(string $cohortId, ConflictScan $scan): ?array {
 		if ($cohortId === '') {
 			return null;
 		}
 
-		if (array_key_exists($cohortId, $cache) === true) {
-			return $cache[$cohortId];
+		if (array_key_exists($cohortId, $scan->cohortCache) === false) {
+			$scan->cohortCache[$cohortId] = $this->first(schema: self::COHORT_SCHEMA, query: self::byId(id: $cohortId, tenantId: $scan->tenantId));
 		}
 
-		$filters = [];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$results = $this->objectService->findAll(
-			[
-				'ids' => [$cohortId],
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::COHORT_SCHEMA,
-					]
-				),
-				'limit' => 1,
-			]
-		);
-
-		$cohort = null;
-		if (empty($results) === false) {
-			$cohort = $this->normalise(row: $results[0]);
-		}
-
-		$cache[$cohortId] = $cohort;
-
-		return $cohort;
+		return $scan->cohortCache[$cohortId];
 	}//end loadCohort()
 
 	/**
-	 * Load a Room by UUID, cached per scan.
+	 * Load a Room by UUID, cached on the scan.
 	 *
-	 * @param string $roomId Room UUID.
-	 * @param string $tenantId Tenant scope.
-	 * @param array<string,array<string,mixed>|null> $cache Per-scan cache (mutated: entries added).
-	 *        `|null` for the same reason as loadCohort(): a miss is cached as
-	 *        null so a repeat lookup short-circuits.
+	 * @param string       $roomId Room UUID.
+	 * @param ConflictScan $scan   The running scan (room cache mutated: a miss is cached as null).
 	 *
 	 * @return array<string,mixed>|null The room data, or null.
 	 *
 	 * @spec openspec/specs/timetabling/spec.md#scenario-an-exam-session-exceeding-room-capacity-is-flagged-as-room-capacity-exceeded
 	 */
-	public function loadRoom(string $roomId, string $tenantId, array &$cache): ?array {
+	public function loadRoom(string $roomId, ConflictScan $scan): ?array {
 		if ($roomId === '') {
 			return null;
 		}
 
-		if (array_key_exists($roomId, $cache) === true) {
-			return $cache[$roomId];
+		if (array_key_exists($roomId, $scan->roomCache) === false) {
+			$scan->roomCache[$roomId] = $this->first(schema: self::ROOM_SCHEMA, query: self::byId(id: $roomId, tenantId: $scan->tenantId));
 		}
 
-		$filters = [];
+		return $scan->roomCache[$roomId];
+	}//end loadRoom()
+
+	/**
+	 * Run a findAll on one learniq schema and normalise the rows.
+	 *
+	 * @param string              $schema The schema slug.
+	 * @param array<string,mixed> $query  The findAll config; its `filters` get the register and schema.
+	 *
+	 * @return array<int|string,array<string,mixed>> The rows, keys as findAll returned them.
+	 */
+	private function query(string $schema, array $query): array {
+		$query['filters'] = array_merge($query['filters'], ['register' => self::LEARNIQ_REGISTER, 'schema' => $schema]);
+		return array_map(
+			fn (mixed $row): array => $this->normalise(row: $row),
+			$this->objectService->findAll($query)
+		);
+	}//end query()
+
+	/**
+	 * The first row a findAll returns, or null when it returns none.
+	 *
+	 * @param string              $schema The schema slug.
+	 * @param array<string,mixed> $query  The findAll config.
+	 *
+	 * @return array<string,mixed>|null
+	 */
+	private function first(string $schema, array $query): ?array {
+		$rows = $this->query(schema: $schema, query: $query);
+		if (empty($rows) === true) {
+			return null;
+		}
+
+		return $rows[0];
+	}//end first()
+
+	/**
+	 * The findAll config for one object by UUID.
+	 *
+	 * @param string $id       The object UUID.
+	 * @param string $tenantId Tenant scope.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private static function byId(string $id, string $tenantId): array {
+		return ['ids' => [$id], 'filters' => self::tenantScoped(filters: [], tenantId: $tenantId), 'limit' => 1];
+	}//end byId()
+
+	/**
+	 * The filters, scoped to the tenant when there is one.
+	 *
+	 * @param array<string,mixed> $filters  The filters.
+	 * @param string              $tenantId Tenant scope ('' for none).
+	 *
+	 * @return array<string,mixed>
+	 */
+	private static function tenantScoped(array $filters, string $tenantId): array {
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
-		$results = $this->objectService->findAll(
-			[
-				'ids' => [$roomId],
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::ROOM_SCHEMA,
-					]
-				),
-				'limit' => 1,
-			]
-		);
+		return $filters;
+	}//end tenantScoped()
 
-		$room = null;
-		if (empty($results) === false) {
-			$room = $this->normalise(row: $results[0]);
+	/**
+	 * What the assessment cache holds for a lookup: the Assessment's id, or null for none.
+	 *
+	 * @param array<string,mixed>|null $assessment The first linked Assessment, if any.
+	 *
+	 * @return string|null
+	 */
+	private static function assessmentRef(?array $assessment): ?string {
+		if ($assessment === null) {
+			return null;
 		}
 
-		$cache[$roomId] = $room;
+		return (string)($assessment['id'] ?? ($assessment['uuid'] ?? 'unknown'));
+	}//end assessmentRef()
 
-		return $room;
-	}//end loadRoom()
+	/**
+	 * The rows that occupy a slot, keyed by id: rows without an id and cancelled rows are left out.
+	 *
+	 * @param iterable<array<string,mixed>> $rows Session rows.
+	 *
+	 * @return array<string,array<string,mixed>>
+	 */
+	private static function liveById(iterable $rows): array {
+		$byId = [];
+		foreach ($rows as $row) {
+			$id = self::rowId(row: $row);
+			if ($id !== '' && in_array(($row['lifecycle'] ?? ''), self::EXCLUDED_LIFECYCLES, true) === false) {
+				$byId[$id] = $row;
+			}
+		}
+
+		return $byId;
+	}//end liveById()
+
+	/**
+	 * A row's id, else its uuid, else ''.
+	 *
+	 * @param array<string,mixed> $row The row.
+	 *
+	 * @return string
+	 */
+	private static function rowId(array $row): string {
+		return (string)($row['id'] ?? ($row['uuid'] ?? ''));
+	}//end rowId()
 
 	/**
 	 * Normalise an ObjectService row to a plain array.
@@ -363,10 +336,6 @@ class SessionWindowLoader {
 	 * @return array<string,mixed>
 	 */
 	private function normalise(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		return $row->jsonSerialize();
+		return (new EntityRow())->asArray(row: $row);
 	}//end normalise()
 }//end class

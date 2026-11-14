@@ -1,0 +1,38 @@
+# Screens
+
+- learniq/LqLlVakkenKiezen vakken kiezen (leerling) (planninq adopts this: row tt-subject-package-choice) https://identity.conduction.nl/screens/board?id=learniq/LqLlVakkenKiezen
+- learniq/LqOuVakkenKiezen vakken kiezen (ouder) (planninq adopts this: row tt-subject-package-choice) https://identity.conduction.nl/screens/board?id=learniq/LqOuVakkenKiezen
+- planninq has no board of its own for row tt-api-enrolment-write: another system enrols through the API, and planninq adopts this.
+- learniq/LqLlKeuzelessen keuzelessen (leerling) (planninq adopts this: row tt-enrolment-deadline) https://identity.conduction.nl/screens/board?id=learniq/LqLlKeuzelessen
+- learniq/LqCfGroepInschrijven groep inschrijven https://identity.conduction.nl/screens/board?id=learniq/LqCfGroepInschrijven
+- learniq/LqLlMijnLeren mijn leren (leerling) https://identity.conduction.nl/screens/board?id=learniq/LqLlMijnLeren
+- learniq/LqMijnLeren mijn leren https://identity.conduction.nl/screens/board?id=learniq/LqMijnLeren
+- learniq/LqZoVandaag student dashboard https://identity.conduction.nl/screens/board?id=learniq/LqZoVandaag
+- learniq/LqGroep groep https://identity.conduction.nl/screens/board?id=learniq/LqGroep
+- learniq/LqLeerling leerling https://identity.conduction.nl/screens/board?id=learniq/LqLeerling
+- learniq/LqLeerlingen leerlingen https://identity.conduction.nl/screens/board?id=learniq/LqLeerlingen
+- learniq/LqLeerlingInschrijvingen inschrijvingen van een leerling (docent) https://identity.conduction.nl/screens/board?id=learniq/LqLeerlingInschrijvingen
+- learniq/LqCoAanmelding aanmelding Emma de Vries https://identity.conduction.nl/screens/board?id=learniq/LqCoAanmelding
+- learniq/LqCoAanmeldingen aanmeldingen https://identity.conduction.nl/screens/board?id=learniq/LqCoAanmeldingen
+- learniq/LqCoBeoordelen toelatingsoverzicht https://identity.conduction.nl/screens/board?id=learniq/LqCoBeoordelen
+- learniq/LqTlVandaag docent dashboard https://identity.conduction.nl/screens/board?id=learniq/LqTlVandaag
+- learniq/LqVoortgang voortgang https://identity.conduction.nl/screens/board?id=learniq/LqVoortgang
+- learniq/LqLlWerkgroepen mijn werkgroepen (leerling) https://identity.conduction.nl/screens/board?id=learniq/LqLlWerkgroepen
+- learniq/LqLlCatalogus cursuscatalogus (leerling) https://identity.conduction.nl/screens/board?id=learniq/LqLlCatalogus
+- learniq/LqTlAanmeldverzoeken aanmeldverzoeken https://identity.conduction.nl/screens/board?id=learniq/LqTlAanmeldverzoeken
+- learniq/LqTlAfwijzen aanmeldverzoek afwijzen https://identity.conduction.nl/screens/board?id=learniq/LqTlAfwijzen
+- learniq/LqOuMijnLeren leren van Fenna (ouder) https://identity.conduction.nl/screens/board?id=learniq/LqOuMijnLeren
+- learniq/LqHrPersonen personen https://identity.conduction.nl/screens/board?id=learniq/LqHrPersonen
+- esdoornveen/LqLijst studenten https://identity.conduction.nl/screens/board?id=esdoornveen/LqLijst
+- warmtepompacademie/LqVandaag vandaag voor de planner https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqVandaag
+- warmtepompacademie/LqLijst deelnemers https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqLijst
+- warmtepompacademie/LqDetail deelnemer Tom Verbeek https://identity.conduction.nl/screens/board?id=warmtepompacademie/LqDetail
+- learniq/LqLlAanbod cursuscatalogus met externe aanbieders (leerling) https://identity.conduction.nl/screens/board?id=learniq/LqLlAanbod
+- learniq/LqCursusInstellingen cursusinstellingen: aanmelden door leerlingen, gesloten, open of op aanvraag https://identity.conduction.nl/screens/board?id=learniq/LqCursusInstellingen
+- learniq/LqKeuzelesIndelen keuzelessen indelen: de coördinator plaatst wie de periode miste https://identity.conduction.nl/screens/board?id=learniq/LqKeuzelesIndelen
+- learniq/LqLlInleveren inleveren (leerling): een groepsinlevering noemt de hele werkgroep https://identity.conduction.nl/screens/board?id=learniq/LqLlInleveren
+- learniq/LqSchooladvies schooladviezen groep 8 (coördinator) https://identity.conduction.nl/screens/board?id=learniq/LqSchooladvies
+
+Components: CnActionButtons, CnActionsBar, CnActionsMenu, CnAppNav, CnAuditTrailCard, CnBreadcrumbs, CnBuildiqEditButton, CnCardGrid, CnChartWidget, CnChoiceCards, CnChoicePickerWidget, CnConfirmDialog, CnConversationThread, CnDashboardGrid, CnDashboardPage, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnFileField, CnFilesCard, CnFilterBar, CnFormDialog, CnIndexPage, CnKpiGrid, CnMassActionBar, CnNextStepCard, CnNoteCard, CnNotesCard, CnObjectCalendar, CnObjectCard, CnObjectListWidget, CnPageHeader, CnPagination, CnProgressBar, CnQuickFilterBar, CnRelatedCollections, CnRowActions, CnSegmentedControl, CnStatsBlock, CnStatusBadge, CnTabs, CnTimelineStages, CnWeekStripWidget, CnWidgetWrapper
+- learniq/LqCoBeoordelen toelatingscommissie: leden, adviezen en het gezamenlijke besluit (row enr-review-board-decides) https://identity.conduction.nl/screens/board?id=learniq/LqCoBeoordelen
+- learniq/LqAanmeldformulier aanmeldformulier brugklas (ouder, zonder account) (row enr-take-applications) https://identity.conduction.nl/screens/board?id=learniq/LqAanmeldformulier

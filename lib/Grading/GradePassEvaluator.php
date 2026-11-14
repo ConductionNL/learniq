@@ -66,11 +66,13 @@ class GradePassEvaluator {
 	 * @param array $passRules passRules from the CurriculumPlan.
 	 * @param float|null $passThreshold Threshold from the GradeScale.
 	 * @param array<string, array> $components The plan's component index (componentId => component).
+	 * @param GradeScaleRule|null $scale The plan's scale: on a letter, ECTS or band scale its band decides, not the threshold.
 	 *
 	 * @return bool|null Null if insufficient data.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-5
 	 * @spec openspec/specs/grading/spec.md#requirement-a-plan-satisfied-entirely-by-exemptions-passes
+	 * @spec openspec/specs/grading/spec.md#requirement-the-scale-decides-how-a-final-grade-is-rounded-and-whether-it-passes
 	 */
 	public function evaluatePassed(
 		string $formula,
@@ -79,13 +81,20 @@ class GradePassEvaluator {
 		array $passRules,
 		?float $passThreshold,
 		array $components = [],
+		?GradeScaleRule $scale = null,
 	): ?bool {
+		$plan = new GradePlan(passRules: $passRules, components: $components);
 		if ($value === null) {
-			return $this->exemptionsCoverThePlan(entries: $entries, passRules: $passRules, components: $components);
+			return $this->exemptionsCoverThePlan(entries: $entries, plan: $plan);
 		}
 
-		// Threshold check (applies to all formulas).
-		if ($passThreshold !== null && $value < $passThreshold) {
+		// The scale's verdict (applies to all formulas): the band on a band
+		// scale, else the threshold. Pass rules still apply on top.
+		if ($scale !== null && $scale->passesByBand() === true) {
+			if ($scale->passes(value: $value) === false) {
+				return false;
+			}
+		} else if ($passThreshold !== null && $value < $passThreshold) {
 			return false;
 		}
 
@@ -93,7 +102,7 @@ class GradePassEvaluator {
 			return true;
 		}
 
-		return $this->everyRuleMet(value: $value, entries: $entries, passRules: $passRules);
+		return $plan->rulesMetBy(value: $value, bestMap: $this->indexBestByComponent(entries: $entries));
 	}//end evaluatePassed()
 
 	/**
@@ -107,14 +116,36 @@ class GradePassEvaluator {
 	 * exempted from one of two units has not completed the plan.
 	 *
 	 * @param array<int, array> $entries Published entries.
-	 * @param array $passRules passRules from the CurriculumPlan.
-	 * @param array<string, array> $components The plan's component index.
+	 * @param GradePlan $plan The rules and components the grade is judged against.
 	 *
 	 * @return true|null
 	 *
 	 * @spec openspec/specs/grading/spec.md#requirement-a-plan-satisfied-entirely-by-exemptions-passes
 	 */
-	private function exemptionsCoverThePlan(array $entries, array $passRules, array $components): ?bool {
+	private function exemptionsCoverThePlan(array $entries, GradePlan $plan): ?bool {
+		$exempted = self::exemptedComponents(entries: $entries);
+		if ($exempted === null) {
+			return null;
+		}
+
+		foreach ($plan->requiredComponentIds() as $componentId) {
+			if (isset($exempted[$componentId]) === false) {
+				return null;
+			}
+		}
+
+		return true;
+	}//end exemptionsCoverThePlan()
+
+	/**
+	 * The components the entries exempt, or null when there are no entries
+	 * or any of them is not an exemption.
+	 *
+	 * @param array<int,array<string,mixed>> $entries The grade entries.
+	 *
+	 * @return array<string,true>|null
+	 */
+	private static function exemptedComponents(array $entries): ?array {
 		if ($entries === []) {
 			return null;
 		}
@@ -128,90 +159,8 @@ class GradePassEvaluator {
 			$exempted[(string)($entry['componentId'] ?? '')] = true;
 		}
 
-		$required = array_map('strval', array_keys($components));
-		foreach ($passRules as $rule) {
-			$ruleComponentId = (string)($rule['componentId'] ?? '');
-			if ($ruleComponentId !== '') {
-				$required[] = $ruleComponentId;
-			}
-		}
-
-		foreach ($required as $componentId) {
-			if (isset($exempted[$componentId]) === false) {
-				return null;
-			}
-		}
-
-		return true;
-	}//end exemptionsCoverThePlan()
-
-	/**
-	 * Check every `all-must-pass` rule.
-	 *
-	 * A rule's minimum is `minValue`, the property the register declares. A
-	 * rule with a componentId is met by the learner's best entry for that
-	 * component; a rule with componentId null applies to the final grade and
-	 * is met by the final value.
-	 *
-	 * Exam-board-case-handling: a component whose best entry is sourceKind
-	 * exemption has no numeric value to compare — the exam board's decision
-	 * *is* the pass signal, so that component's rule is satisfied without a
-	 * numeric check. Every other component's check is unaffected.
-	 *
-	 * @param float $value The computed final value.
-	 * @param array<int, array> $entries Published entries.
-	 * @param array $passRules passRules from the CurriculumPlan.
-	 *
-	 * @return bool True when every rule is met.
-	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-5
-	 * @spec openspec/specs/grading/spec.md#requirement-pass-rules-apply-their-declared-minimum
-	 */
-	private function everyRuleMet(float $value, array $entries, array $passRules): bool {
-		$bestMap = $this->indexBestByComponent(entries: $entries);
-
-		foreach ($passRules as $rule) {
-			$ruleComponentId = (string)($rule['componentId'] ?? '');
-			$minValue = (float)($rule['minValue'] ?? 0);
-
-			if ($ruleComponentId === '') {
-				if ($value < $minValue) {
-					return false;
-				}
-
-				continue;
-			}
-
-			if ($this->componentMeets(bestEntry: $bestMap[$ruleComponentId] ?? null, minValue: $minValue) === false) {
-				return false;
-			}
-		}//end foreach
-
-		return true;
-	}//end everyRuleMet()
-
-	/**
-	 * Whether a component's best entry meets its rule's minimum.
-	 *
-	 * @param array|null $bestEntry The learner's best entry for the component, or null when none.
-	 * @param float $minValue The rule's minValue.
-	 *
-	 * @return bool
-	 *
-	 * @spec openspec/specs/grading/spec.md#requirement-pass-rules-apply-their-declared-minimum
-	 */
-	private function componentMeets(?array $bestEntry, float $minValue): bool {
-		if ($bestEntry === null) {
-			return false;
-		}
-
-		if (($bestEntry['sourceKind'] ?? null) === 'exemption') {
-			// Satisfied by the exam board's decision — no numeric comparison.
-			return true;
-		}
-
-		return (float)($bestEntry['value'] ?? 0) >= $minValue;
-	}//end componentMeets()
+		return $exempted;
+	}//end exemptedComponents()
 
 	/**
 	 * Build a componentId → best-entry map from the learner's published entries.

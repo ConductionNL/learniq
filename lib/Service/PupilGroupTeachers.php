@@ -38,6 +38,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\PupilGroupTeachersInterface;
+use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -45,7 +47,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/changes/excuse-reports-follow-the-pupils-group/specs/attendance/spec.md#requirement-an-absence-report-is-read-by-the-teachers-of-the-pupils-group-and-by-school-wide-staff
  */
-class PupilGroupTeachers {
+class PupilGroupTeachers implements PupilGroupTeachersInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const COHORT_SCHEMA = 'cohort';
@@ -61,6 +63,13 @@ class PupilGroupTeachers {
 	private const MAX_GROUPS = 100;
 
 	/**
+	 * Turns one OpenRegister result into a plain array.
+	 *
+	 * @var ObjectRow
+	 */
+	private readonly ObjectRow $objectRow;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
@@ -70,6 +79,7 @@ class PupilGroupTeachers {
 	public function __construct(
 		private readonly ObjectService $objectService,
 	) {
+		$this->objectRow = new ObjectRow();
 	}//end __construct()
 
 	/**
@@ -164,14 +174,6 @@ class PupilGroupTeachers {
 	 * @return array<string, mixed>
 	 */
 	private function toRow(mixed $object): array {
-		if (is_array($object) === true) {
-			return $object;
-		}
-
-		if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-			return (array)$object->jsonSerialize();
-		}
-
-		return [];
+		return $this->objectRow->asArray(object: $object);
 	}//end toRow()
 }//end class

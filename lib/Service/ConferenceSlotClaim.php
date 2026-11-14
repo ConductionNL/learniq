@@ -3,6 +3,9 @@
 /**
  * Learniq conference slot claim
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Takes one free ConferenceSlot for one child, so that two parents can never
  * end up with the same time and one family cannot book more times per child
  * than the round allows.
@@ -29,9 +32,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -45,6 +45,7 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use OCA\Learniq\Kernel\Contracts\ConferenceSlotClaimInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Lock\ILockingProvider;
 use OCP\Lock\LockedException;
@@ -54,7 +55,7 @@ use OCP\Lock\LockedException;
  *
  * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
  */
-class ConferenceSlotClaim {
+class ConferenceSlotClaim implements ConferenceSlotClaimInterface {
 
 	private const REGISTER = 'learniq';
 
@@ -158,12 +159,18 @@ class ConferenceSlotClaim {
 			return ['refuse' => 'child-already-booked'];
 		}
 
+		// A pupil's own booking names no guardian (pupil-books-support-lessons-and-mentor-talks).
+		$guardianRef = null;
+		if ($booking['guardianRef'] !== '') {
+			$guardianRef = $booking['guardianRef'];
+		}
+
 		$booked = array_merge(
 			$slot,
 			[
 				'learnerId' => $booking['learnerId'],
 				'learnerRef' => $booking['learnerRef'],
-				'guardianRef' => $booking['guardianRef'],
+				'guardianRef' => $guardianRef,
 				'signupId' => $booking['signupId'],
 				'bookedAt' => (new DateTimeImmutable())->format(DateTimeInterface::ATOM),
 				'lifecycle' => 'booked',

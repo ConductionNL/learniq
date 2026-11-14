@@ -15,7 +15,7 @@
  @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
 -->
 <template>
-	<div class="hour-plan-editor">
+	<div class="hour-plan-editor lq-board-page">
 		<NcLoadingIcon v-if="loading" :size="32" />
 		<NcNoteCard v-else-if="loadError" type="error">
 			{{ loadError }}
@@ -23,9 +23,7 @@
 		<template v-else>
 			<header class="hour-plan-editor__header">
 				<div>
-					<h2 class="hour-plan-editor__title">
-						{{ plan.name || t('learniq', 'Hour plan') }}
-					</h2>
+					<CnPageHeader :title="plan.name || t('learniq', 'Hour plan')" />
 					<p class="hour-plan-editor__meta">
 						{{
 							t('learniq', '{programme}, intake {year}, {status}', {
@@ -75,7 +73,7 @@
 					)
 				" />
 
-			<div v-else class="hour-plan-editor__scroll">
+			<CnDetailCard v-else flush class="hour-plan-editor__scroll">
 				<table class="hour-plan-editor__grid">
 					<caption class="hidden-visually">
 						{{
@@ -116,10 +114,11 @@
 						</tr>
 					</tbody>
 				</table>
-			</div>
+			</CnDetailCard>
 
-			<section class="hour-plan-editor__totals">
-				<h3>{{ t('learniq', 'Totals per year') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Totals per year')"
+				class="hour-plan-editor__totals">
 				<table class="hour-plan-editor__totals-table">
 					<thead>
 						<tr>
@@ -195,12 +194,13 @@
 						</tr>
 					</tbody>
 				</table>
-			</section>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
@@ -221,7 +221,7 @@ import {
 export default {
 	name: 'HourPlanEditor',
 
-	components: { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard },
+	components: { CnDetailCard, CnPageHeader, NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard },
 
 	props: {
 		/** Hour plan UUID from the route. */
@@ -383,12 +383,11 @@ export default {
 		 * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
 		 */
 		hoursOf(courseId, col) {
-			return cellHours(
-				this.plan.lines,
+			return cellHours(this.plan.lines, {
 				courseId,
-				col.programmeYear,
-				col.periodCode,
-			)
+				programmeYear: col.programmeYear,
+				periodCode: col.periodCode,
+			})
 		},
 
 		/**
@@ -403,13 +402,12 @@ export default {
 		setHours(courseId, col, value) {
 			this.plan = {
 				...this.plan,
-				lines: setCell(
-					this.plan.lines,
+				lines: setCell(this.plan.lines, {
 					courseId,
-					col.programmeYear,
-					col.periodCode,
-					value,
-				),
+					programmeYear: col.programmeYear,
+					periodCode: col.periodCode,
+					hours: value,
+				}),
 			}
 			this.dirty = true
 		},
@@ -540,22 +538,11 @@ export default {
 </script>
 
 <style scoped>
-.hour-plan-editor {
-	padding: 16px;
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-}
-
 .hour-plan-editor__header {
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: space-between;
 	gap: 12px;
-}
-
-.hour-plan-editor__title {
-	margin: 0;
 }
 
 .hour-plan-editor__meta {

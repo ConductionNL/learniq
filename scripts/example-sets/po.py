@@ -93,6 +93,17 @@ SCHEMAS = [
     "submission",
     # Appended last (school-portals-use-the-new-blocks): every earlier schema keeps its uuid namespace.
     "report-subject-grade",
+    # Appended last (guardian-tasks-per-child-and-self-assessment): every earlier schema keeps its uuid namespace.
+    "conference-invitation",
+    # Appended last (exset-po-records-for-detail-boards): one record each for the detail pages that had none.
+    "programme",
+    "admissions-round",
+    "admission",
+    "credential",
+    "item-bank",
+    "item",
+    "peer-review",
+    "lesson",
 ]
 
 # School events a parent sees in the portal calendar: (title, start, end, kind, groups or None for the whole
@@ -260,112 +271,155 @@ def minutes_of(day: dt.date) -> int:
 
 
 def build() -> dict:
-    rng = random.Random(20250818)
-    b = Builder()
-    days = school_days()
+    return SchoolYear().build()
 
-    # --- school, locations, rooms -------------------------------------------
-    school = b.add("school", {"brin": "00X1", "name": "Basisschool De Wilgenboom", "pedagogicalConcept": "regular"})
-    locations = {
-        "hoofd": b.add("vestiging", {
-            "schoolId": school["uuid"], "vestigingscode": "00X100", "onderwijslocatiecode": None,
-            "name": "Hoofdlocatie", "street": "Wilgenlaan 12", "postalCode": "0421 WD", "city": "Zuiddrecht",
-        }),
-        "noorderpark": b.add("vestiging", {
-            "schoolId": school["uuid"], "vestigingscode": "00X101", "onderwijslocatiecode": "00X101-A",
-            "name": "Dependance Noorderpark", "street": "Noorderpark 12", "postalCode": "0423 NP", "city": "Zuiddrecht",
-        }),
-    }
-    rooms = {}
-    for name, _lj, _sizes, loc, room in CLASSES:
-        rooms[room] = b.add("room", {
-            "name": "Lokaal " + name.lower(), "code": room.upper(), "capacity": 32, "kind": "classroom",
-            "facilities": ["digibord"], "buildingCode": locations[loc]["vestigingscode"], "floor": "0",
-        })
-    b.add("room", {"name": "Gymzaal", "code": "GYM", "capacity": 35, "kind": "gym", "facilities": ["kleedkamers"],
-                   "buildingCode": "00X100", "floor": "0"})
 
-    # --- courses and curriculum plans ---------------------------------------
-    def course(code: str, name: str, description: str) -> dict:
-        return b.add("course", {"code": code, "name": name, "name_nl": name, "description": description, "level": "po",
-                                "language": "nl", "tags": ["basisonderwijs"], "lifecycle": "published"})
+class SchoolYear:
+    """One run of the primary school set. The steps run in a fixed order and share one random
+    generator, so every draw, and therefore the file, is the same on each run."""
 
-    basis = course("PO-BAS", "Basisonderwijs", "Inschrijving in het basisonderwijs van groep 1 tot en met 8.")
-    subject_courses = {code: course(code, name, "Vak in groep 3 tot en met 8.") for code, name, _o in REPORT_SUBJECTS}
-    names_by_uuid = {c["uuid"]: c["name"] for c in subject_courses.values()}
-    english = course("PO-ENG", "Engels", "Engels in groep 7 en 8.")
-    gym = course("PO-BEW", "Bewegingsonderwijs", "Gymles door de vakleerkracht, twee keer per week.")
-    plans = {}
-    for code, name, _offset in REPORT_SUBJECTS:
-        plans[code] = b.add("curriculum-plan", {
-            "name": f"{name} groep 3 tot en met 8, {YEAR}", "kind": "generic", "formula": "weighted-average",
-            "requiredCourseIds": [subject_courses[code]["uuid"]], "electiveCourseIds": [],
-            "passRules": [{"componentId": None, "minValue": 5.5}],
-            "periods": [{"periodId": p[0], "label": p[1], "startDate": p[2].isoformat(), "endDate": p[3].isoformat()} for p in PERIODS],
-            "lifecycle": "published",
-        })
+    def __init__(self) -> None:
+        self.rng = random.Random(20250818)
+        self.b = Builder()
+        self.days = school_days()
 
-    # --- pupils per class ---------------------------------------------------
-    pupils = []
-    for name, leerjaren, sizes, _loc, _room in CLASSES:
-        for leerjaar, size in zip(leerjaren, sizes):
-            for _ in range(size):
-                boy = rng.random() < 0.5
-                # Born in the school year that makes them `leerjaar + 3` on 1 October 2025.
-                start = dt.date(2025 - (leerjaar + 4), 10, 1)
-                birth = start + dt.timedelta(days=rng.randrange(365))
-                pupils.append({"class": name, "leerjaar": leerjaar, "boy": boy,
-                               "given": rng.choice(BOYS if boy else GIRLS), "birth": birth,
-                               "ability": rng.gauss(0, 1), "punctual": rng.random()})
+    def build(self) -> dict:
+        self.add_school_and_rooms()
+        self.add_courses_and_plans()
+        self.add_pupils()
+        self.add_classes()
+        self.add_staff()
+        self.add_enrolments()
+        self.add_subject_teachers()
+        self.add_report_periods()
+        self.add_sessions()
+        self.draw_attendance_marks()
+        self.mark_unexcused_absences()
+        self.add_excuse_requests()
+        self.add_attendance_records()
+        self.add_attendance_summaries()
+        self.add_leerplicht_flag()
+        self.add_lvs_results()
+        self.add_report_cards()
+        self.add_group_plan()
+        self.add_care()
+        self.add_parent_evenings()
+        self.add_portal_records()
+        return self.assemble()
 
-    # Families: siblings sit in different leerjaren.
-    by_leerjaar: dict[int, list[dict]] = {}
-    for p in pupils:
-        by_leerjaar.setdefault(p["leerjaar"], []).append(p)
-    for pool in by_leerjaar.values():
-        rng.shuffle(pool)
-    families = []
-    while any(by_leerjaar.values()):
-        size = rng.choices([1, 2, 3], weights=[62, 32, 6])[0]
-        open_years = [lj for lj, pool in by_leerjaar.items() if pool]
-        chosen = rng.sample(open_years, min(size, len(open_years)))
-        families.append([by_leerjaar[lj].pop() for lj in chosen])
+    def add_school_and_rooms(self) -> None:
+        """The school, its two locations and a room per class."""
+        self.school = self.b.add("school", {"brin": "00X1", "name": "Basisschool De Wilgenboom", "pedagogicalConcept": "regular"})
+        self.locations = {
+            "hoofd": self.b.add("vestiging", {
+                "schoolId": self.school["uuid"], "vestigingscode": "00X100", "onderwijslocatiecode": None,
+                "name": "Hoofdlocatie", "street": "Wilgenlaan 12", "postalCode": "0421 WD", "city": "Zuiddrecht",
+            }),
+            "noorderpark": self.b.add("vestiging", {
+                "schoolId": self.school["uuid"], "vestigingscode": "00X101", "onderwijslocatiecode": "00X101-A",
+                "name": "Dependance Noorderpark", "street": "Noorderpark 12", "postalCode": "0423 NP", "city": "Zuiddrecht",
+            }),
+        }
+        self.rooms = {}
+        for name, _lj, _sizes, loc, room in CLASSES:
+            self.rooms[room] = self.b.add("room", {
+                "name": "Lokaal " + name.lower(), "code": room.upper(), "capacity": 32, "kind": "classroom",
+                "facilities": ["digibord"], "buildingCode": self.locations[loc]["vestigingscode"], "floor": "0",
+            })
+        self.b.add("room", {"name": "Gymzaal", "code": "GYM", "capacity": 35, "kind": "gym", "facilities": ["kleedkamers"],
+                            "buildingCode": "00X100", "floor": "0"})
 
-    guardian_counter = 0
-    used_names = set()
-    for index, kids in enumerate(families):
-        while True:
-            surname = rng.choice(SURNAME_HEAD) + rng.choice(SURNAME_TAIL)
-            if surname not in used_names or len(used_names) > 250:
-                used_names.add(surname)
-                break
-        address = {"street": rng.choice(STREETS), "houseNumber": str(rng.randint(1, 140)),
-                   "postalCode": f"04{rng.randint(10, 39)} {rng.choice('ABDEGHKLMNPRSTWZ')}{rng.choice('ABDEGHKLMNPRSTWZ')}",
-                   "city": "Zuiddrecht", "country": "NL"}
-        single = rng.random() < 0.15
-        guardians = []
-        for g in range(1 if single else 2):
-            guardian_counter += 1
-            female = (g == 0) if not single else rng.random() < 0.75
-            guardians.append(b.add("learner-profile", {
-                "ncUserId": f"po-ouder-{guardian_counter:03d}",
-                "givenName": rng.choice(ADULT_F if female else ADULT_M),
-                "familyName": surname,
-                "roles": ["parent"],
-                "hasParentalAuthority": True,
-                "address": address,
-                "parentIds": [], "guardianRefs": [], "emergencyContacts": [],
-                "lifecycle": "active",
-            }))
-        for kid in kids:
-            kid["family"] = index
-            kid["surname"] = surname
-            kid["address"] = address
-            kid["guardians"] = guardians
+    def course(self, code: str, name: str, description: str) -> dict:
+        return self.b.add("course", {"code": code, "name": name, "name_nl": name, "description": description, "level": "po",
+                                     "language": "nl", "tags": ["basisonderwijs"], "lifecycle": "published"})
 
-    # Guardians are all added above; pupils follow in class order.
-    pupils.sort(key=lambda p: (CLASSES.index(next(c for c in CLASSES if c[0] == p["class"])), p["leerjaar"], p["surname"], p["given"]))
-    for n, p in enumerate(pupils, start=1):
+    def add_courses_and_plans(self) -> None:
+        """The courses and their curriculum plans."""
+        self.basis = self.course("PO-BAS", "Basisonderwijs", "Inschrijving in het basisonderwijs van groep 1 tot en met 8.")
+        self.subject_courses = {code: self.course(code, name, "Vak in groep 3 tot en met 8.") for code, name, _o in REPORT_SUBJECTS}
+        self.names_by_uuid = {c["uuid"]: c["name"] for c in self.subject_courses.values()}
+        self.english = self.course("PO-ENG", "Engels", "Engels in groep 7 en 8.")
+        self.gym = self.course("PO-BEW", "Bewegingsonderwijs", "Gymles door de vakleerkracht, twee keer per week.")
+        self.plans = {}
+        for code, name, _offset in REPORT_SUBJECTS:
+            self.plans[code] = self.b.add("curriculum-plan", {
+                "name": f"{name} groep 3 tot en met 8, {YEAR}", "kind": "generic", "formula": "weighted-average",
+                "requiredCourseIds": [self.subject_courses[code]["uuid"]], "electiveCourseIds": [],
+                "passRules": [{"componentId": None, "minValue": 5.5}],
+                "periods": [{"periodId": p[0], "label": p[1], "startDate": p[2].isoformat(), "endDate": p[3].isoformat()} for p in PERIODS],
+                "lifecycle": "published",
+            })
+
+    def add_pupils(self) -> None:
+        """The pupils per class, their families and guardians."""
+        self.pupils = []
+        for name, leerjaren, sizes, _loc, _room in CLASSES:
+            for leerjaar, size in zip(leerjaren, sizes):
+                for _ in range(size):
+                    boy = self.rng.random() < 0.5
+                    # Born in the school year that makes them `leerjaar + 3` on 1 October 2025.
+                    start = dt.date(2025 - (leerjaar + 4), 10, 1)
+                    birth = start + dt.timedelta(days=self.rng.randrange(365))
+                    self.pupils.append({"class": name, "leerjaar": leerjaar, "boy": boy,
+                                        "given": self.rng.choice(BOYS if boy else GIRLS), "birth": birth,
+                                        "ability": self.rng.gauss(0, 1), "punctual": self.rng.random()})
+        self.add_families(self.group_families())
+        # Guardians are all added above; pupils follow in class order.
+        self.pupils.sort(key=lambda p: (CLASSES.index(next(c for c in CLASSES if c[0] == p["class"])), p["leerjaar"], p["surname"], p["given"]))
+        for n, p in enumerate(self.pupils, start=1):
+            self.add_pupil_profile(n, p)
+
+    def group_families(self) -> list[list[dict]]:
+        """Families: siblings sit in different leerjaren."""
+        by_leerjaar: dict[int, list[dict]] = {}
+        for p in self.pupils:
+            by_leerjaar.setdefault(p["leerjaar"], []).append(p)
+        for pool in by_leerjaar.values():
+            self.rng.shuffle(pool)
+        families = []
+        while any(by_leerjaar.values()):
+            size = self.rng.choices([1, 2, 3], weights=[62, 32, 6])[0]
+            open_years = [lj for lj, pool in by_leerjaar.items() if pool]
+            chosen = self.rng.sample(open_years, min(size, len(open_years)))
+            families.append([by_leerjaar[lj].pop() for lj in chosen])
+        return families
+
+    def add_families(self, families: list[list[dict]]) -> None:
+        """A surname, an address and one or two guardians per family, copied onto its children."""
+        guardian_counter = 0
+        used_names = set()
+        for index, kids in enumerate(families):
+            while True:
+                surname = self.rng.choice(SURNAME_HEAD) + self.rng.choice(SURNAME_TAIL)
+                if surname not in used_names or len(used_names) > 250:
+                    used_names.add(surname)
+                    break
+            address = {"street": self.rng.choice(STREETS), "houseNumber": str(self.rng.randint(1, 140)),
+                       "postalCode": f"04{self.rng.randint(10, 39)} {self.rng.choice('ABDEGHKLMNPRSTWZ')}{self.rng.choice('ABDEGHKLMNPRSTWZ')}",
+                       "city": "Zuiddrecht", "country": "NL"}
+            single = self.rng.random() < 0.15
+            guardians = []
+            for g in range(1 if single else 2):
+                guardian_counter += 1
+                female = (g == 0) if not single else self.rng.random() < 0.75
+                guardians.append(self.b.add("learner-profile", {
+                    "ncUserId": f"po-ouder-{guardian_counter:03d}",
+                    "givenName": self.rng.choice(ADULT_F if female else ADULT_M),
+                    "familyName": surname,
+                    "roles": ["parent"],
+                    "hasParentalAuthority": True,
+                    "address": address,
+                    "parentIds": [], "guardianRefs": [], "emergencyContacts": [],
+                    "lifecycle": "active",
+                }))
+            for kid in kids:
+                kid["family"] = index
+                kid["surname"] = surname
+                kid["address"] = address
+                kid["guardians"] = guardians
+
+    def add_pupil_profile(self, n: int, p: dict) -> None:
+        """The pupil's account id, enrolment date and learner profile."""
         p["nc"] = f"po-leerling-{n:03d}"
         # Enrolled on the fourth birthday, or on the first school day of the year for anyone older.
         fourth = dt.date(p["birth"].year + 4, p["birth"].month, min(p["birth"].day, 28))
@@ -373,518 +427,548 @@ def build() -> dict:
             fourth += dt.timedelta(days=1)
         p["enrolled"] = fourth
         emergency = []
-        if rng.random() < 0.4:
-            emergency = [{"name": ("Oma " if rng.random() < 0.6 else "Opa ") + p["surname"], "relationship": "grootouder",
-                          "phone": f"06-0000{rng.randint(1000, 9999)}", "priority": 1}]
-        consent = {k: (None if rng.random() < 0.08 else rng.random() < 0.8) for k in ["website", "socialMedia", "schoolgids", "classPhoto", "video"]}
-        p["profile"] = b.add("learner-profile", {
+        if self.rng.random() < 0.4:
+            emergency = [{"name": ("Oma " if self.rng.random() < 0.6 else "Opa ") + p["surname"], "relationship": "grootouder",
+                          "phone": f"06-0000{self.rng.randint(1000, 9999)}", "priority": 1}]
+        consent = {k: (None if self.rng.random() < 0.08 else self.rng.random() < 0.8) for k in ["website", "socialMedia", "schoolgids", "classPhoto", "video"]}
+        p["profile"] = self.b.add("learner-profile", {
             "ncUserId": p["nc"],
             "givenName": p["given"],
             "familyName": p["surname"],
             "birthDate": p["birth"].isoformat(),
-            "schoolId": school["uuid"],
+            "schoolId": self.school["uuid"],
             "roles": ["learner"],
             "parentIds": [g["ncUserId"] for g in p["guardians"]],
             "guardianRefs": [g["uuid"] for g in p["guardians"]],
             "address": p["address"],
             "emergencyContacts": emergency,
-            "allergies": (["pinda's"] if rng.random() < 0.05 else None),
-            "medicalConditions": (["astma"] if rng.random() < 0.03 else None),
+            "allergies": (["pinda's"] if self.rng.random() < 0.05 else None),
+            "medicalConditions": (["astma"] if self.rng.random() < 0.03 else None),
             "beeldmateriaalConsent": consent,
             "lifecycle": "active",
         })
 
-    # --- classes (cohorts) --------------------------------------------------
-    cohorts = {}
-    for name, _lj, _sizes, loc, room in CLASSES:
-        teachers = TEACHERS[name]
-        notes = None
-        if name == "Groep 5/6":
-            notes = "Combinatiegroep met een duo: de eerste leerkracht op maandag tot en met woensdag, de tweede op donderdag en vrijdag."
-        if name == "Groep 7":
-            notes = "Extra aandacht voor rekenen dit jaar; twee keer per week verlengde instructie."
-        cohorts[name] = b.add("cohort", {
-            "name": name, "period": "Schooljaar", "academicYear": YEAR, "courseId": basis["uuid"],
-            "teacherIds": [t[0] for t in teachers],
-            "learnerIds": [p["nc"] for p in pupils if p["class"] == name],
-            "lifecycle": "active", "locationId": locations[loc]["uuid"],
-            "teacherAssignments": [{"teacherId": t[0], "role": t[1], "days": t[2]} for t in teachers],
-            "notes": notes, "kind": "teaching",
-        })
-        cohorts[name]["_room"] = rooms[room]["uuid"]
-
-    # --- staff --------------------------------------------------------------
-    staff_rows = [("po-directeur-01", ["administrator"], ["schoolleider"], WEEKDAYS),
-                  (IB, ["coordinator"], ["intern begeleider", "bevoegdheid groep 1-8"], ["monday", "tuesday", "thursday"])]
-    for name, *_rest in CLASSES:
-        for teacher, _role, work in TEACHERS[name]:
-            qual = ["bevoegdheid groep 1-8"]
-            if name in ("Groep 1", "Groep 2"):
-                qual.append("jonge kind specialist")
+    def add_classes(self) -> None:
+        """A cohort per class."""
+        self.cohorts = {}
+        for name, _lj, _sizes, loc, room in CLASSES:
+            teachers = TEACHERS[name]
+            notes = None
             if name == "Groep 5/6":
-                qual = ["bevoegdheid groep 5-8"]
-            staff_rows.append((teacher, ["teacher", "mentor"], qual, work))
-    staff_rows += [(GYM_TEACHER, ["teacher"], ["vakbekwaamheid bewegingsonderwijs"], ["tuesday", "thursday"]),
-                   ("po-onderwijsassistent-01", ["teaching-assistant"], ["onderwijsassistent"], ["monday", "tuesday", "thursday", "friday"]),
-                   ("po-administratie-01", ["administrator"], ["BHV"], ["monday", "wednesday", "friday"])]
-    for nc, roles, qual, work in staff_rows:
-        b.add("staff", {"ncUserId": nc, "roles": roles, "qualifications": qual, "workingDays": work})
+                notes = "Combinatiegroep met een duo: de eerste leerkracht op maandag tot en met woensdag, de tweede op donderdag en vrijdag."
+            if name == "Groep 7":
+                notes = "Extra aandacht voor rekenen dit jaar; twee keer per week verlengde instructie."
+            self.cohorts[name] = self.b.add("cohort", {
+                "name": name, "period": "Schooljaar", "academicYear": YEAR, "courseId": self.basis["uuid"],
+                "teacherIds": [t[0] for t in teachers],
+                "learnerIds": [p["nc"] for p in self.pupils if p["class"] == name],
+                "lifecycle": "active", "locationId": self.locations[loc]["uuid"],
+                "teacherAssignments": [{"teacherId": t[0], "role": t[1], "days": t[2]} for t in teachers],
+                "notes": notes, "kind": "teaching",
+            })
+            self.cohorts[name]["_room"] = self.rooms[room]["uuid"]
 
-    # --- enrolments ---------------------------------------------------------
-    by_date = sorted(pupils, key=lambda p: (p["enrolled"], p["nc"]))
-    for volgnummer, p in enumerate(by_date, start=1):
-        p["volgnummer"] = volgnummer
-    for p in pupils:
-        cohort = cohorts[p["class"]]
-        b.add("enrolment", {
-            "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "courseId": basis["uuid"], "source": "admission",
-            "cohortId": cohort["uuid"], "lifecycle": "active", "inschrijvingDate": p["enrolled"].isoformat(),
-            # The readable copy ReadableCopyStamp writes on a live save (site-guardian-portal-design).
-            "cohortName": cohort["name"],
-            "volgnummer": p["volgnummer"], "locationId": cohort["locationId"], "leerjaar": p["leerjaar"],
-        })
+    def add_staff(self) -> None:
+        """The teachers and the other staff."""
+        staff_rows = [("po-directeur-01", ["administrator"], ["schoolleider"], WEEKDAYS),
+                      (IB, ["coordinator"], ["intern begeleider", "bevoegdheid groep 1-8"], ["monday", "tuesday", "thursday"])]
+        for name, *_rest in CLASSES:
+            for teacher, _role, work in TEACHERS[name]:
+                qual = ["bevoegdheid groep 1-8"]
+                if name in ("Groep 1", "Groep 2"):
+                    qual.append("jonge kind specialist")
+                if name == "Groep 5/6":
+                    qual = ["bevoegdheid groep 5-8"]
+                staff_rows.append((teacher, ["teacher", "mentor"], qual, work))
+        staff_rows += [(GYM_TEACHER, ["teacher"], ["vakbekwaamheid bewegingsonderwijs"], ["tuesday", "thursday"]),
+                       ("po-onderwijsassistent-01", ["teaching-assistant"], ["onderwijsassistent"], ["monday", "tuesday", "thursday", "friday"]),
+                       ("po-administratie-01", ["administrator"], ["BHV"], ["monday", "wednesday", "friday"])]
+        for nc, roles, qual, work in staff_rows:
+            self.b.add("staff", {"ncUserId": nc, "roles": roles, "qualifications": qual, "workingDays": work})
 
-    # --- subject teachers ---------------------------------------------------
-    for name, leerjaren, *_rest in CLASSES:
-        cohort = cohorts[name]
-        teachers = TEACHERS[name]
-        first, second = teachers[0][0], teachers[-1][0]
-        if max(leerjaren) >= 3:
-            b.add("subjectteacherassignment", {"cohortId": cohort["uuid"], "courseId": subject_courses["PO-REK"]["uuid"], "teacherId": first})
-            b.add("subjectteacherassignment", {"cohortId": cohort["uuid"], "courseId": subject_courses["PO-TAAL"]["uuid"], "teacherId": second})
-        if max(leerjaren) >= 7:
-            b.add("subjectteacherassignment", {"cohortId": cohort["uuid"], "courseId": english["uuid"], "teacherId": second})
-        b.add("subjectteacherassignment", {"cohortId": cohort["uuid"], "courseId": gym["uuid"], "teacherId": GYM_TEACHER})
-
-    # --- report periods -----------------------------------------------------
-    periods = []
-    for code, label, start, end in PERIODS:
-        periods.append(b.add("report-period", {
-            "name": label, "academicYear": YEAR, "periodCode": code, "startDate": start.isoformat(), "endDate": end.isoformat(),
-            "curriculumPlanIds": [plan["uuid"] for plan in plans.values()],
-            "cohortIds": [c["uuid"] for c in cohorts.values()],
-            "lockDate": stamp(end + dt.timedelta(days=7), 17, 0), "attendanceIncluded": True, "lifecycle": "composed",
-            "holidays": [{"name": h[0], "startDate": h[1].isoformat(), "endDate": h[2].isoformat()} for h in HOLIDAYS if start <= h[1] <= end],
-            "studyDays": [{"date": s[0].isoformat(), "description": s[1]} for s in STUDY_DAYS if start <= s[0] <= end],
-            "schoolId": school["uuid"],
-        }))
-
-    # --- sessions and attendance --------------------------------------------
-    sessions: dict[tuple[str, dt.date], dict] = {}
-    for name, *_rest in CLASSES:
-        cohort = cohorts[name]
-        for day in days:
-            end_h, end_m = (12, 15) if day.weekday() == 2 else (14, 15)
-            sessions[(name, day)] = b.add("session", {
-                "cohortId": cohort["uuid"], "courseId": basis["uuid"],
-                "title": f"{name}, {DAG[day.weekday()]} {day.day} {MAAND[day.month - 1]} {day.year}",
-                "startsAt": stamp(day, 8, 30), "endsAt": stamp(day, end_h, end_m),
-                "location": "Lokaal " + name.lower(), "roomId": cohort["_room"],
-                "lifecycle": "completed",
+    def add_enrolments(self) -> None:
+        """Every pupil enrolled in their class."""
+        by_date = sorted(self.pupils, key=lambda p: (p["enrolled"], p["nc"]))
+        for volgnummer, p in enumerate(by_date, start=1):
+            p["volgnummer"] = volgnummer
+        for p in self.pupils:
+            cohort = self.cohorts[p["class"]]
+            self.b.add("enrolment", {
+                "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "courseId": self.basis["uuid"], "source": "admission",
+                "cohortId": cohort["uuid"], "lifecycle": "active", "inschrijvingDate": p["enrolled"].isoformat(),
+                # The readable copy ReadableCopyStamp writes on a live save (site-guardian-portal-design).
+                "cohortName": cohort["name"],
+                "volgnummer": p["volgnummer"], "locationId": cohort["locationId"], "leerjaar": p["leerjaar"],
             })
 
-    def teacher_on(name: str, day: dt.date) -> str:
+    def add_subject_teachers(self) -> None:
+        """The subject teachers per class."""
+        for name, leerjaren, *_rest in CLASSES:
+            cohort = self.cohorts[name]
+            teachers = TEACHERS[name]
+            first, second = teachers[0][0], teachers[-1][0]
+            if max(leerjaren) >= 3:
+                self.b.add("subjectteacherassignment", {"cohortId": cohort["uuid"], "courseId": self.subject_courses["PO-REK"]["uuid"], "teacherId": first})
+                self.b.add("subjectteacherassignment", {"cohortId": cohort["uuid"], "courseId": self.subject_courses["PO-TAAL"]["uuid"], "teacherId": second})
+            if max(leerjaren) >= 7:
+                self.b.add("subjectteacherassignment", {"cohortId": cohort["uuid"], "courseId": self.english["uuid"], "teacherId": second})
+            self.b.add("subjectteacherassignment", {"cohortId": cohort["uuid"], "courseId": self.gym["uuid"], "teacherId": GYM_TEACHER})
+
+    def add_report_periods(self) -> None:
+        """The two report periods."""
+        self.periods = []
+        for code, label, start, end in PERIODS:
+            self.periods.append(self.b.add("report-period", {
+                "name": label, "academicYear": YEAR, "periodCode": code, "startDate": start.isoformat(), "endDate": end.isoformat(),
+                "curriculumPlanIds": [plan["uuid"] for plan in self.plans.values()],
+                "cohortIds": [c["uuid"] for c in self.cohorts.values()],
+                "lockDate": stamp(end + dt.timedelta(days=7), 17, 0), "attendanceIncluded": True, "lifecycle": "composed",
+                "holidays": [{"name": h[0], "startDate": h[1].isoformat(), "endDate": h[2].isoformat()} for h in HOLIDAYS if start <= h[1] <= end],
+                "studyDays": [{"date": s[0].isoformat(), "description": s[1]} for s in STUDY_DAYS if start <= s[0] <= end],
+                "schoolId": self.school["uuid"],
+            }))
+
+    def teacher_on(self, name: str, day: dt.date) -> str:
         weekday = WEEKDAYS[day.weekday()]
         return next(t[0] for t in TEACHERS[name] if weekday in t[2])
 
-    # Marks per pupil: illness spells (excused), appointments (left early),
-    # late arrivals, and a handful of unexcused absences.
-    marks: dict[str, dict[dt.date, tuple[str, str, int | None]]] = {}
-    for p in pupils:
-        own = [d for d in days if d >= p["enrolled"]]
-        if not own:
-            continue
+    def add_sessions(self) -> None:
+        """A school day per class per day."""
+        self.sessions: dict[tuple[str, dt.date], dict] = {}
+        for name, *_rest in CLASSES:
+            cohort = self.cohorts[name]
+            for day in self.days:
+                end_h, end_m = (12, 15) if day.weekday() == 2 else (14, 15)
+                self.sessions[(name, day)] = self.b.add("session", {
+                    "cohortId": cohort["uuid"], "courseId": self.basis["uuid"],
+                    "title": f"{name}, {DAG[day.weekday()]} {day.day} {MAAND[day.month - 1]} {day.year}",
+                    "startsAt": stamp(day, 8, 30), "endsAt": stamp(day, end_h, end_m),
+                    "location": "Lokaal " + name.lower(), "roomId": cohort["_room"],
+                    "lifecycle": "completed",
+                })
+
+    def draw_attendance_marks(self) -> None:
+        """Marks per pupil: illness spells (excused), appointments (left early),
+        late arrivals, and a handful of unexcused absences."""
+        self.marks: dict[str, dict[dt.date, tuple[str, str, int | None]]] = {}
+        for p in self.pupils:
+            own = [d for d in self.days if d >= p["enrolled"]]
+            if own:
+                self.marks[p["nc"]] = self.pupil_marks(p, own)
+
+    def pupil_marks(self, p: dict, own: list[dt.date]) -> dict[dt.date, tuple[str, str, int | None]]:
+        """One pupil's illness spells, appointments and late arrivals over the school days they were enrolled."""
         pupil_marks: dict[dt.date, tuple[str, str, int | None]] = {}
-        for _ in range(min(6, max(0, int(rng.gauss(2.2, 1.3))))):
+        for _ in range(min(6, max(0, int(self.rng.gauss(2.2, 1.3))))):
             winter = [d for d in own if d.month in (11, 12, 1, 2, 3)]
-            start = rng.choice(winter if winter and rng.random() < 0.65 else own)
-            length = rng.choices([1, 2, 3, 4, 5], weights=[30, 30, 20, 12, 8])[0]
+            start = self.rng.choice(winter if winter and self.rng.random() < 0.65 else own)
+            length = self.rng.choices([1, 2, 3, 4, 5], weights=[30, 30, 20, 12, 8])[0]
             i = own.index(start)
             for d in own[i:i + length]:
                 pupil_marks[d] = ("absent-excused", "Ziek gemeld door ouder", 0)
-        for _ in range(rng.choices([0, 1, 2], weights=[55, 35, 10])[0]):
-            d = rng.choice(own)
+        for _ in range(self.rng.choices([0, 1, 2], weights=[55, 35, 10])[0]):
+            d = self.rng.choice(own)
             if d not in pupil_marks:
-                pupil_marks[d] = ("left-early", rng.choice(["Tandarts", "Huisarts", "Orthodontist"]), minutes_of(d) - 90)
-        lates = rng.choices([0, 1, 2, 4, 9], weights=[40, 30, 15, 10, 5])[0] if p["punctual"] < 0.9 else 0
+                pupil_marks[d] = ("left-early", self.rng.choice(["Tandarts", "Huisarts", "Orthodontist"]), minutes_of(d) - 90)
+        lates = self.rng.choices([0, 1, 2, 4, 9], weights=[40, 30, 15, 10, 5])[0] if p["punctual"] < 0.9 else 0
         for _ in range(lates):
-            d = rng.choice(own)
+            d = self.rng.choice(own)
             if d not in pupil_marks:
-                late_by = rng.choice([5, 10, 15, 20])
+                late_by = self.rng.choice([5, 10, 15, 20])
                 pupil_marks[d] = ("late", "Te laat binnengekomen", minutes_of(d) - late_by)
-        marks[p["nc"]] = pupil_marks
+        return pupil_marks
 
-    # Extra leave refused before the May holiday: two families take it anyway.
-    refused = [p for p in pupils if p["class"] in ("Groep 4", "Groep 7")][:3]
-    for p in refused:
-        for d in (dt.date(2026, 4, 23), dt.date(2026, 4, 24)):
-            marks[p["nc"]][d] = ("absent-unexcused", "Extra verlof niet toegekend, toch afwezig", 0)
+    def mark_unexcused_absences(self) -> None:
+        """The refused extra leave and the leerplicht case, marked as unexcused absences."""
+        # Extra leave refused before the May holiday: two families take it anyway.
+        refused = [p for p in self.pupils if p["class"] in ("Groep 4", "Groep 7")][:3]
+        for p in refused:
+            for d in (dt.date(2026, 4, 23), dt.date(2026, 4, 24)):
+                self.marks[p["nc"]][d] = ("absent-unexcused", "Extra verlof niet toegekend, toch afwezig", 0)
 
-    # The leerplicht case: a pupil in groep 7 misses most of three weeks in March.
-    signal = next(p for p in pupils if p["class"] == "Groep 7" and p["enrolled"] <= FIRST_DAY and p["nc"] not in {r["nc"] for r in refused})
-    signal_days = [d for d in days if dt.date(2026, 3, 2) <= d <= dt.date(2026, 3, 20) and d.weekday() != 2][:7]
-    for d in signal_days:
-        marks[signal["nc"]][d] = ("absent-unexcused", "Niet ziek gemeld, ouders niet bereikbaar", 0)
+        # The leerplicht case: a pupil in groep 7 misses most of three weeks in March.
+        self.signal = next(p for p in self.pupils if p["class"] == "Groep 7" and p["enrolled"] <= FIRST_DAY and p["nc"] not in {r["nc"] for r in refused})
+        self.signal_days = [d for d in self.days if dt.date(2026, 3, 2) <= d <= dt.date(2026, 3, 20) and d.weekday() != 2][:7]
+        for d in self.signal_days:
+            self.marks[self.signal["nc"]][d] = ("absent-unexcused", "Niet ziek gemeld, ouders niet bereikbaar", 0)
 
-    # Guardians report some illness spells through the portal: an excuse request each.
-    excuses: dict[tuple[str, dt.date], dict] = {}
-    spell_owners = [p for p in pupils if any(m[0] == "absent-excused" for m in marks.get(p["nc"], {}).values())]
-    for p in rng.sample(spell_owners, 15):
-        spell = sorted(d for d, m in marks[p["nc"]].items() if m[0] == "absent-excused")
-        start = spell[0]
-        run = [start]
-        for d in spell[1:]:
-            if days.index(d) == days.index(run[-1]) + 1:
-                run.append(d)
-            else:
-                break
-        guardian = p["guardians"][0]
-        req = b.add("excuse-request", {
-            "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"],
-            "submittedBy": guardian["ncUserId"], "submittedByRef": guardian["uuid"],
-            "dateFrom": run[0].isoformat(), "dateTo": run[-1].isoformat(),
-            "reason": rng.choice(["Griep", "Koorts", "Buikgriep", "Waterpokken"]), "reasonKind": "illness",
-            "submittedAuthLevel": "basic", "decidedBy": teacher_on(p["class"], run[0]),
-            "decidedAt": stamp(run[0], 10, 15), "decisionNote": None, "lifecycle": "approved",
-        })
-        for d in run:
-            excuses[(p["nc"], d)] = req
-
-    signal_records = []
-    for p in pupils:
-        for d in sorted(marks.get(p["nc"], {})):
-            status, reason, minutes = marks[p["nc"]][d]
-            rec = b.add("attendance-record", {
-                "sessionId": sessions[(p["class"], d)]["uuid"], "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"],
-                "cohortId": cohorts[p["class"]]["uuid"], "status": status,
-                "minutesAttended": minutes, "markedBy": teacher_on(p["class"], d),
-                "markedAt": stamp(d, 8, 50 if status == "late" else 40), "reason": reason,
-                "excuseRequestId": (excuses[(p["nc"], d)]["uuid"] if (p["nc"], d) in excuses else None),
-                # The roll-call's fields (attendance-roll-call): minutes late, and why an excused pupil was away.
-                "lateMinutes": (minutes_of(d) - minutes) if status == "late" else None,
-                "absenceReasonKind": "illness" if status == "absent-excused" else None,
+    def add_excuse_requests(self) -> None:
+        """Guardians report some illness spells through the portal: an excuse request each."""
+        self.excuses: dict[tuple[str, dt.date], dict] = {}
+        spell_owners = [p for p in self.pupils if any(m[0] == "absent-excused" for m in self.marks.get(p["nc"], {}).values())]
+        for p in self.rng.sample(spell_owners, 15):
+            run = self.first_illness_spell(p)
+            guardian = p["guardians"][0]
+            req = self.b.add("excuse-request", {
+                "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"],
+                "submittedBy": guardian["ncUserId"], "submittedByRef": guardian["uuid"],
+                "dateFrom": run[0].isoformat(), "dateTo": run[-1].isoformat(),
+                "reason": self.rng.choice(["Griep", "Koorts", "Buikgriep", "Waterpokken"]), "reasonKind": "illness",
+                "submittedAuthLevel": "basic", "decidedBy": self.teacher_on(p["class"], run[0]),
+                "decidedAt": stamp(run[0], 10, 15), "decisionNote": None, "lifecycle": "approved",
             })
-            if p is signal and status == "absent-unexcused":
-                signal_records.append(rec["uuid"])
+            for d in run:
+                self.excuses[(p["nc"], d)] = req
 
-    # Attendance summaries (attendance-summary-per-school-year): one row per pupil for the year, counted with
-    # the rules of AttendanceSummaryCalculator. Every school day has one session, so an absent mark is an absent day.
-    for p in pupils:
-        pm = marks.get(p["nc"], {})
-        excused = sum(1 for m in pm.values() if m[0] == "absent-excused")
-        unexcused = sum(1 for m in pm.values() if m[0] == "absent-unexcused")
-        lates = [d for d, m in pm.items() if m[0] == "late"]
-        cohort = cohorts[p["class"]]
-        b.add("attendance-summary", {
-            "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "schoolYear": YEAR,
-            "absentDays": excused + unexcused, "absentAuthorisedDays": excused, "absentUnauthorisedDays": unexcused,
-            "lateCount": len(lates), "lateMinutes": sum(minutes_of(d) - pm[d][2] for d in lates),
-            "updatedAt": stamp(LAST_DAY, 18, 0),
-            "teacherIds": sorted(set(cohort["teacherIds"]) | {a["teacherId"] for a in cohort["teacherAssignments"]}),
+    def first_illness_spell(self, p: dict) -> list[dt.date]:
+        """The consecutive school days of a pupil's first excused absence."""
+        spell = sorted(d for d, m in self.marks[p["nc"]].items() if m[0] == "absent-excused")
+        run = [spell[0]]
+        for d in spell[1:]:
+            if self.days.index(d) != self.days.index(run[-1]) + 1:
+                break
+            run.append(d)
+        return run
+
+    def add_attendance_records(self) -> None:
+        """An attendance record per mark."""
+        self.signal_records = []
+        for p in self.pupils:
+            for d in sorted(self.marks.get(p["nc"], {})):
+                status, reason, minutes = self.marks[p["nc"]][d]
+                rec = self.b.add("attendance-record", {
+                    "sessionId": self.sessions[(p["class"], d)]["uuid"], "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"],
+                    "cohortId": self.cohorts[p["class"]]["uuid"], "status": status,
+                    "minutesAttended": minutes, "markedBy": self.teacher_on(p["class"], d),
+                    "markedAt": stamp(d, 8, 50 if status == "late" else 40), "reason": reason,
+                    "excuseRequestId": (self.excuses[(p["nc"], d)]["uuid"] if (p["nc"], d) in self.excuses else None),
+                    # The roll-call's fields (attendance-roll-call): minutes late, and why an excused pupil was away.
+                    "lateMinutes": (minutes_of(d) - minutes) if status == "late" else None,
+                    "absenceReasonKind": "illness" if status == "absent-excused" else None,
+                })
+                if p is self.signal and status == "absent-unexcused":
+                    self.signal_records.append(rec["uuid"])
+
+    def add_attendance_summaries(self) -> None:
+        """Attendance summaries (attendance-summary-per-school-year): one row per pupil for the year, counted with
+        the rules of AttendanceSummaryCalculator. Every school day has one session, so an absent mark is an absent day."""
+        for p in self.pupils:
+            pm = self.marks.get(p["nc"], {})
+            excused = sum(1 for m in pm.values() if m[0] == "absent-excused")
+            unexcused = sum(1 for m in pm.values() if m[0] == "absent-unexcused")
+            lates = [d for d, m in pm.items() if m[0] == "late"]
+            cohort = self.cohorts[p["class"]]
+            self.b.add("attendance-summary", {
+                "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "schoolYear": YEAR,
+                "absentDays": excused + unexcused, "absentAuthorisedDays": excused, "absentUnauthorisedDays": unexcused,
+                "lateCount": len(lates), "lateMinutes": sum(minutes_of(d) - pm[d][2] for d in lates),
+                "updatedAt": stamp(LAST_DAY, 18, 0),
+                "teacherIds": sorted(set(cohort["teacherIds"]) | {a["teacherId"] for a in cohort["teacherAssignments"]}),
+            })
+
+    def add_leerplicht_flag(self) -> None:
+        """The leerplicht threshold and the flag the March case raised on it."""
+        threshold = self.b.add("attendance-threshold", {
+            "name": "Leerplicht: 16 uur ongeoorloofd verzuim in 4 weken", "kind": "leerplicht-16uur", "scope": "per-learner",
+            "window": {"type": "rolling-weeks", "weeks": 4, "termId": None}, "metric": "unexcused-lesuren", "limit": 16,
+            "lessonHourMinutes": 60,
+            "onCross": {"notify": True, "notifyRoles": ["mentor", "coordinator"], "createFlag": True, "dataExchangeTarget": None},
+            "active": True, "lifecycle": "active",
+        })
+        self.b.add("attendance-flag", {
+            "learnerId": self.signal["nc"], "attendanceThresholdId": threshold["uuid"], "cohortId": self.cohorts["Groep 7"]["uuid"],
+            "windowStart": dt.date(2026, 3, 2).isoformat(), "windowEnd": dt.date(2026, 3, 27).isoformat(),
+            "metricValue": round(sum(minutes_of(d) for d in self.signal_days) / 60, 2), "breachingRecordIds": self.signal_records,
+            "mentorId": TEACHERS["Groep 7"][0][0], "flagKind": "signal-verzuim", "lifecycle": "resolved",
+            "interventions": [
+                {"recordedBy": IB, "recordedAt": stamp(dt.date(2026, 3, 23), 15, 30),
+                 "note": "Gesprek met ouders op school; afspraken gemaakt over ziekmelden en de ochtendroutine."},
+            ],
         })
 
-    threshold = b.add("attendance-threshold", {
-        "name": "Leerplicht: 16 uur ongeoorloofd verzuim in 4 weken", "kind": "leerplicht-16uur", "scope": "per-learner",
-        "window": {"type": "rolling-weeks", "weeks": 4, "termId": None}, "metric": "unexcused-lesuren", "limit": 16,
-        "lessonHourMinutes": 60,
-        "onCross": {"notify": True, "notifyRoles": ["mentor", "coordinator"], "createFlag": True, "dataExchangeTarget": None},
-        "active": True, "lifecycle": "active",
-    })
-    b.add("attendance-flag", {
-        "learnerId": signal["nc"], "attendanceThresholdId": threshold["uuid"], "cohortId": cohorts["Groep 7"]["uuid"],
-        "windowStart": dt.date(2026, 3, 2).isoformat(), "windowEnd": dt.date(2026, 3, 27).isoformat(),
-        "metricValue": round(sum(minutes_of(d) for d in signal_days) / 60, 2), "breachingRecordIds": signal_records,
-        "mentorId": TEACHERS["Groep 7"][0][0], "flagKind": "signal-verzuim", "lifecycle": "resolved",
-        "interventions": [
-            {"recordedBy": IB, "recordedAt": stamp(dt.date(2026, 3, 23), 15, 30),
-             "note": "Gesprek met ouders op school; afspraken gemaakt over ziekmelden en de ochtendroutine."},
-        ],
-    })
-
-    # --- LVS results --------------------------------------------------------
-    # The import jobs these results arrived through live in integriq now (data-exchange-to-integriq), so the
-    # results carry no dataExchangeJobId.
-
-    def level(z: float) -> str:
+    def level(self, z: float) -> str:
         return "I" if z > 0.84 else "II" if z > 0.25 else "III" if z > -0.25 else "IV" if z > -0.84 else "V"
 
-    for p in pupils:
-        if p["leerjaar"] < 3 or p["enrolled"] > dt.date(2026, 1, 12):
-            continue
-        moments = [("M", dt.date(2026, 1, 19))]
-        if p["leerjaar"] < 8:
-            moments.append(("E", dt.date(2026, 6, 1)))
-        for code, base_day in moments:
-            for instrument, offset in LVS_INSTRUMENTS:
-                z = max(-2.5, min(2.5, p["ability"] + offset + rng.gauss(0, 0.45)))
-                months = (p["leerjaar"] - 3) * 10 + (5 if code == "M" else 10)
-                b.add("lvs-result", {
-                    "provider": "cito", "instrument": instrument, "moment": f"{code}{p['leerjaar']}",
-                    "takenAt": (base_day + dt.timedelta(days=rng.randrange(10))).isoformat(),
-                    "rawScore": None, "vaardigheidsscore": round(40 + months * 1.6 + z * 9, 1),
-                    "niveau": level(z), "referentieniveau": None, "dle": round(max(1, months + z * 5)),
-                    "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "dataExchangeJobId": None, "lifecycle": "verified",
-                })
-        if p["leerjaar"] == 8:
-            z = max(-2.5, min(2.5, p["ability"] + rng.gauss(0, 0.3)))
-            b.add("lvs-result", {
-                "provider": "iep", "instrument": "Doorstroomtoets", "moment": "februari 2026",
-                "takenAt": dt.date(2026, 2, 10).isoformat(), "rawScore": None, "vaardigheidsscore": round(80 + z * 7, 1),
-                "niveau": level(z), "referentieniveau": ("2F/1S" if z > 0.4 else "1F" if z > -1.2 else "onder 1F"),
-                "dle": None, "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "dataExchangeJobId": None, "lifecycle": "verified",
-            })
+    def add_lvs_results(self) -> None:
+        """The LVS (Cito and doorstroomtoets) results."""
+        # The import jobs these results arrived through live in integriq now (data-exchange-to-integriq), so the
+        # results carry no dataExchangeJobId.
 
-    # --- report cards -------------------------------------------------------
-    for (code, _label, start, end), period in zip(PERIODS, periods):
-        for p in pupils:
-            own = [d for d in days if start <= d <= end and d >= p["enrolled"]]
-            if not own:
+        for p in self.pupils:
+            if p["leerjaar"] < 3 or p["enrolled"] > dt.date(2026, 1, 12):
                 continue
-            pm = marks.get(p["nc"], {})
-            summary = {
-                "absentExcusedCount": sum(1 for d in own if pm.get(d, ("",))[0] == "absent-excused"),
-                "absentUnexcusedCount": sum(1 for d in own if pm.get(d, ("",))[0] == "absent-unexcused"),
-                "lateCount": sum(1 for d in own if pm.get(d, ("",))[0] == "late"),
-                "leftEarlyCount": sum(1 for d in own if pm.get(d, ("",))[0] == "left-early"),
-            }
-            absent = summary["absentExcusedCount"] + summary["absentUnexcusedCount"]
-            summary["presentCount"] = len(own) - absent
-            summary["attendancePercent"] = round(100 * (len(own) - absent) / len(own), 1)
-            he = "hij" if p["boy"] else "zij"
-            grades = []
-            if p["leerjaar"] >= 3:
-                for subject, _name, offset in REPORT_SUBJECTS:
-                    avg = round(max(4.0, min(9.8, 7.1 + 0.9 * p["ability"] + offset + rng.gauss(0, 0.35) + (0.1 if code == "2" else 0))), 1)
-                    grades.append({"curriculumPlanId": plans[subject]["uuid"], "courseId": subject_courses[subject]["uuid"],
-                                   "periodAverage": avg, "passed": avg >= 5.5, "teacherComment": None, "sourceGradeEntryIds": []})
-                weakest = min(grades, key=lambda g: g["periodAverage"])
-                weakest_name = next(s[1] for s in REPORT_SUBJECTS if plans[s[0]]["uuid"] == weakest["curriculumPlanId"])
-                if weakest["periodAverage"] < 6.0:
-                    weakest["teacherComment"] = f"Hier oefenen we samen extra mee; thuis voorlezen of samen oefenen helpt {p['given']} ook."
-                comment = rng.choice([
-                    f"{p['given']} werkt zelfstandig en helpt anderen graag. Bij {weakest_name.lower()} mag {he} nog iets meer tempo maken.",
-                    f"{p['given']} is betrokken in de klas en stelt goede vragen. We werken dit halfjaar extra aan {weakest_name.lower()}.",
-                    f"Het is fijn om te zien hoe {p['given']} groeit. {he.capitalize()} kan trots zijn op deze periode.",
-                    f"{p['given']} heeft een goede werkhouding. Plannen en afmaken van het weektaakwerk vraagt nog aandacht.",
-                ])
-            else:
-                comment = rng.choice([
-                    f"{p['given']} speelt graag in de bouwhoek en maakt makkelijk contact met andere kinderen.",
-                    f"{p['given']} luistert goed in de kring en vertelt enthousiast over wat {he} heeft meegemaakt.",
-                    f"{p['given']} is gewend in de groep. We oefenen nog met het zelf aan- en uittrekken van de jas.",
-                    f"{p['given']} knipt, plakt en tekent met veel plezier en werkt steeds langer geconcentreerd.",
-                ])
-            b.add("report-card", {
-                "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "reportPeriodId": period["uuid"],
-                "cohortId": cohorts[p["class"]]["uuid"], "subjectGrades": grades,
-                # The readable copies the server writes on every save
-                # (ReportCardGradeLines), so the parent portal shows them.
-                "periodName": period["name"], "gradeLines": grade_lines(grades, names_by_uuid),
-                "attendanceSummary": summary,
-                "mentorComment": comment, "composedAt": stamp(end + dt.timedelta(days=5), 16, 0),
-                "lifecycle": "published-to-parents",
-            })
-
-    # --- group plan (promoted from the register's curated seed) ------------
-    fivesix = [p for p in pupils if p["class"] == "Groep 5/6"]
-    ranked = sorted(fivesix, key=lambda p: p["ability"])
-    closed = b.add("group-plan", {
-        "cohortId": cohorts["Groep 5/6"]["uuid"], "subject": "technisch lezen", "period": "2025-2026 blok 3",
-        "periodEndDate": "2026-04-15", "coordinatorId": "po-leerkracht-05",
-        "resultsAnalysis": {"narrative": "Cito-toetsronde blok 3: methodetoetsen tonen een groep leerlingen die achterblijft op AVI/DMT.", "evidenceRefs": []},
-        "goals": [{"goalId": "goal-1", "description": "90% van de groep behaalt het AVI-niveau passend bij leerjaar aan het einde van blok 3.", "status": "met"}],
-        "supersedesId": None, "lifecycle": "closed",
-    })
-    basis_blok3 = b.add("group-plan-subgroup", {
-        "groupPlanId": closed["uuid"], "name": "Basis, technisch lezen (blok 3)", "instructieniveau": "basis",
-        "learnerIds": [ranked[0]["nc"], ranked[2]["nc"]],
-        "differentiatedGoal": "AVI-niveau een stap verhogen via extra leestijd.",
-        "approach": "Drie keer per week begeleid lezen in kleine groep.",
-        "intendedOutcome": "Beide leerlingen behalen het volgende AVI-niveau.",
-    })
-    evaluation = b.add("group-plan-evaluation", {
-        "groupPlanId": closed["uuid"], "evaluatedAt": "2026-04-14", "evaluatedBy": "po-leerkracht-05",
-        "outcomes": [{"subgroupId": basis_blok3["uuid"], "outcome": "met", "narrative": "Beide leerlingen behaalden het beoogde AVI-niveau."}],
-        "narrative": "Blok 3 geëvalueerd; de groep wordt voor blok 1 van volgend jaar opnieuw ingedeeld op basis van deze uitkomst.",
-    })
-    # Buckets are emitted in SCHEMAS order, so this plan loads before its subgroups either way.
-    active = b.add("group-plan", {
-        "cohortId": cohorts["Groep 5/6"]["uuid"], "subject": "technisch lezen", "period": "2026-2027 blok 1",
-        "periodEndDate": "2026-10-16", "coordinatorId": "po-leerkracht-05",
-        "resultsAnalysis": {"narrative": "Vervolg op blok 3 (zie de gekoppelde evaluatie): drie duidelijke instructieniveaus binnen de klas.", "evidenceRefs": [evaluation["uuid"]]},
-        "goals": [{"goalId": "goal-1", "description": "Alle subgroepen tonen aantoonbare vooruitgang op AVI-niveau bij de volgende meting.", "status": "open"}],
-        "supersedesId": closed["uuid"], "lifecycle": "active",
-    })
-    intensief = b.add("group-plan-subgroup", {
-        "groupPlanId": active["uuid"], "name": "Intensief, technisch lezen", "instructieniveau": "intensief",
-        "learnerIds": [ranked[0]["nc"], ranked[1]["nc"]],
-        "differentiatedGoal": "Dagelijks 1-op-1 leesbegeleiding om de leesachterstand in te lopen.",
-        "approach": "Dagelijks 15 minuten remedial teaching met de intern begeleider, aanvullend op de klassikale les.",
-        "intendedOutcome": "Substantiële groei op DMT/AVI binnen dit blok; een ondersteuningsvraag als dat onvoldoende blijkt.",
-    })
-    b.add("group-plan-subgroup", {
-        "groupPlanId": active["uuid"], "name": "Basis, technisch lezen", "instructieniveau": "basis",
-        "learnerIds": [p["nc"] for p in ranked[2:-3]],
-        "differentiatedGoal": "Leerlijn-tempo vasthouden.",
-        "approach": "Reguliere klassikale leesinstructie volgens de methode.",
-        "intendedOutcome": "Leerlingen blijven op het leerlijn-tempo.",
-    })
-    b.add("group-plan-subgroup", {
-        "groupPlanId": active["uuid"], "name": "Verdiept, technisch lezen", "instructieniveau": "verdiept",
-        "learnerIds": [p["nc"] for p in ranked[-3:]],
-        "differentiatedGoal": "Uitdagende teksten boven leerjaarniveau.",
-        "approach": "Verrijkingsopdrachten en zelfstandig verwerken van moeilijkere teksten.",
-        "intendedOutcome": "Leerlingen blijven gemotiveerd en lezen boven leerjaarniveau.",
-    })
-
-    # --- support requests and dossier notes ---------------------------------
-    struggling = ranked[0]
-    b.add("support-request", {
-        "learnerId": struggling["nc"], "originGroupPlanSubgroupId": intensief["uuid"], "raisedBy": IB,
-        "supportDomain": "Lezen en spelling (vermoeden van dyslexie)",
-        "description": "Na twee blokken intensieve leesbegeleiding blijft de groei op DMT en AVI achter. Aanvraag voor een dyslexieonderzoek.",
-        "urgency": "medium", "lifecycle": "submitted",
-    })
-    behaviour = next(p for p in pupils if p["class"] == "Groep 4")
-    b.add("support-request", {
-        "learnerId": behaviour["nc"], "raisedBy": IB, "supportDomain": "Gedrag en werkhouding",
-        "description": "Vraag om observatie in de klas en advies over rust en structuur tijdens zelfstandig werken.",
-        "urgency": "low", "lifecycle": "decided",
-    })
-    b.add("support-request", {
-        "learnerId": signal["nc"], "raisedBy": IB, "supportDomain": "Verzuim en welbevinden",
-        "description": "Na het verzuim in maart: afstemming met de jeugdverpleegkundige over wat er thuis speelt.",
-        "urgency": "high", "lifecycle": "draft",
-    })
-    notes = [
-        (struggling, "po-leerkracht-05", "2025-10-09", "observation", "Leest langzaam en raadt woorden bij het hardop lezen. Besproken met de intern begeleider.", "care-team-only"),
-        (struggling, IB, "2025-11-20", "conversation", "Oudergesprek over de leesontwikkeling; ouders lezen thuis dagelijks tien minuten samen.", "care-team-only"),
-        (signal, TEACHERS["Groep 7"][0][0], "2026-03-04", "phone-call-home", "Ouders gebeld over de afwezigheid; geen gehoor, voicemail ingesproken.", "care-team-only"),
-        (signal, IB, "2026-03-23", "conversation", "Gesprek met ouders over het verzuim. Afspraken over ziekmelden voor 08.15 uur.", "care-team-only"),
-        (behaviour, "po-leerkracht-07", "2025-09-25", "concern", "Heeft moeite om bij de les te blijven na de pauze; zit onrustig.", "team-visible"),
-        (behaviour, "po-leerkracht-07", "2026-02-12", "positive", "Werkt met de time-timer veel geconcentreerder. Mooie vooruitgang.", "team-visible"),
-        (ranked[-1], "po-leerkracht-06", "2026-01-15", "positive", "Leest boven niveau en helpt klasgenoten bij het voorlezen.", "team-visible"),
-        (pupils[3], "po-leerkracht-01", "2025-09-05", "observation", "Went goed in de groep; speelt veel met de blokken en in de huishoek.", "team-visible"),
-    ]
-    for p, author, date, category, body, confidentiality in notes:
-        b.add("dossier-note", {"learnerId": p["nc"], "authorId": author, "date": date, "category": category, "body": body,
-                               "confidentiality": confidentiality, "careTeamUserIds": [IB, teacher_on(p["class"], dt.date.fromisoformat(date))]})
-
-    # --- parent evening (direct booking) ------------------------------------
-    # Group 7's parent evening in the autumn after this school year, open for
-    # booking: the teacher's availability is cut into free times parents pick
-    # in the portal (direct-conference-booking). The free slots are what
-    # ConferenceFreeSlotGenerator writes on `open-booking`, 10 minutes with 2
-    # minutes between them.
-    group7 = [p for p in pupils if p["class"] == "Groep 7"]
-    teacher7 = TEACHERS["Groep 7"][0][0]
-    evening = dt.date(2026, 10, 29)
-    round7 = b.add("conference-round", {
-        "name": "Oudergesprekken groep 7, oktober 2026", "cohortIds": [cohorts["Groep 7"]["uuid"]],
-        "teacherIds": [teacher7], "slotDurationMinutes": 10, "bufferMinutes": 2,
-        "bookingOpensAt": stamp(dt.date(2026, 9, 28), 8, 0), "bookingClosesAt": stamp(dt.date(2026, 10, 16), 17, 0),
-        "invitedLearnerIds": [p["nc"] for p in group7], "invitedLearnerRefs": [p["profile"]["uuid"] for p in group7],
-        "bookingMode": "direct", "maxBookingsPerChild": 1, "lifecycle": "booking-open",
-    })
-    b.add("teacher-availability", {
-        "conferenceRoundId": round7["uuid"], "teacherId": teacher7,
-        "blocks": [{"startsAt": stamp(evening, 18, 0), "endsAt": stamp(evening, 20, 0)}], "lifecycle": "submitted",
-    })
-    start = dt.datetime(evening.year, evening.month, evening.day, 18, 0, tzinfo=AMS)
-    while start + dt.timedelta(minutes=10) <= dt.datetime(evening.year, evening.month, evening.day, 20, 0, tzinfo=AMS):
-        end = start + dt.timedelta(minutes=10)
-        b.add("conference-slot", {
-            "conferenceRoundId": round7["uuid"], "teacherId": teacher7, "teacherName": "Meester Daan",
-            "startsAt": start.isoformat(), "endsAt": end.isoformat(),
-            "slotLabel": f"{start:%d-%m-%Y %H:%M}-{end:%H:%M}, Meester Daan",
-            "eligibleLearnerRefs": [p["profile"]["uuid"] for p in group7], "location": "Lokaal groep 7",
-            "lifecycle": "free",
-        })
-        start = end + dt.timedelta(minutes=2)
-
-    # --- school calendar, homework and hand-ins (portal-parent-child-record) --
-    for title, starts, ends, kind, groups, description in SCHOOL_EVENTS:
-        b.add("school-event", {
-            "title": title, "description": description, "startsAt": starts, "endsAt": ends, "kind": kind,
-            "audience": "groups" if groups else "school", "schoolId": school["uuid"],
-            "cohortIds": [cohorts[g]["uuid"] for g in groups or []],
-        })
-    homework_rng = random.Random(20261002)
-    for name, leerjaren, *_rest in CLASSES:
-        if max(leerjaren) < 3:
-            continue
-        members = sorted((p for p in pupils if p["class"] == name), key=lambda p: p["nc"])
-        for index, (code, title, due, instructions) in enumerate(HOMEWORK):
-            assignment = b.add("assignment", {
-                "title": title, "instructions": instructions, "courseId": subject_courses[code]["uuid"],
-                "cohortId": cohorts[name]["uuid"], "dueAt": stamp(dt.date.fromisoformat(due), 8, 30), "maxPoints": 10,
-                "allowLateSubmission": True, "lifecycle": "published",
-                # What AssignmentLearnerRefsStamp writes on a live save: the group's pupils.
-                "learnerRefs": [p["profile"]["uuid"] for p in members],
-            })
-            share = 0.85 if index == 0 else 0.3
-            for p in members:
-                if homework_rng.random() >= share:
-                    continue
-                late = index == 0 and homework_rng.random() < 0.15
-                handed = dt.date.fromisoformat(due) + dt.timedelta(days=1 if late else -1)
-                b.add("submission", {
-                    "assignmentId": assignment["uuid"], "learnerIds": [p["nc"]], "learnerRefs": [p["profile"]["uuid"]],
-                    "learnerRef": p["profile"]["uuid"], "submittedAt": stamp(handed, 19, 0), "lifecycle": "late" if late else "submitted",
+            moments = [("M", dt.date(2026, 1, 19))]
+            if p["leerjaar"] < 8:
+                moments.append(("E", dt.date(2026, 6, 1)))
+            for code, base_day in moments:
+                for instrument, offset in LVS_INSTRUMENTS:
+                    z = max(-2.5, min(2.5, p["ability"] + offset + self.rng.gauss(0, 0.45)))
+                    months = (p["leerjaar"] - 3) * 10 + (5 if code == "M" else 10)
+                    self.b.add("lvs-result", {
+                        "provider": "cito", "instrument": instrument, "moment": f"{code}{p['leerjaar']}",
+                        "takenAt": (base_day + dt.timedelta(days=self.rng.randrange(10))).isoformat(),
+                        "rawScore": None, "vaardigheidsscore": round(40 + months * 1.6 + z * 9, 1),
+                        "niveau": self.level(z), "referentieniveau": None, "dle": round(max(1, months + z * 5)),
+                        "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "dataExchangeJobId": None, "lifecycle": "verified",
+                    })
+            if p["leerjaar"] == 8:
+                z = max(-2.5, min(2.5, p["ability"] + self.rng.gauss(0, 0.3)))
+                self.b.add("lvs-result", {
+                    "provider": "iep", "instrument": "Doorstroomtoets", "moment": "februari 2026",
+                    "takenAt": dt.date(2026, 2, 10).isoformat(), "rawScore": None, "vaardigheidsscore": round(80 + z * 7, 1),
+                    "niveau": self.level(z), "referentieniveau": ("2F/1S" if z > 0.4 else "1F" if z > -1.2 else "onder 1F"),
+                    "dle": None, "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "dataExchangeJobId": None, "lifecycle": "verified",
                 })
 
-    add_sami(b, pupils, cohorts, sessions, days, periods, plans, subject_courses, names_by_uuid)
-    add_story(b, pupils, cohorts, school, subject_courses, names_by_uuid)
+    def add_report_cards(self) -> None:
+        """A report card per pupil per report period."""
+        for (code, _label, start, end), period in zip(PERIODS, self.periods):
+            for p in self.pupils:
+                own = [d for d in self.days if start <= d <= end and d >= p["enrolled"]]
+                if not own:
+                    continue
+                pm = self.marks.get(p["nc"], {})
+                summary = {
+                    "absentExcusedCount": sum(1 for d in own if pm.get(d, ("",))[0] == "absent-excused"),
+                    "absentUnexcusedCount": sum(1 for d in own if pm.get(d, ("",))[0] == "absent-unexcused"),
+                    "lateCount": sum(1 for d in own if pm.get(d, ("",))[0] == "late"),
+                    "leftEarlyCount": sum(1 for d in own if pm.get(d, ("",))[0] == "left-early"),
+                }
+                absent = summary["absentExcusedCount"] + summary["absentUnexcusedCount"]
+                summary["presentCount"] = len(own) - absent
+                summary["attendancePercent"] = round(100 * (len(own) - absent) / len(own), 1)
+                he = "hij" if p["boy"] else "zij"
+                grades = []
+                if p["leerjaar"] >= 3:
+                    for subject, _name, offset in REPORT_SUBJECTS:
+                        avg = round(max(4.0, min(9.8, 7.1 + 0.9 * p["ability"] + offset + self.rng.gauss(0, 0.35) + (0.1 if code == "2" else 0))), 1)
+                        grades.append({"curriculumPlanId": self.plans[subject]["uuid"], "courseId": self.subject_courses[subject]["uuid"],
+                                       "periodAverage": avg, "passed": avg >= 5.5, "teacherComment": None, "sourceGradeEntryIds": []})
+                    weakest = min(grades, key=lambda g: g["periodAverage"])
+                    weakest_name = next(s[1] for s in REPORT_SUBJECTS if self.plans[s[0]]["uuid"] == weakest["curriculumPlanId"])
+                    if weakest["periodAverage"] < 6.0:
+                        weakest["teacherComment"] = f"Hier oefenen we samen extra mee; thuis voorlezen of samen oefenen helpt {p['given']} ook."
+                    comment = self.rng.choice([
+                        f"{p['given']} werkt zelfstandig en helpt anderen graag. Bij {weakest_name.lower()} mag {he} nog iets meer tempo maken.",
+                        f"{p['given']} is betrokken in de klas en stelt goede vragen. We werken dit halfjaar extra aan {weakest_name.lower()}.",
+                        f"Het is fijn om te zien hoe {p['given']} groeit. {he.capitalize()} kan trots zijn op deze periode.",
+                        f"{p['given']} heeft een goede werkhouding. Plannen en afmaken van het weektaakwerk vraagt nog aandacht.",
+                    ])
+                else:
+                    comment = self.rng.choice([
+                        f"{p['given']} speelt graag in de bouwhoek en maakt makkelijk contact met andere kinderen.",
+                        f"{p['given']} luistert goed in de kring en vertelt enthousiast over wat {he} heeft meegemaakt.",
+                        f"{p['given']} is gewend in de groep. We oefenen nog met het zelf aan- en uittrekken van de jas.",
+                        f"{p['given']} knipt, plakt en tekent met veel plezier en werkt steeds langer geconcentreerd.",
+                    ])
+                self.b.add("report-card", {
+                    "learnerId": p["nc"], "learnerRef": p["profile"]["uuid"], "reportPeriodId": period["uuid"],
+                    "cohortId": self.cohorts[p["class"]]["uuid"], "subjectGrades": grades,
+                    # The readable copies the server writes on every save
+                    # (ReportCardGradeLines), so the parent portal shows them.
+                    "periodName": period["name"], "gradeLines": grade_lines(grades, self.names_by_uuid),
+                    "attendanceSummary": summary,
+                    "mentorComment": comment, "composedAt": stamp(end + dt.timedelta(days=5), 16, 0),
+                    "lifecycle": "published-to-parents",
+                })
 
-    stamp_group_labels(b)
-    add_report_subject_grades(b)
+    def add_group_plan(self) -> None:
+        """The group plan, promoted from the register's curated seed."""
+        fivesix = [p for p in self.pupils if p["class"] == "Groep 5/6"]
+        self.ranked = sorted(fivesix, key=lambda p: p["ability"])
+        closed = self.b.add("group-plan", {
+            "cohortId": self.cohorts["Groep 5/6"]["uuid"], "subject": "technisch lezen", "period": "2025-2026 blok 3",
+            "periodEndDate": "2026-04-15", "coordinatorId": "po-leerkracht-05",
+            "resultsAnalysis": {"narrative": "Cito-toetsronde blok 3: methodetoetsen tonen een groep leerlingen die achterblijft op AVI/DMT.", "evidenceRefs": []},
+            "goals": [{"goalId": "goal-1", "description": "90% van de groep behaalt het AVI-niveau passend bij leerjaar aan het einde van blok 3.", "status": "met"}],
+            "supersedesId": None, "lifecycle": "closed",
+        })
+        basis_blok3 = self.b.add("group-plan-subgroup", {
+            "groupPlanId": closed["uuid"], "name": "Basis, technisch lezen (blok 3)", "instructieniveau": "basis",
+            "learnerIds": [self.ranked[0]["nc"], self.ranked[2]["nc"]],
+            "differentiatedGoal": "AVI-niveau een stap verhogen via extra leestijd.",
+            "approach": "Drie keer per week begeleid lezen in kleine groep.",
+            "intendedOutcome": "Beide leerlingen behalen het volgende AVI-niveau.",
+        })
+        evaluation = self.b.add("group-plan-evaluation", {
+            "groupPlanId": closed["uuid"], "evaluatedAt": "2026-04-14", "evaluatedBy": "po-leerkracht-05",
+            "outcomes": [{"subgroupId": basis_blok3["uuid"], "outcome": "met", "narrative": "Beide leerlingen behaalden het beoogde AVI-niveau."}],
+            "narrative": "Blok 3 geëvalueerd; de groep wordt voor blok 1 van volgend jaar opnieuw ingedeeld op basis van deze uitkomst.",
+        })
+        # Buckets are emitted in SCHEMAS order, so this plan loads before its subgroups either way.
+        active = self.b.add("group-plan", {
+            "cohortId": self.cohorts["Groep 5/6"]["uuid"], "subject": "technisch lezen", "period": "2026-2027 blok 1",
+            "periodEndDate": "2026-10-16", "coordinatorId": "po-leerkracht-05",
+            "resultsAnalysis": {"narrative": "Vervolg op blok 3 (zie de gekoppelde evaluatie): drie duidelijke instructieniveaus binnen de klas.", "evidenceRefs": [evaluation["uuid"]]},
+            "goals": [{"goalId": "goal-1", "description": "Alle subgroepen tonen aantoonbare vooruitgang op AVI-niveau bij de volgende meting.", "status": "open"}],
+            "supersedesId": closed["uuid"], "lifecycle": "active",
+        })
+        self.intensief = self.b.add("group-plan-subgroup", {
+            "groupPlanId": active["uuid"], "name": "Intensief, technisch lezen", "instructieniveau": "intensief",
+            "learnerIds": [self.ranked[0]["nc"], self.ranked[1]["nc"]],
+            "differentiatedGoal": "Dagelijks 1-op-1 leesbegeleiding om de leesachterstand in te lopen.",
+            "approach": "Dagelijks 15 minuten remedial teaching met de intern begeleider, aanvullend op de klassikale les.",
+            "intendedOutcome": "Substantiële groei op DMT/AVI binnen dit blok; een ondersteuningsvraag als dat onvoldoende blijkt.",
+        })
+        self.b.add("group-plan-subgroup", {
+            "groupPlanId": active["uuid"], "name": "Basis, technisch lezen", "instructieniveau": "basis",
+            "learnerIds": [p["nc"] for p in self.ranked[2:-3]],
+            "differentiatedGoal": "Leerlijn-tempo vasthouden.",
+            "approach": "Reguliere klassikale leesinstructie volgens de methode.",
+            "intendedOutcome": "Leerlingen blijven op het leerlijn-tempo.",
+        })
+        self.b.add("group-plan-subgroup", {
+            "groupPlanId": active["uuid"], "name": "Verdiept, technisch lezen", "instructieniveau": "verdiept",
+            "learnerIds": [p["nc"] for p in self.ranked[-3:]],
+            "differentiatedGoal": "Uitdagende teksten boven leerjaarniveau.",
+            "approach": "Verrijkingsopdrachten en zelfstandig verwerken van moeilijkere teksten.",
+            "intendedOutcome": "Leerlingen blijven gemotiveerd en lezen boven leerjaarniveau.",
+        })
 
-    # --- assemble -----------------------------------------------------------
-    for cohort in cohorts.values():
-        del cohort["_room"]
-    objects = {name: rows for name, rows in b.buckets.items() if rows}
-    total = sum(len(rows) for rows in objects.values())
-    return {
-        "openapi": "3.0.0",
-        "info": {
-            "title": "Learniq example set: Primary school",
-            "version": "1.0.0",
-            "description": "Basisschool De Wilgenboom, a fictional primary school in the fictional town of Zuiddrecht, through the 2025-2026 school year and the first weeks of 2026-2027 that its designed parent portal shows.",
-        },
-        "x-openregister": {
-            "type": "profile",
-            "app": "learniq",
-            "profile": {
-                "id": SET,
-                "segment": SET,
-                "label": "Primary school",
-                "description": "A fictional primary school with groups 1 to 8, pupils, guardians and one full school year.",
-                "order": 1,
-                "objectCount": total,
-                "icon": "SchoolOutline",
+    def add_care(self) -> None:
+        """Support requests and dossier notes."""
+        struggling = self.ranked[0]
+        self.b.add("support-request", {
+            "learnerId": struggling["nc"], "originGroupPlanSubgroupId": self.intensief["uuid"], "raisedBy": IB,
+            "supportDomain": "Lezen en spelling (vermoeden van dyslexie)",
+            "description": "Na twee blokken intensieve leesbegeleiding blijft de groei op DMT en AVI achter. Aanvraag voor een dyslexieonderzoek.",
+            "urgency": "medium", "lifecycle": "submitted",
+        })
+        behaviour = next(p for p in self.pupils if p["class"] == "Groep 4")
+        self.b.add("support-request", {
+            "learnerId": behaviour["nc"], "raisedBy": IB, "supportDomain": "Gedrag en werkhouding",
+            "description": "Vraag om observatie in de klas en advies over rust en structuur tijdens zelfstandig werken.",
+            "urgency": "low", "lifecycle": "decided",
+        })
+        self.b.add("support-request", {
+            "learnerId": self.signal["nc"], "raisedBy": IB, "supportDomain": "Verzuim en welbevinden",
+            "description": "Na het verzuim in maart: afstemming met de jeugdverpleegkundige over wat er thuis speelt.",
+            "urgency": "high", "lifecycle": "draft",
+        })
+        notes = [
+            (struggling, "po-leerkracht-05", "2025-10-09", "observation", "Leest langzaam en raadt woorden bij het hardop lezen. Besproken met de intern begeleider.", "care-team-only"),
+            (struggling, IB, "2025-11-20", "conversation", "Oudergesprek over de leesontwikkeling; ouders lezen thuis dagelijks tien minuten samen.", "care-team-only"),
+            (self.signal, TEACHERS["Groep 7"][0][0], "2026-03-04", "phone-call-home", "Ouders gebeld over de afwezigheid; geen gehoor, voicemail ingesproken.", "care-team-only"),
+            (self.signal, IB, "2026-03-23", "conversation", "Gesprek met ouders over het verzuim. Afspraken over ziekmelden voor 08.15 uur.", "care-team-only"),
+            (behaviour, "po-leerkracht-07", "2025-09-25", "concern", "Heeft moeite om bij de les te blijven na de pauze; zit onrustig.", "team-visible"),
+            (behaviour, "po-leerkracht-07", "2026-02-12", "positive", "Werkt met de time-timer veel geconcentreerder. Mooie vooruitgang.", "team-visible"),
+            (self.ranked[-1], "po-leerkracht-06", "2026-01-15", "positive", "Leest boven niveau en helpt klasgenoten bij het voorlezen.", "team-visible"),
+            (self.pupils[3], "po-leerkracht-01", "2025-09-05", "observation", "Went goed in de groep; speelt veel met de blokken en in de huishoek.", "team-visible"),
+        ]
+        for p, author, date, category, body, confidentiality in notes:
+            self.b.add("dossier-note", {"learnerId": p["nc"], "authorId": author, "date": date, "category": category, "body": body,
+                                        "confidentiality": confidentiality, "careTeamUserIds": [IB, self.teacher_on(p["class"], dt.date.fromisoformat(date))]})
+
+    def add_parent_evenings(self) -> None:
+        """The parent evenings, open for direct booking."""
+        # Group 7's parent evening in the autumn after this school year, open for
+        # booking: the teacher's availability is cut into free times parents pick
+        # in the portal (direct-conference-booking). The free slots are what
+        # ConferenceFreeSlotGenerator writes on `open-booking`, 10 minutes with 2
+        # minutes between them.
+        group7 = [p for p in self.pupils if p["class"] == "Groep 7"]
+        teacher7 = TEACHERS["Groep 7"][0][0]
+        evening = dt.date(2026, 10, 29)
+        round7 = self.b.add("conference-round", {
+            "name": "Oudergesprekken groep 7, oktober 2026", "cohortIds": [self.cohorts["Groep 7"]["uuid"]],
+            "teacherIds": [teacher7], "slotDurationMinutes": 10, "bufferMinutes": 2,
+            "bookingOpensAt": stamp(dt.date(2026, 9, 28), 8, 0), "bookingClosesAt": stamp(dt.date(2026, 10, 16), 17, 0),
+            "invitedLearnerIds": [p["nc"] for p in group7], "invitedLearnerRefs": [p["profile"]["uuid"] for p in group7],
+            "bookingMode": "direct", "maxBookingsPerChild": 1, "lifecycle": "booking-open",
+        })
+        self.b.add("teacher-availability", {
+            "conferenceRoundId": round7["uuid"], "teacherId": teacher7,
+            "blocks": [{"startsAt": stamp(evening, 18, 0), "endsAt": stamp(evening, 20, 0)}], "lifecycle": "submitted",
+        })
+        start = dt.datetime(evening.year, evening.month, evening.day, 18, 0, tzinfo=AMS)
+        while start + dt.timedelta(minutes=10) <= dt.datetime(evening.year, evening.month, evening.day, 20, 0, tzinfo=AMS):
+            end = start + dt.timedelta(minutes=10)
+            self.b.add("conference-slot", {
+                "conferenceRoundId": round7["uuid"], "teacherId": teacher7, "teacherName": "Meester Daan",
+                "startsAt": start.isoformat(), "endsAt": end.isoformat(),
+                "slotLabel": f"{start:%d-%m-%Y %H:%M}-{end:%H:%M}, Meester Daan",
+                "eligibleLearnerRefs": [p["profile"]["uuid"] for p in group7], "location": "Lokaal groep 7",
+                "lifecycle": "free",
+            })
+            start = end + dt.timedelta(minutes=2)
+
+    def add_portal_records(self) -> None:
+        """The school calendar, homework and hand-ins, then the story and the derived lines."""
+        for title, starts, ends, kind, groups, description in SCHOOL_EVENTS:
+            self.b.add("school-event", {
+                "title": title, "description": description, "startsAt": starts, "endsAt": ends, "kind": kind,
+                "audience": "groups" if groups else "school", "schoolId": self.school["uuid"],
+                "cohortIds": [self.cohorts[g]["uuid"] for g in groups or []],
+            })
+        homework_rng = random.Random(20261002)
+        for name, leerjaren, *_rest in CLASSES:
+            if max(leerjaren) < 3:
+                continue
+            members = sorted((p for p in self.pupils if p["class"] == name), key=lambda p: p["nc"])
+            for index, (code, title, due, instructions) in enumerate(HOMEWORK):
+                assignment = self.b.add("assignment", {
+                    "title": title, "instructions": instructions, "courseId": self.subject_courses[code]["uuid"],
+                    "cohortId": self.cohorts[name]["uuid"], "dueAt": stamp(dt.date.fromisoformat(due), 8, 30), "maxPoints": 10,
+                    "allowLateSubmission": True, "lifecycle": "published",
+                    # What AssignmentLearnerRefsStamp writes on a live save: the group's pupils.
+                    "learnerRefs": [p["profile"]["uuid"] for p in members],
+                })
+                share = 0.85 if index == 0 else 0.3
+                for p in members:
+                    if homework_rng.random() >= share:
+                        continue
+                    late = index == 0 and homework_rng.random() < 0.15
+                    handed = dt.date.fromisoformat(due) + dt.timedelta(days=1 if late else -1)
+                    self.b.add("submission", {
+                        "assignmentId": assignment["uuid"], "learnerIds": [p["nc"]], "learnerRefs": [p["profile"]["uuid"]],
+                        "learnerRef": p["profile"]["uuid"], "submittedAt": stamp(handed, 19, 0), "lifecycle": "late" if late else "submitted",
+                    })
+
+        add_sami(self.b, self.pupils, self.cohorts, self.sessions, self.days, self.periods, self.plans, self.subject_courses, self.names_by_uuid)
+        add_story(self.b, self.pupils, self.cohorts, self.school, self.subject_courses, self.names_by_uuid)
+
+        stamp_group_labels(self.b)
+        add_report_subject_grades(self.b)
+        add_conference_invitations(self.b)
+        add_detail_records(self.b, self.pupils, self.subject_courses)
+
+    def assemble(self) -> dict:
+        """The profile file's content."""
+        for cohort in self.cohorts.values():
+            del cohort["_room"]
+        objects = {name: rows for name, rows in self.b.buckets.items() if rows}
+        total = sum(len(rows) for rows in objects.values())
+        return {
+            "openapi": "3.0.0",
+            "info": {
+                "title": "Learniq example set: Primary school",
+                "version": "1.0.0",
+                "description": "Basisschool De Wilgenboom, a fictional primary school in the fictional town of Zuiddrecht, through the 2025-2026 school year and the first weeks of 2026-2027 that its designed parent portal shows.",
             },
-            "description": (
-                "An example set an operator picks in the first-time setup wizard (ADR-042, decision D21). NEVER imported on install. "
-                "Every object carries @self.configuration/register/schema and a fixed uuid in the ee01 namespace, so the import resolves "
-                "the live learniq register without this descriptor declaring components.registers (which would re-point the register at "
-                "this profile config id and overwrite its authorization block), a second load adds nothing, and occ "
-                "learniq:example-set:remove po removes exactly these objects. Generated by scripts/example-sets/po.py; the contract is "
-                "openspec/changes/archive/2026-09-28-segment-wizard-choice/contract.md. Every person, address, school and code in it is fictional."
-            ),
-            "seedData": {
+            "x-openregister": {
+                "type": "profile",
+                "app": "learniq",
+                "profile": {
+                    "id": SET,
+                    "segment": SET,
+                    "label": "Primary school",
+                    "description": "A fictional primary school with groups 1 to 8, pupils, guardians and one full school year.",
+                    "order": 1,
+                    "objectCount": total,
+                    "icon": "SchoolOutline",
+                },
                 "description": (
-                    "One school with two locations, seven classes for groups 1 to 8 (5 and 6 combined), about 200 pupils and their "
-                    "guardians, staff and subject teachers, a school day per class per day of 2025-2026 with the absences recorded, "
-                    "two report periods with report cards, Cito and doorstroomtoets results, a group plan, support requests and dossier notes, "
-                    "group 7's and group 4's parent evenings open for booking with free times parents pick in the portal, and the "
-                    "Hulstkamp family's autumn of 2026 (absence reports, marks, the October calendar, homework) that the parent portal design shows."
+                    "An example set an operator picks in the first-time setup wizard (ADR-042, decision D21). NEVER imported on install. "
+                    "Every object carries @self.configuration/register/schema and a fixed uuid in the ee01 namespace, so the import resolves "
+                    "the live learniq register without this descriptor declaring components.registers (which would re-point the register at "
+                    "this profile config id and overwrite its authorization block), a second load adds nothing, and occ "
+                    "learniq:example-set:remove po removes exactly these objects. Generated by scripts/example-sets/po.py; the contract is "
+                    "openspec/changes/archive/2026-09-28-segment-wizard-choice/contract.md. Every person, address, school and code in it is fictional."
                 ),
-                "objects": objects,
+                "seedData": {
+                    "description": (
+                        "One school with two locations, seven classes for groups 1 to 8 (5 and 6 combined), about 200 pupils and their "
+                        "guardians, staff and subject teachers, a school day per class per day of 2025-2026 with the absences recorded, "
+                        "two report periods with report cards, Cito and doorstroomtoets results, a group plan, support requests and dossier notes, "
+                        "group 7's and group 4's parent evenings open for booking with free times parents pick in the portal, and the "
+                        "Hulstkamp family's autumn of 2026 (absence reports, marks, the October calendar, homework) that the parent portal design shows."
+                    ),
+                    "objects": objects,
+                },
             },
-        },
-        "paths": {},
-        "components": {},
-    }
+            "paths": {},
+            "components": {},
+        }
 
 
 def add_sami(b: Builder, pupils: list[dict], cohorts: dict, sessions: dict, days: list[dt.date],
@@ -975,7 +1059,13 @@ STORY_EVENTS = [
     ("Naar de kinderboerderij", "2026-10-07T10:00:00+02:00", "2026-10-07T12:00:00+02:00", "trip", ["Groep 7"], "Laarzen en een regenjas mee."),
     ("Studiedag", "2026-10-09", None, "study-day", None, "Alle kinderen zijn die dag vrij."),
     ("Boekenmarkt op het plein", "2026-10-14T12:30:00+02:00", "2026-10-14T14:00:00+02:00", "event", None, "Kinderen verkopen en ruilen boeken die ze uit hebben. Bij regen in de hal."),
-    ("Ouderavond", "2026-10-29T18:00:00+01:00", "2026-10-29T20:00:00+01:00", "event", None, "Tien minuten met de leerkracht. Kies een tijd in Mijn Wilgenboom."),
+    ("Ouderavond", "2026-10-29T18:00:00+01:00", "2026-10-29T20:00:00+01:00", "parent-evening", None, "Tien minuten met de leerkracht. Kies een tijd in Mijn Wilgenboom."),
+]
+# The holidays of 2026-2027 that a parent plans around: (title, first day, last day, description). Added
+# after STORY_EVENTS so the uuids of every earlier school event stay where they were.
+SCHOOL_HOLIDAYS = [
+    ("Herfstvakantie", "2026-10-17", "2026-10-25", "De school is dicht."),
+    ("Kerstvakantie", "2026-12-19", "2027-01-03", "De school is dicht. Maandag 4 januari beginnen we weer."),
 ]
 # Homework for groep 7 this week: (subject course code, title, due date, instructions).
 STORY_HOMEWORK = [
@@ -993,138 +1083,174 @@ def add_story(b: Builder, pupils: list[dict], cohorts: dict, school: dict, subje
     it; Vera was ill on 1 October and at the dentist on 24 September; Sami was
     ill on 11 September; Vera's parent-evening time is booked and confirmed.
     """
-    vera = next(p for p in pupils if p["given"] == "Vera" and p["surname"] == "Hulstkamp")
-    sami = next(o for o in b.buckets["learner-profile"] if o.get("givenName") == "Sami" and o.get("familyName") == "Hulstkamp")
-    fatima = next(g for g in vera["guardians"] if g["givenName"] == "Fatima")
-    group7, group4 = cohorts["Groep 7"], cohorts["Groep 4"]
-    daan, esra = TEACHERS["Groep 7"][0][0], TEACHERS["Groep 4"][0][0]
-    vera_ref, sami_ref = vera["profile"]["uuid"], sami["uuid"]
+    HulstkampStory(b, pupils, cohorts, school, subject_courses, names_by_uuid).add()
 
-    # Vera's report 2 of June 2026 carries the grades on the board.
-    period2 = next(p for p in b.buckets["report-period"] if p["periodCode"] == "2")
-    card = next(c for c in b.buckets["report-card"] if c["learnerRef"] == vera_ref and c["reportPeriodId"] == period2["uuid"])
-    by_course = {c["uuid"]: code for code, c in subject_courses.items()}
-    for grade in card["subjectGrades"]:
-        value = VERA_REPORT[by_course[grade["courseId"]]]
-        grade["periodAverage"] = value
-        grade["passed"] = value >= 5.5
-        grade["teacherComment"] = None
-    card["gradeLines"] = grade_lines(card["subjectGrades"], names_by_uuid)
-    card["mentorComment"] = VERA_REPORT_COMMENT
 
-    # A school day per story date for both groups, so every mark has its session.
-    story_days = [dt.date(2026, 9, 11), dt.date(2026, 9, 15), dt.date(2026, 9, 24), dt.date(2026, 10, 1), STORY_TODAY]
-    sessions = {}
-    for name in ("Groep 4", "Groep 7"):
-        cohort = cohorts[name]
-        for day in story_days:
-            end_h, end_m = (12, 15) if day.weekday() == 2 else (14, 15)
-            sessions[(name, day)] = b.add("session", {
-                "cohortId": cohort["uuid"], "courseId": cohort["courseId"],
-                "title": f"{name}, {DAG[day.weekday()]} {day.day} {MAAND[day.month - 1]} {day.year}",
-                "startsAt": stamp(day, 8, 30), "endsAt": stamp(day, end_h, end_m),
-                "location": "Lokaal " + name.lower(), "roomId": cohort["_room"],
-                "lifecycle": "in-progress" if day == STORY_TODAY else "completed",
-            })
+class HulstkampStory:
+    """The objects of the Hulstkamp family's autumn of 2026, added in a fixed order."""
 
-    # The absence reports on the board, newest first there; oldest first here.
-    def excuse(child_ref: str, child_nc: str, day: dt.date, reason: str, kind: str, decided_by: str | None,
+    def __init__(self, b: Builder, pupils: list[dict], cohorts: dict, school: dict, subject_courses: dict, names_by_uuid: dict) -> None:
+        self.b = b
+        self.pupils = pupils
+        self.cohorts = cohorts
+        self.school = school
+        self.subject_courses = subject_courses
+        self.names_by_uuid = names_by_uuid
+        self.vera = next(p for p in self.pupils if p["given"] == "Vera" and p["surname"] == "Hulstkamp")
+        self.sami = next(o for o in self.b.buckets["learner-profile"] if o.get("givenName") == "Sami" and o.get("familyName") == "Hulstkamp")
+        self.fatima = next(g for g in self.vera["guardians"] if g["givenName"] == "Fatima")
+        self.group7, self.group4 = self.cohorts["Groep 7"], self.cohorts["Groep 4"]
+        self.daan, self.esra = TEACHERS["Groep 7"][0][0], TEACHERS["Groep 4"][0][0]
+        self.vera_ref, self.sami_ref = self.vera["profile"]["uuid"], self.sami["uuid"]
+
+    def add(self) -> None:
+        self.update_report_card()
+        self.add_story_sessions()
+        self.add_absence_reports()
+        self.add_attendance_summaries()
+        self.book_vera_parent_evening()
+        self.add_group4_parent_evening()
+        self.add_school_calendar()
+        self.add_group7_homework()
+
+    def update_report_card(self) -> None:
+        """Vera's report 2 of June 2026 carries the grades on the board."""
+        period2 = next(p for p in self.b.buckets["report-period"] if p["periodCode"] == "2")
+        card = next(c for c in self.b.buckets["report-card"] if c["learnerRef"] == self.vera_ref and c["reportPeriodId"] == period2["uuid"])
+        by_course = {c["uuid"]: code for code, c in self.subject_courses.items()}
+        for grade in card["subjectGrades"]:
+            value = VERA_REPORT[by_course[grade["courseId"]]]
+            grade["periodAverage"] = value
+            grade["passed"] = value >= 5.5
+            grade["teacherComment"] = None
+        card["gradeLines"] = grade_lines(card["subjectGrades"], self.names_by_uuid)
+        card["mentorComment"] = VERA_REPORT_COMMENT
+
+    def add_story_sessions(self) -> None:
+        """A school day per story date for both groups, so every mark has its session."""
+        story_days = [dt.date(2026, 9, 11), dt.date(2026, 9, 15), dt.date(2026, 9, 24), dt.date(2026, 10, 1), STORY_TODAY]
+        self.sessions = {}
+        for name in ("Groep 4", "Groep 7"):
+            cohort = self.cohorts[name]
+            for day in story_days:
+                end_h, end_m = (12, 15) if day.weekday() == 2 else (14, 15)
+                self.sessions[(name, day)] = self.b.add("session", {
+                    "cohortId": cohort["uuid"], "courseId": cohort["courseId"],
+                    "title": f"{name}, {DAG[day.weekday()]} {day.day} {MAAND[day.month - 1]} {day.year}",
+                    "startsAt": stamp(day, 8, 30), "endsAt": stamp(day, end_h, end_m),
+                    "location": "Lokaal " + name.lower(), "roomId": cohort["_room"],
+                    "lifecycle": "in-progress" if day == STORY_TODAY else "completed",
+                })
+
+    def excuse(self, child_ref: str, child_nc: str, day: dt.date, reason: str, kind: str, decided_by: str | None,
                decided_at: str | None, submitted_at_note: str | None = None) -> dict:
-        return b.add("excuse-request", {
+        return self.b.add("excuse-request", {
             "learnerId": child_nc, "learnerRef": child_ref,
-            "submittedBy": fatima["ncUserId"], "submittedByRef": fatima["uuid"],
+            "submittedBy": self.fatima["ncUserId"], "submittedByRef": self.fatima["uuid"],
             "dateFrom": day.isoformat(), "dateTo": day.isoformat(), "reason": reason, "reasonKind": kind,
             "submittedAuthLevel": "basic", "decidedBy": decided_by, "decidedAt": decided_at,
             "decisionNote": submitted_at_note, "lifecycle": "approved" if decided_by else "submitted",
         })
 
-    sami_sep = excuse(sami_ref, sami["ncUserId"], dt.date(2026, 9, 11), "Ziek", "illness", esra, stamp(dt.date(2026, 9, 11), 8, 25))
-    vera_dentist = excuse(vera_ref, vera["nc"], dt.date(2026, 9, 24), "Tandarts, 10.30 tot 11.30 uur", "medical-appointment",
-                          daan, stamp(dt.date(2026, 9, 23), 15, 45))
-    vera_ill = excuse(vera_ref, vera["nc"], dt.date(2026, 10, 1), "Vera heeft koorts", "illness", daan, stamp(dt.date(2026, 10, 1), 8, 20))
-    # Today's report is not decided yet. The board's "gezien door de leerkracht om 8.12 uur" has no field in the
-    # register; the teacher's mark at 8.12 below is the nearest true thing.
-    sami_today = excuse(sami_ref, sami["ncUserId"], STORY_TODAY, "Sami heeft buikgriep", "illness", None, None)
-
-    def mark(name: str, child_nc: str, child_ref: str, day: dt.date, status: str, by: str, at: tuple[int, int],
+    def mark(self, name: str, child_nc: str, child_ref: str, day: dt.date, status: str, by: str, at: tuple[int, int],
              reason: str, request: dict | None, minutes: int | None, late: int | None = None, kind: str | None = None) -> None:
-        b.add("attendance-record", {
-            "sessionId": sessions[(name, day)]["uuid"], "learnerId": child_nc, "learnerRef": child_ref,
-            "cohortId": cohorts[name]["uuid"], "status": status, "minutesAttended": minutes, "markedBy": by,
+        self.b.add("attendance-record", {
+            "sessionId": self.sessions[(name, day)]["uuid"], "learnerId": child_nc, "learnerRef": child_ref,
+            "cohortId": self.cohorts[name]["uuid"], "status": status, "minutesAttended": minutes, "markedBy": by,
             "markedAt": stamp(day, *at), "reason": reason, "excuseRequestId": request["uuid"] if request else None,
             "lateMinutes": late, "absenceReasonKind": kind,
         })
 
-    mark("Groep 4", sami["ncUserId"], sami_ref, dt.date(2026, 9, 11), "absent-excused", esra, (8, 25), "Ziek gemeld door ouder", sami_sep, 0, kind="illness")
-    mark("Groep 7", vera["nc"], vera_ref, dt.date(2026, 9, 15), "late", daan, (8, 50), "Te laat binnengekomen", None, 335, late=10)
-    mark("Groep 7", vera["nc"], vera_ref, dt.date(2026, 9, 24), "left-early", daan, (10, 30), "Tandarts", vera_dentist, 285, kind="appointment")
-    mark("Groep 7", vera["nc"], vera_ref, dt.date(2026, 10, 1), "absent-excused", daan, (8, 20), "Ziek gemeld door ouder", vera_ill, 0, kind="illness")
-    mark("Groep 4", sami["ncUserId"], sami_ref, STORY_TODAY, "absent-excused", esra, (8, 12), "Ziek gemeld door ouder", sami_today, 0, kind="illness")
+    def add_absence_reports(self) -> None:
+        """The absence reports on the board, newest first there; oldest first here, with their marks."""
+        sami_sep = self.excuse(self.sami_ref, self.sami["ncUserId"], dt.date(2026, 9, 11), "Ziek", "illness", self.esra, stamp(dt.date(2026, 9, 11), 8, 25))
+        vera_dentist = self.excuse(self.vera_ref, self.vera["nc"], dt.date(2026, 9, 24), "Tandarts, 10.30 tot 11.30 uur", "medical-appointment",
+                                   self.daan, stamp(dt.date(2026, 9, 23), 15, 45))
+        vera_ill = self.excuse(self.vera_ref, self.vera["nc"], dt.date(2026, 10, 1), "Vera heeft koorts", "illness", self.daan, stamp(dt.date(2026, 10, 1), 8, 20))
+        # Today's report is not decided yet. The board's "gezien door de leerkracht om 8.12 uur" has no field in the
+        # register; the teacher's mark at 8.12 below is the nearest true thing.
+        sami_today = self.excuse(self.sami_ref, self.sami["ncUserId"], STORY_TODAY, "Sami heeft buikgriep", "illness", None, None)
 
-    # The figures for 2026-2027 so far: Vera 1 day ill (the dentist counts as hours), late once for 10 minutes;
-    # Sami 2 days ill.
-    for child_nc, child_ref, cohort, days_absent, lates, late_minutes in (
-        (vera["nc"], vera_ref, group7, 1, 1, 10),
-        (sami["ncUserId"], sami_ref, group4, 2, 0, 0),
-    ):
-        b.add("attendance-summary", {
-            "learnerId": child_nc, "learnerRef": child_ref, "schoolYear": STORY_YEAR,
-            "absentDays": days_absent, "absentAuthorisedDays": days_absent, "absentUnauthorisedDays": 0,
-            "lateCount": lates, "lateMinutes": late_minutes, "updatedAt": stamp(STORY_TODAY, 8, 12),
-            "teacherIds": sorted(set(cohort["teacherIds"]) | {a["teacherId"] for a in cohort["teacherAssignments"]}),
+        self.mark("Groep 4", self.sami["ncUserId"], self.sami_ref, dt.date(2026, 9, 11), "absent-excused", self.esra, (8, 25), "Ziek gemeld door ouder", sami_sep, 0, kind="illness")
+        self.mark("Groep 7", self.vera["nc"], self.vera_ref, dt.date(2026, 9, 15), "late", self.daan, (8, 50), "Te laat binnengekomen", None, 335, late=10)
+        self.mark("Groep 7", self.vera["nc"], self.vera_ref, dt.date(2026, 9, 24), "left-early", self.daan, (10, 30), "Tandarts", vera_dentist, 285, kind="appointment")
+        self.mark("Groep 7", self.vera["nc"], self.vera_ref, dt.date(2026, 10, 1), "absent-excused", self.daan, (8, 20), "Ziek gemeld door ouder", vera_ill, 0, kind="illness")
+        self.mark("Groep 4", self.sami["ncUserId"], self.sami_ref, STORY_TODAY, "absent-excused", self.esra, (8, 12), "Ziek gemeld door ouder", sami_today, 0, kind="illness")
+
+    def add_attendance_summaries(self) -> None:
+        """The figures for 2026-2027 so far: Vera 1 day ill (the dentist counts as hours), late once for 10 minutes;
+        Sami 2 days ill."""
+        for child_nc, child_ref, cohort, days_absent, lates, late_minutes in (
+            (self.vera["nc"], self.vera_ref, self.group7, 1, 1, 10),
+            (self.sami["ncUserId"], self.sami_ref, self.group4, 2, 0, 0),
+        ):
+            self.b.add("attendance-summary", {
+                "learnerId": child_nc, "learnerRef": child_ref, "schoolYear": STORY_YEAR,
+                "absentDays": days_absent, "absentAuthorisedDays": days_absent, "absentUnauthorisedDays": 0,
+                "lateCount": lates, "lateMinutes": late_minutes, "updatedAt": stamp(STORY_TODAY, 8, 12),
+                "teacherIds": sorted(set(cohort["teacherIds"]) | {a["teacherId"] for a in cohort["teacherAssignments"]}),
+            })
+
+    def book_vera_parent_evening(self) -> None:
+        """Vera's parent-evening time: the first free time of groep 7's round, booked by Fatima and confirmed."""
+        round7 = next(r for r in self.b.buckets["conference-round"] if self.group7["uuid"] in r["cohortIds"])
+        first = min((s for s in self.b.buckets["conference-slot"] if s["conferenceRoundId"] == round7["uuid"]), key=lambda s: s["startsAt"])
+        first.update({
+            "learnerId": self.vera["nc"], "learnerRef": self.vera_ref, "guardianRef": self.fatima["uuid"],
+            "bookedAt": stamp(dt.date(2026, 9, 30), 20, 14), "acknowledgedAt": stamp(STORY_TODAY, 8, 40),
+            "location": "Lokaal groep 7", "lifecycle": "acknowledged",
         })
 
-    # Vera's parent-evening time: the first free time of groep 7's round, booked by Fatima and confirmed.
-    round7 = next(r for r in b.buckets["conference-round"] if group7["uuid"] in r["cohortIds"])
-    first = min((s for s in b.buckets["conference-slot"] if s["conferenceRoundId"] == round7["uuid"]), key=lambda s: s["startsAt"])
-    first.update({
-        "learnerId": vera["nc"], "learnerRef": vera_ref, "guardianRef": fatima["uuid"],
-        "bookedAt": stamp(dt.date(2026, 9, 30), 20, 14), "acknowledgedAt": stamp(STORY_TODAY, 8, 40),
-        "location": "Lokaal groep 7", "lifecycle": "acknowledged",
-    })
-
-    # Groep 4's parent evening, the same Thursday, with juf Esra. Sami has no time yet.
-    members4 = [p for p in pupils if p["class"] == "Groep 4"]
-    refs4 = [p["profile"]["uuid"] for p in members4] + [sami_ref]
-    evening = dt.date(2026, 10, 29)
-    round4 = b.add("conference-round", {
-        "name": "Oudergesprekken groep 4, oktober 2026", "cohortIds": [group4["uuid"]],
-        "teacherIds": [esra], "slotDurationMinutes": 10, "bufferMinutes": 2,
-        "bookingOpensAt": stamp(dt.date(2026, 9, 28), 8, 0), "bookingClosesAt": stamp(dt.date(2026, 10, 16), 17, 0),
-        "invitedLearnerIds": [p["nc"] for p in members4] + [sami["ncUserId"]], "invitedLearnerRefs": refs4,
-        "bookingMode": "direct", "maxBookingsPerChild": 1, "lifecycle": "booking-open",
-    })
-    b.add("teacher-availability", {
-        "conferenceRoundId": round4["uuid"], "teacherId": esra,
-        "blocks": [{"startsAt": stamp(evening, 18, 0), "endsAt": stamp(evening, 20, 0)}], "lifecycle": "submitted",
-    })
-    start = dt.datetime(evening.year, evening.month, evening.day, 18, 0, tzinfo=AMS)
-    while start + dt.timedelta(minutes=10) <= dt.datetime(evening.year, evening.month, evening.day, 20, 0, tzinfo=AMS):
-        end = start + dt.timedelta(minutes=10)
-        b.add("conference-slot", {
-            "conferenceRoundId": round4["uuid"], "teacherId": esra, "teacherName": "Juf Esra",
-            "startsAt": start.isoformat(), "endsAt": end.isoformat(),
-            "slotLabel": f"{start:%d-%m-%Y %H:%M}-{end:%H:%M}, Juf Esra",
-            "eligibleLearnerRefs": refs4, "location": "Lokaal groep 4", "lifecycle": "free",
+    def add_group4_parent_evening(self) -> None:
+        """Groep 4's parent evening, the same Thursday, with juf Esra. Sami has no time yet."""
+        members4 = [p for p in self.pupils if p["class"] == "Groep 4"]
+        refs4 = [p["profile"]["uuid"] for p in members4] + [self.sami_ref]
+        evening = dt.date(2026, 10, 29)
+        round4 = self.b.add("conference-round", {
+            "name": "Oudergesprekken groep 4, oktober 2026", "cohortIds": [self.group4["uuid"]],
+            "teacherIds": [self.esra], "slotDurationMinutes": 10, "bufferMinutes": 2,
+            "bookingOpensAt": stamp(dt.date(2026, 9, 28), 8, 0), "bookingClosesAt": stamp(dt.date(2026, 10, 16), 17, 0),
+            "invitedLearnerIds": [p["nc"] for p in members4] + [self.sami["ncUserId"]], "invitedLearnerRefs": refs4,
+            "bookingMode": "direct", "maxBookingsPerChild": 1, "lifecycle": "booking-open",
         })
-        start = end + dt.timedelta(minutes=2)
-
-    # The school calendar of October 2026.
-    for title, starts, ends, kind, groups, description in STORY_EVENTS:
-        b.add("school-event", {
-            "title": title, "description": description, "startsAt": starts, "endsAt": ends, "kind": kind,
-            "audience": "groups" if groups else "school", "schoolId": school["uuid"],
-            "cohortIds": [cohorts[g]["uuid"] for g in groups or []],
+        self.b.add("teacher-availability", {
+            "conferenceRoundId": round4["uuid"], "teacherId": self.esra,
+            "blocks": [{"startsAt": stamp(evening, 18, 0), "endsAt": stamp(evening, 20, 0)}], "lifecycle": "submitted",
         })
+        start = dt.datetime(evening.year, evening.month, evening.day, 18, 0, tzinfo=AMS)
+        while start + dt.timedelta(minutes=10) <= dt.datetime(evening.year, evening.month, evening.day, 20, 0, tzinfo=AMS):
+            end = start + dt.timedelta(minutes=10)
+            self.b.add("conference-slot", {
+                "conferenceRoundId": round4["uuid"], "teacherId": self.esra, "teacherName": "Juf Esra",
+                "startsAt": start.isoformat(), "endsAt": end.isoformat(),
+                "slotLabel": f"{start:%d-%m-%Y %H:%M}-{end:%H:%M}, Juf Esra",
+                "eligibleLearnerRefs": refs4, "location": "Lokaal groep 4", "lifecycle": "free",
+            })
+            start = end + dt.timedelta(minutes=2)
 
-    # Groep 7's homework this week.
-    members7 = [p["profile"]["uuid"] for p in sorted((p for p in pupils if p["class"] == "Groep 7"), key=lambda p: p["nc"])]
-    for code, title, due, instructions in STORY_HOMEWORK:
-        b.add("assignment", {
-            "title": title, "instructions": instructions, "courseId": subject_courses[code]["uuid"],
-            "cohortId": group7["uuid"], "dueAt": stamp(dt.date.fromisoformat(due), 8, 30), "maxPoints": 10,
-            "allowLateSubmission": True, "lifecycle": "published", "learnerRefs": members7,
-        })
+    def add_school_calendar(self) -> None:
+        """The school calendar of October 2026."""
+        for title, starts, ends, kind, groups, description in STORY_EVENTS:
+            self.b.add("school-event", {
+                "title": title, "description": description, "startsAt": starts, "endsAt": ends, "kind": kind,
+                "audience": "groups" if groups else "school", "schoolId": self.school["uuid"],
+                "cohortIds": [self.cohorts[g]["uuid"] for g in groups or []],
+            })
+        for title, starts, ends, description in SCHOOL_HOLIDAYS:
+            self.b.add("school-event", {
+                "title": title, "description": description, "startsAt": starts, "endsAt": ends, "kind": "holiday",
+                "audience": "school", "schoolId": self.school["uuid"], "cohortIds": [],
+            })
+
+    def add_group7_homework(self) -> None:
+        """Groep 7's homework this week."""
+        members7 = [p["profile"]["uuid"] for p in sorted((p for p in self.pupils if p["class"] == "Groep 7"), key=lambda p: p["nc"])]
+        for code, title, due, instructions in STORY_HOMEWORK:
+            self.b.add("assignment", {
+                "title": title, "instructions": instructions, "courseId": self.subject_courses[code]["uuid"],
+                "cohortId": self.group7["uuid"], "dueAt": stamp(dt.date.fromisoformat(due), 8, 30), "maxPoints": 10,
+                "allowLateSubmission": True, "lifecycle": "published", "learnerRefs": members7,
+            })
 
 
 def stamp_group_labels(b: Builder) -> None:
@@ -1186,6 +1312,101 @@ def add_report_subject_grades(b: Builder) -> None:
                 "caption": caption, "mentorComment": card.get("mentorComment"),
             })
             position += 1
+
+
+# The slot states that mean a child has a conversation time (ConferenceInvitations::TIME_TAKEN).
+TIME_TAKEN = ("booked", "acknowledged", "proposed", "confirmed", "completed")
+
+
+def add_conference_invitations(b: Builder) -> None:
+    """One invitation per invited child per round, as ConferenceInvitations keeps
+    them (guardian-tasks-per-child-and-self-assessment): booked once the child
+    has a time in the round, open while the round is open for booking, and no
+    row at all for a round that is neither. Vera has a time in groep 7's round,
+    so her row is booked; Sami's in groep 4's round is open."""
+    for round_ in b.buckets["conference-round"]:
+        taken = {s["learnerRef"] for s in b.buckets["conference-slot"]
+                 if s["conferenceRoundId"] == round_["uuid"] and s.get("learnerRef") and s.get("lifecycle") in TIME_TAKEN}
+        for ref in dict.fromkeys(round_.get("invitedLearnerRefs") or []):
+            status = "booked" if ref in taken else ("open" if round_.get("lifecycle") == "booking-open" else "closed")
+            if status == "closed":
+                continue
+            row = {"conferenceRoundId": round_["uuid"], "learnerRef": ref, "roundName": round_["name"],
+                   "bookingClosesAt": round_["bookingClosesAt"]}
+            if round_.get("bookingMode") in ("direct", "preference"):
+                row["bookingMode"] = round_["bookingMode"]
+            row["status"] = status
+            row["tenant_id"] = round_.get("tenant_id", TENANT)
+            b.add("conference-invitation", row)
+
+
+def add_detail_records(b: Builder, pupils: list[dict], subject_courses: dict) -> None:
+    """One record for each detail page the boards draw and the set had nothing
+    for (exset-po-records-for-detail-boards): an aanmelding for groep 1 in the
+    open round for 2026-2027, the verkeersdiploma of a groep 8 pupil, a rekenen
+    item in its bank, a peer review between two groep 7 pupils on the first
+    homework, and the e-learning lesson on fractions, delivered as cmi5."""
+    # Draft: a primary school publishes no programme on its portal (PortalPublicIndex lists published ones).
+    programme = b.add("programme", {
+        "name": "Basisonderwijs De Wilgenboom", "level": "po", "lifecycle": "draft",
+    })
+    round_ = b.add("admissions-round", {
+        "name": "Aanmelding groep 1, 2026-2027", "kind": "generic", "programmeId": programme["uuid"], "level": "po",
+        "academicYear": "2026-2027", "applicationDeadline": "2026-11-30", "mandatoryIntake": True, "capacity": 30,
+        "lifecycle": "open",
+    })
+    b.add("admission", {
+        "admissionsRoundId": round_["uuid"], "programmeId": programme["uuid"],
+        "applicantGivenName": "Noah", "applicantFamilyName": "Verhoeven", "applicantBirthDate": "2022-11-03",
+        "priorSchool": "Kinderopvang De Speeltuin", "guardianId": "po-ouder-901", "guardianGivenName": "Lotte",
+        "guardianFamilyName": "Verhoeven", "submittedAuthLevel": "substantial",
+        "submittedAt": "2026-09-15T10:12:00+02:00", "intakeScheduledAt": "2026-10-28T14:00:00+01:00",
+        "lifecycle": "intake-scheduled",
+    })
+    groep8 = sorted((p for p in pupils if p["class"] == "Groep 8"), key=lambda p: p["nc"])[0]
+    b.add("credential", {
+        "learnerId": groep8["profile"]["uuid"], "learnerUserId": groep8["nc"], "kind": "certificate",
+        "issuedAt": "2026-04-09T11:00:00+02:00", "issuerDid": "did:web:wilgenboom.zuiddrecht.example",
+        "signature": "eyJhbGciOiJSUzI1NiJ9.ZGVtby12ZXJrZWVyc2RpcGxvbWE.demo-signature-not-verifiable",
+        "openbadges3Payload": {
+            "@context": ["https://www.w3.org/ns/credentials/v2", "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json"],
+            "type": ["VerifiableCredential", "OpenBadgeCredential"],
+            "name": "Verkeersdiploma",
+            "credentialSubject": {"achievement": {"name": "Verkeersdiploma", "description": "Theorie en praktijk van het verkeersexamen gehaald."}},
+        },
+        "issuedBy": "po-leerkracht-08", "source": "manual", "lifecycle": "issued",
+    })
+    bank = b.add("item-bank", {
+        "name": "Rekenen groep 7: breuken", "subject": "Rekenen", "lifecycle": "published",
+    })
+    item = b.add("item", {
+        "itemBankId": bank["uuid"], "title": "Breuken optellen",
+        "interactionType": "choice",
+        "qtiBody": (
+            '<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1" identifier="breuken-optellen" '
+            'title="Breuken optellen" adaptive="false" timeDependent="false"><itemBody>'
+            '<choiceInteraction responseIdentifier="RESPONSE" maxChoices="1"><prompt>Hoeveel is 1/4 + 1/2?</prompt>'
+            '<simpleChoice identifier="A">2/6</simpleChoice><simpleChoice identifier="B">3/4</simpleChoice>'
+            '<simpleChoice identifier="C">1/8</simpleChoice></choiceInteraction></itemBody></assessmentItem>'
+        ),
+        "correctResponse": {"identifier": "B"}, "maxScore": 1, "difficulty": 0.4, "subjectTags": ["breuken"],
+        "lifecycle": "published",
+    })
+    bank["itemIds"] = [item["uuid"]]
+    groep7 = {p["profile"]["uuid"]: p for p in pupils if p["class"] == "Groep 7"}
+    assignment = next(a for a in b.buckets["assignment"]
+                      if any(r in groep7 for r in a.get("learnerRefs", [])) and a["title"] == HOMEWORK[0][1])
+    handed = [s for s in b.buckets["submission"] if s["assignmentId"] == assignment["uuid"]]
+    reviewed, reviewer = handed[0], groep7[handed[1]["learnerRef"]]
+    b.add("peer-review", {
+        "assignmentId": assignment["uuid"], "submissionId": reviewed["uuid"], "reviewerId": reviewer["nc"],
+        "totalScore": 8, "comments": "Netjes uitgewerkt. Bij opgave 4 mist de tussenstap.", "lifecycle": "submitted",
+    })
+    b.add("lesson", {
+        "courseId": subject_courses["PO-REK"]["uuid"], "name": "Breuken: e-learning", "order": 1,
+        "contentType": "cmi5", "contentRef": "https://leren.wilgenboom.zuiddrecht.example/cmi5/breuken/launch",
+        "durationMinutes": 30, "lifecycle": "published",
+    })
 
 
 def render(data: dict) -> str:

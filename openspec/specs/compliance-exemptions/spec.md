@@ -1,7 +1,7 @@
 # compliance-exemptions Specification
 
 ## Purpose
-TBD - created by archiving change compliance-exemption-record. Update Purpose after archive.
+Let a manager request, and a compliance officer decide, an exemption of one learner from one regulation. A grant carries a rationale, a policy reference and a validity period, and nobody grants their own request.
 
 ## Requirements
 

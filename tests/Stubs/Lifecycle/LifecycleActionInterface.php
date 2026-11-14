@@ -29,15 +29,10 @@ interface LifecycleActionInterface {
 	/**
 	 * Run the action on a transitioning object.
 	 *
-	 * The real interface types the arrays as `array<string, mixed>`; the stub
-	 * keeps plain `array`, for the same psalm reason the guard stub gives.
-	 *
-	 * @param array  $objectData   The object after the lifecycle field moved to its target.
-	 * @param array  $previousData The object before the transition.
-	 * @param array  $parameters   The declared `actionParameters` block.
-	 * @param string $actionName   The declared `action` name.
+	 * @param LifecycleActionContext $context The payload after and before the transition, the declared
+	 *                                        `actionParameters` block and the declared action name.
 	 *
 	 * @return array The object to save, with any self-mutations applied.
 	 */
-	public function execute(array $objectData, array $previousData, array $parameters, string $actionName): array;
+	public function execute(LifecycleActionContext $context): array;
 }//end interface

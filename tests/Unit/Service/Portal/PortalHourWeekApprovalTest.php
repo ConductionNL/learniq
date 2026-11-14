@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+ * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
  */
 
 declare(strict_types=1);
@@ -113,6 +113,100 @@ class PortalHourWeekApprovalTest extends TestCase {
 			logger: new NullLogger()
 		);
 	}//end approvals()
+
+	/**
+	 * Give the stored week two day lines of week 40: 8 hours on Monday and
+	 * 8 on Tuesday 29 September.
+	 *
+	 * @return void
+	 */
+	private function withDays(): void {
+		$this->store->rows['bpv-hour-week'][0]['isoWeek'] = '2026-W40';
+		$this->store->rows['bpv-hour-week'][0]['hoursSubmitted'] = 16;
+		$this->store->rows['bpv-hour-week'][0]['days'] = [
+			['date' => '2026-09-28', 'startTime' => '08:00', 'endTime' => '16:30', 'breakMinutes' => 30, 'hours' => 8],
+			['date' => '2026-09-29', 'startTime' => '08:00', 'endTime' => '16:30', 'breakMinutes' => 30, 'hours' => 8],
+		];
+	}//end withDays()
+
+	/**
+	 * A return names the day and the question: the question lands on that
+	 * day line, the week is sent back with nothing approved, and the
+	 * student's own hours stay.
+	 *
+	 * @return void
+	 */
+	public function testAReturnWritesTheQuestionOnTheDayItNames(): void {
+		$approvals = $this->approvals();
+		$this->withDays();
+
+		$outcome = $approvals->approve(
+			trainerRef: self::TRAINER,
+			trust: 'low',
+			body: ['hourWeekId' => self::WEEK, 'outcome' => 'returned', 'returnedDate' => '2026-09-29', 'question' => 'Volgens mij ging je om 14.00 uur naar de tandarts.']
+		);
+
+		self::assertSame(200, $outcome->status);
+		self::assertSame('rejected', $outcome->body['lifecycle']);
+		$week = $this->store->rows['bpv-hour-week'][0];
+		self::assertSame(16, $week['hoursSubmitted']);
+		self::assertSame(0.0, $week['hoursApproved']);
+		self::assertSame('Volgens mij ging je om 14.00 uur naar de tandarts.', $week['note']);
+		self::assertArrayNotHasKey('returnedQuestion', $week['days'][0]);
+		self::assertSame('Volgens mij ging je om 14.00 uur naar de tandarts.', $week['days'][1]['returnedQuestion']);
+		self::assertSame('Karin Smit', $week['approvedByName']);
+	}//end testAReturnWritesTheQuestionOnTheDayItNames()
+
+	/**
+	 * A return without a day or without a question, or naming a day the week
+	 * does not hold, is refused in words and stores nothing; approving no
+	 * hours of a week with days is a return too.
+	 *
+	 * @return void
+	 */
+	public function testAReturnWithoutItsDayOrQuestionIsRefused(): void {
+		$bodies = [
+			'return_needs_day_and_question' => [
+				['outcome' => 'returned', 'returnedDate' => '2026-09-29'],
+				['outcome' => 'returned', 'question' => 'Waarom?'],
+				['hoursApproved' => 0, 'question' => 'Waarom?'],
+			],
+			'returned_day_unknown' => [
+				['outcome' => 'returned', 'returnedDate' => '2026-10-02', 'question' => 'Waarom?'],
+			],
+		];
+		foreach ($bodies as $error => $cases) {
+			foreach ($cases as $body) {
+				$approvals = $this->approvals();
+				$this->withDays();
+				$outcome = $approvals->approve(trainerRef: self::TRAINER, trust: 'low', body: ['hourWeekId' => self::WEEK] + $body);
+
+				self::assertSame(422, $outcome->status, $error);
+				self::assertSame($error, $outcome->body['error']);
+				self::assertNotSame('', $outcome->body['message']);
+				self::assertSame('submitted', $this->store->rows['bpv-hour-week'][0]['lifecycle']);
+			}
+		}
+	}//end testAReturnWithoutItsDayOrQuestionIsRefused()
+
+	/**
+	 * A week without day lines is returned with a question alone; without one
+	 * the explicit return is refused.
+	 *
+	 * @return void
+	 */
+	public function testAWeekWithoutDaysIsReturnedWithAQuestion(): void {
+		$approvals = $this->approvals();
+		$outcome = $approvals->approve(trainerRef: self::TRAINER, trust: 'low', body: ['hourWeekId' => self::WEEK, 'outcome' => 'returned', 'question' => 'Klopt week 39?']);
+
+		self::assertSame(200, $outcome->status);
+		self::assertSame('rejected', $outcome->body['lifecycle']);
+		self::assertSame('Klopt week 39?', $this->store->rows['bpv-hour-week'][0]['note']);
+		self::assertArrayNotHasKey('days', $this->store->rows['bpv-hour-week'][0]);
+
+		$refused = $this->approvals()->approve(trainerRef: self::TRAINER, trust: 'low', body: ['hourWeekId' => self::WEEK, 'outcome' => 'returned']);
+		self::assertSame(422, $refused->status);
+	}//end testAWeekWithoutDaysIsReturnedWithAQuestion()
 
 	/**
 	 * A plain approval keeps the student's number and adds the trainer's.

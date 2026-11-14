@@ -45,7 +45,7 @@ class CourseDayLines {
 
 	private const WEEKDAYS = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
 
-	private const MONTHS = [
+	public const MONTHS = [
 		'januari',
 		'februari',
 		'maart',

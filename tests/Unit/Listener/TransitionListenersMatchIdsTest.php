@@ -76,10 +76,14 @@ use OCA\Learniq\Listener\SubjectChoiceValidator;
 use OCA\Learniq\Listener\SupportRequestSubmitHandler;
 use OCA\Learniq\Listener\WerkprocesGradeEmitHandler;
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Tests\Support\ContractImplementations;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\TransitionScope;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
+use OCA\OpenRegister\Service\Lifecycle\TransitionActor;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
 use OCP\EventDispatcher\IEventListener;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -196,7 +200,12 @@ class TransitionListenersMatchIdsTest extends TestCase {
 	 */
 	private function reads(string $class, string $register, string $schema, string $action, string $from, string $to): int {
 		$entity = OrEntityFactory::make(['id' => 'r5-object', 'tenant_id' => 'tenant-1', 'lifecycle' => $to], $schema, $register);
-		$event = new class ($entity, $action, $from, $to, 'admin', $register, $schema) extends ObjectTransitionedEvent {
+		$event = new class (
+			$entity,
+			new TransitionMove(action: $action, from: $from, to: $to),
+			new RegisterSchemaRef(register: $register, schema: $schema),
+			new TransitionActor(userId: 'admin')
+		) extends ObjectTransitionedEvent {
 
 			/**
 			 * How often the object was read.
@@ -241,7 +250,7 @@ class TransitionListenersMatchIdsTest extends TestCase {
 		foreach (($reflection->getConstructor()?->getParameters() ?? []) as $parameter) {
 			$type = $parameter->getType();
 			self::assertInstanceOf(ReflectionNamedType::class, $type);
-			$name = $type->getName();
+			$name = ContractImplementations::concrete($type->getName());
 			$arguments[$parameter->getName()] = match (true) {
 				$name === ListenerSchemaResolver::class => TransitionScope::resolver(),
 				$name === LoggerInterface::class => new NullLogger(),

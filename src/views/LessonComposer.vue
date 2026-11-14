@@ -1,4 +1,7 @@
 <!--
+  SPDX-License-Identifier: EUPL-1.2
+  Copyright (C) 2026 Conduction B.V.
+
   LessonComposer.vue
   Custom page component for the LessonComposer manifest page (type: custom).
 
@@ -7,10 +10,10 @@
   richText (CnMarkdownEditor, inline markdown), media (pointer to an
   existing Material, or a freshly-created one via the NC file picker),
   quiz/assignment/ltiTool (NcSelect pickers against existing
-  Assessment/Assignment/LtiToolPlacement objects). Dual-path reorder
-  (drag-and-drop via vuedraggable AND keyboard-operable Move up/down —
-  WCAG 2.1 AA SC 2.1.1, design.md D4), sharing the same reorder pattern as
-  CourseBuilder.vue.
+  Assessment/Assignment/LtiToolPlacement objects). The list is
+  CnBlockListEditor (learniq/LqLesMaken): a palette, drag-and-drop and
+  Up/Down buttons that say the new position (WCAG 2.2 SC 2.1.1, 2.5.7), and
+  Keep/Discard on an AI draft. Each type's editor sits in its block slot.
 
   Talks only to OpenRegister's REST API:
     - GET /api/objects/learniq/Lesson/:lessonId
@@ -42,9 +45,6 @@
   `competencyIds` with the next save. Goal titles for the panel come from
   the Course's and the Lesson's Competency rows.
 
-  SPDX-License-Identifier: EUPL-1.2
-  Copyright (C) 2026 Conduction B.V.
-
   @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
   @spec openspec/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard
   @spec openspec/specs/course-management/spec.md#scenario-a-media-block-references-an-existing-material-rather-than-duplicating-file-metadata
@@ -52,7 +52,7 @@
 -->
 
 <template>
-	<div class="lesson-composer">
+	<div class="lesson-composer lq-board-page">
 		<div v-if="loading" class="lesson-composer__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
 			<span>{{ t('learniq', 'Loading lesson…') }}</span>
@@ -69,13 +69,7 @@
 			</p>
 
 			<header class="lesson-composer__header">
-				<h2>
-					{{
-						t('learniq', 'Compose lesson: {name}', {
-							name: lesson.name || '',
-						})
-					}}
-				</h2>
+				<CnPageHeader :title="t('learniq', 'Compose lesson: {name}', { name: lesson.name || '' })" />
 				<div class="lesson-composer__header-actions">
 					<button class="button-vue" @click="goBack">
 						{{ t('learniq', 'Back to builder') }}
@@ -114,308 +108,100 @@
 				{{ t('learniq', 'Lesson saved.') }}
 			</p>
 
-			<!-- vuedraggable 4 (Vue 3) renders its rows through the REQUIRED
-			     `#item` scoped slot and computes each key from `itemKey`. A
-			     `v-for` in the default slot is the Vue 2 API: v4 throws
-			     "draggable element must have an item slot" from computeNodes(),
-			     which kills this whole section's render. -->
-			<Draggable
-				v-model="blocks"
-				tag="ul"
-				class="lesson-composer__block-list"
-				handle=".lesson-composer__handle"
-				itemKey="blockId"
-				@end="onBlocksDragEnd">
-				<template #item="{ element: block, index: idx }">
-					<li class="lesson-composer__block">
-						<div class="lesson-composer__block-row">
-							<span
-								class="lesson-composer__handle icon-menu"
-								aria-hidden="true" />
-							<span class="lesson-composer__block-type">{{
-								/**
-								 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
-								 */
-								blockTypeLabel(block.type)
-							}}</span>
-							<!-- The position is part of the accessible name, not
-							     decoration. A block has no name of its own, so a
-							     type-only label ("Move Rich text block up") is
-							     IDENTICAL for every block of that type: a lesson
-							     with two rich-text blocks gave a screen-reader
-							     user the same three names twice, with nothing to
-							     tell the pairs apart (WCAG 2.2 SC 4.1.2 / 2.4.6).
-							     The module and lesson controls in CourseBuilder
-							     already disambiguate by naming the item; blocks
-							     were the one list that did not. `position` is
-							     1-based to match what the reader counts. -->
-							<button
-								type="button"
-								class="lesson-composer__icon-btn"
-								:disabled="idx === 0"
-								:aria-label="
-									t('learniq', 'Move {type} block {position} up', {
-										type: blockTypeLabel(block.type),
-										position: idx + 1,
-									})
-								"
-								@click="moveBlockUp(idx)">
-								<ChevronUp :size="18" />
-							</button>
-							<button
-								type="button"
-								class="lesson-composer__icon-btn"
-								:disabled="idx === blocks.length - 1"
-								:aria-label="
-									t(
-										'learniq',
-										'Move {type} block {position} down',
-										{
-											type: blockTypeLabel(block.type),
-											position: idx + 1,
-										},
-									)
-								"
-								@click="moveBlockDown(idx)">
-								<ChevronDown :size="18" />
-							</button>
-							<button
-								v-if="
-									assistAvailable
-									&& block.type === 'richText'
-									&& !block.assistDraft
-								"
-								type="button"
-								class="lesson-composer__icon-btn"
-								:disabled="!(block.text || '').trim()"
-								:title="t('learniq', 'Rewrite in simpler words')"
-								:aria-label="
-									t(
-										'learniq',
-										'Rewrite {type} block {position} in simpler words',
-										{
-											type: blockTypeLabel(block.type),
-											position: idx + 1,
-										},
-									)
-								"
-								@click="simplifyBlock(block)">
+			<CnDetailCard
+				:title="t('learniq', 'Lesson blocks')"
+				class="lesson-composer__blocks">
+				<CnBlockListEditor
+					v-model="blocks"
+					:types="blockTypes"
+					:labels="blockLabels"
+					idKey="blockId"
+					palette="select">
+					<template #block-richText="{ block, position, update }">
+						<NcButton
+							v-if="assistAvailable && !block.draft"
+							variant="tertiary"
+							:disabled="!(block.text || '').trim()"
+							:aria-label="
+								t('learniq', 'Rewrite {type} block {position} in simpler words', {
+									type: blockTypeLabel(block.type),
+									position,
+								})
+							"
+							@click="simplifyBlock(block)">
+							<template #icon>
 								<AutoFix :size="18" />
-							</button>
-							<button
-								type="button"
-								class="lesson-composer__icon-btn"
-								:aria-label="
-									t('learniq', 'Remove {type} block {position}', {
-										type: blockTypeLabel(block.type),
-										position: idx + 1,
-									})
-								"
-								@click="removeBlock(idx)">
-								<DeleteOutline :size="18" />
-							</button>
-						</div>
+							</template>
+							{{ t('learniq', 'Rewrite in simpler words') }}
+						</NcButton>
+						<CnMarkdownEditor
+							:value="block.text || ''"
+							:aria-label="t('learniq', 'Rich text content')"
+							:rows="6"
+							@input="(v) => update({ text: v })" />
+					</template>
 
-						<!-- richText -->
-						<div
-							v-if="block.type === 'richText'"
-							class="lesson-composer__block-body">
-							<div
-								v-if="block.assistDraft"
-								class="lesson-composer__draft"
-								role="group"
-								:aria-label="
-									t('learniq', 'AI draft in block {position}', {
-										position: idx + 1,
-									})
-								">
-								<p class="lesson-composer__draft-label">
-									<strong>{{ t('learniq', 'AI draft') }}</strong>
-									{{
-										t(
-											'learniq',
-											'Check and edit it before you keep it. Model service: {provider}',
-											{
-												provider:
-													block.assistDraft.provider
-													|| t('learniq', 'unknown'),
-											},
-										)
-									}}
-								</p>
-								<div class="lesson-composer__draft-actions">
-									<button
-										type="button"
-										class="button-vue button-vue--primary"
-										:aria-label="
-											t(
-												'learniq',
-												'Keep AI draft in block {position}',
-												{
-													position: idx + 1,
-												},
-											)
-										"
-										@click="keepDraft(block)">
-										{{ t('learniq', 'Keep') }}
-									</button>
-									<button
-										type="button"
-										class="button-vue"
-										:aria-label="
-											t(
-												'learniq',
-												'Discard AI draft in block {position}',
-												{ position: idx + 1 },
-											)
-										"
-										@click="discardDraft(idx)">
-										{{ t('learniq', 'Discard') }}
-									</button>
-								</div>
-							</div>
-							<CnMarkdownEditor
-								:value="block.text || ''"
-								:aria-label="t('learniq', 'Rich text content')"
-								:rows="6"
-								@input="
-									(v) => onBlockFieldInput(block, 'text', v)
-								" />
-						</div>
+					<!-- teacherNote (office-file-lesson-onboarding) -->
+					<template #block-teacherNote="{ block, position, update }">
+						<p class="lesson-composer__teacher-note-label">
+							{{
+								t(
+									'learniq',
+									'Only staff can read this note. Learners and parents never see it.',
+								)
+							}}
+						</p>
+						<CnMarkdownEditor
+							:value="block.text || ''"
+							:aria-label="t('learniq', 'Teacher note in block {position}', { position })"
+							:rows="4"
+							@input="(v) => update({ text: v })" />
+					</template>
 
-						<!-- teacherNote (office-file-lesson-onboarding) -->
-						<div
-							v-else-if="block.type === 'teacherNote'"
-							class="lesson-composer__block-body">
-							<p class="lesson-composer__teacher-note-label">
-								{{
-									t(
-										'learniq',
-										'Only staff can read this note. Learners and parents never see it.',
-									)
-								}}
-							</p>
-							<CnMarkdownEditor
-								:value="block.text || ''"
-								:aria-label="
-									t(
-										'learniq',
-										'Teacher note in block {position}',
-										{
-											position: idx + 1,
-										},
-									)
-								"
-								:rows="4"
-								@input="
-									(v) => onBlockFieldInput(block, 'text', v)
-								" />
-						</div>
+					<template #block-media="{ block, update }">
+						<NcSelect
+							:modelValue="block.materialId"
+							:options="materialOptions"
+							:reduce="(opt) => opt.id"
+							:inputLabel="t('learniq', 'Material')"
+							@update:modelValue="(v) => update({ materialId: v })" />
+						<NcButton :disabled="pickingFile" @click="pickAndCreateMaterial(update)">
+							{{ t('learniq', 'Upload a new file…') }}
+						</NcButton>
+						<NcButton v-if="openMaterialEnabled" variant="secondary" data-testid="open-material-open" @click="openMaterialSearch(update)">
+							{{ t('learniq', 'Search open learning material') }}
+						</NcButton>
+						<MaterialAttribution v-if="materialById(block.materialId)" :material="materialById(block.materialId)" />
+					</template>
 
-						<!-- media -->
-						<div
-							v-else-if="block.type === 'media'"
-							class="lesson-composer__block-body">
-							<NcSelect
-								v-model="block.materialId"
-								:options="materialOptions"
-								:reduce="(opt) => opt.id"
-								:inputLabel="t('learniq', 'Material')"
-								:aria-label-combobox="t('learniq', 'Material')" />
-							<button
-								type="button"
-								class="button-vue"
-								:disabled="pickingFile"
-								@click="pickAndCreateMaterial(block)">
-								<span
-									v-if="pickingFile"
-									class="icon-loading"
-									aria-hidden="true" />
-								{{ t('learniq', 'Upload a new file…') }}
-							</button>
-						</div>
+					<template #block-quiz="{ block, update }">
+						<NcSelect
+							:modelValue="block.assessmentId"
+							:options="assessmentOptions"
+							:reduce="(opt) => opt.id"
+							:inputLabel="t('learniq', 'Assessment')"
+							@update:modelValue="(v) => update({ assessmentId: v })" />
+					</template>
 
-						<!-- quiz -->
-						<div
-							v-else-if="block.type === 'quiz'"
-							class="lesson-composer__block-body">
-							<NcSelect
-								v-model="block.assessmentId"
-								:options="assessmentOptions"
-								:reduce="(opt) => opt.id"
-								:inputLabel="t('learniq', 'Assessment')"
-								:aria-label-combobox="t('learniq', 'Assessment')" />
-						</div>
+					<template #block-assignment="{ block, update }">
+						<NcSelect
+							:modelValue="block.assignmentId"
+							:options="assignmentOptions"
+							:reduce="(opt) => opt.id"
+							:inputLabel="t('learniq', 'Assignment')"
+							@update:modelValue="(v) => update({ assignmentId: v })" />
+					</template>
 
-						<!-- assignment -->
-						<div
-							v-else-if="block.type === 'assignment'"
-							class="lesson-composer__block-body">
-							<NcSelect
-								v-model="block.assignmentId"
-								:options="assignmentOptions"
-								:reduce="(opt) => opt.id"
-								:inputLabel="t('learniq', 'Assignment')"
-								:aria-label-combobox="t('learniq', 'Assignment')" />
-						</div>
-
-						<!-- ltiTool -->
-						<div
-							v-else-if="block.type === 'ltiTool'"
-							class="lesson-composer__block-body">
-							<NcSelect
-								v-model="block.ltiToolPlacementId"
-								:options="ltiToolPlacementOptions"
-								:reduce="(opt) => opt.id"
-								:inputLabel="t('learniq', 'LTI tool placement')"
-								:aria-label-combobox="
-									t('learniq', 'LTI tool placement')
-								" />
-						</div>
-					</li>
-				</template>
-			</Draggable>
-
-			<section class="lesson-composer__add-block">
-				<label class="lesson-composer__field-label" for="lc-add-block-type">
-					{{ t('learniq', 'Block type') }}
-				</label>
-				<select
-					id="lc-add-block-type"
-					v-model="addBlockType"
-					class="lesson-composer__select">
-					<option value="richText">
-						{{ t('learniq', 'Rich text') }}
-					</option>
-					<option value="media">
-						{{
-							t(
-								'learniq',
-								'Media (image / video / file / SCORM-cmi5 reference)',
-							)
-						}}
-					</option>
-					<option value="quiz">
-						{{ t('learniq', 'Quiz') }}
-					</option>
-					<option value="assignment">
-						{{ t('learniq', 'Assignment') }}
-					</option>
-					<option value="ltiTool">
-						{{ t('learniq', 'External tool (LTI)') }}
-					</option>
-					<option value="teacherNote">
-						{{ t('learniq', 'Teacher note (not shown to learners)') }}
-					</option>
-				</select>
-				<button
-					type="button"
-					class="button-vue button-vue--secondary"
-					@click="addBlock">
-					<PlusIcon :size="16" />
-					{{ t('learniq', 'Add block') }}
-				</button>
-			</section>
+					<template #block-ltiTool="{ block, update }">
+						<NcSelect
+							:modelValue="block.ltiToolPlacementId"
+							:options="ltiToolPlacementOptions"
+							:reduce="(opt) => opt.id"
+							:inputLabel="t('learniq', 'LTI tool placement')"
+							@update:modelValue="(v) => update({ ltiToolPlacementId: v })" />
+					</template>
+				</CnBlockListEditor>
+			</CnDetailCard>
 
 			<LessonNextStepEditor
 				v-if="lesson"
@@ -437,29 +223,37 @@
 				@addGoal="onAssistAddGoal"
 				@off="assistOff = true" />
 		</template>
+		<OpenMaterialSearchModal
+v-if="openMaterialUpdate"
+			:target="{ lessonId }"
+			:targetLabel="lesson ? lesson.title : ''"
+			@added="onOpenMaterialAdded"
+			@ownFiles="onOpenMaterialOwnFiles"
+			@close="openMaterialUpdate = null" />
 	</div>
 </template>
 
 <script>
-import { CnMarkdownEditor } from '@conduction/nextcloud-vue'
+import { CnBlockListEditor, CnDetailCard, CnMarkdownEditor, CnPageHeader } from '@conduction/nextcloud-vue'
+import axios from '@nextcloud/axios'
 import { getFilePickerBuilder } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
-import { NcSelect } from '@nextcloud/vue'
-import draggable from 'vuedraggable'
+import { NcButton, NcSelect } from '@nextcloud/vue'
 import AutoFix from 'vue-material-design-icons/AutoFix.vue'
-import ChevronDown from 'vue-material-design-icons/ChevronDown.vue'
-import ChevronUp from 'vue-material-design-icons/ChevronUp.vue'
-import DeleteOutline from 'vue-material-design-icons/DeleteOutline.vue'
-import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import LessonAssistPanel from '../components/lesson/LessonAssistPanel.vue'
 import LessonNextStepEditor from '../components/lesson/LessonNextStepEditor.vue'
+import MaterialAttribution from '../components/openMaterial/MaterialAttribution.vue'
+import OpenMaterialSearchModal from '../modals/OpenMaterialSearchModal.vue'
+import { loadPanel } from '../services/openMaterial.js'
 import { GOAL_COUNT_MAX, isHermiqEnabled } from '../utils/lessonAssist.js'
 import {
+	BLOCK_TYPES,
 	countPendingDrafts,
 	diffTeacherNotes,
-	keepDraftBlock,
+	emptyBlock,
 	makeDraftBlock,
 	mergeTeacherNotes,
+	newBlockId,
 	serialiseLessonBlocks,
 	splitTeacherNotes,
 	TEACHER_NOTE_SCHEMA,
@@ -486,16 +280,17 @@ export default {
 	name: 'LessonComposer',
 
 	components: {
-		NcSelect,
+		AutoFix,
+		CnBlockListEditor,
+		CnDetailCard,
 		CnMarkdownEditor,
-		Draggable: draggable,
+		CnPageHeader,
 		LessonAssistPanel,
 		LessonNextStepEditor,
-		AutoFix,
-		ChevronUp,
-		ChevronDown,
-		DeleteOutline,
-		PlusIcon,
+		MaterialAttribution,
+		NcButton,
+		NcSelect,
+		OpenMaterialSearchModal,
 	},
 
 	props: {
@@ -527,11 +322,14 @@ export default {
 			 * @type {Array<object>}
 			 */
 			loadedNotes: [],
-			addBlockType: 'richText',
 			saving: false,
 			saveError: '',
 			saveDone: false,
 			pickingFile: false,
+			/** Whether the administrator left open learning material on. */
+			openMaterialEnabled: false,
+			/** The media block's update while the open material search is open. */
+			openMaterialUpdate: null,
 			liveMessage: '',
 			/** @type {Array<object>} */
 			materials: [],
@@ -564,6 +362,44 @@ export default {
 	},
 
 	computed: {
+		/**
+		 * The block types the palette offers, each creating its empty payload.
+		 *
+		 * @return {Array<{type: string, label: string, create: function(): object}>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 */
+		blockTypes() {
+			return BLOCK_TYPES.map((type) => ({
+				type,
+				label: this.blockTypeLabel(type),
+				create: () => emptyBlock(type),
+			}))
+		},
+
+		/**
+		 * CnBlockListEditor's texts in learniq's words.
+		 *
+		 * @return {object}
+		 * @spec openspec/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard
+		 */
+		blockLabels() {
+			return {
+				add: this.t('learniq', 'Add block'),
+				type: this.t('learniq', 'Block type'),
+				list: this.t('learniq', 'Lesson blocks'),
+				empty: this.t('learniq', 'This lesson has no blocks yet.'),
+				moveUp: this.t('learniq', 'Up'),
+				moveDown: this.t('learniq', 'Down'),
+				remove: this.t('learniq', 'Remove'),
+				draft: this.t('learniq', 'AI draft'),
+				keep: this.t('learniq', 'Keep'),
+				discard: this.t('learniq', 'Discard'),
+				kept: this.t('learniq', 'AI draft kept.'),
+				discarded: this.t('learniq', 'AI draft discarded.'),
+				moved: this.t('learniq', 'Block moved to position {position} of {total}'),
+			}
+		},
+
 		/**
 		 * Whether the per-block AI rewrite action shows: hermiq is enabled and
 		 * has not said the feature is switched off.
@@ -601,11 +437,78 @@ export default {
 		},
 	},
 
+	/**
+	 * Load the lesson, then whether open learning material is on.
+	 *
+	 * @return {Promise<void>}
+	 * @spec openspec/specs/open-learning-material/spec.md#scenario-edurep-is-switched-off
+	 */
 	async mounted() {
 		await this.load()
+		await this.loadOpenMaterialPanel()
 	},
 
 	methods: {
+		/**
+		 * Whether to offer the open material search: the administrator's switch.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/open-learning-material/spec.md#scenario-edurep-is-switched-off
+		 */
+		async loadOpenMaterialPanel() {
+			try {
+				const panel = await loadPanel(axios, generateUrl)
+				this.openMaterialEnabled = panel.enabled === true
+			} catch {
+				this.openMaterialEnabled = false
+			}
+		},
+
+		/**
+		 * Open the search panel for this media block.
+		 *
+		 * @param {function(object): void} update CnBlockListEditor's update for the media block.
+		 * @return {void}
+		 * @spec openspec/specs/open-learning-material/spec.md#scenario-a-teacher-searches-from-the-lesson-editor
+		 */
+		openMaterialSearch(update) {
+			this.openMaterialUpdate = update
+		},
+
+		/**
+		 * Put the added Material in the block that opened the panel, by UUID only.
+		 *
+		 * @param {object} material The new Material.
+		 * @return {void}
+		 * @spec openspec/specs/open-learning-material/spec.md#requirement-material-carries-its-source-and-attribution
+		 */
+		onOpenMaterialAdded(material) {
+			this.materials.push(material)
+			this.openMaterialUpdate({ materialId: material.id })
+			this.openMaterialUpdate = null
+		},
+
+		/**
+		 * Close the search and open the file picker for the same block instead.
+		 *
+		 * @return {void}
+		 * @spec openspec/specs/open-learning-material/spec.md#scenario-edurep-does-not-answer
+		 */
+		onOpenMaterialOwnFiles() {
+			const update = this.openMaterialUpdate
+			this.openMaterialUpdate = null
+			this.pickAndCreateMaterial(update)
+		},
+
+		/**
+		 * @param {string} id A Material UUID.
+		 * @return {object|null} The loaded Material.
+		 * @spec openspec/specs/open-learning-material/spec.md#requirement-material-carries-its-source-and-attribution
+		 */
+		materialById(id) {
+			return this.materials.find((m) => m.id === id) || null
+		},
+
 		/**
 		 * Load the Lesson and every picker source scoped to its Course:
 		 * existing Materials attached to this Lesson (media block picker),
@@ -624,7 +527,7 @@ export default {
 				// shown in place among the blocks (teacher-notes-protection).
 				this.loadedNotes = await this.fetchList(
 					TEACHER_NOTE_SCHEMA,
-					`filters[lessonId]=${this.lessonId}&_limit=500`,
+					`lessonId=${this.lessonId}&_limit=500`,
 				)
 				this.blocks = mergeTeacherNotes(
 					this.lesson.blocks || [],
@@ -650,23 +553,23 @@ export default {
 				] = await Promise.all([
 					this.fetchList(
 						'Material',
-						`filters[lessonId]=${this.lessonId}&_limit=200`,
+						`lessonId=${this.lessonId}&_limit=200`,
 					),
 					this.fetchList(
 						'exam',
-						`filters[courseId]=${this.courseId}&_limit=200`,
+						`courseId=${this.courseId}&_limit=200`,
 					),
 					this.fetchList(
 						'Assignment',
-						`filters[courseId]=${this.courseId}&_limit=200`,
+						`courseId=${this.courseId}&_limit=200`,
 					),
 					this.fetchList(
 						'lti-tool-placement',
-						`filters[courseId]=${this.courseId}&_limit=200`,
+						`courseId=${this.courseId}&_limit=200`,
 					),
 					this.fetchList(
 						'Lesson',
-						`filters[courseId]=${this.courseId}&_limit=500`,
+						`courseId=${this.courseId}&_limit=500`,
 					),
 				])
 				this.materials = materials
@@ -748,10 +651,15 @@ export default {
 		 */
 		onAssistDraft(draft) {
 			const block = makeDraftBlock({
-				blockId: this.generateBlockId(),
+				blockId: newBlockId(),
 				text: draft.text,
 				action: draft.action,
 				provider: draft.provider,
+				note: this.t(
+					'learniq',
+					'Check and edit it before you keep it. Model service: {provider}',
+					{ provider: draft.provider || this.t('learniq', 'unknown') },
+				),
 			})
 			const after = this.blocks.findIndex(
 				(b) => b.blockId === draft.afterBlockId,
@@ -761,38 +669,15 @@ export default {
 			} else {
 				this.blocks.push(block)
 			}
-			this.renumberBlocks()
 			this.saveDone = false
 			this.liveMessage = this.t(
 				'learniq',
 				'AI draft added as block {position}. Keep or discard it.',
-				{ position: block.order },
+				{ position: this.blocks.indexOf(block) + 1 },
 			)
 		},
 
-		/**
-		 * Keep an AI draft: it becomes an ordinary rich text block.
-		 *
-		 * @param {object} block The draft block.
-		 * @return {void}
-		 * @spec openspec/specs/course-management/spec.md#scenario-a-teacher-keeps-an-ai-outline
-		 */
-		keepDraft(block) {
-			keepDraftBlock(block)
-			this.liveMessage = this.t('learniq', 'AI draft kept.')
-		},
 
-		/**
-		 * Discard an AI draft.
-		 *
-		 * @param {number} idx Index in `blocks`.
-		 * @return {void}
-		 * @spec openspec/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
-		 */
-		discardDraft(idx) {
-			this.removeBlock(idx)
-			this.liveMessage = this.t('learniq', 'AI draft discarded.')
-		},
 
 		/**
 		 * Add a goal the AI help suggested to the lesson; saved with the next save.
@@ -920,22 +805,6 @@ export default {
 			return json.object ?? json ?? {}
 		},
 
-		/**
-		 * Generate a client-side block identifier, preferring crypto.randomUUID
-		 * where available (mirrors TakeAssessmentView.vue's generateId()).
-		 *
-		 * @return {string}
-		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
-		 */
-		generateBlockId() {
-			if (
-				typeof crypto !== 'undefined'
-				&& typeof crypto.randomUUID === 'function'
-			) {
-				return crypto.randomUUID()
-			}
-			return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
-		},
 
 		/**
 		 * Human-readable label for a block type.
@@ -956,69 +825,9 @@ export default {
 			return labels[type] ?? type
 		},
 
-		/**
-		 * Append a new block of the selected type at the end of the list.
-		 *
-		 * @return {void}
-		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
-		 */
-		addBlock() {
-			this.blocks.push({
-				blockId: this.generateBlockId(),
-				type: this.addBlockType,
-				order: this.blocks.length + 1,
-				text: ['richText', 'teacherNote'].includes(this.addBlockType)
-					? ''
-					: null,
-				materialId: null,
-				assessmentId: null,
-				assignmentId: null,
-				ltiToolPlacementId: null,
-			})
-		},
 
-		/**
-		 * Update a single field on a block in place (CnMarkdownEditor's
-		 * `input` event, richText only).
-		 *
-		 * @param {object} block The block.
-		 * @param {string} field Field name.
-		 * @param {*} value New value.
-		 * @return {void}
-		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
-		 */
-		onBlockFieldInput(block, field, value) {
-			block[field] = value
-		},
 
-		/**
-		 * Remove a block from the list and renumber the remainder.
-		 *
-		 * @param {number} idx Index in `blocks`.
-		 * @return {void}
-		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
-		 */
-		removeBlock(idx) {
-			this.blocks.splice(idx, 1)
-			this.renumberBlocks()
-		},
 
-		/**
-		 * Recompute contiguous 1-based `order` for every block in the local
-		 * `blocks` mirror — the single place both drag-and-drop and the
-		 * keyboard move handlers converge on (design.md D4), mirroring
-		 * CourseBuilder.vue's persistOrder(). Blocks are not individually
-		 * persisted (unlike Course/Lesson rows) — the whole array is saved
-		 * together via `save()` — so this only mutates local state.
-		 *
-		 * @return {void}
-		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
-		 */
-		renumberBlocks() {
-			this.blocks.forEach((b, idx) => {
-				b.order = idx + 1
-			})
-		},
 
 		/**
 		 * The `blocks` array as the Lesson schema will accept it: the required
@@ -1150,62 +959,9 @@ export default {
 			this.saveDone = false
 		},
 
-		/**
-		 * Move `blocks[fromIndex]` to `toIndex`, renumber, and announce.
-		 *
-		 * @param {number} fromIndex Current index.
-		 * @param {number} toIndex Target index.
-		 * @return {void}
-		 * @spec openspec/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard
-		 */
-		reorderBlock(fromIndex, toIndex) {
-			if (
-				fromIndex === toIndex
-				|| toIndex < 0
-				|| toIndex >= this.blocks.length
-			)
-				return
-			const [moved] = this.blocks.splice(fromIndex, 1)
-			this.blocks.splice(toIndex, 0, moved)
-			this.renumberBlocks()
-			this.liveMessage = this.t(
-				'learniq',
-				'{type} block moved to position {pos} of {total}',
-				{
-					type: this.blockTypeLabel(moved.type),
-					pos: toIndex + 1,
-					total: this.blocks.length,
-				},
-			)
-		},
 
-		/** @param {number} idx Block index. @return {void} */
-		/**
-		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
-		 */
-		moveBlockUp(idx) {
-			this.reorderBlock(idx, idx - 1)
-		},
 
-		/** @param {number} idx Block index. @return {void} */
-		/**
-		 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
-		 */
-		moveBlockDown(idx) {
-			this.reorderBlock(idx, idx + 1)
-		},
 
-		/**
-		 * vuedraggable `@end` handler — the array is already reordered by
-		 * `v-model`; just renumber + announce.
-		 *
-		 * @return {void}
-		 * @spec openspec/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard
-		 */
-		onBlocksDragEnd() {
-			this.renumberBlocks()
-			this.liveMessage = this.t('learniq', 'Block order updated.')
-		},
 
 		/**
 		 * Open the NC Files picker, then create a new Material for the
@@ -1214,11 +970,11 @@ export default {
 		 * Material's UUID as this block's materialId. Never duplicates the
 		 * Material's own fields onto the block (design.md D3).
 		 *
-		 * @param {object} block The media block being edited.
+		 * @param {function(object): void} update CnBlockListEditor's update for the media block.
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/course-management/spec.md#scenario-a-media-block-references-an-existing-material-rather-than-duplicating-file-metadata
 		 */
-		async pickAndCreateMaterial(block) {
+		async pickAndCreateMaterial(update) {
 			this.pickingFile = true
 			try {
 				const picker = getFilePickerBuilder(
@@ -1238,7 +994,7 @@ export default {
 					tenant_id: this.lesson.tenant_id,
 				})
 				this.materials.push(created)
-				block.materialId = created.id
+				update({ materialId: created.id })
 			} catch (err) {
 				// FilePickerClosed on cancel — not an error the user needs to see.
 				if (
@@ -1279,7 +1035,6 @@ export default {
 				return
 			}
 			this.saving = true
-			this.renumberBlocks()
 
 			try {
 				const url = generateUrl(
@@ -1344,13 +1099,6 @@ export default {
 </script>
 
 <style scoped>
-.lesson-composer {
-	max-width: 860px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
 .lesson-composer__loading,
 .lesson-composer__error {
 	display: flex;
@@ -1398,105 +1146,9 @@ export default {
 	margin-bottom: 8px;
 }
 
-.lesson-composer__block-list {
-	list-style: none;
-	margin: 0 0 16px;
-	padding: 0;
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-}
-
-.lesson-composer__block {
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius, 4px);
-	padding: 8px;
-}
-
-.lesson-composer__block-row {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	margin-bottom: 8px;
-}
-
-.lesson-composer__handle {
-	cursor: grab;
-	color: var(--color-text-maxcontrast);
-}
-
-.lesson-composer__block-type {
-	font-weight: 600;
-	flex: 1 1 auto;
-}
-
-.lesson-composer__icon-btn {
-	background: none;
-	border: none;
-	cursor: pointer;
-	color: var(--color-text-maxcontrast);
-	padding: 4px;
-	display: inline-flex;
-}
-
-.lesson-composer__icon-btn:disabled {
-	opacity: 0.4;
-	cursor: not-allowed;
-}
-
-.lesson-composer__icon-btn:hover:not(:disabled) {
-	color: var(--color-main-text);
-}
-
-.lesson-composer__block-body {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-}
-
-.lesson-composer__draft {
-	border-inline-start: 4px solid var(--color-primary-element);
-	background: var(--color-primary-element-light);
-	border-radius: var(--border-radius, 4px);
-	padding: 8px;
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-}
-
 .lesson-composer__teacher-note-label {
 	margin: 0;
 	color: var(--color-text-maxcontrast);
 	font-style: italic;
-}
-
-.lesson-composer__draft-label {
-	margin: 0;
-	color: var(--color-main-text);
-}
-
-.lesson-composer__draft-actions {
-	display: flex;
-	gap: 8px;
-	flex-wrap: wrap;
-}
-
-.lesson-composer__add-block {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	flex-wrap: wrap;
-}
-
-.lesson-composer__field-label {
-	font-weight: 500;
-}
-
-.lesson-composer__select {
-	padding: 6px 8px;
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius, 4px);
-	font-family: inherit;
-	font-size: inherit;
 }
 </style>

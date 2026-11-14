@@ -1,0 +1,909 @@
+{
+    "round robin, two per submission": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "submission",
+                        "assignmentId": "a1"
+                    },
+                    "limit": 1000
+                },
+                "_rbac": false
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "peer-review",
+                        "assignmentId": "a1"
+                    },
+                    "limit": 5000
+                },
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s1",
+                    "reviewerId": "carol",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s1",
+                    "reviewerId": "dave",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s2",
+                    "reviewerId": "erin",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": ""
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s2",
+                    "reviewerId": "hank",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": ""
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s6",
+                    "reviewerId": "ann",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s6",
+                    "reviewerId": "bob",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s3",
+                    "reviewerId": "dave",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "result": {
+                "strategy": "round-robin",
+                "submissionsProcessed": 5,
+                "createdCount": 7
+            }
+        }
+    ],
+    "round robin, three per submission": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "submission",
+                        "assignmentId": "a1"
+                    },
+                    "limit": 1000
+                },
+                "_rbac": false
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "peer-review",
+                        "assignmentId": "a1"
+                    },
+                    "limit": 5000
+                },
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s1",
+                    "reviewerId": "carol",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s1",
+                    "reviewerId": "dave",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s1",
+                    "reviewerId": "erin",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s2",
+                    "reviewerId": "hank",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": ""
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s2",
+                    "reviewerId": "ann",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": ""
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s2",
+                    "reviewerId": "bob",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": ""
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s6",
+                    "reviewerId": "carol",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s6",
+                    "reviewerId": "dave",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s6",
+                    "reviewerId": "erin",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s3",
+                    "reviewerId": "hank",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s3",
+                    "reviewerId": "ann",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s3",
+                    "reviewerId": "bob",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s4",
+                    "reviewerId": "carol",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s4",
+                    "reviewerId": "dave",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s4",
+                    "reviewerId": "hank",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "result": {
+                "strategy": "round-robin",
+                "submissionsProcessed": 5,
+                "createdCount": 15
+            }
+        }
+    ],
+    "random strategy": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "submission",
+                        "assignmentId": "a1"
+                    },
+                    "limit": 1000
+                },
+                "_rbac": false
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "peer-review",
+                        "assignmentId": "a1"
+                    },
+                    "limit": 5000
+                },
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s1",
+                    "reviewerId": "erin",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s2",
+                    "reviewerId": "bob",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": ""
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s6",
+                    "reviewerId": "carol",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "result": {
+                "strategy": "random",
+                "submissionsProcessed": 5,
+                "createdCount": 3
+            }
+        }
+    ],
+    "pool smaller than the quota": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "submission",
+                        "assignmentId": "a1"
+                    },
+                    "limit": 1000
+                },
+                "_rbac": false
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "peer-review",
+                        "assignmentId": "a1"
+                    },
+                    "limit": 5000
+                },
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s1",
+                    "reviewerId": "bob",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s2",
+                    "reviewerId": "ann",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "result": {
+                "strategy": "round-robin",
+                "submissionsProcessed": 2,
+                "createdCount": 2
+            }
+        }
+    ],
+    "zero reviewers falls back to the default": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "submission",
+                        "assignmentId": "a1"
+                    },
+                    "limit": 1000
+                },
+                "_rbac": false
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "peer-review",
+                        "assignmentId": "a1"
+                    },
+                    "limit": 5000
+                },
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s1",
+                    "reviewerId": "bob",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s1",
+                    "reviewerId": "carol",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s2",
+                    "reviewerId": "ann",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s2",
+                    "reviewerId": "carol",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s3",
+                    "reviewerId": "ann",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s3",
+                    "reviewerId": "bob",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "result": {
+                "strategy": "round-robin",
+                "submissionsProcessed": 3,
+                "createdCount": 6
+            }
+        }
+    ],
+    "manual strategy": [
+        {
+            "result": {
+                "strategy": "manual",
+                "submissionsProcessed": 0,
+                "createdCount": 0
+            }
+        }
+    ],
+    "no handed-in submissions": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "submission",
+                        "assignmentId": "a1"
+                    },
+                    "limit": 1000
+                },
+                "_rbac": false
+            }
+        },
+        {
+            "result": {
+                "strategy": "round-robin",
+                "submissionsProcessed": 0,
+                "createdCount": 0
+            }
+        }
+    ],
+    "no reviewer pool": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "submission",
+                        "assignmentId": "a1"
+                    },
+                    "limit": 1000
+                },
+                "_rbac": false
+            }
+        },
+        {
+            "result": {
+                "strategy": "round-robin",
+                "submissionsProcessed": 1,
+                "createdCount": 0
+            }
+        }
+    ],
+    "missing assignment": [
+        {
+            "result": {
+                "strategy": "round-robin",
+                "submissionsProcessed": 0,
+                "createdCount": 0
+            }
+        }
+    ],
+    "rotation skips a reviewer already on the submission": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "submission",
+                        "assignmentId": "a1"
+                    },
+                    "limit": 1000
+                },
+                "_rbac": false
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "peer-review",
+                        "assignmentId": "a1"
+                    },
+                    "limit": 5000
+                },
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s1",
+                    "reviewerId": "carol",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s2",
+                    "reviewerId": "ann",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s2",
+                    "reviewerId": "carol",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s3",
+                    "reviewerId": "ann",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a1",
+                    "submissionId": "s3",
+                    "reviewerId": "bob",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "result": {
+                "strategy": "round-robin",
+                "submissionsProcessed": 3,
+                "createdCount": 5
+            }
+        }
+    ],
+    "another assignment id": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "submission",
+                        "assignmentId": "a2"
+                    },
+                    "limit": 1000
+                },
+                "_rbac": false
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "peer-review",
+                        "assignmentId": "a2"
+                    },
+                    "limit": 5000
+                },
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a2",
+                    "submissionId": "s1",
+                    "reviewerId": "bob",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "assignmentId": "a2",
+                    "submissionId": "s2",
+                    "reviewerId": "ann",
+                    "rubricScores": [],
+                    "lifecycle": "assigned",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "peer-review",
+                "_rbac": false
+            }
+        },
+        {
+            "result": {
+                "strategy": "round-robin",
+                "submissionsProcessed": 2,
+                "createdCount": 2
+            }
+        }
+    ]
+}

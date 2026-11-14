@@ -34,9 +34,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\LearningRecordImportIntakeServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Service\LearningRecordImportIntakeService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -62,7 +62,7 @@ class LearningRecordImportController extends Controller {
 	 * @param IRequest $request HTTP request.
 	 * @param IUserSession $userSession Nextcloud user session.
 	 * @param ActionAuthService $actionAuth ADR-023 action authorization service.
-	 * @param LearningRecordImportIntakeService $intakeService Storage + object creation for an accepted upload.
+	 * @param LearningRecordImportIntakeServiceInterface $intakeService Storage + object creation for an accepted upload.
 	 *
 	 * @return void
 	 */
@@ -70,9 +70,9 @@ class LearningRecordImportController extends Controller {
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly ActionAuthService $actionAuth,
-		private readonly LearningRecordImportIntakeService $intakeService,
+		private readonly LearningRecordImportIntakeServiceInterface $intakeService,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -97,47 +97,81 @@ class LearningRecordImportController extends Controller {
 			return new JSONResponse(data: ['error' => 'applicationId is required'], statusCode: Http::STATUS_BAD_REQUEST);
 		}
 
+		$upload = new LearningRecordUpload();
+		$upload->uploader      = $user;
+		$upload->applicationId = $applicationId;
+
+		return $this->intake(upload: $upload);
+	}//end upload()
+
+	/**
+	 * Check the uploaded file and format of an authorised upload, then store it.
+	 *
+	 * @param LearningRecordUpload $upload The authorised upload: its uploader and Application.
+	 *
+	 * @return JSONResponse The created LearningRecordImport, or the refusal.
+	 */
+	private function intake(LearningRecordUpload $upload): JSONResponse {
 		$uploadedFile = $this->request->getUploadedFile('file');
 		$sourceFormat = (string)$this->request->getParam('sourceFormat', 'scholiq-learning-record');
-
-		$rejection = $this->rejectUpload(uploadedFile: $uploadedFile, sourceFormat: $sourceFormat);
+		$rejection    = $this->rejectUpload(uploadedFile: $uploadedFile, sourceFormat: $sourceFormat);
 		if ($rejection !== null) {
 			return $rejection;
 		}
 
-		$sourceFilename = (string)($uploadedFile['name'] ?? 'learning-record.json');
-		$tmpPath = (string)$uploadedFile['tmp_name'];
-		$tenantId = $this->intakeService->resolveTenantId(user: $user);
+		$upload->sourceFormat   = $sourceFormat;
+		$upload->sourceFilename = (string)($uploadedFile['name'] ?? 'learning-record.json');
+		$upload->tmpPath        = (string)$uploadedFile['tmp_name'];
+
+		return $this->store(upload: $upload);
+	}//end intake()
+
+	/**
+	 * Store the uploaded file in the uploader's tenant, then record the import.
+	 *
+	 * @param LearningRecordUpload $upload The accepted upload.
+	 *
+	 * @return JSONResponse The created LearningRecordImport, or a 500.
+	 */
+	private function store(LearningRecordUpload $upload): JSONResponse {
+		$upload->tenantId = $this->intakeService->resolveTenantId(user: $upload->uploader);
 
 		$sourceRef = $this->intakeService->storeUpload(
-			tmpPath: $tmpPath,
-			ownerUid: $user->getUID(),
-			tenantId: $tenantId
+			tmpPath: $upload->tmpPath,
+			ownerUid: $upload->uploader->getUID(),
+			tenantId: $upload->tenantId
 		);
 		if ($sourceRef === null) {
-			return new JSONResponse(
-				data: ['error' => 'Could not store the uploaded file.'],
-				statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
-			);
+			return self::error(error: 'Could not store the uploaded file.', status: Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
 
+		$upload->sourceRef = $sourceRef;
+
+		return $this->record(upload: $upload);
+	}//end store()
+
+	/**
+	 * Create the LearningRecordImport for a stored upload.
+	 *
+	 * @param LearningRecordUpload $upload The stored upload.
+	 *
+	 * @return JSONResponse The created LearningRecordImport, or a 500.
+	 */
+	private function record(LearningRecordUpload $upload): JSONResponse {
 		$imported = $this->intakeService->createImport(
-			applicationId: $applicationId,
-			sourceFilename: $sourceFilename,
-			sourceFormat: $sourceFormat,
-			uploadedBy: $user->getUID(),
-			sourceRef: $sourceRef,
-			tenantId: $tenantId
+			applicationId: $upload->applicationId,
+			sourceFilename: $upload->sourceFilename,
+			sourceFormat: $upload->sourceFormat,
+			uploadedBy: $upload->uploader->getUID(),
+			sourceRef: $upload->sourceRef,
+			tenantId: $upload->tenantId
 		);
 		if ($imported === null) {
-			return new JSONResponse(
-				data: ['error' => 'Could not create the LearningRecordImport record.'],
-				statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
-			);
+			return self::error(error: 'Could not create the LearningRecordImport record.', status: Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
 
 		return new JSONResponse(data: $imported, statusCode: Http::STATUS_OK);
-	}//end upload()
+	}//end record()
 
 	/**
 	 * Validate the uploaded file and requested format, returning the error
@@ -169,6 +203,18 @@ class LearningRecordImportController extends Controller {
 			);
 		}
 
+		return self::rejectContent(uploadedFile: $uploadedFile, sourceFormat: $sourceFormat);
+	}//end rejectUpload()
+
+	/**
+	 * The later two checks: a supported format, then a temp file still on disk.
+	 *
+	 * @param array<string,mixed> $uploadedFile The uploaded `file` field, sent without error.
+	 * @param string              $sourceFormat The requested source format.
+	 *
+	 * @return JSONResponse|null The rejection to return, or null when the upload is acceptable.
+	 */
+	private static function rejectContent(array $uploadedFile, string $sourceFormat): ?JSONResponse {
 		if (in_array($sourceFormat, ['scholiq-learning-record', 'elm-europass'], true) === false) {
 			return new JSONResponse(data: ['error' => 'Invalid sourceFormat'], statusCode: Http::STATUS_BAD_REQUEST);
 		}
@@ -181,5 +227,17 @@ class LearningRecordImportController extends Controller {
 		}
 
 		return null;
-	}//end rejectUpload()
+	}//end rejectContent()
+
+	/**
+	 * An `{error}` response.
+	 *
+	 * @param string $error  The message.
+	 * @param int    $status The HTTP status.
+	 *
+	 * @return JSONResponse
+	 */
+	private static function error(string $error, int $status): JSONResponse {
+		return new JSONResponse(data: ['error' => $error], statusCode: $status);
+	}//end error()
 }//end class

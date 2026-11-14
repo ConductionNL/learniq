@@ -31,9 +31,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\LearnerRefResolver;
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\OpenRegister\Db\ObjectEntity;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\EventDispatcher\Event;
@@ -76,16 +75,16 @@ class RegulationExemptionRequestStamp implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
-	 * @param LearnerRefResolver     $profiles       LearnerProfile by uuid.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
+	 * @param LearnerRefResolverInterface     $profiles       LearnerProfile by uuid.
 	 * @param IUserSession           $userSession    The signed-in user.
 	 * @param IGroupManager          $groupManager   Group membership.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly LearnerRefResolver $profiles,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		private readonly LearnerRefResolverInterface $profiles,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
 	) {
@@ -101,24 +100,23 @@ class RegulationExemptionRequestStamp implements IEventListener {
 	 * @spec openspec/changes/compliance-exemption-record/specs/compliance-exemptions/spec.md#scenario-a-manager-requests-an-exemption
 	 */
 	public function handle(Event $event): void {
-		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {
+		$write = SchemaWrite::of(event: $event, schemaResolver: $this->schemaResolver);
+		if ($write === null || $write->slug !== self::SCHEMA) {
 			return;
 		}
 
-		if ($event->isPropagationStopped() === true) {
-			return;
-		}
+		$this->stampWrite(write: $write);
+	}//end handle()
 
-		try {
-			$slug = $this->schemaResolver->guardSchemaSlug(entity: $this->entityOf(event: $event));
-		} catch (Throwable) {
-			// Not knowing the schema is not knowing it is ours.
-			return;
-		}
-
-		if ($slug !== self::SCHEMA) {
-			return;
-		}
+	/**
+	 * Stamp one write of a schema this listener owns.
+	 *
+	 * @param SchemaWrite $write The write and its schema slug.
+	 *
+	 * @return void
+	 */
+	private function stampWrite(SchemaWrite $write): void {
+		$event = $write->event;
 
 		if ($event instanceof ObjectUpdatingEvent === true) {
 			$this->keepRequester(event: $event);
@@ -126,7 +124,7 @@ class RegulationExemptionRequestStamp implements IEventListener {
 		}
 
 		$this->stampRequest(event: $event);
-	}//end handle()
+	}//end stampWrite()
 
 	/**
 	 * Stamp a new request: the requester is the session user, the state is
@@ -158,22 +156,6 @@ class RegulationExemptionRequestStamp implements IEventListener {
 			)
 		);
 	}//end stampRequest()
-
-	/**
-	 * The object being written: an update carries it in getNewObject(), only
-	 * a create has getObject().
-	 *
-	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The write event.
-	 *
-	 * @return ObjectEntity
-	 */
-	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
-	}//end entityOf()
 
 	/**
 	 * Whether the user may request an exemption for anyone.

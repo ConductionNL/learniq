@@ -21,7 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
-use OCA\Learniq\Service\ReportCardGradeLines;
+use OCA\Learniq\Kernel\Contracts\ReportCardGradeLinesInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -69,14 +69,14 @@ class BackfillReportCardGradeLines implements IRepairStep {
 	 * Constructor.
 	 *
 	 * @param ObjectService        $objectService OpenRegister object access.
-	 * @param ReportCardGradeLines $gradeLines    Derives the readable copies.
+	 * @param ReportCardGradeLinesInterface $gradeLines    Derives the readable copies.
 	 * @param LoggerInterface      $logger        PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly ReportCardGradeLines $gradeLines,
+		private readonly ReportCardGradeLinesInterface $gradeLines,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -102,24 +102,33 @@ class BackfillReportCardGradeLines implements IRepairStep {
 	 * @spec openspec/changes/portal-parent-report-card-grades/specs/report-card/spec.md#requirement-existing-report-cards-get-their-readable-grades
 	 */
 	public function run(IOutput $output): void {
-		$counts = ['scanned' => 0, 'stamped' => 0, 'failed' => 0];
-		$refusals = [];
+		$tally = $this->stampAll();
 
+		$output->info(
+			'BackfillReportCardGradeLines: ' . $tally['stamped'] . ' stamped, ' . $tally['failed']
+			. ' failed, of ' . $tally['scanned'] . ' scanned.'
+		);
+
+		// Live pass lane 10: "0 stamped, 294 failed" said nothing about why;
+		// the reasons were only in the log, one warning per row. The upgrade
+		// output now names them, grouped, so the cause shows where it is read.
+		if ($tally['refusals'] !== []) {
+			$output->warning('BackfillReportCardGradeLines: report cards refused: ' . self::refusalSummary(refusals: $tally['refusals']));
+		}
+	}//end run()
+
+	/**
+	 * Stamp every page of ReportCards until a short page, counting the
+	 * outcomes and grouping the refusals; a failing read stops early.
+	 *
+	 * @return array{scanned: int, stamped: int, failed: int, refusals: array<string, int>}
+	 */
+	private function stampAll(): array {
+		$tally = ['scanned' => 0, 'stamped' => 0, 'failed' => 0, 'refusals' => []];
 		try {
 			for ($page = 0; $page < self::MAX_PAGES; $page++) {
-				$rows = $this->page(offset: ($page * self::PAGE_SIZE));
-				foreach ($rows as $row) {
-					$counts['scanned']++;
-					$outcome = $this->stampRow(row: $row);
-					if ($outcome !== null) {
-						$counts[$outcome]++;
-					}
-
-					if ($outcome === 'failed') {
-						$refusals = self::countRefusal(refusals: $refusals, message: $this->lastRefusal);
-					}
-				}
-
+				$rows  = $this->page(offset: ($page * self::PAGE_SIZE));
+				$tally = $this->stampPage(tally: $tally, rows: $rows);
 				if (count($rows) < self::PAGE_SIZE) {
 					break;
 				}
@@ -127,24 +136,49 @@ class BackfillReportCardGradeLines implements IRepairStep {
 		} catch (Throwable $exception) {
 			// OpenRegister absent or the register not imported yet: nothing
 			// to back-fill on this run, the next upgrade retries.
-			$this->logger->warning(
-				'[BackfillReportCardGradeLines] Stopped early: {msg}',
-				['msg' => $exception->getMessage()]
-			);
-		}//end try
-
-		$output->info(
-			'BackfillReportCardGradeLines: ' . $counts['stamped'] . ' stamped, ' . $counts['failed']
-			. ' failed, of ' . $counts['scanned'] . ' scanned.'
-		);
-
-		// Live pass lane 10: "0 stamped, 294 failed" said nothing about why;
-		// the reasons were only in the log, one warning per row. The upgrade
-		// output now names them, grouped, so the cause shows where it is read.
-		if ($refusals !== []) {
-			$output->warning('BackfillReportCardGradeLines: report cards refused: ' . self::refusalSummary(refusals: $refusals));
+			$this->logStoppedEarly(exception: $exception);
 		}
-	}//end run()
+
+		return $tally;
+	}//end stampAll()
+
+	/**
+	 * Log why the back-fill stopped before the last page.
+	 *
+	 * @param Throwable $exception The failed read.
+	 *
+	 * @return void
+	 */
+	private function logStoppedEarly(Throwable $exception): void {
+		$this->logger->warning(
+			'[BackfillReportCardGradeLines] Stopped early: {msg}',
+			['msg' => $exception->getMessage()]
+		);
+	}//end logStoppedEarly()
+
+	/**
+	 * Stamp one page of rows, adding each outcome and refusal to the tally.
+	 *
+	 * @param array{scanned: int, stamped: int, failed: int, refusals: array<string, int>} $tally The counts so far.
+	 * @param array<int, array<string, mixed>>                                             $rows  The page.
+	 *
+	 * @return array{scanned: int, stamped: int, failed: int, refusals: array<string, int>}
+	 */
+	private function stampPage(array $tally, array $rows): array {
+		foreach ($rows as $row) {
+			$tally['scanned']++;
+			$outcome = $this->stampRow(row: $row);
+			if ($outcome !== null) {
+				$tally[$outcome]++;
+			}
+
+			if ($outcome === 'failed') {
+				$tally['refusals'] = self::countRefusal(refusals: $tally['refusals'], message: $this->lastRefusal);
+			}
+		}
+
+		return $tally;
+	}//end stampPage()
 
 	/**
 	 * The most frequent refusal reasons, as "N x reason; ...".

@@ -27,8 +27,11 @@ declare(strict_types=1);
  * /health/metrics routes are reproduced here pointing at the aliased generics.
  */
 
-return [
+$routes = [
     'routes' => [
+        // The OpenAPI document, public (NL API Design Rules, /core/publish-openapi).
+        ['name' => 'openApi#show', 'url' => '/api/openapi.json', 'verb' => 'GET'],
+
         // SPA shell — bespoke PageController (role-aware initial state).
         // First-time setup wizard (ADR-042) - the standard CnSetupWizard contract.
         ['name' => 'setup#status',    'url' => '/api/setup/status',            'verb' => 'GET'],
@@ -59,6 +62,8 @@ return [
         // Controller: KeyAdminController (slug: keyAdmin).
         ['name' => 'keyAdmin#generateKey', 'url' => '/api/credentials/admin/generate-key', 'verb' => 'POST'],
         ['name' => 'keyAdmin#keyStatus',   'url' => '/api/credentials/admin/key-status',   'verb' => 'GET'],
+        ['name' => 'keyAdmin#signingKeyStatus', 'url' => '/api/settings/signing-key',        'verb' => 'GET'],
+        ['name' => 'keyAdmin#rotateSigningKey', 'url' => '/api/settings/signing-key/rotate', 'verb' => 'POST'],
 
         // cmi5 + xAPI (cmi5-xapi-lrs-ingest, ADR-002). The launch key is admin-only;
         // a launch is for the signed-in learner; the fetch URL and the statement POST
@@ -99,6 +104,7 @@ return [
         ['name' => 'complianceRollup#departments',      'url' => '/api/compliance/departments',        'verb' => 'GET'],
         ['name' => 'complianceRollup#regulations',      'url' => '/api/compliance/coverage-by-regulation', 'verb' => 'GET'],
         ['name' => 'complianceRollup#assignRegulation', 'url' => '/api/compliance/regulations/{id}/assign', 'verb' => 'POST'],
+        ['name' => 'regulationAssignPreview#preview', 'url' => '/api/compliance/regulations/{id}/assign/preview', 'verb' => 'GET'],
 
         // QTI package import — user-invokable action (ADR-023: qti.import).
         // Controller: QtiImportController (slug: qtiImport).
@@ -179,6 +185,12 @@ return [
         // Controller: LessonNextStepController (slug: lessonNextStep), content-adaptive-next-step-and-preview.
         ['name' => 'lessonNextStep#nextStep',        'url' => '/api/lessons/{lessonId}/next-step',              'verb' => 'GET'],
         ['name' => 'lessonNextStep#coursePreview',   'url' => '/api/courses/{courseId}/preview',                'verb' => 'GET'],
+        // Controller: CourseTemplateController (slug: courseTemplate). The course builder's
+        // tree read (one query for all lessons), Save as template and New course from
+        // template; #[NoAdminRequired], OpenRegister RBAC decides every read and write.
+        ['name' => 'courseTemplate#structure',      'url' => '/api/courses/{id}/structure',                    'verb' => 'GET'],
+        ['name' => 'courseTemplate#saveAsTemplate', 'url' => '/api/courses/{id}/save-as-template',             'verb' => 'POST'],
+        ['name' => 'courseTemplate#instantiate',    'url' => '/api/course-templates/{id}/instantiate',         'verb' => 'POST'],
 
         // Portal test taking (assessment-portal-endpoints): the five steps of
         // portaliq's timed task, forwarded server-to-server. #[PublicPage]
@@ -272,6 +284,11 @@ return [
         ['name' => 'elective#signUp', 'url' => '/api/electives/{offerId}/sign-up', 'verb' => 'POST', 'requirements' => ['offerId' => '[^/]+']],
         ['name' => 'elective#roster', 'url' => '/api/electives/{offerId}/roster', 'verb' => 'GET', 'requirements' => ['offerId' => '[^/]+']],
         ['name' => 'elective#place', 'url' => '/api/electives/{offerId}/place', 'verb' => 'POST', 'requirements' => ['offerId' => '[^/]+']],
+        // school-activities-staff-side: the staff side of portaliq's term-long activities, behind activity.manage.
+        ['name' => 'schoolActivity#index', 'url' => '/api/school-activities', 'verb' => 'GET'],
+        ['name' => 'schoolActivity#open', 'url' => '/api/school-activities/{id}/open', 'verb' => 'PUT', 'requirements' => ['id' => '[^/]+']],
+        ['name' => 'schoolActivity#roster', 'url' => '/api/school-activities/{id}/roster', 'verb' => 'GET', 'requirements' => ['id' => '[^/]+']],
+        ['name' => 'schoolActivity#attendance', 'url' => '/api/school-activities/{id}/attendance', 'verb' => 'PUT', 'requirements' => ['id' => '[^/]+']],
         ['name' => 'elective#withdraw', 'url' => '/api/elective-sign-ups/{id}/withdraw', 'verb' => 'POST', 'requirements' => ['id' => '[^/]+']],
 
         // Peer review reviewer allocation — genuine batch-matching business logic
@@ -291,6 +308,21 @@ return [
         ['name' => 'checkIn#show', 'url' => '/api/check-in/{windowId}', 'verb' => 'GET'],
         ['name' => 'checkIn#checkIn', 'url' => '/api/check-in/{windowId}', 'verb' => 'POST'],
         ['name' => 'checkInCode#code', 'url' => '/api/check-in/{windowId}/code', 'verb' => 'GET'],
+        // Signing a learning plan or a work placement agreement: the server
+        // sets signer, time, version and tenant, and accepts only a role the
+        // signer holds (SigningService). Controller: SigningController (slug: signing).
+        ['name' => 'signing#roles', 'url' => '/api/sign/{subject}/{id}', 'verb' => 'GET', 'requirements' => ['subject' => 'learning-plan|placement-agreement', 'id' => '[^/]+']],
+        ['name' => 'signing#sign', 'url' => '/api/sign/{subject}/{id}', 'verb' => 'POST', 'requirements' => ['subject' => 'learning-plan|placement-agreement', 'id' => '[^/]+']],
+        // Requests made for a learner (subject choice, conference signup):
+        // create and submit in one call, the tenant and learner reference
+        // taken on the server, a refused submit leaves no draft.
+        // Controller: RequestSubmitController (slug: requestSubmit).
+        ['name' => 'requestSubmit#subjectChoice', 'url' => '/api/subject-choices', 'verb' => 'POST'],
+        ['name' => 'requestSubmit#conferenceSignup', 'url' => '/api/conference-signups', 'verb' => 'POST'],
+        // Enrol a group in a course (header action on the enrolments list);
+        // each enrolment is created as the caller, open ones are skipped.
+        // Controller: BulkEnrolController (slug: bulkEnrol).
+        ['name' => 'bulkEnrol#enrol', 'url' => '/api/enrolments/bulk', 'verb' => 'POST'],
         // Portal check-in receiver (attendance-self-check-in, pattern of #1096
         // and #1142): X-Portal-Subject assertion only, learnerRef from portaliq.
         // Controller: PortalCheckInController (slug: portalCheckIn).
@@ -431,6 +463,11 @@ return [
         // which asks integriq for a job through learniq.
         ['name' => 'exchangeGate#show', 'url' => '/api/exchange-gates/{jobId}', 'verb' => 'GET'],
         ['name' => 'exchangeRequest#create', 'url' => '/api/exchange/requests', 'verb' => 'POST'],
+        // Open learning material: the search panel and adding a result as a Material.
+        ['name' => 'openMaterial#panel', 'url' => '/api/open-material/panel', 'verb' => 'GET'],
+        ['name' => 'openMaterial#search', 'url' => '/api/open-material/search', 'verb' => 'GET'],
+        ['name' => 'openMaterial#record', 'url' => '/api/open-material/record', 'verb' => 'GET'],
+        ['name' => 'openMaterial#add', 'url' => '/api/open-material/materials', 'verb' => 'POST'],
         // D10 + data-exchange-to-integriq: a timetable import is a delivery into planninq, asked
         // through integriq's RosterImportRequestedEvent. Controller: TimetableImportController.
         ['name' => 'timetableImport#create', 'url' => '/api/timetable/imports', 'verb' => 'POST'],
@@ -465,3 +502,24 @@ return [
         ['name' => 'page#catchAll', 'url' => '/{path}', 'verb' => 'GET', 'requirements' => ['path' => '.+'], 'defaults' => ['path' => '']],
     ],
 ];
+
+// The versioned API base (NL API Design Rules, /core/uri-version): every /api/ route
+// also answers under /api/v1/, the server URL the OpenAPI document names. The unversioned
+// route stays, so existing clients and the URLs the app generates keep working. Each
+// copy gets its own route name through 'postfix', and the copies go before the SPA
+// catch-all, which would otherwise answer /api/v1/ paths first.
+$versioned = [];
+foreach ($routes['routes'] as $route) {
+    if (str_starts_with($route['url'], '/api/') === false) {
+        continue;
+    }
+
+    $route['url']     = '/api/v1/'.substr($route['url'], strlen('/api/'));
+    $route['postfix'] = ($route['postfix'] ?? '').'V1';
+    $versioned[]      = $route;
+}
+
+$catchAll = array_search('page#catchAll', array_column($routes['routes'], 'name'), true);
+array_splice($routes['routes'], ($catchAll === false ? count($routes['routes']) : $catchAll), 0, $versioned);
+
+return $routes;

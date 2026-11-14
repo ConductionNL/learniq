@@ -35,6 +35,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\SubmissionMarkReaderInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -42,7 +43,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/specs/assignments/spec.md#requirement-a-marker-sees-other-marks-only-after-submitting-their-own
  */
-class SubmissionMarkReader {
+class SubmissionMarkReader implements SubmissionMarkReaderInterface {
 
 	private const REGISTER = 'learniq';
 	private const MARK_SCHEMA = 'submission-mark';
@@ -141,30 +142,65 @@ class SubmissionMarkReader {
 			return [];
 		}
 
-		$rows = $this->objectService->findAll(
-			config: [
-				'filters' => [
-					'register' => self::REGISTER,
-					'schema' => self::MARK_SCHEMA,
-					'submissionId' => $submissionId,
-				],
-				'limit' => self::READ_LIMIT,
-			],
-			_rbac: false
-		);
+		$rows = $this->objectService->findAll(config: $this->markQuery(submissionId: $submissionId), _rbac: false);
 
+		return $this->markRows(rows: $rows);
+	}//end marks()
+
+	/**
+	 * The bounded read of one submission's marks.
+	 *
+	 * @param string $submissionId The submission's uuid.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function markQuery(string $submissionId): array {
+		return [
+			'filters' => [
+				'register' => self::REGISTER,
+				'schema' => self::MARK_SCHEMA,
+				'submissionId' => $submissionId,
+			],
+			'limit' => self::READ_LIMIT,
+		];
+	}//end markQuery()
+
+	/**
+	 * The mark rows among the read results, in order.
+	 *
+	 * @param array<int, mixed> $rows The read results.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	private function markRows(array $rows): array {
 		$marks = [];
 		foreach ($rows as $row) {
-			if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-				$row = $row->jsonSerialize();
-			}
-
-			if (is_array($row) === true) {
-				unset($row['@self']['relations']);
-				$marks[] = $row;
+			$mark = $this->markRow(row: $row);
+			if ($mark !== null) {
+				$marks[] = $mark;
 			}
 		}
 
 		return $marks;
-	}//end marks()
+	}//end markRows()
+
+	/**
+	 * One read result as a mark row without its relations, or null when it is no row.
+	 *
+	 * @param mixed $row An array or an object entity.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private function markRow(mixed $row): ?array {
+		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
+			$row = $row->jsonSerialize();
+		}
+
+		if (is_array($row) === false) {
+			return null;
+		}
+
+		unset($row['@self']['relations']);
+		return $row;
+	}//end markRow()
 }//end class

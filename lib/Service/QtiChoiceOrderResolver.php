@@ -36,16 +36,18 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use DOMDocument;
 use DOMElement;
 use DOMNodeList;
+use OCA\Learniq\Kernel\Contracts\QtiChoiceOrderResolverInterface;
 
 /**
  * Resolves a permuted QTI simpleChoice order, respecting `fixed` choices.
  *
  * @spec openspec/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
  */
-class QtiChoiceOrderResolver {
+class QtiChoiceOrderResolver implements QtiChoiceOrderResolverInterface {
+
+	use ParsesQtiBody;
 	/**
 	 * Resolve a permuted answer-option order for a choice-type Item.
 	 *
@@ -83,28 +85,6 @@ class QtiChoiceOrderResolver {
 
 		return $this->assembleOptionOrder(classified: $classified);
 	}//end resolveOrder()
-
-	/**
-	 * Parse a QTI 2.1 item body XML string, suppressing libxml warnings for
-	 * a malformed body (returns null instead).
-	 *
-	 * @param string $qtiBody Raw QTI 2.1 XML body.
-	 *
-	 * @return DOMDocument|null
-	 */
-	private function parseQtiBody(string $qtiBody): ?DOMDocument {
-		$previousSetting = libxml_use_internal_errors(true);
-		$doc = new DOMDocument();
-		$loaded = $doc->loadXML($qtiBody);
-		libxml_clear_errors();
-		libxml_use_internal_errors($previousSetting);
-
-		if ($loaded === false) {
-			return null;
-		}
-
-		return $doc;
-	}//end parseQtiBody()
 
 	/**
 	 * Classify each declared `simpleChoice` by its QTI `fixed` attribute.

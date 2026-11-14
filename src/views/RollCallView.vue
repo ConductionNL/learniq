@@ -16,11 +16,8 @@
  @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 -->
 <template>
-	<div class="roll-call">
-		<h2 class="roll-call__title">
-			{{ t('learniq', 'Attendance register') }}
-			<span v-if="register.cohortName">· {{ register.cohortName }}</span>
-		</h2>
+	<div class="roll-call lq-board-page">
+		<CnPageHeader :title="title" />
 
 		<NcLoadingIcon v-if="loading" :size="32" />
 		<NcNoteCard v-else-if="loadError" type="error">
@@ -93,191 +90,196 @@
 				}}
 			</p>
 
-			<p class="roll-call__counts" aria-live="polite">
-				{{ countsText }}
-			</p>
-			<p v-if="register.editable" :id="hintId" class="roll-call__hint">
-				{{
-					t(
-						'learniq',
-						'Everyone starts as present. Keys on a pupil: P present, L late, T absent with permission, O absent without permission. Arrow keys go to the next pupil.',
-					)
-				}}
-			</p>
+			<CnDetailCard
+				:title="n('learniq', '%n pupil', '%n pupils', pupils.length)"
+				class="roll-call__register">
+				<p class="roll-call__counts" aria-live="polite">
+					{{ countsText }}
+				</p>
+				<p v-if="register.editable" :id="hintId" class="roll-call__hint">
+					{{
+						t(
+							'learniq',
+							'Everyone starts as present. Keys on a pupil: P present, L late, T absent with permission, O absent without permission. Arrow keys go to the next pupil.',
+						)
+					}}
+				</p>
 
-			<NcEmptyContent
-				v-if="pupils.length === 0"
-				:name="t('learniq', 'No learners in this group')"
-				:description="
-					t('learniq', 'Add learners to the group of this lesson first.')
-				" />
+				<NcEmptyContent
+					v-if="pupils.length === 0"
+					:name="t('learniq', 'No learners in this group')"
+					:description="
+						t('learniq', 'Add learners to the group of this lesson first.')
+					" />
 
-			<form v-else @submit.prevent="save">
-				<ul class="roll-call__list">
-					<li
-						v-for="(pupil, index) in pupils"
-						:key="pupil.learnerId"
-						ref="rows"
-						class="roll-call__pupil"
-						:class="'roll-call__pupil--' + pupil.status"
-						tabindex="0"
-						:aria-label="pupilLabel(pupil)"
-						:aria-describedby="register.editable ? hintId : null"
-						@keydown="onKey($event, index)">
-						<div class="roll-call__who">
-							<span class="roll-call__name">{{ pupil.name }}</span>
-							<span
-								v-if="pupil.markedVia === 'self-check-in'"
-								class="roll-call__badge">
-								{{ t('learniq', 'checked in') }}
-							</span>
-							<span v-if="pupil.report" class="roll-call__report">
-								{{ reportText(pupil.report) }}
-							</span>
-						</div>
+				<form v-else @submit.prevent="save">
+					<ul class="roll-call__list">
+						<li
+							v-for="(pupil, index) in pupils"
+							:key="pupil.learnerId"
+							ref="rows"
+							class="roll-call__pupil"
+							:class="'roll-call__pupil--' + pupil.status"
+							tabindex="0"
+							:aria-label="pupilLabel(pupil)"
+							:aria-describedby="register.editable ? hintId : null"
+							@keydown="onKey($event, index)">
+							<div class="roll-call__who">
+								<span class="roll-call__name">{{ pupil.name }}</span>
+								<span
+									v-if="pupil.markedVia === 'self-check-in'"
+									class="roll-call__badge">
+									{{ t('learniq', 'checked in') }}
+								</span>
+								<span v-if="pupil.report" class="roll-call__report">
+									{{ reportText(pupil.report) }}
+								</span>
+							</div>
 
-						<div
-							class="roll-call__statuses"
-							role="group"
-							:aria-label="
-								t('learniq', 'Mark for {name}', { name: pupil.name })
-							">
-							<button
-								v-for="status in statuses"
-								:key="status"
-								type="button"
-								class="roll-call__status"
-								:class="{
-									'roll-call__status--on': pupil.status === status,
-								}"
-								:aria-pressed="
-									pupil.status === status ? 'true' : 'false'
-								"
-								:disabled="!register.editable"
-								@click="mark(index, status)">
-								{{ statusLabel(status) }}
-							</button>
-						</div>
+							<div
+								class="roll-call__statuses"
+								role="group"
+								:aria-label="
+									t('learniq', 'Mark for {name}', { name: pupil.name })
+								">
+								<button
+									v-for="status in statuses"
+									:key="status"
+									type="button"
+									class="roll-call__status"
+									:class="{
+										'roll-call__status--on': pupil.status === status,
+									}"
+									:aria-pressed="
+										pupil.status === status ? 'true' : 'false'
+									"
+									:disabled="!register.editable"
+									@click="mark(index, status)">
+									{{ statusLabel(status) }}
+								</button>
+							</div>
 
-						<div
-							v-if="pupil.status === 'late'"
-							class="roll-call__detail">
-							<span class="roll-call__detail-label">{{
-								t('learniq', 'Minutes late')
-							}}</span>
-							<button
-								v-for="minutes in quickMinutes"
-								:key="minutes"
-								type="button"
-								class="roll-call__chip"
-								:class="{
-									'roll-call__chip--on':
-										Number(pupil.lateMinutes) === minutes,
-								}"
-								:aria-pressed="
-									Number(pupil.lateMinutes) === minutes
-										? 'true'
-										: 'false'
-								"
-								:disabled="!register.editable"
-								@click="setField(index, 'lateMinutes', minutes)">
-								{{ minutes }}
-							</button>
-							<label class="roll-call__other">
-								<span>{{
-									t('learniq', 'Other number of minutes')
+							<div
+								v-if="pupil.status === 'late'"
+								class="roll-call__detail">
+								<span class="roll-call__detail-label">{{
+									t('learniq', 'Minutes late')
 								}}</span>
-								<input
-									type="number"
-									min="1"
-									max="600"
-									step="1"
-									inputmode="numeric"
-									:value="pupil.lateMinutes"
+								<button
+									v-for="minutes in quickMinutes"
+									:key="minutes"
+									type="button"
+									class="roll-call__chip"
+									:class="{
+										'roll-call__chip--on':
+											Number(pupil.lateMinutes) === minutes,
+									}"
+									:aria-pressed="
+										Number(pupil.lateMinutes) === minutes
+											? 'true'
+											: 'false'
+									"
 									:disabled="!register.editable"
-									@input="
-										setField(
-											index,
-											'lateMinutes',
-											$event.target.value === ''
-												? ''
-												: Number($event.target.value),
-										)
-									" />
-							</label>
-						</div>
+									@click="setField(index, 'lateMinutes', minutes)">
+									{{ minutes }}
+								</button>
+								<label class="roll-call__other">
+									<span>{{
+										t('learniq', 'Other number of minutes')
+									}}</span>
+									<input
+										type="number"
+										min="1"
+										max="600"
+										step="1"
+										inputmode="numeric"
+										:value="pupil.lateMinutes"
+										:disabled="!register.editable"
+										@input="
+											setField(
+												index,
+												'lateMinutes',
+												$event.target.value === ''
+													? ''
+													: Number($event.target.value),
+											)
+										" />
+								</label>
+							</div>
 
-						<div
-							v-if="pupil.status === 'absent-excused'"
-							class="roll-call__detail">
-							<label class="roll-call__reason">
-								<span>{{ t('learniq', 'Reason') }}</span>
-								<select
-									:value="pupil.absenceReasonKind"
-									:disabled="!register.editable"
-									@change="
-										setField(
-											index,
-											'absenceReasonKind',
-											$event.target.value,
-										)
-									">
-									<option
-										v-for="kind in reasonKinds"
-										:key="kind"
-										:value="kind">
-										{{ reasonLabel(kind) }}
-									</option>
-								</select>
-							</label>
-						</div>
+							<div
+								v-if="pupil.status === 'absent-excused'"
+								class="roll-call__detail">
+								<label class="roll-call__reason">
+									<span>{{ t('learniq', 'Reason') }}</span>
+									<select
+										:value="pupil.absenceReasonKind"
+										:disabled="!register.editable"
+										@change="
+											setField(
+												index,
+												'absenceReasonKind',
+												$event.target.value,
+											)
+										">
+										<option
+											v-for="kind in reasonKinds"
+											:key="kind"
+											:value="kind">
+											{{ reasonLabel(kind) }}
+										</option>
+									</select>
+								</label>
+							</div>
 
-						<div
-							v-if="pupil.status !== 'present'"
-							class="roll-call__detail">
-							<label class="roll-call__note">
-								<span>{{ t('learniq', 'Note (optional)') }}</span>
-								<input
-									type="text"
-									maxlength="500"
-									:value="pupil.reason"
-									:disabled="!register.editable"
-									@input="
-										setField(
-											index,
-											'reason',
-											$event.target.value,
-										)
-									" />
-							</label>
-						</div>
-					</li>
-				</ul>
+							<div
+								v-if="pupil.status !== 'present'"
+								class="roll-call__detail">
+								<label class="roll-call__note">
+									<span>{{ t('learniq', 'Note (optional)') }}</span>
+									<input
+										type="text"
+										maxlength="500"
+										:value="pupil.reason"
+										:disabled="!register.editable"
+										@input="
+											setField(
+												index,
+												'reason',
+												$event.target.value,
+											)
+										" />
+								</label>
+							</div>
+						</li>
+					</ul>
 
-				<div class="roll-call__save">
-					<NcNoteCard v-if="saveError" type="error">
-						{{ saveError }}
-					</NcNoteCard>
-					<NcNoteCard v-if="saved" type="success">
-						{{ t('learniq', 'The register is saved.') }}
-					</NcNoteCard>
-					<NcButton
-						type="submit"
-						variant="primary"
-						:disabled="!register.editable || saving">
-						{{
-							saving
-								? t('learniq', 'Saving…')
-								: t('learniq', 'Save the register')
-						}}
-					</NcButton>
-				</div>
-			</form>
+					<div class="roll-call__save">
+						<NcNoteCard v-if="saveError" type="error">
+							{{ saveError }}
+						</NcNoteCard>
+						<NcNoteCard v-if="saved" type="success">
+							{{ t('learniq', 'The register is saved.') }}
+						</NcNoteCard>
+						<NcButton
+							type="submit"
+							variant="primary"
+							:disabled="!register.editable || saving">
+							{{
+								saving
+									? t('learniq', 'Saving…')
+									: t('learniq', 'Save the register')
+							}}
+						</NcButton>
+					</div>
+				</form>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import {
@@ -296,21 +298,16 @@ import {
 	rollCallCounts,
 	withStatus,
 } from '../utils/rollCall.js'
+import { registerParams, rowKeyAction } from '../utils/rollCallKeys.js'
 
 const API = '/apps/learniq/api/attendance/roll-call'
-
-/** Keys that mark a pupil while their row has focus. */
-const KEYS = {
-	p: 'present',
-	l: 'late',
-	t: 'absent-excused',
-	o: 'absent-unexcused',
-}
 
 export default {
 	name: 'RollCallView',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
@@ -342,6 +339,17 @@ export default {
 	},
 
 	computed: {
+		/**
+		 * The page title, naming the group once one is chosen.
+		 *
+		 * @return {string} The title.
+		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+		 */
+		title() {
+			const title = this.t('learniq', 'Attendance register')
+			return this.register.cohortName ? `${title} · ${this.register.cohortName}` : title
+		},
+
 		/**
 		 * @return {object|null} The open group, as an NcSelect option.
 		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
@@ -413,21 +421,28 @@ export default {
 			this.saveError = ''
 			const query = this.$route?.query ?? {}
 			try {
-				const response = await axios.get(generateUrl(API), {
-					params: {
-						cohortId: query.cohortId || undefined,
-						date: query.date || undefined,
-						sessionId: query.sessionId || undefined,
-					},
-				})
+				const response = await this.fetchRegister(query)
 				this.apply(response.data)
 			} catch (error) {
-				this.loadError =
-					error?.response?.data?.error
-					|| this.t('learniq', 'The register could not be loaded.')
+				this.loadError = this.serverErrorOr(
+					error,
+					this.t('learniq', 'The register could not be loaded.'),
+				)
 			} finally {
 				this.loading = false
 			}
+		},
+
+		/**
+		 * Read the register a route query asks for.
+		 *
+		 * @param {object} query The route query.
+		 * @return {Promise<object>} The axios response.
+		 */
+		fetchRegister(query) {
+			return axios.get(generateUrl(API), {
+				params: registerParams(query),
+			})
 		},
 
 		/**
@@ -534,25 +549,27 @@ export default {
 		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 		 */
 		onKey(event, index) {
-			if (
-				event.target !== event.currentTarget
-				|| event.ctrlKey
-				|| event.metaKey
-				|| event.altKey
-			)
+			const action = rowKeyAction(event)
+			if (!action) {
 				return
+			}
+			event.preventDefault()
+			if (action.step) {
+				this.focusRow(index + action.step)
+			} else {
+				this.mark(index, action.status)
+			}
+		},
+
+		/**
+		 * Move the focus to a pupil's row, when there is one.
+		 *
+		 * @param {number} index The pupil's row.
+		 * @return {void}
+		 */
+		focusRow(index) {
 			const rows = this.$refs.rows ?? []
-			if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-				event.preventDefault()
-				const next = index + (event.key === 'ArrowDown' ? 1 : -1)
-				rows[next]?.focus()
-				return
-			}
-			const status = KEYS[event.key.toLowerCase()]
-			if (status) {
-				event.preventDefault()
-				this.mark(index, status)
-			}
+			rows[index]?.focus()
 		},
 
 		/**
@@ -564,37 +581,76 @@ export default {
 		async save() {
 			this.saveError = ''
 			this.saved = false
-			const incomplete = incompleteMarks(this.pupils)
-			if (incomplete.length > 0) {
-				this.saveError = this.t(
-					'learniq',
-					'Check the marks of: {names}. A late mark needs its minutes and an absence with permission needs a reason.',
-					{
-						names: incomplete.map((p) => p.name).join(', '),
-					},
-				)
+			if (this.refuseIncomplete()) {
 				return
 			}
+			await this.sendRegister()
+		},
+
+		/**
+		 * Send the register and show what the server keeps, or why it failed.
+		 *
+		 * @return {Promise<void>}
+		 */
+		async sendRegister() {
 			this.saving = true
 			try {
-				const response = await axios.post(generateUrl(API), {
-					cohortId: this.register.cohortId,
-					date: this.register.date,
-					sessionId: this.register.sessionId || null,
-					marks: marksToSave(this.pupils),
-				})
+				const response = await this.postRegister()
 				this.apply(response.data)
 				this.saved = true
 			} catch (error) {
-				this.saveError =
-					error?.response?.data?.error
-					|| this.t(
-						'learniq',
-						'The register could not be saved. Try again.',
-					)
+				this.saveError = this.serverErrorOr(
+					error,
+					this.t('learniq', 'The register could not be saved. Try again.'),
+				)
 			} finally {
 				this.saving = false
 			}
+		},
+
+		/**
+		 * The error the server gave for a failed request, else a sentence of our own.
+		 *
+		 * @param {Error} error The failure.
+		 * @param {string} fallback The sentence when the server gave none.
+		 * @return {string} The message.
+		 */
+		serverErrorOr(error, fallback) {
+			return error?.response?.data?.error || fallback
+		},
+
+		/**
+		 * Refuse to save while a mark misses its minutes or reason, naming the pupils.
+		 *
+		 * @return {boolean} Whether the save is refused.
+		 */
+		refuseIncomplete() {
+			const incomplete = incompleteMarks(this.pupils)
+			if (incomplete.length === 0) {
+				return false
+			}
+			this.saveError = this.t(
+				'learniq',
+				'Check the marks of: {names}. A late mark needs its minutes and an absence with permission needs a reason.',
+				{
+					names: incomplete.map((p) => p.name).join(', '),
+				},
+			)
+			return true
+		},
+
+		/**
+		 * Send the register's marks for its group, day and lesson.
+		 *
+		 * @return {Promise<object>} The axios response.
+		 */
+		postRegister() {
+			return axios.post(generateUrl(API), {
+				cohortId: this.register.cohortId,
+				date: this.register.date,
+				sessionId: this.register.sessionId || null,
+				marks: marksToSave(this.pupils),
+			})
 		},
 
 		/**
@@ -603,20 +659,14 @@ export default {
 		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 		 */
 		statusLabel(status) {
-			switch (status) {
-				case 'present':
-					return this.t('learniq', 'Present')
-				case 'late':
-					return this.t('learniq', 'Late')
-				case 'absent-excused':
-					return this.t('learniq', 'Absent with permission')
-				case 'absent-unexcused':
-					return this.t('learniq', 'Absent without permission')
-				case 'left-early':
-					return this.t('learniq', 'Left early')
-				default:
-					return status
+			const labels = {
+				present: this.t('learniq', 'Present'),
+				late: this.t('learniq', 'Late'),
+				'absent-excused': this.t('learniq', 'Absent with permission'),
+				'absent-unexcused': this.t('learniq', 'Absent without permission'),
+				'left-early': this.t('learniq', 'Left early'),
 			}
+			return Object.hasOwn(labels, status) ? labels[status] : status
 		},
 
 		/**
@@ -676,11 +726,6 @@ export default {
 </script>
 
 <style scoped>
-.roll-call {
-	padding: calc(var(--default-grid-baseline, 4px) * 4);
-	max-inline-size: 64rem;
-}
-
 .roll-call__controls {
 	display: flex;
 	flex-wrap: wrap;

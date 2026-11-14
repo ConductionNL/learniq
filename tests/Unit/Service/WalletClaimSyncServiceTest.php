@@ -62,11 +62,13 @@ class WalletClaimSyncServiceTest extends TestCase {
 			'lifecycle' => 'issued',
 			'walletOfferStatus' => 'offered',
 			'walletClaimedAt' => null,
+			'walletOfferUri' => 'openid-credential-offer://?credential_offer_uri=x',
 		];
 
 		$saved = (new WalletClaimSyncService())->claim(credential: $credential);
 
 		self::assertSame('claimed', $saved['walletOfferStatus']);
+		self::assertNull($saved['walletOfferUri']);
 		self::assertNotEmpty($saved['walletClaimedAt']);
 		self::assertSame('issued', $saved['lifecycle']);
 	}//end testClaimWritesStatusAndTimestamp()

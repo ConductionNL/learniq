@@ -13,20 +13,15 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
  * SPDX-License-Identifier: EUPL-1.2
  *
- * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\BackgroundJob;
 
-use OCA\Learniq\Service\CohortNameRestamp;
-use OCA\OpenRegister\BackgroundJob\ActorForwardedJob;
+use OCA\Learniq\Kernel\Contracts\CohortNameRestampInterface;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
-use OCA\OpenRegister\Service\OrganisationService;
-use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\IUserManager;
-use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -36,35 +31,23 @@ use Psr\Log\LoggerInterface;
  * @psalm-suppress UnusedClass Enqueued by ListenerDeferralService at request
  *  shutdown, never constructed by name.
  *
- * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
  */
-class CohortNameRestampJob extends ActorForwardedJob {
+class CohortNameRestampJob extends ForwardedJob {
 
 	/**
 	 * Constructor.
 	 *
-	 * @param ITimeFactory        $time         Clock, for the base job.
-	 * @param IUserSession        $userSession  Actor forwarding, for the base job.
-	 * @param IUserManager        $userManager  Actor forwarding, for the base job.
-	 * @param OrganisationService $organisation Tenant context, for the base job.
+	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface     $logger       Logger; the base declares it protected.
-	 * @param CohortNameRestamp   $restamp      Writes the name on the enrolments.
+	 * @param CohortNameRestampInterface   $restamp      Writes the name on the enrolments.
 	 */
 	public function __construct(
-		ITimeFactory $time,
-		IUserSession $userSession,
-		IUserManager $userManager,
-		OrganisationService $organisation,
+		ActorForwarding $forwarding,
 		LoggerInterface $logger,
-		private readonly CohortNameRestamp $restamp,
+		private readonly CohortNameRestampInterface $restamp,
 	) {
-		parent::__construct(
-			time: $time,
-			userSession: $userSession,
-			userManager: $userManager,
-			organisation: $organisation,
-			logger: $logger
-		);
+		parent::__construct(forwarding: $forwarding, logger: $logger);
 	}//end __construct()
 
 	/**
@@ -74,7 +57,7 @@ class CohortNameRestampJob extends ActorForwardedJob {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
 	 */
 	protected function runDeferred(DeferredListenerContext $context): void {
 		$names = [];

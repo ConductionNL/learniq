@@ -38,6 +38,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\Learniq\Kernel\Contracts\AssessmentScoringHandlerInterface;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -55,12 +56,7 @@ use Psr\Log\LoggerInterface;
  * and refuses it (fail-closed) when the parent Assessment cannot be resolved, so
  * client-controlled autoScore values cannot persist.
  */
-class AssessmentScoringHandler implements LifecycleGuardInterface {
-
-	/**
-	 * OR register slug for Learniq objects.
-	 */
-	private const LEARNIQ_REGISTER = 'learniq';
+class AssessmentScoringHandler implements LifecycleGuardInterface, AssessmentScoringHandlerInterface {
 
 	/**
 	 * Interaction types that can be auto-scored.
@@ -141,33 +137,57 @@ class AssessmentScoringHandler implements LifecycleGuardInterface {
 			return null;
 		}
 
-		$pointsByItemId = $this->pointsByItemId(itemRefs: ($assessment['itemRefs'] ?? []));
-
-		// Score each response.
-		foreach ($responses as &$response) {
-			$itemId = $response['itemId'] ?? null;
-			if ($itemId === null) {
-				continue;
-			}
-
-			$response['autoScore'] = $this->autoScoreFor(
-				itemId: $itemId,
-				response: $response,
-				tenantId: $tenantId,
-				pointsByItemId: $pointsByItemId,
-			);
-		}
-
-		unset($response);
-		$result['responses'] = $responses;
-
-		$this->logger->info(
-			'[AssessmentScoringHandler] Auto-scored {count} responses for AssessmentResult.',
-			['count' => count($responses)]
-		);
+		$scoring = new ResponseScoring(tenantId: $tenantId, pointsByItemId: $this->pointsByItemId(itemRefs: ($assessment['itemRefs'] ?? [])));
+		$result['responses'] = $this->scoredResponses(responses: $responses, scoring: $scoring);
 
 		return $result;
 	}//end score()
+
+	/**
+	 * Each response with its auto score, keys kept, and the count logged.
+	 *
+	 * @param array<mixed,mixed> $responses The result's responses.
+	 * @param ResponseScoring    $scoring   The tenant and per-item points.
+	 *
+	 * @return array<mixed,mixed>
+	 */
+	private function scoredResponses(array $responses, ResponseScoring $scoring): array {
+		$scored = [];
+		foreach ($responses as $key => $response) {
+			$scored[$key] = $this->withAutoScore(response: $response, scoring: $scoring);
+		}
+
+		$this->logger->info(
+			'[AssessmentScoringHandler] Auto-scored {count} responses for AssessmentResult.',
+			['count' => count($scored)]
+		);
+
+		return $scored;
+	}//end scoredResponses()
+
+	/**
+	 * One response with its auto score; a response that names no item stays as it came.
+	 *
+	 * @param mixed           $response The learner's response row.
+	 * @param ResponseScoring $scoring  The tenant and per-item points.
+	 *
+	 * @return mixed
+	 */
+	private function withAutoScore(mixed $response, ResponseScoring $scoring): mixed {
+		$itemId = $response['itemId'] ?? null;
+		if ($itemId === null) {
+			return $response;
+		}
+
+		$response['autoScore'] = $this->autoScoreFor(
+			itemId: $itemId,
+			response: $response,
+			tenantId: $scoring->tenantId,
+			pointsByItemId: $scoring->pointsByItemId,
+		);
+
+		return $response;
+	}//end withAutoScore()
 
 	/**
 	 * Resolve the parent Assessment within the result's own tenant.
@@ -180,20 +200,9 @@ class AssessmentScoringHandler implements LifecycleGuardInterface {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-8
 	 */
 	private function findAssessment(string $assessmentId, string $tenantId): ?array {
-		$assessments = $this->objectService->findAll(
-			[
-				'ids' => [$assessmentId],
-				// H1: scope Assessment lookup to the same tenant.
-				'filters' => $this->tenantScoped(
-					filters: [
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => 'exam',
-					],
-					tenantId: $tenantId
-				),
-				'limit' => 1,
-			]
-		);
+		// H1: scope Assessment lookup to the same tenant.
+		$query = new TenantScopedQuery(schema: 'exam', tenantId: $tenantId);
+		$assessments = $this->objectService->findAll($query->forIds(ids: [$assessmentId], limit: 1));
 
 		if (empty($assessments) === true) {
 			// Fail-CLOSED: if the parent Assessment is unreachable (different tenant,
@@ -209,27 +218,6 @@ class AssessmentScoringHandler implements LifecycleGuardInterface {
 
 		return $assessments[0];
 	}//end findAssessment()
-
-	/**
-	 * Add the tenant filter to a filter set when a tenant scope is known.
-	 *
-	 * H1: both the Assessment and the Item lookups must be scoped to the
-	 * AssessmentResult's own tenant, so neither can be read across a boundary.
-	 *
-	 * @param array<string,mixed> $filters The filters built so far.
-	 * @param string $tenantId Tenant UUID, or '' when unknown.
-	 *
-	 * @return array<string,mixed> The filters, tenant-scoped when possible.
-	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-8
-	 */
-	private function tenantScoped(array $filters, string $tenantId): array {
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		return $filters;
-	}//end tenantScoped()
 
 	/**
 	 * Build the itemId => points-override map from an Assessment's itemRefs.
@@ -269,20 +257,9 @@ class AssessmentScoringHandler implements LifecycleGuardInterface {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-8
 	 */
 	private function autoScoreFor(string $itemId, array $response, string $tenantId, array $pointsByItemId): ?float {
-		$items = $this->objectService->findAll(
-			[
-				'ids' => [$itemId],
-				// H1: scope Item lookup to the same tenant.
-				'filters' => $this->tenantScoped(
-					filters: [
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => 'item',
-					],
-					tenantId: $tenantId
-				),
-				'limit' => 1,
-			]
-		);
+		// H1: scope Item lookup to the same tenant.
+		$query = new TenantScopedQuery(schema: 'item', tenantId: $tenantId);
+		$items = $this->objectService->findAll($query->forIds(ids: [$itemId], limit: 1));
 
 		if (empty($items) === true) {
 			// Item unreachable — zero out autoScore rather than leaving the client value

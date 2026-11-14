@@ -3,6 +3,9 @@
 /**
  * Learniq LearnerRef Resolver
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Turns a Nextcloud user id (`learnerId` on a grade, attempt or submission)
  * into the UUID of that learner's LearnerProfile, the `learnerRef` every
  * portal collection scopes its reads on (ADR-046 A4).
@@ -33,8 +36,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -47,15 +48,18 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Support\FindOrNull;
+use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Db\DoesNotExistException;
 
 /**
  * Resolves a Nextcloud user id to the UUID of its LearnerProfile.
  *
  * @spec openspec/specs/grading/spec.md#requirement-every-gradeentry-carries-a-server-stamped-learnerref
  */
-class LearnerRefResolver {
+class LearnerRefResolver implements LearnerRefResolverInterface {
+	use FindOrNull;
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const PROFILE_SCHEMA = 'learner-profile';
@@ -106,14 +110,7 @@ class LearnerRefResolver {
 		}
 
 		$profiles = $this->objectService->findAll(
-			config: [
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::PROFILE_SCHEMA,
-					'ncUserId' => $learnerId,
-				],
-				'limit' => self::MAX_PROFILES,
-			],
+			config: $this->profileQuery(filters: ['ncUserId' => $learnerId]),
 			_rbac: false
 		);
 
@@ -136,14 +133,7 @@ class LearnerRefResolver {
 		}
 
 		$profiles = $this->objectService->findAll(
-			config: [
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::PROFILE_SCHEMA,
-					'ncUserId' => $learnerId,
-				],
-				'limit' => self::MAX_PROFILES,
-			],
+			config: $this->profileQuery(filters: ['ncUserId' => $learnerId]),
 			_rbac: false,
 			_multitenancy: false
 		);
@@ -171,21 +161,34 @@ class LearnerRefResolver {
 		}
 
 		$profiles = $this->objectService->findAll(
-			config: [
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::PROFILE_SCHEMA,
-					'ncUserId' => $learnerId,
-					'tenant_id' => $tenantId,
-				],
-				'limit' => self::MAX_PROFILES,
-			],
+			config: $this->profileQuery(filters: ['ncUserId' => $learnerId, 'tenant_id' => $tenantId]),
 			_rbac: false,
 			_multitenancy: false
 		);
 
 		return $this->survivor(profiles: $profiles);
 	}//end resolveInTenant()
+
+	/**
+	 * The findAll() config for learner profiles matching the filters, at
+	 * most MAX_PROFILES of them.
+	 *
+	 * @param array<string, string> $filters The profile filters.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function profileQuery(array $filters): array {
+		return [
+			'filters' => array_merge(
+				[
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::PROFILE_SCHEMA,
+				],
+				$filters
+			),
+			'limit' => self::MAX_PROFILES,
+		];
+	}//end profileQuery()
 
 	/**
 	 * The uuid of the profile that is not merged away, else the first one;
@@ -236,18 +239,9 @@ class LearnerRefResolver {
 			return null;
 		}
 
-		try {
-			$object = $this->objectService->find(
-				id: $learnerRef,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::PROFILE_SCHEMA,
-				_rbac: false,
-				_multitenancy: false
-			);
-		} catch (DoesNotExistException $exception) {
-			return null;
-		}
-
+		$find = fn () => $this->objectService
+			->find(id: $learnerRef, register: self::LEARNIQ_REGISTER, schema: self::PROFILE_SCHEMA, _rbac: false, _multitenancy: false);
+		$object = $this->findOrNull(find: $find);
 		if ($object === null) {
 			return null;
 		}
@@ -315,18 +309,7 @@ class LearnerRefResolver {
 	 * @return array<string, mixed>
 	 */
 	private function toRow(mixed $object): array {
-		if (is_array($object) === true) {
-			return $object;
-		}
-
-		if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-			$row = $object->jsonSerialize();
-			if (is_array($row) === true) {
-				return $row;
-			}
-		}
-
-		return [];
+		return (new SerialisedRow())->asArray(object: $object);
 	}//end toRow()
 
 	/**

@@ -3,6 +3,9 @@
 /**
  * Learniq Learning Record Import Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * OR lifecycle guard for `LearningRecordImport`'s `parse` transition; the
  * parse itself runs in the transition's LearningRecordImportParseAction
  * (learniq#983).
@@ -30,8 +33,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -43,6 +44,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\LearningRecordImportServiceInterface;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCP\Files\IRootFolder;
@@ -55,7 +57,7 @@ use RuntimeException;
  *
  * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-4-1
  */
-class LearningRecordImportService implements LifecycleGuardInterface {
+class LearningRecordImportService implements LifecycleGuardInterface, LearningRecordImportServiceInterface {
 
 	/**
 	 * The sourceFormat values parse() recognises.
@@ -148,13 +150,10 @@ class LearningRecordImportService implements LifecycleGuardInterface {
 		}
 
 		if (($import['sourceFormat'] ?? '') === 'elm-europass') {
-			$this->parseElmEuropass(decoded: $decoded, object: $import);
-			return $import;
+			return $this->parseElmEuropass(decoded: $decoded, object: $import);
 		}
 
-		$this->parseScholiqLearningRecord(decoded: $decoded, tenantId: (string)($import['tenant_id'] ?? ''), object: $import);
-
-		return $import;
+		return $this->parseScholiqLearningRecord(decoded: $decoded, object: $import);
 	}//end parse()
 
 	/**
@@ -194,60 +193,109 @@ class LearningRecordImportService implements LifecycleGuardInterface {
 	 * embedded `proof.jws` against the IMPORTING tenant's own key only.
 	 *
 	 * @param array<string,mixed> $decoded The decoded bundle JSON.
-	 * @param string $tenantId Importing tenant's UUID (the only key this app can check against).
-	 * @param array<string,mixed> $object The LearningRecordImport object, by reference.
+	 * @param array<string,mixed> $object  The LearningRecordImport object; its `tenant_id` is the
+	 *                                     importing tenant, the only key this app can check against.
 	 *
-	 * @return void
+	 * @return array<string,mixed> The object with the report set.
 	 */
-	private function parseScholiqLearningRecord(array $decoded, string $tenantId, array &$object): void {
-		$entries = [];
+	private function parseScholiqLearningRecord(array $decoded, array $object): array {
+		$object['entries'] = array_merge($this->nativeEntries(decoded: $decoded), self::elmEntries(decoded: $decoded));
+		$object['issuerDid'] = $decoded['issuerDid'] ?? null;
+		$object['verificationStatus'] = $this->verifyAgainstOwnTenant(decoded: $decoded, tenantId: (string)($object['tenant_id'] ?? ''));
+		$object['errorMessage'] = null;
 
+		return $object;
+	}//end parseScholiqLearningRecord()
+
+	/**
+	 * One entry per row of each `scholiqNative` collection, in collection order.
+	 *
+	 * @param array<string,mixed> $decoded The decoded bundle JSON.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function nativeEntries(array $decoded): array {
 		$scholiqNative = $decoded['scholiqNative'] ?? [];
-		if (is_array($scholiqNative) === true) {
-			foreach (self::LEARNIQ_NATIVE_COLLECTION_SCHEMA as $collectionKey => $schema) {
-				$rows = $scholiqNative[$collectionKey] ?? [];
-				if (is_array($rows) === false) {
-					continue;
-				}
-
-				foreach ($rows as $row) {
-					$rowData = [];
-					if (is_array($row) === true) {
-						$rowData = $row;
-					}
-
-					$entries[] = [
-						'sourceSchema' => $schema,
-						'sourceTitle' => $this->rowTitle(schema: $schema, row: $rowData),
-						'outcome' => 'recognized',
-						'reason' => null,
-					];
-				}
-			}
-		}//end if
-
-		$elm = $decoded['elm'] ?? [];
-		if (is_array($elm) === true) {
-			foreach ($elm as $credentialEntry) {
-				$kind = 'credential';
-				if (is_array($credentialEntry) === true) {
-					$kind = $credentialEntry['kind'] ?? 'credential';
-				}
-
-				$entries[] = [
-					'sourceSchema' => 'credential',
-					'sourceTitle' => 'Credential (' . $kind . ')',
-					'outcome' => 'recognized',
-					'reason' => null,
-				];
-			}
+		if (is_array($scholiqNative) === false) {
+			return [];
 		}
 
-		$object['entries'] = $entries;
-		$object['issuerDid'] = $decoded['issuerDid'] ?? null;
-		$object['verificationStatus'] = $this->verifyAgainstOwnTenant(decoded: $decoded, tenantId: $tenantId);
-		$object['errorMessage'] = null;
-	}//end parseScholiqLearningRecord()
+		$entries = [];
+		foreach (self::LEARNIQ_NATIVE_COLLECTION_SCHEMA as $collectionKey => $schema) {
+			$entries = array_merge($entries, $this->collectionEntries(schema: $schema, rows: ($scholiqNative[$collectionKey] ?? [])));
+		}
+
+		return $entries;
+	}//end nativeEntries()
+
+	/**
+	 * One entry per row of one native collection; nothing when it is not a list.
+	 *
+	 * @param string $schema The collection's schema slug.
+	 * @param mixed  $rows   The collection's rows.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function collectionEntries(string $schema, mixed $rows): array {
+		if (is_array($rows) === false) {
+			return [];
+		}
+
+		$entries = [];
+		foreach ($rows as $row) {
+			$rowData = [];
+			if (is_array($row) === true) {
+				$rowData = $row;
+			}
+
+			$entries[] = self::recognized(schema: $schema, title: $this->rowTitle(schema: $schema, row: $rowData));
+		}
+
+		return $entries;
+	}//end collectionEntries()
+
+	/**
+	 * One credential entry per `elm[]` item of an own-format bundle.
+	 *
+	 * @param array<string,mixed> $decoded The decoded bundle JSON.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private static function elmEntries(array $decoded): array {
+		$elm = $decoded['elm'] ?? [];
+		if (is_array($elm) === false) {
+			return [];
+		}
+
+		$entries = [];
+		foreach ($elm as $credentialEntry) {
+			$kind = 'credential';
+			if (is_array($credentialEntry) === true) {
+				$kind = $credentialEntry['kind'] ?? 'credential';
+			}
+
+			$entries[] = self::recognized(schema: 'credential', title: 'Credential (' . $kind . ')');
+		}
+
+		return $entries;
+	}//end elmEntries()
+
+	/**
+	 * A `recognized` coverage entry.
+	 *
+	 * @param string|null $schema The source schema, or null for a foreign credential.
+	 * @param string      $title  The source title.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private static function recognized(?string $schema, string $title): array {
+		return [
+			'sourceSchema' => $schema,
+			'sourceTitle' => $title,
+			'outcome' => 'recognized',
+			'reason' => null,
+		];
+	}//end recognized()
 
 	/**
 	 * Parse a bare `elm-europass` credential set: a plain array (or
@@ -258,41 +306,61 @@ class LearningRecordImportService implements LifecycleGuardInterface {
 	 * expected, honest default for a genuinely foreign format.
 	 *
 	 * @param array<string,mixed> $decoded The decoded bundle JSON.
-	 * @param array<string,mixed> $object The LearningRecordImport object, by reference.
+	 * @param array<string,mixed> $object  The LearningRecordImport object.
 	 *
-	 * @return void
+	 * @return array<string,mixed> The object with the report set.
 	 */
-	private function parseElmEuropass(array $decoded, array &$object): void {
-		$credentialList = $decoded;
-		if (isset($decoded['credentials']) === true && is_array($decoded['credentials']) === true) {
-			$credentialList = $decoded['credentials'];
-		}
-
+	private function parseElmEuropass(array $decoded, array $object): array {
 		$entries = [];
 		$index = 0;
-		foreach ($credentialList as $credential) {
+		foreach (self::credentialListOf(decoded: $decoded) as $credential) {
 			$index++;
-			$title = 'ELM credential ' . $index;
-			if (is_array($credential) === true) {
-				$name = $credential['credentialSubject']['achievement']['name'] ?? ($credential['name'] ?? null);
-				if (is_string($name) === true && $name !== '') {
-					$title = $name;
-				}
-			}
-
-			$entries[] = [
-				'sourceSchema' => null,
-				'sourceTitle' => $title,
-				'outcome' => 'recognized',
-				'reason' => null,
-			];
+			$entries[] = self::recognized(schema: null, title: self::europassTitle(credential: $credential, index: $index));
 		}
 
 		$object['entries'] = $entries;
 		$object['issuerDid'] = $decoded['issuer']['id'] ?? ($decoded['issuerDid'] ?? null);
 		$object['verificationStatus'] = 'unverifiable';
 		$object['errorMessage'] = null;
+
+		return $object;
 	}//end parseElmEuropass()
+
+	/**
+	 * The credentials of a bare ELM set: its `credentials` list, else the set itself.
+	 *
+	 * @param array<mixed> $decoded The decoded bundle JSON.
+	 *
+	 * @return array<mixed>
+	 */
+	private static function credentialListOf(array $decoded): array {
+		if (isset($decoded['credentials']) === true && is_array($decoded['credentials']) === true) {
+			return $decoded['credentials'];
+		}
+
+		return $decoded;
+	}//end credentialListOf()
+
+	/**
+	 * A bare ELM credential's title: its achievement name, else its name, else its position.
+	 *
+	 * @param mixed $credential The credential.
+	 * @param int   $index      Its 1-based position.
+	 *
+	 * @return string
+	 */
+	private static function europassTitle(mixed $credential, int $index): string {
+		if (is_array($credential) === false) {
+			return 'ELM credential ' . $index;
+		}
+
+		$name = $credential['credentialSubject']['achievement']['name'] ?? ($credential['name'] ?? null);
+		if (is_string($name) === true && $name !== '') {
+			return $name;
+		}
+
+		return 'ELM credential ' . $index;
+	}//end europassTitle()
 
 	/**
 	 * Attempt signature verification against the importing tenant's own
@@ -310,10 +378,7 @@ class LearningRecordImportService implements LifecycleGuardInterface {
 			return 'unverifiable';
 		}
 
-		$ownIssuerDid = $this->signingService->resolveIssuerDid(tenantId: $tenantId);
-		$bundleIssuerDid = $decoded['issuerDid'] ?? null;
-
-		if ($ownIssuerDid === null || $bundleIssuerDid !== $ownIssuerDid) {
+		if ($this->issuedByOwnTenant(decoded: $decoded, tenantId: $tenantId) === false) {
 			// A different (or unresolvable) issuer — the expected case for a
 			// genuinely foreign system or a different, unconnected Learniq
 			// tenant. Not an error.
@@ -327,6 +392,21 @@ class LearningRecordImportService implements LifecycleGuardInterface {
 
 		return 'invalid';
 	}//end verifyAgainstOwnTenant()
+
+	/**
+	 * Whether the bundle names this tenant's own issuer, and that issuer resolves.
+	 *
+	 * @param array<string,mixed> $decoded  The decoded bundle JSON.
+	 * @param string              $tenantId Importing tenant's UUID.
+	 *
+	 * @return bool
+	 */
+	private function issuedByOwnTenant(array $decoded, string $tenantId): bool {
+		$ownIssuerDid = $this->signingService->resolveIssuerDid(tenantId: $tenantId);
+		$bundleIssuerDid = $decoded['issuerDid'] ?? null;
+
+		return $ownIssuerDid !== null && $bundleIssuerDid === $ownIssuerDid;
+	}//end issuedByOwnTenant()
 
 	/**
 	 * Resolve a human-readable title for one scholiqNative row, mirroring
@@ -362,13 +442,7 @@ class LearningRecordImportService implements LifecycleGuardInterface {
 		}
 
 		try {
-			$userFolder = $this->rootFolder->getUserFolder($ownerUid);
-			$node = $userFolder->get(ltrim($sourceRef, '/'));
-			if (($node instanceof \OCP\Files\File) === false) {
-				return null;
-			}
-
-			return $node->getContent();
+			return $this->fileContent(sourceRef: $sourceRef, ownerUid: $ownerUid);
 		} catch (\Throwable $e) {
 			$this->logger->warning(
 				'[LearningRecordImportService] Could not read uploaded bundle at "{ref}": {msg}',
@@ -377,4 +451,24 @@ class LearningRecordImportService implements LifecycleGuardInterface {
 			return null;
 		}//end try
 	}//end readSourceBytes()
+
+	/**
+	 * The content of the file at the path in the owner's home, or null when it is not a file.
+	 *
+	 * @param string $sourceRef nc:files path (relative to the owner's home).
+	 * @param string $ownerUid  Nextcloud user id who owns the uploaded file.
+	 *
+	 * @return string|null
+	 *
+	 * @throws \Throwable When the owner's files can not be read.
+	 */
+	private function fileContent(string $sourceRef, string $ownerUid): ?string {
+		$userFolder = $this->rootFolder->getUserFolder($ownerUid);
+		$node = $userFolder->get(ltrim($sourceRef, '/'));
+		if (($node instanceof \OCP\Files\File) === false) {
+			return null;
+		}
+
+		return $node->getContent();
+	}//end fileContent()
 }//end class

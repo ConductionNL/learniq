@@ -261,4 +261,41 @@ class XapiCompletionHandlerTest extends TestCase {
 
 		$this->assertSame([], $this->transitions);
 	}//end testNotTheLastLessonOrNoVerifiedActorCompletesNothing()
+
+	/**
+	 * Golden: which statements complete the enrolment and which never do, with
+	 * the number of store reads each takes (the checks run in a fixed order).
+	 *
+	 * @return void
+	 */
+	public function testTheCompletionGoldenAllowedAndRefused(): void {
+		$cases = [
+			'passed on the final lesson'  => [[], ['en-1:complete'], 3],
+			'completed verb'              => [['verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed']], ['en-1:complete'], 3],
+			'attempted verb'              => [['verb' => ['id' => 'http://adlnet.gov/expapi/verbs/attempted']], [], 0],
+			'no verb'                     => [['verb' => []], [], 0],
+			'no lesson id'                => [['lessonId' => ''], [], 0],
+			'unknown lesson'              => [['lessonId' => 'l-9'], [], 1],
+			'not mandatory'               => [['lessonId' => 'l-3'], [], 1],
+			'mandatory as text'           => [['lessonId' => 'l-4'], [], 1],
+			'no course'                   => [['lessonId' => 'l-5'], [], 1],
+			'not the last lesson'         => [['lessonId' => 'l-1'], [], 2],
+			'empty verified actor'        => [['verified_actor_id' => ''], [], 2],
+			'no active enrolment'         => [['verified_actor_id' => 'learner-2'], [], 3],
+			'another tenant'              => [['tenant_id' => 't-other'], [], 1],
+		];
+		foreach ($cases as $name => [$change, $transitions, $reads]) {
+			$this->course();
+			$this->rows['lesson'][] = ['uuid' => 'l-3', 'courseId' => 'c-2', 'order' => 1, 'lifecycle' => 'published', 'mandatoryTraining' => false];
+			$this->rows['lesson'][] = ['uuid' => 'l-4', 'courseId' => 'c-2', 'order' => 1, 'lifecycle' => 'published', 'mandatoryTraining' => 'true'];
+			$this->rows['lesson'][] = ['uuid' => 'l-5', 'order' => 9, 'lifecycle' => 'published', 'mandatoryTraining' => true];
+			$this->transitions = [];
+			$this->reads       = 0;
+
+			$this->completion()->complete(statement: array_merge(self::STATEMENT, $change));
+
+			$this->assertSame($transitions, $this->transitions, $name);
+			$this->assertSame($reads, $this->reads, $name);
+		}
+	}//end testTheCompletionGoldenAllowedAndRefused()
 }//end class

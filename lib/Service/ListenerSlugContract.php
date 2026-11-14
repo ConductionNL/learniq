@@ -3,6 +3,9 @@
 /**
  * Feature gate for Learniq's corrected listener schema matching.
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Learniq's OpenRegister listeners compared a schema **id** against a schema
  * **slug** literal, so their handler bodies had never run once. Correcting the
  * comparison is a small change, but it is not a behaviour-neutral one. The
@@ -45,8 +48,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -56,7 +57,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCP\IAppConfig;
 
 /**
@@ -89,6 +90,6 @@ class ListenerSlugContract {
 	 * @return bool True when the contract is enabled for this instance.
 	 */
 	public function isEnabled(): bool {
-		return $this->appConfig->getValueBool(Application::APP_ID, self::CONFIG_KEY, false);
+		return $this->appConfig->getValueBool(AppIdentity::APP_ID, self::CONFIG_KEY, false);
 	}//end isEnabled()
 }//end class

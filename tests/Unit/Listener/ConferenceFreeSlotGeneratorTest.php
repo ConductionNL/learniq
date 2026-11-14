@@ -24,13 +24,16 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Listener;
 
 use DateTimeZone;
-use OCA\Learniq\AppInfo\Registrar\CollaborationListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\CollaborationListenerRegistrar;
 use OCA\Learniq\Listener\ConferenceFreeSlotGenerator;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
+use OCA\OpenRegister\Service\Lifecycle\TransitionActor;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\IDateTimeZone;
@@ -170,6 +173,76 @@ class ConferenceFreeSlotGeneratorTest extends TestCase {
 	}//end testATeacherWithoutAGroupInTheRoundOffersEveryInvitedPupil()
 
 	/**
+	 * A group that cannot be read might be the teacher's own: nothing is
+	 * written, instead of opening the times to every invited pupil.
+	 *
+	 * @return void
+	 */
+	public function testAnUnreadableGroupRefusesInsteadOfOpeningToEveryInvitedPupil(): void {
+		$this->store->rows['cohort'] = [$this->store->rows['cohort'][1]];
+
+		$this->assertSame(0, $this->generator()->generateForRound(round: $this->round()));
+
+		$this->assertSame([], $this->store->rows['conference-slot']);
+	}//end testAnUnreadableGroupRefusesInsteadOfOpeningToEveryInvitedPupil()
+
+	/**
+	 * A teacher whose own group can be read keeps that group's pupils when another group cannot be read.
+	 *
+	 * @return void
+	 */
+	public function testAnUnreadableGroupLeavesTheTeachersOwnGroup(): void {
+		$this->store->rows['cohort'] = [$this->store->rows['cohort'][0]];
+
+		$this->generator()->handle($this->opened(round: $this->round()));
+
+		$this->assertSame([self::VERA, self::DAAN], $this->store->rows['conference-slot'][0]['eligibleLearnerRefs']);
+	}//end testAnUnreadableGroupLeavesTheTeachersOwnGroup()
+
+	/**
+	 * Refusing one teacher does not stop the next teacher's times.
+	 *
+	 * @return void
+	 */
+	public function testARefusedTeacherDoesNotStopTheNextOne(): void {
+		$this->store->rows['cohort'] = [$this->store->rows['cohort'][0]];
+		array_unshift($this->store->rows['teacher-availability'], ['teacherId' => 'po-leerkracht-99'] + $this->store->rows['teacher-availability'][0]);
+
+		$this->generator()->handle($this->opened(round: $this->round()));
+
+		$teachers = array_unique(array_column($this->store->rows['conference-slot'], 'teacherId'));
+		$this->assertSame(['po-leerkracht-09'], array_values($teachers));
+	}//end testARefusedTeacherDoesNotStopTheNextOne()
+
+	/**
+	 * A blank group id names no group, so it refuses nothing.
+	 *
+	 * @return void
+	 */
+	public function testABlankGroupIdIsNoFailedRead(): void {
+		$this->store->rows['cohort'][0]['teacherIds'] = ['someone-else'];
+		$round = ['cohortIds' => ['', self::GROEP_7, self::GROEP_8]] + $this->round();
+
+		$this->generator()->handle($this->opened(round: $round));
+
+		$this->assertSame([self::VERA, self::DAAN, self::SEM], $this->store->rows['conference-slot'][0]['eligibleLearnerRefs']);
+	}//end testABlankGroupIdIsNoFailedRead()
+
+	/**
+	 * A teacher of a group without invited pupils offers nobody a time: the
+	 * other groups' pupils do not get it instead.
+	 *
+	 * @return void
+	 */
+	public function testATaughtGroupWithoutInvitedPupilsOffersNobody(): void {
+		$round = ['invitedLearnerRefs' => [self::SEM]] + $this->round();
+
+		$this->generator()->handle($this->opened(round: $round));
+
+		$this->assertSame([], $this->store->rows['conference-slot'][0]['eligibleLearnerRefs']);
+	}//end testATaughtGroupWithoutInvitedPupilsOffersNobody()
+
+	/**
 	 * A round where the school plans the times gets no free slots.
 	 *
 	 * @return void
@@ -234,13 +307,10 @@ class ConferenceFreeSlotGeneratorTest extends TestCase {
 	 */
 	private function opened(array $round, string $action='open-booking', string $from='invitations-sent'): ObjectTransitionedEvent {
 		return new ObjectTransitionedEvent(
-			OrEntityFactory::make($round, 'conference-round'),
-			$action,
-			$from,
-			'booking-open',
-			'po-leerkracht-09',
-			'learniq',
-			'conference-round'
+			object: OrEntityFactory::make($round, 'conference-round'),
+			move: new TransitionMove(action: $action, from: $from, to: 'booking-open'),
+			scope: new RegisterSchemaRef(register: 'learniq', schema: 'conference-round'),
+			actor: new TransitionActor(userId: 'po-leerkracht-09'),
 		);
 	}//end opened()
 

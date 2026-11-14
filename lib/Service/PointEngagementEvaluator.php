@@ -3,6 +3,9 @@
 /**
  * Learniq Point Engagement Evaluator
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Stateless calculation engine that sums a learner's PointAward.points,
  * resolves the highest EngagementLevel the learner has reached, and computes
  * their current/longest activity streak from distinct PointAward.awardedAt
@@ -38,8 +41,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -52,6 +53,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\PointEngagementEvaluatorInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 
@@ -61,7 +63,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
  *
  * @spec openspec/specs/engagement/spec.md#requirement-learner-totals-level-and-streak-are-computed-by-a-php-evaluator-not-a-sum-aggregation
  */
-class PointEngagementEvaluator {
+class PointEngagementEvaluator implements PointEngagementEvaluatorInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const POINT_AWARD_SCHEMA = 'point-award';
@@ -105,23 +107,11 @@ class PointEngagementEvaluator {
 		}
 
 		$totalPoints = 0.0;
-		$dates = [];
 		foreach ($awards as $award) {
 			$totalPoints += (float)($award['points'] ?? 0);
-
-			$awardedAt = $award['awardedAt'] ?? null;
-			if (is_string($awardedAt) === true && $awardedAt !== '') {
-				try {
-					$date = (new DateTimeImmutable($awardedAt))->format('Y-m-d');
-					$dates[$date] = true;
-				} catch (\Exception) {
-					continue;
-				}
-			}
 		}
 
-		$distinctDates = array_keys($dates);
-		sort($distinctDates);
+		$distinctDates = self::activityDates(awards: $awards);
 
 		$levelId = $this->resolveLevelId(totalPoints: $totalPoints, tenantId: $tenantId);
 		$currentStreakDays = $this->computeCurrentStreak(distinctDates: $distinctDates);
@@ -140,6 +130,47 @@ class PointEngagementEvaluator {
 		];
 
 	}//end evaluate()
+
+	/**
+	 * The distinct days the awards were given on, oldest first.
+	 *
+	 * @param list<array<string,mixed>> $awards The awards.
+	 *
+	 * @return list<string> `Y-m-d` dates.
+	 */
+	private static function activityDates(array $awards): array {
+		$dates = [];
+		foreach ($awards as $award) {
+			$date = self::day(awardedAt: ($award['awardedAt'] ?? null));
+			if ($date !== null) {
+				$dates[$date] = true;
+			}
+		}
+
+		$distinctDates = array_map('strval', array_keys($dates));
+		sort($distinctDates);
+
+		return $distinctDates;
+	}//end activityDates()
+
+	/**
+	 * The day of an award time, or null when it is not a readable time.
+	 *
+	 * @param mixed $awardedAt The award's `awardedAt`.
+	 *
+	 * @return string|null
+	 */
+	private static function day(mixed $awardedAt): ?string {
+		if (is_string($awardedAt) === false || $awardedAt === '') {
+			return null;
+		}
+
+		try {
+			return (new DateTimeImmutable($awardedAt))->format('Y-m-d');
+		} catch (\Exception) {
+			return null;
+		}
+	}//end day()
 
 	/**
 	 * Fetch every PointAward for the learner.
@@ -181,6 +212,24 @@ class PointEngagementEvaluator {
 	 * @return string|null
 	 */
 	private function resolveLevelId(float $totalPoints, string $tenantId): ?string {
+		$best = ['minPoints' => null, 'id' => null];
+		foreach ($this->levels(tenantId: $tenantId) as $level) {
+			if (self::reached(level: $level, totalPoints: $totalPoints) === true && self::higher(level: $level, best: $best) === true) {
+				$best = self::rank(level: $level);
+			}
+		}
+
+		return $best['id'];
+	}//end resolveLevelId()
+
+	/**
+	 * The tenant's engagement levels as arrays.
+	 *
+	 * @param string $tenantId The tenant.
+	 *
+	 * @return list<array<string,mixed>>
+	 */
+	private function levels(string $tenantId): array {
 		$levels = $this->objectService->findAll(
 			[
 				'filters' => [
@@ -191,26 +240,54 @@ class PointEngagementEvaluator {
 			]
 		);
 
-		$bestLevelId = null;
-		$bestMinPoints = null;
+		$rows = [];
 		foreach ($levels as $level) {
 			if (is_array($level) === false) {
 				$level = $level->jsonSerialize();
 			}
 
-			$minPoints = $level['minPoints'] ?? null;
-			if ($minPoints === null || (float)$minPoints > $totalPoints) {
-				continue;
-			}
-
-			if ($bestMinPoints === null || (float)$minPoints > $bestMinPoints) {
-				$bestMinPoints = (float)$minPoints;
-				$bestLevelId = $level['id'] ?? ($level['uuid'] ?? null);
-			}
+			$rows[] = $level;
 		}
 
-		return $bestLevelId;
-	}//end resolveLevelId()
+		return $rows;
+	}//end levels()
+
+	/**
+	 * Whether the points reach the level: it has a threshold and the points are at or above it.
+	 *
+	 * @param array<string,mixed> $level       The level.
+	 * @param float               $totalPoints The learner's points.
+	 *
+	 * @return bool
+	 */
+	private static function reached(array $level, float $totalPoints): bool {
+		$minPoints = $level['minPoints'] ?? null;
+
+		return $minPoints !== null && (float)$minPoints <= $totalPoints;
+	}//end reached()
+
+	/**
+	 * Whether the level's threshold is above the best so far; the first of equal thresholds stays.
+	 *
+	 * @param array<string,mixed>                     $level The level.
+	 * @param array{minPoints: float|null, id: mixed} $best  The best level so far.
+	 *
+	 * @return bool
+	 */
+	private static function higher(array $level, array $best): bool {
+		return $best['minPoints'] === null || (float)$level['minPoints'] > $best['minPoints'];
+	}//end higher()
+
+	/**
+	 * A reached level's threshold and id.
+	 *
+	 * @param array<string,mixed> $level The level.
+	 *
+	 * @return array{minPoints: float, id: mixed}
+	 */
+	private static function rank(array $level): array {
+		return ['minPoints' => (float)$level['minPoints'], 'id' => $level['id'] ?? ($level['uuid'] ?? null)];
+	}//end rank()
 
 	/**
 	 * Count consecutive calendar days, ending today or yesterday, with at
@@ -233,14 +310,7 @@ class PointEngagementEvaluator {
 		$yesterday = DateTimeImmutable::createFromMutable($this->timeFactory->getDateTime())->modify('-1 day')->format('Y-m-d');
 
 		$dateSet = array_flip($distinctDates);
-
-		$anchor = null;
-		if (isset($dateSet[$today]) === true) {
-			$anchor = $today;
-		} elseif (isset($dateSet[$yesterday]) === true) {
-			$anchor = $yesterday;
-		}
-
+		$anchor = self::anchor(dateSet: $dateSet, days: [$today, $yesterday]);
 		if ($anchor === null) {
 			// No activity today or yesterday -- the streak has broken.
 			return 0;
@@ -255,6 +325,24 @@ class PointEngagementEvaluator {
 
 		return $count;
 	}//end computeCurrentStreak()
+
+	/**
+	 * The first of the days (today, then yesterday) with activity, or null.
+	 *
+	 * @param array<string,int> $dateSet The activity days as keys.
+	 * @param list<string>      $days    The days to try, in order.
+	 *
+	 * @return string|null
+	 */
+	private static function anchor(array $dateSet, array $days): ?string {
+		foreach ($days as $day) {
+			if (isset($dateSet[$day]) === true) {
+				return $day;
+			}
+		}
+
+		return null;
+	}//end anchor()
 
 	/**
 	 * Find the longest run of consecutive calendar days anywhere in the

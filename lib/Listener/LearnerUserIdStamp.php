@@ -3,6 +3,9 @@
 /**
  * Learniq learner user-id Stamp
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Stamps the learner's Nextcloud user id next to a LearnerProfile uuid on
  * every create or update of the schemas that name their learner by profile:
  *
@@ -40,8 +43,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -53,8 +54,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\LearnerRefResolver;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -90,15 +91,15 @@ class LearnerUserIdStamp implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
-	 * @param LearnerRefResolver     $profiles       LearnerProfile by uuid.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
+	 * @param LearnerRefResolverInterface     $profiles       LearnerProfile by uuid.
 	 * @param LoggerInterface        $logger         PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly LearnerRefResolver $profiles,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		private readonly LearnerRefResolverInterface $profiles,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -113,30 +114,28 @@ class LearnerUserIdStamp implements IEventListener {
 	 * @spec openspec/specs/external-training-recording/spec.md#requirement-verification-must-be-gated-and-tamper-resistant
 	 */
 	public function handle(Event $event): void {
-		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {
+		$write = SchemaWrite::of(event: $event, schemaResolver: $this->schemaResolver);
+		if ($write === null || isset(self::FIELDS[$write->slug]) === false) {
 			return;
 		}
 
-		if ($event->isPropagationStopped() === true) {
-			return;
-		}
+		$this->stampWrite(write: $write);
+	}//end handle()
 
-		$entity = $this->entityOf(event: $event);
-
-		try {
-			$slug = $this->schemaResolver->guardSchemaSlug(entity: $entity);
-		} catch (Throwable $exception) {
-			// Not knowing the schema is not knowing it is ours: never touch
-			// another app's writes.
-			return;
-		}
-
-		if (isset(self::FIELDS[$slug]) === false) {
-			return;
-		}
+	/**
+	 * Stamp one write of a schema this listener owns.
+	 *
+	 * @param SchemaWrite $write The write and its schema slug.
+	 *
+	 * @return void
+	 */
+	private function stampWrite(SchemaWrite $write): void {
+		$event = $write->event;
+		$entity = $write->entity();
+		$slug = $write->slug;
 
 		$event->setModifiedData(array_merge($event->getModifiedData(), $this->stampFor(event: $event, entity: $entity, slug: $slug)));
-	}//end handle()
+	}//end stampWrite()
 
 	/**
 	 * The fields to stamp on one write of a mapped schema: the user id, and
@@ -168,21 +167,6 @@ class LearnerUserIdStamp implements IEventListener {
 
 		return $stamp;
 	}//end stampFor()
-
-	/**
-	 * The object being written: the new state on an update.
-	 *
-	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The write event.
-	 *
-	 * @return ObjectEntity
-	 */
-	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
-	}//end entityOf()
 
 	/**
 	 * The user id to store: the profile's ncUserId, null when there is no

@@ -36,6 +36,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Lifecycle\Action;
 
 use OCA\Learniq\Lifecycle\AssessmentScoringHandler;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 use RuntimeException;
 
@@ -61,20 +62,18 @@ class AssessmentAutoScoreAction implements LifecycleActionInterface {
 	/**
 	 * Return the AssessmentResult with every response auto-scored.
 	 *
-	 * @param array<string,mixed> $objectData The AssessmentResult after the lifecycle moved to `submitted`.
-	 * @param array<string,mixed> $previousData The AssessmentResult before the transition.
-	 * @param array<string,mixed> $parameters The declared actionParameters (unused).
-	 * @param string $actionName The declared action name.
+	 * @param LifecycleActionContext $context The transition; its objectData is the AssessmentResult after the lifecycle
+	 *                                        moved to `submitted`.
 	 *
 	 * @return array<string,mixed> The AssessmentResult with autoScores applied.
 	 *
 	 * @throws RuntimeException When the parent Assessment cannot be resolved, so client scores never persist.
 	 *
-	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The interface fixes the signature.
-	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-8
 	 */
-	public function execute(array $objectData, array $previousData, array $parameters, string $actionName): array {
+	public function execute(LifecycleActionContext $context): array {
+		$objectData = $context->objectData;
+
 		$scored = $this->scoringHandler->score(result: $objectData);
 		if ($scored === null) {
 			throw new RuntimeException('The assessment this attempt belongs to could not be found, so the answers can not be scored.');

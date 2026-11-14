@@ -15,7 +15,7 @@
 
   Talks only to OpenRegister's REST API:
     - GET  /api/objects/learniq/Portfolio/:id
-    - GET  /api/objects/learniq/portfolio-entry?filters[portfolioId]=:id
+    - GET  /api/objects/learniq/portfolio-entry?portfolioId=:id
     - GET  /api/objects/learniq/Submission/:id                  (per submission-kind entry)
     - GET  /api/objects/learniq/werkproces-assessment/:id        (per werkproces-assessment-kind entry)
     - GET  /api/objects/learniq/external-training-record/:id      (per external-training-record-kind entry)
@@ -34,7 +34,7 @@
 -->
 
 <template>
-	<div class="portfolio-review-view">
+	<div class="portfolio-review-view lq-board-page">
 		<!-- Loading -->
 		<div
 			v-if="loading"
@@ -52,13 +52,7 @@
 
 		<template v-else-if="portfolio">
 			<header class="portfolio-review-view__header">
-				<h2>
-					{{
-						t('learniq', 'Review portfolio: {title}', {
-							title: portfolio.title || '',
-						})
-					}}
-				</h2>
+				<CnPageHeader :title="t('learniq', 'Review portfolio: {title}', { title: portfolio.title || '' })" />
 				<p class="portfolio-review-view__meta">
 					{{
 						t('learniq', 'Kind: {kind}', { kind: portfolio.kind || '' })
@@ -74,8 +68,9 @@
 			</header>
 
 			<!-- Entries (read-only) -->
-			<section class="portfolio-review-view__entries">
-				<h3>{{ t('learniq', 'Evidence entries') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Evidence entries')"
+				class="portfolio-review-view__entries">
 				<ul
 					v-if="entries.length > 0"
 					class="portfolio-review-view__entry-list">
@@ -115,11 +110,13 @@
 				<p v-else class="portfolio-review-view__no-entries">
 					{{ t('learniq', 'No evidence entries.') }}
 				</p>
-			</section>
+			</CnDetailCard>
 
 			<!-- Teacher grading (course-bound + submitted only) -->
-			<section v-if="canGrade" class="portfolio-review-view__grading">
-				<h3>{{ t('learniq', 'Grade this portfolio') }}</h3>
+			<CnDetailCard
+				v-if="canGrade"
+				:title="t('learniq', 'Grade this portfolio')"
+				class="portfolio-review-view__grading">
 
 				<label
 					for="pr-grade-value"
@@ -153,7 +150,7 @@
 					class="portfolio-review-view__grade-error">
 					{{ gradeError }}
 				</p>
-			</section>
+			</CnDetailCard>
 
 			<p
 				v-if="portfolio.lifecycle === 'graded'"
@@ -170,8 +167,17 @@
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
+import {
+	evidenceKindLabel,
+	lookupList,
+	lookupObject,
+	portfolioLoadError,
+	referencedTitle,
+} from '../utils/portfolioEvidence.js'
+import { sendJsonOrThrow } from '../utils/registerRequests.js'
 
 /**
  * Map from PortfolioEntry.evidenceKind to the OR schema + id field to
@@ -197,6 +203,7 @@ const REFERENCE_SCHEMAS = {
 
 export default {
 	name: 'PortfolioReviewView',
+	components: { CnDetailCard, CnPageHeader },
 
 	props: {
 		/**
@@ -279,7 +286,7 @@ export default {
 
 				this.entries = await this.fetchList(
 					'portfolio-entry',
-					`filters[portfolioId]=${portfolioId}&_limit=100`,
+					`portfolioId=${portfolioId}&_limit=100`,
 				)
 				await this.resolveEntryReferences()
 			} catch (err) {
@@ -287,16 +294,8 @@ export default {
 				// PortfolioBuilder.vue. A 404 here means the portfolio is gone or
 				// was never visible to this reviewer; that is worth telling them
 				// and not worth logging as an application error.
-				if (err?.notFound === true) {
-					this.error = this.t(
-						'learniq',
-						'This portfolio no longer exists, or you do not have access to it.',
-					)
-				} else {
-					this.error = this.t(
-						'learniq',
-						'Failed to load portfolio. Please try again.',
-					)
+				this.error = portfolioLoadError(err, (app, text) => this.t(app, text))
+				if (err?.notFound !== true) {
 					// eslint-disable-next-line no-console
 					console.error('[PortfolioReviewView] loadData error', err)
 				}
@@ -314,24 +313,10 @@ export default {
 		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async fetchObject(schema, objId) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/${schema}/${objId}`,
+			return lookupObject(
+				generateUrl(`/apps/openregister/api/objects/learniq/${schema}/${objId}`),
+				schema,
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				// `notFound` is set on the single-object lookup only — see the
-				// same guard in PortfolioBuilder.vue. A 404 from fetchList()
-				// means the schema did not resolve, not that a record is absent,
-				// and must not take the quiet branch.
-				const err = new Error(`${schema} fetch failed: ${resp.status}`)
-				err.status = resp.status
-				err.notFound = resp.status === 404
-				throw err
-			}
-			const json = await resp.json()
-			return json.object ?? json ?? {}
 		},
 
 		/**
@@ -343,17 +328,9 @@ export default {
 		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async fetchList(schema, query) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/${schema}?${query}`,
+			return lookupList(
+				generateUrl(`/apps/openregister/api/objects/learniq/${schema}?${query}`),
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				return []
-			}
-			const json = await resp.json()
-			return json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
 		},
 
 		/**
@@ -367,34 +344,36 @@ export default {
 		 */
 		async resolveEntryReferences() {
 			const resolved = {}
-
 			for (const entry of this.entries) {
-				const mapping = REFERENCE_SCHEMAS[entry.evidenceKind]
-				if (!mapping) {
-					continue
-				}
-				const refId = entry[mapping.idField]
-				if (!refId) {
-					continue
-				}
-				try {
-					const referenced = await this.fetchObject(mapping.schema, refId)
-					resolved[entry.id] =
-						referenced.title
-						?? referenced.name
-						?? referenced.feedbackText
-						?? refId
-				} catch (err) {
-					// Non-fatal — the entry simply shows no resolved reference.
-					// eslint-disable-next-line no-console
-					console.error(
-						'[PortfolioReviewView] resolveEntryReferences error',
-						err,
-					)
+				const title = await this.referenceTitle(entry)
+				if (title !== undefined) {
+					resolved[entry.id] = title
 				}
 			}
-
 			this.resolvedReferences = resolved
+		},
+
+		/**
+		 * The label of the record one entry refers to; undefined for an entry
+		 * that refers to nothing, or whose record could not be read.
+		 *
+		 * @param {object} entry A PortfolioEntry.
+		 * @return {Promise<string|undefined>} The label.
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
+		 */
+		async referenceTitle(entry) {
+			const mapping = REFERENCE_SCHEMAS[entry.evidenceKind]
+			const refId = mapping ? entry[mapping.idField] : undefined
+			if (!refId) {
+				return undefined
+			}
+			try {
+				return referencedTitle(await this.fetchObject(mapping.schema, refId), refId)
+			} catch (err) {
+				// eslint-disable-next-line no-console
+				console.error('[PortfolioReviewView] resolveEntryReferences error', err)
+				return undefined
+			}
 		},
 
 		/**
@@ -405,19 +384,7 @@ export default {
 		 * @spec exclude Presentation-only label map from the 6 fixed evidenceKind values to their localized display names; the per-kind reference discipline itself is governed by requirement-portfolioentry-references-existing-evidence-objects-via-per-kind-fields-never-a-polymorphic-ref, not by this string lookup.
 		 */
 		evidenceKindLabel(kind) {
-			const labels = {
-				file: this.t('learniq', 'File'),
-				submission: this.t('learniq', 'Submission'),
-				'werkproces-assessment': this.t('learniq', 'Werkproces assessment'),
-				'external-training-record': this.t(
-					'learniq',
-					'External training record',
-				),
-
-				credential: this.t('learniq', 'Credential'),
-				reflection: this.t('learniq', 'Reflection'),
-			}
-			return labels[kind] ?? kind
+			return evidenceKindLabel(kind, (app, text) => this.t(app, text))
 		},
 
 		/**
@@ -437,38 +404,7 @@ export default {
 			this.gradeError = null
 
 			try {
-				const updateUrl = generateUrl(
-					`/apps/openregister/api/objects/learniq/Portfolio/${this.id}`,
-				)
-				const updateResp = await fetch(updateUrl, {
-					method: 'PATCH',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ gradeValue: Number(this.gradeValue) }),
-				})
-				if (!updateResp.ok) {
-					throw new Error(`Portfolio update failed: ${updateResp.status}`)
-				}
-
-				const transitionUrl = generateUrl(objectTransitionUrl(this.id))
-				const transResp = await fetch(transitionUrl, {
-					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ action: 'grade' }),
-				})
-				if (!transResp.ok) {
-					throw new Error(
-						`Portfolio grade transition failed: ${transResp.status}`,
-					)
-				}
-
+				await this.saveGrade()
 				this.portfolio = await this.fetchObject('Portfolio', this.id)
 			} catch (err) {
 				this.gradeError = this.t(
@@ -481,18 +417,33 @@ export default {
 				this.grading = false
 			}
 		},
+
+		/**
+		 * Save the grade on the Portfolio and dispatch its `grade` transition.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
+		 */
+		async saveGrade() {
+			await sendJsonOrThrow(
+				generateUrl(`/apps/openregister/api/objects/learniq/Portfolio/${this.id}`),
+				{
+					method: 'PATCH',
+					body: { gradeValue: Number(this.gradeValue) },
+					failure: 'Portfolio update failed',
+				},
+			)
+			await sendJsonOrThrow(generateUrl(objectTransitionUrl(this.id)), {
+				method: 'POST',
+				body: { action: 'grade' },
+				failure: 'Portfolio grade transition failed',
+			})
+		},
 	},
 }
 </script>
 
 <style scoped>
-.portfolio-review-view {
-	max-width: 860px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
 .portfolio-review-view__loading,
 .portfolio-review-view__error {
 	display: flex;
@@ -512,11 +463,6 @@ export default {
 
 .portfolio-review-view__lifecycle {
 	margin-left: var(--default-grid-baseline, 8px);
-}
-
-.portfolio-review-view__entries,
-.portfolio-review-view__grading {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
 }
 
 .portfolio-review-view__entry-list {

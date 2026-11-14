@@ -3,6 +3,9 @@
 /**
  * Learniq Cohort Talk Membership Handler
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Listens for OpenRegister's ObjectTransitionedEvent and keeps a Cohort's
  * linked Nextcloud Talk conversation(s) participant list in sync with its
  * `Enrolment` roster:
@@ -41,8 +44,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -54,7 +55,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\TalkLinkService;
 use OCP\EventDispatcher\Event;
@@ -103,7 +104,7 @@ class CohortTalkMembershipHandler implements IEventListener {
 	 *                                  `ParticipantService::removeUser()`. Always
 	 *                                  available (core NC service, not Talk-gated).
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -112,7 +113,7 @@ class CohortTalkMembershipHandler implements IEventListener {
 		private readonly ContainerInterface $container,
 		private readonly IUserManager $userManager,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -127,21 +128,46 @@ class CohortTalkMembershipHandler implements IEventListener {
 	 * @spec openspec/specs/school-structure/spec.md#scenario-withdrawing-an-enrolment-removes-the-learner-from-the-cohorts-linked-conversation
 	 */
 	public function handle(Event $event): void {
-		if (($event instanceof ObjectTransitionedEvent) === false) {
+		if (($event instanceof ObjectTransitionedEvent) === false || $this->isMembershipTransition(event: $event) === false) {
 			return;
 		}
 
+		$change = $this->membershipChange(event: $event);
+		if ($change === null) {
+			return;
+		}
+
+		$this->syncParticipant(change: $change);
+
+	}//end handle()
+
+	/**
+	 * Whether the event activates or withdraws a learniq Enrolment.
+	 *
+	 * @param ObjectTransitionedEvent $event The transition.
+	 *
+	 * @return bool
+	 */
+	private function isMembershipTransition(ObjectTransitionedEvent $event): bool {
 		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER
 			|| $this->schemas->eventSchema(event: $event) !== self::ENROLMENT_SCHEMA
 		) {
-			return;
+			return false;
 		}
 
 		$action = $event->getAction();
-		if ($action !== self::ACTION_ACTIVATE && $action !== self::ACTION_WITHDRAW) {
-			return;
-		}
+		return $action === self::ACTION_ACTIVATE || $action === self::ACTION_WITHDRAW;
+	}//end isMembershipTransition()
 
+	/**
+	 * The membership change an Enrolment transition asks for, or null when
+	 * the Enrolment names no cohort or no learner.
+	 *
+	 * @param ObjectTransitionedEvent $event The activate or withdraw transition.
+	 *
+	 * @return CohortTalkMembershipChange|null
+	 */
+	private function membershipChange(ObjectTransitionedEvent $event): ?CohortTalkMembershipChange {
 		$enrolment = $event->getObject()->jsonSerialize();
 		$cohortId = $enrolment['cohortId'] ?? null;
 		$learnerId = $enrolment['learnerId'] ?? '';
@@ -149,60 +175,116 @@ class CohortTalkMembershipHandler implements IEventListener {
 		if (is_string($cohortId) === false || $cohortId === '' || $learnerId === '') {
 			// No cohort association (individually enrolled learner) or a
 			// malformed event payload — nothing to sync.
-			return;
+			return null;
 		}
 
-		$this->syncParticipant(
-			cohortId: $cohortId,
-			learnerId: $learnerId,
-			add: $action === self::ACTION_ACTIVATE
-		);
-
-	}//end handle()
+		return new CohortTalkMembershipChange(enrolment: $enrolment, add: $event->getAction() === self::ACTION_ACTIVATE);
+	}//end membershipChange()
 
 	/**
-	 * Add or remove `$learnerId` as a participant of every Talk conversation
-	 * currently linked to the Cohort `$cohortId`. Fails soft at every step.
+	 * Add or remove the learner as a participant of every Talk conversation
+	 * currently linked to the cohort. Fails soft at every step.
 	 *
-	 * @param string $cohortId Cohort object uuid (== Enrolment.cohortId).
-	 * @param string $learnerId Nextcloud user id of the learner.
-	 * @param bool $add True to add (activate), false to remove (withdraw).
+	 * @param CohortTalkMembershipChange $change The learner, the cohort and whether to add or remove.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/specs/school-structure/spec.md#scenario-no-conversation-linked-yet-is-a-no-op-not-an-error
 	 * @spec openspec/specs/school-structure/spec.md#scenario-talk-unavailable-is-a-no-op-not-an-error
 	 */
-	private function syncParticipant(string $cohortId, string $learnerId, bool $add): void {
-		if ($this->talkLinkService->isTalkAvailable() === false) {
-			$this->logger->info(
-				'[CohortTalkMembershipHandler] Talk (spreed) is not installed/enabled — skipping '
-				. 'participant sync for learner {learner} on Cohort {cohort}.',
-				['learner' => $learnerId, 'cohort' => $cohortId]
-			);
+	private function syncParticipant(CohortTalkMembershipChange $change): void {
+		$links = $this->linkedRooms(change: $change);
+		if ($links === []) {
 			return;
 		}
 
-		$links = $this->talkLinkService->getLinkedRooms($cohortId);
+		$manager = $this->managerFor(change: $change);
+		if ($manager === null) {
+			return;
+		}
+
+		foreach ($this->roomsOf(manager: $manager, links: $links) as $room) {
+			$this->applyTo(room: $room, change: $change);
+		}
+
+	}//end syncParticipant()
+
+	/**
+	 * The Talk links of the cohort, or none (logged) when Talk is not
+	 * available or the cohort has no linked conversation yet.
+	 *
+	 * @param CohortTalkMembershipChange $change The membership change.
+	 *
+	 * @return array<mixed>
+	 */
+	private function linkedRooms(CohortTalkMembershipChange $change): array {
+		if ($this->isTalkAvailableFor(change: $change) === false) {
+			return [];
+		}
+
+		$links = $this->talkLinkService->getLinkedRooms($change->cohortId);
 		if (empty($links) === true) {
 			$this->logger->info(
 				'[CohortTalkMembershipHandler] Cohort {cohort} has no linked Talk conversation yet — '
 				. 'skipping participant sync for learner {learner}.',
-				['cohort' => $cohortId, 'learner' => $learnerId]
+				['cohort' => $change->cohortId, 'learner' => $change->learnerId]
 			);
-			return;
+			return [];
 		}
 
+		return $links;
+	}//end linkedRooms()
+
+	/**
+	 * Whether Talk is available; logs the skipped sync when it is not.
+	 *
+	 * @param CohortTalkMembershipChange $change The membership change.
+	 *
+	 * @return bool
+	 */
+	private function isTalkAvailableFor(CohortTalkMembershipChange $change): bool {
+		if ($this->talkLinkService->isTalkAvailable() === false) {
+			$this->logger->info(
+				'[CohortTalkMembershipHandler] Talk (spreed) is not installed/enabled — skipping '
+				. 'participant sync for learner {learner} on Cohort {cohort}.',
+				['learner' => $change->learnerId, 'cohort' => $change->cohortId]
+			);
+			return false;
+		}
+
+		return true;
+	}//end isTalkAvailableFor()
+
+	/**
+	 * Talk's Manager, or null (logged) when it cannot be resolved.
+	 *
+	 * @param CohortTalkMembershipChange $change The membership change.
+	 *
+	 * @return object|null
+	 */
+	private function managerFor(CohortTalkMembershipChange $change): ?object {
 		$manager = $this->resolveManager();
 		if ($manager === null) {
 			$this->logger->info(
 				'[CohortTalkMembershipHandler] Talk Manager could not be resolved — skipping '
 				. 'participant sync for learner {learner} on Cohort {cohort}.',
-				['learner' => $learnerId, 'cohort' => $cohortId]
+				['learner' => $change->learnerId, 'cohort' => $change->cohortId]
 			);
-			return;
 		}
 
+		return $manager;
+	}//end managerFor()
+
+	/**
+	 * The Talk rooms behind the links, found one at a time as they are
+	 * consumed; links without a token and rooms Talk cannot find are skipped.
+	 *
+	 * @param object       $manager Talk Manager.
+	 * @param array<mixed> $links   The cohort's Talk links.
+	 *
+	 * @return \Generator<int,object>
+	 */
+	private function roomsOf(object $manager, array $links): \Generator {
 		foreach ($links as $link) {
 			$roomToken = $link['roomToken'] ?? '';
 			if (is_string($roomToken) === false || $roomToken === '') {
@@ -210,19 +292,28 @@ class CohortTalkMembershipHandler implements IEventListener {
 			}
 
 			$room = $this->findRoomByToken(manager: $manager, roomToken: $roomToken);
-			if ($room === null) {
-				continue;
+			if ($room !== null) {
+				yield $room;
 			}
+		}
+	}//end roomsOf()
 
-			if ($add === true) {
-				$this->addParticipant(room: $room, learnerId: $learnerId, cohortId: $cohortId);
-				continue;
-			}
+	/**
+	 * Add the learner to, or remove them from, one Talk room.
+	 *
+	 * @param object                     $room   Talk Room entity.
+	 * @param CohortTalkMembershipChange $change The membership change.
+	 *
+	 * @return void
+	 */
+	private function applyTo(object $room, CohortTalkMembershipChange $change): void {
+		if ($change->add === true) {
+			$this->addParticipant(room: $room, learnerId: $change->learnerId, cohortId: $change->cohortId);
+			return;
+		}
 
-			$this->removeParticipant(room: $room, learnerId: $learnerId, cohortId: $cohortId);
-		}//end foreach
-
-	}//end syncParticipant()
+		$this->removeParticipant(room: $room, learnerId: $change->learnerId, cohortId: $change->cohortId);
+	}//end applyTo()
 
 	/**
 	 * Add `$learnerId` as a Talk participant of `$room`.

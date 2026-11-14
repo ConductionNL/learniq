@@ -375,4 +375,76 @@ class ListenerSchemaResolverTest extends TestCase {
 		$this->assertSame('learniq', $resolver->registerSlug(entity: $entity));
 
 	}//end testRegisterSlugIsAcceptedDirectly()
+
+	/**
+	 * An object without the accessors, or one whose accessors answer null or
+	 * '', is never a Learniq object, whatever the contract says; with the
+	 * contract off an empty raw value still answers ''.
+	 *
+	 * @return void
+	 */
+	public function testAnEntityWithoutAccessorsOrValuesIsNotAMatch(): void {
+		$foreign = new \stdClass();
+		$blank = new class {
+			/**
+			 * No register.
+			 *
+			 * @return null
+			 */
+			public function getRegister() {
+				return null;
+			}//end getRegister()
+
+			/**
+			 * No schema.
+			 *
+			 * @return null
+			 */
+			public function getSchema() {
+				return null;
+			}//end getSchema()
+		};
+
+		foreach ([true, false] as $enabled) {
+			$resolver = $this->resolver(schemas: ['' => 'nothing'], registers: ['' => 'learniq'], enabled: $enabled);
+			foreach ([$foreign, $blank, $this->entity(registerId: '', schemaId: '')] as $entity) {
+				$this->assertSame('', $resolver->schemaSlug(entity: $entity));
+				$this->assertSame('', $resolver->guardSchemaSlug(entity: $entity));
+				$this->assertSame('', $resolver->registerSlug(entity: $entity));
+				$this->assertFalse($resolver->isOwnRegister(entity: $entity));
+			}
+		}
+
+	}//end testAnEntityWithoutAccessorsOrValuesIsNotAMatch()
+
+	/**
+	 * Allowed and refused outcomes of the register check behind every guard:
+	 * Learniq's id and slug (in any case) are its own register; another
+	 * app's id, an unknown id and an empty schema are not.
+	 *
+	 * @return void
+	 */
+	public function testOwnRegisterAllowsOnlyLearniq(): void {
+		$resolver = $this->resolver(
+			schemas: ['1280' => 'xapi-statement', '5103' => 'automation'],
+			registers: ['9' => 'learniq', '264' => 'shillinq', '7' => 'LEARNIQ'],
+		);
+
+		$this->assertTrue($resolver->isOwnRegister(entity: $this->entity(registerId: '9', schemaId: '1280')));
+		$this->assertTrue($resolver->isOwnRegister(entity: $this->entity(registerId: 'LearnIQ', schemaId: '1280')));
+		$this->assertTrue($resolver->isOwnRegister(entity: $this->entity(registerId: '7', schemaId: '1280')));
+		$this->assertFalse($resolver->isOwnRegister(entity: $this->entity(registerId: '264', schemaId: '5103')));
+		$this->assertFalse($resolver->isOwnRegister(entity: $this->entity(registerId: '404', schemaId: '1280')));
+
+		$this->assertSame('learniq', $resolver->registerSlug(entity: $this->entity(registerId: 'LearnIQ', schemaId: '1280')));
+		$this->assertSame('shillinq', $resolver->registerSlug(entity: $this->entity(registerId: '264', schemaId: '5103')));
+		$this->assertSame('', $resolver->registerSlug(entity: $this->entity(registerId: '404', schemaId: '1280')));
+
+		$this->assertSame('xapi-statement', $resolver->guardSchemaSlug(entity: $this->entity(registerId: 'learniq', schemaId: '1280')));
+		$this->assertSame('', $resolver->guardSchemaSlug(entity: $this->entity(registerId: '404', schemaId: '1280')));
+		$this->assertSame('', $resolver->guardSchemaSlug(entity: $this->entity(registerId: '9', schemaId: '')));
+		$this->assertSame('', $resolver->schemaSlug(entity: $this->entity(registerId: '264', schemaId: '5103')));
+		$this->assertSame('', $resolver->schemaSlug(entity: $this->entity(registerId: '9', schemaId: '')));
+
+	}//end testOwnRegisterAllowsOnlyLearniq()
 }//end class

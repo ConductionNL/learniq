@@ -23,7 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
+use OCA\Learniq\Listener\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\AccessibilityFeedbackReporterStamp;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;

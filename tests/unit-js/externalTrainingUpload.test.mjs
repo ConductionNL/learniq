@@ -6,12 +6,12 @@
 // writing the failed rows back out.
 
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import test from 'node:test'
 import {
 	failedRowsCsv,
 	isFailed,
 	parseCsv,
-	previewCounts,
 	reasonText,
 	rowsFromCsv,
 } from '../../src/utils/externalTrainingUpload.js'
@@ -125,17 +125,37 @@ test('reasonText fills the placeholders and leaves unknown ones', () => {
 	assert.equal(reasonText(null), '')
 })
 
-test('previewCounts and isFailed sort the rows by what happens to them', () => {
-	const report = [
-		{ status: 'ready' },
-		{ status: 'created' },
-		{ status: 'unmatched' },
-		{ status: 'invalid' },
-		{ status: 'duplicate' },
-		{ status: 'skipped' },
-	]
-	assert.deepEqual(previewCounts(report), { ready: 2, skipped: 2, failed: 2 })
+test('isFailed counts unmatched and invalid rows, not duplicates or skipped ones', () => {
+	assert.equal(isFailed({ status: 'unmatched' }), true)
+	assert.equal(isFailed({ status: 'invalid' }), true)
 	assert.equal(isFailed({ status: 'duplicate' }), false)
+	assert.equal(isFailed({ status: 'skipped' }), false)
 	assert.equal(isFailed(null), false)
-	assert.deepEqual(previewCounts(null), { ready: 0, skipped: 0, failed: 0 })
+})
+
+test('the upload dialog records in one post, without a dry run', () => {
+	const dialog = readFileSync(new URL('../../src/dialogs/ExternalTrainingUploadDialog.vue', import.meta.url), 'utf8')
+	assert.ok(!dialog.includes('dryRun'))
+	assert.ok(!dialog.includes('training-upload-confirm'))
+})
+
+test('parseCsv keeps delimiters and line breaks inside quotes, and ties go to the comma', () => {
+	assert.deepEqual(parseCsv('a;b,c\n"1;2",3'), [['a;b', 'c'], ['1;2', '3']])
+	assert.deepEqual(parseCsv('a;b\r"x\r\ny";"q""";\r\n  ;  \n'), [['a', 'b'], ['x\r\ny', 'q"', '']])
+	assert.deepEqual(parseCsv(null), [])
+	assert.deepEqual(parseCsv(''), [])
+	assert.deepEqual(parseCsv('"open'), [['open']])
+	assert.deepEqual(parseCsv('a\rb'), [['a'], ['b']])
+	assert.deepEqual(parseCsv('x"y",z'), [['xy', 'z']])
+})
+
+test('the failed rows file reads an absent report as nothing failed, and a missing row as empty cells', () => {
+	const header = failedRowsCsv([], null)
+	assert.equal(header.split('\r\n').length, 2)
+	assert.ok(header.endsWith('"reason"\r\n'))
+	const csv = failedRowsCsv([], [{ row: 4, status: 'invalid', reason: '=bad' }, { row: 1, status: 'created' }])
+	const lines = csv.split('\r\n')
+	assert.equal(lines.length, 3)
+	assert.ok(lines[1].endsWith(`"'=bad"`))
+	assert.ok(lines[1].startsWith('"",'))
 })

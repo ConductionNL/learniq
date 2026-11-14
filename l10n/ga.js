@@ -1,3 +1,7 @@
+/**
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ */
 OC.L10N.register(
     "learniq",
     {
@@ -466,7 +470,7 @@ OC.L10N.register(
         "How each assessment item performed, question by question.": "Conas a d'fheidhmigh gach mír mheasúnaithe, ceist ar cheist.",
         "What course evaluations said, per course.": "Cad a dúirt meastóireachtaí cúrsa, in aghaidh an chúrsa.",
         "What was found on placement visits.": "Cad a fuarthas ar chuairteanna ar an ionad oibre.",
-        "Store": "Siopa",
+        "Marketplace": "Siopa",
         "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Suiteáil cláir, scéimeanna agus sruthanna a d'fhoilsigh eagraíochtaí eile.",
         "Enter the access code you were given to start this assessment.": "Cuir isteach an cód rochtana a tugadh duit chun an measúnú seo a thosú.",
         "Access code": "Cód rochtana",

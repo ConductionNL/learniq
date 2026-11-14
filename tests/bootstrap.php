@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ */
+
 declare(strict_types=1);
 
 // Define that we're running PHPUnit.
@@ -56,6 +61,9 @@ require_once __DIR__ . '/Support/SlugMapper.php';
 require_once __DIR__ . '/Support/TransitionScope.php';
 require_once __DIR__ . '/Support/OrReadVerdict.php';
 require_once __DIR__ . '/Support/RegisterSchemaPayloads.php';
+require_once __DIR__ . '/Support/DelegatingDouble.php';
+require_once __DIR__ . '/Support/PassedArguments.php';
+require_once __DIR__ . '/Support/GoldenFile.php';
 
 // Shared guard: base.php exits() rather than throwing on a bad NC instance, so
 // loading it unconditionally silently truncates the suite to zero tests while
@@ -160,4 +168,11 @@ if (class_exists(\Symfony\Component\HttpFoundation\HeaderUtils::class) === false
 // real class is absent.
 if (class_exists('\\OCA\\Integriq\\Event\\ConnectionStatusReportedEvent') === false) {
 	require_once __DIR__ . '/Stubs/Integriq/Event/ConnectionStatusReportedEvent.php';
+}
+
+// Portaliq's claim scope event. PortalClaimScopeListener matches it by class
+// name, so learniq stays installable without portaliq. The stub mirrors
+// portaliq's class and loads only when the real class is absent.
+if (class_exists('\\OCA\\Portaliq\\Event\\PortalClaimScopeEvent') === false) {
+	require_once __DIR__ . '/Stubs/Portaliq/Event/PortalClaimScopeEvent.php';
 }

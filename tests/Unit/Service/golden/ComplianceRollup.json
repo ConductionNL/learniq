@@ -1,0 +1,628 @@
+{
+    "2026-03-15": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "regulation"
+                    },
+                    "limit": 10000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "learner-profile"
+                    },
+                    "limit": 10000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "lifecycle": "granted",
+                        "register": "learniq",
+                        "schema": "regulation-exemption"
+                    },
+                    "limit": 10000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "mandatory": true,
+                        "register": "learniq",
+                        "schema": "enrolment"
+                    },
+                    "limit": 10000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "credential"
+                    },
+                    "limit": 10000
+                }
+            }
+        },
+        {
+            "isLearnerCovered": [
+                "p-ann",
+                "VCA",
+                "2026-03-15T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "ann",
+                "VCA",
+                "2026-03-15T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "p-ann",
+                "GDPR",
+                "2026-03-15T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "ann",
+                "GDPR",
+                "2026-03-15T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "p-bob",
+                "BOARD",
+                "2026-03-15T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "p-cas",
+                "GDPR",
+                "2026-03-15T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "p-dee",
+                "GDPR",
+                "2026-03-15T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "dee",
+                "GDPR",
+                "2026-03-15T08:00:00+00:00"
+            ]
+        },
+        {
+            "result": [
+                {
+                    "department": "",
+                    "parent": null,
+                    "depth": 0,
+                    "learners": 1,
+                    "obligations": 1,
+                    "covered": 1,
+                    "excused": 0,
+                    "upcomingDeadlines": 2,
+                    "overdue": 0,
+                    "expiredCredentials": 0,
+                    "coveragePercent": 100.0
+                },
+                {
+                    "department": "Finance",
+                    "parent": null,
+                    "depth": 0,
+                    "learners": 1,
+                    "obligations": 1,
+                    "covered": 0,
+                    "excused": 1,
+                    "upcomingDeadlines": 0,
+                    "overdue": 0,
+                    "expiredCredentials": 1,
+                    "coveragePercent": 0.0
+                },
+                {
+                    "department": "Ops",
+                    "parent": null,
+                    "depth": 0,
+                    "learners": 2,
+                    "obligations": 3,
+                    "covered": 2,
+                    "excused": 1,
+                    "upcomingDeadlines": 1,
+                    "overdue": 1,
+                    "expiredCredentials": 1,
+                    "coveragePercent": 66.7
+                },
+                {
+                    "department": "Ops/Infra",
+                    "parent": "Ops",
+                    "depth": 1,
+                    "learners": 1,
+                    "obligations": 2,
+                    "covered": 1,
+                    "excused": 0,
+                    "upcomingDeadlines": 1,
+                    "overdue": 1,
+                    "expiredCredentials": 1,
+                    "coveragePercent": 50.0
+                },
+                {
+                    "department": "Ops/Infra/Team A",
+                    "parent": "Ops/Infra",
+                    "depth": 2,
+                    "learners": 1,
+                    "obligations": 2,
+                    "covered": 1,
+                    "excused": 0,
+                    "upcomingDeadlines": 1,
+                    "overdue": 1,
+                    "expiredCredentials": 1,
+                    "coveragePercent": 50.0
+                },
+                {
+                    "department": "Ops/Stations",
+                    "parent": "Ops",
+                    "depth": 1,
+                    "learners": 1,
+                    "obligations": 1,
+                    "covered": 1,
+                    "excused": 1,
+                    "upcomingDeadlines": 0,
+                    "overdue": 0,
+                    "expiredCredentials": 0,
+                    "coveragePercent": 100.0
+                }
+            ]
+        }
+    ],
+    "2026-07-01": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "regulation"
+                    },
+                    "limit": 10000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "learner-profile"
+                    },
+                    "limit": 10000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "lifecycle": "granted",
+                        "register": "learniq",
+                        "schema": "regulation-exemption"
+                    },
+                    "limit": 10000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "mandatory": true,
+                        "register": "learniq",
+                        "schema": "enrolment"
+                    },
+                    "limit": 10000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "credential"
+                    },
+                    "limit": 10000
+                }
+            }
+        },
+        {
+            "isLearnerCovered": [
+                "p-ann",
+                "VCA",
+                "2026-07-01T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "ann",
+                "VCA",
+                "2026-07-01T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "p-ann",
+                "GDPR",
+                "2026-07-01T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "ann",
+                "GDPR",
+                "2026-07-01T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "p-bob",
+                "GDPR",
+                "2026-07-01T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "bob",
+                "GDPR",
+                "2026-07-01T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "p-bob",
+                "BOARD",
+                "2026-07-01T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "p-cas",
+                "GDPR",
+                "2026-07-01T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "p-dee",
+                "GDPR",
+                "2026-07-01T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "dee",
+                "GDPR",
+                "2026-07-01T08:00:00+00:00"
+            ]
+        },
+        {
+            "result": [
+                {
+                    "department": "",
+                    "parent": null,
+                    "depth": 0,
+                    "learners": 1,
+                    "obligations": 1,
+                    "covered": 1,
+                    "excused": 0,
+                    "upcomingDeadlines": 0,
+                    "overdue": 3,
+                    "expiredCredentials": 0,
+                    "coveragePercent": 100.0
+                },
+                {
+                    "department": "Finance",
+                    "parent": null,
+                    "depth": 0,
+                    "learners": 1,
+                    "obligations": 1,
+                    "covered": 0,
+                    "excused": 1,
+                    "upcomingDeadlines": 0,
+                    "overdue": 0,
+                    "expiredCredentials": 1,
+                    "coveragePercent": 0.0
+                },
+                {
+                    "department": "Ops",
+                    "parent": null,
+                    "depth": 0,
+                    "learners": 2,
+                    "obligations": 4,
+                    "covered": 2,
+                    "excused": 0,
+                    "upcomingDeadlines": 0,
+                    "overdue": 3,
+                    "expiredCredentials": 2,
+                    "coveragePercent": 50.0
+                },
+                {
+                    "department": "Ops/Infra",
+                    "parent": "Ops",
+                    "depth": 1,
+                    "learners": 1,
+                    "obligations": 2,
+                    "covered": 1,
+                    "excused": 0,
+                    "upcomingDeadlines": 0,
+                    "overdue": 2,
+                    "expiredCredentials": 2,
+                    "coveragePercent": 50.0
+                },
+                {
+                    "department": "Ops/Infra/Team A",
+                    "parent": "Ops/Infra",
+                    "depth": 2,
+                    "learners": 1,
+                    "obligations": 2,
+                    "covered": 1,
+                    "excused": 0,
+                    "upcomingDeadlines": 0,
+                    "overdue": 2,
+                    "expiredCredentials": 2,
+                    "coveragePercent": 50.0
+                },
+                {
+                    "department": "Ops/Stations",
+                    "parent": "Ops",
+                    "depth": 1,
+                    "learners": 1,
+                    "obligations": 2,
+                    "covered": 1,
+                    "excused": 0,
+                    "upcomingDeadlines": 0,
+                    "overdue": 1,
+                    "expiredCredentials": 0,
+                    "coveragePercent": 50.0
+                }
+            ]
+        }
+    ],
+    "2027-02-01": [
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "regulation"
+                    },
+                    "limit": 10000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "learner-profile"
+                    },
+                    "limit": 10000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "lifecycle": "granted",
+                        "register": "learniq",
+                        "schema": "regulation-exemption"
+                    },
+                    "limit": 10000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "mandatory": true,
+                        "register": "learniq",
+                        "schema": "enrolment"
+                    },
+                    "limit": 10000
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "credential"
+                    },
+                    "limit": 10000
+                }
+            }
+        },
+        {
+            "isLearnerCovered": [
+                "p-ann",
+                "VCA",
+                "2027-02-01T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "ann",
+                "VCA",
+                "2027-02-01T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "p-ann",
+                "GDPR",
+                "2027-02-01T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "ann",
+                "GDPR",
+                "2027-02-01T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "p-bob",
+                "GDPR",
+                "2027-02-01T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "bob",
+                "GDPR",
+                "2027-02-01T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "p-bob",
+                "BOARD",
+                "2027-02-01T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "p-cas",
+                "GDPR",
+                "2027-02-01T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "p-cas",
+                "BOARD",
+                "2027-02-01T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "p-dee",
+                "GDPR",
+                "2027-02-01T08:00:00+00:00"
+            ]
+        },
+        {
+            "isLearnerCovered": [
+                "dee",
+                "GDPR",
+                "2027-02-01T08:00:00+00:00"
+            ]
+        },
+        {
+            "result": [
+                {
+                    "department": "",
+                    "parent": null,
+                    "depth": 0,
+                    "learners": 1,
+                    "obligations": 1,
+                    "covered": 1,
+                    "excused": 0,
+                    "upcomingDeadlines": 0,
+                    "overdue": 3,
+                    "expiredCredentials": 1,
+                    "coveragePercent": 100.0
+                },
+                {
+                    "department": "Finance",
+                    "parent": null,
+                    "depth": 0,
+                    "learners": 1,
+                    "obligations": 2,
+                    "covered": 0,
+                    "excused": 0,
+                    "upcomingDeadlines": 0,
+                    "overdue": 0,
+                    "expiredCredentials": 1,
+                    "coveragePercent": 0.0
+                },
+                {
+                    "department": "Ops",
+                    "parent": null,
+                    "depth": 0,
+                    "learners": 2,
+                    "obligations": 4,
+                    "covered": 2,
+                    "excused": 0,
+                    "upcomingDeadlines": 0,
+                    "overdue": 3,
+                    "expiredCredentials": 2,
+                    "coveragePercent": 50.0
+                },
+                {
+                    "department": "Ops/Infra",
+                    "parent": "Ops",
+                    "depth": 1,
+                    "learners": 1,
+                    "obligations": 2,
+                    "covered": 1,
+                    "excused": 0,
+                    "upcomingDeadlines": 0,
+                    "overdue": 2,
+                    "expiredCredentials": 2,
+                    "coveragePercent": 50.0
+                },
+                {
+                    "department": "Ops/Infra/Team A",
+                    "parent": "Ops/Infra",
+                    "depth": 2,
+                    "learners": 1,
+                    "obligations": 2,
+                    "covered": 1,
+                    "excused": 0,
+                    "upcomingDeadlines": 0,
+                    "overdue": 2,
+                    "expiredCredentials": 2,
+                    "coveragePercent": 50.0
+                },
+                {
+                    "department": "Ops/Stations",
+                    "parent": "Ops",
+                    "depth": 1,
+                    "learners": 1,
+                    "obligations": 2,
+                    "covered": 1,
+                    "excused": 0,
+                    "upcomingDeadlines": 0,
+                    "overdue": 1,
+                    "expiredCredentials": 0,
+                    "coveragePercent": 50.0
+                }
+            ]
+        }
+    ]
+}

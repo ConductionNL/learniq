@@ -39,7 +39,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\CourseStore;
 
-use OCA\Learniq\Controller\StoreController;
+use OCA\Learniq\Kernel\Contracts\StoreAccessServiceInterface;
+use OCA\Learniq\Kernel\Contracts\StoreActionsInterface;
 use OCA\Learniq\Service\ActionAuthService;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -47,7 +48,7 @@ use OCP\IUserSession;
 /**
  * Answers which store actions a user may take.
  */
-class StoreAccessService {
+class StoreAccessService implements StoreAccessServiceInterface {
 
 	/**
 	 * Constructor.
@@ -92,7 +93,7 @@ class StoreAccessService {
 	 */
 	public function forUser(IUser $user): array {
 		return [
-			'install' => $this->actionAuth->can($user, StoreController::ACTION_INSTALL) === true,
+			'install' => $this->actionAuth->can($user, StoreActionsInterface::ACTION_INSTALL) === true,
 			'publish' => $this->mayPublish(user: $user),
 		];
 
@@ -106,7 +107,7 @@ class StoreAccessService {
 	 * @return bool
 	 */
 	private function mayPublish(IUser $user): bool {
-		if ($this->actionAuth->can($user, StoreController::ACTION_PUBLISH) === false) {
+		if ($this->actionAuth->can($user, StoreActionsInterface::ACTION_PUBLISH) === false) {
 			return false;
 		}
 

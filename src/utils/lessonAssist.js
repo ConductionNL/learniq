@@ -124,10 +124,44 @@ export function clampLessonText(text) {
  */
 export function lessonTextFromBlocks(blocks) {
 	const parts = (blocks ?? [])
-		.filter((b) => b?.type === 'richText' && !b.assistDraft)
+		.filter((b) => b?.type === 'richText' && !b.draft)
 		.map((b) => String(b.text ?? '').trim())
 		.filter((t) => t !== '')
 	return clampLessonText(parts.join('\n\n'))
+}
+
+/**
+ * A goal title as it leaves learniq: trimmed and cut to GOAL_TITLE_MAX.
+ *
+ * @param {unknown} title The title.
+ * @return {string} The title, '' when there is none.
+ * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+ */
+function goalTitle(title) {
+	return String(title ?? '')
+		.trim()
+		.slice(0, GOAL_TITLE_MAX)
+		.trim()
+}
+
+/**
+ * Add one goal to the payload being built, unless it has no id or title or
+ * its id is already in.
+ *
+ * @param {{titles: string[], ids: string[], seen: Set<string>}} run The payload being built.
+ * @param {{id: string, title: string}} goal A candidate goal.
+ * @return {void}
+ * @spec openspec/specs/course-management/spec.md#scenario-goal-suggestions-map-back-to-goal-ids
+ */
+function addGoal(run, goal) {
+	const id = String(goal?.id ?? '')
+	const title = goalTitle(goal?.title)
+	if (id === '' || title === '' || run.seen.has(id)) {
+		return
+	}
+	run.seen.add(id)
+	run.ids.push(id)
+	run.titles.push(title)
 }
 
 /**
@@ -141,22 +175,35 @@ export function lessonTextFromBlocks(blocks) {
  * @spec openspec/specs/course-management/spec.md#scenario-goal-suggestions-map-back-to-goal-ids
  */
 export function goalPayload(goals) {
-	const titles = []
-	const ids = []
-	const seen = new Set()
+	const run = { titles: [], ids: [], seen: new Set() }
 	for (const goal of goals ?? []) {
-		const id = String(goal?.id ?? '')
-		const title = String(goal?.title ?? '')
-			.trim()
-			.slice(0, GOAL_TITLE_MAX)
-			.trim()
-		if (id === '' || title === '' || seen.has(id)) continue
-		seen.add(id)
-		ids.push(id)
-		titles.push(title)
-		if (ids.length === GOAL_COUNT_MAX) break
+		addGoal(run, goal)
+		if (run.ids.length === GOAL_COUNT_MAX) break
 	}
-	return { titles, ids }
+	return { titles: run.titles, ids: run.ids }
+}
+
+/**
+ * A value when it is a list, else an empty list.
+ *
+ * @param {unknown} value The value.
+ * @return {Array} The list.
+ * @spec openspec/specs/course-management/spec.md#scenario-goal-suggestions-map-back-to-goal-ids
+ */
+function listOrEmpty(value) {
+	return Array.isArray(value) ? value : []
+}
+
+/**
+ * Whether a returned index points into the list of ids sent.
+ *
+ * @param {unknown} index The index from the answer.
+ * @param {string[]} ids The ids, in the order their titles were sent.
+ * @return {boolean} True for an integer inside the list.
+ * @spec openspec/specs/course-management/spec.md#scenario-goal-suggestions-map-back-to-goal-ids
+ */
+function isIndexInto(index, ids) {
+	return Number.isInteger(index) && index >= 0 && index < ids.length
 }
 
 /**
@@ -170,12 +217,94 @@ export function goalPayload(goals) {
  */
 export function goalIdsFromSuggestions(suggestedGoals, ids) {
 	const result = []
-	for (const entry of Array.isArray(suggestedGoals) ? suggestedGoals : []) {
+	for (const entry of listOrEmpty(suggestedGoals)) {
 		const index = entry?.index
-		if (!Number.isInteger(index) || index < 0 || index >= ids.length) continue
-		if (!result.includes(ids[index])) result.push(ids[index])
+		if (isIndexInto(index, ids) && !result.includes(ids[index])) {
+			result.push(ids[index])
+		}
 	}
 	return result
+}
+
+/**
+ * The body of an outline request; the lesson text only when there is one.
+ *
+ * @param {{input: object, lessonText: string, goalTitles: string[]}} fields The normalised fields.
+ * @return {object} The body.
+ * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+ */
+function outlineBody(fields) {
+	const body = {
+		goalTitles: fields.goalTitles,
+		language: normaliseLanguage(fields.input.language),
+	}
+	if (fields.lessonText !== '') body.lessonText = fields.lessonText
+	return body
+}
+
+/**
+ * The body of a questions request; the goal titles only when there are any.
+ *
+ * @param {{input: object, lessonText: string, goalTitles: string[]}} fields The normalised fields.
+ * @return {object} The body.
+ * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+ */
+function questionsBody(fields) {
+	const body = {
+		lessonText: fields.lessonText,
+		questionCount: normaliseQuestionCount(fields.input.questionCount),
+		language: normaliseLanguage(fields.input.language),
+	}
+	if (fields.goalTitles.length > 0) body.goalTitles = fields.goalTitles
+	return body
+}
+
+/**
+ * The body of a simplify request.
+ *
+ * @param {{input: object, lessonText: string}} fields The normalised fields.
+ * @return {object} The body.
+ * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+ */
+function simplifyBody(fields) {
+	return {
+		lessonText: fields.lessonText,
+		readingLevel: normaliseReadingLevel(fields.input.readingLevel),
+	}
+}
+
+/**
+ * The body of a goal-suggestions request.
+ *
+ * @param {{lessonText: string, goalTitles: string[]}} fields The normalised fields.
+ * @return {object} The body.
+ * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+ */
+function goalSuggestionsBody(fields) {
+	return { lessonText: fields.lessonText, goalTitles: fields.goalTitles }
+}
+
+/** The body builder of each action. */
+const REQUEST_BODIES = new Map([
+	['outline', outlineBody],
+	['questions', questionsBody],
+	['simplify', simplifyBody],
+	['goal-suggestions', goalSuggestionsBody],
+])
+
+/**
+ * The goal titles a request carries: trimmed, cut, blanks dropped, at most
+ * GOAL_COUNT_MAX.
+ *
+ * @param {Array<unknown>|undefined} goalTitles The titles given.
+ * @return {string[]} The titles.
+ * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+ */
+function requestGoalTitles(goalTitles) {
+	return (goalTitles ?? [])
+		.map((t) => goalTitle(t))
+		.filter((t) => t !== '')
+		.slice(0, GOAL_COUNT_MAX)
 }
 
 /**
@@ -188,42 +317,38 @@ export function goalIdsFromSuggestions(suggestedGoals, ids) {
  * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
  */
 export function buildRequestBody(action, input = {}) {
-	const lessonText = clampLessonText(input.lessonText)
-	const goalTitles = (input.goalTitles ?? [])
-		.map((t) =>
-			String(t ?? '')
-				.trim()
-				.slice(0, GOAL_TITLE_MAX)
-				.trim(),
-		)
-		.filter((t) => t !== '')
-		.slice(0, GOAL_COUNT_MAX)
-
-	switch (action) {
-		case 'outline': {
-			const body = { goalTitles, language: normaliseLanguage(input.language) }
-			if (lessonText !== '') body.lessonText = lessonText
-			return body
-		}
-		case 'questions': {
-			const body = {
-				lessonText,
-				questionCount: normaliseQuestionCount(input.questionCount),
-				language: normaliseLanguage(input.language),
-			}
-			if (goalTitles.length > 0) body.goalTitles = goalTitles
-			return body
-		}
-		case 'simplify':
-			return {
-				lessonText,
-				readingLevel: normaliseReadingLevel(input.readingLevel),
-			}
-		case 'goal-suggestions':
-			return { lessonText, goalTitles }
-		default:
-			throw new Error(`Unknown lesson assist action: ${action}`)
+	const fields = {
+		input,
+		lessonText: clampLessonText(input.lessonText),
+		goalTitles: requestGoalTitles(input.goalTitles),
 	}
+	const build = REQUEST_BODIES.get(action)
+	if (build === undefined) {
+		throw new Error(`Unknown lesson assist action: ${action}`)
+	}
+	return build(fields)
+}
+
+/**
+ * Whether a request body carries lesson text.
+ *
+ * @param {object} body The body from buildRequestBody().
+ * @return {boolean} True when it has text.
+ * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+ */
+function hasLessonText(body) {
+	return typeof body?.lessonText === 'string' && body.lessonText !== ''
+}
+
+/**
+ * Whether a request body carries goal titles.
+ *
+ * @param {object} body The body from buildRequestBody().
+ * @return {boolean} True when it has goals.
+ * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+ */
+function hasGoalTitles(body) {
+	return Array.isArray(body?.goalTitles) && body.goalTitles.length > 0
 }
 
 /**
@@ -236,11 +361,119 @@ export function buildRequestBody(action, input = {}) {
  * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
  */
 export function canRun(action, body) {
-	const hasText = typeof body?.lessonText === 'string' && body.lessonText !== ''
-	const hasGoals = Array.isArray(body?.goalTitles) && body.goalTitles.length > 0
+	const hasText = hasLessonText(body)
+	const hasGoals = hasGoalTitles(body)
 	if (action === 'outline') return hasGoals
 	if (action === 'goal-suggestions') return hasText && hasGoals
 	return hasText
+}
+
+/** The outcome an HTTP status means on its own, whatever the body says. */
+const STATUS_OUTCOMES = new Map([
+	[404, { outcome: 'off', reason: 'not-installed' }],
+	[429, { outcome: 'busy', reason: 'rate-limited' }],
+])
+
+/**
+ * An outcome that carries no answer.
+ *
+ * @param {string} outcome The outcome class.
+ * @param {string} reason Why.
+ * @return {{outcome: string, reason: string, data: null}} The outcome.
+ * @spec openspec/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
+ */
+function outcomeWithoutData(outcome, reason) {
+	return { outcome, reason, data: null }
+}
+
+/**
+ * The outcome the HTTP status alone decides, or null.
+ *
+ * @param {{status?: number}|undefined} response What the transport gave.
+ * @return {{outcome: string, reason: string, data: null}|null} The outcome.
+ * @spec openspec/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
+ */
+function statusOutcome(response) {
+	const byStatus = STATUS_OUTCOMES.get(response?.status ?? 0)
+	return byStatus === undefined ? null : outcomeWithoutData(byStatus.outcome, byStatus.reason)
+}
+
+/**
+ * Whether an answer is an object to read.
+ *
+ * @param {unknown} data The answer.
+ * @return {boolean} True for an object.
+ * @spec openspec/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
+ */
+function isAnswerObject(data) {
+	return data !== null && typeof data === 'object'
+}
+
+/**
+ * Whether the request failed: an error, a status other than 200, or no
+ * object to read.
+ *
+ * @param {{status?: number, data?: object, error?: unknown}|undefined} response What the transport gave.
+ * @return {boolean} True when it failed.
+ * @spec openspec/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
+ */
+function requestFailed(response) {
+	return (
+		response?.error !== undefined
+		|| (response?.status ?? 0) !== 200
+		|| !isAnswerObject(response?.data ?? null)
+	)
+}
+
+/**
+ * Whether an answer carries a result the action can use: non-blank draft
+ * text, a non-empty question list, or a goal-suggestion list (empty allowed).
+ *
+ * @param {string} action One of ASSIST_ACTIONS.
+ * @param {object} data The answer.
+ * @return {boolean} True when usable.
+ * @spec openspec/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
+ */
+function answerUsable(action, data) {
+	const field = RESULT_FIELD[action]
+	const value = data[field]
+	if (field === 'draftText') {
+		return typeof value === 'string' && value.trim() !== ''
+	}
+	return Array.isArray(value) && (field === 'suggestedGoals' || value.length > 0)
+}
+
+/**
+ * The outcome of an answer hermiq marked unavailable: off when the feature
+ * is not enabled, else retry with hermiq's reason.
+ *
+ * @param {object} data The answer.
+ * @return {{outcome: string, reason: string, data: null}} The outcome.
+ * @spec openspec/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
+ */
+function unavailableOutcome(data) {
+	if (data.reason === 'feature-not-enabled') {
+		return outcomeWithoutData('off', 'feature-not-enabled')
+	}
+	return outcomeWithoutData('retry', String(data.reason ?? 'provider-error'))
+}
+
+/**
+ * The outcome of an answer that arrived as an object.
+ *
+ * @param {string} action One of ASSIST_ACTIONS.
+ * @param {object} data The answer.
+ * @return {{outcome: string, reason: string|null, data: object|null}} The outcome.
+ * @spec openspec/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
+ */
+function answerOutcome(action, data) {
+	if (data.available === false) {
+		return unavailableOutcome(data)
+	}
+	if (data.available !== true || !answerUsable(action, data)) {
+		return outcomeWithoutData('retry', 'unusable-answer')
+	}
+	return { outcome: 'ok', reason: null, data }
 }
 
 /**
@@ -254,45 +487,14 @@ export function canRun(action, body) {
  * @spec openspec/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
  */
 export function classifyOutcome(action, response) {
-	const status = response?.status ?? 0
-	const data = response?.data ?? null
-
-	if (status === 404)
-		return { outcome: 'off', reason: 'not-installed', data: null }
-	if (status === 429)
-		return { outcome: 'busy', reason: 'rate-limited', data: null }
-	if (
-		response?.error !== undefined
-		|| status !== 200
-		|| data === null
-		|| typeof data !== 'object'
-	) {
-		return { outcome: 'failed', reason: 'request-failed', data: null }
+	const byStatus = statusOutcome(response)
+	if (byStatus !== null) {
+		return byStatus
 	}
-
-	if (data.available === false) {
-		if (data.reason === 'feature-not-enabled') {
-			return { outcome: 'off', reason: 'feature-not-enabled', data: null }
-		}
-		return {
-			outcome: 'retry',
-			reason: String(data.reason ?? 'provider-error'),
-			data: null,
-		}
+	if (requestFailed(response)) {
+		return outcomeWithoutData('failed', 'request-failed')
 	}
-
-	const field = RESULT_FIELD[action]
-	const value = data[field]
-	const usable =
-		field === 'draftText'
-			? typeof value === 'string' && value.trim() !== ''
-			: Array.isArray(value)
-				&& (field === 'suggestedGoals' || value.length > 0)
-	if (data.available !== true || !usable) {
-		return { outcome: 'retry', reason: 'unusable-answer', data: null }
-	}
-
-	return { outcome: 'ok', reason: null, data }
+	return answerOutcome(action, response.data)
 }
 
 /**

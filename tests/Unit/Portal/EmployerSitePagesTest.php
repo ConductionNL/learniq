@@ -29,6 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Portal;
 
 use OCA\Learniq\Portal\EmployerPortalInvitation;
+use OCA\Learniq\Portal\PortalTenant;
 use OCA\Learniq\Portal\EmployerSitePages;
 use OCA\Learniq\Portal\PortalContributionProvider;
 use OCA\Learniq\Service\Portal\EmployerBookingSteps;
@@ -311,8 +312,16 @@ class EmployerSitePagesTest extends TestCase {
 					'contactEmail' => 'linda@jansen.example',
 					'locationId' => 'loc-1',
 					'lifecycle' => 'active',
+					'@self' => ['organisation' => 'uuid-default'],
 				],
-				['id' => 'co-gone', 'name' => 'Weg BV', 'contactEmail' => 'x@weg.example', 'lifecycle' => 'inactive'],
+				[
+					'id' => 'co-gone',
+					'name' => 'Weg BV',
+					'contactEmail' => 'x@weg.example',
+					'lifecycle' => 'inactive',
+					'@self' => ['organisation' => 'uuid-default']
+				],
+				['id' => 'co-elsewhere', 'name' => 'Elders BV', 'contactEmail' => 'y@elders.example', '@self' => ['organisation' => 'uuid-other']],
 			],
 		];
 		$objectService = $this->createMock(ObjectService::class);
@@ -330,7 +339,12 @@ class EmployerSitePagesTest extends TestCase {
 			claimEventClass: FakeEmployerClaimEvent::class
 		);
 
-		self::assertSame(['status' => 'invited', 'subjectRef' => 'linda-account'], $invitation->invite(organisationRef: 'co-jansen', organisation: 'default-organisation'));
+		$tenant = new PortalTenant(slug: 'default-organisation', uuid: 'uuid-default');
+		self::assertSame(
+			expected: ['status' => 'invited', 'subjectRef' => 'linda-account'],
+			actual: $invitation->invite(organisationRef: 'co-jansen', tenant: $tenant)
+		);
+		self::assertSame(expected: 'default-organisation', actual: $dispatched[0]->organisation);
 		self::assertSame(['employer', 'eherkenning', 'eherkenning-jansen', 'linda@jansen.example', 'Linda Jansen'], [$dispatched[0]->audience, $dispatched[0]->identityType, $dispatched[0]->identityRef, $dispatched[0]->email, $dispatched[0]->displayName]);
 		$claims = [];
 		foreach (array_slice($dispatched, 1) as $claim) {
@@ -341,8 +355,39 @@ class EmployerSitePagesTest extends TestCase {
 		$read = array_unique(array_column(self::manifest()['collections'], 'scopeClaim'));
 		self::assertSame([], array_diff($read, array_keys($claims)), 'every claim a collection reads is written');
 
-		self::assertSame(['status' => 'refused', 'reason' => 'company-unknown'], $invitation->invite(organisationRef: 'co-gone', organisation: 'default-organisation'));
-		self::assertSame(['status' => 'refused', 'reason' => 'company-unknown'], $invitation->invite(organisationRef: 'co-none', organisation: 'default-organisation'));
-		self::assertSame(['status' => 'refused', 'reason' => 'email-invalid'], $invitation->invite(organisationRef: 'co-jansen', organisation: 'o', email: 'geen-adres'));
+		$unknown = ['status' => 'refused', 'reason' => 'company-unknown'];
+		self::assertSame(expected: $unknown, actual: $invitation->invite(organisationRef: 'co-gone', tenant: $tenant));
+		self::assertSame(expected: $unknown, actual: $invitation->invite(organisationRef: 'co-none', tenant: $tenant));
+		self::assertSame(
+			expected: $unknown,
+			actual: $invitation->invite(organisationRef: 'co-elsewhere', tenant: $tenant),
+			message: 'a company of another organisation'
+		);
+		$invalid = $invitation->invite(organisationRef: 'co-jansen', tenant: $tenant, email: 'geen-adres');
+		self::assertSame(expected: ['status' => 'refused', 'reason' => 'email-invalid'], actual: $invalid);
 	}//end testTheInvitationWritesTheClaimsTheCollectionsRead()
+
+	/**
+	 * A booking shows its participants as the board does (name, certificate
+	 * line, details pill), and the certificates group per certificate
+	 * (REPORT-2, item 9).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/placement-and-bookings-follow-the-boards/specs/portal-contribution/spec.md#requirement-a-booking-lists-its-participants-and-the-certificates-group-per-certificate
+	 */
+	public function testABookingListsItsParticipantsAndCertificatesGroup(): void {
+		$manifest = (new PortalContributionProvider())->getContribution(['audience' => EmployerSitePages::AUDIENCE]);
+		$bookings = array_column($manifest['pages'], null, 'id')['employerBookings'];
+		$people   = array_values(array_filter($bookings['blocks'], static fn (array $b): bool => ($b['collection'] ?? '') === 'employerParticipants'))[0];
+		self::assertSame(['rows', ['learnerName'], 'certificateLine', 'detailsStatus'], [$people['display'], $people['titleFields'], $people['subtitleField'], $people['statusField']]);
+		self::assertSame(array_keys(EmployerSitePages::DETAILS_STATUS), array_keys($people['statusTones']));
+
+		$collections = array_column($manifest['collections'], null, 'id');
+		self::assertSame('courseName', $collections['employerCertificates']['groupByField']);
+		self::assertContains('courseName', $collections['employerCertificates']['fields']);
+		foreach (['learnerName', 'certificateLine', 'detailsStatus'] as $field) {
+			self::assertContains($field, $collections['employerParticipants']['fields']);
+		}
+	}//end testABookingListsItsParticipantsAndCertificatesGroup()
 }//end class

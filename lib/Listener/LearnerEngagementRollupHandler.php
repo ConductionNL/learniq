@@ -3,6 +3,9 @@
 /**
  * Learniq Learner Engagement Rollup Handler
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Listens for OpenRegister's ObjectCreatedEvent on PointAward objects,
  * finds-or-creates the learner's LearnerEngagement row, and recomputes it via
  * PointEngagementEvaluator. When the triggering award's sourceKind is not
@@ -29,8 +32,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -43,7 +44,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\BackgroundJob\LearnerEngagementRollupJob;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCP\EventDispatcher\Event;
@@ -65,13 +66,13 @@ class LearnerEngagementRollupHandler implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ListenerDeferralService $deferral Buffers the roll-up for after the request.
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the entity's register/schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ListenerDeferralService $deferral,
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 	) {
 	}//end __construct()
 

@@ -25,10 +25,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\IntegrityListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\IntegrityListenerRegistrar;
 use OCA\Learniq\Listener\LvsResultFreezeListener;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\OpenRegister\Event\ObjectLeavingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\IGroupManager;
@@ -250,7 +251,36 @@ class LvsResultFreezeListenerTest extends TestCase {
 		(new IntegrityListenerRegistrar())->register(context: $context);
 
 		self::assertContains(ObjectUpdatingEvent::class . ' => ' . LvsResultFreezeListener::class, $pairs);
+		self::assertContains(ObjectLeavingEvent::class . ' => ' . LvsResultFreezeListener::class, $pairs);
 	}//end testTheFreezeIsRegisteredOnUpdate()
+
+	/**
+	 * A verified result cannot be moved out of its register or schema.
+	 *
+	 * @return void
+	 */
+	public function testAVerifiedResultCannotBeMoved(): void {
+		$event = new ObjectLeavingEvent(OrEntityFactory::make($this->lvs('verified'), 'lvs-result'));
+		$this->makeListener()->handle($event);
+
+		self::assertTrue($event->isPropagationStopped());
+		self::assertSame('lvs-result-move', $event->getErrors()['reason']);
+	}//end testAVerifiedResultCannotBeMoved()
+
+	/**
+	 * An imported result may still be moved, and an admin may move a verified one.
+	 *
+	 * @return void
+	 */
+	public function testAnImportedResultOrAnAdminMoveGoesThrough(): void {
+		$imported = new ObjectLeavingEvent(OrEntityFactory::make($this->lvs('imported'), 'lvs-result'));
+		$this->makeListener()->handle($imported);
+		self::assertFalse($imported->isPropagationStopped());
+
+		$byAdmin = new ObjectLeavingEvent(OrEntityFactory::make($this->lvs('verified'), 'lvs-result'));
+		$this->makeListener(isAdmin: true)->handle($byAdmin);
+		self::assertFalse($byAdmin->isPropagationStopped());
+	}//end testAnImportedResultOrAnAdminMoveGoesThrough()
 
 	/**
 	 * The register no longer claims LvsResult is append-only.
@@ -267,4 +297,52 @@ class LvsResultFreezeListenerTest extends TestCase {
 		self::assertStringNotContainsString('Append-only', $description);
 		self::assertStringContainsString('LvsResultFreezeListener', $description);
 	}//end testTheRegisterDescribesTheFreezeNotAppendOnly()
+
+	/**
+	 * Every refusal of an update names its exact reason and message; an equal
+	 * float score, archiving and an update without a stored version pass.
+	 *
+	 * @return void
+	 */
+	public function testEachUpdateOutcomeIsExact(): void {
+		$listener = $this->makeListener();
+		$verified = ['reason' => 'lvs-result-verified', 'message' => 'The score of a verified LVS result cannot be changed.'];
+		$lifecycle = ['reason' => 'lvs-result-lifecycle', 'message' => 'A verified LVS result can only be archived.'];
+
+		self::assertSame($verified, $this->update($listener, $this->lvs('archived'), $this->lvs('archived', ['dle' => 26]))->getErrors());
+		self::assertSame($verified, $this->update($listener, $this->lvs('verified'), $this->lvs('imported', ['niveau' => 'I']))->getErrors());
+		self::assertSame($lifecycle, $this->update($listener, $this->lvs('verified'), $this->lvs('imported'))->getErrors());
+		self::assertSame($lifecycle, $this->update($listener, $this->lvs('archived'), $this->lvs('verified'))->getErrors());
+
+		self::assertFalse($this->update($listener, $this->lvs('verified'), $this->lvs('archived', ['rawScore' => 42.0]))->isPropagationStopped());
+		$noState = $this->lvs('verified');
+		unset($noState['lifecycle']);
+		self::assertFalse($this->update($listener, $this->lvs('verified'), $noState)->isPropagationStopped());
+
+		$unstored = new ObjectUpdatingEvent(OrEntityFactory::make($this->lvs('imported'), 'lvs-result'), null);
+		$listener->handle($unstored);
+		self::assertFalse($unstored->isPropagationStopped());
+	}//end testEachUpdateOutcomeIsExact()
+
+	/**
+	 * A move refusal is exact, and a schema that cannot be resolved is never policed.
+	 *
+	 * @return void
+	 */
+	public function testTheMoveRefusalIsExactAndAnUnknownSchemaPasses(): void {
+		$moved = new ObjectLeavingEvent(OrEntityFactory::make($this->lvs('archived'), 'lvs-result'));
+		$this->makeListener()->handle($moved);
+		self::assertSame(['reason' => 'lvs-result-move', 'message' => 'A verified LVS result cannot be moved.'], $moved->getErrors());
+
+		$resolver = $this->createMock(ListenerSchemaResolver::class);
+		$resolver->method('guardSchemaSlug')->willThrowException(new \RuntimeException('no schema'));
+		$listener = new LvsResultFreezeListener(
+			schemaResolver: $resolver,
+			userSession: $this->createMock(IUserSession::class),
+			groupManager: $this->createMock(IGroupManager::class),
+			logger: new NullLogger(),
+		);
+
+		self::assertFalse($this->update($listener, $this->lvs('verified'), $this->lvs('verified', ['dle' => 1]))->isPropagationStopped());
+	}//end testTheMoveRefusalIsExactAndAnUnknownSchemaPasses()
 }//end class

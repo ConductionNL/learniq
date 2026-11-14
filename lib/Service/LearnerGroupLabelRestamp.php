@@ -21,13 +21,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\LearnerGroupLabelRestampInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
@@ -36,9 +37,9 @@ use Throwable;
 /**
  * Re-derives and saves one learner profile's group line.
  *
- * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
  */
-class LearnerGroupLabelRestamp {
+class LearnerGroupLabelRestamp implements LearnerGroupLabelRestampInterface {
 
 	private const REGISTER = 'learniq';
 
@@ -67,7 +68,7 @@ class LearnerGroupLabelRestamp {
 	 *
 	 * @return bool Whether the profile was saved.
 	 *
-	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
 	 */
 	public function restamp(string $learnerRef): bool {
 		try {
@@ -76,14 +77,14 @@ class LearnerGroupLabelRestamp {
 				return false;
 			}
 
-			$label = (new LearnerGroupLabel(objectService: $this->objectService, users: $this->users))->derive(profile: $profile);
-			if (($profile['groupLabel'] ?? null) === $label) {
+			$copies = self::copies(group: new LearnerGroupLabel(objectService: $this->objectService, users: $this->users), profile: $profile);
+			if (self::differs(profile: $profile, copies: $copies) === false) {
 				return false;
 			}
 
 			// The row as read carries OpenRegister's `@self` block; saving it
 			// back would make OpenRegister check the acting user's folder rights.
-			$object = array_merge($profile, ['groupLabel' => $label]);
+			$object = array_merge($profile, $copies);
 			unset($object['@self'], $object['id']);
 			$this->objectService->saveObject(
 				object: $object,
@@ -102,6 +103,40 @@ class LearnerGroupLabelRestamp {
 			return false;
 		}//end try
 	}//end restamp()
+
+	/**
+	 * The group line and the group's teacher as the profile should carry them.
+	 *
+	 * @param LearnerGroupLabel    $group   Derives them.
+	 * @param array<string, mixed> $profile The profile as read.
+	 *
+	 * @return array{groupLabel: string|null, teacherName: string|null, teacherRef: string|null}
+	 *
+	 * @throws Throwable When OpenRegister cannot be read.
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
+	 */
+	private static function copies(LearnerGroupLabel $group, array $profile): array {
+		return array_merge(['groupLabel' => $group->derive(profile: $profile)], $group->teacher(profile: $profile));
+	}//end copies()
+
+	/**
+	 * Whether the profile carries other values than these copies.
+	 *
+	 * @param array<string, mixed> $profile The profile as read.
+	 * @param array<string, mixed> $copies  The copies it should carry.
+	 *
+	 * @return bool
+	 */
+	private static function differs(array $profile, array $copies): bool {
+		foreach ($copies as $key => $value) {
+			if (($profile[$key] ?? null) !== $value) {
+				return true;
+			}
+		}
+
+		return false;
+	}//end differs()
 
 	/**
 	 * The learner profile with this id, with its `id`, or null.

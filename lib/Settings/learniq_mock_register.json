@@ -1552,11 +1552,19 @@
           "id": "ee000051-0000-4000-8000-000000000003"
         },
         "title": "Voorbeeld Title 3",
-        "kind": "video",
-        "fileRef": "Voorbeeld Fileref 3",
+        "kind": "link",
         "tenant_id": "00000000-0000-4000-8000-000000000002",
         "url": "https://example.invalid/resource/2",
-        "license": "Voorbeeld License 3",
+        "license": "CC-BY-4.0",
+        "source": "edurep",
+        "sourceId": "urn:wikiwijsmaken:194413",
+        "sourceUrl": "https://example.invalid/resource/2",
+        "sourceCollection": "wikiwijsmaken",
+        "authors": [
+          "Voorbeeld Maker 3"
+        ],
+        "accessRights": "OpenAccess",
+        "nonCommercial": false,
         "lomTags": [
           "Voorbeeld Lomtags 3"
         ],

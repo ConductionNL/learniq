@@ -35,6 +35,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\SubmissionMarkAllocationServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -42,7 +43,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/specs/assignments/spec.md#requirement-the-teacher-in-charge-allocates-markers
  */
-class SubmissionMarkAllocationService {
+class SubmissionMarkAllocationService implements SubmissionMarkAllocationServiceInterface {
 
 	private const REGISTER = 'learniq';
 	private const SUBMISSION_SCHEMA = 'submission';
@@ -157,12 +158,29 @@ class SubmissionMarkAllocationService {
 			$toCreate[] = $markerId;
 		}
 
-		foreach ($toCreate as $markerId) {
+		$this->createMarks(submission: $submission, markerIds: $toCreate);
+		$this->recordMarkers(submission: $submission, assigned: array_merge($already, $toCreate));
+
+		return ['created' => count($toCreate), 'refused' => $refused];
+	}//end allocateOne()
+
+	/**
+	 * Create a draft mark for each newly allocated marker.
+	 *
+	 * @param array<string, mixed> $submission The submission.
+	 * @param list<string>         $markerIds  The markers to create a mark for.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-cannot-mark-their-own-group-work
+	 */
+	private function createMarks(array $submission, array $markerIds): void {
+		foreach ($markerIds as $markerId) {
 			$this->objectService->saveObject(
 				register: self::REGISTER,
 				schema: self::MARK_SCHEMA,
 				object: [
-					'submissionId' => $submissionId,
+					'submissionId' => (string)$submission['id'],
 					'assignmentId' => (string)($submission['assignmentId'] ?? ''),
 					'markerId' => $markerId,
 					'rubricScores' => [],
@@ -172,8 +190,20 @@ class SubmissionMarkAllocationService {
 				_rbac: false
 			);
 		}
+	}//end createMarks()
 
-		$union = array_values(array_unique(array_merge($this->stringList(value: ($submission['markerIds'] ?? [])), $already, $toCreate)));
+	/**
+	 * Store the union of the submission's markers and the assigned ones, when it changed.
+	 *
+	 * @param array<string, mixed> $submission The submission.
+	 * @param list<string>         $assigned   The markers already on it plus the new ones.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-cannot-mark-their-own-group-work
+	 */
+	private function recordMarkers(array $submission, array $assigned): void {
+		$union = array_values(array_unique(array_merge($this->stringList(value: ($submission['markerIds'] ?? [])), $assigned)));
 		if ($union !== $this->stringList(value: ($submission['markerIds'] ?? []))) {
 			$row = $submission;
 			unset($row['@self']);
@@ -182,13 +212,11 @@ class SubmissionMarkAllocationService {
 				register: self::REGISTER,
 				schema: self::SUBMISSION_SCHEMA,
 				object: $row,
-				uuid: $submissionId,
+				uuid: (string)$submission['id'],
 				_rbac: false
 			);
 		}
-
-		return ['created' => count($toCreate), 'refused' => $refused];
-	}//end allocateOne()
+	}//end recordMarkers()
 
 	/**
 	 * The handed-in submissions of the assignment, or the one named.

@@ -3,6 +3,9 @@
 /**
  * Learniq Session Conflict Listener
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * IEventListener for Session create/update (OR's `ObjectCreatedEvent` and
  * `ObjectUpdatedEvent`, filtered to register=learniq, schema=session).
  * Delegates the actual pairwise overlap scan to
@@ -32,8 +35,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -45,10 +46,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\TimetableConflictDetectorInterface;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Timetabling\TimetableConflictDetector;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 
@@ -67,14 +68,14 @@ class SessionConflictListener implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param TimetableConflictDetector $detector The pairwise overlap scan engine.
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
+	 * @param TimetableConflictDetectorInterface $detector The pairwise overlap scan engine.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the entity's register/schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly TimetableConflictDetector $detector,
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly TimetableConflictDetectorInterface $detector,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 	) {
 	}//end __construct()
 

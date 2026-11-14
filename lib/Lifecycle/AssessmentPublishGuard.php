@@ -3,6 +3,9 @@
 /**
  * Learniq Assessment Publish Guard
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the Assessment schema's `publish` transition. Enforces that:
  * 1. The assessment has a resolvable item source: either itemRefs is non-empty
  *    (itemSelectionMode `fixed`), or itemPoolConfig.itemBankId resolves to an
@@ -51,8 +54,6 @@
  * @copyright 2024 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -65,9 +66,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use OCA\Learniq\Service\AiLocalityClassifier;
-use OCA\Learniq\Service\ItemPoolFilter;
-use OCA\Learniq\Service\SovereigntyPolicyService;
+use OCA\Learniq\Kernel\Contracts\AiLocalityClassifierInterface;
+use OCA\Learniq\Kernel\Contracts\ItemPoolFilterInterface;
+use OCA\Learniq\Kernel\Contracts\SovereigntyPolicyServiceInterface;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -91,6 +92,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/specs/assessment/spec.md#requirement-publishing-an-assessment-requires-a-resolvable-item-source
  * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-refuse-to-let-an-ai-assisted-feature-take-effect-when-its-verified-or-unverified-locality-violates-the-school-s-policy
+ * @spec openspec/specs/platform-properties/spec.md#REQ-PLAT-003
  */
 class AssessmentPublishGuard implements LifecycleGuardInterface {
 
@@ -133,10 +135,10 @@ class AssessmentPublishGuard implements LifecycleGuardInterface {
 	 *                                     lookup and, since
 	 *                                     assessment-item-pools-and-analysis, the
 	 *                                     random-draw item-pool resolvability check.
-	 * @param ItemPoolFilter $poolFilter Pool filter/variant-grouping collaborator (assessment-item-pools-and-analysis).
+	 * @param ItemPoolFilterInterface $poolFilter Pool filter/variant-grouping collaborator (assessment-item-pools-and-analysis).
 	 * @param IAppManager $appManager Used to tell "Hermiq absent" from "feature not enabled".
-	 * @param AiLocalityClassifier $localityClassifier Derives the active AI provider's locality verdict (sovereign-ai-guarantee).
-	 * @param SovereigntyPolicyService $policyService Evaluates the locality verdict against the
+	 * @param AiLocalityClassifierInterface $localityClassifier Derives the active AI provider's locality verdict (sovereign-ai-guarantee).
+	 * @param SovereigntyPolicyServiceInterface $policyService Evaluates the locality verdict against the
 	 *                                                school's SovereigntyPolicy (sovereign-ai-guarantee).
 	 * @param LoggerInterface $logger PSR logger.
 	 *
@@ -144,10 +146,10 @@ class AssessmentPublishGuard implements LifecycleGuardInterface {
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly ItemPoolFilter $poolFilter,
+		private readonly ItemPoolFilterInterface $poolFilter,
 		private readonly IAppManager $appManager,
-		private readonly AiLocalityClassifier $localityClassifier,
-		private readonly SovereigntyPolicyService $policyService,
+		private readonly AiLocalityClassifierInterface $localityClassifier,
+		private readonly SovereigntyPolicyServiceInterface $policyService,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -186,44 +188,63 @@ class AssessmentPublishGuard implements LifecycleGuardInterface {
 	 * @spec openspec/specs/ai-surface/spec.md
 	 */
 	private function allows(array $object): bool {
-
 		if ($this->hasResolvableItemSource(assessment: $object) === false) {
 			return false;
 		}
 
-		$proctoring = $object['proctoring'] ?? null;
-		$flagReviewMode = null;
-		if (is_array($proctoring) === true) {
-			$flagReviewMode = $proctoring['flagReviewMode'] ?? 'manual';
-		}
-
-		if ($flagReviewMode !== 'ai-assisted') {
+		if ($this->flagReviewMode(assessment: $object) !== 'ai-assisted') {
 			return true;
 		}
 
-		// AI-assisted proctoring is a high-risk AI use — its DPO gate is governed
-		// centrally by Hermiq (ADR-005). Fail closed when Hermiq is unavailable.
-		if ($this->appManager->isInstalled(self::HERMIQ_APP_ID) === false) {
-			$this->logger->info(
-				'[AssessmentPublishGuard] flagReviewMode is ai-assisted but the Hermiq governance '
-				. 'app is not installed; blocking publish. Install and enable Hermiq, then have the '
-				. 'DPO enable the "{slug}" AI feature (ADR-005 DPO gate).',
-				['slug' => self::AI_PROCTOR_SLUG]
-			);
-			return false;
+		return $this->hermiqInstalled() === true
+			&& $this->aiProctorFeatureEnabled() === true
+			&& $this->providerLocalityAccepted() === true;
+	}//end allows()
+
+	/**
+	 * The proctoring flag-review mode: null without a proctoring block,
+	 * `manual` when the block names none.
+	 *
+	 * @param array<string,mixed> $assessment The Assessment.
+	 *
+	 * @return mixed
+	 */
+	private function flagReviewMode(array $assessment): mixed {
+		$proctoring = $assessment['proctoring'] ?? null;
+		if (is_array($proctoring) === false) {
+			return null;
 		}
 
-		$aiFeatures = $this->objectService->findAll(
-			[
-				'filters' => [
-					'register' => self::HERMIQ_REGISTER,
-					'schema' => self::HERMIQ_AI_FEATURE_SCHEMA,
-					'slug' => self::AI_PROCTOR_SLUG,
-					'lifecycle' => 'enabled',
-				],
-				'limit' => 1,
-			]
+		return $proctoring['flagReviewMode'] ?? 'manual';
+	}//end flagReviewMode()
+
+	/**
+	 * AI-assisted proctoring is a high-risk AI use — its DPO gate is governed
+	 * centrally by Hermiq (ADR-005). Fail closed when Hermiq is unavailable.
+	 *
+	 * @return bool
+	 */
+	private function hermiqInstalled(): bool {
+		if ($this->appManager->isInstalled(self::HERMIQ_APP_ID) === true) {
+			return true;
+		}
+
+		$this->logger->info(
+			'[AssessmentPublishGuard] flagReviewMode is ai-assisted but the Hermiq governance '
+			. 'app is not installed; blocking publish. Install and enable Hermiq, then have the '
+			. 'DPO enable the "{slug}" AI feature (ADR-005 DPO gate).',
+			['slug' => self::AI_PROCTOR_SLUG]
 		);
+		return false;
+	}//end hermiqInstalled()
+
+	/**
+	 * Whether the DPO enabled the AI-proctoring feature in Hermiq's register.
+	 *
+	 * @return bool
+	 */
+	private function aiProctorFeatureEnabled(): bool {
+		$aiFeatures = $this->findEnabledAiProctorFeature();
 
 		if (empty($aiFeatures) === true) {
 			$this->logger->info(
@@ -235,27 +256,53 @@ class AssessmentPublishGuard implements LifecycleGuardInterface {
 			return false;
 		}
 
-		// DPO-enablement passed. Sovereign-ai-guarantee: the AI feature is
-		// governed, but is it running somewhere this school has agreed to
-		// accept? A distinct log message from the DPO-gate block above so an
-		// admin can tell the two failure reasons apart.
-		$verdict = $this->localityClassifier->classifyActiveProvider();
-		if ($this->policyService->isCompliant(locality: $verdict['locality'], verified: $verdict['verified']) === false) {
-			$verifiedLabel = 'false';
-			if ($verdict['verified'] === true) {
-				$verifiedLabel = 'true';
-			}
+		return true;
+	}//end aiProctorFeatureEnabled()
 
-			$this->logger->info(
-				'[AssessmentPublishGuard] DPO-enabled but locality violates SovereigntyPolicy — '
-				. 'blocking publish. Verdict: locality={locality}, verified={verified}. {evidence}',
-				['locality' => $verdict['locality'], 'verified' => $verifiedLabel, 'evidence' => $verdict['evidence']]
-			);
-			return false;
+	/**
+	 * The enabled AI-proctoring feature in Hermiq's AI-feature register, if any.
+	 *
+	 * @return array<int,mixed>
+	 */
+	private function findEnabledAiProctorFeature(): array {
+		return $this->objectService->findAll(
+			[
+				'filters' => [
+					'register' => self::HERMIQ_REGISTER,
+					'schema' => self::HERMIQ_AI_FEATURE_SCHEMA,
+					'slug' => self::AI_PROCTOR_SLUG,
+					'lifecycle' => 'enabled',
+				],
+				'limit' => 1,
+			]
+		);
+	}//end findEnabledAiProctorFeature()
+
+	/**
+	 * Sovereign-ai-guarantee: the AI feature is governed, but is it running
+	 * somewhere this school has agreed to accept? A distinct log message from
+	 * the DPO-gate block so an admin can tell the two failure reasons apart.
+	 *
+	 * @return bool
+	 */
+	private function providerLocalityAccepted(): bool {
+		$verdict = $this->localityClassifier->classifyActiveProvider();
+		if ($this->policyService->isCompliant(locality: $verdict['locality'], verified: $verdict['verified']) === true) {
+			return true;
 		}
 
-		return true;
-	}//end allows()
+		$verifiedLabel = 'false';
+		if ($verdict['verified'] === true) {
+			$verifiedLabel = 'true';
+		}
+
+		$this->logger->info(
+			'[AssessmentPublishGuard] DPO-enabled but locality violates SovereigntyPolicy — '
+			. 'blocking publish. Verdict: locality={locality}, verified={verified}. {evidence}',
+			['locality' => $verdict['locality'], 'verified' => $verifiedLabel, 'evidence' => $verdict['evidence']]
+		);
+		return false;
+	}//end providerLocalityAccepted()
 
 	/**
 	 * Whether the Assessment has a resolvable item source for publish.
@@ -277,17 +324,8 @@ class AssessmentPublishGuard implements LifecycleGuardInterface {
 	 */
 	private function hasResolvableItemSource(array $assessment): bool {
 		$itemSelectionMode = $assessment['itemSelectionMode'] ?? 'fixed';
-
 		if ($itemSelectionMode !== 'random-draw') {
-			$itemRefs = $assessment['itemRefs'] ?? [];
-			if (empty($itemRefs) === true) {
-				$this->logger->info(
-					'[AssessmentPublishGuard] Assessment has no itemRefs; blocking publish.'
-				);
-				return false;
-			}
-
-			return true;
+			return $this->hasFixedItems(assessment: $assessment);
 		}
 
 		$poolConfig = $assessment['itemPoolConfig'] ?? null;
@@ -299,6 +337,36 @@ class AssessmentPublishGuard implements LifecycleGuardInterface {
 			return false;
 		}
 
+		return $this->poolCanBeDrawn(poolConfig: $poolConfig);
+	}//end hasResolvableItemSource()
+
+	/**
+	 * A fixed-item assessment needs itemRefs.
+	 *
+	 * @param array<string,mixed> $assessment The Assessment.
+	 *
+	 * @return bool
+	 */
+	private function hasFixedItems(array $assessment): bool {
+		$itemRefs = $assessment['itemRefs'] ?? [];
+		if (empty($itemRefs) === true) {
+			$this->logger->info(
+				'[AssessmentPublishGuard] Assessment has no itemRefs; blocking publish.'
+			);
+			return false;
+		}
+
+		return true;
+	}//end hasFixedItems()
+
+	/**
+	 * A pool needs an ItemBank and a draw count of at least one.
+	 *
+	 * @param array<string,mixed> $poolConfig The Assessment's itemPoolConfig.
+	 *
+	 * @return bool
+	 */
+	private function poolCanBeDrawn(array $poolConfig): bool {
 		$itemBankId = $poolConfig['itemBankId'] ?? null;
 		$drawCount = (int)($poolConfig['drawCount'] ?? 0);
 		if ($itemBankId === null || $drawCount < 1) {
@@ -309,6 +377,20 @@ class AssessmentPublishGuard implements LifecycleGuardInterface {
 			return false;
 		}
 
+		return $this->poolHasEnoughVariantGroups(poolConfig: $poolConfig);
+	}//end poolCanBeDrawn()
+
+	/**
+	 * The bank must offer at least drawCount distinct variant groups that
+	 * match the pool's filters.
+	 *
+	 * @param array<string,mixed> $poolConfig The Assessment's itemPoolConfig, its bank and draw count set.
+	 *
+	 * @return bool
+	 */
+	private function poolHasEnoughVariantGroups(array $poolConfig): bool {
+		$itemBankId = $poolConfig['itemBankId'];
+		$drawCount = (int)$poolConfig['drawCount'];
 		$distinctGroupCount = $this->countDistinctVariantGroups(poolConfig: $poolConfig, itemBankId: $itemBankId);
 
 		if ($distinctGroupCount < $drawCount) {
@@ -321,7 +403,7 @@ class AssessmentPublishGuard implements LifecycleGuardInterface {
 		}
 
 		return true;
-	}//end hasResolvableItemSource()
+	}//end poolHasEnoughVariantGroups()
 
 	/**
 	 * Count the number of DISTINCT variantGroupId groups among `published`

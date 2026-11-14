@@ -12,6 +12,9 @@ declare(strict_types=1);
 namespace OCA\OpenRegister\Event;
 
 use OCA\OpenRegister\Db\ObjectEntity;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
+use OCA\OpenRegister\Service\Lifecycle\TransitionActor;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
 use OCP\EventDispatcher\Event;
 
 /**
@@ -85,34 +88,27 @@ class ObjectTransitionedEvent extends Event {
 	/**
 	 * Constructor.
 	 *
-	 * @param ObjectEntity $object    Object after the transition.
-	 * @param string       $action    Action name.
-	 * @param string       $from      State before.
-	 * @param string       $to        State after.
-	 * @param string|null  $userId    Caller uid (null for system-applied transitions).
-	 * @param string       $register  Register slug.
-	 * @param string       $schema    Schema slug.
-	 * @param bool         $automatic True when a transition's `autoWhen` fired this move.
+	 * @param ObjectEntity $object Object after the transition.
+	 * @param TransitionMove $move The action applied and the states it moved between.
+	 * @param RegisterSchemaRef $scope Register and schema slugs.
+	 * @param TransitionActor|null $actor Who made the move; null for a system move.
 	 */
 	public function __construct(
 		ObjectEntity $object,
-		string $action,
-		string $from,
-		string $to,
-		?string $userId,
-		string $register,
-		string $schema,
-		bool $automatic = false,
+		TransitionMove $move,
+		RegisterSchemaRef $scope,
+		?TransitionActor $actor = null,
 	) {
 		parent::__construct();
+		$actor = $actor ?? new TransitionActor();
 		$this->object = $object;
-		$this->action = $action;
-		$this->from = $from;
-		$this->to = $to;
-		$this->userId = $userId;
-		$this->register = $register;
-		$this->schema = $schema;
-		$this->automatic = $automatic;
+		$this->action = $move->action;
+		$this->from = $move->from;
+		$this->to = $move->to;
+		$this->userId = $actor->userId;
+		$this->register = (string) $scope->register;
+		$this->schema = (string) $scope->schema;
+		$this->automatic = $actor->automatic;
 	}//end __construct()
 
 	/**

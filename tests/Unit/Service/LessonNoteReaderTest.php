@@ -127,4 +127,62 @@ class LessonNoteReaderTest extends TestCase {
 		self::assertFalse($reader->belongsTo(note: ['cohortId' => 'c-1', 'timetableSessionRef' => ['externalRef' => 'zm-9']], session: ['id' => 'p-1', 'cohortId' => 'c-1', 'externalRef' => 'zm-1']));
 		self::assertTrue($reader->belongsTo(note: ['cohortId' => 'c-1', 'timetableSessionRef' => ['externalRef' => 'zm-1']], session: ['id' => 'p-1', 'cohortId' => 'c-1', 'externalRef' => 'zm-1']));
 	}//end testEdgeCases()
+
+	/**
+	 * An all-digit cohort id is still read as text, so its notes load instead of the timetable failing.
+	 *
+	 * @return void
+	 */
+	public function testNumericCohortIdKeepsTheTimetableAndItsNotes(): void {
+		$notes = [['id' => 'n-1', 'cohortId' => '123', 'sessionId' => 's-1', 'text' => 'a', 'audience' => 'learners']];
+		$lesson = ['id' => 's-1', 'cohortId' => '123'];
+
+		$out = $this->reader(notes: $notes)->forSessions(sessions: [$lesson], uid: 'alice', taughtCohortIds: []);
+
+		self::assertSame(['n-1'], array_column($out['s-1'], 'id'));
+	}//end testNumericCohortIdKeepsTheTimetableAndItsNotes()
+
+	/**
+	 * Numeric-looking user ids compare as text: "10" is not the substitute "1e1".
+	 *
+	 * @return void
+	 */
+	public function testNumericLookingUidIsNotASubstitute(): void {
+		$notes = [['id' => 'n-1', 'cohortId' => 'c-1', 'sessionId' => 's-1', 'text' => 'cover', 'audience' => 'cover']];
+		$reader = $this->reader(notes: $notes);
+		$lesson = ['id' => 's-1', 'cohortId' => 'c-1', 'substituteTeacherId' => '1e1'];
+
+		self::assertSame([], $reader->forSessions(sessions: [$lesson], uid: '10', taughtCohortIds: []));
+		self::assertFalse($reader->markWritable(sessions: [$lesson], uid: '10', taughtCohortIds: [])[0]['canAddNote']);
+		self::assertCount(1, $reader->forSessions(sessions: [$lesson], uid: '1e1', taughtCohortIds: [])['s-1']);
+	}//end testNumericLookingUidIsNotASubstitute()
+
+	/**
+	 * A lesson without an id gets no notes, even when a note's reference names it.
+	 *
+	 * @return void
+	 */
+	public function testIdlessLessonGetsNoNotesFromAMatchingReference(): void {
+		$notes = [['id' => 'n-1', 'cohortId' => 'c-1', 'timetableSessionRef' => ['externalRef' => 'zm-1'], 'text' => 'a', 'audience' => 'learners']];
+		$reader = $this->reader(notes: $notes);
+
+		self::assertSame([], $reader->forSessions(sessions: [['cohortId' => 'c-1', 'externalRef' => 'zm-1']], uid: 'alice', taughtCohortIds: []));
+		self::assertCount(1, $reader->forSessions(sessions: [['id' => 'p-1', 'cohortId' => 'c-1', 'externalRef' => 'zm-1']], uid: 'alice', taughtCohortIds: [])['p-1']);
+	}//end testIdlessLessonGetsNoNotesFromAMatchingReference()
+
+	/**
+	 * A cover mark on a row opens nothing by itself: the caller must be the lesson's substitute.
+	 *
+	 * @return void
+	 */
+	public function testACoverMarkAloneDoesNotOpenCoverNotes(): void {
+		$notes = [['id' => 'n-1', 'cohortId' => 'c-1', 'sessionId' => 's-1', 'text' => 'cover', 'audience' => 'cover']];
+		$reader = $this->reader(notes: $notes);
+		$lesson = ['id' => 's-1', 'cohortId' => 'c-1', 'cover' => true, 'substituteTeacherId' => 'sub'];
+
+		self::assertSame([], $reader->forSessions(sessions: [$lesson], uid: 'alice', taughtCohortIds: []));
+		self::assertFalse($reader->markWritable(sessions: [$lesson], uid: 'alice', taughtCohortIds: [])[0]['canAddNote']);
+		self::assertSame(['n-1'], array_column($reader->forSessions(sessions: [$lesson], uid: 'sub', taughtCohortIds: [])['s-1'], 'id'));
+		self::assertTrue($reader->markWritable(sessions: [$lesson], uid: 'sub', taughtCohortIds: [])[0]['canAddNote']);
+	}//end testACoverMarkAloneDoesNotOpenCoverNotes()
 }//end class

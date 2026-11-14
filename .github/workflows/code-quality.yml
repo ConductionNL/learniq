@@ -145,27 +145,9 @@ concurrency:
   # superseding really is correct.
   cancel-in-progress: ${{ github.event_name != 'push' }}
 
-# Permission CEILING for the called quality pipeline. GitHub statically
-# validates the called workflow's declared job permissions against this
-# grant — even for jobs that are disabled — so it must cover the maximum any
-# nested job declares: journeydoc-capture (contents+actions write),
-# update-baseline / features-extract (contents write), SBOM (packages read),
-# and the Quality Report PR comment (issues / pull-requests write).
-#
-# A caller cannot grant a reusable workflow more than it holds itself, so
-# capping any of these at `read` makes the whole call fail to START: zero jobs,
-# no annotations — indistinguishable from "nothing to run". `development` at
-# cb101f1 shows exactly that, two `startup_failure` runs in a row.
-#
-# This block is the UNION of both branches' grants, which agreed on every entry
-# except `packages: read`. Dropping development's half would silently lose the
-# PR comment; dropping this branch's half would stop the pipeline starting.
+# Read-only by default; the write grants sit on the job that needs them.
 permissions:
-  contents: write
-  actions: write
-  packages: read
-  issues: write
-  pull-requests: write
+  contents: read
 
 jobs:
   quality:
@@ -176,6 +158,27 @@ jobs:
     if: >-
       (github.event_name != 'push' || github.event.created != true)
       && (github.event_name != 'pull_request' || github.head_ref != 'development')
+    # Permission CEILING for the called quality pipeline. GitHub statically
+    # validates the called workflow's declared job permissions against this
+    # grant, even for jobs that are disabled, so it must cover the maximum any
+    # nested job declares: journeydoc-capture (contents+actions write),
+    # update-baseline / features-extract (contents write), SBOM (packages read),
+    # and the Quality Report PR comment (issues / pull-requests write).
+    #
+    # A caller cannot grant a reusable workflow more than it holds itself, so
+    # capping any of these at `read` makes the whole call fail to START: zero jobs,
+    # no annotations, indistinguishable from "nothing to run". `development` at
+    # cb101f1 shows exactly that, two `startup_failure` runs in a row.
+    #
+    # This block is the UNION of both branches' grants, which agreed on every entry
+    # except `packages: read`. Dropping development's half would silently lose the
+    # PR comment; dropping this branch's half would stop the pipeline starting.
+    permissions:
+      contents: write
+      actions: write
+      packages: read
+      issues: write
+      pull-requests: write
     uses: ConductionNL/.github/.github/workflows/quality.yml@main
     with:
       app-name: learniq
@@ -315,6 +318,15 @@ jobs:
       # here — the job reported `skipped`, which the Quality Report renders
       # identically to a pass.
       enable-hydra-gates: true
+      # Gate 122 (SIG unit ratchet) blocks: a unit this change adds or makes
+      # worse must stay at NLOC 60, McCabe 10 and at most 4 parameters, and a
+      # new duplicated fragment of 6+ lines fails. Units the change does not
+      # touch, or touches without making worse, are inherited and do not count.
+      hydra-gates-sig-blocking: true
+      # Maintainability floor: no rating in .maintainability-floor.json may drop
+      # more than 0.01 against the merge base (pull request) or below the
+      # committed floor (push). The floor is raised after improving merges.
+      enable-maintainability-floor: true
       # No `hydra-gates-ref` here on purpose. The shared workflow defaults it
       # to @main, and this workflow is itself consumed at @main, so the two
       # sides move together and a gate fix reaches this repo without a commit

@@ -23,6 +23,7 @@ namespace OCA\Learniq\Tests\Unit\Lifecycle\Action;
 
 use OCA\Learniq\Lifecycle\Action\AssessmentAutoScoreAction;
 use OCA\Learniq\Lifecycle\AssessmentScoringHandler;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
@@ -104,7 +105,14 @@ class AssessmentAutoScoreActionTest extends TestCase {
 		$previous = self::submittedResult();
 		$previous['lifecycle'] = 'in-progress';
 
-		$saved = $action->execute(self::submittedResult(), $previous, [], AssessmentAutoScoreAction::class);
+		$saved = $action->execute(
+			new LifecycleActionContext(
+				objectData: self::submittedResult(),
+				previousData: $previous,
+				parameters: [],
+				actionName: AssessmentAutoScoreAction::class
+			)
+		);
 
 		self::assertSame(4.0, $saved['responses'][0]['autoScore']);
 		self::assertNull($saved['responses'][1]['autoScore']);
@@ -120,6 +128,13 @@ class AssessmentAutoScoreActionTest extends TestCase {
 	public function testUnreachableAssessmentThrows(): void {
 		$this->expectException(RuntimeException::class);
 
-		$this->makeAction(null)->execute(self::submittedResult(), [], [], AssessmentAutoScoreAction::class);
+		$this->makeAction(null)->execute(
+			new LifecycleActionContext(
+				objectData: self::submittedResult(),
+				previousData: [],
+				parameters: [],
+				actionName: AssessmentAutoScoreAction::class
+			)
+		);
 	}//end testUnreachableAssessmentThrows()
 }//end class

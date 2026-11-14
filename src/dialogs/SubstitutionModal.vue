@@ -219,6 +219,13 @@ import {
 } from '@nextcloud/vue'
 import { candidateOptions } from '../utils/standby.js'
 
+/** The batch kind each dialog mode sends. */
+const BATCH_KINDS = {
+	cancel: 'cancel',
+	substitute: 'substitute',
+	room: 'room',
+}
+
 export default {
 	name: 'SubstitutionModal',
 
@@ -329,12 +336,7 @@ export default {
 		 */
 		canSubmit() {
 			if (!this.changeReasonKind) return false
-			if (
-				this.mode === 'substitute'
-				&& !String(this.substituteTeacherId || '').trim()
-			)
-				return false
-			if (this.mode === 'room' && !this.roomId) return false
+			if (!this.modeFieldComplete()) return false
 			if (this.moreWeeks && this.selectedIds.length === 0) return false
 			return true
 		},
@@ -407,10 +409,62 @@ export default {
 				await this.submitBatch()
 				return
 			}
+			await this.submitOne()
+		},
 
+		/**
+		 * Whether the current mode's own field is filled in: a substitute
+		 * teacher for the substitute mode, a room for the room mode.
+		 *
+		 * @return {boolean}
+		 */
+		modeFieldComplete() {
+			if (this.mode === 'substitute') {
+				return String(this.substituteTeacherId || '').trim() !== ''
+			}
+			if (this.mode === 'room') return Boolean(this.roomId)
+			return true
+		},
+
+		/**
+		 * PATCH the change onto this one lesson, then close.
+		 *
+		 * @return {Promise<void>}
+		 */
+		async submitOne() {
 			this.saving = true
 			this.error = ''
 
+			const body = this.sessionChangeBody()
+
+			try {
+				await this.patchSession(body)
+			} catch (e) {
+				this.submitFailed(e)
+			} finally {
+				this.saving = false
+			}
+		},
+
+		/**
+		 * Log and show a refused single change.
+		 *
+		 * @param {Error} e The request error.
+		 */
+		submitFailed(e) {
+			console.error('[SubstitutionModal] submit failed', e)
+			this.error = t(
+				'learniq',
+				'Could not save this change. Please check the reason and try again.',
+			)
+		},
+
+		/**
+		 * The Session fields a single change writes.
+		 *
+		 * @return {object} The PATCH body.
+		 */
+		sessionChangeBody() {
 			const body = {
 				changeReasonKind: this.changeReasonKind,
 				changeReason: this.changeReason || null,
@@ -418,30 +472,47 @@ export default {
 			if (this.mode === 'room') {
 				body.roomId = this.roomId
 			} else {
-				body.lifecycle =
-					this.mode === 'cancel' ? 'cancelled' : this.session.lifecycle
+				body.lifecycle = this.changedLifecycle()
 			}
 			if (this.mode === 'substitute') {
-				body.substituteTeacherId = String(this.substituteTeacherId).trim()
+				body.substituteTeacherId = this.trimmedSubstitute()
 			}
+			return body
+		},
 
-			try {
-				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/session/{id}',
-					{ id: this.session.id },
-				)
-				await axios.patch(url, body)
-				this.$emit('changed')
-				this.$emit('close')
-			} catch (e) {
-				console.error('[SubstitutionModal] submit failed', e)
-				this.error = t(
-					'learniq',
-					'Could not save this change. Please check the reason and try again.',
-				)
-			} finally {
-				this.saving = false
-			}
+		/**
+		 * The lifecycle a single change sends: cancelled, or the Session's own
+		 * current value (a self-loop) for a substitute.
+		 *
+		 * @return {string}
+		 */
+		changedLifecycle() {
+			return this.mode === 'cancel' ? 'cancelled' : this.session.lifecycle
+		},
+
+		/**
+		 * The chosen substitute teacher id, trimmed.
+		 *
+		 * @return {string}
+		 */
+		trimmedSubstitute() {
+			return String(this.substituteTeacherId).trim()
+		},
+
+		/**
+		 * PATCH this lesson and tell the parent it changed.
+		 *
+		 * @param {object} body The PATCH body.
+		 * @return {Promise<void>}
+		 */
+		async patchSession(body) {
+			const url = generateUrl(
+				'/apps/openregister/api/objects/learniq/session/{id}',
+				{ id: this.session.id },
+			)
+			await axios.patch(url, body)
+			this.$emit('changed')
+			this.$emit('close')
 		},
 
 		/**
@@ -454,38 +525,60 @@ export default {
 		async submitBatch() {
 			this.saving = true
 			this.error = ''
-			const kinds = {
-				cancel: 'cancel',
-				substitute: 'substitute',
-				room: 'room',
-			}
 			try {
-				const { data } = await axios.post(
-					generateUrl('/apps/learniq/api/session-change-batches'),
-					{
-						kind: kinds[this.mode],
-						sessionIds: this.selectedIds,
-						changeReasonKind: this.changeReasonKind,
-						changeReason: this.changeReason || null,
-						substituteTeacherId:
-							this.mode === 'substitute'
-								? String(this.substituteTeacherId).trim()
-								: null,
-						roomId: this.mode === 'room' ? this.roomId : null,
-					},
-				)
-				this.results = data.results || []
-				this.$emit('changed')
+				await this.postBatch()
 			} catch (e) {
-				this.error =
-					e?.response?.data?.error
-					|| t(
-						'learniq',
-						'Could not save this change. Please check the reason and try again.',
-					)
+				this.error = this.batchError(e)
 			} finally {
 				this.saving = false
 			}
+		},
+
+		/**
+		 * POST the batch, keep the outcome per lesson and tell the parent.
+		 *
+		 * @return {Promise<void>}
+		 */
+		async postBatch() {
+			const { data } = await axios.post(
+				generateUrl('/apps/learniq/api/session-change-batches'),
+				this.batchBody(),
+			)
+			this.results = data.results || []
+			this.$emit('changed')
+		},
+
+		/**
+		 * The batch request: the mode as its kind, the ticked lessons and the
+		 * one field the mode writes.
+		 *
+		 * @return {object} The POST body.
+		 */
+		batchBody() {
+			return {
+				kind: BATCH_KINDS[this.mode],
+				sessionIds: this.selectedIds,
+				changeReasonKind: this.changeReasonKind,
+				changeReason: this.changeReason || null,
+				substituteTeacherId: this.mode === 'substitute' ? this.trimmedSubstitute() : null,
+				roomId: this.mode === 'room' ? this.roomId : null,
+			}
+		},
+
+		/**
+		 * The message for a refused batch: the server's, else ours.
+		 *
+		 * @param {Error} e The request error.
+		 * @return {string}
+		 */
+		batchError(e) {
+			return (
+				e?.response?.data?.error
+				|| t(
+					'learniq',
+					'Could not save this change. Please check the reason and try again.',
+				)
+			)
 		},
 
 		/**

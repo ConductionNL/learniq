@@ -3,6 +3,9 @@
 /**
  * Learniq AI Processing Disclosure Controller
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * One read-only endpoint (sovereign-ai-guarantee): composes Hermiq's
  * `agentaifeature` register (cross-app, when installed), Learniq's own
  * `AiFeature` AVG Art. 30 processing-activity carrier (`scholiq-ai-features`
@@ -32,8 +35,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -45,10 +46,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\AiLocalityClassifierInterface;
+use OCA\Learniq\Kernel\Contracts\SovereigntyPolicyServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\AiLocalityClassifier;
-use OCA\Learniq\Service\SovereigntyPolicyService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -63,6 +64,7 @@ use Throwable;
  * Composes the AI-processing disclosure a school hands to its DPO.
  *
  * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-compose-an-ai-processing-disclosure-a-school-can-hand-to-its-dpo
+ * @spec openspec/specs/platform-properties/spec.md#REQ-PLAT-003
  */
 class AiProcessingDisclosureController extends Controller {
 
@@ -104,8 +106,8 @@ class AiProcessingDisclosureController extends Controller {
 	 * @param IUserSession $userSession Current user session.
 	 * @param IAppManager $appManager Tells "Hermiq absent" from "Hermiq installed".
 	 * @param ObjectService $objectService OR object service for the Hermiq/SovereigntyPolicy reads.
-	 * @param AiLocalityClassifier $localityClassifier Derives the active provider's locality verdict.
-	 * @param SovereigntyPolicyService $policyService Evaluates a verdict against the school's policy.
+	 * @param AiLocalityClassifierInterface $localityClassifier Derives the active provider's locality verdict.
+	 * @param SovereigntyPolicyServiceInterface $policyService Evaluates a verdict against the school's policy.
 	 * @param LoggerInterface $logger PSR logger.
 	 */
 	public function __construct(
@@ -113,11 +115,11 @@ class AiProcessingDisclosureController extends Controller {
 		private readonly IUserSession $userSession,
 		private readonly IAppManager $appManager,
 		private readonly ObjectService $objectService,
-		private readonly AiLocalityClassifier $localityClassifier,
-		private readonly SovereigntyPolicyService $policyService,
+		private readonly AiLocalityClassifierInterface $localityClassifier,
+		private readonly SovereigntyPolicyServiceInterface $policyService,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -141,37 +143,45 @@ class AiProcessingDisclosureController extends Controller {
 		}
 
 		$verdict = $this->localityClassifier->classifyActiveProvider();
-		$policyCompliant = $this->policyService->isCompliant(locality: $verdict['locality'], verified: $verdict['verified']);
-
-		$aiProcessingActivity = $this->loadAiProcessingActivity();
+		$verdict['policyCompliant'] = $this->policyService->isCompliant(locality: $verdict['locality'], verified: $verdict['verified']);
+		$verdict['aiProcessingActivity'] = $this->loadAiProcessingActivity();
 		$hermiqInstalled = $this->appManager->isInstalled(self::HERMIQ_APP_ID);
 
 		$features = [];
 		if ($hermiqInstalled === true) {
-			foreach ($this->fetchHermiqFeatures() as $feature) {
-				$features[] = [
-					'slug' => $feature['slug'] ?? '',
-					'name' => $feature['name'] ?? '',
-					'riskCategory' => $feature['riskCategory'] ?? null,
-					'lifecycle' => $feature['lifecycle'] ?? 'disabled',
-					'aiProcessingActivity' => $aiProcessingActivity,
-					'locality' => $verdict['locality'],
-					'verified' => $verdict['verified'],
-					'evidence' => $verdict['evidence'],
-					'policyCompliant' => $policyCompliant,
-				];
-			}
+			$features = array_map(
+				static fn (array $feature): array => self::disclosedFeature(feature: $feature, verdict: $verdict),
+				$this->fetchHermiqFeatures()
+			);
 		}
 
 		return new JSONResponse(
-			data: [
-				'sovereigntyPolicy' => $this->loadSovereigntyPolicy(),
-				'hermiqInstalled' => $hermiqInstalled,
-				'features' => $features,
-			]
+			data: ['sovereigntyPolicy' => $this->loadSovereigntyPolicy(), 'hermiqInstalled' => $hermiqInstalled, 'features' => $features]
 		);
-
 	}//end index()
+
+	/**
+	 * One AI feature as disclosed: its identity and lifecycle, plus the
+	 * processing activity and the locality verdict every feature shares.
+	 *
+	 * @param array<string,mixed> $feature The Hermiq agentaifeature row.
+	 * @param array<string,mixed> $verdict The locality verdict, policy compliance and processing activity.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private static function disclosedFeature(array $feature, array $verdict): array {
+		return [
+			'slug' => $feature['slug'] ?? '',
+			'name' => $feature['name'] ?? '',
+			'riskCategory' => $feature['riskCategory'] ?? null,
+			'lifecycle' => $feature['lifecycle'] ?? 'disabled',
+			'aiProcessingActivity' => $verdict['aiProcessingActivity'],
+			'locality' => $verdict['locality'],
+			'verified' => $verdict['verified'],
+			'evidence' => $verdict['evidence'],
+			'policyCompliant' => $verdict['policyCompliant'],
+		];
+	}//end disclosedFeature()
 
 	/**
 	 * Cross-app read of Hermiq's `agentaifeature` register. Never throws —
@@ -181,36 +191,17 @@ class AiProcessingDisclosureController extends Controller {
 	 * @return array<int,array<string,mixed>>
 	 */
 	private function fetchHermiqFeatures(): array {
-		try {
-			$features = $this->objectService->findAll(
-				[
-					'filters' => [
-						'register' => self::HERMIQ_REGISTER,
-						'schema' => self::HERMIQ_AI_FEATURE_SCHEMA,
-					],
-				]
-			);
-		} catch (Throwable $e) {
-			$this->logger->info(
-				'[AiProcessingDisclosureController] Hermiq agentaifeature read failed ({message}); '
-				. 'returning an empty feature list rather than erroring.',
-				['message' => $e->getMessage()]
-			);
-			return [];
-		}
+		$features = $this->readRows(
+			config: ['filters' => ['register' => self::HERMIQ_REGISTER, 'schema' => self::HERMIQ_AI_FEATURE_SCHEMA]],
+			failure: '[AiProcessingDisclosureController] Hermiq agentaifeature read failed ({message}); '
+			. 'returning an empty feature list rather than erroring.'
+		);
 
 		$normalised = [];
 		foreach ($features as $feature) {
-			if (is_array($feature) === true) {
-				$normalised[] = $feature;
-				continue;
-			}
-
-			if (is_object($feature) === true && method_exists($feature, 'jsonSerialize') === true) {
-				$serialized = $feature->jsonSerialize();
-				if (is_array($serialized) === true) {
-					$normalised[] = $serialized;
-				}
+			$row = self::asArray(row: $feature);
+			if ($row !== null) {
+				$normalised[] = $row;
 			}
 		}
 
@@ -225,43 +216,15 @@ class AiProcessingDisclosureController extends Controller {
 	 * @return array<string,mixed> `{id, policy, rationale, setBy, setAt}`.
 	 */
 	private function loadSovereigntyPolicy(): array {
-		try {
-			$existing = $this->objectService->findAll(
-				[
-					'filters' => [
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::SOVEREIGNTY_POLICY_SCHEMA,
-					],
-					'limit' => 1,
-				]
-			);
-		} catch (Throwable $e) {
-			$this->logger->info(
-				'[AiProcessingDisclosureController] SovereigntyPolicy read failed ({message}); '
-				. 'returning the schema default.',
-				['message' => $e->getMessage()]
-			);
-			$existing = [];
-		}
+		$existing = $this->readRows(
+			config: ['filters' => ['register' => self::LEARNIQ_REGISTER, 'schema' => self::SOVEREIGNTY_POLICY_SCHEMA], 'limit' => 1],
+			failure: '[AiProcessingDisclosureController] SovereigntyPolicy read failed ({message}); '
+			. 'returning the schema default.'
+		);
 
-		if (empty($existing) === true) {
-			return [
-				'id' => null,
-				'policy' => $this->policyService->currentPolicy(),
-				'rationale' => null,
-				'setBy' => null,
-				'setAt' => null,
-			];
-		}
-
-		$row = $existing[0];
-		if (is_array($row) === false) {
-			$serialised = [];
-			if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-				$serialised = $row->jsonSerialize();
-			}
-
-			$row = $serialised;
+		$row = [];
+		if (empty($existing) === false) {
+			$row = self::asArray(row: $existing[0]) ?? [];
 		}
 
 		return [
@@ -271,8 +234,46 @@ class AiProcessingDisclosureController extends Controller {
 			'setBy' => $row['setBy'] ?? null,
 			'setAt' => $row['setAt'] ?? null,
 		];
-
 	}//end loadSovereigntyPolicy()
+
+	/**
+	 * The rows a findAll returns, or none (logged) when the read fails.
+	 *
+	 * @param array<string,mixed> $config  The findAll config.
+	 * @param string              $failure The log message for a failed read, with a {message} placeholder.
+	 *
+	 * @return array<int|string,mixed>
+	 */
+	private function readRows(array $config, string $failure): array {
+		try {
+			return $this->objectService->findAll($config);
+		} catch (Throwable $e) {
+			$this->logger->info($failure, ['message' => $e->getMessage()]);
+			return [];
+		}
+	}//end readRows()
+
+	/**
+	 * A row as an array: an array as it is, an object through jsonSerialize(), anything else null.
+	 *
+	 * @param mixed $row The row.
+	 *
+	 * @return array<string,mixed>|null
+	 */
+	private static function asArray(mixed $row): ?array {
+		if (is_array($row) === true) {
+			return $row;
+		}
+
+		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
+			$serialized = $row->jsonSerialize();
+			if (is_array($serialized) === true) {
+				return $serialized;
+			}
+		}
+
+		return null;
+	}//end asArray()
 
 	/**
 	 * Read the `scholiq-ai-features` AVG Art. 30 catalogue annotation

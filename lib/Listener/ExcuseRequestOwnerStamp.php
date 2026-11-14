@@ -3,6 +3,9 @@
 /**
  * Learniq Excuse Request Owner Stamp
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Decides, on the server, whose absence an ExcuseRequest reports, who filed it
  * and which school it belongs to.
  *
@@ -20,7 +23,10 @@
  *
  * For every other write it derives `learnerRef` from `learnerId`: a client
  * value is never kept, so nobody can point an excuse at another pupil's portal
- * list.
+ * list. A signed-in create is filed in the caller's name (`submittedBy`), and
+ * one that names the pupil only by profile (`learnerRef`, as the staff form
+ * does) gets the pupil's `learnerId` and, when missing, the school from that
+ * profile.
  *
  * On every write it also stamps `teacherIds`, the teachers of the pupil's
  * current groups (PupilGroupTeachers). The schema's read rule lets a teacher
@@ -35,8 +41,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -49,10 +53,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\LearnerRefResolver;
-use OCA\Learniq\Service\Portal\PortalWriteSubject;
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\PupilGroupTeachers;
+use OCA\Learniq\Kernel\Contracts\ExcuseRequestStaffOwnerInterface;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\PortalWriteSubjectInterface;
+use OCA\Learniq\Kernel\Contracts\PupilGroupTeachersInterface;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -99,20 +104,22 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
-	 * @param LearnerRefResolver $profiles LearnerProfile by uuid, uuid by user.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
+	 * @param LearnerRefResolverInterface $profiles LearnerProfile by uuid, uuid by user.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param PupilGroupTeachers $groupTeachers The teachers of a pupil's current groups.
-	 * @param PortalWriteSubject $writers Whether the portal's own subject is writing.
+	 * @param PupilGroupTeachersInterface $groupTeachers The teachers of a pupil's current groups.
+	 * @param PortalWriteSubjectInterface $writers Whether the portal's own subject is writing.
+	 * @param ExcuseRequestStaffOwnerInterface $staffOwner The submitter, pupil and school of a staff write.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly LearnerRefResolver $profiles,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		private readonly LearnerRefResolverInterface $profiles,
 		private readonly LoggerInterface $logger,
-		private readonly PupilGroupTeachers $groupTeachers,
-		private readonly PortalWriteSubject $writers,
+		private readonly PupilGroupTeachersInterface $groupTeachers,
+		private readonly PortalWriteSubjectInterface $writers,
+		private readonly ExcuseRequestStaffOwnerInterface $staffOwner,
 	) {
 	}//end __construct()
 
@@ -219,7 +226,10 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 			return $this->portalStamp(payload: $payload);
 		}
 
-		$stamp = ['learnerRef' => $this->derivedRef(event: $event, payload: $payload)];
+		$stamp = $this->staffOwner->ownerFields(isCreate: $event instanceof ObjectCreatingEvent, payload: $payload);
+		$stamp['learnerRef'] = $this->derivedRef(event: $event, payload: array_merge($payload, $stamp));
+		$stamp = array_merge($stamp, $this->staffOwner->schoolFields(payload: $payload, learnerRef: $stamp['learnerRef']));
+
 		if ($this->text(value: ($payload['submittedAuthLevel'] ?? null)) === '') {
 			$stamp['submittedAuthLevel'] = self::DEFAULT_LEVEL;
 		}

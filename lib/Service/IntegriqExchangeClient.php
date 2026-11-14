@@ -29,6 +29,8 @@ namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Exception\ExchangeRequestRefusedException;
 use OCA\Learniq\Exception\IntegriqUnavailableException;
+use OCA\Learniq\Kernel\Contracts\IntegriqExchangeClientInterface;
+use OCA\Learniq\Support\EventGetter;
 use OCP\App\IAppManager;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -43,7 +45,7 @@ use OCP\EventDispatcher\IEventDispatcher;
  *
  * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
  */
-class IntegriqExchangeClient {
+class IntegriqExchangeClient implements IntegriqExchangeClientInterface {
 
 	public const INTEGRIQ_APP = 'integriq';
 	public const OWNER_APP = 'learniq';
@@ -201,11 +203,7 @@ class IntegriqExchangeClient {
 	 * @return mixed The value, or null when the getter does not exist.
 	 */
 	private function read(Event $event, string $getter): mixed {
-		if (method_exists($event, $getter) === false) {
-			return null;
-		}
-
-		return $event->$getter();
+		return (new EventGetter())->value(event: $event, getter: $getter);
 	}//end read()
 
 	/**

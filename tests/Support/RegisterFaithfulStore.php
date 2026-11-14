@@ -3,6 +3,9 @@
 /**
  * An in-memory OpenRegister stand-in that answers the way the live one does.
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Most fakes in this suite answer whatever they are asked, so a call site that
  * passes the wrong config can only pass. This one copies two behaviours of
  * OpenRegister that decide whether a lookup works at all:
@@ -79,8 +82,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -92,6 +93,7 @@ namespace OCA\Learniq\Tests\Support;
 
 use DateTime;
 use OCA\OpenRegister\Db\ObjectEntity;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use RuntimeException;
@@ -718,10 +720,12 @@ final class RegisterFaithfulStore {
 				}
 
 				$object = $this->lifecycleActions[$name]->execute(
-					$object,
-					$stored,
-					(array)($envelope['actionParameters'] ?? []),
-					$name
+					new LifecycleActionContext(
+						objectData: $object,
+						previousData: $stored,
+						parameters: (array)($envelope['actionParameters'] ?? []),
+						actionName: $name
+					)
 				);
 			}
 

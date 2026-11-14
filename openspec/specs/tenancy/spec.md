@@ -32,7 +32,7 @@ Scope note: the list pages read objects through OpenRegister's object API, and l
 
 ### Requirement: Rows created in the app MUST carry the creator's tenant
 
-`PageController` SHALL provide the caller's resolved tenant as the `callerTenant` initial state, and `src/main.js` SHALL hand it to nextcloud-vue's tenant context, so the shared create dialog fills the hidden `tenant_id` field. Server-side writes (xAPI statements and documents, course package and QTI imports, the course store, lesson onboarding, the learning record intake) MUST stamp the resolved tenant as well.
+`PageController` SHALL provide the caller's resolved tenant as the `callerTenant` initial state, and `src/main.js` SHALL hand it to nextcloud-vue's tenant context, so the shared create dialog fills the hidden `tenant_id` field. Server-side writes (xAPI statements and documents, course package and QTI imports, the course marketplace, lesson onboarding, the learning record intake) MUST stamp the resolved tenant as well.
 
 #### Scenario: A record made in the create dialog carries the tenant
 <!-- @e2e exclude The hidden field is not visible in the DOM; the stamp is read from the saved object. Covered by PHPUnit DefaultTenantRoutingTest for the server paths. -->

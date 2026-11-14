@@ -39,8 +39,10 @@ namespace OCA\Learniq\Service\Attendance;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use OCA\Learniq\Kernel\Contracts\AttendanceSummaryServiceInterface;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\PupilGroupTeachers;
+use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use Psr\Log\LoggerInterface;
@@ -51,7 +53,7 @@ use Throwable;
  *
  * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
  */
-class AttendanceSummaryService {
+class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 
 	private const REGISTER = 'learniq';
 	private const RECORD_SCHEMA = 'attendance-record';
@@ -82,6 +84,13 @@ class AttendanceSummaryService {
 	private array $sessionCache = [];
 
 	/**
+	 * Turns one OpenRegister result into a plain array.
+	 *
+	 * @var ObjectRow
+	 */
+	private readonly ObjectRow $objectRow;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService               $objectService OpenRegister object access.
@@ -101,6 +110,7 @@ class AttendanceSummaryService {
 		private readonly ITimeFactory $time,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->objectRow = new ObjectRow();
 	}//end __construct()
 
 	/**
@@ -438,14 +448,6 @@ class AttendanceSummaryService {
 	 * @return array<string, mixed>
 	 */
 	private function toRow(mixed $object): array {
-		if (is_array($object) === true) {
-			return $object;
-		}
-
-		if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-			return (array)$object->jsonSerialize();
-		}
-
-		return [];
+		return $this->objectRow->asArray(object: $object);
 	}//end toRow()
 }//end class

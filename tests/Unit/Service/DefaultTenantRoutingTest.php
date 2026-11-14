@@ -36,6 +36,7 @@ use OCA\Learniq\Service\LessonOnboarding\OnboardingFolderSetting;
 use OCA\Learniq\Service\XapiDocumentCodec;
 use OCA\Learniq\Service\XapiDocumentStore;
 use OCA\Learniq\Service\XapiStatementIngest;
+use OCA\Learniq\Tests\Support\ContractImplementations;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
@@ -90,7 +91,7 @@ class DefaultTenantRoutingTest extends TestCase {
 	public function testEveryCallerTakesTheResolverAndNoneReadsTheInstanceId(): void {
 		foreach (self::ROUTED as $class) {
 			$types = array_map(
-				static fn ($parameter): string => (string)$parameter->getType(),
+				static fn ($parameter): string => ContractImplementations::concrete((string)$parameter->getType()),
 				(new ReflectionClass($class))->getConstructor()->getParameters()
 			);
 			self::assertContains(CallerTenantResolver::class, $types, $class);

@@ -27,7 +27,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Settings\AdminSettings;
 use OCP\AppFramework\Controller;
@@ -57,7 +57,7 @@ class ActionMatrixController extends Controller {
 		private readonly IGroupManager $groupManager,
 	) {
 		parent::__construct(
-			appName: Application::APP_ID,
+			appName: AppIdentity::APP_ID,
 			request: $request
 		);
 	}//end __construct()
@@ -72,6 +72,7 @@ class ActionMatrixController extends Controller {
 	 * @return JSONResponse The matrix, action keys, and group IDs.
 	 *
 	 * @spec openspec/architecture/adr-023-action-authorization.md
+	 * @spec openspec/specs/action-authorization/spec.md#requirement-an-administrator-changes-the-matrix-without-a-developer
 	 */
 	#[AuthorizedAdminSetting(AdminSettings::class)]
 	public function getMatrix(): JSONResponse {
@@ -113,6 +114,7 @@ class ActionMatrixController extends Controller {
 	 * @return JSONResponse The normalized matrix after the write.
 	 *
 	 * @spec openspec/architecture/adr-023-action-authorization.md
+	 * @spec openspec/specs/action-authorization/spec.md#requirement-an-administrator-changes-the-matrix-without-a-developer
 	 * @spec openspec/changes/archive/2026-09-29-controller-test-coverage-security-critical/tasks.md#task-1
 	 */
 	#[AuthorizedAdminSetting(AdminSettings::class)]
@@ -152,25 +154,84 @@ class ActionMatrixController extends Controller {
 			return 'matrix must be an object mapping each action to a list of groups';
 		}
 
-		foreach ($matrix as $action => $groups) {
-			if (is_string($action) === false || is_array($groups) === false) {
-				return 'every action must map to a list of groups';
-			}
+		$shapeProblem = $this->shapeProblem(matrix: $matrix);
+		if ($shapeProblem !== null) {
+			return $shapeProblem;
+		}
 
-			foreach ($groups as $group) {
-				if (is_string($group) === false) {
-					return 'groups must be group ids: ' . $action;
-				}
+		return $this->missingActionsProblem(matrix: $matrix);
+	}//end matrixProblem()
+
+	/**
+	 * The first entry that is not an action mapped to a list of group ids, or null.
+	 *
+	 * @param array<mixed, mixed> $matrix The submitted, non-empty matrix.
+	 *
+	 * @return string|null The reason for refusal, or null when every entry is well formed.
+	 */
+	private function shapeProblem(array $matrix): ?string {
+		foreach ($matrix as $action => $groups) {
+			$problem = $this->entryProblem(action: $action, groups: $groups);
+			if ($problem !== null) {
+				return $problem;
 			}
 		}
 
+		return null;
+	}//end shapeProblem()
+
+	/**
+	 * Why one matrix entry is malformed, or null when it maps an action to group ids.
+	 *
+	 * @param mixed $action The entry's key.
+	 * @param mixed $groups The entry's value.
+	 *
+	 * @return string|null The reason for refusal, or null for a well-formed entry.
+	 */
+	private function entryProblem(mixed $action, mixed $groups): ?string {
+		if (is_string($action) === false || is_array($groups) === false) {
+			return 'every action must map to a list of groups';
+		}
+
+		if ($this->allStrings(values: $groups) === false) {
+			return 'groups must be group ids: ' . $action;
+		}
+
+		return null;
+	}//end entryProblem()
+
+	/**
+	 * Whether every value in the list is a string.
+	 *
+	 * @param array<mixed, mixed> $values The values to check.
+	 *
+	 * @return bool
+	 */
+	private function allStrings(array $values): bool {
+		foreach ($values as $value) {
+			if (is_string($value) === false) {
+				return false;
+			}
+		}
+
+		return true;
+	}//end allStrings()
+
+	/**
+	 * Which seeded actions the matrix leaves out, as a refusal reason, or null.
+	 *
+	 * @param array<string, mixed> $matrix The well-formed submitted matrix.
+	 *
+	 * @return string|null The reason for refusal, or null when every seeded action is present.
+	 */
+	private function missingActionsProblem(array $matrix): ?string {
 		$missing = array_values(array_diff($this->seedActionKeys(), array_keys($matrix)));
 		if ($missing !== []) {
 			return 'matrix is missing actions: ' . implode(', ', $missing);
 		}
 
 		return null;
-	}//end matrixProblem()
+	}//end missingActionsProblem()
 
 	/**
 	 * Read the action keys declared in the seed file.
@@ -178,28 +239,8 @@ class ActionMatrixController extends Controller {
 	 * @return array<int, string>
 	 */
 	private function seedActionKeys(): array {
-		if (file_exists(self::SEED_PATH) === false) {
-			return [];
-		}
-
-		$raw = file_get_contents(self::SEED_PATH);
-		if ($raw === false) {
-			return [];
-		}
-
-		try {
-			$parsed = json_decode($raw, associative: true, depth: 512, flags: JSON_THROW_ON_ERROR);
-		} catch (\JsonException $e) {
-			return [];
-		}
-
-		$actions = ($parsed['actions'] ?? null);
-		if (is_array($actions) === false) {
-			return [];
-		}
-
 		$keys = [];
-		foreach (array_keys($actions) as $key) {
+		foreach (array_keys($this->seedActions()) as $key) {
 			if (is_string($key) === true) {
 				$keys[] = $key;
 			}
@@ -207,4 +248,41 @@ class ActionMatrixController extends Controller {
 
 		return $keys;
 	}//end seedActionKeys()
+
+	/**
+	 * Read the `actions` map of the seed file; empty when it is absent or unreadable.
+	 *
+	 * @return array<mixed, mixed>
+	 */
+	private function seedActions(): array {
+		$parsed  = $this->decodedSeed();
+		$actions = ($parsed['actions'] ?? null);
+		if (is_array($actions) === false) {
+			return [];
+		}
+
+		return $actions;
+	}//end seedActions()
+
+	/**
+	 * Decode the seed file; null when it is missing, unreadable or not JSON.
+	 *
+	 * @return mixed
+	 */
+	private function decodedSeed(): mixed {
+		if (file_exists(self::SEED_PATH) === false) {
+			return null;
+		}
+
+		$raw = file_get_contents(self::SEED_PATH);
+		if ($raw === false) {
+			return null;
+		}
+
+		try {
+			return json_decode($raw, associative: true, depth: 512, flags: JSON_THROW_ON_ERROR);
+		} catch (\JsonException $e) {
+			return null;
+		}
+	}//end decodedSeed()
 }//end class

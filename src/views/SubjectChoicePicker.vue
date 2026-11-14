@@ -25,8 +25,8 @@
  @spec openspec/specs/school-structure/spec.md#requirement-guardian-consent-gates-a-minor-s-subject-choice-submission
 -->
 <template>
-	<div class="subject-choice-picker">
-		<h2>{{ t('learniq', 'Pick electives (vakkenpakket)') }}</h2>
+	<div class="subject-choice-picker lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Pick electives (vakkenpakket)')" />
 
 		<NcLoadingIcon v-if="loading" :size="32" />
 
@@ -40,7 +40,10 @@
 				)
 			" />
 
-		<template v-else>
+		<CnDetailCard
+			v-else
+			:title="selectedPlan ? selectedPlan.name || '' : ''"
+			class="subject-choice-picker__card">
 			<div class="subject-choice-picker__field">
 				<label for="scp-plan">{{ t('learniq', 'Curriculum plan') }}</label>
 				<NcSelect
@@ -171,11 +174,12 @@
 						: t('learniq', 'Submit subject choice')
 				}}
 			</NcButton>
-		</template>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { getLanguage } from '@nextcloud/l10n'
@@ -188,11 +192,14 @@ import {
 	NcSelect,
 } from '@nextcloud/vue'
 import { clashes, slotLabel } from '../utils/electiveSlots.js'
+import { fetchLinkedLearners } from '../utils/linkedLearners.js'
 
 export default {
 	name: 'SubjectChoicePicker',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
@@ -531,31 +538,10 @@ export default {
 			}
 
 			try {
-				const [childrenResp, selfResp] = await Promise.all([
-					axios.get(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/learner-profile?parentIds={uid}&_limit=50',
-							{ uid },
-						),
-					),
-					axios.get(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/learner-profile?ncUserId={uid}&_limit=1',
-							{ uid },
-						),
-					),
-				])
-				const children =
-					(childrenResp.data
-						&& (childrenResp.data.results || childrenResp.data.objects))
-					|| []
-				const self =
-					(selfResp.data
-						&& (selfResp.data.results || selfResp.data.objects))
-					|| []
-				const byId = new Map()
-				;[...children, ...self].forEach((l) => byId.set(l.ncUserId, l))
-				this.learners = Array.from(byId.values())
+				this.learners = await fetchLinkedLearners(
+					{ get: (url) => axios.get(url), urlFor: generateUrl },
+					uid,
+				)
 			} catch (e) {
 				// eslint-disable-next-line no-console
 				console.error('[SubjectChoicePicker] loadLearners failed', e)
@@ -576,9 +562,9 @@ export default {
 		},
 
 		/**
-		 * Create the SubjectChoice (draft) then trigger its submit transition.
-		 * A guard rejection (HTTP 4xx from OR's lifecycle engine) surfaces as a
-		 * user-facing error rather than a silent failure.
+		 * Submit the choice in one server call, which creates it, stamps the
+		 * tenant and who consented, and fires the submit transition. A guard
+		 * refusal comes back as a 403 and leaves no draft.
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/school-structure/spec.md#scenario-a-linked-guardian-can-submit-a-subject-choice-for-their-own-child
@@ -591,37 +577,13 @@ export default {
 			this.submitSuccess = false
 
 			try {
-				const body = {
+				await axios.post(generateUrl('/apps/learniq/api/subject-choices'), {
 					learnerId: this.selectedLearnerId,
 					curriculumPlanId: this.selectedPlanId,
 					academicYear: this.academicYear,
 					selectedElectiveCourseIds: this.selectedCourseIds,
 					guardianConsentGiven: this.guardianConsentGiven,
-					guardianConsentBy: this.guardianConsentGiven
-						? getCurrentUser()?.uid || null
-						: null,
-
-					tenant_id: this.selectedPlan
-						? this.selectedPlan.tenant_id
-						: undefined,
-				}
-
-				const createUrl = generateUrl(
-					'/apps/openregister/api/objects/learniq/subject-choice',
-				)
-				const created = await axios.post(createUrl, body)
-				const choiceId =
-					(created.data && (created.data.id || created.data.uuid)) || ''
-
-				if (choiceId === '') {
-					throw new Error('No subject-choice id returned')
-				}
-
-				const transitionUrl = generateUrl(
-					'/apps/openregister/api/objects/learniq/subject-choice/{id}',
-					{ id: choiceId },
-				)
-				await axios.patch(transitionUrl, { lifecycle: 'submitted' })
+				})
 
 				this.submitSuccess = true
 				this.selectedCourseIds = []
@@ -641,9 +603,8 @@ export default {
 </script>
 
 <style scoped>
-.subject-choice-picker {
-	padding: 1rem;
-	max-width: 560px;
+.subject-choice-picker__card {
+	max-width: 860px;
 }
 
 .subject-choice-picker__field {

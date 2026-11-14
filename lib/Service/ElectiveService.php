@@ -36,6 +36,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\ElectiveServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Throwable;
 
@@ -44,12 +45,9 @@ use Throwable;
  *
  * @spec openspec/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
  */
-class ElectiveService {
+class ElectiveService implements ElectiveServiceInterface {
 
-	public const REGISTER = 'learniq';
 	public const OFFER_SCHEMA = 'elective-offer';
-	public const SIGN_UP_SCHEMA = 'elective-sign-up';
-	public const WITHDRAWN = 'withdrawn';
 	public const STAFF_GROUPS = ['instructors', 'team-leads', 'compliance-officers', 'coordinators'];
 	public const INTEGRATION_GROUP = 'elective-integrations';
 

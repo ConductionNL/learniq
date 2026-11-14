@@ -1,4 +1,7 @@
 <!--
+  SPDX-License-Identifier: EUPL-1.2
+  Copyright (C) 2026 Conduction B.V.
+
   PeerReviewMarkingView.vue
   Custom page component for the PeerReviewMarkingView manifest page (type: custom).
 
@@ -30,15 +33,12 @@
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring MarkSubmissionView.
 
-  SPDX-License-Identifier: EUPL-1.2
-  Copyright (C) 2026 Conduction B.V.
-
   @spec openspec/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
   @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
 -->
 
 <template>
-	<div class="peer-review-marking-view">
+	<div class="peer-review-marking-view lq-board-page">
 		<!-- Loading -->
 		<div
 			v-if="loading"
@@ -61,7 +61,7 @@
 			role="status"
 			aria-live="polite">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<h2>{{ t('learniq', 'Peer review submitted') }}</h2>
+			<CnPageHeader :title="t('learniq', 'Peer review submitted')" />
 			<p>
 				{{
 					t('learniq', 'Score: {score} / {max}', {
@@ -75,7 +75,7 @@
 		<!-- Marking form -->
 		<template v-else-if="peerReview">
 			<header class="peer-review-marking-view__header">
-				<h2>{{ t('learniq', 'Complete peer review') }}</h2>
+				<CnPageHeader :title="t('learniq', 'Complete peer review')" />
 				<p class="peer-review-marking-view__meta">
 					{{
 						t('learniq', 'Assignment: {title}', {
@@ -108,8 +108,9 @@
 				</p>
 			</header>
 
-			<section class="peer-review-marking-view__work">
-				<h3>{{ t('learniq', 'Work to review') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Work to review')"
+				class="peer-review-marking-view__work">
 				<p
 					v-if="work && work.submittedAt"
 					class="peer-review-marking-view__meta">
@@ -129,79 +130,31 @@
 				<p v-else class="peer-review-marking-view__meta">
 					{{ t('learniq', 'No files were handed in.') }}
 				</p>
-			</section>
+			</CnDetailCard>
 
-			<section
+			<CnDetailCard
 				v-if="rubric && rubric.criteria && rubric.criteria.length > 0"
+				:title="t('learniq', 'Rubric: {name}', { name: rubric.name || '' })"
 				class="peer-review-marking-view__rubric">
-				<h3>
-					{{ t('learniq', 'Rubric: {name}', { name: rubric.name || '' }) }}
-				</h3>
+				<RubricPicker
+					v-model:selectedLevels="selectedLevels"
+					:rubric="rubric"
+					:maxPoints="assignment.maxPoints || 0"
+					:disabled="saving" />
+			</CnDetailCard>
 
-				<div
-					v-for="criterion in rubric.criteria"
-					:key="criterion.criterionId"
-					class="peer-review-marking-view__criterion">
-					<h4 class="peer-review-marking-view__criterion-label">
-						{{ criterion.label }}
-						<span class="peer-review-marking-view__criterion-weight">
-							{{
-								t('learniq', '(weight: {w})', {
-									w: criterion.weight,
-								})
-							}}
-						</span>
-					</h4>
-					<div class="peer-review-marking-view__levels">
-						<label
-							v-for="level in criterion.levels"
-							:key="level.levelId"
-							class="peer-review-marking-view__level">
-							<input
-								type="radio"
-								:name="criterion.criterionId"
-								:value="level.levelId"
-								:checked="
-									getSelectedLevel(criterion.criterionId)
-									=== level.levelId
-								"
-								:disabled="saving"
-								@change="selectLevel(criterion, level)" />
-							<span class="peer-review-marking-view__level-label">{{
-								level.label
-							}}</span>
-							<span class="peer-review-marking-view__level-points">
-								{{
-									t('learniq', '{pts} pts', { pts: level.points })
-								}}
-							</span>
-						</label>
-					</div>
-				</div>
-
-				<div class="peer-review-marking-view__score-total">
-					<strong>{{
-						t('learniq', 'Score: {score} / {max}', {
-							score: computedScore,
-							max: assignment.maxPoints || '?',
-						})
-					}}</strong>
-				</div>
-			</section>
-
-			<section class="peer-review-marking-view__comments">
-				<h3 id="peer-review-comments-label">
-					{{ t('learniq', 'Comments for the author') }}
-				</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Comments for the author')"
+				class="peer-review-marking-view__comments">
 				<textarea
 					id="peer-review-comments"
 					v-model="comments"
 					class="peer-review-marking-view__comments-input"
-					aria-labelledby="peer-review-comments-label"
+					:aria-label="t('learniq', 'Comments for the author')"
 					:placeholder="t('learniq', 'Write feedback for the author...')"
 					:disabled="saving"
 					rows="5" />
-			</section>
+			</CnDetailCard>
 
 			<div class="peer-review-marking-view__actions">
 				<button
@@ -223,12 +176,25 @@
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getRequestToken } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
+import RubricPicker from '../components/RubricPicker.vue'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
+import {
+	readObject,
+	readRequiredObject,
+	restoreLevels,
+	rubricComplete,
+	rubricPoints,
+	rubricScoresOf,
+	sendJsonOrThrow,
+	SUBMIT_TRANSITION,
+} from '../utils/registerRequests.js'
 
 export default {
 	name: 'PeerReviewMarkingView',
+	components: { CnDetailCard, CnPageHeader, RubricPicker },
 
 	props: {
 		/**
@@ -283,10 +249,7 @@ export default {
 		 * @spec openspec/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		computedScore() {
-			return Object.values(this.selectedLevels).reduce(
-				(sum, sel) => sum + (sel.points || 0),
-				0,
-			)
+			return rubricPoints(this.selectedLevels)
 		},
 
 		/**
@@ -321,16 +284,7 @@ export default {
 		 * @spec openspec/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		canSubmit() {
-			if (
-				!this.rubric
-				|| !this.rubric.criteria
-				|| this.rubric.criteria.length === 0
-			) {
-				return true
-			}
-			return this.rubric.criteria.every(
-				(c) => this.selectedLevels[c.criterionId] != null,
-			)
+			return rubricComplete(this.rubric, this.selectedLevels)
 		},
 	},
 
@@ -376,13 +330,7 @@ export default {
 
 				await this.loadWork(peerReviewId)
 
-				const existingScores = this.peerReview.rubricScores ?? []
-				for (const score of existingScores) {
-					this.selectedLevels[score.criterionId] = {
-						levelId: score.levelId,
-						points: score.points,
-					}
-				}
+				restoreLevels(this.selectedLevels, this.peerReview.rubricScores ?? [])
 				this.comments = this.peerReview.comments ?? ''
 			} catch (err) {
 				this.error = this.t(
@@ -404,17 +352,10 @@ export default {
 		 * @spec openspec/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		async loadPeerReview(peerReviewId) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/peer-review/${peerReviewId}`,
+			this.peerReview = await readRequiredObject(
+				generateUrl(`/apps/openregister/api/objects/learniq/peer-review/${peerReviewId}`),
+				'PeerReview fetch failed',
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				throw new Error(`PeerReview fetch failed: ${resp.status}`)
-			}
-			const json = await resp.json()
-			this.peerReview = json.object ?? json ?? {}
 		},
 
 		/**
@@ -425,17 +366,10 @@ export default {
 		 * @spec openspec/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		async loadAssignment(assignmentId) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/Assignment/${assignmentId}`,
+			this.assignment = await readRequiredObject(
+				generateUrl(`/apps/openregister/api/objects/learniq/Assignment/${assignmentId}`),
+				'Assignment fetch failed',
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				throw new Error(`Assignment fetch failed: ${resp.status}`)
-			}
-			const json = await resp.json()
-			this.assignment = json.object ?? json ?? {}
 		},
 
 		/**
@@ -446,18 +380,13 @@ export default {
 		 * @spec openspec/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		async loadRubric(rubricId) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/Rubric/${rubricId}`,
+			const read = await readObject(
+				generateUrl(`/apps/openregister/api/objects/learniq/Rubric/${rubricId}`),
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				// Non-fatal — fall back to no rubric display.
-				return
+			// A rubric that cannot be read is not fatal: the page shows none.
+			if (read.ok) {
+				this.rubric = read.object ?? null
 			}
-			const json = await resp.json()
-			this.rubric = json.object ?? json ?? null
 		},
 
 		/**
@@ -518,45 +447,13 @@ export default {
 		},
 
 		/**
-		 * Get the currently selected levelId for a criterion.
-		 *
-		 * @param {string} criterionId Criterion identifier
-		 * @return {string|undefined}
-		 */
-		getSelectedLevel(criterionId) {
-			return this.selectedLevels[criterionId]?.levelId
-		},
-
-		/**
-		 * Record the reviewer's level selection for a criterion.
-		 *
-		 * @param {object} criterion Rubric criterion object
-		 * @param {object} level     Selected level object
-		 * @return {void}
-		 * @spec openspec/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
-		 */
-		selectLevel(criterion, level) {
-			this.selectedLevels = {
-				...this.selectedLevels,
-				[criterion.criterionId]: {
-					levelId: level.levelId,
-					points: level.points,
-				},
-			}
-		},
-
-		/**
 		 * Build the rubricScores array from current selections.
 		 *
 		 * @return {Array<{criterionId: string, levelId: string, points: number}>}
 		 * @spec openspec/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		buildRubricScores() {
-			return Object.entries(this.selectedLevels).map(([criterionId, sel]) => ({
-				criterionId,
-				levelId: sel.levelId,
-				points: sel.points,
-			}))
+			return rubricScoresOf(this.selectedLevels)
 		},
 
 		/**
@@ -573,44 +470,17 @@ export default {
 			this.saving = true
 			this.saveError = null
 
-			const rubricScores = this.buildRubricScores()
-			const totalScore = this.computedScore
+			const scores = {
+				rubricScores: this.buildRubricScores(),
+				totalScore: this.computedScore,
+			}
 
 			try {
-				const updateUrl = generateUrl(
-					`/apps/openregister/api/objects/learniq/peer-review/${this.id}`,
+				await this.savePeerReview(scores)
+				await sendJsonOrThrow(
+					generateUrl(objectTransitionUrl(this.id)),
+					SUBMIT_TRANSITION,
 				)
-				const updateResp = await fetch(updateUrl, {
-					method: 'PATCH',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						rubricScores,
-						totalScore,
-						comments: this.comments,
-					}),
-				})
-				if (!updateResp.ok) {
-					throw new Error(`PeerReview update failed: ${updateResp.status}`)
-				}
-
-				const transitionUrl = generateUrl(objectTransitionUrl(this.id))
-				const transResp = await fetch(transitionUrl, {
-					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ action: 'submit' }),
-				})
-				if (!transResp.ok) {
-					throw new Error(`Submit transition failed: ${transResp.status}`)
-				}
-
 				this.submitted = true
 			} catch (err) {
 				this.saveError = this.t(
@@ -623,28 +493,39 @@ export default {
 				this.saving = false
 			}
 		},
+
+		/**
+		 * Save the reviewer's rubric scores, total and comments to the PeerReview.
+		 *
+		 * @param {{rubricScores: Array<object>, totalScore: number}} scores The scores.
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
+		 */
+		async savePeerReview(scores) {
+			await sendJsonOrThrow(
+				generateUrl(`/apps/openregister/api/objects/learniq/peer-review/${this.id}`),
+				{
+					method: 'PATCH',
+					body: {
+						rubricScores: scores.rubricScores,
+						totalScore: scores.totalScore,
+						comments: this.comments,
+					},
+					failure: 'PeerReview update failed',
+				},
+			)
+		},
 	},
 }
 </script>
 
 <style scoped>
-.peer-review-marking-view {
-	max-width: 860px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
 .peer-review-marking-view__loading,
 .peer-review-marking-view__error {
 	display: flex;
 	align-items: center;
 	gap: var(--default-grid-baseline, 8px);
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.peer-review-marking-view__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
 }
 
 .peer-review-marking-view__meta,
@@ -654,63 +535,13 @@ export default {
 	font-size: 0.9em;
 }
 
-.peer-review-marking-view__rubric,
-.peer-review-marking-view__comments {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
 
-.peer-review-marking-view__criterion {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
-	padding: var(--default-grid-baseline, 8px);
-	border: 1px solid var(--color-border);
-	border-radius: 4px;
-}
 
-.peer-review-marking-view__criterion-label {
-	font-weight: bold;
-	margin-bottom: var(--default-grid-baseline, 8px);
-}
 
-.peer-review-marking-view__criterion-weight {
-	font-weight: normal;
-	color: var(--color-text-maxcontrast);
-	font-size: 0.85em;
-	margin-left: 4px;
-}
 
-.peer-review-marking-view__levels {
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--default-grid-baseline, 8px);
-}
 
-.peer-review-marking-view__level {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	cursor: pointer;
-	padding: 4px 8px;
-	border: 1px solid var(--color-border);
-	border-radius: 4px;
-	background: var(--color-main-background);
-}
 
-.peer-review-marking-view__level:has(input:checked) {
-	background: var(--color-primary-element-light);
-	border-color: var(--color-primary);
-}
 
-.peer-review-marking-view__level-points {
-	color: var(--color-text-maxcontrast);
-	font-size: 0.85em;
-}
-
-.peer-review-marking-view__score-total {
-	margin-top: calc(var(--default-grid-baseline, 8px) * 2);
-	padding: var(--default-grid-baseline, 8px);
-	background: var(--color-background-hover);
-	border-radius: 4px;
-}
 
 .peer-review-marking-view__comments-input {
 	width: 100%;
@@ -724,7 +555,6 @@ export default {
 .peer-review-marking-view__actions {
 	display: flex;
 	justify-content: flex-end;
-	margin-top: calc(var(--default-grid-baseline, 8px) * 3);
 }
 
 .peer-review-marking-view__save-error {

@@ -41,7 +41,8 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeInterface;
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CredentialReissueServiceInterface;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
@@ -55,7 +56,7 @@ use Throwable;
  *
  * @spec openspec/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
  */
-class CredentialReissueService {
+class CredentialReissueService implements CredentialReissueServiceInterface {
 
 	private const REGISTER = 'learniq';
 	private const SCHEMA = 'credential';
@@ -112,7 +113,7 @@ class CredentialReissueService {
 	 */
 	public function preview(string $courseId): array {
 		$counts = ['issued' => 0, 'revoked' => 0, 'expired' => 0];
-		foreach ($this->credentials(courseId: $courseId, offset: 0, limit: 10000) as $credential) {
+		foreach ($this->credentials(courseId: $courseId, page: new CredentialPage(offset: 0, limit: 10000)) as $credential) {
 			$state = (string)($credential['lifecycle'] ?? 'issued');
 			if (array_key_exists($state, $counts) === true) {
 				$counts[$state]++;
@@ -132,7 +133,7 @@ class CredentialReissueService {
 	 * @spec openspec/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
 	 */
 	public function summary(string $runId): ?array {
-		$json = $this->config->getValueString(app: Application::APP_ID, key: self::RUN_KEY_PREFIX . $runId, default: '');
+		$json = $this->config->getValueString(app: AppIdentity::APP_ID, key: self::RUN_KEY_PREFIX . $runId, default: '');
 		$summary = json_decode($json, true);
 		if (is_array($summary) === false) {
 			return null;
@@ -154,22 +155,11 @@ class CredentialReissueService {
 	 * @spec openspec/specs/certification/spec.md#requirement-a-reissue-keeps-who-and-when-and-records-why
 	 */
 	public function run(string $courseId, string $runId, string $reason, IUser $actor): array {
-		$totals = ['processed' => 0, 'skipped' => 0, 'failed' => 0];
-		$offset = 0;
-		$more = true;
-		while ($more === true) {
-			$batch = $this->credentials(courseId: $courseId, offset: $offset, limit: self::BATCH);
-			foreach ($batch as $credential) {
-				$outcome = $this->reissueOne(credential: $credential, runId: $runId, reason: $reason, actor: $actor);
-				$totals[$outcome]++;
-			}
-
-			$more = count($batch) === self::BATCH;
-			$offset += self::BATCH;
-		}
+		$run = new CredentialReissueRun(runId: $runId, decision: new ReissueDecision(actor: $actor, reason: $reason));
+		$totals = $this->reissueAll(courseId: $courseId, run: $run);
 
 		$this->config->setValueString(
-			app: Application::APP_ID,
+			app: AppIdentity::APP_ID,
 			key: self::RUN_KEY_PREFIX . $runId,
 			value: (string)json_encode($totals + ['courseId' => $courseId, 'finishedAt' => $this->now()])
 		);
@@ -178,35 +168,59 @@ class CredentialReissueService {
 	}//end run()
 
 	/**
+	 * Reissue every issued credential of the course, a batch at a time.
+	 *
+	 * @param string               $courseId The course uuid.
+	 * @param CredentialReissueRun $run      The run.
+	 *
+	 * @return array{processed: int, skipped: int, failed: int}
+	 */
+	private function reissueAll(string $courseId, CredentialReissueRun $run): array {
+		$totals = ['processed' => 0, 'skipped' => 0, 'failed' => 0];
+		$offset = 0;
+		$more = true;
+		while ($more === true) {
+			$batch = $this->credentials(courseId: $courseId, page: new CredentialPage(offset: $offset, limit: self::BATCH));
+			foreach ($batch as $credential) {
+				$outcome = $this->reissueOne(credential: $credential, run: $run);
+				$totals[$outcome]++;
+			}
+
+			$more = count($batch) === self::BATCH;
+			$offset += self::BATCH;
+		}
+
+		return $totals;
+	}//end reissueAll()
+
+	/**
 	 * Reissue one credential: `processed`, `skipped` (not issued, or already
 	 * in this run) or `failed`.
 	 *
 	 * @param array<string, mixed> $credential The credential.
-	 * @param string               $runId      The run id.
-	 * @param string               $reason     The reason.
-	 * @param IUser                $actor      Who started the run.
+	 * @param CredentialReissueRun $run        The run.
 	 *
 	 * @return string
 	 */
-	private function reissueOne(array $credential, string $runId, string $reason, IUser $actor): string {
-		if (($credential['lifecycle'] ?? 'issued') !== 'issued' || ($credential['reissueRunId'] ?? '') === $runId) {
+	private function reissueOne(array $credential, CredentialReissueRun $run): string {
+		if (($credential['lifecycle'] ?? 'issued') !== 'issued' || ($credential['reissueRunId'] ?? '') === $run->runId) {
 			return 'skipped';
 		}
 
 		try {
-			$data = $this->rebuilt(credential: $credential, runId: $runId, reason: $reason, actor: $actor);
+			$data = $this->rebuilt(credential: $credential, run: $run);
 			if ($data === null) {
 				throw new RuntimeException('the credential could not be signed');
 			}
 
 			$this->objects->runAs(
-				user: $actor,
+				user: $run->decision->actor,
 				operation: fn () => $this->transitions->transition(objectId: (string)$credential['id'], action: 'reissue', data: $data)
 			);
 		} catch (Throwable $exception) {
 			$this->logger->error(
 				'[CredentialReissueService] Credential {id} was not reissued in run {run}: {msg}',
-				['id' => $credential['id'], 'run' => $runId, 'msg' => $exception->getMessage()]
+				['id' => $credential['id'], 'run' => $run->runId, 'msg' => $exception->getMessage()]
 			);
 			return 'failed';
 		}
@@ -220,37 +234,69 @@ class CredentialReissueService {
 	 * written back.
 	 *
 	 * @param array<string, mixed> $credential The credential.
-	 * @param string               $runId      The run id.
-	 * @param string               $reason     The reason.
-	 * @param IUser                $actor      Who started the run.
+	 * @param CredentialReissueRun $run        The run.
 	 *
 	 * @return array<string, mixed>|null
 	 */
-	private function rebuilt(array $credential, string $runId, string $reason, IUser $actor): ?array {
-		$current = $credential;
-		$current['issuedBy'] = $this->issuerName(tenantId: (string)($credential['tenant_id'] ?? '')) ?? ($credential['issuedBy'] ?? '');
-		unset($current['openbadges3Payload'], $current['signature'], $current['edciPayload']);
-
+	private function rebuilt(array $credential, CredentialReissueRun $run): ?array {
+		$current = $this->currentCredential(credential: $credential);
 		$signed = $this->signer->sign(credential: $current);
 		if ($signed === null) {
 			return null;
 		}
 
 		$signed = $this->europass->withEuropass(credential: $signed);
-		$data = [
+		$data = $this->signedFields(signed: $signed, credential: $credential);
+		$data['issuedBy'] = $current['issuedBy'];
+		$data['edciPayload'] = $signed['edciPayload'] ?? ($credential['edciPayload'] ?? null);
+		$data += $run->historyFields(previousCount: (int)($credential['reissueCount'] ?? 0), now: $this->now());
+
+		return $this->withWalletNote(credential: $credential, data: $data);
+	}//end rebuilt()
+
+	/**
+	 * The credential as it is signed again: the tenant's current School name
+	 * as issuer (else the stored one), without the old signed payloads.
+	 *
+	 * @param array<string, mixed> $credential The credential.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function currentCredential(array $credential): array {
+		$current = $credential;
+		$current['issuedBy'] = $this->issuerName(tenantId: (string)($credential['tenant_id'] ?? '')) ?? ($credential['issuedBy'] ?? '');
+		unset($current['openbadges3Payload'], $current['signature'], $current['edciPayload']);
+
+		return $current;
+	}//end currentCredential()
+
+	/**
+	 * The freshly signed fields; the verification URL falls back to the stored one.
+	 *
+	 * @param array<string, mixed> $signed     The signed credential.
+	 * @param array<string, mixed> $credential The stored credential.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function signedFields(array $signed, array $credential): array {
+		return [
 			'openbadges3Payload' => $signed['openbadges3Payload'],
 			'signature' => $signed['signature'],
 			'issuerDid' => $signed['issuerDid'],
 			'verificationUrl' => $signed['verificationUrl'] ?? ($credential['verificationUrl'] ?? null),
-			'issuedBy' => $current['issuedBy'],
-			'edciPayload' => $signed['edciPayload'] ?? ($credential['edciPayload'] ?? null),
-			'reissuedAt' => $this->now(),
-			'reissueCount' => ((int)($credential['reissueCount'] ?? 0)) + 1,
-			'reissueReason' => $reason,
-			'reissuedBy' => $actor->getUID(),
-			'reissueRunId' => $runId,
 		];
+	}//end signedFields()
 
+	/**
+	 * A wallet holding the previous version is told to fetch the new one:
+	 * its offer status is cleared and a dated note added.
+	 *
+	 * @param array<string, mixed> $credential The stored credential.
+	 * @param array<string, mixed> $data       The transition data.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function withWalletNote(array $credential, array $data): array {
 		if (in_array(($credential['walletOfferStatus'] ?? null), ['offered', 'claimed'], true) === true) {
 			$data['walletOfferStatus'] = null;
 			$date = substr($data['reissuedAt'], 0, 10);
@@ -258,7 +304,7 @@ class CredentialReissueService {
 		}
 
 		return $data;
-	}//end rebuilt()
+	}//end withWalletNote()
 
 	/**
 	 * The tenant's School name, the issuer on a newly issued credential, or null.
@@ -292,23 +338,33 @@ class CredentialReissueService {
 	/**
 	 * A page of the course's credentials.
 	 *
-	 * @param string $courseId The course uuid.
-	 * @param int    $offset   The offset.
-	 * @param int    $limit    The page size.
+	 * @param string         $courseId The course uuid.
+	 * @param CredentialPage $page     From where, and how many.
 	 *
 	 * @return list<array<string, mixed>>
 	 */
-	private function credentials(string $courseId, int $offset, int $limit): array {
+	private function credentials(string $courseId, CredentialPage $page): array {
 		$rows = $this->objects->findAll(
 			config: [
 				'filters' => ['register' => self::REGISTER, 'schema' => self::SCHEMA, 'courseId' => $courseId],
-				'limit' => $limit,
-				'offset' => $offset,
+				'limit' => $page->limit,
+				'offset' => $page->offset,
 			],
 			_rbac: false,
 			_multitenancy: false
 		);
 
+		return $this->credentialRows(rows: $rows);
+	}//end credentials()
+
+	/**
+	 * The found credentials as arrays, each with its id; anything that is not one is left out.
+	 *
+	 * @param array<int, mixed> $rows What findAll() answered.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	private function credentialRows(array $rows): array {
 		$credentials = [];
 		foreach ($rows as $row) {
 			if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
@@ -322,7 +378,7 @@ class CredentialReissueService {
 		}
 
 		return $credentials;
-	}//end credentials()
+	}//end credentialRows()
 
 	/**
 	 * Now, as an ATOM date-time.

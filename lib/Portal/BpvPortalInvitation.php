@@ -35,6 +35,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCA\Learniq\Kernel\Contracts\BpvPortalInvitationInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -46,7 +47,7 @@ use Throwable;
  *
  * @spec openspec/changes/invite-a-trainer-and-an-assessor/specs/portal-identity/spec.md#requirement-a-school-invites-a-trainer-or-an-assessor-it-already-created
  */
-class BpvPortalInvitation {
+class BpvPortalInvitation implements BpvPortalInvitationInterface {
 
 	/**
 	 * Portaliq's provision event (portal-identity-space REQ-PIS-001/003).
@@ -228,13 +229,22 @@ class BpvPortalInvitation {
 			_multitenancy: false
 		);
 
-		foreach ($objects as $object) {
-			$row = $object;
-			if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-				$row = (array)$object->jsonSerialize();
-			}
+		return $this->firstRowOf(objects: $objects, personRef: $personRef);
+	}//end person()
 
-			if (is_array($row) === false || ($row['id'] ?? ($row['uuid'] ?? null)) !== $personRef) {
+	/**
+	 * The first answered row this uuid names, or null when there is none or
+	 * that row is switched off.
+	 *
+	 * @param array<int, mixed> $objects   What OpenRegister answered.
+	 * @param string            $personRef The uuid.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private function firstRowOf(array $objects, string $personRef): ?array {
+		foreach ($objects as $object) {
+			$row = self::rowOf(object: $object);
+			if (self::names(row: $row, personRef: $personRef) === false) {
 				continue;
 			}
 
@@ -247,7 +257,34 @@ class BpvPortalInvitation {
 		}
 
 		return null;
-	}//end person()
+	}//end firstRowOf()
+
+	/**
+	 * An answered object as its row; anything else as it came.
+	 *
+	 * @param mixed $object What OpenRegister answered for one object.
+	 *
+	 * @return mixed
+	 */
+	private static function rowOf(mixed $object): mixed {
+		if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
+			return (array)$object->jsonSerialize();
+		}
+
+		return $object;
+	}//end rowOf()
+
+	/**
+	 * Whether a row is the person with this uuid (by `id`, else `uuid`).
+	 *
+	 * @param mixed  $row       The answered row.
+	 * @param string $personRef The uuid.
+	 *
+	 * @return bool
+	 */
+	private static function names(mixed $row, string $personRef): bool {
+		return is_array($row) === true && ($row['id'] ?? ($row['uuid'] ?? null)) === $personRef;
+	}//end names()
 
 	/**
 	 * Ask portaliq for the account; answers its subjectRef or ''.

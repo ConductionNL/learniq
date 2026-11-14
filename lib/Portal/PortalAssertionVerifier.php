@@ -3,6 +3,9 @@
 /**
  * Learniq Portal Assertion Verifier
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * When portaliq forwards an endpoint action server-to-server (ADR-046
  * contract v2, A6) it attaches an `X-Portal-Subject` header: a 60 second HS256
  * JWT carrying the resolved portal subject. This class verifies it. It is the
@@ -20,14 +23,18 @@
  * accepts only what the minter can produce, so this one reads the dedicated
  * secret only. The secret never comes from the request.
  *
+ * Portaliq stores that secret SENSITIVE (encrypted at rest), so it is read
+ * through `IAppConfig::getValueString()`, which decrypts it, exactly as
+ * portaliq reads it. The legacy `IConfig::getAppValue()` returns the stored
+ * ciphertext, and every HMAC check then failed (401 on every portal action,
+ * 13-14 Oct 2026).
+ *
  * @category Portal
  * @package  OCA\Learniq\Portal
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *
@@ -40,7 +47,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
-use OCP\IConfig;
+use OCA\Learniq\Kernel\Contracts\PortalAssertionVerifierInterface;
+use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -51,12 +59,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
  */
-class PortalAssertionVerifier {
-
-	/**
-	 * The header portaliq attaches the assertion to.
-	 */
-	public const HEADER = 'X-Portal-Subject';
+class PortalAssertionVerifier implements PortalAssertionVerifierInterface {
 
 	/**
 	 * The only accepted algorithm. An exact match refuses `none` and any
@@ -98,14 +101,14 @@ class PortalAssertionVerifier {
 	/**
 	 * Constructor. Tests pass a plain secret instead of config.
 	 *
-	 * @param IConfig|null $config Source of portaliq's app value.
+	 * @param IAppConfig|null $config Source of portaliq's sensitive app value (read decrypted).
 	 * @param string|null $secretOverride Plain secret for tests.
 	 * @param LoggerInterface|null $logger Rejection reasons, debug level only.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ?IConfig $config = null,
+		private readonly ?IAppConfig $config = null,
 		private readonly ?string $secretOverride = null,
 		private readonly ?LoggerInterface $logger = null,
 	) {
@@ -132,23 +135,83 @@ class PortalAssertionVerifier {
 			return $this->reject(reason: 'no usable signing secret');
 		}
 
-		$parts = explode('.', $jwt);
-		if (count($parts) !== 3 || in_array('', $parts, true) === true) {
+		$parts = $this->segments(jwt: $jwt);
+		if ($parts === null) {
 			return $this->reject(reason: 'malformed structure');
 		}
 
+		$problem = $this->signatureProblem(parts: $parts, secret: $secret);
+		if ($problem !== null) {
+			return $this->reject(reason: $problem);
+		}
+
+		return $this->acceptedClaims(cPart: $parts[1]);
+	}//end verify()
+
+	/**
+	 * The three segments of a token, or null unless there are exactly three
+	 * and none is empty.
+	 *
+	 * @param string $jwt The raw header value.
+	 *
+	 * @return array<int, string>|null
+	 */
+	private function segments(string $jwt): ?array {
+		$parts = explode('.', $jwt);
+		if (count($parts) !== 3 || in_array('', $parts, true) === true) {
+			return null;
+		}
+
+		return $parts;
+	}//end segments()
+
+	/**
+	 * What is wrong with the header and signature, or null when nothing is:
+	 * the header's `alg` must be exactly HS256 and the HMAC must match
+	 * (constant time).
+	 *
+	 * @param array<int, string> $parts  The header, claims and signature segments.
+	 * @param string             $secret The signing secret.
+	 *
+	 * @return string|null
+	 */
+	private function signatureProblem(array $parts, string $secret): ?string {
 		[$hPart, $cPart, $sPart] = $parts;
 
-		$header = json_decode($this->b64UrlDecode(encoded: $hPart), true);
-		if (is_array($header) === false || ($header['alg'] ?? '') !== self::ALG) {
-			return $this->reject(reason: 'unexpected algorithm');
+		if ($this->hasExpectedAlgorithm(hPart: $hPart) === false) {
+			return 'unexpected algorithm';
 		}
 
 		$expected = $this->b64UrlEncode(bytes: hash_hmac('sha256', $hPart . '.' . $cPart, $secret, true));
 		if (hash_equals($expected, $sPart) === false) {
-			return $this->reject(reason: 'signature mismatch');
+			return 'signature mismatch';
 		}
 
+		return null;
+	}//end signatureProblem()
+
+	/**
+	 * Whether the header segment is a JSON object whose `alg` is exactly HS256.
+	 *
+	 * @param string $hPart The header segment.
+	 *
+	 * @return bool
+	 */
+	private function hasExpectedAlgorithm(string $hPart): bool {
+		$header = json_decode($this->b64UrlDecode(encoded: $hPart), true);
+
+		return is_array($header) === true && ($header['alg'] ?? '') === self::ALG;
+	}//end hasExpectedAlgorithm()
+
+	/**
+	 * The claims of a correctly signed token when they are a JSON object
+	 * without a problem; otherwise the refusal.
+	 *
+	 * @param string $cPart The claims segment.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private function acceptedClaims(string $cPart): ?array {
 		$claims = json_decode($this->b64UrlDecode(encoded: $cPart), true);
 		if (is_array($claims) === false) {
 			return $this->reject(reason: 'malformed claims');
@@ -160,7 +223,7 @@ class PortalAssertionVerifier {
 		}
 
 		return $claims;
-	}//end verify()
+	}//end acceptedClaims()
 
 	/**
 	 * What is wrong with the claim set, or null when nothing is.
@@ -178,13 +241,25 @@ class PortalAssertionVerifier {
 			return 'unexpected issuer';
 		}
 
-		$sub = ($claims['sub'] ?? null);
-		if (is_string($sub) === false || $sub === '') {
+		if ($this->hasSubject(claims: $claims) === false) {
 			return 'missing subject';
 		}
 
 		return $this->timeProblem(claims: $claims);
 	}//end claimProblem()
+
+	/**
+	 * Whether `sub` is a non-empty string.
+	 *
+	 * @param array<string, mixed> $claims The decoded claims.
+	 *
+	 * @return bool
+	 */
+	private function hasSubject(array $claims): bool {
+		$sub = ($claims['sub'] ?? null);
+
+		return is_string($sub) === true && $sub !== '';
+	}//end hasSubject()
 
 	/**
 	 * What is wrong with `exp` and `iat`, or null when nothing is.
@@ -200,8 +275,7 @@ class PortalAssertionVerifier {
 			return 'expired or missing exp';
 		}
 
-		$iat = ($claims['iat'] ?? null);
-		if (is_int($iat) === false || $iat > ($now + self::IAT_LEEWAY) || $iat > $exp) {
+		if ($this->hasPlausibleIat(claims: $claims, now: $now) === false) {
 			return 'implausible iat';
 		}
 
@@ -209,23 +283,52 @@ class PortalAssertionVerifier {
 	}//end timeProblem()
 
 	/**
+	 * Whether `iat` is an integer not in the future (beyond the leeway) and
+	 * not after `exp`.
+	 *
+	 * @param array<string, mixed> $claims The decoded claims, `exp` already checked.
+	 * @param int                  $now    The time the checks run at.
+	 *
+	 * @return bool
+	 */
+	private function hasPlausibleIat(array $claims, int $now): bool {
+		$iat = ($claims['iat'] ?? null);
+
+		return is_int($iat) === true && $iat <= ($now + self::IAT_LEEWAY) && $iat <= $claims['exp'];
+	}//end hasPlausibleIat()
+
+	/**
 	 * Portaliq's dedicated signing secret, or null when it is missing or too
-	 * short (verification then fails closed).
+	 * short (verification then fails closed). Read through IAppConfig,
+	 * non-lazy as portaliq stores it, so the sensitive value comes back
+	 * decrypted.
 	 *
 	 * @return string|null
+	 *
+	 * @spec openspec/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
 	 */
 	private function secret(): ?string {
-		$secret = $this->secretOverride;
-		if ($secret === null && $this->config !== null) {
-			$secret = (string)$this->config->getAppValue(self::PORTALIQ_APP_ID, self::SECRET_KEY, '');
-		}
-
+		$secret = $this->configuredSecret();
 		if ($secret === null || strlen($secret) < self::MIN_SECRET_LENGTH) {
 			return null;
 		}
 
 		return $secret;
 	}//end secret()
+
+	/**
+	 * The plain test secret when one is given, otherwise portaliq's stored
+	 * value, or null when there is neither.
+	 *
+	 * @return string|null
+	 */
+	private function configuredSecret(): ?string {
+		if ($this->secretOverride !== null || $this->config === null) {
+			return $this->secretOverride;
+		}
+
+		return $this->config->getValueString(self::PORTALIQ_APP_ID, self::SECRET_KEY, '', lazy: false);
+	}//end configuredSecret()
 
 	/**
 	 * Fail closed; log the reason at debug level only.

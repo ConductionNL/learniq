@@ -20,11 +20,9 @@
 -->
 
 <template>
-	<div class="my-learning-record">
+	<div class="my-learning-record lq-board-page">
 		<header class="my-learning-record__header">
-			<h2 class="my-learning-record__heading">
-				{{ t('learniq', 'My learning record') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'My learning record')" />
 			<p class="my-learning-record__intro">
 				{{
 					t(
@@ -44,12 +42,9 @@
 
 		<template v-else-if="record">
 			<!-- Composed, read-only sections -->
-			<section class="my-learning-record__section">
-				<h3>
-					{{ t('learniq', 'Credentials') }} ({{
-						record.credentials.length
-					}})
-				</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Credentials') + ' (' + record.credentials.length + ')'"
+				class="my-learning-record__section">
 				<ul class="my-learning-record__list">
 					<li v-for="c in record.credentials" :key="c.id">
 						{{ c.kind }} — {{ c.issuedAt }}
@@ -60,14 +55,11 @@
 						{{ t('learniq', 'None yet.') }}
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 
-			<section class="my-learning-record__section">
-				<h3>
-					{{ t('learniq', 'Final grades') }} ({{
-						record.finalGrades.length
-					}})
-				</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Final grades') + ' (' + record.finalGrades.length + ')'"
+				class="my-learning-record__section">
 				<ul class="my-learning-record__list">
 					<li v-for="g in record.finalGrades" :key="g.id">
 						{{ g.value ?? '—' }} —
@@ -78,65 +70,51 @@
 						}}
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 
-			<section class="my-learning-record__section">
-				<h3>
-					{{ t('learniq', 'Competency attainments') }} ({{
-						record.competencyAttainments.length
-					}})
-				</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Competency attainments') + ' (' + record.competencyAttainments.length + ')'"
+				class="my-learning-record__section">
 				<ul class="my-learning-record__list">
 					<li v-for="ca in record.competencyAttainments" :key="ca.id">
 						{{ ca.proficiencyLevelId ?? t('learniq', 'in progress') }}
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 
-			<section class="my-learning-record__section">
-				<h3>
-					{{ t('learniq', 'Portfolios') }} ({{ record.portfolios.length }})
-				</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Portfolios') + ' (' + record.portfolios.length + ')'"
+				class="my-learning-record__section">
 				<ul class="my-learning-record__list">
 					<li v-for="p in record.portfolios" :key="p.id">
 						{{ p.title }} ({{ p.lifecycle }})
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 
-			<section class="my-learning-record__section">
-				<h3>
-					{{ t('learniq', 'Verified external training') }} ({{
-						record.externalTrainingRecords.length
-					}})
-				</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Verified external training') + ' (' + record.externalTrainingRecords.length + ')'"
+				class="my-learning-record__section">
 				<ul class="my-learning-record__list">
 					<li v-for="e in record.externalTrainingRecords" :key="e.id">
 						{{ e.title }} — {{ e.provider }}
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 
-			<section class="my-learning-record__section">
-				<h3>
-					{{ t('learniq', 'Work-placement (BPV)') }} ({{
-						record.bpvPlacements.length
-					}})
-				</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Work-placement (BPV)') + ' (' + record.bpvPlacements.length + ')'"
+				class="my-learning-record__section">
 				<ul class="my-learning-record__list">
 					<li v-for="b in record.bpvPlacements" :key="b.id">
 						{{ b.trainingCompanyName }} — {{ b.lifecycle }}
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 
-			<section class="my-learning-record__section">
-				<h3>
-					{{ t('learniq', 'Lesson completion') }} ({{
-						record.lessonCompletions.length
-					}}
-					{{ t('learniq', 'courses') }})
-				</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Lesson completion') + ' (' + record.lessonCompletions.length + ' ' + t('learniq', 'courses') + ')'"
+				class="my-learning-record__section">
 				<ul class="my-learning-record__list">
 					<li v-for="(l, idx) in record.lessonCompletions" :key="idx">
 						{{ l.courseId }} — {{ l.completedCount }}
@@ -146,19 +124,16 @@
 						>
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 
-			<section class="my-learning-record__section">
-				<h3>
-					{{ t('learniq', 'Report cards') }} ({{
-						record.reportCards.length
-					}})
-				</h3>
-			</section>
+			<CnDetailCard
+				:title="t('learniq', 'Report cards') + ' (' + record.reportCards.length + ')'"
+				class="my-learning-record__section" />
 
 			<!-- Export -->
-			<section class="my-learning-record__section my-learning-record__export">
-				<h3>{{ t('learniq', 'Export my record') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Export my record')"
+				class="my-learning-record__section my-learning-record__export">
 				<p class="my-learning-record__hint">
 					{{
 						t(
@@ -246,13 +221,13 @@
 						</tbody>
 					</table>
 				</div>
-			</section>
+			</CnDetailCard>
 
 			<!-- Share -->
-			<section
+			<CnDetailCard
 				v-if="latestExport && latestExport.lifecycle === 'generated'"
+				:title="t('learniq', 'Share my export')"
 				class="my-learning-record__section my-learning-record__share">
-				<h3>{{ t('learniq', 'Share my export') }}</h3>
 				<p class="my-learning-record__hint">
 					{{
 						t(
@@ -355,18 +330,19 @@
 						</tr>
 					</tbody>
 				</table>
-			</section>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
-import { getCurrentUser } from '@nextcloud/auth'
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'MyLearningRecordView',
+	components: { CnDetailCard, CnPageHeader },
 
 	data() {
 		return {
@@ -448,8 +424,8 @@ export default {
 		},
 
 		/**
-		 * Create a LearningRecordExport in `requested`, then fire its `generate`
-		 * transition, then re-fetch the resulting object.
+		 * Create a LearningRecordExport, which the server generates in the same
+		 * request, then re-fetch it and fail unless it is generated.
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
@@ -460,159 +436,201 @@ export default {
 			this.generating = true
 			this.exportError = null
 
-			const uid = getCurrentUser()?.uid ?? ''
-			const nowIso = new Date().toISOString()
-
 			try {
-				const createUrl = generateUrl(
-					'/apps/openregister/api/objects/learniq/learning-record-export',
-				)
-				const createResp = await fetch(createUrl, {
-					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						learnerId: uid,
-						learnerRef: this.record.learnerRef,
-						requestedBy: uid,
-						requestedAt: nowIso,
-						periodFrom: this.periodFrom || null,
-						periodTo: this.periodTo || null,
-						tenant_id: this.record.tenant_id ?? '',
-					}),
-				})
-
-				if (!createResp.ok) {
-					throw new Error(
-						`LearningRecordExport create failed: ${createResp.status}`,
-					)
-				}
-
-				const created = await createResp.json()
-				const exportId = created.id ?? created.uuid
-
-				const transitionUrl = generateUrl(objectTransitionUrl(exportId))
-				await fetch(transitionUrl, {
-					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ action: 'generate' }),
-				})
-
-				const finalUrl = generateUrl(
-					`/apps/openregister/api/objects/learniq/learning-record-export/${exportId}`,
-				)
-				const finalResp = await fetch(finalUrl, {
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-					},
-				})
-				const finalJson = await finalResp.json()
-				this.latestExport = finalJson.object ?? finalJson
+				this.latestExport = await this.createGeneratedExport()
 
 				this.shares = []
 			} catch (err) {
-				this.exportError = this.t(
-					'learniq',
-					'Failed to generate the export. Please try again.',
-				)
-				// eslint-disable-next-line no-console
-				console.error('[MyLearningRecordView] generateExport error', err)
+				this.exportFailed(err)
 			} finally {
 				this.generating = false
 			}
 		},
 
 		/**
-		 * Create a LearningRecordShare for the latest generated export, then
-		 * fire its `grant` transition. Blocked until an expiry date is set.
+		 * POST the export for the chosen period and read it back.
+		 *
+		 * @return {Promise<object>} The generated export.
+		 * @throws {Error} When the server refuses or does not generate it.
+		 */
+		async createGeneratedExport() {
+			const createResp = await this.postJson(
+				generateUrl('/apps/openregister/api/objects/learniq/learning-record-export'),
+				{
+					periodFrom: this.periodFrom || null,
+					periodTo: this.periodTo || null,
+				},
+			)
+			if (!createResp.ok) {
+				throw new Error(`LearningRecordExport create failed: ${createResp.status}`)
+			}
+			const created = await createResp.json()
+			return this.readGeneratedExport(created.id ?? created.uuid)
+		},
+
+		/**
+		 * Read an export back and fail unless the server generated it.
+		 *
+		 * @param {string} exportId LearningRecordExport id.
+		 * @return {Promise<object>} The generated export.
+		 * @throws {Error} When it is unreadable or not generated.
+		 */
+		async readGeneratedExport(exportId) {
+			const finalResp = await fetch(
+				generateUrl(`/apps/openregister/api/objects/learniq/learning-record-export/${exportId}`),
+				{ headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } },
+			)
+			const finalJson = await finalResp.json()
+			const generated = finalJson.object ?? finalJson
+			if (!finalResp.ok || generated.lifecycle !== 'generated') {
+				throw new Error(`LearningRecordExport ${exportId} was not generated`)
+			}
+			return generated
+		},
+
+		/**
+		 * Show and log a failed export.
+		 *
+		 * @param {Error} err What went wrong.
+		 */
+		exportFailed(err) {
+			this.exportError = this.t(
+				'learniq',
+				'Failed to generate the export. Please try again.',
+			)
+			// eslint-disable-next-line no-console
+			console.error('[MyLearningRecordView] generateExport error', err)
+		},
+
+		/**
+		 * POST a JSON body to OpenRegister.
+		 *
+		 * @param {string} url The URL.
+		 * @param {object} body The body.
+		 * @return {Promise<Response>}
+		 */
+		postJson(url, body) {
+			return fetch(url, {
+				method: 'POST',
+				headers: {
+					'OCS-APIREQUEST': 'true',
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(body),
+			})
+		},
+
+		/**
+		 * Create a LearningRecordShare for the latest generated export, which
+		 * the server grants in the same request, then fail unless it is
+		 * active. Blocked until an expiry date is set.
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-learner-creates-a-share-with-a-mandatory-expiry
 		 */
 		async createShare() {
 			this.shareTouched = true
-			if (
-				!this.newShare.recipientName
-				|| !this.newShare.expiresAt
-				|| !this.latestExport
-			) {
-				return
-			}
+			if (!this.shareFormComplete()) return
 
 			this.creatingShare = true
 			this.shareError = null
 
-			const uid = getCurrentUser()?.uid ?? ''
-
 			try {
-				const createUrl = generateUrl(
-					'/apps/openregister/api/objects/learniq/learning-record-share',
-				)
-				const createResp = await fetch(createUrl, {
-					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						learningRecordExportId:
-							this.latestExport.id ?? this.latestExport.uuid,
-						learnerId: uid,
-						learnerRef: this.record.learnerRef,
-						recipientName: this.newShare.recipientName,
-						recipientEmail: this.newShare.recipientEmail || null,
-						sharedBy: uid,
-						expiresAt: new Date(this.newShare.expiresAt).toISOString(),
-						tenant_id: this.record.tenant_id ?? '',
-					}),
-				})
-
-				if (!createResp.ok) {
-					throw new Error(
-						`LearningRecordShare create failed: ${createResp.status}`,
-					)
-				}
-
-				const created = await createResp.json()
-				const shareId = created.id ?? created.uuid
-
-				const transitionUrl = generateUrl(objectTransitionUrl(shareId))
-				await fetch(transitionUrl, {
-					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ action: 'grant' }),
-				})
-
-				await this.loadShares()
-				this.newShare = {
-					recipientName: '',
-					recipientEmail: '',
-					expiresAt: '',
-				}
-				this.shareTouched = false
+				await this.grantShare()
+				this.resetShareForm()
 			} catch (err) {
-				this.shareError = this.t(
-					'learniq',
-					'Failed to create the share. Please try again.',
-				)
-				// eslint-disable-next-line no-console
-				console.error('[MyLearningRecordView] createShare error', err)
+				this.shareFailed(err)
 			} finally {
 				this.creatingShare = false
 			}
+		},
+
+		/**
+		 * Whether the share form names a recipient and an expiry, and there is
+		 * an export to share.
+		 *
+		 * @return {boolean}
+		 */
+		shareFormComplete() {
+			return !(
+				!this.newShare.recipientName
+				|| !this.newShare.expiresAt
+				|| !this.latestExport
+			)
+		},
+
+		/**
+		 * POST the share, reload the shares and fail unless the server granted it.
+		 *
+		 * @return {Promise<void>}
+		 * @throws {Error} When the server refuses or does not grant it.
+		 */
+		async grantShare() {
+			const createResp = await this.postJson(
+				generateUrl('/apps/openregister/api/objects/learniq/learning-record-share'),
+				this.shareBody(),
+			)
+			if (!createResp.ok) {
+				throw new Error(`LearningRecordShare create failed: ${createResp.status}`)
+			}
+			const created = await createResp.json()
+			const shareId = created.id ?? created.uuid
+			await this.loadShares()
+			this.assertShareGranted(shareId)
+		},
+
+		/**
+		 * Fail unless the reloaded shares hold the share as active.
+		 *
+		 * @param {string} shareId LearningRecordShare id.
+		 * @throws {Error} When the server did not grant it.
+		 */
+		assertShareGranted(shareId) {
+			const granted = this.shares.find((share) => (share.id ?? share.uuid) === shareId)
+			if (granted?.lifecycle !== 'active') {
+				throw new Error(`LearningRecordShare ${shareId} was not granted`)
+			}
+		},
+
+		/**
+		 * The share the form describes, for the latest export.
+		 *
+		 * @return {object} The LearningRecordShare body.
+		 */
+		shareBody() {
+			return {
+				learningRecordExportId: this.latestExport.id ?? this.latestExport.uuid,
+				recipientName: this.newShare.recipientName,
+				recipientEmail: this.newShare.recipientEmail || null,
+				expiresAt: new Date(this.newShare.expiresAt).toISOString(),
+			}
+		},
+
+		/**
+		 * Empty the share form after a granted share.
+		 */
+		resetShareForm() {
+			this.newShare = {
+				recipientName: '',
+				recipientEmail: '',
+				expiresAt: '',
+			}
+			this.shareTouched = false
+		},
+
+		/**
+		 * Show and log a failed share.
+		 *
+		 * @param {Error} err What went wrong.
+		 */
+		shareFailed(err) {
+			this.shareError = this.t(
+				'learniq',
+				'Failed to create the share. Please try again.',
+			)
+			// eslint-disable-next-line no-console
+			console.error('[MyLearningRecordView] createShare error', err)
 		},
 
 		/**
@@ -623,22 +641,31 @@ export default {
 		 * @spec openspec/specs/portable-learning-record/spec.md#scenario-revoking-a-share-immediately-invalidates-its-verification-link
 		 */
 		async revokeShare(shareId) {
+			this.shareError = null
 			try {
 				const url = generateUrl(objectTransitionUrl(shareId))
-				await fetch(url, {
-					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ action: 'revoke' }),
-				})
+				const resp = await this.postJson(url, { action: 'revoke' })
 				await this.loadShares()
+				if (!resp.ok) {
+					throw new Error(`LearningRecordShare revoke failed: ${resp.status}`)
+				}
 			} catch (err) {
-				// eslint-disable-next-line no-console
-				console.error('[MyLearningRecordView] revokeShare error', err)
+				this.revokeFailed(err)
 			}
+		},
+
+		/**
+		 * Show and log a failed revoke.
+		 *
+		 * @param {Error} err What went wrong.
+		 */
+		revokeFailed(err) {
+			this.shareError = this.t(
+				'learniq',
+				'Could not revoke the share. Please try again.',
+			)
+			// eslint-disable-next-line no-console
+			console.error('[MyLearningRecordView] revokeShare error', err)
 		},
 
 		/**
@@ -652,7 +679,7 @@ export default {
 
 			const exportId = this.latestExport.id ?? this.latestExport.uuid
 			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/learning-record-share?filters[learningRecordExportId]=${exportId}&_limit=100`,
+				`/apps/openregister/api/objects/learniq/learning-record-share?learningRecordExportId=${exportId}&_limit=100`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -661,9 +688,17 @@ export default {
 				this.shares = []
 				return
 			}
-			const json = await resp.json()
-			this.shares =
-				json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
+			this.shares = this.shareRows(await resp.json())
+		},
+
+		/**
+		 * The share rows of a list answer: results, objects or a bare list.
+		 *
+		 * @param {object|Array} json The answer body.
+		 * @return {Array<object>}
+		 */
+		shareRows(json) {
+			return json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
 		},
 
 		/**
@@ -683,26 +718,9 @@ export default {
 </script>
 
 <style scoped>
-.my-learning-record {
-	max-width: 1080px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.my-learning-record__heading {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-	margin-bottom: calc(var(--default-grid-baseline, 8px));
-}
-
 .my-learning-record__intro {
 	color: var(--color-text-maxcontrast);
 	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.my-learning-record__section {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
 }
 
 .my-learning-record__list {

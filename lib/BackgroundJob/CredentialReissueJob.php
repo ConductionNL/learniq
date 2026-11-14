@@ -29,7 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\BackgroundJob;
 
-use OCA\Learniq\Service\CredentialReissueService;
+use OCA\Learniq\Kernel\Contracts\CredentialReissueServiceInterface;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\QueuedJob;
 use OCP\IUserManager;
@@ -47,13 +47,13 @@ class CredentialReissueJob extends QueuedJob {
 	 * Constructor.
 	 *
 	 * @param ITimeFactory             $time     Nextcloud time factory.
-	 * @param CredentialReissueService $reissues The reissue run.
+	 * @param CredentialReissueServiceInterface $reissues The reissue run.
 	 * @param IUserManager             $users    The account of who started it.
 	 * @param LoggerInterface          $logger   Logs a run that cannot start.
 	 */
 	public function __construct(
 		ITimeFactory $time,
-		private readonly CredentialReissueService $reissues,
+		private readonly CredentialReissueServiceInterface $reissues,
 		private readonly IUserManager $users,
 		private readonly LoggerInterface $logger,
 	) {

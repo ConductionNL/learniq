@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Service\Calendar\SchoolYear;
 use OCA\OpenRegister\Service\ObjectService;
 use Throwable;
 
@@ -45,9 +46,11 @@ class ContactHoursReader {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister objects.
+	 * @param SchoolYear    $schoolYear    The school year as the school sets it.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
+		private readonly SchoolYear $schoolYear = new SchoolYear(),
 	) {
 	}//end __construct()
 
@@ -137,19 +140,14 @@ class ContactHoursReader {
 	}//end attendance()
 
 	/**
-	 * The school year a date falls in, counted from 1 August.
+	 * The school year a date falls in, from the day the school sets.
 	 *
 	 * @param string $date A date (Y-m-d).
 	 *
 	 * @return string YYYY-YYYY.
 	 */
 	private function schoolYearOf(string $date): string {
-		$year = (int)substr($date, 0, 4);
-		if ((int)substr($date, 5, 2) < 8) {
-			$year--;
-		}
-
-		return sprintf('%04d-%04d', $year, $year + 1);
+		return $this->schoolYear->yearOf(date: $date);
 	}//end schoolYearOf()
 
 	/**

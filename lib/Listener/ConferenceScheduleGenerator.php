@@ -3,6 +3,9 @@
 /**
  * Learniq Conference Schedule Generator
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * IEventListener for ConferenceRound lifecycle → `scheduled` (the OR
  * ObjectTransitionedEvent with register=learniq, schema=conference-round,
  * to=scheduled — fired by both the `generate` transition, booking-closed →
@@ -46,8 +49,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -59,9 +60,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Service\ConferenceBookingMode;
+use OCA\Learniq\Service\ConferenceSignupRequest;
+use OCA\Learniq\Service\ConferenceSlotPass;
 use OCA\Learniq\Service\ConferenceSlotSlicer;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Support\EntityRow;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -97,7 +101,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 *
 	 * @param ObjectService $objectService OR object access service.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 * @param IUserManager|null $users The teacher's display name for the parent portal (direct-conference-booking).
 	 *
 	 * @return void
@@ -105,7 +109,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 		private readonly ?IUserManager $users=null,
 	) {
 	}//end __construct()
@@ -162,14 +166,39 @@ class ConferenceScheduleGenerator implements IEventListener {
 		}
 
 		$tenantId = $round['tenant_id'] ?? '';
-		$slotDurationMinutes = (int)($round['slotDurationMinutes'] ?? 10);
-		$bufferMinutes = (int)($round['bufferMinutes'] ?? 0);
-
 		$availabilities = array_merge(
 			$this->fetchByRoundAndLifecycle(schema: self::TEACHER_AVAILABILITY_SCHEMA, roundId: $roundId, lifecycle: 'submitted'),
 			$this->fetchByRoundAndLifecycle(schema: self::TEACHER_AVAILABILITY_SCHEMA, roundId: $roundId, lifecycle: 'locked'),
 		);
+		$pinned = $this->pinnedSlots(roundId: $roundId);
 
+		// Step 1 — slice availability into a per-teacher slot queue, excluding
+		// minutes already consumed by a confirmed slot for that teacher.
+		$queues = $this->buildTeacherQueues(
+			availabilities: $availabilities,
+			slotDurationMinutes: (int)($round['slotDurationMinutes'] ?? 10),
+			bufferMinutes: (int)($round['bufferMinutes'] ?? 0),
+			confirmedByTeacher: $pinned['confirmedByTeacher']
+		);
+
+		$outcome = $this->assignSignups(
+			signups: $this->pendingSignups(roundId: $roundId),
+			pass: new ConferenceSlotPass(roundId: (string)$roundId, tenantId: (string)$tenantId, queues: $queues, activeSlotKeys: $pinned['activeSlotKeys']),
+			intervalsBySignup: $pinned['intervalsBySignup']
+		);
+
+		$this->writeOutcome(roundId: $roundId, outcome: $outcome);
+
+	}//end generateForRound()
+
+	/**
+	 * The round's existing slots indexed for regeneration, with the slots of cancelled sign-ups freed.
+	 *
+	 * @param string $roundId The ConferenceRound id.
+	 *
+	 * @return array<string,mixed> indexExistingSlots() result.
+	 */
+	private function pinnedSlots(string $roundId): array {
 		$existingSlots = $this->objectService->findAll(
 			[
 				'filters' => [
@@ -197,17 +226,17 @@ class ConferenceScheduleGenerator implements IEventListener {
 		);
 		$cancelledSignupIds = array_flip(array_filter($cancelledSignupIds, static fn (string $id): bool => $id !== ''));
 
-		$pinned = $this->indexExistingSlots(existingSlots: $existingSlots, cancelledSignupIds: $cancelledSignupIds);
+		return $this->indexExistingSlots(existingSlots: $existingSlots, cancelledSignupIds: $cancelledSignupIds);
+	}//end pinnedSlots()
 
-		// Step 1 — slice availability into a per-teacher slot queue, excluding
-		// minutes already consumed by a confirmed slot for that teacher.
-		$queues = $this->buildTeacherQueues(
-			availabilities: $availabilities,
-			slotDurationMinutes: $slotDurationMinutes,
-			bufferMinutes: $bufferMinutes,
-			confirmedByTeacher: $pinned['confirmedByTeacher']
-		);
-
+	/**
+	 * Submitted and waitlisted sign-ups of the round, in submission order.
+	 *
+	 * @param string $roundId The ConferenceRound id.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function pendingSignups(string $roundId): array {
 		// Step 2 — walk submitted + waitlisted signups in submission order.
 		$signups = array_merge(
 			$this->fetchByRoundAndLifecycle(schema: self::CONFERENCE_SIGNUP_SCHEMA, roundId: $roundId, lifecycle: 'submitted'),
@@ -216,15 +245,18 @@ class ConferenceScheduleGenerator implements IEventListener {
 		$signups = array_map([$this, 'normalise'], $signups);
 		usort($signups, static fn (array $a, array $b): int => strcmp((string)($a['createdAt'] ?? ''), (string)($b['createdAt'] ?? '')));
 
-		$outcome = $this->assignSignups(
-			signups: $signups,
-			roundId: (string)$roundId,
-			tenantId: (string)$tenantId,
-			queues: $queues,
-			activeSlotKeys: $pinned['activeSlotKeys'],
-			intervalsBySignup: $pinned['intervalsBySignup']
-		);
+		return $signups;
+	}//end pendingSignups()
 
+	/**
+	 * Save the new slots and the changed sign-ups, and log the counts.
+	 *
+	 * @param string              $roundId The ConferenceRound id.
+	 * @param array<string,mixed> $outcome assignSignups() result.
+	 *
+	 * @return void
+	 */
+	private function writeOutcome(string $roundId, array $outcome): void {
 		foreach ($outcome['newSlots'] as $slot) {
 			$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::CONFERENCE_SLOT_SCHEMA, object: $slot);
 		}
@@ -242,8 +274,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 				'waitlisted' => $outcome['waitlistedCount'],
 			]
 		);
-
-	}//end generateForRound()
+	}//end writeOutcome()
 
 	/**
 	 * Index the round's existing ConferenceSlots into the three lookups the
@@ -353,9 +384,8 @@ class ConferenceScheduleGenerator implements IEventListener {
 			);
 
 			// Cast the key: this map is declared
-			// array<string,array<int,array<string,mixed>>> and passed BY
-			// REFERENCE into assignSlotsForSignup(), so an un-narrowed key
-			// degrades it at that boundary.
+			// array<string,array<int,array<string,mixed>>>, and an
+			// un-narrowed key would widen it.
 			$queues[(string)$teacherId] = array_merge(($queues[(string)$teacherId] ?? []), $free);
 		}//end foreach
 
@@ -375,25 +405,15 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 * with any unmet request becomes `waitlisted` with the unmet teachers named
 	 * in its notes, so the reason is never left implicit.
 	 *
-	 * @param array<int,array<string,mixed>> $signups Signups in submission order.
-	 * @param string $roundId The ConferenceRound id.
-	 * @param string $tenantId Tenant scope stamped on new slots.
-	 * @param array<string,array<int,array<string,mixed>>> $queues Per-teacher slot queues (mutated: slots are consumed).
-	 * @param array<string,true> $activeSlotKeys Satisfied (signupId|teacherId) keys (mutated: keys added).
+	 * @param array<int,array<string,mixed>>               $signups           Signups in submission order.
+	 * @param ConferenceSlotPass                           $pass              The pass: round, tenant, queues and satisfied requests.
 	 * @param array<string,array<int,array<string,mixed>>> $intervalsBySignup Intervals already assigned per signup.
 	 *
 	 * @return array{newSlots: array<int,array<string,mixed>>, signupSaves: array<int,array<string,mixed>>, scheduledCount: int, waitlistedCount: int}
 	 *
 	 * @spec openspec/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
 	 */
-	private function assignSignups(
-		array $signups,
-		string $roundId,
-		string $tenantId,
-		array &$queues,
-		array &$activeSlotKeys,
-		array $intervalsBySignup,
-	): array {
+	private function assignSignups(array $signups, ConferenceSlotPass $pass, array $intervalsBySignup): array {
 		$newSlots = [];
 		$signupSaves = [];
 		$scheduledCount = 0;
@@ -403,13 +423,12 @@ class ConferenceScheduleGenerator implements IEventListener {
 			$signupId = ($signup['id'] ?? ($signup['uuid'] ?? ''));
 
 			$assigned = $this->assignSlotsForSignup(
-				signup: $signup,
-				signupId: (string)$signupId,
-				roundId: $roundId,
-				tenantId: $tenantId,
-				queues: $queues,
-				activeSlotKeys: $activeSlotKeys,
-				assignedIntervals: ($intervalsBySignup[$signupId] ?? [])
+				request: new ConferenceSignupRequest(
+					signup: $signup,
+					signupId: (string)$signupId,
+					assignedIntervals: ($intervalsBySignup[$signupId] ?? [])
+				),
+				pass: $pass
 			);
 
 			$newSlots = array_merge($newSlots, $assigned['newSlots']);
@@ -449,43 +468,32 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 * A teacher-request already satisfied by an existing non-cancelled slot is an
 	 * idempotent no-op, which is what makes regeneration safe to re-run.
 	 *
-	 * @param array<string,mixed> $signup The signup row.
-	 * @param string $signupId The signup id.
-	 * @param string $roundId The ConferenceRound id.
-	 * @param string $tenantId Tenant scope stamped on new slots.
-	 * @param array<string,array<int,array<string,mixed>>> $queues Per-teacher slot queues (mutated: slots are consumed).
-	 * @param array<string,true> $activeSlotKeys Satisfied (signupId|teacherId) keys (mutated: keys added).
-	 * @param array<int,array<string,mixed>> $assignedIntervals Intervals this signup already occupies.
+	 * @param ConferenceSignupRequest $request The signup, its id and the intervals it already occupies.
+	 * @param ConferenceSlotPass      $pass    The pass (mutated: slots are consumed, satisfied keys added).
 	 *
 	 * @return array{newSlots: array<int,array<string,mixed>>, unmetTeacherIds: array<int,string>}
 	 *
 	 * @spec openspec/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
 	 */
-	private function assignSlotsForSignup(
-		array $signup,
-		string $signupId,
-		string $roundId,
-		string $tenantId,
-		array &$queues,
-		array &$activeSlotKeys,
-		array $assignedIntervals,
-	): array {
+	private function assignSlotsForSignup(ConferenceSignupRequest $request, ConferenceSlotPass $pass): array {
+		$signup = $request->signup;
+		$signupId = $request->signupId;
+		$assignedIntervals = $request->assignedIntervals;
 		$newSlots = [];
 		$unmetTeacherIds = [];
 
 		foreach (($signup['requestedTeacherIds'] ?? []) as $teacherId) {
-			if (isset($activeSlotKeys[$signupId . '|' . $teacherId]) === true) {
+			if (isset($pass->activeSlotKeys[$signupId . '|' . $teacherId]) === true) {
 				// Already satisfied by an existing non-cancelled slot — idempotent no-op.
 				continue;
 			}
 
-			// Cast the key — $queues is declared
-			// array<string,array<int,array<string,mixed>>> and is taken BY
-			// REFERENCE by this method, so writing with an un-narrowed
-			// $teacherId degrades it to array<...> at the boundary.
-			$queue = ($queues[(string)$teacherId] ?? []);
+			// Cast the key: the queues are declared
+			// array<string,array<int,array<string,mixed>>>, and writing with
+			// an un-narrowed $teacherId would widen them.
+			$queue = ($pass->queues[(string)$teacherId] ?? []);
 			$slot = $this->popNextNonOverlapping(queue: $queue, blocked: $assignedIntervals);
-			$queues[(string)$teacherId] = $queue;
+			$pass->queues[(string)$teacherId] = $queue;
 
 			if ($slot === null) {
 				$unmetTeacherIds[] = $teacherId;
@@ -493,7 +501,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 			}
 
 			$newSlots[] = [
-				'conferenceRoundId' => $roundId,
+				'conferenceRoundId' => $pass->roundId,
 				'teacherId' => $teacherId,
 				'teacherName' => ($this->users?->getDisplayName((string)$teacherId) ?? (string)$teacherId),
 				'learnerId' => ($signup['learnerId'] ?? ''),
@@ -502,12 +510,12 @@ class ConferenceScheduleGenerator implements IEventListener {
 				'startsAt' => $slot['startsAt'],
 				'endsAt' => $slot['endsAt'],
 				'location' => null,
-				'tenant_id' => $tenantId,
+				'tenant_id' => $pass->tenantId,
 				'lifecycle' => 'proposed',
 			];
 
 			$assignedIntervals[] = $slot;
-			$activeSlotKeys[$signupId . '|' . $teacherId] = true;
+			$pass->activeSlotKeys[$signupId . '|' . $teacherId] = true;
 		}//end foreach
 
 		return [
@@ -607,10 +615,6 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 * @return array<string,mixed>
 	 */
 	private function normalise(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		return $row->jsonSerialize();
+		return (new EntityRow())->asArray(row: $row);
 	}//end normalise()
 }//end class

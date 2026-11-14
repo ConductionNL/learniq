@@ -24,8 +24,10 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\PortalEmployerInviteController;
+use OCA\Learniq\Service\CallerGroups;
 use OCA\Learniq\Portal\CallerOrganisations;
 use OCA\Learniq\Portal\EmployerPortalInvitation;
+use OCA\Learniq\Portal\PortalTenant;
 use OCP\IGroupManager;
 use OCP\IRequest;
 use OCP\IUser;
@@ -44,15 +46,15 @@ class PortalEmployerInviteControllerTest extends TestCase {
 	 */
 	public function testWhoMayInviteAndWhere(): void {
 		$never = $this->createMock(EmployerPortalInvitation::class);
-		$never->expects($this->never())->method('invite');
+		$never->expects($this->never())->method('inviteAsCaller');
 		self::assertSame(403, $this->controller(invitations: $never, groups: ['instructors'])->invite('co-1', 'org')->getStatus());
 		self::assertSame(403, $this->controller(invitations: $never, groups: ['hr'])->invite('co-1', 'elsewhere')->getStatus());
 
 		$invitations = $this->createMock(EmployerPortalInvitation::class);
-		$invitations->method('invite')->willReturnCallback(
-			static fn (string $organisationRef, string $organisation, string $email=''): array => match ($organisationRef) {
-				'co-1' => ['status' => 'invited', 'subjectRef' => 'linda'],
-				'co-gone' => ['status' => 'refused', 'reason' => 'company-unknown'],
+		$invitations->method('inviteAsCaller')->willReturnCallback(
+			static fn (string $organisationRef, PortalTenant $tenant, string $email=''): array => match ($organisationRef . '@' . $tenant->uuid) {
+				'co-1@uuid-org' => ['status' => 'invited', 'subjectRef' => 'linda'],
+				'co-gone@uuid-org' => ['status' => 'refused', 'reason' => 'company-unknown'],
 				default => ['status' => 'refused', 'reason' => 'portal-unavailable'],
 			}
 		);
@@ -63,23 +65,49 @@ class PortalEmployerInviteControllerTest extends TestCase {
 	}//end testWhoMayInviteAndWhere()
 
 	/**
+	 * Without a signed-in user, or for another user than the manager, nothing is invited.
+	 *
+	 * @return void
+	 */
+	public function testTheGroupCheckIsForTheSignedInUser(): void {
+		$never = $this->createMock(EmployerPortalInvitation::class);
+		$never->expects($this->never())->method('invite');
+		self::assertSame(403, $this->controller(invitations: $never, groups: ['administration-managers'], uid: null)->invite('co-1', 'org')->getStatus());
+		self::assertSame(403, $this->controller(invitations: $never, groups: ['administration-managers'], uid: 'trainer-7')->invite('co-1', 'org')->getStatus());
+	}//end testTheGroupCheckIsForTheSignedInUser()
+
+	/**
 	 * The controller for a user in the given groups, belonging to organisation `org`.
 	 *
 	 * @param EmployerPortalInvitation $invitations The invitation double.
-	 * @param array<int, string>       $groups      The user's groups.
+	 * @param array<int, string>       $groups      The groups of `someone`; any other user is in none.
+	 * @param string|null              $uid         The signed-in user, or null for none.
 	 *
 	 * @return PortalEmployerInviteController
 	 */
-	private function controller(EmployerPortalInvitation $invitations, array $groups): PortalEmployerInviteController {
-		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('someone');
+	private function controller(EmployerPortalInvitation $invitations, array $groups, ?string $uid='someone'): PortalEmployerInviteController {
+		$user = null;
+		if ($uid !== null) {
+			$user = $this->createMock(IUser::class);
+			$user->method('getUID')->willReturn($uid);
+		}
+
 		$session = $this->createMock(IUserSession::class);
 		$session->method('getUser')->willReturn($user);
 		$groupManager = $this->createMock(IGroupManager::class);
-		$groupManager->method('isInGroup')->willReturnCallback(static fn (string $uid, string $group): bool => in_array($group, $groups, true));
+		$groupManager->method('isInGroup')->willReturnCallback(static fn (string $uid, string $group): bool => $uid === 'someone' && in_array($group, $groups, true));
 		$organisations = $this->createMock(CallerOrganisations::class);
-		$organisations->method('includes')->willReturnCallback(static fn (string $slug): bool => $slug === 'org');
+		$own = ['org' => new PortalTenant(slug: 'org', uuid: 'uuid-org')];
+		$organisations->method('tenant')->willReturnCallback(static fn (string $slug): ?PortalTenant => ($own[$slug] ?? null));
 
-		return new PortalEmployerInviteController($this->createMock(IRequest::class), $invitations, $session, $groupManager, $organisations);
+		return new PortalEmployerInviteController(
+			request: $this->createMock(IRequest::class),
+			invitations: $invitations,
+			caller: new CallerGroups(
+				userSession: $session,
+				groupManager: $groupManager
+			),
+			organisations: $organisations
+		);
 	}//end controller()
 }//end class

@@ -1,4 +1,7 @@
 <!--
+  SPDX-License-Identifier: EUPL-1.2
+  Copyright (C) 2026 Conduction B.V.
+
   MarkSubmissionView.vue
   Custom page component for the MarkSubmissionView manifest page (type: custom).
 
@@ -25,15 +28,12 @@
     - GET  /api/objects/learniq/Submission/:id
     - GET  /api/objects/learniq/Assignment/:id
     - GET  /api/objects/learniq/Rubric/:id
-    - GET  /api/objects/learniq/peer-feedback-summary?filters[submissionId]=:id (read-only context)
-    - GET  /api/objects/learniq/self-assessment?filters[submissionId]=:id (read-only context)
+    - GET  /api/objects/learniq/peer-feedback-summary?submissionId=:id (read-only context)
+    - GET  /api/objects/learniq/self-assessment?submissionId=:id (read-only context)
     - PUT  /api/objects/learniq/Submission/:id
     - POST /api/objects/:id/transition           ({ action: 'return' })
 
   Uses Options API + direct fetch calls (no custom Pinia store modules).
-
-  SPDX-License-Identifier: EUPL-1.2
-  Copyright (C) 2026 Conduction B.V.
 
   @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-28
   @spec openspec/specs/assignments/spec.md#scenario-marksubmissionview-shows-peer-and-self-assessment-as-read-only-context
@@ -50,7 +50,7 @@
 -->
 
 <template>
-	<div class="mark-submission-view">
+	<div class="mark-submission-view lq-board-page">
 		<!-- Loading -->
 		<div v-if="loading" class="mark-submission-view__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
@@ -70,7 +70,7 @@
 			role="status"
 			aria-live="polite">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<h2>{{ t('learniq', 'Submission returned to learner') }}</h2>
+			<CnPageHeader :title="t('learniq', 'Submission returned to learner')" />
 			<p>
 				{{
 					t('learniq', 'Grade: {grade} / {max}', {
@@ -85,7 +85,7 @@
 		<template v-else-if="submission">
 			<!-- Header -->
 			<header class="mark-submission-view__header">
-				<h2>{{ t('learniq', 'Mark submission') }}</h2>
+				<CnPageHeader :title="t('learniq', 'Mark submission')" />
 				<p class="mark-submission-view__meta">
 					{{
 						t('learniq', 'Assignment: {title}', {
@@ -112,8 +112,9 @@
 			</header>
 
 			<!-- Attachments -->
-			<section class="mark-submission-view__attachments">
-				<h3>{{ t('learniq', 'Submitted files') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Submitted files')"
+				class="mark-submission-view__attachments">
 				<ul
 					v-if="(submission.attachmentRefs || []).length > 0"
 					class="mark-submission-view__file-list">
@@ -128,7 +129,7 @@
 				<p v-else class="mark-submission-view__no-files">
 					{{ t('learniq', 'No files attached.') }}
 				</p>
-			</section>
+			</CnDetailCard>
 
 			<!-- Double marking: waiting for the other marks, or not allocated -->
 			<p
@@ -155,8 +156,10 @@
 			</p>
 
 			<!-- Double marking: every mark side by side, then the final grade -->
-			<section v-if="mode === 'final'" class="mark-submission-view__final">
-				<h3>{{ t('learniq', 'Marks of the markers') }}</h3>
+			<CnDetailCard
+				v-if="mode === 'final'"
+				:title="t('learniq', 'Marks of the markers')"
+				class="mark-submission-view__final">
 				<table class="mark-submission-view__marks-table">
 					<thead>
 						<tr>
@@ -217,89 +220,38 @@
 								)
 					}}
 				</p>
-			</section>
+			</CnDetailCard>
 
 			<template v-if="showsMarkingForm">
 				<!-- Rubric marking (shown only when a Rubric is attached) -->
-				<section
+				<CnDetailCard
 					v-if="rubric && rubric.criteria && rubric.criteria.length > 0"
+					:title="t('learniq', 'Rubric: {name}', { name: rubric.name || '' })"
 					class="mark-submission-view__rubric">
-					<h3>
-						{{
-							t('learniq', 'Rubric: {name}', {
-								name: rubric.name || '',
-							})
-						}}
-					</h3>
-
-					<div
-						v-for="criterion in rubric.criteria"
-						:key="criterion.criterionId"
-						class="mark-submission-view__criterion">
-						<h4 class="mark-submission-view__criterion-label">
-							{{ criterion.label }}
-							<span class="mark-submission-view__criterion-weight">
+					<RubricPicker
+						v-model:selectedLevels="selectedLevels"
+						:rubric="rubric"
+						:maxPoints="assignment.maxPoints || 0"
+						:disabled="saving">
+						<template v-if="submission.lifecycle === 'late'" #scoreNote>
+							<span class="mark-submission-view__effective-grade">
 								{{
-									t('learniq', '(weight: {w})', {
-										w: criterion.weight,
-									})
+									t(
+										'learniq',
+										'Effective grade after late penalty: {grade}',
+										{ grade: effectiveGrade },
+									)
 								}}
 							</span>
-						</h4>
-						<div class="mark-submission-view__levels">
-							<label
-								v-for="level in criterion.levels"
-								:key="level.levelId"
-								class="mark-submission-view__level">
-								<input
-									type="radio"
-									:name="criterion.criterionId"
-									:value="level.levelId"
-									:checked="
-										getSelectedLevel(criterion.criterionId)
-										=== level.levelId
-									"
-									:disabled="saving"
-									@change="selectLevel(criterion, level)" />
-								<span class="mark-submission-view__level-label">{{
-									level.label
-								}}</span>
-								<span class="mark-submission-view__level-points">
-									{{
-										t('learniq', '{pts} pts', {
-											pts: level.points,
-										})
-									}}
-								</span>
-							</label>
-						</div>
-					</div>
-
-					<!-- Running total -->
-					<div class="mark-submission-view__score-total">
-						<strong>{{
-							t('learniq', 'Score: {score} / {max}', {
-								score: computedScore,
-								max: assignment.maxPoints || '?',
-							})
-						}}</strong>
-						<span
-							v-if="submission.lifecycle === 'late'"
-							class="mark-submission-view__effective-grade">
-							{{
-								t(
-									'learniq',
-									'Effective grade after late penalty: {grade}',
-									{ grade: effectiveGrade },
-								)
-							}}
-						</span>
-					</div>
-				</section>
+						</template>
+					</RubricPicker>
+				</CnDetailCard>
 
 				<!-- No rubric — manual score entry -->
-				<section v-else class="mark-submission-view__manual-score">
-					<h3>{{ t('learniq', 'Manual score') }}</h3>
+				<CnDetailCard
+					v-else
+					:title="t('learniq', 'Manual score')"
+					class="mark-submission-view__manual-score">
 					<label
 						for="manual-grade"
 						class="mark-submission-view__score-label">
@@ -317,39 +269,36 @@
 						:max="assignment.maxPoints || undefined"
 						class="mark-submission-view__score-input"
 						:disabled="saving" />
-				</section>
+				</CnDetailCard>
 
 				<!-- Feedback text -->
-				<section class="mark-submission-view__feedback">
-					<h3 id="mark-submission-feedback-label">
-						{{
-							mode === 'marker'
-								? t('learniq', 'Notes for the teacher in charge')
-								: t('learniq', 'Teacher feedback')
-						}}
-					</h3>
+				<CnDetailCard
+					:title="mode === 'marker' ? t('learniq', 'Notes for the teacher in charge') : t('learniq', 'Teacher feedback')"
+					class="mark-submission-view__feedback">
 					<textarea
 						id="mark-submission-feedback"
 						v-model="feedbackText"
 						class="mark-submission-view__feedback-input"
-						aria-labelledby="mark-submission-feedback-label"
+						:aria-label="
+							mode === 'marker'
+								? t('learniq', 'Notes for the teacher in charge')
+								: t('learniq', 'Teacher feedback')
+						"
 						:placeholder="
 							t('learniq', 'Write feedback for the learner...')
 						"
 						:disabled="saving"
 						rows="5" />
-				</section>
+				</CnDetailCard>
 
 				<!--
 				Peer/self-assessment read-only context (peer-and-self-assessment).
 				Never editable here — grade authority stays with the teacher.
 			-->
-				<section
+				<CnDetailCard
 					v-if="peerFeedbackSummary || selfAssessment"
-					class="mark-submission-view__peer-context"
-					aria-label="Peer and self-assessment context">
-					<h3>{{ t('learniq', 'Peer & self-assessment context') }}</h3>
-
+					:title="t('learniq', 'Peer & self-assessment context')"
+					class="mark-submission-view__peer-context">
 					<div
 						v-if="peerFeedbackSummary"
 						class="mark-submission-view__peer-summary">
@@ -439,7 +388,7 @@
 							)
 						}}
 					</p>
-				</section>
+				</CnDetailCard>
 			</template>
 
 			<!-- Actions -->
@@ -480,14 +429,27 @@
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
+import RubricPicker from '../components/RubricPicker.vue'
 import { resolveGradePlan } from '../utils/assignmentGradePlan.js'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 import { markingMode, prefillFinalGrade } from '../utils/doubleMarking.js'
+import {
+	readFirstRow,
+	readObject,
+	readRequiredObject,
+	restoreLevels,
+	rubricPoints,
+	rubricScoresOf,
+	sendJson,
+	sendJsonOrThrow,
+} from '../utils/registerRequests.js'
 
 export default {
 	name: 'MarkSubmissionView',
+	components: { CnDetailCard, CnPageHeader, RubricPicker },
 
 	props: {
 		/**
@@ -589,10 +551,7 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-28
 		 */
 		computedScore() {
-			return Object.values(this.selectedLevels).reduce(
-				(sum, sel) => sum + (sel.points || 0),
-				0,
-			)
+			return rubricPoints(this.selectedLevels)
 		},
 
 		/**
@@ -689,13 +648,7 @@ export default {
 				// a marker starts from their own mark, never from the Submission.
 				const source =
 					this.mode === 'marker' ? this.marksView.ownMark : this.submission
-				const existingScores = source.rubricScores ?? []
-				for (const score of existingScores) {
-					this.selectedLevels[score.criterionId] = {
-						levelId: score.levelId,
-						points: score.points,
-					}
-				}
+				restoreLevels(this.selectedLevels, source.rubricScores ?? [])
 				this.feedbackText = source.feedbackText ?? ''
 				if (source.proposedGrade != null) {
 					this.manualGrade = source.proposedGrade
@@ -726,17 +679,10 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-28
 		 */
 		async loadSubmission(submissionId) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/Submission/${submissionId}`,
+			this.submission = await readRequiredObject(
+				generateUrl(`/apps/openregister/api/objects/learniq/Submission/${submissionId}`),
+				'Submission fetch failed',
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				throw new Error(`Submission fetch failed: ${resp.status}`)
-			}
-			const json = await resp.json()
-			this.submission = json.object ?? json ?? {}
 		},
 
 		/**
@@ -747,17 +693,10 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-28
 		 */
 		async loadAssignment(id) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/Assignment/${id}`,
+			this.assignment = await readRequiredObject(
+				generateUrl(`/apps/openregister/api/objects/learniq/Assignment/${id}`),
+				'Assignment fetch failed',
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				throw new Error(`Assignment fetch failed: ${resp.status}`)
-			}
-			const json = await resp.json()
-			this.assignment = json.object ?? json ?? {}
 		},
 
 		/**
@@ -769,22 +708,10 @@ export default {
 		 * @spec openspec/changes/hermiq-ai-tooling/specs/mcp-tool-surface/spec.md#requirement-an-agent-grade-is-a-concept-a-teacher-publishes-req-009
 		 */
 		async fetchLearniqObject(schema, objectId) {
-			const resp = await fetch(
-				generateUrl(
-					`/apps/openregister/api/objects/learniq/${schema}/${objectId}`,
-				),
-				{
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-					},
-				},
+			const read = await readObject(
+				generateUrl(`/apps/openregister/api/objects/learniq/${schema}/${objectId}`),
 			)
-			if (!resp.ok) {
-				return null
-			}
-			const json = await resp.json()
-			return json.object ?? json ?? null
+			return read.ok ? (read.object ?? null) : null
 		},
 
 		/**
@@ -795,18 +722,14 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-28
 		 */
 		async loadRubric(rubricId) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/Rubric/${rubricId}`,
+			const read = await readObject(
+				generateUrl(`/apps/openregister/api/objects/learniq/Rubric/${rubricId}`),
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				// Non-fatal — fall back to manual scoring
-				return
+			// A rubric that cannot be read is not fatal: marking falls back to
+			// manual scoring.
+			if (read.ok) {
+				this.rubric = read.object ?? null
 			}
-			const json = await resp.json()
-			this.rubric = json.object ?? json ?? null
 		},
 
 		/**
@@ -821,19 +744,13 @@ export default {
 		 */
 		async loadPeerFeedbackSummary(submissionId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/peer-feedback-summary?filters[submissionId]=${submissionId}&_limit=1`,
+				`/apps/openregister/api/objects/learniq/peer-feedback-summary?submissionId=${submissionId}&_limit=1`,
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				// Non-fatal — the panel simply doesn't render this section.
-				return
+			const read = await readFirstRow(url)
+			// Non-fatal — the panel simply doesn't render this section.
+			if (read.ok) {
+				this.peerFeedbackSummary = read.row
 			}
-			const json = await resp.json()
-			const results =
-				json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
-			this.peerFeedbackSummary = results.length > 0 ? results[0] : null
 		},
 
 		/**
@@ -846,19 +763,13 @@ export default {
 		 */
 		async loadSelfAssessment(submissionId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/self-assessment?filters[submissionId]=${submissionId}&_limit=1`,
+				`/apps/openregister/api/objects/learniq/self-assessment?submissionId=${submissionId}&_limit=1`,
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				// Non-fatal — the panel simply doesn't render this section.
-				return
+			const read = await readFirstRow(url)
+			// Non-fatal — the panel simply doesn't render this section.
+			if (read.ok) {
+				this.selfAssessment = read.row
 			}
-			const json = await resp.json()
-			const results =
-				json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
-			this.selfAssessment = results.length > 0 ? results[0] : null
 		},
 
 		/**
@@ -903,49 +814,9 @@ export default {
 			}
 			this.saving = true
 			this.saveError = null
-			const headers = {
-				'OCS-APIREQUEST': 'true',
-				Accept: 'application/json',
-				'Content-Type': 'application/json',
-			}
-			const proposedGrade = this.rubric
-				? this.computedScore
-				: (this.manualGrade ?? null)
+			const proposedGrade = this.markedGrade()
 			try {
-				const markId = own.id ?? own['@self']?.id
-				const put = await fetch(
-					generateUrl(
-						`/apps/openregister/api/objects/learniq/submission-mark/${markId}`,
-					),
-					{
-						method: 'PATCH',
-						headers,
-						body: JSON.stringify({
-							rubricScores: this.rubric
-								? this.buildRubricScores()
-								: [],
-							proposedGrade,
-							feedbackText: this.feedbackText,
-						}),
-					},
-				)
-				if (!put.ok) {
-					throw new Error(`Mark update failed: ${put.status}`)
-				}
-				const submit = await fetch(
-					generateUrl(objectTransitionUrl(markId)),
-					{
-						method: 'POST',
-						headers,
-						body: JSON.stringify({
-							action: 'submit',
-							data: { proposedGrade },
-						}),
-					},
-				)
-				if (!submit.ok) {
-					throw new Error(`Mark submit failed: ${submit.status}`)
-				}
+				await this.handInOwnMark(own.id ?? own['@self']?.id, proposedGrade)
 				this.markHandedIn = true
 				await this.loadMarks(this.id)
 			} catch (err) {
@@ -961,31 +832,42 @@ export default {
 		},
 
 		/**
-		 * Get the currently selected levelId for a criterion.
+		 * The grade the marking form gives: the rubric total, or the grade
+		 * typed in when there is no rubric.
 		 *
-		 * @param {string} criterionId Criterion identifier
-		 * @return {string|undefined}
+		 * @return {number|null} The grade.
+		 * @spec openspec/specs/assignments/spec.md#requirement-each-marker-scores-in-their-own-submissionmark
 		 */
-		getSelectedLevel(criterionId) {
-			return this.selectedLevels[criterionId]?.levelId
+		markedGrade() {
+			return this.rubric ? this.computedScore : (this.manualGrade ?? null)
 		},
 
 		/**
-		 * Record the teacher's level selection for a criterion.
+		 * Save the marker's own SubmissionMark and submit it with its grade.
 		 *
-		 * @param {object} criterion Rubric criterion object
-		 * @param {object} level     Selected level object
-		 * @return {void}
-		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-28
+		 * @param {string} markId The SubmissionMark id.
+		 * @param {number|null} proposedGrade The grade.
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/assignments/spec.md#requirement-each-marker-scores-in-their-own-submissionmark
 		 */
-		selectLevel(criterion, level) {
-			this.selectedLevels = {
-				...this.selectedLevels,
-				[criterion.criterionId]: {
-					levelId: level.levelId,
-					points: level.points,
+		async handInOwnMark(markId, proposedGrade) {
+			await sendJsonOrThrow(
+				generateUrl(`/apps/openregister/api/objects/learniq/submission-mark/${markId}`),
+				{
+					method: 'PATCH',
+					body: {
+						rubricScores: this.rubric ? this.buildRubricScores() : [],
+						proposedGrade,
+						feedbackText: this.feedbackText,
+					},
+					failure: 'Mark update failed',
 				},
-			}
+			)
+			await sendJsonOrThrow(generateUrl(objectTransitionUrl(markId)), {
+				method: 'POST',
+				body: { action: 'submit', data: { proposedGrade } },
+				failure: 'Mark submit failed',
+			})
 		},
 
 		/**
@@ -995,11 +877,7 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-28
 		 */
 		buildRubricScores() {
-			return Object.entries(this.selectedLevels).map(([criterionId, sel]) => ({
-				criterionId,
-				levelId: sel.levelId,
-				points: sel.points,
-			}))
+			return rubricScoresOf(this.selectedLevels)
 		},
 
 		/**
@@ -1016,123 +894,12 @@ export default {
 			}
 			this.saving = true
 			this.saveError = null
-
-			const isFinal = this.mode === 'final'
-			let proposedGrade = this.rubric
-				? this.computedScore
-				: (this.manualGrade ?? null)
-			let rubricScores = this.rubric ? this.buildRubricScores() : []
-			if (isFinal) {
-				proposedGrade = this.finalGrade ?? null
-				rubricScores = []
-			}
-
+			const marking = this.returnedMarking()
 			try {
-				// 1. Persist marking data to the Submission
-				const updateUrl = generateUrl(
-					`/apps/openregister/api/objects/learniq/Submission/${this.id}`,
-				)
-				const updateResp = await fetch(updateUrl, {
-					method: 'PATCH',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						rubricScores,
-						proposedGrade,
-						feedbackText: this.feedbackText,
-						...(isFinal
-							? {
-									finalGradeSetBy: getCurrentUser()?.uid ?? null,
-									finalGradeRuleApplied: this.finalGradeRule,
-								}
-							: {}),
-					}),
-				})
-				if (!updateResp.ok) {
-					throw new Error(`Submission update failed: ${updateResp.status}`)
-				}
-
-				// 2. Create a concept GradeEntry (grading spec — sourceKind: assignment-submission).
-				// The teacher reviews and publishes it via the GradebookView; only then does
-				// the notification fire and the FinalGrade recompute trigger.
-				// The plan hangs off the assignment's course and the scale off the
-				// plan: the Assignment schema holds neither (hermiq-ai-tooling).
-				const gradePlan =
-					proposedGrade === null
-						? null
-						: await resolveGradePlan(
-								this.assignment,
-								(schema, objectId) =>
-									this.fetchLearniqObject(schema, objectId),
-							)
-				if (gradePlan) {
-					const gradeEntryUrl = generateUrl(
-						'/apps/openregister/api/objects/learniq/grade-entry',
-					)
-					const gradeEntryResp = await fetch(gradeEntryUrl, {
-						method: 'POST',
-						headers: {
-							'OCS-APIREQUEST': 'true',
-							Accept: 'application/json',
-							'Content-Type': 'application/json',
-						},
-						body: JSON.stringify({
-							learnerId: (this.submission.learnerIds ?? [])[0] ?? '',
-							curriculumPlanId: gradePlan.curriculumPlanId,
-							componentId: gradePlan.componentId,
-							courseId: gradePlan.courseId,
-							sourceKind: 'assignment-submission',
-							submissionId: this.id,
-							value: proposedGrade,
-							gradeScaleId: gradePlan.gradeScaleId,
-							grader: '',
-							gradedAt: new Date().toISOString(),
-							lifecycle: 'concept',
-							tenant_id: this.submission.tenant_id ?? '',
-						}),
-					})
-					if (gradeEntryResp.ok) {
-						const gradeEntryJson = await gradeEntryResp.json()
-						const gradeEntryId =
-							(gradeEntryJson.object ?? gradeEntryJson)?.id ?? null
-						if (gradeEntryId) {
-							// Back-link the GradeEntry to the Submission.
-							const linkUrl = generateUrl(
-								`/apps/openregister/api/objects/learniq/Submission/${this.id}`,
-							)
-							await fetch(linkUrl, {
-								method: 'PATCH',
-								headers: {
-									'OCS-APIREQUEST': 'true',
-									Accept: 'application/json',
-									'Content-Type': 'application/json',
-								},
-								body: JSON.stringify({ gradeEntryId }),
-							})
-						}
-					}
-					// Non-fatal: GradeEntry creation failure does not block the return transition.
-				}
-
-				// 3. Dispatch `return` lifecycle transition
-				const transitionUrl = generateUrl(objectTransitionUrl(this.id))
-				const transResp = await fetch(transitionUrl, {
-					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ action: 'return' }),
-				})
-				if (!transResp.ok) {
-					throw new Error(`Return transition failed: ${transResp.status}`)
-				}
-
-				this.savedGrade = proposedGrade
+				await this.saveMarking(marking)
+				await this.fileConceptGrade(marking.proposedGrade)
+				await this.returnSubmission()
+				this.savedGrade = marking.proposedGrade
 				this.returned = true
 			} catch (err) {
 				this.saveError = this.t(
@@ -1143,6 +910,153 @@ export default {
 				console.error('[MarkSubmissionView] saveAndReturn error', err)
 			} finally {
 				this.saving = false
+			}
+		},
+
+		/**
+		 * Dispatch the `return` lifecycle transition.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-28
+		 */
+		async returnSubmission() {
+			await sendJsonOrThrow(generateUrl(objectTransitionUrl(this.id)), {
+				method: 'POST',
+				body: { action: 'return' },
+				failure: 'Return transition failed',
+			})
+		},
+
+		/**
+		 * What returning saves: the final grade alone in final mode, else the
+		 * marked grade with the rubric scores.
+		 *
+		 * @return {{isFinal: boolean, proposedGrade: (number|null), rubricScores: Array<object>}} The marking.
+		 * @spec openspec/specs/assignments/spec.md#requirement-one-person-sets-the-final-grade-once-every-mark-is-in
+		 */
+		returnedMarking() {
+			if (this.mode === 'final') {
+				return { isFinal: true, proposedGrade: this.finalGrade ?? null, rubricScores: [] }
+			}
+			return {
+				isFinal: false,
+				proposedGrade: this.markedGrade(),
+				rubricScores: this.rubric ? this.buildRubricScores() : [],
+			}
+		},
+
+		/**
+		 * Who set a final grade and by which rule; nothing for an ordinary mark.
+		 *
+		 * @param {boolean} isFinal Whether this is the final grade.
+		 * @return {object} The fields.
+		 * @spec openspec/specs/assignments/spec.md#requirement-one-person-sets-the-final-grade-once-every-mark-is-in
+		 */
+		finalGradeFields(isFinal) {
+			if (!isFinal) {
+				return {}
+			}
+			return {
+				finalGradeSetBy: getCurrentUser()?.uid ?? null,
+				finalGradeRuleApplied: this.finalGradeRule,
+			}
+		},
+
+		/**
+		 * Persist the marking data to the Submission.
+		 *
+		 * @param {{isFinal: boolean, proposedGrade: (number|null), rubricScores: Array<object>}} marking The marking.
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-28
+		 */
+		async saveMarking(marking) {
+			await sendJsonOrThrow(
+				generateUrl(`/apps/openregister/api/objects/learniq/Submission/${this.id}`),
+				{
+					method: 'PATCH',
+					body: {
+						rubricScores: marking.rubricScores,
+						proposedGrade: marking.proposedGrade,
+						feedbackText: this.feedbackText,
+						...this.finalGradeFields(marking.isFinal),
+					},
+					failure: 'Submission update failed',
+				},
+			)
+		},
+
+		/**
+		 * Create a concept GradeEntry (grading spec — sourceKind:
+		 * assignment-submission). The teacher reviews and publishes it via the
+		 * GradebookView; only then does the notification fire and the
+		 * FinalGrade recompute trigger. The plan hangs off the assignment's
+		 * course and the scale off the plan: the Assignment schema holds
+		 * neither (hermiq-ai-tooling). A failed GradeEntry does not block the
+		 * return transition.
+		 *
+		 * @param {number|null} proposedGrade The grade.
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-28
+		 */
+		async fileConceptGrade(proposedGrade) {
+			const gradePlan =
+				proposedGrade === null
+					? null
+					: await resolveGradePlan(this.assignment, (schema, objectId) =>
+						this.fetchLearniqObject(schema, objectId),
+					)
+			if (!gradePlan) {
+				return
+			}
+			const resp = await sendJson(
+				generateUrl('/apps/openregister/api/objects/learniq/grade-entry'),
+				{ method: 'POST', body: this.gradeEntryBody(gradePlan, proposedGrade) },
+			)
+			if (resp.ok) {
+				await this.linkGradeEntry(resp)
+			}
+		},
+
+		/**
+		 * The concept GradeEntry of this submission.
+		 *
+		 * @param {object} gradePlan The resolved plan, component, course and scale.
+		 * @param {number} value The grade.
+		 * @return {object} The GradeEntry.
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-28
+		 */
+		gradeEntryBody(gradePlan, value) {
+			return {
+				learnerId: (this.submission.learnerIds ?? [])[0] ?? '',
+				curriculumPlanId: gradePlan.curriculumPlanId,
+				componentId: gradePlan.componentId,
+				courseId: gradePlan.courseId,
+				sourceKind: 'assignment-submission',
+				submissionId: this.id,
+				value,
+				gradeScaleId: gradePlan.gradeScaleId,
+				grader: '',
+				gradedAt: new Date().toISOString(),
+				lifecycle: 'concept',
+				tenant_id: this.submission.tenant_id ?? '',
+			}
+		},
+
+		/**
+		 * Back-link the created GradeEntry to the Submission.
+		 *
+		 * @param {Response} resp The GradeEntry creation's response.
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-28
+		 */
+		async linkGradeEntry(resp) {
+			const gradeEntryJson = await resp.json()
+			const gradeEntryId = (gradeEntryJson.object ?? gradeEntryJson)?.id ?? null
+			if (gradeEntryId) {
+				await sendJson(
+					generateUrl(`/apps/openregister/api/objects/learniq/Submission/${this.id}`),
+					{ method: 'PATCH', body: { gradeEntryId } },
+				)
 			}
 		},
 	},
@@ -1157,10 +1071,6 @@ export default {
 	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
-.mark-submission-view__final {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
 .mark-submission-view__marks-table {
 	width: 100%;
 	border-collapse: collapse;
@@ -1172,13 +1082,6 @@ export default {
 	text-align: left;
 	padding: 4px var(--default-grid-baseline, 8px);
 	border-bottom: 1px solid var(--color-border);
-}
-
-.mark-submission-view {
-	max-width: 860px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .mark-submission-view__loading,
@@ -1209,13 +1112,6 @@ export default {
 	font-size: 0.85em;
 }
 
-.mark-submission-view__attachments,
-.mark-submission-view__rubric,
-.mark-submission-view__manual-score,
-.mark-submission-view__feedback {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
 .mark-submission-view__file-list {
 	list-style: none;
 	padding: 0;
@@ -1234,61 +1130,13 @@ export default {
 	font-style: italic;
 }
 
-.mark-submission-view__criterion {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
-	padding: var(--default-grid-baseline, 8px);
-	border: 1px solid var(--color-border);
-	border-radius: 4px;
-}
 
-.mark-submission-view__criterion-label {
-	font-weight: bold;
-	margin-bottom: var(--default-grid-baseline, 8px);
-}
 
-.mark-submission-view__criterion-weight {
-	font-weight: normal;
-	color: var(--color-text-maxcontrast);
-	font-size: 0.85em;
-	margin-left: 4px;
-}
 
-.mark-submission-view__levels {
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--default-grid-baseline, 8px);
-}
 
-.mark-submission-view__level {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	cursor: pointer;
-	padding: 4px 8px;
-	border: 1px solid var(--color-border);
-	border-radius: 4px;
-	background: var(--color-main-background);
-}
 
-.mark-submission-view__level:has(input:checked) {
-	background: var(--color-primary-element-light);
-	border-color: var(--color-primary);
-}
 
-.mark-submission-view__level-points {
-	color: var(--color-text-maxcontrast);
-	font-size: 0.85em;
-}
 
-.mark-submission-view__score-total {
-	margin-top: calc(var(--default-grid-baseline, 8px) * 2);
-	padding: var(--default-grid-baseline, 8px);
-	background: var(--color-background-hover);
-	border-radius: 4px;
-	display: flex;
-	align-items: center;
-	gap: calc(var(--default-grid-baseline, 8px) * 2);
-}
 
 .mark-submission-view__effective-grade {
 	color: var(--color-warning);
@@ -1314,14 +1162,6 @@ export default {
 	padding: 8px;
 	resize: vertical;
 	font-family: inherit;
-}
-
-.mark-submission-view__peer-context {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-	padding: var(--default-grid-baseline, 8px);
-	border: 1px dashed var(--color-border);
-	border-radius: 4px;
-	background: var(--color-background-hover);
 }
 
 .mark-submission-view__peer-items {

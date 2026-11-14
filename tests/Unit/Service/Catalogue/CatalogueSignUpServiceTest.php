@@ -66,6 +66,13 @@ class CatalogueSignUpServiceTest extends TestCase {
 	private array $ranAs = [];
 
 	/**
+	 * A failure every new write throws instead of the prerequisite veto.
+	 *
+	 * @var \Throwable|null
+	 */
+	private ?\Throwable $failure = null;
+
+	/**
 	 * The service over a store with courses, a programme and a profile.
 	 *
 	 * @return CatalogueSignUpService
@@ -90,6 +97,10 @@ class CatalogueSignUpServiceTest extends TestCase {
 		);
 		$objects->method('saveObject')->willReturnCallback(
 			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): ObjectEntity {
+				if ($this->failure !== null && $uuid === null) {
+					throw $this->failure;
+				}
+
 				if (in_array(($object['courseId'] ?? ''), $this->vetoed, true) === true && $uuid === null) {
 					throw new class('stopped') extends RuntimeException {
 						/**
@@ -164,6 +175,46 @@ class CatalogueSignUpServiceTest extends TestCase {
 	}//end testAnOpenCourseEnrolsTheCallerActive()
 
 	/**
+	 * The whole enrolment row a course and a programme sign-up write, but the
+	 * request time: tenant, programme, part default and manager included.
+	 *
+	 * @return void
+	 */
+	public function testTheSignUpsWriteTheWholeEnrolmentRow(): void {
+		$service = $this->service();
+		$service->signUpCourse(learner: $this->learner(), courseId: 'c-lead');
+		$service->signUpProgramme(learner: $this->learner(), programmeId: 'p-pm');
+
+		$rows = array_map(
+			static function (array $row): array {
+				self::assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}T/', (string)$row['requestedAt']);
+				unset($row['requestedAt']);
+				return $row;
+			},
+			$this->enrolments()
+		);
+		$expected = '[{"learnerId":"p.ganpat","learnerRef":"lp-1","courseId":"c-lead","source":"self","mandatory":false,"managerId":"m.visser","lifecycle":"pending","tenant_id":"t1","id":"new-1"},{"learnerId":"p.ganpat","learnerRef":"lp-1","courseId":"c-excel","programmeId":"p-pm","source":"self","mandatory":false,"managerId":"m.visser","lifecycle":"active","tenant_id":"t1","id":"new-2"},{"learnerId":"p.ganpat","learnerRef":"lp-1","courseId":"c-pm2","programmeId":"p-pm","source":"self","mandatory":false,"managerId":"m.visser","lifecycle":"active","tenant_id":"t1","id":"new-3"}]';
+		self::assertSame($expected, json_encode($rows));
+	}//end testTheSignUpsWriteTheWholeEnrolmentRow()
+
+	/**
+	 * The enrolment takes the course's tenant, and the learner's only when the
+	 * course names none.
+	 *
+	 * @return void
+	 */
+	public function testTheEnrolmentTakesTheCoursesTenantElseTheLearners(): void {
+		$service = $this->service();
+		$this->store->rows['course'][] = ['id' => 'c-other', 'name' => 'Elders', 'lifecycle' => 'published', 'selfEnrolment' => 'open', 'tenant_id' => 't2'];
+		$this->store->rows['course'][] = ['id' => 'c-none', 'name' => 'Nergens', 'lifecycle' => 'published', 'selfEnrolment' => 'open'];
+
+		$service->signUpCourse(learner: $this->learner(), courseId: 'c-other');
+		$service->signUpCourse(learner: $this->learner(), courseId: 'c-none');
+
+		self::assertSame(['c-other' => 't2', 'c-none' => 't1'], array_column($this->enrolments(), 'tenant_id', 'courseId'));
+	}//end testTheEnrolmentTakesTheCoursesTenantElseTheLearners()
+
+	/**
 	 * A course on request waits pending; a second sign-up is refused.
 	 *
 	 * @return void
@@ -222,6 +273,32 @@ class CatalogueSignUpServiceTest extends TestCase {
 		self::assertCount(1, $fromProgramme);
 		self::assertSame('active', $fromProgramme[0]['lifecycle']);
 	}//end testAProgrammeEnrolsEveryCourseNamingTheProgramme()
+
+	/**
+	 * Each course of the programme once, skipping empty ids and courses the
+	 * learner already holds live; the rest are created (a course the catalogue
+	 * does not hold included) or refused in order, a refusal naming its course
+	 * and message.
+	 *
+	 * @return void
+	 */
+	public function testAProgrammeEnrolsEachPendingCourseOnceInOrder(): void {
+		$service = $this->service();
+		$service->signUpCourse(learner: $this->learner(), courseId: 'c-lead');
+		$this->store->rows['programme'][0]['courseIds'] = ['c-missing', 'c-excel', '', 'c-lead', 'c-excel', 'c-pm2'];
+		$this->vetoed = ['c-pm2'];
+		$writes = count($this->store->saves);
+
+		$outcome = $service->signUpProgramme(learner: $this->learner(), programmeId: 'p-pm');
+
+		self::assertSame(200, $outcome->status);
+		self::assertSame(['c-missing', 'c-excel'], array_column($outcome->body['created'], 'courseId'));
+		self::assertSame(['c-pm2'], array_column($outcome->body['refused'], 'courseId'));
+		self::assertSame(['courseId', 'message'], array_keys($outcome->body['refused'][0]));
+		self::assertNotSame('', $outcome->body['refused'][0]['message']);
+		self::assertSame(2, (count($this->store->saves) - $writes));
+		self::assertSame(['p-pm', 'p-pm'], array_column(array_column(array_slice($this->store->saves, $writes), 'object'), 'programmeId'));
+	}//end testAProgrammeEnrolsEachPendingCourseOnceInOrder()
 
 	/**
 	 * A programme whose author marked parts mandatory: each course enrolment
@@ -386,4 +463,112 @@ class CatalogueSignUpServiceTest extends TestCase {
 		self::assertSame('not-found', $outcome->reason);
 		self::assertSame([], $this->enrolments());
 	}//end testAnUnknownProgrammeIsNotFound()
+	/**
+	 * The guards: only the learner's own enrolment is theirs, and only a
+	 * published, open course or programme takes sign-ups.
+	 *
+	 * @return void
+	 */
+	public function testTheGuardsAnswerOwnershipAndOpenness(): void {
+		$service = $this->service();
+		$this->store->rows['enrolment'] = [
+			['id' => 'e-mine', 'learnerId' => 'p.ganpat', 'courseId' => 'c-excel'],
+			['id' => 'e-theirs', 'learnerId' => 'someone', 'courseId' => 'c-excel'],
+			['id' => 'e-anon', 'courseId' => 'c-excel'],
+		];
+
+		self::assertTrue($service->requireOwnEnrolment(learner: $this->learner(), enrolmentId: 'e-mine'));
+		self::assertFalse($service->requireOwnEnrolment(learner: $this->learner(), enrolmentId: 'e-theirs'));
+		self::assertFalse($service->requireOwnEnrolment(learner: $this->learner(), enrolmentId: 'e-anon'));
+		self::assertFalse($service->requireOwnEnrolment(learner: $this->learner(), enrolmentId: 'e-gone'));
+		self::assertFalse($service->requireOwnEnrolment(learner: $this->learner(), enrolmentId: ''));
+
+		self::assertTrue($service->requireOpenForSignUp(schema: 'course', id: 'c-excel'));
+		self::assertTrue($service->requireOpenForSignUp(schema: 'course', id: 'c-lead'));
+		self::assertTrue($service->requireOpenForSignUp(schema: 'programme', id: 'p-pm'));
+		self::assertFalse($service->requireOpenForSignUp(schema: 'course', id: 'c-closed'));
+		self::assertFalse($service->requireOpenForSignUp(schema: 'course', id: 'c-pm2'));
+		self::assertFalse($service->requireOpenForSignUp(schema: 'course', id: 'c-draft'));
+		self::assertFalse($service->requireOpenForSignUp(schema: 'course', id: 'nope'));
+	}//end testTheGuardsAnswerOwnershipAndOpenness()
+
+	/**
+	 * The catalogue endpoint answers 200 with the reader's entries for the
+	 * caller, narrowed by the search.
+	 *
+	 * @return void
+	 */
+	public function testTheCatalogueAnswersTheCallersEntries(): void {
+		$service = $this->service();
+
+		$outcome = $service->catalogue(learner: $this->learner(), search: 'hybride');
+
+		self::assertSame(200, $outcome->status);
+		self::assertSame(['c-lead'], array_column($outcome->body['courses'], 'id'));
+		self::assertNull($outcome->reason);
+	}//end testTheCatalogueAnswersTheCallersEntries()
+
+	/**
+	 * A learner without a profile still signs up: no profile reference and no
+	 * manager are written, and the learner's tenant is used.
+	 *
+	 * @return void
+	 */
+	public function testALearnerWithoutAProfileSignsUpWithoutManager(): void {
+		$service = $this->service();
+		$user    = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('p.ganpat');
+		$learner = new PortalLearner(profileRef: '', ncUserId: 'p.ganpat', tenantId: 't9', user: $user);
+		$this->store->rows['course'][] = ['id' => 'c-free', 'name' => 'Vrij', 'lifecycle' => 'published', 'selfEnrolment' => 'open'];
+
+		self::assertSame(200, $service->signUpCourse(learner: $learner, courseId: 'c-free')->status);
+
+		$enrolment = $this->enrolments()[0];
+		self::assertArrayNotHasKey('learnerRef', $enrolment);
+		self::assertArrayNotHasKey('managerId', $enrolment);
+		self::assertSame('t9', $enrolment['tenant_id']);
+	}//end testALearnerWithoutAProfileSignsUpWithoutManager()
+
+	/**
+	 * A write failure that is no prerequisite veto is not swallowed.
+	 *
+	 * @return void
+	 */
+	public function testAFailureThatIsNoVetoIsRethrown(): void {
+		$service       = $this->service();
+		$this->failure = new RuntimeException('database gone');
+
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('database gone');
+
+		$service->signUpCourse(learner: $this->learner(), courseId: 'c-excel');
+	}//end testAFailureThatIsNoVetoIsRethrown()
+
+	/**
+	 * A failure carrying errors without a message string is not a veto either.
+	 *
+	 * @return void
+	 */
+	public function testErrorsWithoutAMessageAreRethrown(): void {
+		$service       = $this->service();
+		$this->failure = new class('no message') extends RuntimeException {
+			/**
+			 * The errors, without a message.
+			 *
+			 * @return array<string, int>
+			 */
+			public function getErrors(): array {
+				return ['message' => 42];
+			}//end getErrors()
+		};
+
+		try {
+			$service->signUpCourse(learner: $this->learner(), courseId: 'c-excel');
+			self::fail('The failure was swallowed.');
+		} catch (RuntimeException $exception) {
+			self::assertSame($this->failure, $exception);
+		}
+
+		self::assertSame([], $this->enrolments());
+	}//end testErrorsWithoutAMessageAreRethrown()
 }//end class

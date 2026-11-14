@@ -30,7 +30,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle\Action;
 
-use OCA\Learniq\Service\PokParentSignatureRule;
+use OCA\Learniq\Kernel\Contracts\PokParentSignatureRuleInterface;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
@@ -51,11 +52,11 @@ class PokParentSignatureStampAction implements LifecycleActionInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param PokParentSignatureRule $parentRule Whether a parent signs.
+	 * @param PokParentSignatureRuleInterface $parentRule Whether a parent signs.
 	 * @param ObjectService $objectService Reads the version's signatures for the student's signing date.
 	 */
 	public function __construct(
-		private readonly PokParentSignatureRule $parentRule,
+		private readonly PokParentSignatureRuleInterface $parentRule,
 		private readonly ObjectService $objectService,
 	) {
 	}//end __construct()
@@ -63,18 +64,16 @@ class PokParentSignatureStampAction implements LifecycleActionInterface {
 	/**
 	 * Stamp `parentSignatureRequired` from the rule.
 	 *
-	 * @param array<string,mixed> $objectData   The POK after the lifecycle field moved to its target.
-	 * @param array<string,mixed> $previousData The POK before the transition (unused).
-	 * @param array<string,mixed> $parameters   The declared `actionParameters` (unused).
-	 * @param string              $actionName   The declared action name (unused).
+	 * @param LifecycleActionContext $context The transition; its objectData is the POK after the lifecycle field moved
+	 *                                        to its target.
 	 *
 	 * @return array<string,mixed> The POK with `parentSignatureRequired` set; unchanged when it has no id.
 	 *
 	 * @spec openspec/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
-	 *
-	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleActionInterface's.
 	 */
-	public function execute(array $objectData, array $previousData, array $parameters, string $actionName): array {
+	public function execute(LifecycleActionContext $context): array {
+		$objectData = $context->objectData;
+
 		$pokId = (string)($objectData['id'] ?? ($objectData['uuid'] ?? ''));
 		if ($pokId === '') {
 			return $objectData;

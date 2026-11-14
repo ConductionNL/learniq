@@ -32,6 +32,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Settings;
 
 use DateTimeImmutable;
+use OCA\Learniq\Service\ExampleSetPreparation;
+use OCA\Learniq\Service\ExampleSetSources;
 use DateTimeZone;
 use OCA\Learniq\Grading\GradeAggregationEngine;
 use OCA\Learniq\Grading\GradePassEvaluator;
@@ -42,6 +44,7 @@ use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\PokParentSignatureRule;
 use OCA\Learniq\Service\SeedProfileService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -512,7 +515,21 @@ class VocationalCollegeExampleSetTest extends TestCase {
 		$appManager->method('getAppPath')->willReturn(dirname(__DIR__, 3));
 		$demo = $this->createMock(DemoDataService::class);
 		$demo->method('listChoices')->willReturn([]);
-		$service = new SeedProfileService($appManager, $this->createMock(ContainerInterface::class), $this->createMock(LoggerInterface::class), $demo, $this->createMock(\OCA\Learniq\Service\SharedCodeFilter::class), $this->createMock(\OCA\Learniq\Service\LoadedExampleSets::class), $this->createMock(\OCA\Learniq\Portal\ExamplePortalProvisioner::class));
+		$service = new SeedProfileService(
+			sources: new ExampleSetSources(
+				appManager: $appManager,
+				demoData: $demo,
+				loadedSets: $this->createMock(\OCA\Learniq\Service\LoadedExampleSets::class)
+			),
+			preparation: new ExampleSetPreparation(
+				sharedCodes: $this->createMock(\OCA\Learniq\Service\SharedCodeFilter::class),
+				dates: $this->createMock(\OCA\Learniq\Service\ExampleSetDates::class),
+				organisation: $this->createMock(\OCA\Learniq\Service\ExampleSetOrganisation::class),
+				examplePortals: $this->createMock(\OCA\Learniq\Portal\ExamplePortalProvisioner::class)
+			),
+			container: $this->createMock(ContainerInterface::class),
+			logger: $this->createMock(LoggerInterface::class)
+		);
 
 		$offered = array_values(array_filter($service->listChoices(), static fn (array $c): bool => $c['id'] === 'mbo'))[0];
 		self::assertSame('Vocational education (MBO)', $offered['label']);
@@ -574,7 +591,8 @@ class VocationalCollegeExampleSetTest extends TestCase {
 		foreach (self::of('praktijkovereenkomst') as $agreement) {
 			$pok = array_merge($agreement, ['id' => $agreement['uuid']]);
 			self::assertTrue($guard->check($pok, 'activate', 'mbo-stagecoordinator-01')->isAllowed(), $agreement['slug'] . ' passes the activation guard');
-			self::assertSame($stamp->execute($pok, [], [], 'activate')['parentSignatureRequired'], $agreement['parentSignatureRequired'], $agreement['slug']);
+			$stamped = $stamp->execute(new LifecycleActionContext(objectData: $pok, previousData: [], parameters: [], actionName: 'activate'));
+			self::assertSame($stamped['parentSignatureRequired'], $agreement['parentSignatureRequired'], $agreement['slug']);
 
 			$parentSigners = array_column(array_filter($signaturesBySubject[$agreement['uuid']], static fn (array $s): bool => $s['signerRole'] === 'parent'), 'signerId');
 			if ($agreement['parentSignatureRequired'] === false) {
@@ -685,8 +703,8 @@ class VocationalCollegeExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
+	 * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 * @spec openspec/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
 	 */
 	public function testTheSetSeedsWeeksOfRealisedHours(): void {
 		$placements = self::by(self::of('bpv-placement'), 'uuid');

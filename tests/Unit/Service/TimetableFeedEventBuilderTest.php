@@ -43,21 +43,30 @@ use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUserManager;
 use OCP\Security\ISecureRandom;
+use OCA\Learniq\Tests\Support\GoldenFile;
 use PHPUnit\Framework\TestCase;
+
+// The unit bootstrap does not load the golden-file helper; the full one does.
+require_once __DIR__ . '/../../Support/GoldenFile.php';
 
 /**
  * The event builder's less common lessons, the token store's refusals and the writer's empty times.
  */
 class TimetableFeedEventBuilderTest extends TestCase {
+	use GoldenFile;
+
 	/**
-	 * The builder, with every teacher visible to the reader.
+	 * The builder, with every teacher visible to the reader unless the policy says otherwise.
+	 *
+	 * @param string      $policy      The visibility policy's teacher setting.
+	 * @param string|null $displayName Every teacher's display name.
 	 *
 	 * @return TimetableFeedEventBuilder
 	 */
-	private function builder(): TimetableFeedEventBuilder {
+	private function builder(string $policy = 'all', ?string $displayName = null): TimetableFeedEventBuilder {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('findAll')->willReturnCallback(
-			static fn (array $config): array => (($config['filters']['schema'] ?? '') === 'timetable-visibility-policy') ? [['id' => 'p', 'learnerSeesTeachers' => 'all']] : []
+			static fn (array $config): array => (($config['filters']['schema'] ?? '') === 'timetable-visibility-policy') ? [['id' => 'p', 'learnerSeesTeachers' => $policy, 'teacherSeesTeachers' => $policy]] : []
 		);
 		$appManager = $this->createMock(IAppManager::class);
 		$appConfig = $this->createMock(IAppConfig::class);
@@ -69,7 +78,7 @@ class TimetableFeedEventBuilderTest extends TestCase {
 		);
 		$groups = $this->createMock(IGroupManager::class);
 		$users = $this->createMock(IUserManager::class);
-		$users->method('getDisplayName')->willReturn(null);
+		$users->method('getDisplayName')->willReturn($displayName);
 
 		return new TimetableFeedEventBuilder(new TimetableVisibilityService(new TimetableDirectory($objects, $sources), $groups, $users), $users);
 	}//end builder()
@@ -119,6 +128,36 @@ class TimetableFeedEventBuilderTest extends TestCase {
 		$this->assertStringContainsString('Substitute teacher: sam', $byUid['f@learniq']['description']);
 		$this->assertStringContainsString('Reason: teacher absent', $byUid['f@learniq']['description']);
 	}//end testReasonKindsCoverAndFallbacks()
+
+	/**
+	 * Whole events, recorded: titles, cancellations, rooms, links, named and
+	 * unnamed substitutes, someone else's cover and the reason lines.
+	 *
+	 * @return void
+	 */
+	public function testWholeEventsAsRecorded(): void {
+		$at = ['startsAt' => '2026-01-08T09:00:00+00:00', 'endsAt' => '2026-01-08T10:00:00+00:00'];
+		$sessions = [
+			array_merge($at, ['id' => 'g', 'title' => ' Biology ', 'room' => ['name' => ' B2 '], 'onlineMeetingUrl' => 'https://meet.example/x']),
+			array_merge($at, ['id' => 'h', 'title' => 'Maths', 'lifecycle' => 'cancelled', 'substituteTeacherId' => 'sam', 'changeReasonKind' => 'teacher-absence']),
+			array_merge($at, ['id' => 'i', 'title' => 'Art', 'substituteTeacherId' => 'sam', 'cover' => true]),
+			array_merge($at, ['id' => 'j', 'title' => 'Gym', 'changeReasonKind' => 'other']),
+			array_merge($at, ['id' => 'k', 'title' => 'Music', 'substituteTeacherId' => 'sam', 'changeReasonKind' => 'other']),
+			['id' => 'l'],
+		];
+
+		$actual = [];
+		foreach (['all' => [null], 'named' => ['Sam de Vries'], 'none' => [null]] as $case => [$name]) {
+			$policy = 'all';
+			if ($case === 'none') {
+				$policy = 'none';
+			}
+
+			$actual[$case] = $this->builder(policy: $policy, displayName: $name)->events(uid: 'alice', sessions: $sessions, l10n: $this->l10n());
+		}
+
+		$this->assertMatchesGolden(__DIR__ . '/golden/TimetableFeedEventBuilder.json', $actual);
+	}//end testWholeEventsAsRecorded()
 
 	/**
 	 * A hash two users hold, or a stored value that no longer matches, resolves to nobody.

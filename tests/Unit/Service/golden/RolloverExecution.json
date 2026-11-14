@@ -1,0 +1,1011 @@
+{
+    "new cohort, programme kept and year raised": [
+        {
+            "find": {
+                "id": "c1",
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "cohort",
+                    "name": "MV2A",
+                    "academicYear": "2026-2027",
+                    "tenant_id": "t1"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "name": "MV2A",
+                    "academicYear": "2026-2027",
+                    "learnerIds": [
+                        "l1",
+                        "l2",
+                        "l3",
+                        "l4"
+                    ],
+                    "ncGroupId": "scholiq-cohort-2026-2027-mv2a",
+                    "tenant_id": "t1",
+                    "programmeId": "p-mv",
+                    "programmeYear": 2
+                },
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l1"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "e1",
+                    "learnerId": "l1",
+                    "lifecycle": "active",
+                    "mandatory": true,
+                    "cohortId": "saved-3"
+                },
+                "register": "learniq",
+                "schema": "enrolment"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l2"
+                }
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l3"
+                }
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l4"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "c1",
+                    "name": "MV1A",
+                    "programmeId": "p-mv",
+                    "programmeYear": 1,
+                    "learnerIds": [
+                        "l1",
+                        "l2",
+                        "l3",
+                        "l4"
+                    ],
+                    "lifecycle": "archived"
+                },
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "result": {
+                "c1": "done"
+            }
+        }
+    ],
+    "new cohort with course and programme from the mapping": [
+        {
+            "find": {
+                "id": "c1",
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "cohort",
+                    "name": "MV2A",
+                    "academicYear": "2026-2027",
+                    "tenant_id": "t1"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "name": "MV2A",
+                    "academicYear": "2026-2027",
+                    "learnerIds": [
+                        "l1",
+                        "l2",
+                        "l3",
+                        "l4"
+                    ],
+                    "ncGroupId": "scholiq-cohort-2026-2027-mv2a",
+                    "tenant_id": "t1",
+                    "programmeId": "p-x",
+                    "courseId": "k-1"
+                },
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l1"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "e1",
+                    "learnerId": "l1",
+                    "lifecycle": "active",
+                    "mandatory": true,
+                    "cohortId": "saved-3"
+                },
+                "register": "learniq",
+                "schema": "enrolment"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l2"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "e3",
+                    "learnerId": "l2",
+                    "lifecycle": "active",
+                    "mandatory": false,
+                    "cohortId": "saved-3"
+                },
+                "register": "learniq",
+                "schema": "enrolment"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l3"
+                }
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l4"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "c1",
+                    "name": "MV1A",
+                    "programmeId": "p-mv",
+                    "learnerIds": [
+                        "l1",
+                        "l2",
+                        "l3",
+                        "l4"
+                    ],
+                    "lifecycle": "archived"
+                },
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "result": {
+                "c1": "done"
+            }
+        }
+    ],
+    "empty programme and course ids are left out": [
+        {
+            "find": {
+                "id": "c1",
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "cohort",
+                    "name": "MV2A",
+                    "academicYear": "2026-2027",
+                    "tenant_id": "t1"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "name": "MV2A",
+                    "academicYear": "2026-2027",
+                    "learnerIds": [
+                        "l1",
+                        "l2",
+                        "l3",
+                        "l4"
+                    ],
+                    "ncGroupId": "scholiq-cohort-2026-2027-mv2a",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l1"
+                }
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l2"
+                }
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l3"
+                }
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l4"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "c1",
+                    "name": "MV1A",
+                    "programmeId": "p-mv",
+                    "learnerIds": [
+                        "l1",
+                        "l2",
+                        "l3",
+                        "l4"
+                    ],
+                    "lifecycle": "archived"
+                },
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "result": {
+                "c1": "done"
+            }
+        }
+    ],
+    "existing to-year cohort gains members once": [
+        {
+            "find": {
+                "id": "c1",
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "cohort",
+                    "name": "MV2A",
+                    "academicYear": "2026-2027",
+                    "tenant_id": "t1"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "to-1",
+                    "name": "MV2A",
+                    "academicYear": "2026-2027",
+                    "tenant_id": "t1",
+                    "learnerIds": [
+                        "l9",
+                        "l1",
+                        "l2",
+                        "l3",
+                        "l4"
+                    ],
+                    "note": "kept"
+                },
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l1"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "e1",
+                    "learnerId": "l1",
+                    "lifecycle": "active",
+                    "mandatory": true,
+                    "cohortId": "to-1"
+                },
+                "register": "learniq",
+                "schema": "enrolment"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l2"
+                }
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l3"
+                }
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l4"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "c1",
+                    "name": "MV1A",
+                    "programmeId": "p-mv",
+                    "programmeYear": 1,
+                    "learnerIds": [
+                        "l1",
+                        "l2",
+                        "l3",
+                        "l4"
+                    ],
+                    "lifecycle": "archived"
+                },
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "result": {
+                "c1": "done"
+            }
+        }
+    ],
+    "existing to-year cohort without members": [
+        {
+            "find": {
+                "id": "c1",
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "cohort",
+                    "name": "MV2A",
+                    "academicYear": "2026-2027",
+                    "tenant_id": "t1"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "to-1",
+                    "name": "MV2A",
+                    "academicYear": "2026-2027",
+                    "tenant_id": "t1",
+                    "note": "kept",
+                    "learnerIds": [
+                        "l1",
+                        "l2",
+                        "l3",
+                        "l4"
+                    ]
+                },
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l1"
+                }
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l2"
+                }
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l3"
+                }
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l4"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "c1",
+                    "name": "MV1A",
+                    "programmeId": "p-mv",
+                    "programmeYear": 1,
+                    "learnerIds": [
+                        "l1",
+                        "l2",
+                        "l3",
+                        "l4"
+                    ],
+                    "lifecycle": "archived"
+                },
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "result": {
+                "c1": "done"
+            }
+        }
+    ],
+    "overrides: retain, outflow, graduate": [
+        {
+            "find": {
+                "id": "c1",
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "cohort",
+                    "name": "MV2A",
+                    "academicYear": "2026-2027",
+                    "tenant_id": "t1"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "name": "MV2A",
+                    "academicYear": "2026-2027",
+                    "learnerIds": [
+                        "l1",
+                        "l2"
+                    ],
+                    "ncGroupId": "scholiq-cohort-2026-2027-mv2a",
+                    "tenant_id": "t1",
+                    "programmeId": "p-mv",
+                    "programmeYear": 2
+                },
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l1"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "e1",
+                    "learnerId": "l1",
+                    "lifecycle": "active",
+                    "mandatory": true,
+                    "cohortId": "saved-3"
+                },
+                "register": "learniq",
+                "schema": "enrolment"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l2"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "exchangeJobId": "",
+                    "target": "oso",
+                    "learnerUserId": "l3",
+                    "status": "pending",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "dossier-review"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "c1",
+                    "name": "MV1A",
+                    "programmeId": "p-mv",
+                    "programmeYear": 1,
+                    "learnerIds": [
+                        "l1",
+                        "l2",
+                        "l3",
+                        "l4"
+                    ],
+                    "lifecycle": "archived"
+                },
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "result": {
+                "c1": "done"
+            }
+        }
+    ],
+    "no tenant": [
+        {
+            "find": {
+                "id": "c1",
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "cohort",
+                    "name": "MV2A",
+                    "academicYear": "2026-2027",
+                    "tenant_id": ""
+                },
+                "limit": 1
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "name": "MV2A",
+                    "academicYear": "2026-2027",
+                    "learnerIds": [
+                        "l1",
+                        "l2",
+                        "l3",
+                        "l4"
+                    ],
+                    "ncGroupId": "scholiq-cohort-2026-2027-mv2a",
+                    "tenant_id": "",
+                    "programmeId": "p-mv",
+                    "programmeYear": 2
+                },
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l1"
+                }
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l2"
+                }
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l3"
+                }
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l4"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "c1",
+                    "name": "MV1A",
+                    "programmeId": "p-mv",
+                    "programmeYear": 1,
+                    "learnerIds": [
+                        "l1",
+                        "l2",
+                        "l3",
+                        "l4"
+                    ],
+                    "lifecycle": "archived"
+                },
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "result": {
+                "c1": "done"
+            }
+        }
+    ],
+    "no to-cohort name": [
+        {
+            "find": {
+                "id": "c1",
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "c1",
+                    "name": "MV1A",
+                    "programmeId": "p-mv",
+                    "programmeYear": 1,
+                    "learnerIds": [
+                        "l1",
+                        "l2",
+                        "l3",
+                        "l4"
+                    ],
+                    "lifecycle": "archived"
+                },
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "result": {
+                "c1": "done"
+            }
+        }
+    ],
+    "mapping already done": [
+        {
+            "result": {
+                "c1": "done"
+            }
+        }
+    ],
+    "duplicate from-cohort members are written once": [
+        {
+            "find": {
+                "id": "c1",
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "cohort",
+                    "name": "MV2A",
+                    "academicYear": "2026-2027",
+                    "tenant_id": "t1"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "name": "MV2A",
+                    "academicYear": "2026-2027",
+                    "learnerIds": [
+                        "l1",
+                        "l2"
+                    ],
+                    "ncGroupId": "scholiq-cohort-2026-2027-mv2a",
+                    "tenant_id": "t1",
+                    "programmeId": "p-mv",
+                    "programmeYear": 2
+                },
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l1"
+                }
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l1"
+                }
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l2"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "c1",
+                    "name": "MV1A",
+                    "programmeId": "p-mv",
+                    "programmeYear": 1,
+                    "learnerIds": [
+                        "l1",
+                        "l1",
+                        "l2"
+                    ],
+                    "lifecycle": "archived"
+                },
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "result": {
+                "c1": "done"
+            }
+        }
+    ],
+    "a mapping without an action or a from-cohort id is skipped": [
+        {
+            "result": []
+        }
+    ],
+    "a missing from-cohort is skipped and the next mapping runs": [
+        {
+            "find": {
+                "id": "c-gone",
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "find": {
+                "id": "c-gone-too",
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "find": {
+                "id": "c1",
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "cohort",
+                    "name": "MV2A",
+                    "academicYear": "2026-2027",
+                    "tenant_id": "t1"
+                },
+                "limit": 1
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "name": "MV2A",
+                    "academicYear": "2026-2027",
+                    "learnerIds": [
+                        "l1",
+                        "l2",
+                        "l3",
+                        "l4"
+                    ],
+                    "ncGroupId": "scholiq-cohort-2026-2027-mv2a",
+                    "tenant_id": "t1",
+                    "programmeId": "p-mv",
+                    "programmeYear": 2
+                },
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l1"
+                }
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l2"
+                }
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l3"
+                }
+            }
+        },
+        {
+            "findAll": {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "enrolment",
+                    "learnerId": "l4"
+                }
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "id": "c1",
+                    "name": "MV1A",
+                    "programmeId": "p-mv",
+                    "programmeYear": 1,
+                    "learnerIds": [
+                        "l1",
+                        "l2",
+                        "l3",
+                        "l4"
+                    ],
+                    "lifecycle": "archived"
+                },
+                "register": "learniq",
+                "schema": "cohort"
+            }
+        },
+        {
+            "result": {
+                "c1": "done"
+            }
+        }
+    ]
+}

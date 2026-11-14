@@ -42,7 +42,10 @@ use OCA\Learniq\Tests\Support\RegisterSchemaPayloads;
 use OCA\Learniq\Tests\Support\TransitionScope;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
+use OCA\OpenRegister\Service\Lifecycle\TransitionActor;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -230,7 +233,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 */
 	private function runTransition(CourseEvaluationResponseSubmittedHandler $handler, string $caller, string $objectId, string $action, bool $asSystem): ObjectEntity {
 		$saved = $this->store->transition(schema: 'course-evaluation-response', objectId: $objectId, action: $action, asSystem: $asSystem);
-		$handler->handle(new ObjectTransitionedEvent($saved, $action, 'draft', 'submitted', $caller, 'learniq', 'course-evaluation-response'));
+		$handler->handle(new ObjectTransitionedEvent(object: $saved, move: new TransitionMove(action: $action, from: 'draft', to: 'submitted'), scope: new RegisterSchemaRef(register: 'learniq', schema: 'course-evaluation-response'), actor: new TransitionActor(userId: $caller)));
 
 		return $saved;
 	}//end runTransition()

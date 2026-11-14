@@ -51,26 +51,46 @@ class OfficeLessonExtractor {
 	 *
 	 * @var string
 	 */
-	public const WORD_EXTRACTOR = 'OCA\\OpenRegister\\Service\\TextExtraction\\WordExtractor';
+	public const WORD_EXTRACTOR = 'OCA\\OpenRegister\\Files\\Service\\TextExtraction\\WordExtractor';
+
+	/**
+	 * Structured Word reader.
+	 *
+	 * @var DocxLessonReader
+	 */
+	private readonly DocxLessonReader $docxReader;
+
+	/**
+	 * Adapter over OpenRegister's deck reader.
+	 *
+	 * @var PresentationLessonReader
+	 */
+	private readonly PresentationLessonReader $presentationReader;
+
+	/**
+	 * Adapter over OpenRegister's Word reader.
+	 *
+	 * @var DocumentLessonReader
+	 */
+	private readonly DocumentLessonReader $documentReader;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param DocxLessonReader $docxReader Structured Word reader.
-	 * @param PresentationLessonReader $presentationReader Adapter over OpenRegister's deck reader.
+	 * @param LessonFileReaders $readers The Word, deck and document readers.
 	 * @param ContainerInterface $container Resolves the Word fallback when it exists.
 	 * @param LoggerInterface $logger Logs a failed fallback (never document text).
-	 * @param DocumentLessonReader $documentReader Adapter over OpenRegister's Word reader.
 	 * @param string $wordExtractorClass The fallback class; tests pass a fake.
 	 */
 	public function __construct(
-		private readonly DocxLessonReader $docxReader,
-		private readonly PresentationLessonReader $presentationReader,
+		LessonFileReaders $readers,
 		private readonly ContainerInterface $container,
 		private readonly LoggerInterface $logger,
-		private readonly DocumentLessonReader $documentReader,
 		private readonly string $wordExtractorClass = self::WORD_EXTRACTOR,
 	) {
+		$this->docxReader = $readers->docx;
+		$this->presentationReader = $readers->presentation;
+		$this->documentReader = $readers->document;
 	}//end __construct()
 
 	/**

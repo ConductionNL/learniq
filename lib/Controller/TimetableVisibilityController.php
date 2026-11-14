@@ -31,10 +31,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\TimetableDirectory;
-use OCA\Learniq\Service\TimetableProjector;
-use OCA\Learniq\Service\TimetableVisibilityService;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\TimetableDirectoryInterface;
+use OCA\Learniq\Kernel\Contracts\TimetableProjectorInterface;
+use OCA\Learniq\Kernel\Contracts\TimetableVisibilityServiceInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -56,20 +56,20 @@ class TimetableVisibilityController extends Controller {
 	 *
 	 * @param IRequest                   $request     HTTP request.
 	 * @param IUserSession               $userSession The caller.
-	 * @param TimetableVisibilityService $visibility  The policy and the lessons.
-	 * @param TimetableProjector         $projector   Window and lesson shape, as the personal timetable.
-	 * @param TimetableDirectory         $directory   The lessons of a group, teacher or room.
+	 * @param TimetableVisibilityServiceInterface $visibility  The policy and the lessons.
+	 * @param TimetableProjectorInterface         $projector   Window and lesson shape, as the personal timetable.
+	 * @param TimetableDirectoryInterface         $directory   The lessons of a group, teacher or room.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
-		private readonly TimetableVisibilityService $visibility,
-		private readonly TimetableProjector $projector,
-		private readonly TimetableDirectory $directory,
+		private readonly TimetableVisibilityServiceInterface $visibility,
+		private readonly TimetableProjectorInterface $projector,
+		private readonly TimetableDirectoryInterface $directory,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -111,8 +111,7 @@ class TimetableVisibilityController extends Controller {
 
 		$sessions = $this->projector->windowedSessions(
 			rawSessions: $lessons['sessions'],
-			windowFrom: $windowFrom,
-			windowTo: $windowTo,
+			window: [$windowFrom, $windowTo],
 			roomCache: []
 		);
 
@@ -137,7 +136,7 @@ class TimetableVisibilityController extends Controller {
 			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
 		}
 
-		if (in_array($kind, TimetableVisibilityService::KINDS, true) === false) {
+		if (in_array($kind, TimetableVisibilityServiceInterface::KINDS, true) === false) {
 			return new JSONResponse(data: ['error' => 'Pick a group, a teacher or a room.'], statusCode: Http::STATUS_BAD_REQUEST);
 		}
 

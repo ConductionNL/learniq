@@ -23,16 +23,15 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\ReadableCopies;
-use OCA\OpenRegister\Db\ObjectEntity;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ReadableCopiesInterface;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\EventDispatcher\Event;
@@ -45,8 +44,8 @@ use Throwable;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
- * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
  * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-new-a-share-names-its-candidate-and-portfolio
  */
 class ReadableCopyStamp implements IEventListener {
@@ -54,15 +53,15 @@ class ReadableCopyStamp implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
-	 * @param ReadableCopies         $copies         Derives the readable copies.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
+	 * @param ReadableCopiesInterface         $copies         Derives the readable copies.
 	 * @param LoggerInterface        $logger         PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly ReadableCopies $copies,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		private readonly ReadableCopiesInterface $copies,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -74,33 +73,33 @@ class ReadableCopyStamp implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
 	 */
 	public function handle(Event $event): void {
-		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {
+		$write = SchemaWrite::of(event: $event, schemaResolver: $this->schemaResolver);
+		if ($write === null || $this->copies->covers(slug: $write->slug) === false) {
 			return;
 		}
 
-		if ($event->isPropagationStopped() === true) {
-			return;
-		}
+		$this->stampWrite(write: $write);
+	}//end handle()
 
-		$entity = $this->entityOf(event: $event);
-		try {
-			$slug = $this->schemaResolver->guardSchemaSlug(entity: $entity);
-		} catch (Throwable $exception) {
-			// Not knowing the schema is not knowing it is ours.
-			return;
-		}
-
-		if ($this->copies->covers(slug: $slug) === false) {
-			return;
-		}
+	/**
+	 * Stamp one write of a schema this listener owns.
+	 *
+	 * @param SchemaWrite $write The write and its schema slug.
+	 *
+	 * @return void
+	 */
+	private function stampWrite(SchemaWrite $write): void {
+		$event = $write->event;
+		$entity = $write->entity();
+		$slug = $write->slug;
 
 		// The object's own id travels with it: a learner profile's group line is found through its enrolments.
 		$payload = array_merge(['id' => (string)$entity->getUuid()], ($entity->getObject() ?? []), $event->getModifiedData());
 		$event->setModifiedData(array_merge($event->getModifiedData(), $this->stampFor(event: $event, slug: $slug, payload: $payload)));
-	}//end handle()
+	}//end stampWrite()
 
 	/**
 	 * The copies to write: derived, or on a failed read the stored ones.
@@ -136,19 +135,4 @@ class ReadableCopyStamp implements IEventListener {
 
 		return $kept;
 	}//end stampFor()
-
-	/**
-	 * The object being written: the new state on an update.
-	 *
-	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The write event.
-	 *
-	 * @return ObjectEntity
-	 */
-	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
-	}//end entityOf()
 }//end class

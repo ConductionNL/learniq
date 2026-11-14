@@ -1,7 +1,7 @@
 # content-preview-as-learner Specification
 
 ## Purpose
-TBD - created by archiving change content-adaptive-next-step-and-preview. Update Purpose after archive.
+Let a course author walk a course as a learner would, with a simulated result. A preview leaves no completions, results or statements behind.
 
 ## Requirements
 

@@ -27,6 +27,7 @@ namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\ExampleSetsController;
 use OCA\Learniq\Controller\SetupController;
+use OCA\Learniq\Service\ExampleSetSizes;
 use OCA\Learniq\Service\LoadedExampleSets;
 use OCA\Learniq\Service\SeedProfileService;
 use OCA\Learniq\Service\SegmentService;
@@ -155,7 +156,7 @@ class SetupControllerTest extends TestCase {
 			static fn (string $app, string $key, string $default = ''): string => ($stored[$key] ?? $default)
 		);
 
-		return new ExampleSetsController($this->request, $this->profiles);
+		return new ExampleSetsController($this->request, $this->profiles, new ExampleSetSizes(seedProfiles: $this->profiles));
 	}//end exampleSetsController()
 
 	/**
@@ -368,7 +369,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/specs/example-sets/spec.md#scenario-removing-one-of-two-loaded-sets
+	 * @spec openspec/specs/example-sets/spec.md#scenario-removing-the-company-set
 	 */
 	public function testAPerSetStepRemovesThatSet(): void {
 		$this->profiles->expects(self::once())->method('remove')->with('demo')->willReturn(
@@ -386,7 +387,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
 	 */
 	public function testAPerSetStepForAnUnknownSetIsRefused(): void {
 		$this->profiles->expects(self::never())->method('remove');
@@ -711,7 +712,8 @@ class SetupControllerTest extends TestCase {
 	}//end testTheAdminPageListsNothingWhenNothingWasLoaded()
 
 	/**
-	 * The admin page lists the loaded example sets, with their labels.
+	 * The admin page lists the loaded example sets, with their labels and,
+	 * for a curated set, how many objects it holds.
 	 *
 	 * The wizard no longer removes example data; the admin page's Example
 	 * data section reads this list and offers a Remove button per set.
@@ -722,13 +724,172 @@ class SetupControllerTest extends TestCase {
 	 */
 	public function testTheAdminPageReadsTheLoadedSets(): void {
 		$stored = ['example_sets_loaded' => json_encode([['id' => 'po', 'label' => 'Primary school'], ['id' => 'demo', 'label' => 'Generated']])];
+		$this->profiles->method('uuidsFor')->willReturnCallback(
+			static function (string $profileId): array {
+				if ($profileId !== 'po') {
+					throw new RuntimeException(message: 'No fixed uuids.');
+				}
+
+				return ['a', 'b', 'c'];
+			}
+		);
 
 		$data = $this->exampleSetsController(stored: $stored)->exampleSets()->getData();
 
 		self::assertSame(
-			[['id' => 'po', 'label' => 'Primary school'], ['id' => 'demo', 'label' => 'Generated']],
+			[['id' => 'po', 'label' => 'Primary school', 'objects' => 3], ['id' => 'demo', 'label' => 'Generated']],
 			$data['sets']
 		);
 	}//end testTheAdminPageReadsTheLoadedSets()
-}//end class
 
+	/**
+	 * The `load-demo-data` alias loads the stored pick like `load-example-set`.
+	 *
+	 * @return void
+	 */
+	public function testTheLoadDemoDataAliasImportsTheStoredPick(): void {
+		$written = $this->captureWrites();
+		$this->profiles->expects(self::once())->method('install')->with('po')->willReturn(['objects' => 3, 'profile' => 'po']);
+
+		$data = $this->controller(stored: ['example_profile' => 'po'])->runAction('load-demo-data')->getData();
+
+		self::assertSame(['success' => true, 'message' => 'Imported 3 example object(s).', 'objects' => 3, 'skipped' => 0], $data);
+		self::assertSame('installed', $written['demo_data_decided']);
+	}//end testTheLoadDemoDataAliasImportsTheStoredPick()
+
+	/**
+	 * The legacy `install-demo-data` keeps a stored pick rather than the generated set.
+	 *
+	 * @return void
+	 */
+	public function testTheLegacyActionKeepsAStoredPick(): void {
+		$this->captureWrites();
+		$this->profiles->expects(self::once())->method('install')->with('po')->willReturn(['objects' => 3, 'profile' => 'po']);
+
+		self::assertTrue($this->controller(stored: ['example_profile' => 'po'])->runAction('install-demo-data')->getData()['success']);
+	}//end testTheLegacyActionKeepsAStoredPick()
+
+	/**
+	 * A posted list is read by its first entry, and a skip names the exact message.
+	 *
+	 * @return void
+	 */
+	public function testAPostedListLoadsItsFirstEntry(): void {
+		$this->captureWrites();
+		$this->profiles->expects(self::once())->method('install')->with('po')->willReturn(['objects' => 5, 'profile' => 'po', 'skipped' => 2]);
+
+		$data = $this->controller(params: ['dataset' => ['po']])->runAction('load-example-set')->getData();
+
+		self::assertSame(
+			'Imported 3 of 5 example object(s). 2 could not be imported; the Nextcloud log names each one.',
+			$data['message']
+		);
+		self::assertSame(2, $data['skipped']);
+	}//end testAPostedListLoadsItsFirstEntry()
+
+	/**
+	 * A card that posts "None" declines both example steps and imports nothing.
+	 *
+	 * @return void
+	 */
+	public function testAPostedNoneDeclinesWithoutImporting(): void {
+		$written = $this->captureWrites();
+		$this->profiles->expects(self::never())->method('install');
+
+		$data = $this->controller(params: ['dataset' => 'none'])->runAction('load-example-set')->getData();
+
+		self::assertSame(['success' => true, 'message' => 'No example data was loaded.'], $data);
+		self::assertSame('none', $written['example_profile']);
+		self::assertSame('skipped', $written['demo_data_decided']);
+	}//end testAPostedNoneDeclinesWithoutImporting()
+
+	/**
+	 * An unknown posted set names itself in the refusal.
+	 *
+	 * @return void
+	 */
+	public function testAnUnknownPostedSetIsNamedInTheRefusal(): void {
+		$data = $this->controller(params: ['dataset' => 'atlantis'])->runAction('load-example-set')->getData();
+
+		self::assertSame(['success' => false, 'message' => 'No example set is called "atlantis".'], $data);
+	}//end testAnUnknownPostedSetIsNamedInTheRefusal()
+
+	/**
+	 * A failed import names the reason and the 500.
+	 *
+	 * @return void
+	 */
+	public function testAFailedImportNamesItsReason(): void {
+		$this->profiles->method('install')->willThrowException(new RuntimeException('boom'));
+
+		$response = $this->controller(stored: ['example_profile' => 'po'])->runAction('load-example-set');
+
+		self::assertSame(500, $response->getStatus());
+		self::assertSame(['success' => false, 'message' => 'Could not import the example data: boom'], $response->getData());
+	}//end testAFailedImportNamesItsReason()
+
+	/**
+	 * The per-set step for the generated set removes it although no curated set has that id.
+	 *
+	 * @return void
+	 */
+	public function testAPerSetStepForTheGeneratedSetRemovesIt(): void {
+		$this->profiles = $this->createMock(SeedProfileService::class);
+		$this->profiles->method('loadedSets')->willReturn(new LoadedExampleSets($this->appConfig));
+		$this->profiles->method('isKnown')->willReturn(false);
+		$this->profiles->expects(self::once())->method('remove')->with(SeedProfileService::GENERATED_PROFILE)->willReturn(
+			['supported' => true, 'appId' => 'learniq.demo', 'jobs' => ['job-1'], 'softDeleted' => 4, 'errors' => 0, 'failedJobs' => []]
+		);
+		$written = $this->captureWrites();
+
+		$data = $this->controller()->runAction('remove-example-set-' . SeedProfileService::GENERATED_PROFILE)->getData();
+
+		self::assertSame(['success' => true, 'message' => 'Moved 4 example object(s) to the trash.'], $data);
+		self::assertSame('removed', $written['demo_data_decided']);
+	}//end testAPerSetStepForTheGeneratedSetRemovesIt()
+
+	/**
+	 * Without the removal method the generated set is told to update OpenRegister.
+	 *
+	 * @return void
+	 */
+	public function testTheGeneratedSetWithoutTheMethodAsksForAnUpdate(): void {
+		$this->profiles->method('remove')->willReturn(['supported' => false]);
+
+		$data = $this->controller(stored: ['example_profile' => SeedProfileService::GENERATED_PROFILE])->runAction('remove-example-set')->getData();
+
+		self::assertSame(
+			['success' => false, 'message' => 'This OpenRegister cannot remove the generated example data from here. Update OpenRegister and run this step again.'],
+			$data
+		);
+	}//end testTheGeneratedSetWithoutTheMethodAsksForAnUpdate()
+
+	/**
+	 * A failed removal names the reason.
+	 *
+	 * @return void
+	 */
+	public function testAFailedRemovalNamesItsReason(): void {
+		$this->profiles->method('remove')->willThrowException(new RuntimeException('gone'));
+
+		$data = $this->controller(stored: ['example_profile' => 'po'])->runAction('remove-example-set')->getData();
+
+		self::assertSame(['success' => false, 'message' => 'Could not remove the example data: gone'], $data);
+	}//end testAFailedRemovalNamesItsReason()
+
+	/**
+	 * Nothing loaded is answered with the exact message, and an unknown action names itself.
+	 *
+	 * @return void
+	 */
+	public function testTheEmptyAndUnknownAnswersNameThemselves(): void {
+		self::assertSame(
+			['success' => true, 'message' => 'No example data was loaded, so there is nothing to remove.'],
+			$this->controller()->runAction('remove-example-set')->getData()
+		);
+		self::assertSame(
+			['success' => false, 'message' => 'Unknown setup action: remove-everything'],
+			$this->controller()->runAction('remove-everything')->getData()
+		);
+	}//end testTheEmptyAndUnknownAnswersNameThemselves()
+}//end class

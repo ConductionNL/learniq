@@ -30,8 +30,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Command;
 
-use OCA\Learniq\Portal\ExamplePortalProvisioner;
-use OCA\Learniq\Service\SeedProfileService;
+use OCA\Learniq\Kernel\Contracts\ExamplePortalAccountGrantsInterface;
+use OCA\Learniq\Kernel\Contracts\ExamplePortalProvisionerInterface;
+use OCA\Learniq\Kernel\Contracts\SeedProfileServiceInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -49,14 +50,16 @@ class ExampleSetLoadCommand extends Command {
 	/**
 	 * Constructor.
 	 *
-	 * @param SeedProfileService       $sets    Imports the set and provisions its portal.
-	 * @param ExamplePortalProvisioner $portals Creates or names the set's accounts.
+	 * @param SeedProfileServiceInterface         $sets    Imports the set and provisions its portal.
+	 * @param ExamplePortalProvisionerInterface   $portals Creates or names the set's accounts.
+	 * @param ExamplePortalAccountGrantsInterface $grants  Gives the declared learners their portal account.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly SeedProfileService $sets,
-		private readonly ExamplePortalProvisioner $portals,
+		private readonly SeedProfileServiceInterface $sets,
+		private readonly ExamplePortalProvisionerInterface $portals,
+		private readonly ExamplePortalAccountGrantsInterface $grants,
 	) {
 		parent::__construct();
 	}//end __construct()
@@ -123,8 +126,41 @@ class ExampleSetLoadCommand extends Command {
 			if ($accounts['failed'] > 0) {
 				$exit = self::FAILURE;
 			}
+
+			// The learners' portal accounts, after their Nextcloud accounts exist (example-portal-install-steps).
+			$output->writeln(self::describeGrants(grants: $this->grants->grant(profileId: $set)));
 		}
 
 		return $exit;
 	}//end execute()
+
+	/**
+	 * One line that says what the portal-account step did.
+	 *
+	 * @param array{status: string, granted: int, kept: int, waiting: int, failed: int, reasons: array<int, string>} $grants The answer.
+	 *
+	 * @return string
+	 *
+	 * @spec openspec/changes/example-portal-install-steps/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
+	 */
+	public static function describeGrants(array $grants): string {
+		if ($grants['status'] === 'portaliq-too-old') {
+			return 'Portal accounts: portaliq is too old to give a Nextcloud user a portal account; update portaliq and load the set again.';
+		}
+
+		if ($grants['status'] !== 'done') {
+			return 'Portal accounts: none to give.';
+		}
+
+		$line = 'Portal accounts: ' . $grants['granted'] . ' given, ' . $grants['kept'] . ' kept, ' . $grants['failed'] . ' failed.';
+		if ($grants['waiting'] > 0) {
+			$line .= ' ' . $grants['waiting'] . ' wait for the portal\'s organisation: set it, then load the set again.';
+		}
+
+		if ($grants['reasons'] !== []) {
+			$line .= ' Refused: ' . implode(', ', $grants['reasons']) . '.';
+		}
+
+		return $line;
+	}//end describeGrants()
 }//end class

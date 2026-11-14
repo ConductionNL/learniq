@@ -31,9 +31,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\Learniq\Controller\SettingsController;
+use OCA\Learniq\Kernel\Contracts\ConnectionReportServiceInterface;
 use OCA\Learniq\Repair\InitializeSettings;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Service\ConnectionReportService;
 use OCA\Learniq\Service\SettingsService;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use Psr\Container\ContainerInterface;
@@ -83,7 +83,7 @@ class ServiceOverrideRegistrar {
 					// A save sends integriq the recorded connection outcomes
 					// (adopt-connection-registry). Without this argument the
 					// controller would build with no reporter and send nothing.
-					connectionReports: $c->get(ConnectionReportService::class)
+					connectionReports: $c->get(ConnectionReportServiceInterface::class)
 				);
 			}
 		);

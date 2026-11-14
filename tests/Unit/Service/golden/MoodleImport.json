@@ -1,0 +1,166 @@
+{
+    "manifest full": {
+        "sectionNodes": [
+            {
+                "identifier": "1",
+                "title": "Week 1",
+                "order": 0
+            },
+            {
+                "identifier": "2",
+                "title": "2",
+                "order": 1
+            }
+        ],
+        "activities": [
+            {
+                "identifier": "11",
+                "sectionIdentifier": "1",
+                "moduleType": "quiz",
+                "classification": "quiz",
+                "title": "Toets",
+                "directory": "activities/quiz_11",
+                "order": 0
+            },
+            {
+                "identifier": "12",
+                "sectionIdentifier": null,
+                "moduleType": "resource",
+                "classification": "resource",
+                "title": "resource",
+                "directory": "activities/resource_12",
+                "order": 1
+            },
+            {
+                "identifier": "13",
+                "sectionIdentifier": "2",
+                "moduleType": "other",
+                "classification": "other",
+                "title": "Zonder type",
+                "directory": null,
+                "order": 2
+            },
+            {
+                "identifier": "14",
+                "sectionIdentifier": null,
+                "moduleType": "forum",
+                "classification": "forum",
+                "title": "Forum",
+                "directory": null,
+                "order": 3
+            }
+        ]
+    },
+    "manifest empty": {
+        "sectionNodes": [],
+        "activities": []
+    },
+    "manifest broken": {
+        "refused": "Could not parse moodle_backup.xml in '<dir>' as XML."
+    },
+    "manifest missing": {
+        "refused": "No moodle_backup.xml found in '<dir>' — not a recognisable Moodle backup archive."
+    },
+    "questions": [
+        {
+            "outcome": "imported",
+            "title": "Hoofdstad",
+            "moodleQuestionType": "multichoice",
+            "itemData": {
+                "itemBankId": "bank-1",
+                "title": "Hoofdstad",
+                "interactionType": "choice",
+                "qtiBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\" identifier=\"moodle-c34b3470c7ff5a1326f27477fb22946e\" title=\"Hoofdstad\" adaptive=\"false\" timeDependent=\"false\"><itemBody><p>Welke stad?</p><simpleChoice identifier=\"A0\">Amsterdam</simpleChoice><simpleChoice identifier=\"A1\">Utrecht</simpleChoice></itemBody></assessmentItem>",
+                "correctResponse": "Amsterdam",
+                "maxScore": 2.0,
+                "subjectTags": [],
+                "difficulty": null,
+                "lifecycle": "draft",
+                "tenant_id": "tenant-1"
+            },
+            "reason": null
+        },
+        {
+            "outcome": "imported",
+            "title": "Meer",
+            "moodleQuestionType": "multichoice",
+            "itemData": {
+                "itemBankId": "bank-1",
+                "title": "Meer",
+                "interactionType": "choice",
+                "qtiBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\" identifier=\"moodle-c609bd26dea41963b97335d8c2ff0e9f\" title=\"Meer\" adaptive=\"false\" timeDependent=\"false\"><itemBody><p></p><simpleChoice identifier=\"A0\">A</simpleChoice><simpleChoice identifier=\"A1\">B</simpleChoice><simpleChoice identifier=\"A2\">C</simpleChoice></itemBody></assessmentItem>",
+                "correctResponse": [
+                    "A",
+                    "B"
+                ],
+                "maxScore": 1.0,
+                "subjectTags": [],
+                "difficulty": null,
+                "lifecycle": "draft",
+                "tenant_id": "tenant-1"
+            },
+            "reason": null
+        },
+        {
+            "outcome": "imported",
+            "title": "Untitled question",
+            "moodleQuestionType": "shortanswer",
+            "itemData": {
+                "itemBankId": "bank-1",
+                "title": "Untitled question",
+                "interactionType": "textEntry",
+                "qtiBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\" identifier=\"moodle-ae870ab5c39a7fb3f2c45a899836eed0\" title=\"Untitled question\" adaptive=\"false\" timeDependent=\"false\"><itemBody><p>Kort</p></itemBody></assessmentItem>",
+                "correctResponse": "goed",
+                "maxScore": 1.0,
+                "subjectTags": [],
+                "difficulty": null,
+                "lifecycle": "draft",
+                "tenant_id": "tenant-1"
+            },
+            "reason": null
+        },
+        {
+            "outcome": "imported",
+            "title": "Opstel",
+            "moodleQuestionType": "essay",
+            "itemData": {
+                "itemBankId": "bank-1",
+                "title": "Opstel",
+                "interactionType": "extendedText",
+                "qtiBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\" identifier=\"moodle-91cee6653d1ec67a936663e0e0c0d872\" title=\"Opstel\" adaptive=\"false\" timeDependent=\"false\"><itemBody><p></p></itemBody></assessmentItem>",
+                "correctResponse": null,
+                "maxScore": 10.0,
+                "subjectTags": [],
+                "difficulty": null,
+                "lifecycle": "draft",
+                "tenant_id": "tenant-1"
+            },
+            "reason": null
+        },
+        {
+            "outcome": "dropped",
+            "title": "Koppel",
+            "moodleQuestionType": "matching",
+            "itemData": null,
+            "reason": "Moodle question type not supported: matching."
+        },
+        {
+            "outcome": "imported",
+            "title": "Geen goed antwoord",
+            "moodleQuestionType": "shortanswer",
+            "itemData": {
+                "itemBankId": "bank-1",
+                "title": "Geen goed antwoord",
+                "interactionType": "textEntry",
+                "qtiBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\" identifier=\"moodle-9f989e8e2775abdae749fe8d0504bba1\" title=\"Geen goed antwoord\" adaptive=\"false\" timeDependent=\"false\"><itemBody><p></p></itemBody></assessmentItem>",
+                "correctResponse": null,
+                "maxScore": 1.0,
+                "subjectTags": [],
+                "difficulty": null,
+                "lifecycle": "draft",
+                "tenant_id": "tenant-1"
+            },
+            "reason": null
+        }
+    ]
+}

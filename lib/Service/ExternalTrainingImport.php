@@ -32,6 +32,8 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\ExternalTrainingImportInterface;
+use OCA\Learniq\Support\ResultArrays;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -43,7 +45,7 @@ use Throwable;
  *
  * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#requirement-spreadsheet-import-of-external-training
  */
-class ExternalTrainingImport {
+class ExternalTrainingImport implements ExternalTrainingImportInterface {
 
 	/**
 	 * OpenRegister register slug Learniq objects live in.
@@ -54,11 +56,6 @@ class ExternalTrainingImport {
 	 * Schema slugs this import reads and writes.
 	 */
 	private const RECORD_SCHEMA = 'external-training-record';
-
-	/**
-	 * The most rows one upload may carry.
-	 */
-	public const MAX_ROWS = 1000;
 
 	/**
 	 * Constructor.
@@ -88,8 +85,8 @@ class ExternalTrainingImport {
 	 *                               completedAt, validUntil, regulationSlug, evidenceNote.
 	 * @param string $tenantId The caller's tenant; learners are matched in it only.
 	 * @param string $submittedBy The caller's user id.
-	 * @param bool $dryRun True to report without writing.
-	 * @param DateTimeInterface|null $now Evaluation instant (injectable for tests).
+	 * @param array{dryRun: bool, now?: ?DateTimeInterface} $run `dryRun` true to report without writing; `now` the
+	 *                                                           evaluation instant (injectable for tests).
 	 *
 	 * @return array{dryRun:bool,batchId:?string,summary:array<string,int>,rows:array<int,array<string,mixed>>} The report.
 	 *
@@ -100,10 +97,10 @@ class ExternalTrainingImport {
 		array $rows,
 		string $tenantId,
 		string $submittedBy,
-		bool $dryRun,
-		?DateTimeInterface $now = null,
+		array $run,
 	): array {
-		$now = ($now ?? new DateTimeImmutable('now', new DateTimeZone('UTC')));
+		$dryRun = $run['dryRun'];
+		$now = ($run['now'] ?? new DateTimeImmutable('now', new DateTimeZone('UTC')));
 		$batchId = null;
 		if ($dryRun === false) {
 			$batchId = bin2hex(random_bytes(16));
@@ -323,18 +320,6 @@ class ExternalTrainingImport {
 	 * @return array<int,array<string,mixed>> The rows.
 	 */
 	private static function rows(array $objects): array {
-		$rows = [];
-		foreach ($objects as $object) {
-			if (is_array($object) === true) {
-				$rows[] = $object;
-				continue;
-			}
-
-			if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-				$rows[] = (array)$object->jsonSerialize();
-			}
-		}
-
-		return $rows;
+		return (new ResultArrays())->arraysOf(objects: $objects);
 	}//end rows()
 }//end class

@@ -157,47 +157,69 @@ class QtiPackageExtractor {
 				continue;
 			}
 
-			// #207: reject individual files larger than the per-file cap.
-			if ($stat['size'] > self::MAX_FILE_SIZE_BYTES) {
-				throw new RuntimeException(
-					"ZIP entry '{$stat['name']}' exceeds maximum allowed file size (" . self::MAX_FILE_SIZE_BYTES . ' bytes).'
-				);
-			}
-
-			$entryName = $stat['name'];
-
-			// Build absolute destination path and resolve any '..' segments.
-			$destPath = $targetDirReal . DIRECTORY_SEPARATOR . $entryName;
-
-			// For directories: ensure they exist inside targetDir.
-			if (str_ends_with($entryName, '/') === true) {
-				mkdir(directory: $destPath, permissions: 0700, recursive: true);
+			$destPath = $this->entryDestination(stat: $stat, targetDirReal: $targetDirReal);
+			if ($destPath === null) {
 				continue;
-			}
-
-			// Ensure parent directory exists.
-			$parentDir = dirname($destPath);
-			if (is_dir($parentDir) === false) {
-				mkdir(directory: $parentDir, permissions: 0700, recursive: true);
-			}
-
-			// #207: zip-slip check — resolved path must start with targetDir.
-			$resolvedParent = realpath($parentDir);
-			if ($resolvedParent === false || str_starts_with($resolvedParent, $targetDirReal) === false) {
-				throw new RuntimeException(
-					"ZIP entry '{$entryName}' would extract outside the target directory (zip-slip attack)."
-				);
 			}
 
 			$content = $zip->getFromIndex($i);
-			if ($content === false) {
-				continue;
+			if ($content !== false) {
+				file_put_contents(filename: $destPath, data: $content);
 			}
-
-			file_put_contents(filename: $destPath, data: $content);
-		}//end for
-
+		}
 	}//end extractEntries()
+
+	/**
+	 * Where a file entry is written, after its size and zip-slip checks; null
+	 * for a directory entry, which is created instead.
+	 *
+	 * @param array<string,mixed> $stat          The entry's statIndex().
+	 * @param string              $targetDirReal The resolved absolute target directory.
+	 *
+	 * @return string|null
+	 *
+	 * @throws RuntimeException When the entry is oversized or would escape the target directory.
+	 */
+	private function entryDestination(array $stat, string $targetDirReal): ?string {
+		self::assertEntrySize(stat: $stat);
+
+		$entryName = $stat['name'];
+
+		// Build absolute destination path and resolve any '..' segments.
+		$destPath = $targetDirReal . DIRECTORY_SEPARATOR . $entryName;
+
+		// For directories: ensure they exist inside targetDir.
+		if (str_ends_with($entryName, '/') === true) {
+			mkdir(directory: $destPath, permissions: 0700, recursive: true);
+			return null;
+		}
+
+		// #207: zip-slip check — resolved path must start with targetDir.
+		if (ExtractionTarget::parentInside(destPath: $destPath, targetDirReal: $targetDirReal) === false) {
+			throw new RuntimeException(
+				"ZIP entry '{$entryName}' would extract outside the target directory (zip-slip attack)."
+			);
+		}
+
+		return $destPath;
+	}//end entryDestination()
+
+	/**
+	 * #207: reject individual files larger than the per-file cap.
+	 *
+	 * @param array<string,mixed> $stat The entry's statIndex().
+	 *
+	 * @return void
+	 *
+	 * @throws RuntimeException When the entry is oversized.
+	 */
+	private static function assertEntrySize(array $stat): void {
+		if ($stat['size'] > self::MAX_FILE_SIZE_BYTES) {
+			throw new RuntimeException(
+				"ZIP entry '{$stat['name']}' exceeds maximum allowed file size (" . self::MAX_FILE_SIZE_BYTES . ' bytes).'
+			);
+		}
+	}//end assertEntrySize()
 
 	/**
 	 * Recursively remove a directory and its contents.
@@ -209,30 +231,6 @@ class QtiPackageExtractor {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-4
 	 */
 	public function removeDirectory(string $dir): void {
-		if (is_dir($dir) === false) {
-			return;
-		}
-
-		$items = scandir($dir);
-		if ($items === false) {
-			return;
-		}
-
-		foreach ($items as $item) {
-			if ($item === '.' || $item === '..') {
-				continue;
-			}
-
-			$path = $dir . '/' . $item;
-			if (is_dir($path) === true) {
-				$this->removeDirectory(dir: $path);
-				continue;
-			}
-
-			unlink($path);
-		}//end foreach
-
-		rmdir($dir);
-
+		ExtractionTarget::removeDirectory(dir: $dir);
 	}//end removeDirectory()
 }//end class

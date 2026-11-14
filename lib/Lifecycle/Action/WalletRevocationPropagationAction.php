@@ -36,7 +36,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle\Action;
 
-use OCA\Learniq\Service\WalletRevocationPropagationService;
+use OCA\Learniq\Kernel\Contracts\WalletRevocationPropagationServiceInterface;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 
 /**
@@ -49,30 +50,28 @@ class WalletRevocationPropagationAction implements LifecycleActionInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param WalletRevocationPropagationService $propagationService The wallet revocation bridge.
+	 * @param WalletRevocationPropagationServiceInterface $propagationService The wallet revocation bridge.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly WalletRevocationPropagationService $propagationService,
+		private readonly WalletRevocationPropagationServiceInterface $propagationService,
 	) {
 	}//end __construct()
 
 	/**
 	 * Return the Credential with the wallet revocation outcome applied.
 	 *
-	 * @param array<string,mixed> $objectData The Credential after the lifecycle moved to `revoked`.
-	 * @param array<string,mixed> $previousData The Credential before the transition.
-	 * @param array<string,mixed> $parameters The declared actionParameters (unused).
-	 * @param string $actionName The declared action name.
+	 * @param LifecycleActionContext $context The transition; its objectData is the Credential after the lifecycle moved
+	 *                                        to `revoked`.
 	 *
 	 * @return array<string,mixed> The Credential to save.
 	 *
-	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The interface fixes the signature.
-	 *
 	 * @spec openspec/specs/certification/spec.md#requirement-revoking-a-credential-propagates-to-any-outstanding-wallet-offer-fail-soft
 	 */
-	public function execute(array $objectData, array $previousData, array $parameters, string $actionName): array {
+	public function execute(LifecycleActionContext $context): array {
+		$objectData = $context->objectData;
+
 		return $this->propagationService->propagate(credential: $objectData);
 	}//end execute()
 }//end class

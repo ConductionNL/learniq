@@ -204,5 +204,14 @@
     "summary": "Issue European diploma credentials alongside badges.",
     "summary_nl": "Geef Europese diplomacredentials uit naast badges.",
     "status": "soon"
+  },
+  {
+    "slug": "open-learning-material",
+    "title": "Open learning material",
+    "title_nl": "Open lesmateriaal",
+    "summary": "Search Edurep (Wikiwijs, Schooltv, SURFsharekit) from a lesson and add a result with its licence and makers.",
+    "summary_nl": "Zoek in Edurep (Wikiwijs, Schooltv, SURFsharekit) vanuit een les en voeg een resultaat toe met licentie en makers.",
+    "status": "soon",
+    "docsUrl": "openspec/specs/open-learning-material/spec.md"
   }
 ]

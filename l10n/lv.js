@@ -1,3 +1,7 @@
+/**
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ */
 OC.L10N.register(
     "learniq",
     {
@@ -466,7 +470,7 @@ OC.L10N.register(
         "How each assessment item performed, question by question.": "Kā katrs vērtēšanas vienums darbojās, jautājumu pa jautājumam.",
         "What course evaluations said, per course.": "Ko teica kursu novērtējumi, pa kursiem.",
         "What was found on placement visits.": "Kas tika konstatēts darba vietas apmeklējumos.",
-        "Store": "Veikals",
+        "Marketplace": "Veikals",
         "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Instalējiet reģistrus, shēmas un plūsmas, ko publicējušas citas organizācijas.",
         "Enter the access code you were given to start this assessment.": "Ievadiet saņemto piekļuves kodu, lai sāktu šo pārbaudi.",
         "Access code": "Piekļuves kods",

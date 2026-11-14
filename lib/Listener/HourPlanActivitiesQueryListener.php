@@ -28,7 +28,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Event\HourPlanActivitiesQueryEvent;
-use OCA\Learniq\Service\HourPlanActivityService;
+use OCA\Learniq\Kernel\Contracts\HourPlanActivityServiceInterface;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 
@@ -44,12 +44,12 @@ class HourPlanActivitiesQueryListener implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param HourPlanActivityService $activities Derives the activities.
+	 * @param HourPlanActivityServiceInterface $activities Derives the activities.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly HourPlanActivityService $activities,
+		private readonly HourPlanActivityServiceInterface $activities,
 	) {
 	}//end __construct()
 

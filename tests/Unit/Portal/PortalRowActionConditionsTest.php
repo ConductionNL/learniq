@@ -44,6 +44,13 @@ class PortalRowActionConditionsTest extends TestCase {
 	];
 
 	/**
+	 * Row actions offered on every row of their collection, on purpose: she
+	 * may fill in or change her own estimate on any of her work processes,
+	 * and the row has no state to narrow it to.
+	 */
+	private const ON_EVERY_ROW = ['fillInSelfAssessment'];
+
+	/**
 	 * The guardian is offered the cancel only on a booked or acknowledged
 	 * time: the states ConferenceSlotBookingSync lets a parent cancel.
 	 *
@@ -72,6 +79,11 @@ class PortalRowActionConditionsTest extends TestCase {
 			$actions = array_column($manifest['actions'], null, 'id');
 			foreach ($manifest['collections'] as $collection) {
 				foreach (($collection['rowActions'] ?? []) as $actionId) {
+					if (in_array($actionId, self::ON_EVERY_ROW, true) === true) {
+						self::assertArrayNotHasKey('rowWhen', $actions[$actionId], $actionId);
+						continue;
+					}
+
 					$condition = ($actions[$actionId]['rowWhen'] ?? null);
 					self::assertIsArray($condition, $actionId.' declares no rowWhen');
 					self::assertSame(['field', 'in'], array_keys($condition), $actionId);

@@ -31,6 +31,7 @@ use OCA\Learniq\Service\DashboardRoleService;
 use OCA\Learniq\Service\LineManagerCheck;
 use OCA\Learniq\Service\LoadedExampleSets;
 use OCA\Learniq\Service\SegmentService;
+use OCA\Learniq\Tests\Support\ContractImplementations;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IAppConfig;
@@ -77,6 +78,7 @@ class PageControllerTest extends TestCase {
 			$lineManager    = ($lineManager ?? $this->createMock(LineManagerCheck::class));
 			$container->method('get')->willReturnCallback(
 				static function (string $id) use ($segmentService, $storeAccess, $tenantResolver, $lineManager): object {
+					$id = ContractImplementations::concrete($id);
 					if ($id === LineManagerCheck::class) {
 						return $lineManager;
 					}
@@ -318,7 +320,7 @@ class PageControllerTest extends TestCase {
 	 * index() hands the page shell the loaded example sets, from which the
 	 * browser builds one removal step per set.
 	 *
-	 * @spec openspec/specs/example-sets/spec.md#scenario-two-sets-were-loaded
+	 * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
 	 *
 	 * @return void
 	 */

@@ -20,11 +20,9 @@
 -->
 
 <template>
-	<div class="course-package-import">
+	<div class="course-package-import lq-board-page">
 		<header class="course-package-import__header">
-			<h2 class="course-package-import__heading">
-				{{ t('learniq', 'Import course package') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Import course package')" />
 			<p class="course-package-import__intro">
 				{{
 					t(
@@ -36,7 +34,10 @@
 		</header>
 
 		<!-- Upload form -->
-		<div v-if="!report" class="course-package-import__upload">
+		<CnDetailCard
+			v-if="!report"
+			:title="t('learniq', 'Upload a package')"
+			class="course-package-import__upload">
 			<label class="course-package-import__label" for="course-package-file">
 				{{ t('learniq', 'Course package file') }}
 			</label>
@@ -68,10 +69,10 @@
 			<p v-if="uploadError" role="alert" class="course-package-import__error">
 				{{ uploadError }}
 			</p>
-		</div>
+		</CnDetailCard>
 
 		<!-- Report -->
-		<div v-else class="course-package-import__report">
+		<CnDetailCard v-else class="course-package-import__report">
 			<div
 				class="course-package-import__summary"
 				:class="`course-package-import__summary--${report.lifecycle}`"
@@ -166,7 +167,7 @@
 			<button class="button-vue" @click="reset">
 				{{ t('learniq', 'Import another package') }}
 			</button>
-		</div>
+		</CnDetailCard>
 
 		<!-- office-file-lesson-onboarding: Word and PowerPoint lessons from the
 		     teacher's onboarding folder, confirmed one file at a time (D17). -->
@@ -175,13 +176,22 @@
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import LessonOnboardingPanel from '../components/lesson/LessonOnboardingPanel.vue'
+import {
+	emptyImportState,
+	entriesWithOutcome,
+	pickedFileState,
+	postImportFile,
+} from '../utils/importUpload.js'
 
 export default {
 	name: 'CoursePackageImportView',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		LessonOnboardingPanel,
 	},
 
@@ -229,9 +239,7 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		filteredEntries() {
-			const entries = this.report?.entries ?? []
-			if (this.outcomeFilter === 'all') return entries
-			return entries.filter((entry) => entry.outcome === this.outcomeFilter)
+			return entriesWithOutcome(this.report, this.outcomeFilter)
 		},
 	},
 
@@ -244,10 +252,7 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		onFileSelected(event) {
-			const file = event.target.files?.[0] ?? null
-			this.selectedFile = file
-			this.selectedFileName = file ? file.name : ''
-			this.uploadError = null
+			Object.assign(this, pickedFileState(event))
 		},
 
 		/**
@@ -266,24 +271,10 @@ export default {
 			formData.append('file', this.selectedFile)
 
 			try {
-				const url = generateUrl(
-					'/apps/learniq/api/course-management/course-package-import',
+				this.report = await postImportFile(
+					generateUrl('/apps/learniq/api/course-management/course-package-import'),
+					formData,
 				)
-				const resp = await fetch(url, {
-					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						requesttoken: window.OC?.requestToken ?? '',
-					},
-					body: formData,
-				})
-
-				const json = await resp.json()
-				if (!resp.ok) {
-					throw new Error(json.error ?? `Import failed: ${resp.status}`)
-				}
-
-				this.report = json
 			} catch (err) {
 				this.uploadError = this.t(
 					'learniq',
@@ -303,11 +294,7 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		reset() {
-			this.report = null
-			this.selectedFile = null
-			this.selectedFileName = ''
-			this.outcomeFilter = 'all'
-			this.uploadError = null
+			Object.assign(this, emptyImportState())
 			if (this.$refs.fileInput) {
 				this.$refs.fileInput.value = ''
 			}
@@ -317,19 +304,6 @@ export default {
 </script>
 
 <style scoped>
-.course-package-import {
-	max-width: 960px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.course-package-import__heading {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-	margin-bottom: calc(var(--default-grid-baseline, 8px));
-}
-
 .course-package-import__intro {
 	color: var(--color-text-maxcontrast);
 	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);

@@ -28,11 +28,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\CheckIn\CheckInCodeService;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CheckInCodeServiceInterface;
+use OCA\Learniq\Service\StaffGroupCheck;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
@@ -47,6 +48,7 @@ use OCP\IUserSession;
  * @spec openspec/specs/attendance/spec.md#requirement-a-teacher-opens-a-self-check-in-window-for-a-lesson
  */
 class CheckInCodeController extends Controller {
+	use FindOrNull;
 
 	/**
 	 * Groups that may read the code of a window.
@@ -59,7 +61,7 @@ class CheckInCodeController extends Controller {
 	 * @param IRequest           $request      The request.
 	 * @param IUserSession       $userSession  The signed-in user.
 	 * @param IGroupManager      $groupManager Group membership and admin checks.
-	 * @param CheckInCodeService $codes        The code for the board.
+	 * @param CheckInCodeServiceInterface $codes        The code for the board.
 	 * @param ObjectService      $objects      OpenRegister object access.
 	 * @param IURLGenerator      $urls         Builds the check-in link.
 	 *
@@ -69,11 +71,11 @@ class CheckInCodeController extends Controller {
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
-		private readonly CheckInCodeService $codes,
+		private readonly CheckInCodeServiceInterface $codes,
 		private readonly ObjectService $objects,
 		private readonly IURLGenerator $urls,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -97,11 +99,7 @@ class CheckInCodeController extends Controller {
 			return new JSONResponse(data: ['error' => 'forbidden'], statusCode: Http::STATUS_FORBIDDEN);
 		}
 
-		try {
-			$window = $this->objects->find(id: $windowId, register: 'learniq', schema: 'check-in-window', _rbac: false, _render: false)?->jsonSerialize();
-		} catch (DoesNotExistException) {
-			$window = null;
-		}
+		$window = $this->window(windowId: $windowId);
 
 		if (is_array($window) === false) {
 			return new JSONResponse(data: ['error' => 'not_found'], statusCode: Http::STATUS_NOT_FOUND);
@@ -158,16 +156,20 @@ class CheckInCodeController extends Controller {
 	 * @return bool
 	 */
 	private function isStaff(string $userId): bool {
-		if ($this->groupManager->isAdmin($userId) === true) {
-			return true;
-		}
-
-		foreach (self::STAFF_GROUPS as $group) {
-			if ($this->groupManager->isInGroup($userId, $group) === true) {
-				return true;
-			}
-		}
-
-		return false;
+		return (new StaffGroupCheck(groupManager: $this->groupManager, staffGroups: self::STAFF_GROUPS))->isStaff(uid: $userId);
 	}//end isStaff()
+
+	/**
+	 * The CheckInWindow row, or null when it does not exist.
+	 *
+	 * @param string $windowId The CheckInWindow uuid.
+	 *
+	 * @return array<string, mixed>|null
+	 *
+	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException When the id matches more than one object; LookupIntegrityMiddleware answers it.
+	 */
+	private function window(string $windowId): ?array {
+		$find = fn () => $this->objects->find(id: $windowId, register: 'learniq', schema: 'check-in-window', _rbac: false, _render: false);
+		return $this->findRowOrNull(find: $find);
+	}//end window()
 }//end class

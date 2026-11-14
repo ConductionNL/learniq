@@ -41,7 +41,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Portal;
 
 use DateTimeImmutable;
-use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\BpvPlacementStepsInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IL10N;
 use OCP\L10N\IFactory;
@@ -53,26 +53,16 @@ use Throwable;
  *
  * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md#requirement-new-a-placement-shows-where-it-stands
  */
-class BpvPlacementSteps {
+class BpvPlacementSteps implements BpvPlacementStepsInterface {
 
 	private const REGISTER = 'learniq';
 
-	private const ZONE = 'Europe/Amsterdam';
-
-	private const MONTHS = [
-		'januari',
-		'februari',
-		'maart',
-		'april',
-		'mei',
-		'juni',
-		'juli',
-		'augustus',
-		'september',
-		'oktober',
-		'november',
-		'december',
-	];
+	/**
+	 * Reads and formats dates the way the course-day lines do.
+	 *
+	 * @var CourseDayLines
+	 */
+	private readonly CourseDayLines $lines;
 
 	/**
 	 * Constructor.
@@ -88,6 +78,7 @@ class BpvPlacementSteps {
 		private readonly IFactory $l10n,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->lines = new CourseDayLines();
 	}//end __construct()
 
 	/**
@@ -142,19 +133,52 @@ class BpvPlacementSteps {
 
 		$finalLine = '';
 		if ($final === null && $end !== null) {
-			$finalLine = self::MONTHS[((int)$end->format('n') - 1)] . ' ' . $end->format('Y');
+			$finalLine = CourseDayLines::MONTHS[((int)$end->format('n') - 1)] . ' ' . $end->format('Y');
 		}
 
 		$steps = [
-			[$this->text(l10n: $l10n, text: 'Agreement signed'), $signedAt !== null, $this->longDate(day: $signedAt), (string)$signedAt?->format('Y-m-d')],
+			// The line already names the day; a date beside it printed it twice (REPORT-2, item 8).
+			[$this->text(l10n: $l10n, text: 'Agreement signed'), $signedAt !== null, $this->longDate(day: $signedAt), ''],
 			[$this->text(l10n: $l10n, text: 'Work plan made'), $this->done(visit: $workplan), $this->visitLine(visit: $workplan), ''],
 			[$this->text(l10n: $l10n, text: 'Midterm review'), $this->done(visit: $midterm), $this->visitLine(visit: $midterm), ''],
 			[$this->text(l10n: $l10n, text: 'Final review'), $this->done(visit: $final), $this->visitLine(visit: $final) . $finalLine, ''],
 			[$this->text(l10n: $l10n, text: 'Placement finished'), $completed, $this->longDate(day: $end), ''],
 		];
 
-		return $this->withStates(steps: $steps);
+		return $this->withCurrent(steps: $this->withStates(steps: $steps), visits: [null, $workplan, $midterm, $final, null]);
 	}//end stepsOf()
+
+	/**
+	 * The current step, for the "Volgende stap" card (portaliq #1409): its day
+	 * as `date` and what happens then as its description, from its visit.
+	 *
+	 * @param array<int, array<string, string>>     $steps  The steps with their state.
+	 * @param array<int, array<string, mixed>|null> $visits The visit behind each step, or null.
+	 *
+	 * @return array<int, array<string, string>>
+	 *
+	 * @spec openspec/changes/board-data-the-schemas-lacked/specs/portal-contribution/spec.md#requirement-the-placement-page-shows-the-agreements-and-the-work-processes
+	 */
+	private function withCurrent(array $steps, array $visits): array {
+		foreach ($steps as $index => $step) {
+			$visit = ($visits[$index] ?? null);
+			if (($step['state'] ?? '') !== 'current' || $visit === null) {
+				continue;
+			}
+
+			$day = (string)($visit['visitDate'] ?? '');
+			if ($day !== '') {
+				$steps[$index]['date'] = $day;
+			}
+
+			$narrative = trim((string)($visit['narrative'] ?? ''));
+			if ($narrative !== '') {
+				$steps[$index]['description'] = $narrative;
+			}
+		}
+
+		return $steps;
+	}//end withCurrent()
 
 	/**
 	 * Done steps keep `done`; the first open one is `current`; the rest `todo`.
@@ -270,7 +294,7 @@ class BpvPlacementSteps {
 			return '';
 		}
 
-		return $day->format('j') . ' ' . self::MONTHS[((int)$day->format('n') - 1)] . ' ' . $day->format('Y');
+		return $this->lines->longDate(day: $day);
 	}//end longDate()
 
 	/**
@@ -281,15 +305,7 @@ class BpvPlacementSteps {
 	 * @return DateTimeImmutable|null
 	 */
 	private function date(mixed $value): ?DateTimeImmutable {
-		if (is_string($value) === false || trim($value) === '') {
-			return null;
-		}
-
-		try {
-			return (new DateTimeImmutable($value, new DateTimeZone(self::ZONE)))->setTimezone(new DateTimeZone(self::ZONE));
-		} catch (\Exception) {
-			return null;
-		}
+		return $this->lines->date(value: $value);
 	}//end date()
 
 	/**

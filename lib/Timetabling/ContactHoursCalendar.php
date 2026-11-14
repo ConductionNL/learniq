@@ -31,6 +31,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Timetabling;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\ContactHoursCalendarInterface;
+use OCA\Learniq\Service\Calendar\SchoolYear;
 use Throwable;
 
 /**
@@ -38,7 +40,19 @@ use Throwable;
  *
  * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
  */
-class ContactHoursCalendar {
+class ContactHoursCalendar implements ContactHoursCalendarInterface {
+
+	/**
+	 * Constructor.
+	 *
+	 * @param SchoolYear $schoolYear The school year as the school sets it.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly SchoolYear $schoolYear = new SchoolYear(),
+	) {
+	}//end __construct()
 
 	/**
 	 * The share of a line that falls inside the window, between 0 and 1.
@@ -46,14 +60,14 @@ class ContactHoursCalendar {
 	 * @param string|null                      $periodCode   The line's period, or null for the whole year.
 	 * @param array<int, array<string, mixed>> $periods      The school year's report periods.
 	 * @param string                           $academicYear The school year (YYYY-YYYY).
-	 * @param string                           $from         First day of the window (Y-m-d).
-	 * @param string                           $to           Last day of the window (Y-m-d).
+	 * @param array{0: string, 1: string}      $window       First and last day of the window (Y-m-d).
 	 *
 	 * @return float
 	 *
 	 * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
 	 */
-	public function share(?string $periodCode, array $periods, string $academicYear, string $from, string $to): float {
+	public function share(?string $periodCode, array $periods, string $academicYear, array $window): float {
+		[$from, $to] = $window;
 		if ($periodCode !== null && $periodCode !== '') {
 			foreach ($periods as $period) {
 				if ((string)($period['periodCode'] ?? '') === $periodCode) {
@@ -129,7 +143,8 @@ class ContactHoursCalendar {
 	}//end teachingDays()
 
 	/**
-	 * The school year's first and last day: its report periods, else 1 August to 31 July.
+	 * The school year's first and last day: its report periods, else the
+	 * school year as the school sets it.
 	 *
 	 * @param array<int, array<string, mixed>> $periods      The report periods.
 	 * @param string                           $academicYear The school year (YYYY-YYYY).
@@ -143,9 +158,7 @@ class ContactHoursCalendar {
 			return [min($starts), max($ends)];
 		}
 
-		$first = (int)substr($academicYear, 0, 4);
-
-		return [sprintf('%04d-08-01', $first), sprintf('%04d-07-31', $first + 1)];
+		return $this->schoolYear->bounds(academicYear: $academicYear);
 	}//end yearBounds()
 
 	/**

@@ -36,6 +36,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\HourPlanActivityServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -45,7 +46,7 @@ use Throwable;
  *
  * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
  */
-class HourPlanActivityService {
+class HourPlanActivityService implements HourPlanActivityServiceInterface {
 
 	private const REGISTER = 'learniq';
 
@@ -94,61 +95,89 @@ class HourPlanActivityService {
 	 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 	 */
 	public function forYear(string $academicYear): array {
-		$activities = [];
-		$withoutPlan = [];
-		$plans = [];
-		$courseNames = [];
-
+		$year = ['academicYear' => $academicYear, 'activities' => [], 'withoutPlan' => [], 'plans' => [], 'courseNames' => []];
 		foreach ($this->read(schema: 'cohort', filters: ['academicYear' => $academicYear]) as $cohort) {
-			$programmeId = (string)($cohort['programmeId'] ?? '');
-			$programmeYear = (int)($cohort['programmeYear'] ?? 0);
-			$intake = $this->intakeYearOf(academicYear: $academicYear, programmeYear: $programmeYear);
-			if ($programmeId === '' || $intake === null || (string)($cohort['academicYear'] ?? '') !== $academicYear) {
-				continue;
-			}
-
-			$key = $programmeId . '|' . $intake;
-			if (array_key_exists($key, $plans) === false) {
-				$plans[$key] = $this->activePlan(programmeId: $programmeId, intakeYear: $intake);
-			}
-
-			$cohortRow = [
-				'cohortId' => $this->idOf(row: $cohort),
-				'cohortName' => (string)($cohort['name'] ?? ''),
-				'programmeYear' => $programmeYear,
-			];
-			if ($plans[$key] === null) {
-				$withoutPlan[] = array_merge($cohortRow, ['programmeId' => $programmeId, 'intakeYear' => $intake]);
-				continue;
-			}
-
-			$teachers = $this->teachersOf(cohortId: $cohortRow['cohortId']);
-			foreach ($this->linesFor(plan: $plans[$key], programmeYear: $programmeYear) as $line) {
-				$courseId = (string)$line['courseId'];
-				$courseNames[$courseId] = true;
-				$activities[] = array_merge(
-					$cohortRow,
-					[
-						'hourPlanId' => $this->idOf(row: $plans[$key]),
-						'courseId' => $courseId,
-						'courseName' => '',
-						'periodCode' => $line['periodCode'] ?? null,
-						'contactHours' => (float)($line['contactHours'] ?? 0),
-						'otherHours' => (float)($line['otherHours'] ?? 0),
-						'activityKind' => (string)($line['activityKind'] ?? 'lesson'),
-						'teacherIds' => ($teachers[$courseId] ?? []),
-						'note' => $line['note'] ?? null,
-					]
-				);
-			}
-		}//end foreach
+			$year = $this->addCohort(year: $year, cohort: $cohort);
+		}
 
 		return [
 			'academicYear' => $academicYear,
-			'activities' => $this->withCourseNames(activities: $activities, courseIds: array_keys($courseNames)),
-			'cohortsWithoutPlan' => $withoutPlan,
+			'activities' => $this->withCourseNames(activities: $year['activities'], courseIds: array_keys($year['courseNames'])),
+			'cohortsWithoutPlan' => $year['withoutPlan'],
 		];
 	}//end forYear()
+
+	/**
+	 * Add one cohort to the school year: its activities, or a row without a plan.
+	 *
+	 * A cohort without a programme, with an unreadable programme year or of
+	 * another school year is skipped. Each plan is read once per programme
+	 * and intake year.
+	 *
+	 * @param array<string,mixed> $year   The school year so far: academicYear, activities, withoutPlan, plans and courseNames.
+	 * @param array<string,mixed> $cohort The cohort.
+	 *
+	 * @return array<string,mixed> The school year with the cohort added.
+	 */
+	private function addCohort(array $year, array $cohort): array {
+		$academicYear = $year['academicYear'];
+		$programmeId = (string)($cohort['programmeId'] ?? '');
+		$programmeYear = (int)($cohort['programmeYear'] ?? 0);
+		$intake = $this->intakeYearOf(academicYear: $academicYear, programmeYear: $programmeYear);
+		if ($programmeId === '' || $intake === null || (string)($cohort['academicYear'] ?? '') !== $academicYear) {
+			return $year;
+		}
+
+		$key = $programmeId . '|' . $intake;
+		if (array_key_exists($key, $year['plans']) === false) {
+			$year['plans'][$key] = $this->activePlan(programmeId: $programmeId, intakeYear: $intake);
+		}
+
+		$cohortRow = [
+			'cohortId' => $this->idOf(row: $cohort),
+			'cohortName' => (string)($cohort['name'] ?? ''),
+			'programmeYear' => $programmeYear,
+		];
+		if ($year['plans'][$key] === null) {
+			$year['withoutPlan'][] = array_merge($cohortRow, ['programmeId' => $programmeId, 'intakeYear' => $intake]);
+			return $year;
+		}
+
+		return $this->addActivities(year: $year, cohort: ['row' => $cohortRow, 'plan' => $year['plans'][$key]]);
+	}//end addCohort()
+
+	/**
+	 * Add the activities of one cohort's plan lines for its programme year.
+	 *
+	 * @param array<string,mixed>                                                    $year   The school year so far.
+	 * @param array{row: array{cohortId: string, cohortName: string, programmeYear: int}, plan: array<string,mixed>} $cohort The cohort row and its plan.
+	 *
+	 * @return array<string,mixed> The school year with the activities added.
+	 */
+	private function addActivities(array $year, array $cohort): array {
+		$cohortRow = $cohort['row'];
+		$teachers = $this->teachersOf(cohortId: $cohortRow['cohortId']);
+		foreach ($this->linesFor(plan: $cohort['plan'], programmeYear: $cohortRow['programmeYear']) as $line) {
+			$courseId = (string)$line['courseId'];
+			$year['courseNames'][$courseId] = true;
+			$year['activities'][] = array_merge(
+				$cohortRow,
+				[
+					'hourPlanId' => $this->idOf(row: $cohort['plan']),
+					'courseId' => $courseId,
+					'courseName' => '',
+					'periodCode' => $line['periodCode'] ?? null,
+					'contactHours' => (float)($line['contactHours'] ?? 0),
+					'otherHours' => (float)($line['otherHours'] ?? 0),
+					'activityKind' => (string)($line['activityKind'] ?? 'lesson'),
+					'teacherIds' => ($teachers[$courseId] ?? []),
+					'note' => $line['note'] ?? null,
+				]
+			);
+		}
+
+		return $year;
+	}//end addActivities()
 
 	/**
 	 * The plan lines of one programme year.
@@ -178,15 +207,33 @@ class HourPlanActivityService {
 	 * @return array<string,mixed>|null
 	 */
 	private function activePlan(string $programmeId, string $intakeYear): ?array {
-		foreach ($this->read(schema: 'hour-plan', filters: ['programmeId' => $programmeId, 'intakeYear' => $intakeYear]) as $plan) {
-			$matches = (string)($plan['programmeId'] ?? '') === $programmeId && (string)($plan['intakeYear'] ?? '') === $intakeYear;
-			if ($matches === true && ($plan['lifecycle'] ?? '') === 'active') {
+		$filters = ['programmeId' => $programmeId, 'intakeYear' => $intakeYear];
+		foreach ($this->read(schema: 'hour-plan', filters: $filters) as $plan) {
+			if ($this->matches(row: $plan, filters: $filters) === true && ($plan['lifecycle'] ?? '') === 'active') {
 				return $plan;
 			}
 		}
 
 		return null;
 	}//end activePlan()
+
+	/**
+	 * Whether a row carries every filter value, compared as strings, in filter order.
+	 *
+	 * @param array<string,mixed>  $row     The row.
+	 * @param array<string,string> $filters The values by field.
+	 *
+	 * @return bool
+	 */
+	private function matches(array $row, array $filters): bool {
+		foreach ($filters as $field => $value) {
+			if ((string)($row[$field] ?? '') !== $value) {
+				return false;
+			}
+		}
+
+		return true;
+	}//end matches()
 
 	/**
 	 * The teachers of a cohort per course, from SubjectTeacherAssignment.
@@ -222,7 +269,7 @@ class HourPlanActivityService {
 		}
 
 		$names = [];
-		foreach ($this->read(schema: 'course', filters: [], ids: $courseIds) as $course) {
+		foreach ($this->readByIds(schema: 'course', ids: $courseIds) as $course) {
 			$names[$this->idOf(row: $course)] = (string)($course['name'] ?? '');
 		}
 
@@ -238,16 +285,39 @@ class HourPlanActivityService {
 	 *
 	 * @param string              $schema  Schema slug.
 	 * @param array<string,mixed> $filters Equality filters.
-	 * @param array<int,string>   $ids     Object ids to narrow to, if any.
 	 *
 	 * @return array<int,array<string,mixed>>
 	 */
-	private function read(string $schema, array $filters, array $ids = []): array {
-		$config = ['filters' => array_merge(['register' => self::REGISTER, 'schema' => $schema], $filters)];
+	private function read(string $schema, array $filters): array {
+		return $this->rows(schema: $schema, config: ['filters' => array_merge(['register' => self::REGISTER, 'schema' => $schema], $filters)]);
+	}//end read()
+
+	/**
+	 * The rows of a schema with these ids (every row for no ids), as the system.
+	 *
+	 * @param string            $schema The schema.
+	 * @param array<int,string> $ids    The ids.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function readByIds(string $schema, array $ids): array {
+		$config = ['filters' => ['register' => self::REGISTER, 'schema' => $schema]];
 		if ($ids !== []) {
 			$config['ids'] = array_values($ids);
 		}
 
+		return $this->rows(schema: $schema, config: $config);
+	}//end readByIds()
+
+	/**
+	 * The rows one read finds, as arrays; a read that fails is logged and finds none.
+	 *
+	 * @param string              $schema The schema, for the log.
+	 * @param array<string,mixed> $config The read.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function rows(string $schema, array $config): array {
 		try {
 			$rows = $this->objectService->findAll($config, _rbac: false);
 		} catch (Throwable $exception) {
@@ -255,6 +325,17 @@ class HourPlanActivityService {
 			return [];
 		}
 
+		return $this->asRows(rows: $rows);
+	}//end rows()
+
+	/**
+	 * The read results as arrays: an entity serialised, anything that is not a row dropped.
+	 *
+	 * @param array<int,mixed> $rows The read results.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function asRows(array $rows): array {
 		$out = [];
 		foreach ($rows as $row) {
 			if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
@@ -267,7 +348,7 @@ class HourPlanActivityService {
 		}
 
 		return $out;
-	}//end read()
+	}//end asRows()
 
 	/**
 	 * The id of a row.

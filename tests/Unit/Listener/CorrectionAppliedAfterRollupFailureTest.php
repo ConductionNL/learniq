@@ -23,20 +23,27 @@
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * @link https://conduction.nl
+ *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
+use OCA\Learniq\Listener\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\CorrectionAppliedHandler;
 use OCA\Learniq\Listener\GradeRollupHandler;
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Tests\Support\ContractImplementations;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\TransitionScope;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
+use OCA\OpenRegister\Service\Lifecycle\TransitionActor;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -190,6 +197,7 @@ class CorrectionAppliedAfterRollupFailureTest extends TestCase {
 	 * @return object
 	 */
 	private function build(string $class, array $known): object {
+		$class = ContractImplementations::concrete($class);
 		if (isset($known[$class]) === true) {
 			return $known[$class];
 		}
@@ -227,7 +235,7 @@ class CorrectionAppliedAfterRollupFailureTest extends TestCase {
 			ListenerSchemaResolver::class => TransitionScope::resolver(),
 			LoggerInterface::class        => new NullLogger(),
 		];
-		$event = new ObjectTransitionedEvent(OrEntityFactory::make(self::ENTRY, 'grade-entry'), 'republish', 'revised', 'published', 'lp-teacher', 'learniq', 'grade-entry');
+		$event = new ObjectTransitionedEvent(object: OrEntityFactory::make(self::ENTRY, 'grade-entry'), move: new TransitionMove(action: 'republish', from: 'revised', to: 'published'), scope: new RegisterSchemaRef(register: 'learniq', schema: 'grade-entry'), actor: new TransitionActor(userId: 'lp-teacher'));
 
 		try {
 			foreach ($this->transitionedListeners() as $class) {

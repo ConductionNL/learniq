@@ -21,7 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\ExamSchedule;
 
-use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
+use OCA\Learniq\Listener\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\InvigilatorAssignmentCheck;
 use OCA\Learniq\Service\ExamSittingOverview;
 use OCA\Learniq\Service\ListenerSchemaResolver;

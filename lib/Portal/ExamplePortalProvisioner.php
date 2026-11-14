@@ -40,7 +40,7 @@
  * it is missing, so a second load writes nothing and an editor's change is
  * never undone.
  *
- * @spec openspec/changes/example-sets-themed-portal/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
  * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md
  */
 
@@ -48,6 +48,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCA\Learniq\Kernel\Contracts\ExamplePortalProvisionerInterface;
 use OCP\App\IAppManager;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
@@ -56,9 +57,9 @@ use Throwable;
 /**
  * Creates or themes the portal of one example set.
  *
- * @spec openspec/changes/example-sets-themed-portal/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
  */
-class ExamplePortalProvisioner {
+class ExamplePortalProvisioner implements ExamplePortalProvisionerInterface {
 
 	/**
 	 * Portaliq's app id. Checked by name only: learniq keeps no code
@@ -75,56 +76,6 @@ class ExamplePortalProvisioner {
 	 * Portaliq's portal schema slug.
 	 */
 	public const SCHEMA = 'portal';
-
-	/**
-	 * The portal of a set that ships no declaration (he and corporate), and
-	 * the slug and fallback theme of the four that do.
-	 *
-	 * The theme ids are thematiq's example token sets (thematiq#765). The
-	 * four designed schools prefer their own token set and fall back to these
-	 * (their declaration names both). he borrows "college" and corporate the
-	 * training provider's set, as the closest match.
-	 *
-	 * @var array<string, array{slug: string, theme: string, title: string, tagline: string}>
-	 */
-	public const PORTALS = [
-		'po'        => [
-			'slug'    => 'wilgenboom',
-			'theme'   => 'example-basisschool',
-			'title'   => 'Mijn Wilgenboom',
-			'tagline' => 'Basisschool De Wilgenboom',
-		],
-		'vo'        => [
-			'slug'    => 'vaartveld',
-			'theme'   => 'example-voortgezet',
-			'title'   => 'Mijn Vaartveld',
-			'tagline' => 'Vaartveld College',
-		],
-		'mbo'       => [
-			'slug'    => 'esdoornveen',
-			'theme'   => 'example-college',
-			'title'   => 'Mijn Esdoornveen',
-			'tagline' => 'Esdoornveen, mbo college',
-		],
-		'he'        => [
-			'slug'    => 'esdoornstad',
-			'theme'   => 'example-college',
-			'title'   => 'Studentenportaal Esdoornstad',
-			'tagline' => 'Je vakken, studiepunten en resultaten op één plek',
-		],
-		'training'  => [
-			'slug'    => 'warmtepompacademie',
-			'theme'   => 'example-opleider',
-			'title'   => 'Mijn academie',
-			'tagline' => 'Warmtepompacademie',
-		],
-		'corporate' => [
-			'slug'    => 'esdoorn-techniek',
-			'theme'   => 'example-opleider',
-			'title'   => 'Leerportaal Esdoorn Techniek',
-			'tagline' => 'Je trainingen en certificaten op één plek',
-		],
-	];
 
 	/**
 	 * Portal fields filled on an existing portal when they are empty. The
@@ -183,17 +134,27 @@ class ExamplePortalProvisioner {
 	 * Menus, pages and news are counted as `created` and `kept`; a second
 	 * load reports zero created.
 	 *
-	 * @param string $profileId The example set id.
+	 * The pages and news carry the set's dates moved by `$days`, the week of
+	 * the load (demo-dates-follow-the-load-week). With `$previous`, the
+	 * offset an earlier load gave them, the pages and news that exist move
+	 * along first; the same offset writes nothing.
+	 *
+	 * @param string   $profileId The example set id.
+	 * @param int      $days      The offset of this load's dates.
+	 * @param int|null $previous  The offset the stored pages and news carry, or null.
 	 *
 	 * @return array<string, mixed>
 	 *
 	 * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md#requirement-loading-a-set-writes-its-declared-site-once
+	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
 	 */
-	public function provision(string $profileId): array {
-		$declaration = $this->declarationFor(profileId: $profileId);
-		if ($declaration === null) {
+	public function provision(string $profileId, int $days=0, ?int $previous=null): array {
+		$shipped = $this->declarationFor(profileId: $profileId);
+		if ($shipped === null) {
 			return ['status' => 'unmapped'];
 		}
+
+		$declaration = $this->content->dated(declaration: $shipped, days: $days);
 
 		$slug = (string)$declaration['portal']['slug'];
 		if ($this->appManager->isInstalled(self::PORTALIQ_APP_ID) === false) {
@@ -216,7 +177,11 @@ class ExamplePortalProvisioner {
 		}
 
 		try {
-			$result = $this->apply(declaration: $declaration, theme: $theme['theme']);
+			$result = $this->apply(
+				declaration: $declaration,
+				theme: $theme['theme'],
+				move: ['shipped' => $shipped, 'previous' => $previous, 'days' => $days]
+			);
 		} catch (Throwable $exception) {
 			$this->logger->warning(
 				'[ExamplePortalProvisioner] could not provision portal "{slug}" for example set "{set}": {msg}',
@@ -243,16 +208,7 @@ class ExamplePortalProvisioner {
 	 * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md#requirement-loading-a-set-writes-its-declared-site-once
 	 */
 	public function describe(array $result): string {
-		$line = 'Portal ' . ($result['slug'] ?? '-') . ': ' . (string)$result['status'];
-		if (isset($result['theme']) === true) {
-			$fallback = '';
-			if (($result['themeFallback'] ?? false) === true) {
-				$fallback = ', fallback';
-			}
-
-			$line .= ' (theme ' . $result['theme'] . $fallback . ')';
-		}
-
+		$line = 'Portal ' . ($result['slug'] ?? '-') . ': ' . (string)$result['status'] . self::themeNote(result: $result);
 		if (($result['missingModes'] ?? []) !== []) {
 			$line .= '; does not offer ' . implode(', ', $result['missingModes']);
 		}
@@ -265,6 +221,26 @@ class ExamplePortalProvisioner {
 
 		return $line;
 	}//end describe()
+
+	/**
+	 * The theme part of the summary line, or '' when the answer names no theme.
+	 *
+	 * @param array<string, mixed> $result The provisioner's answer.
+	 *
+	 * @return string
+	 */
+	private static function themeNote(array $result): string {
+		if (isset($result['theme']) === false) {
+			return '';
+		}
+
+		$fallback = '';
+		if (($result['themeFallback'] ?? false) === true) {
+			$fallback = ', fallback';
+		}
+
+		return ' (theme ' . $result['theme'] . $fallback . ')';
+	}//end themeNote()
 
 	/**
 	 * Create or name the accounts the set's declaration lists.
@@ -315,12 +291,13 @@ class ExamplePortalProvisioner {
 	/**
 	 * Write the portal, then its menus, pages and news.
 	 *
-	 * @param array<string, mixed> $declaration The set's declaration.
+	 * @param array<string, mixed> $declaration The set's declaration, dates moved.
 	 * @param string               $theme       The theme to write.
+	 * @param array<string, mixed> $move        The shipped declaration, the previous offset and this load's offset.
 	 *
 	 * @return array<string, mixed>
 	 */
-	private function apply(array $declaration, string $theme): array {
+	private function apply(array $declaration, string $theme, array $move=[]): array {
 		$portal          = $declaration['portal'];
 		$portal['theme'] = $theme;
 		unset($portal['themeFallback']);
@@ -349,6 +326,17 @@ class ExamplePortalProvisioner {
 
 		$refs = array_values(array_filter($refs, static fn ($ref): bool => is_string($ref) && $ref !== ''));
 
+		// Pages and news from a load in another week move to this week first.
+		if ($existing !== null) {
+			$previous = ($move['previous'] ?? null);
+			$this->content->moveDates(
+				declaration: (array)($move['shipped'] ?? []),
+				refs: $refs,
+				previous: $previous,
+				days: (int)($move['days'] ?? 0) - (int)$previous
+			);
+		}
+
 		return [
 			'status'       => $status,
 			'missingModes' => $missing,
@@ -376,16 +364,16 @@ class ExamplePortalProvisioner {
 	private function missingModes(array $existing, array $portal): array {
 		$stored  = (array)($existing['authentication']['modes'] ?? []);
 		$missing = array_values(array_diff((array)($portal['authentication']['modes'] ?? []), $stored));
-		if ($missing !== [] && $stored !== []) {
+		if ($stored === []) {
+			// An empty list was filled with the declared one.
+			return [];
+		}
+
+		if ($missing !== []) {
 			$this->logger->warning(
 				'[ExamplePortalProvisioner] portal "{slug}" keeps its own sign-in modes and does not offer: {modes}.',
 				['slug' => (string)($portal['slug'] ?? ''), 'modes' => implode(', ', $missing)]
 			);
-		}
-
-		if ($stored === []) {
-			// An empty list was filled with the declared one.
-			return [];
 		}
 
 		return $missing;
@@ -433,21 +421,8 @@ class ExamplePortalProvisioner {
 	 * @throws RuntimeException When the stored portal carries no id.
 	 */
 	private function fill(array $existing, array $portal): string {
-		$merged  = $existing;
-		$changed = false;
-		foreach (self::FILLABLE as $key) {
-			if (array_key_exists($key, $portal) === false) {
-				continue;
-			}
-
-			$next = self::fillValue(current: ($existing[$key] ?? null), declared: $portal[$key]);
-			if ($next !== ($existing[$key] ?? null)) {
-				$merged[$key] = $next;
-				$changed      = true;
-			}
-		}
-
-		if ($changed === false) {
+		$merged = self::filledFields(existing: $existing, portal: $portal);
+		if ($merged === $existing) {
 			return 'unchanged';
 		}
 
@@ -464,6 +439,33 @@ class ExamplePortalProvisioner {
 	}//end fill()
 
 	/**
+	 * The stored portal with the declared value in every empty fillable field.
+	 *
+	 * A field is only set when its value changes, so a portal with nothing to
+	 * fill comes back identical.
+	 *
+	 * @param array<string, mixed> $existing The portal as stored.
+	 * @param array<string, mixed> $portal   The declared portal, theme resolved.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function filledFields(array $existing, array $portal): array {
+		$merged = $existing;
+		foreach (self::FILLABLE as $key) {
+			if (array_key_exists($key, $portal) === false) {
+				continue;
+			}
+
+			$next = self::fillValue(current: ($existing[$key] ?? null), declared: $portal[$key]);
+			if ($next !== ($existing[$key] ?? null)) {
+				$merged[$key] = $next;
+			}
+		}
+
+		return $merged;
+	}//end filledFields()
+
+	/**
 	 * The value a field gets: the declared one when the stored one is empty,
 	 * key by key for a settings object.
 	 *
@@ -477,9 +479,7 @@ class ExamplePortalProvisioner {
 			return $declared;
 		}
 
-		if (is_array($current) === true && is_array($declared) === true
-			&& array_is_list($current) === false && array_is_list($declared) === false
-		) {
+		if (self::areSettingsObjects(current: $current, declared: $declared) === true) {
 			foreach ($declared as $key => $value) {
 				$current[$key] = self::fillValue(current: ($current[$key] ?? null), declared: $value);
 			}
@@ -487,6 +487,20 @@ class ExamplePortalProvisioner {
 
 		return $current;
 	}//end fillValue()
+
+	/**
+	 * Whether both values are settings objects (keyed arrays), which are
+	 * filled key by key; a list is kept whole.
+	 *
+	 * @param mixed $current  The stored value.
+	 * @param mixed $declared The declared value.
+	 *
+	 * @return bool
+	 */
+	private static function areSettingsObjects(mixed $current, mixed $declared): bool {
+		return is_array($current) === true && is_array($declared) === true
+			&& array_is_list($current) === false && array_is_list($declared) === false;
+	}//end areSettingsObjects()
 
 	/**
 	 * Whether a stored value counts as not set.

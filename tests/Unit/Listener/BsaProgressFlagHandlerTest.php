@@ -374,4 +374,52 @@ class BsaProgressFlagHandlerTest extends TestCase {
 		self::assertCount(0, $this->savedObjects);
 
 	}//end testUnrelatedTransitionIsIgnored()
+	/**
+	 * Only a published learniq GradeEntry with a learner and a course is
+	 * checked, against every programme of its course in turn.
+	 *
+	 * @return void
+	 */
+	public function testOnlyAPublishedLearniqGradeEntryIsCheckedPerProgramme(): void {
+		$reads = [];
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willReturnCallback(
+			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use (&$reads) {
+				$reads[] = 'find:' . $schema . ':' . $id;
+				return OrEntityFactory::make(['id' => (string)$id, 'programmeIds' => ['p-1', '', 'p-2']], 'course');
+			}
+		);
+		$objectService->method('findAll')->willReturnCallback(
+			function (array $config) use (&$reads): array {
+				$reads[] = 'findAll:' . $config['filters']['schema'] . ':' . ($config['filters']['programmeId'] ?? '') . ':' . ($config['filters']['lifecycle'] ?? '');
+				return [];
+			}
+		);
+		$handler = new BsaProgressFlagHandler($objectService, $this->createMock(BsaProgressEvaluator::class), $this->createMock(ITimeFactory::class), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
+
+		$event = function (string $register, string $schema, string $to, array $entry): ObjectTransitionedEvent {
+			$objectEntity = $this->createMock(ObjectEntity::class);
+			$objectEntity->method('jsonSerialize')->willReturn($entry);
+			$transition = $this->createMock(ObjectTransitionedEvent::class);
+			$transition->method('getObject')->willReturn($objectEntity);
+			$transition->method('getRegister')->willReturn($register);
+			$transition->method('getSchema')->willReturn($schema);
+			$transition->method('getTo')->willReturn($to);
+			return $transition;
+		};
+		$entry = ['learnerId' => 'learner-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a'];
+
+		$handler->handle(new \OCP\EventDispatcher\Event());
+		$handler->handle($event(\OCA\Learniq\Tests\Support\TransitionScope::OTHER_REGISTER_ID, 'grade-entry', 'published', $entry));
+		$handler->handle($event('learniq', 'grade-entry', 'concept', $entry));
+		$handler->handle($event('learniq', 'grade-entry', 'published', ['courseId' => 'course-1']));
+		$handler->handle($event('learniq', 'grade-entry', 'published', ['learnerId' => 'learner-1']));
+		self::assertSame([], $reads);
+
+		$handler->handle($event('learniq', 'grade-entry', 'published', $entry));
+		self::assertSame(
+			['find:course:course-1', 'findAll:bsa-trajectory:p-1:active', 'findAll:bsa-trajectory:p-2:active'],
+			$reads
+		);
+	}//end testOnlyAPublishedLearniqGradeEntryIsCheckedPerProgramme()
 }//end class

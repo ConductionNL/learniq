@@ -35,8 +35,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\Grading\ReportPeriodLocks;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ReportPeriodLocksInterface;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -71,16 +71,16 @@ class PublishedGradeFreezeListener implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the event entity's schema slug.
-	 * @param ReportPeriodLocks $locks The locked report period over a grade entry.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the event entity's schema slug.
+	 * @param ReportPeriodLocksInterface $locks The locked report period over a grade entry.
 	 * @param IUserSession $userSession The acting user.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly ReportPeriodLocks $locks,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		private readonly ReportPeriodLocksInterface $locks,
 		private readonly IUserSession $userSession,
 		private readonly LoggerInterface $logger,
 	) {

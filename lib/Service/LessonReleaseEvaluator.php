@@ -3,6 +3,9 @@
 /**
  * Learniq Lesson Release Evaluator
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Stateless service resolving, per (item, learner) pair, whether a Lesson or
  * Assessment is available to a specific learner right now — the "adaptive
  * release" / "drip scheduling" gate the adaptive-release-and-prerequisites
@@ -31,8 +34,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -51,6 +52,7 @@ use DateInterval;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Exception;
+use OCA\Learniq\Kernel\Contracts\LessonReleaseEvaluatorInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -58,7 +60,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
  */
-class LessonReleaseEvaluator {
+class LessonReleaseEvaluator implements LessonReleaseEvaluatorInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 
@@ -438,43 +440,12 @@ class LessonReleaseEvaluator {
 		$bestScore = null;
 		foreach ($results as $result) {
 			$data = $this->toArray(object: $result);
-			$sumScore = $this->sumResponses(responses: ($data['responses'] ?? []));
+			$sumScore = (new ResultResponseSum())->sumOf(responses: ($data['responses'] ?? []));
 			$bestScore = max(($bestScore ?? $sumScore), $sumScore);
 		}
 
 		return $bestScore;
 	}//end bestScore()
-
-	/**
-	 * Sum an AssessmentResult's per-item scores, preferring `autoScore` and
-	 * falling back to `manualScore`; a response with neither contributes 0.
-	 *
-	 * @param mixed $responses The AssessmentResult's `responses` array.
-	 *
-	 * @return float
-	 */
-	private function sumResponses($responses): float {
-		if (is_array($responses) === false) {
-			return 0.0;
-		}
-
-		$sum = 0.0;
-		foreach ($responses as $response) {
-			if (is_array($response) === false) {
-				continue;
-			}
-
-			$auto = ($response['autoScore'] ?? null);
-			$manual = ($response['manualScore'] ?? null);
-			if (is_numeric($auto) === true) {
-				$sum += (float)$auto;
-			} elseif (is_numeric($manual) === true) {
-				$sum += (float)$manual;
-			}
-		}
-
-		return $sum;
-	}//end sumResponses()
 
 	/**
 	 * Resolve a Lesson/Assessment's display name (`name` or `title`) by id.

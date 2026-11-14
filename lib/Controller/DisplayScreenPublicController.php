@@ -28,9 +28,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\DisplayScreenBoard;
-use OCA\Learniq\Service\DisplayScreenService;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\DisplayScreenBoardInterface;
+use OCA\Learniq\Kernel\Contracts\DisplayScreenServiceInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
@@ -58,21 +58,21 @@ class DisplayScreenPublicController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest             $request      HTTP request.
-	 * @param DisplayScreenService $screens      Resolves the token.
-	 * @param DisplayScreenBoard   $board        The lessons the screen shows.
+	 * @param DisplayScreenServiceInterface $screens      Resolves the token.
+	 * @param DisplayScreenBoardInterface   $board        The lessons the screen shows.
 	 * @param IInitialState        $initialState Hands the token to the page.
 	 * @param IThrottler           $throttler    Brute-force protection.
 	 * @param LoggerInterface      $logger       Logger.
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly DisplayScreenService $screens,
-		private readonly DisplayScreenBoard $board,
+		private readonly DisplayScreenServiceInterface $screens,
+		private readonly DisplayScreenBoardInterface $board,
 		private readonly IInitialState $initialState,
 		private readonly IThrottler $throttler,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -126,7 +126,7 @@ class DisplayScreenPublicController extends Controller {
 
 		$this->initialState->provideInitialState('display-token', $token);
 
-		return new TemplateResponse(Application::APP_ID, 'display', [], TemplateResponse::RENDER_AS_BASE);
+		return new TemplateResponse(AppIdentity::APP_ID, 'display', [], TemplateResponse::RENDER_AS_BASE);
 	}//end page()
 
 	/**

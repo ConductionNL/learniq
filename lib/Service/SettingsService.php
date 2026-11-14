@@ -17,13 +17,19 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-26
+ *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Service\Calendar\SchoolYear;
+use OCA\Learniq\Service\OpenMaterial\OpenMaterialSettings;
+use OCA\Learniq\Service\Settings\AppealTerm;
 use OCA\Learniq\Service\Settings\MenuStructure;
 use OCP\App\IAppManager;
 use OCP\IAppConfig;
@@ -50,6 +56,14 @@ class SettingsService {
 		// is not on this list is dropped by updateSettings() while the write
 		// still answers success.
 		MenuStructure::KEY,
+		// The first day of the school year, MM-DD (school-year-setting).
+		SchoolYear::KEY,
+		// The exam board's appeal term in days (exam-board, decision 333).
+		AppealTerm::KEY,
+		// Open learning material on or off, collections off, link-allowed collections (open-learning-material).
+		OpenMaterialSettings::ENABLED_KEY,
+		OpenMaterialSettings::COLLECTIONS_OFF_KEY,
+		OpenMaterialSettings::LINK_COLLECTIONS_KEY,
 	];
 
 	/**
@@ -98,7 +112,7 @@ class SettingsService {
 	public function getSettings(): array {
 		$settings = [];
 		foreach (self::CONFIG_KEYS as $key) {
-			$settings[$key] = $this->appConfig->getValueString(Application::APP_ID, $key, '');
+			$settings[$key] = $this->appConfig->getValueString(AppIdentity::APP_ID, $key, '');
 		}
 
 		$user = $this->userSession->getUser();
@@ -125,7 +139,7 @@ class SettingsService {
 	public function updateSettings(array $data): array {
 		foreach (self::CONFIG_KEYS as $key) {
 			if (isset($data[$key]) === true) {
-				$this->appConfig->setValueString(Application::APP_ID, $key, (string)$data[$key]);
+				$this->appConfig->setValueString(AppIdentity::APP_ID, $key, (string)$data[$key]);
 			}
 		}
 
@@ -180,63 +194,20 @@ class SettingsService {
 		}
 
 		try {
-			$configPath = __DIR__ . '/../Settings/learniq_register.json';
-			if (file_exists($configPath) === false) {
-				$this->logger->error('Learniq: learniq_register.json not found at ' . $configPath);
-				return [
-					'success' => false,
-					'message' => 'Configuration file learniq_register.json not found.',
-				];
-			}
-
-			$configContent = file_get_contents($configPath);
-			if ($configContent === false) {
-				$this->logger->error('Learniq: failed to read learniq_register.json');
-				return [
-					'success' => false,
-					'message' => 'Failed to read configuration file.',
-				];
-			}
-
-			$configData = json_decode($configContent, true);
-			if (json_last_error() !== JSON_ERROR_NONE) {
-				$this->logger->error('Learniq: failed to parse learniq_register.json: ' . json_last_error_msg());
-				return [
-					'success' => false,
-					'message' => 'Failed to parse configuration file: ' . json_last_error_msg(),
-				];
-			}
-
-			// Content-address the version so the import re-runs whenever the register
-			// definition changes, even if info.version was not bumped. Without this, dropping
-			// the forced import (below) would let a schema change silently no-op on an
-			// OpenRegister that predates the content-aware gate (#426): OR's app-level fast-skip
-			// would compare only info.version and skip. Appending a sha256 of the definitional
-			// payload makes any content change bump the version and re-import — matching the
-			// `+frag.<hash>` pattern the fragmented apps (hrmq/doriath/procest/shillinq) use.
-			$configVersion = ($configData['info']['version'] ?? '0.0.0');
-			$definitional = ($configData['components'] ?? $configData);
-			$encoded = json_encode($definitional);
-			if ($encoded !== false) {
-				$configVersion .= '+def.' . substr(hash('sha256', $encoded), 0, 12);
+			[$configData, $failure] = $this->readRegisterDefinition();
+			if ($failure !== null) {
+				return $failure;
 			}
 
 			$configurationService = $this->container->get('OCA\OpenRegister\Service\ConfigurationService');
-			$result = $configurationService->importFromApp(appId: Application::APP_ID, data: $configData, version: $configVersion, force: $force);
+			$result = $configurationService->importFromApp(
+				appId: AppIdentity::APP_ID,
+				data: $configData,
+				version: $this->registerVersion(configData: $configData),
+				force: $force
+			);
 
-			if (empty($result) === false) {
-				$this->logger->info('Learniq: register configuration imported successfully');
-				return [
-					'success' => true,
-					'message' => 'Configuration imported successfully.',
-					'version' => ($result['version'] ?? 'unknown'),
-				];
-			}
-
-			return [
-				'success' => false,
-				'message' => 'Import returned an empty result.',
-			];
+			return $this->importOutcome(result: $result);
 		} catch (\Throwable $e) {
 			$this->logger->error(
 				'Learniq: configuration import failed',
@@ -248,4 +219,84 @@ class SettingsService {
 			];
 		}//end try
 	}//end importRegisterConfiguration()
+
+	/**
+	 * Read and decode lib/Settings/learniq_register.json.
+	 *
+	 * @return array{0: mixed, 1: array{success: false, message: string}|null} The decoded definition,
+	 *                                                                        or the failure to answer with.
+	 *
+	 * @spec openspec/specs/first-time-setup/spec.md
+	 */
+	private function readRegisterDefinition(): array {
+		$configPath = __DIR__ . '/../Settings/learniq_register.json';
+		if (file_exists($configPath) === false) {
+			$this->logger->error('Learniq: learniq_register.json not found at ' . $configPath);
+			return [null, ['success' => false, 'message' => 'Configuration file learniq_register.json not found.']];
+		}
+
+		$configContent = file_get_contents($configPath);
+		if ($configContent === false) {
+			$this->logger->error('Learniq: failed to read learniq_register.json');
+			return [null, ['success' => false, 'message' => 'Failed to read configuration file.']];
+		}
+
+		$configData = json_decode($configContent, true);
+		if (json_last_error() !== JSON_ERROR_NONE) {
+			$this->logger->error('Learniq: failed to parse learniq_register.json: ' . json_last_error_msg());
+			return [null, ['success' => false, 'message' => 'Failed to parse configuration file: ' . json_last_error_msg()]];
+		}
+
+		return [$configData, null];
+	}//end readRegisterDefinition()
+
+	/**
+	 * The import version: info.version plus a hash of the definitional payload.
+	 *
+	 * Content-addressing the version makes the import re-run whenever the register
+	 * definition changes, even if info.version was not bumped. Without it a schema
+	 * change could silently no-op on an OpenRegister that predates the content-aware
+	 * gate (#426): OR's app-level fast-skip would compare only info.version and skip.
+	 * It matches the `+frag.<hash>` pattern the fragmented apps use.
+	 *
+	 * @param mixed $configData The decoded register definition.
+	 *
+	 * @return string
+	 *
+	 * @spec openspec/specs/first-time-setup/spec.md
+	 */
+	private function registerVersion(mixed $configData): string {
+		$configVersion = ($configData['info']['version'] ?? '0.0.0');
+		$encoded = json_encode(($configData['components'] ?? $configData));
+		if ($encoded !== false) {
+			$configVersion .= '+def.' . substr(hash('sha256', $encoded), 0, 12);
+		}
+
+		return $configVersion;
+	}//end registerVersion()
+
+	/**
+	 * The answer for an import result.
+	 *
+	 * @param mixed $result What ConfigurationService::importFromApp() returned.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/specs/first-time-setup/spec.md
+	 */
+	private function importOutcome(mixed $result): array {
+		if (empty($result) === false) {
+			$this->logger->info('Learniq: register configuration imported successfully');
+			return [
+				'success' => true,
+				'message' => 'Configuration imported successfully.',
+				'version' => ($result['version'] ?? 'unknown'),
+			];
+		}
+
+		return [
+			'success' => false,
+			'message' => 'Import returned an empty result.',
+		];
+	}//end importOutcome()
 }//end class

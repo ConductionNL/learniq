@@ -35,7 +35,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle\Action;
 
-use OCA\Learniq\Service\LearningRecordExportService;
+use OCA\Learniq\Kernel\Contracts\LearningRecordExportServiceInterface;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 
 /**
@@ -48,32 +49,30 @@ class LearningRecordExportGenerateAction implements LifecycleActionInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param LearningRecordExportService $exportService The bundle assembler.
+	 * @param LearningRecordExportServiceInterface $exportService The bundle assembler.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly LearningRecordExportService $exportService,
+		private readonly LearningRecordExportServiceInterface $exportService,
 	) {
 	}//end __construct()
 
 	/**
 	 * Return the export with its signed bundle recorded.
 	 *
-	 * @param array<string,mixed> $objectData The export after the lifecycle moved to `generated`.
-	 * @param array<string,mixed> $previousData The export before the transition.
-	 * @param array<string,mixed> $parameters The declared actionParameters (unused).
-	 * @param string $actionName The declared action name.
+	 * @param LifecycleActionContext $context The transition; its objectData is the export after the lifecycle moved to
+	 *                                        `generated`.
 	 *
 	 * @return array<string,mixed> The export to save.
 	 *
 	 * @throws \RuntimeException When the bundle can not be composed, signed or stored.
 	 *
-	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The interface fixes the signature.
-	 *
 	 * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-learner-initiated-export-produces-a-signed-dual-shaped-bundle
 	 */
-	public function execute(array $objectData, array $previousData, array $parameters, string $actionName): array {
+	public function execute(LifecycleActionContext $context): array {
+		$objectData = $context->objectData;
+
 		return $this->exportService->generate(export: $objectData);
 	}//end execute()
 }//end class

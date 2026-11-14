@@ -24,11 +24,11 @@
 -->
 
 <template>
-	<div class="grade-impact">
+	<div class="grade-impact lq-board-page">
 		<!-- Loading -->
 		<div v-if="loading" class="grade-impact__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('learniq', 'Loading grade impact...') }}</span>
+			<span>{{ t('learniq', 'Loading grade impact…') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -40,7 +40,7 @@
 		<!-- Content -->
 		<template v-else-if="entry">
 			<header class="grade-impact__header">
-				<h2>{{ t('learniq', 'Grade impact') }}</h2>
+				<CnPageHeader :title="t('learniq', 'Grade impact')" />
 				<p class="grade-impact__meta">
 					{{
 						t('learniq', 'Component: {id}', {
@@ -71,8 +71,9 @@
 			</header>
 
 			<!-- Grade value block -->
-			<section class="grade-impact__section">
-				<h3>{{ t('learniq', 'This grade') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'This grade')"
+				class="grade-impact__section">
 				<dl class="grade-impact__dl">
 					<div class="grade-impact__dl-row">
 						<dt>{{ t('learniq', 'Value') }}</dt>
@@ -107,17 +108,17 @@
 						<dd>{{ entry.comment }}</dd>
 					</div>
 				</dl>
-			</section>
+			</CnDetailCard>
 
 			<!-- Period average block -->
-			<section v-if="periodEntries.length > 0" class="grade-impact__section">
-				<h3>
-					{{
-						t('learniq', 'Period {period} average', {
-							period: entry.period || '',
-						})
-					}}
-				</h3>
+			<CnDetailCard
+				v-if="periodEntries.length > 0"
+				:title="
+					t('learniq', 'Period {period} average', {
+						period: entry.period || '',
+					})
+				"
+				class="grade-impact__section">
 				<dl class="grade-impact__dl">
 					<div class="grade-impact__dl-row">
 						<dt>{{ t('learniq', 'Published grades in period') }}</dt>
@@ -130,11 +131,13 @@
 						</dd>
 					</div>
 				</dl>
-			</section>
+			</CnDetailCard>
 
 			<!-- Final grade impact block -->
-			<section v-if="finalGrade" class="grade-impact__section">
-				<h3>{{ t('learniq', 'Final grade') }}</h3>
+			<CnDetailCard
+				v-if="finalGrade"
+				:title="t('learniq', 'Final grade')"
+				class="grade-impact__section">
 				<dl class="grade-impact__dl">
 					<div class="grade-impact__dl-row">
 						<dt>{{ t('learniq', 'Current final grade') }}</dt>
@@ -170,16 +173,19 @@
 						<dd>{{ formatDate(finalGrade.lastRecomputedAt) }}</dd>
 					</div>
 				</dl>
-			</section>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
+import { readObject, readRequiredObject } from '../utils/registerRequests.js'
 
 export default {
 	name: 'GradeImpactDetail',
+	components: { CnDetailCard, CnPageHeader },
 
 	props: {
 		/**
@@ -382,18 +388,12 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-30
 		 */
 		async loadEntry(entryId) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/grade-entry/${entryId}`,
+			this.entry = await readRequiredObject(
+				generateUrl(
+					`/apps/openregister/api/objects/learniq/grade-entry/${entryId}`,
+				),
+				'GradeEntry fetch failed',
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				throw new Error(`GradeEntry fetch failed: ${resp.status}`)
-			}
-
-			const json = await resp.json()
-			this.entry = json.object ?? json ?? null
 		},
 
 		/**
@@ -408,18 +408,14 @@ export default {
 				return
 			}
 
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/curriculum-plan/${planId}`,
+			const read = await readObject(
+				generateUrl(
+					`/apps/openregister/api/objects/learniq/curriculum-plan/${planId}`,
+				),
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				return
+			if (read.ok) {
+				this.plan = read.object ?? null
 			}
-
-			const json = await resp.json()
-			this.plan = json.object ?? json ?? null
 		},
 
 		/**
@@ -441,15 +437,10 @@ export default {
 			const url = generateUrl(
 				`/apps/openregister/api/objects/learniq/grade-entry?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&period=${encodeURIComponent(period)}&lifecycle=published&_limit=100`,
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				return
+			const rows = await this.fetchRows(url)
+			if (rows !== null) {
+				this.periodEntries = rows
 			}
-
-			const json = await resp.json()
-			this.periodEntries = json.results ?? json.objects ?? []
 		},
 
 		/**
@@ -471,16 +462,29 @@ export default {
 			const url = generateUrl(
 				`/apps/openregister/api/objects/learniq/final-grade?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&_limit=1`,
 			)
+			const rows = await this.fetchRows(url)
+			if (rows !== null) {
+				this.finalGrade = rows[0] ?? null
+			}
+		},
+
+		/**
+		 * The rows of a list answer (its `results`, else its `objects`), or
+		 * null when the read is refused.
+		 *
+		 * @param {string} url The list's URL.
+		 * @return {Promise<Array<object>|null>}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-30
+		 */
+		async fetchRows(url) {
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
 			if (!resp.ok) {
-				return
+				return null
 			}
-
 			const json = await resp.json()
-			const results = json.results ?? json.objects ?? []
-			this.finalGrade = results[0] ?? null
+			return json.results ?? json.objects ?? []
 		},
 
 		/**
@@ -521,23 +525,12 @@ export default {
 </script>
 
 <style scoped>
-.grade-impact {
-	max-width: 640px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
 .grade-impact__loading,
 .grade-impact__error {
 	display: flex;
 	align-items: center;
 	gap: var(--default-grid-baseline, 8px);
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.grade-impact__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
 }
 
 .grade-impact__meta {
@@ -575,13 +568,6 @@ export default {
 .grade-impact__lifecycle-badge--scheduled {
 	background: var(--color-warning);
 	color: var(--color-main-background);
-}
-
-.grade-impact__section {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-	padding: calc(var(--default-grid-baseline, 8px) * 2);
-	border: 1px solid var(--color-border);
-	border-radius: 6px;
 }
 
 .grade-impact__dl {

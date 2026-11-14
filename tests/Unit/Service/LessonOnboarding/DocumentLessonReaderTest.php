@@ -23,6 +23,7 @@ namespace OCA\Learniq\Tests\Unit\Service\LessonOnboarding;
 
 use OCA\Learniq\Service\LessonOnboarding\DocumentLessonReader;
 use OCA\Learniq\Service\LessonOnboarding\DocxLessonReader;
+use OCA\Learniq\Service\LessonOnboarding\LessonFileReaders;
 use OCA\Learniq\Service\LessonOnboarding\OfficeLessonExtractor;
 use OCA\Learniq\Service\LessonOnboarding\PresentationLessonReader;
 use OCP\Files\File;
@@ -221,12 +222,10 @@ class DocumentLessonReaderTest extends TestCase {
 	 */
 	private function extractor(DocxLessonReader $docx, DocumentLessonReader $reader): OfficeLessonExtractor {
 		return new OfficeLessonExtractor(
-			docxReader: $docx,
-			presentationReader: $this->createMock(PresentationLessonReader::class),
+			readers: new LessonFileReaders(docx: $docx, presentation: $this->createMock(PresentationLessonReader::class), document: $reader),
 			container: $this->createMock(ContainerInterface::class),
 			logger: new NullLogger(),
-			wordExtractorClass: 'OCA\\OpenRegister\\NoSuchWordExtractor',
-			documentReader: $reader
+			wordExtractorClass: 'OCA\\OpenRegister\\NoSuchWordExtractor'
 		);
 	}//end extractor()
 
@@ -239,4 +238,53 @@ class DocumentLessonReaderTest extends TestCase {
 		FakeDocumentExtractor::$next = null;
 		parent::tearDown();
 	}//end tearDown()
+
+	/**
+	 * Section shapes: non-array blocks and sections are skipped, blocks
+	 * without text and images that do not load are dropped, a section with
+	 * only a heading or only an image is kept, an empty one is not, and
+	 * paragraphs and images keep their own order.
+	 *
+	 * @return void
+	 */
+	public function testEverySectionShape(): void {
+		FakeDocumentExtractor::$next = [
+			'title' => '  Les  ',
+			'sections' => [
+				'not a section',
+				['heading' => '  Alleen kop  ', 'blocks' => 'not blocks'],
+				['blocks' => [['type' => 'image', 'target' => 'word/media/image1.png', 'external' => false, 'name' => 'a', 'description' => '']]],
+				[
+					'heading' => 'Gemengd',
+					'blocks' => [
+						'not a block',
+						['type' => 'paragraph', 'text' => 'Een'],
+						['type' => 'image', 'target' => 'word/media/missing.png', 'external' => false, 'name' => '', 'description' => ''],
+						['type' => 'paragraph', 'text' => '   '],
+						['text' => 'Zonder type'],
+						['type' => 'image', 'target' => 'word/media/image1.png', 'external' => false, 'name' => 'b', 'description' => ''],
+						['type' => 'paragraph', 'text' => 'Twee'],
+					],
+				],
+				['heading' => '   ', 'blocks' => [['type' => 'paragraph', 'text' => ''], ['type' => 'image', 'target' => 'https://x.example/y.png', 'external' => true, 'name' => '', 'description' => '']]],
+			],
+		];
+
+		$lesson = $this->reader()->read(file: $this->file())['lesson'];
+
+		self::assertSame('Les', $lesson['title']);
+		self::assertSame(
+			[
+				['heading' => 'Alleen kop', 'paragraphs' => [], 'images' => [], 'notes' => ''],
+				['heading' => '', 'paragraphs' => [], 'images' => [['name' => 'image1.png', 'bytes' => 'PNGBYTES']], 'notes' => ''],
+				[
+					'heading'    => 'Gemengd',
+					'paragraphs' => ['Een', 'Twee'],
+					'images'     => [['name' => 'image1.png', 'bytes' => 'PNGBYTES']],
+					'notes'      => '',
+				],
+			],
+			$lesson['sections']
+		);
+	}//end testEverySectionShape()
 }//end class

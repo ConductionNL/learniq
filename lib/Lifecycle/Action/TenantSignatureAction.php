@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle\Action;
 
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 use OCA\OpenRegister\Service\TenantKeyService;
 use RuntimeException;
@@ -48,11 +49,13 @@ use RuntimeException;
 class TenantSignatureAction implements LifecycleActionInterface {
 
 	/**
-	 * Fields left out of the signed payload.
+	 * Fields left out of the signed payload. `revocationReason` is written by
+	 * a later `revoke` (Attestation); leaving it out keeps the signature of a
+	 * revoked record verifiable over what was signed.
 	 *
 	 * @var string[]
 	 */
-	private const EXCLUDED = ['signature', 'signingKeyId', 'lifecycle'];
+	private const EXCLUDED = ['signature', 'signingKeyId', 'lifecycle', 'revocationReason'];
 
 	/**
 	 * Constructor.
@@ -67,20 +70,19 @@ class TenantSignatureAction implements LifecycleActionInterface {
 	/**
 	 * Sign the object and return it with the signature fields set.
 	 *
-	 * @param array<string,mixed> $objectData   The object after the lifecycle field moved to its target.
-	 * @param array<string,mixed> $previousData The object before the transition (unused).
-	 * @param array<string,mixed> $parameters   The declared `actionParameters` (unused).
-	 * @param string              $actionName   The declared action name.
+	 * @param LifecycleActionContext $context The transition; its objectData is the object after the lifecycle field
+	 *                                        moved to its target.
 	 *
 	 * @return array<string,mixed> The object with `signature` and `signingKeyId` set.
 	 *
 	 * @throws RuntimeException When the tenant has no signing key: an unsigned record must not be saved.
 	 *
 	 * @spec openspec/specs/study-progress/spec.md#requirement-the-formal-warning-captures-improvement-period-guidance-and-personal-circumstances-and-is-signed-evidence
-	 *
-	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleActionInterface's.
 	 */
-	public function execute(array $objectData, array $previousData, array $parameters, string $actionName): array {
+	public function execute(LifecycleActionContext $context): array {
+		$objectData = $context->objectData;
+		$actionName = $context->actionName;
+
 		$tenantId = (string)($objectData['tenant_id'] ?? '');
 		$tenantKey = $this->tenantKeyService->getCurrentTenantKey($tenantId);
 

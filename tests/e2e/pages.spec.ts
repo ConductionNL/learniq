@@ -1,3 +1,7 @@
+/**
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ */
 import { expect, test } from './fixtures.ts'
 
 /**
@@ -39,7 +43,6 @@ const ROUTES: { name: string; path: string }[] = [
 	{ name: 'LessonDetail', path: '/courses/test-id/lessons/test-lesson-id' },
 	{ name: 'LessonPlayer', path: '/courses/test-id/lessons/test-lesson-id/play' },
 	{ name: 'EnrolmentDetail', path: '/enrolments/test-id' },
-	{ name: 'BulkEnrol', path: '/enrolments/bulk' },
 	{ name: 'Regulations', path: '/compliance/regulations' },
 	{ name: 'RegulationDetail', path: '/compliance/regulations/test-slug' },
 	{ name: 'Attestations', path: '/compliance/attestations' },

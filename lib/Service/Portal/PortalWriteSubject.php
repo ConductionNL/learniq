@@ -3,6 +3,9 @@
 /**
  * Learniq PortalWriteSubject
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Tells a portal write from a staff write, for the listeners that stamp the
  * owner of a Submission and of an ExcuseRequest.
  *
@@ -29,8 +32,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -42,6 +43,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
+use OCA\Learniq\Kernel\Contracts\PortalWriteSubjectInterface;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
@@ -52,7 +54,7 @@ use Throwable;
  *
  * @spec openspec/specs/assignments/spec.md#requirement-a-pupil-hands-in-a-portal-draft-through-learniqs-own-endpoint
  */
-class PortalWriteSubject {
+class PortalWriteSubject implements PortalWriteSubjectInterface {
 
 	/**
 	 * Constructor.

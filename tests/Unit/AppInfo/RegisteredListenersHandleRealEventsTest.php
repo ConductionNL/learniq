@@ -22,7 +22,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\AppInfo;
 
 use Error;
-use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
+use OCA\Learniq\Listener\Registrar\EventListenerWiring;
 use OCA\Learniq\Event\HourPlanActivitiesQueryEvent;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
 use OCA\Learniq\Listener\SessionConflictListener;
@@ -34,10 +34,15 @@ use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectDeletedEvent;
 use OCA\OpenRegister\Event\ObjectDeletingEvent;
+use OCA\OpenRegister\Event\ObjectLeavingEvent;
 use OCA\OpenRegister\Event\ObjectEventSubscription;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
+use OCA\OpenRegister\Service\Lifecycle\TransitionActor;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
+use OCA\Portaliq\Event\PortalClaimScopeEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -227,10 +232,11 @@ class RegisteredListenersHandleRealEventsTest extends TestCase {
 			ObjectCreatingEvent::class => new ObjectCreatingEvent($entity),
 			ObjectUpdatingEvent::class => new ObjectUpdatingEvent($entity, $before),
 			ObjectDeletingEvent::class => new ObjectDeletingEvent($entity),
+			ObjectLeavingEvent::class => new ObjectLeavingEvent($entity),
 			ObjectDeletedEvent::class => new ObjectDeletedEvent($entity),
 			ObjectCreatedEvent::class => new ObjectCreatedEvent($entity),
 			ObjectUpdatedEvent::class => new ObjectUpdatedEvent($entity, $before),
-			ObjectTransitionedEvent::class => new ObjectTransitionedEvent($entity, 'minimal', 'draft', 'active', 'alice', 'learniq', 'minimal'),
+			ObjectTransitionedEvent::class => new ObjectTransitionedEvent(object: $entity, move: new TransitionMove(action: 'minimal', from: 'draft', to: 'active'), scope: new RegisterSchemaRef(register: 'learniq', schema: 'minimal'), actor: new TransitionActor(userId: 'alice')),
 			// A Nextcloud Files event (office-file-lesson-onboarding): the node is a file double.
 			NodeCreatedEvent::class => new NodeCreatedEvent($this->createStub(File::class)),
 			NodeRenamedEvent::class => new NodeRenamedEvent($this->createStub(File::class), $this->createStub(File::class)),
@@ -239,9 +245,36 @@ class RegisteredListenersHandleRealEventsTest extends TestCase {
 			ExchangeJobConcludedEvent::class => new ExchangeJobConcludedEvent('learniq', 'job-1', 'swv', 'export', 'support-request/minimal-object', 'succeeded'),
 			ExchangeRecordsReceivedEvent::class => new ExchangeRecordsReceivedEvent('job-1', 'learniq', 'lvs-results', 'import', '', [], []),
 			HourPlanActivitiesQueryEvent::class => new HourPlanActivitiesQueryEvent(sourceApp: 'integriq', academicYear: '2026-2027'),
+			// Portaliq's claim scope check: learniq's employer claim, so the listener reaches its tenancy check.
+			PortalClaimScopeEvent::class => new PortalClaimScopeEvent(
+				claim: ['appId' => 'learniq', 'claimName' => 'organisationRef'],
+				holder: ['value' => 'company-1', 'organisation' => 'school-a'],
+			),
 			default => null,
 		};
 	}//end event()
+
+	/**
+	 * A stub of a collaborator. A final bundle cannot be doubled, so it is
+	 * built from stubs of its own collaborators.
+	 *
+	 * @param class-string $type The collaborator type.
+	 *
+	 * @return object
+	 */
+	private function stubFor(string $type): object {
+		$class = new ReflectionClass($type);
+		if ($class->isFinal() === false) {
+			return $this->createStub($type);
+		}
+
+		$arguments = [];
+		foreach (($class->getConstructor()?->getParameters() ?? []) as $parameter) {
+			$arguments[] = $this->createStub((string)$parameter->getType());
+		}
+
+		return $class->newInstanceArgs($arguments);
+	}//end stubFor()
 
 	/**
 	 * Build a listener with a stub for every collaborator.
@@ -256,7 +289,7 @@ class RegisteredListenersHandleRealEventsTest extends TestCase {
 		foreach (($class->getConstructor()?->getParameters() ?? []) as $parameter) {
 			$type = $parameter->getType();
 			if ($type instanceof ReflectionNamedType && $type->isBuiltin() === false) {
-				$arguments[] = $this->createStub($type->getName());
+				$arguments[] = $this->stubFor(type: $type->getName());
 				continue;
 			}
 

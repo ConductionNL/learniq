@@ -33,15 +33,17 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
+use OCA\Learniq\Kernel\Contracts\CoursePackageImportServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Service\CallerTenantResolver;
-use OCA\Learniq\Service\CoursePackageImportService;
+use OCA\Learniq\Service\CallerActions;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
+use OCP\IUser;
 use OCP\IUserSession;
 
 /**
@@ -56,24 +58,38 @@ use OCP\IUserSession;
  */
 class CoursePackageImportController extends Controller {
 	/**
+	 * Nextcloud user session.
+	 *
+	 * @var IUserSession
+	 */
+	private readonly IUserSession $userSession;
+
+	/**
+	 * ADR-023 action authorization service.
+	 *
+	 * @var ActionAuthService
+	 */
+	private readonly ActionAuthService $actionAuth;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IRequest $request HTTP request.
-	 * @param CoursePackageImportService $importService Course-package import service.
-	 * @param IUserSession $userSession Nextcloud user session.
-	 * @param ActionAuthService $actionAuth ADR-023 action authorization service.
-	 * @param CallerTenantResolver $tenants Resolves the tenant: the per-user binding, else the default tenant.
+	 * @param CoursePackageImportServiceInterface $importService Course-package import service.
+	 * @param CallerActions $caller The user session and the ADR-023 action matrix.
+	 * @param CallerTenantResolverInterface $tenants Resolves the tenant: the per-user binding, else the default tenant.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly CoursePackageImportService $importService,
-		private readonly IUserSession $userSession,
-		private readonly ActionAuthService $actionAuth,
-		private readonly CallerTenantResolver $tenants,
+		private readonly CoursePackageImportServiceInterface $importService,
+		CallerActions $caller,
+		private readonly CallerTenantResolverInterface $tenants,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		$this->userSession = $caller->userSession;
+		$this->actionAuth = $caller->actionAuth;
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -89,58 +105,44 @@ class CoursePackageImportController extends Controller {
 	 */
 	#[NoAdminRequired]
 	public function import(): JSONResponse {
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			return new JSONResponse(
-				data: ['error' => 'Not authenticated'],
-				statusCode: Http::STATUS_UNAUTHORIZED
-			);
+		$user = (new ImportCaller(userSession: $this->userSession, actionAuth: $this->actionAuth))->admit(action: 'course-package.import');
+		if ($user instanceof JSONResponse) {
+			return $user;
 		}
 
-		$this->actionAuth->requireAction(user: $user, action: 'course-package.import');
-
-		$uploadedFile = $this->request->getUploadedFile('file');
-		if (isset($uploadedFile['tmp_name']) === false) {
-			return new JSONResponse(
-				data: ['error' => 'No file uploaded. POST a multipart/form-data request with a `file` field.'],
-				statusCode: Http::STATUS_BAD_REQUEST
-			);
+		$upload = UploadedPackage::fromRequest(request: $this->request);
+		if ($upload instanceof JSONResponse) {
+			return $upload;
 		}
 
-		if ($uploadedFile['error'] !== UPLOAD_ERR_OK) {
-			return new JSONResponse(
-				data: ['error' => 'File upload error code ' . $uploadedFile['error']],
-				statusCode: Http::STATUS_BAD_REQUEST
-			);
-		}
+		return $this->importPackage(upload: $upload, user: $user);
+	}//end import()
 
-		$tmpPath = $uploadedFile['tmp_name'];
-		if (file_exists($tmpPath) === false) {
-			return new JSONResponse(
-				data: ['error' => 'Uploaded file not found on server.'],
-				statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
-			);
-		}
-
-		$sourceFilename = (string)($uploadedFile['name'] ?? 'package');
+	/**
+	 * Import the checked upload for the caller's tenant: the report, or 500.
+	 *
+	 * @param array<string,mixed> $upload The checked `file` field.
+	 * @param IUser               $user   The caller.
+	 *
+	 * @return JSONResponse
+	 */
+	private function importPackage(array $upload, IUser $user): JSONResponse {
+		$sourceFilename = (string)($upload['name'] ?? 'package');
 
 		// Resolve the caller's tenant — same pattern as QtiImportController::import().
 		$tenantId = $this->tenants->resolve(user: $user);
 
 		try {
 			$report = $this->importService->import(
-				packagePath: $tmpPath,
+				packagePath: $upload['tmp_name'],
 				sourceFilename: $sourceFilename,
 				importedBy: $user->getUID(),
 				tenantId: $tenantId,
 			);
 		} catch (\Throwable $e) {
-			return new JSONResponse(
-				data: ['error' => 'Import failed: ' . $e->getMessage()],
-				statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
-			);
+			return UploadedPackage::importFailed(exception: $e);
 		}
 
 		return new JSONResponse(data: $report, statusCode: Http::STATUS_OK);
-	}//end import()
+	}//end importPackage()
 }//end class

@@ -14,74 +14,105 @@
  @spec openspec/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
 -->
 <template>
-	<div class="reissue-certificates">
-		<h2>{{ t('learniq', 'Reissue certificates') }}</h2>
+	<div class="reissue-certificates lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Reissue certificates')" />
 		<NcLoadingIcon v-if="loading" :size="32" />
 		<NcNoteCard v-else-if="error" type="error">
 			{{ error }}
 		</NcNoteCard>
-		<form v-else class="reissue-certificates__form" @submit.prevent="start">
-			<p>
-				{{
-					n(
-						'learniq',
-						'%n issued certificate will be rebuilt and signed again.',
-						'%n issued certificates will be rebuilt and signed again.',
-						counts.issued,
-					)
-				}}
-			</p>
-			<p class="reissue-certificates__meta">
-				{{
-					t(
-						'learniq',
-						'{revoked} revoked and {expired} expired certificates are left as they are. Learners keep their certificate number, issue date and expiry.',
-						{ revoked: counts.revoked, expired: counts.expired },
-					)
-				}}
-			</p>
-			<NcTextArea
-				v-model="reason"
-				:label="t('learniq', 'Reason for the reissue')"
-				:helperText="
-					t(
-						'learniq',
-						'Stored on every certificate and shown in its history.',
-					)
-				"
-				required />
-			<NcNoteCard v-if="lastRun" type="info">
-				{{ lastRunText }}
-			</NcNoteCard>
-			<NcNoteCard v-if="queued" type="success">
-				{{
-					t(
-						'learniq',
-						'The reissue has started. Learners get a notification when their certificate is ready.',
-					)
-				}}
-			</NcNoteCard>
-			<div class="reissue-certificates__actions">
-				<NcButton
-					type="submit"
-					variant="primary"
-					:disabled="busy || reason.trim() === '' || counts.issued === 0">
-					{{ t('learniq', 'Reissue certificates') }}
-				</NcButton>
-			</div>
-		</form>
+		<CnDetailCard v-else>
+			<form class="reissue-certificates__form" @submit.prevent="start">
+				<p>
+					{{
+						n(
+							'learniq',
+							'%n issued certificate will be rebuilt and signed again.',
+							'%n issued certificates will be rebuilt and signed again.',
+							counts.issued,
+						)
+					}}
+				</p>
+				<p class="reissue-certificates__meta">
+					{{
+						t(
+							'learniq',
+							'{revoked} revoked and {expired} expired certificates are left as they are. Learners keep their certificate number, issue date and expiry.',
+							{ revoked: counts.revoked, expired: counts.expired },
+						)
+					}}
+				</p>
+				<NcTextArea
+					v-model="reason"
+					:label="t('learniq', 'Reason for the reissue')"
+					:helperText="
+						t(
+							'learniq',
+							'Stored on every certificate and shown in its history.',
+						)
+					"
+					required />
+				<NcNoteCard v-if="lastRun" type="info">
+					{{ lastRunText }}
+				</NcNoteCard>
+				<NcNoteCard v-if="queued" type="success">
+					{{
+						t(
+							'learniq',
+							'The reissue has started. Learners get a notification when their certificate is ready.',
+						)
+					}}
+				</NcNoteCard>
+				<div class="reissue-certificates__actions">
+					<NcButton
+						type="submit"
+						variant="primary"
+						:disabled="busy || reason.trim() === '' || counts.issued === 0">
+						{{ t('learniq', 'Reissue certificates') }}
+					</NcButton>
+				</div>
+			</form>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcLoadingIcon, NcNoteCard, NcTextArea } from '@nextcloud/vue'
 
+/**
+ * A reissue run's figures, zero where the run did not count.
+ *
+ * @param {object} run The last run.
+ * @return {{processed: number, skipped: number, failed: number}}
+ */
+function runFigures(run) {
+	return {
+		processed: run.processed ?? 0,
+		skipped: run.skipped ?? 0,
+		failed: run.failed ?? 0,
+	}
+}
+
+/**
+ * The course's certificate counts, zero where the answer has none.
+ *
+ * @param {object} data The answer.
+ * @return {{issued: number, revoked: number, expired: number}}
+ */
+function credentialCounts(data) {
+	return {
+		issued: data.issued ?? 0,
+		revoked: data.revoked ?? 0,
+		expired: data.expired ?? 0,
+	}
+}
+
 export default {
 	name: 'ReissueCertificatesView',
 
-	components: { NcButton, NcLoadingIcon, NcNoteCard, NcTextArea },
+	components: { CnDetailCard, CnPageHeader, NcButton, NcLoadingIcon, NcNoteCard, NcTextArea },
 
 	props: {
 		/** Course UUID from the route. */
@@ -115,11 +146,7 @@ export default {
 			return this.t(
 				'learniq',
 				'Last reissue: {processed} reissued, {skipped} skipped, {failed} failed.',
-				{
-					processed: this.lastRun.processed ?? 0,
-					skipped: this.lastRun.skipped ?? 0,
-					failed: this.lastRun.failed ?? 0,
-				},
+				runFigures(this.lastRun),
 			)
 		},
 	},
@@ -144,11 +171,7 @@ export default {
 						),
 					)
 				).data
-				this.counts = {
-					issued: data.issued ?? 0,
-					revoked: data.revoked ?? 0,
-					expired: data.expired ?? 0,
-				}
+				this.counts = credentialCounts(data)
 				this.lastRun = data.lastRun ?? null
 			} catch {
 				this.error = this.t(
@@ -188,12 +211,6 @@ export default {
 </script>
 
 <style scoped>
-.reissue-certificates {
-	max-width: 720px;
-	margin: 0 auto;
-	padding: calc(var(--default-grid-baseline, 4px) * 4);
-}
-
 .reissue-certificates__form {
 	display: flex;
 	flex-direction: column;

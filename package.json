@@ -18,6 +18,7 @@
     "stylelint-fix": "stylelint \"src/**/*.{vue,scss,css}\" --fix",
     "check:schema-l10n": "node scripts/check-schema-l10n.js",
     "check:manifest": "node tests/validate-manifest.js",
+    "check:board-detail": "node scripts/build-board-detail.mjs --check",
     "l10n:build": "node scripts/build-l10n-js.js",
     "check:l10n-js": "node scripts/build-l10n-js.js --check",
     "test:e2e": "playwright test",
@@ -28,9 +29,10 @@
     "check:l10n": "node tests/l10n/check-l10n-parity.js --ratchet",
     "check:structure-profile": "node --test tests/unit-js/structureProfile.test.mjs",
     "check:attention": "node --test tests/unit-js/attentionDeclaration.test.mjs",
-    "check:specs": "npm run check:json-strict && npm run check:manifest && npm run check:register && npm run check:menu-role-gates && npm run check:structure-profile && npm run check:attention && npm run check:l10n",
+    "check:specs": "npm run check:json-strict && npm run check:manifest && npm run check:board-detail && npm run check:register && npm run check:menu-role-gates && npm run check:structure-profile && npm run check:attention && npm run check:l10n",
     "seed:e2e": "node tests/e2e/seed-example-data.mjs",
     "test:js-unit": "node --test tests/unit-js/*.test.mjs",
+    "test:coverage": "c8 --all --src src --include 'src/**/*.js' --reporter=json-summary --reporter=text-summary --reports-dir=coverage-js node --test tests/unit-js/*.test.mjs",
     "prepare": "git config core.hooksPath .githooks || true"
   },
   "browserslist": [
@@ -39,7 +41,7 @@
   "dependencies": {
     "@babel/core": "^7.29.0",
     "@babel/preset-env": "^7.29.5",
-    "@conduction/nextcloud-vue": "^2.67.0",
+    "@conduction/nextcloud-vue": "^2.180.0",
     "@nextcloud/auth": "^2.5.0",
     "@nextcloud/axios": "~2.6.0",
     "@nextcloud/capabilities": "^1.2.1",
@@ -50,10 +52,9 @@
     "@nextcloud/router": "^3.1.0",
     "@nextcloud/vue": "^9.13.0",
     "@vueuse/core": "^14.0.0",
-    "axe-core": "^4.10.0",
     "babel-loader": "^10.1.1",
     "dexie": "^4.4.6",
-    "dompurify": "^3.4.14",
+    "dompurify": "^3.4.16",
     "gridstack": "^12.0.0",
     "marked": "^18.0.13",
     "path-browserify": "^1.0.1",
@@ -65,7 +66,11 @@
     "vuedraggable": "^4.1.0"
   },
   "overrides": {
-    "libxmljs2": "^0.37.0"
+    "libxmljs2": "^0.37.0",
+    "dompurify": "$dompurify",
+    "webdav": {
+      "minimatch": "^11.0.1"
+    }
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
@@ -77,6 +82,8 @@
     "@nextcloud/webpack-vue-config": "^7.0.0",
     "@playwright/test": "^1.63.0",
     "@typescript-eslint/parser": "^8.70.0",
+    "axe-core": "^4.10.0",
+    "c8": "^12.0.0",
     "css-loader": "~7.1.5",
     "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.1.8",

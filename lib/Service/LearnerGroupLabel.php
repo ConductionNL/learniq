@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
  */
 
 declare(strict_types=1);
@@ -36,7 +36,7 @@ use OCP\IUserManager;
 /**
  * Derives a pupil's group line from the active enrolment and its group.
  *
- * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
  */
 class LearnerGroupLabel {
 
@@ -74,32 +74,84 @@ class LearnerGroupLabel {
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read.
 	 *
-	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
 	 */
 	public function derive(array $profile): ?string {
-		$id = (string)($profile['id'] ?? '');
-		if ($id === '' || in_array('learner', (array)($profile['roles'] ?? []), true) === false) {
-			return null;
-		}
-
-		$enrolment = $this->activeEnrolment(learnerRef: $id);
-		if ($enrolment === null) {
-			return null;
-		}
-
-		$cohort = $this->cohort(id: (string)($enrolment['cohortId'] ?? ''));
-		$group  = trim((string)($cohort['name'] ?? ($enrolment['cohortName'] ?? '')));
+		$cohort = $this->groupOf(profile: $profile);
+		$group  = trim((string)($cohort['name'] ?? ''));
 		if ($group === '') {
 			return null;
 		}
 
-		$teacher = $this->teacherName(uid: (string)(((array)($cohort['teacherIds'] ?? []))[0] ?? ''));
+		$teacher = $this->teacherName(uid: self::firstTeacher(cohort: $cohort));
 		if ($teacher === null) {
 			return $group;
 		}
 
 		return $group . self::SEPARATOR . $teacher;
 	}//end derive()
+
+	/**
+	 * The group's first teacher as the child's page names them: the display
+	 * name for "Bericht aan {teacherName}" and the user id the message form
+	 * chooses (`messageTo: teacherRef`, wilgenboom/Detail). Both null without
+	 * a teacher with a display name of their own.
+	 *
+	 * @param array<string, mixed> $profile The learner profile, with its `id` and `roles`.
+	 *
+	 * @return array{teacherName: string|null, teacherRef: string|null}
+	 *
+	 * @throws \Throwable When OpenRegister cannot be read.
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
+	 */
+	public function teacher(array $profile): array {
+		$uid  = self::firstTeacher(cohort: $this->groupOf(profile: $profile));
+		$name = $this->teacherName(uid: $uid);
+
+		if ($name === null) {
+			return ['teacherName' => null, 'teacherRef' => null];
+		}
+
+		return ['teacherName' => $name, 'teacherRef' => $uid];
+	}//end teacher()
+
+	/**
+	 * The group of the pupil's newest active enrolment, its `name` falling
+	 * back to the enrolment's copy; an empty array for no pupil or no group.
+	 *
+	 * @param array<string, mixed> $profile The learner profile.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @throws \Throwable When OpenRegister cannot be read.
+	 */
+	private function groupOf(array $profile): array {
+		$id = (string)($profile['id'] ?? '');
+		if ($id === '' || in_array('learner', (array)($profile['roles'] ?? []), true) === false) {
+			return [];
+		}
+
+		$enrolment = $this->activeEnrolment(learnerRef: $id);
+		if ($enrolment === null) {
+			return [];
+		}
+
+		$cohort = $this->cohort(id: (string)($enrolment['cohortId'] ?? ''));
+		$cohort['name'] = $cohort['name'] ?? ($enrolment['cohortName'] ?? '');
+		return $cohort;
+	}//end groupOf()
+
+	/**
+	 * The user id of a group's first teacher, or ''.
+	 *
+	 * @param array<string, mixed> $cohort The group.
+	 *
+	 * @return string
+	 */
+	private static function firstTeacher(array $cohort): string {
+		return (string)(((array)($cohort['teacherIds'] ?? []))[0] ?? '');
+	}//end firstTeacher()
 
 	/**
 	 * The newest active enrolment of a pupil.

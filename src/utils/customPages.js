@@ -15,25 +15,6 @@
 /** OpenRegister's object API for the learniq register. */
 export const OBJECTS = '/apps/openregister/api/objects/learniq'
 
-/** The AttendanceRecord.status values, in the order the register offers them. */
-export const ATTENDANCE_STATUSES = [
-	'present',
-	'late',
-	'left-early',
-	'absent-excused',
-	'absent-unexcused',
-]
-
-/** The ExcuseRequest.reasonKind values. */
-export const EXCUSE_REASON_KINDS = [
-	'illness',
-	'medical-appointment',
-	'family-circumstance',
-	'religious-observance',
-	'bereavement',
-	'other',
-]
-
 /**
  * The URL of a schema's collection, or of one object in it.
  *
@@ -71,9 +52,20 @@ export function transitionUrl(id) {
  * @spec openspec/specs/assignments/spec.md#requirement-a-learner-hands-in-their-own-work-and-the-teacher-marks-it
  */
 export function handInAction(assignment, now = new Date()) {
-	const due = assignment?.dueAt ? new Date(assignment.dueAt) : null
-	if (!due || Number.isNaN(due.getTime()) || due >= now) return 'submit'
+	if (!isPastDeadline(assignment, now)) return 'submit'
 	return assignment.allowLateSubmission === true ? 'submitLate' : 'submit'
+}
+
+/**
+ * Whether an assignment has a readable deadline that lies before `now`.
+ *
+ * @param {object} assignment The assignment (dueAt).
+ * @param {Date} now The moment to judge.
+ * @return {boolean}
+ */
+function isPastDeadline(assignment, now) {
+	const due = assignment?.dueAt ? new Date(assignment.dueAt) : null
+	return !(!due || Number.isNaN(due.getTime()) || due >= now)
 }
 
 /**
@@ -108,78 +100,6 @@ export function oneObject(body) {
  */
 export function objectId(object) {
 	return String(object?.id ?? object?.uuid ?? object?.['@self']?.id ?? '')
-}
-
-/**
- * One register row per learner in the session's cohort: the saved record
- * when there is one, otherwise a new row defaulting to present.
- *
- * @param {string[]} learnerIds Cohort.learnerIds (Nextcloud user ids).
- * @param {object[]} records Existing AttendanceRecords for the session.
- * @return {Array<{learnerId: string, status: string, reason: string, recordId: string, markedVia: string, savedStatus: (string|null), savedReason: string}>} Rows.
- * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
- */
-export function attendanceRows(learnerIds, records) {
-	const byLearner = new Map(records.map((r) => [r.learnerId, r]))
-	return [...new Set(learnerIds)].map((learnerId) => {
-		const saved = byLearner.get(learnerId)
-		return {
-			learnerId,
-			status: saved?.status ?? 'present',
-			reason: saved?.reason ?? '',
-			recordId: saved ? objectId(saved) : '',
-			markedVia: saved?.markedVia ?? 'teacher',
-			savedStatus: saved?.status ?? null,
-			savedReason: saved?.reason ?? '',
-		}
-	})
-}
-
-/**
- * The AttendanceRecord body for one register row.
- *
- * @param {object} row A row from attendanceRows().
- * @param {object} session The Session.
- * @param {string} markedBy Nextcloud user id of the teacher.
- * @param {string} markedAt ISO date-time.
- * @return {object} The record body.
- * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
- */
-export function attendanceRecord(row, session, markedBy, markedAt) {
-	const body = {
-		sessionId: objectId(session),
-		learnerId: row.learnerId,
-		cohortId: session.cohortId ?? null,
-		status: row.status,
-		markedBy,
-		markedAt,
-		markedVia: 'teacher',
-		tenant_id: session.tenant_id ?? '',
-	}
-	if (row.reason) body.reason = row.reason
-	return body
-}
-
-/**
- * The register rows a save writes: every row, except a learner's own self
- * check-in the teacher left as it was, so saving the register never turns a
- * self check-in into a teacher mark by accident (attendance-self-check-in).
- * A self check-in the teacher changed is written, and becomes a teacher mark.
- *
- * @param {object[]} rows Rows from attendanceRows(), as edited.
- * @return {object[]} The rows to write.
- * @spec openspec/specs/attendance/spec.md#requirement-a-self-check-in-never-overwrites-a-mark
- */
-export function registerRowsToSave(rows) {
-	return rows.filter(
-		(row) =>
-			!(
-				row.recordId
-				&& row.markedVia === 'self-check-in'
-				&& row.status === row.savedStatus
-				&& (row.reason ?? '') === (row.savedReason ?? '')
-			),
-	)
 }
 
 /**
@@ -233,31 +153,56 @@ export function gradebookGrid(learnerIds, components, entries) {
  * @return {object} The GradeEntry body.
  * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
  */
-export function gradeEntryBody({
-	learnerId,
-	componentId,
-	value,
-	plan,
-	cohortId,
-	grader,
-	gradedAt,
-}) {
-	const component =
-		(plan.components ?? []).find((c) => c.componentId === componentId) ?? {}
+export function gradeEntryBody(args) {
+	const component = planComponent(args.plan, args.componentId)
 	return {
-		learnerId,
-		curriculumPlanId: objectId(plan),
-		componentId,
-		cohortId,
-		gradeScaleId: component.gradeScaleId ?? plan.gradeScaleId ?? '',
+		...gradeEntryTarget(args),
+		gradeScaleId: componentGradeScaleId(component, args.plan),
 		sourceKind: 'manual',
-		value,
+		value: args.value,
 		weight: component.weight ?? null,
 		period: component.period ?? null,
-		grader,
-		gradedAt,
-		tenant_id: plan.tenant_id ?? '',
+		grader: args.grader,
+		gradedAt: args.gradedAt,
+		tenant_id: args.plan.tenant_id ?? '',
 	}
+}
+
+/**
+ * Who and what a GradeEntry marks: the learner, plan, component and cohort.
+ *
+ * @param {object} args The gradeEntryBody() arguments.
+ * @return {{learnerId: string, curriculumPlanId: string, componentId: string, cohortId: string}} The fields.
+ */
+function gradeEntryTarget(args) {
+	return {
+		learnerId: args.learnerId,
+		curriculumPlanId: objectId(args.plan),
+		componentId: args.componentId,
+		cohortId: args.cohortId,
+	}
+}
+
+/**
+ * The plan component with the given id, or an empty one.
+ *
+ * @param {object} plan The CurriculumPlan.
+ * @param {string} componentId Plan component.
+ * @return {object} The component.
+ */
+function planComponent(plan, componentId) {
+	return (plan.components ?? []).find((c) => c.componentId === componentId) ?? {}
+}
+
+/**
+ * The scale a component is marked on: its own, else the plan's, else ''.
+ *
+ * @param {object} component A plan component.
+ * @param {object} plan The CurriculumPlan.
+ * @return {string} The GradeScale id.
+ */
+function componentGradeScaleId(component, plan) {
+	return component.gradeScaleId ?? plan.gradeScaleId ?? ''
 }
 
 /**
@@ -277,65 +222,6 @@ export function parseMark(raw) {
 }
 
 /**
- * The learners of a bulk enrolment who are not enrolled in the course yet.
- *
- * @param {string[]} learnerIds Picked learners (Nextcloud user ids).
- * @param {object[]} existing Enrolments already held for the course.
- * @return {string[]} Learners to enrol.
- * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
- */
-export function learnersToEnrol(learnerIds, existing) {
-	const open = new Set(
-		existing
-			.filter(
-				(e) => !['withdrawn', 'failed', 'completed'].includes(e.lifecycle),
-			)
-			.map((e) => e.learnerId),
-	)
-	return [...new Set(learnerIds)].filter((id) => id && !open.has(id))
-}
-
-/**
- * The Enrolment body a bulk enrolment creates.
- *
- * @param {string} learnerId Learner.
- * @param {object} course The Course.
- * @param {string|null} cohortId The cohort picked as audience, if any.
- * @return {object} The Enrolment body.
- * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
- */
-export function bulkEnrolmentBody(learnerId, course, cohortId) {
-	const body = {
-		learnerId,
-		courseId: objectId(course),
-		source: 'bulk',
-		tenant_id: course.tenant_id ?? '',
-	}
-	if (cohortId) body.cohortId = cohortId
-	return body
-}
-
-/**
- * CnTimelineView events for a cohort's sessions; cancelled ones are kept and marked.
- *
- * @param {object[]} sessions Sessions of the cohort.
- * @return {object[]} Timeline events.
- * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
- */
-export function timelineEvents(sessions) {
-	return sessions
-		.filter((s) => s.startsAt)
-		.map((s) => ({
-			id: objectId(s),
-			title: s.title,
-			start: s.startsAt,
-			end: s.endsAt ?? undefined,
-			location: s.location ?? undefined,
-			kind: s.lifecycle ?? 'scheduled',
-		}))
-}
-
-/**
  * CnRelationshipGraph nodes and edges for a learning plan: the plan at the
  * centre, one node per goal and one per support measure, each measure linked
  * to the plan.
@@ -345,32 +231,60 @@ export function timelineEvents(sessions) {
  * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
  */
 export function planGraph(plan) {
-	const rootId = objectId(plan) || 'plan'
-	const nodes = [
-		{
-			id: rootId,
-			label: plan.kind ? String(plan.kind).toUpperCase() : 'Plan',
-			isRoot: true,
-		},
-	]
-	const edges = []
-	for (const goal of plan.goals ?? []) {
-		nodes.push({
+	const graph = { rootId: objectId(plan) || 'plan', nodes: [], edges: [] }
+	graph.nodes.push(planRootNode(plan, graph.rootId))
+	addGoalNodes(graph, plan.goals ?? [])
+	addMeasureNodes(graph, plan.supportMeasures ?? [])
+	return { nodes: graph.nodes, edges: graph.edges }
+}
+
+/**
+ * The plan's own node at the centre of its graph, labelled by its kind.
+ *
+ * @param {object} plan The LearningPlan.
+ * @param {string} rootId The node id.
+ * @return {{id: string, label: string, isRoot: boolean}} The node.
+ */
+function planRootNode(plan, rootId) {
+	return {
+		id: rootId,
+		label: plan.kind ? String(plan.kind).toUpperCase() : 'Plan',
+		isRoot: true,
+	}
+}
+
+/**
+ * Add a node per goal, each linked to the plan.
+ *
+ * @param {{rootId: string, nodes: object[], edges: object[]}} graph The graph being built.
+ * @param {object[]} goals LearningPlan.goals.
+ */
+function addGoalNodes(graph, goals) {
+	for (const goal of goals) {
+		graph.nodes.push({
 			id: `goal:${goal.goalId}`,
 			label: goal.description,
 			kind: 'goal',
 		})
-		edges.push({ source: rootId, target: `goal:${goal.goalId}` })
+		graph.edges.push({ source: graph.rootId, target: `goal:${goal.goalId}` })
 	}
-	for (const measure of plan.supportMeasures ?? []) {
-		nodes.push({
+}
+
+/**
+ * Add a node per support measure, each linked to the plan.
+ *
+ * @param {{rootId: string, nodes: object[], edges: object[]}} graph The graph being built.
+ * @param {object[]} measures LearningPlan.supportMeasures.
+ */
+function addMeasureNodes(graph, measures) {
+	for (const measure of measures) {
+		graph.nodes.push({
 			id: `measure:${measure.measureId}`,
 			label: measure.description,
 			kind: 'measure',
 		})
-		edges.push({ source: rootId, target: `measure:${measure.measureId}` })
+		graph.edges.push({ source: graph.rootId, target: `measure:${measure.measureId}` })
 	}
-	return { nodes, edges }
 }
 
 /**
@@ -481,16 +395,16 @@ export function coursePackagePublishUrl() {
 	return '/apps/learniq/api/store/publish'
 }
 
-/** What each signable subject needs: schema slugs and the roles that sign in learniq. */
+/** What each signable subject needs: its schema, its sign endpoint and the roles that sign in learniq. */
 export const SIGNABLE_SUBJECTS = {
 	'learning-plan': {
 		subjectSchema: 'learning-plan',
-		signatureSchema: 'signature',
-		roles: ['learner', 'parent', 'coordinator', 'teacher', 'other'],
+		endpoint: 'learning-plan',
+		roles: ['learner', 'parent', 'coordinator', 'teacher'],
 	},
 	praktijkovereenkomst: {
 		subjectSchema: 'praktijkovereenkomst',
-		signatureSchema: 'pok-signature',
+		endpoint: 'placement-agreement',
 		// The praktijkopleider signs through the portal (portaliq), not here.
 		// A parent or guardian signs a minor's agreement (pok-signature-parent-role).
 		roles: ['student', 'school', 'parent'],
@@ -515,109 +429,18 @@ export function parentSignatureNeeded(kind, subject) {
 }
 
 /**
- * The role the current user most likely signs a subject as.
+ * The sign endpoint of a record. GET answers the roles the signed-in user
+ * holds on it; POST `{role, capture}` records the signature, with signer,
+ * time, version and tenant set by the server.
  *
  * @param {string} kind 'learning-plan' or 'praktijkovereenkomst'.
- * @param {object} subject The LearningPlan or Praktijkovereenkomst.
- * @param {string} userId Current Nextcloud user id.
- * @return {string} A role from SIGNABLE_SUBJECTS[kind].roles.
- * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
+ * @param {string} id The record uuid.
+ * @return {string} The app-relative URL.
+ * @spec openspec/specs/learning-plan/spec.md#requirement-a-signature-is-recorded-by-the-server-in-a-role-the-signer-holds
  */
-export function defaultSignerRole(kind, subject, userId) {
-	if (kind === 'learning-plan') {
-		if (subject.learnerId === userId) return 'learner'
-		if (subject.coordinatorId === userId) return 'coordinator'
-		return 'teacher'
-	}
-	return subject.learnerId === userId ? 'student' : 'school'
+export function signUrl(kind, id) {
+	const endpoint = (SIGNABLE_SUBJECTS[kind] ?? SIGNABLE_SUBJECTS['learning-plan'])
+		.endpoint
+	return `/apps/learniq/api/sign/${endpoint}/${encodeURIComponent(id)}`
 }
 
-/**
- * The signature record for a capture. Signature and PokSignature are
- * append-only, so everything, the evidence included, goes in on create:
- * `typed:<name>` or `drawn:<png data url>`.
- *
- * @param {object} args Arguments.
- * @param {string} args.kind 'learning-plan' or 'praktijkovereenkomst'.
- * @param {object} args.subject The signed object.
- * @param {string} args.signerId Current Nextcloud user id.
- * @param {string} args.signerRole Role signed as.
- * @param {{mode: string, value: string}} args.capture CnSignatureCapture payload.
- * @param {string} args.signedAt ISO date-time.
- * @return {object} The record body.
- * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
- */
-export function signatureBody({
-	kind,
-	subject,
-	signerId,
-	signerRole,
-	capture,
-	signedAt,
-}) {
-	const body = {
-		subjectId: objectId(subject),
-		subjectVersion: Number(subject.version ?? 1),
-		signerId,
-		signerRole,
-		signedAt,
-		assuranceLevel: 'basic',
-		method: capture.mode === 'drawn' ? 'drawn-signature' : 'typed-signature',
-		evidenceRef: `${capture.mode}:${capture.value}`,
-		tenant_id: subject.tenant_id ?? '',
-	}
-	if (kind === 'learning-plan') body.subjectKind = 'learning-plan'
-	return body
-}
-
-/**
- * Every level of a department path, top first, trimmed: 'Operations / Infra'
- * gives ['Operations', 'Operations/Infra']. Mirrors
- * RegulationAudienceResolver::departmentLevels() so the bulk enrolment picker
- * and the compliance roll-up agree on who is in a department.
- *
- * @param {string} department The department path.
- * @return {string[]} The levels, [] when empty.
- * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
- */
-export function departmentLevels(department) {
-	const parts = String(department ?? '')
-		.split('/')
-		.map((p) => p.trim())
-		.filter(Boolean)
-	return parts.map((_, i) => parts.slice(0, i + 1).join('/'))
-}
-
-/**
- * The Nextcloud user ids of the profiles in a department or anywhere under it.
- *
- * @param {object[]} profiles LearnerProfiles.
- * @param {string} department The picked department path.
- * @return {string[]} User ids.
- * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
- */
-export function learnersInDepartment(profiles, department) {
-	const levels = departmentLevels(department)
-	const target = levels[levels.length - 1]
-	if (!target) return []
-	return profiles
-		.filter(
-			(p) => !p.mergedInto && departmentLevels(p.department).includes(target),
-		)
-		.map((p) => p.ncUserId)
-		.filter(Boolean)
-}
-
-/**
- * Every department path that occurs in the profiles, at every level, sorted.
- *
- * @param {object[]} profiles LearnerProfiles.
- * @return {string[]} Department paths.
- * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
- */
-export function departmentOptions(profiles) {
-	const all = new Set()
-	for (const p of profiles)
-		departmentLevels(p.department).forEach((l) => all.add(l))
-	return [...all].sort()
-}

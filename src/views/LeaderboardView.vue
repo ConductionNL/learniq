@@ -22,11 +22,9 @@
 -->
 
 <template>
-	<div class="leaderboard-view">
+	<div class="leaderboard-view lq-board-page">
 		<header class="leaderboard-view__header">
-			<h2 class="leaderboard-view__title">
-				{{ t('learniq', 'Leaderboard') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Leaderboard')" />
 			<p class="leaderboard-view__subtitle">
 				{{
 					t(
@@ -56,7 +54,7 @@
 				)
 			" />
 
-		<template v-else>
+		<CnDetailCard v-else class="leaderboard-view__board">
 			<div class="leaderboard-view__field">
 				<label for="leaderboard-cohort-select">{{
 					t('learniq', 'Leaderboard')
@@ -77,7 +75,7 @@
 				:modelValue="optedOut"
 				:disabled="optOutSaving"
 				class="leaderboard-view__opt-out"
-				@update:checked="toggleOptOut">
+				@update:modelValue="toggleOptOut">
 				{{ t('learniq', 'Hide me from this leaderboard') }}
 			</NcCheckboxRadioSwitch>
 
@@ -122,11 +120,12 @@
 					}}</span>
 				</li>
 			</ol>
-		</template>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import {
@@ -138,10 +137,27 @@ import {
 
 const OPT_OUT_PREFERENCE_KEY = 'leaderboardoptout'
 
+/**
+ * The cohort picker options: one per leaderboard that names a cohort.
+ *
+ * @param {Array<object>} rows Leaderboard rows.
+ * @return {Array<{cohortId: string, name: string}>}
+ */
+function leaderboardOptionsOf(rows) {
+	return rows
+		.filter((row) => !!row.cohortId)
+		.map((row) => ({
+			cohortId: row.cohortId,
+			name: row.name || row.cohortId,
+		}))
+}
+
 export default {
 	name: 'LeaderboardView',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcCheckboxRadioSwitch,
 		NcEmptyContent,
 		NcLoadingIcon,
@@ -183,23 +199,7 @@ export default {
 		async loadLeaderboards() {
 			this.loadingLeaderboards = true
 			try {
-				const params = new URLSearchParams({
-					lifecycle: 'active',
-					_limit: '100',
-				})
-				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/Leaderboard?'
-						+ params.toString(),
-				)
-				const response = await axios.get(url)
-				const data = response.data ?? {}
-				const rows = data.results ?? (Array.isArray(data) ? data : [])
-				this.leaderboardOptions = rows
-					.filter((row) => !!row.cohortId)
-					.map((row) => ({
-						cohortId: row.cohortId,
-						name: row.name || row.cohortId,
-					}))
+				this.leaderboardOptions = leaderboardOptionsOf(await this.readActiveLeaderboards())
 
 				if (this.leaderboardOptions.length > 0) {
 					this.selectedCohortId = this.leaderboardOptions[0].cohortId
@@ -210,6 +210,25 @@ export default {
 			} finally {
 				this.loadingLeaderboards = false
 			}
+		},
+
+		/**
+		 * Read every active Leaderboard row.
+		 *
+		 * @return {Promise<Array<object>>}
+		 */
+		async readActiveLeaderboards() {
+			const params = new URLSearchParams({
+				lifecycle: 'active',
+				_limit: '100',
+			})
+			const url = generateUrl(
+				'/apps/openregister/api/objects/learniq/Leaderboard?'
+					+ params.toString(),
+			)
+			const response = await axios.get(url)
+			const data = response.data ?? {}
+			return data.results ?? (Array.isArray(data) ? data : [])
 		},
 
 		/**
@@ -290,22 +309,6 @@ export default {
 </script>
 
 <style scoped>
-.leaderboard-view {
-	max-width: 900px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.leaderboard-view__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.leaderboard-view__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-}
-
 .leaderboard-view__subtitle {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9em;

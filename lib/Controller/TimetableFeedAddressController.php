@@ -28,8 +28,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\TimetableFeedTokenService;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\TimetableFeedTokenServiceInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -48,16 +48,16 @@ class TimetableFeedAddressController extends Controller {
 	 *
 	 * @param IRequest                  $request     HTTP request.
 	 * @param IUserSession              $userSession The signed-in user.
-	 * @param TimetableFeedTokenService $tokens      Feed tokens.
+	 * @param TimetableFeedTokenServiceInterface $tokens      Feed tokens.
 	 * @param IURLGenerator             $urls        The feed address.
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
-		private readonly TimetableFeedTokenService $tokens,
+		private readonly TimetableFeedTokenServiceInterface $tokens,
 		private readonly IURLGenerator $urls,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -95,7 +95,7 @@ class TimetableFeedAddressController extends Controller {
 		}
 
 		$url = $this->urls->linkToRouteAbsolute(
-			Application::APP_ID . '.timetableFeed.feed',
+			AppIdentity::APP_ID . '.timetableFeed.feed',
 			['token' => $this->tokens->issue(uid: $uid)]
 		);
 

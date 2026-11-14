@@ -23,7 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\CollaborationListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\CollaborationListenerRegistrar;
 use OCA\Learniq\Listener\ConferenceRoundBookingModeStamp;
 use OCA\Learniq\Service\ConferenceBookingMode;
 use OCA\Learniq\Service\ListenerSchemaResolver;

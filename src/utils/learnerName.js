@@ -18,6 +18,8 @@
  * @spec openspec/changes/lists-read-pupil-names/specs/school-structure/spec.md#requirement-every-staff-list-reads-a-pupil-by-name
  */
 
+import { listRows, objectsUrl } from './customPages.js'
+
 const BY_REF = '/apps/openregister/api/objects/learniq/learner-profile/{ref}'
 const BY_USER =
 	'/apps/openregister/api/objects/learniq/learner-profile?ncUserId={uid}&_limit=1'
@@ -122,4 +124,35 @@ export function createLearnerNameResolver({ getJson, urlFor }) {
 			return viaUser !== '' ? viaUser : userId || ref
 		},
 	}
+}
+
+/**
+ * Pupil names by Nextcloud user id: the given and family name of each
+ * profile that has a user id and a name.
+ *
+ * @param {Array<object>} profiles The learner profiles.
+ * @return {Record<string, string>}
+ * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
+ */
+export function namesByUser(profiles) {
+	const names = {}
+	for (const p of profiles) {
+		const name = [p.givenName, p.familyName].filter(Boolean).join(' ')
+		if (p.ncUserId && name) names[p.ncUserId] = name
+	}
+	return names
+}
+
+/**
+ * Read every learner profile (up to 1000) and name them by user id.
+ *
+ * @param {{get: function(string, object): Promise<{data: unknown}>, urlFor: function(string): string}} http The transport and the URL builder.
+ * @return {Promise<Record<string, string>>}
+ * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
+ */
+export async function fetchNamesByUser({ get, urlFor }) {
+	const response = await get(urlFor(objectsUrl('learner-profile')), {
+		params: { _limit: 1000 },
+	})
+	return namesByUser(listRows(response.data))
 }

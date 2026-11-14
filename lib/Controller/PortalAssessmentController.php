@@ -3,6 +3,9 @@
 /**
  * Learniq Portal Assessment Controller
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * The receiving end of portaliq's timed task (ConductionNL/portaliq#749): five
  * server-to-server forwards (`available`, `start`, `answer`, `submit`,
  * `result`) through which a pupil takes a test in the portal.
@@ -31,8 +34,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -44,13 +45,17 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Portal\PortalAssertionVerifier;
-use OCA\Learniq\Service\Portal\PortalAttemptService;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PortalAssertionVerifierInterface;
+use OCA\Learniq\Kernel\Contracts\PortalAttemptServiceInterface;
+use OCA\Learniq\Kernel\Contracts\PortalLearnerResolverInterface;
+use OCA\Learniq\Kernel\Contracts\PortalMessagesInterface;
+use OCA\Learniq\Kernel\Contracts\PortalResultReaderInterface;
+use OCA\Learniq\Portal\PortalForwardFailure;
+use OCA\Learniq\Portal\PortalForwardGate;
+use OCA\Learniq\Portal\PortalLearnerForward;
+use OCA\Learniq\Portal\PortalLearnerStep;
 use OCA\Learniq\Service\Portal\PortalLearner;
-use OCA\Learniq\Service\Portal\PortalLearnerResolver;
-use OCA\Learniq\Service\Portal\PortalMessages;
-use OCA\Learniq\Service\Portal\PortalResultReader;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
@@ -70,11 +75,6 @@ use Throwable;
 class PortalAssessmentController extends Controller {
 
 	/**
-	 * The only audience these endpoints serve.
-	 */
-	private const AUDIENCE = 'student';
-
-	/**
 	 * The brute-force bucket for rejected assertions.
 	 */
 	private const THROTTLE_ACTION = 'learniq_portal_assertion';
@@ -83,25 +83,25 @@ class PortalAssessmentController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest $request The request.
-	 * @param PortalAssertionVerifier $verifier Verifies X-Portal-Subject.
-	 * @param PortalLearnerResolver $learners learnerRef to the pupil.
-	 * @param PortalAttemptService $attempts available, start, answer, submit.
-	 * @param PortalResultReader $results result.
-	 * @param PortalMessages $messages Pupil-facing refusal messages.
+	 * @param PortalAssertionVerifierInterface $verifier Verifies X-Portal-Subject.
+	 * @param PortalLearnerResolverInterface $learners learnerRef to the pupil.
+	 * @param PortalAttemptServiceInterface $attempts available, start, answer, submit.
+	 * @param PortalResultReaderInterface $results result.
+	 * @param PortalMessagesInterface $messages Pupil-facing refusal messages.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly PortalAssertionVerifier $verifier,
-		private readonly PortalLearnerResolver $learners,
-		private readonly PortalAttemptService $attempts,
-		private readonly PortalResultReader $results,
-		private readonly PortalMessages $messages,
+		private readonly PortalAssertionVerifierInterface $verifier,
+		private readonly PortalLearnerResolverInterface $learners,
+		private readonly PortalAttemptServiceInterface $attempts,
+		private readonly PortalResultReaderInterface $results,
+		private readonly PortalMessagesInterface $messages,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -197,52 +197,6 @@ class PortalAssessmentController extends Controller {
 	}//end result()
 
 	/**
-	 * Verify, resolve the pupil, run the step, answer.
-	 *
-	 * @param callable(PortalLearner): \OCA\Learniq\Service\Portal\PortalOutcome $step The step.
-	 *
-	 * @return JSONResponse
-	 */
-	private function respond(callable $step): JSONResponse {
-		$claims = $this->verifier->verify(jwt: (string)$this->request->getHeader(PortalAssertionVerifier::HEADER));
-		if ($claims === null) {
-			$response = new JSONResponse(data: ['error' => 'unauthorized'], statusCode: Http::STATUS_UNAUTHORIZED);
-			$response->throttle(['action' => self::THROTTLE_ACTION]);
-			return $response;
-		}
-
-		$learnerRef = $this->stringParam(name: 'learnerRef');
-		if (($claims['audience'] ?? '') !== self::AUDIENCE || $learnerRef === '') {
-			return new JSONResponse(data: ['error' => 'forbidden'], statusCode: Http::STATUS_FORBIDDEN);
-		}
-
-		try {
-			$learner = $this->learners->resolve(learnerRef: $learnerRef);
-			if ($learner === null) {
-				return new JSONResponse(
-					data: ['error' => 'not_available', 'message' => $this->messages->message(reason: 'no-account', user: null)],
-					statusCode: Http::STATUS_FORBIDDEN
-				);
-			}
-
-			$outcome = $step($learner);
-			$body = $outcome->body;
-			if ($outcome->reason !== null) {
-				$body['message'] = $this->messages->message(reason: $outcome->reason, user: $learner->user);
-			}
-		} catch (Throwable $exception) {
-			// Never leak internals from a public route (ADR-005).
-			$this->logger->error(
-				'[PortalAssessmentController] A portal assessment step failed: {msg}',
-				['msg' => $exception->getMessage(), 'exception' => $exception]
-			);
-			return new JSONResponse(data: ['error' => 'downstream_error'], statusCode: Http::STATUS_BAD_GATEWAY);
-		}//end try
-
-		return new JSONResponse(data: $body, statusCode: $outcome->status);
-	}//end respond()
-
-	/**
 	 * A request parameter as a string, '' when absent or not a string.
 	 *
 	 * @param string $name The parameter.
@@ -250,11 +204,20 @@ class PortalAssessmentController extends Controller {
 	 * @return string
 	 */
 	private function stringParam(string $name): string {
-		$value = $this->request->getParam($name);
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return trim($value);
+		return PortalForwardGate::stringParam(request: $this->request, name: $name);
 	}//end stringParam()
+
+	/**
+	 * Verify, resolve the pupil, run the step, answer.
+	 *
+	 * @param callable(PortalLearner): \OCA\Learniq\Service\Portal\PortalOutcome $step The step.
+	 *
+	 * @return JSONResponse
+	 */
+	private function respond(callable $step): JSONResponse {
+		$failure = new PortalForwardFailure(logger: $this->logger, message: '[PortalAssessmentController] A portal assessment step failed: {msg}');
+		$forward = new PortalLearnerForward(gate: new PortalForwardGate(verifier: $this->verifier, request: $this->request), learners: $this->learners);
+
+		return $forward->respond(step: new PortalLearnerStep(run: $step(...), messages: $this->messages->message(...)), failure: $failure);
+	}//end respond()
 }//end class

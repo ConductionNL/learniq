@@ -52,6 +52,144 @@ class ParentRecordPage {
 	 */
 	private const SLOT_PLANNED = ['booked', 'acknowledged', 'proposed', 'confirmed', 'completed'];
 
+	private const PARENT_CHILDREN_FIELDS = [
+		'givenName',
+		'familyName',
+		// The group line under the child's name (school-portals-use-the-new-blocks).
+		'groupLabel',
+		// "Bericht aan {teacherName}", the message form opened on that teacher (wilgenboom/Detail).
+		'teacherName',
+		'teacherRef',
+		'guardianRefs',
+		// The record page joins the school's calendar and news on it.
+		'schoolId',
+		'beeldmateriaalConsent',
+		'beeldmateriaalConsentReviewDueAt',
+	];
+
+	/**
+	 * The two buttons the child's page opens with (wilgenboom/Detail): report
+	 * this child absent, and write to the group's teacher, the form opened
+	 * with that teacher chosen (portaliq cta `messageTo`).
+	 */
+	private const CHILD_PAGE_CTAS = [
+		['type' => 'cta', 'action' => 'createExcuseRequest', 'label' => 'Report {givenName} ill or absent', 'withRecord' => true],
+		[
+			'type' => 'cta',
+			'route' => '/mijn/messages',
+			'label' => 'Message to {teacherName}',
+			'labelWhenEmpty' => 'Send a message',
+			'messageTo' => 'teacherRef',
+		],
+	];
+
+	private const PARENT_CHILDREN_CONTACTS = [
+		'provider' => 'childMessageContacts',
+		'recordLabelFields' => ['givenName'],
+		'composeLabel' => 'A message to the teacher',
+		'composeHint' => 'The teacher usually answers within two school days. Is it urgent? Call the school.',
+	];
+
+	private const PARENT_CHILDREN_COLUMNS = [
+		['field' => 'givenName', 'label' => 'First name'],
+		['field' => 'familyName', 'label' => 'Last name'],
+	];
+
+	private const PARENT_HOMEWORK_LISTING = [
+		'filter' => ['lifecycle' => 'published'],
+		'columns' => [
+			['field' => 'title', 'label' => 'To do'],
+			['field' => 'dueAt', 'label' => 'Hand in by', 'render' => 'date'],
+			['field' => 'status', 'label' => 'Status', 'render' => 'badge'],
+		],
+	];
+
+	private const PARENT_HOMEWORK_BLOCK = [
+		'type' => 'collection',
+		'collection' => 'parentHomework',
+		'recordGroupsField' => 'cohortId',
+		'lookups' => [
+			[
+				'as' => 'status',
+				'collection' => 'parentSubmissions',
+				'matchField' => 'assignmentId',
+				'valueField' => 'lifecycle',
+				'recordField' => 'learnerRef',
+				'values' => [
+					'submitted' => 'Handed in',
+					'late' => 'Handed in late',
+					'returned' => 'Marked',
+					'draft' => 'Open',
+				],
+				'fallback' => 'Open',
+			],
+		],
+	];
+
+	private const PARENT_LATEST_REPORT_BLOCK = [
+		'type' => 'collection',
+		'label' => 'Latest report',
+		'collection' => 'parentReportSubjectGrades',
+		'recordField' => 'learnerRef',
+		'display' => 'bars',
+		'labelField' => 'subjectName',
+		'valueField' => 'periodAverage',
+		'max' => 10,
+		'captionField' => 'caption',
+		'noteField' => 'mentorComment',
+		'noteLabel' => 'From the teacher',
+		'sort' => ['field' => 'position', 'direction' => 'asc'],
+	];
+
+	private const LATE_FIGURE = [
+		'field' => 'lateCount',
+		'label' => 'Late',
+		'unit' => ['one' => 'time', 'other' => 'times'],
+		'details' => [['field' => 'lateMinutes', 'label' => ['one' => 'minute in total', 'other' => 'minutes in total']]],
+	];
+
+	private const ABSENCE_FIGURE_DETAILS = [
+		['field' => 'absentAuthorisedDays', 'label' => 'with permission'],
+		['field' => 'absentUnauthorisedDays', 'label' => 'without permission'],
+	];
+
+	private const CONFERENCE_SLOT_SOURCE = [
+		// A fixed title with the teacher under it: `slotLabel` is the
+		// time picker's raw line ("29-10-2026 18:00-18:10, Meester
+		// Daan") and read as a code on the calendar (portal proof run 1).
+		'collection' => 'parentConferenceSlots',
+		'startField' => 'startsAt',
+		'endField' => 'endsAt',
+		'metaField' => 'teacherName',
+		'title' => 'Parent-teacher conversation',
+		'kind' => 'Parent evening',
+		'recordField' => 'learnerRef',
+		'only' => ['field' => 'lifecycle', 'in' => self::SLOT_PLANNED],
+	];
+
+	private const SCHOOL_EVENT_SOURCE = [
+		'collection' => 'parentSchoolEvents',
+		'startField' => 'startsAt',
+		'endField' => 'endsAt',
+		'titleField' => 'title',
+		// The line under the title on the calendar tiles (board "Deze maand").
+		'metaField' => 'description',
+		'kind' => 'School event',
+		'recordGroupsField' => 'cohortIds',
+	];
+
+	private const HOLIDAY_SOURCE = [
+		'collection' => 'parentSchoolCalendar',
+		'kind' => 'Holiday',
+		'expand' => ['field' => 'holidays', 'startField' => 'startDate', 'endField' => 'endDate', 'titleField' => 'name'],
+	];
+
+	private const STUDY_DAY_SOURCE = [
+		'collection' => 'parentSchoolCalendar',
+		'kind' => 'No school',
+		'expand' => ['field' => 'studyDays', 'startField' => 'date', 'titleField' => 'description'],
+	];
+
 	/**
 	 * The guardian's per-child, per-guardian-group directory, with current
 	 * beeldmateriaal consent state.
@@ -68,6 +206,7 @@ class ParentRecordPage {
 	 * @return array<string, mixed> The parentChildren collection.
 	 *
 	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-parent-audience-exposes-per-child-and-per-guardian-group-directory-data-req-pcon-006
+	 * @spec openspec/changes/guardian-reports-and-documents/specs/portal-contribution/spec.md#requirement-a-guardian-reads-her-childrens-published-reports-and-the-schools-papers-on-one-page
 	 */
 	public function childrenCollection(): array {
 		return [
@@ -79,21 +218,15 @@ class ParentRecordPage {
 			'label' => 'My children',
 			'listable' => true,
 			'minTrust' => 'substantial',
-			'fields' => [
-				'givenName',
-				'familyName',
-				// The group line under the child's name (school-portals-use-the-new-blocks).
-				'groupLabel',
-				'guardianRefs',
-				// The record page joins the school's calendar and news on it.
-				'schoolId',
-				'beeldmateriaalConsent',
-				'beeldmateriaalConsentReviewDueAt',
-			],
-			'columns' => [
-				['field' => 'givenName', 'label' => 'First name'],
-				['field' => 'familyName', 'label' => 'Last name'],
-			],
+			'fields' => self::PARENT_CHILDREN_FIELDS,
+			'columns' => self::PARENT_CHILDREN_COLUMNS,
+			// Who she may write to about each child: the teachers of the
+			// child's current groups (portal-message-contacts, portaliq
+			// site-messages-per-record). The tab and the "to" field name the
+			// child by first name.
+			'contacts' => self::PARENT_CHILDREN_CONTACTS,
+			// Each child's published reports, on "Rapporten en documenten" (guardian-reports-and-documents).
+			'documents' => ParentDocumentsPage::CHILD_DOCUMENTS,
 		];
 
 	}//end childrenCollection()
@@ -131,14 +264,7 @@ class ParentRecordPage {
 					label: 'Homework',
 					fields: ['title', 'dueAt', 'cohortId', 'lifecycle']
 				),
-				[
-					'filter' => ['lifecycle' => 'published'],
-					'columns' => [
-						['field' => 'title', 'label' => 'To do'],
-						['field' => 'dueAt', 'label' => 'Hand in by', 'render' => 'date'],
-						['field' => 'status', 'label' => 'Status', 'render' => 'badge'],
-					],
-				]
+				self::PARENT_HOMEWORK_LISTING
 			),
 			$this->hidden(
 				id: 'parentSubmissions',
@@ -181,16 +307,22 @@ class ParentRecordPage {
 	 * @return array<int, array<string, mixed>>
 	 *
 	 * @spec openspec/changes/portal-parent-child-record/specs/portal-contribution/spec.md#requirement-a-guardian-opens-one-child-and-sees-everything-about-them
-	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-guardian-menu-is-grouped-per-child
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-is-grouped-per-child
+	 * @spec openspec/changes/school-portals-match-their-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-holds-only-what-the-board-shows
+	 * @spec openspec/changes/guardian-reports-and-documents/specs/portal-contribution/spec.md#requirement-a-guardian-reads-her-childrens-published-reports-and-the-schools-papers-on-one-page
 	 */
 	public function pages(array $collections, array $actions, ParentPortalCollections $sections): array {
 		$site = new ParentSitePages();
 		$pages = [
-			$site->overviewPage(sources: $this->childSources(), figures: $this->attendanceFigures()),
+			$site->overviewPage(sources: $this->childSources()),
 			$site->perChild(page: $this->recordPage()),
-			$site->absencePage(figures: $this->attendanceFigures()),
+			$site->absencePage(),
 			$site->conferencesPage(),
 			$site->inGroup(page: $this->calendarPage()),
+			// "Rapporten en documenten" (guardian-reports-and-documents).
+			(new ParentDocumentsPage())->page(),
+			// The page the overview's task opens, out of the menu.
+			$site->invitationPage(),
 		];
 		// Every collection keeps its own page and route, out of the menu.
 		foreach ($sections->pages(collections: $collections, actions: $actions) as $page) {
@@ -224,45 +356,13 @@ class ParentRecordPage {
 			'records' => ['collection' => 'parentChildren', 'titleFields' => ['givenName'], 'subtitleFields' => ['groupLabel']],
 			'blocks' => [
 				['type' => 'collection', 'collection' => 'parentChildren'],
+				...self::CHILD_PAGE_CTAS,
 				$this->attendanceFigures(),
 				['type' => 'collection', 'collection' => 'parentReportCards', 'recordField' => 'learnerRef'],
 				// The latest report as a bar per subject, with the teacher's words (board Detail).
-				[
-					'type' => 'collection',
-					'label' => 'Latest report',
-					'collection' => 'parentReportSubjectGrades',
-					'recordField' => 'learnerRef',
-					'display' => 'bars',
-					'labelField' => 'subjectName',
-					'valueField' => 'periodAverage',
-					'max' => 10,
-					'captionField' => 'caption',
-					'noteField' => 'mentorComment',
-					'noteLabel' => 'From the teacher',
-					'sort' => ['field' => 'position', 'direction' => 'asc'],
-				],
+				self::PARENT_LATEST_REPORT_BLOCK,
 				['type' => 'collection', 'collection' => 'parentReportCardGrades', 'recordField' => 'learnerRef'],
-				[
-					'type' => 'collection',
-					'collection' => 'parentHomework',
-					'recordGroupsField' => 'cohortId',
-					'lookups' => [
-						[
-							'as' => 'status',
-							'collection' => 'parentSubmissions',
-							'matchField' => 'assignmentId',
-							'valueField' => 'lifecycle',
-							'recordField' => 'learnerRef',
-							'values' => [
-								'submitted' => 'Handed in',
-								'late' => 'Handed in late',
-								'returned' => 'Marked',
-								'draft' => 'Open',
-							],
-							'fallback' => 'Open',
-						],
-					],
-				],
+				self::PARENT_HOMEWORK_BLOCK,
 				['type' => 'collection', 'collection' => 'parentAttendance', 'recordField' => 'learnerRef'],
 				['type' => 'calendar', 'label' => 'Coming up', 'sources' => $this->childSources()],
 				['type' => 'news', 'label' => 'News from school', 'limit' => 3],
@@ -297,17 +397,9 @@ class ParentRecordPage {
 					'field' => 'absentDays',
 					'label' => 'Absent',
 					'unit' => $days,
-					'details' => [
-						['field' => 'absentAuthorisedDays', 'label' => 'with permission'],
-						['field' => 'absentUnauthorisedDays', 'label' => 'without permission'],
-					],
+					'details' => self::ABSENCE_FIGURE_DETAILS,
 				],
-				[
-					'field' => 'lateCount',
-					'label' => 'Late',
-					'unit' => ['one' => 'time', 'other' => 'times'],
-					'details' => [['field' => 'lateMinutes', 'label' => ['one' => 'minute in total', 'other' => 'minutes in total']]],
-				],
+				self::LATE_FIGURE,
 				[
 					'field' => 'absentUnauthorisedDays',
 					'label' => 'Unexcused absence',
@@ -354,48 +446,26 @@ class ParentRecordPage {
 	 * the child's parent-teacher conversations.
 	 *
 	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/school-portals-match-their-boards/specs/portal-contribution/spec.md#requirement-the-guardian-overview-holds-only-what-the-board-shows
 	 */
 	private function childSources(): array {
 		$school = ['recordField' => 'schoolId', 'recordKey' => 'schoolId'];
 
 		return [
 			array_merge(
-				[
-					'collection' => 'parentSchoolEvents',
-					'startField' => 'startsAt',
-					'endField' => 'endsAt',
-					'titleField' => 'title',
-					'kind' => 'School event',
-					'recordGroupsField' => 'cohortIds',
-				],
+				self::SCHOOL_EVENT_SOURCE,
 				$school
 			),
 			array_merge(
-				[
-					'collection' => 'parentSchoolCalendar',
-					'kind' => 'Holiday',
-					'expand' => ['field' => 'holidays', 'startField' => 'startDate', 'endField' => 'endDate', 'titleField' => 'name'],
-				],
+				self::HOLIDAY_SOURCE,
 				$school
 			),
 			array_merge(
-				[
-					'collection' => 'parentSchoolCalendar',
-					'kind' => 'No school',
-					'expand' => ['field' => 'studyDays', 'startField' => 'date', 'titleField' => 'description'],
-				],
+				self::STUDY_DAY_SOURCE,
 				$school
 			),
-			[
-				'collection' => 'parentConferenceSlots',
-				'startField' => 'startsAt',
-				'endField' => 'endsAt',
-				'titleField' => 'slotLabel',
-				'title' => 'Parent-teacher conversation',
-				'kind' => 'Parent evening',
-				'recordField' => 'learnerRef',
-				'only' => ['field' => 'lifecycle', 'in' => self::SLOT_PLANNED],
-			],
+			self::CONFERENCE_SLOT_SOURCE,
 		];
 
 	}//end childSources()

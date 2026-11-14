@@ -32,6 +32,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Grading;
 
+use OCA\Learniq\Kernel\Contracts\ReportPeriodLocksInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -39,7 +40,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
  */
-class ReportPeriodLocks {
+class ReportPeriodLocks implements ReportPeriodLocksInterface {
 
 	private const REGISTER = 'learniq';
 

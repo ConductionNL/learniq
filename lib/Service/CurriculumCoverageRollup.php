@@ -40,6 +40,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\CurriculumCoverageRollupInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -49,7 +50,7 @@ use Throwable;
  *
  * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
  */
-class CurriculumCoverageRollup {
+class CurriculumCoverageRollup implements CurriculumCoverageRollupInterface {
 
 	private const REGISTER          = 'learniq';
 	private const COVERAGE_SCHEMA   = 'curriculum-coverage';
@@ -109,10 +110,12 @@ class CurriculumCoverageRollup {
 			$goalIds  = array_values(array_filter(array_map(fn (array $goal): string => $this->idOf(row: $goal), $goals)));
 			$computed = $this->calculator->compute(
 				framework: array_merge($framework, ['id' => $frameworkId]),
-				goals: $goals,
-				planned: $this->rowsAligningTo(schemas: self::PLANNED_SCHEMAS, goalIds: $goalIds),
-				assessed: $this->rowsAligningTo(schemas: self::ASSESSED_SCHEMAS, goalIds: $goalIds),
-				now: (new DateTimeImmutable())->format(\DATE_ATOM)
+				evidence: [
+					'goals' => $goals,
+					'planned' => $this->rowsAligningTo(schemas: self::PLANNED_SCHEMAS, goalIds: $goalIds),
+					'assessed' => $this->rowsAligningTo(schemas: self::ASSESSED_SCHEMAS, goalIds: $goalIds),
+					'now' => (new DateTimeImmutable())->format(\DATE_ATOM),
+				]
 			);
 		}
 

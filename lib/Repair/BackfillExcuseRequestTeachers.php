@@ -21,7 +21,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
-use OCA\Learniq\Service\PupilGroupTeachers;
+use OCA\Learniq\Kernel\Contracts\PupilGroupTeachersInterface;
+use OCA\Learniq\Repair\Support\RepairRowWalk;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -45,28 +46,29 @@ class BackfillExcuseRequestTeachers implements IRepairStep {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const EXCUSE_SCHEMA = 'excuse-request';
-	private const PAGE_SIZE = 200;
 
 	/**
-	 * Hard stop so a paging defect can never loop forever: 10,000 pages of
-	 * 200 is two million reports.
+	 * Pages through the schema this step back-fills.
+	 *
+	 * @var RepairRowWalk
 	 */
-	private const MAX_PAGES = 10000;
+	private readonly RepairRowWalk $rows;
 
 	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
-	 * @param PupilGroupTeachers $groupTeachers The teachers of a pupil's current groups.
+	 * @param PupilGroupTeachersInterface $groupTeachers The teachers of a pupil's current groups.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly PupilGroupTeachers $groupTeachers,
+		private readonly PupilGroupTeachersInterface $groupTeachers,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->rows = new RepairRowWalk(objectService: $objectService, logger: $logger, label: 'BackfillExcuseRequestTeachers');
 	}//end __construct()
 
 	/**
@@ -90,74 +92,19 @@ class BackfillExcuseRequestTeachers implements IRepairStep {
 	 * @spec openspec/changes/excuse-reports-follow-the-pupils-group/specs/attendance/spec.md#requirement-existing-absence-reports-get-their-group-teachers
 	 */
 	public function run(IOutput $output): void {
-		$counts = ['scanned' => 0, 'stamped' => 0, 'failed' => 0];
 		$cache = [];
-
-		try {
-			for ($page = 0; $page < self::MAX_PAGES; $page++) {
-				$rows = $this->page(offset: ($page * self::PAGE_SIZE));
-				foreach ($rows as $row) {
-					$counts['scanned']++;
-					$outcome = $this->stampRow(row: $row, cache: $cache);
-					if ($outcome !== null) {
-						$counts[$outcome]++;
-					}
-				}
-
-				if (count($rows) < self::PAGE_SIZE) {
-					break;
-				}
+		$counts = $this->rows->walk(
+			schema: self::EXCUSE_SCHEMA,
+			visit: function (array $row) use (&$cache): ?string {
+				return $this->stampRow(row: $row, cache: $cache);
 			}
-		} catch (Throwable $exception) {
-			// OpenRegister absent or the register not imported yet: nothing
-			// to back-fill on this run, the next upgrade retries.
-			$this->logger->warning(
-				'[BackfillExcuseRequestTeachers] Stopped early: {msg}',
-				['msg' => $exception->getMessage()]
-			);
-		}//end try
+		);
 
 		$output->info(
-			'BackfillExcuseRequestTeachers: ' . $counts['stamped'] . ' stamped, ' . $counts['failed']
-			. ' failed, of ' . $counts['scanned'] . ' scanned.'
+			'BackfillExcuseRequestTeachers: ' . $counts->countOf(key: 'stamped') . ' stamped, ' . $counts->countOf(key: 'failed')
+			. ' failed, of ' . $counts->countOf(key: 'scanned') . ' scanned.'
 		);
 	}//end run()
-
-	/**
-	 * One page of ExcuseRequest rows as arrays.
-	 *
-	 * @param int $offset Row offset.
-	 *
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function page(int $offset): array {
-		$objects = $this->objectService->findAll(
-			config: [
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::EXCUSE_SCHEMA,
-				],
-				'limit' => self::PAGE_SIZE,
-				'offset' => $offset,
-			],
-			_rbac: false,
-			_multitenancy: false
-		);
-
-		$rows = [];
-		foreach ($objects as $object) {
-			if (is_array($object) === true) {
-				$rows[] = $object;
-				continue;
-			}
-
-			if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-				$rows[] = (array)$object->jsonSerialize();
-			}
-		}
-
-		return $rows;
-	}//end page()
 
 	/**
 	 * Stamp one row when its stored teachers differ from the derived ones.

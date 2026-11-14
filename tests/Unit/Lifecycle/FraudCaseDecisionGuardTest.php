@@ -21,7 +21,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-decisions-require-a-verdict-rationale-and-when-fraud-is-proven-a-capped-sanction
- * @spec openspec/specs/exam-board/spec.md#requirement-a-decided-fraudcase-stamps-a-42-day-appeal-deadline
+ * @spec openspec/specs/exam-board/spec.md#requirement-a-decided-fraudcase-stamps-the-appeal-deadline-from-the-schools-appeal-term
  */
 
 declare(strict_types=1);
@@ -175,4 +175,39 @@ class FraudCaseDecisionGuardTest extends TestCase {
 		self::assertTrue($this->makeGuard()->check($object, 'decide', 'board-1')->isAllowed());
 
 	}//end testSanctionDurationAtCapBoundaryAllowed()
+
+	/**
+	 * A proven fraud's sanction at every boundary: type and scope must be
+	 * non-blank strings, the duration numeric and, as a whole number of
+	 * months, between 1 and 12.
+	 *
+	 * @return void
+	 */
+	public function testEverySanctionBoundary(): void {
+		$valid = ['sanctionType' => 'exclusion', 'sanctionScope' => 'all-exams', 'sanctionDurationMonths' => 6];
+		$cases = [
+			'valid'               => [[], true],
+			'type blank'          => [['sanctionType' => '  '], false],
+			'type not a string'   => [['sanctionType' => 7], false],
+			'type missing'        => [['sanctionType' => null], false],
+			'scope blank'         => [['sanctionScope' => ''], false],
+			'scope not a string'  => [['sanctionScope' => ['x']], false],
+			'duration missing'    => [['sanctionDurationMonths' => null], false],
+			'duration text'       => [['sanctionDurationMonths' => 'six'], false],
+			'duration as string'  => [['sanctionDurationMonths' => '12'], true],
+			'duration zero'       => [['sanctionDurationMonths' => 0], false],
+			'duration one'        => [['sanctionDurationMonths' => 1], true],
+			'duration thirteen'   => [['sanctionDurationMonths' => 13], false],
+			'duration 12.9'       => [['sanctionDurationMonths' => 12.9], true],
+			'duration 0.5'        => [['sanctionDurationMonths' => 0.5], false],
+			'duration negative'   => [['sanctionDurationMonths' => -3], false],
+		];
+
+		foreach ($cases as $name => [$override, $allowed]) {
+			$sanction = array_filter(array_merge($valid, $override), static fn ($value): bool => $value !== null);
+			$object = array_merge(['id' => 'fc-1', 'verdict' => 'fraud-proven', 'decisionRationale' => 'Bewezen.'], $sanction);
+
+			self::assertSame($allowed, $this->makeGuard()->check($object, 'decide', 'u')->isAllowed(), $name);
+		}
+	}//end testEverySanctionBoundary()
 }//end class
