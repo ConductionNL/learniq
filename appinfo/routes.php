@@ -361,6 +361,9 @@ $routes = [
         ['name' => 'portalCatalogue#catalogue', 'url' => '/api/portal/catalogue', 'verb' => 'POST'],
         ['name' => 'portalCatalogue#signUp', 'url' => '/api/portal/catalogue/sign-up', 'verb' => 'POST'],
         ['name' => 'portalCatalogue#withdraw', 'url' => '/api/portal/catalogue/withdraw', 'verb' => 'POST'],
+        // A pupil signs up for the next lesson of an optional-lesson offer from the
+        // portal (pupil-books-support-lessons-and-mentor-talks). Controller: PortalElectiveController.
+        ['name' => 'portalElective#signUp', 'url' => '/api/portal/electives/sign-up', 'verb' => 'POST'],
         // portal-guardian-invitation: the school invites a guardian to the parent portal.
         ['name' => 'portalGuardian#invite', 'url' => '/api/portal/guardians/{guardianRef}/invite', 'verb' => 'POST'],
         // employer-signs-in-with-eherkenning: the institute invites a client company's contact person.

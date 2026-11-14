@@ -108,7 +108,8 @@ interface ElectiveServiceInterface {
 	 *
 	 * @param array<string, mixed> $offer The offer.
 	 *
-	 * @return array<string, array{key: string, sessionId: ?string, timetableSessionRef: ?array, title: string, startsAt: string, endsAt: string}>
+	 * @return array<string, array{key: string, sessionId: ?string, timetableSessionRef: ?array, title: string, startsAt: string, endsAt: string,
+	 *     location: string}>
 	 *
 	 * @spec openspec/specs/enrolment/spec.md#requirement-a-school-offers-optional-lessons-with-a-window-and-a-capacity
 	 */

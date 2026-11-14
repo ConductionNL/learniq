@@ -201,7 +201,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(16, $collections);
+		$this->assertCount(18, $collections);
 		$this->assertSame(
 			[
 				'studentGrades',
@@ -226,6 +226,9 @@ class PortalContributionProviderTest extends TestCase {
 				'studentAttendanceSummary',
 				// site-pupil-portal-design T1: her timetable (its page still follows the overview).
 				'studentSessions',
+				// pupil-books-support-lessons-and-mentor-talks: the support lessons of her groups and her sign-ups.
+				'studentElectiveOffers',
+				'studentElectiveSignUps',
 			],
 			array_column($collections, 'id')
 		);
@@ -249,6 +252,15 @@ class PortalContributionProviderTest extends TestCase {
 				// enrolments, never by a field on the lesson (StudentTimetableTest).
 				$this->assertSame('cohortId', $collection['scopeField']);
 				$this->assertSame('learnerRef', $collection['via']['scopeField']);
+				continue;
+			}
+
+			if ($collection['id'] === 'studentElectiveOffers') {
+				// An offer belongs to groups: reached through her own live
+				// enrolments, as her lessons are, and only while it is open.
+				$this->assertSame('eligibleCohortIds', $collection['scopeField']);
+				$this->assertSame(['enrolment', 'learnerRef', 'cohortId'], [$collection['via']['schema'], $collection['via']['scopeField'], $collection['via']['targetField']]);
+				$this->assertSame(['lifecycle' => 'open'], $collection['filter']);
 				continue;
 			}
 
@@ -296,7 +308,7 @@ class PortalContributionProviderTest extends TestCase {
 		$actions = $manifest['actions'];
 
 		$this->assertSame(
-			['createSubmission', 'submitHourWeek', 'fillInSelfAssessment', 'createExcuseRequest', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult', 'handIn', 'listCatalogue', 'signUpForCourse', 'withdrawSignUp', 'listWorkGroups', 'joinWorkGroup', 'leaveWorkGroup', 'checkIn'],
+			['createSubmission', 'submitHourWeek', 'fillInSelfAssessment', 'createExcuseRequest', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult', 'handIn', 'listCatalogue', 'signUpForCourse', 'withdrawSignUp', 'listWorkGroups', 'joinWorkGroup', 'leaveWorkGroup', 'checkIn', 'signUpForElective'],
 			array_column($actions, 'id')
 		);
 		$byId = array_column($actions, null, 'id');

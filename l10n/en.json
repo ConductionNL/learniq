@@ -5235,7 +5235,23 @@
         "VAT rate": "VAT rate",
         "Price note": "Price note",
         "Invoice": "Invoice",
-        "Invoice status": "Invoice status"
+        "Invoice status": "Invoice status",
+        "Support lessons": "Support lessons",
+        "My support lessons": "My support lessons",
+        "Support lesson": "Support lesson",
+        "Next lesson": "Next lesson",
+        "Placed by the school": "Placed by the school",
+        "Sign up for the next lesson": "Sign up for the next lesson",
+        "No places left": "No places left",
+        "_%n place left_::_%n places left_": [
+            "%n place left",
+            "%n places left"
+        ],
+        "This support lesson could not be found.": "This support lesson could not be found.",
+        "This support lesson is full.": "This support lesson is full.",
+        "Sign-up for this support lesson is closed.": "Sign-up for this support lesson is closed.",
+        "You are already signed up for this lesson.": "You are already signed up for this lesson.",
+        "Your sign-up could not be checked. Try again later.": "Your sign-up could not be checked. Try again later."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
