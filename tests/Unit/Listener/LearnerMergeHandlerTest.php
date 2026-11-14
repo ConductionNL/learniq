@@ -97,6 +97,11 @@ class LearnerMergeHandlerTest extends TestCase {
 			'assessment-result' => [
 				['id' => 'ar-other', 'learnerId' => 'someone-else'],
 			],
+			'attestation' => [
+				['id' => 'attest-drafted', 'learnerId' => 'jan-old', 'lifecycle' => 'drafted'],
+				['id' => 'attest-signed', 'learnerId' => 'jan-old', 'lifecycle' => 'signed', 'signature' => 'abc'],
+				['id' => 'attest-revoked', 'learnerId' => 'jan-old', 'lifecycle' => 'revoked', 'signature' => 'def'],
+			],
 		];
 
 	}//end setUp()
@@ -223,6 +228,25 @@ class LearnerMergeHandlerTest extends TestCase {
 		$this->assertNull($this->savedRecord('fraud-other'));
 
 	}//end testMergeMovesRecordsToTheSurvivingAccount()
+
+	/**
+	 * A drafted attestation follows the learner; a signed or revoked one stays with the account it was signed under,
+	 * because the freeze refuses any change to its evidence and the merge must not stop half way on it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
+	 */
+	public function testMergeLeavesSignedAttestationsWhereTheyAre(): void {
+		$handler = new LearnerMergeHandler(new LearnerMergeService($this->makeObjectService(), new NullLogger()), new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
+
+		$handler->handle($this->makeEvent($this->store['learner-profile'][0]));
+
+		$this->assertSame('jan', $this->savedRecord('attest-drafted')['learnerId'] ?? null);
+		$this->assertNull($this->savedRecord('attest-signed'));
+		$this->assertNull($this->savedRecord('attest-revoked'));
+		$this->assertSame('jan', $this->savedRecord('enr-old')['learnerId'] ?? null, 'the rest of the merge still runs');
+	}//end testMergeLeavesSignedAttestationsWhereTheyAre()
 
 	/**
 	 * The merge never rewrites a LearnerProfile, so `mergedInto` stays set on

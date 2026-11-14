@@ -60,6 +60,7 @@ class JwsProofVerifier implements JwsProofVerifierInterface {
 	 * @return bool
 	 *
 	 * @spec openspec/specs/certification/spec.md#requirement-the-europass-form-is-checkable-on-the-verification-route
+	 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-rotating-the-signing-key-keeps-earlier-certificates-checkable
 	 */
 	public function verify(array $payload, string $tenantId): bool {
 		$jws = $payload['proof']['jws'] ?? null;
