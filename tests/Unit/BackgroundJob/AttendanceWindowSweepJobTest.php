@@ -37,7 +37,7 @@ use RuntimeException;
  * Unit tests for AttendanceWindowSweepJob.
  *
  * @covers \OCA\Learniq\BackgroundJob\AttendanceWindowSweepJob
- * @uses   \OCA\Learniq\Service\Attendance\AttendanceSummaryCalculator
+ * @uses   \OCA\Learniq\Support\SchoolYear
  * @uses   \OCA\Learniq\Support\ObjectRow
  */
 class AttendanceWindowSweepJobTest extends TestCase {

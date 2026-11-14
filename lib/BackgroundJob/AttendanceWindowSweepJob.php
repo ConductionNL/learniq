@@ -25,9 +25,8 @@ namespace OCA\Learniq\BackgroundJob;
 use DateTimeImmutable;
 use DateTimeZone;
 use OCA\Learniq\Kernel\Contracts\AttendanceSummaryServiceInterface;
-use OCA\Learniq\Service\Attendance\AttendanceSummaryCalculator;
-use OCA\Learniq\Service\Attendance\AttendanceSummaryService;
 use OCA\Learniq\Support\ObjectRow;
+use OCA\Learniq\Support\SchoolYear;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
@@ -107,7 +106,7 @@ class AttendanceWindowSweepJob extends TimedJob {
 	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
 	 */
 	protected function run(mixed $argument): void {
-		$year = AttendanceSummaryCalculator::schoolYearOf(date: $this->today());
+		$year = SchoolYear::of(date: $this->today());
 		if ($year === null) {
 			return;
 		}
@@ -152,7 +151,7 @@ class AttendanceWindowSweepJob extends TimedJob {
 				config: [
 					'filters' => [
 						'register' => self::REGISTER,
-						'schema' => AttendanceSummaryService::SUMMARY_SCHEMA,
+						'schema' => AttendanceSummaryServiceInterface::SUMMARY_SCHEMA,
 						'schoolYear' => $schoolYear,
 					],
 					'limit' => self::PAGE,

@@ -66,7 +66,6 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 	 * @var string
 	 */
 	private const THRESHOLD_SCHEMA = 'attendance-threshold';
-	public const SUMMARY_SCHEMA = 'attendance-summary';
 
 	/**
 	 * Upper bound on one learner's counted records (absences and late
