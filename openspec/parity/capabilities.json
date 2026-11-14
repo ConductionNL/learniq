@@ -3543,8 +3543,8 @@
       "area": "enrolment",
       "name": "Ask a guardian to agree to the subject choice before it counts.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Lifecycle/SubjectChoiceConsentGuard.php Not built: GuardianSubmitCheck lets any learner submit for themselves with no age check, and guardianConsentGiven is an unenforced checkbox.",
+        "state": "built",
+        "evidence": "lib/Lifecycle/SubjectChoiceConsentGuard.php; lib/Service/GuardianConsentHold.php (a learner under 18 waits until a linked guardian consents); lib/Listener/SubjectChoiceValidator.php (holds a minor's submitted choice, checks it when the guardian's consent is recorded); tests/Unit/Listener/SubjectChoiceGuardianConsentTest.php",
         "owner": "ConductionNL/learniq",
         "change": "2026-07-16-admissions-and-subject-choice",
         "requirement": [

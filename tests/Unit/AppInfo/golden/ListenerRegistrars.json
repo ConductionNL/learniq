@@ -307,6 +307,17 @@
         ],
         [
             "learniq",
+            "OCA\\OpenRegister\\Event\\ObjectUpdatedEvent",
+            "OCA\\Learniq\\Listener\\SubjectChoiceValidator",
+            [
+                "learniq"
+            ],
+            [
+                "subject-choice"
+            ]
+        ],
+        [
+            "learniq",
             "OCA\\OpenRegister\\Event\\ObjectCreatedEvent",
             "OCA\\Learniq\\Listener\\EngagementSignalHandler",
             [

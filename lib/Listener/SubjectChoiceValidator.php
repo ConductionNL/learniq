@@ -49,7 +49,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Service\GuardianConsentHold;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -69,11 +71,19 @@ class SubjectChoiceValidator implements IEventListener {
 	private const CURRICULUM_PLAN_SCHEMA = 'curriculum-plan';
 
 	/**
+	 * Holds a minor's own choice until a linked guardian consents.
+	 *
+	 * @var GuardianConsentHold|null
+	 */
+	private readonly ?GuardianConsentHold $consentHold;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param ObjectService $objectService OR object access service.
-	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ObjectService                   $objectService OR object access service.
+	 * @param LoggerInterface                 $logger        PSR logger.
+	 * @param ListenerSchemaResolverInterface $schemas       Resolves the transition event's register and schema ids to slugs.
+	 * @param GuardianConsentHold|null        $consentHold   Holds a minor's own choice until a linked guardian consents; null checks no consent.
 	 *
 	 * @return void
 	 */
@@ -81,7 +91,9 @@ class SubjectChoiceValidator implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
 		private readonly ListenerSchemaResolverInterface $schemas,
+		?GuardianConsentHold $consentHold=null,
 	) {
+		$this->consentHold = $consentHold;
 	}//end __construct()
 
 	/**
@@ -94,6 +106,11 @@ class SubjectChoiceValidator implements IEventListener {
 	 * @spec openspec/specs/school-structure/spec.md#requirement-a-submitted-subject-choice-is-validated-against-the-plan-s-elective-rules-not-persisted-unchecked
 	 */
 	public function handle(Event $event): void {
+		if ($event instanceof ObjectUpdatedEvent) {
+			$this->handleConsent(event: $event);
+			return;
+		}
+
 		if (($event instanceof ObjectTransitionedEvent) === false) {
 			return;
 		}
@@ -106,9 +123,69 @@ class SubjectChoiceValidator implements IEventListener {
 			return;
 		}
 
-		$this->validate(choice: $event->getObject()->jsonSerialize());
+		$choice = $event->getObject()->jsonSerialize();
+		if ($this->waitsForConsent(choice: $choice) === true) {
+			return;
+		}
+
+		$this->validate(choice: $choice);
 
 	}//end handle()
+
+	/**
+	 * A minor's submitted choice whose consent was just given is validated
+	 * now, once the consent is a linked guardian's.
+	 *
+	 * @param ObjectUpdatedEvent $event The update of a SubjectChoice.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/school-structure/spec.md#scenario-the-guardian-consents
+	 */
+	private function handleConsent(ObjectUpdatedEvent $event): void {
+		$entity = $event->getNewObject();
+		// The guard slug is '' for another app's object.
+		if ($this->consentHold === null || $this->schemas->guardSchemaSlug(entity: $entity) !== self::SUBJECT_CHOICE_SCHEMA) {
+			return;
+		}
+
+		$choice = $entity->jsonSerialize();
+		$old = ($event->getOldObject()?->jsonSerialize() ?? []);
+		if (($choice['lifecycle'] ?? null) !== 'submitted' || ($choice['guardianConsentGiven'] ?? false) !== true
+			|| ($old['guardianConsentGiven'] ?? false) === true
+		) {
+			return;
+		}
+
+		// An adult's choice was validated when it was submitted.
+		if ($this->consentHold->isMinor(object: $choice) === false || $this->waitsForConsent(choice: $choice) === true) {
+			return;
+		}
+
+		$this->validate(choice: $choice);
+	}//end handleConsent()
+
+	/**
+	 * Whether a minor's choice still waits for a linked guardian's consent; logged when it does.
+	 *
+	 * @param array<string,mixed> $choice The SubjectChoice.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/school-structure/spec.md#scenario-a-15-year-old-submits-their-own-choice
+	 */
+	private function waitsForConsent(array $choice): bool {
+		if ($this->consentHold === null || $this->consentHold->holds(object: $choice) === false) {
+			return false;
+		}
+
+		$this->logger->info(
+			'[SubjectChoiceValidator] SubjectChoice {id} waits for a guardian\'s consent.',
+			['id' => (string)($choice['id'] ?? ($choice['uuid'] ?? ''))]
+		);
+
+		return true;
+	}//end waitsForConsent()
 
 	/**
 	 * Validate a submitted SubjectChoice and write validated/needs-revision.
