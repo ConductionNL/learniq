@@ -5686,7 +5686,12 @@ OC.L10N.register(
         "OpenRegister file attachment reference (nc:files path or OR attachment ID). The app does NOT store file bytes. Empty for a linked material, which has a sourceUrl instead.": "Verwijzing naar de bijlage in OpenRegister (pad in Nextcloud Files of bijlage-id). De app bewaart zelf geen bestanden. Leeg bij een koppeling, die een adres bij de bron heeft.",
         "SPDX license identifier or rights statement. Open material from a source carries its normalised licence code, such as CC-BY-4.0, or other.": "SPDX-licentiecode of rechtenverklaring. Open materiaal uit een bron draagt zijn licentiecode, zoals CC-BY-4.0, of other.",
         "This material is not available in this course.": "Dit materiaal is niet beschikbaar in deze cursus.",
-        "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "De licentie staat een kopie toe, maar learniq kan nog geen bestanden uit Edurep ophalen, dus het maakt een koppeling. De leerling opent het materiaal bij de bron."
+        "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "De licentie staat een kopie toe, maar learniq kan nog geen bestanden uit Edurep ophalen, dus het maakt een koppeling. De leerling opent het materiaal bij de bron.",
+        "Render the PDF again": "Pdf opnieuw maken",
+        "Report card PDF": "Rapport als pdf",
+        "rendered": "gemaakt",
+        "failed": "mislukt",
+        "requested": "aangevraagd"
     },
     "nplurals=2; plural=(n != 1);"
 )

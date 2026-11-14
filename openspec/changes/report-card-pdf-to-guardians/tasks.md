@@ -2,15 +2,21 @@
 
 ## 1. Backend
 
-- [ ] 1.1 `lib/Listener/ReportCardPdfTransitionListener.php`: also handle `publishToParents` when `docudeskRenderStatus !== 'rendered'`, after the save. Verify: PHPUnit with the real transition event class.
-- [ ] 1.2 Attach the PDF: after a successful render read the file by `docudeskDocumentRef` (filinq storage, through the Files API as the service account) and save it on the report card through OpenRegister's file service, replacing an earlier attachment from this flow. Verify: PHPUnit; no `_rbac: false` write on a public path.
+- [x] 1.1 `lib/Listener/ReportCardPdfTransitionListener.php`: also handle `publishToParents` when `docudeskRenderStatus !== 'rendered'`, after the save. Verify: PHPUnit with the real transition event class.
+  - Done: `ReportCardPdfTransitionListener::rendersOn()` renders after `publishToParents` when `docudeskRenderStatus` is not `rendered`; tests build the real `ObjectTransitionedEvent` (publish renders, a failed render leaves the card published, an already rendered card is not rendered again).
+- [x] 1.2 Attach the PDF: after a successful render read the file by `docudeskDocumentRef` (filinq storage, through the Files API as the service account) and save it on the report card through OpenRegister's file service, replacing an earlier attachment from this flow. Verify: PHPUnit; no `_rbac: false` write on a public path.
+  - Done: `ReportCardPdfAttacher` reads the rendered PDF by its Files id from the Files storage of `filinq.report_render_storage_user`, writes it on the card with OpenRegister's `FileService::saveFile()` (an upsert by name, tag `report-card-pdf`) as `Rapport {period} {learner}.pdf`, and removes an earlier `Rapport … .pdf` under another name, so the card keeps one PDF. Fail-soft: a missing storage user, a missing file or a failing write is logged and leaves the card as it is. `ReportCardPdfTransitionListener` calls it after every save whose status is `rendered`. The write runs in the signed-in staff member's context; no RBAC bypass. `ReportCardPdfAttacherTest` (7) and two listener tests.
 - [ ] 1.3 Remove "proposed, not-yet-verified" from the docblocks of `ReportCardPdfDelegationService` and from the `report-card` main spec requirement "docudesk PDF rendering is fail-soft ..." when this change is archived.
+  - Docblocks done (`ReportCardPdfDelegationService` names filinq's endpoint). The main spec requirement changes when this change is archived.
 
 ## 2. Portal and page
 
-- [ ] 2.1 `lib/Portal/PortalContributionProvider.php` `parentReportCards`: `'filesDownload' => true`. Verify: PHPUnit on the provider output.
-- [ ] 2.2 `src/manifest.d/learning.json` ReportCardDetail: a files widget (`integration` `files`, as `cred-files`), `docudeskRenderStatus` in the data widget with value labels, and `lifecycleActions` showing `renderToPdf` / `rerenderToPdf` labelled "Render the PDF again". Verify: `npm run check:manifest`.
-- [ ] 2.3 English and Dutch strings (design). Verify: `npm run check:l10n`.
+- [x] 2.1 `lib/Portal/PortalContributionProvider.php` `parentReportCards`: `'filesDownload' => true`. Verify: PHPUnit on the provider output.
+  - Done: `filesDownload: true` on `parentReportCards` only; `PortalContributionProviderTest::testParentManifestShape` and the recorded portal manifest pin it.
+- [x] 2.2 `src/manifest.d/learning.json` ReportCardDetail: a files widget (`integration` `files`, as `cred-files`), `docudeskRenderStatus` in the data widget with value labels, and `lifecycleActions` showing `renderToPdf` / `rerenderToPdf` labelled "Render the PDF again". Verify: `npm run check:manifest`.
+  - Done: `card-files` (integration `files`) on ReportCardDetail; `docudeskRenderStatus` reads through `x-enum-labels` on the property (report-card 0.1.2) in the data widget; `renderToPdf` and `rerenderToPdf` labelled "Render the PDF again". `check:manifest` passes.
+- [x] 2.3 English and Dutch strings (design). Verify: `npm run check:l10n`.
+  - Done: en and nl in `l10n/*.json`, `.js` rebuilt for en and nl. `check:l10n` at its baseline.
 
 ## 3. Tests and close out
 

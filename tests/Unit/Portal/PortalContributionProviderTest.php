@@ -595,6 +595,12 @@ class PortalContributionProviderTest extends TestCase {
 		// BEFORE the scope filter (ContributionController::collection()).
 		$this->assertSame(['lifecycle' => 'published-to-parents'], $byId['parentReportCards']['filter']);
 
+		// The published card's PDF is downloadable (report-card-pdf-to-guardians), and
+		// only there: no other guardian collection opts in to files.
+		$this->assertTrue($byId['parentReportCards']['filesDownload']);
+		$downloading = array_keys(array_filter($byId, static fn (array $c): bool => ($c['filesDownload'] ?? false) === true));
+		$this->assertSame(['parentReportCards'], $downloading);
+
 	}//end testParentManifestShape()
 
 	/**

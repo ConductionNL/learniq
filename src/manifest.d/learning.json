@@ -9557,9 +9557,25 @@
 			"config": {
 				"register": "learniq",
 				"schema": "report-card",
-				"_note": "report-card-composer: a ReportCard is one composed periodic rapport for one learner (subjectGrades[] snapshotting FinalGrade.breakdown.periods[periodCode], attendanceSummary, teacher/mentor comments, fail-soft docudesk PDF-render state) — a document/record archetype. Body leads with the card data (8-wide, generic 'data' widget renders subjectGrades[]/attendanceSummary as-is, no content.fields allowlist needed per the DataMappingProfile.fieldMappings precedent) and a Related panel resolving the ReportPeriod/learner. lifecycleActions expose pullIntoReview/finalise/reopen/publishToParents/recompose/renderToPdf/rerenderToPdf declaratively — ReportCardFinaliseGuard/ReportCardReopenGuard/ReportCardVisibilityGuard enforce the review-then-publish gate server-side; the cohort-wide bulk review grid lives in the separate RapportvergaderingReviewView custom view. Sidebar keeps metadata + audit-trail.",
+				"_note": "report-card-composer: a ReportCard is one composed periodic rapport for one learner (subjectGrades[] snapshotting FinalGrade.breakdown.periods[periodCode], attendanceSummary, teacher/mentor comments, fail-soft docudesk PDF-render state) — a document/record archetype. Body leads with the card data (8-wide, generic 'data' widget renders subjectGrades[]/attendanceSummary as-is, no content.fields allowlist needed per the DataMappingProfile.fieldMappings precedent) and a Related panel resolving the ReportPeriod/learner. lifecycleActions expose pullIntoReview/finalise/reopen/publishToParents/recompose/renderToPdf/rerenderToPdf declaratively — ReportCardFinaliseGuard/ReportCardReopenGuard/ReportCardVisibilityGuard enforce the review-then-publish gate server-side; the cohort-wide bulk review grid lives in the separate RapportvergaderingReviewView custom view. Sidebar keeps metadata + audit-trail. report-card-pdf-to-guardians: the card's PDF is rendered on publish and attached to the card, so card-files lists it; docudeskRenderStatus reads through its x-enum-labels in the data widget, and renderToPdf/rerenderToPdf read 'Render the PDF again' for the retry after a failed render.",
 				"lifecycleActions": {
-					"field": "lifecycle"
+					"field": "lifecycle",
+					"transitions": [
+						{
+							"from": "finalised",
+							"to": "finalised",
+							"action": "renderToPdf",
+							"label": "Render the PDF again",
+							"variant": "secondary"
+						},
+						{
+							"from": "published-to-parents",
+							"to": "published-to-parents",
+							"action": "rerenderToPdf",
+							"label": "Render the PDF again",
+							"variant": "secondary"
+						}
+					]
 				},
 				"widgets": [
 					{
@@ -9576,6 +9592,13 @@
 						"type": "related",
 						"title": "Related",
 						"icon": "LinkVariant"
+					},
+					{
+						"id": "card-files",
+						"type": "integration",
+						"integrationId": "files",
+						"title": "Report card PDF",
+						"icon": "FolderOutline"
 					}
 				],
 				"layout": [
@@ -9595,6 +9618,15 @@
 						"gridY": 0,
 						"gridWidth": 4,
 						"gridHeight": 6,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "card-files",
+						"gridX": 0,
+						"gridY": 6,
+						"gridWidth": 12,
+						"gridHeight": 3,
 						"showTitle": false
 					}
 				],
