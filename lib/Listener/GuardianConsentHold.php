@@ -4,8 +4,8 @@
  * Learniq GuardianConsentHold — whether a minor's own choice still waits for
  * a linked guardian's consent.
  *
- * @category Service
- * @package  OCA\Learniq\Service
+ * @category Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -23,7 +23,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Learniq\Service;
+namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
 use DateTimeZone;

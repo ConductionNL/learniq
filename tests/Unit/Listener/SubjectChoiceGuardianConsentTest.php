@@ -24,7 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\Learniq\Listener\SubjectChoiceValidator;
-use OCA\Learniq\Service\GuardianConsentHold;
+use OCA\Learniq\Listener\GuardianConsentHold;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Service\ListenerSlugContract;
 use OCA\Learniq\Support\ObjectRow;

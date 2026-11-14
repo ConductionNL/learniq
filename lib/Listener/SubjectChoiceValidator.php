@@ -49,7 +49,6 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
-use OCA\Learniq\Service\GuardianConsentHold;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
