@@ -480,6 +480,75 @@ class CredentialVerifyControllerTest extends TestCase {
 		self::assertTrue($data['valid']);
 	}//end testVerifyAcceptsLegacyCredentialWithoutProof()
 	/**
+	 * A migrated certificate answers with where it came from and no signature
+	 * check, even when it carries a payload whose proof would fail; nothing
+	 * of who took it over or of the holder is shown.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#scenario-someone-verifies-a-migrated-certificate
+	 */
+	public function testAMigratedCertificateAnswersWithItsMigrationFacts(): void {
+		$this->keyManagementService->expects(self::never())->method('resolvePublicKeyByFingerprint');
+		$this->objectService
+			->method('find')
+			->willReturn($this->stubEntity([
+				'lifecycle' => 'issued',
+				'isExpired' => false,
+				'source' => 'migrated',
+				'issuedAt' => '2023-03-01T00:00:00+00:00',
+				'expiresAt' => '2028-03-01T00:00:00+00:00',
+				'legacyNumber' => 'VCA-2023-0112',
+				'legacyIssuer' => 'SSVV',
+				'migratedAt' => '2026-11-13T10:00:00+00:00',
+				'migratedBy' => 'hr-1',
+				'learnerUserId' => 'jan',
+				'tenant_id' => 'tenant-1',
+				'openbadges3Payload' => ['proof' => ['jws' => 'garbage..sig']],
+			]));
+
+		$response = $this->controller->verify('cred-migrated');
+
+		self::assertSame(200, $response->getStatus());
+		self::assertSame(
+			[
+				'valid' => true,
+				'issuedAt' => '2023-03-01T00:00:00+00:00',
+				'expiresAt' => '2028-03-01T00:00:00+00:00',
+				'issuerName' => 'SSVV',
+				'migrated' => true,
+				'issuedByLearniq' => false,
+				'signatureChecked' => false,
+				'legacyNumber' => 'VCA-2023-0112',
+				'legacyIssuer' => 'SSVV',
+				'migratedAt' => '2026-11-13T10:00:00+00:00',
+			],
+			$response->getData()
+		);
+	}//end testAMigratedCertificateAnswersWithItsMigrationFacts()
+
+	/**
+	 * An expired or revoked migrated certificate is not valid; a revoked one
+	 * answers like any revoked certificate.
+	 *
+	 * @return void
+	 */
+	public function testAnExpiredOrRevokedMigratedCertificateIsNotValid(): void {
+		$rows = [
+			['lifecycle' => 'expired', 'isExpired' => true, 'source' => 'migrated', 'legacyNumber' => 'A'],
+			['lifecycle' => 'revoked', 'source' => 'migrated', 'legacyNumber' => 'B', 'revocationReason' => 'Fout'],
+		];
+		$this->objectService->method('find')->willReturnOnConsecutiveCalls($this->stubEntity($rows[0]), $this->stubEntity($rows[1]));
+
+		$expired = $this->controller->verify('cred-a')->getData();
+		self::assertFalse($expired['valid']);
+		self::assertTrue($expired['migrated']);
+
+		$revoked = $this->controller->verify('cred-b')->getData();
+		self::assertSame(['valid' => false, 'revokedAt' => null, 'revocationReason' => 'Fout'], $revoked);
+	}//end testAnExpiredOrRevokedMigratedCertificateIsNotValid()
+
+	/**
 	 * The controller with a request whose body carries a Europass file.
 	 *
 	 * @param array<string,mixed>|null $file The file, or null for none.

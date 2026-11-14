@@ -22,6 +22,7 @@ import CohortCreateDialog from './dialogs/CohortCreateDialog.vue'
 import ConcernReportDialog from './dialogs/ConcernReportDialog.vue'
 import ConferenceReportDialog from './dialogs/ConferenceReportDialog.vue'
 import ConfidentialNoteCreateDialog from './dialogs/ConfidentialNoteCreateDialog.vue'
+import CredentialMigrationDialog from './dialogs/CredentialMigrationDialog.vue'
 import CredentialRevokeDialog from './dialogs/CredentialRevokeDialog.vue'
 import DeclineSignUpDialog from './dialogs/DeclineSignUpDialog.vue'
 import DossierNoteCreateDialog from './dialogs/DossierNoteCreateDialog.vue'
@@ -264,6 +265,11 @@ export default {
 	ConfidentialNoteCreateDialog: {
 		kind: 'modal',
 		component: ConfidentialNoteCreateDialog,
+		propsSchema: { type: 'object', properties: {} },
+	},
+	CredentialMigrationDialog: {
+		kind: 'modal',
+		component: CredentialMigrationDialog,
 		propsSchema: { type: 'object', properties: {} },
 	},
 	CredentialRevokeDialog: {
