@@ -74,6 +74,6 @@ bom-npm.cdx.json
 # Added by the 2026-08-25 fleet hygiene sweep (ADR-100 Decision 2).
 .stale/
 
-# Python bytecode
+# Python bytecode (the example-set scripts write it when tests import them)
 __pycache__/
 *.pyc
