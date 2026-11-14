@@ -424,17 +424,9 @@
                             }
                         },
                         "content": {
-                            "application/json": {
+                            "application/problem+json": {
                                 "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
+                                    "$ref": "#/components/schemas/Problem"
                                 }
                             }
                         }
