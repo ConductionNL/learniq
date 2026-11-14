@@ -5295,7 +5295,18 @@
         "Invoice status": "Invoice status",
         "Signed At": "Signed At",
         "When the attestation was signed. Stamped by the sign transition; part of the signed payload.": "When the attestation was signed. Stamped by the sign transition; part of the signed payload.",
-        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason."
+        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.",
+        "Course days": "Course days",
+        "Maximum": "Maximum",
+        "Minimum": "Minimum",
+        "Decide by": "Decide by",
+        "Course day date": "Course day date",
+        "The date of the course day, from its last session. Derived by CourseDayStatusService on every change; the course days calendar places the day on it.": "The date of the course day, from its last session. Derived by CourseDayStatusService on every change; the course days calendar places the day on it.",
+        "{shown} of {total} course days": "{shown} of {total} course days",
+        "course days": "course days",
+        "A day moves by itself when the minimum is reached or the day is over. Dragging also works; it lasts until the next change.": "A day moves by itself when the minimum is reached or the day is over. Dragging also works; it lasts until the next change.",
+        "This course day cannot be moved.": "This course day cannot be moved.",
+        "The course day could not be moved.": "The course day could not be moved."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

@@ -92,7 +92,11 @@ class CourseDayStatusService {
 
 		$facts = $this->facts(cohort: $cohort, cohortId: $cohortId);
 		$move  = self::standingMove(move: ($cohort['dayStatusMove'] ?? null), fingerprint: self::fingerprint(facts: $facts));
-		$next  = ['dayStatus' => ($move['status'] ?? CourseDayStatus::derive(facts: $facts)), 'dayStatusMove' => $move];
+		$next  = [
+			'dayStatus' => ($move['status'] ?? CourseDayStatus::derive(facts: $facts)),
+			'dayStatusMove' => $move,
+			'dayDate' => $facts['dayDate'],
+		];
 
 		$changes = $this->restampChanges(cohort: $cohort, next: $next);
 		if ($changes !== null) {
@@ -107,8 +111,8 @@ class CourseDayStatusService {
 	 *
 	 * A standing manual move is kept; one whose facts changed is cleared.
 	 *
-	 * @param array<string, mixed>                                  $cohort The course day.
-	 * @param array{dayStatus: string, dayStatusMove: array|null} $next   The status and the standing move.
+	 * @param array<string, mixed>                                                     $cohort The course day.
+	 * @param array{dayStatus: string, dayStatusMove: array|null, dayDate: string|null} $next   The status, the standing move and the day's date.
 	 *
 	 * @return array<string, mixed>|null
 	 *
@@ -123,7 +127,12 @@ class CourseDayStatusService {
 		$status  = $next['dayStatus'];
 		$changes = ['dayStatus' => $status];
 		if (($cohort['dayStatusMove'] ?? null) !== null) {
-			$changes = $next;
+			$changes['dayStatusMove'] = $next['dayStatusMove'];
+		}
+
+		// The day's date, from its sessions, for the course days calendar.
+		if (($cohort['dayDate'] ?? null) !== $next['dayDate']) {
+			$changes['dayDate'] = $next['dayDate'];
 		}
 
 		if ($from !== $status) {
@@ -136,15 +145,16 @@ class CourseDayStatusService {
 	/**
 	 * Whether the stored status already holds and no stale move needs clearing.
 	 *
-	 * @param array<string, mixed>                                  $cohort The course day.
-	 * @param array{dayStatus: string, dayStatusMove: array|null} $next   The status and the standing move.
+	 * @param array<string, mixed>                                                     $cohort The course day.
+	 * @param array{dayStatus: string, dayStatusMove: array|null, dayDate: string|null} $next   The status, the standing move and the day's date.
 	 *
 	 * @return bool
 	 */
 	private static function isSettled(array $cohort, array $next): bool {
 		$hadMove = ($cohort['dayStatusMove'] ?? null) !== null;
+		$sameDay = ($cohort['dayDate'] ?? null) === $next['dayDate'];
 
-		return ($cohort['dayStatus'] ?? null) === $next['dayStatus'] && ($hadMove === false || $next['dayStatusMove'] !== null);
+		return $sameDay === true && ($cohort['dayStatus'] ?? null) === $next['dayStatus'] && ($hadMove === false || $next['dayStatusMove'] !== null);
 	}//end isSettled()
 
 	/**

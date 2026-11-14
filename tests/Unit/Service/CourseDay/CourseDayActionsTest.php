@@ -82,10 +82,10 @@ class CourseDayActionsTest extends TestCase {
 	 */
 	private function course(): void {
 		$this->rows['cohort'] = [
-			['id' => 'c-22', 'name' => '22 oktober', 'courseId' => 'hybride', 'capacity' => 12, 'minParticipants' => 6, 'dayStatus' => 'open'],
-			['id' => 'c-26', 'name' => '26 november', 'courseId' => 'hybride', 'capacity' => 12, 'minParticipants' => 6, 'dayStatus' => 'open'],
-			['id' => 'c-03', 'name' => '3 september', 'courseId' => 'hybride', 'capacity' => 12, 'dayStatus' => 'done'],
-			['id' => 'c-12', 'name' => '12 november', 'courseId' => 'hybride', 'capacity' => 1, 'dayStatus' => 'full'],
+			['id' => 'c-22', 'name' => '22 oktober', 'courseId' => 'hybride', 'capacity' => 12, 'minParticipants' => 6, 'dayStatus' => 'open', 'dayDate' => '2026-10-22'],
+			['id' => 'c-26', 'name' => '26 november', 'courseId' => 'hybride', 'capacity' => 12, 'minParticipants' => 6, 'dayStatus' => 'open', 'dayDate' => '2026-11-26'],
+			['id' => 'c-03', 'name' => '3 september', 'courseId' => 'hybride', 'capacity' => 12, 'dayStatus' => 'done', 'dayDate' => '2026-09-03'],
+			['id' => 'c-12', 'name' => '12 november', 'courseId' => 'hybride', 'capacity' => 1, 'dayStatus' => 'full', 'dayDate' => '2026-11-12'],
 			['id' => 'f-01', 'name' => 'F-gassen', 'courseId' => 'f-gassen', 'capacity' => 12, 'dayStatus' => 'open'],
 		];
 		$this->rows['course-booking'] = [

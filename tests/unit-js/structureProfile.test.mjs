@@ -369,6 +369,7 @@ const KNOWN_UNLINKED = {
 		'BookConferenceSlotsMenu',
 		'CheckInMenu',
 		'ConferenceScheduleBoardMenu',
+		'CourseDaysMenu',
 		'DossierNotesMenu',
 		'ExamAccommodationsMenu',
 		'FirstAidIncidentsMenu',
@@ -406,6 +407,7 @@ const KNOWN_UNLINKED = {
 		...TEACHING,
 		'AdmissionsReviewBoardMenu',
 		'ConferenceScheduleBoardMenu',
+		'CourseDaysMenu',
 		'DossierReviewsMenu',
 		'ExamAccommodationsMenu',
 		'ExchangeJobsMenu',
@@ -436,6 +438,7 @@ const KNOWN_UNLINKED = {
 		...PLANNING,
 		'AdmissionsReviewBoardMenu',
 		'CatalogueMenu',
+		'CourseDaysMenu',
 		'ExamAccommodationsMenu',
 		'GroupPeople',
 		'HourPlanActivitiesMenu',
@@ -612,18 +615,19 @@ test('the full profile is exactly the plain manifest build', () => {
 	const count = (section) =>
 		entries.filter((item) => sectionOf(item) === section).length
 	// 111 since proctoring-flag-review-page added the Proctoring review entry
-	// under Learning and its twin under Compliance.
-	assert.equal(entries.length, 111)
+	// under Learning and its twin under Compliance; 112 with Course days
+	// (training-provider-course-days).
+	assert.equal(entries.length, 112)
 	assert.equal(plain.menu.length, 26)
 	assert.deepEqual(
 		[count('main'), count('footer'), count('settings')],
-		[102, 2, 7],
+		[103, 2, 7],
 	)
 	// 347 since the four unreached pages (BulkEnrol, CohortTimetable,
 	// MarkAttendanceView, SubmitExcuseModal) became actions; 348 with
 	// SignUpRequests (Aanmeldverzoeken); 349 with MyGrades (LqLlCijfers); 348 once
-	// MyGrades became the learner lens of GradeEntries.
-	assert.equal(plain.pages.length, 348)
+	// MyGrades became the learner lens of GradeEntries; 349 with CourseDays.
+	assert.equal(plain.pages.length, 349)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {

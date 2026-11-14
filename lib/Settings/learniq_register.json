@@ -7235,6 +7235,13 @@
                         "title": "Decide by",
                         "description": "The date by which the provider decides whether the course day goes ahead."
                     },
+                    "dayDate": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "Course day date",
+                        "description": "The date of the course day, from its last session. Derived by CourseDayStatusService on every change; the course days calendar places the day on it."
+                    },
                     "goDecision": {
                         "type": "string",
                         "enum": [

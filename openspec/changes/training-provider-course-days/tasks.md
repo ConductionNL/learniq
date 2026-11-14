@@ -6,7 +6,9 @@
   - Manual move: `CourseDayStatusService::move()` (`POST /api/course-days/{id}/status`) stores `cohort.dayStatusMove` with a fingerprint of the facts; it stands until those facts change. Every move, derived change and decision is appended to `cohort.dayStatusLog`.
 - [x] **T3**: go/no-go action and moving participants to another day of the course
   - `CourseDayController` (action `course-day.plan`): `decide`, `alternatives` (coming days of the course with places) and `moveParticipants` (open bookings and placed enrolments of a cancelled day). The buttons on the course day page are part of T4.
-- [ ] **T4**: the course days board per status (library board view) and the calendar tab
+- [x] **T4**: the course days board per status (library board view) and the calendar tab
+  - The Course days page (`CourseDays`, menu under Learning for coordinators and administrators) is an index over `Cohort` that opens on the library board by `dayStatus`, with a table and a calendar view. A drop runs `moveCourseDay`, which posts to `POST /api/course-days/{id}/status` (the logged manual move), never a PATCH of the status. The calendar places a day on `cohort.dayDate`, which `CourseDayStatusService::restamp()` now stamps from the day's last session.
+  - The page lists every cohort: the index has no fixed filter for "has a course", so on an install that also has teaching groups they appear in the Open column.
 - [ ] **T5**: session parts and attendance per part with arrival time; the trainer's Today
   - Built: `session.parts[]` (morning, afternoon with their start and end), `attendance-record.part` and `arrivedAt`; `SessionPartAttendance` (per part: begun, registered, there of expected, late arrivals; the begun part still due) served to a trainer of the day or a planner by `SessionPartsService` at `GET /api/course-days/sessions/{sessionId}/parts`. Left: the trainer's Today card and the group with a column per part and per practical assignment (manifest pages), so the task stays open.
 - [ ] **T6**: the planner's Today: first-today rules, enrolments to confirm, occupancy, trainers and rooms

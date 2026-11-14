@@ -5819,7 +5819,18 @@
         "Invoice": "Factuur",
         "Invoice status": "Factuurstatus",
         "When the attestation was signed. Stamped by the sign transition; part of the signed payload.": "Wanneer de verklaring is ondertekend. Vastgelegd bij het ondertekenen; maakt deel uit van de ondertekende gegevens.",
-        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Waarom een ondertekende verklaring is ingetrokken. Vastgelegd bij het intrekken, dat een lege reden weigert."
+        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Waarom een ondertekende verklaring is ingetrokken. Vastgelegd bij het intrekken, dat een lege reden weigert.",
+        "Course days": "Cursusdagen",
+        "Maximum": "Maximum",
+        "Minimum": "Minimum",
+        "Decide by": "Beslissen voor",
+        "Course day date": "Datum van de cursusdag",
+        "The date of the course day, from its last session. Derived by CourseDayStatusService on every change; the course days calendar places the day on it.": "De datum van de cursusdag, uit de laatste sessie. Bij elke wijziging afgeleid door CourseDayStatusService; de kalender van cursusdagen zet de dag op deze datum.",
+        "{shown} of {total} course days": "{shown} van {total} cursusdagen",
+        "course days": "cursusdagen",
+        "A day moves by itself when the minimum is reached or the day is over. Dragging also works; it lasts until the next change.": "Een dag schuift vanzelf door als het minimum is gehaald of de dag voorbij is. Slepen kan ook; dat blijft staan tot de volgende wijziging.",
+        "This course day cannot be moved.": "Deze cursusdag kan niet worden verplaatst.",
+        "The course day could not be moved.": "De cursusdag kon niet worden verplaatst."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

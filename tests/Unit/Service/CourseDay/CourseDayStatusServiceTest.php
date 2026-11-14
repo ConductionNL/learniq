@@ -21,6 +21,7 @@ namespace OCA\Learniq\Tests\Unit\Service\CourseDay;
 
 use DateTime;
 use OCA\Learniq\Service\CourseDay\CourseDayStatusService;
+use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -67,7 +68,7 @@ class CourseDayStatusServiceTest extends TestCase {
 	 * @return void
 	 */
 	private function day(int $extra=0): void {
-		$this->rows['cohort'] = [['id' => 'c-22', 'courseId' => 'hybride', 'capacity' => 12, 'minParticipants' => 6, 'dayStatus' => 'open']];
+		$this->rows['cohort'] = [['id' => 'c-22', 'courseId' => 'hybride', 'capacity' => 12, 'minParticipants' => 6, 'dayStatus' => 'open', 'dayDate' => '2026-10-22']];
 		$this->rows['course-booking'] = [['id' => 'b-1', 'cohortId' => 'c-22', 'participantCount' => 3, 'lifecycle' => 'confirmed']];
 		$enrolments = [
 			['id' => 'e-1', 'cohortId' => 'c-22', 'bookingRef' => 'b-1', 'lifecycle' => 'active'],
@@ -112,6 +113,7 @@ class CourseDayStatusServiceTest extends TestCase {
 					'capacity' => 12,
 					'minParticipants' => 6,
 					'dayStatus' => 'goes-ahead',
+					'dayDate' => '2026-10-22',
 					'dayStatusLog' => [['kind' => 'derived', 'from' => 'open', 'to' => 'goes-ahead', 'by' => null, 'at' => '2026-10-05T09:00:00+02:00']],
 				],
 				self::anything(),
@@ -122,6 +124,31 @@ class CourseDayStatusServiceTest extends TestCase {
 
 		self::assertSame('goes-ahead', $service->restamp(cohortId: 'c-22'));
 	}//end testTheSixthPlaceIsWritten()
+
+	/**
+	 * The day's date comes from its last session and is written when it moves,
+	 * so the course days calendar can place the day.
+	 *
+	 * @return void
+	 */
+	public function testTheDayDateIsStampedFromTheSessions(): void {
+		$this->day();
+		$this->rows['cohort'][0]['dayDate'] = null;
+		$this->rows['session'][] = ['id' => 's-2', 'cohortId' => 'c-22', 'startsAt' => '2026-10-23T09:00:00+02:00'];
+		$service = $this->service();
+		$saved = [];
+		$this->objects->expects(self::once())->method('saveObject')->willReturnCallback(
+			function (array $object) use (&$saved): ObjectEntity {
+				$saved = $object;
+				return new ObjectEntity();
+			}
+		);
+
+		self::assertSame('open', $service->restamp(cohortId: 'c-22'));
+		self::assertSame('2026-10-23', $saved['dayDate']);
+		self::assertSame('open', $saved['dayStatus']);
+		self::assertArrayNotHasKey('dayStatusLog', $saved, 'a new date alone is no status change to log');
+	}//end testTheDayDateIsStampedFromTheSessions()
 
 	/**
 	 * A cohort that is no course day is left alone.
