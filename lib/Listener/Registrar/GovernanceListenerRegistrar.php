@@ -31,10 +31,12 @@ namespace OCA\Learniq\Listener\Registrar;
 use OCA\Learniq\Listener\CorrectionAppliedHandler;
 use OCA\Learniq\Listener\DataCorrectionRequestStamp;
 use OCA\Learniq\Listener\PublishedGradeFreezeListener;
+use OCA\Learniq\Listener\SsoProfileFillListener;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
+use OCP\User\Events\UserLoggedInEvent;
 
 /**
  * Registers the correction request stamp and the correction applied handler.
@@ -75,6 +77,12 @@ class GovernanceListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
 			listener: CorrectionAppliedHandler::class
+		);
+
+		// A SAML sign-in fills the mapped profile fields (identity-federation).
+		$context->registerEventListener(
+			event: UserLoggedInEvent::class,
+			listener: SsoProfileFillListener::class
 		);
 	}//end register()
 }//end class

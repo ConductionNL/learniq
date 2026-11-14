@@ -10095,8 +10095,8 @@
       "area": "governance",
       "name": "Fill learner profiles from what the school sign-in sends along.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.SsoAttributeMapping; lib/Service/SsoAttributeMappingApplier.php Not built: SsoAttributeMappingApplier computes the update but no listener calls it on a Nextcloud login, so nothing writes the profile at sign-in.",
+        "state": "built",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.SsoAttributeMapping; lib/Service/SsoAttributeMappingApplier.php; lib/Listener/SsoProfileFillListener.php (on UserLoggedInEvent, from the SAML sign-in attributes); tests/Unit/Listener/SsoProfileFillListenerTest.php",
         "owner": "ConductionNL/learniq",
         "spec": "openspec/specs/identity-federation",
         "requirement": [

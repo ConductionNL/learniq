@@ -50,6 +50,8 @@ use OCP\EventDispatcher\IEventListener;
 use OCP\Files\Events\Node\NodeCreatedEvent;
 use OCP\Files\Events\Node\NodeRenamedEvent;
 use OCP\Files\File;
+use OCP\IUser;
+use OCP\User\Events\UserLoggedInEvent;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionNamedType;
@@ -250,6 +252,8 @@ class RegisteredListenersHandleRealEventsTest extends TestCase {
 				claim: ['appId' => 'learniq', 'claimName' => 'organisationRef'],
 				holder: ['value' => 'company-1', 'organisation' => 'school-a'],
 			),
+			// Nextcloud's sign-in event (identity-federation): a user double, a password login.
+			UserLoggedInEvent::class => new UserLoggedInEvent($this->createStub(IUser::class), 'alice', null, false),
 			default => null,
 		};
 	}//end event()
