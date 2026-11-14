@@ -16,7 +16,7 @@
 
 ## 4. Screen
 
-- [ ] 4.1 Certificates page: "Certificaten overnemen" upload, preview table, "Overnemen". Reuse the external-training upload's parser. Verify: `npm run check:manifest`, `npm run check:l10n`.
+- [x] 4.1 Certificates page: "Certificaten overnemen" upload, preview table, "Overnemen". Reuse the external-training upload's parser. Verify: `npm run check:manifest`, `npm run check:l10n`. — a "Take over certificates" header action on the Credentials index opens `CredentialMigrationDialog`: file, dry-run table with a status and reason per row, "Take over" for the ready rows. The rows come from the external-training upload's `parseCsv` (`src/utils/credentialMigrationUpload.js`, `node --test`). `check:manifest` and `check:l10n` pass; `check:l10n-js` is already stale on development.
 
 ## 5. Close out
 
