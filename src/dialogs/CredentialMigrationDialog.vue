@@ -77,11 +77,9 @@
 				<table class="credential-migration__rows">
 					<thead>
 						<tr>
-							<th scope="col">{{ t('learniq', 'Row') }}</th>
-							<th scope="col">{{ t('learniq', 'Learner') }}</th>
-							<th scope="col">{{ t('learniq', 'Certificate number') }}</th>
-							<th scope="col">{{ t('learniq', 'Status') }}</th>
-							<th scope="col">{{ t('learniq', 'Reason') }}</th>
+							<th v-for="heading in headings" :key="heading" scope="col">
+								{{ heading }}
+							</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -155,6 +153,22 @@ export default {
 
 	computed: {
 		/**
+		 * The table's column headings.
+		 *
+		 * @return {string[]}
+		 * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#requirement-certificates-from-the-previous-system-are-uploaded-with-a-dry-run-first
+		 */
+		headings() {
+			return [
+				this.t('learniq', 'Row'),
+				this.t('learniq', 'Learner'),
+				this.t('learniq', 'Certificate number'),
+				this.t('learniq', 'Status'),
+				this.t('learniq', 'Reason'),
+			]
+		},
+
+		/**
 		 * The line above the table: the preview or the result.
 		 *
 		 * @return {string}
@@ -189,28 +203,26 @@ export default {
 		 */
 		async onFile(event) {
 			const file = event.target.files?.[0]
-			this.report = null
-			this.error = ''
-			this.ignored = []
-			if (!file) {
-				return
+			const parsed = file ? migrationRowsFromCsv(await file.text()) : { rows: [], missing: [], ignored: [] }
+			Object.assign(this, { report: null, ignored: parsed.ignored, error: file ? this.fileProblem(parsed) : '' })
+			if (file && this.error === '') {
+				this.rows = parsed.rows
+				await this.send(true)
 			}
-			const parsed = migrationRowsFromCsv(await file.text())
-			this.ignored = parsed.ignored
+		},
+
+		/**
+		 * Why a read file cannot be checked: a required column is missing or it has no rows; '' when it can.
+		 *
+		 * @param {{rows: object[], missing: string[]}} parsed The read file.
+		 * @return {string}
+		 * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#scenario-a-clean-file
+		 */
+		fileProblem(parsed) {
 			if (parsed.missing.length > 0) {
-				this.error = this.t(
-					'learniq',
-					'The file has no column for: {columns}',
-					{ columns: parsed.missing.join(', ') },
-				)
-				return
+				return this.t('learniq', 'The file has no column for: {columns}', { columns: parsed.missing.join(', ') })
 			}
-			if (parsed.rows.length === 0) {
-				this.error = this.t('learniq', 'The file has no rows.')
-				return
-			}
-			this.rows = parsed.rows
-			await this.send(true)
+			return parsed.rows.length === 0 ? this.t('learniq', 'The file has no rows.') : ''
 		},
 
 		/**
@@ -253,16 +265,15 @@ export default {
 </script>
 
 <style scoped>
-.credential-migration {
-	display: flex;
-	flex-direction: column;
-	gap: calc(var(--default-grid-baseline) * 3);
-}
-
+.credential-migration,
 .credential-migration__file {
 	display: flex;
 	flex-direction: column;
 	gap: var(--default-grid-baseline);
+}
+
+.credential-migration {
+	gap: calc(var(--default-grid-baseline) * 3);
 }
 
 .credential-migration__rows {

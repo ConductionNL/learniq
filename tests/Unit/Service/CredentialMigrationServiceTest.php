@@ -27,6 +27,9 @@ use RuntimeException;
  * date, and nothing written in a preview.
  *
  * @covers \OCA\Learniq\Service\CredentialMigrationService
+ * @uses   \OCA\Learniq\Service\CredentialMigrationRun
+ * @uses   \OCA\Learniq\Service\CredentialMigrationRow
+ * @uses   \OCA\Learniq\Service\CredentialMigrationLookup
  */
 final class CredentialMigrationServiceTest extends TestCase {
 

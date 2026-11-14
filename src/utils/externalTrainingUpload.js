@@ -200,22 +200,25 @@ export function parseCsv(text) {
 }
 
 /**
- * Turn a parsed CSV into the rows the import route takes.
+ * Turn a CSV into rows keyed by column, recognising each heading by its aliases.
  *
  * @param {string} text The file contents.
- * @return {{rows: object[], missing: string[], ignored: string[]}} The rows, the required
- *   columns the header lacks (by heading), and the headings that were not recognised.
+ * @param {{columns: Array<{key: string, heading: string, aliases: string[]}>, required: string[]}} layout
+ *   The columns a row carries, and the keys of the columns a file cannot do without.
+ * @return {{rows: object[], missing: string[], ignored: string[], keys: Array<string|null>}} The rows,
+ *   the required columns the header lacks (by heading), the headings that were not recognised,
+ *   and the column key each heading was recognised as (null when it was not).
  * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#requirement-spreadsheet-import-of-external-training
  */
-export function rowsFromCsv(text) {
+export function rowsByColumns(text, { columns, required }) {
 	const [header = [], ...body] = parseCsv(text)
 	const keys = header.map((heading) => {
 		const normal = heading.trim().toLowerCase()
-		return COLUMNS.find((column) => column.aliases.includes(normal))?.key ?? null
+		return columns.find((column) => column.aliases.includes(normal))?.key ?? null
 	})
 
-	const missing = REQUIRED.filter((key) => !keys.includes(key)).map(
-		(key) => COLUMNS.find((column) => column.key === key).heading,
+	const missing = required.filter((key) => !keys.includes(key)).map(
+		(key) => columns.find((column) => column.key === key).heading,
 	)
 	const ignored = header.filter(
 		(heading, index) => keys[index] === null && heading.trim() !== '',
@@ -231,6 +234,19 @@ export function rowsFromCsv(text) {
 		return row
 	})
 
+	return { rows, missing, ignored, keys }
+}
+
+/**
+ * Turn a parsed CSV into the rows the import route takes.
+ *
+ * @param {string} text The file contents.
+ * @return {{rows: object[], missing: string[], ignored: string[]}} The rows, the required
+ *   columns the header lacks (by heading), and the headings that were not recognised.
+ * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#requirement-spreadsheet-import-of-external-training
+ */
+export function rowsFromCsv(text) {
+	const { rows, missing, ignored } = rowsByColumns(text, { columns: COLUMNS, required: REQUIRED })
 	return { rows, missing, ignored }
 }
 

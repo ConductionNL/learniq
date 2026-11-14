@@ -8,7 +8,7 @@
 // the preview and again on "Take over". Pure helpers, no Vue and no Nextcloud
 // imports, so node --test covers them.
 
-import { parseCsv } from './externalTrainingUpload.js'
+import { rowsByColumns } from './externalTrainingUpload.js'
 
 /** The migration route, CredentialMigrationController::migrate. */
 export const MIGRATE_URL = '/apps/learniq/api/credentials/migrate'
@@ -46,29 +46,10 @@ const REQUIRED = ['learner', 'issuedAt', 'legacyNumber']
  * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#requirement-certificates-from-the-previous-system-are-uploaded-with-a-dry-run-first
  */
 export function migrationRowsFromCsv(text) {
-	const [header = [], ...body] = parseCsv(text)
-	const keys = header.map((heading) => {
-		const normal = heading.trim().toLowerCase()
-		return COLUMNS.find((column) => column.aliases.includes(normal))?.key ?? null
-	})
-
-	const missing = REQUIRED.filter((key) => !keys.includes(key)).map(
-		(key) => COLUMNS.find((column) => column.key === key).heading,
-	)
+	const { rows, missing, ignored, keys } = rowsByColumns(text, { columns: COLUMNS, required: REQUIRED })
 	if (!keys.includes('course') && !keys.includes('regulation')) {
 		missing.push('course code / regulation')
 	}
-	const ignored = header.filter((heading, index) => keys[index] === null && heading.trim() !== '')
-
-	const rows = body.map((cells) => {
-		const row = {}
-		keys.forEach((key, index) => {
-			if (key !== null && row[key] === undefined) {
-				row[key] = (cells[index] ?? '').trim()
-			}
-		})
-		return row
-	})
 
 	return { rows, missing, ignored }
 }
