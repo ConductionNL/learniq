@@ -354,6 +354,21 @@
 					}
 				},
 				{
+					"id": "ProctoringReviewMenu",
+					"label": "Proctoring review",
+					"icon": "ShieldAlertOutline",
+					"route": "ProctoringReviewQueue",
+					"order": 51,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "Grades",
 					"label": "Grades",
 					"icon": "Gauge",
@@ -6102,6 +6117,15 @@
 				"register": "learniq",
 				"schema": "proctoring-session",
 				"readOnly": true,
+				"headerActions": [
+					{
+						"id": "review-flags",
+						"label": "Review flags",
+						"icon": "ShieldAlertOutline",
+						"handler": "navigate",
+						"route": "ProctoringReviewQueue"
+					}
+				],
 				"columns": [
 					{
 						"key": "learnerId",
