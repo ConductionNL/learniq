@@ -236,6 +236,14 @@
             "registerEventListener",
             [
                 "OCA\\OpenRegister\\Event\\ObjectTransitionedEvent",
+                "OCA\\Learniq\\Listener\\ApplicationSubmittedAtStamp",
+                "int"
+            ]
+        ],
+        [
+            "registerEventListener",
+            [
+                "OCA\\OpenRegister\\Event\\ObjectTransitionedEvent",
                 "OCA\\Learniq\\Listener\\SubjectChoiceEnrolmentBridge",
                 "int"
             ]

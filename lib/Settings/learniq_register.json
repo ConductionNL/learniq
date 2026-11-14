@@ -4153,7 +4153,7 @@
             "Application": {
                 "slug": "admission",
                 "icon": "AccountPlusOutline",
-                "version": "0.1.1",
+                "version": "0.1.2",
                 "title": "Application",
                 "description": "An aanmelding for a Programme — the pre-enrolment intake path for PO→VO, VO/HO→MBO, and generic admissions (Studielink/HE intake stays on Enrolment; this schema covers every other channel). Scored by a coordinator through an intake conversation to a placed/waitlisted/rejected decision, gated by AdmissionsDecisionGuard for the round's legal branch (kind on the referenced AdmissionsRound). On placement, ApplicationConversionHandler converts the Application into a LearnerProfile and Enrolment rows. guardianId/guardianRef copy ConferenceSignup's ADR-046 dual-identity pair verbatim — no second guardian-account mechanism is introduced.",
                 "type": "object",
@@ -4534,7 +4534,9 @@
                     "transitions": {
                         "submit": {
                             "from": "draft",
-                            "to": "submitted"
+                            "to": "submitted",
+                            "requires": "OCA\\Learniq\\Lifecycle\\ApplicationRoundOpenGuard",
+                            "description": "Submit the application. ApplicationRoundOpenGuard refuses it unless its admissions round is open; ApplicationSubmittedAtStamp writes submittedAt when it lands."
                         },
                         "scheduleIntake": {
                             "from": "submitted",
