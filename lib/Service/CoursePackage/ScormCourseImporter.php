@@ -32,9 +32,6 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\CoursePackage;
 
-use OCA\Learniq\Service\FolderFileWriter;
-use OCP\Files\IRootFolder;
-use Psr\Log\LoggerInterface;
 use Throwable;
 use ZipArchive;
 
@@ -66,8 +63,7 @@ class ScormCourseImporter {
 	 * @param ScormManifestParser         $parser       Reads the manifest.
 	 * @param CoursePackageObjectWriter   $objectWriter Creates the course and the lessons.
 	 * @param CoursePackageImportReporter $reporter     Builds and persists the report.
-	 * @param IRootFolder                 $rootFolder   The importing user's Files.
-	 * @param LoggerInterface             $logger       Notes a file that could not be written.
+	 * @param ScormPackageUnpacker        $unpacker     Unpacks the zip into the course folder.
 	 *
 	 * @return void
 	 */
@@ -75,8 +71,7 @@ class ScormCourseImporter {
 		private readonly ScormManifestParser $parser,
 		private readonly CoursePackageObjectWriter $objectWriter,
 		private readonly CoursePackageImportReporter $reporter,
-		private readonly IRootFolder $rootFolder,
-		private readonly LoggerInterface $logger,
+		private readonly ScormPackageUnpacker $unpacker,
 	) {
 	}//end __construct()
 
@@ -110,32 +105,23 @@ class ScormCourseImporter {
 		try {
 			$manifest = $this->parser->parse(xml: (string)$this->manifestOf(packagePath: $packagePath));
 		} catch (Throwable $e) {
-			return $this->persist(origin: $origin, courseId: null, entries: [], error: 'The SCORM manifest could not be read: ' . $e->getMessage());
+			return $this->refuse(origin: $origin, error: 'The SCORM manifest could not be read: ' . $e->getMessage());
 		}
 
-		$title = $manifest['title'];
-		if ($title === '') {
-			$title = $origin->sourceFilename;
-		}
-
+		$title    = self::titleOf(manifest: $manifest, origin: $origin);
 		$courseId = $this->objectWriter->createCourse(title: $title, parentCourseId: null, tenantId: $origin->tenantId);
 		if ($courseId === null) {
-			return $this->persist(origin: $origin, courseId: null, entries: [], error: 'The course could not be created.');
+			return $this->refuse(origin: $origin, error: 'The course could not be created.');
 		}
 
 		$folder  = $this->courseFolder(tenantId: $origin->tenantId, courseId: $courseId);
-		$entries = $this->unpack(packagePath: $packagePath, folder: $folder, importedBy: $origin->importedBy);
+		$course  = ['id' => $courseId, 'folder' => $folder, 'version' => $manifest['version'], 'tenantId' => $origin->tenantId];
+		$entries = $this->unpacker->unpack(packagePath: $packagePath, folder: $course['folder'], importedBy: $origin->importedBy);
 		foreach ($manifest['scos'] as $index => $sco) {
-			$entries[] = $this->lesson(
-				sco: $sco,
-				order: ($index + 1),
-				version: $manifest['version'],
-				course: ['id' => $courseId, 'folder' => $folder],
-				origin: $origin
-			);
+			$entries[] = $this->lesson(sco: $sco + ['order' => ($index + 1)], course: $course);
 		}
 
-		return $this->persist(origin: $origin, courseId: $courseId, entries: $entries, error: null);
+		return $this->report(origin: $origin, courseId: $courseId, entries: $entries);
 	}//end importPackage()
 
 	/**
@@ -167,116 +153,85 @@ class ScormCourseImporter {
 	 * @spec openspec/changes/content-scorm-package-upload/specs/course-management/spec.md#requirement-the-import-report-is-honest-about-what-does-not-play
 	 */
 	public static function staysInside(string $name): bool {
-		$normalised = str_replace('\\', '/', $name);
-		if ($normalised === '' || $normalised[0] === '/' || preg_match('#^[A-Za-z]:#', $normalised) === 1 || str_contains($normalised, "\0") === true) {
-			return false;
-		}
-
-		return in_array('..', explode('/', $normalised), true) === false;
+		return ScormPackageUnpacker::staysInside(name: $name);
 	}//end staysInside()
 
 	/**
-	 * Write every entry that stays inside the package root into the folder;
-	 * report every other one as dropped.
+	 * The course title: the manifest's, else the uploaded file's name.
 	 *
-	 * @param string $packagePath The zip.
-	 * @param string $folder      The course folder.
-	 * @param string $importedBy  Whose Files receive it.
+	 * @param array{title: string} $manifest The parsed manifest.
+	 * @param ImportOrigin         $origin   The import.
 	 *
-	 * @return list<array<string, mixed>> The dropped entries.
+	 * @return string
 	 */
-	private function unpack(string $packagePath, string $folder, string $importedBy): array {
-		$zip = new ZipArchive();
-		if ($zip->open($packagePath) !== true) {
-			return [];
+	private static function titleOf(array $manifest, ImportOrigin $origin): string {
+		if ($manifest['title'] === '') {
+			return $origin->sourceFilename;
 		}
 
-		$dropped = [];
-		$files   = new FolderFileWriter(userFolder: $this->rootFolder->getUserFolder($importedBy));
-		for ($index = 0; $index < $zip->numFiles; $index++) {
-			$name = (string)$zip->getNameIndex($index);
-			if (str_ends_with($name, '/') === true) {
-				continue;
-			}
-
-			if (self::staysInside(name: $name) === false) {
-				$dropped[] = $this->reporter->entry(
-					resourceIdentifier: $name,
-					resourceType: 'file',
-					title: $name,
-					result: [
-						'outcome' => 'dropped',
-						'targetType' => null,
-						'targetId' => null,
-						'reason' => 'The entry points outside the package folder and was not written.',
-					]
-				);
-				continue;
-			}
-
-			$this->write(files: $files, path: $folder . '/' . ltrim($name, './'), content: (string)$zip->getFromIndex($index));
-		}
-
-		$zip->close();
-
-		return $dropped;
-	}//end unpack()
-
-	/**
-	 * Write one file, creating its folder; a failure is logged, not thrown.
-	 *
-	 * @param FolderFileWriter $files   The writer.
-	 * @param string           $path    The file's path.
-	 * @param string           $content Its bytes.
-	 *
-	 * @return void
-	 */
-	private function write(FolderFileWriter $files, string $path, string $content): void {
-		try {
-			$files->ensureFolder(path: dirname($path));
-			$files->put(path: $path, content: $content);
-		} catch (Throwable $e) {
-			$this->logger->warning('[ScormCourseImporter] Could not write {path}: {msg}', ['path' => $path, 'msg' => $e->getMessage()]);
-		}
-	}//end write()
+		return $manifest['title'];
+	}//end titleOf()
 
 	/**
 	 * Create one SCO's lesson and its report entry.
 	 *
-	 * @param array{identifier: string, title: string, href: string} $sco     The SCO.
-	 * @param int                                                    $order   Its place in the manifest.
-	 * @param string                                                 $version The manifest's SCORM version.
-	 * @param array{id: string, folder: string}                      $course  The course and its folder.
-	 * @param ImportOrigin                                           $origin  The import.
+	 * @param array{identifier: string, title: string, href: string, order: int}  $sco    The SCO and its place in the manifest.
+	 * @param array{id: string, folder: string, version: string, tenantId: string} $course The course, its folder, the SCORM version and the tenant.
 	 *
 	 * @return array<string, mixed> The report entry.
 	 */
-	private function lesson(array $sco, int $order, string $version, array $course, ImportOrigin $origin): array {
-		$contentType = 'scorm12';
-		if ($version === ScormManifestParser::VERSION_2004) {
-			$contentType = 'scorm2004';
-		}
-
-		$lessonId = $this->objectWriter->createLesson(
+	private function lesson(array $sco, array $course): array {
+		$contentType = self::contentTypeOf(version: $course['version']);
+		$lessonId    = $this->objectWriter->createLesson(
 			lesson: [
 				'courseId' => $course['id'],
 				'title' => $sco['title'],
-				'order' => $order,
+				'order' => $sco['order'],
 				'contentType' => $contentType,
 				'contentRef' => '/' . $course['folder'] . '/' . ltrim($sco['href'], './'),
 			],
-			tenantId: $origin->tenantId
+			tenantId: $course['tenantId']
 		);
 
-		$result = ['outcome' => 'imported', 'targetType' => 'lesson', 'targetId' => $lessonId, 'reason' => null];
-		if ($lessonId === null) {
-			$result = ['outcome' => 'dropped', 'targetType' => null, 'targetId' => null, 'reason' => 'The lesson could not be created.'];
-		} else if ($contentType === 'scorm2004') {
-			$result = ['outcome' => 'degraded', 'targetType' => 'lesson', 'targetId' => $lessonId, 'reason' => self::NOT_PLAYED];
-		}
+		$result = self::lessonResult(lessonId: $lessonId, contentType: $contentType);
 
 		return $this->reporter->entry(resourceIdentifier: $sco['identifier'], resourceType: 'sco', title: $sco['title'], result: $result);
 	}//end lesson()
+
+	/**
+	 * The lesson content type of a SCORM version.
+	 *
+	 * @param string $version The manifest's SCORM version.
+	 *
+	 * @return string
+	 */
+	private static function contentTypeOf(string $version): string {
+		if ($version === ScormManifestParser::VERSION_2004) {
+			return 'scorm2004';
+		}
+
+		return 'scorm12';
+	}//end contentTypeOf()
+
+	/**
+	 * The outcome of one SCO: dropped without a lesson, degraded for SCORM 2004, else imported.
+	 *
+	 * @param string|null $lessonId    The created lesson, or null.
+	 * @param string      $contentType Its content type.
+	 *
+	 * @return array{outcome: string, targetType: string|null, targetId: string|null, reason: string|null}
+	 */
+	private static function lessonResult(?string $lessonId, string $contentType): array {
+		if ($lessonId === null) {
+			return ['outcome' => 'dropped', 'targetType' => null, 'targetId' => null, 'reason' => 'The lesson could not be created.'];
+		}
+
+		if ($contentType === 'scorm2004') {
+			return ['outcome' => 'degraded', 'targetType' => 'lesson', 'targetId' => $lessonId, 'reason' => self::NOT_PLAYED];
+		}
+
+		return ['outcome' => 'imported', 'targetType' => 'lesson', 'targetId' => $lessonId, 'reason' => null];
+	}//end lessonResult()
 
 	/**
 	 * The text of the package's root manifest, or null without one.
@@ -302,19 +257,33 @@ class ScormCourseImporter {
 	}//end manifestOf()
 
 	/**
-	 * Persist the report.
+	 * Persist the report of an import that refused before creating anything.
 	 *
-	 * @param ImportOrigin                  $origin   The import.
-	 * @param string|null                   $courseId The course, when created.
-	 * @param list<array<string, mixed>>    $entries  The entries.
-	 * @param string|null                   $error    The refusal, when nothing was imported.
+	 * @param ImportOrigin $origin The import.
+	 * @param string       $error  The refusal.
 	 *
 	 * @return array<string, mixed>
 	 */
-	private function persist(ImportOrigin $origin, ?string $courseId, array $entries, ?string $error): array {
+	private function refuse(ImportOrigin $origin, string $error): array {
 		return $this->reporter->persistReport(
 			origin: $origin,
-			outcome: new ImportReportOutcome(sourceFormat: self::SOURCE_FORMAT, courseId: $courseId, entries: $entries, errorMessage: $error),
+			outcome: new ImportReportOutcome(sourceFormat: self::SOURCE_FORMAT, courseId: null, entries: [], errorMessage: $error),
 		);
-	}//end persist()
+	}//end refuse()
+
+	/**
+	 * Persist the report of a created course.
+	 *
+	 * @param ImportOrigin               $origin   The import.
+	 * @param string                     $courseId The course.
+	 * @param list<array<string, mixed>> $entries  The entries.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function report(ImportOrigin $origin, string $courseId, array $entries): array {
+		return $this->reporter->persistReport(
+			origin: $origin,
+			outcome: new ImportReportOutcome(sourceFormat: self::SOURCE_FORMAT, courseId: $courseId, entries: $entries, errorMessage: null),
+		);
+	}//end report()
 }//end class

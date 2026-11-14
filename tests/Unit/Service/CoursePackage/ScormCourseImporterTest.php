@@ -28,6 +28,7 @@ use OCA\Learniq\Service\CoursePackage\ImportOrigin;
 use OCA\Learniq\Service\CoursePackage\ImportReportOutcome;
 use OCA\Learniq\Service\CoursePackage\ScormCourseImporter;
 use OCA\Learniq\Service\CoursePackage\ScormManifestParser;
+use OCA\Learniq\Service\CoursePackage\ScormPackageUnpacker;
 use OCA\Learniq\Service\FolderFileWriter;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -46,6 +47,7 @@ use ZipArchive;
  */
 #[CoversClass(ScormCourseImporter::class)]
 #[UsesClass(ScormManifestParser::class)]
+#[UsesClass(ScormPackageUnpacker::class)]
 #[UsesClass(FolderFileWriter::class)]
 #[UsesClass(ImportOrigin::class)]
 #[UsesClass(ImportReportOutcome::class)]
@@ -155,7 +157,7 @@ class ScormCourseImporterTest extends TestCase {
 		$root = $this->createMock(IRootFolder::class);
 		$root->method('getUserFolder')->with('anna')->willReturn($folder);
 
-		return new ScormCourseImporter(new ScormManifestParser(), $objects, $reporter, $root, new NullLogger());
+		return new ScormCourseImporter(new ScormManifestParser(), $objects, $reporter, new ScormPackageUnpacker($root, $reporter, new NullLogger()));
 	}//end importer()
 
 	/**
