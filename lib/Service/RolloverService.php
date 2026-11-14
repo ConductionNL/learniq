@@ -148,52 +148,84 @@ class RolloverService implements RolloverServiceInterface {
 		];
 
 		foreach ($mappings as $mapping) {
-			$fromCohortId = (string)($mapping['fromCohortId'] ?? '');
-			$action = ($mapping['action'] ?? null);
-
-			if ($action === null) {
-				$report['blocked'] = true;
-				$report['blockingCohorts'][] = $fromCohortId;
-				continue;
-			}
-
-			$cohort = $this->loadCohort(cohortId: $fromCohortId);
-			$members = (array)($cohort['learnerIds'] ?? []);
-
-			if ($action === 'dissolve') {
-				$report['counts']['dissolve']++;
-				continue;
-			}
-
-			if ($action === 'graduate') {
-				$report['counts']['graduate'] += count($members);
-				continue;
-			}
-
-			// Promote: classify each member by override.
-			$toCohortName = (string)($mapping['toCohortName'] ?? '');
-			if ($toCohortName !== '') {
-				$report['cohortsToCreate'][] = $toCohortName;
-				$report['ncGroupsToSync'][] = $this->groupName(academicYear: (string)($plan['toAcademicYear'] ?? ''), cohortName: $toCohortName);
-			}
-
-			foreach ($members as $learnerId) {
-				$learnerAction = ($overrides[$learnerId]['action'] ?? 'promote');
-				$report['counts'][$learnerAction] = (($report['counts'][$learnerAction] ?? 0) + 1);
-			}
-
-			$report['enrolmentsToCarry'] += $this->countCarryableEnrolments(
-				learnerIds: $members,
-				overrides: $overrides,
-				carryNonMandatory: (bool)($mapping['carryNonMandatory'] ?? false)
-			);
-		}//end foreach
+			$report = $this->tallyMapping(report: $report, job: ['mapping' => $mapping, 'plan' => $plan, 'overrides' => $overrides]);
+		}
 
 		$report['cohortsToCreate'] = array_values(array_unique($report['cohortsToCreate']));
 		$report['ncGroupsToSync'] = array_values(array_unique($report['ncGroupsToSync']));
 
 		return $report;
 	}//end preview()
+
+	/**
+	 * Add one cohort mapping to the preview report.
+	 *
+	 * @param array<string, mixed> $report The report so far.
+	 * @param array<string, mixed> $job    mapping, plan and the indexed learner overrides.
+	 *
+	 * @return array<string, mixed> The report with the mapping counted.
+	 *
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
+	 */
+	private function tallyMapping(array $report, array $job): array {
+		$mapping = $job['mapping'];
+		$fromCohortId = (string)($mapping['fromCohortId'] ?? '');
+		$action = ($mapping['action'] ?? null);
+
+		if ($action === null) {
+			$report['blocked'] = true;
+			$report['blockingCohorts'][] = $fromCohortId;
+			return $report;
+		}
+
+		$cohort = $this->loadCohort(cohortId: $fromCohortId);
+		$members = (array)($cohort['learnerIds'] ?? []);
+
+		if ($action === 'dissolve') {
+			$report['counts']['dissolve']++;
+			return $report;
+		}
+
+		if ($action === 'graduate') {
+			$report['counts']['graduate'] += count($members);
+			return $report;
+		}
+
+		return $this->tallyPromotion(report: $report, job: $job + ['members' => $members]);
+	}//end tallyMapping()
+
+	/**
+	 * Add a promoting mapping: the cohort to create, its group, each member classified by override,
+	 * and the enrolments to carry.
+	 *
+	 * @param array<string, mixed> $report The report so far.
+	 * @param array<string, mixed> $job    mapping, plan, overrides and the cohort's members.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
+	 */
+	private function tallyPromotion(array $report, array $job): array {
+		$mapping = $job['mapping'];
+		$toCohortName = (string)($mapping['toCohortName'] ?? '');
+		if ($toCohortName !== '') {
+			$report['cohortsToCreate'][] = $toCohortName;
+			$report['ncGroupsToSync'][] = $this->groupName(academicYear: (string)($job['plan']['toAcademicYear'] ?? ''), cohortName: $toCohortName);
+		}
+
+		foreach ($job['members'] as $learnerId) {
+			$learnerAction = ($job['overrides'][$learnerId]['action'] ?? 'promote');
+			$report['counts'][$learnerAction] = (($report['counts'][$learnerAction] ?? 0) + 1);
+		}
+
+		$report['enrolmentsToCarry'] += $this->countCarryableEnrolments(
+			learnerIds: $job['members'],
+			overrides: $job['overrides'],
+			carryNonMandatory: (bool)($mapping['carryNonMandatory'] ?? false)
+		);
+
+		return $report;
+	}//end tallyPromotion()
 
 	/**
 	 * Deterministic NC group name for a to-year cohort.
