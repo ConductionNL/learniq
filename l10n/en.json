@@ -5243,7 +5243,16 @@
         "First lesson hour of a report for part of a single day (1 is the first lesson). Empty for whole days.": "First lesson hour of a report for part of a single day (1 is the first lesson). Empty for whole days.",
         "Last lesson hour of a report for part of a single day, inclusive. Empty for whole days.": "Last lesson hour of a report for part of a single day, inclusive. Empty for whole days.",
         "ISO 8601 timestamp of that first look. Seeing does not change the lifecycle.": "ISO 8601 timestamp of that first look. Seeing does not change the lifecycle.",
-        "Nextcloud user ID of the group teacher who first opened the report, or the register that lists it. Stamped once by the server; later openings change nothing.": "Nextcloud user ID of the group teacher who first opened the report, or the register that lists it. Stamped once by the server; later openings change nothing."
+        "Nextcloud user ID of the group teacher who first opened the report, or the register that lists it. Stamped once by the server; later openings change nothing.": "Nextcloud user ID of the group teacher who first opened the report, or the register that lists it. Stamped once by the server; later openings change nothing.",
+        "Seen by {name} at {time}": "Seen by {name} at {time}",
+        "Report better": "Report better",
+        "Last day your child was ill": "Last day your child was ill",
+        "Your child is reported better. The report ends on the last day you chose.": "Your child is reported better. The report ends on the last day you chose.",
+        "Last day you were ill": "Last day you were ill",
+        "You are reported better. The report ends on the last day you chose.": "You are reported better. The report ends on the last day you chose.",
+        "Ill and not better yet? Leave it empty and report better later.": "Ill and not better yet? Leave it empty and report better later.",
+        "The last day cannot be before the first day of the absence.": "The last day cannot be before the first day of the absence.",
+        "This absence report already has a last day. Ask the school to change it.": "This absence report already has a last day. Ask the school to change it."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

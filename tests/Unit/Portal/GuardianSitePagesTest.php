@@ -218,7 +218,11 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertSame('Another reason', $configs['reasonKind']['otherLabel']);
 		self::assertSame('dateChoices', $configs['dateFrom']['widget']);
 		self::assertSame('dateChoices', $configs['dateTo']['widget']);
-		self::assertSame('Choose the last day your child is absent.', $configs['dateTo']['requiredMessage']);
+		// An illness may stay open until the child is better (absence-reports-seen-and-ended).
+		self::assertFalse($configs['dateTo']['required']);
+		self::assertSame('Ill and not better yet? Leave it empty and report better later.', $configs['dateTo']['help']);
+		self::assertSame(['label' => 'From lesson hour', 'required' => false], $configs['fromLessonHour']);
+		self::assertSame(['label' => 'To lesson hour', 'required' => false], $configs['toLessonHour']);
 
 		// Every card is a real absence kind, so portaliq keeps it.
 		$register = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'), true);
@@ -340,7 +344,11 @@ class GuardianSitePagesTest extends TestCase {
 		$absence = $actions['createExcuseRequest']['fieldConfigs'];
 		self::assertSame('dateChoices', $absence['dateFrom']['widget']);
 		self::assertSame('choices', $absence['reasonKind']['widget']);
-		self::assertSame('Choose the last day you are absent.', $absence['dateTo']['requiredMessage']);
+		// She may leave an illness open and name lesson hours (absence-reports-seen-and-ended).
+		self::assertFalse($absence['dateTo']['required']);
+		self::assertSame('Ill and not better yet? Leave it empty and report better later.', $absence['dateTo']['help']);
+		self::assertSame('From lesson hour', $absence['fromLessonHour']['label']);
+		self::assertSame('To lesson hour', $absence['toLessonHour']['label']);
 	}//end testThePupilsFormsLabelEveryFieldTheyAskFor()
 
 	/**
