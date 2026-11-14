@@ -2895,6 +2895,12 @@
         "Hour plans": "Urenplannen",
         "Teaching activities": "Onderwijsactiviteiten",
         "No hour plans yet.": "Nog geen urenplannen.",
+        "Test schedule": "Toetsrooster",
+        "Department and year": "Afdeling en leerjaar",
+        "Public": "Openbaar",
+        "What to bring": "Wat je meeneemt",
+        "Whether the school shows this test week's schedule on its public website (portal-public-index): day, time, subject, room, department and year of each sitting, never a name.": "Of de school het rooster van deze toetsweek op haar openbare website toont (portal-public-index): dag, tijd, vak, lokaal, afdeling en leerjaar van elke toets, nooit een naam.",
+        "What pupils bring to every sitting of this test week, shown with the public schedule when the website block asks for it.": "Wat leerlingen meenemen naar elke toets van deze toetsweek, getoond bij het openbare rooster als het websiteblok daarom vraagt.",
         "{programme}, intake {year}, {status}": "{programme}, instroom {year}, {status}",
         "Activate": "Activeren",
         "Archive": "Archiveren",
@@ -5760,13 +5766,7 @@
         "VAT rate": "Btw-tarief",
         "Price note": "Toelichting bij de prijs",
         "Invoice": "Factuur",
-        "Invoice status": "Factuurstatus",
-        "Test schedule": "Toetsrooster",
-        "Department and year": "Afdeling en leerjaar",
-        "Public": "Openbaar",
-        "What to bring": "Wat je meeneemt",
-        "Whether the school shows this test week's schedule on its public website (portal-public-index): day, time, subject, room, department and year of each sitting, never a name.": "Of de school het rooster van deze toetsweek op haar openbare website toont (portal-public-index): dag, tijd, vak, lokaal, afdeling en leerjaar van elke toets, nooit een naam.",
-        "What pupils bring to every sitting of this test week, shown with the public schedule when the website block asks for it.": "Wat leerlingen meenemen naar elke toets van deze toetsweek, getoond bij het openbare rooster als het websiteblok daarom vraagt."
+        "Invoice status": "Factuurstatus"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
