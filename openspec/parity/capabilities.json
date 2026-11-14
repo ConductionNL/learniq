@@ -3543,8 +3543,8 @@
       "area": "enrolment",
       "name": "Ask a guardian to agree to the subject choice before it counts.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Lifecycle/SubjectChoiceConsentGuard.php Not built: GuardianSubmitCheck lets any learner submit for themselves with no age check, and guardianConsentGiven is an unenforced checkbox.",
+        "state": "built",
+        "evidence": "lib/Lifecycle/SubjectChoiceConsentGuard.php; lib/Service/GuardianConsentHold.php (a learner under 18 waits until a linked guardian consents); lib/Listener/SubjectChoiceValidator.php (holds a minor's submitted choice, checks it when the guardian's consent is recorded); tests/Unit/Listener/SubjectChoiceGuardianConsentTest.php",
         "owner": "ConductionNL/learniq",
         "change": "2026-07-16-admissions-and-subject-choice",
         "requirement": [
@@ -5484,8 +5484,8 @@
       "area": "support",
       "name": "Write an individual plan for a learner who needs one.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.LearningPlan covering opp, handelingsplan, iep, pdp and idp Not built: the learner profile's Learning plans panel (src/manifest.d/people.json, lprof-plans) filters on the profile uuid while LearningPlan.learnerId holds the Nextcloud user id, so a plan made for the learner does not show there.",
+        "state": "built",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.LearningPlan covering opp, handelingsplan, iep, pdp and idp; src/manifest.d/people.json lprof-plans (filters on the profile's ncUserId, the id LearningPlan.learnerId holds); tests/unit-js/learnerPlansPanel.test.mjs",
         "owner": "ConductionNL/learniq",
         "change": "learning-plan",
         "requirement": [
