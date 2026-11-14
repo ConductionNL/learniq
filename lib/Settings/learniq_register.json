@@ -26218,7 +26218,7 @@
             "CoursePackageImportReport": {
                 "slug": "course-package-import-report",
                 "icon": "PackageVariant",
-                "version": "0.2.0",
+                "version": "0.3.0",
                 "title": "CoursePackageImportReport",
                 "description": "The anti-Canvas promise made structural: one record per course-package import attempt (IMS Common Cartridge 1.3 or Moodle .mbz), naming every source resource's outcome (imported/degraded/dropped) so nothing is silently lost. Created by CoursePackageImportService for every import, whether the package fully succeeds, partially succeeds, or fails to parse at all.",
                 "type": "object",
@@ -26240,7 +26240,8 @@
                         "enum": [
                             "common-cartridge-1.3",
                             "moodle-backup",
-                            "scholiq-json"
+                            "scholiq-json",
+                            "scorm"
                         ],
                         "description": "Detected format of the uploaded package. scholiq-json is the lossless round-trip target of this change's own CoursePackageExportService::exportScholiqJson() output.",
                         "example": "common-cartridge-1.3",

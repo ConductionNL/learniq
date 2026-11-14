@@ -36,11 +36,13 @@ final class CoursePackageImporters {
 	 * @param CommonCartridgeCourseImporter $commonCartridge Common Cartridge extraction and materialisation.
 	 * @param MoodleCourseImporter          $moodle          Moodle backup extraction and materialisation.
 	 * @param LearniqJsonCourseImporter     $learniqJson     The learniq-native JSON round-trip import.
+	 * @param ScormCourseImporter|null      $scorm           The SCORM 1.2 / 2004 zip import; absent, a SCORM zip is read as Common Cartridge.
 	 */
 	public function __construct(
 		public readonly CommonCartridgeCourseImporter $commonCartridge,
 		public readonly MoodleCourseImporter $moodle,
 		public readonly LearniqJsonCourseImporter $learniqJson,
+		public readonly ?ScormCourseImporter $scorm = null,
 	) {
 	}//end __construct()
 }//end class
