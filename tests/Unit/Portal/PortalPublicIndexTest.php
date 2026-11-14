@@ -30,6 +30,7 @@ namespace OCA\Learniq\Tests\Unit\Portal;
 use DateTimeImmutable;
 use OCA\Learniq\Portal\PortalContributionProvider;
 use OCA\Learniq\Portal\PortalPublicIndex;
+use OCA\Learniq\Portal\PublicEventIndex;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -153,6 +154,62 @@ class PortalPublicIndexTest extends TestCase {
 		self::assertArrayNotHasKey('Naar de kinderboerderij', $days, 'a day for some groups only stays out');
 		self::assertArrayNotHasKey('Opening Kinderboekenweek', $days, 'a day that is over stays out');
 	}//end testThePrimarySchoolShowsItsSchoolWideDaysToCome()
+
+	/**
+	 * Every school day carries the category a calendar block filters on, so a
+	 * block asking for holidays and days off gets those and not the photographer.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-every-school-day-in-the-index-has-a-category
+	 */
+	public function testEverySchoolDayCarriesItsCategory(): void {
+		$days = $this->items(portal: 'wilgenboom', type: 'event');
+
+		self::assertSame('holiday', $days['Herfstvakantie']['category']);
+		self::assertSame('Holiday', $days['Herfstvakantie']['categoryLabel']);
+		self::assertSame('2026-10-25', $days['Herfstvakantie']['endDate']);
+		self::assertSame('day-off', $days['Studiedag']['category']);
+		self::assertSame('Study day or day off', $days['Studiedag']['categoryLabel']);
+		self::assertSame('activity', $days['Schoolfotograaf']['category']);
+		self::assertSame('School activity', $days['Schoolfotograaf']['categoryLabel']);
+		self::assertSame('parent-evening', $days['Ouderavond']['category']);
+		self::assertSame('Parent evening', $days['Ouderavond']['categoryLabel']);
+
+		$chosen = array_keys(array_filter($days, static fn (array $day): bool => in_array($day['category'], ['holiday', 'day-off'], true)));
+		sort($chosen);
+		self::assertSame(['Herfstvakantie', 'Kerstvakantie', 'Studiedag'], $chosen);
+	}//end testEverySchoolDayCarriesItsCategory()
+
+	/**
+	 * Each kind of day falls in one of the four categories; an unknown or missing kind is a school activity.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-every-school-day-in-the-index-has-a-category
+	 */
+	public function testEveryKindFallsInOneCategory(): void {
+		$expected = [
+			'holiday' => 'holiday',
+			'study-day' => 'day-off',
+			'day-off' => 'day-off',
+			'parent-evening' => 'parent-evening',
+			'event' => 'activity',
+			'sports-day' => 'activity',
+			'trip' => 'activity',
+			'celebration' => 'activity',
+			'other' => 'activity',
+			'' => 'activity',
+		];
+
+		$register = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'), true);
+		$kinds    = $register['components']['schemas']['SchoolEvent']['properties']['kind']['enum'];
+		self::assertSame([], array_diff($kinds, array_keys($expected)), 'a kind of day with no category');
+
+		foreach ($expected as $kind => $category) {
+			self::assertSame($category, PublicEventIndex::categoryOf(kind: $kind), $kind);
+		}
+	}//end testEveryKindFallsInOneCategory()
 
 	/**
 	 * On an instance with every example set, a portal shows only its own;
