@@ -6916,7 +6916,7 @@
             "Cohort": {
                 "slug": "cohort",
                 "icon": "AccountGroupOutline",
-                "version": "0.3.0",
+                "version": "0.3.1",
                 "title": "Cohort",
                 "description": "A group of learners doing a Course or Programme together in a given period. Members are LearnerProfile UUIDs; backed by a Nextcloud group for permissioning. Lifecycle: planned → active → completed | archived.",
                 "type": "object",
@@ -7122,6 +7122,14 @@
                         "minimum": 0,
                         "description": "How many participants fit in this course date. The portal shows how many places are left.",
                         "title": "Places"
+                    },
+                    "substituteUntil": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "default": null,
+                        "title": "Substitute until",
+                        "description": "Until when an employer may send a colleague in a participant's place. Empty: the working day before the first course day at 12.00."
                     }
                 },
                 "x-openregister-lifecycle": {

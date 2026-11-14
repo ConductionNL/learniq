@@ -74,4 +74,16 @@ interface PortalEmployerBookingsInterface {
 	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-supplies-a-missing-birth-date-and-never-reads-it
 	 */
 	public function supplyBirthDate(string $organisationRef, array $body): PortalOutcome;
+
+	/**
+	 * Send one of the company's people in place of a participant of its booking, before the deadline.
+	 *
+	 * @param string               $organisationRef The company, from the claim.
+	 * @param array<string, mixed> $body            `bookingRef`, `learnerRef` (replaced), `substituteRef` (sent instead).
+	 *
+	 * @return PortalOutcome 200 with the booking, or 403 / 404 / 409 / 422 / 502.
+	 *
+	 * @spec openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
+	 */
+	public function substituteParticipant(string $organisationRef, array $body): PortalOutcome;
 }//end interface

@@ -5754,6 +5754,8 @@
         "SPDX license identifier or rights statement. Open material from a source carries its normalised licence code, such as CC-BY-4.0, or other.": "SPDX-licentiecode of rechtenverklaring. Open materiaal uit een bron draagt zijn licentiecode, zoals CC-BY-4.0, of other.",
         "This material is not available in this course.": "Dit materiaal is niet beschikbaar in deze cursus.",
         "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "De licentie staat een kopie toe, maar learniq kan nog geen bestanden uit Edurep ophalen, dus het maakt een koppeling. De leerling opent het materiaal bij de bron.",
+        "Substitute until": "Vervangen tot",
+        "Until when an employer may send a colleague in a participant's place. Empty: the working day before the first course day at 12.00.": "Tot wanneer een werkgever een collega in de plaats van een deelnemer mag sturen. Leeg: de werkdag voor de eerste cursusdag om 12.00 uur.",
         "Price": "Prijs",
         "Amount excluding VAT": "Bedrag zonder btw",
         "ISO 4217 currency code.": "ISO 4217-valutacode.",

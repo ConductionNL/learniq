@@ -67,14 +67,14 @@ class PortalEmployerControllerTenancyTest extends TestCase {
 	 * @return void
 	 */
 	public function testEveryWriteChecksTheCompanyAgainstThePortalsOrganisation(): void {
-		foreach (['book', 'addParticipant', 'supplyBirthDate'] as $method) {
+		foreach (['book', 'addParticipant', 'supplyBirthDate', 'substitute'] as $method) {
 			$foreign = $this->controller(company: ' co-b ')->{$method}();
 			self::assertSame(expected: [403, ['error' => 'forbidden']], actual: [$foreign->getStatus(), $foreign->getData()], message: $method);
 			$own = $this->controller(company: 'co-a')->{$method}();
 			self::assertSame(expected: 201, actual: $own->getStatus(), message: $method);
 		}
 
-		self::assertSame(expected: [['book', 'co-a'], ['addParticipant', 'co-a'], ['supplyBirthDate', 'co-a']], actual: $this->writes);
+		self::assertSame(expected: [['book', 'co-a'], ['addParticipant', 'co-a'], ['supplyBirthDate', 'co-a'], ['substituteParticipant', 'co-a']], actual: $this->writes);
 		self::assertSame(
 			expected: ['school-a'],
 			actual: array_values(array_unique(array_column($this->asked, 1))),
@@ -102,7 +102,7 @@ class PortalEmployerControllerTenancyTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheBodyMustNameTheAssertionsOwnCompany(): void {
-		foreach (['book', 'addParticipant', 'supplyBirthDate'] as $method) {
+		foreach (['book', 'addParticipant', 'supplyBirthDate', 'substitute'] as $method) {
 			$other = $this->controller(company: 'co-a2', claim: 'co-a')->{$method}();
 			self::assertSame(expected: [403, ['error' => 'forbidden']], actual: [$other->getStatus(), $other->getData()], message: $method);
 			$unsigned = $this->controller(company: 'co-a', claim: null)->{$method}();
@@ -113,8 +113,8 @@ class PortalEmployerControllerTenancyTest extends TestCase {
 			self::assertSame(expected: 201, actual: $padded->getStatus(), message: $method);
 		}
 
-		self::assertSame(expected: [['book', 'co-a'], ['addParticipant', 'co-a'], ['supplyBirthDate', 'co-a']], actual: $this->writes);
-		self::assertSame(expected: ['co-a', 'co-a', 'co-a'], actual: array_column($this->asked, 0), message: 'a refused binding asks no tenancy question');
+		self::assertSame(expected: [['book', 'co-a'], ['addParticipant', 'co-a'], ['supplyBirthDate', 'co-a'], ['substituteParticipant', 'co-a']], actual: $this->writes);
+		self::assertSame(expected: ['co-a', 'co-a', 'co-a', 'co-a'], actual: array_column($this->asked, 0), message: 'a refused binding asks no tenancy question');
 	}//end testTheBodyMustNameTheAssertionsOwnCompany()
 
 	/**
@@ -185,7 +185,7 @@ class PortalEmployerControllerTenancyTest extends TestCase {
 		);
 
 		$bookings = $this->createMock(originalClassName: PortalEmployerBookings::class);
-		foreach (['book', 'addParticipant', 'supplyBirthDate'] as $method) {
+		foreach (['book', 'addParticipant', 'supplyBirthDate', 'substituteParticipant'] as $method) {
 			$bookings->method($method)->willReturnCallback(
 				function (string $organisationRef, array $body) use ($method): PortalOutcome {
 					$this->writes[] = [$method, $organisationRef];
