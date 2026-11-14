@@ -1695,7 +1695,8 @@ class SchoolYear:
         self.b.add("portfolio-share", {
             # The readable copies ReadableCopyStamp writes on a live save.
             "portfolioId": portfolio["uuid"], "portfolioTitle": portfolio["title"], "learnerName": f"{s['given']} {s['surname']}",
-            "entryIds": [], "sharedWithKind": "external-assessor", "sharedWithExternalAssessorId": assessor["uuid"],
+            # No selection: the whole portfolio, which the assessor portal joins on.
+            "entryIds": [], "wholePortfolioId": portfolio["uuid"], "sharedWithKind": "external-assessor", "sharedWithExternalAssessorId": assessor["uuid"],
             "sharedBy": EXAM_SECRETARY, "expiresAt": stamp(dt.date(2026, 10, 16), 23, 59), "lifecycle": "active",
         })
 
