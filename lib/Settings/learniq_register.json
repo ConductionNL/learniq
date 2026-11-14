@@ -19705,7 +19705,9 @@
                                 "reported"
                             ],
                             "to": "resolved",
-                            "label": "Close"
+                            "label": "Close",
+                            "requires": "OCA\\Learniq\\Lifecycle\\AttendanceFlagResolveGuard",
+                            "description": "Close the flag. A flag that was reported stays reported until the municipality's MAS route is recorded: AttendanceFlagResolveGuard refuses the close until then."
                         },
                         "recordMunicipalityFeedback": {
                             "from": "reported",

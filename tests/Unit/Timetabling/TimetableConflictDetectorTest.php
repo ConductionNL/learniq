@@ -320,6 +320,72 @@ class TimetableConflictDetectorTest extends TestCase {
 	}//end testRoomCapacityNotExceededIsNotFlagged()
 
 	/**
+	 * An ordinary lesson, with no Assessment, booked in a room too small for its cohort is flagged,
+	 * and the lesson keeps its room, time and teacher.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/timetabling/spec.md#requirement-a-planner-books-a-room-or-lab-for-a-session-and-an-overfull-booking-is-flagged
+	 */
+	public function testAnOrdinaryLessonInARoomTooSmallIsFlagged(): void {
+		$lesson = [
+			'id' => 's-lesson',
+			'cohortId' => 'cohort-4havo',
+			'roomId' => 'room-lab',
+			'teacherId' => 't-1',
+			'startsAt' => '2026-02-03T09:00:00+00:00',
+			'endsAt' => '2026-02-03T10:00:00+00:00',
+			'lifecycle' => 'scheduled',
+			'tenant_id' => 'tenant-1',
+		];
+		// A cohort of 28 learners against a lab with capacity 24, and no Assessment on the lesson.
+		$this->fixtures['cohort'] = [['id' => 'cohort-4havo', 'teacherIds' => [], 'learnerIds' => array_map(static fn (int $n): string => "l{$n}", range(1, 28))]];
+		$this->fixtures['room'] = [['id' => 'room-lab', 'kind' => 'lab', 'capacity' => 24]];
+		$this->fixtures['exam'] = [];
+
+		$this->detector()->scan([$lesson]);
+
+		$conflicts = array_values(array_filter(
+			array_column($this->saves, 'object'),
+			static fn (array $o): bool => ($o['kind'] ?? '') === 'room-capacity-exceeded'
+		));
+		self::assertCount(1, $conflicts);
+		self::assertSame(['s-lesson'], $conflicts[0]['sessionIds']);
+		self::assertSame('room-lab', $conflicts[0]['scopeRef'] ?? null);
+		foreach ($this->saves as $save) {
+			self::assertNotSame('s-lesson', $save['object']['id'] ?? null, 'the detector wrote the lesson');
+		}
+
+	}//end testAnOrdinaryLessonInARoomTooSmallIsFlagged()
+
+	/**
+	 * An ordinary lesson that fits its room is not flagged.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/timetabling/spec.md#requirement-a-planner-books-a-room-or-lab-for-a-session-and-an-overfull-booking-is-flagged
+	 */
+	public function testAnOrdinaryLessonThatFitsIsNotFlagged(): void {
+		$lesson = [
+			'id' => 's-lesson',
+			'cohortId' => 'cohort-small',
+			'roomId' => 'room-lab',
+			'startsAt' => '2026-02-03T09:00:00+00:00',
+			'endsAt' => '2026-02-03T10:00:00+00:00',
+			'lifecycle' => 'scheduled',
+			'tenant_id' => 'tenant-1',
+		];
+		$this->fixtures['cohort'] = [['id' => 'cohort-small', 'teacherIds' => [], 'learnerIds' => array_map(static fn (int $n): string => "l{$n}", range(1, 24))]];
+		$this->fixtures['room'] = [['id' => 'room-lab', 'kind' => 'lab', 'capacity' => 24]];
+		$this->fixtures['exam'] = [];
+
+		$this->detector()->scan([$lesson]);
+
+		self::assertCount(0, $this->saves);
+
+	}//end testAnOrdinaryLessonThatFitsIsNotFlagged()
+
+	/**
 	 * A pairwise overlap where one Session has a linked Assessment also gets
 	 * an exam-clash row, alongside the underlying overlap kind.
 	 *

@@ -287,17 +287,20 @@ class TimetableConflictDetector implements TimetableConflictDetectorInterface {
 	}//end evaluateCapacity()
 
 	/**
-	 * Whether a Session with a linked Assessment holds more learners than its Room's capacity.
+	 * Whether a Session, an ordinary lesson as much as one linked to an
+	 * Assessment, holds more learners than its Room's capacity.
 	 *
 	 * @param ConflictScan        $scan    The running scan (caches mutated).
 	 * @param array<string,mixed> $session The Session.
 	 *
 	 * @return bool
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/timetabling/spec.md#requirement-a-planner-books-a-room-or-lab-for-a-session-and-an-overfull-booking-is-flagged
 	 */
 	private function exceedsRoomCapacity(ConflictScan $scan, array $session): bool {
 		$sessionId = self::sessionId(session: $session);
 		$roomId    = self::roomId(session: $session);
-		if ($sessionId === '' || $roomId === '' || $this->loader->hasLinkedAssessment(sessionId: $sessionId, scan: $scan) === false) {
+		if ($sessionId === '' || $roomId === '') {
 			return false;
 		}
 
