@@ -330,11 +330,7 @@
 								class="mark-submission-view__peer-item">
 								<span
 									class="mark-submission-view__peer-item-reviewer">
-									{{
-										item.reviewerId
-											? item.reviewerId
-											: t('learniq', 'Anonymous reviewer')
-									}}
+									{{ t('learniq', 'Anonymous reviewer') }}
 								</span>
 								<span
 									v-if="item.comments"
@@ -734,9 +730,8 @@ export default {
 
 		/**
 		 * Fetch the Submission's PeerFeedbackSummary from OR (read-only context).
-		 * feedbackItems[].reviewerId is already server-computed as null when
-		 * blind/double-blind — this view renders whatever the server returns
-		 * without any client-side redaction of its own.
+		 * The summary carries no reviewer identity in any anonymity mode — the
+		 * server never writes it — so this view has nothing to redact.
 		 *
 		 * @param {string} submissionId Submission UUID
 		 * @return {Promise<void>}

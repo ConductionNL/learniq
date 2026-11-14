@@ -6588,14 +6588,16 @@
         },
         "submissionId": "ee00006b-0000-4000-8000-000000000001",
         "assignmentId": "ee00000a-0000-4000-8000-000000000001",
+        "learnerIds": [
+          "Voorbeeld Learnerids 1"
+        ],
         "tenant_id": "00000000-0000-4000-8000-000000000000",
         "reviewCount": 1,
         "averageScore": 1.0,
         "feedbackItems": [
           {
             "comments": "Voorbeeld Comments 1",
-            "rubricScores": [],
-            "reviewerId": "Voorbeeld Reviewerid 1"
+            "rubricScores": []
           }
         ],
         "lastComputedAt": "2026-03-01T09:00:00+00:00"
@@ -6609,14 +6611,16 @@
         },
         "submissionId": "ee00006b-0000-4000-8000-000000000002",
         "assignmentId": "ee00000a-0000-4000-8000-000000000002",
+        "learnerIds": [
+          "Voorbeeld Learnerids 2"
+        ],
         "tenant_id": "00000000-0000-4000-8000-000000000001",
         "reviewCount": 2,
         "averageScore": 2.0,
         "feedbackItems": [
           {
             "comments": "Voorbeeld Comments 2",
-            "rubricScores": [],
-            "reviewerId": "Voorbeeld Reviewerid 2"
+            "rubricScores": []
           }
         ],
         "lastComputedAt": "2026-03-02T09:00:00+00:00"
@@ -6630,14 +6634,16 @@
         },
         "submissionId": "ee00006b-0000-4000-8000-000000000003",
         "assignmentId": "ee00000a-0000-4000-8000-000000000003",
+        "learnerIds": [
+          "Voorbeeld Learnerids 3"
+        ],
         "tenant_id": "00000000-0000-4000-8000-000000000002",
         "reviewCount": 3,
         "averageScore": 3.0,
         "feedbackItems": [
           {
             "comments": "Voorbeeld Comments 3",
-            "rubricScores": [],
-            "reviewerId": "Voorbeeld Reviewerid 3"
+            "rubricScores": []
           }
         ],
         "lastComputedAt": "2026-03-03T09:00:00+00:00"

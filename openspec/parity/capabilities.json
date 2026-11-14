@@ -3199,12 +3199,12 @@
       "area": "enrolment",
       "name": "Give a cohort its own chat room automatically.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Listener/CohortTalkMembershipHandler.php",
+        "state": "built",
+        "evidence": "lib/Listener/CohortTalkRoomProvisioner.php",
         "owner": "ConductionNL/learniq",
         "change": "cohort-room-and-feedback-summary-for-the-learner",
         "requirement": "openspec/changes/cohort-room-and-feedback-summary-for-the-learner/specs/school-structure :: A new cohort gets its own Talk room automatically",
-        "note": "decision 392 (12 Nov): the room is created and linked automatically, not built. Before: built on lib/Listener/CohortTalkMembershipHandler.php, which syncs members of a room a coordinator links by hand (change 2026-07-16-talk-classroom-spaces)."
+        "note": "decision 392 (12 Nov): a cohort that becomes active with no Talk room linked gets its own, named after it and linked through OpenRegister's TalkLinkService, with its active learners added; lib/Listener/CohortTalkMembershipHandler.php keeps the members in step."
       },
       "provider": "nextcloud",
       "providerHow": "read: the platform provides it and this repository consumes it",
@@ -4707,12 +4707,12 @@
       "area": "assignments",
       "name": "Show a learner one summary of all the feedback they received.",
       "built": {
-        "state": "specified",
+        "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.PeerFeedbackSummary; lib/Listener/PeerFeedbackAggregator.php",
         "owner": "ConductionNL/learniq",
         "change": "cohort-room-and-feedback-summary-for-the-learner",
         "requirement": "openspec/changes/cohort-room-and-feedback-summary-for-the-learner/specs/assignments :: A learner reads the feedback summary of their own submission with reviewers anonymised",
-        "note": "decision 392 (12 Nov): the learner sees their own summary with reviewers anonymised, not built. Before: built on PeerFeedbackSummary, which has no learner read rule (change 2026-07-16-peer-and-self-assessment)."
+        "note": "decision 392 (12 Nov): PeerFeedbackSummary has a read rule for the submission's own learner once a peer review is released, carries no reviewer identity, and shows on the Submission page."
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",

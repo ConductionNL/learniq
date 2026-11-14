@@ -10442,7 +10442,7 @@
                     }
                 },
                 "x-property-rbac": {
-                    "_comment": "Anonymity Enforcement (design.md): this rule is FIXED and independent of Assignment.peerReviewAnonymity — the submission's author can never read a raw PeerReview row, regardless of anonymity mode. The author instead reads PeerFeedbackSummary, whose feedbackItems[].reviewerId is server-computed as null when blind/double-blind.",
+                    "_comment": "Anonymity Enforcement (design.md): this rule is FIXED and independent of Assignment.peerReviewAnonymity — the submission's author can never read a raw PeerReview row, regardless of anonymity mode. The author instead reads PeerFeedbackSummary, which carries no reviewer identity in any anonymity mode.",
                     "read": {
                         "anyOf": [
                             {
@@ -10652,15 +10652,33 @@
             "PeerFeedbackSummary": {
                 "slug": "peer-feedback-summary",
                 "icon": "MessageTextOutline",
-                "version": "0.1.0",
+                "version": "0.2.0",
                 "title": "PeerFeedbackSummary",
-                "description": "Computed, read-only aggregate of a Submission's released PeerReviews — one row per Submission. The only surface a submission's author reads peer feedback through (Anonymity Enforcement, design.md): feedbackItems[].reviewerId is computed as null when Assignment.peerReviewAnonymity is blind/double-blind, populated when open. Recomputed by PeerFeedbackAggregator whenever a linked PeerReview transitions to released. No lifecycle — fully derived, mirrors FinalGrade.",
+                "description": "Computed, read-only aggregate of a Submission's released PeerReviews — one row per Submission. The only surface a submission's author reads peer feedback through (Anonymity Enforcement, design.md): it carries the comments and rubric scores but no reviewer name, user id or PeerReview id, in every anonymity mode. Recomputed by PeerFeedbackAggregator whenever a linked PeerReview transitions to released, which is also when it is first written. No lifecycle — fully derived, mirrors FinalGrade. Read: the groups that read the Submission, and the Submission's own learner once a PeerReview on it is released (reviewCount >= 1); another learner reads none.",
                 "type": "object",
                 "x-openregister": {
                     "active": true,
                     "hardDelete": false,
                     "searchable": true,
                     "readOnly": true
+                },
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "compliance-officers",
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerIds": {
+                                    "$contains": "$userId"
+                                },
+                                "reviewCount": {
+                                    "$gte": 1
+                                }
+                            }
+                        }
+                    ]
                 },
                 "required": [
                     "submissionId",
@@ -10682,6 +10700,15 @@
                         "description": "UUID of the governing Assignment (source of peerReviewAnonymity).",
                         "title": "Assignment ID"
                     },
+                    "learnerIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Nextcloud user ids of the Submission's own learners, copied from Submission.learnerIds by PeerFeedbackAggregator so the read rule can let them in. Derived — do not set manually.",
+                        "title": "Learner IDs",
+                        "visible": false
+                    },
                     "reviewCount": {
                         "type": "integer",
                         "nullable": true,
@@ -10696,7 +10723,7 @@
                     },
                     "feedbackItems": {
                         "type": "array",
-                        "description": "One entry per released PeerReview. reviewerId is null when Assignment.peerReviewAnonymity is blind/double-blind — the server-enforced anonymity guarantee (design.md 'Anonymity Enforcement'). Derived — do not set manually.",
+                        "description": "One entry per released PeerReview: what the reviewer said, never who said it. No reviewer or PeerReview id is written, whatever Assignment.peerReviewAnonymity is — the server-enforced anonymity guarantee (design.md 'Anonymity Enforcement'). Derived — do not set manually.",
                         "items": {
                             "type": "object",
                             "properties": {
@@ -10730,12 +10757,6 @@
                                         }
                                     },
                                     "title": "Rubric Scores"
-                                },
-                                "reviewerId": {
-                                    "type": "string",
-                                    "nullable": true,
-                                    "description": "Reviewer's Nextcloud user ID. Null when peerReviewAnonymity is blind/double-blind; populated when open.",
-                                    "title": "Reviewer ID"
                                 }
                             }
                         },

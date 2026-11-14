@@ -1419,9 +1419,9 @@ class AcademicYear:
     def add_feedback_summary(self, assignment: dict, reviewed: tuple[dict, list[dict]]) -> None:
         sub, reviews = reviewed
         self.b.add("peer-feedback-summary", {
-            "submissionId": sub["uuid"], "assignmentId": assignment["uuid"], "reviewCount": len(reviews),
-            "averageScore": sum(r["totalScore"] for r in reviews) / len(reviews),
-            "feedbackItems": [{"comments": r["comments"], "rubricScores": r["rubricScores"], "reviewerId": None} for r in reviews],
+            "submissionId": sub["uuid"], "assignmentId": assignment["uuid"], "learnerIds": sub["learnerIds"],
+            "reviewCount": len(reviews), "averageScore": sum(r["totalScore"] for r in reviews) / len(reviews),
+            "feedbackItems": [{"comments": r["comments"], "rubricScores": r["rubricScores"]} for r in reviews],
             "lastComputedAt": assignment["peerReviewDueAt"],
         })
 
