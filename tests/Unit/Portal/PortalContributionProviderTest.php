@@ -201,7 +201,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(18, $collections);
+		$this->assertCount(20, $collections);
 		$this->assertSame(
 			[
 				'studentGrades',
@@ -229,6 +229,9 @@ class PortalContributionProviderTest extends TestCase {
 				// pupil-books-support-lessons-and-mentor-talks: the support lessons of her groups and her sign-ups.
 				'studentElectiveOffers',
 				'studentElectiveSignUps',
+				// The free times of a mentor talk she may book herself, and her talks.
+				'studentConferenceTimes',
+				'studentConferenceSignups',
 			],
 			array_column($collections, 'id')
 		);
@@ -255,6 +258,14 @@ class PortalContributionProviderTest extends TestCase {
 				continue;
 			}
 
+			if ($collection['id'] === 'studentConferenceTimes') {
+				// A free time names the pupils who may book it; she reads only
+				// those of a round that lets pupils book.
+				$this->assertSame('eligibleLearnerRefs', $collection['scopeField']);
+				$this->assertSame(['lifecycle' => 'free', 'pupilMayBook' => true], $collection['filter']);
+				continue;
+			}
+
 			if ($collection['id'] === 'studentElectiveOffers') {
 				// An offer belongs to groups: reached through her own live
 				// enrolments, as her lessons are, and only while it is open.
@@ -276,6 +287,25 @@ class PortalContributionProviderTest extends TestCase {
 		}
 
 	}//end testStudentManifestShape()
+
+	/**
+	 * A guardian is told of a talk her child booked herself: an inbox over
+	 * the child's own bookings only, through the guardian's children.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-may-book-her-own-mentor-talk-when-the-round-allows-it
+	 */
+	public function testTheGuardianReadsTheTalksHerChildBooked(): void {
+		$byId = array_column($this->provider->getContribution(self::PARENT_SUBJECT)['collections'], null, 'id');
+		$inbox = $byId['parentPupilBookingInbox'];
+
+		$this->assertSame(['inbox', 'conference-signup', 'learnerRef', 'guardianRef'], [$inbox['kind'], $inbox['schema'], $inbox['scopeField'], $inbox['scopeClaim']]);
+		$this->assertSame(['bookedBy' => 'pupil'], $inbox['filter']);
+		$this->assertSame($byId['parentConferenceSignups']['via'], $inbox['via']);
+		$this->assertSame(['subject' => 'slotLabel', 'receivedAt' => 'bookedAt'], $inbox['messageFields']);
+		$this->assertSame('substantial', $inbox['minTrust']);
+	}//end testTheGuardianReadsTheTalksHerChildBooked()
 
 	/**
 	 * The student inbox is a `kind: inbox` collection scoped by learnerRef.
@@ -308,7 +338,7 @@ class PortalContributionProviderTest extends TestCase {
 		$actions = $manifest['actions'];
 
 		$this->assertSame(
-			['createSubmission', 'submitHourWeek', 'fillInSelfAssessment', 'createExcuseRequest', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult', 'handIn', 'listCatalogue', 'signUpForCourse', 'withdrawSignUp', 'listWorkGroups', 'joinWorkGroup', 'leaveWorkGroup', 'checkIn', 'signUpForElective'],
+			['createSubmission', 'submitHourWeek', 'fillInSelfAssessment', 'createExcuseRequest', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult', 'handIn', 'listCatalogue', 'signUpForCourse', 'withdrawSignUp', 'listWorkGroups', 'joinWorkGroup', 'leaveWorkGroup', 'checkIn', 'signUpForElective', 'bookConferenceSlotAsPupil'],
 			array_column($actions, 'id')
 		);
 		$byId = array_column($actions, null, 'id');
@@ -523,9 +553,9 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame(['conference.answered'], array_column($manifest['notifications'], 'ruleKey'), 'one rule: the teacher answered a booking');
 
 		$collections = $manifest['collections'];
-		$this->assertCount(21, $collections);
+		$this->assertCount(22, $collections);
 		$this->assertSame(
-			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceInvitations', 'parentConferenceFreeSlots', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships', 'parentReportSubjectGrades', 'parentInbox', 'parentGradeInbox', 'parentAttendanceSummary', 'parentHomework', 'parentSubmissions', 'parentSchoolEvents', 'parentSchoolCalendar', 'parentSchools'],
+			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceInvitations', 'parentConferenceFreeSlots', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships', 'parentReportSubjectGrades', 'parentInbox', 'parentGradeInbox', 'parentPupilBookingInbox', 'parentAttendanceSummary', 'parentHomework', 'parentSubmissions', 'parentSchoolEvents', 'parentSchoolCalendar', 'parentSchools'],
 			array_column($collections, 'id')
 		);
 

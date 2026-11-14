@@ -5776,7 +5776,13 @@
         "This support lesson is full.": "Deze steunles is vol.",
         "Sign-up for this support lesson is closed.": "Inschrijven voor deze steunles is gesloten.",
         "You are already signed up for this lesson.": "Je bent al ingeschreven voor deze les.",
-        "Your sign-up could not be checked. Try again later.": "Je inschrijving kon niet worden gecontroleerd. Probeer het later opnieuw."
+        "Your sign-up could not be checked. Try again later.": "Je inschrijving kon niet worden gecontroleerd. Probeer het later opnieuw.",
+        "Times for your mentor talk": "Tijden voor je mentorgesprek",
+        "My mentor talks": "Mijn mentorgesprekken",
+        "Anything your mentor should know beforehand": "Wat je mentor vooraf moet weten",
+        "The time is yours. Your parents get a message about it.": "De tijd is van jou. Je ouders krijgen er een bericht over.",
+        "Talks your child booked": "Gesprekken die uw kind boekte",
+        "A parent": "Een ouder"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

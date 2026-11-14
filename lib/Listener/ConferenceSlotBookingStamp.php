@@ -23,7 +23,13 @@
  *   the child has no more bookings in the round than it allows, and sets the
  *   slot to `booked` with the child and the guardian;
  * - stamps the signup with the round, the child's user id, the guardian's
- *   user id, the tenant, the teacher, the time and the lifecycle `booked`.
+ *   user id, the tenant, the teacher, the time, who booked it and when, and
+ *   the lifecycle `booked`.
+ *
+ * A pupil's own booking (pupil-books-support-lessons-and-mentor-talks)
+ * carries her `learnerRef` and no `guardianRef`, and may arrive with her own
+ * school-account session; it is taken only in a round with `pupilMayBook`.
+ * Any other session user is an app write and left alone.
  *
  * A signup without a `slotId` is the preference flow and is left to
  * ConferenceSignupPortalStamp. Every other write is left alone.
@@ -46,6 +52,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use DateTimeImmutable;
+use DateTimeInterface;
 use OCA\Learniq\Kernel\Contracts\ConferenceSlotClaimInterface;
 use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
@@ -191,15 +199,29 @@ class ConferenceSlotBookingStamp implements IEventListener {
 	 * @return bool
 	 */
 	private function isPortalBooking(array $payload): bool {
-		if ($this->userSession->getUser() !== null) {
+		$learnerRef = self::text(value: ($payload['learnerRef'] ?? null));
+		if ($learnerRef === '' || self::text(value: ($payload['slotId'] ?? null)) === '') {
 			return false;
 		}
 
 		// A guardian's booking carries the guardianRef portaliq stamps from
 		// her claim; a pupil's own booking carries her learnerRef and none
 		// (pupil-books-support-lessons-and-mentor-talks).
-		return self::text(value: ($payload['learnerRef'] ?? null)) !== ''
-			&& self::text(value: ($payload['slotId'] ?? null)) !== '';
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return true;
+		}
+
+		// A pupil signs in to her portal with her school account, so her own
+		// booking can arrive with her session. Only her own counts: anybody
+		// else's session is an app write, left to the app's own rules.
+		if (self::text(value: ($payload['guardianRef'] ?? null)) !== '') {
+			return false;
+		}
+
+		$learner = $this->profiles->byRef(learnerRef: $learnerRef);
+
+		return $learner !== null && self::text(value: ($learner['ncUserId'] ?? null)) === $user->getUID();
 	}//end isPortalBooking()
 
 	/**
@@ -297,6 +319,10 @@ class ConferenceSlotBookingStamp implements IEventListener {
 	 */
 	private function bookingStamp(array $round, array $booking): array {
 		$guardian = $this->profiles->byRef(learnerRef: $booking['guardianRef']);
+		$bookedBy = 'guardian';
+		if ($booking['guardianRef'] === '') {
+			$bookedBy = 'pupil';
+		}
 
 		return [
 			'conferenceRoundId' => (string)$round['id'],
@@ -304,6 +330,9 @@ class ConferenceSlotBookingStamp implements IEventListener {
 			'learnerRef' => $booking['learnerRef'],
 			'guardianId' => self::text(value: ($guardian['ncUserId'] ?? null)),
 			'tenant_id' => self::text(value: ($round['tenant_id'] ?? null)),
+			// Who booked it, for the guardian's notice of a pupil's own booking.
+			'bookedBy' => $bookedBy,
+			'bookedAt' => (new DateTimeImmutable())->format(DateTimeInterface::ATOM),
 		];
 	}//end bookingStamp()
 

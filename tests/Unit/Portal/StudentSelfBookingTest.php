@@ -76,4 +76,29 @@ class StudentSelfBookingTest extends TestCase {
 		self::assertSame(['learnerRef', 'learnerRef', 'offerId'], [$action['subjectField'], $action['scopeClaim'], $action['rowField']]);
 		self::assertSame(['field' => 'lifecycle', 'in' => ['open']], $action['rowWhen']);
 	}//end testTheSignUpForwardsTheRowsOffer()
+
+	/**
+	 * Her free times are those she may book herself in a round that lets
+	 * pupils book, listed before her talks so the time picker reads them;
+	 * the booking stamps her own learnerRef and asks only for a time.
+	 *
+	 * @return void
+	 */
+	public function testSheBooksHerOwnTimeFromTheTimesSheMayBook(): void {
+		$booking = new StudentSelfBooking();
+		[$times, $talks] = $booking->conferenceCollections();
+
+		self::assertSame(['studentConferenceTimes', 'conference-slot', 'eligibleLearnerRefs', 'learnerRef'], [$times['id'], $times['schema'], $times['scopeField'], $times['scopeClaim']]);
+		self::assertSame(['lifecycle' => 'free', 'pupilMayBook' => true], $times['filter']);
+		self::assertNotContains('eligibleLearnerRefs', $times['fields']);
+		self::assertNotContains('teacherId', $times['fields']);
+		self::assertSame(['studentConferenceSignups', 'conference-signup', 'learnerRef'], [$talks['id'], $talks['schema'], $talks['scopeField']]);
+		self::assertNotContains('guardianRef', $talks['fields']);
+
+		$action = $booking->bookConferenceSlotAction();
+		self::assertSame(['create', 'conference-signup', 'learnerRef', 'learnerRef'], [$action['type'], $action['schema'], $action['scopeField'], $action['scopeClaim']]);
+		self::assertSame(['slotId', 'notes'], $action['fields']);
+		self::assertSame(['slotId'], $action['requiredFields']);
+		self::assertSame('conference-slot', $action['optionsProviders']['slotId']['schema']);
+	}//end testSheBooksHerOwnTimeFromTheTimesSheMayBook()
 }//end class

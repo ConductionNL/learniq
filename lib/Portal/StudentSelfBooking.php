@@ -43,7 +43,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Portal;
 
 /**
- * The pupil's own bookings: optional lessons.
+ * The pupil's own bookings: optional lessons and her mentor talk.
  *
  * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
  */
@@ -101,6 +101,52 @@ class StudentSelfBooking {
 		['field' => 'offerName', 'label' => 'Support lesson'],
 		['field' => 'lessonStartsAt', 'label' => 'Date', 'render' => 'datetime'],
 		['field' => 'status', 'label' => 'Status', 'valueLabels' => self::SIGN_UP_STATUS],
+	];
+
+	private const CONFERENCE_TIMES_FIELDS = [
+		'conferenceRoundId',
+		'teacherName',
+		'startsAt',
+		'endsAt',
+		'location',
+		'slotLabel',
+		'lifecycle',
+	];
+
+	private const CONFERENCE_TIMES_COLUMNS = [
+		['field' => 'startsAt', 'label' => 'Starts', 'render' => 'datetime'],
+		['field' => 'teacherName', 'label' => 'With'],
+		['field' => 'location', 'label' => 'Where'],
+	];
+
+	private const CONFERENCE_SIGNUPS_FIELDS = [
+		'learnerRef',
+		'slotLabel',
+		'teacherName',
+		'startsAt',
+		'endsAt',
+		'bookedBy',
+		'lifecycle',
+		'declineNote',
+	];
+
+	private const CONFERENCE_SIGNUPS_COLUMNS = [
+		['field' => 'slotLabel', 'label' => 'Time'],
+		['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::SIGNUP_STATUS],
+		['field' => 'declineNote', 'label' => 'Reason for declining'],
+	];
+
+	private const BOOK_TIME_OPTIONS = [
+		'type' => 'collection',
+		'register' => self::REGISTER,
+		'schema' => 'conference-slot',
+		'labelField' => 'slotLabel',
+		'valueField' => 'id',
+	];
+
+	private const BOOK_TIME_FIELD_CONFIGS = [
+		'slotId' => ['label' => 'Time', 'required' => true],
+		'notes' => ['label' => 'Anything your mentor should know beforehand'],
 	];
 
 	/**
@@ -175,4 +221,79 @@ class StudentSelfBooking {
 			'rowWhen' => self::SIGN_UP_ROW_WHEN,
 		];
 	}//end signUpForElectiveAction()
+	/**
+	 * The pupil's talk collections: the free times she may book herself, and
+	 * her talks.
+	 *
+	 * The free times are those whose `eligibleLearnerRefs` (the invited pupils
+	 * of that teacher's own groups, ConferenceFreeSlotGenerator) hold her
+	 * own uuid, still `free`, in a round that lets pupils book (the slot's
+	 * copy of `pupilMayBook`): a parent evening never shows. They come before
+	 * her talks, because portaliq fills the booking form's time picker from
+	 * the first collection over `conference-slot`. Her talks are every
+	 * booking about her, whoever made it.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-may-book-her-own-mentor-talk-when-the-round-allows-it
+	 */
+	public function conferenceCollections(): array {
+		return [
+			[
+				'id' => 'studentConferenceTimes',
+				'register' => self::REGISTER,
+				'schema' => 'conference-slot',
+				'scopeField' => 'eligibleLearnerRefs',
+				'scopeClaim' => 'learnerRef',
+				'filter' => ['lifecycle' => 'free', 'pupilMayBook' => true],
+				'label' => 'Times for your mentor talk',
+				'listable' => true,
+				'minTrust' => 'low',
+				'fields' => self::CONFERENCE_TIMES_FIELDS,
+				'columns' => self::CONFERENCE_TIMES_COLUMNS,
+			],
+			[
+				'id' => 'studentConferenceSignups',
+				'register' => self::REGISTER,
+				'schema' => 'conference-signup',
+				'scopeField' => 'learnerRef',
+				'scopeClaim' => 'learnerRef',
+				'label' => 'My mentor talks',
+				'listable' => true,
+				'minTrust' => 'low',
+				'fields' => self::CONFERENCE_SIGNUPS_FIELDS,
+				'columns' => self::CONFERENCE_SIGNUPS_COLUMNS,
+			],
+		];
+	}//end conferenceCollections()
+
+	/**
+	 * She books one of those times for herself: a ConferenceSignup create
+	 * whose `learnerRef` portaliq stamps from her own claim, so she can only
+	 * ever book for herself. ConferenceSlotBookingStamp then refuses unless
+	 * the round lets pupils book and claims the time under the same lock as
+	 * a guardian's booking.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-may-book-her-own-mentor-talk-when-the-round-allows-it
+	 */
+	public function bookConferenceSlotAction(): array {
+		return [
+			'id' => 'bookConferenceSlotAsPupil',
+			'type' => 'create',
+			'label' => 'Choose a time',
+			'register' => self::REGISTER,
+			'schema' => 'conference-signup',
+			'scopeField' => 'learnerRef',
+			'scopeClaim' => 'learnerRef',
+			'minTrust' => 'low',
+			'fields' => ['slotId', 'notes'],
+			'requiredFields' => ['slotId'],
+			'optionsProviders' => ['slotId' => self::BOOK_TIME_OPTIONS],
+			'fieldConfigs' => self::BOOK_TIME_FIELD_CONFIGS,
+			'submitLabel' => 'Book this time',
+			'successMessage' => 'The time is yours. Your parents get a message about it.',
+		];
+	}//end bookConferenceSlotAction()
 }//end class

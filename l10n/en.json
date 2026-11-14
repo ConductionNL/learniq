@@ -5251,7 +5251,13 @@
         "This support lesson is full.": "This support lesson is full.",
         "Sign-up for this support lesson is closed.": "Sign-up for this support lesson is closed.",
         "You are already signed up for this lesson.": "You are already signed up for this lesson.",
-        "Your sign-up could not be checked. Try again later.": "Your sign-up could not be checked. Try again later."
+        "Your sign-up could not be checked. Try again later.": "Your sign-up could not be checked. Try again later.",
+        "Times for your mentor talk": "Times for your mentor talk",
+        "My mentor talks": "My mentor talks",
+        "Anything your mentor should know beforehand": "Anything your mentor should know beforehand",
+        "The time is yours. Your parents get a message about it.": "The time is yours. Your parents get a message about it.",
+        "Talks your child booked": "Talks your child booked",
+        "A parent": "A parent"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

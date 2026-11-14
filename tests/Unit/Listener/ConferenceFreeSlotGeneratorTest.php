@@ -138,6 +138,26 @@ class ConferenceFreeSlotGeneratorTest extends TestCase {
 	}//end testOpeningBookingWritesTheFreeTimesOfTheTeachersGroup()
 
 	/**
+	 * In a round that lets pupils book, every free time says so, for the
+	 * pupil's portal; in any other round the key is not written at all.
+	 *
+	 * @return void
+	 */
+	public function testAFreeTimeCopiesWhetherThePupilMayBook(): void {
+		$this->generator()->handle($this->opened(round: array_merge($this->round(), ['pupilMayBook' => true])));
+		$slots = $this->store->rows['conference-slot'];
+		self::assertNotEmpty($slots);
+		self::assertSame(array_fill(0, count($slots), true), array_column($slots, 'pupilMayBook'));
+		foreach ($this->store->saves as $save) {
+			$this->assertNull(self::schemaError($save['schema'], $save['object']), 'the real fragment accepts the copy');
+		}
+
+		$this->store->rows['conference-slot'] = [];
+		$this->generator()->handle($this->opened(round: $this->round()));
+		self::assertSame([], array_column($this->store->rows['conference-slot'], 'pupilMayBook'));
+	}//end testAFreeTimeCopiesWhetherThePupilMayBook()
+
+	/**
 	 * Running it again (`create-free-slots`) adds nothing that exists, and a
 	 * time a booked slot already holds is skipped. A declined time does not
 	 * hold the teacher.

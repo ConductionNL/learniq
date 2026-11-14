@@ -49,6 +49,11 @@ class ParentInboxCollections {
 		'receivedAt' => 'visibleFrom',
 	];
 
+	private const PUPIL_BOOKING_INBOX_MESSAGE_FIELDS = [
+		'subject' => 'slotLabel',
+		'receivedAt' => 'bookedAt',
+	];
+
 	private const PARENT_GRADE_INBOX_MESSAGE_FIELDS = [
 		'subject' => 'courseName',
 		'receivedAt' => 'visibleFrom',
@@ -64,7 +69,11 @@ class ParentInboxCollections {
 	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
 	 */
 	public function collections(array $childJoin): array {
-		return [$this->reportCardInbox(childJoin: $childJoin), $this->gradeInbox(childJoin: $childJoin)];
+		return [
+			$this->reportCardInbox(childJoin: $childJoin),
+			$this->gradeInbox(childJoin: $childJoin),
+			$this->pupilBookingInbox(childJoin: $childJoin),
+		];
 	}//end collections()
 
 	/**
@@ -138,4 +147,38 @@ class ParentInboxCollections {
 		];
 
 	}//end gradeInbox()
+
+	/**
+	 * The guardian's notice of a talk her child booked herself, in a round
+	 * that lets pupils book ("Noor koos vanochtend een tijd"). A pupil's own
+	 * booking names no guardian, so the change rule that answers a guardian's
+	 * booking reaches nobody for it; this inbox reads the booking itself,
+	 * only one the child made (`bookedBy: pupil`), through the same reverse
+	 * join on the guardian's children as every parent read. The time itself
+	 * also shows under the guardian's conference times.
+	 *
+	 * @param array<string, mixed> $childJoin The shared reverse `via` join descriptor.
+	 *
+	 * @return array<string, mixed> The collection.
+	 *
+	 * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-may-book-her-own-mentor-talk-when-the-round-allows-it
+	 */
+	private function pupilBookingInbox(array $childJoin): array {
+		return [
+			'id' => 'parentPupilBookingInbox',
+			'kind' => 'inbox',
+			'register' => self::REGISTER,
+			'schema' => 'conference-signup',
+			'scopeField' => 'learnerRef',
+			'scopeClaim' => 'guardianRef',
+			'via' => $childJoin,
+			'groupByField' => 'learnerRef',
+			'filter' => ['bookedBy' => 'pupil'],
+			'label' => 'Talks your child booked',
+			'listable' => true,
+			'minTrust' => 'substantial',
+			'fields' => ['learnerRef', 'slotLabel', 'teacherName', 'startsAt', 'bookedAt', 'lifecycle'],
+			'messageFields' => self::PUPIL_BOOKING_INBOX_MESSAGE_FIELDS,
+		];
+	}//end pupilBookingInbox()
 }//end class

@@ -66,7 +66,7 @@ class ConferenceInvitationSync implements IEventListener {
 	/**
 	 * The round fields an invitation depends on.
 	 */
-	private const ROUND_FIELDS = ['invitedLearnerRefs', 'lifecycle', 'name', 'bookingClosesAt', 'bookingMode', 'tenant_id'];
+	private const ROUND_FIELDS = ['invitedLearnerRefs', 'lifecycle', 'name', 'bookingClosesAt', 'bookingMode', 'pupilMayBook', 'tenant_id'];
 
 	/**
 	 * Constructor.

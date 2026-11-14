@@ -37,6 +37,7 @@ use OCA\Learniq\Listener\ConferenceInvitationSync;
 use OCA\Learniq\Listener\ConferenceRoundBookingModeStamp;
 use OCA\Learniq\Listener\ConferenceSlotBookingStamp;
 use OCA\Learniq\Listener\ConferenceSlotBookingSync;
+use OCA\Learniq\Listener\ConferenceSlotPupilMayBookCascade;
 use OCA\Learniq\Listener\ConferenceWaitlistPlacement;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
@@ -84,5 +85,10 @@ class ConferenceListenerRegistrar {
 		// moves, the round's rows follow (guardian-tasks-per-child-and-self-assessment).
 		$context->registerEventListener(event: ObjectCreatedEvent::class, listener: ConferenceInvitationSync::class);
 		$context->registerEventListener(event: ObjectUpdatedEvent::class, listener: ConferenceInvitationSync::class);
+
+		// A round that starts or stops letting pupils book: its times follow,
+		// so the pupil's portal lists only times she may book herself
+		// (pupil-books-support-lessons-and-mentor-talks).
+		$context->registerEventListener(event: ObjectUpdatedEvent::class, listener: ConferenceSlotPupilMayBookCascade::class);
 	}//end register()
 }//end class

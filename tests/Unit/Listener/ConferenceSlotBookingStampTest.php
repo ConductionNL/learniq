@@ -294,6 +294,7 @@ class ConferenceSlotBookingStampTest extends TestCase {
 		$this->assertSame(self::VERA, $data['learnerRef']);
 		$this->assertSame('po-leerling-147', $data['learnerId']);
 		$this->assertSame('', $data['guardianId']);
+		$this->assertSame('pupil', $data['bookedBy']);
 		$slot = $this->slot(id: self::SLOT_1);
 		$this->assertSame('booked', $slot['lifecycle']);
 		$this->assertSame(self::VERA, $slot['learnerRef']);
@@ -301,6 +302,31 @@ class ConferenceSlotBookingStampTest extends TestCase {
 		$this->assertNull(self::schemaError('conference-signup', array_merge($event->getObject()->getObject(), $data)));
 		$this->assertNull(self::schemaError('conference-slot', $this->store->saves[0]['object']));
 	}//end testAPupilBooksHerOwnTimeWhenTheRoundAllowsIt()
+
+	/**
+	 * A pupil signs in to her portal with her school account, so her own
+	 * booking may carry her session: it is taken and marked as hers. Anybody
+	 * else's session with a pupil-shaped booking is an app write, left alone.
+	 *
+	 * @return void
+	 */
+	public function testAPupilsOwnSessionBooksAndAnotherSessionIsLeftAlone(): void {
+		$this->store->rows['conference-round'][0]['pupilMayBook'] = true;
+		$teacher = $this->pupilBooking(child: self::VERA, slot: self::SLOT_1);
+		$this->stamp(signedIn: true, uid: 'teacher-1')->handle($teacher);
+		$this->assertSame([], $teacher->getModifiedData());
+		$this->assertSame([], $this->store->saves);
+
+		$own = $this->pupilBooking(child: self::VERA, slot: self::SLOT_1);
+		$this->stamp(signedIn: true, uid: 'po-leerling-147')->handle($own);
+		$this->assertFalse($own->isPropagationStopped(), json_encode($own->getErrors()));
+		$this->assertSame(['booked', 'pupil'], [$own->getModifiedData()['lifecycle'], $own->getModifiedData()['bookedBy']]);
+		$this->assertSame('booked', $this->slot(id: self::SLOT_1)['lifecycle']);
+
+		$guardianShaped = $this->booking(child: self::DAAN, guardian: self::MARK, slot: self::SLOT_2);
+		$this->stamp(signedIn: true, uid: 'po-leerling-143')->handle($guardianShaped);
+		$this->assertSame([], $guardianShaped->getModifiedData(), 'a signed-in write naming a guardian is the app\'s');
+	}//end testAPupilsOwnSessionBooksAndAnotherSessionIsLeftAlone()
 
 	/**
 	 * A round that does not let pupils book refuses the pupil in words and
@@ -441,11 +467,12 @@ class ConferenceSlotBookingStampTest extends TestCase {
 	/**
 	 * The listener with the real claim, over the in-memory register and locks.
 	 *
-	 * @param bool $signedIn Whether a Nextcloud user is signed in.
+	 * @param bool   $signedIn Whether a Nextcloud user is signed in.
+	 * @param string $uid      The signed-in user's id.
 	 *
 	 * @return ConferenceSlotBookingStamp
 	 */
-	private function stamp(bool $signedIn=false): ConferenceSlotBookingStamp {
+	private function stamp(bool $signedIn=false, string $uid='teacher-1'): ConferenceSlotBookingStamp {
 		$resolver = $this->createMock(ListenerSchemaResolver::class);
 		$resolver->method('guardSchemaSlug')->willReturn('conference-signup');
 
@@ -477,8 +504,10 @@ class ConferenceSlotBookingStampTest extends TestCase {
 			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) => $this->store->save((string)$schema, $object, $uuid)
 		);
 
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn($uid);
 		$session = $this->createMock(IUserSession::class);
-		$session->method('getUser')->willReturn($signedIn === true ? $this->createMock(IUser::class) : null);
+		$session->method('getUser')->willReturn($signedIn === true ? $user : null);
 
 		return new ConferenceSlotBookingStamp(
 			$resolver,

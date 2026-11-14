@@ -82,6 +82,31 @@ class ConferenceInvitationsTest extends TestCase {
 	}//end testEachInvitedChildGetsARowAndOnlyTheOneWithoutATimeIsOpen()
 
 	/**
+	 * A round that lets pupils book marks each invitation so her portal task
+	 * shows; switched off again, the mark is taken back on rows that had it,
+	 * and rows of other rounds never gain the key.
+	 *
+	 * @return void
+	 */
+	public function testARoundThatLetsPupilsBookMarksItsInvitations(): void {
+		$round = array_merge($this->round(), ['pupilMayBook' => true]);
+		$writes = ConferenceInvitations::writesFor(round: $round, takenRefs: [], existing: []);
+		self::assertSame([true, true], array_column(array_column($writes, 'object'), 'pupilMayBook'));
+		foreach ($writes as $write) {
+			self::assertNull(self::schemaError('conference-invitation', $write['object']), 'the real fragment accepts the mark');
+		}
+
+		$marked = array_merge($this->row(id: 'inv-2', child: self::SAMI, status: 'open'), ['pupilMayBook' => true]);
+		$off = ConferenceInvitations::writesFor(round: $this->round(), takenRefs: [self::VERA], existing: [$this->row(id: 'inv-1', child: self::VERA, status: 'booked'), $marked]);
+		self::assertSame(['inv-2'], array_column($off, 'uuid'));
+		self::assertFalse($off[0]['object']['pupilMayBook']);
+
+		foreach (ConferenceInvitations::writesFor(round: $this->round(), takenRefs: [], existing: []) as $write) {
+			self::assertArrayNotHasKey('pupilMayBook', $write['object']);
+		}
+	}//end testARoundThatLetsPupilsBookMarksItsInvitations()
+
+	/**
 	 * Nothing changed, nothing is written; a time booked or given back moves
 	 * only that child's row; a child no longer invited is closed.
 	 *

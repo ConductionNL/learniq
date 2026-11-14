@@ -23151,7 +23151,7 @@
             "ConferenceSignup": {
                 "slug": "conference-signup",
                 "icon": "AccountArrowRightOutline",
-                "version": "0.2.1",
+                "version": "0.3.0",
                 "title": "Conference Signup",
                 "description": "A guardian's (or self, for an 18+ learner) booking in a ConferenceRound. With preference booking it asks for one or more teachers in preference order, and the ConferenceScheduleGenerator plans it. With direct booking it names the free time the parent picked; the time itself is the ConferenceSlot.",
                 "type": "object",
@@ -23282,6 +23282,29 @@
                             "declined": "Declined",
                             "cancelled": "Cancelled"
                         }
+                    },
+                    "bookedBy": {
+                        "type": "string",
+                        "enum": [
+                            "guardian",
+                            "pupil"
+                        ],
+                        "nullable": true,
+                        "readOnly": true,
+                        "title": "Booked by",
+                        "x-enum-labels": {
+                            "guardian": "A parent",
+                            "pupil": "The pupil"
+                        },
+                        "description": "Who booked the time from the portal: a parent, or the pupil herself."
+                    },
+                    "bookedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "readOnly": true,
+                        "title": "Booked at",
+                        "description": "When the time was booked from the portal."
                     }
                 },
                 "x-openregister-lifecycle": {
@@ -23331,7 +23354,7 @@
             "ConferenceSlot": {
                 "slug": "conference-slot",
                 "icon": "CalendarCheckOutline",
-                "version": "0.3.0",
+                "version": "0.4.0",
                 "title": "Conference Slot",
                 "description": "One parent-teacher conversation time. In a round with preference booking the ConferenceScheduleGenerator writes it for a signup (proposed, then confirmed). In a round with direct booking it starts free, a parent books it from the portal, and the teacher acknowledges or declines it.",
                 "type": "object",
@@ -23483,6 +23506,13 @@
                             "no-show": "No-show",
                             "cancelled": "Cancelled"
                         }
+                    },
+                    "pupilMayBook": {
+                        "type": "boolean",
+                        "default": false,
+                        "readOnly": true,
+                        "title": "Pupils may book",
+                        "description": "Whether the pupil herself may book this time, as for a mentor talk. A copy of the round's setting; it cannot be edited."
                     }
                 },
                 "x-openregister-lifecycle": {
@@ -23575,7 +23605,7 @@
             "ConferenceInvitation": {
                 "slug": "conference-invitation",
                 "icon": "CalendarAccount",
-                "version": "0.1.0",
+                "version": "0.2.0",
                 "title": "Conference invitation",
                 "description": "One child's invitation to one parent-teacher conference round, so the guardian sees a task per child. Written by ConferenceInvitations from the round's invited pupils, and kept in step with the round and the child's conference times: open while the round is open for booking and the child has no time yet, booked once the child has one, closed when the round closes. The round itself is never changed.",
                 "type": "object",
@@ -23646,6 +23676,13 @@
                         "format": "uuid",
                         "description": "Tenant identifier for multi-tenant isolation.",
                         "title": "Tenant ID"
+                    },
+                    "pupilMayBook": {
+                        "type": "boolean",
+                        "default": false,
+                        "readOnly": true,
+                        "title": "Pupils may book",
+                        "description": "Whether the invited pupil books the time herself. A copy of the round's setting; it cannot be edited."
                     }
                 },
                 "x-openregister-seed": [],

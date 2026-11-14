@@ -477,7 +477,8 @@ class PortalContributionProvider {
 			$own->studentResultCollections(),
 			$own->studentActivityCollections(site: $site),
 			[$own->studentTestsCollection(), $site->homeworkCollection(), $site->attendanceSummaryCollection(), $site->sessionsCollection()],
-			$booking->electiveCollections()
+			$booking->electiveCollections(),
+			$booking->conferenceCollections()
 		);
 		$actions = array_merge(
 			$this->studentActions(site: $site),
@@ -486,7 +487,7 @@ class PortalContributionProvider {
 			(new CatalogueFlowActions())->actions(),
 			(new WorkGroupFlowActions())->actions(),
 			(new StudentFlowActions())->actions(),
-			[$booking->signUpForElectiveAction()]
+			[$booking->signUpForElectiveAction(), $booking->bookConferenceSlotAction()]
 		);
 
 		return [
