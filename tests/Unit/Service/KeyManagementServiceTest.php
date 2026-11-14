@@ -27,8 +27,11 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service;
 
 use InvalidArgumentException;
+use OCA\Learniq\Service\DetachedJws;
+use OCA\Learniq\Service\JwsProofVerifier;
 use OCA\Learniq\Service\KeyManagementService;
 use OCA\Learniq\Service\SigningKeyConfigKey;
+use OCA\Learniq\Service\TenantJwsSigner;
 use OCP\IAppConfig;
 use OCP\Security\ICrypto;
 use PHPUnit\Framework\TestCase;
@@ -53,6 +56,20 @@ class KeyManagementServiceTest extends TestCase {
 	private array $writes = [];
 
 	/**
+	 * The in-memory app config the last service() was built over.
+	 *
+	 * @var IAppConfig
+	 */
+	private IAppConfig $config;
+
+	/**
+	 * The crypto double the last service() was built over.
+	 *
+	 * @var ICrypto
+	 */
+	private ICrypto $crypto;
+
+	/**
 	 * The service over the in-memory config; ICrypto prefixes `enc:`.
 	 *
 	 * @return KeyManagementService
@@ -70,11 +87,120 @@ class KeyManagementServiceTest extends TestCase {
 				return true;
 			}
 		);
+		$this->config = $config;
 		$crypto = $this->createMock(ICrypto::class);
 		$crypto->method('encrypt')->willReturnCallback(static fn (string $plain): string => 'enc:'.$plain);
+		$crypto->method('decrypt')->willReturnCallback(static fn (string $cipher): string => substr($cipher, 4));
+		$this->crypto = $crypto;
 
 		return new KeyManagementService($config, $crypto);
 	}//end service()
+
+	/**
+	 * A signer over the same in-memory config as the last service() built.
+	 *
+	 * @return TenantJwsSigner
+	 */
+	private function signer(): TenantJwsSigner {
+		return new TenantJwsSigner(appConfig: $this->config, crypto: $this->crypto);
+	}//end signer()
+
+	/**
+	 * A certificate payload signed with tenant t1's active key, its proof attached.
+	 *
+	 * @param string $title The certificate's title.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function signedCertificate(string $title): array {
+		$payload = ['type' => ['VerifiableCredential'], 'credentialSubject' => ['name' => $title]];
+		$jws = $this->signer()->sign(payload: $payload, tenantId: 't1');
+		self::assertIsString($jws);
+
+		return $payload + ['proof' => ['jws' => $jws]];
+	}//end signedCertificate()
+
+	/**
+	 * The `kid` a certificate's proof names.
+	 *
+	 * @param array<string, mixed> $certificate The signed certificate.
+	 *
+	 * @return string
+	 */
+	private static function kidOf(array $certificate): string {
+		$header = (string)strstr((string)$certificate['proof']['jws'], '.', true);
+		$decoded = json_decode((string)DetachedJws::base64UrlDecode(encoded: $header), true);
+
+		return (string)($decoded['kid'] ?? '');
+	}//end kidOf()
+
+	/**
+	 * A certificate signed before a rotation still verifies after it, through the key its proof names.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-rotating-the-signing-key-keeps-earlier-certificates-checkable
+	 */
+	public function testACertificateFromBeforeTheRotationStillVerifies(): void {
+		$service = $this->service();
+		$first = $service->generateTenantKeypair('t1');
+		$before = $this->signedCertificate('Certificaat rekenen 2F');
+
+		$second = $service->generateTenantKeypair('t1');
+		$verifier = new JwsProofVerifier(keys: $service);
+
+		self::assertNotSame($first['fingerprint'], $second['fingerprint']);
+		self::assertSame($first['fingerprint'], self::kidOf($before));
+		self::assertTrue($verifier->verify(payload: $before, tenantId: 't1'));
+
+		$tampered = $before;
+		$tampered['credentialSubject']['name'] = 'Certificaat rekenen 3F';
+		self::assertFalse($verifier->verify(payload: $tampered, tenantId: 't1'));
+	}//end testACertificateFromBeforeTheRotationStillVerifies()
+
+	/**
+	 * A certificate issued after a rotation names the new key, and verifies.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-rotating-the-signing-key-keeps-earlier-certificates-checkable
+	 */
+	public function testACertificateFromAfterTheRotationNamesTheNewKey(): void {
+		$service = $this->service();
+		$service->generateTenantKeypair('t1');
+		$second = $service->generateTenantKeypair('t1');
+
+		$after = $this->signedCertificate('Certificaat taal 2F');
+
+		self::assertSame($second['fingerprint'], self::kidOf($after));
+		self::assertTrue((new JwsProofVerifier(keys: $service))->verify(payload: $after, tenantId: 't1'));
+	}//end testACertificateFromAfterTheRotationNamesTheNewKey()
+
+	/**
+	 * After 33 rotations the first key has left the archive of 32, so its certificates no longer verify.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-rotating-the-signing-key-keeps-earlier-certificates-checkable
+	 */
+	public function testThirtyThreeRotationsDropTheFirstKey(): void {
+		$service = $this->service();
+		$first = $service->generateTenantKeypair('t1');
+		$oldest = $this->signedCertificate('Certificaat rekenen 1F');
+
+		$second = $service->generateTenantKeypair('t1');
+		$secondCertificate = $this->signedCertificate('Certificaat rekenen 2F');
+		for ($rotation = 2; $rotation <= 33; $rotation++) {
+			$service->generateTenantKeypair('t1');
+		}
+
+		$verifier = new JwsProofVerifier(keys: $service);
+		self::assertNull($service->resolvePublicKeyByFingerprint('t1', $first['fingerprint']));
+		self::assertFalse($verifier->verify(payload: $oldest, tenantId: 't1'));
+		self::assertSame($second['fingerprint'], self::kidOf($secondCertificate));
+		self::assertTrue($verifier->verify(payload: $secondCertificate, tenantId: 't1'));
+		self::assertCount(32, json_decode($this->values[self::key(SigningKeyConfigKey::ARCHIVED)], true));
+	}//end testThirtyThreeRotationsDropTheFirstKey()
 
 	/**
 	 * The config key of one purpose for tenant t1.

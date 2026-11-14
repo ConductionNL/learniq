@@ -62,6 +62,7 @@ use Throwable;
  * pair.
  *
  * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-derive-an-ai-feature-s-processing-locality-from-real-code-enforced-configuration-never-a-hand-typed-field
+ * @spec openspec/specs/platform-properties/spec.md#REQ-PLAT-003
  */
 class AiLocalityClassifier implements AiLocalityClassifierInterface {
 

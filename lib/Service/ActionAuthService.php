@@ -24,6 +24,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/architecture/adr-023-action-authorization.md
+ * @spec openspec/specs/action-authorization/spec.md#requirement-every-guarded-action-is-decided-by-the-action-matrix
  */
 
 declare(strict_types=1);
@@ -34,6 +35,8 @@ use OCA\OpenRegister\AppHost\Service\GenericActionAuthService;
 
 /**
  * AppHost stub for Learniq's ADR-023 action-authorization service.
+ *
+ * @spec openspec/specs/action-authorization/spec.md#requirement-every-guarded-action-is-decided-by-the-action-matrix
  */
 class ActionAuthService extends GenericActionAuthService {
 }//end class
