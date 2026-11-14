@@ -21,9 +21,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Kernel\Contracts\ReportCardPdfAttacherInterface;
 use OCA\Learniq\Listener\ReportCardPdfTransitionListener;
 use OCA\Learniq\Service\ReportCardPdfDelegationService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\App\IAppManager;
@@ -54,11 +56,19 @@ class ReportCardPdfTransitionListenerTest extends TestCase {
 	private ObjectService&MockObject $objectService;
 
 	/**
+	 * Attacher mock that records the attach.
+	 *
+	 * @var ReportCardPdfAttacherInterface&MockObject
+	 */
+	private ReportCardPdfAttacherInterface&MockObject $attacher;
+
+	/**
 	 * @return void
 	 */
 	protected function setUp(): void {
 		parent::setUp();
 		$this->objectService = $this->createMock(ObjectService::class);
+		$this->attacher      = $this->createMock(ReportCardPdfAttacherInterface::class);
 	}//end setUp()
 
 	/**
@@ -91,7 +101,8 @@ class ReportCardPdfTransitionListenerTest extends TestCase {
 				logger: new NullLogger()
 			),
 			logger: new NullLogger(),
-			schemas: \OCA\Learniq\Tests\Support\TransitionScope::resolver()
+			schemas: \OCA\Learniq\Tests\Support\TransitionScope::resolver(),
+			attacher: $this->attacher
 		);
 	}//end listener()
 
@@ -234,12 +245,47 @@ class ReportCardPdfTransitionListenerTest extends TestCase {
 	}//end testPublishToParentsKeepsAnAlreadyRenderedPdf()
 
 	/**
+	 * A successful render attaches the PDF to the card as saved (REQ: the rendered PDF is a file on the report card).
+	 *
+	 * @return void
+	 */
+	public function testASuccessfulRenderAttachesThePdfToTheSavedCard(): void {
+		$captured = $this->captureSave();
+		$attached = new \ArrayObject();
+		$this->attacher->expects($this->once())->method('attach')->willReturnCallback(
+			static function (ObjectEntity $reportCard) use ($attached): string {
+				$attached['card'] = $reportCard->getObject();
+				return 'Rapport 1 Sam.pdf';
+			}
+		);
+
+		$this->listener('{"documentRef":"417"}')->handle($this->event('rerenderToPdf', 'published-to-parents'));
+
+		self::assertSame('417', $attached['card']['docudeskDocumentRef']);
+		self::assertSame('rendered', $attached['card']['docudeskRenderStatus']);
+		self::assertSame('rendered', $captured['object']['docudeskRenderStatus']);
+	}//end testASuccessfulRenderAttachesThePdfToTheSavedCard()
+
+	/**
+	 * A failed render attaches nothing.
+	 *
+	 * @return void
+	 */
+	public function testAFailedRenderAttachesNothing(): void {
+		$this->captureSave();
+		$this->attacher->expects($this->never())->method('attach');
+
+		$this->listener('not json')->handle($this->event('renderToPdf', 'finalised'));
+	}//end testAFailedRenderAttachesNothing()
+
+	/**
 	 * Another schema or another transition saves nothing.
 	 *
 	 * @return void
 	 */
 	public function testIgnoresOtherSchemasAndTransitions(): void {
 		$this->objectService->expects($this->never())->method('saveObject');
+		$this->attacher->expects($this->never())->method('attach');
 
 		$this->listener('{}')->handle($this->event('renderToPdf', 'finalised', 'credential'));
 		$this->listener('{}')->handle($this->event('finalise', 'finalised'));

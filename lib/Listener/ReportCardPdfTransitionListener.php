@@ -35,6 +35,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ReportCardPdfAttacherInterface;
 use OCA\Learniq\Kernel\Contracts\ReportCardPdfDelegationServiceInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -69,6 +70,7 @@ class ReportCardPdfTransitionListener implements IEventListener {
 	 * @param ReportCardPdfDelegationServiceInterface $pdfService The docudesk render bridge.
 	 * @param LoggerInterface $logger PSR logger.
 	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ReportCardPdfAttacherInterface $attacher Puts the rendered PDF on the card as a file.
 	 *
 	 * @return void
 	 */
@@ -77,17 +79,20 @@ class ReportCardPdfTransitionListener implements IEventListener {
 		private readonly ReportCardPdfDelegationServiceInterface $pdfService,
 		private readonly LoggerInterface $logger,
 		private readonly ListenerSchemaResolverInterface $schemas,
+		private readonly ReportCardPdfAttacherInterface $attacher,
 	) {
 	}//end __construct()
 
 	/**
-	 * Render and save the outcome of `renderToPdf` or `rerenderToPdf`.
+	 * Render and save the outcome of `renderToPdf`, `rerenderToPdf` or a publish without a PDF,
+	 * then attach the rendered PDF to the card.
 	 *
 	 * @param Event $event The dispatched event.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/specs/report-card/spec.md#requirement-docudesk-pdf-rendering-is-fail-soft-non-blocking-and-its-contract-is-explicitly-proposed
+	 * @spec openspec/changes/report-card-pdf-to-guardians/specs/report-card/spec.md#requirement-the-rendered-pdf-is-a-file-on-the-report-card
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false
@@ -102,12 +107,17 @@ class ReportCardPdfTransitionListener implements IEventListener {
 			return;
 		}
 
-		$this->objectService->saveObject(
+		$saved = $this->objectService->saveObject(
 			object: $this->pdfService->render(reportCard: $entity->getObject()),
 			register: self::LEARNIQ_REGISTER,
 			schema: self::REPORT_CARD_SCHEMA,
 			uuid: $entity->getUuid()
 		);
+
+		// A successful render puts the PDF on the card, where the guardian's download reads it (D2).
+		if (($saved->getObject()['docudeskRenderStatus'] ?? null) === 'rendered') {
+			$this->attacher->attach(reportCard: $saved);
+		}
 
 		$this->logger->info(
 			'[ReportCardPdfTransitionListener] Saved the {action} outcome on ReportCard {id}.',

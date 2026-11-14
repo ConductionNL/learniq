@@ -143,6 +143,7 @@ use OCA\Learniq\Kernel\Contracts\RegulationAssignmentServiceInterface;
 use OCA\Learniq\Kernel\Contracts\RegulationAssignPreviewInterface;
 use OCA\Learniq\Kernel\Contracts\RegulationCoverageServiceInterface;
 use OCA\Learniq\Kernel\Contracts\ReportCardGradeLinesInterface;
+use OCA\Learniq\Kernel\Contracts\ReportCardPdfAttacherInterface;
 use OCA\Learniq\Kernel\Contracts\ReportCardPdfDelegationServiceInterface;
 use OCA\Learniq\Kernel\Contracts\ReportCardTemplateSectionResolverInterface;
 use OCA\Learniq\Kernel\Contracts\ReportPeriodLocksInterface;
@@ -367,6 +368,7 @@ final class ContractBindings {
 		RegulationAssignmentServiceInterface::class => RegulationAssignmentService::class,
 		RegulationCoverageServiceInterface::class => RegulationCoverageService::class,
 		ReportCardGradeLinesInterface::class => ReportCardGradeLines::class,
+		ReportCardPdfAttacherInterface::class => ReportCardPdfAttacher::class,
 		ReportCardPdfDelegationServiceInterface::class => ReportCardPdfDelegationService::class,
 		ReportCardTemplateSectionResolverInterface::class => ReportCardTemplateSectionResolver::class,
 		ReportPeriodLocksInterface::class => ReportPeriodLocks::class,
