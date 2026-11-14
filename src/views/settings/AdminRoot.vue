@@ -38,6 +38,9 @@
 		<template #tab-store>
 			<StoreRegistrySettingsSection />
 		</template>
+		<template #tab-school-calendar>
+			<SchoolYearSettingsSection />
+		</template>
 		<template #tab-exam-board>
 			<ExamBoardSettingsSection />
 		</template>
@@ -60,6 +63,7 @@ import ExampleDataSettingsSection from './ExampleDataSettingsSection.vue'
 import LtiSettingsSection from './LtiSettingsSection.vue'
 import MenuStructureSection from './MenuStructureSection.vue'
 import OpenMaterialSettingsSection from './OpenMaterialSettingsSection.vue'
+import SchoolYearSettingsSection from './SchoolYearSettingsSection.vue'
 import StoreRegistrySettingsSection from './StoreRegistrySettingsSection.vue'
 import TimetableExchangeSettingsSection from './TimetableExchangeSettingsSection.vue'
 import { initializeStores } from '../../store/store.js'
@@ -76,6 +80,7 @@ export default {
 		TimetableExchangeSettingsSection,
 		LtiSettingsSection,
 		OpenMaterialSettingsSection,
+		SchoolYearSettingsSection,
 		MenuStructureSection,
 		AiTranslationReviewSection,
 		ActionAuthMatrix,
@@ -108,6 +113,7 @@ export default {
 				{ id: 'lti', label: this.t('learniq', 'LTI tools') },
 				{ id: 'open-material', label: this.t('learniq', 'Open learning material') },
 				{ id: 'store', label: this.t('learniq', 'Store') },
+				{ id: 'school-calendar', label: this.t('learniq', 'School calendar') },
 				{ id: 'exam-board', label: this.t('learniq', 'Exam board') },
 				{ id: 'ai-translations', label: this.t('learniq', 'AI translations') },
 			]
