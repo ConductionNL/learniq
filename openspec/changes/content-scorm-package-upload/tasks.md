@@ -6,9 +6,11 @@
 
 ## 2. Import
 
-- [ ] 2.1 In `CoursePackageImportService::import()`, detect a SCORM package by its manifest and route to the parser. Verify: PHPUnit, the Common Cartridge and Moodle paths unchanged.
-- [ ] 2.2 Unpack into `/Learniq/<tenant>/<course>/scorm/<lesson>/` through Nextcloud's `IRootFolder`; skip and report entries with `..` or absolute paths. Verify: PHPUnit with the escaping fixture.
-- [ ] 2.3 Create one `Lesson` per SCO with `contentType` and `contentRef`; write each SCO and dropped entry to the `CoursePackageImportReport`. Validate the created lesson payload against the real `Lesson` schema (Opis). Verify: PHPUnit.
+- [x] 2.1 In `CoursePackageImportService::import()`, detect a SCORM package by its manifest and route to the parser. Verify: PHPUnit, the Common Cartridge and Moodle paths unchanged.
+- [x] 2.2 Unpack into `/Learniq/<tenant>/<course>/scorm/<lesson>/` through Nextcloud's `IRootFolder`; skip and report entries with `..` or absolute paths. Verify: PHPUnit with the escaping fixture.
+- [x] 2.3 Create one `Lesson` per SCO with `contentType` and `contentRef`; write each SCO and dropped entry to the `CoursePackageImportReport`. Validate the created lesson payload against the real `Lesson` schema (Opis). Verify: PHPUnit.
+
+Built in `ScormCourseImporter` (wired through `CoursePackageImporters::$scorm` and `CoursePackageImportService::import()`). A zip whose root `imsmanifest.xml` declares SCORM is routed there. The Common Cartridge, Moodle and JSON paths are unchanged, and the refusal now names SCORM. The package is unpacked once into `/Learniq/<tenant>/<course>/scorm/`, shared by its SCOs, rather than one copy per lesson; each lesson's `contentRef` points at its SCO's launch file in that folder. Entries with `..`, an absolute path or a drive letter are not written and are reported `dropped`. A SCORM 2004 SCO is reported `degraded` with "SCORM 2004 is not played yet". The report's `sourceFormat` gains `scorm` (report 0.3.0, register 0.50.0). PHPUnit `ScormCourseImporterTest` (5). Not done: validating the lesson payload against the `Lesson` schema with Opis.
 
 ## 3. Screen
 
