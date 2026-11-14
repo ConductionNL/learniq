@@ -104,6 +104,9 @@ SCHEMAS = [
     "item",
     "peer-review",
     "lesson",
+    # Appended last (permission-slips): every earlier schema keeps its uuid namespace.
+    "permission-request",
+    "permission-response",
 ]
 
 # School events a parent sees in the portal calendar: (title, start, end, kind, groups or None for the whole
@@ -1112,6 +1115,7 @@ class HulstkampStory:
         self.add_group4_parent_evening()
         self.add_school_calendar()
         self.add_group7_homework()
+        self.add_permission_slips()
 
     def update_report_card(self) -> None:
         """Vera's report 2 of June 2026 carries the grades on the board."""
@@ -1250,6 +1254,31 @@ class HulstkampStory:
                 "title": title, "instructions": instructions, "courseId": self.subject_courses[code]["uuid"],
                 "cohortId": self.group7["uuid"], "dueAt": stamp(dt.date.fromisoformat(due), 8, 30), "maxPoints": 10,
                 "allowLateSubmission": True, "lifecycle": "published", "learnerRefs": members7,
+            })
+
+    def add_permission_slips(self) -> None:
+        """Groep 7's permission slips (permission-slips): the trip to the Openluchtmuseum, open and to answer by
+        16 October, which nobody has answered yet so Fatima can answer for Vera; and September's sports day,
+        closed, with every pupil but the last four answered by their first guardian, every fifth of them no."""
+        members7 = sorted((p for p in self.pupils if p["class"] == "Groep 7"), key=lambda p: p["nc"])
+        refs7 = [p["profile"]["uuid"] for p in members7]
+        self.b.add("permission-request", {
+            "title": "Schoolreisje naar het Openluchtmuseum",
+            "explanation": "Groep 7 gaat op donderdag 22 oktober met de bus naar het Openluchtmuseum in Arnhem. We vertrekken om 8.45 uur en zijn om 15.30 uur terug. Neem een lunchpakket mee.",
+            "happensOn": "2026-10-22", "cohortId": self.group7["uuid"], "learnerRefs": refs7,
+            "respondBy": stamp(dt.date(2026, 10, 16), 17, 0), "treatSilenceAsRefusal": True, "lifecycle": "open",
+        })
+        sports = self.b.add("permission-request", {
+            "title": "Sportdag op het sportpark",
+            "explanation": "Groep 7 doet op woensdag 23 september mee aan de sportdag op sportpark De Vliet. We lopen er samen heen.",
+            "happensOn": "2026-09-23", "cohortId": self.group7["uuid"], "learnerRefs": refs7,
+            "respondBy": stamp(dt.date(2026, 9, 18), 17, 0), "treatSilenceAsRefusal": True, "lifecycle": "closed",
+        })
+        for index, pupil in enumerate(members7[:-4]):
+            self.b.add("permission-response", {
+                "permissionRequestId": sports["uuid"], "learnerRef": pupil["profile"]["uuid"],
+                "answer": "no" if index % 5 == 4 else "yes", "answeredByRef": pupil["guardians"][0]["uuid"],
+                "answeredAt": stamp(dt.date(2026, 9, 14 + index % 4), 19, 10 + index), "assuranceLevel": "substantial",
             })
 
 

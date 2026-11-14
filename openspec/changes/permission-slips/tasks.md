@@ -8,7 +8,7 @@
 - [x] **T5**: a school floor for the assurance level of an answer, defaulting to `basic`, refused below it with the required level named
 - [x] **T6**: the teacher's screen: answered yes, answered no, not answered, per request
 - [ ] **T7**: e2e in `po-parent-flows.spec.ts`: the teacher opens a request, the guardian answers for her own child and not for another, the teacher sees the outcome
-- [ ] **T8**: example set: the po profile seeds one open request for Vera's group and one closed one
+- [x] **T8**: example set: the po profile seeds one open request for Vera's group and one closed one
 
 ## Build notes (2026-11-14)
 
@@ -33,4 +33,8 @@
   silence counts as no. The split is `utils/permissionOutcome.js`, pinned by
   `tests/unit-js/permissionOutcome.test.mjs`; the latest answer per child
   counts. Like T3, only `learnerRefs` are counted, not a bare `cohortId`.
-- Left: T7 (Playwright), T8 (example set).
+- T8: `po.py` seeds groep 7's trip to the Openluchtmuseum (open, answer by
+  16 October, nobody answered yet, so the e2e can answer for Vera) and the
+  September sports day (closed, every pupil but the last four answered by a
+  guardian, every fifth of them no); pinned in `PrimarySchoolExampleSetTest`.
+- Left: T7 (Playwright e2e, needs a live instance).
