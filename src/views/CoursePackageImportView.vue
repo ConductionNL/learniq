@@ -2,8 +2,8 @@
   CoursePackageImportView.vue
   Custom page component for the CoursePackageImportView manifest page (type: custom).
 
-  Uploads an IMS Common Cartridge 1.3 (.imscc/.zip) or Moodle backup (.mbz)
-  course package via CoursePackageImportController, then renders the returned
+  Uploads an IMS Common Cartridge 1.3 (.imscc/.zip), Moodle backup (.mbz) or
+  SCORM 1.2/2004 (.zip) course package via CoursePackageImportController, then renders the returned
   CoursePackageImportReport's entries table — the structural anti-Canvas
   promise: every source-package resource's outcome (imported/degraded/dropped)
   is shown, filterable, never a silent omission.
@@ -15,6 +15,7 @@
   Copyright (C) 2026 Conduction B.V.
 
   @spec openspec/specs/course-management/spec.md#requirement-course-package-frontend-is-declarative-with-one-named-custom-view-for-the-import-report
+  @spec openspec/changes/content-scorm-package-upload/tasks.md#task-3.1
   @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
   @spec openspec/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
 -->
@@ -27,7 +28,7 @@
 				{{
 					t(
 						'learniq',
-						'Upload an IMS Common Cartridge 1.3 (.imscc/.zip) or Moodle backup (.mbz) package. Every resource in the package is reported — imported, degraded, or dropped — nothing is silently lost.',
+						'Upload an IMS Common Cartridge 1.3 (.imscc/.zip), a Moodle backup (.mbz) or a SCORM 1.2 or 2004 package (.zip). Every resource in the package is reported — imported, degraded, or dropped — nothing is silently lost.',
 					)
 				}}
 			</p>

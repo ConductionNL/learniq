@@ -164,8 +164,32 @@ class ReadableCopyStampTest extends TestCase {
 		);
 		$this->makeStamp(slug: 'portfolio-share')->handle($event);
 
-		self::assertSame(['portfolioTitle' => 'Proeve meterkast', 'learnerName' => 'Daan Visser'], $event->getModifiedData());
+		self::assertSame(['portfolioTitle' => 'Proeve meterkast', 'learnerName' => 'Daan Visser', 'wholePortfolioId' => 'portfolio-1'], $event->getModifiedData());
 	}//end testAShareNamesItsPortfolioAndLearner()
+
+	/**
+	 * A share opens its portfolio whole only without a selection: then the
+	 * server stamps the portfolio id, which the assessor portal joins on; a
+	 * share that selects entries stamps none, and a value a client sends is
+	 * replaced.
+	 *
+	 * @return void
+	 */
+	public function testOnlyAShareWithoutASelectionOpensTheWholePortfolio(): void {
+		$selection = new ObjectCreatingEvent(
+			OrEntityFactory::make(['portfolioId' => 'portfolio-1', 'entryIds' => ['entry-1'], 'wholePortfolioId' => 'portfolio-1'], 'portfolio-share')
+		);
+		$this->makeStamp(slug: 'portfolio-share')->handle($selection);
+		self::assertNull($selection->getModifiedData()['wholePortfolioId']);
+
+		$empty = new ObjectCreatingEvent(OrEntityFactory::make(['portfolioId' => 'portfolio-1', 'entryIds' => []], 'portfolio-share'));
+		$this->makeStamp(slug: 'portfolio-share')->handle($empty);
+		self::assertSame('portfolio-1', $empty->getModifiedData()['wholePortfolioId']);
+
+		self::assertNull(ReadableCopies::wholePortfolioOf(share: ['entryIds' => null, 'portfolioId' => '  ']));
+		self::assertNull(ReadableCopies::wholePortfolioOf(share: ['portfolioId' => 42]));
+		self::assertSame('portfolio-2', ReadableCopies::wholePortfolioOf(share: ['entryIds' => null, 'portfolioId' => ' portfolio-2 ']));
+	}//end testOnlyAShareWithoutASelectionOpensTheWholePortfolio()
 
 	/**
 	 * A teacher availability gets the teacher's display name, and a name a
@@ -229,7 +253,7 @@ class ReadableCopyStampTest extends TestCase {
 		$this->store->failReads = 'database gone';
 		$stamp->handle($event);
 
-		self::assertSame(['portfolioTitle' => null, 'learnerName' => null], $event->getModifiedData());
+		self::assertSame(['portfolioTitle' => null, 'learnerName' => null, 'wholePortfolioId' => null], $event->getModifiedData());
 		self::assertFalse($event->isPropagationStopped());
 	}//end testAFailedReadStoresNoNamesOnCreate()
 
@@ -299,9 +323,15 @@ class ReadableCopyStampTest extends TestCase {
 		// A grade without a course, or with an empty pointer, names none.
 		self::assertSame(['courseName' => null], $copies->derive(slug: 'grade-entry', row: []));
 		self::assertSame(['cohortName' => null, 'learnerName' => null, 'courseName' => null, 'organisationRef' => null], $copies->derive(slug: 'enrolment', row: ['cohortId' => '']));
-		self::assertSame(['portfolioTitle' => null, 'learnerName' => null], $copies->derive(slug: 'portfolio-share', row: ['portfolioId' => 'portfolio-gone']));
-		self::assertSame(['portfolioTitle' => 'Proeve', 'learnerName' => 'Visser'], $copies->derive(slug: 'portfolio-share', row: ['portfolioId' => 'portfolio-1']));
-		self::assertSame(['portfolioTitle', 'learnerName'], $copies->fields(slug: 'portfolio-share'));
+		self::assertSame(
+			['portfolioTitle' => null, 'learnerName' => null, 'wholePortfolioId' => 'portfolio-gone'],
+			$copies->derive(slug: 'portfolio-share', row: ['portfolioId' => 'portfolio-gone'])
+		);
+		self::assertSame(
+			['portfolioTitle' => 'Proeve', 'learnerName' => 'Visser', 'wholePortfolioId' => 'portfolio-1'],
+			$copies->derive(slug: 'portfolio-share', row: ['portfolioId' => 'portfolio-1'])
+		);
+		self::assertSame(['portfolioTitle', 'learnerName', 'wholePortfolioId'], $copies->fields(slug: 'portfolio-share'));
 	}//end testTheServiceHandlesOddRows()
 
 	/**
