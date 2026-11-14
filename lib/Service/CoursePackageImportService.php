@@ -102,8 +102,8 @@ class CoursePackageImportService implements CoursePackageImportServiceInterface 
 						sourceFormat: self::FORMAT_COMMON_CARTRIDGE,
 						courseId: null,
 						entries: [],
-						errorMessage: 'Archive is not a recognised IMS Common Cartridge (ZIP), Moodle backup '
-							. '(.mbz / gzipped tar), or scholiq-native JSON package.',
+						errorMessage: 'Archive is not a recognised IMS Common Cartridge (ZIP), SCORM 1.2 or 2004 (ZIP), '
+							. 'Moodle backup (.mbz / gzipped tar), or scholiq-native JSON package.',
 					),
 				);
 			}
@@ -113,6 +113,15 @@ class CoursePackageImportService implements CoursePackageImportServiceInterface 
 			// format-support matrix), read and walked directly.
 			if ($format === self::FORMAT_SCHOLIQ_JSON) {
 				return $this->importers->learniqJson->importPackage(packagePath: $packagePath, origin: $origin);
+			}
+
+			// A zip whose root manifest declares SCORM 1.2 or 2004 is a SCORM
+			// package, not a Common Cartridge (content-scorm-package-upload).
+			if ($format === self::FORMAT_COMMON_CARTRIDGE
+				&& $this->importers->scorm !== null
+				&& $this->importers->scorm->isScormPackage(packagePath: $packagePath) === true
+			) {
+				return $this->importers->scorm->importPackage(packagePath: $packagePath, origin: $origin);
 			}
 
 			mkdir(directory: $tmpDir, permissions: 0700, recursive: true);
