@@ -8,11 +8,22 @@
 
 ## 2. Key rotation
 
-- [ ] 2.1 `tests/Unit/Service/KeyManagementServiceTest.php`: sign a credential, rotate, and verify it through `JwsProofVerifier`; rotate 33 times and assert the first key is gone. Verify: `composer test:unit -- --filter KeyManagementServiceTest`.
+- [x] 2.1 `tests/Unit/Service/KeyManagementServiceTest.php`: sign a credential, rotate, and verify it through `JwsProofVerifier`; rotate 33 times and assert the first key is gone. Verify: `composer test:unit -- --filter KeyManagementServiceTest`.
 
 ## 3. Tags
 
-- [ ] 3.1 Add `@spec openspec/specs/certification/spec.md#...` tags to `CredentialVerifyController::verify()` (replacing the retrofit tag), `KeyManagementService::generateTenantKeypair()` and `JwsProofVerifier`.
+- [x] 3.1 Add `@spec openspec/specs/certification/spec.md#...` tags to `CredentialVerifyController::verify()` (replacing the retrofit tag), `KeyManagementService::generateTenantKeypair()` and `JwsProofVerifier`.
+
+Build note (3.1): the tags point at this change's spec
+(`openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#...`),
+because the requirements are not in `openspec/specs/certification/spec.md` until
+the change is archived; 4.1 repoints them with the archive. `verify()` lost its
+retrofit tag; `generateTenantKeypair()` and `JwsProofVerifier::verify()` keep
+their earlier tags beside the new one.
+
+Build note (1.x): 1.2 waits on the open question in the proposal (the owner
+confirms that the public answer may carry the title and the holder's name).
+1.1 and 1.3 (the public page and its Playwright check) are not built yet.
 
 ## 4. Matrix
 
