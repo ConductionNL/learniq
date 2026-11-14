@@ -345,6 +345,10 @@ $routes = [
         ['name' => 'portalWorkGroup#mine', 'url' => '/api/portal/work-groups', 'verb' => 'POST'],
         ['name' => 'portalWorkGroup#join', 'url' => '/api/portal/work-groups/join', 'verb' => 'POST'],
         ['name' => 'portalWorkGroup#leave', 'url' => '/api/portal/work-groups/leave', 'verb' => 'POST'],
+        // The staff page of one pupil (learner-list-and-page-follow-the-boards): header,
+        // today's state, the "Wat nu?" next step and the people around the pupil.
+        // Controller: PupilPageController (slug: pupilPage); access as the group's register.
+        ['name' => 'pupilPage#show', 'url' => '/api/pupils/{learnerId}/page', 'verb' => 'GET'],
         // Course catalogue (enrolment-catalogue-self-signup): the signed-in
         // learner lists what they may sign up for, signs up for a course or a
         // programme, and withdraws an own sign-up; every write is for the
