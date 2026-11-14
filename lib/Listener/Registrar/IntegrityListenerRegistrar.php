@@ -32,6 +32,7 @@ use OCA\Learniq\Listener\CompetencyAlignmentListener;
 use OCA\Learniq\Listener\CheckInWindowStamp;
 use OCA\Learniq\Listener\ConferenceSignupPortalStamp;
 use OCA\Learniq\Listener\ExcuseRequestOwnerStamp;
+use OCA\Learniq\Listener\LeaveRequestPortalStamp;
 use OCA\Learniq\Listener\LeaveRequestSchoolDaysStamp;
 use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
 use OCA\Learniq\Listener\LessonNoteAuthorGuard;
@@ -257,6 +258,13 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: LeaveRequestSchoolDaysStamp::class
+		);
+		// A guardian asks leave for her own child only, checked again on the
+		// server after portaliq's cross-reference check; the pupil's group
+		// teachers are stamped so they read it.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: LeaveRequestPortalStamp::class
 		);
 
 		// ConferenceSignup from the parent portal (portal-parent-conference-

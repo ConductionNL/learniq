@@ -68,6 +68,34 @@ class PortalValueLabels {
 	];
 
 	/**
+	 * `leave-request.lifecycle`: where a guardian's leave request stands
+	 * (leave-requests-decided-by-the-school).
+	 *
+	 * @var array<string, string>
+	 */
+	public const LEAVE_STATUS = [
+		'submitted' => 'Submitted',
+		'allowed'   => 'Allowed',
+		'refused'   => 'Refused',
+		'forwarded' => 'Forwarded to the attendance officer',
+		'withdrawn' => 'Request withdrawn',
+	];
+
+	/**
+	 * `leave-request.kind`: what the leave is for.
+	 *
+	 * @var array<string, string>
+	 */
+	public const LEAVE_KIND = [
+		'wedding'                         => 'Wedding',
+		'funeral'                         => 'Funeral',
+		'religious-observance'            => 'Religious observance',
+		'family-circumstance'             => 'Family circumstance',
+		'holiday-outside-school-holidays' => 'Holiday outside the school holidays',
+		'other'                           => 'Other',
+	];
+
+	/**
 	 * `attendance-record.status`: whether the child was there.
 	 *
 	 * @var array<string, string>

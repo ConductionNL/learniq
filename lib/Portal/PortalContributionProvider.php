@@ -715,6 +715,7 @@ class PortalContributionProvider {
 		];
 		$extras = new ParentPortalCollections();
 		$record = new ParentRecordPage();
+		$leave  = new ParentLeaveRequests();
 		$collections = array_merge(
 			[$record->childrenCollection()],
 			$this->parentResultCollections(childJoin: $childJoin),
@@ -724,11 +725,14 @@ class PortalContributionProvider {
 			[$extras->groupMembershipsCollection(childJoin: $childJoin)],
 			[$extras->reportSubjectGradesCollection(childJoin: $childJoin)],
 			$record->collections(childJoin: $childJoin),
-			[(new ParentDocumentsPage())->schoolsCollection(childJoin: $childJoin)]
+			[(new ParentDocumentsPage())->schoolsCollection(childJoin: $childJoin)],
+			// Leave asked in advance (leave-requests-decided-by-the-school).
+			$leave->collections(childJoin: $childJoin)
 		);
 		$actions = array_merge(
 			$this->parentActions(childJoin: $childJoin),
-			$extras->conferenceActions()
+			$extras->conferenceActions(),
+			[$leave->action(childJoin: $childJoin)]
 		);
 
 		return [

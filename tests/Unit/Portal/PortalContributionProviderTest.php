@@ -511,9 +511,9 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame(['conference.answered'], array_column($manifest['notifications'], 'ruleKey'), 'one rule: the teacher answered a booking');
 
 		$collections = $manifest['collections'];
-		$this->assertCount(21, $collections);
+		$this->assertCount(23, $collections);
 		$this->assertSame(
-			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceInvitations', 'parentConferenceFreeSlots', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships', 'parentReportSubjectGrades', 'parentInbox', 'parentGradeInbox', 'parentAttendanceSummary', 'parentHomework', 'parentSubmissions', 'parentSchoolEvents', 'parentSchoolCalendar', 'parentSchools'],
+			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceInvitations', 'parentConferenceFreeSlots', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships', 'parentReportSubjectGrades', 'parentInbox', 'parentGradeInbox', 'parentAttendanceSummary', 'parentHomework', 'parentSubmissions', 'parentSchoolEvents', 'parentSchoolCalendar', 'parentSchools', 'parentLeaveRequests', 'parentOpenLeaveRequests'],
 			array_column($collections, 'id')
 		);
 
@@ -543,8 +543,16 @@ class PortalContributionProviderTest extends TestCase {
 			// Parent reads never expose staff-only columns (same drop as student).
 			// Who decided an absence report is read only as a name
 			// (ParentTeacherNamesTest), never as a user id.
-			foreach (['grader', 'comment', 'markedBy', 'submittedBy', 'submittedByRef', 'decisionNote'] as $forbidden) {
-				$this->assertNotContains($forbidden, $collection['fields']);
+			// A leave request's decision note is written for the guardian (leave-requests-decided-by-the-school:
+			// "the state in words and the decision note"); who decided stays out as a user id.
+			$forbidden = ['grader', 'comment', 'markedBy', 'submittedBy', 'submittedByRef', 'decisionNote'];
+			if ($collection['schema'] === 'leave-request') {
+				$forbidden = ['decidedBy', 'requestedByRef', 'teacherIds', 'tenant_id'];
+				$this->assertContains('decisionNote', $collection['fields']);
+			}
+
+			foreach ($forbidden as $field) {
+				$this->assertNotContains($field, $collection['fields']);
 			}
 		}
 
@@ -757,8 +765,9 @@ class PortalContributionProviderTest extends TestCase {
 	public function testParentShipsCreateExcuseRequestValidatedAgainstOwnChildren(): void {
 		$manifest = $this->provider->getContribution(self::PARENT_SUBJECT);
 
-		// The absence report, then the three conference actions (direct-conference-booking).
-		$this->assertCount(4, $manifest['actions']);
+		// The absence report, then the three conference actions (direct-conference-booking),
+		// then the leave request (leave-requests-decided-by-the-school).
+		$this->assertCount(5, $manifest['actions']);
 		$action = $manifest['actions'][0];
 
 		$this->assertSame('createExcuseRequest', $action['id']);
