@@ -83,6 +83,7 @@
 		"LearnerEngagementsMenu",
 		"LearnerProfilesMenu",
 		"LearningPlans",
+		"LeaveRequestsMenu",
 		"LessonCompletionsMenu",
 		"PointAwardsMenu",
 		"PointRulesMenu",
@@ -1260,6 +1261,13 @@
 						"icon": "CalendarRemoveOutline",
 						"handler": "navigate",
 						"route": "ExcuseRequests"
+					},
+					{
+						"id": "open-leave-requests",
+						"label": "Leave to decide",
+						"icon": "CalendarQuestion",
+						"handler": "navigate",
+						"route": "LeaveRequests"
 					}
 				]
 			}

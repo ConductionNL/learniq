@@ -47,7 +47,7 @@ class LeaveRequestRegisterTest extends TestCase {
 	public function testARequestCarriesEveryFieldTheChangeNames(): void {
 		$this->assertContains('leave-request', $this->register()['components']['registers']['learniq']['schemas']);
 		$this->assertSame('leave-request', $this->schema()['slug']);
-		$this->assertSame('0.1.0', $this->schema()['version']);
+		$this->assertSame('0.1.1', $this->schema()['version']);
 		$this->assertTrue(version_compare((string)$this->register()['info']['version'], '0.51.0', '>='));
 		$this->assertSame(['learnerRef', 'dateFrom', 'dateTo', 'kind', 'reason'], $this->schema()['required']);
 
@@ -80,7 +80,7 @@ class LeaveRequestRegisterTest extends TestCase {
 			$this->assertSame([$stamp], $transition['actions'], $name);
 		}
 
-		$this->assertSame(['from' => 'submitted', 'to' => 'withdrawn'], $lifecycle['transitions']['withdraw']);
+		$this->assertSame(['from' => 'submitted', 'to' => 'withdrawn', 'label' => 'Withdraw'], $lifecycle['transitions']['withdraw']);
 	}//end testEveryDecisionIsGuardedAndStamped()
 
 	/**
@@ -96,4 +96,53 @@ class LeaveRequestRegisterTest extends TestCase {
 		$this->assertSame(['coordinators', 'administration-managers'], $authorization['create']);
 		$this->assertSame(['administration-managers', 'compliance-officers'], $authorization['update']);
 	}//end testWhoReadsAndWhoDecides()
+	/**
+	 * The decider's dialog names each decision and asks the explanation, required on a refusal only.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+	 */
+	public function testTheDialogAsksTheExplanationAndRequiresItOnARefusal(): void {
+		$transitions = $this->schema()['x-openregister-lifecycle']['transitions'];
+
+		$this->assertSame('Allow', $transitions['allow']['label']);
+		$this->assertSame('Refuse', $transitions['refuse']['label']);
+		$this->assertSame('Forward to the attendance officer', $transitions['forward']['label']);
+
+		$this->assertSame([['field' => 'decisionNote', 'required' => false]], $transitions['allow']['inputs']);
+		$this->assertSame([['field' => 'decisionNote', 'required' => true]], $transitions['refuse']['inputs']);
+		$this->assertSame([['field' => 'decisionNote', 'required' => false]], $transitions['forward']['inputs']);
+	}//end testTheDialogAsksTheExplanationAndRequiresItOnARefusal()
+
+	/**
+	 * Every schema string has an English source key and a Dutch value in the catalogue.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+	 */
+	public function testEverySchemaStringIsInTheCatalogue(): void {
+		$root = __DIR__ . '/../../../l10n/';
+		$en   = json_decode((string)file_get_contents($root . 'en.json'), true)['translations'];
+		$nl   = json_decode((string)file_get_contents($root . 'nl.json'), true)['translations'];
+
+		$strings = [$this->schema()['title']];
+		foreach ($this->schema()['properties'] as $property) {
+			$strings[] = $property['title'];
+			$strings[] = $property['description'];
+			foreach (($property['x-enum-labels'] ?? []) as $label) {
+				$strings[] = $label;
+			}
+		}
+
+		foreach ($strings as $string) {
+			$this->assertSame($string, $en[$string] ?? null, $string);
+			$this->assertNotSame('', (string)($nl[$string] ?? ''), $string);
+		}
+
+		$this->assertSame('Leave request', $this->schema()['title']);
+		$this->assertSame('Verlofaanvraag', $nl['Leave request']);
+		$this->assertSame('Doorgestuurd naar de leerplichtambtenaar', $nl[$this->schema()['properties']['lifecycle']['x-enum-labels']['forwarded']]);
+	}//end testEverySchemaStringIsInTheCatalogue()
 }//end class

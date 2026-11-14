@@ -194,6 +194,7 @@ const SCHOOL_ONLY_MENU = [
 	'ConferenceScheduleBoardMenu',
 	'ConferenceReportsMenu',
 	'AbsenceReportsMenu',
+	'LeaveRequestsMenu',
 	'SchoolEventsMenu',
 ].map((id) => `menu:${id}`)
 

@@ -4,7 +4,8 @@
   - `npm run check:register`; a payload test against the shipped fragment
 - [x] **T2**: school days in the range and the deadline (`decideBy`, setting `leave_decision_school_days`, default 5)
 - [x] **T3**: an allowed request writes absent-with-permission for its days, through the same path as an approved excuse
-- [ ] **T4**: staff page "Verlof te beslissen" with allow, refuse (note required) and forward; Dutch strings
+- [x] **T4**: staff page "Verlof te beslissen" with allow, refuse (note required) and forward; Dutch strings
+  > `LeaveRequests` (open requests, the deadline first) and `LeaveRequestDetail` in `src/manifest.d/people.json`, menu entry `LeaveRequestsMenu` for the administration-manager and admin (school-only; in the simple profile a header link on Attendance). The transitions carry their labels and ask `decisionNote`, required on `refuse`. The schema strings are now English source keys with Dutch values in `l10n/nl.json`.
 - [ ] **T5**: parent portal: `requestLeave` action and `parentLeaveRequests` collection; the guardian overview names an open decision
 - [ ] **T6**: example sets: po two open requests (El Idrissi, Jansen), vo two new ones for the bovenbouw
 - [ ] **T7**: e2e in `tests/e2e/portal-design/wilgenboom.spec.ts`: Fatima asks, the directeur allows, Fatima reads the decision
