@@ -869,7 +869,18 @@ class PortalContributionProviderTest extends TestCase {
 
 		$collections = $manifest['collections'];
 		// The shares, then the entries those shares open: selected, or a whole portfolio (site-external-assessor-portal-design T3).
-		$this->assertSame(['eaSharedPortfolios', 'eaSharedPortfolioEntries', 'eaWholePortfolioEntries'], array_column($collections, 'id'));
+		$this->assertSame(['eaSharedPortfolios', 'eaSharedPortfolioEntries', 'eaWholePortfolioEntries', 'eaExams'], array_column($collections, 'id'));
+
+		// His exams come from his own assignments, and only live ones (practical-exam-assessment).
+		$exams = array_column($collections, null, 'id')['eaExams'];
+		$this->assertSame('exam-assessor-assignment', $exams['schema']);
+		$this->assertSame('externalAssessorId', $exams['scopeField']);
+		$this->assertSame('externalAssessorId', $exams['scopeClaim']);
+		$this->assertSame(['lifecycle' => 'assigned'], $exams['filter']);
+		$this->assertSame(['sittingStartsAt', 'learnerName', 'examTitle', 'role'], array_column($exams['columns'], 'field'));
+		foreach (array_column($exams['columns'], 'field') as $field) {
+			$this->assertContains($field, $exams['fields'], $field);
+		}
 		$collection = $collections[0];
 
 		$this->assertSame('eaSharedPortfolios', $collection['id']);

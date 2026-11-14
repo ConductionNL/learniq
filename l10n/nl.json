@@ -2,6 +2,12 @@
     "translations": {
         "All learners": "Alle leerlingen",
         "Exam assessor assignment": "Toewijzing examinator",
+        "Your exams": "Uw examens",
+        "As assessor": "Als examinator",
+        "Candidate name": "Naam kandidaat",
+        "The candidate's name (given name and family name), as the assessor reads it. The server copies it from the learner's profile when the assignment is written; a value sent for it is replaced.": "De naam van de kandidaat (voornaam en achternaam), zoals de examinator die leest. De server neemt die over uit het profiel van de leerling wanneer de toewijzing wordt opgeslagen; een meegestuurde waarde wordt vervangen.",
+        "When the exam sitting starts, as the assessor reads it. The server copies it from the sitting when the assignment is written; a value sent for it is replaced.": "Wanneer de examenafname begint, zoals de examinator het leest. De server neemt het over van de afname wanneer de toewijzing wordt opgeslagen; een meegestuurde waarde wordt vervangen.",
+        "The title of the sitting's assessment, as the assessor reads it. The server copies it from the sitting's assessment when the assignment is written; a value sent for it is replaced.": "De titel van de toets van de afname, zoals de examinator die leest. De server neemt die over van de toets van de afname wanneer de toewijzing wordt opgeslagen; een meegestuurde waarde wordt vervangen.",
         "An external assessor assigned to assess one candidate at one exam sitting, as first or second assessor.": "Een externe examinator die bij één examenafname één kandidaat beoordeelt, als eerste of tweede examinator.",
         "The exam sitting the assessor assesses at.": "De examenafname waarbij de examinator beoordeelt.",
         "The external assessor who is assigned.": "De externe examinator die is toegewezen.",

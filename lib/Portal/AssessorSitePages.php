@@ -54,6 +54,15 @@ class AssessorSitePages {
 	private const REGISTER = 'learniq';
 
 	private const EA_OVERVIEW_BLOCKS = [
+		// His exams first, earliest first: the mockup's day opens with the
+		// exams he assesses (practical-exam-assessment). Each row names the
+		// time, the candidate and the exam.
+		[
+			'type' => 'collection',
+			'label' => 'Your exams',
+			'collection' => 'eaExams',
+			'sort' => ['field' => 'sittingStartsAt', 'direction' => 'asc'],
+		],
 		// One list, longest access first. Each row names the candidate,
 		// the portfolio and the date his access runs to, so the mockup's
 		// sentence is read off the rows until portaliq can fill a text
@@ -180,6 +189,28 @@ class AssessorSitePages {
 				['field' => 'title', 'label' => 'Part'],
 			],
 		],
+		[
+			// The exams he is assigned to (practical-exam-assessment): scoped
+			// by the assignment's own `externalAssessorId`, so a sitting
+			// without an assignment for him lists nothing.
+			'id' => 'eaExams',
+			'register' => self::REGISTER,
+			'schema' => 'exam-assessor-assignment',
+			'scopeField' => 'externalAssessorId',
+			'scopeClaim' => 'externalAssessorId',
+			'label' => 'Your exams',
+			'listable' => true,
+			'minTrust' => 'low',
+			// A withdrawn assignment grants nothing.
+			'filter' => ['lifecycle' => 'assigned'],
+			'fields' => ['examSittingId', 'learnerRef', 'role', 'lifecycle', 'learnerName', 'sittingStartsAt', 'examTitle'],
+			'columns' => [
+				['field' => 'sittingStartsAt', 'label' => 'Time', 'render' => 'datetime'],
+				['field' => 'learnerName', 'label' => 'Candidate'],
+				['field' => 'examTitle', 'label' => 'Exam'],
+				['field' => 'role', 'label' => 'As assessor'],
+			],
+		],
 	];
 
 	/**
@@ -230,9 +261,9 @@ class AssessorSitePages {
 					['type' => 'detail', 'collection' => (string)$collection['id']],
 				],
 			];
-			// The menu is Overzicht and Gedeeld met mij; the entries are read
-			// from a share's own page.
-			if ($collection['id'] !== 'eaSharedPortfolios') {
+			// The menu is Overzicht, Gedeeld met mij and his exams; the entries
+			// are read from a share's own page.
+			if (in_array($collection['id'], ['eaSharedPortfolios', 'eaExams'], true) === false) {
 				$page['menu'] = false;
 			}
 
