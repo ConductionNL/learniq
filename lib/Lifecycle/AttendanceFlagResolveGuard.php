@@ -125,14 +125,65 @@ class AttendanceFlagResolveGuard implements LifecycleGuardInterface {
 	 * @return bool True when the flag leaves `reported`, or its stored state is unknown.
 	 */
 	private function wasReported(array $object): bool {
-		$flagId = ($object['id'] ?? ($object['uuid'] ?? ($object['@self']['id'] ?? null)));
-		if (is_string($flagId) === false || $flagId === '') {
+		$flagId = self::flagIdOf(object: $object);
+		if ($flagId === null) {
 			$this->logger->warning('[AttendanceFlagResolveGuard] Flag without an id — denying resolve without a recorded answer.');
 			return true;
 		}
 
+		$stored = $this->storedFlag(flagId: $flagId);
+		if ($stored === null) {
+			return true;
+		}
+
+		return (string)($stored->jsonSerialize()['lifecycle'] ?? '') === self::REPORTED;
+	}//end wasReported()
+
+	/**
+	 * The flag's id: `id`, else `uuid`, else `@self.id`; null when none is a non-empty string.
+	 *
+	 * @param array<string,mixed> $object The flag at its target state.
+	 *
+	 * @return string|null The id.
+	 */
+	private static function flagIdOf(array $object): ?string {
+		$flagId = ($object['id'] ?? ($object['uuid'] ?? ($object['@self']['id'] ?? null)));
+		if (is_string($flagId) === false || $flagId === '') {
+			return null;
+		}
+
+		return $flagId;
+	}//end flagIdOf()
+
+	/**
+	 * The stored flag, or null (logged) when it is absent or cannot be read.
+	 *
+	 * @param string $flagId The flag id.
+	 *
+	 * @return mixed The stored object, or null.
+	 */
+	private function storedFlag(string $flagId): mixed {
+		$stored = $this->findFlag(flagId: $flagId);
+		if ($stored === null) {
+			$this->logger->warning(
+				'[AttendanceFlagResolveGuard] Flag {id} not found — denying resolve without a recorded answer.',
+				['id' => $flagId]
+			);
+		}
+
+		return $stored;
+	}//end storedFlag()
+
+	/**
+	 * Read the stored flag; null when it is absent or the read fails.
+	 *
+	 * @param string $flagId The flag id.
+	 *
+	 * @return mixed The stored object, or null.
+	 */
+	private function findFlag(string $flagId): mixed {
 		try {
-			$stored = $this->objectService->find(
+			return $this->objectService->find(
 				id: $flagId,
 				register: self::LEARNIQ_REGISTER,
 				schema: self::FLAG_SCHEMA,
@@ -140,17 +191,7 @@ class AttendanceFlagResolveGuard implements LifecycleGuardInterface {
 				_multitenancy: false
 			);
 		} catch (\Throwable $exception) {
-			$stored = null;
+			return null;
 		}
-
-		if ($stored === null) {
-			$this->logger->warning(
-				'[AttendanceFlagResolveGuard] Flag {id} not found — denying resolve without a recorded answer.',
-				['id' => $flagId]
-			);
-			return true;
-		}
-
-		return (string)($stored->jsonSerialize()['lifecycle'] ?? '') === self::REPORTED;
-	}//end wasReported()
+	}//end findFlag()
 }//end class

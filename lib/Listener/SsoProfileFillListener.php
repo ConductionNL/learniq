@@ -96,7 +96,18 @@ class SsoProfileFillListener implements IEventListener {
 			return;
 		}
 
-		$userId = $event->getUser()->getUID();
+		$this->fillLoggingFailure(userId: $event->getUser()->getUID(), attributes: $attributes);
+	}//end handle()
+
+	/**
+	 * Fill the profile; a failure is logged, never thrown into the sign-in.
+	 *
+	 * @param string              $userId     The Nextcloud user.
+	 * @param array<string,mixed> $attributes The sign-in attributes.
+	 *
+	 * @return void
+	 */
+	private function fillLoggingFailure(string $userId, array $attributes): void {
 		try {
 			$this->fill(userId: $userId, attributes: $attributes);
 		} catch (Throwable $exception) {
@@ -105,7 +116,7 @@ class SsoProfileFillListener implements IEventListener {
 				['user' => $userId, 'msg' => $exception->getMessage()]
 			);
 		}
-	}//end handle()
+	}//end fillLoggingFailure()
 
 	/**
 	 * Write the mapped fields to the user's profile, when they change something.
@@ -121,17 +132,23 @@ class SsoProfileFillListener implements IEventListener {
 			return;
 		}
 
-		$updates = $this->applier->apply(attributes: $attributes, provider: 'saml', tenantId: (string)($profile['tenant_id'] ?? ''));
-		if (isset($updates['roles']) === true) {
-			$updates['roles'] = array_values(array_unique(array_merge((array)($profile['roles'] ?? []), (array)$updates['roles'])));
-		}
-
-		$changed = array_filter($updates, static fn ($value, string $field): bool => ($profile[$field] ?? null) !== $value, ARRAY_FILTER_USE_BOTH);
+		$changed = $this->changedFields(profile: $profile, attributes: $attributes);
 		if ($changed === []) {
 			return;
 		}
 
-		$uuid   = (string)($profile['id'] ?? ($profile['uuid'] ?? ''));
+		$this->save(profile: $profile, changed: $changed);
+	}//end fill()
+
+	/**
+	 * Save the profile with its changed fields.
+	 *
+	 * @param array<string,mixed> $profile The LearnerProfile.
+	 * @param array<string,mixed> $changed The changed fields.
+	 *
+	 * @return void
+	 */
+	private function save(array $profile, array $changed): void {
 		$object = array_merge($profile, $changed);
 		unset($object['@self']);
 
@@ -139,11 +156,28 @@ class SsoProfileFillListener implements IEventListener {
 			object: $object,
 			register: self::REGISTER,
 			schema: self::PROFILE_SCHEMA,
-			uuid: $uuid,
+			uuid: (string)($profile['id'] ?? ($profile['uuid'] ?? '')),
 			_rbac: false,
 			_multitenancy: false
 		);
-	}//end fill()
+	}//end save()
+
+	/**
+	 * The mapped fields whose value differs from the profile; roles are added to the profile's own.
+	 *
+	 * @param array<string,mixed> $profile    The LearnerProfile.
+	 * @param array<string,mixed> $attributes The sign-in attributes.
+	 *
+	 * @return array<string,mixed> The changed fields.
+	 */
+	private function changedFields(array $profile, array $attributes): array {
+		$updates = $this->applier->apply(attributes: $attributes, provider: 'saml', tenantId: (string)($profile['tenant_id'] ?? ''));
+		if (isset($updates['roles']) === true) {
+			$updates['roles'] = array_values(array_unique(array_merge((array)($profile['roles'] ?? []), (array)$updates['roles'])));
+		}
+
+		return array_filter($updates, static fn ($value, string $field): bool => ($profile[$field] ?? null) !== $value, ARRAY_FILTER_USE_BOTH);
+	}//end changedFields()
 
 	/**
 	 * The user's LearnerProfile, or null when they have none.
