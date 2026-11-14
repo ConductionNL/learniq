@@ -114,6 +114,42 @@ class PracticalExamRegisterTest extends TestCase {
 	}//end testAnAssessmentKeepsADraftAndItsAssessor()
 
 	/**
+	 * T1/T4: the two assessors sign the assessment through `Signature`, each
+	 * signature with its assurance level; a learning plan still signs as before.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/practical-exam-assessment/tasks.md#t4
+	 */
+	public function testBothAssessorsSignTheAssessmentWithTheirAssuranceLevel(): void {
+		$signature = [
+			'subjectKind' => 'practical-exam-assessment',
+			'subjectId' => '55555555-5555-4555-8555-555555555555',
+			'subjectVersion' => 1,
+			'signerId' => self::ASSESSOR,
+			'signerRole' => 'assessor',
+			'signedAt' => '2026-11-14T15:30:00+00:00',
+			'assuranceLevel' => 'basic',
+			'method' => 'nextcloud-session',
+			'tenant_id' => self::TENANT,
+		];
+
+		self::assertNull(self::schemaError(slug: 'signature', payload: $signature));
+		self::assertNull(self::schemaError(slug: 'signature', payload: array_merge($signature, ['subjectKind' => 'learning-plan', 'signerRole' => 'learner'])), 'a learning plan signs as before');
+		self::assertNotNull(self::schemaError(slug: 'signature', payload: array_merge($signature, ['subjectKind' => 'diploma'])), 'control: only the two subjects');
+		self::assertNotNull(self::schemaError(slug: 'signature', payload: array_merge($signature, ['assuranceLevel' => 'very-sure'])), 'control: the eIDAS vocabulary');
+
+		$unrated = $signature;
+		unset($unrated['assuranceLevel']);
+		self::assertNotNull(self::schemaError(slug: 'signature', payload: $unrated), 'control: every signature records its assurance level');
+
+		$schema = self::shippedSchema(slug: 'signature');
+		self::assertSame(['learning-plan', 'practical-exam-assessment'], $schema['properties']['subjectKind']['enum']);
+		self::assertContains('assessor', $schema['properties']['signerRole']['enum']);
+		self::assertTrue($schema['appendOnly'], 'a signature stays immutable evidence');
+	}//end testBothAssessorsSignTheAssessmentWithTheirAssuranceLevel()
+
+	/**
 	 * Staff read both; nobody writes an assessment through the object API.
 	 *
 	 * @return void
