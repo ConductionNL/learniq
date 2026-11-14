@@ -22,8 +22,15 @@
       Built as `FrozenAttestationLines` (the regulation's signed and revoked attestations of the
       caller's tenant, earliest `signedAt` first); `signature-verification.txt` lists them.
       Verified by `FrozenAttestationLinesTest` and the re-recorded `AuditPackBuilderGoldenTest`.
-- [ ] 3.2 Attestation detail page in `src/manifest.d/`: fields read only when the state is not `drafted`; the revoke action asks for the reason. Verify: `npm run check:manifest`.
-- [ ] 3.3 Add the new strings to every shipped locale. Verify: `npm run check:l10n`.
+- [x] 3.2 Attestation detail page in `src/manifest.d/`: fields read only when the state is not `drafted`; the revoke action asks for the reason. Verify: `npm run check:manifest`.
+      `AttestationDetail` drops the page-wide `readOnly` for `readOnlyWhen` (lifecycle not `drafted`) and
+      gains `lifecycleActions`; revoke opens the dialog for the `revocationReason` input the register
+      declares as required. Verified by `AttestationDetailPageTest` and `npm run check:manifest`.
+- [x] 3.3 Add the new strings to every shipped locale. Verify: `npm run check:l10n`.
+      `Signed At` and the `signedAt` / `revocationReason` descriptions added to `l10n/en.json` and
+      `l10n/nl.json` (the locales the parity gate holds strict); `npm run check:l10n` passes.
+      The browser catalogues were already stale on development, so `npm run l10n:build` is left to
+      its own commit rather than mixed in here.
 
 ## 4. Close out
 
