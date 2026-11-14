@@ -2621,7 +2621,7 @@
 			"config": {
 				"register": "learniq",
 				"schema": "learner-profile",
-				"_note": "Board LqLeerling (G2): the overview stacks recent grades, the latest attendance, the learner as a card and what else is in the dossier (counts); the other lists are tabs; the contact card beside it. Mentor, guardians and the parent portal wait on lanes D/E (learner-list-and-page-follow-the-boards). Actions holds Merge into another account (learner-merge-page-action): on an active learner it asks for the surviving account from a picker of the other active learners, confirms, and runs the merge transition; LearnerMergeGuard refuses a pair with an open enrolment in the same course and the dialog shows its reason.",
+				"_note": "Board LqLeerling (G2): the overview stacks recent grades, the latest attendance, the learner as a card and what else is in the dossier (counts); the other lists are tabs; the contact card beside it. Mentor, guardians and the parent portal wait on lanes D/E (learner-list-and-page-follow-the-boards). Actions holds Merge into another account (learner-merge-page-action): on an active learner it asks for the surviving account from a picker of the other active learners, confirms, and runs the merge transition; LearnerMergeGuard refuses a pair with an open enrolment in the same course and the dialog shows its reason. The HR system card (compliance-assign-from-hr-roles) shows department, job title, roles, manager and the HR source read only, only on a profile with hrSource; HrFieldOwnershipGuard refuses a manual change to them.",
 				"lifecycleActions": {
 					"field": "lifecycle",
 					"transitions": [
@@ -2824,6 +2824,51 @@
 											"learnerId": "@objectId"
 										}
 									}
+								}
+							],
+							"columns": 2
+						}
+					},
+					{
+						"id": "lprof-hr",
+						"type": "facts",
+						"title": "HR system",
+						"visibleWhen": {
+							"field": "hrSource",
+							"op": "notEmpty"
+						},
+						"content": {
+							"fields": [
+								{
+									"as": "text",
+									"template": "These details come from {hrSource}. Change them there: a change made here is refused."
+								},
+								{
+									"path": "department",
+									"label": "Department"
+								},
+								{
+									"path": "jobTitle",
+									"label": "Job title"
+								},
+								{
+									"path": "roles",
+									"label": "Roles",
+									"format": "list"
+								},
+								{
+									"path": "managerId",
+									"label": "Manager",
+									"format": "user"
+								},
+								{
+									"path": "hrSource",
+									"label": "HR source"
+								},
+								{
+									"path": "hrSyncedAt",
+									"label": "HR synced at",
+									"format": "longdatetime"
 								}
 							],
 							"columns": 2
@@ -3317,6 +3362,7 @@
 										"lprof-finals",
 										"lprof-attendance",
 										"lprof-facts",
+										"lprof-hr",
 										"lprof-dossier"
 									]
 								},
@@ -3409,6 +3455,7 @@
 								"lprof-finals",
 								"lprof-attendance",
 								"lprof-facts",
+								"lprof-hr",
 								"lprof-dossier"
 							]
 						},

@@ -24491,7 +24491,7 @@
                 "slug": "portfolio-share",
                 "appendOnly": false,
                 "icon": "ShareVariantOutline",
-                "version": "0.1.2",
+                "version": "0.1.3",
                 "title": "PortfolioShare",
                 "description": "A single, revocable, read-only grant of a learner's Portfolio (or a selection of its PortfolioEntry rows) to a teacher, a BPV praktijkopleider, or an external assessor. Append-only audit trail of who was granted access and when (lifecycle: draft → active → revoked). On grant (draft → active), PortfolioShareGrantHandler creates a native Nextcloud Files share for sharedWithKind=teacher; praktijkopleider/external-assessor visibility is served declaratively by PortalContributionProvider.",
                 "type": "object",
@@ -24535,6 +24535,13 @@
                             "format": "uuid"
                         },
                         "title": "Entry IDs"
+                    },
+                    "wholePortfolioId": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uuid",
+                        "description": "The Portfolio this share opens as a whole: its portfolioId when entryIds is null, empty when the share selects entries. The server sets it when the share is written; a value sent for it is replaced. A portal reads it to tell a whole-portfolio share from a selection.",
+                        "title": "Whole portfolio"
                     },
                     "sharedWithKind": {
                         "type": "string",
