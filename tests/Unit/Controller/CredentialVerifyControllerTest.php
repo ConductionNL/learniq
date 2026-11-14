@@ -33,6 +33,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use RuntimeException;
 use OCP\Security\Bruteforce\IThrottler;
 use Psr\Log\LoggerInterface;
@@ -116,6 +117,7 @@ class CredentialVerifyControllerTest extends TestCase {
 			proofs: new JwsProofVerifier($this->keyManagementService),
 			throttler: $this->throttler,
 			logger: $this->createMock(LoggerInterface::class),
+			urlGenerator: $this->createMock(IURLGenerator::class),
 		);
 	}//end setUp()
 
@@ -496,6 +498,7 @@ class CredentialVerifyControllerTest extends TestCase {
 			proofs: new JwsProofVerifier($this->keyManagementService),
 			throttler: $this->throttler,
 			logger: $this->createMock(LoggerInterface::class),
+			urlGenerator: $this->createMock(IURLGenerator::class),
 		);
 	}//end europassController()
 

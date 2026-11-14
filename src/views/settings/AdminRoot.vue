@@ -18,6 +18,7 @@
 		@tabChange="activeTab = $event">
 		<MenuStructureSection />
 		<LearniqSettings v-if="storesReady" />
+		<CertificateSettingsSection />
 		<ActionAuthMatrix />
 
 		<template #tab-example-data>
@@ -54,6 +55,7 @@ import { generateUrl } from '@nextcloud/router'
 import ActionAuthMatrix from '../../components/admin/ActionAuthMatrix.vue'
 import LearniqSettings from '../LearniqSettings.vue'
 import AiTranslationReviewSection from './AiTranslationReviewSection.vue'
+import CertificateSettingsSection from './CertificateSettingsSection.vue'
 import DataExchangeSettingsSection from './DataExchangeSettingsSection.vue'
 import ExamBoardSettingsSection from './ExamBoardSettingsSection.vue'
 import ExampleDataSettingsSection from './ExampleDataSettingsSection.vue'
@@ -69,6 +71,7 @@ export default {
 	components: {
 		CnAdminSettingsShell,
 		LearniqSettings,
+		CertificateSettingsSection,
 		DataExchangeSettingsSection,
 		ExamBoardSettingsSection,
 		ExampleDataSettingsSection,
