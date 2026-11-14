@@ -1,7 +1,3 @@
-/**
- * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
- * SPDX-License-Identifier: EUPL-1.2
- */
 OC.L10N.register(
     "learniq",
     {
@@ -5677,7 +5673,14 @@ OC.L10N.register(
         "Review flags": "Vlaggen beoordelen",
         "_%n session with open flags_::_%n sessions with open flags_": ["%n sessie met openstaande vlaggen","%n sessies met openstaande vlaggen"],
         "_%n open flag_::_%n open flags_": ["%n openstaande vlag","%n openstaande vlaggen"],
-        "_{time}, after %n minute_::_{time}, after %n minutes_": ["{time}, na %n minuut","{time}, na %n minuten"]
+        "_{time}, after %n minute_::_{time}, after %n minutes_": ["{time}, na %n minuut","{time}, na %n minuten"],
+        "Price": "Prijs",
+        "Amount excluding VAT": "Bedrag zonder btw",
+        "ISO 4217 currency code.": "ISO 4217-valutacode.",
+        "VAT rate": "Btw-tarief",
+        "Price note": "Toelichting bij de prijs",
+        "Invoice": "Factuur",
+        "Invoice status": "Factuurstatus"
     },
     "nplurals=2; plural=(n != 1);"
 )

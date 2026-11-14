@@ -1,7 +1,3 @@
-/**
- * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
- * SPDX-License-Identifier: EUPL-1.2
- */
 OC.L10N.register(
     "learniq",
     {
@@ -5185,7 +5181,14 @@ OC.L10N.register(
         "Annulled by {name} on {date}": "Annulled by {name} on {date}",
         "Annulling a flag does not invalidate the result automatically. Use the assessment result page for a next step.": "Annulling a flag does not invalidate the result automatically. Use the assessment result page for a next step.",
         "Proctoring review": "Proctoring review",
-        "Review flags": "Review flags"
+        "Review flags": "Review flags",
+        "Price": "Price",
+        "Amount excluding VAT": "Amount excluding VAT",
+        "ISO 4217 currency code.": "ISO 4217 currency code.",
+        "VAT rate": "VAT rate",
+        "Price note": "Price note",
+        "Invoice": "Invoice",
+        "Invoice status": "Invoice status"
     },
     "nplurals=2; plural=(n != 1);"
 )

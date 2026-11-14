@@ -14,13 +14,13 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import { buildManifest } from '../../node_modules/@conduction/nextcloud-vue/src/utils/buildManifest.js'
 import { passesContextPredicates } from '../../node_modules/@conduction/nextcloud-vue/src/utils/visibleIfContext.js'
-import { buildWorkspaceRuntime } from '../../src/utils/workspaceRuntime.js'
 import {
 	minutesIn,
 	nameOrId,
 	openFlagCount,
 	withDecision,
 } from '../../src/utils/proctoringFlags.js'
+import { buildWorkspaceRuntime } from '../../src/utils/workspaceRuntime.js'
 
 const dir = new URL('../../src/manifest.d/', import.meta.url)
 const readJson = (url) => JSON.parse(readFileSync(url, 'utf8'))
