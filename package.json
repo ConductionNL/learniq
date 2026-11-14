@@ -68,7 +68,10 @@
   },
   "overrides": {
     "libxmljs2": "^0.37.0",
-    "dompurify": "$dompurify"
+    "dompurify": "$dompurify",
+    "webdav": {
+      "minimatch": "^11.0.1"
+    }
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
