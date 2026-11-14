@@ -210,7 +210,13 @@ class StudentPortalCollections {
 			'attachmentRef',
 			'lifecycle',
 			'decidedAt',
+			// The school's first look and the lesson hours (absence-reports-seen-and-ended).
+			'seenAt',
+			'fromLessonHour',
+			'toLessonHour',
 		],
+		// She ends her own open illness (absence-reports-seen-and-ended T4).
+		'rowActions' => [ExcuseRecoveryAction::ID],
 	];
 
 	private const STUDENT_TESTS_FIELDS = [

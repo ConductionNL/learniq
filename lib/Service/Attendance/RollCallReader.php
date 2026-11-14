@@ -267,16 +267,24 @@ class RollCallReader {
 	}//end withReport()
 
 	/**
-	 * Whether an approved or open report covers a day.
+	 * Whether an approved or open report covers a day. An illness without a
+	 * last day covers every day from its first until the pupil is reported
+	 * better.
 	 *
 	 * @param array<string, mixed> $report The report.
 	 * @param string               $date   The day, `Y-m-d`.
 	 *
 	 * @return bool
+	 *
+	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-report-may-cover-lesson-hours-and-an-illness-may-stay-open-until-the-pupil-is-better
 	 */
 	private function covers(array $report, string $date): bool {
 		$from = substr((string)($report['dateFrom'] ?? ''), 0, 10);
 		$to = substr((string)($report['dateTo'] ?? ''), 0, 10);
+		if ($to === '' && ($report['reasonKind'] ?? null) === 'illness') {
+			$to = '9999-12-31';
+		}
+
 		if ($from === '' || $to === '' || $date < $from || $date > $to) {
 			return false;
 		}

@@ -62,6 +62,7 @@ class RollCallService implements RollCallServiceInterface {
 	 * @param ObjectService   $objectService OpenRegister writes.
 	 * @param ITimeFactory    $time          Clock for markedAt.
 	 * @param IL10N           $l10n          Messages.
+	 * @param ReportSeenStamp $seen          Records a group teacher's first look at an open absence report.
 	 *
 	 * @return void
 	 */
@@ -73,6 +74,7 @@ class RollCallService implements RollCallServiceInterface {
 		private readonly ObjectService $objectService,
 		private readonly ITimeFactory $time,
 		private readonly IL10N $l10n,
+		private readonly ReportSeenStamp $seen,
 	) {
 	}//end __construct()
 
@@ -126,7 +128,7 @@ class RollCallService implements RollCallServiceInterface {
 				'sessionId' => $this->idOrNull(row: $session),
 				'editable' => ($locked === ''),
 				'locked' => $locked,
-				'pupils' => $this->pupils(cohort: $cohort, records: $records, date: $date),
+				'pupils' => $this->pupils(cohort: $cohort, records: $records, date: $date, userId: $user->getUID()),
 			]
 		);
 	}//end open()
@@ -296,13 +298,16 @@ class RollCallService implements RollCallServiceInterface {
 	 * @param array<string, mixed>                $cohort  The group.
 	 * @param array<string, array<string, mixed>> $records Saved records by pupil.
 	 * @param string                              $date    The day.
+	 * @param string                              $userId  The caller; a group teacher's first look at an open report is recorded.
 	 *
 	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
 	 */
-	private function pupils(array $cohort, array $records, string $date): array {
+	private function pupils(array $cohort, array $records, string $date, string $userId): array {
 		$learnerIds = $this->learnerIdsOf(cohort: $cohort);
 		$profiles = $this->reader->profilesOf(learnerIds: $learnerIds);
-		$reports = $this->reader->reportsOn(learnerIds: $learnerIds, date: $date);
+		$reports = $this->seen->seen(reports: $this->reader->reportsOn(learnerIds: $learnerIds, date: $date), userId: $userId);
 
 		$rows = [];
 		foreach ($learnerIds as $learnerId) {

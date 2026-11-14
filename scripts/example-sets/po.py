@@ -1167,9 +1167,10 @@ class HulstkampStory:
         vera_dentist = self.excuse(self.vera_ref, self.vera["nc"], dt.date(2026, 9, 24), "Tandarts, 10.30 tot 11.30 uur", "medical-appointment",
                                    self.daan, stamp(dt.date(2026, 9, 23), 15, 45))
         vera_ill = self.excuse(self.vera_ref, self.vera["nc"], dt.date(2026, 10, 1), "Vera heeft koorts", "illness", self.daan, stamp(dt.date(2026, 10, 1), 8, 20))
-        # Today's report is not decided yet. The board's "gezien door de leerkracht om 8.12 uur" has no field in the
-        # register; the teacher's mark at 8.12 below is the nearest true thing.
+        # Today's report is not decided yet, and juf Esra saw it at 8.12 when she opened the register of groep 4
+        # (absence-reports-seen-and-ended T6: "Gezien door juf Esra om 8.12 uur", as ReportSeenStamp writes it).
         sami_today = self.excuse(self.sami_ref, self.sami["ncUserId"], STORY_TODAY, "Sami heeft buikgriep", "illness", None, None)
+        sami_today.update({"seenBy": self.esra, "seenAt": stamp(STORY_TODAY, 8, 12)})
 
         self.mark("Groep 4", self.sami["ncUserId"], self.sami_ref, dt.date(2026, 9, 11), "absent-excused", self.esra, (8, 25), "Ziek gemeld door ouder", sami_sep, 0, kind="illness")
         self.mark("Groep 7", self.vera["nc"], self.vera_ref, dt.date(2026, 9, 15), "late", self.daan, (8, 50), "Te laat binnengekomen", None, 335, late=10)

@@ -5686,7 +5686,22 @@ OC.L10N.register(
         "OpenRegister file attachment reference (nc:files path or OR attachment ID). The app does NOT store file bytes. Empty for a linked material, which has a sourceUrl instead.": "Verwijzing naar de bijlage in OpenRegister (pad in Nextcloud Files of bijlage-id). De app bewaart zelf geen bestanden. Leeg bij een koppeling, die een adres bij de bron heeft.",
         "SPDX license identifier or rights statement. Open material from a source carries its normalised licence code, such as CC-BY-4.0, or other.": "SPDX-licentiecode of rechtenverklaring. Open materiaal uit een bron draagt zijn licentiecode, zoals CC-BY-4.0, of other.",
         "This material is not available in this course.": "Dit materiaal is niet beschikbaar in deze cursus.",
-        "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "De licentie staat een kopie toe, maar learniq kan nog geen bestanden uit Edurep ophalen, dus het maakt een koppeling. De leerling opent het materiaal bij de bron."
+        "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "De licentie staat een kopie toe, maar learniq kan nog geen bestanden uit Edurep ophalen, dus het maakt een koppeling. De leerling opent het materiaal bij de bron.",
+        "Price": "Prijs",
+        "Amount excluding VAT": "Bedrag zonder btw",
+        "ISO 4217 currency code.": "ISO 4217-valutacode.",
+        "VAT rate": "Btw-tarief",
+        "Price note": "Toelichting bij de prijs",
+        "Invoice": "Factuur",
+        "Invoice status": "Factuurstatus",
+        "From lesson hour": "Vanaf lesuur",
+        "To lesson hour": "Tot en met lesuur",
+        "Seen at": "Gezien op",
+        "Seen by": "Gezien door",
+        "First lesson hour of a report for part of a single day (1 is the first lesson). Empty for whole days.": "Eerste lesuur van een melding voor een deel van één dag (1 is het eerste lesuur). Leeg bij hele dagen.",
+        "Last lesson hour of a report for part of a single day, inclusive. Empty for whole days.": "Laatste lesuur van een melding voor een deel van één dag, inclusief. Leeg bij hele dagen.",
+        "ISO 8601 timestamp of that first look. Seeing does not change the lifecycle.": "ISO 8601-tijdstip van die eerste keer bekijken. Bekijken verandert de levenscyclus niet.",
+        "Nextcloud user ID of the group teacher who first opened the report, or the register that lists it. Stamped once by the server; later openings change nothing.": "Nextcloud-gebruikers-ID van de groepsleerkracht die de melding als eerste opende, of van het register dat haar toont. Eenmalig door de server vastgelegd; latere keren openen veranderen niets."
     },
     "nplurals=2; plural=(n != 1);"
 )

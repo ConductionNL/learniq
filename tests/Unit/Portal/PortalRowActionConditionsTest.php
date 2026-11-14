@@ -41,6 +41,8 @@ class PortalRowActionConditionsTest extends TestCase {
 	private const CONDITIONS = [
 		'cancelConferenceTime' => ['field' => 'lifecycle', 'in' => ['booked', 'acknowledged']],
 		'handIn' => ['field' => 'lifecycle', 'in' => ['draft']],
+		// An absence that may still be going on (absence-reports-seen-and-ended T4).
+		'reportRecovered' => ['field' => 'lifecycle', 'in' => ['submitted', 'approved']],
 	];
 
 	/**

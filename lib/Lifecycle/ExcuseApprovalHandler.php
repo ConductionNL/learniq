@@ -40,6 +40,7 @@ namespace OCA\Learniq\Lifecycle;
 
 use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Service\Attendance\LessonHours;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -56,6 +57,14 @@ class ExcuseApprovalHandler implements IEventListener {
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const EXCUSE_REQUEST_SCHEMA = 'excuse-request';
 	private const ATTENDANCE_RECORD_SCHEMA = 'attendance-record';
+	private const SESSION_SCHEMA = 'session';
+
+	/**
+	 * The sessions of a group read for this approval, by cohort id.
+	 *
+	 * @var array<string, array<int, array<string, mixed>>>
+	 */
+	private array $sessionsByCohort = [];
 
 	/**
 	 * Constructor.
@@ -63,6 +72,7 @@ class ExcuseApprovalHandler implements IEventListener {
 	 * @param ObjectService $objectService OR object access service.
 	 * @param LoggerInterface $logger PSR logger.
 	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param LessonHours $lessonHours Which lesson hour a session is (absence-reports-seen-and-ended T3).
 	 *
 	 * @return void
 	 */
@@ -70,6 +80,7 @@ class ExcuseApprovalHandler implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
 		private readonly ListenerSchemaResolverInterface $schemas,
+		private readonly LessonHours $lessonHours=new LessonHours(),
 	) {
 	}//end __construct()
 
@@ -122,12 +133,42 @@ class ExcuseApprovalHandler implements IEventListener {
 			return;
 		}
 
-		$window = $this->resolveExcuseWindow(dateFrom: $request['dateFrom'], dateTo: $request['dateTo'], requestId: (string)$requestId);
+		$window = $this->resolveExcuseWindow(dateFrom: $request['dateFrom'], dateTo: $this->lastDayOf(request: $request), requestId: (string)$requestId);
 		if ($window !== null) {
 			$this->flipForLearner(request: $request, window: $window);
 		}
 
 	}//end flipAttendanceRecords()
+
+	/**
+	 * Whether a report is an illness without a last day yet: it covers every
+	 * day from its first until the pupil is reported better.
+	 *
+	 * @param array<string, mixed> $request The ExcuseRequest.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-report-may-cover-lesson-hours-and-an-illness-may-stay-open-until-the-pupil-is-better
+	 */
+	private static function isOpenIllness(array $request): bool {
+		return ($request['reasonKind'] ?? null) === 'illness' && ($request['dateTo'] ?? '') === '';
+	}//end isOpenIllness()
+
+	/**
+	 * The last day a report covers: its `dateTo`, or for an open illness the
+	 * furthest date, so every record from the first day on follows it.
+	 *
+	 * @param array<string, mixed> $request The ExcuseRequest.
+	 *
+	 * @return string
+	 */
+	private function lastDayOf(array $request): string {
+		if (self::isOpenIllness(request: $request) === true) {
+			return '9999-12-31';
+		}
+
+		return (string)$request['dateTo'];
+	}//end lastDayOf()
 
 	/**
 	 * An excuse request's id, or its uuid when it has no id.
@@ -155,7 +196,7 @@ class ExcuseApprovalHandler implements IEventListener {
 	private function hasExcuseFields(array $request): bool {
 		return ($request['learnerId'] ?? '') !== ''
 			&& ($request['dateFrom'] ?? '') !== ''
-			&& ($request['dateTo'] ?? '') !== '';
+			&& (($request['dateTo'] ?? '') !== '' || self::isOpenIllness(request: $request) === true);
 	}//end hasExcuseFields()
 
 	/**
@@ -170,11 +211,13 @@ class ExcuseApprovalHandler implements IEventListener {
 		$requestId = $this->requestIdOf(request: $request);
 		$learnerId = $request['learnerId'];
 
+		$this->sessionsByCohort = [];
 		$flippedCount = $this->flipRecordsInWindow(
 			records: $this->unexcusedRecordsOf(learnerId: $learnerId),
 			fromDay: $window['fromDay'],
 			toDay: $window['toDay'],
-			requestId: (string)$requestId
+			requestId: (string)$requestId,
+			hours: $this->lessonHours->rangeOf(request: $request)
 		);
 
 		$this->logger->info(
@@ -261,12 +304,14 @@ class ExcuseApprovalHandler implements IEventListener {
 	 * @param int $fromDay Inclusive window start as `Ymd`.
 	 * @param int $toDay Inclusive window end as `Ymd`.
 	 * @param string $requestId ExcuseRequest id stamped onto each flipped record.
+	 * @param array{0:int,1:int}|null $hours The report's lesson hours, null for whole days (absence-reports-seen-and-ended T3).
 	 *
 	 * @return int How many records were flipped.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-10
+	 * @spec openspec/changes/absence-reports-seen-and-ended/tasks.md#T3
 	 */
-	private function flipRecordsInWindow(array $records, int $fromDay, int $toDay, string $requestId): int {
+	private function flipRecordsInWindow(array $records, int $fromDay, int $toDay, string $requestId, ?array $hours=null): int {
 		$flippedCount = 0;
 
 		foreach ($records as $raw) {
@@ -291,6 +336,11 @@ class ExcuseApprovalHandler implements IEventListener {
 				continue;
 			}
 
+			// A report for part of a day: only the lessons in its hours follow it.
+			if ($hours !== null && $this->inHours(record: $record, hours: $hours) === false) {
+				continue;
+			}
+
 			$this->objectService->saveObject(
 				register: self::LEARNIQ_REGISTER,
 				schema: self::ATTENDANCE_RECORD_SCHEMA,
@@ -308,4 +358,62 @@ class ExcuseApprovalHandler implements IEventListener {
 
 		return $flippedCount;
 	}//end flipRecordsInWindow()
+
+	/**
+	 * Whether a record's session is one of the report's lesson hours.
+	 *
+	 * @param array<string, mixed> $record The AttendanceRecord.
+	 * @param array{0:int,1:int}   $hours  The report's first and last hour.
+	 *
+	 * @return bool False when its session cannot be placed: a lesson outside the hours is never excused by guess.
+	 *
+	 * @spec openspec/changes/absence-reports-seen-and-ended/tasks.md#T3
+	 */
+	private function inHours(array $record, array $hours): bool {
+		$cohortId = (string)($record['cohortId'] ?? '');
+		$sessionId = (string)($record['sessionId'] ?? '');
+		if ($cohortId === '' || $sessionId === '') {
+			return false;
+		}
+
+		if (array_key_exists($cohortId, $this->sessionsByCohort) === false) {
+			$this->sessionsByCohort[$cohortId] = $this->sessionsOf(cohortId: $cohortId);
+		}
+
+		return $this->lessonHours->covers(
+			hour: $this->lessonHours->hourOf(sessionId: $sessionId, sessions: $this->sessionsByCohort[$cohortId]),
+			range: $hours
+		);
+	}//end inHours()
+
+	/**
+	 * A group's sessions as plain arrays.
+	 *
+	 * @param string $cohortId The group.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function sessionsOf(string $cohortId): array {
+		$rows = $this->objectService->findAll(
+			[
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::SESSION_SCHEMA,
+					'cohortId' => $cohortId,
+				],
+				'limit' => 1000,
+			]
+		);
+
+		$sessions = [];
+		foreach ($rows as $row) {
+			if (is_array($row) === false) {
+				$row = $row->jsonSerialize();
+			}
+
+			$sessions[] = $row;
+		}
+
+		return $sessions;
+	}//end sessionsOf()
 }//end class

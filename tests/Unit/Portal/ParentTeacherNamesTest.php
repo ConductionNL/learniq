@@ -42,7 +42,8 @@ class ParentTeacherNamesTest extends TestCase {
 		'parentConferenceFreeSlots' => 'teacherId',
 		'parentConferenceSlots' => 'teacherId',
 		'parentConferenceSignups' => 'requestedTeacherIds',
-		'parentExcuseRequests' => 'decidedBy',
+		// Who decided, and who saw it first (absence-reports-seen-and-ended).
+		'parentExcuseRequests' => 'decidedBy,seenBy',
 	];
 
 	/**
@@ -67,7 +68,7 @@ class ParentTeacherNamesTest extends TestCase {
 		foreach ($this->manifest()['collections'] as $collection) {
 			foreach (($collection['columns'] ?? []) as $column) {
 				if (($column['render'] ?? '') === 'user') {
-					$marked[$collection['id']] = $column['field'];
+					$marked[$collection['id']] = ltrim(($marked[$collection['id']] ?? '') . ',' . $column['field'], ',');
 					self::assertContains($column['field'], $collection['fields'], $collection['id']);
 				}
 			}

@@ -31,6 +31,7 @@ namespace OCA\Learniq\Listener\Registrar;
 use OCA\Learniq\Listener\CompetencyAlignmentListener;
 use OCA\Learniq\Listener\CheckInWindowStamp;
 use OCA\Learniq\Listener\ConferenceSignupPortalStamp;
+use OCA\Learniq\Listener\ExcuseRecoveryGuard;
 use OCA\Learniq\Listener\ExcuseRequestOwnerStamp;
 use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
 use OCA\Learniq\Listener\LessonNoteAuthorGuard;
@@ -224,6 +225,13 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: ExcuseRequestOwnerStamp::class
+		);
+
+		// An open illness ended with reportRecovered (absence-reports-seen-
+		// and-ended T4): the last day may not be before the first day.
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: ExcuseRecoveryGuard::class
 		);
 
 		// ConferenceSignup from the parent portal (portal-parent-conference-

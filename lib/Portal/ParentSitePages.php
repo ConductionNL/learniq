@@ -300,6 +300,14 @@ class ParentSitePages {
 					'statusNoteField' => 'decidedBy',
 					// "Meester Daan, 1 oktober 8:20 uur" under Goedgekeurd (wilgenboom/MijnLijst).
 					'statusNoteAtField' => 'decidedAt',
+					// While it is still being decided: "Gezien door juf Esra om 8.12 uur"
+					// (wilgenboom/MijnLijst, absence-reports-seen-and-ended T5), the
+					// teacher's name read through render user, as decidedBy is.
+					'statusNotes' => [
+						'submitted' => ['field' => 'seenBy', 'atField' => 'seenAt', 'render' => 'user', 'template' => 'Seen by {name} at {time}'],
+					],
+					// Report better on an open illness (T4).
+					'rowActions' => [ExcuseRecoveryAction::ID],
 					'sort' => ['field' => 'dateFrom', 'direction' => 'desc'],
 				],
 			],
