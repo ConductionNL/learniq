@@ -5,7 +5,9 @@
  LearniqCompliance — compliance dashboard page.
  Renders KPI tiles for regulations and signed attestations, the
  per-department compliance roll-up (learniq#951), the coverage per rule
- (compliance-rule-coverage-table), and a "View in LaunchPad" header action.
+ (compliance-rule-coverage-table), the mandatory enrolments that fell out of
+ scope after an HR change (compliance-assign-from-hr-roles), and a "View in
+ LaunchPad" header action.
 
  @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-12
 -->
@@ -38,9 +40,10 @@ import {
 	countTile,
 	customTile,
 	freshLayout,
+	outOfScopeTile,
 } from '../utils/dashboardTiles.js'
 
-/** The compliance dashboard grid: the three counts, then the two coverage lists. */
+/** The compliance dashboard grid: the three counts, the two coverage lists, then the enrolments out of scope. */
 const COMPLIANCE_LAYOUT = [
 	{
 		id: 1,
@@ -83,6 +86,15 @@ const COMPLIANCE_LAYOUT = [
 		widgetId: 'rule-coverage',
 		gridX: 0,
 		gridY: 10,
+		gridWidth: 12,
+		gridHeight: 6,
+		showTitle: true,
+	},
+	{
+		id: 6,
+		widgetId: 'out-of-scope',
+		gridX: 0,
+		gridY: 16,
 		gridWidth: 12,
 		gridHeight: 6,
 		showTitle: true,
@@ -130,6 +142,14 @@ export default {
 				countTile('kpi-external-training', this.t('learniq', 'External training')),
 				customTile('department-compliance', this.t('learniq', 'Compliance per department')),
 				customTile('rule-coverage', this.t('learniq', 'Coverage per rule')),
+				outOfScopeTile('out-of-scope', this.t('learniq', 'No longer in scope'), {
+					learner: this.t('learniq', 'Learner'),
+					course: this.t('learniq', 'Course'),
+					regulation: this.t('learniq', 'Regulation'),
+					dueDate: this.t('learniq', 'Deadline'),
+					outOfScopeSince: this.t('learniq', 'Out of scope since'),
+					empty: this.t('learniq', 'No mandatory enrolment has fallen out of scope.'),
+				}),
 			]
 		},
 	},
