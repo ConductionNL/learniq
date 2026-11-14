@@ -5753,7 +5753,17 @@ OC.L10N.register(
         "Answer a visit date": "Reageer op een bezoekdatum",
         "Company visits": "Bedrijfsbezoeken",
         "Planned moment": "Afgesproken moment",
-        "Company answer": "Antwoord van het bedrijf"
+        "Company answer": "Antwoord van het bedrijf",
+        "Phase": "Fase",
+        "Phase due": "Fase klaar op",
+        "Placements by phase": "Plekken per fase",
+        "BPV placements by phase": "BPV-plekken per fase",
+        "A card moves by itself when its step is done. You can drag it too.": "Een kaart schuift vanzelf door als de stap klaar is. Verslepen kan ook.",
+        "Search a student or training company": "Zoek een student of leerbedrijf",
+        "Searching": "Zoekt een plek",
+        "Agreement": "Overeenkomst",
+        "Running": "Loopt",
+        "Rounding off": "Afronding"
     },
     "nplurals=2; plural=(n != 1);"
 )

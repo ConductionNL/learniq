@@ -5306,7 +5306,17 @@
         "Answer a visit date": "Answer a visit date",
         "Company visits": "Company visits",
         "Planned moment": "Planned moment",
-        "Company answer": "Company answer"
+        "Company answer": "Company answer",
+        "Phase": "Phase",
+        "Phase due": "Phase due",
+        "Placements by phase": "Placements by phase",
+        "BPV placements by phase": "BPV placements by phase",
+        "A card moves by itself when its step is done. You can drag it too.": "A card moves by itself when its step is done. You can drag it too.",
+        "Search a student or training company": "Search a student or training company",
+        "Searching": "Searching",
+        "Agreement": "Agreement",
+        "Running": "Running",
+        "Rounding off": "Rounding off"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
