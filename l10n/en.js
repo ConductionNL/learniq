@@ -5177,7 +5177,14 @@ OC.L10N.register(
         "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.",
         "Shared parts": "Shared parts",
         "Your access runs until {expiresAt}.": "Your access runs until {expiresAt}.",
-        "Your access has no end date. The school ends the access.": "Your access has no end date. The school ends the access."
+        "Your access has no end date. The school ends the access.": "Your access has no end date. The school ends the access.",
+        "Price": "Price",
+        "Amount excluding VAT": "Amount excluding VAT",
+        "ISO 4217 currency code.": "ISO 4217 currency code.",
+        "VAT rate": "VAT rate",
+        "Price note": "Price note",
+        "Invoice": "Invoice",
+        "Invoice status": "Invoice status"
     },
     "nplurals=2; plural=(n != 1);"
 )
