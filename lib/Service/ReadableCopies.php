@@ -250,18 +250,40 @@ class ReadableCopies implements ReadableCopiesInterface {
 	 * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-new-an-external-assessor-opens-the-shared-entries-and-only-those
 	 */
 	public static function wholePortfolioOf(array $share): ?string {
-		$selection = ($share['entryIds'] ?? null);
-		if (is_array($selection) === true && $selection !== []) {
+		if (self::selectsEntries(share: $share) === true) {
 			return null;
 		}
 
-		$portfolioId = ($share['portfolioId'] ?? null);
-		if (is_string($portfolioId) === false || trim($portfolioId) === '') {
-			return null;
-		}
-
-		return trim($portfolioId);
+		return self::trimmedId(value: ($share['portfolioId'] ?? null));
 	}//end wholePortfolioOf()
+
+	/**
+	 * Whether a share selects entries rather than opening the whole portfolio.
+	 *
+	 * @param array<string, mixed> $share The share as written.
+	 *
+	 * @return bool True when entryIds is a non-empty list.
+	 */
+	private static function selectsEntries(array $share): bool {
+		$selection = ($share['entryIds'] ?? null);
+
+		return is_array($selection) === true && $selection !== [];
+	}//end selectsEntries()
+
+	/**
+	 * An id with its surrounding blanks removed.
+	 *
+	 * @param mixed $value The id as written.
+	 *
+	 * @return string|null The id, or null when it is not a non-blank string.
+	 */
+	private static function trimmedId(mixed $value): ?string {
+		if (is_string($value) === false || trim($value) === '') {
+			return null;
+		}
+
+		return trim($value);
+	}//end trimmedId()
 
 	/**
 	 * The portfolio title and the learner's name for a share.
