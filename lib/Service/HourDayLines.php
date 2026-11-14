@@ -125,26 +125,22 @@ final class HourDayLines {
 	 * @spec openspec/changes/bpv-hours-per-day/specs/bpv/spec.md#requirement-a-returned-week-names-the-day-and-the-question
 	 */
 	public static function withQuestion(array $days, string $date, string $question): ?array {
-		$found = false;
-		$lines = [];
-		foreach ($days as $day) {
-			if (is_array($day) === false) {
-				continue;
-			}
-
-			if (($day['date'] ?? null) === $date) {
-				$day['returnedQuestion'] = $question;
-				$found = true;
-			}
-
-			$lines[] = $day;
-		}
-
-		if ($found === false) {
+		$lines = array_values(array_filter($days, 'is_array'));
+		$dates = array_map(static fn (array $day): mixed => ($day['date'] ?? null), $lines);
+		if (in_array($date, $dates, true) === false) {
 			return null;
 		}
 
-		return $lines;
+		return array_map(
+			static function (array $day) use ($date, $question): array {
+				if (($day['date'] ?? null) === $date) {
+					$day['returnedQuestion'] = $question;
+				}
+
+				return $day;
+			},
+			$lines
+		);
 	}//end withQuestion()
 
 	/**
@@ -161,6 +157,31 @@ final class HourDayLines {
 			return self::DATE_OUTSIDE_WEEK;
 		}
 
+		$worked = self::workedMinutes(day: $day);
+		if (is_string($worked) === true) {
+			return $worked;
+		}
+
+		$line = [
+			'date' => $date,
+			'startTime' => self::text(value: $day['startTime']),
+			'endTime' => self::text(value: $day['endTime']),
+			'breakMinutes' => ($day['breakMinutes'] ?? 0),
+			'hours' => round($worked / 60, 2),
+			'werkprocesCodes' => self::codes(value: ($day['werkprocesCodes'] ?? [])),
+		];
+
+		return self::withTexts(line: $line, day: $day);
+	}//end line()
+
+	/**
+	 * The minutes worked on a day line, or the reason its times are refused.
+	 *
+	 * @param array<string, mixed> $day The line as sent.
+	 *
+	 * @return int|string
+	 */
+	private static function workedMinutes(array $day): int|string {
 		$start = self::minutes(time: self::text(value: ($day['startTime'] ?? null)));
 		$end = self::minutes(time: self::text(value: ($day['endTime'] ?? null)));
 		if ($start === null || $end === null || $end <= $start) {
@@ -169,19 +190,34 @@ final class HourDayLines {
 
 		// An absent or empty break is no break.
 		$break = ($day['breakMinutes'] ?? 0);
-
-		if (is_int($break) === false || $break < 0 || $break >= ($end - $start)) {
+		if (self::breakFits(break: $break, span: ($end - $start)) === false) {
 			return self::BREAK_TOO_LONG;
 		}
 
-		$line = [
-			'date' => $date,
-			'startTime' => self::text(value: $day['startTime']),
-			'endTime' => self::text(value: $day['endTime']),
-			'breakMinutes' => $break,
-			'hours' => round(($end - $start - $break) / 60, 2),
-			'werkprocesCodes' => self::codes(value: ($day['werkprocesCodes'] ?? [])),
-		];
+		return ($end - $start - $break);
+	}//end workedMinutes()
+
+	/**
+	 * Whether a break is a whole number of minutes shorter than the time between start and end.
+	 *
+	 * @param mixed $break The break as sent.
+	 * @param int   $span  The minutes between start and end.
+	 *
+	 * @return bool
+	 */
+	private static function breakFits(mixed $break, int $span): bool {
+		return is_int($break) === true && $break >= 0 && $break < $span;
+	}//end breakFits()
+
+	/**
+	 * A line with the text fields the day carries, leaving out empty ones.
+	 *
+	 * @param array<string, mixed> $line The normalised line.
+	 * @param array<string, mixed> $day  The line as sent.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function withTexts(array $line, array $day): array {
 		foreach (self::TEXT_FIELDS as $field) {
 			$value = self::text(value: ($day[$field] ?? null));
 			if ($value !== '') {
@@ -190,7 +226,7 @@ final class HourDayLines {
 		}
 
 		return $line;
-	}//end line()
+	}//end withTexts()
 
 	/**
 	 * The sum of the lines' hours.
@@ -216,12 +252,8 @@ final class HourDayLines {
 	 * @return array<int, string>
 	 */
 	private static function weekDates(string $isoWeek): array {
-		if (preg_match('/^(\d{4})-W(\d{2})$/', $isoWeek, $match) !== 1 || (int)$match[2] < 1 || (int)$match[2] > 53) {
-			return [];
-		}
-
-		$monday = (new DateTimeImmutable())->setISODate((int)$match[1], (int)$match[2], 1);
-		if ($monday->format('o-\WW') !== $isoWeek) {
+		$monday = self::mondayOf(isoWeek: $isoWeek);
+		if ($monday === null) {
 			return [];
 		}
 
@@ -232,6 +264,26 @@ final class HourDayLines {
 
 		return $dates;
 	}//end weekDates()
+
+	/**
+	 * The Monday of an ISO week, or null when the week is unreadable.
+	 *
+	 * @param string $isoWeek The week, as 2026-W41.
+	 *
+	 * @return DateTimeImmutable|null
+	 */
+	private static function mondayOf(string $isoWeek): ?DateTimeImmutable {
+		if (preg_match('/^(\d{4})-W(\d{2})$/', $isoWeek, $match) !== 1 || (int)$match[2] < 1 || (int)$match[2] > 53) {
+			return null;
+		}
+
+		$monday = (new DateTimeImmutable())->setISODate((int)$match[1], (int)$match[2], 1);
+		if ($monday->format('o-\WW') !== $isoWeek) {
+			return null;
+		}
+
+		return $monday;
+	}//end mondayOf()
 
 	/**
 	 * Minutes since midnight of an HH:MM time, or null when it is not one.

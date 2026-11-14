@@ -140,6 +140,22 @@ class HourWeekSubmissionStamp implements IEventListener {
 			return;
 		}
 
+		$this->apply(event: $event, payload: $payload, placement: $placement);
+	}//end handle()
+
+	/**
+	 * Stamp the owner fields and the hours on the write, or refuse it when the
+	 * owner is still missing or the hours cannot be read.
+	 *
+	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event     The write.
+	 * @param array<string, mixed>                    $payload   The stored week with the write applied.
+	 * @param array<string, mixed>                    $placement The week's placement.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/bpv-hours-per-day/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-holds-its-days
+	 */
+	private function apply(ObjectCreatingEvent|ObjectUpdatingEvent $event, array $payload, array $placement): void {
 		$stamp = $this->stamp(event: $event, payload: $payload, placement: $placement);
 		if ($this->ownerMissing(data: array_merge($payload, $stamp)) === true) {
 			$this->refuse(event: $event, reason: 'hour-week-owner-missing');
@@ -153,7 +169,7 @@ class HourWeekSubmissionStamp implements IEventListener {
 		}
 
 		$event->setModifiedData(array_merge($event->getModifiedData(), $stamp, $hours));
-	}//end handle()
+	}//end apply()
 
 	/**
 	 * What this write stores about whose week it is: the student and the

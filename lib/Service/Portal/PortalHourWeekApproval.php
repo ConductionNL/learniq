@@ -253,11 +253,7 @@ class PortalHourWeekApproval implements PortalHourWeekApprovalInterface {
 	 */
 	private function stamped(array $week, string $trainerRef, array $trainer, string $assurance, array $body, ?array $return=null): array {
 		$submitted = (float)($week['hoursSubmitted'] ?? 0);
-		$approved = $submitted;
-		if (is_numeric(($body['hoursApproved'] ?? null)) === true) {
-			$approved = (float)$body['hoursApproved'];
-		}
-
+		$approved = self::approvedHours(submitted: $submitted, body: $body);
 		if ($return !== null) {
 			// A week sent back approves nothing yet: the student changes the day first.
 			$approved = 0.0;
@@ -267,15 +263,7 @@ class PortalHourWeekApproval implements PortalHourWeekApprovalInterface {
 			}
 		}
 
-		$lifecycle = 'approved';
-		if ($approved !== $submitted) {
-			$lifecycle = 'corrected';
-		}
-
-		if ($approved <= 0.0) {
-			$lifecycle = 'rejected';
-		}
-
+		$lifecycle = self::lifecycleOf(approved: $approved, submitted: $submitted);
 		$name = trim(((string)($trainer['givenName'] ?? '')) . ' ' . ((string)($trainer['familyName'] ?? '')));
 
 		return array_merge(
@@ -291,6 +279,45 @@ class PortalHourWeekApproval implements PortalHourWeekApprovalInterface {
 			]
 		);
 	}//end stamped()
+
+	/**
+	 * The hours the trainer approves: the number she sent, else the hours the
+	 * student submitted.
+	 *
+	 * @param float                $submitted The hours the student submitted.
+	 * @param array<string, mixed> $body      What the form sent.
+	 *
+	 * @return float
+	 */
+	private static function approvedHours(float $submitted, array $body): float {
+		if (is_numeric(($body['hoursApproved'] ?? null)) === true) {
+			return (float)$body['hoursApproved'];
+		}
+
+		return $submitted;
+	}//end approvedHours()
+
+	/**
+	 * The week's lifecycle after the decision: rejected when nothing is
+	 * approved, corrected when the number differs from what was submitted,
+	 * else approved.
+	 *
+	 * @param float $approved  The approved hours.
+	 * @param float $submitted The submitted hours.
+	 *
+	 * @return string
+	 */
+	private static function lifecycleOf(float $approved, float $submitted): string {
+		if ($approved <= 0.0) {
+			return 'rejected';
+		}
+
+		if ($approved !== $submitted) {
+			return 'corrected';
+		}
+
+		return 'approved';
+	}//end lifecycleOf()
 
 	/**
 	 * The return the trainer asks for, null when she approves, or the refusal.
@@ -312,15 +339,13 @@ class PortalHourWeekApproval implements PortalHourWeekApprovalInterface {
 	private function returnOf(array $week, array $body): array|PortalOutcome|null {
 		$days = ($week['days'] ?? null);
 		$hasDays = is_array($days) === true && $days !== [];
-		$asked = $this->text(value: ($body['outcome'] ?? null)) === 'returned';
-		$none = is_numeric(($body['hoursApproved'] ?? null)) === true && (float)$body['hoursApproved'] <= 0.0;
-		if ($asked === false && ($none === false || $hasDays === false)) {
+		if ($this->returnAsked(body: $body, hasDays: $hasDays) === false) {
 			return null;
 		}
 
 		$question = $this->text(value: ($body['question'] ?? null));
 		$date = $this->text(value: ($body['returnedDate'] ?? null));
-		if ($question === '' || ($hasDays === true && $date === '')) {
+		if (self::returnIncomplete(question: $question, date: $date, hasDays: $hasDays) === true) {
 			return new PortalOutcome(
 				status: 422,
 				body: ['error' => 'return_needs_day_and_question', 'message' => 'Name the day you have a question about, and write your question.'],
@@ -332,6 +357,49 @@ class PortalHourWeekApproval implements PortalHourWeekApprovalInterface {
 			return ['days' => null, 'question' => $question];
 		}
 
+		return self::returnedDays(days: $days, date: $date, question: $question);
+	}//end returnOf()
+
+	/**
+	 * Whether the trainer returns the week: she asked to, or she approves no
+	 * hours of a week that has day lines.
+	 *
+	 * @param array<string, mixed> $body    What the form sent.
+	 * @param bool                 $hasDays Whether the week has day lines.
+	 *
+	 * @return bool
+	 */
+	private function returnAsked(array $body, bool $hasDays): bool {
+		$asked = $this->text(value: ($body['outcome'] ?? null)) === 'returned';
+		$none = is_numeric(($body['hoursApproved'] ?? null)) === true && (float)$body['hoursApproved'] <= 0.0;
+
+		return $asked === true || ($none === true && $hasDays === true);
+	}//end returnAsked()
+
+	/**
+	 * Whether a return lacks its question, or the day of a week with day lines.
+	 *
+	 * @param string $question The question.
+	 * @param string $date     The day the question is about.
+	 * @param bool   $hasDays  Whether the week has day lines.
+	 *
+	 * @return bool
+	 */
+	private static function returnIncomplete(string $question, string $date, bool $hasDays): bool {
+		return $question === '' || ($hasDays === true && $date === '');
+	}//end returnIncomplete()
+
+	/**
+	 * The return of a week with day lines: the lines with the question on the
+	 * named day, or the refusal when no line holds that day.
+	 *
+	 * @param array<int|string, mixed> $days     The day lines.
+	 * @param string                   $date     The day the question is about.
+	 * @param string                   $question The question.
+	 *
+	 * @return array{days: array<int, array<string, mixed>>, question: string}|PortalOutcome
+	 */
+	private static function returnedDays(array $days, string $date, string $question): array|PortalOutcome {
 		$lines = HourDayLines::withQuestion(days: $days, date: $date, question: $question);
 		if ($lines === null) {
 			return new PortalOutcome(
@@ -342,7 +410,7 @@ class PortalHourWeekApproval implements PortalHourWeekApprovalInterface {
 		}
 
 		return ['days' => $lines, 'question' => $question];
-	}//end returnOf()
+	}//end returnedDays()
 
 	/**
 	 * The school's floor for the assurance of an approval.
