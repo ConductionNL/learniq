@@ -164,15 +164,11 @@ class AttendanceWindowSweepJob extends TimedJob {
 
 			foreach ($rows as $row) {
 				$summary = $this->objectRow->asArray(object: $row);
-				$learnerId = $summary['learnerId'] ?? null;
-				$hours = $summary['unauthorisedHoursWindow'] ?? null;
-				if (is_string($learnerId) === false || $learnerId === '' || ($summary['schoolYear'] ?? null) !== $schoolYear
-					|| is_numeric($hours) === false || (float)$hours <= 0.0
-				) {
+				if ($this->hasHours(summary: $summary, schoolYear: $schoolYear) === false) {
 					continue;
 				}
 
-				$learners[$learnerId] = [
+				$learners[$summary['learnerId']] = [
 					'tenantId' => (string)($summary['tenant_id'] ?? ''),
 					'learnerRef' => $this->text(value: ($summary['learnerRef'] ?? null)),
 				];
@@ -185,6 +181,25 @@ class AttendanceWindowSweepJob extends TimedJob {
 
 		return $learners;
 	}//end learnersWithHours()
+
+	/**
+	 * Whether a summary row is a pupil's row of the school year with a window above zero.
+	 *
+	 * @param array<string, mixed> $summary    The attendance summary.
+	 * @param string               $schoolYear The school year that holds today.
+	 *
+	 * @return bool True when the row names a pupil, is of that year and has hours in its window.
+	 */
+	private function hasHours(array $summary, string $schoolYear): bool {
+		$learnerId = ($summary['learnerId'] ?? null);
+		if (is_string($learnerId) === false || $learnerId === '' || ($summary['schoolYear'] ?? null) !== $schoolYear) {
+			return false;
+		}
+
+		$hours = ($summary['unauthorisedHoursWindow'] ?? null);
+
+		return is_numeric($hours) === true && (float)$hours > 0.0;
+	}//end hasHours()
 
 	/**
 	 * Today in the server's time zone, the way the recount reads it.

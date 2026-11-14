@@ -183,21 +183,20 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 		$teachers = $this->teachersOf(learnerId: $learnerId);
 		$mentor = $this->mentorOf(learnerId: $learnerId);
 		$today = $this->today();
-		$windowFields = $this->window->fields(
-			records: $records,
-			sessions: $sessions,
-			threshold: $this->thresholdFor(tenantId: $tenantId),
-			today: $today
-		);
+		// The rolling count belongs to the school year that holds today.
+		$windowFields = [
+			$this->calculator->schoolYearOf(date: $today) => $this->window->fields(
+				records: $records,
+				sessions: $sessions,
+				threshold: $this->thresholdFor(tenantId: $tenantId),
+				today: $today
+			),
+		];
 
 		$saved = 0;
 		foreach ($years as $year) {
 			$row = ($existing[$year] ?? null);
-			// A failed lookup keeps the stored mentor; a new row gets nobody.
-			$rowMentor = $mentor;
-			if ($mentor === false) {
-				$rowMentor = $this->text(value: ($row['mentorId'] ?? null));
-			}
+			$rowMentor = $this->rowMentor(mentor: $mentor, row: $row);
 
 			$data = array_merge(
 				[
@@ -210,14 +209,11 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 					'teacherIds' => ($teachers ?? $this->storedTeachers(row: $row)),
 					'mentorId' => $rowMentor,
 					'tenant_id' => ($this->text(value: ($row['tenant_id'] ?? null)) ?? $tenantId),
-				]
+				],
+				($windowFields[$year] ?? [])
 			);
-			// The rolling count belongs to the school year that holds today.
-			if ($year === $this->calculator->schoolYearOf(date: $today)) {
-				$data = array_merge($data, $windowFields);
-			}
 
-			if ($data['tenant_id'] === '' || ($row !== null && $this->calculator->unchanged(row: $row, data: $data) === true)) {
+			if ($this->needsSave(row: $row, data: $data) === false) {
 				continue;
 			}
 
@@ -227,6 +223,22 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 
 		return $saved;
 	}//end recompute()
+
+	/**
+	 * Whether a summary row must be written: it names a tenant and is new or changed.
+	 *
+	 * @param array<string, mixed>|null $row  The stored row, null for a new one.
+	 * @param array<string, mixed>      $data The row as it is now.
+	 *
+	 * @return bool
+	 */
+	private function needsSave(?array $row, array $data): bool {
+		if ($data['tenant_id'] === '') {
+			return false;
+		}
+
+		return $row === null || $this->calculator->unchanged(row: $row, data: $data) === false;
+	}//end needsSave()
 
 	/**
 	 * Today, in the server's time zone, as the last day of the rolling window.
@@ -276,14 +288,8 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 		$chosen = null;
 		foreach ($rows as $row) {
 			$threshold = $this->toRow(object: $row);
-			if (($threshold['tenant_id'] ?? null) !== $tenantId || (string)($threshold['cohortId'] ?? '') !== ''
-				|| $this->window->applies(threshold: $threshold) === false
-			) {
-				continue;
-			}
-
-			if ($chosen === null || (float)$threshold['limit'] < (float)$chosen['limit']) {
-				$chosen = $threshold;
+			if ($this->isCandidate(threshold: $threshold, tenantId: $tenantId) === true) {
+				$chosen = $this->lowerOf(threshold: $threshold, chosen: $chosen);
 			}
 		}
 
@@ -291,6 +297,37 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 
 		return $chosen;
 	}//end thresholdFor()
+
+	/**
+	 * Whether a threshold can be the pupil's: the tenant's own, not tied to a
+	 * cohort, and one that gives a window count.
+	 *
+	 * @param array<string, mixed> $threshold The threshold.
+	 * @param string               $tenantId  The pupil's tenant.
+	 *
+	 * @return bool
+	 */
+	private function isCandidate(array $threshold, string $tenantId): bool {
+		return ($threshold['tenant_id'] ?? null) === $tenantId
+			&& (string)($threshold['cohortId'] ?? '') === ''
+			&& $this->window->applies(threshold: $threshold) === true;
+	}//end isCandidate()
+
+	/**
+	 * The threshold with the lower limit: the new one, unless the one chosen so far is lower or equal.
+	 *
+	 * @param array<string, mixed>      $threshold The threshold read now.
+	 * @param array<string, mixed>|null $chosen    The threshold chosen so far.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function lowerOf(array $threshold, ?array $chosen): array {
+		if ($chosen === null || (float)$threshold['limit'] < (float)$chosen['limit']) {
+			return $threshold;
+		}
+
+		return $chosen;
+	}//end lowerOf()
 
 	/**
 	 * The school years the given lessons fall in.
@@ -493,6 +530,23 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 			return null;
 		}
 	}//end teachersOf()
+
+	/**
+	 * The mentor a summary row stores: the one just read, else, when the
+	 * lookup failed, the one the row already holds; a new row gets nobody.
+	 *
+	 * @param string|null|false         $mentor The mentor read now, false when the lookup failed.
+	 * @param array<string, mixed>|null $row    The stored row, null for a new one.
+	 *
+	 * @return string|null
+	 */
+	private function rowMentor(string|null|false $mentor, ?array $row): ?string {
+		if ($mentor === false) {
+			return $this->text(value: ($row['mentorId'] ?? null));
+		}
+
+		return $mentor;
+	}//end rowMentor()
 
 	/**
 	 * The pupil's mentor: their id, null when none is set, false when the

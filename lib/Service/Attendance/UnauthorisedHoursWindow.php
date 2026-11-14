@@ -70,13 +70,35 @@ class UnauthorisedHoursWindow {
 	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
 	 */
 	public function applies(array $threshold): bool {
-		return ($threshold['active'] ?? true) !== false
-			&& ($threshold['scope'] ?? 'per-learner') === 'per-learner'
+		return $this->isActivePerLearner(threshold: $threshold) === true
 			&& ($threshold['metric'] ?? null) === 'unexcused-lesuren'
-			&& (($threshold['window']['type'] ?? null) === 'rolling-weeks')
-			&& $this->weeksOf(threshold: $threshold) > 0
+			&& $this->isRollingWeeks(threshold: $threshold) === true
 			&& is_numeric($threshold['limit'] ?? null) === true;
 	}//end applies()
+
+	/**
+	 * Whether a threshold is active and counts per learner.
+	 *
+	 * @param array<string, mixed> $threshold The attendance threshold.
+	 *
+	 * @return bool True when it is not switched off and its scope is per-learner.
+	 */
+	private function isActivePerLearner(array $threshold): bool {
+		return ($threshold['active'] ?? true) !== false
+			&& ($threshold['scope'] ?? 'per-learner') === 'per-learner';
+	}//end isActivePerLearner()
+
+	/**
+	 * Whether a threshold's window is a rolling number of weeks above zero.
+	 *
+	 * @param array<string, mixed> $threshold The attendance threshold.
+	 *
+	 * @return bool True for a rolling-weeks window with at least one week.
+	 */
+	private function isRollingWeeks(array $threshold): bool {
+		return ($threshold['window']['type'] ?? null) === 'rolling-weeks'
+			&& $this->weeksOf(threshold: $threshold) > 0;
+	}//end isRollingWeeks()
 
 	/**
 	 * The lesuren without permission in the threshold's window ending on a day.
@@ -103,21 +125,43 @@ class UnauthorisedHoursWindow {
 
 		$hours = 0.0;
 		foreach ($records as $record) {
-			if (($record['status'] ?? null) !== self::UNAUTHORISED) {
-				continue;
-			}
-
-			$session = ($sessions[(string)($record['sessionId'] ?? '')] ?? null);
-			$day = $this->dayOf(record: $record, session: $session);
-			if ($day === null || $day < $first || $day > $today) {
-				continue;
-			}
-
-			$hours += $this->lesurenOf(minutes: ($session['minutes'] ?? null), minutesPerHour: $minutesPerHour);
+			$hours += $this->recordHours(
+				record: $record,
+				sessions: $sessions,
+				first: $first,
+				last: $today,
+				minutesPerHour: $minutesPerHour
+			);
 		}
 
 		return round($hours, 1);
 	}//end count()
+
+	/**
+	 * The lesuren one record adds to the window: none unless it is without
+	 * permission and falls between the first and last day.
+	 *
+	 * @param array<string, mixed>                                  $record         The AttendanceRecord.
+	 * @param array<string, array{date: string, minutes: int|null}> $sessions       The lessons, by id.
+	 * @param string                                                $first          The first day of the window, Y-m-d.
+	 * @param string                                                $last           The last day of the window, Y-m-d.
+	 * @param int                                                   $minutesPerHour The threshold's minutes per lesuur.
+	 *
+	 * @return float The lesuren.
+	 */
+	private function recordHours(array $record, array $sessions, string $first, string $last, int $minutesPerHour): float {
+		if (($record['status'] ?? null) !== self::UNAUTHORISED) {
+			return 0.0;
+		}
+
+		$session = ($sessions[(string)($record['sessionId'] ?? '')] ?? null);
+		$day = $this->dayOf(record: $record, session: $session);
+		if ($day === null || $day < $first || $day > $last) {
+			return 0.0;
+		}
+
+		return $this->lesurenOf(minutes: ($session['minutes'] ?? null), minutesPerHour: $minutesPerHour);
+	}//end recordHours()
 
 	/**
 	 * The count at which a threshold warns: its `warnAtHours`, else three quarters of the limit.
@@ -238,7 +282,17 @@ class UnauthorisedHoursWindow {
 			return $session['date'];
 		}
 
-		$marked = ($record['markedAt'] ?? null);
+		return $this->markedDay(marked: ($record['markedAt'] ?? null));
+	}//end dayOf()
+
+	/**
+	 * The date part of a markedAt timestamp.
+	 *
+	 * @param mixed $marked The markedAt value.
+	 *
+	 * @return string|null The day, Y-m-d; null when it is not a date.
+	 */
+	private function markedDay(mixed $marked): ?string {
 		if (is_string($marked) === false || preg_match('/^\d{4}-\d{2}-\d{2}/', $marked) !== 1) {
 			return null;
 		}
@@ -248,7 +302,7 @@ class UnauthorisedHoursWindow {
 		} catch (Throwable) {
 			return null;
 		}
-	}//end dayOf()
+	}//end markedDay()
 
 	/**
 	 * A number as Dutch staff write it: whole numbers plain, else one decimal with a comma.

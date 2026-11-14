@@ -91,18 +91,34 @@ class LearnerManagerLookup {
 		);
 
 		foreach ($rows as $row) {
-			$profile = $this->objectRow->asArray(object: $row);
-			// Never let a widened answer hand out another pupil's mentor.
-			if (($profile['ncUserId'] ?? null) !== $learnerId) {
-				continue;
-			}
-
-			$managerId = ($profile['managerId'] ?? null);
-			if (is_string($managerId) === true && $managerId !== '') {
+			$managerId = $this->managerOf(profile: $this->objectRow->asArray(object: $row), learnerId: $learnerId);
+			if ($managerId !== null) {
 				return $managerId;
 			}
 		}
 
 		return null;
 	}//end forLearner()
+
+	/**
+	 * The manager one profile names for the pupil.
+	 *
+	 * @param array<string, mixed> $profile   The learner profile.
+	 * @param string               $learnerId Nextcloud user id of the pupil.
+	 *
+	 * @return string|null The manager's user id; null for another pupil's profile or none set.
+	 */
+	private function managerOf(array $profile, string $learnerId): ?string {
+		// Never let a widened answer hand out another pupil's mentor.
+		if (($profile['ncUserId'] ?? null) !== $learnerId) {
+			return null;
+		}
+
+		$managerId = ($profile['managerId'] ?? null);
+		if (is_string($managerId) === true && $managerId !== '') {
+			return $managerId;
+		}
+
+		return null;
+	}//end managerOf()
 }//end class
