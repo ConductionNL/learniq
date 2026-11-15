@@ -16,4 +16,5 @@
 - [x] **T8**: the sitting's documents (assessment model, regulations) are readable by an assigned assessor and by nobody else
   - Built: `ExamSitting` 0.2.0 names its documents (`documentIds`, Materials; register 0.53.0). `GET /api/portal/practical-exam-sittings/{id}` hands an assessor the sitting and its documents only while he holds a live assignment there; any other sitting, existing or not, is refused alike and its documents are never read. Staff read them as before through the register. `PortalExamSittingDocumentsTest`.
 - [ ] **T9**: e2e in `assessor-flows.spec.ts`: his day lists only his own candidates, he fills a form, a second assessor signs, and a sitting he is not assigned to resolves nothing
-- [ ] **T10**: example set: the mbo profile seeds a sitting with two assessors and three candidates
+- [x] **T10**: example set: the mbo profile seeds a sitting with two assessors and three candidates
+  - Built: `scripts/example-sets/mbo.py` adds the proeve (exam, period, sitting on 16 November) with Ruud Jansen as first and Sanne Bakker as second assessor for the first three placement students, six `ExamAssessorAssignment` rows with their readable copies; appended last, so no earlier uuid moves. `VocationalCollegeExampleSetTest::testTheSetSeedsASittingWithTwoAssessorsAndThreeCandidates`.
