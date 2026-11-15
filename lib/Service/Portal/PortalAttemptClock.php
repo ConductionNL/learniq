@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+ * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
  */
 
 declare(strict_types=1);
@@ -39,7 +39,7 @@ use Exception;
 /**
  * Deadlines, extra time and the closing grace of a timed attempt.
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+ * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
  */
 class PortalAttemptClock {
 
@@ -71,7 +71,7 @@ class PortalAttemptClock {
 	 *
 	 * @return float
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function extraTimePercentage(array $accommodations, string $assessmentId): float {
 		$specific = [];
@@ -115,7 +115,7 @@ class PortalAttemptClock {
 	 *
 	 * @return DateTimeImmutable|null
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function deadline(array $attempt, array $exam, float $extraPercentage): ?DateTimeImmutable {
 		$minutes = $this->timeLimit(exam: $exam);
@@ -137,7 +137,7 @@ class PortalAttemptClock {
 	 *
 	 * @return float|null
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function extraMinutes(array $exam, float $extraPercentage): ?float {
 		$minutes = $this->timeLimit(exam: $exam);
@@ -156,7 +156,7 @@ class PortalAttemptClock {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function isClosed(?DateTimeImmutable $deadline, DateTimeInterface $now): bool {
 		if ($deadline === null) {

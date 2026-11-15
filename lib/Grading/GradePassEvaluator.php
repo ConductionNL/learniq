@@ -56,15 +56,23 @@ class GradePassEvaluator {
 	/**
 	 * Determine whether the learner has passed.
 	 *
+	 * A null value means no numeric entry exists. That is insufficient data,
+	 * except when exemptions cover the whole plan: then the exam board's
+	 * decision is the pass signal (see exemptionsCoverThePlan()).
+	 *
 	 * @param string $formula Formula name.
 	 * @param float|null $value Computed final value.
 	 * @param array<int, array> $entries Published entries.
 	 * @param array $passRules passRules from the CurriculumPlan.
 	 * @param float|null $passThreshold Threshold from the GradeScale.
+	 * @param array<string, array> $components The plan's component index (componentId => component).
+	 * @param GradeScaleRule|null $scale The plan's scale: on a letter, ECTS or band scale its band decides, not the threshold.
 	 *
 	 * @return bool|null Null if insufficient data.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-5
+	 * @spec openspec/specs/grading/spec.md#requirement-a-plan-satisfied-entirely-by-exemptions-passes
+	 * @spec openspec/specs/grading/spec.md#requirement-the-scale-decides-how-a-final-grade-is-rounded-and-whether-it-passes
 	 */
 	public function evaluatePassed(
 		string $formula,
@@ -72,13 +80,21 @@ class GradePassEvaluator {
 		array $entries,
 		array $passRules,
 		?float $passThreshold,
+		array $components = [],
+		?GradeScaleRule $scale = null,
 	): ?bool {
+		$plan = new GradePlan(passRules: $passRules, components: $components);
 		if ($value === null) {
-			return null;
+			return $this->exemptionsCoverThePlan(entries: $entries, plan: $plan);
 		}
 
-		// Threshold check (applies to all formulas).
-		if ($passThreshold !== null && $value < $passThreshold) {
+		// The scale's verdict (applies to all formulas): the band on a band
+		// scale, else the threshold. Pass rules still apply on top.
+		if ($scale !== null && $scale->passesByBand() === true) {
+			if ($scale->passes(value: $value) === false) {
+				return false;
+			}
+		} else if ($passThreshold !== null && $value < $passThreshold) {
 			return false;
 		}
 
@@ -86,48 +102,65 @@ class GradePassEvaluator {
 			return true;
 		}
 
-		return $this->everyComponentRuleWith(entries: $entries, passRules: $passRules);
+		return $plan->rulesMetBy(value: $value, bestMap: $this->indexBestByComponent(entries: $entries));
 	}//end evaluatePassed()
 
 	/**
-	 * Check every `all-must-pass` component rule against the learner's best entry per component.
+	 * Whether exemptions alone satisfy the plan.
 	 *
-	 * Exam-board-case-handling: a component whose best entry is sourceKind
-	 * exemption has no numeric value to compare — the exam board's decision
-	 * *is* the pass signal, so that component's rule is satisfied without a
-	 * numeric check. Every other component's check is unaffected.
+	 * True only when there is at least one entry, every entry is an
+	 * exemption, and an exemption covers every component the plan declares
+	 * and every component a pass rule names. A final-grade rule
+	 * (componentId null) is satisfied by the exam board's decision, since
+	 * there is no final value to compare. Anything else stays null: a learner
+	 * exempted from one of two units has not completed the plan.
 	 *
 	 * @param array<int, array> $entries Published entries.
-	 * @param array $passRules passRules from the CurriculumPlan.
+	 * @param GradePlan $plan The rules and components the grade is judged against.
 	 *
-	 * @return bool True when every rule is met.
+	 * @return true|null
 	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-5
+	 * @spec openspec/specs/grading/spec.md#requirement-a-plan-satisfied-entirely-by-exemptions-passes
 	 */
-	private function everyComponentRuleWith(array $entries, array $passRules): bool {
-		$bestMap = $this->indexBestByComponent(entries: $entries);
+	private function exemptionsCoverThePlan(array $entries, GradePlan $plan): ?bool {
+		$exempted = self::exemptedComponents(entries: $entries);
+		if ($exempted === null) {
+			return null;
+		}
 
-		foreach ($passRules as $rule) {
-			$ruleComponentId = $rule['componentId'] ?? '';
-			$ruleThreshold = (float)($rule['passThreshold'] ?? 0);
-			$bestEntry = $bestMap[$ruleComponentId] ?? null;
-
-			if ($bestEntry === null) {
-				return false;
+		foreach ($plan->requiredComponentIds() as $componentId) {
+			if (isset($exempted[$componentId]) === false) {
+				return null;
 			}
-
-			if (($bestEntry['sourceKind'] ?? null) === 'exemption') {
-				// Satisfied by the exam board's decision — no numeric comparison.
-				continue;
-			}
-
-			if ((float)($bestEntry['value'] ?? 0) < $ruleThreshold) {
-				return false;
-			}
-		}//end foreach
+		}
 
 		return true;
-	}//end everyComponentRuleMet()
+	}//end exemptionsCoverThePlan()
+
+	/**
+	 * The components the entries exempt, or null when there are no entries
+	 * or any of them is not an exemption.
+	 *
+	 * @param array<int,array<string,mixed>> $entries The grade entries.
+	 *
+	 * @return array<string,true>|null
+	 */
+	private static function exemptedComponents(array $entries): ?array {
+		if ($entries === []) {
+			return null;
+		}
+
+		$exempted = [];
+		foreach ($entries as $entry) {
+			if (($entry['sourceKind'] ?? null) !== 'exemption') {
+				return null;
+			}
+
+			$exempted[(string)($entry['componentId'] ?? '')] = true;
+		}
+
+		return $exempted;
+	}//end exemptedComponents()
 
 	/**
 	 * Build a componentId → best-entry map from the learner's published entries.

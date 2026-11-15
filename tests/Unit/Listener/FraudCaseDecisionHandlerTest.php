@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-a-fraud-proven-decision-invalidates-a-still-concept-contested-gradeentry
+ * @spec openspec/specs/exam-board/spec.md#requirement-a-fraud-proven-decision-invalidates-a-still-concept-contested-gradeentry
  */
 
 declare(strict_types=1);
@@ -83,7 +83,7 @@ class FraudCaseDecisionHandlerTest extends TestCase {
 			}
 		);
 
-		return new FraudCaseDecisionHandler($objectService, $transitionEngine, new NullLogger());
+		return new FraudCaseDecisionHandler($objectService, $transitionEngine, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**
@@ -112,7 +112,7 @@ class FraudCaseDecisionHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#scenario-a-fraud-proven-decision-invalidates-the-blocked-still-concept-entry
+	 * @spec openspec/specs/exam-board/spec.md#scenario-a-fraud-proven-decision-invalidates-the-blocked-still-concept-entry
 	 */
 	public function testFraudProvenInvalidatesConceptContestedEntry(): void {
 		$handler = $this->makeHandler(gradeEntry: ['id' => 'entry-1', 'lifecycle' => 'concept']);

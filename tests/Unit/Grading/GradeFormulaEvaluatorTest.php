@@ -24,8 +24,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-an-exemption-entry-does-not-corrupt-the-weighted-average
- * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-an-exemption-satisfies-an-all-must-pass-component-without-a-numeric-check
+ * @spec openspec/specs/grading/spec.md#scenario-an-exemption-entry-does-not-corrupt-the-weighted-average
+ * @spec openspec/specs/grading/spec.md#scenario-an-exemption-satisfies-an-all-must-pass-component-without-a-numeric-check
  */
 
 declare(strict_types=1);
@@ -37,6 +37,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Grading\GradeAggregationEngine;
 use OCA\Learniq\Grading\GradeFormulaEvaluator;
 use OCA\Learniq\Grading\GradePassEvaluator;
+use OCA\Learniq\Service\BsaProgressEvaluator;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -119,7 +120,7 @@ class GradeFormulaEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-an-exemption-entry-does-not-corrupt-the-weighted-average
+	 * @spec openspec/specs/grading/spec.md#scenario-an-exemption-entry-does-not-corrupt-the-weighted-average
 	 */
 	public function testExemptionEntryDoesNotCorruptWeightedAverage(): void {
 		$plan = [
@@ -172,7 +173,7 @@ class GradeFormulaEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/design.md#6-gradeformulaevaluator-extension--verified-against-the-current-implementation
+	 * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/design.md#6-gradeformulaevaluator-extension--verified-against-the-current-implementation
 	 */
 	public function testExemptionEntryWithHeavyWeightDoesNotDragDownAverage(): void {
 		$plan = [
@@ -209,7 +210,7 @@ class GradeFormulaEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-an-exemption-satisfies-an-all-must-pass-component-without-a-numeric-check
+	 * @spec openspec/specs/grading/spec.md#scenario-an-exemption-satisfies-an-all-must-pass-component-without-a-numeric-check
 	 */
 	public function testExemptionSatisfiesAllMustPassWithoutNumericCheck(): void {
 		$plan = [
@@ -220,8 +221,8 @@ class GradeFormulaEvaluatorTest extends TestCase {
 				['componentId' => 'comp-b', 'weight' => 1],
 			],
 			'passRules' => [
-				['componentId' => 'comp-a', 'passThreshold' => 5.5],
-				['componentId' => 'comp-b', 'passThreshold' => 5.5],
+				['componentId' => 'comp-a', 'minValue' => 5.5],
+				['componentId' => 'comp-b', 'minValue' => 5.5],
 			],
 		];
 
@@ -245,7 +246,7 @@ class GradeFormulaEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-an-exemption-satisfies-an-all-must-pass-component-without-a-numeric-check
+	 * @spec openspec/specs/grading/spec.md#scenario-an-exemption-satisfies-an-all-must-pass-component-without-a-numeric-check
 	 */
 	public function testNonExemptComponentStillEnforcesThresholdAlongsideAnExemption(): void {
 		$plan = [
@@ -256,8 +257,8 @@ class GradeFormulaEvaluatorTest extends TestCase {
 				['componentId' => 'comp-b', 'weight' => 1],
 			],
 			'passRules' => [
-				['componentId' => 'comp-a', 'passThreshold' => 5.5],
-				['componentId' => 'comp-b', 'passThreshold' => 5.5],
+				['componentId' => 'comp-a', 'minValue' => 5.5],
+				['componentId' => 'comp-b', 'minValue' => 5.5],
 			],
 		];
 
@@ -292,4 +293,186 @@ class GradeFormulaEvaluatorTest extends TestCase {
 		self::assertSame([], $result['breakdown']);
 
 	}//end testNoPublishedEntriesReturnsEmptyResult()
+
+	/**
+	 * A plan whose one component the exam board exempted rolls up to
+	 * `passed: true`, and that FinalGrade earns its course's study advice
+	 * credits. Red before the fix: the roll-up gave `passed: null`, which the
+	 * BSA read (`passed: true` only) skipped.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/study-progress/spec.md#scenario-a-first-year-exemption-counts-toward-the-advice
+	 */
+	public function testAnExemptedCourseEarnsItsStudyAdviceCredits(): void {
+		$plan = [
+			'id' => 'plan-1',
+			'formula' => 'weighted-average',
+			'gradeScaleId' => 'scale-1',
+			'components' => [['componentId' => 'unit-1', 'weight' => 1]],
+			'passRules' => [['componentId' => null, 'minValue' => 5.5]],
+		];
+		$entries = [
+			['componentId' => 'unit-1', 'courseId' => 'course-1', 'sourceKind' => 'exemption', 'value' => null, 'weight' => 1, 'gradedAt' => '2026-01-02T00:00:00Z'],
+		];
+
+		$result = $this->makeEvaluator(plan: $plan, entries: $entries, scale: ['passThreshold' => 5.5])
+			->evaluate(curriculumPlanId: 'plan-1', learnerId: 'learner-1');
+
+		self::assertNull($result['value']);
+		self::assertTrue($result['passed']);
+
+		// The study advice read, over a store that honours the `passed` filter the way OpenRegister does.
+		$finalGrades = [['learnerId' => 'learner-1', 'courseId' => 'course-1', 'passed' => $result['passed']]];
+		$store = $this->createMock(ObjectService::class);
+		$store->method('findAll')->willReturnCallback(
+			static function (array $config) use ($finalGrades): array {
+				if ($config['filters']['schema'] === 'course') {
+					return [['id' => 'course-1', 'ectsCredits' => 5]];
+				}
+
+				return array_values(
+					array_filter($finalGrades, static fn (array $grade): bool => $grade['passed'] === ($config['filters']['passed'] ?? null))
+				);
+			}
+		);
+
+		self::assertSame(5.0, (new BsaProgressEvaluator($store))->evaluate(programmeId: 'programme-1', learnerId: 'learner-1')['ectsEarned']);
+	}//end testAnExemptedCourseEarnsItsStudyAdviceCredits()
+
+	/**
+	 * One exemption on a two-component plan keeps the verdict open. This
+	 * fails when the formula evaluator does not hand the plan's components to
+	 * the pass evaluator, because the exemption alone would then look like
+	 * the whole plan.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/grading/spec.md#scenario-a-partial-exemption-with-a-missing-component-stays-open
+	 */
+	public function testAPartialExemptionKeepsTheFinalGradeOpen(): void {
+		$plan = [
+			'id' => 'plan-1',
+			'formula' => 'weighted-average',
+			'components' => [
+				['componentId' => 'unit-1', 'weight' => 1],
+				['componentId' => 'unit-2', 'weight' => 1],
+			],
+		];
+		$entries = [
+			['componentId' => 'unit-1', 'sourceKind' => 'exemption', 'value' => null, 'weight' => 1, 'gradedAt' => '2026-01-02T00:00:00Z'],
+		];
+
+		$result = $this->makeEvaluator(plan: $plan, entries: $entries)->evaluate(curriculumPlanId: 'plan-1', learnerId: 'learner-1');
+
+		self::assertNull($result['passed']);
+	}//end testAPartialExemptionKeepsTheFinalGradeOpen()
+
+	/**
+	 * An all-must-pass component under its minValue fails the plan through
+	 * the whole roll-up, with the register's field name. Red before the fix.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/grading/spec.md#scenario-a-component-below-its-minimum-fails-the-plan
+	 */
+	public function testAComponentUnderItsMinValueFailsTheRollUp(): void {
+		$plan = [
+			'id' => 'plan-1',
+			'formula' => 'all-must-pass',
+			'gradeScaleId' => 'scale-1',
+			'components' => [
+				['componentId' => 'comp-a', 'weight' => 1],
+				['componentId' => 'comp-b', 'weight' => 1],
+			],
+			'passRules' => [
+				['componentId' => 'comp-a', 'minValue' => 5.5],
+				['componentId' => 'comp-b', 'minValue' => 5.5],
+			],
+		];
+		$entries = [
+			['componentId' => 'comp-a', 'sourceKind' => 'manual', 'value' => 8.0, 'weight' => 1, 'gradedAt' => '2026-01-01T00:00:00Z'],
+			['componentId' => 'comp-b', 'sourceKind' => 'manual', 'value' => 4.0, 'weight' => 1, 'gradedAt' => '2026-01-01T00:00:00Z'],
+		];
+
+		$result = $this->makeEvaluator(plan: $plan, entries: $entries, scale: ['passThreshold' => 5.5])
+			->evaluate(curriculumPlanId: 'plan-1', learnerId: 'learner-1');
+
+		self::assertSame(6.0, $result['value']);
+		self::assertFalse($result['passed']);
+	}//end testAComponentUnderItsMinValueFailsTheRollUp()
+
+	/**
+	 * A weighted average of 5.45 over two equal components.
+	 *
+	 * @param array<string,mixed> $scale The plan's GradeScale.
+	 *
+	 * @return array{value: float|null, passed: bool|null, breakdown: array, lastRecomputedAt: string}
+	 */
+	private function averageOf545(array $scale): array {
+		$plan = [
+			'id' => 'plan-1',
+			'formula' => 'weighted-average',
+			'gradeScaleId' => 'scale-1',
+			'components' => [
+				['componentId' => 'comp-a', 'weight' => 1],
+				['componentId' => 'comp-b', 'weight' => 1],
+			],
+			'passRules' => [],
+		];
+		$entries = [
+			['componentId' => 'comp-a', 'sourceKind' => 'manual', 'value' => 5.0, 'weight' => 1, 'gradedAt' => '2026-01-01T00:00:00Z'],
+			['componentId' => 'comp-b', 'sourceKind' => 'manual', 'value' => 5.9, 'weight' => 1, 'gradedAt' => '2026-01-01T00:00:00Z'],
+		];
+
+		return $this->makeEvaluator(plan: $plan, entries: $entries, scale: $scale)
+			->evaluate(curriculumPlanId: 'plan-1', learnerId: 'learner-1');
+	}//end averageOf545()
+
+	/**
+	 * Rounding to one decimal half up lifts 5.45 to 5.5, which is stored and passes.
+	 *
+	 * @return void
+	 * @spec openspec/specs/grading/spec.md#requirement-the-scale-decides-how-a-final-grade-is-rounded-and-whether-it-passes
+	 */
+	public function testRoundingLiftsAMarkOverTheLimit(): void {
+		$result = $this->averageOf545(scale: ['kind' => 'numeric', 'passThreshold' => 5.5, 'roundingRule' => 'half-up-1dp']);
+
+		self::assertSame(5.5, $result['value']);
+		self::assertTrue($result['passed']);
+	}//end testRoundingLiftsAMarkOverTheLimit()
+
+	/**
+	 * Without rounding the same 5.45 stays under the limit and fails.
+	 *
+	 * @return void
+	 * @spec openspec/specs/grading/spec.md#requirement-the-scale-decides-how-a-final-grade-is-rounded-and-whether-it-passes
+	 */
+	public function testWithoutRoundingTheSameMarkFails(): void {
+		$result = $this->averageOf545(scale: ['kind' => 'numeric', 'passThreshold' => 5.5, 'roundingRule' => 'none']);
+
+		self::assertEqualsWithDelta(5.45, $result['value'], 0.0001);
+		self::assertFalse($result['passed']);
+	}//end testWithoutRoundingTheSameMarkFails()
+
+	/**
+	 * On a letter scale the band decides: a grade in band E, which has no pass flag, fails
+	 * although it is above any number a threshold might hold.
+	 *
+	 * @return void
+	 * @spec openspec/specs/grading/spec.md#requirement-the-scale-decides-how-a-final-grade-is-rounded-and-whether-it-passes
+	 */
+	public function testABandWithoutThePassFlagFails(): void {
+		$bands = [
+			['bandId' => 'D', 'label' => 'D', 'minValue' => 6.0, 'maxValue' => 10.0, 'pass' => true],
+			['bandId' => 'E', 'label' => 'E', 'minValue' => 0.0, 'maxValue' => 5.99, 'pass' => false],
+		];
+
+		$failing = $this->averageOf545(scale: ['kind' => 'letter', 'passThreshold' => 1.0, 'roundingRule' => 'half-up-1dp', 'bands' => $bands]);
+		self::assertFalse($failing['passed']);
+
+		$bands[1]['pass'] = true;
+		$passing = $this->averageOf545(scale: ['kind' => 'letter', 'roundingRule' => 'half-up-1dp', 'bands' => $bands]);
+		self::assertTrue($passing['passed']);
+	}//end testABandWithoutThePassFlagFails()
 }//end class

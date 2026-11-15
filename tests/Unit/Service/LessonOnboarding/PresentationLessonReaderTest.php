@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-confirmed-powerpoint-file-becomes-one-lesson-draft-or-waits-when-the-reader-is-missing
+ * @spec openspec/specs/course-management/spec.md#requirement-a-confirmed-powerpoint-file-becomes-one-lesson-draft-or-waits-when-the-reader-is-missing
  */
 
 declare(strict_types=1);
@@ -84,7 +84,7 @@ class PresentationLessonReaderTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-openregister-has-no-presentation-reader-yet
+	 * @spec openspec/specs/course-management/spec.md#scenario-openregister-has-no-presentation-reader-yet
 	 */
 	public function testMissingExtractorIsReportedAsUnavailable(): void {
 		$file = $this->createMock(File::class);
@@ -102,7 +102,7 @@ class PresentationLessonReaderTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-deck-with-speaker-notes
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-deck-with-speaker-notes
 	 */
 	public function testSlidesMapToSections(): void {
 		FakePresentationExtractor::$next = [

@@ -143,8 +143,31 @@
 			"type": "index",
 			"title": "Conference rounds",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
-				"schema": "conference-round"
+				"schema": "conference-round",
+				"columns": [
+					{
+						"key": "name",
+						"label": "Round"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					},
+					{
+						"key": "bookingOpensAt",
+						"label": "Booking opens"
+					},
+					{
+						"key": "bookingClosesAt",
+						"label": "Booking closes"
+					},
+					{
+						"key": "bookingMode",
+						"label": "Booking mode"
+					}
+				]
 			}
 		},
 		{
@@ -155,7 +178,7 @@
 			"config": {
 				"register": "learniq",
 				"schema": "conference-round",
-				"_note": "A ConferenceRound is one oudergesprekken-cyclus for a report period — an event/cycle archetype (scope, timing, booking window, invited learners). Body leads with round details (8-wide) and a Related panel. The generated ConferenceSlots for the round render as a wide related-index (the schedule). lifecycleActions expose send-invitations/open-booking/close-booking/generate/regenerate/complete/cancel as buttons. Sidebar keeps metadata + audit-trail.",
+				"_note": "A ConferenceRound is one oudergesprekken-cyclus for a report period — an event/cycle archetype (scope, timing, booking window, invited learners). Body leads with round details (8-wide) and a Related panel. The generated ConferenceSlots for the round render as a wide related-index (the schedule). lifecycleActions expose send-invitations/open-booking/create-free-slots/close-booking/generate/regenerate/complete/cancel as buttons. In a round with direct booking, open-booking and create-free-slots turn submitted teacher availability into free slots (ConferenceFreeSlotGenerator), and the 'Bookings to answer' list shows the booked slots a teacher acknowledges or declines on the slot page. Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
@@ -166,6 +189,51 @@
 						"title": "Data",
 						"content": {
 							"columns": 2
+						},
+						"icon": "Calendar"
+					},
+					{
+						"id": "round-bookings",
+						"type": "object-list",
+						"title": "Bookings to answer",
+						"content": {
+							"register": "learniq",
+							"schema": "conference-slot",
+							"filter": {
+								"conferenceRoundId": "@object.id",
+								"lifecycle": "booked"
+							},
+							"sort": {
+								"field": "startsAt",
+								"dir": "asc"
+							},
+							"limit": 50,
+							"columns": [
+								{
+									"key": "slotLabel",
+									"label": "Time"
+								},
+								{
+									"key": "teacherName",
+									"label": "Teacher"
+								},
+								{
+									"key": "learnerRef",
+									"label": "Learner",
+									"widget": "fkResolve",
+									"widgetProps": {
+										"register": "learniq",
+										"schema": "learner-profile"
+									}
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							],
+							"rowRoute": "ConferenceSlotDetail",
+							"emptyText": "No bookings waiting for an answer.",
+							"allowCreate": false
 						},
 						"icon": "Calendar"
 					},
@@ -186,20 +254,25 @@
 							"limit": 50,
 							"columns": [
 								{
-									"key": "teacherId",
+									"key": "slotLabel",
+									"label": "Time"
+								},
+								{
+									"key": "teacherName",
 									"label": "Teacher"
 								},
 								{
-									"key": "learnerId",
-									"label": "Learner"
+									"key": "learnerRef",
+									"label": "Learner",
+									"widget": "fkResolve",
+									"widgetProps": {
+										"register": "learniq",
+										"schema": "learner-profile"
+									}
 								},
 								{
 									"key": "startsAt",
 									"label": "Starts"
-								},
-								{
-									"key": "endsAt",
-									"label": "Ends"
 								},
 								{
 									"key": "lifecycle",
@@ -243,10 +316,19 @@
 						"showTitle": false
 					},
 					{
+						"id": "4",
+						"widgetId": "round-bookings",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
 						"id": "3",
 						"widgetId": "round-slots",
 						"gridX": 0,
-						"gridY": 5,
+						"gridY": 10,
 						"gridWidth": 12,
 						"gridHeight": 5,
 						"showTitle": false
@@ -267,7 +349,19 @@
 							]
 						}
 					]
-				}
+				},
+				"headerActions": [
+					{
+						"id": "teacher-availability",
+						"label": "My availability",
+						"icon": "CalendarClockOutline",
+						"type": "open-modal",
+						"target": "TeacherAvailabilityDialog",
+						"props": {
+							"conferenceRoundId": "@objectId"
+						}
+					}
+				]
 			}
 		},
 		{
@@ -276,8 +370,33 @@
 			"type": "index",
 			"title": "Teacher availability",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
-				"schema": "teacher-availability"
+				"schema": "teacher-availability",
+				"columns": [
+					{
+						"key": "conferenceRoundId",
+						"label": "Round",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "conference-round"
+						}
+					},
+					{
+						"key": "teacherName",
+						"label": "Teacher"
+					},
+					{
+						"key": "blocks",
+						"label": "Times",
+						"formatter": "timeBlocks"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					}
+				]
 			}
 		},
 		{
@@ -298,7 +417,28 @@
 						"type": "data",
 						"title": "Data",
 						"content": {
-							"columns": 2
+							"columns": 2,
+							"include": [
+								"teacherName",
+								"conferenceRoundId",
+								"lifecycle",
+								"blocks"
+							],
+							"overrides": {
+								"teacherName": {
+									"order": 0
+								},
+								"conferenceRoundId": {
+									"order": 1
+								},
+								"lifecycle": {
+									"order": 2
+								},
+								"blocks": {
+									"order": 3,
+									"formatter": "timeBlocks"
+								}
+							}
 						},
 						"icon": "Account"
 					},
@@ -353,8 +493,31 @@
 			"type": "index",
 			"title": "Conference slots",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
-				"schema": "conference-slot"
+				"schema": "conference-slot",
+				"columns": [
+					{
+						"key": "slotLabel",
+						"label": "Time"
+					},
+					{
+						"key": "teacherName",
+						"label": "Teacher"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					},
+					{
+						"key": "startsAt",
+						"label": "Starts"
+					},
+					{
+						"key": "location",
+						"label": "Location"
+					}
+				]
 			}
 		},
 		{
@@ -375,7 +538,51 @@
 						"type": "data",
 						"title": "Data",
 						"content": {
-							"columns": 2
+							"columns": 2,
+							"include": [
+								"slotLabel",
+								"teacherName",
+								"lifecycle",
+								"startsAt",
+								"endsAt",
+								"location",
+								"conferenceRoundId",
+								"declineNote",
+								"bookedAt",
+								"acknowledgedAt"
+							],
+							"overrides": {
+								"slotLabel": {
+									"order": 0
+								},
+								"teacherName": {
+									"order": 1
+								},
+								"lifecycle": {
+									"order": 2
+								},
+								"startsAt": {
+									"order": 3
+								},
+								"endsAt": {
+									"order": 4
+								},
+								"location": {
+									"order": 5
+								},
+								"conferenceRoundId": {
+									"order": 6
+								},
+								"declineNote": {
+									"order": 7
+								},
+								"bookedAt": {
+									"order": 8
+								},
+								"acknowledgedAt": {
+									"order": 9
+								}
+							}
 						},
 						"icon": "Calendar"
 					},
@@ -430,8 +637,24 @@
 			"type": "index",
 			"title": "Conference reports",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
-				"schema": "conference-report"
+				"schema": "conference-report",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"attendeeIds",
+					"conferenceSlotId",
+					"lifecycle",
+					"narrative",
+					"recordedAt",
+					"recordedBy",
+					"teacherId"
+				],
+				"createModal": "ConferenceReportDialog"
 			}
 		},
 		{

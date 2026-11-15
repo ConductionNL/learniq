@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lvs-import-contract/tasks.md#task-2
+ * @spec openspec/changes/archive/2026-09-28-lvs-import-contract/tasks.md#task-2
  */
 
 declare(strict_types=1);
@@ -65,7 +65,7 @@ class LvsResultVerifyGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/lvs-import-contract/specs/data-exchange/spec.md#scenario-an-imported-result-is-not-verified-until-a-coordinator-confirms-it
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-an-imported-result-is-not-verified-until-a-coordinator-confirms-it
 	 */
 	public function testCoordinatorIsAllowed(): void {
 		$guard = $this->makeGuard(['coordinators']);
@@ -93,7 +93,7 @@ class LvsResultVerifyGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/lvs-import-contract/specs/data-exchange/spec.md#scenario-a-non-admincoordinator-actor-cannot-verify-an-lvsresult
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-a-non-admincoordinator-actor-cannot-verify-an-lvsresult
 	 */
 	public function testUnauthorisedActorIsDenied(): void {
 		$guard = $this->makeGuard([]);
@@ -135,7 +135,7 @@ class LvsResultVerifyGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/access-control-ratchet-compliance/specs/data-exchange/spec.md#requirement-imported-lvs-results-and-transfer-dossiers-are-read-and-written-by-the-groups-that-review-them
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-imported-lvs-results-and-transfer-dossiers-are-read-and-written-by-the-groups-that-review-them
 	 */
 	public function testSingularCoordinatorGroupIsDenied(): void {
 		$guard = $this->makeGuard(['coordinator']);

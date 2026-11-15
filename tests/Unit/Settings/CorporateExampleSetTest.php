@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/segment-example-datasets-corporate/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
  */
 
 declare(strict_types=1);
@@ -33,6 +33,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Settings;
 
 use DateTimeImmutable;
+use OCA\Learniq\Service\ExampleSetPreparation;
+use OCA\Learniq\Service\ExampleSetSources;
 use OCA\Learniq\Service\DemoDataService;
 use OCA\Learniq\Service\SeedProfileService;
 use OCP\App\IAppManager;
@@ -140,7 +142,7 @@ class CorporateExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-corporate/specs/example-sets/spec.md#requirement-the-company-set-is-one-consistent-company
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-company-set-is-one-consistent-company
 	 */
 	public function testTheCompanyHasItsPromisedShape(): void {
 		self::assertSame(['Voorbeeldbedrijf Esdoorn Techniek B.V.'], array_column(self::of('school'), 'name'));
@@ -193,7 +195,7 @@ class CorporateExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-corporate/specs/example-sets/spec.md#requirement-the-company-set-is-one-consistent-company
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-company-set-is-one-consistent-company
 	 */
 	public function testNothingInTheSetPassesForReal(): void {
 		foreach (self::of('credential') as $credential) {
@@ -219,7 +221,7 @@ class CorporateExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-corporate/specs/example-sets/spec.md#requirement-the-company-set-is-one-consistent-company
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-company-set-is-one-consistent-company
 	 */
 	public function testEveryMarkBelongsToASessionOfItsOwnCohort(): void {
 		$sessions = self::by(self::of('session'), 'uuid');
@@ -261,7 +263,7 @@ class CorporateExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-corporate/specs/example-sets/spec.md#requirement-certificates-expire-and-renew-the-way-the-listener-does-it
+	 * @spec openspec/specs/example-sets/spec.md#requirement-certificates-expire-and-renew-the-way-the-listener-does-it
 	 */
 	public function testAnExpiryOpensARenewalThatIssuesTheNextCredential(): void {
 		$enrolments   = self::by(self::of('enrolment'), 'uuid');
@@ -327,8 +329,8 @@ class CorporateExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-corporate/specs/example-sets/spec.md#requirement-certificates-expire-and-renew-the-way-the-listener-does-it
-	 * @spec openspec/changes/example-set-regulation-rows/specs/example-sets/spec.md#scenario-the-company-scopes-drive-the-certification-check
+	 * @spec openspec/specs/example-sets/spec.md#requirement-certificates-expire-and-renew-the-way-the-listener-does-it
+	 * @spec openspec/specs/example-sets/spec.md#scenario-the-company-scopes-drive-the-certification-check
 	 */
 	public function testEveryoneACertificationAppliesToHoldsItOrIsBooked(): void {
 		$credentials = self::groupBy(self::of('credential'), 'learnerId');
@@ -372,7 +374,7 @@ class CorporateExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-corporate/specs/example-sets/spec.md#requirement-skills-gaps-plans-points-and-payments-agree-with-their-sources
+	 * @spec openspec/specs/example-sets/spec.md#requirement-skills-gaps-plans-points-and-payments-agree-with-their-sources
 	 */
 	public function testTheSkillsGapIsWhatThePlansAddress(): void {
 		$competencies = self::by(self::of('competency'), 'uuid');
@@ -443,7 +445,7 @@ class CorporateExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-corporate/specs/example-sets/spec.md#requirement-skills-gaps-plans-points-and-payments-agree-with-their-sources
+	 * @spec openspec/specs/example-sets/spec.md#requirement-skills-gaps-plans-points-and-payments-agree-with-their-sources
 	 */
 	public function testPlansAreCoordinatedByTheEmployeesManager(): void {
 		$profiles = self::by(self::of('learner-profile'), 'ncUserId');
@@ -470,7 +472,7 @@ class CorporateExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-corporate/specs/example-sets/spec.md#requirement-skills-gaps-plans-points-and-payments-agree-with-their-sources
+	 * @spec openspec/specs/example-sets/spec.md#requirement-skills-gaps-plans-points-and-payments-agree-with-their-sources
 	 */
 	public function testPointsLevelsAndScoresAddUp(): void {
 		$enrolments = self::by(self::of('enrolment'), 'uuid');
@@ -526,7 +528,7 @@ class CorporateExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-learniq-keeps-feeitem-and-entitlement-and-no-pay-screen-of-its-own
+	 * @spec openspec/specs/payments/spec.md#requirement-learniq-keeps-feeitem-and-entitlement-and-no-pay-screen-of-its-own
 	 */
 	public function testPaidCoursesAreOrderedPaidAndEntitled(): void {
 		foreach (['order', 'order-line', 'payment-transaction'] as $retired) {
@@ -574,14 +576,28 @@ class CorporateExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-corporate/specs/example-sets/spec.md#requirement-the-company-set-loads-and-removes-cleanly
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-company-set-loads-and-removes-cleanly
 	 */
 	public function testTheServiceOffersAndRemovesExactlyThisSet(): void {
 		$appManager = $this->createMock(IAppManager::class);
 		$appManager->method('getAppPath')->willReturn(dirname(__DIR__, 3));
 		$demo = $this->createMock(DemoDataService::class);
 		$demo->method('listChoices')->willReturn([]);
-		$service = new SeedProfileService($appManager, $this->createMock(ContainerInterface::class), $this->createMock(LoggerInterface::class), $demo);
+		$service = new SeedProfileService(
+			sources: new ExampleSetSources(
+				appManager: $appManager,
+				demoData: $demo,
+				loadedSets: $this->createMock(\OCA\Learniq\Service\LoadedExampleSets::class)
+			),
+			preparation: new ExampleSetPreparation(
+				sharedCodes: $this->createMock(\OCA\Learniq\Service\SharedCodeFilter::class),
+				dates: $this->createMock(\OCA\Learniq\Service\ExampleSetDates::class),
+				organisation: $this->createMock(\OCA\Learniq\Service\ExampleSetOrganisation::class),
+				examplePortals: $this->createMock(\OCA\Learniq\Portal\ExamplePortalProvisioner::class)
+			),
+			container: $this->createMock(ContainerInterface::class),
+			logger: $this->createMock(LoggerInterface::class)
+		);
 
 		$offered = array_values(array_filter($service->listChoices(), static fn (array $c): bool => $c['id'] === 'corporate'))[0];
 		self::of('school');
@@ -605,7 +621,7 @@ class CorporateExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-corporate/specs/example-sets/spec.md#scenario-the-file-is-reproducible
+	 * @spec openspec/specs/example-sets/spec.md#scenario-the-file-is-reproducible
 	 */
 	public function testTheFileIsWhatTheGeneratorProduces(): void {
 		$python = trim((string)shell_exec('command -v python3 2>/dev/null'));
@@ -626,7 +642,7 @@ class CorporateExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-corporate/specs/example-sets/spec.md#requirement-the-register-no-longer-carries-the-dark-corporate-seed
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-register-no-longer-carries-the-dark-corporate-seed
 	 */
 	public function testThePromotedSeedMovedOutOfTheRegister(): void {
 		$sessions = array_values(array_filter(
@@ -651,7 +667,7 @@ class CorporateExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-set-regulation-rows/specs/example-sets/spec.md#scenario-every-company-regulation-reference-resolves
+	 * @spec openspec/specs/example-sets/spec.md#scenario-every-company-regulation-reference-resolves
 	 */
 	public function testEveryRegulationReferenceResolves(): void {
 		$shipped = array_column(self::of('regulation'), 'slug');
@@ -678,7 +694,7 @@ class CorporateExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-set-regulation-rows/specs/example-sets/spec.md#requirement-the-company-and-training-sets-carry-the-regulations-they-reference
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-company-and-training-sets-carry-the-regulations-they-reference
 	 */
 	public function testRegulationsArePublishedWithTheirAudiences(): void {
 		$rows = self::by(self::of('regulation'), 'slug');

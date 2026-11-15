@@ -4,13 +4,13 @@
  * Gate-19 e2e coverage — portable-learning-record spec UI scenarios.
  *
  * Covers (UI-observable surface):
- *   @e2e openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-learner-opens-their-aggregate-record-and-sees-composed-read-only-data
- *   @e2e openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
- *   @e2e openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-learner-creates-a-share-with-a-mandatory-expiry
- *   @e2e openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-revoking-a-share-immediately-invalidates-its-verification-link
- *   @e2e openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-valid-unexpired-share-resolves-to-the-shared-bundle
- *   @e2e openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-coordinator-uploads-a-prior-scholiq-export-during-intake-and-sees-a-verified-coverage-report
- *   @e2e openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-an-imported-record-is-visible-from-the-application-it-was-uploaded-against
+ *   @e2e openspec/specs/portable-learning-record/spec.md#scenario-a-learner-opens-their-aggregate-record-and-sees-composed-read-only-data
+ *   @e2e openspec/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
+ *   @e2e openspec/specs/portable-learning-record/spec.md#scenario-a-learner-creates-a-share-with-a-mandatory-expiry
+ *   @e2e openspec/specs/portable-learning-record/spec.md#scenario-revoking-a-share-immediately-invalidates-its-verification-link
+ *   @e2e openspec/specs/portable-learning-record/spec.md#scenario-a-valid-unexpired-share-resolves-to-the-shared-bundle
+ *   @e2e openspec/specs/portable-learning-record/spec.md#scenario-a-coordinator-uploads-a-prior-scholiq-export-during-intake-and-sees-a-verified-coverage-report
+ *   @e2e openspec/specs/portable-learning-record/spec.md#scenario-an-imported-record-is-visible-from-the-application-it-was-uploaded-against
  *
  * The lifecycle guards (LearningRecordExportService, LearningRecordImportService,
  * LearningRecordExportSigningService), the public verify controller's
@@ -107,7 +107,7 @@ test.describe('portable-learning-record — declarative index pages', () => {
 		assertNoFatalErrors(errors)
 	})
 
-	// @e2e openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-an-imported-record-is-visible-from-the-application-it-was-uploaded-against
+	// @e2e openspec/specs/portable-learning-record/spec.md#scenario-an-imported-record-is-visible-from-the-application-it-was-uploaded-against
 	test('LearningRecordImports index page renders without a fatal error', async ({
 		loggedInPage: page,
 	}) => {
@@ -143,10 +143,10 @@ test.describe('portable-learning-record — declarative index pages', () => {
 })
 
 test.describe('portable-learning-record — custom views resolve (registry.js wiring)', () => {
-	// @e2e openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-learner-opens-their-aggregate-record-and-sees-composed-read-only-data
-	// @e2e openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
-	// @e2e openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-learner-creates-a-share-with-a-mandatory-expiry
-	// @e2e openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-revoking-a-share-immediately-invalidates-its-verification-link
+	// @e2e openspec/specs/portable-learning-record/spec.md#scenario-a-learner-opens-their-aggregate-record-and-sees-composed-read-only-data
+	// @e2e openspec/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
+	// @e2e openspec/specs/portable-learning-record/spec.md#scenario-a-learner-creates-a-share-with-a-mandatory-expiry
+	// @e2e openspec/specs/portable-learning-record/spec.md#scenario-revoking-a-share-immediately-invalidates-its-verification-link
 	test('MyLearningRecordView route resolves the registered component, not a blank/404 shell', async ({
 		loggedInPage: page,
 	}) => {
@@ -172,7 +172,7 @@ test.describe('portable-learning-record — custom views resolve (registry.js wi
 		assertNoFatalErrors(errors)
 	})
 
-	// @e2e openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-coordinator-uploads-a-prior-scholiq-export-during-intake-and-sees-a-verified-coverage-report
+	// @e2e openspec/specs/portable-learning-record/spec.md#scenario-a-coordinator-uploads-a-prior-scholiq-export-during-intake-and-sees-a-verified-coverage-report
 	test('LearningRecordImportView route resolves the registered component, not a blank/404 shell', async ({
 		loggedInPage: page,
 	}) => {
@@ -190,7 +190,7 @@ test.describe('portable-learning-record — custom views resolve (registry.js wi
 		assertNoFatalErrors(errors)
 	})
 
-	// @e2e openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-valid-unexpired-share-resolves-to-the-shared-bundle
+	// @e2e openspec/specs/portable-learning-record/spec.md#scenario-a-valid-unexpired-share-resolves-to-the-shared-bundle
 	test('LearningRecordShareVerifyView route resolves the registered component and renders a denied state for an unknown share', async ({
 		loggedInPage: page,
 	}) => {

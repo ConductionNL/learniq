@@ -4,9 +4,9 @@
  * Gate-19 e2e coverage — accessibility-conformance spec UI scenarios.
  *
  * Covers (UI-observable surface):
- *   @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-the-accessibility-statement-must-carry-the-dutch-government-model-s-mandatory-fields
- *   @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-known-limitations-must-be-evidence-backed-and-linked-from-the-published-statement
- *   @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-any-authenticated-user-must-be-able-to-report-an-accessibility-barrier
+ *   @e2e openspec/specs/accessibility-conformance/spec.md#requirement-the-accessibility-statement-must-carry-the-dutch-government-model-s-mandatory-fields
+ *   @e2e openspec/specs/accessibility-conformance/spec.md#requirement-known-limitations-must-be-evidence-backed-and-linked-from-the-published-statement
+ *   @e2e openspec/specs/accessibility-conformance/spec.md#requirement-any-authenticated-user-must-be-able-to-report-an-accessibility-barrier
  *
  * The publish guard (AccessibilityStatementPublishGuard: no publish without
  * evaluation evidence, no fully-compliant status while a limitation is
@@ -31,7 +31,7 @@
 import type { Page } from '@playwright/test'
 
 import { expect, test } from '../fixtures.ts'
-import { createObject, seededTenantId } from '../or-api.ts'
+import { createObject } from '../or-api.ts'
 
 // ⚠️ NO `#` — the router is HISTORY mode, not hash mode.
 //
@@ -86,7 +86,7 @@ function assertNoFatalErrors(errors: string[]): void {
 }
 
 test.describe('accessibility-conformance — the toegankelijkheidsverklaring statement page', () => {
-	// @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-the-accessibility-statement-must-carry-the-dutch-government-model-s-mandatory-fields
+	// @e2e openspec/specs/accessibility-conformance/spec.md#requirement-the-accessibility-statement-must-carry-the-dutch-government-model-s-mandatory-fields
 	test('Accessibility statement page renders without a fatal error', async ({
 		loggedInPage: page,
 	}) => {
@@ -106,7 +106,7 @@ test.describe('accessibility-conformance — the toegankelijkheidsverklaring sta
 		assertNoFatalErrors(errors)
 	})
 
-	// @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-the-accessibility-statement-must-carry-the-dutch-government-model-s-mandatory-fields
+	// @e2e openspec/specs/accessibility-conformance/spec.md#requirement-the-accessibility-statement-must-carry-the-dutch-government-model-s-mandatory-fields
 	test('a published statement shows channel identity, status, evaluation method/date, standard applied, feedback contact, and escalation route', async ({
 		loggedInPage: page,
 	}) => {
@@ -132,7 +132,7 @@ test.describe('accessibility-conformance — the toegankelijkheidsverklaring sta
 		}
 	})
 
-	// @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-any-authenticated-user-must-be-able-to-report-an-accessibility-barrier
+	// @e2e openspec/specs/accessibility-conformance/spec.md#requirement-any-authenticated-user-must-be-able-to-report-an-accessibility-barrier
 	test('the "Report an accessibility problem" entry point is always present, regardless of whether a statement is published', async ({
 		loggedInPage: page,
 	}) => {
@@ -149,7 +149,7 @@ test.describe('accessibility-conformance — the toegankelijkheidsverklaring sta
 })
 
 test.describe('accessibility-conformance — the known-limitations register', () => {
-	// @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-known-limitations-must-be-evidence-backed-and-linked-from-the-published-statement
+	// @e2e openspec/specs/accessibility-conformance/spec.md#requirement-known-limitations-must-be-evidence-backed-and-linked-from-the-published-statement
 	test('Accessibility limitations index page renders without a fatal error', async ({
 		loggedInPage: page,
 	}) => {
@@ -165,7 +165,7 @@ test.describe('accessibility-conformance — the known-limitations register', ()
 		assertNoFatalErrors(errors)
 	})
 
-	// @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-known-limitations-must-be-evidence-backed-and-linked-from-the-published-statement
+	// @e2e openspec/specs/accessibility-conformance/spec.md#requirement-known-limitations-must-be-evidence-backed-and-linked-from-the-published-statement
 	test('Accessibility limitation detail route resolves the registered component and renders a real record', async ({
 		loggedInPage: page,
 	}) => {
@@ -226,7 +226,7 @@ test.describe('accessibility-conformance — the known-limitations register', ()
 })
 
 test.describe('accessibility-conformance — reporting a barrier (AccessibilityFeedback)', () => {
-	// @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-any-authenticated-user-must-be-able-to-report-an-accessibility-barrier
+	// @e2e openspec/specs/accessibility-conformance/spec.md#requirement-any-authenticated-user-must-be-able-to-report-an-accessibility-barrier
 	test('the feedback triage index renders without a fatal error', async ({
 		loggedInPage: page,
 	}) => {
@@ -242,7 +242,7 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 		assertNoFatalErrors(errors)
 	})
 
-	// @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-any-authenticated-user-must-be-able-to-report-an-accessibility-barrier
+	// @e2e openspec/specs/accessibility-conformance/spec.md#requirement-any-authenticated-user-must-be-able-to-report-an-accessibility-barrier
 	test('the "Report an accessibility problem" entry point opens the generic AccessibilityFeedback create form', async ({
 		loggedInPage: page,
 	}) => {
@@ -269,7 +269,7 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 		assertNoFatalErrors(errors)
 	})
 
-	// @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-any-authenticated-user-must-be-able-to-report-an-accessibility-barrier
+	// @e2e openspec/specs/accessibility-conformance/spec.md#requirement-any-authenticated-user-must-be-able-to-report-an-accessibility-barrier
 	// @e2e accessibility-conformance::a-user-submits-a-barrier-report-and-it-notifies-the-compliance-officer
 	//
 	// ⚠️ WHAT THIS TAG DOES AND DOES NOT CLAIM.
@@ -387,28 +387,10 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 				'choosing a severity must close the listbox',
 			).toBeHidden({ timeout: 10_000 })
 
-			const reporterField = page.getByLabel(/Reporter User Id/i).first()
-			if (
-				await reporterField.isVisible({ timeout: 2_000 }).catch(() => false)
-			) {
-				await reporterField.fill('admin')
-			}
-
-			// `tenant_id` is in AccessibilityFeedback's `required` list (as it
-			// is on 116 of the register's 118 schemas), so CnDetailPage keeps
-			// the Create button DISABLED until it is filled. Leaving it empty
-			// made the click below a silent no-op — the test then asserted on
-			// a submit that never happened.
-			//
-			// See scholiq#265: asking a barrier REPORTER to type a tenant UUID
-			// is a real product defect against this spec's "any authenticated
-			// user must be able to report a barrier" requirement. Until that is
-			// decided, the test supplies the same tenant the seeder stamps on
-			// every other row so the created record is coherent with them.
-			const tenantField = page.getByLabel(/Tenant Id/i).first()
-			if (await tenantField.isVisible({ timeout: 2_000 }).catch(() => false)) {
-				await tenantField.fill(await seededTenantId(page))
-			}
+			// Reporter and tenant are NOT asked for: AccessibilityFeedbackReporterStamp
+			// fills both from the signed-in user on the server, and the schema
+			// no longer lists them in `required` (learniq#268). Every field
+			// filled above is everything a barrier reporter has to give.
 
 			// The Create button leaving the disabled state is itself the proof
 			// that every required field is now satisfied — assert it rather

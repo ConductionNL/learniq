@@ -3,6 +3,9 @@
 /**
  * Learniq Wallet Offer Concluded Listener
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Consumes an inbound `\OCA\OpenConnector\Event\WalletOfferConcludedEvent`
  * reporting that an EUDI wallet holder claimed an outstanding credential
  * offer, and drives the matching Credential's `recordWalletClaim`
@@ -35,13 +38,11 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
+ * @spec openspec/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
  */
 
 declare(strict_types=1);
@@ -93,7 +94,7 @@ class WalletOfferConcludedListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
+	 * @spec openspec/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
 	 */
 	public function handle(Event $event): void {
 		if (method_exists($event, 'getExternalReference') === false

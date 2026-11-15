@@ -33,7 +33,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+ * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
  */
 
 declare(strict_types=1);
@@ -65,7 +65,7 @@ class MoodleQuizQuestionMapper {
 	 *
 	 * @return array<int, array{outcome: string, title: string, moodleQuestionType: string, itemData: array<string, mixed>|null, reason: string|null}>
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	public function mapQuestions(string $questionsXmlPath, string $itemBankId, string $tenantId = ''): array {
 		if (file_exists($questionsXmlPath) === false) {
@@ -100,64 +100,71 @@ class MoodleQuizQuestionMapper {
 	 *
 	 * @return array{outcome: string, title: string, moodleQuestionType: string, itemData: array<string, mixed>|null, reason: string|null}
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function mapOne(DOMElement $questionEl, string $itemBankId, string $tenantId): array {
 		$type = $questionEl->getAttribute('type');
 		$title = $this->childText(element: $questionEl, tagName: 'name') ?? 'Untitled question';
-
+		$outcome = ['outcome' => 'imported', 'title' => $title, 'moodleQuestionType' => $type, 'itemData' => null, 'reason' => null];
 		if (in_array($type, self::SUPPORTED_TYPES, strict: true) === false) {
-			return [
-				'outcome' => 'dropped',
-				'title' => $title,
-				'moodleQuestionType' => $type,
-				'itemData' => null,
-				'reason' => "Moodle question type not supported: {$type}.",
-			];
+			return array_replace($outcome, ['outcome' => 'dropped', 'reason' => "Moodle question type not supported: {$type}."]);
 		}
 
-		$questionText = $this->childText(element: $questionEl, tagName: 'questiontext') ?? '';
-		$maxScore = (float)($this->childText(element: $questionEl, tagName: 'defaultgrade') ?? '1.0');
+		$item = ['itemBankId' => $itemBankId, 'title' => $title, 'tenant_id' => $tenantId];
+		$outcome['itemData'] = $this->itemData(questionEl: $questionEl, item: $item);
 
-		$answers = [];
-		foreach ($questionEl->childNodes as $child) {
-			if ($child instanceof DOMElement && $child->tagName === 'answer') {
-				$fraction = (float)$child->getAttribute('fraction');
-				$text = trim((string)$this->childText(element: $child, tagName: 'text'));
-				$answers[] = ['fraction' => $fraction, 'text' => $text];
-			}
-		}
+		return $outcome;
+	}//end mapOne()
 
+	/**
+	 * The draft Item for a supported question.
+	 *
+	 * @param DOMElement          $questionEl The <question> element.
+	 * @param array<string,mixed> $item       The item bank, title and tenant.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function itemData(DOMElement $questionEl, array $item): array {
+		$answers = $this->answers(questionEl: $questionEl);
+		$type = $questionEl->getAttribute('type');
 		[$interactionType, $correctResponse] = $this->deriveInteraction(type: $type, questionEl: $questionEl, answers: $answers);
 
-		$qtiBody = $this->buildQtiLikeBody(
-			title: $title,
-			questionText: $questionText,
-			interactionType: $interactionType,
-			answers: $answers,
-		);
-
-		$itemData = [
-			'itemBankId' => $itemBankId,
-			'title' => $title,
+		return [
+			'itemBankId' => $item['itemBankId'],
+			'title' => $item['title'],
 			'interactionType' => $interactionType,
-			'qtiBody' => $qtiBody,
+			'qtiBody' => $this->buildQtiLikeBody(
+				title: $item['title'],
+				questionText: $this->childText(element: $questionEl, tagName: 'questiontext') ?? '',
+				interactionType: $interactionType,
+				answers: $answers,
+			),
 			'correctResponse' => $correctResponse,
-			'maxScore' => $maxScore,
+			'maxScore' => (float)($this->childText(element: $questionEl, tagName: 'defaultgrade') ?? '1.0'),
 			'subjectTags' => [],
 			'difficulty' => null,
 			'lifecycle' => 'draft',
-			'tenant_id' => $tenantId,
+			'tenant_id' => $item['tenant_id'],
 		];
+	}//end itemData()
 
-		return [
-			'outcome' => 'imported',
-			'title' => $title,
-			'moodleQuestionType' => $type,
-			'itemData' => $itemData,
-			'reason' => null,
-		];
-	}//end mapOne()
+	/**
+	 * The question's answers: each fraction and trimmed text, in order.
+	 *
+	 * @param DOMElement $questionEl The <question> element.
+	 *
+	 * @return array<int, array{fraction: float, text: string}>
+	 */
+	private function answers(DOMElement $questionEl): array {
+		$answers = [];
+		foreach ($questionEl->childNodes as $child) {
+			if ($child instanceof DOMElement && $child->tagName === 'answer') {
+				$answers[] = ['fraction' => (float)$child->getAttribute('fraction'), 'text' => trim((string)$this->childText(element: $child, tagName: 'text'))];
+			}
+		}
+
+		return $answers;
+	}//end answers()
 
 	/**
 	 * Derive the learniq `interactionType` + `correctResponse` for a supported Moodle question type.
@@ -168,7 +175,7 @@ class MoodleQuizQuestionMapper {
 	 *
 	 * @return array{0: string, 1: mixed} [interactionType, correctResponse].
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function deriveInteraction(string $type, DOMElement $questionEl, array $answers): array {
 		if ($type === 'essay') {
@@ -213,9 +220,10 @@ class MoodleQuizQuestionMapper {
 	 * @param string $interactionType Learniq interactionType slug.
 	 * @param array<int, array{fraction: float, text: string}> $answers Parsed answers, for `choice` rendering.
 	 *
-	 * @return string A QTI-3.0-namespaced XML string wrapping the Moodle question content.
+	 * @return string A QTI 2.1 XML string wrapping the Moodle question content.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/specs/assessment/spec.md#requirement-items-are-stored-as-qti-21-and-labelled-as-qti-21
 	 */
 	private function buildQtiLikeBody(string $title, string $questionText, string $interactionType, array $answers): string {
 		$escapedTitle = htmlspecialchars($title, ENT_XML1 | ENT_QUOTES);
@@ -231,7 +239,7 @@ class MoodleQuizQuestionMapper {
 		}
 
 		return '<?xml version="1.0" encoding="UTF-8"?>'
-			. '<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0" '
+			. '<assessmentItem xmlns="' . QtiExportService::QTI21_NAMESPACE . '" '
 			. 'identifier="moodle-' . md5($title) . '" title="' . $escapedTitle . '" adaptive="false" timeDependent="false">'
 			. '<itemBody><p>' . $escapedText . '</p>' . $choiceXml . '</itemBody>'
 			. '</assessmentItem>';
@@ -245,20 +253,9 @@ class MoodleQuizQuestionMapper {
 	 *
 	 * @return string|null Trimmed text content, or null when no such child exists / it is empty.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function childText(DOMElement $element, string $tagName): ?string {
-		foreach ($element->childNodes as $child) {
-			if ($child instanceof DOMElement && $child->tagName === $tagName) {
-				$text = trim((string)$child->textContent);
-				if ($text !== '') {
-					return $text;
-				}
-
-				return null;
-			}
-		}
-
-		return null;
+		return (new XmlChildText())->firstOf(element: $element, tagName: $tagName);
 	}//end childText()
 }//end class

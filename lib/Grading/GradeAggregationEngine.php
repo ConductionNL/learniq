@@ -207,7 +207,7 @@ class GradeAggregationEngine {
 	 * @return array{0: float|null, 1: array}
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-5
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-an-exemption-entry-does-not-corrupt-the-weighted-average
+	 * @spec openspec/specs/grading/spec.md#scenario-an-exemption-entry-does-not-corrupt-the-weighted-average
 	 */
 	private function weightedAverage(array $entries, array $components): array {
 		$weightedSum = 0.0;

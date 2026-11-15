@@ -17,7 +17,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/adopt-connection-registry/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
+ * @spec openspec/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
  *
  * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
  * SPDX-License-Identifier: EUPL-1.2
@@ -27,7 +27,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\BackgroundJob;
 
-use OCA\Learniq\Service\ConnectionReportService;
+use OCA\Learniq\Kernel\Contracts\ConnectionReportServiceInterface;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
 use OCP\BackgroundJob\TimedJob;
@@ -37,7 +37,7 @@ use OCP\BackgroundJob\TimedJob;
  *
  * @psalm-api
  *
- * @spec openspec/changes/adopt-connection-registry/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
+ * @spec openspec/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
  */
 class ConnectionReportJob extends TimedJob {
 
@@ -52,11 +52,11 @@ class ConnectionReportJob extends TimedJob {
 	 * Constructor.
 	 *
 	 * @param ITimeFactory            $time     Nextcloud time factory.
-	 * @param ConnectionReportService $reporter Sends the reports.
+	 * @param ConnectionReportServiceInterface $reporter Sends the reports.
 	 */
 	public function __construct(
 		ITimeFactory $time,
-		private readonly ConnectionReportService $reporter,
+		private readonly ConnectionReportServiceInterface $reporter,
 	) {
 		parent::__construct(time: $time);
 		$this->setInterval(seconds: self::INTERVAL_SECONDS);
@@ -72,9 +72,11 @@ class ConnectionReportJob extends TimedJob {
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is TimedJob's.
 	 *
-	 * @spec openspec/changes/adopt-connection-registry/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
+	 * @spec openspec/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
 	 */
 	protected function run(mixed $argument): void {
+		$this->reporter->observeTimetable();
+		$this->reporter->observeLti();
 		$this->reporter->reportObservations();
 	}//end run()
 }//end class

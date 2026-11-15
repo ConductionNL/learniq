@@ -610,6 +610,7 @@
 			"type": "index",
 			"title": "Competency frameworks",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "competency-framework"
 			}
@@ -764,6 +765,7 @@
 			"type": "index",
 			"title": "Competencies",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "competency"
 			}
@@ -928,9 +930,25 @@
 			"type": "index",
 			"title": "Competency attainment",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "competency-attainment",
-				"readOnly": true
+				"readOnly": true,
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"assessmentResultIds",
+					"competencyId",
+					"frameworkId",
+					"gradeEntryIds",
+					"lastRecomputedAt",
+					"proficiencyLevelId",
+					"submissionIds",
+					"werkprocesAssessmentIds"
+				]
 			}
 		},
 		{
@@ -1012,8 +1030,31 @@
 			"type": "index",
 			"title": "Lesson completions",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
-				"schema": "lesson-completion"
+				"schema": "lesson-completion",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"completedAt",
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					"enrolmentId",
+					"lessonId",
+					"score",
+					"source",
+					"verb"
+				]
 			}
 		},
 		{
@@ -1086,9 +1127,31 @@
 			"type": "index",
 			"title": "Engagement scores",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "engagement-score",
-				"readOnly": true
+				"readOnly": true,
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"activityCount",
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					"lastActivityAt",
+					"recencyDays",
+					"score",
+					"timeOnTaskMinutes"
+				]
 			}
 		},
 		{
@@ -1162,6 +1225,7 @@
 			"type": "index",
 			"title": "Engagement thresholds",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "engagement-risk-threshold"
 			}
@@ -1226,7 +1290,8 @@
 							"columns": [
 								{
 									"key": "learnerId",
-									"label": "Learner ID"
+									"label": "Learner",
+									"widget": "learnerName"
 								},
 								{
 									"key": "metricValueAtFlag",
@@ -1316,9 +1381,31 @@
 			"type": "index",
 			"title": "Engagement risk flags",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "engagement-risk-flag",
-				"readOnly": true
+				"readOnly": true,
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					"engagementRiskThresholdId",
+					"engagementScoreId",
+					"flaggedAt",
+					"lifecycle",
+					"metricValueAtFlag"
+				]
 			}
 		},
 		{
@@ -1403,6 +1490,7 @@
 			"type": "index",
 			"title": "Portfolio templates",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "portfolio-template"
 			}
@@ -1413,8 +1501,35 @@
 			"type": "index",
 			"title": "Portfolios",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
-				"schema": "portfolio"
+				"schema": "portfolio",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					{
+						"key": "courseId",
+						"label": "Course",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "course"
+						}
+					},
+					"curriculumPlanComponentId",
+					"curriculumPlanId",
+					"description",
+					"dueAt",
+					"gradeEntryId",
+					"gradeValue",
+					"kind",
+					"lifecycle",
+					"templateId",
+					"title"
+				]
 			}
 		},
 		{
@@ -1423,8 +1538,28 @@
 			"type": "index",
 			"title": "Portfolio entries",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
-				"schema": "portfolio-entry"
+				"schema": "portfolio-entry",
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"attachmentRef",
+					"competencyId",
+					"credentialId",
+					"criterionId",
+					"evidenceKind",
+					"externalTrainingRecordId",
+					"portfolioId",
+					"reflectionText",
+					"sectionId",
+					"submissionId",
+					"title",
+					"werkprocesAssessmentId"
+				]
 			}
 		},
 		{
@@ -1433,6 +1568,7 @@
 			"type": "index",
 			"title": "External assessors",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "external-assessor"
 			}
@@ -1443,6 +1579,7 @@
 			"type": "index",
 			"title": "Portfolio shares",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "portfolio-share"
 			}
@@ -1894,6 +2031,7 @@
 			"type": "index",
 			"title": "Point rules",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "point-rule"
 			}
@@ -1971,6 +2109,7 @@
 			"type": "index",
 			"title": "Engagement levels",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "engagement-level"
 			}
@@ -2030,6 +2169,7 @@
 			"type": "index",
 			"title": "Leaderboards",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "leaderboard"
 			}
@@ -2107,9 +2247,22 @@
 			"type": "index",
 			"title": "Point awards",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "point-award",
-				"readOnly": true
+				"readOnly": true,
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"awardedAt",
+					"pointRuleId",
+					"points",
+					"sourceKind",
+					"sourceObjectId"
+				]
 			}
 		},
 		{
@@ -2183,9 +2336,23 @@
 			"type": "index",
 			"title": "Learner engagement",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "learner-engagement",
-				"readOnly": true
+				"readOnly": true,
+				"columns": [
+					{
+						"key": "learnerId",
+						"label": "Learner",
+						"widget": "learnerName"
+					},
+					"currentStreakDays",
+					"lastActivityDate",
+					"lastRecomputedAt",
+					"levelId",
+					"longestStreakDays",
+					"totalPoints"
+				]
 			}
 		},
 		{
@@ -2267,6 +2434,7 @@
 			"type": "index",
 			"title": "Evaluation campaigns",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "evaluation-campaign"
 			}
@@ -2383,7 +2551,16 @@
 							]
 						}
 					]
-				}
+				},
+				"headerActions": [
+					{
+						"id": "campaign-results",
+						"label": "Results",
+						"icon": "ChartBar",
+						"type": "navigate",
+						"target": "/course-evaluation/campaigns/@objectId/results"
+					}
+				]
 			}
 		},
 		{
@@ -2392,6 +2569,7 @@
 			"type": "index",
 			"title": "Evaluation responses",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "course-evaluation-response",
 				"readOnly": true
@@ -2468,6 +2646,7 @@
 			"type": "index",
 			"title": "Improvement actions",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "improvement-action"
 			}
@@ -2566,6 +2745,7 @@
 			"_note": "ADR-044 §4 cards-collapse. This page exists so the group above it is ONE top-level entry instead of a long flat child list: relocating a group into another DISSOLVES it (buildManifest applyMenuRelocations discards the group's own label), which produced a 33-item undifferentiated list — the exact failure ADR-097 Decision 6 names. Each former leaf is a card here, keeping its label, with a description wherever the label is ambiguous out of context.",
 			"config": {
 				"allowEdit": false,
+				"showActionsMenu": false,
 				"widgets": [
 					{
 						"id": "nav-card-grid",
@@ -2974,6 +3154,11 @@
 												"he",
 												"corporate"
 											]
+										},
+										"workspace.chosenSegment": {
+											"notIn": [
+												"corporate"
+											]
 										}
 									}
 								},
@@ -2988,6 +3173,11 @@
 										"workspace.segment": {
 											"in": [
 												"he",
+												"corporate"
+											]
+										},
+										"workspace.chosenSegment": {
+											"notIn": [
 												"corporate"
 											]
 										}
@@ -3006,6 +3196,11 @@
 												"he",
 												"corporate"
 											]
+										},
+										"workspace.chosenSegment": {
+											"notIn": [
+												"corporate"
+											]
 										}
 									}
 								},
@@ -3020,6 +3215,11 @@
 										"workspace.segment": {
 											"in": [
 												"he",
+												"corporate"
+											]
+										},
+										"workspace.chosenSegment": {
+											"notIn": [
 												"corporate"
 											]
 										}
@@ -3040,6 +3240,22 @@
 					}
 				]
 			}
+		},
+		{
+			"id": "EnrolmentForecast",
+			"route": "/reports/enrolment-forecast",
+			"type": "custom",
+			"title": "Enrolment forecast",
+			"component": "EnrolmentForecastView",
+			"_note": "timetabling-enrolment-forecast: scenarios on the enrolment-forecast schema; POST /api/enrolment-forecasts/{id}/compute behind report.enrolment-forecast; opened from the Reports page card (category progress)."
+		},
+		{
+			"id": "EvaluationCampaignResults",
+			"route": "/course-evaluation/campaigns/:campaignId/results",
+			"type": "custom",
+			"title": "Evaluation results",
+			"component": "EvaluationCampaignResultsView",
+			"_note": "Mounts EvaluationCampaignResultsView (assessment-course-evaluation-answer-page): invitations, responses and the mean overall score of one campaign from learniq's staff-only GET /api/evaluations/campaigns/{campaignId}/results, with the mean withheld under five responses. Custom on purpose: three computed figures, not a list or record page of one schema."
 		}
 	]
 }

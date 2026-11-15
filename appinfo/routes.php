@@ -27,11 +27,15 @@ declare(strict_types=1);
  * /health/metrics routes are reproduced here pointing at the aliased generics.
  */
 
-return [
+$routes = [
     'routes' => [
+        // The OpenAPI document, public (NL API Design Rules, /core/publish-openapi).
+        ['name' => 'openApi#show', 'url' => '/api/openapi.json', 'verb' => 'GET'],
+
         // SPA shell — bespoke PageController (role-aware initial state).
         // First-time setup wizard (ADR-042) - the standard CnSetupWizard contract.
         ['name' => 'setup#status',    'url' => '/api/setup/status',            'verb' => 'GET'],
+        ['name' => 'exampleSets#exampleSets', 'url' => '/api/setup/example-sets',   'verb' => 'GET'],
         ['name' => 'setup#runAction', 'url' => '/api/setup/action/{actionId}', 'verb' => 'POST', 'requirements' => ['actionId' => '[a-z0-9\\-]+']],
         ['name' => 'setup#saveConfig', 'url' => '/api/setup/config',           'verb' => 'POST'],
         ['name' => 'page#index',     'url' => '/',            'verb' => 'GET'],
@@ -41,11 +45,54 @@ return [
         // Public credential verification — no auth, per ADR-031 external-system contract.
         // Controller: CredentialVerifyController (slug: credentialVerify).
         ['name' => 'credentialVerify#verify', 'url' => '/api/credentials/{id}/verify', 'verb' => 'GET'],
+        // Europass file check (credentials-europass-edci-export): public like the
+        // GET, answers validity only, never the stored payload.
+        ['name' => 'credentialVerify#verifyEuropass', 'url' => '/api/credentials/{id}/verify', 'verb' => 'POST'],
+        // Controller: AccessibilityEvidenceController (slug: accessibilityEvidence), governance-wcag-evidence-report.
+        // #[PublicPage] + #[AnonRateLimit]: the published accessibility statement and its evidence, no sign-in.
+        ['name' => 'accessibilityEvidence#page',     'url' => '/public/accessibility-statement', 'verb' => 'GET'],
+        ['name' => 'accessibilityEvidence#evidence', 'url' => '/api/accessibility/evidence',     'verb' => 'GET'],
+        // Europass download (learner or hr/compliance) and one-time backfill (hr/compliance).
+        // Controller: CredentialEuropassController (slug: credentialEuropass).
+        ['name' => 'credentialEuropass#download', 'url' => '/api/credentials/{id}/europass', 'verb' => 'GET'],
+        ['name' => 'credentialEuropass#download', 'url' => '/api/credentials/{id}/europass/download', 'verb' => 'POST', 'postfix' => 'post'],
+        ['name' => 'credentialEuropass#create', 'url' => '/api/credentials/{id}/europass', 'verb' => 'POST'],
 
         // Admin key management — admin-only via #[AuthorizedAdminSetting], cryptographic operation (ADR-031).
         // Controller: KeyAdminController (slug: keyAdmin).
         ['name' => 'keyAdmin#generateKey', 'url' => '/api/credentials/admin/generate-key', 'verb' => 'POST'],
         ['name' => 'keyAdmin#keyStatus',   'url' => '/api/credentials/admin/key-status',   'verb' => 'GET'],
+        ['name' => 'keyAdmin#signingKeyStatus', 'url' => '/api/settings/signing-key',        'verb' => 'GET'],
+        ['name' => 'keyAdmin#rotateSigningKey', 'url' => '/api/settings/signing-key/rotate', 'verb' => 'POST'],
+
+        // cmi5 + xAPI (cmi5-xapi-lrs-ingest, ADR-002). The launch key is admin-only;
+        // a launch is for the signed-in learner; the fetch URL and the statement POST
+        // are public because a launched AU has no session: the one-time fetch code and
+        // the launch token are their credentials, and a session caller must pass CSRF.
+        // Controllers: Cmi5KeyAdminController, Cmi5LaunchController, LrsController.
+        ['name' => 'cmi5KeyAdmin#generateKey', 'url' => '/api/cmi5/admin/generate-key', 'verb' => 'POST'],
+        ['name' => 'cmi5KeyAdmin#keyStatus',   'url' => '/api/cmi5/admin/key-status',   'verb' => 'GET'],
+        ['name' => 'cmi5Launch#launch',        'url' => '/api/lessons/{lessonId}/cmi5-launch', 'verb' => 'POST'],
+        ['name' => 'cmi5Launch#fetch',         'url' => '/api/cmi5/fetch/{code}',       'verb' => 'POST'],
+        ['name' => 'lrs#postStatements',       'url' => '/api/lrs/statements',          'verb' => 'POST'],
+        ['name' => 'lrs#getStatements',        'url' => '/api/lrs/statements',          'verb' => 'GET'],
+        // xAPI State and Agent Profile documents (LrsDocumentController): public for the
+        // same reason as the statement POST; the launch token or a session with CSRF is
+        // the credential, and a document belongs to the authenticated learner only.
+        ['name' => 'lrsDocument#getState',           'url' => '/api/lrs/activities/state', 'verb' => 'GET'],
+        ['name' => 'lrsDocument#putState',           'url' => '/api/lrs/activities/state', 'verb' => 'PUT'],
+        ['name' => 'lrsDocument#postState',          'url' => '/api/lrs/activities/state', 'verb' => 'POST'],
+        ['name' => 'lrsDocument#deleteState',        'url' => '/api/lrs/activities/state', 'verb' => 'DELETE'],
+        ['name' => 'lrsDocument#getAgentProfile',    'url' => '/api/lrs/agents/profile',   'verb' => 'GET'],
+        ['name' => 'lrsDocument#putAgentProfile',    'url' => '/api/lrs/agents/profile',   'verb' => 'PUT'],
+        ['name' => 'lrsDocument#postAgentProfile',   'url' => '/api/lrs/agents/profile',   'verb' => 'POST'],
+        ['name' => 'lrsDocument#deleteAgentProfile', 'url' => '/api/lrs/agents/profile',   'verb' => 'DELETE'],
+
+        // AI-translated catalogue review (ai-translated-catalogue-review, D24): admin-only
+        // via #[AuthorizedAdminSetting]. Lists the Dutch values an AI wrote and no human
+        // reviewed (l10n/ai-translated.json), and takes a reviewed key off the list.
+        ['name' => 'aiTranslationReview#index',    'url' => '/api/l10n/ai-translated',          'verb' => 'GET'],
+        ['name' => 'aiTranslationReview#reviewed', 'url' => '/api/l10n/ai-translated/reviewed', 'verb' => 'POST'],
 
         // Compliance audit-pack export — ZIP generation, user-invokable action (ADR-023: audit-pack.export).
         // Controller: AuditPackExportController (slug: auditPackExport).
@@ -55,7 +102,9 @@ return [
         // (ADR-023: compliance.department-rollup, regulation.assign; learniq#951).
         // Controller: ComplianceRollupController (slug: complianceRollup).
         ['name' => 'complianceRollup#departments',      'url' => '/api/compliance/departments',        'verb' => 'GET'],
+        ['name' => 'complianceRollup#regulations',      'url' => '/api/compliance/coverage-by-regulation', 'verb' => 'GET'],
         ['name' => 'complianceRollup#assignRegulation', 'url' => '/api/compliance/regulations/{id}/assign', 'verb' => 'POST'],
+        ['name' => 'regulationAssignPreview#preview', 'url' => '/api/compliance/regulations/{id}/assign/preview', 'verb' => 'GET'],
 
         // QTI package import — user-invokable action (ADR-023: qti.import).
         // Controller: QtiImportController (slug: qtiImport).
@@ -108,6 +157,7 @@ return [
         // action matrix (external-training.bulk-record / .issue-credential).
         // Controller: ExternalTrainingController (slug: externalTraining).
         ['name' => 'externalTraining#bulkRecord',      'url' => '/api/external-training/bulk',                  'verb' => 'POST'],
+        ['name' => 'externalTraining#import',          'url' => '/api/external-training/import',                'verb' => 'POST'],
         ['name' => 'externalTraining#issueCredential', 'url' => '/api/external-training/{recordId}/credential', 'verb' => 'POST'],
         ['name' => 'externalTraining#learnerCoverage', 'url' => '/api/external-training/coverage',              'verb' => 'GET'],
 
@@ -128,6 +178,19 @@ return [
         // Controller: LessonReleaseController (slug: lessonRelease).
         ['name' => 'lessonRelease#status',           'url' => '/api/lessons/{lessonId}/release-status',         'verb' => 'GET'],
         ['name' => 'lessonRelease#assessmentStatus', 'url' => '/api/assessments/{assessmentId}/release-status', 'verb' => 'GET'],
+        // Controller: CourseEvaluationAnswerController (slug: courseEvaluationAnswer), assessment-course-evaluation-answer-page.
+        ['name' => 'courseEvaluationAnswer#mine',    'url' => '/api/evaluations/mine',                         'verb' => 'GET'],
+        ['name' => 'courseEvaluationAnswer#answer',  'url' => '/api/evaluations/{invitationId}/answer',        'verb' => 'POST'],
+        ['name' => 'courseEvaluationAnswer#results', 'url' => '/api/evaluations/campaigns/{campaignId}/results', 'verb' => 'GET'],
+        // Controller: LessonNextStepController (slug: lessonNextStep), content-adaptive-next-step-and-preview.
+        ['name' => 'lessonNextStep#nextStep',        'url' => '/api/lessons/{lessonId}/next-step',              'verb' => 'GET'],
+        ['name' => 'lessonNextStep#coursePreview',   'url' => '/api/courses/{courseId}/preview',                'verb' => 'GET'],
+        // Controller: CourseTemplateController (slug: courseTemplate). The course builder's
+        // tree read (one query for all lessons), Save as template and New course from
+        // template; #[NoAdminRequired], OpenRegister RBAC decides every read and write.
+        ['name' => 'courseTemplate#structure',      'url' => '/api/courses/{id}/structure',                    'verb' => 'GET'],
+        ['name' => 'courseTemplate#saveAsTemplate', 'url' => '/api/courses/{id}/save-as-template',             'verb' => 'POST'],
+        ['name' => 'courseTemplate#instantiate',    'url' => '/api/course-templates/{id}/instantiate',         'verb' => 'POST'],
 
         // Portal test taking (assessment-portal-endpoints): the five steps of
         // portaliq's timed task, forwarded server-to-server. #[PublicPage]
@@ -140,12 +203,95 @@ return [
         ['name' => 'portalAssessment#answer',    'url' => '/api/portal/assessments/answer', 'verb' => 'POST'],
         ['name' => 'portalAssessment#submit',    'url' => '/api/portal/assessments/submit', 'verb' => 'POST'],
         ['name' => 'portalAssessment#result',    'url' => '/api/portal/assessments/result', 'verb' => 'POST'],
+        // portal-assignment-hand-in-endpoint: a pupil hands in a portal draft; same assertion receiver pattern.
+        ['name' => 'portalSubmission#handIn',    'url' => '/api/portal/submissions/hand-in', 'verb' => 'POST'],
+        // an-invited-trainer-may-assess: the trainer's assessment goes through
+        // learniq, because only a forward carries the sign-in level.
+        ['name' => 'portalWerkproces#submit',    'url' => '/api/portal/werkproces-assessments', 'verb' => 'POST'],
+        // internship-hours: the trainer approves or corrects one week of her
+        // student's hours. Same assertion receiver pattern: the assertion is
+        // the only place her sign-in level can be read.
+        ['name' => 'portalHourWeek#approve',     'url' => '/api/portal/hour-weeks/approve', 'verb' => 'POST'],
+        // A guardian's answer to a permission request (permission-slips).
+        ['name' => 'portalPermission#answer',    'url' => '/api/portal/permission-answers', 'verb' => 'POST'],
+        // employer-portal-audience: an employer books places, names a participant for a
+        // place and supplies a missing birth date. Same assertion receiver pattern;
+        // the company is the organisationRef claim portaliq stamps.
+        ['name' => 'portalEmployer#book',            'url' => '/api/portal/employer/bookings',     'verb' => 'POST'],
+        ['name' => 'portalEmployer#addParticipant',  'url' => '/api/portal/employer/participants', 'verb' => 'POST'],
+        ['name' => 'portalEmployer#supplyBirthDate', 'url' => '/api/portal/employer/birth-date',   'verb' => 'POST'],
 
         // Personal timetable — the caller's own sessions for a window, resolved
         // from cohort membership (teacher/learner) via ObjectService (RBAC-scoped).
         // Read-only; #[NoAdminRequired] (any signed-in user) + #[NoCSRFRequired] (GET read).
         // Controller: TimetableController (slug: timetable).
         ['name' => 'timetable#mine', 'url' => '/api/timetable/mine', 'verb' => 'GET'],
+        // Cohort timetable: one cohort's sessions from the current timetable source
+        // (planninq when installed, else Session), after an RBAC read of the cohort
+        // (sessions-from-planninq).
+        ['name' => 'timetable#cohort', 'url' => '/api/timetable/cohort/{cohortId}', 'verb' => 'GET', 'requirements' => ['cohortId' => '[^/]+']],
+        // attendance-timetable-calendar-feed: the caller's own calendar address (status, make or
+        // reset, remove), and the feed a calendar app fetches by token with no session.
+        // Controllers: TimetableFeedAddressController, TimetableFeedController (#[PublicPage], rate limited).
+        ['name' => 'timetableFeedAddress#status', 'url' => '/api/timetable/feed', 'verb' => 'GET'],
+        ['name' => 'timetableFeedAddress#create', 'url' => '/api/timetable/feed', 'verb' => 'POST'],
+        ['name' => 'timetableFeedAddress#revoke', 'url' => '/api/timetable/feed', 'verb' => 'DELETE'],
+        ['name' => 'timetableFeed#feed', 'url' => '/api/timetable/feed/{token}.ics', 'verb' => 'GET', 'requirements' => ['token' => '[a-f0-9]{64}']],
+        // timetabling-student-choice-placement: weekly slots of the electives being chosen, and the
+        // caller's own core lessons, for the subject choice picker's overlap warning.
+        // Controller: ElectiveSlotsController (each course read with the caller's rights first).
+        ['name' => 'electiveSlots#slots', 'url' => '/api/timetable/course-slots', 'verb' => 'GET'],
+        // Contact hours (timetabling-contact-hours): owed by the hour plan, given by held
+        // lessons, attended per learner, for a window. #[NoAdminRequired] + the
+        // report.contact-hours action in the body.
+        ['name' => 'contactHours#index', 'url' => '/api/reports/contact-hours', 'verb' => 'GET'],
+        // Enrolment forecast (timetabling-enrolment-forecast): compute a scenario and store
+        // its result on it. #[NoAdminRequired] + report.enrolment-forecast in the body.
+        ['name' => 'enrolmentForecast#compute', 'url' => '/api/enrolment-forecasts/{id}/compute', 'verb' => 'POST', 'requirements' => ['id' => '[^/]+']],
+        // Other timetables within the school's visibility policy
+        // (timetabling-visibility-rules). The policy check is in the body.
+        ['name' => 'timetableVisibility#timetable', 'url' => '/api/timetable/of', 'verb' => 'GET'],
+        ['name' => 'timetableVisibility#options', 'url' => '/api/timetable/of/options', 'verb' => 'GET'],
+        ['name' => 'timetableVisibility#policy', 'url' => '/api/timetable/visibility-policy', 'verb' => 'GET'],
+        // Standby hours (timetabling-standby-slots): who can cover a lesson,
+        // standby first, and the caller's own standby blocks. Checks in the body.
+        ['name' => 'standby#candidates', 'url' => '/api/substitution/candidates', 'verb' => 'GET'],
+        ['name' => 'standby#mine', 'url' => '/api/standby/mine', 'verb' => 'GET'],
+        // Teaching activities of a school year, derived from the hour plans
+        // (timetabling-multi-year-hour-plan). Staff groups only, checked in the body.
+        ['name' => 'hourPlan#activities', 'url' => '/api/hour-plans/activities', 'verb' => 'GET'],
+        // Room use report and its opening hours (timetabling-room-utilisation).
+        // Staff groups only, checked in the body.
+        ['name' => 'roomUtilisation#report', 'url' => '/api/reports/room-use', 'verb' => 'GET'],
+        ['name' => 'roomUtilisation#openingHours', 'url' => '/api/reports/room-use/opening-hours', 'verb' => 'GET'],
+        ['name' => 'roomUtilisation#saveOpeningHours', 'url' => '/api/reports/room-use/opening-hours', 'verb' => 'PUT'],
+        // One change on several weeks (timetabling-bulk-change-weeks): the lessons of a
+        // weekly slot, and a batch that runs each lesson through SessionChangeGuard as
+        // the caller. #[NoAdminRequired] + the timetable.bulk-change action in the body.
+        ['name' => 'sessionChangeBatch#series', 'url' => '/api/sessions/{id}/series', 'verb' => 'GET', 'requirements' => ['id' => '[^/]+']],
+        ['name' => 'sessionChangeBatch#create', 'url' => '/api/session-change-batches', 'verb' => 'POST'],
+        // Hall screens (timetabling-display-screens): staff create, renew and revoke a
+        // screen's secret address (#[NoAdminRequired] + display-screen.manage in the body);
+        // the screen itself opens a #[PublicPage] page and its data with that token,
+        // brute-force protected, answering a pinned shape with no personal data.
+        ['name' => 'displayScreen#token', 'url' => '/api/display-screens/{id}/token', 'verb' => 'POST', 'requirements' => ['id' => '[^/]+']],
+        ['name' => 'displayScreen#revoke', 'url' => '/api/display-screens/{id}/revoke', 'verb' => 'POST', 'requirements' => ['id' => '[^/]+']],
+        ['name' => 'displayScreenPublic#data', 'url' => '/api/public/display/{token}', 'verb' => 'GET', 'requirements' => ['token' => '[^/]+']],
+        ['name' => 'displayScreenPublic#page', 'url' => '/display/{token}', 'verb' => 'GET', 'requirements' => ['token' => '[^/]+']],
+        // Optional lessons (timetabling-elective-lesson-signup): a learner's open offers,
+        // sign-up and withdrawal in the caller's own name (the learner is the session
+        // user, never a body value); the roster and placing behind elective.manage.
+        // Every write passes ElectiveSignUpRules. #[NoAdminRequired], checks in the body.
+        ['name' => 'elective#mine', 'url' => '/api/electives', 'verb' => 'GET'],
+        ['name' => 'elective#signUp', 'url' => '/api/electives/{offerId}/sign-up', 'verb' => 'POST', 'requirements' => ['offerId' => '[^/]+']],
+        ['name' => 'elective#roster', 'url' => '/api/electives/{offerId}/roster', 'verb' => 'GET', 'requirements' => ['offerId' => '[^/]+']],
+        ['name' => 'elective#place', 'url' => '/api/electives/{offerId}/place', 'verb' => 'POST', 'requirements' => ['offerId' => '[^/]+']],
+        // school-activities-staff-side: the staff side of portaliq's term-long activities, behind activity.manage.
+        ['name' => 'schoolActivity#index', 'url' => '/api/school-activities', 'verb' => 'GET'],
+        ['name' => 'schoolActivity#open', 'url' => '/api/school-activities/{id}/open', 'verb' => 'PUT', 'requirements' => ['id' => '[^/]+']],
+        ['name' => 'schoolActivity#roster', 'url' => '/api/school-activities/{id}/roster', 'verb' => 'GET', 'requirements' => ['id' => '[^/]+']],
+        ['name' => 'schoolActivity#attendance', 'url' => '/api/school-activities/{id}/attendance', 'verb' => 'PUT', 'requirements' => ['id' => '[^/]+']],
+        ['name' => 'elective#withdraw', 'url' => '/api/elective-sign-ups/{id}/withdraw', 'verb' => 'POST', 'requirements' => ['id' => '[^/]+']],
 
         // Peer review reviewer allocation — genuine batch-matching business logic
         // (peer-and-self-assessment), authorized by an explicit per-object check
@@ -153,6 +299,100 @@ return [
         // action matrix or a bare authenticated-user gate.
         // Controller: PeerReviewController (slug: peerReview).
         ['name' => 'peerReview#allocate', 'url' => '/api/peer-review/{assignmentId}/allocate', 'verb' => 'POST'],
+
+        // Self check-in (attendance-self-check-in): a learner of the lesson's
+        // group reads the check-in page and checks in with the code on the
+        // board (rules in CheckInService); staff read the current code
+        // (CheckInCodeController, slug: checkInCode).
+        // Controller: CheckInController (slug: checkIn).
+        ['name' => 'checkIn#mine', 'url' => '/api/check-in', 'verb' => 'GET'],
+        ['name' => 'checkIn#checkInWithCode', 'url' => '/api/check-in', 'verb' => 'POST'],
+        ['name' => 'checkIn#show', 'url' => '/api/check-in/{windowId}', 'verb' => 'GET'],
+        ['name' => 'checkIn#checkIn', 'url' => '/api/check-in/{windowId}', 'verb' => 'POST'],
+        ['name' => 'checkInCode#code', 'url' => '/api/check-in/{windowId}/code', 'verb' => 'GET'],
+        // Signing a learning plan or a work placement agreement: the server
+        // sets signer, time, version and tenant, and accepts only a role the
+        // signer holds (SigningService). Controller: SigningController (slug: signing).
+        ['name' => 'signing#roles', 'url' => '/api/sign/{subject}/{id}', 'verb' => 'GET', 'requirements' => ['subject' => 'learning-plan|placement-agreement', 'id' => '[^/]+']],
+        ['name' => 'signing#sign', 'url' => '/api/sign/{subject}/{id}', 'verb' => 'POST', 'requirements' => ['subject' => 'learning-plan|placement-agreement', 'id' => '[^/]+']],
+        // Requests made for a learner (subject choice, conference signup):
+        // create and submit in one call, the tenant and learner reference
+        // taken on the server, a refused submit leaves no draft.
+        // Controller: RequestSubmitController (slug: requestSubmit).
+        ['name' => 'requestSubmit#subjectChoice', 'url' => '/api/subject-choices', 'verb' => 'POST'],
+        ['name' => 'requestSubmit#conferenceSignup', 'url' => '/api/conference-signups', 'verb' => 'POST'],
+        // Enrol a group in a course (header action on the enrolments list);
+        // each enrolment is created as the caller, open ones are skipped.
+        // Controller: BulkEnrolController (slug: bulkEnrol).
+        ['name' => 'bulkEnrol#enrol', 'url' => '/api/enrolments/bulk', 'verb' => 'POST'],
+        // Portal check-in receiver (attendance-self-check-in, pattern of #1096
+        // and #1142): X-Portal-Subject assertion only, learnerRef from portaliq.
+        // Controller: PortalCheckInController (slug: portalCheckIn).
+        ['name' => 'portalCheckIn#checkIn', 'url' => '/api/portal/check-in', 'verb' => 'POST'],
+        // Roll-call (attendance-roll-call): the day's register of one group.
+        // A group teacher opens their own groups, coordinators and
+        // administration-managers every group; the server writes the records
+        // (rules in RollCallService). Controller: RollCallController (slug: rollCall).
+        ['name' => 'rollCall#show', 'url' => '/api/attendance/roll-call', 'verb' => 'GET'],
+        ['name' => 'rollCall#save', 'url' => '/api/attendance/roll-call', 'verb' => 'POST'],
+        // Work groups (enrolment-self-join-work-group): the signed-in learner
+        // sees the work groups of their classes and joins, moves or leaves
+        // while sign-up is open (rules in WorkGroupMembershipService).
+        // Controller: WorkGroupController (slug: workGroup).
+        ['name' => 'workGroup#mine', 'url' => '/api/my/work-groups', 'verb' => 'GET'],
+        ['name' => 'workGroup#join', 'url' => '/api/work-groups/{id}/join', 'verb' => 'POST'],
+        ['name' => 'workGroup#leave', 'url' => '/api/work-groups/{id}/leave', 'verb' => 'POST'],
+        // Portal work group receivers (pattern of #1096 and #1142): assertion
+        // only, learnerRef from portaliq. Controller: PortalWorkGroupController.
+        ['name' => 'portalWorkGroup#mine', 'url' => '/api/portal/work-groups', 'verb' => 'POST'],
+        ['name' => 'portalWorkGroup#join', 'url' => '/api/portal/work-groups/join', 'verb' => 'POST'],
+        ['name' => 'portalWorkGroup#leave', 'url' => '/api/portal/work-groups/leave', 'verb' => 'POST'],
+        // The staff page of one pupil (learner-list-and-page-follow-the-boards): header,
+        // today's state, the "Wat nu?" next step and the people around the pupil.
+        // Controller: PupilPageController (slug: pupilPage); access as the group's register.
+        ['name' => 'pupilPage#show', 'url' => '/api/pupils/{learnerId}/page', 'verb' => 'GET'],
+        // Course catalogue (enrolment-catalogue-self-signup): the signed-in
+        // learner lists what they may sign up for, signs up for a course or a
+        // programme, and withdraws an own sign-up; every write is for the
+        // caller only (rules in CatalogueSignUpService).
+        // Controller: CatalogueController (slug: catalogue).
+        ['name' => 'catalogue#index', 'url' => '/api/catalogue', 'verb' => 'GET'],
+        ['name' => 'catalogue#signUpCourse', 'url' => '/api/catalogue/courses/{id}/sign-up', 'verb' => 'POST'],
+        ['name' => 'catalogue#signUpProgramme', 'url' => '/api/catalogue/programmes/{id}/sign-up', 'verb' => 'POST'],
+        ['name' => 'catalogue#withdraw', 'url' => '/api/enrolments/{id}/withdraw', 'verb' => 'POST'],
+        // Programme progress of the signed-in learner (enrolment-programme-mandatory-per-person).
+        ['name' => 'programmeProgress#mine', 'url' => '/api/programmes/progress', 'verb' => 'GET'],
+        // Portal catalogue receivers (pattern of #1096 and #1142): assertion
+        // only, learnerRef from portaliq. Controller: PortalCatalogueController.
+        ['name' => 'portalCatalogue#catalogue', 'url' => '/api/portal/catalogue', 'verb' => 'POST'],
+        ['name' => 'portalCatalogue#signUp', 'url' => '/api/portal/catalogue/sign-up', 'verb' => 'POST'],
+        ['name' => 'portalCatalogue#withdraw', 'url' => '/api/portal/catalogue/withdraw', 'verb' => 'POST'],
+        // portal-guardian-invitation: the school invites a guardian to the parent portal.
+        ['name' => 'portalGuardian#invite', 'url' => '/api/portal/guardians/{guardianRef}/invite', 'verb' => 'POST'],
+        // employer-signs-in-with-eherkenning: the institute invites a client company's contact person.
+        ['name' => 'portalEmployerInvite#invite', 'url' => '/api/portal/employers/{organisationRef}/invite', 'verb' => 'POST'],
+        // Double marking (assignments-double-marking): the teacher in charge
+        // allocates markers to the handed-in submissions (instructors,
+        // compliance officers, team leads or admin, checked in the method), and
+        // a marker reads the other marks only after handing in their own.
+        // Controller: SubmissionMarkController (slug: submissionMark).
+        ['name' => 'submissionMark#allocate', 'url' => '/api/assignments/{assignmentId}/markers', 'verb' => 'POST'],
+        ['name' => 'submissionMark#marks', 'url' => '/api/submissions/{submissionId}/marks', 'verb' => 'GET'],
+
+        // Exam schedule (timetabling-exam-schedule): a sitting's accommodations and
+        // invigilator places, and who is available to invigilate it. Planner groups only.
+        ['name' => 'examSchedule#overview', 'url' => '/api/exam-sittings/{id}/overview', 'verb' => 'GET'],
+        ['name' => 'examSchedule#availableInvigilators', 'url' => '/api/exam-sittings/{id}/available-invigilators', 'verb' => 'GET'],
+
+        // Bulk reissue of a course's certificates (credentials-bulk-reissue):
+        // preview and queue a run; hr, compliance officers or admin, checked
+        // in the method. Controller: CredentialReissueController (slug: credentialReissue).
+        // Certificates taken over from the previous system (credentials-migrate-with-validity):
+        // dry run and commit, authorized by the `credential.migrate` action.
+        // Controller: CredentialMigrationController (slug: credentialMigration).
+        ['name' => 'credentialMigration#migrate', 'url' => '/api/credentials/migrate', 'verb' => 'POST'],
+        ['name' => 'credentialReissue#preview', 'url' => '/api/courses/{courseId}/credentials/reissue', 'verb' => 'GET'],
+        ['name' => 'credentialReissue#start', 'url' => '/api/courses/{courseId}/credentials/reissue', 'verb' => 'POST'],
 
         // Peer review work projection (peer-review-projection-guard): what a
         // reviewer sees of the work under review, built by the server. The
@@ -189,6 +429,16 @@ return [
         ['name' => 'actionMatrix#getMatrix', 'url' => '/api/admin/action-matrix', 'verb' => 'GET'],
         ['name' => 'actionMatrix#setMatrix', 'url' => '/api/admin/action-matrix', 'verb' => 'PUT'],
 
+        // Course registry connection (store-rights-for-teachers), admin-only via
+        // #[AuthorizedAdminSetting]; replaces the occ-only configuration.
+        ['name' => 'storeRegistrySettings#show',   'url' => '/api/admin/store-registry', 'verb' => 'GET'],
+        ['name' => 'storeRegistrySettings#update', 'url' => '/api/admin/store-registry', 'verb' => 'PUT'],
+        // timetable-connection-and-import-screen: the group code maps per rostering
+        // system and the SWV receiver, on the admin page. Controller:
+        // TimetableExchangeSettingsController (admin setting).
+        ['name' => 'timetableExchangeSettings#show',   'url' => '/api/admin/timetable-exchange', 'verb' => 'GET'],
+        ['name' => 'timetableExchangeSettings#update', 'url' => '/api/admin/timetable-exchange', 'verb' => 'PUT'],
+
         // Generic per-user preferences — AppHost GenericPreferencesController.
         ['name' => 'preferences#getPreference', 'url' => '/api/preferences/{key}', 'verb' => 'GET'],
         ['name' => 'preferences#setPreference', 'url' => '/api/preferences/{key}', 'verb' => 'PUT'],
@@ -218,6 +468,21 @@ return [
         // partner-approval status (privacy-governance-surfaces, P-new-6/
         // P-new-7). Controller: PrivacyGovernanceController (slug: privacyGovernance).
         ['name' => 'privacyGovernance#overview', 'url' => '/api/privacy-governance/overview', 'verb' => 'GET'],
+        // data-exchange-to-integriq: learniq's exchange gate decision for people (the
+        // in-process binding is ExchangeGateListener) and the export request screen,
+        // which asks integriq for a job through learniq.
+        ['name' => 'exchangeGate#show', 'url' => '/api/exchange-gates/{jobId}', 'verb' => 'GET'],
+        ['name' => 'exchangeRequest#create', 'url' => '/api/exchange/requests', 'verb' => 'POST'],
+        // Open learning material: the search panel and adding a result as a Material.
+        ['name' => 'openMaterial#panel', 'url' => '/api/open-material/panel', 'verb' => 'GET'],
+        ['name' => 'openMaterial#search', 'url' => '/api/open-material/search', 'verb' => 'GET'],
+        ['name' => 'openMaterial#record', 'url' => '/api/open-material/record', 'verb' => 'GET'],
+        ['name' => 'openMaterial#add', 'url' => '/api/open-material/materials', 'verb' => 'POST'],
+        // D10 + data-exchange-to-integriq: a timetable import is a delivery into planninq, asked
+        // through integriq's RosterImportRequestedEvent. Controller: TimetableImportController.
+        ['name' => 'timetableImport#create', 'url' => '/api/timetable/imports', 'verb' => 'POST'],
+        // Whether the caller may import (exchange.request) and planninq is there, for the button.
+        ['name' => 'timetableImport#access', 'url' => '/api/timetable/imports/access', 'verb' => 'GET'],
 
         // Raise a FeeItem's contributions in shillinq (payments-to-shillinq-migration,
         // D19; shillinq contract extracurricular-fee-to-shillinq v1). #[NoAdminRequired]
@@ -247,3 +512,24 @@ return [
         ['name' => 'page#catchAll', 'url' => '/{path}', 'verb' => 'GET', 'requirements' => ['path' => '.+'], 'defaults' => ['path' => '']],
     ],
 ];
+
+// The versioned API base (NL API Design Rules, /core/uri-version): every /api/ route
+// also answers under /api/v1/, the server URL the OpenAPI document names. The unversioned
+// route stays, so existing clients and the URLs the app generates keep working. Each
+// copy gets its own route name through 'postfix', and the copies go before the SPA
+// catch-all, which would otherwise answer /api/v1/ paths first.
+$versioned = [];
+foreach ($routes['routes'] as $route) {
+    if (str_starts_with($route['url'], '/api/') === false) {
+        continue;
+    }
+
+    $route['url']     = '/api/v1/'.substr($route['url'], strlen('/api/'));
+    $route['postfix'] = ($route['postfix'] ?? '').'V1';
+    $versioned[]      = $route;
+}
+
+$catchAll = array_search('page#catchAll', array_column($routes['routes'], 'name'), true);
+array_splice($routes['routes'], ($catchAll === false ? count($routes['routes']) : $catchAll), 0, $versioned);
+
+return $routes;

@@ -20,13 +20,16 @@
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * @link https://conduction.nl
+ *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCP\App\IAppManager;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -55,7 +58,7 @@ class DemoDataService {
 	 *
 	 * @var string
 	 */
-	public const CONFIG_APP_ID = Application::APP_ID . '.demo';
+	public const CONFIG_APP_ID = AppIdentity::APP_ID . '.demo';
 
 	/**
 	 * Constructor.
@@ -163,44 +166,22 @@ class DemoDataService {
 	 * @return integer|null The object count, or null when there is no usable descriptor.
 	 */
 	private function shippedObjectCount(): ?int {
-		$path = $this->descriptorPath();
-		if (is_file($path) === false) {
+		try {
+			return self::objectsIn(data: $this->descriptorData());
+		} catch (RuntimeException $exception) {
 			return null;
 		}
-
-		$raw = file_get_contents($path);
-		if ($raw === false) {
-			return null;
-		}
-
-		$data = json_decode($raw, true);
-		if (is_array($data) === false) {
-			return null;
-		}
-
-		$components = ($data['components'] ?? []);
-		if (is_array($components) === false || is_array(($components['objects'] ?? null)) === false) {
-			return 0;
-		}
-
-		return count($components['objects']);
 
 	}//end shippedObjectCount()
 
 	/**
-	 * Import the demo dataset.
+	 * The shipped descriptor, decoded.
 	 *
-	 * 🔴 THROWS RATHER THAN RETURNING A QUIET FAILURE. The caller reports the
-	 * outcome to an operator who just asked for this, so "nothing happened" must
-	 * not be presentable as success.
+	 * @return array<mixed>
 	 *
-	 * @return array{objects: integer, registers: integer, schemas: integer} What was imported.
-	 *
-	 * @throws RuntimeException When the descriptor is missing, unreadable, or OpenRegister is absent.
-	 *
-	 * @spec exclude Demo-data import; ADR-111 rule 1 has no per-app behavioural spec.
+	 * @throws RuntimeException When the descriptor is missing, unreadable or not JSON.
 	 */
-	public function install(): array {
+	private function descriptorData(): array {
 		$path = $this->descriptorPath();
 		if (is_file($path) === false) {
 			throw new RuntimeException('No demo dataset ships with this app (' . self::DESCRIPTOR . ' not found).');
@@ -216,39 +197,119 @@ class DemoDataService {
 			throw new RuntimeException('The demo dataset is not valid JSON: ' . $path);
 		}
 
-		// Counted from the FILE, not the importer's reply, so the number reported
-		// is the number ASKED FOR. An object whose schema does not resolve is
-		// SKIPPED rather than errored, so a discrepancy here is a real condition
-		// an operator should be able to see.
-		$objects = 0;
+		return $data;
+	}//end descriptorData()
+
+	/**
+	 * How many objects a decoded descriptor carries; 0 without a usable objects list.
+	 *
+	 * @param array<mixed> $data The decoded descriptor.
+	 *
+	 * @return integer
+	 */
+	private static function objectsIn(array $data): int {
 		$components = ($data['components'] ?? []);
-		if (is_array($components) === true && is_array(($components['objects'] ?? null)) === true) {
-			$objects = count($components['objects']);
+		if (is_array($components) === false || is_array(($components['objects'] ?? null)) === false) {
+			return 0;
 		}
 
-		$result = $this->configurationService()->importFromApp(
-			appId: self::CONFIG_APP_ID,
-			data: $data,
-			version: $this->appManager->getAppVersion(Application::APP_ID),
-			force: true
-		);
+		return count($components['objects']);
+	}//end objectsIn()
+
+	/**
+	 * Import the demo dataset.
+	 *
+	 * 🔴 THROWS RATHER THAN RETURNING A QUIET FAILURE. The caller reports the
+	 * outcome to an operator who just asked for this, so "nothing happened" must
+	 * not be presentable as success.
+	 *
+	 * @return array{objects: integer, skipped: integer, registers: integer, schemas: integer} What was imported.
+	 *
+	 * @throws RuntimeException When the descriptor is missing, unreadable, or OpenRegister is absent.
+	 *
+	 * @spec exclude Demo-data import; ADR-111 rule 1 has no per-app behavioural spec.
+	 */
+	public function install(): array {
+		$data = $this->descriptorData();
+
+		// Counted from the FILE, so the number reported is the number ASKED FOR.
+		// An object the importer cannot place is SKIPPED rather than errored, so
+		// the skips are read from its reply below and travel next to this count.
+		$objects = self::objectsIn(data: $data);
+		$result = $this->importDescriptor(data: $data);
 
 		$imported = [
 			'objects'   => $objects,
+			'skipped'   => $this->skippedIn(result: $result),
 			'registers' => count((array)($result['registers'] ?? [])),
 			'schemas'   => count((array)($result['schemas'] ?? [])),
 		];
 
-		$this->logger->info(
-			'[DemoDataService] imported demo data: '
-			. $imported['objects'] . ' object(s), '
-			. $imported['registers'] . ' register(s), '
-			. $imported['schemas'] . ' schema(s).',
-			['app' => Application::APP_ID]
-		);
+		$this->logImported(imported: $imported);
 
 		return $imported;
 	}//end install()
+
+	/**
+	 * Hand the descriptor to OpenRegister's importer under the demo configuration id, forced.
+	 *
+	 * @param array<mixed> $data The decoded descriptor.
+	 *
+	 * @return array<mixed> The importer's reply.
+	 *
+	 * @throws RuntimeException When OpenRegister is absent.
+	 */
+	private function importDescriptor(array $data): array {
+		return $this->configurationService()->importFromApp(
+			appId: self::CONFIG_APP_ID,
+			data: $data,
+			version: $this->appManager->getAppVersion(AppIdentity::APP_ID),
+			force: true
+		);
+	}//end importDescriptor()
+
+	/**
+	 * Log what the import asked for and what the importer reported.
+	 *
+	 * @param array{objects: integer, skipped: integer, registers: integer, schemas: integer} $imported The counts.
+	 *
+	 * @return void
+	 */
+	private function logImported(array $imported): void {
+		$this->logger->info(
+			'[DemoDataService] imported demo data: '
+			. $imported['objects'] . ' object(s) asked, '
+			. $imported['skipped'] . ' skipped, '
+			. $imported['registers'] . ' register(s), '
+			. $imported['schemas'] . ' schema(s).',
+			['app' => AppIdentity::APP_ID]
+		);
+	}//end logImported()
+
+	/**
+	 * How many objects an OpenRegister import reply says it skipped.
+	 *
+	 * 🔴 THE REPLY, NOT THE LOG. OpenRegister skips an object it cannot place
+	 * (an unresolved schema, a failed validation) and keeps going, so a reply
+	 * that counted only what was asked said "Imported 490" while 302 of them
+	 * never arrived. The importer counts every skip in `skipped.objects` (the
+	 * `components.objects` bucket) and `skipped.seedObjects` (the
+	 * `x-openregister.seedData` bucket), so both are read.
+	 *
+	 * @param array<string, mixed> $result The reply of ConfigurationService::importFromApp().
+	 *
+	 * @return integer The number of objects that did not arrive.
+	 *
+	 * @spec openspec/specs/example-sets/spec.md#requirement-loading-a-set-imports-exactly-its-descriptor
+	 */
+	public function skippedIn(array $result): int {
+		$skipped = ($result['skipped'] ?? []);
+		if (is_array($skipped) === false) {
+			return 0;
+		}
+
+		return (int)($skipped['objects'] ?? 0) + (int)($skipped['seedObjects'] ?? 0);
+	}//end skippedIn()
 
 	/**
 	 * Absolute path to the shipped descriptor.
@@ -256,7 +317,7 @@ class DemoDataService {
 	 * @return string The path.
 	 */
 	private function descriptorPath(): string {
-		return $this->appManager->getAppPath(Application::APP_ID) . self::DESCRIPTOR;
+		return $this->appManager->getAppPath(AppIdentity::APP_ID) . self::DESCRIPTOR;
 	}//end descriptorPath()
 
 	/**

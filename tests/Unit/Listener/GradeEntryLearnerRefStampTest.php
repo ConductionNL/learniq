@@ -16,14 +16,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/gradeentry-learnerref-stamp/specs/grading/spec.md#requirement-every-gradeentry-carries-a-server-stamped-learnerref
+ * @spec openspec/specs/grading/spec.md#requirement-every-gradeentry-carries-a-server-stamped-learnerref
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\IntegrityListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\IntegrityListenerRegistrar;
 use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;

@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-offertowallet-transition-pushes-an-issued-credential-to-the-eudi-wallet
+ * @spec openspec/specs/certification/spec.md#requirement-offertowallet-transition-pushes-an-issued-credential-to-the-eudi-wallet
  */
 
 declare(strict_types=1);
@@ -102,20 +102,17 @@ class WalletOfferDelegationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#scenario-pushing-an-issued-credential-to-the-wallet-records-the-offer
+	 * @spec openspec/specs/certification/spec.md#scenario-pushing-an-issued-credential-to-the-wallet-records-the-offer
 	 */
 	public function testHandledResponseRecordsOfferFields(): void {
 		$this->appConfig->method('getValueString')->willReturn('token-abc');
 
+		// The shape integriq's EudiWalletController::createOffer answers with.
+		$offerUri = 'https://openconnector.example/index.php/apps/openconnector/api/eudi/credential-offers/offer-uuid-1';
+		$offerUrl = 'openid-credential-offer://?credential_offer_uri=' . rawurlencode($offerUri);
 		$response = $this->createMock(IResponse::class);
 		$response->method('getBody')->willReturn(
-			json_encode(
-				[
-					'offerUrl' => 'openid-credential-offer://?credential_offer_uri=...',
-					'credentialOfferUri' => 'https://openconnector.example/index.php/apps/openconnector/api/eudi/credential-offers/offer-uuid-1',
-					'qrPayload' => 'openid-credential-offer://?credential_offer_uri=...',
-				]
-			)
+			json_encode(['offerUrl' => $offerUrl, 'credentialOfferUri' => $offerUri, 'qrPayload' => $offerUrl])
 		);
 
 		$capturedUrl = null;
@@ -150,6 +147,7 @@ class WalletOfferDelegationServiceTest extends TestCase {
 		self::assertSame('offer-uuid-1', $saved['walletAttestationRef']);
 		self::assertNotEmpty($saved['walletOfferedAt']);
 		self::assertNull($saved['walletOfferError']);
+		self::assertSame($offerUrl, $saved['walletOfferUri']);
 
 		// The app SEGMENT is resolved at call time — the target answers to
 		// `integriq` on development and `openconnector` on beta/main — so
@@ -197,8 +195,13 @@ class WalletOfferDelegationServiceTest extends TestCase {
 			'lifecycle' => 'issued',
 		];
 
-		$this->service()->offer(credential: $object);
+		$saved = $this->service()->offer(credential: $object);
 		self::assertSame('open-badges-3', $capturedOptions['json']['credentialConfigurationId']);
+		// Without `offerUrl` the wallet link is built from `credentialOfferUri`.
+		self::assertSame(
+			'openid-credential-offer://?credential_offer_uri=' . rawurlencode('https://openconnector.example/.../credential-offers/offer-uuid-2'),
+			$saved['walletOfferUri']
+		);
 	}//end testBadgeUsesOpenBadges3ConfigurationId()
 
 	/**
@@ -232,7 +235,7 @@ class WalletOfferDelegationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#scenario-openconnector-unreachable-blocks-the-offer-and-records-the-error
+	 * @spec openspec/specs/certification/spec.md#scenario-openconnector-unreachable-blocks-the-offer-and-records-the-error
 	 */
 	public function testMissingTokenFailsClosed(): void {
 		$this->appConfig->method('getValueString')->willReturn('');
@@ -258,7 +261,7 @@ class WalletOfferDelegationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#scenario-openconnector-unreachable-blocks-the-offer-and-records-the-error
+	 * @spec openspec/specs/certification/spec.md#scenario-openconnector-unreachable-blocks-the-offer-and-records-the-error
 	 */
 	public function testOpenConnectorUnreachableFailsClosed(): void {
 		$this->appConfig->method('getValueString')->willReturn('token-abc');
@@ -272,6 +275,7 @@ class WalletOfferDelegationServiceTest extends TestCase {
 			'kind' => 'diploma',
 			'learnerId' => 'learner-5',
 			'walletOfferStatus' => null,
+			'walletOfferUri' => 'openid-credential-offer://?credential_offer_uri=old',
 			'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:learniq:learner:learner-5']],
 			'lifecycle' => 'issued',
 		];
@@ -280,6 +284,7 @@ class WalletOfferDelegationServiceTest extends TestCase {
 
 		self::assertNull($saved['walletOfferStatus']);
 		self::assertNotEmpty($saved['walletOfferError']);
+		self::assertNull($saved['walletOfferUri']);
 	}//end testOpenConnectorUnreachableFailsClosed()
 
 	/**

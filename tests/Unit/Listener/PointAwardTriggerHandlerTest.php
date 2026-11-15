@@ -135,7 +135,7 @@ class PointAwardTriggerHandlerTest extends TestCase {
 		$timeFactory = $this->createMock(ITimeFactory::class);
 		$timeFactory->method('getDateTime')->willReturn($now);
 
-		return new PointAwardTriggerHandler($objectService, $evaluator, $timeFactory);
+		return new PointAwardTriggerHandler($objectService, $evaluator, $timeFactory, \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**

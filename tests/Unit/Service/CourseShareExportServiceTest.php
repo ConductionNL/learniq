@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lesson-sharing-consent-gate/tasks.md#task-2-share-export-service-consent-schema-and-record
+ * @spec openspec/changes/archive/2026-09-28-lesson-sharing-consent-gate/tasks.md#task-2-share-export-service-consent-schema-and-record
  */
 
 declare(strict_types=1);
@@ -33,6 +33,10 @@ use RuntimeException;
 
 /**
  * @covers \OCA\Learniq\Service\CourseShareExportService
+ * @uses   \OCA\Learniq\Exception\SharingBlockedException
+ * @uses   \OCA\Learniq\Service\CourseSharingGate
+ * @uses   \OCA\Learniq\Service\CourseSharePackageBuilder
+ * @uses   \OCA\Learniq\Support\TextValue
  */
 class CourseShareExportServiceTest extends TestCase {
 

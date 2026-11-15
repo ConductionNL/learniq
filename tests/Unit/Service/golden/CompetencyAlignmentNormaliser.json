@@ -1,0 +1,136 @@
+{
+    "normalise: not a list": [],
+    "normalise: null": [],
+    "normalise: empty": [],
+    "normalise: a scalar entry": [
+        {
+            "competencyId": "",
+            "depth": null
+        }
+    ],
+    "normalise: goal and depth": [
+        {
+            "competencyId": "g-1",
+            "depth": "basis"
+        }
+    ],
+    "normalise: no depth": [
+        {
+            "competencyId": "g-1",
+            "depth": null
+        }
+    ],
+    "normalise: blank depth": [
+        {
+            "competencyId": "g-1",
+            "depth": null
+        }
+    ],
+    "normalise: depth not text": [
+        {
+            "competencyId": "g-1",
+            "depth": null
+        }
+    ],
+    "normalise: goal not text": [
+        {
+            "competencyId": "",
+            "depth": "basis"
+        }
+    ],
+    "normalise: goal needs a trim": [
+        {
+            "competencyId": "g-1",
+            "depth": " basis "
+        }
+    ],
+    "normalise: several": [
+        {
+            "competencyId": "g-1",
+            "depth": "basis"
+        },
+        {
+            "competencyId": "",
+            "depth": null
+        },
+        {
+            "competencyId": "g-1",
+            "depth": null
+        }
+    ],
+    "problem: none": null,
+    "problem: fine": null,
+    "problem: blank goal": "A goal alignment points at a goal that does not exist. Pick an existing goal.",
+    "problem: unknown goal": "A goal alignment points at a goal that does not exist. Pick an existing goal.",
+    "problem: twice": "Goal K1 is aligned twice. Keep one alignment per goal.",
+    "problem: all-digit goal": null,
+    "problem: unknown depth": "Depth \"expert\" is not a level of the framework of goal K1. Use one of: basis, gevorderd, or leave it empty.",
+    "problem: depth on a goal without levels": "Depth \"basis\" is not a level of the framework of goal K2. Use one of: , or leave it empty.",
+    "effective: nothing": [],
+    "effective: alignments": [
+        {
+            "competencyId": "g-1",
+            "depth": "basis"
+        },
+        {
+            "competencyId": "g-2",
+            "depth": null
+        }
+    ],
+    "effective: only blank alignments fall back to the list": [
+        {
+            "competencyId": "g-1",
+            "depth": null
+        },
+        {
+            "competencyId": "g-2",
+            "depth": null
+        }
+    ],
+    "effective: flat list": [
+        {
+            "competencyId": "g-1",
+            "depth": null
+        },
+        {
+            "competencyId": "g-2",
+            "depth": null
+        }
+    ],
+    "effective: twice keeps the first": [
+        {
+            "competencyId": "g-1",
+            "depth": "basis"
+        }
+    ],
+    "effective: all-digit goal": [
+        {
+            "competencyId": "123",
+            "depth": null
+        }
+    ],
+    "effective: known depth": [
+        {
+            "competencyId": "g-1",
+            "depth": "basis"
+        }
+    ],
+    "effective: depth no longer known": [
+        {
+            "competencyId": "g-1",
+            "depth": null
+        }
+    ],
+    "effective: goal without known levels keeps its depth": [
+        {
+            "competencyId": "g-1",
+            "depth": "oud"
+        }
+    ],
+    "effective: no depth with known levels": [
+        {
+            "competencyId": "g-1",
+            "depth": null
+        }
+    ]
+}

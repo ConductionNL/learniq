@@ -32,7 +32,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-course-teacher-quality-scores-are-a-declared-aggregation-and-calculation-engine-not-a-timedjob
+ * @spec openspec/specs/course-evaluation/spec.md#requirement-course-teacher-quality-scores-are-a-declared-aggregation-and-calculation-engine-not-a-timedjob
  */
 
 declare(strict_types=1);
@@ -40,12 +40,13 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\CourseQualityScoreEvaluatorInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
  * Evaluates averageOverallScore/responseRate for a course/teacher/period scope.
  */
-class CourseQualityScoreEvaluator {
+class CourseQualityScoreEvaluator implements CourseQualityScoreEvaluatorInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const COURSE_EVALUATION_RESPONSE_SCHEMA = 'course-evaluation-response';
@@ -74,17 +75,13 @@ class CourseQualityScoreEvaluator {
 	 * @return array{responseCount: int, invitationCount: int, averageOverallScore: float|null,
 	 *               responseRate: float, lastRecomputedAt: string}
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-response-rate-reflects-invitations-not-just-responses
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-response-rate-reflects-invitations-not-just-responses
 	 */
 	public function evaluate(string $courseId, ?string $teacherId, string $academicYear, string $period): array {
-		$responses = $this->fetchSubmittedResponses(
-			courseId: $courseId,
-			teacherId: $teacherId,
-			academicYear: $academicYear,
-			period: $period
-		);
-		$invitations = $this->fetchInvitations(courseId: $courseId, academicYear: $academicYear, period: $period);
+		$scope = ['courseId' => $courseId, 'academicYear' => $academicYear, 'period' => $period];
+		$responses = $this->fetchSubmittedResponses(scope: $scope, teacherId: $teacherId);
+		$invitations = $this->fetchInvitations(scope: $scope);
 
 		$responseCount = count($responses);
 		$invitationCount = count($invitations);
@@ -105,25 +102,18 @@ class CourseQualityScoreEvaluator {
 	/**
 	 * Fetch every submitted CourseEvaluationResponse in scope.
 	 *
-	 * @param string $courseId Course UUID.
-	 * @param string|null $teacherId Teacher NC user id, or null.
-	 * @param string $academicYear Academic year.
-	 * @param string $period Period label.
+	 * @param array{courseId: string, academicYear: string, period: string} $scope     The course, academic year and period label.
+	 * @param string|null                                                    $teacherId Teacher NC user id, or null.
 	 *
 	 * @return array<int, array>
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
 	 */
-	private function fetchSubmittedResponses(
-		string $courseId,
-		?string $teacherId,
-		string $academicYear,
-		string $period,
-	): array {
+	private function fetchSubmittedResponses(array $scope, ?string $teacherId): array {
 		$filters = [
-			'courseId' => $courseId,
-			'academicYear' => $academicYear,
-			'period' => $period,
+			'courseId' => $scope['courseId'],
+			'academicYear' => $scope['academicYear'],
+			'period' => $scope['period'],
 			'lifecycle' => 'submitted',
 		];
 
@@ -156,23 +146,21 @@ class CourseQualityScoreEvaluator {
 	 * a teacher-specific denominator would need EvaluationInvitation to also
 	 * carry a teacherId, which the campaign does not scope invitations by).
 	 *
-	 * @param string $courseId Course UUID.
-	 * @param string $academicYear Academic year.
-	 * @param string $period Period label.
+	 * @param array{courseId: string, academicYear: string, period: string} $scope The course, academic year and period label.
 	 *
 	 * @return array<int, array>
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-response-rate-reflects-invitations-not-just-responses
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-response-rate-reflects-invitations-not-just-responses
 	 */
-	private function fetchInvitations(string $courseId, string $academicYear, string $period): array {
+	private function fetchInvitations(array $scope): array {
 		$results = $this->objectService->findAll(
 			[
 				'filters' => [
 					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::EVALUATION_INVITATION_SCHEMA,
-					'courseId' => $courseId,
-					'academicYear' => $academicYear,
-					'period' => $period,
+					'courseId' => $scope['courseId'],
+					'academicYear' => $scope['academicYear'],
+					'period' => $scope['period'],
 				],
 			]
 		);
@@ -214,7 +202,7 @@ class CourseQualityScoreEvaluator {
 	 *
 	 * @return float|null Null when no response carries a non-null overallScore.
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
 	 */
 	private function averageOverallScore(array $responses): ?float {
 		$sum = 0.0;
@@ -246,7 +234,7 @@ class CourseQualityScoreEvaluator {
 	 *
 	 * @return float
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-response-rate-reflects-invitations-not-just-responses
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-response-rate-reflects-invitations-not-just-responses
 	 */
 	private function responseRate(int $responseCount, int $invitationCount): float {
 		if ($invitationCount === 0) {

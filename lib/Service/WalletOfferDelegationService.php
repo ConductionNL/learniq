@@ -3,13 +3,16 @@
 /**
  * Learniq Wallet Offer Delegation Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the Credential schema's `offerToWallet` transition.
  * Pushes an issued Credential to the EUDI wallet by delegating to
  * openconnector's OpenID4VCI adapter (`eudi-wallet-credential-issuance`,
  * ConductionNL/openconnector) over REST.
  *
  * DEVIATION FROM THE ORIGINAL DESIGN — read before touching this file:
- * `openspec/changes/eudi-wallet-credential-push/proposal.md` and `tasks.md`
+ * `openspec/changes/archive/2026-07-13-eudi-wallet-credential-push/proposal.md` and `tasks.md`
  * specify an ADR-041 typed-event contract (`WalletOfferRequestedEvent`
  * dispatched via IEventDispatcher, consumed by an openconnector listener).
  * That mechanism does not exist and was never built: openconnector's merged
@@ -56,19 +59,18 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-offertowallet-transition-pushes-an-issued-credential-to-the-eudi-wallet
+ * @spec openspec/specs/certification/spec.md#requirement-offertowallet-transition-pushes-an-issued-credential-to-the-eudi-wallet
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\WalletOfferDelegationServiceInterface;
 use OCA\Learniq\Support\FleetAppId;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
@@ -89,7 +91,7 @@ use Throwable;
  * (missing config, HTTP error, malformed response) sets `walletOfferError`
  * and leaves no partial wallet-offer state.
  */
-class WalletOfferDelegationService implements LifecycleGuardInterface {
+class WalletOfferDelegationService implements LifecycleGuardInterface, WalletOfferDelegationServiceInterface {
 
 	/**
 	 * OpenConnector REST endpoint for app-facing, consumer-gated offer
@@ -114,6 +116,13 @@ class WalletOfferDelegationService implements LifecycleGuardInterface {
 	 * @var string
 	 */
 	private const OPENCONNECTOR_TOKEN_KEY = 'openconnector_api_token';
+
+	/**
+	 * The scheme of the link a wallet app opens (OpenID4VCI credential offer).
+	 *
+	 * @var string
+	 */
+	private const WALLET_SCHEME = 'openid-credential-offer://';
 
 	/**
 	 * Refusal when the Credential carries nothing to offer.
@@ -161,13 +170,13 @@ class WalletOfferDelegationService implements LifecycleGuardInterface {
 	 *
 	 * @param array<string,mixed> $object The Credential as it would be saved.
 	 * @param string $action The transition, `offerToWallet`.
-	 * @param string $userId The caller, or '' without a session.
+	 * @param string $userId The caller, or '' without a session (unused: this guard does not depend on who asks).
 	 *
 	 * @return GuardResult
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The interface fixes the signature.
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-offertowallet-transition-pushes-an-issued-credential-to-the-eudi-wallet
+	 * @spec openspec/specs/certification/spec.md#requirement-offertowallet-transition-pushes-an-issued-credential-to-the-eudi-wallet
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		if ($this->buildOfferRequest(credential: $object) === null) {
@@ -180,18 +189,21 @@ class WalletOfferDelegationService implements LifecycleGuardInterface {
 	/**
 	 * Push the Credential to the EUDI wallet through openconnector.
 	 *
-	 * On success sets `walletOfferStatus=offered`, `walletOfferedAt` and
-	 * `walletAttestationRef` and clears `walletOfferError`. On any failure sets
-	 * `walletOfferError` and leaves the offer fields as they were, so a failed
-	 * offer is recorded rather than lost. Never throws.
+	 * On success sets `walletOfferStatus=offered`, `walletOfferedAt`,
+	 * `walletAttestationRef` and `walletOfferUri` (the link a wallet app opens)
+	 * and clears `walletOfferError`. On any failure sets `walletOfferError`,
+	 * clears `walletOfferUri` and leaves the other offer fields as they were,
+	 * so a failed offer is recorded rather than lost. Never throws.
 	 *
 	 * @param array<string,mixed> $credential The Credential data array.
 	 *
 	 * @return array<string,mixed> The Credential with the offer outcome applied.
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-offertowallet-transition-pushes-an-issued-credential-to-the-eudi-wallet
+	 * @spec openspec/specs/certification/spec.md#requirement-offertowallet-transition-pushes-an-issued-credential-to-the-eudi-wallet
+	 * @spec openspec/changes/credential-wallet-offer-for-the-learner/specs/certification/spec.md#requirement-the-credential-keeps-the-wallet-offer-link-while-the-offer-is-open
 	 */
 	public function offer(array $credential): array {
+		$credential['walletOfferUri'] = null;
 		$requestBody = $this->buildOfferRequest(credential: $credential);
 		if ($requestBody === null) {
 			$credential['walletOfferError'] = self::NO_PAYLOAD;
@@ -216,6 +228,7 @@ class WalletOfferDelegationService implements LifecycleGuardInterface {
 		$credential['walletOfferStatus'] = 'offered';
 		$credential['walletOfferedAt'] = gmdate('c');
 		$credential['walletAttestationRef'] = $attestationRef;
+		$credential['walletOfferUri'] = $this->walletLink(response: $result);
 		$credential['walletOfferError'] = null;
 
 		$this->logger->info(
@@ -310,6 +323,24 @@ class WalletOfferDelegationService implements LifecycleGuardInterface {
 	}//end extractOfferUuid()
 
 	/**
+	 * The link a wallet app opens to collect the offer: integriq's `offerUrl`
+	 * (`openid-credential-offer://?credential_offer_uri=...`, the same value
+	 * as `qrPayload`), else that link built from `credentialOfferUri`.
+	 *
+	 * @param array<string,mixed> $response The decoded `createOffer` response body.
+	 *
+	 * @return string
+	 */
+	private function walletLink(array $response): string {
+		$offerUrl = ($response['offerUrl'] ?? null);
+		if (is_string($offerUrl) === true && str_starts_with($offerUrl, self::WALLET_SCHEME) === true) {
+			return $offerUrl;
+		}
+
+		return self::WALLET_SCHEME . '?credential_offer_uri=' . rawurlencode((string)$response['credentialOfferUri']);
+	}//end walletLink()
+
+	/**
 	 * Call openconnector's app-facing, consumer-gated offer-creation
 	 * endpoint.
 	 *
@@ -378,7 +409,7 @@ class WalletOfferDelegationService implements LifecycleGuardInterface {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adopt-connection-registry/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
+	 * @spec openspec/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
 	 */
 	private function observeConnection(string $status, string $reason): void {
 		$this->connectionReports?->observe(key: ConnectionReportService::WALLET_KEY, status: $status, reason: $reason);

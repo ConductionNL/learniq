@@ -5,7 +5,7 @@ draft: true
 
 # Use Cases
 
-This section is under construction. Real-world use cases for Scholiq are being authored in Codeberg issue #73 (pre-migration, not migrated to GitHub).
+This section is under construction. Real-world use cases for Learniq are being authored in Codeberg issue #73 (pre-migration, not migrated to GitHub).
 
 Planned use cases include:
 

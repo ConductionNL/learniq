@@ -3,6 +3,9 @@
 /**
  * Learniq BSA Progress Flag Handler
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Listens for OpenRegister's ObjectTransitionedEvent on the same GradeEntry
  * `-> published` transition GradeRollupHandler already reacts to (a learner's
  * cumulative earned credits can only change when a GradeEntry publishes and
@@ -32,13 +35,11 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+ * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
  */
 
 declare(strict_types=1);
@@ -46,9 +47,10 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\BsaProgressEvaluatorInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Service\BsaProgressEvaluator;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -79,15 +81,17 @@ class BsaProgressFlagHandler implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object access.
-	 * @param BsaProgressEvaluator $evaluator ectsEarned calculation engine.
+	 * @param BsaProgressEvaluatorInterface $evaluator ectsEarned calculation engine.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly BsaProgressEvaluator $evaluator,
+		private readonly BsaProgressEvaluatorInterface $evaluator,
 		private readonly ITimeFactory $timeFactory,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -98,22 +102,40 @@ class BsaProgressFlagHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
 	 */
 	public function handle(Event $event): void {
-		if (($event instanceof ObjectTransitionedEvent) === false) {
+		if (($event instanceof ObjectTransitionedEvent) === false || $this->isPublishedGradeEntry(event: $event) === false) {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
-			return;
+		$this->checkEntry(entry: $event->getObject()->jsonSerialize());
+
+	}//end handle()
+
+	/**
+	 * Whether the transition publishes a learniq GradeEntry.
+	 *
+	 * @param ObjectTransitionedEvent $event The transition.
+	 *
+	 * @return bool
+	 */
+	private function isPublishedGradeEntry(ObjectTransitionedEvent $event): bool {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
+			return false;
 		}
 
-		if ($event->getSchema() !== self::GRADE_ENTRY_SCHEMA || $event->getTo() !== 'published') {
-			return;
-		}
+		return $this->schemas->eventSchema(event: $event) === self::GRADE_ENTRY_SCHEMA && $event->getTo() === 'published';
+	}//end isPublishedGradeEntry()
 
-		$entry = $event->getObject()->jsonSerialize();
+	/**
+	 * Check the learner of a published GradeEntry against every Programme of its Course.
+	 *
+	 * @param array<string,mixed> $entry The GradeEntry.
+	 *
+	 * @return void
+	 */
+	private function checkEntry(array $entry): void {
 		$learnerId = $entry['learnerId'] ?? '';
 		$courseId = $entry['courseId'] ?? null;
 		$tenantId = $entry['tenant_id'] ?? '';
@@ -124,13 +146,10 @@ class BsaProgressFlagHandler implements IEventListener {
 			return;
 		}
 
-		$programmeIds = $this->resolveProgrammeIds(courseId: $courseId);
-
-		foreach ($programmeIds as $programmeId) {
+		foreach ($this->resolveProgrammeIds(courseId: $courseId) as $programmeId) {
 			$this->checkProgramme(programmeId: $programmeId, learnerId: $learnerId, tenantId: $tenantId);
 		}
-
-	}//end handle()
+	}//end checkEntry()
 
 	/**
 	 * Resolve the Programme(s) a Course belongs to.
@@ -173,7 +192,7 @@ class BsaProgressFlagHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
 	 */
 	private function checkProgramme(string $programmeId, string $learnerId, string $tenantId): void {
 		$trajectories = $this->objectService->findAll(
@@ -206,7 +225,7 @@ class BsaProgressFlagHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
 	 */
 	private function checkTrajectory(array $trajectory, string $learnerId, string $tenantId): void {
 		$interimNormEcts = $trajectory['interimNormEcts'] ?? null;
@@ -274,7 +293,7 @@ class BsaProgressFlagHandler implements IEventListener {
 	 *
 	 * @return bool True when the window has opened and the check may proceed.
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
 	 */
 	private function windowHasOpened(array $trajectory, DateTimeImmutable $now): bool {
 		$windowOpensAt = $trajectory['windowOpensAt'] ?? null;
@@ -300,7 +319,7 @@ class BsaProgressFlagHandler implements IEventListener {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
 	 */
 	private function hasOpenFlag(string $learnerId, string $bsaTrajectoryId): bool {
 		foreach (self::OPEN_FLAG_STATES as $state) {

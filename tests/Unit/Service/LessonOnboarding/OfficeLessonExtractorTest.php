@@ -14,14 +14,16 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-confirmed-word-file-becomes-one-lesson-draft
+ * @spec openspec/specs/course-management/spec.md#requirement-a-confirmed-word-file-becomes-one-lesson-draft
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\LessonOnboarding;
 
+use OCA\Learniq\Service\LessonOnboarding\DocumentLessonReader;
 use OCA\Learniq\Service\LessonOnboarding\DocxLessonReader;
+use OCA\Learniq\Service\LessonOnboarding\LessonFileReaders;
 use OCA\Learniq\Service\LessonOnboarding\OfficeLessonExtractor;
 use OCA\Learniq\Service\LessonOnboarding\PresentationLessonReader;
 use OCP\Files\File;
@@ -87,8 +89,11 @@ class OfficeLessonExtractorTest extends TestCase {
 		$container = $this->createMock(ContainerInterface::class);
 		$container->method('get')->willReturn(new FakeWordExtractor());
 		return new OfficeLessonExtractor(
-			docxReader: $this->docx,
-			presentationReader: $this->presentation,
+			readers: new LessonFileReaders(
+				docx: $this->docx,
+				presentation: $this->presentation,
+				document: new DocumentLessonReader(container: $container, logger: $this->createMock(LoggerInterface::class), extractorClass: 'OCA\\OpenRegister\\NoSuchDocumentExtractor'),
+			),
 			container: $container,
 			logger: $this->createMock(LoggerInterface::class),
 			wordExtractorClass: $wordClass

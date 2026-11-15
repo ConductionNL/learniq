@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
+ * @spec openspec/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
  */
 
 declare(strict_types=1);
@@ -33,9 +33,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use InvalidArgumentException;
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\LessonOnboarding\LessonOnboardingImporter;
-use OCA\Learniq\Service\LessonOnboarding\OnboardingFolderSetting;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\LessonOnboardingImporterInterface;
+use OCA\Learniq\Kernel\Contracts\OnboardingFolderSettingInterface;
 use OCA\Learniq\Service\LessonOnboarding\OnboardingImportException;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -56,18 +56,18 @@ class LessonOnboardingController extends Controller {
 	 *
 	 * @param IRequest $request The request.
 	 * @param IUserSession $userSession The signed-in user.
-	 * @param OnboardingFolderSetting $folderSetting The per-teacher folder.
-	 * @param LessonOnboardingImporter $importer Turns a confirmed file into a lesson draft.
+	 * @param OnboardingFolderSettingInterface $folderSetting The per-teacher folder.
+	 * @param LessonOnboardingImporterInterface $importer Turns a confirmed file into a lesson draft.
 	 * @param LoggerInterface $logger Logs an unexpected failure.
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
-		private readonly OnboardingFolderSetting $folderSetting,
-		private readonly LessonOnboardingImporter $importer,
+		private readonly OnboardingFolderSettingInterface $folderSetting,
+		private readonly LessonOnboardingImporterInterface $importer,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -75,7 +75,7 @@ class LessonOnboardingController extends Controller {
 	 *
 	 * @return JSONResponse `{folderId, path}`, nulls when none is set.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-teacher-picks-a-folder
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-teacher-picks-a-folder
 	 */
 	#[NoAdminRequired]
 	public function folder(): JSONResponse {
@@ -94,7 +94,7 @@ class LessonOnboardingController extends Controller {
 	 *
 	 * @return JSONResponse The stored folder, or 400 when the path is not a folder.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-file-is-not-a-folder
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-file-is-not-a-folder
 	 */
 	#[NoAdminRequired]
 	public function setFolder(string $path = ''): JSONResponse {
@@ -118,7 +118,7 @@ class LessonOnboardingController extends Controller {
 	 *
 	 * @return JSONResponse The created draft's summary, or the refusal.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-another-teacher-s-row-cannot-be-imported
+	 * @spec openspec/specs/course-management/spec.md#scenario-another-teacher-s-row-cannot-be-imported
 	 */
 	#[NoAdminRequired]
 	public function import(string $id, string $courseId = ''): JSONResponse {

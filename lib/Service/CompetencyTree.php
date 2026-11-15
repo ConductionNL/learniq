@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/competency-year-scope/specs/competency/spec.md#requirement-readers-resolve-an-empty-year-or-subject-from-the-nearest-ancestor
+ * @spec openspec/specs/competency/spec.md#requirement-readers-resolve-an-empty-year-or-subject-from-the-nearest-ancestor
  */
 
 declare(strict_types=1);
@@ -37,7 +37,7 @@ namespace OCA\Learniq\Service;
  * The tree is an array with `nodes` (id => goal row), `children`
  * (id => child ids in sibling order) and `roots` (ids in sibling order).
  *
- * @spec openspec/changes/competency-year-scope/specs/competency/spec.md#requirement-readers-resolve-an-empty-year-or-subject-from-the-nearest-ancestor
+ * @spec openspec/specs/competency/spec.md#requirement-readers-resolve-an-empty-year-or-subject-from-the-nearest-ancestor
  */
 class CompetencyTree {
 
@@ -53,7 +53,7 @@ class CompetencyTree {
 	 *
 	 * @return array<string, mixed> The tree (`nodes`, `children`, `roots`).
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-counts-leaf-goals-planned-and-assessed-separately
+	 * @spec openspec/specs/competency/spec.md#requirement-coverage-counts-leaf-goals-planned-and-assessed-separately
 	 */
 	public function build(array $goals): array {
 		$nodes = [];
@@ -88,7 +88,7 @@ class CompetencyTree {
 	 *
 	 * @return array<int, string>
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-counts-leaf-goals-planned-and-assessed-separately
+	 * @spec openspec/specs/competency/spec.md#requirement-coverage-counts-leaf-goals-planned-and-assessed-separately
 	 */
 	public function leaves(array $tree): array {
 		$leaves  = [];
@@ -123,7 +123,7 @@ class CompetencyTree {
 	 *
 	 * @return array<int, string> Empty when the goal applies to every year.
 	 *
-	 * @spec openspec/changes/competency-year-scope/specs/competency/spec.md#requirement-readers-resolve-an-empty-year-or-subject-from-the-nearest-ancestor
+	 * @spec openspec/specs/competency/spec.md#requirement-readers-resolve-an-empty-year-or-subject-from-the-nearest-ancestor
 	 */
 	public function effectiveYears(array $tree, string $goalId): array {
 		foreach ($this->lineage(tree: $tree, goalId: $goalId) as $node) {
@@ -145,7 +145,7 @@ class CompetencyTree {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/competency-year-scope/specs/competency/spec.md#requirement-readers-resolve-an-empty-year-or-subject-from-the-nearest-ancestor
+	 * @spec openspec/specs/competency/spec.md#requirement-readers-resolve-an-empty-year-or-subject-from-the-nearest-ancestor
 	 */
 	public function effectiveSubject(array $tree, string $goalId): ?string {
 		foreach ($this->lineage(tree: $tree, goalId: $goalId) as $node) {
@@ -165,7 +165,7 @@ class CompetencyTree {
 	 *
 	 * @return string '' for anything that is not a usable label.
 	 *
-	 * @spec openspec/changes/competency-year-scope/specs/competency/spec.md#requirement-readers-resolve-an-empty-year-or-subject-from-the-nearest-ancestor
+	 * @spec openspec/specs/competency/spec.md#requirement-readers-resolve-an-empty-year-or-subject-from-the-nearest-ancestor
 	 */
 	public function canonicalYear(mixed $label): string {
 		if (is_string($label) === false) {
@@ -182,7 +182,7 @@ class CompetencyTree {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-counts-leaf-goals-planned-and-assessed-separately
+	 * @spec openspec/specs/competency/spec.md#requirement-coverage-counts-leaf-goals-planned-and-assessed-separately
 	 */
 	public function isActive(array $row): bool {
 		return in_array(needle: ($row['lifecycle'] ?? null), haystack: self::INACTIVE_STATES, strict: true) === false;

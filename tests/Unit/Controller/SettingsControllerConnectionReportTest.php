@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/adopt-connection-registry/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
+ * @spec openspec/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
  *
  * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
  * SPDX-License-Identifier: EUPL-1.2
@@ -30,6 +30,7 @@ use OCA\Learniq\AppInfo\Registrar\ServiceOverrideRegistrar;
 use OCA\Learniq\Controller\SettingsController;
 use OCA\Learniq\Service\ConnectionReportService;
 use OCA\Learniq\Service\SettingsService;
+use OCA\Learniq\Tests\Support\ContractImplementations;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\IRequest;
 use PHPUnit\Framework\TestCase;
@@ -128,7 +129,7 @@ class SettingsControllerConnectionReportTest extends TestCase {
 			ConnectionReportService::class => $reporter,
 		];
 		$container = $this->createMock(originalClassName: ContainerInterface::class);
-		$container->method('get')->willReturnCallback(static fn (string $id): object => $bindings[$id]);
+		$container->method('get')->willReturnCallback(static fn (string $id): object => $bindings[ContractImplementations::concrete($id)]);
 
 		$controller = $factories[SettingsController::class]($container);
 

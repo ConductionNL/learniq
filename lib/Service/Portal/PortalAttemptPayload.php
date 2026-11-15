@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+ * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
  */
 
 declare(strict_types=1);
@@ -35,7 +35,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Task lines and the start payload.
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+ * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
  */
 class PortalAttemptPayload {
 
@@ -68,7 +68,7 @@ class PortalAttemptPayload {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function task(array $exam, float $extra, ?string $attemptId): array {
 		$state = 'available';
@@ -99,7 +99,7 @@ class PortalAttemptPayload {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function attempt(array $exam, array $attempt, float $extra, DateTimeImmutable $now): array {
 		$deadline = $this->clock->deadline(attempt: $attempt, exam: $exam, extraPercentage: $extra);

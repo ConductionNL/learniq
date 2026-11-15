@@ -2,6 +2,9 @@
 /**
  * Learniq SeedProfileService.
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lists the example sets shipped under `lib/Settings/profiles/*.json` and
  * imports the one an operator picked in the setup wizard. One set per kind of
  * organisation (decision D21): primary school, secondary school, MBO, HBO/WO,
@@ -10,7 +13,7 @@
  * Mirrors decidiq's SeedProfileService (openspec/changes/seed-profiles there):
  * the same method names, the same `none` answer, the same file-read id
  * resolution, the same `appId.profile.<id>` config id. The descriptor contract
- * is written down in openspec/changes/segment-wizard-choice/contract.md and
+ * is written down in openspec/changes/archive/2026-09-28-segment-wizard-choice/contract.md and
  * enforced by tests/Unit/Settings/ExampleSetDescriptorContractTest.php.
  *
  * 🔴 A PROFILE NEVER DECLARES `components.registers`, AND THAT IS LOAD-BEARING.
@@ -30,15 +33,15 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
-use OCP\App\IAppManager;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\SeedProfileServiceInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
@@ -46,9 +49,9 @@ use RuntimeException;
 /**
  * Lists the example sets this app ships and imports the one an operator picked.
  *
- * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
  */
-class SeedProfileService {
+class SeedProfileService implements SeedProfileServiceInterface {
 	/**
 	 * App-relative directory holding the example-set descriptors.
 	 *
@@ -62,42 +65,20 @@ class SeedProfileService {
 	private const PROFILE_DIR = '/lib/Settings/profiles';
 
 	/**
-	 * The one set that is not a file: the ADR-111 generated dataset.
-	 *
-	 * Learniq has stored this id as `demo` since the wizard first offered a
-	 * dataset (decidiq calls it `generated`); keeping it means an existing
-	 * answer, the CI seed and every runbook still name a real set.
-	 *
-	 * @var string
-	 */
-	public const GENERATED_PROFILE = DemoDataService::DEMO_DATASET;
-
-	/**
-	 * The answer that means "plant nothing".
-	 *
-	 * 🔴 NOT THE ABSENCE OF AN ANSWER. An operator who declines has FINISHED the
-	 * step; a step that can never be marked done reopens the wizard over every
-	 * page (nextcloud-vue#806).
-	 *
-	 * @var string
-	 */
-	public const NONE_PROFILE = DemoDataService::NONE_DATASET;
-
-	/**
 	 * Constructor.
 	 *
-	 * @param IAppManager        $appManager Resolves this app's path and version.
-	 * @param ContainerInterface $container  Resolves OpenRegister's importer.
-	 * @param LoggerInterface    $logger     Records what was imported or skipped.
-	 * @param DemoDataService    $demoData   Lists and imports the generated set.
+	 * @param ExampleSetSources     $sources     The app manager, the generated set and the loaded sets record.
+	 * @param ExampleSetPreparation $preparation The shared code filter, dates, organisation stamp and portal provisioner.
+	 * @param ContainerInterface    $container   Resolves OpenRegister's importer.
+	 * @param LoggerInterface       $logger      Records what was imported or skipped.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly IAppManager $appManager,
+		private readonly ExampleSetSources $sources,
+		private readonly ExampleSetPreparation $preparation,
 		private readonly ContainerInterface $container,
 		private readonly LoggerInterface $logger,
-		private readonly DemoDataService $demoData,
 	) {
 	}//end __construct()
 
@@ -110,9 +91,18 @@ class SeedProfileService {
 	 *
 	 * @return array<int, array{id: string, label: string, description: string, objectCount: int, icon: string}> The sets.
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-the-wizard-lists-the-shipped-sets-next-to-the-generated-one
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-the-shipped-sets-next-to-the-generated-one
 	 */
 	public function listProfiles(): array {
+		return array_merge((new SeedProfileCards())->cardsOf(profiles: $this->shippedProfiles()), $this->generatedChoices());
+	}//end listProfiles()
+
+	/**
+	 * The profile block of every shipped descriptor that has one, in wizard order.
+	 *
+	 * @return array<int, array{id: string, segment: string, label: string, description: string, order: int, objectCount: int, icon: string}>
+	 */
+	private function shippedProfiles(): array {
 		$profiles = [];
 		foreach ($this->descriptorFiles() as $file) {
 			$meta = $this->readProfileMeta(path: $file);
@@ -123,20 +113,24 @@ class SeedProfileService {
 
 		usort($profiles, static fn (array $a, array $b): int => ($a['order'] <=> $b['order']));
 
-		$listed = [];
-		foreach ($profiles as $profile) {
-			unset($profile['order'], $profile['segment']);
-			$listed[] = $profile;
-		}
+		return $profiles;
+	}//end shippedProfiles()
 
-		foreach ($this->demoData->listChoices() as $choice) {
+	/**
+	 * The generated set's card, when the demo data offers it.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function generatedChoices(): array {
+		$generated = [];
+		foreach ($this->sources->demoData->listChoices() as $choice) {
 			if (($choice['id'] ?? null) === self::GENERATED_PROFILE) {
-				$listed[] = $choice;
+				$generated[] = $choice;
 			}
 		}
 
-		return $listed;
-	}//end listProfiles()
+		return $generated;
+	}//end generatedChoices()
 
 	/**
 	 * Every answer the wizard may offer, declining included.
@@ -147,7 +141,7 @@ class SeedProfileService {
 	 *
 	 * @return array<int, array{id: string, label: string, description: string, objectCount: int, icon: string}> The answers.
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-the-wizard-lists-the-shipped-sets-next-to-the-generated-one
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-the-shipped-sets-next-to-the-generated-one
 	 */
 	public function listChoices(): array {
 		$choices = [
@@ -170,11 +164,11 @@ class SeedProfileService {
 	 *
 	 * @return bool True when the id is importable.
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-loading-a-set-imports-exactly-its-descriptor
+	 * @spec openspec/specs/example-sets/spec.md#requirement-loading-a-set-imports-exactly-its-descriptor
 	 */
 	public function isKnown(string $profileId): bool {
 		if ($profileId === self::GENERATED_PROFILE) {
-			return $this->demoData->isAvailable();
+			return $this->sources->demoData->isAvailable();
 		}
 
 		return $this->pathFor(profileId: $profileId) !== null;
@@ -192,17 +186,22 @@ class SeedProfileService {
 	 *
 	 * @param string $profileId The set to import.
 	 *
-	 * @return array{objects: int, profile: string} What was imported.
+	 * @return array{objects: int, skipped: int, profile: string, portal?: array{status: string, slug?: string, theme?: string}} What was imported.
 	 *
-	 * @throws RuntimeException When the id is unknown or OpenRegister is absent.
+	 * @throws RuntimeException When the id is unknown, OpenRegister is absent, no default
+	 *                          organisation resolves, or a row could not be given it.
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-loading-a-set-imports-exactly-its-descriptor
+	 * @spec openspec/specs/example-sets/spec.md#requirement-loading-a-set-imports-exactly-its-descriptor
+	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
+	 * @spec openspec/specs/example-sets/spec.md#requirement-example-set-rows-carry-the-instances-organisation
 	 */
 	public function install(string $profileId): array {
 		if ($profileId === self::GENERATED_PROFILE) {
-			$imported = $this->demoData->install();
+			$imported = $this->sources->demoData->install();
+			$this->sources->loadedSets->recordFromChoices(setId: $profileId, choices: $this->sources->demoData->listChoices());
 			return [
 				'objects' => (int)($imported['objects'] ?? 0),
+				'skipped' => (int)($imported['skipped'] ?? 0),
 				'profile' => $profileId,
 			];
 		}
@@ -210,21 +209,48 @@ class SeedProfileService {
 		$data    = $this->descriptorFor(profileId: $profileId);
 		$objects = count($this->objectsOf(data: $data));
 
-		$this->configurationService()->importFromApp(
+		// Resolved before anything is written, so a load never leaves rows without one.
+		$importer     = $this->configurationService();
+		$organisation = $this->preparation->organisation->resolve();
+
+		// Every date moves to the week of this load (demo-dates-follow-the-load-week);
+		// what exists from a load in another week moves first, because the seed
+		// import skips an object that exists. A load in the same week moves nothing.
+		$dated = $this->preparation->dates->prepare(setId: $profileId, data: $data, objects: $this->objectsOf(data: $data));
+
+		$data = $dated['data'];
+
+		// A second set that ships a regulation code the first one already
+		// created leaves its own row out, so the code stays one row (VCA and
+		// NIS2 in the company and training sets).
+		$result = $importer->importFromApp(
 			appId: $this->importAppId(profileId: $profileId),
-			data: $data,
-			version: $this->appManager->getAppVersion(Application::APP_ID),
+			data: $this->preparation->sharedCodes->withoutCodesHeldElsewhere(data: $data),
+			version: $this->sources->appManager->getAppVersion(AppIdentity::APP_ID),
 			force: true
 		);
 
+		// The seed import writes rows without an organisation; each gets the
+		// instance's, which also fixes rows an earlier load left without one.
+		$this->preparation->organisation->stamp(objects: $this->objectsOf(data: $data), organisation: $organisation);
+
+		$this->sources->loadedSets->recordFromChoices(setId: $profileId, choices: [$data['x-openregister']['profile']]);
+
+		// The school's portal, themed with the matching thematiq example set.
+		// A no-op without portaliq, and it never throws, so the set itself
+		// stays imported whatever the portal answers.
+		$portal = $this->preparation->examplePortals->provision(profileId: $profileId, days: $dated['offset'], previous: $dated['previous']);
+
 		$this->logger->info(
 			'[SeedProfileService] imported example set "' . $profileId . '": ' . $objects . ' object(s).',
-			['app' => Application::APP_ID]
+			['app' => AppIdentity::APP_ID]
 		);
 
 		return [
 			'objects' => $objects,
+			'skipped' => $this->sources->demoData->skippedIn(result: (array)$result),
 			'profile' => $profileId,
+			'portal'  => $portal,
 		];
 	}//end install()
 
@@ -236,14 +262,14 @@ class SeedProfileService {
 	 *
 	 * @return string `learniq.profile.<id>`, or `learniq.demo` for the generated set.
 	 *
-	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#requirement-the-wizard-removes-a-loaded-example-set-through-openregisters-import-jobs
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-removes-a-loaded-example-set-through-openregisters-import-jobs
 	 */
 	public function importAppId(string $profileId): string {
 		if ($profileId === self::GENERATED_PROFILE) {
 			return DemoDataService::CONFIG_APP_ID;
 		}
 
-		return Application::APP_ID . '.profile.' . $profileId;
+		return AppIdentity::APP_ID . '.profile.' . $profileId;
 	}//end importAppId()
 
 	/**
@@ -264,7 +290,7 @@ class SeedProfileService {
 	 *
 	 * @throws RuntimeException When the id is unknown or OpenRegister is absent.
 	 *
-	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#requirement-the-wizard-removes-a-loaded-example-set-through-openregisters-import-jobs
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-removes-a-loaded-example-set-through-openregisters-import-jobs
 	 */
 	public function remove(string $profileId): array {
 		if ($profileId !== self::GENERATED_PROFILE && $this->isKnown(profileId: $profileId) === false) {
@@ -289,14 +315,27 @@ class SeedProfileService {
 		$answer['errors']      = count($errors);
 		$answer['failedJobs']  = array_values(array_unique(array_filter(array_map('strval', array_column($errors, 'importJobId')))));
 
+		$this->sources->loadedSets->forgetIfRemoved(setId: $profileId, answer: $answer);
+
 		$this->logger->info(
 			'[SeedProfileService] removed example set "' . $profileId . '": ' . $answer['softDeleted'] . ' object(s) soft-deleted, '
 			. $answer['errors'] . ' error(s).',
-			['app' => Application::APP_ID]
+			['app' => AppIdentity::APP_ID]
 		);
 
 		return $answer;
 	}//end remove()
+
+	/**
+	 * The loaded-set list the wizard builds its per-set removal steps from.
+	 *
+	 * @return LoadedExampleSets The list.
+	 *
+	 * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
+	 */
+	public function loadedSets(): LoadedExampleSets {
+		return $this->sources->loadedSets;
+	}//end loadedSets()
 
 	/**
 	 * The fixed uuids of one set, last-loaded first.
@@ -310,7 +349,7 @@ class SeedProfileService {
 	 *
 	 * @throws RuntimeException For the generated set (it has no fixed uuids) or an unknown id.
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-a-loaded-set-can-be-removed-exactly
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-loaded-set-can-be-removed-exactly
 	 */
 	public function uuidsFor(string $profileId): array {
 		if ($profileId === self::GENERATED_PROFILE) {
@@ -384,7 +423,7 @@ class SeedProfileService {
 	 * @return array<int, string> The paths.
 	 */
 	private function descriptorFiles(): array {
-		$dir = ($this->appManager->getAppPath(Application::APP_ID) . self::PROFILE_DIR);
+		$dir = ($this->sources->appManager->getAppPath(AppIdentity::APP_ID) . self::PROFILE_DIR);
 		if (is_dir($dir) === false) {
 			return [];
 		}
@@ -438,24 +477,12 @@ class SeedProfileService {
 			return null;
 		}
 
-		$profile = ($data['x-openregister']['profile'] ?? null);
-		if (($data['x-openregister']['type'] ?? null) !== 'profile'
-			|| is_array($profile) === false
-			|| is_string(($profile['id'] ?? null)) === false
-		) {
+		$meta = (new SeedProfileCards())->metaOf(data: $data);
+		if ($meta === null) {
 			$this->logger->warning('[SeedProfileService] example set declares no profile block: ' . basename($path));
-			return null;
 		}
 
-		return [
-			'id'          => (string)$profile['id'],
-			'segment'     => (string)($profile['segment'] ?? ''),
-			'label'       => (string)($profile['label'] ?? $profile['id']),
-			'description' => (string)($profile['description'] ?? ''),
-			'order'       => (int)($profile['order'] ?? 99),
-			'objectCount' => (int)($profile['objectCount'] ?? 0),
-			'icon'        => (string)($profile['icon'] ?? ''),
-		];
+		return $meta;
 	}//end readProfileMeta()
 
 	/**
@@ -495,7 +522,7 @@ class SeedProfileService {
 	 * @throws RuntimeException When OpenRegister is not installed.
 	 */
 	private function configurationService(): object {
-		if (in_array('openregister', $this->appManager->getInstalledApps(), true) === false) {
+		if (in_array('openregister', $this->sources->appManager->getInstalledApps(), true) === false) {
 			throw new RuntimeException('Example data needs OpenRegister, which is not installed.');
 		}
 

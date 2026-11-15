@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+ * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
  */
 
 declare(strict_types=1);
@@ -190,12 +190,14 @@ class PeerReviewWorkControllerTest extends TestCase {
 		$routes = require __DIR__ . '/../../../appinfo/routes.php';
 		$byName = [];
 		foreach (($routes['routes'] ?? []) as $route) {
-			$byName[$route['name']] = $route;
+			// Keyed with the postfix: every /api/ route also has a /api/v1/ twin of the same name.
+			$byName[$route['name'] . ($route['postfix'] ?? '')] = $route;
 		}
 
 		self::assertSame('/api/peer-review/{peerReviewId}/work', $byName['peerReviewWork#show']['url'] ?? null);
 		self::assertSame('GET', $byName['peerReviewWork#show']['verb'] ?? null);
 		self::assertSame('/api/peer-review/{peerReviewId}/work/files/{fileId}', $byName['peerReviewWork#file']['url'] ?? null);
 		self::assertSame('GET', $byName['peerReviewWork#file']['verb'] ?? null);
+		self::assertSame('/api/v1/peer-review/{peerReviewId}/work', $byName['peerReviewWork#showV1']['url'] ?? null);
 	}//end testTheRoutesAreRegistered()
 }//end class

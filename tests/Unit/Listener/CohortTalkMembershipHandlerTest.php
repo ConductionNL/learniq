@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#requirement-enrolled-learners-sync-as-talk-room-participants-on-cohort-membership-changes
+ * @spec openspec/specs/school-structure/spec.md#requirement-enrolled-learners-sync-as-talk-room-participants-on-cohort-membership-changes
  */
 
 declare(strict_types=1);
@@ -47,6 +47,9 @@ use OCP\IUserManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+
+require_once __DIR__ . '/../../Support/SlugMapper.php';
+require_once __DIR__ . '/../../Support/TransitionScope.php';
 
 /**
  * Tests for CohortTalkMembershipHandler::handle().
@@ -117,7 +120,7 @@ class CohortTalkMembershipHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#scenario-activating-an-enrolment-adds-the-learner-to-the-cohorts-linked-conversation
+	 * @spec openspec/specs/school-structure/spec.md#scenario-activating-an-enrolment-adds-the-learner-to-the-cohorts-linked-conversation
 	 */
 	public function testActivateAddsParticipant(): void {
 		// ⚠️ A MOCK, not `new TalkRoom()`. The room is only ever an identity
@@ -146,7 +149,8 @@ class CohortTalkMembershipHandlerTest extends TestCase {
 			$talkLinkService,
 			$this->makeContainer($manager, $participantService),
 			$this->createMock(IUserManager::class),
-			$this->createMock(LoggerInterface::class)
+			$this->createMock(LoggerInterface::class),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 
 		$handler->handle($this->makeEvent('activate', ['cohortId' => 'cohort-1', 'learnerId' => 'learner-1']));
@@ -159,7 +163,7 @@ class CohortTalkMembershipHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#scenario-withdrawing-an-enrolment-removes-the-learner-from-the-cohorts-linked-conversation
+	 * @spec openspec/specs/school-structure/spec.md#scenario-withdrawing-an-enrolment-removes-the-learner-from-the-cohorts-linked-conversation
 	 */
 	public function testWithdrawRemovesParticipant(): void {
 		// A mock for the same reason as above: identity only, and it must not
@@ -187,7 +191,8 @@ class CohortTalkMembershipHandlerTest extends TestCase {
 			$talkLinkService,
 			$this->makeContainer($manager, $participantService),
 			$userManager,
-			$this->createMock(LoggerInterface::class)
+			$this->createMock(LoggerInterface::class),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 
 		$handler->handle($this->makeEvent('withdraw', ['cohortId' => 'cohort-1', 'learnerId' => 'learner-1']));
@@ -201,7 +206,7 @@ class CohortTalkMembershipHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#scenario-no-conversation-linked-yet-is-a-no-op-not-an-error
+	 * @spec openspec/specs/school-structure/spec.md#scenario-no-conversation-linked-yet-is-a-no-op-not-an-error
 	 */
 	public function testActivateWithNoLinkedRoomIsNoop(): void {
 		$talkLinkService = $this->createMock(TalkLinkService::class);
@@ -215,7 +220,8 @@ class CohortTalkMembershipHandlerTest extends TestCase {
 			$talkLinkService,
 			$container,
 			$this->createMock(IUserManager::class),
-			$this->createMock(LoggerInterface::class)
+			$this->createMock(LoggerInterface::class),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 
 		$handler->handle($this->makeEvent('activate', ['cohortId' => 'cohort-1', 'learnerId' => 'learner-1']));
@@ -229,7 +235,7 @@ class CohortTalkMembershipHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#scenario-talk-unavailable-is-a-no-op-not-an-error
+	 * @spec openspec/specs/school-structure/spec.md#scenario-talk-unavailable-is-a-no-op-not-an-error
 	 */
 	public function testActivateWithTalkUnavailableIsNoop(): void {
 		$talkLinkService = $this->createMock(TalkLinkService::class);
@@ -246,7 +252,8 @@ class CohortTalkMembershipHandlerTest extends TestCase {
 			$talkLinkService,
 			$container,
 			$this->createMock(IUserManager::class),
-			$this->createMock(LoggerInterface::class)
+			$this->createMock(LoggerInterface::class),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 
 		$handler->handle($this->makeEvent('activate', ['cohortId' => 'cohort-1', 'learnerId' => 'learner-1']));
@@ -268,7 +275,8 @@ class CohortTalkMembershipHandlerTest extends TestCase {
 			$talkLinkService,
 			$this->createMock(ContainerInterface::class),
 			$this->createMock(IUserManager::class),
-			$this->createMock(LoggerInterface::class)
+			$this->createMock(LoggerInterface::class),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 
 		$handler->handle($this->makeEvent('activate', ['cohortId' => null, 'learnerId' => 'learner-1']));
@@ -289,10 +297,157 @@ class CohortTalkMembershipHandlerTest extends TestCase {
 			$talkLinkService,
 			$this->createMock(ContainerInterface::class),
 			$this->createMock(IUserManager::class),
-			$this->createMock(LoggerInterface::class)
+			$this->createMock(LoggerInterface::class),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 
 		$handler->handle($this->makeEvent('complete', ['cohortId' => 'cohort-1', 'learnerId' => 'learner-1']));
 
 	}//end testNonActivateWithdrawActionIsNoop()
+	/**
+	 * Build a handler whose Talk link service, manager and participant service record every call.
+	 *
+	 * @param array<int,array<string,mixed>> $links The links getLinkedRooms() answers.
+	 * @param array<int,string>              $calls Receives the recorded calls, in order.
+	 *
+	 * @return CohortTalkMembershipHandler
+	 */
+	private function recordingHandler(array $links, array &$calls): CohortTalkMembershipHandler {
+		$talkLinkService = $this->createMock(TalkLinkService::class);
+		$talkLinkService->method('isTalkAvailable')->willReturnCallback(
+			function () use (&$calls): bool {
+				$calls[] = 'available';
+				return true;
+			}
+		);
+		$talkLinkService->method('getLinkedRooms')->willReturnCallback(
+			function (string $cohort) use (&$calls, $links): array {
+				$calls[] = 'links:' . $cohort;
+				return $links;
+			}
+		);
+
+		$rooms   = [];
+		$manager = $this->createMock(TalkManager::class);
+		$manager->method('getRoomByToken')->willReturnCallback(
+			function (string $token) use (&$calls, &$rooms): TalkRoom {
+				$calls[] = 'find:' . $token;
+				if ($token === 't-missing') {
+					throw new \RuntimeException('no room');
+				}
+
+				$rooms[$token] = ($rooms[$token] ?? $this->createMock(TalkRoom::class));
+				return $rooms[$token];
+			}
+		);
+
+		$participantService = $this->createMock(TalkParticipantService::class);
+		$participantService->method('addUsers')->willReturnCallback(
+			function (TalkRoom $room, array $users) use (&$calls, &$rooms): void {
+				$calls[] = 'add:' . array_search($room, $rooms, true) . ':' . $users[0]['actorId'];
+			}
+		);
+
+		return new CohortTalkMembershipHandler(
+			$talkLinkService,
+			$this->makeContainer($manager, $participantService),
+			$this->createMock(IUserManager::class),
+			$this->createMock(LoggerInterface::class),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
+		);
+	}//end recordingHandler()
+
+	/**
+	 * Each linked room is found and synced in turn; links without a usable
+	 * token, and rooms Talk cannot find, are skipped without stopping the rest.
+	 *
+	 * @return void
+	 */
+	public function testEachLinkedRoomIsSyncedInTurnAndUnusableLinksAreSkipped(): void {
+		$calls   = [];
+		$handler = $this->recordingHandler(
+			links: [['roomToken' => 't-a'], ['roomToken' => ''], ['roomToken' => 5], [], ['roomToken' => 't-missing'], ['roomToken' => 't-b']],
+			calls: $calls
+		);
+
+		$handler->handle($this->makeEvent('activate', ['cohortId' => 'cohort-1', 'learnerId' => 'learner-1']));
+
+		self::assertSame(
+			['available', 'links:cohort-1', 'find:t-a', 'add:t-a:learner-1', 'find:t-missing', 'find:t-b', 'add:t-b:learner-1'],
+			$calls
+		);
+	}//end testEachLinkedRoomIsSyncedInTurnAndUnusableLinksAreSkipped()
+
+	/**
+	 * Only learniq enrolment transitions with a cohort and a learner reach Talk.
+	 *
+	 * @return void
+	 */
+	public function testOtherObjectsAndMalformedEnrolmentsNeverReachTalk(): void {
+		$calls   = [];
+		$handler = $this->recordingHandler(links: [['roomToken' => 't-a']], calls: $calls);
+
+		$otherSchema = $this->makeEvent('activate', ['cohortId' => 'cohort-1', 'learnerId' => 'learner-1']);
+		$otherSchemaEvent = $this->createMock(ObjectTransitionedEvent::class);
+		$otherSchemaEvent->method('getObject')->willReturn($otherSchema->getObject());
+		$otherSchemaEvent->method('getRegister')->willReturn('learniq');
+		$otherSchemaEvent->method('getSchema')->willReturn('cohort');
+		$otherSchemaEvent->method('getAction')->willReturn('activate');
+
+		$otherRegisterEvent = $this->createMock(ObjectTransitionedEvent::class);
+		$otherRegisterEvent->method('getObject')->willReturn($otherSchema->getObject());
+		$otherRegisterEvent->method('getRegister')->willReturn(\OCA\Learniq\Tests\Support\TransitionScope::OTHER_REGISTER_ID);
+		$otherRegisterEvent->method('getSchema')->willReturn('enrolment');
+		$otherRegisterEvent->method('getAction')->willReturn('activate');
+
+		$handler->handle(new \OCP\EventDispatcher\Event());
+		$handler->handle($otherSchemaEvent);
+		$handler->handle($otherRegisterEvent);
+		$handler->handle($this->makeEvent('withdraw', ['cohortId' => 42, 'learnerId' => 'learner-1']));
+		$handler->handle($this->makeEvent('withdraw', ['cohortId' => '', 'learnerId' => 'learner-1']));
+		$handler->handle($this->makeEvent('activate', ['cohortId' => 'cohort-1', 'learnerId' => '']));
+		$handler->handle($this->makeEvent('activate', ['cohortId' => 'cohort-1']));
+
+		self::assertSame([], $calls);
+	}//end testOtherObjectsAndMalformedEnrolmentsNeverReachTalk()
+
+	/**
+	 * Each fail-soft stop logs its own reason with the learner and cohort.
+	 *
+	 * @return void
+	 */
+	public function testEachSkipLogsItsReason(): void {
+		$cases = [
+			'talk unavailable' => [false, [['roomToken' => 't-a']], '[CohortTalkMembershipHandler] Talk (spreed) is not installed/enabled — skipping participant sync for learner {learner} on Cohort {cohort}.'],
+			'no linked room' => [true, [], '[CohortTalkMembershipHandler] Cohort {cohort} has no linked Talk conversation yet — skipping participant sync for learner {learner}.'],
+			'no manager' => [true, [['roomToken' => 't-a']], '[CohortTalkMembershipHandler] Talk Manager could not be resolved — skipping participant sync for learner {learner} on Cohort {cohort}.'],
+		];
+
+		foreach ($cases as $label => [$available, $links, $message]) {
+			$talkLinkService = $this->createMock(TalkLinkService::class);
+			$talkLinkService->method('isTalkAvailable')->willReturn($available);
+			$talkLinkService->method('getLinkedRooms')->willReturn($links);
+
+			$logged = [];
+			$logger = $this->createMock(LoggerInterface::class);
+			$logger->method('info')->willReturnCallback(
+				function (string $text, array $context) use (&$logged): void {
+					$logged[] = [$text, $context];
+				}
+			);
+
+			$handler = new CohortTalkMembershipHandler(
+				$talkLinkService,
+				$this->makeContainer(null, null),
+				$this->createMock(IUserManager::class),
+				$logger,
+				\OCA\Learniq\Tests\Support\TransitionScope::resolver()
+			);
+			$handler->handle($this->makeEvent('withdraw', ['cohortId' => 'cohort-1', 'learnerId' => 'learner-1']));
+
+			self::assertCount(1, $logged, $label);
+			self::assertSame($message, $logged[0][0], $label);
+			self::assertEqualsCanonicalizing(['learner' => 'learner-1', 'cohort' => 'cohort-1'], $logged[0][1], $label);
+		}
+	}//end testEachSkipLogsItsReason()
 }//end class

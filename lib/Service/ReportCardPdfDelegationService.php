@@ -3,6 +3,9 @@
 /**
  * Learniq Report Card PDF Delegation Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the ReportCard schema's `renderToPdf`
  * (finalised -> finalised) and `rerenderToPdf` (published-to-parents ->
  * published-to-parents) self-loop transitions. POSTs a **proposed, not-yet-
@@ -43,22 +46,21 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-successful-render-records-the-docudesk-document-reference
- * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-report-card-with-an-assigned-template-sends-that-templates-slug-to-docudesk
- * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-report-card-with-no-assigned-template-keeps-sending-the-default-slug
+ * @spec openspec/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
+ * @spec openspec/specs/report-card/spec.md#scenario-a-successful-render-records-the-docudesk-document-reference
+ * @spec openspec/specs/report-card/spec.md#scenario-a-report-card-with-an-assigned-template-sends-that-templates-slug-to-docudesk
+ * @spec openspec/specs/report-card/spec.md#scenario-a-report-card-with-no-assigned-template-keeps-sending-the-default-slug
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ReportCardPdfDelegationServiceInterface;
 use OCA\Learniq\Support\FleetAppId;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
@@ -81,9 +83,9 @@ use Throwable;
  * exception, non-2xx, malformed body) sets `docudeskRenderStatus=failed` +
  * `docudeskRenderError`, logs, and never throws. The guard always allows.
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-docudesk-pdf-rendering-is-fail-soft-non-blocking-and-its-contract-is-explicitly-proposed
+ * @spec openspec/specs/report-card/spec.md#requirement-docudesk-pdf-rendering-is-fail-soft-non-blocking-and-its-contract-is-explicitly-proposed
  */
-class ReportCardPdfDelegationService implements LifecycleGuardInterface {
+class ReportCardPdfDelegationService implements LifecycleGuardInterface, ReportCardPdfDelegationServiceInterface {
 
 	/**
 	 * Proposed, not-yet-verified docudesk REST contract for rendering a
@@ -165,13 +167,13 @@ class ReportCardPdfDelegationService implements LifecycleGuardInterface {
 	 *
 	 * @param array<string,mixed> $object The ReportCard as it would be saved.
 	 * @param string $action The transition, `renderToPdf` or `rerenderToPdf`.
-	 * @param string $userId The caller, or '' without a session.
+	 * @param string $userId The caller, or '' without a session (unused: this guard does not depend on who asks).
 	 *
 	 * @return GuardResult Always allow (fail-soft by design).
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The interface fixes the signature.
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		return GuardResult::allow();
@@ -188,8 +190,8 @@ class ReportCardPdfDelegationService implements LifecycleGuardInterface {
 	 *
 	 * @return array<string,mixed> The ReportCard with the render outcome applied.
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-successful-render-records-the-docudesk-document-reference
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-successful-render-records-the-docudesk-document-reference
 	 */
 	public function render(array $reportCard): array {
 		$reportId = (string)($reportCard['id'] ?? ($reportCard['uuid'] ?? ''));
@@ -295,8 +297,8 @@ class ReportCardPdfDelegationService implements LifecycleGuardInterface {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-report-card-with-an-assigned-template-sends-that-templates-slug-to-docudesk
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-report-card-with-no-assigned-template-keeps-sending-the-default-slug
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-report-card-with-an-assigned-template-sends-that-templates-slug-to-docudesk
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-report-card-with-no-assigned-template-keeps-sending-the-default-slug
 	 */
 	private function resolveTemplateSlug(array $reportCard): string {
 		$templateId = $reportCard['templateId'] ?? null;

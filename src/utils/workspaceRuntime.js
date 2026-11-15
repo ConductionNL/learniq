@@ -14,7 +14,7 @@
  * Plain ES module (not a .vue SFC) so it is directly importable from a Node
  * test runner without a build step.
  *
- * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-the-segment-reaches-the-manifest-runtime
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-segment-reaches-the-manifest-runtime
  *
  * SPDX-License-Identifier: EUPL-1.2
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
@@ -48,7 +48,7 @@ export const DEFAULT_SEGMENT = 'corporate'
  *
  * @param {unknown} raw The value `loadState()` returned.
  * @return {string} A known segment code, or DEFAULT_SEGMENT.
- * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-the-segment-reaches-the-manifest-runtime
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-segment-reaches-the-manifest-runtime
  */
 export function resolveSegment(raw) {
 	return typeof raw === 'string' && SEGMENTS.includes(raw) ? raw : DEFAULT_SEGMENT
@@ -64,7 +64,7 @@ export function resolveSegment(raw) {
  *
  * @param {unknown} raw The value `loadState('learniq', 'chosenSegment', …)` returned.
  * @return {string|null} A known segment code, or null.
- * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
  */
 export function resolveChosenSegment(raw) {
 	return typeof raw === 'string' && SEGMENTS.includes(raw) ? raw : null
@@ -77,8 +77,8 @@ export function resolveChosenSegment(raw) {
  * @param {unknown} rawSegment The value `loadState('learniq', 'segment', …)` returned.
  * @param {unknown} rawChosen The value `loadState('learniq', 'chosenSegment', …)` returned.
  * @return {{segment: string, chosenSegment: (string|null)}} The workspace runtime.
- * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-the-segment-reaches-the-manifest-runtime
- * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-segment-reaches-the-manifest-runtime
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
  */
 export function buildWorkspaceRuntime(existing, rawSegment, rawChosen = null) {
 	return {

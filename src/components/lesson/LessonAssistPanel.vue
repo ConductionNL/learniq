@@ -20,8 +20,8 @@
    switched off or has no such route. That state lasts for the browser
    session.
 
- @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
- @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+ @spec openspec/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
+ @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
 -->
 <template>
 	<NcNoteCard v-if="switchedOff" type="info" class="lesson-assist__off">
@@ -265,7 +265,7 @@ export default {
 
 	computed: {
 		/**
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+		 * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
 		 * @return {Array<{id: string, label: string}>} Goal picker options.
 		 */
 		goalOptions() {
@@ -273,7 +273,7 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+		 * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
 		 * @return {string} The lesson text an action sends.
 		 */
 		lessonText() {
@@ -281,7 +281,7 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+		 * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
 		 * @return {string[]} Titles of the picked goals.
 		 */
 		selectedGoalTitles() {
@@ -292,7 +292,7 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+		 * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
 		 * @return {string[]} The goal titles the outline is drafted from.
 		 */
 		outlineGoalTitles() {
@@ -303,7 +303,7 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-a-teacher-adds-a-suggested-goal
+		 * @spec openspec/specs/course-management/spec.md#scenario-a-teacher-adds-a-suggested-goal
 		 * @return {Array<{id: string, title: string, linked: boolean}>} Suggestion rows.
 		 */
 		suggestionRows() {
@@ -322,7 +322,7 @@ export default {
 	 * Build the hermiq client once per panel: axios for the session and CSRF
 	 * token, generateUrl for the endpoint.
 	 *
-	 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
 	 * @return {void}
 	 */
 	created() {
@@ -340,7 +340,7 @@ export default {
 	 * lesson, same browser session) tells the composer at once, so the
 	 * per-block rewrite buttons hide too.
 	 *
-	 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-hermiq-answers-that-the-feature-is-switched-off
+	 * @spec openspec/specs/course-management/spec.md#scenario-hermiq-answers-that-the-feature-is-switched-off
 	 * @return {void}
 	 */
 	mounted() {
@@ -351,7 +351,7 @@ export default {
 
 	methods: {
 		/**
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
+		 * @spec openspec/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
 		 * @return {Promise<void>}
 		 */
 		runOutline() {
@@ -363,7 +363,7 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
+		 * @spec openspec/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
 		 * @return {Promise<void>}
 		 */
 		runQuestions() {
@@ -379,7 +379,7 @@ export default {
 		 * Goal suggestions send every candidate goal's title, in the panel's
 		 * fixed order, and keep the ids to map the answer's indexes back.
 		 *
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-goal-suggestions-map-back-to-goal-ids
+		 * @spec openspec/specs/course-management/spec.md#scenario-goal-suggestions-map-back-to-goal-ids
 		 * @return {Promise<void>}
 		 */
 		runGoalSuggestions() {
@@ -396,7 +396,7 @@ export default {
 		 * from the block's own rewrite button; the draft lands after that block.
 		 *
 		 * @param {object} block A richText block.
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
+		 * @spec openspec/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
 		 * @return {Promise<void>}
 		 */
 		simplifyBlock(block) {
@@ -410,7 +410,7 @@ export default {
 		/**
 		 * Whether the teacher confirmed the AI notice in this browser.
 		 *
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-the-first-assist-call-asks-for-confirmation
+		 * @spec openspec/specs/course-management/spec.md#scenario-the-first-assist-call-asks-for-confirmation
 		 * @return {boolean}
 		 */
 		noticeConfirmed() {
@@ -423,7 +423,7 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-the-first-assist-call-asks-for-confirmation
+		 * @spec openspec/specs/course-management/spec.md#scenario-the-first-assist-call-asks-for-confirmation
 		 * @return {void}
 		 */
 		onNoticeConfirm() {
@@ -440,7 +440,7 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-the-first-assist-call-asks-for-confirmation
+		 * @spec openspec/specs/course-management/spec.md#scenario-the-first-assist-call-asks-for-confirmation
 		 * @return {void}
 		 */
 		onNoticeCancel() {
@@ -455,7 +455,7 @@ export default {
 		 * @param {string} action One of the four actions.
 		 * @param {object} input The fields the request body is built from.
 		 * @param {{afterBlockId?: string|null, goalIds?: string[]}} context Where a draft lands, or the ids for index mapping.
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
+		 * @spec openspec/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
 		 * @return {Promise<void>}
 		 */
 		async run(action, input, context = {}) {
@@ -470,7 +470,7 @@ export default {
 			this.message = ''
 			try {
 				const result = await this.client.run(action, input)
-				this.handleResult(action, result, context)
+				this.handleResult({ action, context }, result)
 			} finally {
 				this.busyAction = ''
 			}
@@ -479,65 +479,106 @@ export default {
 		/**
 		 * Act on one classified answer (outcome classes in contract.md).
 		 *
-		 * @param {string} action The action that ran.
+		 * @param {{action: string, context: {afterBlockId?: string|null, goalIds?: string[]}}} assist The action that ran and its context from run().
 		 * @param {{outcome: string, data: object|null}} result The classified answer.
-		 * @param {{afterBlockId?: string|null, goalIds?: string[]}} context From run().
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
+		 * @spec openspec/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
+		 * @spec openspec/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
 		 * @return {void}
 		 */
-		handleResult(action, result, context) {
-			switch (result.outcome) {
-				case 'off':
-					sessionState.switchedOff = true
-					this.switchedOff = true
-					this.$emit('off')
-					return
-				case 'busy':
-					this.message = this.t(
-						'learniq',
-						'Too many requests. Wait a minute and try again.',
-					)
-					return
-				case 'retry':
-					this.message = this.t(
-						'learniq',
-						'The AI model gave no usable answer. Try again later.',
-					)
-					return
-				case 'ok':
-					break
-				default:
-					this.message = this.t(
-						'learniq',
-						'The AI help could not run. Try again later.',
-					)
-					return
-			}
-
-			if (action === 'goal-suggestions') {
-				this.suggestedGoalIds = goalIdsFromSuggestions(
-					result.data.suggestedGoals,
-					context.goalIds ?? [],
-				)
-				this.message =
-					this.suggestedGoalIds.length === 0
-						? this.t(
-								'learniq',
-								'No goal from the list fits this lesson.',
-							)
-						: this.t(
-								'learniq',
-								'Suggested goals are listed below. Add the ones that fit.',
-							)
+		handleResult(assist, result) {
+			if (result.outcome !== 'ok') {
+				this.handleRefusal(result.outcome)
 				return
 			}
+			if (assist.action === 'goal-suggestions') {
+				this.showGoalSuggestions(result.data, assist.context)
+				return
+			}
+			this.addDraft(assist, result.data)
+		},
 
+		/**
+		 * Act on an answer other than ok: switch off for the session, or say why.
+		 *
+		 * @param {string} outcome The outcome class.
+		 * @return {void}
+		 */
+		handleRefusal(outcome) {
+			if (outcome === 'off') {
+				this.switchOff()
+				return
+			}
+			this.message = this.refusalText(outcome)
+		},
+
+		/**
+		 * Switch the assist off for this page and the rest of the session.
+		 *
+		 * @return {void}
+		 */
+		switchOff() {
+			sessionState.switchedOff = true
+			this.switchedOff = true
+			this.$emit('off')
+		},
+
+		/**
+		 * @param {string} outcome An outcome class other than ok or off.
+		 * @return {string} Why the assist gave no draft.
+		 */
+		refusalText(outcome) {
+			const texts = {
+				busy: this.t('learniq', 'Too many requests. Wait a minute and try again.'),
+				retry: this.t('learniq', 'The AI model gave no usable answer. Try again later.'),
+			}
+			return Object.hasOwn(texts, outcome)
+				? texts[outcome]
+				: this.t('learniq', 'The AI help could not run. Try again later.')
+		},
+
+		/**
+		 * List the suggested goals that are in the lesson's goal list.
+		 *
+		 * @param {object} data The answer's data.
+		 * @param {{goalIds?: string[]}} context The ids for index mapping.
+		 * @return {void}
+		 */
+		showGoalSuggestions(data, context) {
+			this.suggestedGoalIds = goalIdsFromSuggestions(
+				data.suggestedGoals,
+				context.goalIds ?? [],
+			)
+			this.message = this.goalSuggestionText()
+		},
+
+		/**
+		 * @return {string} Whether any of the lesson's goals were suggested.
+		 */
+		goalSuggestionText() {
+			return this.suggestedGoalIds.length === 0
+				? this.t(
+						'learniq',
+						'No goal from the list fits this lesson.',
+					)
+				: this.t(
+						'learniq',
+						'Suggested goals are listed below. Add the ones that fit.',
+					)
+		},
+
+		/**
+		 * Hand the answer to the composer as a draft block.
+		 *
+		 * @param {{action: string, context: {afterBlockId?: string|null}}} assist The action that ran and where its draft lands.
+		 * @param {object} data The answer's data.
+		 * @return {void}
+		 */
+		addDraft(assist, data) {
 			this.$emit('draft', {
-				text: draftTextFromResult(action, result.data),
-				action,
-				provider: result.data.provider ?? null,
-				afterBlockId: context.afterBlockId ?? null,
+				text: draftTextFromResult(assist.action, data),
+				action: assist.action,
+				provider: data.provider ?? null,
+				afterBlockId: assist.context.afterBlockId ?? null,
 			})
 			this.message = this.t(
 				'learniq',

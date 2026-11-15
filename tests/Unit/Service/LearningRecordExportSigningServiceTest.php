@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portable-learning-record/tasks.md#task-6-3
+ * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-6-3
  */
 
 declare(strict_types=1);
@@ -29,6 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\Learniq\Service\LearningRecordExportSigningService;
+use OCA\Learniq\Service\SigningKeyConfigKey;
 use OCP\IAppConfig;
 use OCP\Security\ICrypto;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -83,11 +84,11 @@ class LearningRecordExportSigningServiceTest extends TestCase {
 		$appConfig = $this->createMock(IAppConfig::class);
 		$appConfig->method('getValueString')->willReturnCallback(
 			function (string $app, string $key, string $default = '') use ($tenantId): string {
-				if (str_ends_with($key, $tenantId) && str_contains($key, '.private.')) {
+				if ($key === SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PRIVATE, tenantId: $tenantId)) {
 					return 'encrypted-private-key';
 				}
 
-				if (str_ends_with($key, $tenantId) && str_contains($key, '.public.')) {
+				if ($key === SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId)) {
 					return $this->publicKeyPem;
 				}
 

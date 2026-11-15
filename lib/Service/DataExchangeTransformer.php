@@ -154,10 +154,10 @@ class DataExchangeTransformer {
 
 		$cohorts = $this->objectService->findAll(
 			[
+				'ids' => [(string)$value],
 				'filters' => [
 					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::COHORT_SCHEMA,
-					'id' => (string)$value,
 				],
 				'limit' => 1,
 			]

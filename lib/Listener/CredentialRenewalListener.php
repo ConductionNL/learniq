@@ -32,13 +32,15 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/credential-renewal-listener/specs/certification/spec.md#requirement-auto-enrol-on-renewal-or-content-version-change
+ * @spec openspec/specs/certification/spec.md#requirement-auto-enrol-on-renewal-or-content-version-change
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Kernel\Contracts\CredentialLearnerInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -50,7 +52,7 @@ use Psr\Log\LoggerInterface;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/credential-renewal-listener/specs/certification/spec.md#requirement-auto-enrol-on-renewal-or-content-version-change
+ * @spec openspec/specs/certification/spec.md#requirement-auto-enrol-on-renewal-or-content-version-change
  */
 class CredentialRenewalListener implements IEventListener {
 
@@ -65,12 +67,16 @@ class CredentialRenewalListener implements IEventListener {
 	 *
 	 * @param ObjectService $objectService OR object access service.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param CredentialLearnerInterface $learners The credential's learner as a Nextcloud user id.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
+		private readonly CredentialLearnerInterface $learners,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -81,15 +87,15 @@ class CredentialRenewalListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/credential-renewal-listener/specs/certification/spec.md#scenario-auto-enrol-on-credential-expiry
+	 * @spec openspec/specs/certification/spec.md#scenario-auto-enrol-on-credential-expiry
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER
-			|| $event->getSchema() !== self::CREDENTIAL_SCHEMA
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER
+			|| $this->schemas->eventSchema(event: $event) !== self::CREDENTIAL_SCHEMA
 			|| $event->getAction() !== self::ACTION_EXPIRE
 		) {
 			return;
@@ -106,7 +112,7 @@ class CredentialRenewalListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/credential-renewal-listener/specs/certification/spec.md#scenario-auto-enrol-on-credential-expiry
+	 * @spec openspec/specs/certification/spec.md#scenario-auto-enrol-on-credential-expiry
 	 */
 	private function createRenewalEnrolment(array $credential): void {
 		$credentialId = (string)($credential['id'] ?? ($credential['uuid'] ?? ''));
@@ -122,14 +128,28 @@ class CredentialRenewalListener implements IEventListener {
 			return;
 		}
 
+		// Credential.learnerId is the LearnerProfile uuid; Enrolment.learnerId
+		// is the Nextcloud user id, and the uuid goes to Enrolment.learnerRef.
+		$userId = $this->learners->userIdOf(credential: $credential);
+		if ($userId === null) {
+			$this->logger->warning(
+				'[CredentialRenewalListener] Credential {id}: learner {learner} has no Nextcloud user — skipping renewal.',
+				['id' => $credentialId, 'learner' => $learnerId, 'course' => $courseId]
+			);
+			return;
+		}
+
 		$enrolment = [
-			'learnerId' => $learnerId,
+			'learnerId' => $userId,
 			'courseId' => $courseId,
 			'source' => self::ENROLMENT_SOURCE,
 			'mandatory' => true,
 			'regulationSlug' => $credential['regulationSlug'] ?? null,
 			'tenant_id' => $tenantId,
 		];
+		if ($this->learners->isUuid(value: $learnerId) === true) {
+			$enrolment['learnerRef'] = $learnerId;
+		}
 
 		$saved = $this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,

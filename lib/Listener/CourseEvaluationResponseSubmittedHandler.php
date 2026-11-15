@@ -3,6 +3,9 @@
 /**
  * Learniq Course Evaluation Response Submitted Handler
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Listens for OpenRegister's ObjectTransitionedEvent, filtered to the
  * CourseEvaluationResponse schema's `submit` transition. Re-resolves the
  * SAME session-caller identity CourseEvaluationEligibilityGuard used
@@ -29,13 +32,11 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
+ * @spec openspec/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
  */
 
 declare(strict_types=1);
@@ -43,6 +44,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -67,6 +69,7 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 	 * @param IUserSession $userSession Current NC user session (server-resolved caller identity).
 	 * @param ObjectService $objectService OpenRegister object access.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -74,6 +77,7 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 		private readonly IUserSession $userSession,
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -84,7 +88,7 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
@@ -95,6 +99,43 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 			return;
 		}
 
+		$invitation = $this->invitationFor(event: $event);
+		if ($invitation === null) {
+			return;
+		}
+
+		// Only hasResponded/respondedAt change — no field referencing the
+		// response's identity or content is ever added. Written as the system
+		// (live pass D12): the learner reads their own invitation but holds no
+		// update right on it, and must not, or they could set hasResponded
+		// back to false and answer again. The invitation was found with the
+		// caller's own rights, filtered on the session uid, so this write
+		// only ever touches the caller's invitation.
+		$this->objectService->saveObject(
+			register: self::LEARNIQ_REGISTER,
+			schema: self::EVALUATION_INVITATION_SCHEMA,
+			object: array_merge(
+				$invitation,
+				[
+					'hasResponded' => true,
+					'respondedAt' => (new DateTimeImmutable())->format(\DATE_ATOM),
+				]
+			),
+			_rbac: false
+		);
+
+	}//end handle()
+
+	/**
+	 * The submitting caller's EvaluationInvitation for the response's campaign, or null (logged).
+	 *
+	 * @param ObjectTransitionedEvent $event The response's submit transition.
+	 *
+	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
+	 */
+	private function invitationFor(ObjectTransitionedEvent $event): ?array {
 		// The response itself carries no identity field to read — the caller
 		// is re-resolved from the session, exactly as CourseEvaluationEligibilityGuard
 		// did moments earlier for the same request.
@@ -104,7 +145,7 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 				'[CourseEvaluationResponseSubmittedHandler] No authenticated user in session after a '
 				. 'CourseEvaluationResponse submit; cannot flip any EvaluationInvitation.'
 			);
-			return;
+			return null;
 		}
 
 		$callerUid = $user->getUID();
@@ -117,7 +158,7 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 				'[CourseEvaluationResponseSubmittedHandler] Submitted CourseEvaluationResponse has no '
 				. 'campaignId; cannot resolve which EvaluationInvitation to flip.'
 			);
-			return;
+			return null;
 		}
 
 		$invitation = $this->findInvitation(
@@ -135,24 +176,11 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 				. '{caller} / campaign {campaignId} at submit-handling time.',
 				['caller' => $callerUid, 'campaignId' => $campaignId]
 			);
-			return;
+			return null;
 		}
 
-		// Only hasResponded/respondedAt change — no field referencing the
-		// response's identity or content is ever added.
-		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::EVALUATION_INVITATION_SCHEMA,
-			object: array_merge(
-				$invitation,
-				[
-					'hasResponded' => true,
-					'respondedAt' => (new DateTimeImmutable())->format(\DATE_ATOM),
-				]
-			)
-		);
-
-	}//end handle()
+		return $invitation;
+	}//end invitationFor()
 
 	/**
 	 * Whether this transition is a CourseEvaluationResponse entering `submitted`.
@@ -164,11 +192,11 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 	 * @spec openspec/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
 	 */
 	private function isResponseSubmission(ObjectTransitionedEvent $event): bool {
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return false;
 		}
 
-		if ($event->getSchema() !== self::COURSE_EVALUATION_RESPONSE_SCHEMA) {
+		if ($this->schemas->eventSchema(event: $event) !== self::COURSE_EVALUATION_RESPONSE_SCHEMA) {
 			return false;
 		}
 
@@ -215,6 +243,12 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 		$invitation = $invitations[0];
 		if (is_array($invitation) === false) {
 			$invitation = $invitation->jsonSerialize();
+		}
+
+		// The flip is written without RBAC, so the row must name the caller
+		// whatever the query did with its filters.
+		if (($invitation['learnerId'] ?? null) !== $callerUid) {
+			return null;
 		}
 
 		return (array)$invitation;

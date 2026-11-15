@@ -27,14 +27,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-every-attempt-carries-a-server-stamped-learnerref-and-assessment-title
+ * @spec openspec/specs/assessment/spec.md#requirement-every-attempt-carries-a-server-stamped-learnerref-and-assessment-title
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\Service\Portal\LearnerProfileLookup;
+use OCA\Learniq\Kernel\Contracts\AssessmentResultPortalStampInterface;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -43,9 +43,9 @@ use Throwable;
 /**
  * Stamps learnerRef and assessmentTitle on a new AssessmentResult.
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-every-attempt-carries-a-server-stamped-learnerref-and-assessment-title
+ * @spec openspec/specs/assessment/spec.md#requirement-every-attempt-carries-a-server-stamped-learnerref-and-assessment-title
  */
-class AssessmentResultPortalStamp {
+class AssessmentResultPortalStamp implements AssessmentResultPortalStampInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const ASSESSMENT_SCHEMA = 'exam';
@@ -53,14 +53,14 @@ class AssessmentResultPortalStamp {
 	/**
 	 * Constructor.
 	 *
-	 * @param LearnerProfileLookup $profiles Nextcloud user id to LearnerProfile uuid.
+	 * @param LearnerRefResolver $profiles Nextcloud user id to LearnerProfile uuid.
 	 * @param ObjectService $objectService OpenRegister object access (the test's title).
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly LearnerProfileLookup $profiles,
+		private readonly LearnerRefResolver $profiles,
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
 	) {
@@ -73,7 +73,7 @@ class AssessmentResultPortalStamp {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-every-attempt-carries-a-server-stamped-learnerref-and-assessment-title
+	 * @spec openspec/specs/assessment/spec.md#requirement-every-attempt-carries-a-server-stamped-learnerref-and-assessment-title
 	 */
 	public function stamp(ObjectCreatingEvent $event): void {
 		$payload = array_merge(($event->getObject()->getObject() ?? []), $event->getModifiedData());
@@ -102,7 +102,7 @@ class AssessmentResultPortalStamp {
 		}
 
 		try {
-			return $this->profiles->refForUser(ncUserId: $learnerId);
+			return $this->profiles->resolveAcrossTenants(learnerId: $learnerId);
 		} catch (Throwable $exception) {
 			$this->logger->warning(
 				'[AssessmentResultPortalStamp] Could not resolve the learner profile, stamping null: {msg}',

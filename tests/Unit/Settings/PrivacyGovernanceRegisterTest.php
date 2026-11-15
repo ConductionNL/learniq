@@ -26,8 +26,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md
- * @spec openspec/changes/privacy-governance-surfaces/specs/data-exchange/spec.md
+ * @spec openspec/specs/avg-verwerkingsregister/spec.md
+ * @spec openspec/specs/data-exchange/spec.md
  */
 
 declare(strict_types=1);
@@ -69,7 +69,7 @@ class PrivacyGovernanceRegisterTest extends TestCase {
 	 * fields and a compliance-officers-only RBAC floor — no lifecycle.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#requirement-the-school-records-its-privacyconvenant-agreement-and-privacybijsluiter
+	 * @spec   openspec/specs/avg-verwerkingsregister/spec.md#requirement-the-school-records-its-privacyconvenant-agreement-and-privacybijsluiter
 	 */
 	public function testComplianceIsAFlatSingletonWithPrivacyFields(): void {
 		$schema = $this->config['components']['schemas']['Compliance'] ?? null;
@@ -117,7 +117,7 @@ class PrivacyGovernanceRegisterTest extends TestCase {
 	 * cannot recreate the copy.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/privacy-reuse-openregister-register/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
+	 * @spec   openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
 	 */
 	public function testDataSubjectRequestIsRetiredInFavourOfOpenRegister(): void {
 		$this->assertArrayNotHasKey('DataSubjectRequest', $this->config['components']['schemas']);
@@ -134,41 +134,33 @@ class PrivacyGovernanceRegisterTest extends TestCase {
 	}//end testDataSubjectRequestIsRetiredInFavourOfOpenRegister()
 
 	/**
-	 * DataExchangeJob gains the five additive partner-approval properties,
-	 * each with a backward-compatible default.
+	 * The partner approval left DataExchangeJob (data-exchange-to-integriq): an
+	 * ExchangePartnerApproval is a standing link per target with its own
+	 * approve and reject lifecycle, and its seed never blocks a real exchange.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/privacy-governance-surfaces/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-standing-partner-approval-before-it-runs
+	 * @spec   openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
 	 */
-	public function testDataExchangeJobGainsPartnerApprovalProperties(): void {
-		$schema = $this->config['components']['schemas']['DataExchangeJob'] ?? null;
-		$this->assertIsArray($schema, 'DataExchangeJob schema MUST exist');
+	public function testPartnerApprovalIsAStandingRecordPerTarget(): void {
+		$schema = $this->config['components']['schemas']['ExchangePartnerApproval'] ?? null;
+		$this->assertIsArray($schema, 'ExchangePartnerApproval schema MUST exist');
 
-		$properties = $schema['properties'] ?? [];
-		$this->assertFalse($properties['requiresPartnerApproval']['default'] ?? null, 'requiresPartnerApproval MUST default to false');
-		$this->assertSame('not-required', $properties['partnerApprovalStatus']['default'] ?? null);
-		$this->assertEqualsCanonicalizing(
-			['not-required', 'pending', 'approved', 'rejected'],
-			$properties['partnerApprovalStatus']['enum'] ?? []
-		);
-		$this->assertArrayHasKey('default', $properties['partnerApprovedBy'] ?? []);
-		$this->assertNull($properties['partnerApprovedBy']['default']);
-		$this->assertArrayHasKey('default', $properties['partnerApprovedAt'] ?? []);
-		$this->assertNull($properties['partnerApprovedAt']['default']);
-		$this->assertSame([], $properties['dataSharedFields']['default'] ?? null);
+		$properties = $schema['properties'];
+		$this->assertSame(['target'], $schema['required']);
+		$this->assertContains('swv', $properties['target']['enum']);
+		$this->assertSame(['pending', 'approved', 'rejected'], $properties['status']['enum']);
+		$this->assertSame([], $properties['dataSharedFields']['default']);
 
-		// None of the five are required — every existing and new job is unaffected by default.
-		foreach (
-			[
-				'requiresPartnerApproval',
-				'partnerApprovalStatus',
-				'partnerApprovedBy',
-				'partnerApprovedAt',
-				'dataSharedFields',
-			] as $field
-		) {
-			$this->assertNotContains($field, $schema['required'] ?? [], "$field MUST NOT be required");
+		$transitions = $schema['x-openregister-lifecycle']['transitions'];
+		$this->assertSame(['field' => 'note', 'required' => true], $transitions['reject']['inputs'][0]);
+		foreach (['approve', 'reject'] as $action) {
+			$this->assertSame(['actorField' => 'decidedBy', 'timeField' => 'decidedAt'], $transitions[$action]['actions'][0]['actionParameters']);
 		}
 
-	}//end testDataExchangeJobGainsPartnerApprovalProperties()
+		// A seeded row opts its target into the gate, so the seed uses a target without a handler.
+		foreach ($schema['x-openregister-seed'] as $row) {
+			$this->assertNotContains($row['target'], ['bron-rod', 'oso', 'leerplicht', 'swv', 'uwlr', 'edu-v', 'basispoort', 'entree-content']);
+		}
+
+	}//end testPartnerApprovalIsAStandingRecordPerTarget()
 }//end class

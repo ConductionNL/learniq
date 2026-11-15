@@ -25,16 +25,16 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
+ * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CoursePackageExportServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Service\CoursePackageExportService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -53,7 +53,7 @@ class CoursePackageExportController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest $request HTTP request.
-	 * @param CoursePackageExportService $exportService Course-package export service.
+	 * @param CoursePackageExportServiceInterface $exportService Course-package export service.
 	 * @param IUserSession $userSession Nextcloud user session.
 	 * @param ActionAuthService $actionAuth ADR-023 action authorization service.
 	 *
@@ -61,11 +61,11 @@ class CoursePackageExportController extends Controller {
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly CoursePackageExportService $exportService,
+		private readonly CoursePackageExportServiceInterface $exportService,
 		private readonly IUserSession $userSession,
 		private readonly ActionAuthService $actionAuth,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -76,7 +76,7 @@ class CoursePackageExportController extends Controller {
 	 *
 	 * @return DataDownloadResponse|JSONResponse The download, or a JSON error.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
+	 * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
 	 */
 	#[NoAdminRequired]
 	public function export(string $courseId = '', string $format = ''): DataDownloadResponse|JSONResponse {
@@ -128,7 +128,7 @@ class CoursePackageExportController extends Controller {
 	 *
 	 * @return array{content: string, filename: string, contentType: string} The download payload.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
+	 * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
 	 */
 	private function buildDownload(string $format, string $courseId, string $exportingUser): array {
 		if ($format === 'common-cartridge') {

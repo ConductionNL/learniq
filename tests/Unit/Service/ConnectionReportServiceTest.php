@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/adopt-connection-registry/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
+ * @spec openspec/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
  *
  * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
  * SPDX-License-Identifier: EUPL-1.2
@@ -32,6 +32,7 @@ use DateTime;
 use DateTimeZone;
 use OCA\Integriq\Event\ConnectionStatusReportedEvent;
 use OCA\Learniq\Service\ConnectionReportService;
+use OCP\App\IAppManager;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -46,6 +47,7 @@ use RuntimeException;
  * Unit tests for ConnectionReportService.
  *
  * @covers \OCA\Learniq\Service\ConnectionReportService
+ * @uses   \OCA\Learniq\AppInfo\OpenRegisterAutoloader
  */
 class ConnectionReportServiceTest extends TestCase {
 
@@ -99,6 +101,20 @@ class ConnectionReportServiceTest extends TestCase {
 	private IAppConfig&MockObject $appConfig;
 
 	/**
+	 * App manager double; planninq is disabled unless a test enables it.
+	 *
+	 * @var IAppManager&MockObject
+	 */
+	private IAppManager&MockObject $appManager;
+
+	/**
+	 * Whether the app manager reports planninq enabled.
+	 *
+	 * @var bool
+	 */
+	private bool $planninq = false;
+
+	/**
 	 * Set up the fixtures.
 	 *
 	 * @return void
@@ -120,6 +136,10 @@ class ConnectionReportServiceTest extends TestCase {
 				return true;
 			}
 		);
+
+		$this->planninq   = false;
+		$this->appManager = $this->createMock(originalClassName: IAppManager::class);
+		$this->appManager->method('isEnabledForUser')->willReturnCallback(fn (string $app): bool => ($app === 'planninq' && $this->planninq));
 
 		$this->dispatcher = $this->createMock(originalClassName: IEventDispatcher::class);
 		$this->dispatcher->method('dispatchTyped')->willReturnCallback(
@@ -147,8 +167,30 @@ class ConnectionReportServiceTest extends TestCase {
 			eventDispatcher: ($dispatcher ?? $this->dispatcher),
 			timeFactory: $time,
 			logger: $this->logger,
+			appManager: $this->appManager,
 		);
 	}//end service()
+
+	/**
+	 * The timetable row is available exactly when planninq is enabled.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/timetabling/spec.md#requirement-the-timetable-connection-is-available-when-planninq-and-integriq-are-installed
+	 */
+	public function testTheTimetableRowFollowsPlanninq(): void {
+		$service = $this->service();
+
+		$service->observeTimetable();
+		$service->reportObservations();
+		$this->planninq = true;
+		$service->observeTimetable();
+		$service->reportObservations();
+
+		$timetable = array_values(array_filter($this->sent, static fn (object $sent): bool => $sent->key === 'timetable'));
+		$this->assertSame(['unavailable', 'configured'], array_map(static fn (object $sent): string => $sent->status, $timetable));
+		$this->assertStringContainsString(needle: 'Planninq is not installed', haystack: $timetable[0]->message);
+	}//end testTheTimetableRowFollowsPlanninq()
 
 	/**
 	 * A recorded observation is sent with the app, the key, the status and since when.
@@ -285,7 +327,7 @@ class ConnectionReportServiceTest extends TestCase {
 		$time = $this->createMock(originalClassName: ITimeFactory::class);
 		$time->method('getDateTime')->willReturn(new DateTime('2026-09-14 10:30:00', new DateTimeZone('UTC')));
 
-		$service = new class($this->appConfig, $this->dispatcher, $time, $this->logger) extends ConnectionReportService {
+		$service = new class($this->appConfig, $this->dispatcher, $time, $this->logger, $this->appManager) extends ConnectionReportService {
 
 			/**
 			 * Integriq is not installed, so no class resolves.
@@ -370,4 +412,96 @@ class ConnectionReportServiceTest extends TestCase {
 		$this->service()->observe(key: 'eudi-wallet', status: 'error', reason: 'Integriq refused the wallet offer: 401.');
 		$this->assertSame(expected: 0, actual: $this->writes);
 	}//end testAFailingConfigStoreNeverEscapesAnObservation()
+
+	/**
+	 * The LTI row is available when integriq ships its launch event, unavailable without it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-connection-registry-says-whether-lti-works
+	 */
+	public function testTheLtiRowFollowsIntegriqsLaunchEvent(): void {
+		$service = $this->service();
+		$service->observeLti();
+		$service->reportObservations();
+
+		$lti = array_values(array_filter($this->sent, static fn (object $sent): bool => $sent->key === 'lti'));
+		$this->assertSame(['configured'], array_map(static fn (object $sent): string => $sent->status, $lti));
+
+		$time = $this->createMock(originalClassName: ITimeFactory::class);
+		$time->method('getDateTime')->willReturn(new DateTime('2026-09-14 10:30:00', new DateTimeZone('UTC')));
+		$without = new class($this->appConfig, $this->dispatcher, $time, $this->logger, $this->appManager) extends ConnectionReportService {
+
+			/**
+			 * Integriq's launch event is missing.
+			 *
+			 * @param string $eventClass The class name asked for.
+			 *
+			 * @return string|null Null for the launch event.
+			 */
+			protected function resolveEventClass(string $eventClass): ?string {
+				if ($eventClass === self::LTI_LAUNCH_EVENT) {
+					return null;
+				}
+
+				return parent::resolveEventClass(eventClass: $eventClass);
+			}//end resolveEventClass()
+		};
+		$without->observeLti();
+
+		$stored = json_decode($this->config['learniq.connection_observation_lti'] ?? '{}', true);
+		$this->assertSame('unavailable', $stored['status'] ?? null);
+	}//end testTheLtiRowFollowsIntegriqsLaunchEvent()
+
+	/**
+	 * Every stored shape: only a JSON object with string status, reason and
+	 * since is reported, key by key in the declared order; a key whose send
+	 * fails is logged and the next key is still reported.
+	 *
+	 * @return void
+	 */
+	public function testEveryStoredShapeAndEveryKeyInOrder(): void {
+		$garbled = [
+			'',
+			'not json',
+			'"a string"',
+			'{"status":"error","reason":"r"}',
+			'{"status":"error","reason":7,"since":"s"}',
+			'{"status":["error"],"reason":"r","since":"s"}',
+			'{"reason":"r","since":"s"}',
+		];
+		foreach ($garbled as $stored) {
+			$this->config['learniq.'.self::WALLET_CONFIG_KEY] = $stored;
+			$this->sent = [];
+			$this->service()->reportObservations();
+			$this->assertSame(expected: [], actual: $this->sent, message: $stored);
+		}
+
+		foreach (ConnectionReportService::REPORTED_KEYS as $key) {
+			$this->config['learniq.'.ConnectionReportService::OBSERVATION_KEY_PREFIX.$key] = json_encode(['status' => 'configured', 'reason' => 'R '.$key.'.', 'since' => 'S', 'extra' => 1]);
+		}
+
+		$this->sent = [];
+		$dispatcher = $this->createMock(originalClassName: IEventDispatcher::class);
+		$dispatcher->method('dispatchTyped')->willReturnCallback(
+			function (Event $event): void {
+				if ($event->key === ConnectionReportService::REPORTED_KEYS[1]) {
+					throw new RuntimeException('listener down');
+				}
+
+				$this->sent[] = $event;
+			}
+		);
+		$this->logger->expects($this->once())->method('warning')->with(
+			'Learniq: could not send a connection report to integriq',
+			['key' => ConnectionReportService::REPORTED_KEYS[1], 'exception' => 'listener down']
+		);
+
+		$this->service(dispatcher: $dispatcher)->reportObservations();
+
+		$expected = ConnectionReportService::REPORTED_KEYS;
+		unset($expected[1]);
+		$this->assertSame(expected: array_values($expected), actual: array_map(static fn (Event $event): string => $event->key, $this->sent));
+		$this->assertSame(expected: 'R '.$expected[0].'. Unchanged since S UTC.', actual: $this->sent[0]->message);
+	}//end testEveryStoredShapeAndEveryKeyInOrder()
 }//end class

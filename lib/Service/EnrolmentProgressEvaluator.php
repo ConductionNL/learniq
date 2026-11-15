@@ -30,19 +30,20 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
+ * @spec openspec/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\EnrolmentProgressEvaluatorInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
  * Computes progressPercent = round(completedLessonCount / totalPublishedLessonCount * 100).
  */
-class EnrolmentProgressEvaluator {
+class EnrolmentProgressEvaluator implements EnrolmentProgressEvaluatorInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const LESSON_SCHEMA = 'lesson';
@@ -80,22 +81,18 @@ class EnrolmentProgressEvaluator {
 	 *
 	 * @return array{progressPercent: int, completedLessonCount: int, totalPublishedLessonCount: int}
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-is-null-safe-before-any-lesson-completes
+	 * @spec openspec/specs/enrolment/spec.md#scenario-progress-percentage-is-null-safe-before-any-lesson-completes
 	 * @spec openspec/specs/progress-tracking/spec.md#requirement-a-lesson-completion-belongs-to-one-enrolment
 	 */
 	public function evaluate(string $learnerId, string $courseId, array $enrolment = []): array {
-		$completedLessonCount = $this->countCompletedLessons(learnerId: $learnerId, courseId: $courseId, enrolment: $enrolment);
+		$completions = $this->completionsOf(learnerId: $learnerId, courseId: $courseId);
+		$completedLessonCount = $this->countCompletedLessons(completions: $completions, enrolment: $enrolment);
 		$publishedCount = $this->countPublishedLessons(courseId: $courseId);
 
-		if ($completedLessonCount === 0 || $publishedCount === 0) {
-			return [
-				'progressPercent' => 0,
-				'completedLessonCount' => $completedLessonCount,
-				'totalPublishedLessonCount' => $publishedCount,
-			];
+		$progressPercent = 0;
+		if ($completedLessonCount !== 0 && $publishedCount !== 0) {
+			$progressPercent = (int)round(($completedLessonCount / $publishedCount) * 100);
 		}
-
-		$progressPercent = (int)round(($completedLessonCount / $publishedCount) * 100);
 
 		return [
 			'progressPercent' => $progressPercent,
@@ -106,19 +103,15 @@ class EnrolmentProgressEvaluator {
 	}//end evaluate()
 
 	/**
-	 * Count the distinct lessons the learner completed for a course, scoped to
-	 * the Enrolment when one is given (see evaluate()).
+	 * The learner's LessonCompletions for a course.
 	 *
 	 * @param string $learnerId NC user ID of the learner.
 	 * @param string $courseId UUID of the Course.
-	 * @param array<string, mixed> $enrolment The Enrolment, or [].
 	 *
-	 * @return int
-	 *
-	 * @spec openspec/specs/progress-tracking/spec.md#requirement-a-lesson-completion-belongs-to-one-enrolment
+	 * @return array<int, mixed>
 	 */
-	private function countCompletedLessons(string $learnerId, string $courseId, array $enrolment): int {
-		$results = $this->objectService->findAll(
+	private function completionsOf(string $learnerId, string $courseId): array {
+		return $this->objectService->findAll(
 			[
 				'filters' => [
 					'register' => self::LEARNIQ_REGISTER,
@@ -128,13 +121,26 @@ class EnrolmentProgressEvaluator {
 				],
 			]
 		);
+	}//end completionsOf()
 
+	/**
+	 * Count the distinct lessons among the completions, scoped to the
+	 * Enrolment when one is given (see evaluate()).
+	 *
+	 * @param array<int, mixed> $completions The learner's LessonCompletions for the course.
+	 * @param array<string, mixed> $enrolment The Enrolment, or [].
+	 *
+	 * @return int
+	 *
+	 * @spec openspec/specs/progress-tracking/spec.md#requirement-a-lesson-completion-belongs-to-one-enrolment
+	 */
+	private function countCompletedLessons(array $completions, array $enrolment): int {
 		if ($enrolment === []) {
-			return count($results);
+			return count($completions);
 		}
 
 		$lessons = [];
-		foreach ($results as $row) {
+		foreach ($completions as $row) {
 			if (is_array($row) === false) {
 				$row = $row->jsonSerialize();
 			}

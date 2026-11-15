@@ -14,22 +14,16 @@ import { dirname, resolve } from 'node:path'
 import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 import {
-	ATTENDANCE_STATUSES,
-	attendanceRecord,
-	attendanceRows,
 	auditPackUrl,
-	bulkEnrolmentBody,
-	EXCUSE_REASON_KINDS,
-	exportJobBody,
+	exchangeRequestBody,
+	exchangeRequestUrl,
 	gradebookGrid,
 	gradeEntryBody,
 	handInAction,
-	learnersToEnrol,
 	moveItem,
 	nextGoalId,
 	parseMark,
 	planGraph,
-	timelineEvents,
 } from '../../src/utils/customPages.js'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
@@ -56,36 +50,6 @@ function assertFitsSchema(body, schema, serverSet = []) {
 		assert.ok(key in body, `${schema} requires ${key}`)
 	}
 }
-
-test('status and reason lists match the register enums', () => {
-	assert.deepEqual(
-		[...ATTENDANCE_STATUSES].sort(),
-		[...schemas.AttendanceRecord.properties.status.enum].sort(),
-	)
-	assert.deepEqual(
-		[...EXCUSE_REASON_KINDS].sort(),
-		[...schemas.ExcuseRequest.properties.reasonKind.enum].sort(),
-	)
-})
-
-test('the attendance register keeps saved marks and defaults the rest to present', () => {
-	const rows = attendanceRows(
-		['a', 'b', 'a'],
-		[{ id: 'r1', learnerId: 'b', status: 'late', reason: 'bus' }],
-	)
-	assert.deepEqual(rows, [
-		{ learnerId: 'a', status: 'present', reason: '', recordId: '' },
-		{ learnerId: 'b', status: 'late', reason: 'bus', recordId: 'r1' },
-	])
-	const body = attendanceRecord(
-		rows[1],
-		{ id: 's1', cohortId: 'c1', tenant_id: 't' },
-		'teacher',
-		'2026-09-27T10:00:00Z',
-	)
-	assertFitsSchema(body, 'AttendanceRecord')
-	assert.equal(body.sessionId, 's1')
-})
 
 test('the gradebook grid skips revised and invalidated marks and posts a valid concept entry', () => {
 	const components = [
@@ -122,61 +86,22 @@ test('the gradebook grid skips revised and invalidated marks and posts a valid c
 	assert.equal(parseMark('abc'), null)
 })
 
-test('bulk enrolment skips learners with an open enrolment and fits the schema', () => {
-	const todo = learnersToEnrol(
-		['a', 'b', 'c', 'c'],
-		[
-			{ learnerId: 'a', lifecycle: 'active' },
-			{ learnerId: 'b', lifecycle: 'withdrawn' },
-		],
-	)
-	assert.deepEqual(todo, ['b', 'c'])
-	assertFitsSchema(
-		bulkEnrolmentBody('b', { id: 'course-1', tenant_id: 't' }, 'c1'),
-		'Enrolment',
-	)
-})
-
-test('an export request is a valid DataExchangeJob with empty filters dropped', () => {
-	const body = exportJobBody({
+test('an export request names a target and, optionally, one learner', () => {
+	assert.deepEqual(exchangeRequestBody({ target: 'bron-rod', learnerId: '  ' }), {
 		target: 'bron-rod',
-		format: '',
-		filters: { courseId: 'x', cohortId: '' },
-		requestedBy: 'admin',
-		requestedAt: '2026-09-27T10:00:00Z',
-		tenantId: 't',
 	})
-	assertFitsSchema(body, 'DataExchangeJob')
-	assert.deepEqual(body.scope, { filters: { courseId: 'x' } })
-	assert.equal('format' in body, false)
+	assert.deepEqual(exchangeRequestBody({ target: 'oso', learnerId: ' sanne ' }), {
+		target: 'oso',
+		learnerId: 'sanne',
+	})
+	assert.equal(exchangeRequestUrl(), '/apps/learniq/api/exchange/requests')
 	assert.match(
 		auditPackUrl('avg', '2026-01-01', '2026-06-30'),
 		/regulationSlug=avg&dateFrom=2026-01-01&dateTo=2026-06-30$/,
 	)
 })
 
-test('timeline, plan graph and goal helpers', () => {
-	assert.deepEqual(
-		timelineEvents([
-			{
-				id: 's',
-				title: 'Maths',
-				startsAt: '2026-10-01T09:00:00Z',
-				lifecycle: 'cancelled',
-			},
-			{ id: 'x' },
-		]),
-		[
-			{
-				id: 's',
-				title: 'Maths',
-				start: '2026-10-01T09:00:00Z',
-				end: undefined,
-				location: undefined,
-				kind: 'cancelled',
-			},
-		],
-	)
+test('plan graph and goal helpers', () => {
 	const graph = planGraph({
 		id: 'p',
 		kind: 'opp',
@@ -193,63 +118,52 @@ test('timeline, plan graph and goal helpers', () => {
 	assert.deepEqual(moveItem(['a', 'b'], 0, -1), ['a', 'b'])
 })
 
-test('signature records fit their append-only schemas', async () => {
-	const { signatureBody, defaultSignerRole, SIGNABLE_SUBJECTS } =
-		await import('../../src/utils/customPages.js')
-	assert.deepEqual(
-		SIGNABLE_SUBJECTS['learning-plan'].roles,
-		schemas.Signature.properties.signerRole.enum,
+// @spec openspec/specs/learning-plan/spec.md#requirement-a-signature-is-recorded-by-the-server-in-a-role-the-signer-holds
+test('the signing page offers only schema roles and signs through the server endpoint', async () => {
+	const { signUrl, SIGNABLE_SUBJECTS } = await import(
+		'../../src/utils/customPages.js'
 	)
+	for (const role of SIGNABLE_SUBJECTS['learning-plan'].roles) {
+		assert.ok(schemas.Signature.properties.signerRole.enum.includes(role))
+	}
 	for (const role of SIGNABLE_SUBJECTS.praktijkovereenkomst.roles) {
 		assert.ok(schemas.PokSignature.properties.signerRole.enum.includes(role))
 	}
-	const plan = {
-		id: 'p',
-		version: 3,
-		learnerId: 'lea',
-		coordinatorId: 'co',
-		tenant_id: 't',
-	}
-	assert.equal(defaultSignerRole('learning-plan', plan, 'co'), 'coordinator')
-	const body = signatureBody({
-		kind: 'learning-plan',
-		subject: plan,
-		signerId: 'co',
-		signerRole: 'coordinator',
-		capture: { mode: 'typed', value: 'C. Oordinator' },
-		signedAt: '2026-09-27T10:00:00Z',
-	})
-	assertFitsSchema(body, 'Signature')
-	assert.equal(body.subjectVersion, 3)
-	const pok = signatureBody({
-		kind: 'praktijkovereenkomst',
-		subject: { id: 'k', version: 1 },
-		signerId: 'lea',
-		signerRole: 'student',
-		capture: { mode: 'drawn', value: 'data:image/png;base64,AA' },
-		signedAt: '2026-09-27T10:00:00Z',
-	})
-	assertFitsSchema(pok, 'PokSignature')
-	assert.equal(pok.evidenceRef, 'drawn:data:image/png;base64,AA')
+	assert.equal(
+		signUrl('learning-plan', 'p 1'),
+		'/apps/learniq/api/sign/learning-plan/p%201',
+	)
+	assert.equal(
+		signUrl('praktijkovereenkomst', 'k'),
+		'/apps/learniq/api/sign/placement-agreement/k',
+	)
+	assert.equal(schemas.Signature.authorization.create, undefined)
+	assert.equal(schemas.PokSignature.authorization.create, undefined)
 })
 
-test('bulk enrolment by department takes the department and everything under it', async () => {
-	const { learnersInDepartment, departmentOptions } =
+// @spec openspec/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
+test('a parent or guardian can sign a work placement agreement, and the page says when one must', async () => {
+	const { SIGNABLE_SUBJECTS, parentSignatureNeeded } =
 		await import('../../src/utils/customPages.js')
-	const profiles = [
-		{ ncUserId: 'a', department: 'Operations/Infra/Team A' },
-		{ ncUserId: 'b', department: 'Operations / Infra' },
-		{ ncUserId: 'c', department: 'Operations/Infrastructure' },
-		{ ncUserId: 'd', department: 'Finance' },
-		{ ncUserId: 'e', department: 'Operations/Infra', mergedInto: 'x' },
-	]
-	assert.deepEqual(learnersInDepartment(profiles, 'Operations/Infra'), ['a', 'b'])
-	assert.deepEqual(learnersInDepartment(profiles, ''), [])
-	assert.deepEqual(departmentOptions(profiles.slice(0, 2)), [
-		'Operations',
-		'Operations/Infra',
-		'Operations/Infra/Team A',
-	])
+	assert.ok(SIGNABLE_SUBJECTS.praktijkovereenkomst.roles.includes('parent'))
+	assert.ok(schemas.PokSignature.properties.signerRole.enum.includes('parent'))
+	assert.equal(
+		parentSignatureNeeded('praktijkovereenkomst', {
+			parentSignatureRequired: true,
+		}),
+		true,
+	)
+	assert.equal(
+		parentSignatureNeeded('praktijkovereenkomst', {
+			parentSignatureRequired: false,
+		}),
+		false,
+	)
+	assert.equal(parentSignatureNeeded('praktijkovereenkomst', {}), false)
+	assert.equal(
+		parentSignatureNeeded('learning-plan', { parentSignatureRequired: true }),
+		false,
+	)
 })
 
 // learniq#983 part C: a guard can not redirect submit to `late`, so the hand-in
@@ -290,4 +204,51 @@ test('handInAction names transitions the register declares on Submission', () =>
 			.transitions
 	assert.equal(transitions.submit.to, 'submitted')
 	assert.equal(transitions.submitLate.to, 'late')
+})
+
+test('a grade entry body takes the component scale, weight and period, else the plan scale or blanks', () => {
+	const base = { learnerId: 'l', componentId: 'k2', value: 6, cohortId: 'c', grader: 'g', gradedAt: 'at' }
+	assert.deepEqual(
+		gradeEntryBody({
+			...base,
+			plan: { uuid: 'p9', gradeScaleId: 'plan-scale', components: [{ componentId: 'k2', gradeScaleId: 'own', weight: 2, period: 'P1' }] },
+		}),
+		{
+			learnerId: 'l',
+			curriculumPlanId: 'p9',
+			componentId: 'k2',
+			cohortId: 'c',
+			gradeScaleId: 'own',
+			sourceKind: 'manual',
+			value: 6,
+			weight: 2,
+			period: 'P1',
+			grader: 'g',
+			gradedAt: 'at',
+			tenant_id: '',
+		},
+	)
+	const bare = gradeEntryBody({ ...base, plan: {} })
+	assert.equal(bare.gradeScaleId, '')
+	assert.equal(bare.weight, null)
+	assert.equal(bare.period, null)
+	assert.equal(bare.curriculumPlanId, '')
+	assert.equal(gradeEntryBody({ ...base, plan: { gradeScaleId: 's', components: [] } }).gradeScaleId, 's')
+})
+
+test('a plan graph without id, kind, goals or measures is a lone Plan node', () => {
+	assert.deepEqual(planGraph({}), { nodes: [{ id: 'plan', label: 'Plan', isRoot: true }], edges: [] })
+	const graph = planGraph({ '@self': { id: 'x' }, kind: 'ontwikkelingsperspectief', goals: [{ goalId: 'g', description: 'D' }] })
+	assert.deepEqual(graph.nodes, [
+		{ id: 'x', label: 'ONTWIKKELINGSPERSPECTIEF', isRoot: true },
+		{ id: 'goal:g', label: 'D', kind: 'goal' },
+	])
+})
+
+test('handInAction treats an unreadable deadline as no deadline', () => {
+	const now = new Date('2026-09-27T12:00:00Z')
+	assert.equal(handInAction({ dueAt: 'soon', allowLateSubmission: true }, now), 'submit')
+	assert.equal(handInAction(null, now), 'submit')
+	assert.equal(handInAction({ dueAt: '2026-09-27T11:00:00Z', allowLateSubmission: true }, now), 'submitLate')
+	assert.equal(handInAction({ dueAt: '2026-09-27T11:00:00Z', allowLateSubmission: 'yes' }, now), 'submit')
 })

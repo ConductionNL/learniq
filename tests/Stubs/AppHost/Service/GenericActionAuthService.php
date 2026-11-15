@@ -56,6 +56,28 @@ class GenericActionAuthService {
 	}//end requireAction()
 
 	/**
+	 * Non-throwing requireAction(), as the real class.
+	 *
+	 * @param IUser $user
+	 * @param string $action
+	 * @return bool
+	 */
+	public function can(IUser $user, string $action): bool {
+		return false;
+	}//end can()
+
+	/**
+	 * Groups allowed to perform the action, or ["admin"] when undeclared, as
+	 * the real class answers.
+	 *
+	 * @param string $action
+	 * @return array<int,string>
+	 */
+	public function getAllowedGroups(string $action): array {
+		return ($this->getMatrix()[$action] ?? ['admin']);
+	}//end getAllowedGroups()
+
+	/**
 	 * @return array<string,array<int,string>>
 	 */
 	public function getMatrix(): array {

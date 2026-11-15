@@ -21,8 +21,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
- * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-an-untemplated-cohort-composes-exactly-as-before-this-change
+ * @spec openspec/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
+ * @spec openspec/specs/report-card/spec.md#scenario-an-untemplated-cohort-composes-exactly-as-before-this-change
  */
 
 declare(strict_types=1);
@@ -97,7 +97,7 @@ class ReportCardTemplateSectionResolverTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
 	 */
 	public function testResolvesDeclaredSectionKinds(): void {
 		$objectService = $this->createMock(ObjectService::class);
@@ -128,7 +128,7 @@ class ReportCardTemplateSectionResolverTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-an-untemplated-cohort-composes-exactly-as-before-this-change
+	 * @spec openspec/specs/report-card/spec.md#scenario-an-untemplated-cohort-composes-exactly-as-before-this-change
 	 */
 	public function testSectionEnabledNullMeansEverythingEnabled(): void {
 		$resolver = new ReportCardTemplateSectionResolver($this->createMock(ObjectService::class), new NullLogger());

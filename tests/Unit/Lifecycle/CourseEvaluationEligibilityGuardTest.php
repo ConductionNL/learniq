@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
+ * @spec openspec/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
  */
 
 declare(strict_types=1);
@@ -28,6 +28,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\CourseEvaluationEligibilityGuard;
 use OCP\IUser;
 use OCP\IUserSession;
+use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -118,7 +119,7 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-learner-without-an-invitation-cannot-submit
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-learner-without-an-invitation-cannot-submit
 	 */
 	public function testNoInvitationBlocksSubmit(): void {
 		$this->signInAs('learner-1');
@@ -137,7 +138,7 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-learner-cannot-submit-a-second-response-for-the-same-campaign
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-learner-cannot-submit-a-second-response-for-the-same-campaign
 	 */
 	public function testAlreadyRespondedBlocksSecondSubmit(): void {
 		$this->signInAs('learner-1');
@@ -156,7 +157,7 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
 	 */
 	public function testEligibleInvitationAllowsSubmit(): void {
 		$this->signInAs('learner-1');
@@ -184,7 +185,7 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-a-response-is-anonymous-by-schema-shape-not-by-rbac
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-a-response-is-anonymous-by-schema-shape-not-by-rbac
 	 */
 	public function testGuardNeverMutatesResponsePayload(): void {
 		$this->signInAs('learner-1');
@@ -192,6 +193,7 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 			[
 				[
 					'campaignId' => 'campaign-1',
+					'courseId' => 'course-1',
 					'learnerId' => 'learner-1',
 					'hasResponded' => false,
 				],
@@ -254,4 +256,182 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 		self::assertDenied($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testMissingCampaignIdFailsClosedWithoutQuerying()
+	/**
+	 * The guard over a store that binds filters the way OpenRegister does on
+	 * PostgreSQL (live pass D5): a `hasResponded => false` filter is refused
+	 * there, so the guard must not send one, and an answered invitation is
+	 * still not a second chance.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-learner-without-an-invitation-cannot-submit
+	 */
+	public function testTheGuardWorksOnAPostgresBoundStore(): void {
+		$store = new RegisterFaithfulStore();
+		$objects = $this->createMock(ObjectService::class);
+		$objects->method('findAll')->willReturnCallback(
+			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $store->findAll($config, $_rbac, $_multitenancy)
+		);
+		$this->signInAs('learner-1');
+		$guard = new CourseEvaluationEligibilityGuard($this->userSession, $objects, $this->createMock(LoggerInterface::class));
+		$object = ['campaignId' => 'campaign-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
+
+		$store->rows['evaluation-invitation'] = [
+			['id' => 'inv-1', 'campaignId' => 'campaign-1', 'learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'hasResponded' => true],
+		];
+		self::assertDenied($guard->check($object, 'submit', ''));
+
+		$store->rows['evaluation-invitation'][] = ['id' => 'inv-2', 'campaignId' => 'campaign-1', 'learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'hasResponded' => false];
+		self::assertAllowed($guard->check($object, 'submit', ''));
+	}//end testTheGuardWorksOnAPostgresBoundStore()
+
+	/**
+	 * A guard reading the shipped register through RegisterFaithfulStore, with
+	 * one open invitation for learner-1 in the given shape.
+	 *
+	 * @param array<int, array<string, mixed>> $invitations The stored evaluation-invitation rows.
+	 *
+	 * @return CourseEvaluationEligibilityGuard
+	 */
+	private function guardOverStore(array $invitations): CourseEvaluationEligibilityGuard {
+		$store = new RegisterFaithfulStore();
+		$store->rows['evaluation-invitation'] = $invitations;
+		$objects = $this->createMock(ObjectService::class);
+		$objects->method('findAll')->willReturnCallback(
+			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $store->findAll($config, $_rbac, $_multitenancy)
+		);
+
+		return new CourseEvaluationEligibilityGuard($this->userSession, $objects, $this->createMock(LoggerInterface::class));
+	}//end guardOverStore()
+
+	/**
+	 * An invitation as the provisioning writes it (every required property of
+	 * the shipped evaluation-invitation fragment, plus cohortId).
+	 *
+	 * @param array<string, mixed> $override Fields to change.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function invitationRow(array $override = []): array {
+		return array_merge(
+			[
+				'id' => '0a000000-0000-4000-8000-000000000001',
+				'campaignId' => '0c000000-0000-4000-8000-000000000001',
+				'courseId' => '0d000000-0000-4000-8000-00000000000a',
+				'cohortId' => '0e000000-0000-4000-8000-00000000000a',
+				'learnerId' => 'learner-1',
+				'hasResponded' => false,
+				'respondedAt' => null,
+				'campaignClosesAt' => '2026-12-01T00:00:00+00:00',
+				'academicYear' => '2026-2027',
+				'period' => 'P1',
+				'tenant_id' => '0f000000-0000-4000-8000-000000000001',
+			],
+			$override
+		);
+	}//end invitationRow()
+
+	/**
+	 * The response row the answer page builds from that invitation
+	 * (CourseEvaluationResponseBuilder::responsePayload), at its target state.
+	 *
+	 * @param array<string, mixed> $override Fields to change.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function responseRow(array $override = []): array {
+		return array_merge(
+			[
+				'campaignId' => '0c000000-0000-4000-8000-000000000001',
+				'courseId' => '0d000000-0000-4000-8000-00000000000a',
+				'cohortId' => '0e000000-0000-4000-8000-00000000000a',
+				'academicYear' => '2026-2027',
+				'period' => 'P1',
+				'overallScore' => 4.0,
+				'answers' => [['questionId' => 'q1', 'ratingValue' => 4]],
+				'lifecycle' => 'submitted',
+				'tenant_id' => '0f000000-0000-4000-8000-000000000001',
+			],
+			$override
+		);
+	}//end responseRow()
+
+	/**
+	 * The row an invited learner submits must be the one their invitation
+	 * describes, not only the same campaign.
+	 *
+	 * The draft rule of #1715 lets any signed-in user change a left-over
+	 * draft. Checking only campaignId let an invited learner point such a
+	 * draft at another course, cohort or teacher of the same campaign (or
+	 * another year or period, which CourseQualityScoreEvaluator scopes by)
+	 * and submit it, moving their vote to something they were not invited to
+	 * judge.
+	 *
+	 * @param array<string, mixed> $tampered The field the submitted row changes.
+	 *
+	 * @return void
+	 *
+	 * @dataProvider tamperedRows
+	 *
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
+	 */
+	public function testARowThatDiffersFromTheInvitationIsRefused(array $tampered): void {
+		$this->signInAs('learner-1');
+		$guard = $this->guardOverStore([self::invitationRow()]);
+
+		self::assertDenied($guard->check(self::responseRow($tampered), 'submit', ''));
+	}//end testARowThatDiffersFromTheInvitationIsRefused()
+
+	/**
+	 * One field the submitted row may not change, each.
+	 *
+	 * @return array<string, array{0: array<string, mixed>}>
+	 */
+	public static function tamperedRows(): array {
+		return [
+			'another course' => [['courseId' => '0d000000-0000-4000-8000-00000000000b']],
+			'another cohort' => [['cohortId' => '0e000000-0000-4000-8000-00000000000b']],
+			'no cohort' => [['cohortId' => null]],
+			'a teacher the invitation does not name' => [['teacherId' => 'teacher-x']],
+			'another academic year' => [['academicYear' => '2025-2026']],
+			'another period' => [['period' => 'P2']],
+		];
+	}//end tamperedRows()
+
+	/**
+	 * The row the answer page builds from the invitation passes; so does a row
+	 * matching the second of two invitations in the same campaign.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
+	 */
+	public function testTheRowTheInvitationDescribesIsAccepted(): void {
+		$this->signInAs('learner-1');
+		$guard = $this->guardOverStore(
+			[
+				self::invitationRow(),
+				self::invitationRow(['id' => '0a000000-0000-4000-8000-000000000002', 'courseId' => '0d000000-0000-4000-8000-00000000000b', 'cohortId' => null]),
+			]
+		);
+
+		self::assertAllowed($guard->check(self::responseRow(), 'submit', ''));
+		self::assertAllowed($guard->check(self::responseRow(['courseId' => '0d000000-0000-4000-8000-00000000000b', 'cohortId' => null]), 'submit', ''));
+		self::assertDenied($guard->check(self::responseRow(['courseId' => '0d000000-0000-4000-8000-00000000000b']), 'submit', ''));
+	}//end testTheRowTheInvitationDescribesIsAccepted()
+
+	/**
+	 * A caller with no invitation is still refused, even for a row that
+	 * matches someone else's invitation exactly.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-learner-without-an-invitation-cannot-submit
+	 */
+	public function testAnUninvitedCallerIsStillRefused(): void {
+		$this->signInAs('learner-2');
+		$guard = $this->guardOverStore([self::invitationRow()]);
+
+		self::assertDenied($guard->check(self::responseRow(), 'submit', ''));
+	}//end testAnUninvitedCallerIsStillRefused()
 }//end class

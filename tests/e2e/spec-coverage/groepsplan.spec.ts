@@ -4,8 +4,8 @@
  * Gate-19 e2e coverage — groepsplan spec UI scenarios.
  *
  * Covers (UI-observable surface), matching the spec's own `@e2e` tags:
- *   @e2e openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
- *   @e2e openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-pages-are-manifest-declared-the-one-array-membership-lookup-uses-a-named-custom-view
+ *   @e2e openspec/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
+ *   @e2e openspec/specs/learning-plan/spec.md#scenario-pages-are-manifest-declared-the-one-array-membership-lookup-uses-a-named-custom-view
  *
  * The schema shape (lifecycle, calculations, notifications, the "no
  * denormalised learningPlanId/learningPlanIds field on GroupPlanSubgroup"
@@ -127,7 +127,7 @@ async function findIntensiefSubgroup(page: Page) {
 }
 
 test.describe('groepsplan — declarative index/detail pages', () => {
-	// @e2e openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-pages-are-manifest-declared-the-one-array-membership-lookup-uses-a-named-custom-view
+	// @e2e openspec/specs/learning-plan/spec.md#scenario-pages-are-manifest-declared-the-one-array-membership-lookup-uses-a-named-custom-view
 	test('Group plans index page renders without a fatal error', async ({
 		loggedInPage: page,
 	}) => {
@@ -143,7 +143,7 @@ test.describe('groepsplan — declarative index/detail pages', () => {
 		assertNoFatalErrors(errors)
 	})
 
-	// @e2e openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-pages-are-manifest-declared-the-one-array-membership-lookup-uses-a-named-custom-view
+	// @e2e openspec/specs/learning-plan/spec.md#scenario-pages-are-manifest-declared-the-one-array-membership-lookup-uses-a-named-custom-view
 	test('Group plan detail route resolves the registered component, not a blank/404 shell', async ({
 		loggedInPage: page,
 	}) => {
@@ -164,7 +164,7 @@ test.describe('groepsplan — declarative index/detail pages', () => {
 		assertNoFatalErrors(errors)
 	})
 
-	// @e2e openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-pages-are-manifest-declared-the-one-array-membership-lookup-uses-a-named-custom-view
+	// @e2e openspec/specs/learning-plan/spec.md#scenario-pages-are-manifest-declared-the-one-array-membership-lookup-uses-a-named-custom-view
 	test('Group plan subgroup detail route resolves the registered component, not a blank/404 shell', async ({
 		loggedInPage: page,
 	}) => {
@@ -180,7 +180,7 @@ test.describe('groepsplan — declarative index/detail pages', () => {
 		assertNoFatalErrors(errors)
 	})
 
-	// @e2e openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-pages-are-manifest-declared-the-one-array-membership-lookup-uses-a-named-custom-view
+	// @e2e openspec/specs/learning-plan/spec.md#scenario-pages-are-manifest-declared-the-one-array-membership-lookup-uses-a-named-custom-view
 	test('Group plan evaluation detail route resolves the registered component, not a blank/404 shell', async ({
 		loggedInPage: page,
 	}) => {
@@ -198,7 +198,7 @@ test.describe('groepsplan — declarative index/detail pages', () => {
 })
 
 test.describe('groepsplan — GroupPlanSubgroupLearnerContext resolves (registry.js wiring)', () => {
-	// @e2e openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-pages-are-manifest-declared-the-one-array-membership-lookup-uses-a-named-custom-view
+	// @e2e openspec/specs/learning-plan/spec.md#scenario-pages-are-manifest-declared-the-one-array-membership-lookup-uses-a-named-custom-view
 	test('GroupPlanSubgroupLearnerContext route renders its empty-state subgroup picker with no subgroupId query param', async ({
 		loggedInPage: page,
 	}) => {
@@ -214,7 +214,7 @@ test.describe('groepsplan — GroupPlanSubgroupLearnerContext resolves (registry
 		assertNoFatalErrors(errors)
 	})
 
-	// @e2e openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
+	// @e2e openspec/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 	test('GroupPlanSubgroupLearnerContext shows an active LearningPlan link for a seeded intensief-subgroup member', async ({
 		loggedInPage: page,
 	}) => {

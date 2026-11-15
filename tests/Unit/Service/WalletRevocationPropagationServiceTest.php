@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-revoking-a-credential-propagates-to-any-outstanding-wallet-offer-fail-soft
+ * @spec openspec/specs/certification/spec.md#requirement-revoking-a-credential-propagates-to-any-outstanding-wallet-offer-fail-soft
  */
 
 declare(strict_types=1);
@@ -121,7 +121,7 @@ class WalletRevocationPropagationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#scenario-revoking-a-credential-with-an-outstanding-wallet-offer-propagates-the-revocation
+	 * @spec openspec/specs/certification/spec.md#scenario-revoking-a-credential-with-an-outstanding-wallet-offer-propagates-the-revocation
 	 */
 	public function testPropagatesAndSetsRevokedOnSuccess(): void {
 		$this->appConfig->method('getValueString')->willReturn('token-abc');
@@ -145,11 +145,13 @@ class WalletRevocationPropagationServiceTest extends TestCase {
 			'id' => 'credential-2',
 			'walletOfferStatus' => 'offered',
 			'walletAttestationRef' => 'offer-uuid-1',
+			'walletOfferUri' => 'openid-credential-offer://?credential_offer_uri=x',
 			'lifecycle' => 'revoked',
 		];
 
 		$saved = $this->service()->propagate(credential: $object);
 		self::assertSame('revoked', $saved['walletOfferStatus']);
+		self::assertNull($saved['walletOfferUri']);
 		self::assertStringContainsString('offer-uuid-1', (string)$capturedUrl);
 		self::assertStringContainsString('/revoke', (string)$capturedUrl);
 	}//end testPropagatesAndSetsRevokedOnSuccess()
@@ -187,7 +189,7 @@ class WalletRevocationPropagationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#scenario-revoking-a-credential-proceeds-even-when-the-wallet-rail-is-unavailable
+	 * @spec openspec/specs/certification/spec.md#scenario-revoking-a-credential-proceeds-even-when-the-wallet-rail-is-unavailable
 	 */
 	public function testThrowableIsCaughtAndTransitionStillProceeds(): void {
 		$this->appConfig->method('getValueString')->willReturn('token-abc');
@@ -224,12 +226,15 @@ class WalletRevocationPropagationServiceTest extends TestCase {
 			'id' => 'credential-5',
 			'walletOfferStatus' => 'offered',
 			'walletAttestationRef' => 'offer-uuid-4',
+			'walletOfferUri' => 'openid-credential-offer://?credential_offer_uri=x',
 			'lifecycle' => 'revoked',
 		];
 
 		$saved = $this->service()->propagate(credential: $object);
 
 		self::assertSame('offered', $saved['walletOfferStatus']);
+		// The link goes even when integriq could not be told.
+		self::assertNull($saved['walletOfferUri']);
 	}//end testMissingTokenStillProceedsFailSoft()
 	/**
 	 * The revoke guard never blocks: revoking is the compliance action of record.

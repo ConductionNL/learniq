@@ -4,7 +4,7 @@
  * Gate-19 e2e coverage — study-progress spec UI scenario.
  *
  * Covers (UI-observable surface):
- *   @e2e openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-coordinator-sees-at-risk-learners-on-the-risk-dashboard
+ *   @e2e openspec/specs/study-progress/spec.md#scenario-coordinator-sees-at-risk-learners-on-the-risk-dashboard
  *
  * The BSA credit-earned calculation, at-risk detection, flag-creation guard,
  * warning-signing guard, and the negative-decision-requires-a-warning guard
@@ -28,7 +28,7 @@ const RISK_DASHBOARD_URL = '/index.php/apps/learniq/study-progress/risk-dashboar
 const BsaRiskDashboard = RISK_DASHBOARD_URL
 
 test.describe('bsa-study-progress-guard — BSA risk dashboard', () => {
-	// @e2e openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-coordinator-sees-at-risk-learners-on-the-risk-dashboard
+	// @e2e openspec/specs/study-progress/spec.md#scenario-coordinator-sees-at-risk-learners-on-the-risk-dashboard
 	test('BSA risk dashboard renders without a fatal error', async ({
 		loggedInPage: page,
 	}) => {

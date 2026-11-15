@@ -4,8 +4,8 @@
  * Unit tests for the office-file-lesson-onboarding register delta.
  *
  * Pins the LessonOnboardingFile schema (lifecycle, notification, self-only
- * access, the fields the listener and the importer write) and the teacherNote
- * block type on Lesson.blocks.
+ * access, the fields the listener and the importer write) and that a teacher note
+ * is no longer a block type on Lesson.blocks (teacher-notes-protection).
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Settings
@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md
+ * @spec openspec/specs/course-management/spec.md
  */
 
 declare(strict_types=1);
@@ -93,7 +93,7 @@ class LessonOnboardingRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
+	 * @spec openspec/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
 	 */
 	public function testTheLifecycleRunsFromDetectedToImportedOrDismissed(): void {
 		$lifecycle = $this->schema()['x-openregister-lifecycle'];
@@ -115,7 +115,7 @@ class LessonOnboardingRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
 	 */
 	public function testACreatedRowNotifiesTheTeacherWithALinkToTheReviewPage(): void {
 		$notification = $this->schema()['x-openregister-notifications']['detected'];
@@ -151,18 +151,21 @@ class LessonOnboardingRegisterTest extends TestCase {
 	}//end testOnlyTheTeacherReadsAndUpdatesTheirRows()
 
 	/**
-	 * Lesson.blocks accepts a teacherNote block, and Lesson's version moved.
+	 * A teacher note is no longer a Lesson block: office-file-lesson-onboarding
+	 * added the teacherNote type, and teacher-notes-protection moved notes to
+	 * the staff-only LessonTeacherNote schema, because every signed-in user
+	 * reads a Lesson. Lesson's version moved with it.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-teacher-note-block-is-shown-to-staff-in-the-composer-and-never-rendered-by-the-lesson-player
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-a-learner-can-read-cannot-hold-a-teacher-note
 	 */
-	public function testTeacherNoteIsABlockType(): void {
+	public function testTeacherNotesAreNotLessonBlocks(): void {
 		$lesson = $this->config['components']['schemas']['Lesson'];
-		$this->assertContains('teacherNote', $lesson['properties']['blocks']['items']['properties']['type']['enum']);
-		$this->assertTrue(version_compare($lesson['version'], '0.4.0', '>='));
+		$this->assertNotContains('teacherNote', $lesson['properties']['blocks']['items']['properties']['type']['enum']);
+		$this->assertTrue(version_compare($lesson['version'], '0.5.0', '>='));
 		$this->assertTrue(version_compare($this->config['info']['version'], '0.25.0', '>='));
 		$this->assertStringContainsString('office-file-lesson-onboarding', $this->config['info']['description']);
 
-	}//end testTeacherNoteIsABlockType()
+	}//end testTeacherNotesAreNotLessonBlocks()
 }//end class

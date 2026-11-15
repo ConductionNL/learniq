@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+ * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
  */
 
 declare(strict_types=1);
