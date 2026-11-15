@@ -32,6 +32,8 @@ namespace OCA\Learniq\Service\Portal;
 
 use OCA\Learniq\Kernel\Contracts\EmployerBookingProjectionInterface;
 use OCA\Learniq\Support\SerialisedRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserManager;
 
@@ -189,8 +191,7 @@ class EmployerBookingProjection implements EmployerBookingProjectionInterface {
 
 		$saved = $this->objectService->saveObject(
 			object: array_merge($row, $fields),
-			register: self::REGISTER,
-			schema: $schema,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: $schema)),
 			_rbac: false,
 			_multitenancy: false
 		);

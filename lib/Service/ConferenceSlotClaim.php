@@ -46,6 +46,9 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use OCA\Learniq\Kernel\Contracts\ConferenceSlotClaimInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Lock\ILockingProvider;
 use OCP\Lock\LockedException;
@@ -139,7 +142,12 @@ class ConferenceSlotClaim implements ConferenceSlotClaimInterface {
 	 */
 	private function claimLocked(string $slotId, array $round, array $booking): array {
 		$roundId = (string)($round['id'] ?? '');
-		$found = $this->objectService->find(id: $slotId, register: self::REGISTER, schema: self::SLOT_SCHEMA, _rbac: false, _multitenancy: false);
+		$found = $this->objectService->find(
+			id: $slotId,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: self::SLOT_SCHEMA),
+			_rbac: false,
+			_multitenancy: false
+		);
 		if ($found === null) {
 			return ['refuse' => 'slot-unknown'];
 		}
@@ -179,9 +187,10 @@ class ConferenceSlotClaim implements ConferenceSlotClaimInterface {
 		unset($booked['@self'], $booked['id']);
 		$saved = $this->objectService->saveObject(
 			object: $booked,
-			register: self::REGISTER,
-			schema: self::SLOT_SCHEMA,
-			uuid: $slotId,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::SLOT_SCHEMA),
+				uuid: $slotId
+			),
 			_rbac: false,
 			_multitenancy: false
 		);

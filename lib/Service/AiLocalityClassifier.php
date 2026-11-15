@@ -50,6 +50,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\Contracts\AiLocalityClassifierInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\App\IAppManager;
 use OCP\IAppConfig;
@@ -353,8 +354,10 @@ class AiLocalityClassifier implements AiLocalityClassifierInterface {
 		try {
 			$result = $this->objectService->find(
 				id: $credentialId,
-				register: self::CREDENTIAL_BROKER_REGISTER,
-				schema: self::BROKERED_CREDENTIAL_SCHEMA
+				options: new ObjectFindOptions(
+					register: self::CREDENTIAL_BROKER_REGISTER,
+					schema: self::BROKERED_CREDENTIAL_SCHEMA
+				)
 			);
 		} catch (Throwable $e) {
 			$this->logger->info(

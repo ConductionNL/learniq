@@ -30,6 +30,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Lifecycle;
 
 use OCA\Learniq\Support\ObjectRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -115,8 +116,7 @@ class ApplicationRoundOpenGuard implements LifecycleGuardInterface {
 		try {
 			$round = $this->objectService->find(
 				id: $roundId,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::ROUND_SCHEMA,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::ROUND_SCHEMA),
 				_rbac: false,
 				_multitenancy: false
 			);

@@ -26,6 +26,7 @@ namespace OCA\Learniq\Tests\Support;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\MockObject\MockObject;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Builds the ObjectService double over a RegisterFaithfulStore.
@@ -71,7 +72,11 @@ final class ExamScheduleFixture {
 	 */
 	public function wire(ObjectService&MockObject $service): ObjectService {
 		$service->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, mixed $register = null, mixed $schema = null): ?ObjectEntity {
+			function (int|string $id, ?ObjectFindOptions $options = null): ?ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				foreach (($this->store->rows[(string)$schema] ?? []) as $row) {
 					if (($row['id'] ?? null) === $id) {
 						return OrEntityFactory::make($row, (string)$schema);

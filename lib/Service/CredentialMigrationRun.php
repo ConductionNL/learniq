@@ -33,6 +33,8 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use OCA\Learniq\Support\ResultArrays;
 use OCA\Learniq\Support\RowId;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -249,7 +251,10 @@ final class CredentialMigrationRun {
 		];
 
 		try {
-			$saved = $this->objectService->saveObject(object: $record, register: self::REGISTER, schema: self::CREDENTIAL_SCHEMA);
+			$saved = $this->objectService->saveObject(
+				object: $record,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::CREDENTIAL_SCHEMA))
+			);
 		} catch (Throwable $e) {
 			$this->logger->error(
 				'Learniq: a migrated certificate could not be saved',

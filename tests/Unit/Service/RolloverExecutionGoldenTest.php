@@ -33,6 +33,7 @@ use OCP\IGroupManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use ReflectionMethod;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Pins every ObjectService call RolloverExecutionService::execute() makes, and
@@ -139,6 +140,7 @@ class RolloverExecutionGoldenTest extends TestCase {
 		$service = $this->createMock(ObjectService::class);
 		$service->method('find')->willReturnCallback(
 			static function (...$args) use ($rows, &$calls) {
+				$args = LegacyObjectArgs::positional(method: 'find', args: $args);
 				$named   = self::named('find', $args);
 				$calls[] = ['find' => $named];
 				foreach (($rows['cohort'] ?? []) as $row) {
@@ -165,6 +167,7 @@ class RolloverExecutionGoldenTest extends TestCase {
 		);
 		$service->method('saveObject')->willReturnCallback(
 			static function (...$args) use (&$calls) {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$named = self::named('saveObject', $args);
 				// An entity's @self block follows the loaded OpenRegister version, so it is not pinned.
 				unset($named['object']['@self']);
@@ -193,7 +196,7 @@ class RolloverExecutionGoldenTest extends TestCase {
 	 * @return array<string, mixed>
 	 */
 	private static function named(string $method, array $args): array {
-		$params = (new ReflectionMethod(ObjectService::class, $method))->getParameters();
+		$params = LegacyObjectArgs::parameters(ObjectService::class, $method);
 		$named  = [];
 		foreach ($args as $i => $value) {
 			if ($params[$i]->isDefaultValueAvailable() === true && $params[$i]->getDefaultValue() === $value) {
