@@ -29,7 +29,9 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\PortalAssertionVerifierInterface;
+use OCA\Learniq\Kernel\Contracts\PortalExamSittingDocumentsInterface;
 use OCA\Learniq\Kernel\Contracts\PortalPracticalExamAssessmentInterface;
+use OCA\Learniq\Kernel\Contracts\PortalPracticalExamSigningInterface;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -70,6 +72,8 @@ class PortalPracticalExamController extends Controller {
 	 * @param IRequest                                $request     The request.
 	 * @param PortalAssertionVerifierInterface        $verifier    Verifies X-Portal-Subject.
 	 * @param PortalPracticalExamAssessmentInterface  $assessments Checks, stamps and stores the assessment.
+	 * @param PortalPracticalExamSigningInterface     $signing     Checks and stores an assessor's signature.
+	 * @param PortalExamSittingDocumentsInterface     $sittings    Reads an assigned sitting and its documents.
 	 *
 	 * @return void
 	 */
@@ -77,6 +81,8 @@ class PortalPracticalExamController extends Controller {
 		IRequest $request,
 		private readonly PortalAssertionVerifierInterface $verifier,
 		private readonly PortalPracticalExamAssessmentInterface $assessments,
+		private readonly PortalPracticalExamSigningInterface $signing,
+		private readonly PortalExamSittingDocumentsInterface $sittings,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
@@ -122,6 +128,51 @@ class PortalPracticalExamController extends Controller {
 			)
 		);
 	}//end draft()
+
+	/**
+	 * Sign a submitted practical exam assessment as one of its two assessors.
+	 *
+	 * @param string $id The assessment to sign.
+	 *
+	 * @return JSONResponse 201 `{signatureId, role, assuranceLevel, signedAt}`, or 401 / 403 / 409 / 422 / 502.
+	 *
+	 * @spec openspec/changes/practical-exam-assessment/specs/exam-board/spec.md#requirement-a-practical-exam-result-needs-both-assessors
+	 */
+	#[PublicPage]
+	#[NoCSRFRequired]
+	#[AnonRateLimit(limit: 600, period: 60)]
+	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
+	public function sign(string $id = ''): JSONResponse {
+		return $this->forAssessor(
+			call: fn (string $assessorRef, array $claims): PortalOutcome => $this->signing->sign(
+				assessorRef: $assessorRef,
+				trust: (string)($claims['trust'] ?? ''),
+				assessmentId: trim($id)
+			)
+		);
+	}//end sign()
+
+	/**
+	 * One exam sitting and its documents, for an assessor assigned to it.
+	 *
+	 * @param string $id The sitting.
+	 *
+	 * @return JSONResponse 200 `{id, startsAt, endsAt, roomIds, lifecycle, documents}`, or 401 / 403 / 422 / 502.
+	 *
+	 * @spec openspec/changes/practical-exam-assessment/specs/exam-board/spec.md#requirement-an-assessor-is-linked-to-an-exam-sitting-by-a-record
+	 */
+	#[PublicPage]
+	#[NoCSRFRequired]
+	#[AnonRateLimit(limit: 600, period: 60)]
+	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
+	public function sitting(string $id = ''): JSONResponse {
+		return $this->forAssessor(
+			call: fn (string $assessorRef, array $claims): PortalOutcome => $this->sittings->sitting(
+				assessorRef: $assessorRef,
+				sittingId: trim($id)
+			)
+		);
+	}//end sitting()
 
 	/**
 	 * Verify the assertion and its audience, then answer with the call's outcome.

@@ -2858,6 +2858,8 @@
         "XapiDocument": "XapiDocument",
         "xAPI 1.0.3 State or Agent Profile document held by the learniq LRS for one learner. Written only by LrsDocumentController and the cmi5 launch (LMS.LaunchData), which key it by the authenticated learner in verified_actor_id.": "xAPI 1.0.3 State or Agent Profile document held by the learniq LRS for one learner. Written only by LrsDocumentController and the cmi5 launch (LMS.LaunchData), which key it by the authenticated learner in verified_actor_id.",
         "Document kind": "Document kind",
+        "Documents": "Documents",
+        "The sitting's documents, such as the assessment model and the exam regulations, as Materials. An assigned assessor reads them through the portal; nobody else outside the school does.": "The sitting's documents, such as the assessment model and the exam regulations, as Materials. An assigned assessor reads them through the portal; nobody else outside the school does.",
         "Which xAPI document resource this document belongs to": "Which xAPI document resource this document belongs to",
         "Document ID": "Document ID",
         "The xAPI stateId or profileId": "The xAPI stateId or profileId",

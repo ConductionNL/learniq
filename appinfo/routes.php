@@ -211,6 +211,11 @@ $routes = [
         // The external assessor's practical exam form (practical-exam-assessment): a step or the submit, and the draft to resume.
         ['name' => 'portalPracticalExam#submit', 'url' => '/api/portal/practical-exam-assessments', 'verb' => 'POST'],
         ['name' => 'portalPracticalExam#draft',  'url' => '/api/portal/practical-exam-assessments/draft', 'verb' => 'GET'],
+        // The second half of the exam: each assessor signs the submitted assessment, and reads his sitting's documents.
+        ['name' => 'portalPracticalExam#sign',    'url' => '/api/portal/practical-exam-assessments/{id}/signatures', 'verb' => 'POST'],
+        ['name' => 'portalPracticalExam#sitting', 'url' => '/api/portal/practical-exam-sittings/{id}', 'verb' => 'GET'],
+        // The exam board's practical exam results: only those both assessors signed.
+        ['name' => 'practicalExamResults#index',  'url' => '/api/practical-exam-results', 'verb' => 'GET'],
         // internship-hours: the trainer approves or corrects one week of her
         // student's hours. Same assertion receiver pattern: the assertion is
         // the only place her sign-in level can be read.
