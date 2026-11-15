@@ -624,7 +624,8 @@ test('the full profile is exactly the plain manifest build', () => {
 	// SignUpRequests (Aanmeldverzoeken); 349 with MyGrades (LqLlCijfers); 348 once
 	// MyGrades became the learner lens of GradeEntries.
 	// 349 with AttendanceNearingLimit (attendance-warns-before-the-threshold).
-	assert.equal(plain.pages.length, 349)
+	// 350 with GroupPupils (learner-list-and-page-follow-the-boards, LqLijst).
+	assert.equal(plain.pages.length, 350)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {
