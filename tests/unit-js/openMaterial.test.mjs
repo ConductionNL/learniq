@@ -141,3 +141,35 @@ test('a licence links to its full text and names its terms', () => {
 	assert.deepEqual(licenceTerms('CC-BY-SA-4.0'), { open: true, free: false, sa: true, nc: false, nd: false })
 	assert.deepEqual(licenceTerms('PDM'), { open: true, free: true, sa: false, nc: false, nd: false })
 })
+
+test('a no-derivatives licence without the non-commercial flag notes nd, a plain one notes nothing', () => {
+	assert.equal(resultNote({ license: 'CC-BY-ND-4.0', decision: { mode: 'copy' } }), 'nd')
+	assert.equal(resultNote({ license: 'CC-BY-4.0', decision: { mode: 'copy', nonCommercial: 'yes' } }), '')
+	assert.equal(resultNote(null), 'source-only')
+})
+
+test('search parameters keep their order and default every missing list', () => {
+	const params = searchParams({ query: null, page: 0, excludeLicenses: ['rights-reserved'], facets: 0 })
+	assert.deepEqual(Object.keys(params), [
+		'query',
+		'page',
+		'levels',
+		'excludeLicenses',
+		'excludeFormats',
+		'excludeCollections',
+		'includeCollectionsOff',
+		'facets',
+	])
+	assert.deepEqual(params, {
+		query: '',
+		page: 1,
+		levels: [],
+		excludeLicenses: ['rights-reserved'],
+		excludeFormats: [],
+		excludeCollections: [],
+		includeCollectionsOff: 'true',
+		facets: true,
+	})
+	const state = { query: 'x', levels: ['PO'] }
+	assert.equal(searchParams(state).levels, state.levels)
+})

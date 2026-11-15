@@ -231,4 +231,131 @@ class RubricScoresCompletionGuardTest extends TestCase {
 
 		self::assertFalse($guard->check($context['object'], 'submit', '')->isAllowed());
 	}//end testMissingAssignmentIdFailsClosed()
+
+	/**
+	 * A guard over recording doubles: every find (schema and id) and every
+	 * info line lands in $calls, in order.
+	 *
+	 * @param array<string,array<string,mixed>> $rows   "schema:id" => the stored row.
+	 * @param \ArrayObject<int,mixed>            $calls  Filled as the guard runs.
+	 * @param bool                              $admin  Whether the caller is an admin.
+	 *
+	 * @return RubricScoresCompletionGuard
+	 */
+	private function recordingGuard(array $rows, \ArrayObject $calls, bool $admin = false): RubricScoresCompletionGuard {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willReturnCallback(
+			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($rows, $calls) {
+				$calls[] = 'find ' . $register . '/' . $schema . '/' . $id;
+				$row = ($rows[$schema . ':' . $id] ?? null);
+				if ($row === null) {
+					return null;
+				}
+
+				return OrEntityFactory::make($row, (string)$schema);
+			}
+		);
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->method('info')->willReturnCallback(
+			static function (string $message, array $context = []) use ($calls): void {
+				$calls[] = 'info ' . $message . ' ' . json_encode($context);
+			}
+		);
+		$groups = $this->createMock(IGroupManager::class);
+		$groups->method('isAdmin')->willReturn($admin);
+
+		return new RubricScoresCompletionGuard($objectService, $logger, new LearnerCaller($groups));
+	}//end recordingGuard()
+
+	/**
+	 * Run check() and return the verdict message (null when allowed) followed by the calls.
+	 *
+	 * @param array<string,array<string,mixed>> $rows   The stored rows.
+	 * @param array<string,mixed>               $object The row being submitted.
+	 * @param string                            $userId The caller.
+	 *
+	 * @return array<int,mixed>
+	 */
+	private function submitThrough(array $rows, array $object, string $userId = 'pupil'): array {
+		$calls   = new \ArrayObject();
+		$verdict = $this->recordingGuard(rows: $rows, calls: $calls)->check($object, 'submit', $userId);
+		$message = null;
+		if ($verdict->isAllowed() === false) {
+			$message = $verdict->getMessage();
+		}
+
+		return array_merge([$message], $calls->getArrayCopy());
+	}//end submitThrough()
+
+	/**
+	 * The coverage half: every lookup, log line and verdict is exact.
+	 *
+	 * @return void
+	 */
+	public function testEachCoverageOutcomeIsExact(): void {
+		$deny = 'Score every rubric criterion before submitting.';
+		$review = ['uuid' => 'pr-9', 'reviewerId' => 'pupil', 'assignmentId' => 'a1', 'rubricScores' => []];
+
+		self::assertSame(
+			[$deny, 'info [RubricScoresCompletionGuard] {id} has no assignmentId — denying submit (fail closed). {"id":"pr-9"}'],
+			$this->submitThrough([], ['assignmentId' => ''] + $review)
+		);
+		self::assertSame([null, 'find learniq/assignment/a1'], $this->submitThrough([], $review));
+		self::assertSame([null, 'find learniq/assignment/a1'], $this->submitThrough(['assignment:a1' => ['rubricId' => '']], $review));
+		self::assertSame(
+			[null, 'find learniq/assignment/a1', 'find learniq/rubric/r1'],
+			$this->submitThrough(['assignment:a1' => ['rubricId' => 'r1']], $review)
+		);
+
+		$rows = [
+			'assignment:a1' => ['rubricId' => 'r1'],
+			'rubric:r1' => ['criteria' => ['junk', ['levels' => []], ['criterionId' => 5], ['criterionId' => 'b']]],
+		];
+		self::assertSame(
+			[
+				$deny,
+				'find learniq/assignment/a1',
+				'find learniq/rubric/r1',
+				'info [RubricScoresCompletionGuard] {id} rubricScores does not cover every criterionId of the linked Rubric — blocking submit. {"id":"pr-9"}',
+			],
+			$this->submitThrough($rows, ['rubricScores' => [['criterionId' => 5], 'junk']] + $review)
+		);
+		self::assertSame(
+			[null, 'find learniq/assignment/a1', 'find learniq/rubric/r1'],
+			$this->submitThrough($rows, ['rubricScores' => [['criterionId' => 'b'], ['criterionId' => '5']]] + $review)
+		);
+	}//end testEachCoverageOutcomeIsExact()
+
+	/**
+	 * The self-assessment half: who may submit, and the learner-on-submission
+	 * check with every way it fails closed.
+	 *
+	 * @return void
+	 */
+	public function testEachSelfAssessmentOutcomeIsExact(): void {
+		$deny = 'Score every rubric criterion before submitting.';
+		$log = 'info [RubricScoresCompletionGuard] {id} learnerId is not a member of the linked Submission.learnerIds — blocking submit. {"id":"sa-1"}';
+		$self = ['id' => 'sa-1', 'learnerId' => 'pupil', 'submissionId' => 's1', 'assignmentId' => 'a1', 'rubricScores' => []];
+
+		self::assertSame(['Only the person this assessment belongs to can submit it.'], $this->submitThrough([], $self, 'other'));
+		self::assertSame([$deny, 'find learniq/assignment/a1', $log], $this->submitThrough([], ['submissionId' => ''] + $self));
+		self::assertSame([$deny, 'find learniq/assignment/a1', $log], $this->submitThrough([], ['learnerId' => null] + $self, ''));
+		self::assertSame([$deny, 'find learniq/assignment/a1', 'find learniq/submission/s1', $log], $this->submitThrough([], $self));
+		self::assertSame(
+			[$deny, 'find learniq/assignment/a1', 'find learniq/submission/s1', $log],
+			$this->submitThrough(['submission:s1' => ['learnerIds' => 'pupil']], $self)
+		);
+		self::assertSame(
+			[$deny, 'find learniq/assignment/a1', 'find learniq/submission/s1', $log],
+			$this->submitThrough(['submission:s1' => ['learnerIds' => ['someone']]], $self)
+		);
+		self::assertSame(
+			[null, 'find learniq/assignment/a1', 'find learniq/submission/s1'],
+			$this->submitThrough(['submission:s1' => ['learnerIds' => ['x', 'pupil']]], $self)
+		);
+
+		$calls = new \ArrayObject();
+		$admin = $this->recordingGuard(rows: ['submission:s1' => ['learnerIds' => ['pupil']]], calls: $calls, admin: true);
+		self::assertTrue($admin->check($self, 'submit', 'root')->isAllowed());
+	}//end testEachSelfAssessmentOutcomeIsExact()
 }//end class

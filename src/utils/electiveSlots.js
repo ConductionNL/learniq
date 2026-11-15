@@ -35,7 +35,7 @@ function minutes(value) {
  * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-clash-warning-when-choosing
  */
 export function slotsOverlap(a, b) {
-	if (!a || !b || Number(a.weekday) !== Number(b.weekday)) {
+	if (!onSameWeekday(a, b)) {
 		return false
 	}
 	const [aStart, aEnd, bStart, bEnd] = [a.start, a.end, b.start, b.end].map(
@@ -48,6 +48,27 @@ export function slotsOverlap(a, b) {
 }
 
 /**
+ * Whether two slots are both given and fall on the same weekday.
+ *
+ * @param {object|null} a A slot.
+ * @param {object|null} b Another slot.
+ * @return {boolean}
+ */
+function onSameWeekday(a, b) {
+	return !(!a || !b || Number(a.weekday) !== Number(b.weekday))
+}
+
+/**
+ * A slot list, or none when the value is not a list.
+ *
+ * @param {Array<object>|null|undefined} slots The slots as given.
+ * @return {Array<object>}
+ */
+function slotList(slots) {
+	return Array.isArray(slots) ? slots : []
+}
+
+/**
  * The first overlapping slot of two slot lists, or null.
  *
  * @param {Array<object>} first  Slots.
@@ -55,8 +76,8 @@ export function slotsOverlap(a, b) {
  * @return {object|null} The slot of `first` that overlaps.
  */
 function firstOverlap(first, second) {
-	for (const a of Array.isArray(first) ? first : []) {
-		for (const b of Array.isArray(second) ? second : []) {
+	for (const a of slotList(first)) {
+		for (const b of slotList(second)) {
 			if (slotsOverlap(a, b)) {
 				return a
 			}

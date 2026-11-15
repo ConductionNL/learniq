@@ -35,7 +35,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle\Action;
 
-use OCA\Learniq\Service\LearnerRefResolver;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -56,14 +57,14 @@ class ConferenceInvitationAction implements LifecycleActionInterface {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService Reads the round's cohorts.
-	 * @param LearnerRefResolver $profiles Nextcloud user id to LearnerProfile uuid.
+	 * @param LearnerRefResolverInterface $profiles Nextcloud user id to LearnerProfile uuid.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly LearnerRefResolver $profiles,
+		private readonly LearnerRefResolverInterface $profiles,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -71,18 +72,15 @@ class ConferenceInvitationAction implements LifecycleActionInterface {
 	/**
 	 * Stamp `invitedLearnerIds` and `invitedLearnerRefs` from `cohortIds`.
 	 *
-	 * @param array<string, mixed> $objectData The round after the move.
-	 * @param array<string, mixed> $previousData The round before the move.
-	 * @param array<string, mixed> $parameters The declared parameters (none).
-	 * @param string $actionName The declared action name.
+	 * @param LifecycleActionContext $context The transition; its objectData is the round after the move.
 	 *
 	 * @return array<string, mixed> The round with its invited learners.
 	 *
-	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleActionInterface's.
-	 *
 	 * @spec openspec/specs/parent-conferences/spec.md#requirement-digital-invitations-are-a-declared-transition-notification-to-the-rounds-invited-learners
 	 */
-	public function execute(array $objectData, array $previousData, array $parameters, string $actionName): array {
+	public function execute(LifecycleActionContext $context): array {
+		$objectData = $context->objectData;
+
 		$tenantId = (string)($objectData['tenant_id'] ?? '');
 		$ids = [];
 		foreach ((array)($objectData['cohortIds'] ?? []) as $cohortId) {

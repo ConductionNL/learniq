@@ -22,7 +22,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\AppInfo;
 
 use Error;
-use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
+use OCA\Learniq\Listener\Registrar\EventListenerWiring;
 use OCA\Learniq\Event\HourPlanActivitiesQueryEvent;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
 use OCA\Learniq\Listener\SessionConflictListener;
@@ -34,10 +34,14 @@ use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectDeletedEvent;
 use OCA\OpenRegister\Event\ObjectDeletingEvent;
+use OCA\OpenRegister\Event\ObjectLeavingEvent;
 use OCA\OpenRegister\Event\ObjectEventSubscription;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
+use OCA\OpenRegister\Service\Lifecycle\TransitionActor;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
 use OCA\Portaliq\Event\PortalClaimScopeEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\EventDispatcher\Event;
@@ -46,6 +50,8 @@ use OCP\EventDispatcher\IEventListener;
 use OCP\Files\Events\Node\NodeCreatedEvent;
 use OCP\Files\Events\Node\NodeRenamedEvent;
 use OCP\Files\File;
+use OCP\IUser;
+use OCP\User\Events\UserLoggedInEvent;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionNamedType;
@@ -228,10 +234,11 @@ class RegisteredListenersHandleRealEventsTest extends TestCase {
 			ObjectCreatingEvent::class => new ObjectCreatingEvent($entity),
 			ObjectUpdatingEvent::class => new ObjectUpdatingEvent($entity, $before),
 			ObjectDeletingEvent::class => new ObjectDeletingEvent($entity),
+			ObjectLeavingEvent::class => new ObjectLeavingEvent($entity),
 			ObjectDeletedEvent::class => new ObjectDeletedEvent($entity),
 			ObjectCreatedEvent::class => new ObjectCreatedEvent($entity),
 			ObjectUpdatedEvent::class => new ObjectUpdatedEvent($entity, $before),
-			ObjectTransitionedEvent::class => new ObjectTransitionedEvent($entity, 'minimal', 'draft', 'active', 'alice', 'learniq', 'minimal'),
+			ObjectTransitionedEvent::class => new ObjectTransitionedEvent(object: $entity, move: new TransitionMove(action: 'minimal', from: 'draft', to: 'active'), scope: new RegisterSchemaRef(register: 'learniq', schema: 'minimal'), actor: new TransitionActor(userId: 'alice')),
 			// A Nextcloud Files event (office-file-lesson-onboarding): the node is a file double.
 			NodeCreatedEvent::class => new NodeCreatedEvent($this->createStub(File::class)),
 			NodeRenamedEvent::class => new NodeRenamedEvent($this->createStub(File::class), $this->createStub(File::class)),
@@ -245,6 +252,8 @@ class RegisteredListenersHandleRealEventsTest extends TestCase {
 				claim: ['appId' => 'learniq', 'claimName' => 'organisationRef'],
 				holder: ['value' => 'company-1', 'organisation' => 'school-a'],
 			),
+			// Nextcloud's sign-in event (identity-federation): a user double, a password login.
+			UserLoggedInEvent::class => new UserLoggedInEvent($this->createStub(IUser::class), 'alice', null, false),
 			default => null,
 		};
 	}//end event()

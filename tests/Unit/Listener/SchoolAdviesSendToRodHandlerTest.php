@@ -33,6 +33,9 @@ use OCA\Learniq\Service\IntegriqExchangeClient;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
+use OCA\OpenRegister\Service\Lifecycle\TransitionActor;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -86,7 +89,7 @@ class SchoolAdviesSendToRodHandlerTest extends TestCase {
 	 * @return ObjectTransitionedEvent
 	 */
 	private function event(array $advies, string $to = 'verzonden-naar-rod'): ObjectTransitionedEvent {
-		return new ObjectTransitionedEvent(OrEntityFactory::make($advies, 'school-advies'), 'verzendenNaarRod', 'definitief', $to, 'teacher-1', 'learniq', 'school-advies');
+		return new ObjectTransitionedEvent(object: OrEntityFactory::make($advies, 'school-advies'), move: new TransitionMove(action: 'verzendenNaarRod', from: 'definitief', to: $to), scope: new RegisterSchemaRef(register: 'learniq', schema: 'school-advies'), actor: new TransitionActor(userId: 'teacher-1'));
 	}//end event()
 
 	/**

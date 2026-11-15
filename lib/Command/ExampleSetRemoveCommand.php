@@ -36,7 +36,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Command;
 
-use OCA\Learniq\Service\SeedProfileService;
+use OCA\Learniq\Kernel\Contracts\SeedProfileServiceInterface;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Exception\CommandNotFoundException;
@@ -60,12 +60,12 @@ class ExampleSetRemoveCommand extends Command {
 	/**
 	 * Constructor.
 	 *
-	 * @param SeedProfileService $seedProfiles Resolves a set's fixed uuids.
+	 * @param SeedProfileServiceInterface $seedProfiles Resolves a set's fixed uuids.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly SeedProfileService $seedProfiles,
+		private readonly SeedProfileServiceInterface $seedProfiles,
 	) {
 		parent::__construct();
 	}//end __construct()

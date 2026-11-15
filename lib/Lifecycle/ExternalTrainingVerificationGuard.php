@@ -153,14 +153,9 @@ class ExternalTrainingVerificationGuard implements LifecycleGuardInterface {
 	 * @return bool True when the user is in admin / compliance-officer / hr.
 	 */
 	private function actorIsVerifier(string $actor): bool {
-		$user = $this->userManager->get($actor);
-		if ($user === null) {
-			return false;
-		}
+		$groups = new ActorGroups(userManager: $this->userManager, groupManager: $this->groupManager);
 
-		$actorGroups = $this->groupManager->getUserGroupIds($user);
-
-		return count(array_intersect($actorGroups, self::VERIFIER_GROUPS)) > 0;
+		return $groups->isInAny(actor: $actor, groups: self::VERIFIER_GROUPS);
 	}//end actorIsVerifier()
 
 	/**

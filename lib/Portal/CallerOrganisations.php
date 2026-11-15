@@ -33,6 +33,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCA\Learniq\Kernel\Contracts\CallerOrganisationsInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -42,7 +43,7 @@ use Throwable;
  *
  * @spec openspec/changes/portal-guardian-invitation-letter/specs/portal-identity/spec.md
  */
-class CallerOrganisations {
+class CallerOrganisations implements CallerOrganisationsInterface {
 	use ReadsOrganisationTenant;
 
 	/**

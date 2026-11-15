@@ -2,8 +2,8 @@
   CoursePackageImportView.vue
   Custom page component for the CoursePackageImportView manifest page (type: custom).
 
-  Uploads an IMS Common Cartridge 1.3 (.imscc/.zip) or Moodle backup (.mbz)
-  course package via CoursePackageImportController, then renders the returned
+  Uploads an IMS Common Cartridge 1.3 (.imscc/.zip), Moodle backup (.mbz) or
+  SCORM 1.2/2004 (.zip) course package via CoursePackageImportController, then renders the returned
   CoursePackageImportReport's entries table — the structural anti-Canvas
   promise: every source-package resource's outcome (imported/degraded/dropped)
   is shown, filterable, never a silent omission.
@@ -15,6 +15,7 @@
   Copyright (C) 2026 Conduction B.V.
 
   @spec openspec/specs/course-management/spec.md#requirement-course-package-frontend-is-declarative-with-one-named-custom-view-for-the-import-report
+  @spec openspec/changes/content-scorm-package-upload/tasks.md#task-3.1
   @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
   @spec openspec/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
 -->
@@ -27,7 +28,7 @@
 				{{
 					t(
 						'learniq',
-						'Upload an IMS Common Cartridge 1.3 (.imscc/.zip) or Moodle backup (.mbz) package. Every resource in the package is reported — imported, degraded, or dropped — nothing is silently lost.',
+						'Upload an IMS Common Cartridge 1.3 (.imscc/.zip), a Moodle backup (.mbz) or a SCORM 1.2 or 2004 package (.zip). Every resource in the package is reported — imported, degraded, or dropped — nothing is silently lost.',
 					)
 				}}
 			</p>
@@ -179,6 +180,12 @@
 import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import LessonOnboardingPanel from '../components/lesson/LessonOnboardingPanel.vue'
+import {
+	emptyImportState,
+	entriesWithOutcome,
+	pickedFileState,
+	postImportFile,
+} from '../utils/importUpload.js'
 
 export default {
 	name: 'CoursePackageImportView',
@@ -233,9 +240,7 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		filteredEntries() {
-			const entries = this.report?.entries ?? []
-			if (this.outcomeFilter === 'all') return entries
-			return entries.filter((entry) => entry.outcome === this.outcomeFilter)
+			return entriesWithOutcome(this.report, this.outcomeFilter)
 		},
 	},
 
@@ -248,10 +253,7 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		onFileSelected(event) {
-			const file = event.target.files?.[0] ?? null
-			this.selectedFile = file
-			this.selectedFileName = file ? file.name : ''
-			this.uploadError = null
+			Object.assign(this, pickedFileState(event))
 		},
 
 		/**
@@ -270,24 +272,10 @@ export default {
 			formData.append('file', this.selectedFile)
 
 			try {
-				const url = generateUrl(
-					'/apps/learniq/api/course-management/course-package-import',
+				this.report = await postImportFile(
+					generateUrl('/apps/learniq/api/course-management/course-package-import'),
+					formData,
 				)
-				const resp = await fetch(url, {
-					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						requesttoken: window.OC?.requestToken ?? '',
-					},
-					body: formData,
-				})
-
-				const json = await resp.json()
-				if (!resp.ok) {
-					throw new Error(json.error ?? `Import failed: ${resp.status}`)
-				}
-
-				this.report = json
 			} catch (err) {
 				this.uploadError = this.t(
 					'learniq',
@@ -307,11 +295,7 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		reset() {
-			this.report = null
-			this.selectedFile = null
-			this.selectedFileName = ''
-			this.outcomeFilter = 'all'
-			this.uploadError = null
+			Object.assign(this, emptyImportState())
 			if (this.$refs.fileInput) {
 				this.$refs.fileInput.value = ''
 			}

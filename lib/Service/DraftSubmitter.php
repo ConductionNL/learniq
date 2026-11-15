@@ -28,6 +28,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Exception\DraftSubmitException;
+use OCA\Learniq\Kernel\Contracts\DraftSubmitterInterface;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -38,7 +39,7 @@ use Throwable;
  *
  * @spec openspec/specs/parent-conferences/spec.md#requirement-a-guardian-or-self-signup-submission-is-gated-by-a-per-object-authorization-guard
  */
-class DraftSubmitter {
+class DraftSubmitter implements DraftSubmitterInterface {
 
 	private const REGISTER = 'learniq';
 

@@ -171,4 +171,84 @@ class PlanninqCourseQueryTest extends TestCase {
 		self::assertSame([], $source->sessionsForCourses(['course-a'], null, null));
 		self::assertSame([], $this->queries);
 	}//end testAVersionOnePlanninqIsNotAskedByCourse()
+	/**
+	 * A dispatcher answering every query with the given lessons, recording the criteria.
+	 *
+	 * @param array<int,mixed> $lessons What planninq answers.
+	 *
+	 * @return IEventDispatcher
+	 */
+	private function answering(array $lessons): IEventDispatcher {
+		$dispatcher = $this->createMock(IEventDispatcher::class);
+		$dispatcher->method('dispatchTyped')->willReturnCallback(
+			function (Event $event) use ($lessons): void {
+				$this->queries[] = $event->getCriteria();
+				$event->setSessions($lessons);
+			}
+		);
+
+		return $dispatcher;
+	}//end answering()
+
+	/**
+	 * The criteria carry the identity, the limit and only the filled bounds,
+	 * in that order; each distinct course is asked once, and a lesson of
+	 * another course, or an answer row that is not a lesson, never comes back.
+	 *
+	 * @return void
+	 */
+	public function testCourseQueriesSendTheCriteriaAndKeepOnlyThatCoursesLessons(): void {
+		$lessons = [
+			['id' => 'p-a1', 'title' => 'Spaans', 'courseId' => 'course-a'],
+			'not a lesson',
+			['id' => 'p-b1', 'title' => 'Kunst', 'courseId' => 'course-b'],
+		];
+		$source = new PlanninqTimetableSource($this->installed(), $this->answering(lessons: $lessons), TimetableSessionsQueryEventV2::class);
+
+		$sessions = $source->sessionsForCourses(['course-b', 'course-a', 'course-b', ''], '', '2026-10-12T00:00:00+02:00');
+
+		self::assertSame(['p-b1', 'p-a1'], array_column($sessions, 'id'));
+		self::assertSame(
+			[
+				['courseId' => 'course-b', 'limit' => 1000, 'to' => '2026-10-12T00:00:00+02:00'],
+				['courseId' => 'course-a', 'limit' => 1000, 'to' => '2026-10-12T00:00:00+02:00'],
+			],
+			$this->queries
+		);
+
+		$this->queries = [];
+		$cohort = $source->sessionsForCohorts(['3a'], '2026-10-05T00:00:00+02:00', '');
+		self::assertSame(['p-a1', 'p-b1'], array_column($cohort, 'id'));
+		self::assertSame([['cohortId' => '3a', 'limit' => 1000, 'from' => '2026-10-05T00:00:00+02:00']], $this->queries);
+	}//end testCourseQueriesSendTheCriteriaAndKeepOnlyThatCoursesLessons()
+
+	/**
+	 * Each failure names its own reason.
+	 *
+	 * @return void
+	 */
+	public function testEachFailureNamesItsReason(): void {
+		$absent = new PlanninqTimetableSource($this->installed(), $this->answering(lessons: []), 'OCA\\Planninq\\Event\\NoSuchEvent');
+		$silent = $this->createMock(IEventDispatcher::class);
+		$refusing = $this->createMock(IEventDispatcher::class);
+		$refusing->method('dispatchTyped')->willReturnCallback(
+			static function (Event $event): void {
+				$event->setError('Name a cohort.');
+			}
+		);
+
+		$cases = [
+			'absent' => [$absent, 'Planninq is not installed, so its timetable cannot be read.'],
+			'silent' => [new PlanninqTimetableSource($this->installed(), $silent), 'Planninq did not answer the timetable query.'],
+			'refusing' => [new PlanninqTimetableSource($this->installed(), $refusing), 'Planninq refused the timetable query: Name a cohort.'],
+		];
+		foreach ($cases as $label => [$source, $message]) {
+			try {
+				$source->sessionsForTeacher('jan', null, null);
+				self::fail($label . ' must raise');
+			} catch (\RuntimeException $e) {
+				self::assertSame($message, $e->getMessage(), $label);
+			}
+		}
+	}//end testEachFailureNamesItsReason()
 }//end class

@@ -116,3 +116,38 @@ test('diff creates new notes, updates changed ones and removes deleted ones by b
 test('the notes store is the staff-only schema', () => {
 	assert.equal(TEACHER_NOTE_SCHEMA, 'lesson-teacher-note')
 })
+
+test('split numbers notes per anchor and fills blank text and ids', () => {
+	const { blocks, notes } = splitTeacherNotes([
+		{ blockId: 'n0', type: 'teacherNote' },
+		{ type: 'richText' },
+		{ blockId: 'n1', type: 'teacherNote', text: 7 },
+		{ blockId: 'n2', type: 'teacherNote', text: null, noteId: 'id-2' },
+	])
+	assert.equal(blocks.length, 1)
+	assert.deepEqual(notes, [
+		{ blockId: 'n0', afterBlockId: '', position: 0, text: '', noteId: null },
+		{ blockId: 'n1', afterBlockId: '', position: 1, text: '7', noteId: null },
+		{ blockId: 'n2', afterBlockId: '', position: 2, text: '', noteId: 'id-2' },
+	])
+	assert.deepEqual(splitTeacherNotes(null), { blocks: [], notes: [] })
+})
+
+test('diff reads stored ids from uuid or @self and treats missing places as the first', () => {
+	const loaded = [
+		{ uuid: 'u-1', blockId: 'one', text: 'Eén' },
+		{ '@self': { id: 's-2' }, blockId: 'two', afterBlockId: 'a', position: 0, text: 'Twee' },
+		{ blockId: 'three', text: 'Drie' },
+		{ '@self': { id: 's-4' }, blockId: 'four', text: 'Vier' },
+	]
+	const current = [
+		{ blockId: 'one', afterBlockId: '', position: 0, text: 'Eén' },
+		{ blockId: 'two', afterBlockId: 'a', position: 3, text: 'Twee' },
+	]
+	assert.deepEqual(diffTeacherNotes(loaded, current), {
+		create: [],
+		update: [{ blockId: 'two', afterBlockId: 'a', position: 3, text: 'Twee', id: 's-2' }],
+		remove: ['s-4'],
+	})
+	assert.deepEqual(diffTeacherNotes(null, null), { create: [], update: [], remove: [] })
+})

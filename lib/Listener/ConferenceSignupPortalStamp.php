@@ -3,6 +3,9 @@
 /**
  * Learniq conference signup portal stamp
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * A guardian without a Nextcloud account books a parent-teacher conversation
  * from the parent portal (portaliq, learniq's `parent` contribution action
  * `createConferenceSignup`). Portaliq stamps the guardian's own learniq
@@ -32,9 +35,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -46,9 +46,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Service\ConferenceBookingMode;
-use OCA\Learniq\Service\LearnerRefResolver;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Support\TextValue;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -88,8 +89,8 @@ class ConferenceSignupPortalStamp implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
-	 * @param LearnerRefResolver $profiles LearnerProfile by uuid.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
+	 * @param LearnerRefResolverInterface $profiles LearnerProfile by uuid.
 	 * @param ObjectService $objectService Reads the round and the child's group.
 	 * @param IUserSession $userSession Tells a portal write (no session) from an app write.
 	 * @param LoggerInterface $logger PSR logger.
@@ -97,8 +98,8 @@ class ConferenceSignupPortalStamp implements IEventListener {
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly LearnerRefResolver $profiles,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		private readonly LearnerRefResolverInterface $profiles,
 		private readonly ObjectService $objectService,
 		private readonly IUserSession $userSession,
 		private readonly LoggerInterface $logger,
@@ -300,10 +301,6 @@ class ConferenceSignupPortalStamp implements IEventListener {
 	 * @return string
 	 */
 	private static function text(mixed $value): string {
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return $value;
+		return (new TextValue())->orEmpty(value: $value);
 	}//end text()
 }//end class

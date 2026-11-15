@@ -40,12 +40,13 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\CourseQualityScoreEvaluatorInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
  * Evaluates averageOverallScore/responseRate for a course/teacher/period scope.
  */
-class CourseQualityScoreEvaluator {
+class CourseQualityScoreEvaluator implements CourseQualityScoreEvaluatorInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const COURSE_EVALUATION_RESPONSE_SCHEMA = 'course-evaluation-response';

@@ -47,28 +47,54 @@ class LessonDraftBuilder {
 	public function build(array $sections, array $materialIds = []): array {
 		$blocks = [];
 		foreach ($sections as $index => $section) {
-			$text = $this->sectionMarkdown(heading: $section['heading'], paragraphs: $section['paragraphs']);
-			if ($text !== '') {
-				$blocks[] = ['type' => 'richText', 'text' => $text];
-			}
-
-			foreach (($materialIds[$index] ?? []) as $materialId) {
-				$blocks[] = ['type' => 'media', 'materialId' => $materialId];
-			}
-
-			$notes = trim((string)($section['notes'] ?? ''));
-			if ($notes !== '') {
-				$blocks[] = ['type' => 'teacherNote', 'text' => $notes];
-			}
+			$blocks = array_merge($blocks, $this->sectionBlocks(section: $section, materialIds: ($materialIds[$index] ?? [])));
 		}
 
+		return self::numbered(blocks: $blocks);
+	}//end build()
+
+	/**
+	 * One section's blocks: its text, then its images, then its teacher notes.
+	 *
+	 * @param array{heading: string, paragraphs: list<string>, notes?: string} $section     The section.
+	 * @param list<string>                                                       $materialIds The Material ids of its images.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	private function sectionBlocks(array $section, array $materialIds): array {
+		$blocks = [];
+		$text = $this->sectionMarkdown(heading: $section['heading'], paragraphs: $section['paragraphs']);
+		if ($text !== '') {
+			$blocks[] = ['type' => 'richText', 'text' => $text];
+		}
+
+		foreach ($materialIds as $materialId) {
+			$blocks[] = ['type' => 'media', 'materialId' => $materialId];
+		}
+
+		$notes = trim((string)($section['notes'] ?? ''));
+		if ($notes !== '') {
+			$blocks[] = ['type' => 'teacherNote', 'text' => $notes];
+		}
+
+		return $blocks;
+	}//end sectionBlocks()
+
+	/**
+	 * The blocks with a fresh `blockId` and their 1-based `order` first.
+	 *
+	 * @param list<array<string, mixed>> $blocks The blocks, in order.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	private static function numbered(array $blocks): array {
 		$ordered = [];
 		foreach ($blocks as $position => $block) {
 			$ordered[] = array_merge(['blockId' => self::uuid(), 'order' => ($position + 1)], $block);
 		}
 
 		return $ordered;
-	}//end build()
+	}//end numbered()
 
 	/**
 	 * A section as markdown: the heading as `## heading`, then its paragraphs.
@@ -82,21 +108,56 @@ class LessonDraftBuilder {
 	 * @spec openspec/specs/course-management/spec.md#requirement-a-confirmed-word-file-becomes-one-lesson-draft
 	 */
 	public function sectionMarkdown(string $heading, array $paragraphs): string {
+		return self::underHeading(heading: trim($heading), markdown: self::joined(paragraphs: $paragraphs));
+	}//end sectionMarkdown()
+
+	/**
+	 * The paragraphs joined by a blank line; consecutive list items by a newline.
+	 *
+	 * @param list<string> $paragraphs Paragraphs, `- ` list items and markdown tables.
+	 *
+	 * @return string
+	 */
+	private static function joined(array $paragraphs): string {
 		$markdown = '';
 		$previousWasListItem = false;
 		foreach ($paragraphs as $paragraph) {
 			$isListItem = str_starts_with($paragraph, '- ');
-			if ($markdown !== '' && $isListItem === true && $previousWasListItem === true) {
-				$markdown .= "\n";
-			} elseif ($markdown !== '') {
-				$markdown .= "\n\n";
+			if ($markdown !== '') {
+				$markdown .= self::separator(continuesList: ($isListItem === true && $previousWasListItem === true));
 			}
 
 			$markdown .= $paragraph;
 			$previousWasListItem = $isListItem;
 		}
 
-		$heading = trim($heading);
+		return $markdown;
+	}//end joined()
+
+	/**
+	 * What goes between two paragraphs: a newline inside a list, else a blank line.
+	 *
+	 * @param bool $continuesList Whether both are list items.
+	 *
+	 * @return string
+	 */
+	private static function separator(bool $continuesList): string {
+		if ($continuesList === true) {
+			return "\n";
+		}
+
+		return "\n\n";
+	}//end separator()
+
+	/**
+	 * The markdown under `## heading`, or as it is without a heading.
+	 *
+	 * @param string $heading  The trimmed heading, or ''.
+	 * @param string $markdown The section's text, or ''.
+	 *
+	 * @return string
+	 */
+	private static function underHeading(string $heading, string $markdown): string {
 		if ($heading === '') {
 			return $markdown;
 		}
@@ -106,7 +167,7 @@ class LessonDraftBuilder {
 		}
 
 		return '## ' . $heading . "\n\n" . $markdown;
-	}//end sectionMarkdown()
+	}//end underHeading()
 
 	/**
 	 * A random UUID v4 for a block id.

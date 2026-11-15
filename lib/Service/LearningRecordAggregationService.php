@@ -3,6 +3,9 @@
 /**
  * Learniq Learning Record Aggregation Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Composes a learner's portable-learning-record trajectory LIVE, on read,
  * scoped by `learnerRef` — no materialized "LearningRecord" rollup schema is
  * persisted (design.md "Why no materialized rollup schema"). Reads across
@@ -29,8 +32,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -42,6 +43,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\LearningRecordAggregationServiceInterface;
+use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -50,7 +53,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-2-1
  */
-class LearningRecordAggregationService {
+class LearningRecordAggregationService implements LearningRecordAggregationServiceInterface {
 
 	private const REGISTER = 'learniq';
 
@@ -424,17 +427,6 @@ class LearningRecordAggregationService {
 	 * @return array<string,mixed>
 	 */
 	private function toArray(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-			$serialized = $row->jsonSerialize();
-			if (is_array($serialized) === true) {
-				return $serialized;
-			}
-		}
-
-		return [];
+		return (new SerialisedRow())->asArray(object: $row);
 	}//end toArray()
 }//end class

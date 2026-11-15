@@ -3,6 +3,9 @@
 /**
  * Resolves an OpenRegister object's schema **slug** for Learniq's listeners.
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * OpenRegister's {@see \OCA\OpenRegister\Db\MagicMapper} stamps the numeric
  * **ids** of the register and schema onto every {@see
  * \OCA\OpenRegister\Db\ObjectEntity} it materialises:
@@ -51,8 +54,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -62,6 +63,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -71,7 +73,7 @@ use Throwable;
  * Turns an OpenRegister entity's schema id into its slug, scoped to Learniq's
  * own register.
  */
-class ListenerSchemaResolver {
+class ListenerSchemaResolver implements ListenerSchemaResolverInterface {
 
 	/**
 	 * The OpenRegister register slug owning Learniq's schemas.
@@ -153,22 +155,17 @@ class ListenerSchemaResolver {
 		// The unit suite did not catch it because the old tests/Stubs entity
 		// declared those accessors concretely, so method_exists() was true
 		// there and only there.
-		if ($entity === null || is_callable([$entity, 'getSchema']) === false) {
+		$rawSchema = $this->rawValue(entity: $entity, getter: 'getSchema');
+		if ($rawSchema === null) {
 			return '';
 		}
-
-		$rawSchema = (string)($entity->getSchema() ?? '');
 
 		// Gate closed: reproduce the pre-fix comparison exactly.
 		if ($this->contract->isEnabled() === false) {
 			return $rawSchema;
 		}
 
-		if ($rawSchema === '' || $this->isOwnRegister(entity: $entity) === false) {
-			return '';
-		}
-
-		return $this->resolveSlug(service: self::SCHEMA_MAPPER, id: $rawSchema);
+		return $this->ownSchemaSlug(entity: $entity, rawSchema: $rawSchema);
 	}//end schemaSlug()
 
 	/**
@@ -188,17 +185,12 @@ class ListenerSchemaResolver {
 	 * @spec openspec/specs/assessment/spec.md#requirement-an-attempt-starts-only-inside-the-availability-window-and-with-the-access-code
 	 */
 	public function guardSchemaSlug(?object $entity): string {
-		// `is_callable()`, not `method_exists()` — see schemaSlug().
-		if ($entity === null || is_callable([$entity, 'getSchema']) === false) {
+		$rawSchema = $this->rawValue(entity: $entity, getter: 'getSchema');
+		if ($rawSchema === null) {
 			return '';
 		}
 
-		$rawSchema = (string)($entity->getSchema() ?? '');
-		if ($rawSchema === '' || $this->isOwnRegister(entity: $entity) === false) {
-			return '';
-		}
-
-		return $this->resolveSlug(service: self::SCHEMA_MAPPER, id: $rawSchema);
+		return $this->ownSchemaSlug(entity: $entity, rawSchema: $rawSchema);
 	}//end guardSchemaSlug()
 
 	/**
@@ -213,26 +205,16 @@ class ListenerSchemaResolver {
 	 * @return string The register slug, or '' when unresolvable.
 	 */
 	public function registerSlug(?object $entity): string {
-		// `is_callable()`, not `method_exists()` — see schemaSlug().
-		if ($entity === null || is_callable([$entity, 'getRegister']) === false) {
+		$rawRegister = $this->rawValue(entity: $entity, getter: 'getRegister');
+		if ($rawRegister === null) {
 			return '';
 		}
-
-		$rawRegister = (string)($entity->getRegister() ?? '');
 
 		if ($this->contract->isEnabled() === false) {
 			return $rawRegister;
 		}
 
-		if ($rawRegister === '') {
-			return '';
-		}
-
-		if (strcasecmp($rawRegister, self::REGISTER_SLUG) === 0) {
-			return self::REGISTER_SLUG;
-		}
-
-		return $this->resolveSlug(service: self::REGISTER_MAPPER, id: $rawRegister);
+		return $this->slugOfRegister(rawRegister: $rawRegister);
 	}//end registerSlug()
 
 	/**
@@ -247,28 +229,72 @@ class ListenerSchemaResolver {
 	 * @return bool True when the entity sits in Learniq's register.
 	 */
 	public function isOwnRegister(?object $entity): bool {
-		// `is_callable()`, not `method_exists()` — see schemaSlug().
-		if ($entity === null || is_callable([$entity, 'getRegister']) === false) {
+		$rawRegister = $this->rawValue(entity: $entity, getter: 'getRegister');
+		if ($rawRegister === null || $rawRegister === '') {
 			return false;
 		}
 
-		$rawRegister = (string)($entity->getRegister() ?? '');
-		if ($rawRegister === '') {
-			return false;
-		}
-
-		// Tolerate an entity that already carries a slug (a hand-built entity in
-		// a test, or a future OpenRegister that stops stamping ids).
-		if (strcasecmp($rawRegister, self::REGISTER_SLUG) === 0) {
-			return true;
-		}
-
-		return strcasecmp(
-			$this->resolveSlug(service: self::REGISTER_MAPPER, id: $rawRegister),
-			self::REGISTER_SLUG
-		) === 0;
+		return strcasecmp($this->slugOfRegister(rawRegister: $rawRegister), self::REGISTER_SLUG) === 0;
 
 	}//end isOwnRegister()
+
+	/**
+	 * The raw value an entity's accessor answers, as a string, or null when
+	 * there is no entity or it has no such accessor.
+	 *
+	 * `is_callable()`, not `method_exists()` — see schemaSlug().
+	 *
+	 * @param object|null $entity The OpenRegister ObjectEntity from the event.
+	 * @param string      $getter The accessor: `getSchema` or `getRegister`.
+	 *
+	 * @return string|null The value ('' when the accessor answers null), or null.
+	 */
+	private function rawValue(?object $entity, string $getter): ?string {
+		if ($entity === null || is_callable([$entity, $getter]) === false) {
+			return null;
+		}
+
+		return (string)($entity->$getter() ?? '');
+	}//end rawValue()
+
+	/**
+	 * The slug of a raw schema value, but only for an entity in Learniq's own
+	 * register; '' for an empty schema or a foreign register.
+	 *
+	 * @param object $entity    The OpenRegister ObjectEntity.
+	 * @param string $rawSchema Its raw schema value.
+	 *
+	 * @return string The schema slug, or ''.
+	 */
+	private function ownSchemaSlug(object $entity, string $rawSchema): string {
+		if ($rawSchema === '' || $this->isOwnRegister(entity: $entity) === false) {
+			return '';
+		}
+
+		return $this->resolveSlug(service: self::SCHEMA_MAPPER, id: $rawSchema);
+	}//end ownSchemaSlug()
+
+	/**
+	 * The slug of a raw register value: '' for an empty one, Learniq's slug
+	 * for a value that already is it in any case (a hand-built entity in a
+	 * test, or a future OpenRegister that stops stamping ids), otherwise the
+	 * slug its id resolves to.
+	 *
+	 * @param string $rawRegister The raw register value.
+	 *
+	 * @return string The register slug, or ''.
+	 */
+	private function slugOfRegister(string $rawRegister): string {
+		if ($rawRegister === '') {
+			return '';
+		}
+
+		if (strcasecmp($rawRegister, self::REGISTER_SLUG) === 0) {
+			return self::REGISTER_SLUG;
+		}
+
+		return $this->resolveSlug(service: self::REGISTER_MAPPER, id: $rawRegister);
+	}//end slugOfRegister()
 
 	/**
 	 * The register slug an ObjectTransitionedEvent names, whatever form it

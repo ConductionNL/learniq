@@ -394,7 +394,18 @@
 							]
 						}
 					]
-				}
+				},
+				"bodyWidgets": [
+					{
+						"id": "exam-sitting-overview",
+						"component": "ExamSittingOverview",
+						"title": "Extra time and invigilators",
+						"placement": "after-data",
+						"props": {
+							"objectId": "@objectId"
+						}
+					}
+				]
 			}
 		},
 		{

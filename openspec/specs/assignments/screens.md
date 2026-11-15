@@ -14,3 +14,4 @@
 - vaartveld/Inleveren Mijn Zuiddrecht: werk inleveren met een echt bestand https://identity.conduction.nl/screens/board?id=vaartveld/Inleveren
 
 Components: CnActionButtons, CnActionsMenu, CnAppNav, CnAuditTrailCard, CnBreadcrumbs, CnBuildiqEditButton, CnCardGrid, CnChoiceCards, CnConfirmDialog, CnDashboardPage, CnDataTable, CnDetailCard, CnDetailGrid, CnDetailPage, CnFileField, CnFormDialog, CnMarkdownWidget, CnNextStepCard, CnNoteCard, CnNotesCard, CnNoticeWidget, CnObjectCard, CnObjectListWidget, CnPageHeader, CnProgressBar, CnRelatedCollections, CnSectionsWidget, CnSegmentedControl, CnStatWidget, CnStatusBadge, CnTabs, CnVideoWidget, CnWidgetWrapper
+- learniq/LqLlInleveren bestand kiezen uit de eigen Nextcloud-bestanden (row asg-hand-in-a-file) https://identity.conduction.nl/screens/board?id=learniq/LqLlInleveren

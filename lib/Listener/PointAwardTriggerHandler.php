@@ -3,6 +3,9 @@
 /**
  * Learniq Point Award Trigger Handler
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Listens for OpenRegister's ObjectTransitionedEvent on exactly three real,
  * already-firing transitions and creates an idempotency-keyed PointAward for
  * each active, matching PointRule:
@@ -49,8 +52,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -64,10 +65,10 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\GradeFormulaEvaluatorInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Grading\GradeFormulaEvaluator;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -92,17 +93,17 @@ class PointAwardTriggerHandler implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
-	 * @param GradeFormulaEvaluator $evaluator Pass/fail evaluation engine.
+	 * @param GradeFormulaEvaluatorInterface $evaluator Pass/fail evaluation engine.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly GradeFormulaEvaluator $evaluator,
+		private readonly GradeFormulaEvaluatorInterface $evaluator,
 		private readonly ITimeFactory $timeFactory,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -124,21 +125,24 @@ class PointAwardTriggerHandler implements IEventListener {
 			return;
 		}
 
-		if ($this->schemas->eventSchema(event: $event) === self::ENROLMENT_SCHEMA && $event->getTo() === 'completed') {
-			$this->handleEnrolmentCompleted(event: $event);
-			return;
-		}
-
-		if ($this->schemas->eventSchema(event: $event) === self::SUBMISSION_SCHEMA && $event->getTo() === 'submitted') {
-			$this->handleSubmissionSubmitted(event: $event);
-			return;
-		}
-
-		if ($this->schemas->eventSchema(event: $event) === self::GRADE_ENTRY_SCHEMA && $event->getTo() === 'published') {
-			$this->handleGradeEntryPublished(event: $event);
-		}
-
+		$this->dispatch(event: $event);
 	}//end handle()
+
+	/**
+	 * Hand the transition to the handler of its schema and target state, if any.
+	 *
+	 * @param ObjectTransitionedEvent $event The learniq transition.
+	 *
+	 * @return void
+	 */
+	private function dispatch(ObjectTransitionedEvent $event): void {
+		match ($this->schemas->eventSchema(event: $event) . ' -> ' . $event->getTo()) {
+			self::ENROLMENT_SCHEMA . ' -> completed' => $this->handleEnrolmentCompleted(event: $event),
+			self::SUBMISSION_SCHEMA . ' -> submitted' => $this->handleSubmissionSubmitted(event: $event),
+			self::GRADE_ENTRY_SCHEMA . ' -> published' => $this->handleGradeEntryPublished(event: $event),
+			default => null,
+		};
+	}//end dispatch()
 
 	/**
 	 * Award enrolment-completed points.
@@ -188,31 +192,49 @@ class PointAwardTriggerHandler implements IEventListener {
 			return;
 		}
 
-		$tenantId = $entry['tenant_id'] ?? '';
-		$sourceId = $entry['id'] ?? ($entry['uuid'] ?? null);
+		$sourceId   = $entry['id'] ?? ($entry['uuid'] ?? null);
 		$learnerIds = $entry['learnerIds'] ?? [];
-
 		if ($sourceId === null || is_array($learnerIds) === false) {
 			return;
 		}
 
+		$this->awardEveryLearner(entry: $entry, learnerIds: $learnerIds);
+	}//end handleSubmissionSubmitted()
+
+	/**
+	 * Award submission-on-time points to every learner id that is a non-empty string.
+	 *
+	 * @param array<string, mixed> $entry      The on-time Submission.
+	 * @param array<mixed>         $learnerIds Its learner ids.
+	 *
+	 * @return void
+	 */
+	private function awardEveryLearner(array $entry, array $learnerIds): void {
 		foreach ($learnerIds as $learnerId) {
 			if (is_string($learnerId) === false || $learnerId === '') {
 				continue;
 			}
 
-			$this->tryAward(
-				source: new PointAwardSource(
-					kind: 'submission-on-time',
-					sourceKind: 'submission',
-					sourceObjectId: $sourceId,
-					scope: new PointAwardScope(tenantId: $tenantId, cohortId: null, courseId: null)
-				),
-				learnerId: $learnerId
-			);
+			$this->tryAward(source: self::onTimeSource(entry: $entry), learnerId: $learnerId);
 		}
+	}//end awardEveryLearner()
 
-	}//end handleSubmissionSubmitted()
+	/**
+	 * The award source of an on-time Submission: tenant-wide, since a Submission
+	 * carries no cohort or course of its own.
+	 *
+	 * @param array<string, mixed> $entry The on-time Submission.
+	 *
+	 * @return PointAwardSource
+	 */
+	private static function onTimeSource(array $entry): PointAwardSource {
+		return new PointAwardSource(
+			kind: 'submission-on-time',
+			sourceKind: 'submission',
+			sourceObjectId: $entry['id'] ?? ($entry['uuid'] ?? null),
+			scope: new PointAwardScope(tenantId: $entry['tenant_id'] ?? '', cohortId: null, courseId: null)
+		);
+	}//end onTimeSource()
 
 	/**
 	 * Award finalgrade-passed points when GradeFormulaEvaluator confirms a pass.
@@ -345,18 +367,26 @@ class PointAwardTriggerHandler implements IEventListener {
 			return true;
 		}
 
-		$scopeCohortId = $ruleScope['cohortId'] ?? null;
-		if (is_string($scopeCohortId) === true && $scopeCohortId !== '' && $scopeCohortId !== $scope->cohortId) {
-			return false;
-		}
-
-		$scopeCourseId = $ruleScope['courseId'] ?? null;
-		if (is_string($scopeCourseId) === true && $scopeCourseId !== '' && $scopeCourseId !== $scope->courseId) {
-			return false;
-		}
-
-		return true;
+		return self::restrictionAllows(restriction: $ruleScope['cohortId'] ?? null, actual: $scope->cohortId)
+			&& self::restrictionAllows(restriction: $ruleScope['courseId'] ?? null, actual: $scope->courseId);
 	}//end ruleScopeMatches()
+
+	/**
+	 * Whether one scope restriction lets the object through: an absent or empty
+	 * restriction always does, a set one only for the same id.
+	 *
+	 * @param mixed       $restriction The rule's cohortId or courseId.
+	 * @param string|null $actual      The object's own cohortId or courseId.
+	 *
+	 * @return bool
+	 */
+	private static function restrictionAllows(mixed $restriction, ?string $actual): bool {
+		if (is_string($restriction) === false || $restriction === '') {
+			return true;
+		}
+
+		return $restriction === $actual;
+	}//end restrictionAllows()
 
 	/**
 	 * Check whether a PointAward already exists for this
