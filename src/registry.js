@@ -18,6 +18,7 @@ import AssignmentPeerReviewAllocation from './components/sections/AssignmentPeer
 import CredentialWalletOffer from './components/sections/CredentialWalletOffer.vue'
 // exam-sitting-overview-section: body section on ExamSittingDetail.
 import ExamSittingOverview from './components/sections/ExamSittingOverview.vue'
+import PermissionRequestOutcome from './components/sections/PermissionRequestOutcome.vue'
 // learner-list-and-page-follow-the-boards T5: the guardian conversation on the pupil's page.
 import PupilGuardianConversation from './components/sections/PupilGuardianConversation.vue'
 // lqb-c board dialogs: purpose-built create and decision dialogs (G5, G11).
@@ -406,6 +407,11 @@ export default {
 		kind: 'section',
 		component: AssignmentHandInStatus,
 		_note: 'Hand-in status on AssignmentDetail: the cohort roster minus the learners who handed in, split into started and not started, overdue after dueAt. Staff only; self-fetches assignment, cohort(s), submissions and learner names.',
+	},
+	PermissionRequestOutcome: {
+		kind: 'section',
+		component: PermissionRequestOutcome,
+		_note: 'Answers on PermissionRequestDetail: the learners the request asks, split into not answered, answered yes and answered no, by name, with whether silence counts as no. Staff only; self-fetches the request, its permission responses and learner names.',
 	},
 	ExamSittingOverview: {
 		kind: 'section',
