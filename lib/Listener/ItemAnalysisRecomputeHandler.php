@@ -3,6 +3,9 @@
 /**
  * Learniq Item Analysis Recompute Handler
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * ADR-031 legitimate exception: event-to-object-write bridge that cannot be
  * expressed as a schema declaration — mirrors GradeRollupHandler's role for
  * FinalGrade and BsaProgressFlagHandler's combined evaluate-then-flag shape.
@@ -37,8 +40,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -51,12 +52,13 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ItemAnalysisServiceInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Service\AssessmentObjectReads;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Service\ItemAnalysisService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -106,21 +108,29 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	];
 
 	/**
+	 * Reads the assessment objects this class works from.
+	 *
+	 * @var AssessmentObjectReads
+	 */
+	private readonly AssessmentObjectReads $reads;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object access.
-	 * @param ItemAnalysisService $itemAnalysisService CTT statistics calculation engine.
+	 * @param ItemAnalysisServiceInterface $itemAnalysisService CTT statistics calculation engine.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly ItemAnalysisService $itemAnalysisService,
+		private readonly ItemAnalysisServiceInterface $itemAnalysisService,
 		private readonly ITimeFactory $timeFactory,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
+		$this->reads = new AssessmentObjectReads(objectService: $objectService);
 	}//end __construct()
 
 	/**
@@ -154,10 +164,10 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 
 		$tenantId = $result['tenant_id'] ?? '';
 
-		$assessment = $this->fetchOne(schema: self::ASSESSMENT_SCHEMA, uuid: $assessmentId, tenantId: $tenantId);
+		$assessment = $this->reads->inTenant(tenantId: $tenantId)->one(schema: self::ASSESSMENT_SCHEMA, uuid: $assessmentId);
 		$config = $this->itemAnalysisService->resolveConfig(assessment: $assessment);
 
-		$gradedResults = $this->fetchGradedResults(assessmentId: $assessmentId, tenantId: $tenantId);
+		$gradedResults = $this->reads->inTenant(tenantId: $tenantId)->gradedResults(assessmentId: $assessmentId);
 		$itemIds = $this->resolveReferencedItemIds(gradedResults: $gradedResults);
 
 		$this->recomputeItemStatistics(itemIds: $itemIds, assessmentId: $assessmentId, tenantId: $tenantId, config: $config);
@@ -420,75 +430,6 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 
 		return false;
 	}//end hasOpenFlag()
-
-	/**
-	 * Fetch every `graded` AssessmentResult for an Assessment.
-	 *
-	 * @param string $assessmentId UUID of the Assessment.
-	 * @param string $tenantId Tenant ID, or '' to skip tenant scoping.
-	 *
-	 * @return array<int,array<string,mixed>>
-	 */
-	private function fetchGradedResults(string $assessmentId, string $tenantId): array {
-		$filters = ['assessmentId' => $assessmentId, 'lifecycle' => 'graded'];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$results = $this->objectService->findAll(
-			[
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::ASSESSMENT_RESULT_SCHEMA,
-					]
-				),
-			]
-		);
-
-		return array_map(
-			fn ($result) => $this->toArrayData(object: $result),
-			$results
-		);
-
-	}//end fetchGradedResults()
-
-	/**
-	 * Fetch a single object by uuid, optionally scoped to a tenant.
-	 *
-	 * @param string $schema OR schema slug.
-	 * @param string $uuid Object UUID.
-	 * @param string $tenantId Tenant ID, or '' to skip tenant scoping.
-	 *
-	 * @return array<string,mixed>|null
-	 */
-	private function fetchOne(string $schema, string $uuid, string $tenantId = ''): ?array {
-		$filters = [];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$matches = $this->objectService->findAll(
-			[
-				'ids' => [$uuid],
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => $schema,
-					]
-				),
-				'limit' => 1,
-			]
-		);
-
-		if (empty($matches) === true) {
-			return null;
-		}
-
-		return $this->toArrayData(object: $matches[0]);
-	}//end fetchOne()
 
 	/**
 	 * Normalize an OR findAll()/saveObject() result entry (a raw array or an

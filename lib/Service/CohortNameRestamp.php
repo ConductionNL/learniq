@@ -30,6 +30,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\CohortNameRestampInterface;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
@@ -41,7 +42,7 @@ use Throwable;
  *
  * @spec openspec/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
  */
-class CohortNameRestamp {
+class CohortNameRestamp implements CohortNameRestampInterface {
 
 	private const REGISTER = 'learniq';
 

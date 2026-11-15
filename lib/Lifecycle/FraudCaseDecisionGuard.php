@@ -146,28 +146,37 @@ class FraudCaseDecisionGuard implements LifecycleGuardInterface {
 	 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-decisions-require-a-verdict-rationale-and-when-fraud-is-proven-a-capped-sanction
 	 */
 	private function hasValidSanction(array $object): bool {
-		$sanctionType = $object['sanctionType'] ?? '';
-		$sanctionScope = $object['sanctionScope'] ?? '';
-		$sanctionDuration = $object['sanctionDurationMonths'] ?? null;
-
-		if (is_string($sanctionType) === false || trim($sanctionType) === '') {
-			return false;
-		}
-
-		if (is_string($sanctionScope) === false || trim($sanctionScope) === '') {
-			return false;
-		}
-
-		if (is_numeric($sanctionDuration) === false) {
-			return false;
-		}
-
-		$months = (int)$sanctionDuration;
-
-		if ($months < 1 || $months > self::MAX_SANCTION_MONTHS) {
-			return false;
-		}
-
-		return true;
+		return $this->isFilledText(value: ($object['sanctionType'] ?? ''))
+			&& $this->isFilledText(value: ($object['sanctionScope'] ?? ''))
+			&& $this->isSanctionDuration(value: ($object['sanctionDurationMonths'] ?? null));
 	}//end hasValidSanction()
+
+	/**
+	 * Whether a value is a string with more than whitespace in it.
+	 *
+	 * @param mixed $value The value.
+	 *
+	 * @return bool
+	 */
+	private function isFilledText(mixed $value): bool {
+		return is_string($value) === true && trim($value) !== '';
+	}//end isFilledText()
+
+	/**
+	 * Whether a value is a sanction duration: numeric, and as a whole number
+	 * of months between 1 and MAX_SANCTION_MONTHS.
+	 *
+	 * @param mixed $value The sanctionDurationMonths value.
+	 *
+	 * @return bool
+	 */
+	private function isSanctionDuration(mixed $value): bool {
+		if (is_numeric($value) === false) {
+			return false;
+		}
+
+		$months = (int)$value;
+
+		return $months >= 1 && $months <= self::MAX_SANCTION_MONTHS;
+	}//end isSanctionDuration()
 }//end class

@@ -32,6 +32,8 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\ExternalTrainingImportInterface;
+use OCA\Learniq\Support\ResultArrays;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
@@ -45,7 +47,7 @@ use Throwable;
  *
  * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#requirement-spreadsheet-import-of-external-training
  */
-class ExternalTrainingImport {
+class ExternalTrainingImport implements ExternalTrainingImportInterface {
 
 	/**
 	 * OpenRegister register slug Learniq objects live in.
@@ -56,11 +58,6 @@ class ExternalTrainingImport {
 	 * Schema slugs this import reads and writes.
 	 */
 	private const RECORD_SCHEMA = 'external-training-record';
-
-	/**
-	 * The most rows one upload may carry.
-	 */
-	public const MAX_ROWS = 1000;
 
 	/**
 	 * Constructor.
@@ -330,18 +327,6 @@ class ExternalTrainingImport {
 	 * @return array<int,array<string,mixed>> The rows.
 	 */
 	private static function rows(array $objects): array {
-		$rows = [];
-		foreach ($objects as $object) {
-			if (is_array($object) === true) {
-				$rows[] = $object;
-				continue;
-			}
-
-			if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-				$rows[] = (array)$object->jsonSerialize();
-			}
-		}
-
-		return $rows;
+		return (new ResultArrays())->arraysOf(objects: $objects);
 	}//end rows()
 }//end class

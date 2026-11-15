@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Enrolment;
 
+use OCA\Learniq\Kernel\Contracts\BulkEnrolServiceInterface;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
@@ -39,7 +40,7 @@ use Throwable;
  *
  * @spec openspec/specs/enrolment/spec.md#requirement-bulk-enrolment-via-cohort-role-department-or-csv
  */
-class BulkEnrolService {
+class BulkEnrolService implements BulkEnrolServiceInterface {
 
 	private const REGISTER = 'learniq';
 

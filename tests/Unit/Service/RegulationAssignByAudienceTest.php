@@ -23,11 +23,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
-use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Service\RegulationAssignmentService;
 use OCA\Learniq\Service\RegulationAssignPreview;
 use OCA\Learniq\Service\RegulationAudienceResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
@@ -37,6 +37,7 @@ use Psr\Log\NullLogger;
  * @covers \OCA\Learniq\Service\RegulationAssignmentService
  * @covers \OCA\Learniq\Service\RegulationAssignPreview
  * @covers \OCA\Learniq\Service\RegulationAudienceResolver
+ * @uses \OCA\Learniq\Service\SchemaRows
  */
 class RegulationAssignByAudienceTest extends TestCase {
 

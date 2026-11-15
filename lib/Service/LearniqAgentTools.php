@@ -40,9 +40,10 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeInterface;
-use OCA\OpenRegister\Mcp\Attribute\McpTool;
+use OCA\Learniq\Kernel\Contracts\LearniqAgentToolsInterface;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
+use OCA\OpenRegister\Mcp\Attribute\McpTool;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -51,7 +52,7 @@ use Throwable;
 /**
  * Agent-callable learniq actions, each a thin, gated wrapper over the UI's own write path.
  */
-class LearniqAgentTools {
+class LearniqAgentTools implements LearniqAgentToolsInterface {
 
 	/**
 	 * The learniq register slug.

@@ -36,6 +36,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCA\Learniq\Kernel\Contracts\EmployerCompanyTenancyInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -45,12 +46,7 @@ use Throwable;
  *
  * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
  */
-class EmployerCompanyTenancy {
-
-	/**
-	 * The company lies in the portal's organisation.
-	 */
-	public const HOLDS = 'holds';
+class EmployerCompanyTenancy implements EmployerCompanyTenancyInterface {
 
 	/**
 	 * The portal organisation slug names no OpenRegister organisation.

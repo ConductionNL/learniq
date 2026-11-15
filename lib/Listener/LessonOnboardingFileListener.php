@@ -37,7 +37,7 @@ namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
 use DateTimeInterface;
-use OCA\Learniq\Service\LessonOnboarding\OnboardingFolderSetting;
+use OCA\Learniq\Kernel\Contracts\OnboardingFolderSettingInterface;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Kernel\Contracts\Value\SaveActor;
@@ -83,12 +83,12 @@ class LessonOnboardingFileListener implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param OnboardingFolderSetting $folderSetting The teacher's chosen folder.
+	 * @param OnboardingFolderSettingInterface $folderSetting The teacher's chosen folder.
 	 * @param ObjectService $objectService Writes the detection row.
 	 * @param LoggerInterface $logger Logs a failure instead of failing the upload.
 	 */
 	public function __construct(
-		private readonly OnboardingFolderSetting $folderSetting,
+		private readonly OnboardingFolderSettingInterface $folderSetting,
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
 	) {

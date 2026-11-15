@@ -9,13 +9,13 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
-use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Lifecycle\SessionChangeGuard;
 use OCA\Learniq\Listener\SessionChangeNoticeHandler;
 use OCA\Learniq\Service\SessionChangeBatchService;
 use OCA\Learniq\Tests\Support\CapturingLogger;
 use OCA\Learniq\Tests\Support\GoldenFile;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Timetabling\SessionChangeInput;
 use OCA\Learniq\Timetabling\SessionSeries;
 use OCA\OpenRegister\Lifecycle\GuardResult;
@@ -36,6 +36,7 @@ use RuntimeException;
  * @covers \OCA\Learniq\Service\SessionChangeBatchService
  * @uses   \OCA\Learniq\Timetabling\SessionSeries
  * @uses   \OCA\Learniq\Timetabling\SessionChangeInput
+ * @uses   \OCA\Learniq\Support\ObjectRow
  */
 class SessionChangeBatchGoldenTest extends TestCase {
 	use GoldenFile;

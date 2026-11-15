@@ -21,13 +21,13 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
-use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Exception\SharingBlockedException;
 use OCA\Learniq\Service\CoursePackageExportService;
 use OCA\Learniq\Service\CourseShareExportService;
 use OCA\Learniq\Service\CourseSharePackageBuilder;
 use OCA\Learniq\Service\CourseSharingGate;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -37,6 +37,7 @@ use RuntimeException;
  * @uses   \OCA\Learniq\Exception\SharingBlockedException
  * @uses   \OCA\Learniq\Service\CourseSharingGate
  * @uses   \OCA\Learniq\Service\CourseSharePackageBuilder
+ * @uses   \OCA\Learniq\Support\TextValue
  */
 class CourseShareExportServiceTest extends TestCase {
 

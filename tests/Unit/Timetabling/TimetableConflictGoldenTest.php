@@ -23,9 +23,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Timetabling;
 
-use OCA\Learniq\Tests\Support\SaveCallShape;
 use Closure;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Timetabling\SessionOverlapEvaluator;
 use OCA\Learniq\Timetabling\SessionWindowLoader;
 use OCA\Learniq\Timetabling\TimetableConflictDetector;
@@ -46,6 +46,7 @@ use Stringable;
  * @covers \OCA\Learniq\Timetabling\SessionPair
  * @uses   \OCA\Learniq\Timetabling\SessionWindowLoader
  * @uses   \OCA\Learniq\Timetabling\SessionOverlapEvaluator
+ * @uses   \OCA\Learniq\Support\EntityRow
  */
 class TimetableConflictGoldenTest extends TestCase {
 

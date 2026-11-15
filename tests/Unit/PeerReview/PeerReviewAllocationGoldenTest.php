@@ -23,9 +23,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\PeerReview;
 
-use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Service\PeerReviewAllocationService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use PHPUnit\Framework\TestCase;
@@ -41,6 +41,7 @@ use ReflectionMethod;
  * @covers \OCA\Learniq\Service\PeerReviewAllocationService
  * @covers \OCA\Learniq\Service\PeerReviewNeed
  * @covers \OCA\Learniq\Service\PeerReviewRotation
+ * @uses \OCA\Learniq\Support\SerialisedRow
  */
 class PeerReviewAllocationGoldenTest extends TestCase {
 

@@ -23,12 +23,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\Tests\Support\SaveCallShape;
 use DateTime;
 use DateTimeZone;
 use OCA\Learniq\Listener\ItemAnalysisRecomputeHandler;
 use OCA\Learniq\Service\ItemAnalysisService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Tests\Support\TransitionScope;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
@@ -49,6 +49,7 @@ use PHPUnit\Framework\TestCase;
  * @covers \OCA\Learniq\Service\ItemDistractorAnalysis
  * @covers \OCA\Learniq\Service\ParsesQtiBody
  * @uses   \OCA\Learniq\Service\ListenerSchemaResolver
+ * @uses   \OCA\Learniq\Service\AssessmentObjectReads
  */
 class ItemAnalysisGoldenTest extends TestCase {
 

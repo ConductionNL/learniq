@@ -23,9 +23,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Listener\ConferenceScheduleGenerator;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Tests\Support\TransitionScope;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
@@ -46,6 +46,8 @@ use Psr\Log\NullLogger;
  * @uses   \OCA\Learniq\Service\ConferenceBookingMode
  * @uses   \OCA\Learniq\Service\ConferenceSlotSlicer
  * @uses   \OCA\Learniq\Service\ListenerSchemaResolver
+ * @uses   \OCA\Learniq\Service\ConferenceSlotPattern
+ * @uses   \OCA\Learniq\Support\EntityRow
  */
 class ConferenceScheduleGoldenTest extends TestCase {
 

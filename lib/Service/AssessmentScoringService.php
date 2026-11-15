@@ -30,10 +30,10 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use InvalidArgumentException;
+use OCA\Learniq\Kernel\Contracts\AssessmentScoringHandlerInterface;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Lifecycle\AssessmentScoringHandler;
 use OCP\IGroupManager;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
@@ -57,7 +57,7 @@ class AssessmentScoringService {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object service for fetching and saving objects.
-	 * @param AssessmentScoringHandler $scoringHandler The scoring logic implementation.
+	 * @param AssessmentScoringHandlerInterface $scoringHandler The scoring logic implementation.
 	 * @param LoggerInterface $logger PSR logger.
 	 * @param IGroupManager $groupManager NC group manager for admin-role check.
 	 * @param IUserSession $userSession NC user session for caller identity.
@@ -66,7 +66,7 @@ class AssessmentScoringService {
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly AssessmentScoringHandler $scoringHandler,
+		private readonly AssessmentScoringHandlerInterface $scoringHandler,
 		private readonly LoggerInterface $logger,
 		private readonly IGroupManager $groupManager,
 		private readonly IUserSession $userSession,

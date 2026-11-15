@@ -53,3 +53,45 @@ test('the shipped LearnerProfileDetail contact leaf shows "Contact card"', () =>
 test('boot applies it to the merged manifest', () => {
 	assert.match(read('../../src/main.js'), /applyIntegrationTitles\(mergedManifest\)/)
 })
+
+test('only a titled contacts integration without its own prop gains the title prop', () => {
+	const manifest = {
+		pages: [
+			null,
+			{ config: { widgets: 'not a list' } },
+			{
+				config: {
+					widgets: [
+						null,
+						{ type: 'integration', integrationId: 'contacts', title: 'Contacts' },
+						{ type: 'integration', integrationId: 'contactmoment', title: 'Moments', props: { a: 1 } },
+						{ type: 'integration', integrationId: 'contacts', title: 'Own', props: { titleLabel: 'Kept' } },
+						{ type: 'integration', integrationId: 'contacts', title: '' },
+						{ type: 'integration', integrationId: 'contacts', title: 3 },
+						{ type: 'integration', integrationId: 'calendar', title: 'Calendar' },
+						{ type: 'custom', integrationId: 'contacts', title: 'Custom' },
+						{ type: 'integration', integrationId: 'contacts', title: 'Listed', props: ['x'] },
+						{ type: 'integration', integrationId: 'contacts', title: 'Nulled', props: { titleLabel: null } },
+					],
+				},
+			},
+		],
+	}
+	const out = applyIntegrationTitles(manifest)
+	assert.equal(out, manifest)
+	const props = manifest.pages[2].config.widgets.map((widget) => widget?.props)
+	assert.deepEqual(props, [
+		undefined,
+		{ titleLabel: 'Contacts' },
+		{ a: 1, titleLabel: 'Moments' },
+		{ titleLabel: 'Kept' },
+		undefined,
+		undefined,
+		undefined,
+		undefined,
+		{ titleLabel: 'Listed' },
+		{ titleLabel: null },
+	])
+	assert.equal(applyIntegrationTitles(null), null)
+	assert.deepEqual(applyIntegrationTitles({}), {})
+})

@@ -31,6 +31,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\DashboardRoleServiceInterface;
 use OCP\IGroupManager;
 use OCP\IUser;
 
@@ -39,29 +40,7 @@ use OCP\IUser;
  *
  * @spec openspec/specs/dashboard/spec.md#requirement-every-manifest-role-visibility-literal-must-resolve-to-a-value-the-role-resolver-can-emit
  */
-class DashboardRoleService {
-	/**
-	 * Learniq roles that MUST be backed by a Nextcloud group, mapped to the
-	 * unprefixed group id `rbac-declare-groups` provisions, highest priority
-	 * first. `instructor` keeps its pre-fix name (only its backing group id
-	 * moved, from `scholiq-instructor` to `instructors`); `manager` was
-	 * renamed to `administration-manager`; `team-lead`, `coordinator`, and
-	 * `guardian` are new. `learner` is deliberately absent — it is the
-	 * unconditional fallback, not gated on the `learners` group (see
-	 * `resolvePrimaryRole()`).
-	 *
-	 * @var array<string, string>
-	 */
-	public const GROUP_BACKED_ROLES = [
-		'compliance-officer'     => 'compliance-officers',
-		'hr'                     => 'hr',
-		'administration-manager' => 'administration-managers',
-		'team-lead'              => 'team-leads',
-		'coordinator'            => 'coordinators',
-		'instructor'             => 'instructors',
-		'confidential-counsellor' => 'confidential-counsellors',
-		'guardian'               => 'guardians',
-	];
+class DashboardRoleService implements DashboardRoleServiceInterface {
 
 	/**
 	 * The group of the confidential counsellor (vertrouwenspersoon). Ranked

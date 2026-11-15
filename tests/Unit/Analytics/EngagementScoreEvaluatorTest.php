@@ -162,4 +162,55 @@ class EngagementScoreEvaluatorTest extends TestCase {
 		self::assertSame(0, $result['score']);
 
 	}//end testNoActivityYieldsZeroScore()
+
+	/**
+	 * The recency factor decays linearly over 14 days from the prior activity,
+	 * holds at full for a first, earlier-dated or unreadable prior, and the
+	 * score is 70 parts completion and 30 parts recency.
+	 *
+	 * @return void
+	 */
+	public function testTheScoreWeighsCompletionAndRecency(): void {
+		$statements = [
+			['result' => ['duration' => 'PT30M'], 'timestamp' => '2026-07-15T09:00:00+00:00'],
+			['result' => ['duration' => 'PT15M'], 'timestamp' => ''],
+			['result' => ['duration' => 'nonsense'], 'timestamp' => 20260720],
+			['timestamp' => null],
+		];
+		$evaluator = $this->makeEvaluator(statements: $statements, lessons: [['durationMinutes' => 60], ['durationMinutes' => '30'], []]);
+
+		$cases = [
+			[null, 65],
+			['2026-07-08T09:00:00+00:00', 50],
+			['2026-07-01T09:00:00+00:00', 35],
+			['2026-06-01T09:00:00+00:00', 35],
+			['2026-07-20T09:00:00+00:00', 65],
+			['not a date', 65],
+			['2026-07-15T09:00:00+00:00', 65],
+		];
+		foreach ($cases as [$previous, $score]) {
+			$result = $evaluator->evaluate(learnerId: 'learner-1', courseId: 'course-1', previousActivityAt: $previous);
+			self::assertSame(['timeOnTaskMinutes' => 45.0, 'lastActivityAt' => '2026-07-15T09:00:00+00:00', 'score' => $score], $result, (string)$previous);
+		}
+	}//end testTheScoreWeighsCompletionAndRecency()
+
+	/**
+	 * A course without published lesson time scores on recency alone, and a
+	 * learner without a dated statement scores no recency.
+	 *
+	 * @return void
+	 */
+	public function testNoLessonTimeAndNoDatedStatement(): void {
+		$dated = $this->makeEvaluator(statements: [['result' => ['duration' => 'PT1H2M3S'], 'timestamp' => '2026-07-15T09:00:00+00:00']], lessons: []);
+		self::assertSame(
+			['timeOnTaskMinutes' => 62.05, 'lastActivityAt' => '2026-07-15T09:00:00+00:00', 'score' => 30],
+			$dated->evaluate(learnerId: 'learner-1', courseId: 'course-1')
+		);
+
+		$undated = $this->makeEvaluator(statements: [['result' => ['duration' => 'P1DT1H']]], lessons: [['durationMinutes' => 10000]]);
+		self::assertSame(
+			['timeOnTaskMinutes' => 1500.0, 'lastActivityAt' => null, 'score' => 11],
+			$undated->evaluate(learnerId: 'learner-1', courseId: 'course-1', previousActivityAt: '2026-07-01T09:00:00+00:00')
+		);
+	}//end testNoLessonTimeAndNoDatedStatement()
 }//end class

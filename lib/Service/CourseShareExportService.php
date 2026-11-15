@@ -31,6 +31,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Exception\SharingBlockedException;
+use OCA\Learniq\Kernel\Contracts\CourseShareExportServiceInterface;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
@@ -39,15 +40,11 @@ use RuntimeException;
 /**
  * Gate, strip, record, return.
  */
-class CourseShareExportService {
+class CourseShareExportService implements CourseShareExportServiceInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 
 	public const CONSENT_SCHEMA = 'course-share-consent';
-
-	public const PURPOSE_DOWNLOAD = 'download';
-
-	public const PURPOSE_STORE = 'store';
 
 	/**
 	 * Constructor.

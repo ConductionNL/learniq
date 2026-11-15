@@ -25,13 +25,16 @@ namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\Learniq\Tests\Support\SaveCallShape;
 use DateTimeZone;
-use OCA\Learniq\AppInfo\Registrar\CollaborationListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\CollaborationListenerRegistrar;
 use OCA\Learniq\Listener\ConferenceFreeSlotGenerator;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
+use OCA\OpenRegister\Service\Lifecycle\TransitionActor;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\IDateTimeZone;
@@ -305,13 +308,10 @@ class ConferenceFreeSlotGeneratorTest extends TestCase {
 	 */
 	private function opened(array $round, string $action='open-booking', string $from='invitations-sent'): ObjectTransitionedEvent {
 		return new ObjectTransitionedEvent(
-			OrEntityFactory::make($round, 'conference-round'),
-			$action,
-			$from,
-			'booking-open',
-			'po-leerkracht-09',
-			'learniq',
-			'conference-round'
+			object: OrEntityFactory::make($round, 'conference-round'),
+			move: new TransitionMove(action: $action, from: $from, to: 'booking-open'),
+			scope: new RegisterSchemaRef(register: 'learniq', schema: 'conference-round'),
+			actor: new TransitionActor(userId: 'po-leerkracht-09'),
 		);
 	}//end opened()
 

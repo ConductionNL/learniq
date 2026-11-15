@@ -27,13 +27,16 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Exception\IntegriqUnavailableException;
 use OCA\Learniq\Listener\SupportRequestSubmitHandler;
 use OCA\Learniq\Service\IntegriqExchangeClient;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
+use OCA\OpenRegister\Service\Lifecycle\TransitionActor;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\IAppConfig;
@@ -108,7 +111,7 @@ class SupportRequestSubmitHandlerTest extends TestCase {
 	 * @return ObjectTransitionedEvent
 	 */
 	private function event(array $request, string $to = 'submitted', string $schema = 'support-request'): ObjectTransitionedEvent {
-		return new ObjectTransitionedEvent(OrEntityFactory::make($request, $schema), 'submit', 'draft', $to, 'coordinator-1', 'learniq', $schema);
+		return new ObjectTransitionedEvent(object: OrEntityFactory::make($request, $schema), move: new TransitionMove(action: 'submit', from: 'draft', to: $to), scope: new RegisterSchemaRef(register: 'learniq', schema: $schema), actor: new TransitionActor(userId: 'coordinator-1'));
 	}//end event()
 
 	/**

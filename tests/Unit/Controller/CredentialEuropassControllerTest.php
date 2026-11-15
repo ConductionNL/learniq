@@ -23,12 +23,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Controller;
 
-use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Controller\CredentialEuropassController;
 use OCA\Learniq\Service\CredentialLearner;
 use OCA\Learniq\Service\EuropassIssuer;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -139,6 +139,39 @@ class CredentialEuropassControllerTest extends TestCase {
 		self::assertSame('urn:uuid:cred-1', json_decode($response->render(), true)['id']);
 		self::assertInstanceOf(DataDownloadResponse::class, $this->controller(userId: 'hr-1', groups: ['hr'])->download(id: 'cred-1'));
 	}//end testTheLearnerAndStaffDownload()
+
+	/**
+	 * Without a session the download is unauthorized; an unknown credential
+	 * is not found; a credential without a known course is named after the
+	 * credential and its date only.
+	 *
+	 * @return void
+	 */
+	public function testEveryOtherDownloadOutcome(): void {
+		$controller = $this->controller(userId: 'p.ganpat');
+		$noSession = $this->createMock(IUserSession::class);
+		$noSession->method('getUser')->willReturn(null);
+		$anonymous = new CredentialEuropassController(
+			request: $this->createMock(IRequest::class),
+			userSession: $noSession,
+			groupManager: $this->createMock(IGroupManager::class),
+			objects: $this->createMock(ObjectService::class),
+			europass: $this->createMock(EuropassIssuer::class),
+			learners: new CredentialLearner(profiles: new LearnerRefResolver(objectService: $this->createMock(ObjectService::class)))
+		);
+
+		$unauthorized = $anonymous->download(id: 'cred-1');
+		self::assertSame([401, ['error' => 'unauthorized']], [$unauthorized->getStatus(), $unauthorized->getData()]);
+		$missing = $controller->download(id: 'no-such-credential');
+		self::assertSame([404, ['error' => 'not_found']], [$missing->getStatus(), $missing->getData()]);
+
+		$controller = $this->controller(userId: 'hr-1', groups: ['hr']);
+		$this->credentials['cred-1'] = ['id' => 'cred-1', 'learnerUserId' => 'p.ganpat', 'courseId' => 'c-gone', 'issuedAt' => '', 'edciPayload' => ['id' => 'urn:uuid:x/ü']];
+		$response = $controller->download(id: 'cred-1');
+		$headers = (new \ReflectionProperty(\OCP\AppFramework\Http\Response::class, 'headers'))->getValue($response);
+		self::assertStringContainsString('europass-credential.jsonld', $headers['Content-Disposition']);
+		self::assertSame("{\n    \"id\": \"urn:uuid:x/ü\"\n}", $response->render());
+	}//end testEveryOtherDownloadOutcome()
 
 	/**
 	 * A learner downloads their own credential: its learnerId is their

@@ -3,6 +3,9 @@
 /**
  * Learniq Peer Review Allocation Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Batch-matching engine that allocates `PeerReview` rows for an Assignment's
  * Submissions. Draws its reviewer pool from the Assignment's own submitters
  * (mutual peer review among people who actually did the work, not the whole
@@ -38,8 +41,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -51,6 +52,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\PeerReviewAllocationServiceInterface;
+use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
@@ -63,7 +66,7 @@ use Psr\Log\LoggerInterface;
  * @spec openspec/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
  * @spec openspec/specs/assignments/spec.md#requirement-allocation-reads-and-writes-as-the-system-after-the-controllers-check
  */
-class PeerReviewAllocationService {
+class PeerReviewAllocationService implements PeerReviewAllocationServiceInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const ASSIGNMENT_SCHEMA = 'assignment';
@@ -478,17 +481,6 @@ class PeerReviewAllocationService {
 	 * @return array<string,mixed>
 	 */
 	private function toArray(mixed $value): array {
-		if (is_array($value) === true) {
-			return $value;
-		}
-
-		if (is_object($value) === true && method_exists($value, 'jsonSerialize') === true) {
-			$serialized = $value->jsonSerialize();
-			if (is_array($serialized) === true) {
-				return $serialized;
-			}
-		}
-
-		return [];
+		return (new SerialisedRow())->asArray(object: $value);
 	}//end toArray()
 }//end class

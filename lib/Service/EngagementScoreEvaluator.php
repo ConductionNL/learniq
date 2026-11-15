@@ -3,6 +3,9 @@
 /**
  * Learniq Engagement Score Evaluator
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Stateless calculation engine computing a learner's per-Course engagement
  * signals from their XapiStatement activity: timeOnTaskMinutes (sum of every
  * matching statement's result.duration), lastActivityAt (max statement
@@ -39,8 +42,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -54,13 +55,14 @@ namespace OCA\Learniq\Service;
 
 use DateInterval;
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\EngagementScoreEvaluatorInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
  * Computes timeOnTaskMinutes, lastActivityAt, and a bounded 0-100 score for
  * a learner + course from their XapiStatement activity.
  */
-class EngagementScoreEvaluator {
+class EngagementScoreEvaluator implements EngagementScoreEvaluatorInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const XAPI_SCHEMA = 'xapi-statement';
@@ -100,44 +102,100 @@ class EngagementScoreEvaluator {
 	 * @spec openspec/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
 	 */
 	public function evaluate(string $learnerId, string $courseId, ?string $previousActivityAt = null): array {
-		$statements = $this->fetchStatements(learnerId: $learnerId, courseId: $courseId);
-
-		$timeOnTaskMinutes = 0.0;
-		$lastActivityAt = null;
-
-		foreach ($statements as $statement) {
-			$timeOnTaskMinutes += $this->parseDurationMinutes(iso8601Duration: $statement['result']['duration'] ?? null);
-
-			$timestamp = $statement['timestamp'] ?? null;
-			if (is_string($timestamp) === true && $timestamp !== ''
-				&& ($lastActivityAt === null || $timestamp > $lastActivityAt)
-			) {
-				$lastActivityAt = $timestamp;
-			}
-		}
-
-		$totalLessonMinutes = $this->sumPublishedLessonDuration(courseId: $courseId);
-
-		$completionRatio = 0.0;
-		if ($totalLessonMinutes > 0.0) {
-			$completionRatio = min(1.0, $timeOnTaskMinutes / $totalLessonMinutes);
-		}
-
-		$recencyFactor = $this->recencyFactor(
+		$statements        = $this->fetchStatements(learnerId: $learnerId, courseId: $courseId);
+		$timeOnTaskMinutes = $this->timeOnTask(statements: $statements);
+		$lastActivityAt    = $this->lastActivity(statements: $statements);
+		$completionRatio   = $this->completionRatio(timeOnTaskMinutes: $timeOnTaskMinutes, courseId: $courseId);
+		$recencyFactor     = $this->recencyFactor(
 			previousActivityAt: $previousActivityAt,
 			newLastActivityAt: $lastActivityAt
 		);
 
-		$score = (int)round(($completionRatio * 70) + ($recencyFactor * 30));
-		$score = max(0, min(100, $score));
-
 		return [
 			'timeOnTaskMinutes' => round($timeOnTaskMinutes, 2),
 			'lastActivityAt' => $lastActivityAt,
-			'score' => $score,
+			'score' => $this->scoreOf(completionRatio: $completionRatio, recencyFactor: $recencyFactor),
 		];
-
 	}//end evaluate()
+
+	/**
+	 * The minutes the statements' durations add up to, in statement order.
+	 *
+	 * @param array<int, array<string, mixed>> $statements The learner's statements.
+	 *
+	 * @return float
+	 */
+	private function timeOnTask(array $statements): float {
+		$timeOnTaskMinutes = 0.0;
+		foreach ($statements as $statement) {
+			$timeOnTaskMinutes += $this->parseDurationMinutes(iso8601Duration: $statement['result']['duration'] ?? null);
+		}
+
+		return $timeOnTaskMinutes;
+	}//end timeOnTask()
+
+	/**
+	 * The latest statement timestamp, or null when no statement carries one.
+	 *
+	 * @param array<int, array<string, mixed>> $statements The learner's statements.
+	 *
+	 * @return string|null ISO-8601.
+	 */
+	private function lastActivity(array $statements): ?string {
+		$lastActivityAt = null;
+		foreach ($statements as $statement) {
+			$timestamp = $statement['timestamp'] ?? null;
+			if ($this->isLater(timestamp: $timestamp, latest: $lastActivityAt) === true) {
+				$lastActivityAt = $timestamp;
+			}
+		}
+
+		return $lastActivityAt;
+	}//end lastActivity()
+
+	/**
+	 * Whether a statement timestamp is set and later than the latest so far.
+	 *
+	 * @param mixed       $timestamp The statement's timestamp.
+	 * @param string|null $latest    The latest timestamp so far, or null.
+	 *
+	 * @return bool
+	 */
+	private function isLater(mixed $timestamp, ?string $latest): bool {
+		return is_string($timestamp) === true && $timestamp !== ''
+			&& ($latest === null || $timestamp > $latest);
+	}//end isLater()
+
+	/**
+	 * The time on task as a share of the course's published lesson time, at most 1.
+	 *
+	 * @param float  $timeOnTaskMinutes The learner's minutes.
+	 * @param string $courseId          UUID of the Course.
+	 *
+	 * @return float Between 0.0 and 1.0; 0.0 when the course has no lesson time.
+	 */
+	private function completionRatio(float $timeOnTaskMinutes, string $courseId): float {
+		$totalLessonMinutes = $this->sumPublishedLessonDuration(courseId: $courseId);
+		if ($totalLessonMinutes > 0.0) {
+			return min(1.0, $timeOnTaskMinutes / $totalLessonMinutes);
+		}
+
+		return 0.0;
+	}//end completionRatio()
+
+	/**
+	 * The bounded score: 70 parts completion and 30 parts recency.
+	 *
+	 * @param float $completionRatio The completion share.
+	 * @param float $recencyFactor   The recency factor.
+	 *
+	 * @return int Between 0 and 100.
+	 */
+	private function scoreOf(float $completionRatio, float $recencyFactor): int {
+		$score = (int)round(($completionRatio * 70) + ($recencyFactor * 30));
+
+		return max(0, min(100, $score));
+	}//end scoreOf()
 
 	/**
 	 * Fetch every XapiStatement for this learner + course.
@@ -253,6 +311,19 @@ class EngagementScoreEvaluator {
 			return 1.0;
 		}
 
+		return $this->decay(previousActivityAt: $previousActivityAt, newLastActivityAt: $newLastActivityAt);
+	}//end recencyFactor()
+
+	/**
+	 * The factor for the gap between two activity times: full for no gap or an
+	 * unreadable time, falling linearly to 0 over the decay window.
+	 *
+	 * @param string $previousActivityAt Prior lastActivityAt, ISO-8601.
+	 * @param string $newLastActivityAt  Newly observed max timestamp, ISO-8601.
+	 *
+	 * @return float Between 0.0 and 1.0.
+	 */
+	private function decay(string $previousActivityAt, string $newLastActivityAt): float {
 		try {
 			$previous = new DateTimeImmutable($previousActivityAt);
 			$new = new DateTimeImmutable($newLastActivityAt);
@@ -266,5 +337,5 @@ class EngagementScoreEvaluator {
 		}
 
 		return max(0.0, 1.0 - min(1.0, $gapDays / self::RECENCY_DECAY_WINDOW_DAYS));
-	}//end recencyFactor()
+	}//end decay()
 }//end class

@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\LearnerGroupLabelRestampInterface;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
@@ -40,7 +41,7 @@ use Throwable;
  *
  * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
  */
-class LearnerGroupLabelRestamp {
+class LearnerGroupLabelRestamp implements LearnerGroupLabelRestampInterface {
 
 	private const REGISTER = 'learniq';
 

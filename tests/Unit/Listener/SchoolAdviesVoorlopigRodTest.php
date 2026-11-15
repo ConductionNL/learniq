@@ -19,8 +19,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Listener\Registrar\TransitionBridgeListenerRegistrar;
 use OCA\Learniq\Tests\Support\SaveCallShape;
-use OCA\Learniq\AppInfo\Registrar\TransitionBridgeListenerRegistrar;
 use OCA\Learniq\BackgroundJob\ActorForwarding;
 use OCA\Learniq\BackgroundJob\SchoolAdviesVoorlopigRodJob;
 use OCA\Learniq\Listener\SchoolAdviesVoorlopigRodHandler;

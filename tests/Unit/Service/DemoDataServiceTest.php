@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ */
+
 namespace Unit\Service;
 
 use OCA\Learniq\Service\DemoDataService;
@@ -220,5 +225,55 @@ class DemoDataServiceTest extends TestCase {
 		$this->assertSame(5, $this->service()->skippedIn(result: ['skipped' => ['objects' => 2, 'seedObjects' => 3]]));
 		$this->assertSame(0, $this->service()->skippedIn(result: []));
 		$this->assertSame(0, $this->service()->skippedIn(result: ['skipped' => 'none']));
+	}
+	public function testEveryUnusableDescriptorAndEveryObjectsShape(): void {
+		// The two readers of the file agree: a missing or malformed file is no
+		// dataset (offered: nothing; install: throws its own message), and a
+		// file without a usable objects list carries zero objects.
+		foreach (['missing' => null, 'not json' => 'not json at all', 'a scalar' => '"text"'] as $label => $content) {
+			if ($content !== null) {
+				file_put_contents($this->descriptor(), $content);
+			}
+
+			$this->assertSame(['none'], array_column($this->service()->listChoices(), 'id'), $label);
+			try {
+				$this->service()->install();
+				$this->fail($label . ' must throw');
+			} catch (RuntimeException $exception) {
+				$expected = 'The demo dataset is not valid JSON: ' . $this->descriptor();
+				if ($content === null) {
+					$expected = 'No demo dataset ships with this app (/lib/Settings/learniq_mock_register.json not found).';
+				}
+
+				$this->assertSame($expected, $exception->getMessage(), $label);
+			}
+		}
+
+		$importer = new class {
+			public function importFromApp(string $appId, array $data, string $version, bool $force): array {
+				return ['registers' => [1], 'schemas' => [1]];
+			}
+		};
+		$this->container->method('get')->willReturn($importer);
+		$logged = [];
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->method('info')->willReturnCallback(
+			static function (string $message, array $context) use (&$logged): void {
+				$logged[] = [$message, $context];
+			}
+		);
+
+		foreach (['components not a map' => ['components' => 'x'], 'objects not a list' => ['components' => ['objects' => 'x']], 'no components' => []] as $label => $data) {
+			file_put_contents($this->descriptor(), json_encode($data));
+			$this->assertSame(0, $this->service()->listChoices()[1]['objectCount'], $label);
+			$result = (new DemoDataService($this->appManager, $this->container, $logger))->install();
+			$this->assertSame(['objects' => 0, 'skipped' => 0, 'registers' => 1, 'schemas' => 1], $result, $label);
+		}
+
+		$this->assertSame(
+			['[DemoDataService] imported demo data: 0 object(s) asked, 0 skipped, 1 register(s), 1 schema(s).', ['app' => 'learniq']],
+			$logged[0]
+		);
+		$this->assertCount(3, $logged);
 	}
 }

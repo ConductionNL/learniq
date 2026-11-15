@@ -228,7 +228,12 @@ import {
 	secondsUntilDeadline,
 	serverOffsetMs,
 } from '../utils/attemptClock.js'
+import { attemptCreateError } from '../utils/attemptRefusal.js'
 import { transitionUrl } from '../utils/manualScoring.js'
+import { sendJson, sendJsonOrFail } from '../utils/ocsJson.js'
+import { lookupObject } from '../utils/portfolioEvidence.js'
+import { orderChoices, parseSimpleChoices } from '../utils/qtiChoices.js'
+import { readObject } from '../utils/registerRequests.js'
 
 export default {
 	name: 'TakeAssessmentView',
@@ -655,24 +660,14 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
 		async loadAssessment(id) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/exam/${id}`,
+			// `notFound` marks the single-object lookup — see the same guard
+			// in PortfolioBuilder.vue. init() also awaits list-shaped loads,
+			// and a 404 from one of those means a schema did not resolve
+			// rather than that this assessment is gone.
+			this.assessment = await lookupObject(
+				generateUrl(`/apps/openregister/api/objects/learniq/exam/${id}`),
+				'Assessment',
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				// `notFound` marks the single-object lookup — see the same guard
-				// in PortfolioBuilder.vue. init() also awaits list-shaped loads,
-				// and a 404 from one of those means a schema did not resolve
-				// rather than that this assessment is gone.
-				const err = new Error(`Assessment fetch failed: ${resp.status}`)
-				err.status = resp.status
-				err.notFound = resp.status === 404
-				throw err
-			}
-			const json = await resp.json()
-			this.assessment = json.object ?? json ?? {}
 		},
 
 		/**
@@ -697,18 +692,10 @@ export default {
 			// Fetch each item individually (OR REST supports single object fetch).
 			const fetched = await Promise.all(
 				itemIds.map(async (itemId) => {
-					const url = generateUrl(
-						`/apps/openregister/api/objects/learniq/Item/${itemId}`,
+					const read = await readObject(
+						generateUrl(`/apps/openregister/api/objects/learniq/Item/${itemId}`),
 					)
-					const resp = await fetch(url, {
-						headers: {
-							'OCS-APIREQUEST': 'true',
-							Accept: 'application/json',
-						},
-					})
-					if (!resp.ok) return null
-					const json = await resp.json()
-					return json.object ?? json ?? null
+					return read.ok ? (read.object ?? null) : null
 				}),
 			)
 
@@ -723,45 +710,39 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
 		async createResult(assessmentId) {
-			const currentUser = getCurrentUser()
-			const learnerId = currentUser?.uid ?? 'anonymous'
-
+			const body = this.newResultBody(assessmentId)
 			const url = generateUrl(
 				'/apps/openregister/api/objects/learniq/assessment-result',
 			)
-			const resp = await fetch(url, {
-				method: 'POST',
-				headers: {
-					'OCS-APIREQUEST': 'true',
-					Accept: 'application/json',
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					assessmentId,
-					learnerId,
-					attemptNumber: 1,
-					responses: [],
-					startedAt: new Date().toISOString(),
-					lifecycle: 'in-progress',
-					tenant_id: this.assessment?.tenant_id ?? '',
-					...(this.accessCode ? { accessCode: this.accessCode } : {}),
-				}),
-			})
+			const resp = await sendJson(url, { method: 'POST', body })
 			if (!resp.ok) {
-				const err = new Error(
-					`AssessmentResult create failed: ${resp.status}`,
-				)
-				if (resp.status === 422) {
-					// AssessmentAttemptGateListener refused the attempt.
-					const body = await resp.json().catch(() => ({}))
-					err.gateReason = body?.errors?.reason ?? null
-					err.gateMessage = body?.errors?.message ?? body?.error ?? null
-				}
-				throw err
+				throw await attemptCreateError(resp)
 			}
 			const json = await resp.json()
 			const created = json.object ?? json ?? {}
 			this.resultId = created.uuid ?? created.id
+		},
+
+		/**
+		 * The body of a new `in-progress` AssessmentResult for the current learner.
+		 *
+		 * @param {string} assessmentId Assessment UUID
+		 * @return {object}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
+		 */
+		newResultBody(assessmentId) {
+			const currentUser = getCurrentUser()
+			const learnerId = currentUser?.uid ?? 'anonymous'
+			return {
+				assessmentId,
+				learnerId,
+				attemptNumber: 1,
+				responses: [],
+				startedAt: new Date().toISOString(),
+				lifecycle: 'in-progress',
+				tenant_id: this.assessment?.tenant_id ?? '',
+				...(this.accessCode ? { accessCode: this.accessCode } : {}),
+			}
 		},
 
 		/**
@@ -1104,50 +1085,68 @@ export default {
 		 * @spec openspec/specs/assessment/spec.md
 		 */
 		async createProctoringSession() {
-			const currentUser = getCurrentUser()
-			const learnerId = currentUser?.uid ?? 'anonymous'
-
-			const url = generateUrl(
-				'/apps/openregister/api/objects/learniq/proctoring-session',
-			)
-			const resp = await fetch(url, {
-				method: 'POST',
-				headers: {
-					'OCS-APIREQUEST': 'true',
-					Accept: 'application/json',
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					assessmentResultId: this.resultId,
-					learnerId,
-					provider: 'native-test-mode',
-					status: 'created',
-					tenant_id: this.assessment?.tenant_id ?? '',
-				}),
-			})
-			if (!resp.ok) {
-				throw new Error(`ProctoringSession create failed: ${resp.status}`)
-			}
+			const resp = await this.postProctoringSession()
 			const json = await resp.json()
 			this.proctoringSession = json.object ?? json ?? {}
 
-			const activateUrl = generateUrl(
-				transitionUrl(this.proctoringSession.uuid),
-			)
-			const transitionResp = await fetch(activateUrl, {
-				method: 'POST',
-				headers: {
-					'OCS-APIREQUEST': 'true',
-					Accept: 'application/json',
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({ action: 'activate' }),
+			await this.dispatchTransition(this.proctoringSession.uuid, {
+				action: 'activate',
+				failure: 'ProctoringSession activate transition failed',
 			})
-			if (!transitionResp.ok) {
-				throw new Error(
-					`ProctoringSession activate transition failed: ${transitionResp.status}`,
-				)
+		},
+
+		/**
+		 * Store the native-mode ProctoringSession, rejecting unless it is created.
+		 *
+		 * @return {Promise<Response>}
+		 * @spec openspec/specs/assessment/spec.md
+		 */
+		postProctoringSession() {
+			const body = this.newProctoringSessionBody()
+			const url = generateUrl(
+				'/apps/openregister/api/objects/learniq/proctoring-session',
+			)
+			return sendJsonOrFail(url, {
+				method: 'POST',
+				body,
+				failure: 'ProctoringSession create failed',
+			})
+		},
+
+		/**
+		 * The body of the native-mode ProctoringSession for the current attempt.
+		 *
+		 * @return {object}
+		 * @spec openspec/specs/assessment/spec.md
+		 */
+		newProctoringSessionBody() {
+			const currentUser = getCurrentUser()
+			const learnerId = currentUser?.uid ?? 'anonymous'
+			return {
+				assessmentResultId: this.resultId,
+				learnerId,
+				provider: 'native-test-mode',
+				status: 'created',
+				tenant_id: this.assessment?.tenant_id ?? '',
 			}
+		},
+
+		/**
+		 * Dispatch a lifecycle transition on an object (Open Register routes
+		 * transitions at /api/objects/{id}/transition with the action in the
+		 * body, learniq#948), rejecting unless it succeeds.
+		 *
+		 * @param {string} id The object UUID
+		 * @param {{action: string, failure: string}} request The action and the error text before the status
+		 * @return {Promise<Response>}
+		 * @spec openspec/specs/assessment/spec.md
+		 */
+		dispatchTransition(id, { action, failure }) {
+			return sendJsonOrFail(generateUrl(transitionUrl(id)), {
+				method: 'POST',
+				body: { action },
+				failure,
+			})
 		},
 
 		/**
@@ -1254,37 +1253,13 @@ export default {
 		 */
 		async appendFlag(kind, severity) {
 			if (!this.proctoringSession?.uuid) return
+			if (!this.takeFlagSlot(kind)) return
 
-			const now = Date.now()
-			const lastAt = this.lastFlagAt[kind] ?? 0
-			if (now - lastAt < 5000) return
-			this.lastFlagAt = { ...this.lastFlagAt, [kind]: now }
-
-			const newFlag = {
-				flagId: this.generateId(),
-				kind,
-				occurredAt: new Date().toISOString(),
-				severity,
-				reviewDecision: 'pending',
-			}
+			const newFlag = this.newFlag(kind, severity)
 			const updatedFlags = [...(this.proctoringSession.flags ?? []), newFlag]
 
 			try {
-				const url = generateUrl(
-					`/apps/openregister/api/objects/learniq/proctoring-session/${this.proctoringSession.uuid}`,
-				)
-				const resp = await fetch(url, {
-					method: 'PATCH',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ flags: updatedFlags }),
-				})
-				if (!resp.ok) {
-					throw new Error(`Flag append failed: ${resp.status}`)
-				}
+				await this.saveSessionFlags(updatedFlags)
 				this.proctoringSession = {
 					...this.proctoringSession,
 					flags: updatedFlags,
@@ -1293,6 +1268,58 @@ export default {
 				// eslint-disable-next-line no-console
 				console.error('[TakeAssessmentView] appendFlag error', err)
 			}
+		},
+
+		/**
+		 * Claim the flag slot of a kind: false while the last flag of that kind is
+		 * under 5 seconds old, otherwise stamp now and return true.
+		 *
+		 * @param {string} kind Flag kind
+		 * @return {boolean}
+		 * @spec openspec/specs/assessment/spec.md
+		 */
+		takeFlagSlot(kind) {
+			const now = Date.now()
+			const lastAt = this.lastFlagAt[kind] ?? 0
+			if (now - lastAt < 5000) return false
+			this.lastFlagAt = { ...this.lastFlagAt, [kind]: now }
+			return true
+		},
+
+		/**
+		 * A new pending flag.
+		 *
+		 * @param {string} kind     Flag kind
+		 * @param {string} severity 'low' | 'medium' | 'high'
+		 * @return {object}
+		 * @spec openspec/specs/assessment/spec.md
+		 */
+		newFlag(kind, severity) {
+			return {
+				flagId: this.generateId(),
+				kind,
+				occurredAt: new Date().toISOString(),
+				severity,
+				reviewDecision: 'pending',
+			}
+		},
+
+		/**
+		 * Write the flag list of the current ProctoringSession.
+		 *
+		 * @param {Array<object>} flags The full flag list
+		 * @return {Promise<Response>}
+		 * @spec openspec/specs/assessment/spec.md
+		 */
+		saveSessionFlags(flags) {
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/proctoring-session/${this.proctoringSession.uuid}`,
+			)
+			return sendJsonOrFail(url, {
+				method: 'PATCH',
+				body: { flags },
+				failure: 'Flag append failed',
+			})
 		},
 
 		/**
@@ -1306,41 +1333,46 @@ export default {
 		async teardownNativeTestMode() {
 			this.detachNativeHardening()
 			this.releaseTabLock()
-
-			if (document.fullscreenElement) {
-				try {
-					await document.exitFullscreen()
-				} catch {
-					// best-effort only
-				}
-			}
+			await this.leaveFullscreen()
 
 			if (this.proctoringSession?.uuid) {
-				try {
-					const endUrl = generateUrl(
-						transitionUrl(this.proctoringSession.uuid),
-					)
-					const resp = await fetch(endUrl, {
-						method: 'POST',
-						headers: {
-							'OCS-APIREQUEST': 'true',
-							Accept: 'application/json',
-							'Content-Type': 'application/json',
-						},
-						body: JSON.stringify({ action: 'end' }),
-					})
-					if (!resp.ok) {
-						throw new Error(
-							`ProctoringSession end transition failed: ${resp.status}`,
-						)
-					}
-				} catch (err) {
-					// eslint-disable-next-line no-console
-					console.error(
-						'[TakeAssessmentView] teardownNativeTestMode error',
-						err,
-					)
-				}
+				await this.endProctoringSession()
+			}
+		},
+
+		/**
+		 * Leave fullscreen when the page is in it; best-effort only.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/assessment/spec.md
+		 */
+		async leaveFullscreen() {
+			if (!document.fullscreenElement) return
+			try {
+				await document.exitFullscreen()
+			} catch {
+				// best-effort only
+			}
+		},
+
+		/**
+		 * Dispatch the ProctoringSession's `end` transition; a failure is logged.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/assessment/spec.md
+		 */
+		async endProctoringSession() {
+			try {
+				await this.dispatchTransition(this.proctoringSession.uuid, {
+					action: 'end',
+					failure: 'ProctoringSession end transition failed',
+				})
+			} catch (err) {
+				// eslint-disable-next-line no-console
+				console.error(
+					'[TakeAssessmentView] teardownNativeTestMode error',
+					err,
+				)
 			}
 		},
 
@@ -1354,21 +1386,14 @@ export default {
 		 */
 		async autosave() {
 			if (!this.resultId || this.submitted || this.submitting) return
-			const resp = await fetch(
+			await sendJsonOrFail(
 				generateUrl(`/apps/openregister/api/objects/learniq/assessment-result/${this.resultId}`),
 				{
 					method: 'PATCH',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ responses: responsesPayload(this.items, this.responses) }),
+					body: { responses: responsesPayload(this.items, this.responses) },
+					failure: 'autosave failed',
 				},
 			)
-			if (!resp.ok) {
-				throw new Error(`autosave failed: ${resp.status}`)
-			}
 		},
 
 		/**
@@ -1437,64 +1462,71 @@ export default {
 			this.clearTimer()
 
 			try {
-				// Persist responses.
-				const patchUrl = generateUrl(
-					`/apps/openregister/api/objects/learniq/assessment-result/${this.resultId}`,
-				)
-				// PATCH, not PUT: a PUT replaces the object, and this body carries
-				// only the responses and submittedAt.
-				const patchResp = await fetch(patchUrl, {
-					method: 'PATCH',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						responses: responsesPayload(this.items, this.responses),
-						submittedAt: new Date().toISOString(),
-					}),
-				})
-				if (!patchResp.ok) {
-					throw new Error(`Response save failed: ${patchResp.status}`)
-				}
-
-				// Dispatch submit transition (triggers AssessmentScoringHandler).
-				// Open Register routes transitions at /api/objects/{id}/transition
-				// with the action in the body (learniq#948).
-				const transitionResp = await fetch(
-					generateUrl(transitionUrl(this.resultId)),
-					{
-						method: 'POST',
-						headers: {
-							'OCS-APIREQUEST': 'true',
-							Accept: 'application/json',
-							'Content-Type': 'application/json',
-						},
-						body: JSON.stringify({ action: 'submit' }),
-					},
-				)
-				if (!transitionResp.ok) {
-					throw new Error(
-						`Submit transition failed: ${transitionResp.status}`,
-					)
-				}
-
-				this.submitted = true
-
-				if (this.nativeTestModeActive) {
-					await this.teardownNativeTestMode()
-				}
+				await this.handIn()
 			} catch (err) {
-				this.submitError = this.t(
-					'learniq',
-					'Failed to submit assessment. Please try again.',
-				)
-				// eslint-disable-next-line no-console
-				console.error('[TakeAssessmentView] submitAssessment error', err)
+				this.reportSubmitFailure(err)
 			} finally {
 				this.submitting = false
 			}
+		},
+
+		/**
+		 * Tell the learner the hand-in failed, and log why.
+		 *
+		 * @param {Error} err The failure
+		 * @return {void}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
+		 */
+		reportSubmitFailure(err) {
+			this.submitError = this.t(
+				'learniq',
+				'Failed to submit assessment. Please try again.',
+			)
+			// eslint-disable-next-line no-console
+			console.error('[TakeAssessmentView] submitAssessment error', err)
+		},
+
+		/**
+		 * Persist the responses, dispatch the `submit` transition (triggers
+		 * AssessmentScoringHandler) and, in native mode, tear the test mode down.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
+		 */
+		async handIn() {
+			await this.saveFinalResponses()
+			await this.dispatchTransition(this.resultId, {
+				action: 'submit',
+				failure: 'Submit transition failed',
+			})
+
+			this.submitted = true
+
+			if (this.nativeTestModeActive) {
+				await this.teardownNativeTestMode()
+			}
+		},
+
+		/**
+		 * Persist the responses with the hand-in time. PATCH, not PUT: a PUT
+		 * replaces the object, and this body carries only the responses and
+		 * submittedAt.
+		 *
+		 * @return {Promise<Response>}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
+		 */
+		saveFinalResponses() {
+			const patchUrl = generateUrl(
+				`/apps/openregister/api/objects/learniq/assessment-result/${this.resultId}`,
+			)
+			return sendJsonOrFail(patchUrl, {
+				method: 'PATCH',
+				body: {
+					responses: responsesPayload(this.items, this.responses),
+					submittedAt: new Date().toISOString(),
+				},
+				failure: 'Response save failed',
+			})
 		},
 
 		/**
@@ -1530,19 +1562,7 @@ export default {
 		 */
 		extractChoices(qtiBody, optionOrder = null) {
 			if (!qtiBody) return []
-			const parser = new DOMParser()
-			const doc = parser.parseFromString(qtiBody, 'text/xml')
-			const simpleChoices = doc.getElementsByTagName('simpleChoice')
-			const choices = []
-			for (const sc of simpleChoices) {
-				choices.push({
-					id:
-						sc.getAttribute('identifier')
-						?? sc.textContent?.trim()
-						?? '',
-					label: sc.textContent?.trim() ?? '',
-				})
-			}
+			const choices = parseSimpleChoices(qtiBody)
 
 			if (choices.length === 0) {
 				return [
@@ -1551,16 +1571,7 @@ export default {
 				]
 			}
 
-			if (!optionOrder || optionOrder.length === 0) {
-				return choices
-			}
-
-			const byId = new Map(choices.map((choice) => [choice.id, choice]))
-			const ordered = optionOrder.map((id) => byId.get(id)).filter(Boolean)
-			const remaining = choices.filter(
-				(choice) => !optionOrder.includes(choice.id),
-			)
-			return ordered.length > 0 ? [...ordered, ...remaining] : choices
+			return orderChoices(choices, optionOrder)
 		},
 	},
 }

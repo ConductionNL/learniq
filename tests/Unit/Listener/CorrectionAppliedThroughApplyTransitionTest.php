@@ -38,7 +38,6 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Lifecycle\Action\LinkCoveringCorrectionAction;
 use OCA\Learniq\Lifecycle\Action\StampTransitionActorAction;
 use OCA\Learniq\Lifecycle\DataCorrectionDecisionGuard;
@@ -47,9 +46,13 @@ use OCA\Learniq\Service\Grading\CorrectionApprovals;
 use OCA\Learniq\Tests\Support\CapturingLogger;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Tests\Support\TransitionScope;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
+use OCA\OpenRegister\Service\Lifecycle\TransitionActor;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -217,13 +220,10 @@ class CorrectionAppliedThroughApplyTransitionTest extends TestCase {
 		// ObjectTransitionedEvent with the saved entry.
 		$published = $store->save('grade-entry', array_merge(self::ENTRY, ['lifecycle' => 'published']), self::ENTRY_ID);
 		$handler->handle(new ObjectTransitionedEvent(
-			$published,
-			'republish',
-			'revised',
-			'published',
-			'lp-teacher',
-			'learniq',
-			'grade-entry'
+			object: $published,
+			move: new TransitionMove(action: 'republish', from: 'revised', to: 'published'),
+			scope: new RegisterSchemaRef(register: 'learniq', schema: 'grade-entry'),
+			actor: new TransitionActor(userId: 'lp-teacher'),
 		));
 
 		self::assertSame([], $logger->records, 'The handler logged a failure: ' . $logger->dump());

@@ -176,6 +176,7 @@ import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
 import { canSeeHandInStatus } from '../utils/handInStatus.js'
+import { readRequiredList } from '../utils/requiredListRead.js'
 
 export default {
 	name: 'ItemAnalysisView',
@@ -309,17 +310,12 @@ export default {
 		 * @spec openspec/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
 		 */
 		async loadItemStatistics() {
-			const url = generateUrl(
-				'/apps/openregister/api/objects/learniq/item-statistics?_limit=200',
+			const all = await readRequiredList(
+				generateUrl(
+					'/apps/openregister/api/objects/learniq/item-statistics?_limit=200',
+				),
+				'ItemStatistics fetch failed',
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				throw new Error(`ItemStatistics fetch failed: ${resp.status}`)
-			}
-			const json = await resp.json()
-			const all = json.results ?? json.objects ?? json ?? []
 			this.itemStatisticsList = all.filter((s) => s.itemId === this.itemId)
 		},
 
@@ -331,17 +327,12 @@ export default {
 		 * @spec openspec/specs/assessment/spec.md#requirement-per-assessment-reliability-cronbachs-alpha-is-computed-with-a-minimum-sample-size
 		 */
 		async loadReliability() {
-			const url = generateUrl(
-				'/apps/openregister/api/objects/learniq/assessment-reliability?_limit=200',
+			const all = await readRequiredList(
+				generateUrl(
+					'/apps/openregister/api/objects/learniq/assessment-reliability?_limit=200',
+				),
+				'AssessmentReliability fetch failed',
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				throw new Error(`AssessmentReliability fetch failed: ${resp.status}`)
-			}
-			const json = await resp.json()
-			const all = json.results ?? json.objects ?? json ?? []
 			this.reliability =
 				all.find((r) => r.assessmentId === this.assessmentId) ?? null
 		},

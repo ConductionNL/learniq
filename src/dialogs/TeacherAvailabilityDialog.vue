@@ -116,17 +116,11 @@ export default {
 		 * @spec openspec/specs/parent-conferences/spec.md
 		 */
 		facts() {
-			const opens = dayLabel(this.round.bookingOpensAt, getLanguage(), { weekday: 'long', year: undefined })
-			const closes = dayLabel(this.round.bookingClosesAt, getLanguage(), { weekday: 'long', year: undefined })
+			const bookingWindow = this.bookingWindow()
 			return [
 				{ label: this.t('learniq', 'Round'), value: this.round.name ?? '' },
-				{
-					label: this.t('learniq', 'Conversations'),
-					value: this.round.slotDurationMinutes
-						? this.t('learniq', '{minutes} minutes, with {pause} minutes between two conversations', { minutes: this.round.slotDurationMinutes, pause: this.round.bufferMinutes ?? 0 })
-						: '',
-				},
-				{ label: this.t('learniq', 'Parents book'), value: opens && closes ? this.t('learniq', 'from {from} up to and including {until}', { from: opens, until: closes }) : '' },
+				{ label: this.t('learniq', 'Conversations'), value: this.conversationLength() },
+				{ label: this.t('learniq', 'Parents book'), value: bookingWindow },
 			]
 		},
 
@@ -189,6 +183,24 @@ export default {
 
 	methods: {
 		/**
+		 * @return {string} How long a conversation takes and the pause after it, or ''.
+		 */
+		conversationLength() {
+			return this.round.slotDurationMinutes
+				? this.t('learniq', '{minutes} minutes, with {pause} minutes between two conversations', { minutes: this.round.slotDurationMinutes, pause: this.round.bufferMinutes ?? 0 })
+				: ''
+		},
+
+		/**
+		 * @return {string} The days parents can book, or '' without both ends.
+		 */
+		bookingWindow() {
+			const opens = dayLabel(this.round.bookingOpensAt, getLanguage(), { weekday: 'long', year: undefined })
+			const closes = dayLabel(this.round.bookingClosesAt, getLanguage(), { weekday: 'long', year: undefined })
+			return opens && closes ? this.t('learniq', 'from {from} up to and including {until}', { from: opens, until: closes }) : ''
+		},
+
+		/**
 		 * @param {string} date The evening (YYYY-MM-DD).
 		 * @param {string} time The half hour (HH:MM).
 		 * @return {boolean} Whether the half hour is marked free.
@@ -233,6 +245,25 @@ export default {
 		async save(submit) {
 			this.busy = true
 			this.notice = null
+			const body = this.availabilityBody()
+			try {
+				await this.storeAvailability(body, submit)
+				announceSaved('learniq:teacher-availability:saved', { availabilityId: this.availability.id, submitted: submit })
+				this.$emit('close')
+			} catch (error) {
+				this.notice = requestRefusal(error, this.t('learniq', 'Not saved.'), this.t('learniq', 'Your availability could not be saved.'))
+			} finally {
+				this.busy = false
+			}
+		},
+
+		/**
+		 * The availability the dialog writes: the round, the teacher, the free
+		 * blocks, and the caller's tenant when there is one.
+		 *
+		 * @return {object} The body.
+		 */
+		availabilityBody() {
 			const body = {
 				conferenceRoundId: this.conferenceRoundId,
 				teacherId: currentUserId(),
@@ -243,19 +274,22 @@ export default {
 			if (tenant) {
 				body.tenant_id = tenant
 			}
-			try {
-				this.availability = this.availability.id
-					? await updateObject('teacher-availability', this.availability.id, body)
-					: await createObject('teacher-availability', body)
-				if (submit) {
-					await runTransition(this.availability.id, 'submit')
-				}
-				announceSaved('learniq:teacher-availability:saved', { availabilityId: this.availability.id, submitted: submit })
-				this.$emit('close')
-			} catch (error) {
-				this.notice = requestRefusal(error, this.t('learniq', 'Not saved.'), this.t('learniq', 'Your availability could not be saved.'))
-			} finally {
-				this.busy = false
+			return body
+		},
+
+		/**
+		 * Create or update the availability, then submit it when asked.
+		 *
+		 * @param {object} body The availability.
+		 * @param {boolean} submit Whether to run `submit` after saving.
+		 * @return {Promise<void>}
+		 */
+		async storeAvailability(body, submit) {
+			this.availability = this.availability.id
+				? await updateObject('teacher-availability', this.availability.id, body)
+				: await createObject('teacher-availability', body)
+			if (submit) {
+				await runTransition(this.availability.id, 'submit')
 			}
 		},
 	},

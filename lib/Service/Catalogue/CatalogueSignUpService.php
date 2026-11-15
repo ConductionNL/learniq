@@ -3,6 +3,9 @@
 /**
  * Learniq Catalogue Sign-up Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * A learner signs up for a course or a whole programme from the catalogue,
  * or withdraws their own sign-up (enrolment-catalogue-self-signup). The rules
  * are checked here before anything is written, and every write is for the
@@ -35,8 +38,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -50,6 +51,7 @@ namespace OCA\Learniq\Service\Catalogue;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use OCA\Learniq\Kernel\Contracts\CatalogueSignUpServiceInterface;
 use OCA\Learniq\Service\Portal\PortalLearner;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCA\Learniq\Service\Programme\ProgrammeRequirements;
@@ -65,7 +67,7 @@ use Throwable;
  *
  * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
  */
-class CatalogueSignUpService {
+class CatalogueSignUpService implements CatalogueSignUpServiceInterface {
 	use FindOrNull;
 
 	private const REGISTER = 'learniq';
@@ -151,24 +153,23 @@ class CatalogueSignUpService {
 			return $programme;
 		}
 
-		$mine = $this->reader->enrolmentsByCourse(userId: $learner->ncUserId);
+		$enrolment = new ProgrammeEnrolment(programme: $programme, programmeId: $programmeId);
+		return new PortalOutcome(status: Http::STATUS_OK, body: $this->enrolEachCourse(learner: $learner, enrolment: $enrolment));
+	}//end signUpProgramme()
+
+	/**
+	 * Enrol the learner in each course of the programme they are not on yet, in order.
+	 *
+	 * @param PortalLearner      $learner   The learner.
+	 * @param ProgrammeEnrolment $enrolment The programme and its requested id.
+	 *
+	 * @return array{created: array<int, mixed>, refused: array<int, array{courseId: string, message: string}>}
+	 */
+	private function enrolEachCourse(PortalLearner $learner, ProgrammeEnrolment $enrolment): array {
 		$created = [];
 		$refused = [];
-		foreach (array_unique(array_map('strval', (array)($programme['courseIds'] ?? []))) as $courseId) {
-			if ($courseId === '' || in_array(($mine[$courseId]['lifecycle'] ?? ''), CatalogueReader::LIVE_STATES, true) === true) {
-				continue;
-			}
-
-			$outcome = $this->create(
-				learner: $learner,
-				target: [
-					'courseId' => $courseId,
-					'mode' => (string)$programme['selfEnrolment'],
-					'programmeId' => $programmeId,
-					'mandatory' => $this->requirements->mandatoryFor(programme: $programme, courseId: $courseId),
-					'tenantId' => (string)($programme['tenant_id'] ?? ''),
-				]
-			);
+		foreach ($this->pendingCourseIds(enrolment: $enrolment, userId: $learner->ncUserId) as $courseId) {
+			$outcome = $this->create(learner: $learner, target: $this->programmeTarget(enrolment: $enrolment, courseId: $courseId));
 			if ($outcome->status === Http::STATUS_OK) {
 				$created[] = $outcome->body;
 				continue;
@@ -177,8 +178,48 @@ class CatalogueSignUpService {
 			$refused[] = ['courseId' => $courseId, 'message' => (string)($outcome->body['message'] ?? '')];
 		}
 
-		return new PortalOutcome(status: Http::STATUS_OK, body: ['created' => $created, 'refused' => $refused]);
-	}//end signUpProgramme()
+		return ['created' => $created, 'refused' => $refused];
+	}//end enrolEachCourse()
+
+	/**
+	 * The programme's distinct course ids the learner holds no live enrolment for.
+	 *
+	 * @param ProgrammeEnrolment $enrolment The programme and its requested id.
+	 * @param string             $userId    The learner's Nextcloud user id.
+	 *
+	 * @return array<int, string>
+	 */
+	private function pendingCourseIds(ProgrammeEnrolment $enrolment, string $userId): array {
+		$mine = $this->reader->enrolmentsByCourse(userId: $userId);
+		$pending = [];
+		foreach (array_unique(array_map('strval', (array)($enrolment->programme['courseIds'] ?? []))) as $courseId) {
+			if ($courseId === '' || in_array(($mine[$courseId]['lifecycle'] ?? ''), CatalogueReader::LIVE_STATES, true) === true) {
+				continue;
+			}
+
+			$pending[] = $courseId;
+		}
+
+		return $pending;
+	}//end pendingCourseIds()
+
+	/**
+	 * The enrolment target for one course of the programme.
+	 *
+	 * @param ProgrammeEnrolment $enrolment The programme and its requested id.
+	 * @param string             $courseId  The course uuid.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function programmeTarget(ProgrammeEnrolment $enrolment, string $courseId): array {
+		return [
+			'courseId' => $courseId,
+			'mode' => (string)$enrolment->programme['selfEnrolment'],
+			'programmeId' => $enrolment->programmeId,
+			'mandatory' => $this->requirements->mandatoryFor(programme: $enrolment->programme, courseId: $courseId),
+			'tenantId' => (string)($enrolment->programme['tenant_id'] ?? ''),
+		];
+	}//end programmeTarget()
 
 	/**
 	 * Withdraw the learner's own sign-up.
@@ -316,13 +357,28 @@ class CatalogueSignUpService {
 			return new PortalOutcome(status: Http::STATUS_UNPROCESSABLE_ENTITY, body: ['error' => 'prerequisite_missing', 'message' => $message]);
 		}
 
-		$enrolmentId = '';
+		return new PortalOutcome(
+			status: Http::STATUS_OK,
+			body: ['enrolmentId' => $this->savedUuid(saved: $saved), 'courseId' => $courseId, 'lifecycle' => $lifecycle]
+		);
+	}//end create()
+
+	/**
+	 * The uuid of the saved enrolment, or '' when the save returned no entity.
+	 *
+	 * @param mixed $saved What saveObject() returned.
+	 *
+	 * @return string
+	 *
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-course-or-programme-says-whether-learners-may-sign-up
+	 */
+	private function savedUuid(mixed $saved): string {
 		if (is_object($saved) === true && method_exists($saved, 'getUuid') === true) {
-			$enrolmentId = (string)$saved->getUuid();
+			return (string)$saved->getUuid();
 		}
 
-		return new PortalOutcome(status: Http::STATUS_OK, body: ['enrolmentId' => $enrolmentId, 'courseId' => $courseId, 'lifecycle' => $lifecycle]);
-	}//end create()
+		return '';
+	}//end savedUuid()
 
 	/**
 	 * A published course or programme open for sign-up, or the refusal.

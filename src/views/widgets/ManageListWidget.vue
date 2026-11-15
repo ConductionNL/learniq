@@ -57,6 +57,17 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { appendFilter, filterMatchesNothing } from '../../utils/teacherScope.js'
 
+/**
+ * The rows of a list answer: its results, or the answer itself when it is a list.
+ *
+ * @param {object|Array|null} body The answer body.
+ * @return {Array<object>}
+ */
+function listedItems(body) {
+	const data = body ?? {}
+	return data.results ?? (Array.isArray(data) ? data : [])
+}
+
 export default {
 	name: 'ManageListWidget',
 
@@ -253,28 +264,45 @@ export default {
 				this.loading = false
 				return
 			}
+			await this.readItems()
+		},
+
+		/**
+		 * Read the rows and keep them; a failed read shows none.
+		 *
+		 * @return {Promise<void>}
+		 */
+		async readItems() {
 			try {
-				const params = appendFilter(
-					new URLSearchParams({ _limit: String(this.limit) }),
-					this.filter,
-				)
-				if (this.extend.length) {
-					params.set('_extend', this.extend.join(','))
-				}
-				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/'
-						+ this.schema
-						+ '?'
-						+ params.toString(),
-				)
-				const response = await axios.get(url)
-				const data = response.data ?? {}
-				this.items = data.results ?? (Array.isArray(data) ? data : [])
+				const response = await axios.get(this.itemsUrl())
+				this.items = listedItems(response.data)
 			} catch {
 				this.items = []
 			} finally {
 				this.loading = false
 			}
+		},
+
+		/**
+		 * The list URL: the top rows of this schema inside the filter, with
+		 * the extends.
+		 *
+		 * @return {string}
+		 */
+		itemsUrl() {
+			const params = appendFilter(
+				new URLSearchParams({ _limit: String(this.limit) }),
+				this.filter,
+			)
+			if (this.extend.length) {
+				params.set('_extend', this.extend.join(','))
+			}
+			return generateUrl(
+				'/apps/openregister/api/objects/learniq/'
+					+ this.schema
+					+ '?'
+					+ params.toString(),
+			)
 		},
 
 		/**

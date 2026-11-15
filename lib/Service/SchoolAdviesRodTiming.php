@@ -27,12 +27,14 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\SchoolAdviesRodTimingInterface;
+
 /**
  * Decides whether a voorlopig advice still has to go to ROD.
  *
  * @spec openspec/specs/data-exchange/spec.md#requirement-the-voorlopig-school-advice-goes-to-rod-when-it-is-given
  */
-class SchoolAdviesRodTiming {
+class SchoolAdviesRodTiming implements SchoolAdviesRodTimingInterface {
 
 	/**
 	 * Whether a SchoolAdvies's voorlopig advice is given and not yet sent to ROD.

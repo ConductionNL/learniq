@@ -293,6 +293,16 @@ import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
+import {
+	emptyEntry,
+	entryBody,
+	evidenceKindLabel,
+	lookupList,
+	lookupObject,
+	PICKER_SOURCES,
+	portfolioLoadError,
+} from '../utils/portfolioEvidence.js'
+import { sendJson, sendJsonOrThrow } from '../utils/registerRequests.js'
 
 export default {
 	name: 'PortfolioBuilder',
@@ -318,13 +328,7 @@ export default {
 			entries: [],
 			/** @type {Array<object>} Picker options for the currently selected evidenceKind. */
 			pickerOptions: [],
-			newEntry: {
-				evidenceKind: 'submission',
-				referenceId: '',
-				title: '',
-				sectionId: '',
-				reflectionText: '',
-			},
+			newEntry: emptyEntry(),
 
 			loading: false,
 			error: null,
@@ -437,16 +441,8 @@ export default {
 				// where genuine faults live. Logging it there buries real errors
 				// in routine noise, and any check asserting "no console errors"
 				// fails on normal navigation.
-				if (err?.notFound === true) {
-					this.error = this.t(
-						'learniq',
-						'This portfolio no longer exists, or you do not have access to it.',
-					)
-				} else {
-					this.error = this.t(
-						'learniq',
-						'Failed to load portfolio. Please try again.',
-					)
+				this.error = portfolioLoadError(err, (app, text) => this.t(app, text))
+				if (err?.notFound !== true) {
 					// eslint-disable-next-line no-console
 					console.error('[PortfolioBuilder] loadData error', err)
 				}
@@ -464,29 +460,10 @@ export default {
 		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async fetchObject(schema, objId) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/${schema}/${objId}`,
+			return lookupObject(
+				generateUrl(`/apps/openregister/api/objects/learniq/${schema}/${objId}`),
+				schema,
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				// `notFound` is set HERE and only here — on the single-object
-				// lookup — not wherever a 404 happens to surface.
-				//
-				// This method and fetchList() both feed the same catch. A 404
-				// from a LIST does not mean "this record is absent": an empty
-				// result set says that, with HTTP 200. A 404 there means the
-				// schema did not resolve, which is a broken register and must
-				// stay loud. Flagging the object lookup specifically keeps the
-				// quiet branch to the one case that is genuinely expected input.
-				const err = new Error(`${schema} fetch failed: ${resp.status}`)
-				err.status = resp.status
-				err.notFound = resp.status === 404
-				throw err
-			}
-			const json = await resp.json()
-			return json.object ?? json ?? {}
 		},
 
 		/**
@@ -498,17 +475,9 @@ export default {
 		 * @spec openspec/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async fetchList(schema, query) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/${schema}?${query}`,
+			return lookupList(
+				generateUrl(`/apps/openregister/api/objects/learniq/${schema}?${query}`),
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				return []
-			}
-			const json = await resp.json()
-			return json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
 		},
 
 		/**
@@ -535,59 +504,20 @@ export default {
 		 */
 		async loadPickerOptions() {
 			const uid = getCurrentUser()?.uid ?? ''
-			const kind = this.newEntry.evidenceKind
+			const source = PICKER_SOURCES.get(this.newEntry.evidenceKind)
 
-			if (kind === 'reflection') {
+			// A reflection refers to nothing; neither does a kind without records.
+			if (!source) {
 				this.pickerOptions = []
 				return
 			}
 
 			try {
-				if (kind === 'submission') {
-					const rows = await this.fetchList(
-						'Submission',
-						`learnerIds=${uid}&_limit=100`,
-					)
-					this.pickerOptions = rows.map((r) => ({
-						id: r.id,
-						label: r.feedbackText
-							? `${r.assignmentId} — ${r.feedbackText}`
-							: (r.assignmentId ?? r.id),
-					}))
-				} else if (kind === 'werkproces-assessment') {
-					const rows = await this.fetchList(
-						kind,
-						`learnerId=${uid}&_limit=100`,
-					)
-					this.pickerOptions = rows.map((r) => ({
-						id: r.id,
-						label: r.werkprocesLabel ?? r.werkprocesCode ?? r.id,
-					}))
-				} else if (kind === 'external-training-record') {
-					const rows = await this.fetchList(
-						kind,
-						// ExternalTrainingRecord.learnerId is the LearnerProfile
-						// uuid; the learner's user id is on learnerUserId.
-						`learnerUserId=${uid}&_limit=100`,
-					)
-					this.pickerOptions = rows.map((r) => ({
-						id: r.id,
-						label: r.title ?? r.providerName ?? r.id,
-					}))
-				} else if (kind === 'credential') {
-					const rows = await this.fetchList(
-						'Credential',
-						// Credential.learnerId is the LearnerProfile uuid; the
-						// learner's user id is on learnerUserId.
-						`learnerUserId=${uid}&_limit=100`,
-					)
-					this.pickerOptions = rows.map((r) => ({
-						id: r.id,
-						label: r.title ?? r.id,
-					}))
-				} else {
-					this.pickerOptions = []
-				}
+				const rows = await this.fetchList(
+					source.schema,
+					`${source.learnerField}=${uid}&_limit=100`,
+				)
+				this.pickerOptions = rows.map((r) => ({ id: r.id, label: source.label(r) }))
 			} catch (err) {
 				this.pickerOptions = []
 				// eslint-disable-next-line no-console
@@ -640,19 +570,7 @@ export default {
 		 * @spec exclude Presentation-only label map from the 6 fixed evidenceKind values to their localized display names; the per-kind reference discipline itself is governed by requirement-portfolioentry-references-existing-evidence-objects-via-per-kind-fields-never-a-polymorphic-ref, not by this string lookup.
 		 */
 		evidenceKindLabel(kind) {
-			const labels = {
-				file: this.t('learniq', 'File'),
-				submission: this.t('learniq', 'Submission'),
-				'werkproces-assessment': this.t('learniq', 'Werkproces assessment'),
-				'external-training-record': this.t(
-					'learniq',
-					'External training record',
-				),
-
-				credential: this.t('learniq', 'Credential'),
-				reflection: this.t('learniq', 'Reflection'),
-			}
-			return labels[kind] ?? kind
+			return evidenceKindLabel(kind, (app, text) => this.t(app, text))
 		},
 
 		/**
@@ -670,53 +588,19 @@ export default {
 			this.addingEntry = true
 			this.addEntryError = null
 
-			const uid = getCurrentUser()?.uid ?? ''
-			const body = {
+			const body = entryBody(this.newEntry, {
 				portfolioId: this.id,
-				learnerId: uid,
-				title: this.newEntry.title,
-				evidenceKind: this.newEntry.evidenceKind,
-				sectionId: this.newEntry.sectionId || null,
-				tenant_id: this.portfolio.tenant_id ?? '',
-			}
-
-			if (this.newEntry.evidenceKind === 'reflection') {
-				body.reflectionText = this.newEntry.reflectionText
-			} else if (this.newEntry.evidenceKind === 'submission') {
-				body.submissionId = this.newEntry.referenceId
-			} else if (this.newEntry.evidenceKind === 'werkproces-assessment') {
-				body.werkprocesAssessmentId = this.newEntry.referenceId
-			} else if (this.newEntry.evidenceKind === 'external-training-record') {
-				body.externalTrainingRecordId = this.newEntry.referenceId
-			} else if (this.newEntry.evidenceKind === 'credential') {
-				body.credentialId = this.newEntry.referenceId
-			}
+				learnerId: getCurrentUser()?.uid ?? '',
+				tenantId: this.portfolio.tenant_id ?? '',
+			})
 
 			try {
-				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/portfolio-entry',
+				await sendJsonOrThrow(
+					generateUrl('/apps/openregister/api/objects/learniq/portfolio-entry'),
+					{ method: 'POST', body, failure: 'PortfolioEntry create failed' },
 				)
-				const resp = await fetch(url, {
-					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify(body),
-				})
-				if (!resp.ok) {
-					throw new Error(`PortfolioEntry create failed: ${resp.status}`)
-				}
-
 				await this.loadEntries(this.id)
-				this.newEntry = {
-					evidenceKind: 'submission',
-					referenceId: '',
-					title: '',
-					sectionId: '',
-					reflectionText: '',
-				}
+				this.newEntry = emptyEntry()
 				await this.loadPickerOptions()
 			} catch (err) {
 				this.addEntryError = this.t(
@@ -743,15 +627,9 @@ export default {
 			this.submitError = null
 
 			try {
-				const url = generateUrl(objectTransitionUrl(this.id))
-				const resp = await fetch(url, {
+				const resp = await sendJson(generateUrl(objectTransitionUrl(this.id)), {
 					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ action: 'submit' }),
+					body: { action: 'submit' },
 				})
 				if (resp.status === 422) {
 					this.submitError = this.t(
@@ -761,9 +639,7 @@ export default {
 					return
 				}
 				if (!resp.ok) {
-					throw new Error(
-						`Portfolio submit transition failed: ${resp.status}`,
-					)
+					throw new Error(`Portfolio submit transition failed: ${resp.status}`)
 				}
 				this.portfolio = await this.fetchObject('Portfolio', this.id)
 				this.submitted = true

@@ -27,8 +27,11 @@ declare(strict_types=1);
  * /health/metrics routes are reproduced here pointing at the aliased generics.
  */
 
-return [
+$routes = [
     'routes' => [
+        // The OpenAPI document, public (NL API Design Rules, /core/publish-openapi).
+        ['name' => 'openApi#show', 'url' => '/api/openapi.json', 'verb' => 'GET'],
+
         // SPA shell — bespoke PageController (role-aware initial state).
         // First-time setup wizard (ADR-042) - the standard CnSetupWizard contract.
         ['name' => 'setup#status',    'url' => '/api/setup/status',            'verb' => 'GET'],
@@ -209,6 +212,8 @@ return [
         // student's hours. Same assertion receiver pattern: the assertion is
         // the only place her sign-in level can be read.
         ['name' => 'portalHourWeek#approve',     'url' => '/api/portal/hour-weeks/approve', 'verb' => 'POST'],
+        // A guardian's answer to a permission request (permission-slips).
+        ['name' => 'portalPermission#answer',    'url' => '/api/portal/permission-answers', 'verb' => 'POST'],
         // employer-portal-audience: an employer books places, names a participant for a
         // place and supplies a missing birth date. Same assertion receiver pattern;
         // the company is the organisationRef claim portaliq stamps.
@@ -281,6 +286,11 @@ return [
         ['name' => 'elective#signUp', 'url' => '/api/electives/{offerId}/sign-up', 'verb' => 'POST', 'requirements' => ['offerId' => '[^/]+']],
         ['name' => 'elective#roster', 'url' => '/api/electives/{offerId}/roster', 'verb' => 'GET', 'requirements' => ['offerId' => '[^/]+']],
         ['name' => 'elective#place', 'url' => '/api/electives/{offerId}/place', 'verb' => 'POST', 'requirements' => ['offerId' => '[^/]+']],
+        // school-activities-staff-side: the staff side of portaliq's term-long activities, behind activity.manage.
+        ['name' => 'schoolActivity#index', 'url' => '/api/school-activities', 'verb' => 'GET'],
+        ['name' => 'schoolActivity#open', 'url' => '/api/school-activities/{id}/open', 'verb' => 'PUT', 'requirements' => ['id' => '[^/]+']],
+        ['name' => 'schoolActivity#roster', 'url' => '/api/school-activities/{id}/roster', 'verb' => 'GET', 'requirements' => ['id' => '[^/]+']],
+        ['name' => 'schoolActivity#attendance', 'url' => '/api/school-activities/{id}/attendance', 'verb' => 'PUT', 'requirements' => ['id' => '[^/]+']],
         ['name' => 'elective#withdraw', 'url' => '/api/elective-sign-ups/{id}/withdraw', 'verb' => 'POST', 'requirements' => ['id' => '[^/]+']],
 
         // Peer review reviewer allocation — genuine batch-matching business logic
@@ -337,6 +347,10 @@ return [
         ['name' => 'portalWorkGroup#mine', 'url' => '/api/portal/work-groups', 'verb' => 'POST'],
         ['name' => 'portalWorkGroup#join', 'url' => '/api/portal/work-groups/join', 'verb' => 'POST'],
         ['name' => 'portalWorkGroup#leave', 'url' => '/api/portal/work-groups/leave', 'verb' => 'POST'],
+        // The staff page of one pupil (learner-list-and-page-follow-the-boards): header,
+        // today's state, the "Wat nu?" next step and the people around the pupil.
+        // Controller: PupilPageController (slug: pupilPage); access as the group's register.
+        ['name' => 'pupilPage#show', 'url' => '/api/pupils/{learnerId}/page', 'verb' => 'GET'],
         // Course catalogue (enrolment-catalogue-self-signup): the signed-in
         // learner lists what they may sign up for, signs up for a course or a
         // programme, and withdraws an own sign-up; every write is for the
@@ -373,6 +387,10 @@ return [
         // Bulk reissue of a course's certificates (credentials-bulk-reissue):
         // preview and queue a run; hr, compliance officers or admin, checked
         // in the method. Controller: CredentialReissueController (slug: credentialReissue).
+        // Certificates taken over from the previous system (credentials-migrate-with-validity):
+        // dry run and commit, authorized by the `credential.migrate` action.
+        // Controller: CredentialMigrationController (slug: credentialMigration).
+        ['name' => 'credentialMigration#migrate', 'url' => '/api/credentials/migrate', 'verb' => 'POST'],
         ['name' => 'credentialReissue#preview', 'url' => '/api/courses/{courseId}/credentials/reissue', 'verb' => 'GET'],
         ['name' => 'credentialReissue#start', 'url' => '/api/courses/{courseId}/credentials/reissue', 'verb' => 'POST'],
 
@@ -494,3 +512,24 @@ return [
         ['name' => 'page#catchAll', 'url' => '/{path}', 'verb' => 'GET', 'requirements' => ['path' => '.+'], 'defaults' => ['path' => '']],
     ],
 ];
+
+// The versioned API base (NL API Design Rules, /core/uri-version): every /api/ route
+// also answers under /api/v1/, the server URL the OpenAPI document names. The unversioned
+// route stays, so existing clients and the URLs the app generates keep working. Each
+// copy gets its own route name through 'postfix', and the copies go before the SPA
+// catch-all, which would otherwise answer /api/v1/ paths first.
+$versioned = [];
+foreach ($routes['routes'] as $route) {
+    if (str_starts_with($route['url'], '/api/') === false) {
+        continue;
+    }
+
+    $route['url']     = '/api/v1/'.substr($route['url'], strlen('/api/'));
+    $route['postfix'] = ($route['postfix'] ?? '').'V1';
+    $versioned[]      = $route;
+}
+
+$catchAll = array_search('page#catchAll', array_column($routes['routes'], 'name'), true);
+array_splice($routes['routes'], ($catchAll === false ? count($routes['routes']) : $catchAll), 0, $versioned);
+
+return $routes;

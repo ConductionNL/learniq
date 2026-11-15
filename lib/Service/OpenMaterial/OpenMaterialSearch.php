@@ -30,6 +30,7 @@ namespace OCA\Learniq\Service\OpenMaterial;
 
 use OCA\Learniq\Exception\IntegriqUnavailableException;
 use OCA\Learniq\Exception\MaterialImportRefusedException;
+use OCA\Learniq\Kernel\Contracts\OpenMaterialSearchInterface;
 use OCA\Learniq\Service\ConnectionReportService;
 use OCA\Learniq\Service\SegmentService;
 use OCP\IUser;
@@ -39,7 +40,7 @@ use OCP\IUser;
  *
  * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
  */
-class OpenMaterialSearch {
+class OpenMaterialSearch implements OpenMaterialSearchInterface {
 
 	/**
 	 * The connection key on the connections page.

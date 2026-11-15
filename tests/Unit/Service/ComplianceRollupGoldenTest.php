@@ -23,13 +23,13 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
-use OCA\Learniq\Tests\Support\SaveCallShape;
 use DateTimeImmutable;
 use DateTimeZone;
 use OCA\Learniq\Service\ComplianceRollupService;
 use OCA\Learniq\Service\ExternalTrainingService;
 use OCA\Learniq\Service\RegulationAudienceResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
@@ -44,6 +44,7 @@ use ReflectionMethod;
  * @covers \OCA\Learniq\Service\ComplianceSnapshot
  * @uses   \OCA\Learniq\Service\RegulationAudienceResolver
  * @uses   \OCA\Learniq\Service\RunningExemptions
+ * @uses   \OCA\Learniq\Service\SchemaRows
  */
 class ComplianceRollupGoldenTest extends TestCase {
 

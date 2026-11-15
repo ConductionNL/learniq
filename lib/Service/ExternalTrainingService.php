@@ -36,7 +36,9 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\ExternalTrainingServiceInterface;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
@@ -47,7 +49,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
  */
-class ExternalTrainingService {
+class ExternalTrainingService implements ExternalTrainingServiceInterface {
 	use FindOrNull;
 
 	/**
@@ -61,6 +63,13 @@ class ExternalTrainingService {
 	private const SCHEMA = 'external-training-record';
 
 	/**
+	 * Turns one OpenRegister result into a plain array.
+	 *
+	 * @var ObjectRow
+	 */
+	private readonly ObjectRow $objectRow;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object query/persistence service.
@@ -70,6 +79,7 @@ class ExternalTrainingService {
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->objectRow = new ObjectRow();
 	}//end __construct()
 
 	/**
@@ -419,15 +429,7 @@ class ExternalTrainingService {
 	 * @return array<string,mixed> The row as an associative array.
 	 */
 	private function toArray(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-			return (array)$row->jsonSerialize();
-		}
-
-		return [];
+		return $this->objectRow->asArray(object: $row);
 	}//end toArray()
 
 	/**

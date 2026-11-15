@@ -21,10 +21,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
-use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Service\QtiImportService;
 use OCA\Learniq\Tests\Support\CapturingLogger;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
@@ -38,6 +38,7 @@ use PHPUnit\Framework\TestCase;
  * @covers \OCA\Learniq\Service\QtiImportService
  * @uses   \OCA\Learniq\Service\QtiManifestScanner
  * @uses   \OCA\Learniq\Service\QtiPackageExtractor
+ * @uses \OCA\Learniq\Service\QtiItemTarget
  */
 class QtiItemImportGoldenTest extends TestCase {
 

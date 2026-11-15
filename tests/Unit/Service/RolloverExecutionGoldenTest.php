@@ -23,11 +23,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
-use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Service\IntegriqExchangeClient;
 use OCA\Learniq\Service\RolloverExecutionService;
 use OCA\Learniq\Service\RolloverService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IGroupManager;
@@ -42,6 +42,8 @@ use ReflectionMethod;
  *
  * @covers \OCA\Learniq\Service\RolloverExecutionService
  * @uses   \OCA\Learniq\Service\RolloverService
+ * @uses   \OCA\Learniq\Service\NextProgrammeYear
+ * @uses   \OCA\Learniq\Support\ObjectRow
  */
 class RolloverExecutionGoldenTest extends TestCase {
 

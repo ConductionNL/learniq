@@ -93,6 +93,9 @@ use Throwable;
  * @covers \OCA\Learniq\Service\Signing\SigningService
  * @covers \OCA\Learniq\Service\WorkGroup\WorkGroupReader
  * @uses   \OCA\Learniq\Exception\SigningRefusedException
+ * @uses   \OCA\Learniq\Service\StaffGroupCheck
+ * @uses   \OCA\Learniq\Support\ResultArrays
+ * @uses   \OCA\Learniq\Support\SerialisedRow
  */
 class FindOrNullGoldenTest extends TestCase {
 

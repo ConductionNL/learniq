@@ -29,7 +29,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Attendance;
 
+use OCA\Learniq\Kernel\Contracts\ExcuseRequestStaffOwnerInterface;
 use OCA\Learniq\Service\LearnerRefResolver;
+use OCA\Learniq\Support\TextValue;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -39,7 +41,7 @@ use Throwable;
  *
  * @spec openspec/specs/attendance/spec.md#requirement-the-server-stamps-who-an-excuse-request-is-about-and-who-filed-it
  */
-class ExcuseRequestStaffOwner {
+class ExcuseRequestStaffOwner implements ExcuseRequestStaffOwnerInterface {
 
 	/**
 	 * Constructor.
@@ -143,10 +145,6 @@ class ExcuseRequestStaffOwner {
 	 * @return string
 	 */
 	private static function text(mixed $value): string {
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return $value;
+		return (new TextValue())->orEmpty(value: $value);
 	}//end text()
 }//end class

@@ -3,6 +3,9 @@
 /**
  * Learniq Planninq Timetable Import
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * The `timetable-import` job when planninq is the timetable source (decision
  * D10: planninq owns the timetable, the integriq rostering adapter delivers
  * into it, learniq reads from it). Learniq no longer fetches or writes a
@@ -28,8 +31,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -41,7 +42,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Timetabling;
 
-use OCA\Learniq\Service\TimetableExchangeSettings;
+use OCA\Learniq\Kernel\Contracts\PlanninqTimetableImportInterface;
+use OCA\Learniq\Kernel\Contracts\TimetableExchangeSettingsInterface;
 use OCA\Learniq\Timetabling\Source\PlanninqTimetableSource;
 use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -53,7 +55,7 @@ use RuntimeException;
  *
  * @spec openspec/specs/timetable-source/spec.md#requirement-a-timetable-import-job-delivers-into-planninq-when-planninq-is-the-source-req-003
  */
-class PlanninqTimetableImport {
+class PlanninqTimetableImport implements PlanninqTimetableImportInterface {
 
 	public const INTEGRIQ_EVENT = 'OCA\\Integriq\\Event\\RosterImportRequestedEvent';
 
@@ -89,9 +91,9 @@ class PlanninqTimetableImport {
 	/**
 	 * The group code maps the administrator keeps per rostering system.
 	 *
-	 * @var TimetableExchangeSettings
+	 * @var TimetableExchangeSettingsInterface
 	 */
-	private readonly TimetableExchangeSettings $groupMaps;
+	private readonly TimetableExchangeSettingsInterface $groupMaps;
 
 	/**
 	 * Constructor.

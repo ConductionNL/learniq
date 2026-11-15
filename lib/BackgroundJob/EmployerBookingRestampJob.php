@@ -26,7 +26,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\BackgroundJob;
 
-use OCA\Learniq\Service\Portal\EmployerBookingProjection;
+use OCA\Learniq\Kernel\Contracts\EmployerBookingProjectionInterface;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -43,14 +43,14 @@ class EmployerBookingRestampJob extends ForwardedJob {
 	 *
 	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface           $log          Logger.
-	 * @param EmployerBookingProjection $projection   Re-derives one booking.
+	 * @param EmployerBookingProjectionInterface $projection   Re-derives one booking.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		ActorForwarding $forwarding,
 		private readonly LoggerInterface $log,
-		private readonly EmployerBookingProjection $projection,
+		private readonly EmployerBookingProjectionInterface $projection,
 	) {
 		parent::__construct(forwarding: $forwarding, logger: $log);
 	}//end __construct()

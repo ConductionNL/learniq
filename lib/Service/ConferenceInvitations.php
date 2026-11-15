@@ -3,6 +3,9 @@
 /**
  * Learniq ConferenceInvitations
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Keeps one `conference-invitation` row per invited child per conference
  * round, so the guardian's overview can list a task per child ("Kies een
  * tijd voor het oudergesprek van Sami") instead of one per round. A round
@@ -27,9 +30,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -41,6 +41,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ConferenceInvitationsInterface;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
@@ -50,7 +51,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/changes/guardian-tasks-per-child-and-self-assessment/specs/parent-conferences/spec.md#requirement-the-guardian-gets-one-task-per-child-per-open-conference-round
  */
-class ConferenceInvitations {
+class ConferenceInvitations implements ConferenceInvitationsInterface {
 
 	public const SCHEMA = 'conference-invitation';
 
@@ -226,23 +227,50 @@ class ConferenceInvitations {
 			'conferenceRoundId' => (string)$round['id'],
 			'learnerRef' => $learnerRef,
 		];
-		foreach (self::COPIES as $from => $to) {
-			if (is_string($round[$from] ?? null) === true && $round[$from] !== '') {
-				$fields[$to] = $round[$from];
-			}
-		}
+		$fields = array_merge($fields, self::copiedFields(round: $round));
 
 		// An enum takes no null: a round without a mode leaves the key out.
 		if (in_array(($round['bookingMode'] ?? null), self::MODES, true) === true) {
 			$fields['bookingMode'] = $round['bookingMode'];
 		}
 
-		if (is_string($round['tenant_id'] ?? null) === true && $round['tenant_id'] !== '') {
+		if (self::isFilled(value: ($round['tenant_id'] ?? null)) === true) {
 			$fields['tenant_id'] = $round['tenant_id'];
 		}
 
 		return $fields;
 	}//end fields()
+
+	/**
+	 * The round's filled COPIES fields, under the invitation's names.
+	 *
+	 * @param array<string, mixed> $round The round.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function copiedFields(array $round): array {
+		$copied = [];
+		foreach (self::COPIES as $from => $to) {
+			if (self::isFilled(value: ($round[$from] ?? null)) === true) {
+				$copied[$to] = $round[$from];
+			}
+		}
+
+		return $copied;
+	}//end copiedFields()
+
+	/**
+	 * Whether a value is a non-empty string.
+	 *
+	 * @param mixed $value The value.
+	 *
+	 * @return bool
+	 *
+	 * @phpstan-assert-if-true non-empty-string $value
+	 */
+	private static function isFilled(mixed $value): bool {
+		return is_string($value) === true && $value !== '';
+	}//end isFilled()
 
 	/**
 	 * The uuid of a stored row, or null for a new one.
@@ -252,12 +280,8 @@ class ConferenceInvitations {
 	 * @return string|null
 	 */
 	private static function uuidOf(?array $row): ?string {
-		if ($row === null) {
-			return null;
-		}
-
 		$uuid = ($row['id'] ?? ($row['uuid'] ?? null));
-		if (is_string($uuid) === true && $uuid !== '') {
+		if (self::isFilled(value: $uuid) === true) {
 			return $uuid;
 		}
 

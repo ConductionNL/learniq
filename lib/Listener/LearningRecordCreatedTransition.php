@@ -32,7 +32,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCP\EventDispatcher\Event;
@@ -62,7 +62,7 @@ class LearningRecordCreatedTransition implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver   Entity schema id to slug.
+	 * @param ListenerSchemaResolverInterface $schemaResolver   Entity schema id to slug.
 	 * @param TransitionEngine       $transitionEngine Runs the transition as the signed-in learner.
 	 * @param IGroupManager          $groupManager     Whether the caller is an administrator.
 	 * @param IUserSession           $userSession      The signed-in user.
@@ -71,7 +71,7 @@ class LearningRecordCreatedTransition implements IEventListener {
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly TransitionEngine $transitionEngine,
 		private readonly IGroupManager $groupManager,
 		private readonly IUserSession $userSession,

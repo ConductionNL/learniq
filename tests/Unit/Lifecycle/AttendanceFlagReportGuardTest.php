@@ -98,4 +98,31 @@ class AttendanceFlagReportGuardTest extends TestCase {
 		$this->assertTrue($this->guard(null, $calls)->check(['dataExchangeJobId' => null], 'report', 'coordinator-1')->isAllowed());
 		$this->assertSame([], $calls, 'Nothing is read for a manual report.');
 	}//end testAManualReportNeedsNoJob()
+
+	/**
+	 * The refusal is the sentence the flag page shows a mentor, word for word.
+	 *
+	 * The header's Actions run `report` and show the guard's reason when it
+	 * refuses, so the reason must be a sentence for that reader: it says what
+	 * the flag waits on and names no job id or status code.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/attendance-flag-report-actions/specs/attendance/spec.md
+	 */
+	public function testTheRefusalIsTheSentenceThePageShows(): void {
+		$running = $this->guard(job: ['id' => 'job-1', 'exchangeStatus' => 'running'])->check(
+			object: ['dataExchangeJobId' => 'job-1'],
+			action: 'report',
+			userId: 'mentor-1'
+		);
+
+		$this->assertFalse(condition: $running->isAllowed());
+		$this->assertSame(
+			expected: 'Integriq has not sent the leerplicht report yet, so this flag can not be marked as reported.',
+			actual: $running->getMessage()
+		);
+		$this->assertStringNotContainsString(needle: 'job-1', haystack: (string)$running->getMessage());
+		$this->assertStringNotContainsString(needle: 'running', haystack: (string)$running->getMessage());
+	}//end testTheRefusalIsTheSentenceThePageShows()
 }//end class

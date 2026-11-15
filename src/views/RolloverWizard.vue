@@ -160,6 +160,16 @@ import {
 	refusal,
 } from '../utils/rolloverWizard.js'
 
+/**
+ * The plan id in a save answer, when the server names one.
+ *
+ * @param {object|null} data The answer body.
+ * @return {string|undefined|null}
+ */
+function savedPlanId(data) {
+	return data && (data.id || data.uuid)
+}
+
 export default {
 	name: 'RolloverWizard',
 
@@ -242,27 +252,64 @@ export default {
 		async propose() {
 			this.loading = true
 			try {
-				const url = generateUrl(
-					'/apps/learniq/api/rollover/propose?fromAcademicYear={year}',
-					{ year: this.fromAcademicYear },
-				)
 				this.result = null
-				const response = await axios.get(url)
-				this.mappings = (response.data && response.data.mappings) || []
-				this.cohortNames = (response.data && response.data.cohortNames) || {}
-				this.report = null
+				const response = await axios.get(this.proposeUrl())
+				this.applyProposal(response.data)
 			} catch (e) {
-				this.mappings = []
-				this.result = {
-					status: 'failed',
-					message: refusal(
-						e,
-						this.t('learniq', 'The mapping could not be proposed.'),
-					),
-				}
+				this.proposalFailed(e)
 			} finally {
 				this.loading = false
 			}
+		},
+
+		/**
+		 * Show a refused proposal; no mapping is kept.
+		 *
+		 * @param {Error} e The request error.
+		 * @return {void}
+		 */
+		proposalFailed(e) {
+			this.mappings = []
+			this.result = this.failedResult(
+				e,
+				this.t('learniq', 'The mapping could not be proposed.'),
+			)
+		},
+
+		/**
+		 * The proposal endpoint for the from-year.
+		 *
+		 * @return {string}
+		 */
+		proposeUrl() {
+			return generateUrl(
+				'/apps/learniq/api/rollover/propose?fromAcademicYear={year}',
+				{ year: this.fromAcademicYear },
+			)
+		},
+
+		/**
+		 * Keep a proposal's mappings and cohort names; an earlier report no
+		 * longer applies.
+		 *
+		 * @param {object|null} data The proposal answer.
+		 * @return {void}
+		 */
+		applyProposal(data) {
+			this.mappings = (data && data.mappings) || []
+			this.cohortNames = (data && data.cohortNames) || {}
+			this.report = null
+		},
+
+		/**
+		 * A failed step as the wizard shows it: the server's reason, else ours.
+		 *
+		 * @param {Error} e The request error.
+		 * @param {string} fallback Our message.
+		 * @return {{status: string, message: string}}
+		 */
+		failedResult(e, fallback) {
+			return { status: 'failed', message: refusal(e, fallback) }
 		},
 
 		/**
@@ -345,34 +392,70 @@ export default {
 		 */
 		async savePlan() {
 			try {
-				const body = {
-					fromAcademicYear: this.fromAcademicYear,
-					toAcademicYear: this.toAcademicYear,
-					mappings: this.mappings,
-				}
+				const body = this.planBody()
 				if (this.planId !== '') {
-					const url = generateUrl(
-						'/apps/openregister/api/objects/learniq/rollover-plan/{id}',
-						{ id: this.planId },
-					)
-					const r = await axios.patch(url, body)
-					return (r.data && (r.data.id || r.data.uuid)) || this.planId
+					return await this.updatePlan(body)
 				}
-				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/rollover-plan',
-				)
-				const r = await axios.post(url, body)
-				return (r.data && (r.data.id || r.data.uuid)) || ''
+				return await this.createPlan(body)
 			} catch (e) {
-				this.result = {
-					status: 'failed',
-					message: refusal(
-						e,
-						this.t('learniq', 'The plan could not be saved.'),
-					),
-				}
-				return ''
+				return this.planSaveFailed(e)
 			}
+		},
+
+		/**
+		 * The RolloverPlan fields the wizard writes.
+		 *
+		 * @return {{fromAcademicYear: string, toAcademicYear: string, mappings: Array<object>}}
+		 */
+		planBody() {
+			return {
+				fromAcademicYear: this.fromAcademicYear,
+				toAcademicYear: this.toAcademicYear,
+				mappings: this.mappings,
+			}
+		},
+
+		/**
+		 * Show a refused save.
+		 *
+		 * @param {Error} e The request error.
+		 * @return {string} No plan id: ''.
+		 */
+		planSaveFailed(e) {
+			this.result = this.failedResult(
+				e,
+				this.t('learniq', 'The plan could not be saved.'),
+			)
+			return ''
+		},
+
+		/**
+		 * PATCH the stored plan.
+		 *
+		 * @param {object} body The plan fields.
+		 * @return {Promise<string>} The plan UUID the server answers, else the current one.
+		 */
+		async updatePlan(body) {
+			const url = generateUrl(
+				'/apps/openregister/api/objects/learniq/rollover-plan/{id}',
+				{ id: this.planId },
+			)
+			const r = await axios.patch(url, body)
+			return savedPlanId(r.data) || this.planId
+		},
+
+		/**
+		 * POST a new plan.
+		 *
+		 * @param {object} body The plan fields.
+		 * @return {Promise<string>} The new plan UUID, or ''.
+		 */
+		async createPlan(body) {
+			const url = generateUrl(
+				'/apps/openregister/api/objects/learniq/rollover-plan',
+			)
+			const r = await axios.post(url, body)
+			return savedPlanId(r.data) || ''
 		},
 	},
 }

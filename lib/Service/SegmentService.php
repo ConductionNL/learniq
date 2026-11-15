@@ -36,6 +36,7 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use InvalidArgumentException;
+use OCA\Learniq\Kernel\Contracts\SegmentServiceInterface;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
@@ -48,7 +49,7 @@ use Throwable;
  *
  * @spec openspec/specs/nextcloud-app/spec.md#requirement-the-server-resolves-one-current-segment
  */
-class SegmentService {
+class SegmentService implements SegmentServiceInterface {
 
 	/**
 	 * OR register slug for Learniq objects.
@@ -59,25 +60,6 @@ class SegmentService {
 	 * OR schema slug of the settings singleton.
 	 */
 	private const SETTINGS_SCHEMA = 'learniqsettings';
-
-	/**
-	 * The six segment codes, in the order the schema enum declares them.
-	 *
-	 * 🔴 THREE COPIES, ONE TRUTH. The schema enum in learniq_register.json, this
-	 * constant, and `SEGMENTS` in src/utils/workspaceRuntime.js must agree; a
-	 * unit test on each side compares its copy to the schema, so a value added
-	 * in one place and forgotten in another fails a test instead of silently
-	 * falling back to the default.
-	 *
-	 * @var string[]
-	 */
-	public const SEGMENTS = ['po', 'vo', 'mbo', 'he', 'corporate', 'training'];
-
-	/**
-	 * The schema default: the no-behaviour-change segment every existing
-	 * customer runs today.
-	 */
-	public const DEFAULT_SEGMENT = 'corporate';
 
 	/**
 	 * How many settings rows the resolver reads at most.

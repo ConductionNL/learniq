@@ -9,12 +9,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\Tests\Support\SaveCallShape;
 use DateTimeZone;
 use OCA\Learniq\Listener\ConferenceFreeSlotGenerator;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IDateTimeZone;
 use OCP\IUserManager;
@@ -28,6 +28,7 @@ use ReflectionMethod;
  *
  * @covers \OCA\Learniq\Listener\ConferenceFreeSlotGenerator
  * @uses   \OCA\Learniq\Service\ConferenceSlotSlicer
+ * @uses   \OCA\Learniq\Service\ConferenceSlotPattern
  */
 class ConferenceFreeSlotFlagsTest extends TestCase {
 

@@ -23,8 +23,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Listener\Registrar\IntegrityListenerRegistrar;
 use OCA\Learniq\Tests\Support\SaveCallShape;
-use OCA\Learniq\AppInfo\Registrar\IntegrityListenerRegistrar;
 use OCA\Learniq\Listener\LvsResultLearnerRefStamp;
 use OCA\Learniq\Service\ExchangeImportLanding;
 use OCA\Learniq\Service\LearnerRefResolver;

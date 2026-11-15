@@ -24,10 +24,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\Portal;
 
-use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\Learniq\Service\Portal\EmployerBookingProjection;
 use OCA\Learniq\Service\Portal\PortalEmployerBookings;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserManager;
 use PHPUnit\Framework\TestCase;
@@ -40,6 +40,8 @@ use RuntimeException;
  * @uses   \OCA\Learniq\Service\Portal\EmployerBookingFacts
  * @uses   \OCA\Learniq\Service\Portal\PortalOutcome
  * @uses   \OCA\Learniq\Service\Portal\CourseDayLines
+ * @uses   \OCA\Learniq\Support\SerialisedRow
+ * @uses   \OCA\Learniq\Support\TextValue
  */
 class EmployerBookingOrganisationTest extends TestCase {
 

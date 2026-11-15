@@ -3,6 +3,9 @@
 /**
  * Learniq Timetable Conflict Detector
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Detection, not optimisation (design.md "Conflict-detection algorithm").
  * Given a set of Session ids that just changed (created/updated, or
  * upserted by a `timetable-import` DataExchangeJob), scans the affected
@@ -45,8 +48,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -61,6 +62,7 @@ namespace OCA\Learniq\Timetabling;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\TimetableConflictDetectorInterface;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
@@ -72,7 +74,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/specs/timetabling/spec.md#requirement-conflict-detection-flags-double-bookings-and-capacity-overruns-without-resolving-them
  */
-class TimetableConflictDetector {
+class TimetableConflictDetector implements TimetableConflictDetectorInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const TIMETABLE_CONFLICT_SCHEMA = 'timetable-conflict';
@@ -288,17 +290,20 @@ class TimetableConflictDetector {
 	}//end evaluateCapacity()
 
 	/**
-	 * Whether a Session with a linked Assessment holds more learners than its Room's capacity.
+	 * Whether a Session, an ordinary lesson as much as one linked to an
+	 * Assessment, holds more learners than its Room's capacity.
 	 *
 	 * @param ConflictScan        $scan    The running scan (caches mutated).
 	 * @param array<string,mixed> $session The Session.
 	 *
 	 * @return bool
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/timetabling/spec.md#requirement-a-planner-books-a-room-or-lab-for-a-session-and-an-overfull-booking-is-flagged
 	 */
 	private function exceedsRoomCapacity(ConflictScan $scan, array $session): bool {
 		$sessionId = self::sessionId(session: $session);
 		$roomId    = self::roomId(session: $session);
-		if ($sessionId === '' || $roomId === '' || $this->loader->hasLinkedAssessment(sessionId: $sessionId, scan: $scan) === false) {
+		if ($sessionId === '' || $roomId === '') {
 			return false;
 		}
 

@@ -383,12 +383,11 @@ export default {
 		 * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
 		 */
 		hoursOf(courseId, col) {
-			return cellHours(
-				this.plan.lines,
+			return cellHours(this.plan.lines, {
 				courseId,
-				col.programmeYear,
-				col.periodCode,
-			)
+				programmeYear: col.programmeYear,
+				periodCode: col.periodCode,
+			})
 		},
 
 		/**
@@ -403,13 +402,12 @@ export default {
 		setHours(courseId, col, value) {
 			this.plan = {
 				...this.plan,
-				lines: setCell(
-					this.plan.lines,
+				lines: setCell(this.plan.lines, {
 					courseId,
-					col.programmeYear,
-					col.periodCode,
-					value,
-				),
+					programmeYear: col.programmeYear,
+					periodCode: col.periodCode,
+					hours: value,
+				}),
 			}
 			this.dirty = true
 		},

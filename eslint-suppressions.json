@@ -73,9 +73,6 @@
   "src/views/PeerReviewMarkingView.vue": {
     "@nextcloud/l10n-enforce-ellipsis": {
       "count": 2
-    },
-    "eqeqeq": {
-      "count": 1
     }
   },
   "src/views/PortfolioReviewView.vue": {
@@ -100,7 +97,7 @@
   },
   "src/views/SelfAssessmentView.vue": {
     "eqeqeq": {
-      "count": 2
+      "count": 1
     }
   },
   "src/views/TakeAssessmentView.vue": {

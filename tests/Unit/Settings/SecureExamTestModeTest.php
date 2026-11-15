@@ -3,6 +3,9 @@
 /**
  * Unit tests for the `secure-exam-test-mode` register delta.
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * This change is deliberately declarative-only on the backend (ADR-022,
  * ADR-031): session/flag persistence goes through OpenRegister's existing
  * generic object API the same way `TakeAssessmentView.vue` and
@@ -28,8 +31,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @link https://conduction.nl
  *

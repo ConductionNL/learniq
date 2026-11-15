@@ -34,6 +34,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Support\TextValue;
+
 /**
  * Returns the reasons a course may not leave the school, or none.
  */
@@ -197,11 +199,6 @@ class CourseSharingGate {
 	 * @return string
 	 */
 	private function text(mixed $value): string {
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return trim($value);
-
+		return (new TextValue())->trimmedOrEmpty(value: $value);
 	}//end text()
 }//end class

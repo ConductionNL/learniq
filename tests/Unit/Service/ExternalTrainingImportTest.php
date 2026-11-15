@@ -24,12 +24,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
-use OCA\Learniq\Tests\Support\SaveCallShape;
 use DateTimeImmutable;
 use OCA\Learniq\Service\ExternalTrainingImport;
 use OCA\Learniq\Service\ExternalTrainingLearnerMatch;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\RegisterSchemaPayloads;
+use OCA\Learniq\Tests\Support\SaveCallShape;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -43,6 +43,8 @@ use RuntimeException;
  * @covers \OCA\Learniq\Service\ExternalTrainingImport
  * @covers \OCA\Learniq\Service\ExternalTrainingLearnerMatch
  * @covers \OCA\Learniq\Service\ExternalTrainingRowCheck
+ * @uses \OCA\Learniq\Support\ResultArrays
+ * @uses \OCA\Learniq\Support\RowId
  */
 class ExternalTrainingImportTest extends TestCase {
 	use RegisterSchemaPayloads;
