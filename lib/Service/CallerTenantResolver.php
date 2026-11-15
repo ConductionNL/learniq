@@ -28,7 +28,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IConfig;
@@ -50,15 +51,8 @@ use OCP\IUser;
  *
  * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
  */
-class CallerTenantResolver {
+class CallerTenantResolver implements CallerTenantResolverInterface {
 	use FindOrNull;
-
-	/**
-	 * The tenant of every user without a per-user binding.
-	 *
-	 * @var string
-	 */
-	public const DEFAULT_TENANT = '00000000-0000-4000-8000-000000000000';
 
 	/**
 	 * Constructor.
@@ -100,7 +94,7 @@ class CallerTenantResolver {
 		if ($userId !== '') {
 			$tenantId = (string)$this->config->getUserValue(
 				userId: $userId,
-				appName: Application::APP_ID,
+				appName: AppIdentity::APP_ID,
 				key: 'tenant_id',
 				default: ''
 			);
@@ -150,7 +144,7 @@ class CallerTenantResolver {
 	 * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
 	 */
 	public function findOwned(IUser $user, string $id, string $schema): ?array {
-		$object = $this->findOrNull(find: fn () => $this->objectService->find(id: $id, register: Application::APP_ID, schema: $schema));
+		$object = $this->findOrNull(find: fn () => $this->objectService->find(id: $id, register: AppIdentity::APP_ID, schema: $schema));
 		if ($object === null) {
 			return null;
 		}

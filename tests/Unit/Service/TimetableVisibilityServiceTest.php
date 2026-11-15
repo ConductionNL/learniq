@@ -195,4 +195,72 @@ class TimetableVisibilityServiceTest extends TestCase {
 		$room = $this->directory->lessonsOf(kind: 'room', id: 'r-2', from: gmdate(DATE_ATOM, time()), to: gmdate(DATE_ATOM, (time() + (7 * 86400))));
 		self::assertSame(['s-2'], array_column($room['sessions'], 'id'));
 	}//end testInstructorAndStaffDefaults()
+	/**
+	 * Every scope answers its own id list: all, none, own groups, own teacher,
+	 * related teachers and related rooms.
+	 *
+	 * @return void
+	 */
+	public function testAllowedIdsForEveryScope(): void {
+		$this->groups['nina'] = ['instructors'];
+		$this->store['cohort'][] = ['id' => 'c-6c', 'name' => '6 vwo C', 'learnerIds' => ['m.yilmaz'], 'teacherIds' => ['jan', 'anna']];
+		$this->store['cohort'][] = ['name' => 'Zonder id', 'learnerIds' => ['m.yilmaz'], 'teacherIds' => ['zed']];
+		$this->store['enrolment'] = [
+			['id' => 'e-1', 'learnerId' => 'k.devries', 'cohortId' => 'c-5b'],
+			['id' => 'e-2', 'learnerId' => 'k.devries', 'cohortId' => ''],
+		];
+		$this->store['session'][] = ['id' => 's-3', 'cohortId' => 'c-4a', 'title' => 'Biologie', 'startsAt' => gmdate(DATE_ATOM, (time() + 86400)), 'endsAt' => gmdate(DATE_ATOM, (time() + 90000)), 'roomId' => 'r-9'];
+		$service = $this->service();
+
+		self::assertNull($service->allowedIds(uid: 'lead', kind: 'cohort'));
+		self::assertNull($service->allowedIds(uid: 'jan', kind: 'teacher'));
+		self::assertSame(['c-4a', 'c-6c'], $service->allowedIds(uid: 'm.yilmaz', kind: 'cohort'));
+		self::assertSame(['c-5b'], $service->allowedIds(uid: 'k.devries', kind: 'cohort'));
+		self::assertSame([], $service->allowedIds(uid: 'nobody', kind: 'cohort'));
+		self::assertSame(['jan', 'anna'], $service->allowedIds(uid: 'm.yilmaz', kind: 'teacher'));
+		self::assertSame(['r-1', 'r-9'], $service->allowedIds(uid: 'm.yilmaz', kind: 'room'));
+		self::assertSame([], $service->allowedIds(uid: 'nobody', kind: 'room'));
+
+		$this->store['timetable-visibility-policy'] = [['id' => 'p-1', 'learnerSeesTeachers' => 'none', 'instructorSeesGroups' => 'own', 'instructorSeesTeachers' => 'own']];
+		$service = $this->service();
+
+		self::assertSame([], $service->allowedIds(uid: 'm.yilmaz', kind: 'teacher'));
+		self::assertSame(['c-4a', 'c-6c'], $service->allowedIds(uid: 'jan', kind: 'cohort'));
+		self::assertSame(['jan'], $service->allowedIds(uid: 'jan', kind: 'teacher'));
+		self::assertSame(['nina'], $service->allowedIds(uid: 'nina', kind: 'teacher'));
+		self::assertSame([], $service->allowedIds(uid: 'nina', kind: 'cohort'));
+	}//end testAllowedIdsForEveryScope()
+
+	/**
+	 * Options list only allowed ids, sorted by label; a teacher outside every
+	 * cohort keeps a row under their own name, a room without a row does not.
+	 *
+	 * @return void
+	 */
+	public function testOptionsFollowTheAllowedIds(): void {
+		$this->groups['nina'] = ['instructors'];
+		$this->store['session'][] = ['id' => 's-3', 'cohortId' => 'c-4a', 'title' => 'Biologie', 'startsAt' => gmdate(DATE_ATOM, (time() + 86400)), 'endsAt' => gmdate(DATE_ATOM, (time() + 90000)), 'roomId' => 'r-9'];
+		$this->store['room'] = [
+			['id' => 'r-2', 'name' => 'Aula', 'code' => 'AU'],
+			['id' => 'r-1', 'name' => 'Lokaal 1', 'code' => 'L1'],
+		];
+		$service = $this->service();
+
+		self::assertSame(
+			[['id' => 'r-2', 'label' => 'Aula'], ['id' => 'r-1', 'label' => 'Lokaal 1']],
+			$service->options(uid: 'lead', kind: 'room')
+		);
+		self::assertSame([['id' => 'r-1', 'label' => 'Lokaal 1']], $service->options(uid: 'm.yilmaz', kind: 'room'));
+		self::assertSame(
+			[['id' => 'jan', 'label' => 'jan'], ['id' => 'piet', 'label' => 'piet']],
+			$service->options(uid: 'lead', kind: 'teacher')
+		);
+		self::assertSame([['id' => 'jan', 'label' => 'jan']], $service->options(uid: 'm.yilmaz', kind: 'teacher'));
+
+		$this->store['timetable-visibility-policy'] = [['id' => 'p-1', 'instructorSeesTeachers' => 'own']];
+		$service = $this->service();
+
+		self::assertSame([['id' => 'nina', 'label' => 'nina']], $service->options(uid: 'nina', kind: 'teacher'));
+		self::assertSame([['id' => 'jan', 'label' => 'jan']], $service->options(uid: 'jan', kind: 'teacher'));
+	}//end testOptionsFollowTheAllowedIds()
 }//end class

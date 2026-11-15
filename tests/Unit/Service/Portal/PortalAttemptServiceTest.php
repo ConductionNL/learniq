@@ -278,6 +278,35 @@ class PortalAttemptServiceTest extends TestCase {
 	}//end testTheAccessCodeIsRequired()
 
 	/**
+	 * The new attempt row, whole: a code that is not a string is not passed on,
+	 * and a test without a tenant takes the pupil's.
+	 *
+	 * @return void
+	 */
+	public function testTheNewAttemptRowIsWrittenWhole(): void {
+		$exam = $this->exam();
+		unset($exam['tenant_id']);
+		$this->register->put('exam', 'exam-untenanted', $exam);
+
+		$outcome = $this->service()->start(learner: $this->learner(), taskId: 'exam-untenanted', accessCode: 12);
+
+		self::assertSame(200, $outcome->status);
+		self::assertSame(
+			[
+				'assessmentId' => 'exam-untenanted',
+				'learnerId' => 'pupil-1',
+				'tenant_id' => self::TENANT,
+				'attemptNumber' => 1,
+				'startedAt' => '2026-10-01T09:00:00+02:00',
+				'responses' => [],
+				'lifecycle' => 'in-progress',
+				'accessCode' => null,
+			],
+			$this->register->writes[0]['data']
+		);
+	}//end testTheNewAttemptRowIsWrittenWhole()
+
+	/**
 	 * The start payload: server clock, deadline, drawn items in order, never a
 	 * correct answer.
 	 *

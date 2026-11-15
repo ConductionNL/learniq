@@ -150,6 +150,13 @@
 import { CnDetailCard, CnPageHeader, useObjectStore } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcLoadingIcon, NcNoteCard, NcSelect } from '@nextcloud/vue'
+import {
+	firstRecord,
+	policyFormFrom,
+	policyFromRecord,
+	policyFromSaved,
+	policyPayload,
+} from '../utils/sovereigntyPolicy.js'
 
 const REGISTER = 'learniq'
 // The slug this schema declares in lib/Settings/learniq_register.json, verbatim.
@@ -233,39 +240,41 @@ export default {
 		 */
 		async loadPolicy() {
 			const store = useObjectStore()
+			this.registerPolicyType(store)
 
+			const existing = firstRecord(await this.fetchPolicies(store))
+			if (existing) {
+				this.policy = policyFromRecord(existing)
+			}
+
+			this.policyForm = policyFormFrom(this.policy)
+		},
+
+		/**
+		 * Register the SovereigntyPolicy object type when the store supports it.
+		 *
+		 * @param {object} store The object store.
+		 * @return {void}
+		 */
+		registerPolicyType(store) {
 			if (typeof store.registerObjectType === 'function') {
 				store.registerObjectType(POLICY_TYPE, POLICY_SCHEMA, REGISTER)
 			}
+		},
 
-			const results =
-				typeof store.fetchCollection === 'function'
-					? await store
-							.fetchCollection(POLICY_TYPE, { _limit: 1 })
-							.catch(() => [])
-					: []
-
-			const existing =
-				Array.isArray(results) && results.length > 0 ? results[0] : null
-
-			if (existing) {
-				this.policy = {
-					id:
-						existing.id
-						?? (existing['@self'] && existing['@self'].id)
-						?? null,
-
-					policy: existing.policy || 'eu-hosted-allowed',
-					rationale: existing.rationale || null,
-					setBy: existing.setBy || null,
-					setAt: existing.setAt || null,
-				}
-			}
-
-			this.policyForm = {
-				policy: this.policy.policy,
-				rationale: this.policy.rationale || '',
-			}
+		/**
+		 * Read at most one SovereigntyPolicy; an empty list when the store
+		 * cannot fetch or the read fails.
+		 *
+		 * @param {object} store The object store.
+		 * @return {Promise<Array>|Array} The records.
+		 */
+		fetchPolicies(store) {
+			return typeof store.fetchCollection === 'function'
+				? store
+					.fetchCollection(POLICY_TYPE, { _limit: 1 })
+					.catch(() => [])
+				: []
 		},
 
 		/**
@@ -313,28 +322,9 @@ export default {
 			try {
 				const store = useObjectStore()
 
-				const payload = {
-					policy: this.policyForm.policy,
-					rationale: this.policyForm.rationale || null,
-				}
-				if (this.policy.id) {
-					payload.id = this.policy.id
-				}
-
-				const saved =
-					typeof store.saveObject === 'function'
-						? await store.saveObject(POLICY_TYPE, payload)
-						: null
-
-				if (saved) {
-					this.policy = {
-						id: saved.id ?? this.policy.id,
-						policy: saved.policy || payload.policy,
-						rationale: saved.rationale ?? payload.rationale,
-						setBy: saved.setBy ?? null,
-						setAt: saved.setAt ?? null,
-					}
-				}
+				const payload = policyPayload(this.policyForm, this.policy.id)
+				const saved = await this.storePolicy(store, payload)
+				this.applySavedPolicy(saved, payload)
 
 				// Re-fetch the composed disclosure so every feature's
 				// policyCompliant verdict reflects the newly saved tier.
@@ -348,6 +338,37 @@ export default {
 			} finally {
 				this.saving = false
 			}
+		},
+
+		/**
+		 * Take a saved policy into the page state; nothing when the save
+		 * returned no record.
+		 *
+		 * @param {object|null} saved The saved record.
+		 * @param {object} payload The payload that was sent.
+		 * @return {void}
+		 */
+		applySavedPolicy(saved, payload) {
+			if (saved) {
+				this.policy = policyFromSaved(saved, {
+					id: this.policy.id,
+					policy: payload.policy,
+					rationale: payload.rationale,
+				})
+			}
+		},
+
+		/**
+		 * Save the policy payload when the store supports it.
+		 *
+		 * @param {object} store The object store.
+		 * @param {object} payload The policy payload.
+		 * @return {Promise<object|null>|null} The saved record.
+		 */
+		storePolicy(store, payload) {
+			return typeof store.saveObject === 'function'
+				? store.saveObject(POLICY_TYPE, payload)
+				: null
 		},
 
 		/**

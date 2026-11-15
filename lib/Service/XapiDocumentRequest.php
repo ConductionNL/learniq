@@ -33,6 +33,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Exception\XapiRequestException;
+use OCA\Learniq\Kernel\Contracts\XapiDocumentRequestInterface;
 use OCP\AppFramework\Http;
 use OCP\IRequest;
 
@@ -41,7 +42,7 @@ use OCP\IRequest;
  *
  * @spec openspec/specs/course-management/spec.md#requirement-run-cmi5--xapi-natively-with-scorm-shim
  */
-class XapiDocumentRequest {
+class XapiDocumentRequest implements XapiDocumentRequestInterface {
 
 	/**
 	 * A UUID, any version.

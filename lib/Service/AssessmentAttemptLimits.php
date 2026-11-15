@@ -39,6 +39,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeInterface;
+use OCA\Learniq\Kernel\Contracts\AssessmentAttemptLimitsInterface;
 use OCA\Learniq\Service\Portal\PortalAttemptClock;
 use OCA\Learniq\Service\Portal\PortalAttemptReader;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -48,7 +49,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
  *
  * @spec openspec/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
  */
-class AssessmentAttemptLimits {
+class AssessmentAttemptLimits implements AssessmentAttemptLimitsInterface {
 
 	/**
 	 * Lifecycle states of an attempt the learner is still taking.

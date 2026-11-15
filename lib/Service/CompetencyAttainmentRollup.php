@@ -40,6 +40,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\CompetencyAttainmentRollupInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -48,22 +49,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/specs/competency/spec.md#requirement-the-competency-attainment-roll-up-runs-outside-the-save-that-triggers-it
  */
-class CompetencyAttainmentRollup {
-
-	/**
-	 * A WerkprocesAssessment was created.
-	 */
-	public const WERKPROCES_CREATED = 'werkproces-created';
-
-	/**
-	 * A GradeEntry was published.
-	 */
-	public const GRADE_ENTRY_PUBLISHED = 'grade-entry-published';
-
-	/**
-	 * A WerkprocesAssessment was confirmed.
-	 */
-	public const WERKPROCES_CONFIRMED = 'werkproces-confirmed';
+class CompetencyAttainmentRollup implements CompetencyAttainmentRollupInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const WERKPROCES_SCHEMA = 'werkproces-assessment';

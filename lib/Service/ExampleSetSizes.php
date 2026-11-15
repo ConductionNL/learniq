@@ -13,12 +13,16 @@
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * @link https://conduction.nl
+ *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ExampleSetSizesInterface;
 use RuntimeException;
 
 /**
@@ -26,7 +30,7 @@ use RuntimeException;
  *
  * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
  */
-class ExampleSetSizes {
+class ExampleSetSizes implements ExampleSetSizesInterface {
 	/**
 	 * Constructor.
 	 *

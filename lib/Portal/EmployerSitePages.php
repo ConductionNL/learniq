@@ -3,6 +3,9 @@
 /**
  * Learniq EmployerSitePages
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * The employer's portal: a company that sends its people to the institute's
  * courses (the Warmtepompacademie board: Linda Jansen of Jansen
  * Installatietechniek BV). She reads her company's bookings with their days,
@@ -29,8 +32,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -42,27 +43,19 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCA\Learniq\Kernel\Contracts\EmployerSitePagesInterface;
+
 /**
  * Builds the employer's collections, actions and pages.
  *
  * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
  */
-class EmployerSitePages {
+class EmployerSitePages implements EmployerSitePagesInterface {
 
 	/**
 	 * The audience.
 	 */
 	public const AUDIENCE = 'employer';
-
-	/**
-	 * The claim every employer collection is scoped by.
-	 */
-	public const CLAIM = 'organisationRef';
-
-	/**
-	 * The claim the booking form's editions are scoped by.
-	 */
-	public const LOCATION_CLAIM = 'editionLocationRef';
 
 	/**
 	 * The provider method that answers a booking's steps.

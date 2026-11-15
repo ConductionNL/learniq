@@ -209,6 +209,16 @@ export function resultNote(record) {
 	if (addMode(record) === 'none') {
 		return 'source-only'
 	}
+	return licenceNote(record)
+}
+
+/**
+ * The licence part of a result's note: no derivatives and/or non-commercial.
+ *
+ * @param {object} record A search result with its server decision.
+ * @return {string} nd-nc, nd, nc or ''.
+ */
+function licenceNote(record) {
 	const tone = licenceTone(record?.license)
 	const nc = record?.decision?.nonCommercial === true
 	if (tone === 'nd') {
@@ -283,13 +293,23 @@ export function searchParams(state) {
 	return {
 		query: String(state.query || '').trim(),
 		page: state.page || 1,
-		levels: state.levels || [],
-		excludeLicenses: state.excludeLicenses || [],
-		excludeFormats: state.excludeFormats || [],
-		excludeCollections: state.excludeCollections || [],
+		...chosenFilterLists(state),
 		includeCollectionsOff: 'true',
 		facets: state.facets !== false,
 	}
+}
+
+/** The filter lists a search sends, in parameter order. */
+const FILTER_LISTS = ['levels', 'excludeLicenses', 'excludeFormats', 'excludeCollections']
+
+/**
+ * Each filter list of the search state, an empty list when it is unset.
+ *
+ * @param {object} state The search state.
+ * @return {object} The lists by parameter name.
+ */
+function chosenFilterLists(state) {
+	return Object.fromEntries(FILTER_LISTS.map((key) => [key, state[key] || []]))
 }
 
 /**

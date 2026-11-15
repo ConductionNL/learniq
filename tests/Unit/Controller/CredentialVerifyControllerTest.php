@@ -30,6 +30,7 @@ use OCA\Learniq\Controller\CredentialVerifyController;
 use OCA\Learniq\Service\JwsProofVerifier;
 use OCA\Learniq\Service\KeyManagementService;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 use RuntimeException;
@@ -269,6 +270,57 @@ class CredentialVerifyControllerTest extends TestCase {
 	}//end testVerifyReturnsRevocationDataForRevokedCredential()
 
 	/**
+	 * An ambiguous id is answered as an unknown one: 404, and the guess is counted.
+	 *
+	 * @return void
+	 */
+	public function testVerifyTranslatesMultipleObjectsReturnedTo404AndThrottles(): void {
+		$this->objectService->method('find')->willThrowException(new MultipleObjectsReturnedException('two credentials'));
+		$this->throttler->expects(self::once())->method('registerAttempt');
+
+		$response = $this->controller->verify('ambiguous');
+
+		self::assertSame(404, $response->getStatus());
+		self::assertSame(['valid' => false, 'error' => 'not_found'], $response->getData());
+	}//end testVerifyTranslatesMultipleObjectsReturnedTo404AndThrottles()
+
+	/**
+	 * A credential that is neither issued nor revoked is answered with its dates and issuer, but not valid.
+	 *
+	 * @return void
+	 */
+	public function testVerifyAnswersANonIssuedCredentialAsNotValid(): void {
+		$this->objectService->method('find')->willReturn($this->stubEntity([
+			'lifecycle' => 'suspended',
+			'issuedAt' => '2025-01-01T00:00:00+00:00',
+			'issuedBy' => 'Test School',
+		]));
+		$this->throttler->expects(self::never())->method('registerAttempt');
+
+		$response = $this->controller->verify('cred-uuid-009');
+
+		self::assertSame(200, $response->getStatus());
+		self::assertSame(
+			['valid' => false, 'issuedAt' => '2025-01-01T00:00:00+00:00', 'expiresAt' => null, 'issuerName' => 'Test School'],
+			$response->getData()
+		);
+	}//end testVerifyAnswersANonIssuedCredentialAsNotValid()
+
+	/**
+	 * A revoked credential without a recorded reason or date answers nulls for them, without checking a proof.
+	 *
+	 * @return void
+	 */
+	public function testVerifyAnswersARevokedCredentialWithoutDetails(): void {
+		$this->objectService->method('find')->willReturn($this->stubEntity(['lifecycle' => 'revoked']));
+		$this->keyManagementService->expects(self::never())->method('resolvePublicKeyByFingerprint');
+
+		$response = $this->controller->verify('cred-uuid-010');
+
+		self::assertSame(['valid' => false, 'revokedAt' => null, 'revocationReason' => null], $response->getData());
+	}//end testVerifyAnswersARevokedCredentialWithoutDetails()
+
+	/**
 	 * An unknown credential ID returns {valid:false} with HTTP 404.
 	 *
 	 * @return void
@@ -427,6 +479,75 @@ class CredentialVerifyControllerTest extends TestCase {
 		$data = $response->getData();
 		self::assertTrue($data['valid']);
 	}//end testVerifyAcceptsLegacyCredentialWithoutProof()
+	/**
+	 * A migrated certificate answers with where it came from and no signature
+	 * check, even when it carries a payload whose proof would fail; nothing
+	 * of who took it over or of the holder is shown.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#scenario-someone-verifies-a-migrated-certificate
+	 */
+	public function testAMigratedCertificateAnswersWithItsMigrationFacts(): void {
+		$this->keyManagementService->expects(self::never())->method('resolvePublicKeyByFingerprint');
+		$this->objectService
+			->method('find')
+			->willReturn($this->stubEntity([
+				'lifecycle' => 'issued',
+				'isExpired' => false,
+				'source' => 'migrated',
+				'issuedAt' => '2023-03-01T00:00:00+00:00',
+				'expiresAt' => '2028-03-01T00:00:00+00:00',
+				'legacyNumber' => 'VCA-2023-0112',
+				'legacyIssuer' => 'SSVV',
+				'migratedAt' => '2026-11-13T10:00:00+00:00',
+				'migratedBy' => 'hr-1',
+				'learnerUserId' => 'jan',
+				'tenant_id' => 'tenant-1',
+				'openbadges3Payload' => ['proof' => ['jws' => 'garbage..sig']],
+			]));
+
+		$response = $this->controller->verify('cred-migrated');
+
+		self::assertSame(200, $response->getStatus());
+		self::assertSame(
+			[
+				'valid' => true,
+				'issuedAt' => '2023-03-01T00:00:00+00:00',
+				'expiresAt' => '2028-03-01T00:00:00+00:00',
+				'issuerName' => 'SSVV',
+				'migrated' => true,
+				'issuedByLearniq' => false,
+				'signatureChecked' => false,
+				'legacyNumber' => 'VCA-2023-0112',
+				'legacyIssuer' => 'SSVV',
+				'migratedAt' => '2026-11-13T10:00:00+00:00',
+			],
+			$response->getData()
+		);
+	}//end testAMigratedCertificateAnswersWithItsMigrationFacts()
+
+	/**
+	 * An expired or revoked migrated certificate is not valid; a revoked one
+	 * answers like any revoked certificate.
+	 *
+	 * @return void
+	 */
+	public function testAnExpiredOrRevokedMigratedCertificateIsNotValid(): void {
+		$rows = [
+			['lifecycle' => 'expired', 'isExpired' => true, 'source' => 'migrated', 'legacyNumber' => 'A'],
+			['lifecycle' => 'revoked', 'source' => 'migrated', 'legacyNumber' => 'B', 'revocationReason' => 'Fout'],
+		];
+		$this->objectService->method('find')->willReturnOnConsecutiveCalls($this->stubEntity($rows[0]), $this->stubEntity($rows[1]));
+
+		$expired = $this->controller->verify('cred-a')->getData();
+		self::assertFalse($expired['valid']);
+		self::assertTrue($expired['migrated']);
+
+		$revoked = $this->controller->verify('cred-b')->getData();
+		self::assertSame(['valid' => false, 'revokedAt' => null, 'revocationReason' => 'Fout'], $revoked);
+	}//end testAnExpiredOrRevokedMigratedCertificateIsNotValid()
+
 	/**
 	 * The controller with a request whose body carries a Europass file.
 	 *

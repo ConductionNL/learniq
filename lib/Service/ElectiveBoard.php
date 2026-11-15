@@ -30,13 +30,14 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use OCA\Learniq\Kernel\Contracts\ElectiveBoardInterface;
 
 /**
  * The learner's offers and the coordinator's roster.
  *
  * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
  */
-class ElectiveBoard {
+class ElectiveBoard implements ElectiveBoardInterface {
 
 	/**
 	 * Constructor.

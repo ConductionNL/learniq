@@ -31,6 +31,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCA\Learniq\Kernel\Contracts\PortalTenantsInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -40,7 +41,7 @@ use Throwable;
  *
  * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
  */
-class PortalTenants {
+class PortalTenants implements PortalTenantsInterface {
 	use ReadsOrganisationTenant;
 
 	/**

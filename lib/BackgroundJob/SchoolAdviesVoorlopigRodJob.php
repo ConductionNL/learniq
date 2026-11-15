@@ -29,9 +29,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\BackgroundJob;
 
-use OCA\Learniq\Service\ExchangeDisclosure;
-use OCA\Learniq\Service\IntegriqExchangeClient;
-use OCA\Learniq\Service\SchoolAdviesRodTiming;
+use OCA\Learniq\Kernel\Contracts\ExchangeDisclosureInterface;
+use OCA\Learniq\Kernel\Contracts\IntegriqExchangeClientInterface;
+use OCA\Learniq\Kernel\Contracts\SchoolAdviesRodTimingInterface;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -54,15 +54,15 @@ class SchoolAdviesVoorlopigRodJob extends ForwardedJob {
 	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface $logger Logger.
 	 * @param ObjectService $objectService OpenRegister object access.
-	 * @param IntegriqExchangeClient $integriq Asks integriq for the exchange.
-	 * @param SchoolAdviesRodTiming $timing Whether the advice is still due.
+	 * @param IntegriqExchangeClientInterface $integriq Asks integriq for the exchange.
+	 * @param SchoolAdviesRodTimingInterface $timing Whether the advice is still due.
 	 */
 	public function __construct(
 		ActorForwarding $forwarding,
 		LoggerInterface $logger,
 		private readonly ObjectService $objectService,
-		private readonly IntegriqExchangeClient $integriq,
-		private readonly SchoolAdviesRodTiming $timing,
+		private readonly IntegriqExchangeClientInterface $integriq,
+		private readonly SchoolAdviesRodTimingInterface $timing,
 	) {
 		parent::__construct(forwarding: $forwarding, logger: $logger);
 	}//end __construct()
@@ -122,7 +122,7 @@ class SchoolAdviesVoorlopigRodJob extends ForwardedJob {
 				'tenantId' => (string)($advies['tenant_id'] ?? ''),
 				'berichtsoort' => 'schooladvies',
 			],
-			mappingSlug: ExchangeDisclosure::ROD_SCHOOL_ADVICE_MAPPING,
+			mappingSlug: ExchangeDisclosureInterface::ROD_SCHOOL_ADVICE_MAPPING,
 			requestedBy: 'system',
 			name: 'ROD voorlopig schooladvies'
 		);

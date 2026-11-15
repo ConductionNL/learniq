@@ -245,4 +245,60 @@ class BackfillReportCardGradeLinesTest extends TestCase {
 		self::assertStringContainsString('and 1 other reason(s), see the log', $this->warnings[0]);
 		self::assertStringContainsString('Write the readable period', $step->getName());
 	}//end testMoreThanThreeReasonsAreSummarised()
+	/**
+	 * Pages of 200 are read until a short one; a read that fails part-way
+	 * keeps what the pages before it counted and logs why it stopped.
+	 *
+	 * @return void
+	 */
+	public function testPagesAreCountedUntilAShortOneOrAFailedRead(): void {
+		$cards = [];
+		for ($i = 0; $i < 200; $i++) {
+			$cards[] = ['id' => 'card-' . $i, 'periodName' => 'Rapport 1', 'gradeLines' => []];
+		}
+
+		foreach (['short page' => [$cards, [['id' => 'last', 'periodName' => 'Rapport 1', 'gradeLines' => []]]], 'failed read' => [$cards, null]] as $label => [$first, $second]) {
+			$offsets  = [];
+			$warnings = [];
+			$objectService = $this->createMock(ObjectService::class);
+			$objectService->method('findAll')->willReturnCallback(
+				function (array $config = []) use (&$offsets, $first, $second): array {
+					$offsets[] = [$config['offset'], $config['limit']];
+					if ($config['offset'] === 0) {
+						return $first;
+					}
+
+					if ($second === null) {
+						throw new \RuntimeException('database gone');
+					}
+
+					return $second;
+				}
+			);
+			$objectService->expects(self::never())->method('saveObject');
+			$gradeLines = $this->createMock(ReportCardGradeLines::class);
+			$gradeLines->method('derive')->willReturn(['periodName' => 'Rapport 1', 'gradeLines' => []]);
+			$logger = $this->createMock(\Psr\Log\LoggerInterface::class);
+			$logger->method('warning')->willReturnCallback(
+				function (string $message, array $context) use (&$warnings): void {
+					$warnings[] = [$message, $context];
+				}
+			);
+
+			$this->messages = [];
+			$this->warnings = [];
+			(new BackfillReportCardGradeLines(objectService: $objectService, gradeLines: $gradeLines, logger: $logger))->run($this->recorder());
+
+			self::assertSame([[0, 200], [200, 200]], $offsets, $label);
+			if ($second === null) {
+				self::assertSame(['BackfillReportCardGradeLines: 0 stamped, 0 failed, of 200 scanned.'], $this->messages, $label);
+				self::assertSame([['[BackfillReportCardGradeLines] Stopped early: {msg}', ['msg' => 'database gone']]], $warnings, $label);
+				continue;
+			}
+
+			self::assertSame(['BackfillReportCardGradeLines: 0 stamped, 0 failed, of 201 scanned.'], $this->messages, $label);
+			self::assertSame([], $warnings, $label);
+			self::assertSame([], $this->warnings, $label);
+		}
+	}//end testPagesAreCountedUntilAShortOneOrAFailedRead()
 }//end class

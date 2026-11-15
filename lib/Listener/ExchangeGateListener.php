@@ -26,7 +26,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ExchangeGateService;
+use OCA\Learniq\Kernel\Contracts\ExchangeGateServiceInterface;
+use OCA\Learniq\Support\EventGetter;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
@@ -51,11 +52,11 @@ class ExchangeGateListener implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ExchangeGateService $gate   Decides for the job.
+	 * @param ExchangeGateServiceInterface $gate   Decides for the job.
 	 * @param LoggerInterface     $logger Logger.
 	 */
 	public function __construct(
-		private readonly ExchangeGateService $gate,
+		private readonly ExchangeGateServiceInterface $gate,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -96,7 +97,7 @@ class ExchangeGateListener implements IEventListener {
 			return;
 		}
 
-		if (($decision['decision'] ?? '') === ExchangeGateService::DECISION_ALLOW) {
+		if (($decision['decision'] ?? '') === ExchangeGateServiceInterface::DECISION_ALLOW) {
 			$this->answer(event: $event, method: 'allow', arguments: [(array)($decision['records'] ?? [])]);
 			return;
 		}
@@ -141,10 +142,6 @@ class ExchangeGateListener implements IEventListener {
 	 * @return mixed The value, or null when the getter does not exist.
 	 */
 	private function read(Event $event, string $getter): mixed {
-		if (method_exists($event, $getter) === false) {
-			return null;
-		}
-
-		return $event->$getter();
+		return (new EventGetter())->value(event: $event, getter: $getter);
 	}//end read()
 }//end class

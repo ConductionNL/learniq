@@ -3,6 +3,9 @@
 /**
  * Learniq Assessment Draw Resolver
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * ADR-031 legitimate exception: server-side randomness/shuffle resolution
  * cannot be client-supplied — the exact trust boundary AssessmentScoringHandler
  * already defends for autoScore (lib/Lifecycle/AssessmentScoringHandler.php).
@@ -43,8 +46,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -56,11 +57,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Kernel\Contracts\ItemPoolFilterInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\QtiChoiceOrderResolverInterface;
+use OCA\Learniq\Service\AssessmentObjectReads;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Service\ItemPoolFilter;
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\QtiChoiceOrderResolver;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
@@ -84,23 +86,31 @@ class AssessmentDrawResolver implements IEventListener {
 	private const ITEM_SCHEMA = 'item';
 
 	/**
+	 * Reads the assessment objects this class works from.
+	 *
+	 * @var AssessmentObjectReads
+	 */
+	private readonly AssessmentObjectReads $reads;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object service for Assessment/Item lookups and the follow-up save.
-	 * @param QtiChoiceOrderResolver $choiceResolver QTI simpleChoice parsing/permutation collaborator.
-	 * @param ItemPoolFilter $poolFilter Pool filter/variant-grouping collaborator.
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
+	 * @param QtiChoiceOrderResolverInterface $choiceResolver QTI simpleChoice parsing/permutation collaborator.
+	 * @param ItemPoolFilterInterface $poolFilter Pool filter/variant-grouping collaborator.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the entity's register/schema ids to slugs.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly QtiChoiceOrderResolver $choiceResolver,
-		private readonly ItemPoolFilter $poolFilter,
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly QtiChoiceOrderResolverInterface $choiceResolver,
+		private readonly ItemPoolFilterInterface $poolFilter,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->reads = new AssessmentObjectReads(objectService: $objectService);
 	}//end __construct()
 
 	/**
@@ -171,7 +181,7 @@ class AssessmentDrawResolver implements IEventListener {
 	 * @return array<string,mixed>|null
 	 */
 	private function loadAssessment(string $assessmentId, string $tenantId): ?array {
-		$assessment = $this->fetchOne(schema: self::ASSESSMENT_SCHEMA, uuid: $assessmentId, tenantId: $tenantId);
+		$assessment = $this->reads->inTenant(tenantId: $tenantId)->one(schema: self::ASSESSMENT_SCHEMA, uuid: $assessmentId);
 		if ($assessment === null) {
 			// Fail-CLOSED: parent Assessment unreachable — leave drawnItemRefs at its
 			// default [] rather than trusting anything client-supplied.
@@ -298,7 +308,7 @@ class AssessmentDrawResolver implements IEventListener {
 		$drawnItemRefs = [];
 
 		foreach ($itemSequence['itemIds'] as $itemId) {
-			$item = $this->fetchOne(schema: self::ITEM_SCHEMA, uuid: $itemId, tenantId: $tenantId);
+			$item = $this->reads->inTenant(tenantId: $tenantId)->one(schema: self::ITEM_SCHEMA, uuid: $itemId);
 			if ($item === null) {
 				continue;
 			}
@@ -418,44 +428,4 @@ class AssessmentDrawResolver implements IEventListener {
 		return $items;
 	}//end secureShuffle()
 
-	/**
-	 * Fetch a single object by uuid, scoped to the given tenant when one is set.
-	 *
-	 * @param string $schema OR schema slug.
-	 * @param string $uuid Object UUID.
-	 * @param string $tenantId Tenant ID, or '' to skip tenant scoping.
-	 *
-	 * @return array<string,mixed>|null
-	 */
-	private function fetchOne(string $schema, string $uuid, string $tenantId): ?array {
-		$filters = [];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$matches = $this->objectService->findAll(
-			[
-				'ids' => [$uuid],
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => $schema,
-					]
-				),
-				'limit' => 1,
-			]
-		);
-
-		if (empty($matches) === true) {
-			return null;
-		}
-
-		$match = $matches[0];
-		if (is_array($match) === true) {
-			return $match;
-		}
-
-		return $match->jsonSerialize();
-	}//end fetchOne()
 }//end class

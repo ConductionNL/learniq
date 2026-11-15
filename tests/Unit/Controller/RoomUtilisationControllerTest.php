@@ -55,7 +55,7 @@ class RoomUtilisationControllerTest extends TestCase {
 	 *
 	 * @return RoomUtilisationController
 	 */
-	private function controller(?string $uid, array $groups = [], bool $down = false): RoomUtilisationController {
+	private function controller(?string $uid, array $groups = [], bool $down = false, bool $admin = false): RoomUtilisationController {
 		$session = $this->createMock(IUserSession::class);
 		$user = null;
 		if ($uid !== null) {
@@ -65,8 +65,8 @@ class RoomUtilisationControllerTest extends TestCase {
 
 		$session->method('getUser')->willReturn($user);
 		$groupManager = $this->createMock(IGroupManager::class);
-		$groupManager->method('isAdmin')->willReturn(false);
-		$groupManager->method('isInGroup')->willReturnCallback(static fn (string $u, string $g): bool => in_array($g, $groups, true));
+		$groupManager->method('isAdmin')->willReturnCallback(static fn (string $u): bool => $admin === true && $u === $uid);
+		$groupManager->method('isInGroup')->willReturnCallback(static fn (string $u, string $g): bool => $u === $uid && in_array($g, $groups, true));
 
 		$report = $this->createMock(RoomUtilisationService::class);
 		$report->method('parseDay')->willReturnCallback(static fn (string $d): ?\DateTimeImmutable => preg_match('/^\d{4}-\d{2}-\d{2}$/', $d) === 1 ? new \DateTimeImmutable($d) : null);
@@ -135,4 +135,26 @@ class RoomUtilisationControllerTest extends TestCase {
 		$bad = ['weekdays' => ['monday' => ['opens' => '17:00', 'closes' => '08:00']]];
 		self::assertSame(Http::STATUS_BAD_REQUEST, $this->controller(uid: 'lead', groups: ['compliance-officers'])->saveOpeningHours(openingHours: $bad)->getStatus());
 	}//end testOpeningHoursWriters()
+
+	/**
+	 * Who passes the role check: an admin in no group, a member of any one
+	 * allowed group; nobody else, with the exact refusals.
+	 *
+	 * @return void
+	 */
+	public function testWhoPassesTheRoleCheck(): void {
+		self::assertSame(Http::STATUS_OK, $this->controller(uid: 'root', admin: true)->openingHours()->getStatus());
+		self::assertTrue($this->controller(uid: 'root', admin: true)->openingHours()->getData()['canEdit']);
+		foreach (['instructors', 'team-leads', 'compliance-officers'] as $group) {
+			self::assertSame(Http::STATUS_OK, $this->controller(uid: 'u', groups: ['learners', $group])->openingHours()->getStatus(), $group);
+		}
+
+		$anonymous = $this->controller(uid: null)->openingHours();
+		self::assertSame([Http::STATUS_UNAUTHORIZED, ['error' => 'Not authenticated']], [$anonymous->getStatus(), $anonymous->getData()]);
+		$learner = $this->controller(uid: 'p', groups: ['learners'])->openingHours();
+		self::assertSame(
+			[Http::STATUS_FORBIDDEN, ['error' => 'Your role cannot open the room use report or change its opening hours.']],
+			[$learner->getStatus(), $learner->getData()]
+		);
+	}//end testWhoPassesTheRoleCheck()
 }//end class

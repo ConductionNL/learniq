@@ -23,7 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\Portal\ExamplePortalProvisioner;
+use OCA\Learniq\Kernel\Contracts\ExamplePortalProvisionerInterface;
 
 /**
  * What happens to a set's data as it loads: shared codes left out, dates moved, rows stamped with the organisation and the portal provisioned.
@@ -38,13 +38,13 @@ final class ExampleSetPreparation {
 	 * @param SharedCodeFilter         $sharedCodes    Leaves out a regulation code another set already created.
 	 * @param ExampleSetDates          $dates          Moves the set's dates to the week of the load (demo-dates-follow-the-load-week).
 	 * @param ExampleSetOrganisation   $organisation   Gives the set's rows the instance's default organisation.
-	 * @param ExamplePortalProvisioner $examplePortals Gives the set's school its themed portal when portaliq is installed.
+	 * @param ExamplePortalProvisionerInterface $examplePortals Gives the set's school its themed portal when portaliq is installed.
 	 */
 	public function __construct(
 		public readonly SharedCodeFilter $sharedCodes,
 		public readonly ExampleSetDates $dates,
 		public readonly ExampleSetOrganisation $organisation,
-		public readonly ExamplePortalProvisioner $examplePortals,
+		public readonly ExamplePortalProvisionerInterface $examplePortals,
 	) {
 	}//end __construct()
 }//end class

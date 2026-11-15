@@ -107,6 +107,9 @@ class PublicEventIndex {
 			$item['endDate'] = $end;
 		}
 
+		$item['category']      = self::categoryOf(kind: (string)($event['kind'] ?? ''));
+		$item['categoryLabel'] = $this->categoryWord(category: $item['category']);
+
 		$summary = trim((string)($event['description'] ?? ''));
 		if ($summary !== '') {
 			$item['summary'] = $summary;
@@ -114,4 +117,40 @@ class PublicEventIndex {
 
 		return $item;
 	}//end item()
+
+	/**
+	 * The calendar category of a kind of day: what a calendar block on the
+	 * website lets its editor pick. A kind the school did not mark as a
+	 * holiday, a day off or a parent evening is a school activity.
+	 *
+	 * @param string $kind The school event's `kind`.
+	 *
+	 * @return string `holiday`, `day-off`, `parent-evening` or `activity`.
+	 *
+	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-every-school-day-in-the-index-has-a-category
+	 */
+	public static function categoryOf(string $kind): string {
+		return match ($kind) {
+			'holiday' => 'holiday',
+			'study-day', 'day-off' => 'day-off',
+			'parent-evening' => 'parent-evening',
+			default => 'activity',
+		};
+	}//end categoryOf()
+
+	/**
+	 * The category in the portal's language.
+	 *
+	 * @param string $category The category.
+	 *
+	 * @return string
+	 */
+	private function categoryWord(string $category): string {
+		return match ($category) {
+			'holiday' => $this->reads->word(text: 'Holiday'),
+			'day-off' => $this->reads->word(text: 'Study day or day off'),
+			'parent-evening' => $this->reads->word(text: 'Parent evening'),
+			default => $this->reads->word(text: 'School activity'),
+		};
+	}//end categoryWord()
 }//end class

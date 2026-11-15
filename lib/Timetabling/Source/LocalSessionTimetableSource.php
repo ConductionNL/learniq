@@ -36,6 +36,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Timetabling\Source;
 
+use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -50,6 +51,13 @@ class LocalSessionTimetableSource implements TimetableSource {
 	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
+	 * Turns one OpenRegister result into a plain array.
+	 *
+	 * @var ObjectRow
+	 */
+	private readonly ObjectRow $objectRow;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object query service (RBAC-scoped).
@@ -59,6 +67,7 @@ class LocalSessionTimetableSource implements TimetableSource {
 	public function __construct(
 		private readonly ObjectService $objectService,
 	) {
+		$this->objectRow = new ObjectRow();
 	}//end __construct()
 
 	/**
@@ -227,14 +236,6 @@ class LocalSessionTimetableSource implements TimetableSource {
 	 * @return array<string,mixed>
 	 */
 	private function toArray(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-			return (array)$row->jsonSerialize();
-		}
-
-		return [];
+		return $this->objectRow->asArray(object: $row);
 	}//end toArray()
 }//end class

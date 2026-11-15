@@ -34,8 +34,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\ReportCardPdfDelegationService;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ReportCardPdfDelegationServiceInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -59,17 +59,17 @@ class ReportCardPdfTransitionListener implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object service, to save the ReportCard.
-	 * @param ReportCardPdfDelegationService $pdfService The docudesk render bridge.
+	 * @param ReportCardPdfDelegationServiceInterface $pdfService The docudesk render bridge.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly ReportCardPdfDelegationService $pdfService,
+		private readonly ReportCardPdfDelegationServiceInterface $pdfService,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 

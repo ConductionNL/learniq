@@ -31,6 +31,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Timetabling;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\ContactHoursCalendarInterface;
 use OCA\Learniq\Service\Calendar\SchoolYear;
 use Throwable;
 
@@ -39,7 +40,7 @@ use Throwable;
  *
  * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
  */
-class ContactHoursCalendar {
+class ContactHoursCalendar implements ContactHoursCalendarInterface {
 
 	/**
 	 * Constructor.

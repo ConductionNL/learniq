@@ -28,8 +28,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Command;
 
-use OCA\Learniq\Portal\ExamplePortalProvisioner;
-use OCA\Learniq\Service\ExampleSetDates;
+use OCA\Learniq\Kernel\Contracts\ExamplePortalProvisionerInterface;
+use OCA\Learniq\Kernel\Contracts\ExampleSetDatesInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -50,14 +50,14 @@ class ExampleSetPortalCommand extends Command {
 	/**
 	 * Constructor.
 	 *
-	 * @param ExamplePortalProvisioner $portals Creates or themes the portal.
-	 * @param ExampleSetDates|null     $dates   The offset the set's dates carry (demo-dates-follow-the-load-week).
+	 * @param ExamplePortalProvisionerInterface $portals Creates or themes the portal.
+	 * @param ExampleSetDatesInterface|null     $dates   The offset the set's dates carry (demo-dates-follow-the-load-week).
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ExamplePortalProvisioner $portals,
-		private readonly ?ExampleSetDates $dates=null,
+		private readonly ExamplePortalProvisionerInterface $portals,
+		private readonly ?ExampleSetDatesInterface $dates=null,
 	) {
 		parent::__construct();
 	}//end __construct()
@@ -75,7 +75,7 @@ class ExampleSetPortalCommand extends Command {
 			->addArgument(
 				name: 'set',
 				mode: InputArgument::REQUIRED,
-				description: 'The example set: ' . implode(', ', array_keys(ExamplePortalProvisioner::PORTALS))
+				description: 'The example set: ' . implode(', ', array_keys(ExamplePortalProvisionerInterface::PORTALS))
 			);
 	}//end configure()
 

@@ -128,24 +128,13 @@
         {
             "findAll": {
                 "config": {
+                    "ids": [
+                        "r-small"
+                    ],
                     "filters": {
-                        "sessionId": "s-far",
                         "tenant_id": "tenant-1",
                         "register": "learniq",
-                        "schema": "exam"
-                    },
-                    "limit": 1
-                }
-            }
-        },
-        {
-            "findAll": {
-                "config": {
-                    "filters": {
-                        "sessionId": "s-day",
-                        "tenant_id": "tenant-1",
-                        "register": "learniq",
-                        "schema": "exam"
+                        "schema": "room"
                     },
                     "limit": 1
                 }
@@ -368,19 +357,6 @@
         {
             "findAll": {
                 "config": {
-                    "filters": {
-                        "sessionId": "s-small",
-                        "tenant_id": "tenant-1",
-                        "register": "learniq",
-                        "schema": "exam"
-                    },
-                    "limit": 1
-                }
-            }
-        },
-        {
-            "findAll": {
-                "config": {
                     "ids": [
                         "r-big"
                     ],
@@ -396,11 +372,13 @@
         {
             "findAll": {
                 "config": {
+                    "ids": [
+                        "r-none"
+                    ],
                     "filters": {
-                        "sessionId": "s-nocap",
                         "tenant_id": "tenant-1",
                         "register": "learniq",
-                        "schema": "exam"
+                        "schema": "room"
                     },
                     "limit": 1
                 }
@@ -409,24 +387,13 @@
         {
             "findAll": {
                 "config": {
+                    "ids": [
+                        "c-c"
+                    ],
                     "filters": {
-                        "sessionId": "s-big2",
                         "tenant_id": "tenant-1",
                         "register": "learniq",
-                        "schema": "exam"
-                    },
-                    "limit": 1
-                }
-            }
-        },
-        {
-            "findAll": {
-                "config": {
-                    "filters": {
-                        "sessionId": "s-day",
-                        "tenant_id": "tenant-1",
-                        "register": "learniq",
-                        "schema": "exam"
+                        "schema": "cohort"
                     },
                     "limit": 1
                 }
@@ -634,11 +601,13 @@
         {
             "findAll": {
                 "config": {
+                    "ids": [
+                        "r-small"
+                    ],
                     "filters": {
-                        "sessionId": "s-day",
                         "tenant_id": "tenant-1",
                         "register": "learniq",
-                        "schema": "exam"
+                        "schema": "room"
                     },
                     "limit": 1
                 }
@@ -817,11 +786,28 @@
         {
             "findAll": {
                 "config": {
+                    "ids": [
+                        "r-missing"
+                    ],
                     "filters": {
-                        "sessionId": "s-day",
                         "tenant_id": "tenant-1",
                         "register": "learniq",
-                        "schema": "exam"
+                        "schema": "room"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "r-small"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "room"
                     },
                     "limit": 1
                 }
@@ -972,22 +958,12 @@
         {
             "findAll": {
                 "config": {
+                    "ids": [
+                        "r-small"
+                    ],
                     "filters": {
-                        "sessionId": "s-b",
                         "register": "learniq",
-                        "schema": "exam"
-                    },
-                    "limit": 1
-                }
-            }
-        },
-        {
-            "findAll": {
-                "config": {
-                    "filters": {
-                        "sessionId": "s-day",
-                        "register": "learniq",
-                        "schema": "exam"
+                        "schema": "room"
                     },
                     "limit": 1
                 }
@@ -1155,6 +1131,20 @@
             }
         },
         {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "r-9"
+                    ],
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "room"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
             "saveObject": {
                 "object": {
                     "kind": "room-double-booking",
@@ -1214,19 +1204,6 @@
         {
             "findAll": {
                 "config": {
-                    "filters": {
-                        "sessionId": "s-lost",
-                        "tenant_id": "tenant-1",
-                        "register": "learniq",
-                        "schema": "exam"
-                    },
-                    "limit": 1
-                }
-            }
-        },
-        {
-            "findAll": {
-                "config": {
                     "ids": [
                         "r-missing"
                     ],
@@ -1242,11 +1219,28 @@
         {
             "findAll": {
                 "config": {
+                    "ids": [
+                        "r-small"
+                    ],
                     "filters": {
-                        "sessionId": "s-day",
                         "tenant_id": "tenant-1",
                         "register": "learniq",
-                        "schema": "exam"
+                        "schema": "room"
+                    },
+                    "limit": 1
+                }
+            }
+        },
+        {
+            "findAll": {
+                "config": {
+                    "ids": [
+                        "c-c"
+                    ],
+                    "filters": {
+                        "tenant_id": "tenant-1",
+                        "register": "learniq",
+                        "schema": "cohort"
                     },
                     "limit": 1
                 }
@@ -1356,19 +1350,6 @@
         {
             "findAll": {
                 "config": {
-                    "filters": {
-                        "sessionId": "s-b",
-                        "tenant_id": "tenant-9",
-                        "register": "learniq",
-                        "schema": "exam"
-                    },
-                    "limit": 1
-                }
-            }
-        },
-        {
-            "findAll": {
-                "config": {
                     "ids": [
                         "r-small"
                     ],
@@ -1376,19 +1357,6 @@
                         "tenant_id": "tenant-9",
                         "register": "learniq",
                         "schema": "room"
-                    },
-                    "limit": 1
-                }
-            }
-        },
-        {
-            "findAll": {
-                "config": {
-                    "filters": {
-                        "sessionId": "s-small",
-                        "tenant_id": "tenant-9",
-                        "register": "learniq",
-                        "schema": "exam"
                     },
                     "limit": 1
                 }

@@ -345,16 +345,6 @@ class LessonNoteReader {
 	 * @return bool
 	 */
 	private function isStaff(string $uid): bool {
-		if ($this->groupManager->isAdmin($uid) === true) {
-			return true;
-		}
-
-		foreach (self::STAFF_GROUPS as $group) {
-			if ($this->groupManager->isInGroup($uid, $group) === true) {
-				return true;
-			}
-		}
-
-		return false;
+		return (new StaffGroupCheck(groupManager: $this->groupManager, staffGroups: self::STAFF_GROUPS))->isStaff(uid: $uid);
 	}//end isStaff()
 }//end class

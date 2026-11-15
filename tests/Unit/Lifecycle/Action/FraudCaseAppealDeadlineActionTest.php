@@ -25,6 +25,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use OCA\Learniq\Lifecycle\Action\FraudCaseAppealDeadlineAction;
 use OCA\Learniq\Service\Settings\AppealTerm;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 use OCP\IAppConfig;
 use PHPUnit\Framework\TestCase;
@@ -62,10 +63,12 @@ class FraudCaseAppealDeadlineActionTest extends TestCase {
 		];
 
 		$result = (new FraudCaseAppealDeadlineAction())->execute(
-			objectData: $object,
-			previousData: [],
-			parameters: [],
-			actionName: FraudCaseAppealDeadlineAction::class
+			new LifecycleActionContext(
+				objectData: $object,
+				previousData: [],
+				parameters: [],
+				actionName: FraudCaseAppealDeadlineAction::class
+			)
 		);
 
 		$decidedAt = DateTimeImmutable::createFromFormat(format: DateTimeInterface::ATOM, datetime: $result['decidedAt']);
@@ -93,10 +96,12 @@ class FraudCaseAppealDeadlineActionTest extends TestCase {
 		$action = new FraudCaseAppealDeadlineAction(appealTerm: new AppealTerm(appConfig: $config));
 
 		$result = $action->execute(
-			objectData: ['lifecycle' => 'decided'],
-			previousData: [],
-			parameters: [],
-			actionName: FraudCaseAppealDeadlineAction::class
+			new LifecycleActionContext(
+				objectData: ['lifecycle' => 'decided'],
+				previousData: [],
+				parameters: [],
+				actionName: FraudCaseAppealDeadlineAction::class
+			)
 		);
 
 		$decidedAt = DateTimeImmutable::createFromFormat(format: DateTimeInterface::ATOM, datetime: $result['decidedAt']);

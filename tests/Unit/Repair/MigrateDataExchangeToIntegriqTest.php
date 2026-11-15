@@ -90,7 +90,7 @@ class MigrateDataExchangeToIntegriqTest extends TestCase {
 	 *
 	 * @return MigrateDataExchangeToIntegriq The step.
 	 */
-	private function step(bool $integriqThere): MigrateDataExchangeToIntegriq {
+	private function step(bool $integriqThere, ?\Psr\Log\LoggerInterface $logger = null): MigrateDataExchangeToIntegriq {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('findAll')->willReturnCallback(
 			function (array $config = [], ...$rest): array {
@@ -140,7 +140,7 @@ class MigrateDataExchangeToIntegriqTest extends TestCase {
 		$this->integriq = $this->createMock(IntegriqExchangeClient::class);
 		$this->integriq->method('isAvailable')->willReturn($integriqThere);
 
-		return new MigrateDataExchangeToIntegriq($objects, $this->integriq, new LegacyExchangeTranslator(), $factory, $appConfig, $clock, new NullLogger());
+		return new MigrateDataExchangeToIntegriq($objects, $this->integriq, new LegacyExchangeTranslator(), $factory, $appConfig, $clock, ($logger ?? new NullLogger()));
 	}//end step()
 
 	/**
@@ -267,4 +267,55 @@ class MigrateDataExchangeToIntegriqTest extends TestCase {
 		$this->assertSame([], $this->files);
 		$this->assertArrayHasKey('exchange_migrated_to_integriq', $this->config);
 	}//end testANewInstall()
+
+	/**
+	 * Which mapping profiles move: only named, non-seeded profiles with
+	 * rules; each request carries the profile's slug, name, description and
+	 * rules; a refused request is logged and not counted.
+	 *
+	 * @return void
+	 */
+	public function testWhichMappingProfilesMove(): void {
+		$hr = ['name' => 'Our HR sync', 'target' => 'hr', 'fieldMappings' => [['scholiqField' => 'familyName', 'targetField' => 'achternaam']]];
+		$warnings = [];
+		$logger = $this->createMock(\Psr\Log\LoggerInterface::class);
+		$logger->method('warning')->willReturnCallback(
+			static function (string $message) use (&$warnings): void {
+				$warnings[] = $message;
+			}
+		);
+		$step = $this->step(true, $logger);
+		$requests = [];
+		$this->integriq->method('requestMapping')->willReturnCallback(
+			static function (string $slug, string $name, string $description, array $mapping) use (&$requests): string {
+				$requests[] = [$slug, $name, $description, $mapping];
+				if ($name === 'learniq: Refused') {
+					throw new \RuntimeException('integriq said no');
+				}
+
+				return 'map';
+			}
+		);
+
+		$stored = (new \ReflectionMethod(MigrateDataExchangeToIntegriq::class, 'migrateMappings'))->invoke(
+			$step,
+			[
+				['name' => '', 'fieldMappings' => $hr['fieldMappings']],
+				['name' => 'BRON/ROD learner export', 'target' => 'bron-rod', 'fieldMappings' => $hr['fieldMappings']],
+				['name' => 'No rules', 'target' => 'hr', 'fieldMappings' => []],
+				['name' => 'Refused', 'fieldMappings' => $hr['fieldMappings']],
+				$hr,
+			]
+		);
+
+		self::assertSame(1, $stored);
+		self::assertSame(
+			[
+				['learniq-custom-refused', 'learniq: Refused', 'Migrated from learniq DataMappingProfile "Refused" (target ).', ['achternaam' => 'familyName']],
+				['learniq-custom-our-hr-sync', 'learniq: Our HR sync', 'Migrated from learniq DataMappingProfile "Our HR sync" (target hr).', ['achternaam' => 'familyName']],
+			],
+			$requests
+		);
+		self::assertSame(['[MigrateDataExchangeToIntegriq] mapping "Refused" not moved: integriq said no'], $warnings);
+	}//end testWhichMappingProfilesMove()
 }//end class

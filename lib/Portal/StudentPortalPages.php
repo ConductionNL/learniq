@@ -677,59 +677,150 @@ class StudentPortalPages {
 	 */
 	private function collectionPage(array $collection, array $actions): array {
 		$id = (string)$collection['id'];
-		$schema = (string)($collection['schema'] ?? '');
-		if ($id === 'studentHomework') {
-			$schema = 'submission';
-		}
-
-		$blocks = [];
 		if ($id === 'studentSessions') {
 			// The timetable page is the week, not a table of every lesson.
-			return [
-				'id' => $id,
-				'label' => self::MENU_PAGES[$id],
-				'group' => ParentSitePages::GROUP,
-				'blocks' => [$this->timetableBlock(label: 'Timetable', range: 'week')],
-			];
+			return $this->timetablePage(id: $id);
 		}
 
+		$page = ['id' => $id, 'label' => (string)($collection['label'] ?? $id)];
+		// A collection with steps is a record page: the open row's steps under the list.
+		if (isset($collection['steps']) === true) {
+			$page['record'] = ['collection' => $id, 'titleFields' => ['trainingCompanyName']];
+		}
+
+		$page['blocks'] = $this->pageBlocks(collection: $collection, actions: $actions);
+
+		return $this->menuPage(page: $page);
+	}//end collectionPage()
+
+	/**
+	 * A collection page's blocks: the list, its steps, then the record tail.
+	 *
+	 * @param array<string, mixed>            $collection The collection.
+	 * @param array<int, array<string, mixed>> $actions    The audience's actions.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function pageBlocks(array $collection, array $actions): array {
+		return array_merge(
+			$this->listBlocks(collection: $collection, actions: $actions),
+			$this->stepBlocks(collection: $collection),
+			$this->recordTail(id: (string)$collection['id'])
+		);
+	}//end pageBlocks()
+
+	/**
+	 * The week timetable page of a student's lessons.
+	 *
+	 * @param string $id The collection id.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function timetablePage(string $id): array {
+		return [
+			'id' => $id,
+			'label' => self::MENU_PAGES[$id],
+			'group' => ParentSitePages::GROUP,
+			'blocks' => [$this->timetableBlock(label: 'Timetable', range: 'week')],
+		];
+	}//end timetablePage()
+
+	/**
+	 * The blocks above and of a collection's list: the hours bar of the hour
+	 * weeks, the collection's first create form, then the list itself.
+	 *
+	 * @param array<string, mixed>            $collection The collection.
+	 * @param array<int, array<string, mixed>> $actions    The audience's actions.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function listBlocks(array $collection, array $actions): array {
+		$id = (string)$collection['id'];
+		$blocks = [];
 		if ($id === 'studentHourWeeks') {
 			$blocks[] = $this->hoursBar(collection: 'studentBpvPlacements');
 		}
 
-		$form = $this->firstCreateFor(schema: $schema, actions: $actions);
+		$form = $this->firstCreateFor(schema: $this->formSchema(collection: $collection), actions: $actions);
 		if ($form !== null) {
 			$blocks[] = ['type' => 'action', 'action' => $form];
 		}
 
 		$blocks[] = ['type' => 'collection', 'collection' => $id];
-		$page = ['id' => $id, 'label' => (string)($collection['label'] ?? $id)];
-		// A collection with steps is a record page: the open row's steps under the list.
-		if (isset($collection['steps']) === true) {
-			$page['record'] = ['collection' => $id, 'titleFields' => ['trainingCompanyName']];
-			// "Volgende stap": the current step as a highlight card (portaliq #1409),
-			// its button "Zelfbeoordeling afmaken" opening her self-assessment of this placement.
-			$blocks[] = [
-				'type' => 'steps',
-				'collection' => $id,
-				'display' => 'highlight',
-				'eyebrow' => 'Next step',
-				'buttonLabel' => 'Finish your self-assessment',
-				'page' => StudentSelfAssessment::PAGE,
-				'withRecord' => true,
-			];
-			// Bars across, as the board's "Waar sta je?" (portaliq steps `display: bars`).
-			$blocks[] = ['type' => 'steps', 'collection' => $id, 'label' => (string)($collection['steps']['label'] ?? ''), 'display' => 'bars'];
+
+		return $blocks;
+	}//end listBlocks()
+
+	/**
+	 * The schema whose create form a collection page offers: homework is
+	 * handed in as a submission.
+	 *
+	 * @param array<string, mixed> $collection The collection.
+	 *
+	 * @return string
+	 */
+	private function formSchema(array $collection): string {
+		if ((string)$collection['id'] === 'studentHomework') {
+			return 'submission';
 		}
 
-		$blocks = array_merge($blocks, $this->recordTail(id: $id));
-		$page['blocks'] = $blocks;
-		if (isset(self::MENU_PAGES[$id]) === false) {
+		return (string)($collection['schema'] ?? '');
+	}//end formSchema()
+
+	/**
+	 * The step blocks of a collection with steps, none for any other.
+	 *
+	 * @param array<string, mixed> $collection The collection.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function stepBlocks(array $collection): array {
+		if (isset($collection['steps']) === false) {
+			return [];
+		}
+
+		$id = (string)$collection['id'];
+		return [
+			$this->nextStepBlock(id: $id),
+			// Bars across, as the board's "Waar sta je?" (portaliq steps `display: bars`).
+			['type' => 'steps', 'collection' => $id, 'label' => (string)($collection['steps']['label'] ?? ''), 'display' => 'bars'],
+		];
+	}//end stepBlocks()
+
+	/**
+	 * "Volgende stap": the current step as a highlight card (portaliq #1409),
+	 * its button "Zelfbeoordeling afmaken" opening her self-assessment of this placement.
+	 *
+	 * @param string $id The collection id.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function nextStepBlock(string $id): array {
+		return [
+			'type' => 'steps',
+			'collection' => $id,
+			'display' => 'highlight',
+			'eyebrow' => 'Next step',
+			'buttonLabel' => 'Finish your self-assessment',
+			'page' => StudentSelfAssessment::PAGE,
+			'withRecord' => true,
+		];
+	}//end nextStepBlock()
+
+	/**
+	 * A collection page in the menu under its menu label, or kept out of it.
+	 *
+	 * @param array<string, mixed> $page The page.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function menuPage(array $page): array {
+		if (isset(self::MENU_PAGES[$page['id']]) === false) {
 			return $page + ['menu' => false];
 		}
 
-		return array_merge($page, ['label' => self::MENU_PAGES[$id], 'group' => ParentSitePages::GROUP]);
-	}//end collectionPage()
+		return array_merge($page, ['label' => self::MENU_PAGES[$page['id']], 'group' => ParentSitePages::GROUP]);
+	}//end menuPage()
 
 	/**
 	 * The blocks under a collection page's list: the selected row's detail,

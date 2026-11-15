@@ -29,7 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\BackgroundJob\CohortNameRestampJob;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCP\EventDispatcher\Event;
@@ -50,13 +50,13 @@ class CohortNameCascade implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver  $schemaResolver Entity schema id to slug.
+	 * @param ListenerSchemaResolverInterface  $schemaResolver Entity schema id to slug.
 	 * @param ListenerDeferralService $deferral       Queues the re-stamp for after the request.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly ListenerDeferralService $deferral,
 	) {
 	}//end __construct()

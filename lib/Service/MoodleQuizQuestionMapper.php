@@ -256,17 +256,6 @@ class MoodleQuizQuestionMapper {
 	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function childText(DOMElement $element, string $tagName): ?string {
-		foreach ($element->childNodes as $child) {
-			if ($child instanceof DOMElement && $child->tagName === $tagName) {
-				$text = trim((string)$child->textContent);
-				if ($text !== '') {
-					return $text;
-				}
-
-				return null;
-			}
-		}
-
-		return null;
+		return (new XmlChildText())->firstOf(element: $element, tagName: $tagName);
 	}//end childText()
 }//end class

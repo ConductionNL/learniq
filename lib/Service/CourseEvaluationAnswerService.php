@@ -38,6 +38,8 @@ namespace OCA\Learniq\Service;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\CourseEvaluationAnswerServiceInterface;
+use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -49,7 +51,7 @@ use Throwable;
  *
  * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
  */
-class CourseEvaluationAnswerService {
+class CourseEvaluationAnswerService implements CourseEvaluationAnswerServiceInterface {
 
 	/**
 	 * The register every evaluation object lives in.
@@ -401,14 +403,6 @@ class CourseEvaluationAnswerService {
 	 * @return array<string, mixed>
 	 */
 	private static function toArray(mixed $value): array {
-		if (is_object($value) === true && method_exists($value, 'jsonSerialize') === true) {
-			$value = $value->jsonSerialize();
-		}
-
-		if (is_array($value) === false) {
-			return [];
-		}
-
-		return $value;
+		return (new SerialisedRow())->asArray(object: $value);
 	}//end toArray()
 }//end class

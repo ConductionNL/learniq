@@ -43,6 +43,7 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\TimetableProjectorInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -51,7 +52,7 @@ use Throwable;
  *
  * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
  */
-class TimetableProjector {
+class TimetableProjector implements TimetableProjectorInterface {
 
 	/**
 	 * The lesson fields a projected session copies as strings, in order.

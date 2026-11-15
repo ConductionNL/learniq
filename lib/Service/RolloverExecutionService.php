@@ -3,6 +3,9 @@
 /**
  * Learniq Rollover Execution Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * The write half of the annual jaarovergang (school-year rollover). Where
  * `RolloverService` proposes mappings and computes the side-effect-free dry-run
  * report, this collaborator performs the idempotent, resumable execution: it
@@ -28,8 +31,6 @@
  * @copyright 2024 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -42,6 +43,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Exception\RolloverInterruptedException;
+use OCA\Learniq\Kernel\Contracts\RolloverExecutionServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IGroupManager;
 use Psr\Log\LoggerInterface;
@@ -54,7 +56,7 @@ use Throwable;
  *
  * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
  */
-class RolloverExecutionService {
+class RolloverExecutionService implements RolloverExecutionServiceInterface {
 	/**
 	 * OpenRegister register slug.
 	 */
@@ -328,17 +330,7 @@ class RolloverExecutionService {
 	 * @spec openspec/specs/school-structure/spec.md#requirement-a-cohort-knows-which-year-of-its-programme-it-is-in
 	 */
 	public function nextProgrammeYear(array $fromCohort, array $mapping): ?int {
-		$year = $fromCohort['programmeYear'] ?? null;
-		if (is_int($year) === false && (is_string($year) === false || ctype_digit($year) === false)) {
-			return null;
-		}
-
-		$toProgramme = (string)($mapping['toProgrammeId'] ?? '');
-		if ($toProgramme !== '' && $toProgramme !== (string)($fromCohort['programmeId'] ?? '')) {
-			return null;
-		}
-
-		return ((int)$year + 1);
+		return (new NextProgrammeYear())->forMapping(fromCohort: $fromCohort, mapping: $mapping);
 	}//end nextProgrammeYear()
 
 	/**

@@ -130,6 +130,17 @@ import {
 } from '@nextcloud/vue'
 import { canWithdraw, isLive, withdrawIds } from '../utils/catalogueCard.js'
 
+/**
+ * The distinct non-empty values of one field over the courses, in order.
+ *
+ * @param {Array<object>} courses The catalogue courses.
+ * @param {string} key The field.
+ * @return {Array<string>}
+ */
+function distinctValues(courses, key) {
+	return [...new Set(courses.map((c) => c[key]).filter(Boolean))]
+}
+
 export default {
 	name: 'CourseCatalogue',
 
@@ -183,35 +194,62 @@ export default {
 		async load() {
 			this.loading = true
 			try {
-				const data = (
-					await axios.get(generateUrl('/apps/learniq/api/catalogue'), {
-						params: {
-							search: this.search || undefined,
-							provider: this.provider || undefined,
-							language: this.language || undefined,
-						},
-					})
-				).data
-				this.courses = data.courses ?? []
-				this.programmes = data.programmes ?? []
-				if (!this.provider && !this.language && !this.search) {
-					this.providers = [
-						...new Set(
-							this.courses.map((c) => c.provider).filter(Boolean),
-						),
-					]
-					this.languages = [
-						...new Set(
-							this.courses.map((c) => c.language).filter(Boolean),
-						),
-					]
-				}
+				await this.readCatalogue()
 			} catch {
 				this.courses = []
 				this.programmes = []
 			} finally {
 				this.loading = false
 			}
+		},
+
+		/**
+		 * Read the cards for the current filters; an unfiltered read also
+		 * refreshes the filter choices.
+		 *
+		 * @return {Promise<void>}
+		 */
+		async readCatalogue() {
+			const response = await axios.get(
+				generateUrl('/apps/learniq/api/catalogue'),
+				{ params: this.catalogueParams() },
+			)
+			const data = response.data
+			this.courses = data.courses ?? []
+			this.programmes = data.programmes ?? []
+			if (this.isUnfiltered()) this.collectFilterChoices()
+		},
+
+		/**
+		 * The catalogue query: the filters that are set.
+		 *
+		 * @return {{search: (string|undefined), provider: (string|undefined), language: (string|undefined)}}
+		 */
+		catalogueParams() {
+			return {
+				search: this.search || undefined,
+				provider: this.provider || undefined,
+				language: this.language || undefined,
+			}
+		},
+
+		/**
+		 * Whether no filter or search is set, so the cards are the whole catalogue.
+		 *
+		 * @return {boolean}
+		 */
+		isUnfiltered() {
+			return !this.provider && !this.language && !this.search
+		},
+
+		/**
+		 * The provider and language choices, from the whole catalogue.
+		 *
+		 * @return {void}
+		 */
+		collectFilterChoices() {
+			this.providers = distinctValues(this.courses, 'provider')
+			this.languages = distinctValues(this.courses, 'language')
 		},
 
 		/**
@@ -253,38 +291,57 @@ export default {
 			this.busy = entry.id
 			const path = entry.kind === 'programme' ? 'programmes' : 'courses'
 			try {
-				const data = (
-					await axios.post(
-						generateUrl(
-							`/apps/learniq/api/catalogue/${path}/${entry.id}/sign-up`,
-						),
-					)
-				).data
-				const refused = data.refused ?? []
-				this.notes = {
-					...this.notes,
-					[entry.id]:
-						refused.length > 0
-							? {
-									type: 'warning',
-									text: refused.map((r) => r.message).join(' '),
-								}
-							: { type: 'success', text: this.t('learniq', 'Done.') },
-				}
+				const response = await axios.post(
+					generateUrl(`/apps/learniq/api/catalogue/${path}/${entry.id}/sign-up`),
+				)
+				this.setNote(entry, this.signUpNote(response.data))
 				await this.load()
 			} catch (error) {
-				this.notes = {
-					...this.notes,
-					[entry.id]: {
-						type: 'error',
-						text:
-							error?.response?.data?.message
-							?? this.t('learniq', 'Signing up did not work.'),
-					},
-				}
+				this.signUpFailed(entry, error)
 			} finally {
 				this.busy = ''
 			}
+		},
+
+		/**
+		 * The note a sign-up leaves: the refusals, or done.
+		 *
+		 * @param {object} data The sign-up answer.
+		 * @return {{type: string, text: string}}
+		 */
+		signUpNote(data) {
+			const refused = data.refused ?? []
+			return refused.length > 0
+				? {
+						type: 'warning',
+						text: refused.map((r) => r.message).join(' '),
+					}
+				: { type: 'success', text: this.t('learniq', 'Done.') }
+		},
+
+		/**
+		 * Note a refused sign-up on its card: the server's message, else ours.
+		 *
+		 * @param {object} entry A catalogue card.
+		 * @param {Error} error The request error.
+		 * @return {void}
+		 */
+		signUpFailed(entry, error) {
+			this.setNote(entry, {
+				type: 'error',
+				text: error?.response?.data?.message ?? this.t('learniq', 'Signing up did not work.'),
+			})
+		},
+
+		/**
+		 * Put a note on a card, keeping the other cards' notes.
+		 *
+		 * @param {object} entry A catalogue card.
+		 * @param {{type: string, text: string}} note The note.
+		 * @return {void}
+		 */
+		setNote(entry, note) {
+			this.notes = { ...this.notes, [entry.id]: note }
 		},
 
 		/**

@@ -79,6 +79,48 @@ class TrainerSitePages {
 		'match' => 'scopeField',
 	];
 
+	/**
+	 * The placement states that still show the student's name to her: every
+	 * state but `terminated`. A placement that ended early must not reveal who
+	 * the student was (site-workplace-trainer-portal-design T1).
+	 */
+	public const PO_LEARNERS_PLACEMENT_STATES = [
+		'proposed',
+		'sbb-verification-pending',
+		'confirmed',
+		'active',
+		'completed',
+	];
+
+	/**
+	 * The forward one-hop join from her placements to their students: portaliq
+	 * reads the placements whose `practicalTrainerId` is her claim and whose
+	 * `lifecycle` is not `terminated`, collects each row's `learnerRef`, and
+	 * keeps only the learner profiles whose own id is in that set
+	 * (`match: id`, the forward direction).
+	 */
+	private const PO_LEARNERS_VIA = [
+		'register' => self::REGISTER,
+		'schema' => 'bpv-placement',
+		'scopeField' => 'practicalTrainerId',
+		'targetField' => 'learnerRef',
+		'match' => 'id',
+		'when' => ['field' => 'lifecycle', 'in' => self::PO_LEARNERS_PLACEMENT_STATES],
+	];
+
+	/**
+	 * Names only: birth date, address, contacts and medical data stay in learniq.
+	 */
+	private const PO_LEARNERS_FIELDS = [
+		'givenName',
+		'familyName',
+	];
+
+	private const PO_LEARNERS_COLUMNS = [
+		['field' => 'givenName', 'label' => 'First name'],
+		['field' => 'familyName', 'label' => 'Last name'],
+	];
+
 	private const PO_HOUR_WEEKS_COLUMNS = [
 		['field' => 'isoWeek', 'label' => 'Week'],
 		['field' => 'hoursSubmitted', 'label' => 'Hours'],
@@ -98,6 +140,21 @@ class TrainerSitePages {
 			'collection' => 'poHourWeeks',
 			'dueField' => 'submittedAt',
 			'titleFields' => ['isoWeek'],
+		],
+		// Her students by name, each card with its placement period looked
+		// up on her placements (a placement's `learnerRef` holds the
+		// student's id). A placement card cannot carry the student's name,
+		// so the names stand on cards of their own.
+		[
+			'type' => 'collection',
+			'label' => 'My students',
+			'collection' => 'poLearners',
+			'display' => 'cards',
+			'titleFields' => ['givenName', 'familyName'],
+			'lookups' => [
+				['as' => 'periodFrom', 'collection' => 'poBpvPlacements', 'matchField' => 'learnerRef', 'valueField' => 'periodFrom'],
+				['as' => 'periodTo', 'collection' => 'poBpvPlacements', 'matchField' => 'learnerRef', 'valueField' => 'periodTo'],
+			],
 		],
 		// A collection block carries no heading of its own on portaliq
 		// today, so the two lists stand on their columns: the placements
@@ -330,6 +387,36 @@ class TrainerSitePages {
 	}//end assessmentsCollection()
 
 	/**
+	 * Her students, by name only.
+	 *
+	 * Joined forward through her own placements, so she reads the learner
+	 * profiles of the students she supervises and nobody else's. A placement
+	 * that is `terminated` grants nothing (`via.when`), so a student whose
+	 * placement with her ended early drops out of her list. Only the two name
+	 * fields are projected.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md
+	 */
+	public function learnersCollection(): array {
+		return [
+			'id' => 'poLearners',
+			'register' => self::REGISTER,
+			'schema' => 'learner-profile',
+			'scopeField' => 'id',
+			'scopeClaim' => 'practicalTrainerId',
+			'via' => self::PO_LEARNERS_VIA,
+			'label' => 'My students',
+			'listable' => true,
+			'minTrust' => 'low',
+			'fields' => self::PO_LEARNERS_FIELDS,
+			'columns' => self::PO_LEARNERS_COLUMNS,
+		];
+	}//end learnersCollection()
+
+	/**
+	 * The weeks of hours waiting for her.	/**
 	 * The weeks of hours waiting for her.
 	 *
 	 * Matched through the placement she supervises, so she reads the weeks of
@@ -494,6 +581,7 @@ class TrainerSitePages {
 		];
 		$contribution['collections'][] = $this->assessmentsCollection();
 		$contribution['collections'][] = $this->hourWeeksCollection();
+		$contribution['collections'][] = $this->learnersCollection();
 		// The overview and a page per section (site-workplace-trainer-portal-design).
 		$contribution['pages'] = $this->pages(collections: $contribution['collections'], actions: $contribution['actions']);
 

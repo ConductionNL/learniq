@@ -38,13 +38,14 @@ namespace OCA\Learniq\Service;
 
 use DOMElement;
 use DOMNodeList;
+use OCA\Learniq\Kernel\Contracts\QtiChoiceOrderResolverInterface;
 
 /**
  * Resolves a permuted QTI simpleChoice order, respecting `fixed` choices.
  *
  * @spec openspec/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
  */
-class QtiChoiceOrderResolver {
+class QtiChoiceOrderResolver implements QtiChoiceOrderResolverInterface {
 
 	use ParsesQtiBody;
 	/**

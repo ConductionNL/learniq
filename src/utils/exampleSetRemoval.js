@@ -68,24 +68,57 @@ export async function removeExampleSet(set, { confirm, post, t }) {
 		return { status: 'cancelled', message: '' }
 	}
 
+	const removal = { set, t }
 	try {
 		const { data } = await post(removeActionUrl(set.id))
-		const message =
-			typeof data?.message === 'string' && data.message !== ''
-				? data.message
-				: t('The example set "{set}" was removed.', { set: set.label })
-		return { status: data?.success === true ? 'removed' : 'failed', message }
+		return answeredOutcome(data, removal)
 	} catch (e) {
-		const message = e?.response?.data?.message
-		return {
-			status: 'failed',
-			message:
-				typeof message === 'string' && message !== ''
-					? message
-					: t('The example set "{set}" could not be removed.', {
-							set: set.label,
-						}),
-		}
+		return failedOutcome(e, removal)
+	}
+}
+
+/**
+ * Whether a server message is non-blank text.
+ *
+ * @param {string|null|undefined} message The message from the answer.
+ * @return {boolean}
+ */
+function hasText(message) {
+	return typeof message === 'string' && message !== ''
+}
+
+/**
+ * What the server's answer to the removal says, with its message or ours.
+ *
+ * @param {object|null} data The answer body.
+ * @param {{set: {id: string, label: string}, t: (text: string, vars?: object) => string}} removal The set and translator.
+ * @return {{status: 'removed'|'failed', message: string}}
+ */
+function answeredOutcome(data, removal) {
+	const { set, t } = removal
+	const message = hasText(data?.message)
+		? data.message
+		: t('The example set "{set}" was removed.', { set: set.label })
+	return { status: data?.success === true ? 'removed' : 'failed', message }
+}
+
+/**
+ * A failed removal, with the server's message from the error or ours.
+ *
+ * @param {Error} e The error the post threw.
+ * @param {{set: {id: string, label: string}, t: (text: string, vars?: object) => string}} removal The set and translator.
+ * @return {{status: 'failed', message: string}}
+ */
+function failedOutcome(e, removal) {
+	const { set, t } = removal
+	const message = e?.response?.data?.message
+	return {
+		status: 'failed',
+		message: hasText(message)
+			? message
+			: t('The example set "{set}" could not be removed.', {
+					set: set.label,
+				}),
 	}
 }
 
