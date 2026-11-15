@@ -3,6 +3,9 @@
 /**
  * Learniq Report Card Visibility Guard
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the ReportCard schema's `publishToParents` transition
  * (finalised -> published-to-parents). Re-resolves every contributing
  * subject's `GradeEntry.visibleFrom` at the actual moment of publication —
@@ -32,8 +35,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *
@@ -167,17 +168,10 @@ class ReportCardVisibilityGuard implements LifecycleGuardInterface {
 	private function firstUnreleasedGradeEntry(array $subjectRows, string $tenantId): ?array {
 		$now = $this->timeFactory->now();
 
-		foreach ($subjectRows as $row) {
-			if (is_array($row) === false) {
-				continue;
-			}
-
-			$entry = $this->firstUnreleasedEntryInRow(row: $row, tenantId: $tenantId, now: $now);
-			if ($entry !== null) {
-				return [
-					'plan' => ($row['curriculumPlanId'] ?? '?'),
-					'entry' => $entry,
-				];
+		foreach ($this->sourceEntries(subjectRows: $subjectRows) as $candidate) {
+			$visibleFrom = $this->fetchVisibleFrom(gradeEntryId: $candidate['entry'], tenantId: $tenantId);
+			if ($this->hasPassed(visibleFrom: $visibleFrom, now: $now) === false) {
+				return $candidate;
 			}
 		}
 
@@ -185,35 +179,67 @@ class ReportCardVisibilityGuard implements LifecycleGuardInterface {
 	}//end firstUnreleasedGradeEntry()
 
 	/**
-	 * Find the first still-embargoed source GradeEntry within one subject row.
+	 * Every usable source GradeEntry of the report card, in row order, with
+	 * the curriculum plan of its row. Rows and ids that are not usable are
+	 * left out.
 	 *
-	 * @param array<string,mixed> $row One subjectGrades row.
-	 * @param string $tenantId Tenant UUID scope.
-	 * @param mixed $now The current time, resolved once by the caller.
+	 * @param array<int,mixed> $subjectRows The ReportCard's subjectGrades rows.
 	 *
-	 * @return string|null The blocking GradeEntry id, or null when the row is clear.
+	 * @return array<int,array{plan: mixed, entry: string}> The entries to check, in order.
 	 *
 	 * @spec openspec/specs/report-card/spec.md#requirement-publishtoparents-must-not-surface-a-grade-before-its-own-scheduled-visibility-window
 	 */
-	private function firstUnreleasedEntryInRow(array $row, string $tenantId, mixed $now): ?string {
+	private function sourceEntries(array $subjectRows): array {
+		$entries = [];
+		foreach ($subjectRows as $row) {
+			if (is_array($row) === true) {
+				$entries = array_merge($entries, $this->entriesOfRow(row: $row));
+			}
+		}
+
+		return $entries;
+	}//end sourceEntries()
+
+	/**
+	 * The usable source GradeEntry ids of one subject row, with its plan.
+	 *
+	 * @param array<string,mixed> $row One subjectGrades row.
+	 *
+	 * @return array<int,array{plan: mixed, entry: string}> The row's entries, in order.
+	 *
+	 * @spec openspec/specs/report-card/spec.md#requirement-publishtoparents-must-not-surface-a-grade-before-its-own-scheduled-visibility-window
+	 */
+	private function entriesOfRow(array $row): array {
+		$entries = [];
+		foreach ($this->sourceIdsOf(row: $row) as $gradeEntryId) {
+			if (is_string($gradeEntryId) === true && $gradeEntryId !== '') {
+				$entries[] = [
+					'plan' => ($row['curriculumPlanId'] ?? '?'),
+					'entry' => $gradeEntryId,
+				];
+			}
+		}
+
+		return $entries;
+	}//end entriesOfRow()
+
+	/**
+	 * The source GradeEntry ids a subject row lists, or none when it lists them wrongly.
+	 *
+	 * @param array<string,mixed> $row One subjectGrades row.
+	 *
+	 * @return array<mixed> The listed ids, not yet checked.
+	 *
+	 * @spec openspec/specs/report-card/spec.md#requirement-publishtoparents-must-not-surface-a-grade-before-its-own-scheduled-visibility-window
+	 */
+	private function sourceIdsOf(array $row): array {
 		$sourceIds = ($row['sourceGradeEntryIds'] ?? []);
 		if (is_array($sourceIds) === false) {
-			return null;
+			return [];
 		}
 
-		foreach ($sourceIds as $gradeEntryId) {
-			if (is_string($gradeEntryId) === false || $gradeEntryId === '') {
-				continue;
-			}
-
-			$visibleFrom = $this->fetchVisibleFrom(gradeEntryId: $gradeEntryId, tenantId: $tenantId);
-			if ($this->hasPassed(visibleFrom: $visibleFrom, now: $now) === false) {
-				return $gradeEntryId;
-			}
-		}
-
-		return null;
-	}//end firstUnreleasedEntryInRow()
+		return $sourceIds;
+	}//end sourceIdsOf()
 
 	/**
 	 * Fetch a GradeEntry's current `visibleFrom` value.
@@ -224,24 +250,7 @@ class ReportCardVisibilityGuard implements LifecycleGuardInterface {
 	 * @return string|null The visibleFrom value, or null when unresolvable/unset.
 	 */
 	private function fetchVisibleFrom(string $gradeEntryId, string $tenantId): ?string {
-		$filters = [];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$results = $this->objectService->findAll(
-			[
-				'ids' => [$gradeEntryId],
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::GRADE_ENTRY_SCHEMA,
-					]
-				),
-				'limit' => 1,
-			]
-		);
+		$results = $this->objectService->findAll($this->gradeEntryQuery(gradeEntryId: $gradeEntryId, tenantId: $tenantId));
 
 		if (empty($results) === true) {
 			$this->logger->warning(
@@ -251,9 +260,59 @@ class ReportCardVisibilityGuard implements LifecycleGuardInterface {
 			return null;
 		}
 
-		$entry = $results[0];
-		if (is_array($results[0]) === false) {
-			$entry = $results[0]->jsonSerialize();
+		return $this->visibleFromOf(result: $results[0]);
+	}//end fetchVisibleFrom()
+
+	/**
+	 * The findAll config that reads one GradeEntry, scoped to the tenant when there is one.
+	 *
+	 * @param string $gradeEntryId UUID of the GradeEntry.
+	 * @param string $tenantId Tenant ID to enforce as a mandatory filter, or ''.
+	 *
+	 * @return array<string,mixed> The config.
+	 */
+	private function gradeEntryQuery(string $gradeEntryId, string $tenantId): array {
+		return [
+			'ids' => [$gradeEntryId],
+			'filters' => $this->gradeEntryFilters(tenantId: $tenantId),
+			'limit' => 1,
+		];
+	}//end gradeEntryQuery()
+
+	/**
+	 * The findAll filters for a GradeEntry: the tenant first when there is one,
+	 * then the register and schema.
+	 *
+	 * @param string $tenantId Tenant ID to enforce as a mandatory filter, or ''.
+	 *
+	 * @return array<string,string> The filters.
+	 */
+	private function gradeEntryFilters(string $tenantId): array {
+		$filters = [];
+		if ($tenantId !== '') {
+			$filters['tenant_id'] = $tenantId;
+		}
+
+		return array_merge(
+			$filters,
+			[
+				'register' => self::LEARNIQ_REGISTER,
+				'schema' => self::GRADE_ENTRY_SCHEMA,
+			]
+		);
+	}//end gradeEntryFilters()
+
+	/**
+	 * The `visibleFrom` of a found GradeEntry, an array or an entity.
+	 *
+	 * @param mixed $result The first findAll result.
+	 *
+	 * @return string|null The visibleFrom value, or null when unset.
+	 */
+	private function visibleFromOf(mixed $result): ?string {
+		$entry = $result;
+		if (is_array($result) === false) {
+			$entry = $result->jsonSerialize();
 		}
 
 		$visibleFrom = $entry['visibleFrom'] ?? null;
@@ -262,7 +321,7 @@ class ReportCardVisibilityGuard implements LifecycleGuardInterface {
 		}
 
 		return $visibleFrom;
-	}//end fetchVisibleFrom()
+	}//end visibleFromOf()
 
 	/**
 	 * Whether a `visibleFrom` value has already passed the given "now".

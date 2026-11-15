@@ -204,4 +204,66 @@ class SessionChangeGuardTest extends TestCase {
 		self::assertDenied($guard->check($object, 'cancel', 'actor-1'));
 
 	}//end testMissingCohortFailsClosed()
+
+	/**
+	 * Every verdict with the exact log line it writes, in check order:
+	 * actor, reason, substitute, the override groups, the cohort id, the
+	 * cohort read (tenant-scoped) and its teachers.
+	 *
+	 * @return void
+	 */
+	public function testEveryVerdictWithItsLogLine(): void {
+		$reason = ['cohortId' => 'cohort-1', 'tenant_id' => 'tenant-a', 'changeReasonKind' => 'teacher-absence'];
+		$teaching = ['id' => 'cohort-1', 'teacherIds' => ['actor-1']];
+		$cases = [
+			'no actor'          => [[], $teaching, $reason, 'cancel', '', false, 'info: [SessionChangeGuard] No acting user — blocking cancel.'],
+			'reason not string' => [[], $teaching, ['changeReasonKind' => 7] + $reason, 'cancel', 'actor-1', false, 'info: [SessionChangeGuard] cancel refused — changeReasonKind is not set.'],
+			'no substitute'     => [[], $teaching, $reason, 'substitute-teacher', 'actor-1', false, 'info: [SessionChangeGuard] substitute-teacher refused — substituteTeacherId is not set.'],
+			'coordinator'       => [['coordinators'], null, ['cohortId' => ''] + $reason, 'cancel', 'actor-1', true, null],
+			'no cohort id'      => [[], $teaching, ['cohortId' => ''] + $reason, 'cancel', 'actor-1', false, 'warning: [SessionChangeGuard] Session has no cohortId; blocking cancel.'],
+			'cohort missing'    => [[], null, $reason, 'cancel', 'actor-1', false, 'warning: [SessionChangeGuard] Cohort cohort-1 not found for Session; blocking cancel (fail closed).'],
+			'teacher'           => [[], $teaching, $reason, 'cancel', 'actor-1', true, null],
+			'teachers not list' => [[], ['id' => 'cohort-1', 'teacherIds' => 'actor-1'], $reason, 'cancel', 'actor-1', false, 'info: [SessionChangeGuard] Actor actor-1 is neither a Cohort.teacherIds member nor admin/coordinator; blocking cancel.'],
+		];
+
+		foreach ($cases as $name => [$groups, $cohort, $object, $action, $actor, $allowed, $line]) {
+			$logs = [];
+			$reads = [];
+			$logger = $this->createMock(\Psr\Log\LoggerInterface::class);
+			foreach (['info', 'warning'] as $level) {
+				$logger->method($level)->willReturnCallback(
+					static function (string $message, array $context = []) use (&$logs, $level): void {
+						foreach ($context as $key => $value) {
+							$message = str_replace('{'.$key.'}', (string)$value, $message);
+						}
+
+						$logs[] = $level.': '.$message;
+					}
+				);
+			}
+
+			$user = $this->createMock(IUser::class);
+			$userManager = $this->createMock(IUserManager::class);
+			$userManager->method('get')->willReturnCallback(static fn (string $uid): ?IUser => $uid === 'actor-1' ? $user : null);
+			$groupManager = $this->createMock(IGroupManager::class);
+			$groupManager->method('getUserGroupIds')->willReturn($groups);
+			$objectService = $this->createMock(ObjectService::class);
+			$objectService->method('findAll')->willReturnCallback(
+				static function (array $config) use ($cohort, &$reads): array {
+					$reads[] = $config;
+					return $cohort === null ? [] : [$cohort];
+				}
+			);
+			$guard = new SessionChangeGuard($objectService, $groupManager, $userManager, $logger);
+
+			self::assertSame($allowed, $guard->check($object, $action, $actor)->isAllowed(), $name);
+			self::assertSame($line === null ? [] : [$line], $logs, $name);
+			if ($name === 'cohort missing') {
+				self::assertSame(
+					[['ids' => ['cohort-1'], 'filters' => ['tenant_id' => 'tenant-a', 'register' => 'learniq', 'schema' => 'cohort'], 'limit' => 1]],
+					$reads
+				);
+			}
+		}
+	}//end testEveryVerdictWithItsLogLine()
 }//end class

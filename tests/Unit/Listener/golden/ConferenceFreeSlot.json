@@ -1,0 +1,426 @@
+{
+    "direct round opens": {
+        "calls": [
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "conference-slot",
+                    "conferenceRoundId": "round-1"
+                },
+                "limit": 5000
+            },
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "teacher-availability",
+                    "conferenceRoundId": "round-1",
+                    "lifecycle": "submitted"
+                },
+                "limit": 5000
+            },
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "teacher-availability",
+                    "conferenceRoundId": "round-1",
+                    "lifecycle": "locked"
+                },
+                "limit": 5000
+            },
+            {
+                "find": "c-1"
+            },
+            {
+                "resolveInTenant": [
+                    "anna",
+                    "t-1"
+                ]
+            },
+            {
+                "resolveInTenant": [
+                    "bert",
+                    "t-1"
+                ]
+            },
+            {
+                "resolveInTenant": [
+                    "ghost",
+                    "t-1"
+                ]
+            },
+            {
+                "resolveInTenant": [
+                    "carla",
+                    "t-1"
+                ]
+            },
+            {
+                "find": "c-2"
+            },
+            {
+                "resolveInTenant": [
+                    "bert",
+                    "t-1"
+                ]
+            },
+            {
+                "resolveInTenant": [
+                    "dirk",
+                    "t-1"
+                ]
+            },
+            {
+                "find": "c-missing"
+            },
+            {
+                "save": {
+                    "conferenceRoundId": "round-1",
+                    "teacherId": "jan",
+                    "teacherName": "Jan de Vries",
+                    "startsAt": "2026-10-08T18:00:00+02:00",
+                    "endsAt": "2026-10-08T18:15:00+02:00",
+                    "slotLabel": "08-10-2026 18:00-18:15, Jan de Vries",
+                    "eligibleLearnerRefs": [
+                        "ref-anna",
+                        "ref-bert",
+                        "ref-dirk"
+                    ],
+                    "location": null,
+                    "tenant_id": "t-1",
+                    "lifecycle": "free"
+                }
+            },
+            {
+                "save": {
+                    "conferenceRoundId": "round-1",
+                    "teacherId": "jan",
+                    "teacherName": "Jan de Vries",
+                    "startsAt": "2026-10-08T18:40:00+02:00",
+                    "endsAt": "2026-10-08T18:55:00+02:00",
+                    "slotLabel": "08-10-2026 18:40-18:55, Jan de Vries",
+                    "eligibleLearnerRefs": [
+                        "ref-anna",
+                        "ref-bert",
+                        "ref-dirk"
+                    ],
+                    "location": null,
+                    "tenant_id": "t-1",
+                    "lifecycle": "free"
+                }
+            },
+            {
+                "find": "c-1"
+            },
+            {
+                "find": "c-2"
+            },
+            {
+                "resolveInTenant": [
+                    "bert",
+                    "t-1"
+                ]
+            },
+            {
+                "resolveInTenant": [
+                    "dirk",
+                    "t-1"
+                ]
+            },
+            {
+                "find": "c-missing"
+            },
+            {
+                "save": {
+                    "conferenceRoundId": "round-1",
+                    "teacherId": "piet",
+                    "teacherName": "piet",
+                    "startsAt": "2026-10-08T16:00:00+00:00",
+                    "endsAt": "2026-10-08T16:15:00+00:00",
+                    "slotLabel": "08-10-2026 18:00-18:15, piet",
+                    "eligibleLearnerRefs": [
+                        "ref-bert",
+                        "ref-dirk"
+                    ],
+                    "location": null,
+                    "tenant_id": "t-1",
+                    "lifecycle": "free"
+                }
+            },
+            {
+                "save": {
+                    "conferenceRoundId": "round-1",
+                    "teacherId": "piet",
+                    "teacherName": "piet",
+                    "startsAt": "2026-10-08T16:20:00+00:00",
+                    "endsAt": "2026-10-08T16:35:00+00:00",
+                    "slotLabel": "08-10-2026 18:20-18:35, piet",
+                    "eligibleLearnerRefs": [
+                        "ref-bert",
+                        "ref-dirk"
+                    ],
+                    "location": null,
+                    "tenant_id": "t-1",
+                    "lifecycle": "free"
+                }
+            },
+            {
+                "find": "c-1"
+            },
+            {
+                "find": "c-2"
+            },
+            {
+                "find": "c-missing"
+            }
+        ],
+        "log": [
+            [
+                "error",
+                "[ConferenceFreeSlotGenerator] Round {round}: a group could not be read, so a teacher with no other group gets no free slots.",
+                {
+                    "round": "round-1"
+                }
+            ],
+            [
+                "info",
+                "[ConferenceFreeSlotGenerator] Round {round}: {count} free slot(s) written.",
+                {
+                    "round": "round-1",
+                    "count": 4
+                }
+            ]
+        ]
+    },
+    "default duration, no buffer": {
+        "calls": [
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "conference-slot",
+                    "conferenceRoundId": "round-2"
+                },
+                "limit": 5000
+            },
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "teacher-availability",
+                    "conferenceRoundId": "round-2",
+                    "lifecycle": "submitted"
+                },
+                "limit": 5000
+            },
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "teacher-availability",
+                    "conferenceRoundId": "round-2",
+                    "lifecycle": "locked"
+                },
+                "limit": 5000
+            },
+            {
+                "find": "c-1"
+            },
+            {
+                "resolveInTenant": [
+                    "anna",
+                    ""
+                ]
+            },
+            {
+                "resolveInTenant": [
+                    "bert",
+                    ""
+                ]
+            },
+            {
+                "resolveInTenant": [
+                    "ghost",
+                    ""
+                ]
+            },
+            {
+                "resolveInTenant": [
+                    "carla",
+                    ""
+                ]
+            },
+            {
+                "save": {
+                    "conferenceRoundId": "round-2",
+                    "teacherId": "jan",
+                    "teacherName": "Jan de Vries",
+                    "startsAt": "2026-10-08T18:00:00+02:00",
+                    "endsAt": "2026-10-08T18:10:00+02:00",
+                    "slotLabel": "08-10-2026 18:00-18:10, Jan de Vries",
+                    "eligibleLearnerRefs": [],
+                    "location": null,
+                    "tenant_id": "",
+                    "lifecycle": "free"
+                }
+            },
+            {
+                "save": {
+                    "conferenceRoundId": "round-2",
+                    "teacherId": "jan",
+                    "teacherName": "Jan de Vries",
+                    "startsAt": "2026-10-08T18:10:00+02:00",
+                    "endsAt": "2026-10-08T18:20:00+02:00",
+                    "slotLabel": "08-10-2026 18:10-18:20, Jan de Vries",
+                    "eligibleLearnerRefs": [],
+                    "location": null,
+                    "tenant_id": "",
+                    "lifecycle": "free"
+                }
+            }
+        ],
+        "log": [
+            [
+                "info",
+                "[ConferenceFreeSlotGenerator] Round {round}: {count} free slot(s) written.",
+                {
+                    "round": "round-2",
+                    "count": 2
+                }
+            ]
+        ]
+    },
+    "preference round": {
+        "calls": [],
+        "log": []
+    },
+    "another state": {
+        "calls": [],
+        "log": []
+    },
+    "invitations sent": {
+        "calls": [],
+        "log": []
+    },
+    "another schema": {
+        "calls": [],
+        "log": []
+    },
+    "another register": {
+        "calls": [],
+        "log": []
+    },
+    "round without id": {
+        "calls": [],
+        "log": [
+            [
+                "info",
+                "[ConferenceFreeSlotGenerator] Round {round}: {count} free slot(s) written.",
+                {
+                    "round": "",
+                    "count": 0
+                }
+            ]
+        ]
+    },
+    "write fails": {
+        "calls": [
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "conference-slot",
+                    "conferenceRoundId": "round-fail"
+                },
+                "limit": 5000
+            },
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "teacher-availability",
+                    "conferenceRoundId": "round-fail",
+                    "lifecycle": "submitted"
+                },
+                "limit": 5000
+            },
+            {
+                "findAll": {
+                    "register": "learniq",
+                    "schema": "teacher-availability",
+                    "conferenceRoundId": "round-fail",
+                    "lifecycle": "locked"
+                },
+                "limit": 5000
+            },
+            {
+                "find": "c-1"
+            },
+            {
+                "resolveInTenant": [
+                    "anna",
+                    "t-1"
+                ]
+            },
+            {
+                "resolveInTenant": [
+                    "bert",
+                    "t-1"
+                ]
+            },
+            {
+                "resolveInTenant": [
+                    "ghost",
+                    "t-1"
+                ]
+            },
+            {
+                "resolveInTenant": [
+                    "carla",
+                    "t-1"
+                ]
+            },
+            {
+                "find": "c-2"
+            },
+            {
+                "resolveInTenant": [
+                    "bert",
+                    "t-1"
+                ]
+            },
+            {
+                "resolveInTenant": [
+                    "dirk",
+                    "t-1"
+                ]
+            },
+            {
+                "find": "c-missing"
+            },
+            {
+                "save": {
+                    "conferenceRoundId": "round-fail",
+                    "teacherId": "jan",
+                    "teacherName": "Jan de Vries",
+                    "startsAt": "2026-10-08T18:00:00+02:00",
+                    "endsAt": "2026-10-08T18:15:00+02:00",
+                    "slotLabel": "08-10-2026 18:00-18:15, Jan de Vries",
+                    "eligibleLearnerRefs": [
+                        "ref-anna",
+                        "ref-bert",
+                        "ref-dirk"
+                    ],
+                    "location": null,
+                    "tenant_id": "t-1",
+                    "lifecycle": "free"
+                }
+            }
+        ],
+        "log": [
+            [
+                "error",
+                "[ConferenceFreeSlotGenerator] Free slots for round {round} could not be written: {msg}",
+                {
+                    "round": "round-fail",
+                    "msg": "register refused"
+                }
+            ]
+        ]
+    },
+    "not a transition": []
+}

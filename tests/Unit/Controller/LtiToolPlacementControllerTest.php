@@ -315,4 +315,78 @@ class LtiToolPlacementControllerTest extends TestCase {
 		self::assertSame(Http::STATUS_UNPROCESSABLE_ENTITY, $this->controller()->launch(placementId: 'pl2')->getStatus());
 		self::assertNull($this->dispatched);
 	}//end testGuardPaths()
+
+	/**
+	 * Run the controller's private answer step on an event.
+	 *
+	 * @param \OCP\EventDispatcher\Event $event      The answered event.
+	 * @param string                    $launchMode The placement's launch mode.
+	 *
+	 * @return array{0: int, 1: mixed} The status and the data.
+	 */
+	private function answerOf(\OCP\EventDispatcher\Event $event, string $launchMode): array {
+		$response = (new \ReflectionMethod(LtiToolPlacementController::class, 'answer'))->invoke($this->controller(), $event, $launchMode);
+
+		return [$response->getStatus(), $response->getData()];
+	}//end answerOf()
+
+	/**
+	 * An answered event with the given refusal and login initiation.
+	 *
+	 * @param mixed $refusal The refusal getRefusal() returns.
+	 * @param mixed $form    The form getLoginInitiation() returns.
+	 *
+	 * @return \OCP\EventDispatcher\Event
+	 */
+	private function answered(mixed $refusal, mixed $form): \OCP\EventDispatcher\Event {
+		return new class ($refusal, $form) extends \OCP\EventDispatcher\Event {
+			/**
+			 * @param mixed $refusal The refusal.
+			 * @param mixed $form    The form.
+			 */
+			public function __construct(private readonly mixed $refusal, private readonly mixed $form) {
+				parent::__construct();
+			}
+
+			/**
+			 * @return mixed
+			 */
+			public function getRefusal(): mixed {
+				return $this->refusal;
+			}
+
+			/**
+			 * @return mixed
+			 */
+			public function getLoginInitiation(): mixed {
+				return $this->form;
+			}
+		};
+	}//end answered()
+
+	/**
+	 * Every answer to an answered event is exact: a refusal, no form, a form
+	 * without an action, a form, and an event that offers neither method.
+	 *
+	 * @return void
+	 */
+	public function testEachAnswerToTheEventIsExact(): void {
+		$form = ['formActionUrl' => 'https://tool.example/login', 'method' => 'post', 'fields' => ['iss' => 'i']];
+		$none = ['error' => 'No LTI launch handler answered'];
+
+		self::assertSame([409, ['error' => 'Not approved', 'code' => 'x']], $this->answerOf($this->answered(['reason' => 'Not approved', 'code' => 'x'], $form), 'resource-link'));
+		self::assertSame([409, ['error' => 'The launch was refused', 'code' => '']], $this->answerOf($this->answered([], null), 'resource-link'));
+		self::assertSame([503, $none], $this->answerOf($this->answered('refused', null), 'resource-link'));
+		self::assertSame([503, $none], $this->answerOf($this->answered(null, ['formActionUrl' => '']), 'resource-link'));
+		self::assertSame([503, $none], $this->answerOf($this->answered(null, 'form'), 'resource-link'));
+		self::assertSame(
+			[200, ['formActionUrl' => 'https://tool.example/login', 'method' => 'POST', 'fields' => ['iss' => 'i'], 'launchMode' => 'deep-linking']],
+			$this->answerOf($this->answered(null, $form), 'deep-linking')
+		);
+		self::assertSame(
+			[200, ['formActionUrl' => 'https://tool.example/login', 'method' => 'POST', 'fields' => [], 'launchMode' => 'resource-link']],
+			$this->answerOf($this->answered(null, ['formActionUrl' => 'https://tool.example/login']), 'resource-link')
+		);
+		self::assertSame([503, $none], $this->answerOf(new \OCP\EventDispatcher\Event(), 'resource-link'));
+	}//end testEachAnswerToTheEventIsExact()
 }//end class

@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/absence-and-booking-fields-are-required/specs/attendance/spec.md#requirement-an-absence-report-names-its-pupils-learner-profile
+ * @spec openspec/specs/attendance/spec.md#requirement-an-absence-report-names-its-pupils-learner-profile
  */
 
 declare(strict_types=1);

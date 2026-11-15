@@ -1,7 +1,7 @@
 # pupil-dossier Specification
 
 ## Purpose
-TBD - created by archiving change pupil-dossier-notes. Update Purpose after archive.
+Keep one dossier per pupil with notes, behaviour incidents, wellbeing check-ins and first-aid incidents on a shared timeline. The server enforces each note's confidentiality, and a correction to a note is a new record.
 
 ## Requirements
 

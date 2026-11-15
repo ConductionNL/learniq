@@ -182,4 +182,146 @@ class ReportCardVisibilityGuardTest extends TestCase {
 		self::assertAllowed($guard->check($object, 'publishToParents', ''));
 
 	}//end testEmptySourceGradeEntryIdsDoesNotBlock()
+
+	/**
+	 * A guard over a recording store: every findAll config is kept, every log
+	 * line too, and "now" is read from a counted time source.
+	 *
+	 * @param array<string,mixed>  $results GradeEntry id => what findAll returns for it.
+	 * @param \ArrayObject<int,mixed> $calls   Filled with every findAll config and log line.
+	 *
+	 * @return ReportCardVisibilityGuard
+	 */
+	private function recordingGuard(array $results, \ArrayObject $calls): ReportCardVisibilityGuard {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			static function (array $config) use ($results, $calls): array {
+				$calls[] = ['findAll', $config];
+				return ($results[$config['ids'][0]] ?? []);
+			}
+		);
+
+		$timeFactory = $this->createMock(ITimeFactory::class);
+		$timeFactory->expects(self::once())->method('now')->willReturn(new DateTimeImmutable('2026-07-13T12:00:00+00:00'));
+
+		$logger = $this->createMock(LoggerInterface::class);
+		foreach (['info', 'warning'] as $level) {
+			$logger->method($level)->willReturnCallback(
+				static function (string $message, array $context = []) use ($calls, $level): void {
+					$calls[] = [$level, $message, $context];
+				}
+			);
+		}
+
+		return new ReportCardVisibilityGuard($objectService, $timeFactory, $logger);
+	}//end recordingGuard()
+
+	/**
+	 * Unusable rows and ids are skipped, entries are fetched in order with the
+	 * exact query, the scan stops at the first embargoed one, and the block is
+	 * logged with its plan and entry and denied with the exact reason.
+	 *
+	 * @return void
+	 */
+	public function testTheScanOrderQueriesAndBlockAreExact(): void {
+		$calls = new \ArrayObject();
+		$guard = $this->recordingGuard(
+			results: [
+				'e1' => [['id' => 'e1', 'visibleFrom' => '2026-07-01T00:00:00+00:00']],
+				'e2' => [['id' => 'e2', 'visibleFrom' => '2099-01-01T00:00:00+00:00']],
+				'e3' => [['id' => 'e3', 'visibleFrom' => '2026-07-01T00:00:00+00:00']],
+			],
+			calls: $calls
+		);
+
+		$verdict = $guard->check(
+			[
+				'uuid' => 'card-9',
+				'tenant_id' => 't1',
+				'subjectGrades' => [
+					'not a row',
+					['curriculumPlanId' => 'plan-0', 'sourceGradeEntryIds' => 'not a list'],
+					['curriculumPlanId' => 'plan-1', 'sourceGradeEntryIds' => [7, '', 'e1']],
+					['sourceGradeEntryIds' => ['e2', 'e3']],
+				],
+			],
+			'publishToParents',
+			''
+		);
+
+		self::assertFalse($verdict->isAllowed());
+		self::assertSame('One or more grades on this report card are not visible yet, so it can not be published to parents.', $verdict->getMessage());
+		$query = static fn (string $id): array => [
+			'findAll',
+			['ids' => [$id], 'filters' => ['tenant_id' => 't1', 'register' => 'learniq', 'schema' => 'grade-entry'], 'limit' => 1],
+		];
+		self::assertSame(
+			[
+				$query('e1'),
+				$query('e2'),
+				[
+					'info',
+					'[ReportCardVisibilityGuard] ReportCard {id} blocked — subject {plan} sourceGradeEntry {entry} visibleFrom has not passed.',
+					['id' => 'card-9', 'plan' => '?', 'entry' => 'e2'],
+				],
+			],
+			$calls->getArrayCopy()
+		);
+	}//end testTheScanOrderQueriesAndBlockAreExact()
+
+	/**
+	 * Without a tenant the query carries no tenant filter; a missing entry is
+	 * logged and blocks; an entity result is read through jsonSerialize.
+	 *
+	 * @return void
+	 */
+	public function testAMissingEntryWarnsAndAnEntityIsSerialised(): void {
+		$entity = new class () implements \JsonSerializable {
+			/**
+			 * The stored GradeEntry.
+			 *
+			 * @return array<string,string>
+			 */
+			public function jsonSerialize(): array {
+				return ['visibleFrom' => '2026-07-01T00:00:00+00:00'];
+			}//end jsonSerialize()
+		};
+		$calls = new \ArrayObject();
+		$guard = $this->recordingGuard(results: ['e1' => [$entity]], calls: $calls);
+
+		$verdict = $guard->check(['id' => 'card-1', 'subjectGrades' => [['curriculumPlanId' => 'p', 'sourceGradeEntryIds' => ['e1', 'gone']]]], 'publishToParents', '');
+
+		self::assertFalse($verdict->isAllowed());
+		$copy = $calls->getArrayCopy();
+		self::assertSame(['ids' => ['e1'], 'filters' => ['register' => 'learniq', 'schema' => 'grade-entry'], 'limit' => 1], $copy[0][1]);
+		self::assertSame(
+			['warning', '[ReportCardVisibilityGuard] GradeEntry {id} not found — treating visibleFrom as not-yet-passed (fail closed).', ['id' => 'gone']],
+			$copy[2]
+		);
+		self::assertSame(['id' => 'card-1', 'plan' => 'p', 'entry' => 'gone'], $copy[3][2]);
+	}//end testAMissingEntryWarnsAndAnEntityIsSerialised()
+
+	/**
+	 * An empty or unreadable visibleFrom blocks; a card whose subject grades are
+	 * not a list, or with no rows, is allowed.
+	 *
+	 * @return void
+	 */
+	public function testUnreadableDatesBlockAndAMalformedCardPasses(): void {
+		foreach (['', 'not a date', 42] as $visibleFrom) {
+			$guard = $this->recordingGuard(results: ['e1' => [['visibleFrom' => $visibleFrom]]], calls: new \ArrayObject());
+			$verdict = $guard->check(['subjectGrades' => [['sourceGradeEntryIds' => ['e1']]]], 'publishToParents', '');
+			self::assertFalse($verdict->isAllowed(), var_export($visibleFrom, true));
+		}
+
+		$calls = new \ArrayObject();
+		$timeFactory = $this->createMock(ITimeFactory::class);
+		$timeFactory->expects(self::never())->method('now');
+		$guard = new ReportCardVisibilityGuard($this->createMock(ObjectService::class), $timeFactory, $this->createMock(LoggerInterface::class));
+		self::assertTrue($guard->check(['subjectGrades' => 'nope'], 'publishToParents', '')->isAllowed());
+
+		$guard = $this->recordingGuard(results: [], calls: $calls);
+		self::assertTrue($guard->check(['subjectGrades' => []], 'publishToParents', '')->isAllowed());
+		self::assertSame([], $calls->getArrayCopy());
+	}//end testUnreadableDatesBlockAndAMalformedCardPasses()
 }//end class

@@ -13,7 +13,7 @@
  @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
 -->
 <template>
-	<div class="plan-editor">
+	<div class="plan-editor lq-board-page">
 		<NcLoadingIcon v-if="loading" :size="32" />
 		<NcNoteCard v-else-if="loadError" type="error">
 			{{ loadError }}
@@ -28,49 +28,50 @@
 					t('learniq', 'The plan with its goals and support measures')
 				" />
 
-			<h3>{{ t('learniq', 'Goals') }}</h3>
-			<ol class="plan-editor__goals">
-				<li
-					v-for="(goal, index) in goals"
-					:key="goal.goalId"
-					class="plan-editor__goal">
-					<label :for="'goal-desc-' + index">{{
-						t('learniq', 'Goal')
-					}}</label>
-					<input
-						:id="'goal-desc-' + index"
-						v-model="goal.description"
-						type="text"
-						required />
-					<label :for="'goal-target-' + index">{{
-						t('learniq', 'Target (optional)')
-					}}</label>
-					<input
-						:id="'goal-target-' + index"
-						v-model="goal.target"
-						type="text" />
-					<div class="plan-editor__goal-actions">
-						<NcButton
-							variant="tertiary"
-							:disabled="index === 0"
-							@click="move(index, -1)">
-							{{ t('learniq', 'Up') }}
-						</NcButton>
-						<NcButton
-							variant="tertiary"
-							:disabled="index === goals.length - 1"
-							@click="move(index, 1)">
-							{{ t('learniq', 'Down') }}
-						</NcButton>
-						<NcButton variant="tertiary" @click="remove(index)">
-							{{ t('learniq', 'Remove') }}
-						</NcButton>
-					</div>
-				</li>
-			</ol>
-			<NcButton variant="secondary" @click="add">
-				{{ t('learniq', 'Add a goal') }}
-			</NcButton>
+			<CnDetailCard :title="t('learniq', 'Goals')">
+				<ol class="plan-editor__goals">
+					<li
+						v-for="(goal, index) in goals"
+						:key="goal.goalId"
+						class="plan-editor__goal">
+						<label :for="'goal-desc-' + index">{{
+							t('learniq', 'Goal')
+						}}</label>
+						<input
+							:id="'goal-desc-' + index"
+							v-model="goal.description"
+							type="text"
+							required />
+						<label :for="'goal-target-' + index">{{
+							t('learniq', 'Target (optional)')
+						}}</label>
+						<input
+							:id="'goal-target-' + index"
+							v-model="goal.target"
+							type="text" />
+						<div class="plan-editor__goal-actions">
+							<NcButton
+								variant="tertiary"
+								:disabled="index === 0"
+								@click="move(index, -1)">
+								{{ t('learniq', 'Up') }}
+							</NcButton>
+							<NcButton
+								variant="tertiary"
+								:disabled="index === goals.length - 1"
+								@click="move(index, 1)">
+								{{ t('learniq', 'Down') }}
+							</NcButton>
+							<NcButton variant="tertiary" @click="remove(index)">
+								{{ t('learniq', 'Remove') }}
+							</NcButton>
+						</div>
+					</li>
+				</ol>
+				<NcButton variant="secondary" @click="add">
+					{{ t('learniq', 'Add a goal') }}
+				</NcButton>
+			</CnDetailCard>
 
 			<NcNoteCard v-if="error" type="error">
 				{{ error }}
@@ -88,7 +89,7 @@
 </template>
 
 <script>
-import { CnRelationshipGraph } from '@conduction/nextcloud-vue'
+import { CnDetailCard, CnRelationshipGraph } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
@@ -103,7 +104,7 @@ import {
 export default {
 	name: 'LearningPlanEditorView',
 
-	components: { CnRelationshipGraph, NcButton, NcLoadingIcon, NcNoteCard },
+	components: { CnDetailCard, CnRelationshipGraph, NcButton, NcLoadingIcon, NcNoteCard },
 
 	props: {
 		/** LearningPlan UUID from the route. */
@@ -224,11 +225,6 @@ export default {
 </script>
 
 <style scoped>
-.plan-editor {
-	padding: calc(var(--default-grid-baseline, 4px) * 4);
-	max-inline-size: 48rem;
-}
-
 .plan-editor__goals {
 	padding-inline-start: calc(var(--default-grid-baseline, 4px) * 5);
 }

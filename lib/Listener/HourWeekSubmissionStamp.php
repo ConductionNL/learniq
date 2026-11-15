@@ -3,6 +3,9 @@
 /**
  * Learniq HourWeekSubmissionStamp
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Says who entered a week of BPV hours, when, for which student and for which
  * school, from the placement the week names.
  *
@@ -29,27 +32,27 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+ * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Service\HourDayLines;
+use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
-use DateTimeImmutable;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -58,7 +61,7 @@ use Throwable;
  *
  * @template-implements IEventListener<Event>
  *
- * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+ * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
  */
 class HourWeekSubmissionStamp implements IEventListener {
 
@@ -77,19 +80,25 @@ class HourWeekSubmissionStamp implements IEventListener {
 		'hour-week-placement-unknown' => 'These hours could not be linked to a placement. Choose your placement again or ask the school.',
 		'hour-week-lookup-failed' => 'The placement for these hours could not be checked. Try again later.',
 		'hour-week-owner-missing' => 'A week of hours needs the student it is about and the school it belongs to.',
+		'hour-week-hours-missing' => 'A week of hours needs its hours, or the days they were worked.',
+		HourDayLines::DATE_OUTSIDE_WEEK => 'Each day of these hours must be a date inside the week.',
+		HourDayLines::TIMES_INVALID => 'Each day needs a start and an end time, and the end must be after the start.',
+		HourDayLines::BREAK_TOO_LONG => 'The break of a day must be shorter than the time between start and end.',
+		HourDayLines::DUPLICATE_DAY => 'A week holds one line per day. Change the day that is already there.',
+		HourDayLines::LINE_INVALID => 'A day of these hours could not be read.',
 	];
 
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
 	 * @param ObjectService          $objectService  Reads the placement.
 	 * @param LoggerInterface        $logger         PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
 	) {
@@ -102,7 +111,7 @@ class HourWeekSubmissionStamp implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {
@@ -131,14 +140,36 @@ class HourWeekSubmissionStamp implements IEventListener {
 			return;
 		}
 
+		$this->apply(event: $event, payload: $payload, placement: $placement);
+	}//end handle()
+
+	/**
+	 * Stamp the owner fields and the hours on the write, or refuse it when the
+	 * owner is still missing or the hours cannot be read.
+	 *
+	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event     The write.
+	 * @param array<string, mixed>                    $payload   The stored week with the write applied.
+	 * @param array<string, mixed>                    $placement The week's placement.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/bpv-hours-per-day/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-holds-its-days
+	 */
+	private function apply(ObjectCreatingEvent|ObjectUpdatingEvent $event, array $payload, array $placement): void {
 		$stamp = $this->stamp(event: $event, payload: $payload, placement: $placement);
 		if ($this->ownerMissing(data: array_merge($payload, $stamp)) === true) {
 			$this->refuse(event: $event, reason: 'hour-week-owner-missing');
 			return;
 		}
 
-		$event->setModifiedData(array_merge($event->getModifiedData(), $stamp));
-	}//end handle()
+		$hours = $this->hours(payload: $payload);
+		if (is_string($hours) === true) {
+			$this->refuse(event: $event, reason: $hours);
+			return;
+		}
+
+		$event->setModifiedData(array_merge($event->getModifiedData(), $stamp, $hours));
+	}//end apply()
 
 	/**
 	 * What this write stores about whose week it is: the student and the
@@ -174,6 +205,35 @@ class HourWeekSubmissionStamp implements IEventListener {
 
 		return $stamp;
 	}//end stamp()
+
+	/**
+	 * The week's day lines with their hours worked out and the week's hours as
+	 * their sum, or the reason the week is refused. A week without day lines
+	 * keeps the hours it was sent, and needs them.
+	 *
+	 * @param array<string, mixed> $payload The stored week with the write applied.
+	 *
+	 * @return array<string, mixed>|string The fields to stamp, or the refusal reason.
+	 *
+	 * @spec openspec/changes/bpv-hours-per-day/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-holds-its-days
+	 */
+	private function hours(array $payload): array|string {
+		$days = ($payload['days'] ?? null);
+		if (is_array($days) === false || $days === []) {
+			if (is_numeric(($payload['hoursSubmitted'] ?? null)) === false) {
+				return 'hour-week-hours-missing';
+			}
+
+			return [];
+		}
+
+		$lines = (new HourDayLines())->normalise(days: $days, isoWeek: $this->text(value: ($payload['isoWeek'] ?? null)));
+		if ($lines['refusal'] !== null) {
+			return $lines['refusal'];
+		}
+
+		return ['days' => $lines['days'], 'hoursSubmitted' => $lines['total']];
+	}//end hours()
 
 	/**
 	 * Whether the week still lacks the student or the school after stamping.
@@ -227,18 +287,7 @@ class HourWeekSubmissionStamp implements IEventListener {
 	 * @return array<string, mixed>
 	 */
 	private function row(mixed $object): array {
-		if (is_array($object) === true) {
-			return $object;
-		}
-
-		if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-			$row = $object->jsonSerialize();
-			if (is_array($row) === true) {
-				return $row;
-			}
-		}
-
-		return [];
+		return (new SerialisedRow())->asArray(object: $object);
 	}//end row()
 
 	/**
@@ -280,11 +329,7 @@ class HourWeekSubmissionStamp implements IEventListener {
 	 * @return ObjectEntity
 	 */
 	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
+		return (new WrittenObject())->entityOf(event: $event);
 	}//end entityOf()
 
 	/**

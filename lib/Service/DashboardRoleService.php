@@ -31,6 +31,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\DashboardRoleServiceInterface;
 use OCP\IGroupManager;
 use OCP\IUser;
 
@@ -39,29 +40,7 @@ use OCP\IUser;
  *
  * @spec openspec/specs/dashboard/spec.md#requirement-every-manifest-role-visibility-literal-must-resolve-to-a-value-the-role-resolver-can-emit
  */
-class DashboardRoleService {
-	/**
-	 * Learniq roles that MUST be backed by a Nextcloud group, mapped to the
-	 * unprefixed group id `rbac-declare-groups` provisions, highest priority
-	 * first. `instructor` keeps its pre-fix name (only its backing group id
-	 * moved, from `scholiq-instructor` to `instructors`); `manager` was
-	 * renamed to `administration-manager`; `team-lead`, `coordinator`, and
-	 * `guardian` are new. `learner` is deliberately absent — it is the
-	 * unconditional fallback, not gated on the `learners` group (see
-	 * `resolvePrimaryRole()`).
-	 *
-	 * @var array<string, string>
-	 */
-	public const GROUP_BACKED_ROLES = [
-		'compliance-officer'     => 'compliance-officers',
-		'hr'                     => 'hr',
-		'administration-manager' => 'administration-managers',
-		'team-lead'              => 'team-leads',
-		'coordinator'            => 'coordinators',
-		'instructor'             => 'instructors',
-		'confidential-counsellor' => 'confidential-counsellors',
-		'guardian'               => 'guardians',
-	];
+class DashboardRoleService implements DashboardRoleServiceInterface {
 
 	/**
 	 * The group of the confidential counsellor (vertrouwenspersoon). Ranked
@@ -70,6 +49,12 @@ class DashboardRoleService {
 	 * on {@see isConfidentialCounsellor()} instead of the primary role.
 	 */
 	public const CONFIDENTIAL_COUNSELLOR_GROUP = 'confidential-counsellors';
+
+	/**
+	 * The group that handles exam-board cases (exemptions, fraud). Only its
+	 * members read and write a fraud case's hearing records and decision.
+	 */
+	public const EXAM_BOARD_GROUP = 'compliance-officers';
 
 	/**
 	 * Constructor.
@@ -135,19 +120,22 @@ class DashboardRoleService {
 	 * `admin`. `guardian` deliberately falls into neither check — a guardian
 	 * is not staff and only ever gets the base `student`-tier view, same as
 	 * `learner`. The order is admin, teacher, student (most → least privileged).
+	 * Exam board members ({@see EXAM_BOARD_GROUP}) and admins get `exam-board`
+	 * last; it is a role flag, not a dashboard view.
 	 *
 	 * @param IUser $user The authenticated Nextcloud user.
 	 *
-	 * @return string[] Ordered list of accessible views (subset of admin|teacher|student).
+	 * @return string[] Ordered list of accessible views (subset of admin|teacher|student|exam-board).
 	 *
 	 * @spec openspec/specs/dashboard/spec.md#requirement-every-manifest-role-visibility-literal-must-resolve-to-a-value-the-role-resolver-can-emit
+	 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-withheld-by-the-server
 	 */
 	public function resolveViews(IUser $user): array {
 		$role = $this->resolvePrimaryRole(user: $user);
 
 		// Admins oversee the whole instance — let them preview every view.
 		if ($role === 'admin') {
-			return ['admin', 'teacher', 'student'];
+			return ['admin', 'teacher', 'student', 'exam-board'];
 		}
 
 		$views = [];
@@ -162,6 +150,10 @@ class DashboardRoleService {
 
 		// Everyone is at least a learner.
 		$views[] = 'student';
+
+		if ($this->groupManager->isInGroup($user->getUID(), self::EXAM_BOARD_GROUP) === true) {
+			$views[] = 'exam-board';
+		}
 
 		return $views;
 	}//end resolveViews()

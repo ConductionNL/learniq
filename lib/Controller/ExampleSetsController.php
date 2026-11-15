@@ -12,14 +12,18 @@
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * @link https://conduction.nl
+ *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\SeedProfileService;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\ExampleSetSizesInterface;
+use OCA\Learniq\Kernel\Contracts\SeedProfileServiceInterface;
 use OCA\Learniq\Settings\AdminSettings;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\AuthorizedAdminSetting;
@@ -49,13 +53,15 @@ class ExampleSetsController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest           $request      The request.
-	 * @param SeedProfileService $seedProfiles Reads which example sets are loaded.
+	 * @param SeedProfileServiceInterface $seedProfiles Reads which example sets are loaded.
+	 * @param ExampleSetSizesInterface    $sizes        Counts the objects of each set.
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly SeedProfileService $seedProfiles,
+		private readonly SeedProfileServiceInterface $seedProfiles,
+		private readonly ExampleSetSizesInterface $sizes,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -66,12 +72,14 @@ class ExampleSetsController extends Controller {
 	 * the existing `remove-example-set-<id>` action. The page cannot read the
 	 * `loadedExampleSets` initial state: only the app page provides it.
 	 *
-	 * @return JSONResponse `{ sets: [{ id, label }] }`.
+	 * @return JSONResponse `{ sets: [{ id, label, objects? }] }`; `objects` is the set's object count.
 	 *
 	 * @spec openspec/changes/wizard-drops-the-removal-step/specs/example-sets/spec.md
 	 */
 	#[AuthorizedAdminSetting(AdminSettings::class)]
 	public function exampleSets(): JSONResponse {
-		return new JSONResponse(data: ['sets' => $this->seedProfiles->loadedSets()->all()]);
+		$sets = $this->seedProfiles->loadedSets()->all();
+
+		return new JSONResponse(data: ['sets' => $this->sizes->withSizes(sets: $sets)]);
 	}//end exampleSets()
 }//end class

@@ -40,7 +40,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\ActionAuthService;
 use OCP\IAppConfig;
 use OCP\Migration\IOutput;
@@ -103,7 +103,7 @@ class ApplyStoreRightsDefaults implements IRepairStep {
 	 * @spec openspec/specs/course-management/spec.md#requirement-existing-installs-get-the-new-store-defaults-once
 	 */
 	public function run(IOutput $output): void {
-		if ($this->appConfig->getValueString(Application::APP_ID, self::MARKER, '') !== '') {
+		if ($this->appConfig->getValueString(AppIdentity::APP_ID, self::MARKER, '') !== '') {
 			return;
 		}
 
@@ -132,7 +132,7 @@ class ApplyStoreRightsDefaults implements IRepairStep {
 			$output->info('Learniq store rights: teachers may install shared courses, team leads may publish.');
 		}
 
-		$this->appConfig->setValueString(Application::APP_ID, self::MARKER, '1');
+		$this->appConfig->setValueString(AppIdentity::APP_ID, self::MARKER, '1');
 
 	}//end run()
 

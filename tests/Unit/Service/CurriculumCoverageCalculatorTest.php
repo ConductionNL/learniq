@@ -124,7 +124,7 @@ class CurriculumCoverageCalculatorTest extends TestCase {
 	 */
 	private function rows(): array {
 		$rows = [];
-		foreach ($this->calculator->compute($this->framework(), $this->goals(), $this->planned(), $this->assessed(), self::NOW) as $row) {
+		foreach ($this->calculator->compute($this->framework(), ['goals' => $this->goals(), 'planned' => $this->planned(), 'assessed' => $this->assessed(), 'now' => self::NOW]) as $row) {
 			$rows[$this->calculator->bucketKey($row)] = $row;
 		}
 
@@ -251,7 +251,7 @@ class CurriculumCoverageCalculatorTest extends TestCase {
 	 * @return void
 	 */
 	public function testEmptyFrameworkStillGetsATotalRow(): void {
-		$rows = $this->calculator->compute(['id' => 'fw-empty', 'proficiencyLevels' => []], [], [], [], self::NOW);
+		$rows = $this->calculator->compute(['id' => 'fw-empty', 'proficiencyLevels' => []], ['goals' => [], 'planned' => [], 'assessed' => [], 'now' => self::NOW]);
 
 		self::assertCount(1, $rows);
 		self::assertNull($rows[0]['year']);
@@ -270,10 +270,7 @@ class CurriculumCoverageCalculatorTest extends TestCase {
 	public function testFlatOnlyReferencesCountWithoutDepth(): void {
 		$rows = $this->calculator->compute(
 			['id' => 'fw2', 'proficiencyLevels' => [['levelId' => 'competent', 'order' => 1]]],
-			[['id' => 'g', 'code' => 'G1']],
-			[['competencyIds' => ['g', 'g']]],
-			[],
-			self::NOW
+			['goals' => [['id' => 'g', 'code' => 'G1']], 'planned' => [['competencyIds' => ['g', 'g']]], 'assessed' => [], 'now' => self::NOW]
 		);
 
 		self::assertSame(1, $rows[0]['plannedCount']);

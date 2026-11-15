@@ -37,6 +37,8 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use OCA\Learniq\Exception\XapiRequestException;
+use OCA\Learniq\Kernel\Contracts\XapiDocumentStoreInterface;
+use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Http;
 use Throwable;
@@ -46,7 +48,7 @@ use Throwable;
  *
  * @spec openspec/specs/course-management/spec.md#requirement-run-cmi5--xapi-natively-with-scorm-shim
  */
-class XapiDocumentStore {
+class XapiDocumentStore implements XapiDocumentStoreInterface {
 
 	/**
 	 * The learniq register slug.
@@ -63,20 +65,6 @@ class XapiDocumentStore {
 	public const SCHEMA = 'xapi-document';
 
 	/**
-	 * Document kind: an activity State document.
-	 *
-	 * @var string
-	 */
-	public const KIND_STATE = 'state';
-
-	/**
-	 * Document kind: an Agent Profile document.
-	 *
-	 * @var string
-	 */
-	public const KIND_AGENT_PROFILE = 'agent-profile';
-
-	/**
 	 * Largest document accepted, in bytes.
 	 *
 	 * @var int
@@ -91,6 +79,13 @@ class XapiDocumentStore {
 	private const MAX_LIST = 500;
 
 	/**
+	 * Turns one OpenRegister result into a plain array.
+	 *
+	 * @var ObjectRow
+	 */
+	private readonly ObjectRow $objectRow;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService     $objectService OpenRegister object access.
@@ -102,6 +97,7 @@ class XapiDocumentStore {
 		private readonly CallerTenantResolver $tenants,
 		private readonly XapiDocumentCodec $codec,
 	) {
+		$this->objectRow = new ObjectRow();
 	}//end __construct()
 
 	/**
@@ -456,15 +452,7 @@ class XapiDocumentStore {
 	 * @return array<string, mixed> The serialized object data.
 	 */
 	private function toArray(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-			return (array)$row->jsonSerialize();
-		}
-
-		return [];
+		return $this->objectRow->asArray(object: $row);
 	}//end toArray()
 
 	/**

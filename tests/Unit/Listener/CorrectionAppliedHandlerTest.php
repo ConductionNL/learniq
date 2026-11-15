@@ -30,6 +30,9 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\TransitionScope;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
+use OCA\OpenRegister\Service\Lifecycle\TransitionActor;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -120,7 +123,7 @@ class CorrectionAppliedHandlerTest extends TestCase {
 	 * @return ObjectTransitionedEvent
 	 */
 	private static function published(string $action = 'republish', string $userId = 'teacher-a'): ObjectTransitionedEvent {
-		return new ObjectTransitionedEvent(OrEntityFactory::make(self::ENTRY, 'grade-entry'), $action, 'revised', 'published', $userId, 'learniq', 'grade-entry');
+		return new ObjectTransitionedEvent(object: OrEntityFactory::make(self::ENTRY, 'grade-entry'), move: new TransitionMove(action: $action, from: 'revised', to: 'published'), scope: new RegisterSchemaRef(register: 'learniq', schema: 'grade-entry'), actor: new TransitionActor(userId: $userId));
 	}//end published()
 
 	/**
@@ -163,11 +166,11 @@ class CorrectionAppliedHandlerTest extends TestCase {
 		$this->handler(corrections: [self::APPROVED])->handle(self::published(userId: 'principal-b'));
 		self::assertSame([], $this->saved, 'the approver published');
 
-		$revise = new ObjectTransitionedEvent(OrEntityFactory::make(self::ENTRY, 'grade-entry'), 'revise', 'published', 'revised', 'teacher-a', 'learniq', 'grade-entry');
+		$revise = new ObjectTransitionedEvent(object: OrEntityFactory::make(self::ENTRY, 'grade-entry'), move: new TransitionMove(action: 'revise', from: 'published', to: 'revised'), scope: new RegisterSchemaRef(register: 'learniq', schema: 'grade-entry'), actor: new TransitionActor(userId: 'teacher-a'));
 		$this->handler(corrections: [self::APPROVED])->handle($revise);
 		self::assertSame([], $this->saved, 'a revise');
 
-		$other = new ObjectTransitionedEvent(OrEntityFactory::make(self::ENTRY, 'final-grade'), 'publish', 'concept', 'published', 'teacher-a', 'learniq', 'final-grade');
+		$other = new ObjectTransitionedEvent(object: OrEntityFactory::make(self::ENTRY, 'final-grade'), move: new TransitionMove(action: 'publish', from: 'concept', to: 'published'), scope: new RegisterSchemaRef(register: 'learniq', schema: 'final-grade'), actor: new TransitionActor(userId: 'teacher-a'));
 		$this->handler(corrections: [self::APPROVED])->handle($other);
 		self::assertSame([], $this->saved, 'another schema');
 

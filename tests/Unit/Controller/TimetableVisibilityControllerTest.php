@@ -63,12 +63,11 @@ class TimetableVisibilityControllerTest extends TestCase {
 		$visibility->method('policy')->willReturn(TimetableVisibilityService::DEFAULTS);
 		$visibility->method('policyId')->willReturn(null);
 		$visibility->method('role')->willReturn($uid === 'lead' ? 'all' : 'learner');
-		$soon = gmdate(DATE_ATOM, (time() + 3600));
 		$directory = $this->createMock(TimetableDirectory::class);
 		if ($down === true) {
 			$directory->method('lessonsOf')->willThrowException(new RuntimeException('planninq silent'));
 		} else {
-			$directory->method('lessonsOf')->willReturn(['sessions' => [['id' => 's-1', 'title' => 'Wiskunde B', 'startsAt' => $soon, 'endsAt' => $soon]], 'source' => 'learniq']);
+			$directory->method('lessonsOf')->willReturn(['sessions' => [['id' => 's-1', 'title' => 'Wiskunde B', 'startsAt' => '2026-02-03T09:00:00+00:00', 'endsAt' => '2026-02-03T09:50:00+00:00']], 'source' => 'learniq']);
 		}
 
 		return new TimetableVisibilityController($this->createMock(IRequest::class), $session, $visibility, $this->projector(), $directory);
@@ -101,8 +100,9 @@ class TimetableVisibilityControllerTest extends TestCase {
 		self::assertSame(Http::STATUS_FORBIDDEN, $refused->getStatus());
 		self::assertSame('Your school does not let you see this timetable.', $refused->getData()['error']);
 
-		$ok = $this->controller(uid: 'm.yilmaz')->timetable(kind: 'teacher', id: 'jan');
+		$ok = $this->controller(uid: 'm.yilmaz')->timetable(kind: 'teacher', id: 'jan', from: '2026-02-02T00:00:00+00:00', to: '2026-02-09T00:00:00+00:00');
 		self::assertSame(Http::STATUS_OK, $ok->getStatus());
+		self::assertSame('2026-02-02T00:00:00+00:00', $ok->getData()['from']);
 		self::assertSame(['s-1'], array_column($ok->getData()['sessions'], 'id'));
 
 		self::assertSame(Http::STATUS_SERVICE_UNAVAILABLE, $this->controller(uid: 'm.yilmaz', down: true)->timetable(kind: 'teacher', id: 'jan')->getStatus());

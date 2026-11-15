@@ -1,0 +1,166 @@
+{
+    "mixed": {
+        "calls": [
+            [
+                "getKeys",
+                "scholiq"
+            ],
+            [
+                "get",
+                "scholiq",
+                "a"
+            ],
+            [
+                "get",
+                "learniq",
+                "a"
+            ],
+            [
+                "set",
+                "learniq",
+                "a",
+                "x"
+            ],
+            [
+                "get",
+                "scholiq",
+                "b"
+            ],
+            [
+                "get",
+                "scholiq",
+                "c"
+            ],
+            [
+                "get",
+                "learniq",
+                "c"
+            ],
+            [
+                "get",
+                "scholiq",
+                "fail"
+            ],
+            [
+                "get",
+                "learniq",
+                "fail"
+            ],
+            [
+                "set",
+                "learniq",
+                "fail",
+                "z"
+            ],
+            [
+                "get",
+                "scholiq",
+                "d"
+            ],
+            [
+                "get",
+                "learniq",
+                "d"
+            ],
+            [
+                "set",
+                "learniq",
+                "d",
+                "w"
+            ],
+            [
+                "info",
+                "MigrateAppConfigKeys: 2 key(s) migrated, 1 already present, 1 had no value to migrate, 3 skipped as Nextcloud-reserved."
+            ]
+        ],
+        "log": [
+            {
+                "level": "warning",
+                "message": "MigrateAppConfigKeys: could not migrate one key; leaving it under the old namespace.",
+                "context": {
+                    "key": "fail",
+                    "exception": "read only"
+                }
+            }
+        ]
+    },
+    "nothing stored": {
+        "calls": [
+            [
+                "getKeys",
+                "scholiq"
+            ],
+            [
+                "info",
+                "MigrateAppConfigKeys: no stored scholiq config keys on this install; nothing to do."
+            ]
+        ],
+        "log": []
+    },
+    "keys unreadable": {
+        "calls": [
+            [
+                "getKeys",
+                "scholiq"
+            ],
+            [
+                "info",
+                "MigrateAppConfigKeys: no stored scholiq config keys on this install; nothing to do."
+            ]
+        ],
+        "log": [
+            {
+                "level": "warning",
+                "message": "MigrateAppConfigKeys: could not enumerate scholiq config keys; skipping.",
+                "context": {
+                    "exception": "no keys"
+                }
+            }
+        ]
+    },
+    "all migrated": {
+        "calls": [
+            [
+                "getKeys",
+                "scholiq"
+            ],
+            [
+                "get",
+                "scholiq",
+                "p"
+            ],
+            [
+                "get",
+                "learniq",
+                "p"
+            ],
+            [
+                "set",
+                "learniq",
+                "p",
+                "1"
+            ],
+            [
+                "get",
+                "scholiq",
+                "q"
+            ],
+            [
+                "get",
+                "learniq",
+                "q"
+            ],
+            [
+                "set",
+                "learniq",
+                "q",
+                "2"
+            ],
+            [
+                "info",
+                "MigrateAppConfigKeys: 2 key(s) migrated, 0 already present, 0 had no value to migrate, 0 skipped as Nextcloud-reserved."
+            ]
+        ],
+        "log": []
+    }
+}

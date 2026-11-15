@@ -298,10 +298,10 @@ A reissue MUST NOT change a credential's `id`, `learnerId`, `courseId`, `issuedA
 
 #### Scenario: The certificate's history shows the reissue
 
-- **GIVEN** a certificate issued on 3 March and reissued on 20 September with the reason "Nieuwe tekst certificaat na wijziging NIBHV-eisen"
+- **GIVEN** a certificate issued on 12 June 2026 and reissued on 20 September 2026 by Sanne Jansen with the reason "tekst van de cursus aangepast"
 - **WHEN** an HR officer opens the certificate
-- **THEN** it still shows 3 March as the issue date
-- **AND** its history shows the reissue on 20 September, by whom and why
+- **THEN** it still shows 12 June 2026 as the issue date
+- **AND** its history shows the reissue on 20 September 2026, by Sanne Jansen and why
 
 ### Requirement: A learner hears that their certificate was reissued
 

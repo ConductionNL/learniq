@@ -21,8 +21,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Register;
 
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+use ReflectionNamedType;
 
 /**
  * The writes the learniq#983 guards used to make into their context now live in
@@ -114,4 +117,34 @@ class LifecycleActionsImplementInterfaceTest extends TestCase {
 
 		self::assertSame([], $missing, implode("\n", $missing));
 	}//end testConvertedTransitionsDeclareTheirAction()
+
+	/**
+	 * Every learniq action takes OpenRegister's single LifecycleActionContext.
+	 *
+	 * OpenRegister's executor calls `execute(new LifecycleActionContext(...))`,
+	 * so an action still declaring the four-array signature cannot be called.
+	 *
+	 * @return void
+	 */
+	public function testEveryLearniqActionTakesTheContext(): void {
+		$wrong = [];
+		foreach (glob(pattern: __DIR__ . '/../../../lib/Lifecycle/Action/*.php') as $file) {
+			$class = 'OCA\\Learniq\\Lifecycle\\Action\\' . basename(path: $file, suffix: '.php');
+			$reflection = new ReflectionClass(objectOrClass: $class);
+			if ($reflection->implementsInterface(interface: LifecycleActionInterface::class) === false) {
+				continue;
+			}
+
+			$params = $reflection->getMethod(name: 'execute')->getParameters();
+			$type = ($params[0] ?? null)?->getType();
+			if (count(value: $params) !== 1
+				|| ($type instanceof ReflectionNamedType) === false
+				|| $type->getName() !== LifecycleActionContext::class
+			) {
+				$wrong[] = $class;
+			}
+		}
+
+		self::assertSame(expected: [], actual: $wrong, message: implode(separator: "\n", array: $wrong));
+	}//end testEveryLearniqActionTakesTheContext()
 }//end class

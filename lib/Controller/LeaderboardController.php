@@ -3,6 +3,9 @@
 /**
  * Learniq Leaderboard Controller
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * One read endpoint: `getRankings`. This exists because the RBAC gap
  * documented in design.md ("no cross-object 'cohort-mate' RBAC primitive" --
  * the same gap SupportRequest/TlvApplication/PupilVoice already document)
@@ -41,8 +44,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -54,10 +55,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\CallerGroups;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
@@ -74,6 +76,7 @@ use OCP\IUserSession;
  * @spec openspec/specs/engagement/spec.md#requirement-a-ranked-leaderboard-is-opt-in-per-cohort-course-default-off-and-respects-a-per-learner-opt-out
  */
 class LeaderboardController extends Controller {
+	use FindOrNull;
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const COHORT_SCHEMA = 'cohort';
@@ -90,22 +93,36 @@ class LeaderboardController extends Controller {
 	private const OPT_OUT_CONFIG_KEY = 'pref_leaderboardoptout';
 
 	/**
+	 * Current user session.
+	 *
+	 * @var IUserSession
+	 */
+	private readonly IUserSession $userSession;
+
+	/**
+	 * Group manager (admin check).
+	 *
+	 * @var IGroupManager
+	 */
+	private readonly IGroupManager $groupManager;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IRequest $request HTTP request.
-	 * @param IUserSession $userSession Current user session.
-	 * @param IGroupManager $groupManager Group manager (admin check).
+	 * @param CallerGroups $caller      The user session and the group manager.
 	 * @param ObjectService $objectService OR object query/persistence.
 	 * @param IConfig $config Nextcloud config (opt-out preference reads).
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly IUserSession $userSession,
-		private readonly IGroupManager $groupManager,
+		CallerGroups $caller,
 		private readonly ObjectService $objectService,
 		private readonly IConfig $config,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		$this->userSession = $caller->userSession;
+		$this->groupManager = $caller->groupManager;
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -130,6 +147,26 @@ class LeaderboardController extends Controller {
 		}
 
 		$cohort = $this->fetchObject(id: $cohortId, schema: self::COHORT_SCHEMA);
+		$refusal = $this->cohortRefusal(user: $user, cohort: $cohort);
+		if ($refusal !== null) {
+			return $refusal;
+		}
+
+		return $this->leaderboardResponse(cohort: $cohort, cohortId: $cohortId);
+	}//end getRankings()
+
+	/**
+	 * Why the caller may not see this cohort's ranking: it does not exist,
+	 * or they are neither admin nor a member; null when they may.
+	 *
+	 * @param IUser                    $user   The authenticated caller.
+	 * @param array<string,mixed>|null $cohort The Cohort data array, or null when not found.
+	 *
+	 * @return JSONResponse|null
+	 *
+	 * @phpstan-assert-if-false !null $cohort
+	 */
+	private function cohortRefusal(IUser $user, ?array $cohort): ?JSONResponse {
 		if ($cohort === null) {
 			return new JSONResponse(data: ['error' => 'Cohort not found'], statusCode: Http::STATUS_NOT_FOUND);
 		}
@@ -138,6 +175,19 @@ class LeaderboardController extends Controller {
 			return new JSONResponse(data: ['error' => 'Not authorized'], statusCode: Http::STATUS_FORBIDDEN);
 		}
 
+		return null;
+	}//end cohortRefusal()
+
+	/**
+	 * The ranking of a cohort its caller may see, when the cohort has an
+	 * active leaderboard: every learner ranked, cut to the leaderboard's top N.
+	 *
+	 * @param array<string,mixed> $cohort   The Cohort data array.
+	 * @param string              $cohortId UUID of the Cohort, as asked for.
+	 *
+	 * @return JSONResponse
+	 */
+	private function leaderboardResponse(array $cohort, string $cohortId): JSONResponse {
 		if ($this->hasActiveLeaderboard(cohortId: $cohortId) === false) {
 			return new JSONResponse(data: ['error' => 'No active leaderboard for this cohort'], statusCode: Http::STATUS_NOT_FOUND);
 		}
@@ -151,13 +201,25 @@ class LeaderboardController extends Controller {
 		$levelNames = $this->fetchLevelNames(tenantId: $tenantId);
 		$rankings = $this->buildRankings(learnerIds: $learnerIds, tenantId: $tenantId, levelNames: $levelNames);
 
+		return new JSONResponse(data: ['results' => $this->topRankings(rankings: $rankings, cohortId: $cohortId)]);
+	}//end leaderboardResponse()
+
+	/**
+	 * The rankings cut to the cohort leaderboard's top N, when it sets one.
+	 *
+	 * @param array<int,array<string,mixed>> $rankings The full ranking.
+	 * @param string                         $cohortId UUID of the Cohort.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function topRankings(array $rankings, string $cohortId): array {
 		$topN = $this->fetchLeaderboardTopN(cohortId: $cohortId);
 		if ($topN !== null) {
-			$rankings = array_slice($rankings, 0, $topN);
+			return array_slice($rankings, 0, $topN);
 		}
 
-		return new JSONResponse(data: ['results' => $rankings]);
-	}//end getRankings()
+		return $rankings;
+	}//end topRankings()
 
 	/**
 	 * True when the caller is admin, or their NC user id is in
@@ -174,19 +236,22 @@ class LeaderboardController extends Controller {
 		}
 
 		$uid = $user->getUID();
-		$learnerIds = $cohort['learnerIds'] ?? [];
-		$teacherIds = $cohort['teacherIds'] ?? [];
 
-		if (is_array($learnerIds) === true && in_array($uid, $learnerIds, true) === true) {
-			return true;
-		}
-
-		if (is_array($teacherIds) === true && in_array($uid, $teacherIds, true) === true) {
-			return true;
-		}
-
-		return false;
+		return $this->lists(ids: ($cohort['learnerIds'] ?? []), uid: $uid)
+			|| $this->lists(ids: ($cohort['teacherIds'] ?? []), uid: $uid);
 	}//end isCohortMember()
+
+	/**
+	 * Whether a stored member list holds this user id.
+	 *
+	 * @param mixed  $ids The stored list.
+	 * @param string $uid The user id.
+	 *
+	 * @return bool
+	 */
+	private function lists(mixed $ids, string $uid): bool {
+		return is_array($ids) === true && in_array($uid, $ids, true) === true;
+	}//end lists()
 
 	/**
 	 * True when an `active` Leaderboard row exists scoped to this cohort.
@@ -296,6 +361,44 @@ class LeaderboardController extends Controller {
 	 * @spec openspec/specs/engagement/spec.md#scenario-an-opted-out-learner-is-excluded-from-the-ranking-but-keeps-their-own-view
 	 */
 	private function buildRankings(array $learnerIds, string $tenantId, array $levelNames): array {
+		$byLearnerId = $this->engagementByLearner(tenantId: $tenantId);
+
+		$entries = [];
+		foreach ($learnerIds as $learnerId) {
+			if (is_string($learnerId) === false || $learnerId === '') {
+				continue;
+			}
+
+			if ($this->isOptedOut(learnerId: $learnerId) === true) {
+				continue;
+			}
+
+			$entries[] = $this->rankingEntry(learnerId: $learnerId, lookups: ['row' => $byLearnerId[$learnerId] ?? null, 'levelNames' => $levelNames]);
+		}
+
+		usort($entries, static fn (array $a, array $b) => $b['totalPoints'] <=> $a['totalPoints']);
+
+		$rank = 0;
+		return array_map(
+			static function (array $entry) use (&$rank) {
+				$rank++;
+				$entry['rank'] = $rank;
+				return $entry;
+			},
+			$entries
+		);
+	}//end buildRankings()
+
+	/**
+	 * The tenant's LearnerEngagement rows keyed by learnerId.
+	 *
+	 * @param string $tenantId The tenant.
+	 *
+	 * @return array<string|int, array<string, mixed>>
+	 *
+	 * @spec openspec/specs/engagement/spec.md#scenario-an-opted-out-learner-is-excluded-from-the-ranking-but-keeps-their-own-view
+	 */
+	private function engagementByLearner(string $tenantId): array {
 		$engagementRows = $this->objectService->findAll(
 			[
 				'filters' => [
@@ -320,44 +423,35 @@ class LeaderboardController extends Controller {
 			$byLearnerId[$learnerId] = $row;
 		}
 
-		$entries = [];
-		foreach ($learnerIds as $learnerId) {
-			if (is_string($learnerId) === false || $learnerId === '') {
-				continue;
-			}
+		return $byLearnerId;
+	}//end engagementByLearner()
 
-			if ($this->isOptedOut(learnerId: $learnerId) === true) {
-				continue;
-			}
+	/**
+	 * One leaderboard entry before ranking.
+	 *
+	 * @param string               $learnerId The learner.
+	 * @param array<string, mixed> $lookups   row: the learner's engagement row or null; levelNames: level id => name.
+	 *
+	 * @return array{learnerId: string, totalPoints: float, level: mixed}
+	 *
+	 * @spec openspec/specs/engagement/spec.md#scenario-an-opted-out-learner-is-excluded-from-the-ranking-but-keeps-their-own-view
+	 */
+	private function rankingEntry(string $learnerId, array $lookups): array {
+		$row = $lookups['row'];
+		$totalPoints = (float)($row['totalPoints'] ?? 0);
+		$levelId = $row['levelId'] ?? null;
 
-			$row = $byLearnerId[$learnerId] ?? null;
-			$totalPoints = (float)($row['totalPoints'] ?? 0);
-			$levelId = $row['levelId'] ?? null;
+		$levelName = null;
+		if ($levelId !== null) {
+			$levelName = $lookups['levelNames'][$levelId] ?? null;
+		}
 
-			$levelName = null;
-			if ($levelId !== null) {
-				$levelName = $levelNames[$levelId] ?? null;
-			}
-
-			$entries[] = [
-				'learnerId' => $learnerId,
-				'totalPoints' => $totalPoints,
-				'level' => $levelName,
-			];
-		}//end foreach
-
-		usort($entries, static fn (array $a, array $b) => $b['totalPoints'] <=> $a['totalPoints']);
-
-		$rank = 0;
-		return array_map(
-			static function (array $entry) use (&$rank) {
-				$rank++;
-				$entry['rank'] = $rank;
-				return $entry;
-			},
-			$entries
-		);
-	}//end buildRankings()
+		return [
+			'learnerId' => $learnerId,
+			'totalPoints' => $totalPoints,
+			'level' => $levelName,
+		];
+	}//end rankingEntry()
 
 	/**
 	 * True when the learner has set the standing leaderboard opt-out preference.
@@ -371,7 +465,7 @@ class LeaderboardController extends Controller {
 	private function isOptedOut(string $learnerId): bool {
 		$value = $this->config->getUserValue(
 			userId: $learnerId,
-			appName: Application::APP_ID,
+			appName: AppIdentity::APP_ID,
 			key: self::OPT_OUT_CONFIG_KEY,
 			default: ''
 		);
@@ -387,26 +481,11 @@ class LeaderboardController extends Controller {
 	 * @param string $schema Schema slug.
 	 *
 	 * @return array<string,mixed>|null Null when no such object exists.
+	 *
+	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException When the id matches more than one object; LookupIntegrityMiddleware answers it.
 	 */
 	private function fetchObject(string $id, string $schema): ?array {
-		// ObjectService::find() THROWS DoesNotExistException for an unknown id —
-		// it does not return null — so without this catch the `=== null` check
-		// below was dead code and an unknown id escaped as a 500 instead of the
-		// 404 this resolver's nullable contract promises the caller.
-		try {
-			$obj = $this->objectService->find(
-				id: $id,
-				register: self::LEARNIQ_REGISTER,
-				schema: $schema
-			);
-		} catch (DoesNotExistException $e) {
-			return null;
-		}
-
-		if ($obj === null) {
-			return null;
-		}
-
-		return $obj->jsonSerialize();
+		$find = fn () => $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
+		return $this->findOrNull(find: $find)?->jsonSerialize();
 	}//end fetchObject()
 }//end class

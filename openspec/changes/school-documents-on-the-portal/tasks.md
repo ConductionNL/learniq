@@ -1,7 +1,7 @@
 # Tasks: school-documents-on-the-portal
 
 - [ ] **T1**: a shared document-row shape (`group`, `title`, `meta`, `isNew`, `status`, download) for learniq's documents providers
-- [ ] **T2**: `parentDocuments`: report-card PDFs per child, consent answers
+- [ ] **T2**: `parentDocuments`: report-card PDFs per child, consent answers. Partial: the page, the reports per child and the school's papers are built in `guardian-reports-and-documents` (school papers as learniq `school-document` records, not portaliq media); consent answers are not.
 - [ ] **T3**: `studentDocuments` (vo and mbo): report cards, subject choice, POK with signing state, results, certificates; `uploadStudentDocument`
 - [ ] **T4**: `requestProofOfEnrolment` through filinq's render endpoint
 - [ ] **T5**: `employerCertificatesDownload` (ZIP of valid certificates)

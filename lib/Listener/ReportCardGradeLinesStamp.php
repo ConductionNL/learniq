@@ -30,8 +30,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\ReportCardGradeLines;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ReportCardGradeLinesInterface;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -54,15 +54,15 @@ class ReportCardGradeLinesStamp implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
-	 * @param ReportCardGradeLines   $gradeLines     Derives the readable copies.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
+	 * @param ReportCardGradeLinesInterface   $gradeLines     Derives the readable copies.
 	 * @param LoggerInterface        $logger         PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly ReportCardGradeLines $gradeLines,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		private readonly ReportCardGradeLinesInterface $gradeLines,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -145,10 +145,6 @@ class ReportCardGradeLinesStamp implements IEventListener {
 	 * @return ObjectEntity
 	 */
 	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
+		return (new WrittenObject())->entityOf(event: $event);
 	}//end entityOf()
 }//end class

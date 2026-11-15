@@ -33,7 +33,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
-use OCA\OpenRegister\Db\ObjectEntity;
+use OCA\Learniq\Kernel\Contracts\ExamSittingOverviewInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -41,7 +41,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/specs/exam-schedule/spec.md#requirement-accommodations-in-the-schedule
  */
-class ExamSittingOverview {
+class ExamSittingOverview implements ExamSittingOverviewInterface {
 
 	private const REGISTER = 'learniq';
 
@@ -56,6 +56,13 @@ class ExamSittingOverview {
 	private const QUERY_LIMIT = 2000;
 
 	/**
+	 * Reads the rows of one learniq schema.
+	 *
+	 * @var SchemaRows
+	 */
+	private readonly SchemaRows $schemaRows;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
@@ -65,6 +72,7 @@ class ExamSittingOverview {
 	public function __construct(
 		private readonly ObjectService $objectService,
 	) {
+		$this->schemaRows = new SchemaRows(objectService: $objectService, limit: self::QUERY_LIMIT);
 	}//end __construct()
 
 	/**
@@ -309,23 +317,6 @@ class ExamSittingOverview {
 	 * @return array<int, array<string, mixed>>
 	 */
 	private function rows(string $schema, array $filters): array {
-		$rows = $this->objectService->findAll(
-			[
-				'filters' => array_merge($filters, ['register' => self::REGISTER, 'schema' => $schema]),
-				'limit' => self::QUERY_LIMIT,
-			]
-		);
-
-		$arrays = [];
-		foreach ($rows as $row) {
-			if ($row instanceof ObjectEntity) {
-				$arrays[] = ($row->getObject() ?? []);
-				continue;
-			}
-
-			$arrays[] = (array)$row;
-		}
-
-		return $arrays;
+		return $this->schemaRows->objectData(schema: $schema, filters: $filters);
 	}//end rows()
 }//end class

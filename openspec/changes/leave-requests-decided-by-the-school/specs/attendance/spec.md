@@ -2,7 +2,7 @@
 
 ### Requirement: A leave request is asked in advance and decided by the head of the school
 
-learniq MUST keep a `leave-request` per pupil and range of days, with who asked, the kind, the reason, the number of school days in the range and the date by which the school must decide. A request of at most ten school days MUST be decided (allowed or refused) by a member of staff with the `administration-manager` role for the pupil's school; a request of more than ten school days MUST be marked `forwarded` and MUST NOT be allowed or refused by the school itself. A refusal MUST carry a decision note. Every decision MUST record who decided and when.
+learniq MUST keep a `leave-request` per pupil and range of days, with who asked, the kind, the reason, the number of school days in the range and the date by which the school must decide. A request of at most ten school days MUST be decided ("Toestaan" or "Afwijzen") by a member of staff with the `administration-manager` role for the pupil's school; a request of more than ten school days MUST be marked `forwarded` and MUST NOT be allowed or refused by the school itself. A refusal MUST carry a decision note. Every decision MUST record who decided and when.
 
 #### Scenario: The directeur allows a wedding
 - **GIVEN** Hamza's parents asked leave for Thursday 29 and Friday 30 October for a wedding, on Wednesday 30 September
@@ -13,13 +13,13 @@ learniq MUST keep a `leave-request` per pupil and range of days, with who asked,
 #### Scenario: More than ten school days
 - **GIVEN** a request for twelve school days
 - **WHEN** the directeur opens it
-- **THEN** it offers no allow or refuse, only "Doorsturen naar de leerplichtambtenaar"
+- **THEN** it offers no "Toestaan" or "Afwijzen", only "Doorsturen naar de leerplichtambtenaar"
 - @e2e exclude as above
 
 #### Scenario: A refusal without a reason
 - **GIVEN** an open request
-- **WHEN** the teamleider refuses it with an empty note
-- **THEN** the refusal is not saved, and the message asks for the reason
+- **WHEN** the teamleider chooses "Afwijzen" with an empty note
+- **THEN** the refusal is not saved, and the message reads "Afwijzen zonder reden kan niet: de ouders lezen uw reden in het bericht."
 - @e2e exclude as above
 
 ### Requirement: The decider sees what waits, oldest first, with the deadline in words

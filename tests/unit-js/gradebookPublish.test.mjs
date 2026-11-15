@@ -143,3 +143,44 @@ test('an empty scope has nothing to preview', () => {
 		bands: [],
 	})
 })
+
+test('a scale without bounds spreads over the marks themselves', () => {
+	const summary = distribution(
+		[entry('p1', 'c', 4), entry('p2', 'c', 6), entry('p3', 'c', 6.5)],
+		{ min: null, max: 'none', passThreshold: 6 },
+	)
+	assert.equal(summary.lowest, 4)
+	assert.equal(summary.highest, 6.5)
+	assert.equal(summary.average, 5.5)
+	assert.equal(summary.passing, 2)
+	assert.deepEqual(summary.bands, [
+		{ from: 4, to: 5, count: 1 },
+		{ from: 5, to: 6, count: 0 },
+		{ from: 6, to: 6.5, count: 2 },
+	])
+})
+
+test('marks outside the scale widen the range', () => {
+	const summary = distribution([entry('p1', 'c', 0), entry('p2', 'c', 12)], scale)
+	assert.equal(summary.bands[0].from, 0)
+	assert.equal(summary.bands.at(-1).to, 12)
+	assert.equal(summary.bands.at(-1).count, 1)
+	assert.equal(summary.bands[0].count, 1)
+	assert.equal(summary.passing, 1)
+})
+
+test('a blank pass threshold counts as zero, an absent one as none', () => {
+	assert.equal(distribution([entry('p1', 'c', 3)], { passThreshold: '' }).passing, 1)
+	assert.equal(distribution([entry('p1', 'c', 3)], { passThreshold: 'x' }).passing, null)
+	assert.equal(distribution([entry('p1', 'c', 3)], { passThreshold: undefined }).passing, null)
+})
+
+test('bands need finite bounds', () => {
+	assert.deepEqual(bandsFor(Number.NaN, 10), [])
+	assert.deepEqual(bandsFor(1, Infinity), [])
+	assert.deepEqual(bandsFor(1.5, 3), [
+		{ from: 1, to: 2 },
+		{ from: 2, to: 3 },
+	])
+	assert.deepEqual(bandsFor(0, 50).map((b) => b.to), [10, 20, 30, 40, 50])
+})

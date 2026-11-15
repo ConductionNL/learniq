@@ -3,6 +3,9 @@
 /**
  * Learniq OSO Import Accept Guard
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the OsoImportDossier schema's `accept` transition
  * (`under-review → accepted`). An incoming overstapdossier is not proof the
  * transferred data is correct or complete for this school's record — an
@@ -29,8 +32,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *
@@ -129,13 +130,8 @@ class OsoImportAcceptGuard implements LifecycleGuardInterface {
 	 * @spec openspec/changes/archive/2026-09-28-oso-inbound-contract/tasks.md#task-2
 	 */
 	private function actorIsAuthorised(string $actor): bool {
-		$user = $this->userManager->get($actor);
-		if ($user === null) {
-			return false;
-		}
+		$groups = new ActorGroups(userManager: $this->userManager, groupManager: $this->groupManager);
 
-		$actorGroups = $this->groupManager->getUserGroupIds($user);
-
-		return count(array_intersect($actorGroups, self::AUTHORISED_GROUPS)) > 0;
+		return $groups->isInAny(actor: $actor, groups: self::AUTHORISED_GROUPS);
 	}//end actorIsAuthorised()
 }//end class

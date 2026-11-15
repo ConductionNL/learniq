@@ -280,4 +280,35 @@ class CheckInServiceTest extends TestCase {
 		self::assertSame(200, $outcome->status);
 		self::assertSame('ses-1', $this->records()[0]['sessionId']);
 	}//end testACodeAloneFindsTheLearnersOpenWindow()
+
+	/**
+	 * Who may see a window and whether it is open: an empty user, an unknown
+	 * window or lesson are not found; a group that cannot be read or holds
+	 * no list refuses; a window is open from its opening until the earlier
+	 * of its close and the lesson's end, unless closed.
+	 *
+	 * @return void
+	 */
+	public function testWhoMaySeeAWindowAndWhenItIsOpen(): void {
+		self::assertSame('not-found', $this->service()->show(windowId: 'win-1', userId: '')->reason);
+		self::assertSame('not-found', $this->service(window: ['sessionId' => 'gone'])->show(windowId: 'win-1', userId: 'pupil-1')->reason);
+
+		$service = $this->service();
+		$this->store->rows['cohort'] = [['id' => 'coh-1', 'learnerIds' => 'pupil-1']];
+		self::assertSame('not-in-group', $service->show(windowId: 'win-1', userId: 'pupil-1')->reason);
+		$this->store->rows['cohort'] = [];
+		self::assertSame('not-in-group', $service->show(windowId: 'win-1', userId: 'pupil-1')->reason);
+
+		$open = static fn (CheckInService $service): bool => $service->show(windowId: 'win-1', userId: 'pupil-1')->body['open'];
+		self::assertTrue($open($this->service()));
+		self::assertTrue($open($this->service(window: ['lifecycle' => null, 'opensAt' => '', 'closesAt' => null])));
+		self::assertFalse($open($this->service(window: ['lifecycle' => 'cancelled'])));
+		self::assertFalse($open($this->service(window: ['opensAt' => '2026-09-29T08:33:00+00:00'])));
+		self::assertTrue($open($this->service(window: ['opensAt' => '2026-09-29T08:32:00+00:00', 'closesAt' => '2026-09-29T08:32:00+00:00'])));
+		self::assertFalse($open($this->service(window: ['closesAt' => '2026-09-29T08:31:59+00:00'])));
+
+		$late = $this->service(window: ['closesAt' => '2026-09-29T10:00:00+00:00']);
+		$this->store->rows['session'][0]['endsAt'] = '2026-09-29T08:31:00+00:00';
+		self::assertFalse($open($late));
+	}//end testWhoMaySeeAWindowAndWhenItIsOpen()
 }//end class

@@ -3,6 +3,9 @@
 /**
  * Learniq Competency Alignment Listener
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Pre-save listener (OpenRegister ObjectCreatingEvent and ObjectUpdatingEvent)
  * for the four schemas that align to goals: Lesson, Course, Assignment and
  * Assessment (slug `exam`). It keeps the flat `competencyIds` derived from the
@@ -30,8 +33,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -43,8 +44,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\CompetencyAlignmentNormaliser;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\CompetencyAlignmentNormaliserInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Service\ObjectRowReader;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
@@ -84,17 +85,17 @@ class CompetencyAlignmentListener implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver        $schemaResolver Resolves the event entity's schema slug.
+	 * @param ListenerSchemaResolverInterface        $schemaResolver Resolves the event entity's schema slug.
 	 * @param ObjectRowReader               $reader         Reads Competency and CompetencyFramework rows.
-	 * @param CompetencyAlignmentNormaliser $normaliser     The list rules.
+	 * @param CompetencyAlignmentNormaliserInterface $normaliser     The list rules.
 	 * @param LoggerInterface               $logger         PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly ObjectRowReader $reader,
-		private readonly CompetencyAlignmentNormaliser $normaliser,
+		private readonly CompetencyAlignmentNormaliserInterface $normaliser,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()

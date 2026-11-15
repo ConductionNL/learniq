@@ -27,13 +27,14 @@ declare(strict_types=1);
 namespace OCA\Learniq\Timetabling;
 
 use InvalidArgumentException;
+use OCA\Learniq\Kernel\Contracts\SessionChangeInputInterface;
 
 /**
  * The input of one change on several lessons.
  *
  * @spec openspec/specs/timetabling/spec.md#requirement-every-lesson-in-a-batch-passes-the-same-checks
  */
-class SessionChangeInput {
+class SessionChangeInput implements SessionChangeInputInterface {
 
 	public const KINDS = ['cancel', 'substitute', 'room'];
 	public const REASON_KINDS = ['teacher-absence', 'room-unavailable', 'timetable-change', 'other'];

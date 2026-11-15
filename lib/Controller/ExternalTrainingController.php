@@ -36,13 +36,13 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
+use OCA\Learniq\Kernel\Contracts\CredentialSigningServiceInterface;
+use OCA\Learniq\Kernel\Contracts\ExternalTrainingImportInterface;
+use OCA\Learniq\Kernel\Contracts\ExternalTrainingServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Service\CallerTenantResolver;
-use OCA\Learniq\Service\CredentialSigningService;
-use OCA\Learniq\Service\ExternalTrainingImport;
-use OCA\Learniq\Service\ExternalTrainingService;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -62,23 +62,23 @@ class ExternalTrainingController extends Controller {
 	 * @param IRequest $request HTTP request.
 	 * @param IUserSession $userSession Current user session.
 	 * @param ActionAuthService $actionAuth ADR-023 action authorization.
-	 * @param ExternalTrainingService $trainingService External-training business logic.
+	 * @param ExternalTrainingServiceInterface $trainingService External-training business logic.
 	 * @param ObjectService $objectService OR object query/persistence.
-	 * @param CredentialSigningService $signingService Signs a credential before it is saved.
-	 * @param CallerTenantResolver $callerTenant Resolves the caller's tenant.
-	 * @param ExternalTrainingImport $trainingImport Checks and records an uploaded list.
+	 * @param CredentialSigningServiceInterface $signingService Signs a credential before it is saved.
+	 * @param CallerTenantResolverInterface $callerTenant Resolves the caller's tenant.
+	 * @param ExternalTrainingImportInterface $trainingImport Checks and records an uploaded list.
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly ActionAuthService $actionAuth,
-		private readonly ExternalTrainingService $trainingService,
+		private readonly ExternalTrainingServiceInterface $trainingService,
 		private readonly ObjectService $objectService,
-		private readonly CredentialSigningService $signingService,
-		private readonly CallerTenantResolver $callerTenant,
-		private readonly ExternalTrainingImport $trainingImport,
+		private readonly CredentialSigningServiceInterface $signingService,
+		private readonly CallerTenantResolverInterface $callerTenant,
+		private readonly ExternalTrainingImportInterface $trainingImport,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -164,9 +164,9 @@ class ExternalTrainingController extends Controller {
 			return new JSONResponse(data: ['error' => 'The file has no rows.'], statusCode: Http::STATUS_BAD_REQUEST);
 		}
 
-		if (count($rows) > ExternalTrainingImport::MAX_ROWS) {
+		if (count($rows) > ExternalTrainingImportInterface::MAX_ROWS) {
 			return new JSONResponse(
-				data: ['error' => 'A file can hold at most ' . ExternalTrainingImport::MAX_ROWS . ' rows. Split it and upload the parts.'],
+				data: ['error' => 'A file can hold at most ' . ExternalTrainingImportInterface::MAX_ROWS . ' rows. Split it and upload the parts.'],
 				statusCode: Http::STATUS_BAD_REQUEST
 			);
 		}
@@ -175,7 +175,7 @@ class ExternalTrainingController extends Controller {
 			rows: $rows,
 			tenantId: $this->callerTenant->resolve(user: $user),
 			submittedBy: $user->getUID(),
-			dryRun: $dryRun
+			run: ['dryRun' => $dryRun]
 		);
 
 		return new JSONResponse(data: $report, statusCode: Http::STATUS_OK);

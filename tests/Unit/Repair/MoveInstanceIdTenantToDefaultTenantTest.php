@@ -69,6 +69,13 @@ class MoveInstanceIdTenantToDefaultTenantTest extends TestCase {
 	private bool $ignoreFilter = false;
 
 	/**
+	 * Schemas whose read throws.
+	 *
+	 * @var array<int, string>
+	 */
+	private array $unreadable = [];
+
+	/**
 	 * Build the step over the in-memory store.
 	 *
 	 * @param string $instanceId The instance id the config reports.
@@ -82,6 +89,10 @@ class MoveInstanceIdTenantToDefaultTenantTest extends TestCase {
 				self::assertFalse($_rbac, 'reads with RBAC off');
 				self::assertFalse($_multitenancy, 'reads with multitenancy off');
 				$filters = $config['filters'];
+				if (in_array($filters['schema'], $this->unreadable, true) === true) {
+					throw new RuntimeException('schema ' . $filters['schema'] . ' not imported');
+				}
+
 				$rows    = array_values(
 					array_filter(
 						($this->rows[$filters['schema']] ?? []),
@@ -211,6 +222,34 @@ class MoveInstanceIdTenantToDefaultTenantTest extends TestCase {
 
 		self::assertSame([], $this->saves);
 	}//end testNoInstanceIdIsANoOp()
+
+	/**
+	 * A schema that cannot be read is skipped; the other schemas still move and the total counts only them.
+	 *
+	 * @return void
+	 */
+	public function testAnUnreadableSchemaIsSkipped(): void {
+		$this->unreadable = ['grade-entry'];
+		$this->rows = [
+			'grade-entry' => [['id' => 'ge-1', 'tenant_id' => self::INSTANCE]],
+			'work-group'  => [['id' => 'wg-1', 'tenant_id' => self::INSTANCE]],
+		];
+		$output = $this->createMock(IOutput::class);
+		$output->expects(self::once())->method('info')->with('MoveInstanceIdTenantToDefaultTenant: 1 moved, 0 failed.');
+
+		$this->step()->run($output);
+
+		self::assertSame([['work-group', 'wg-1', CallerTenantResolver::DEFAULT_TENANT, false, false]], $this->sortedSaves());
+	}//end testAnUnreadableSchemaIsSkipped()
+
+	/**
+	 * The step names what it moves.
+	 *
+	 * @return void
+	 */
+	public function testNameSaysWhatIsMoved(): void {
+		self::assertSame('Move rows stamped with the instance id as tenant into the default tenant', $this->step()->getName());
+	}//end testNameSaysWhatIsMoved()
 
 	/**
 	 * The schema list is exactly the register's schemas whose tenant_id has no

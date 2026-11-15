@@ -353,6 +353,37 @@ source.
 
 <!-- @e2e tests/e2e/spec-coverage/course-authoring-ux.spec.ts -->
 
+#### Scenario: The server builds the template and the new course, with the user's own permissions
+
+- **GIVEN** a designer in `CourseBuilder`
+- **WHEN** they save the course as a template, or create a course from a template
+- **THEN** one request to learniq does the work (`POST /api/courses/{id}/save-as-template` or
+  `POST /api/course-templates/{id}/instantiate`), and every object it reads or writes goes through
+  OpenRegister with the designer's own permissions
+- **AND** the tenant of what is written comes from the source course or the template, not from the request
+- **AND** a designer OpenRegister does not let create the objects is refused with 403 and nothing is written
+
+<!-- @e2e exclude Server-side authorization and payload shape; verified by PHPUnit CourseTemplateServiceTest (testSaveAsTemplateWithoutPermissionIsForbidden, testInstantiateWithoutPermissionIsForbidden, testInstantiateCreatesAnIndependentDraftTree) and CourseTemplateControllerTest. The happy paths through the CourseBuilder buttons stay covered by course-authoring-ux.spec.ts. -->
+
+#### Scenario: A failed instantiation leaves no partial course behind
+
+- **GIVEN** a template with modules and lessons
+- **WHEN** one of the writes fails while the new course is being built
+- **THEN** every object that request already created is removed again, newest first
+- **AND** the designer sees that the course could not be created
+
+<!-- @e2e exclude A write failing half way cannot be provoked from the browser; verified by PHPUnit CourseTemplateServiceTest::testAFailedInstantiationRemovesWhatItCreated. -->
+
+#### Scenario: The course builder reads all lessons of a course in one query
+
+- **GIVEN** a course with several modules
+- **WHEN** `CourseBuilder` opens it
+- **THEN** it makes one request (`GET /api/courses/{id}/structure`), and the server reads the lessons of every
+  module in one OpenRegister query on the list of module ids
+- **AND** modules and lessons arrive sorted by `order`, with a missing order last
+
+<!-- @e2e exclude The number of queries is not visible in the DOM; verified by PHPUnit CourseTemplateServiceTest::testStructureReadsAllLessonsInOneQuery. The rendered order stays covered by course-authoring-ux.spec.ts. -->
+
 ### Requirement: LessonPlayer renders a Lesson's authored blocks
 
 When `Lesson.contentType` is `text`, `LessonPlayer.vue` SHALL render `lesson.blocks` in `order`, dispatching
@@ -690,7 +721,7 @@ Learniq MUST declare a `StoreDescriptor` for schema `shared-course-package` (def
 
 #### Scenario: No registry configured
 - **GIVEN** `registry_url` is empty for learniq
-- **WHEN** a signed-in user opens the Store page
+- **WHEN** a signed-in user opens the Marketplace page
 - **THEN** the response outcome is `not_configured`, the card list is empty, and no request left the server
 
 #### Scenario: A teacher finds a shared course
@@ -871,11 +902,11 @@ the addition MUST be saved with the next "Save lesson". No assist result MUST ch
 - **AND** `Lesson.lifecycle` is unchanged
 
 ### Requirement: Any teacher installs a shared course as a copy
-Installing from the course store MUST require the ADR-023 action `course-store.install`, seeded `["admin", "instructors", "team-leads"]`, and MUST NOT require `course-package.import`, which stays the right to import Canvas and Moodle packages. The seed MUST name only groups that may create the objects an install writes (course, lesson, material). FEATURES tier: should (sharing, D27).
+Installing from the course marketplace MUST require the ADR-023 action `course-store.install`, seeded `["admin", "instructors", "team-leads"]`, and MUST NOT require `course-package.import`, which stays the right to import Canvas and Moodle packages. The seed MUST name only groups that may create the objects an install writes (course, lesson, material). FEATURES tier: should (sharing, D27).
 
 #### Scenario: A teacher installs a shared course
 - **GIVEN** a user in the `instructors` group only, and a configured registry holding "Betoog schrijven, havo 4"
-- **WHEN** the user installs it from the Store
+- **WHEN** the user installs it from the Marketplace
 - **THEN** the install passes the action check and the course is imported as the user's own copy
 
 #### Scenario: The package import stays with administrators
@@ -915,20 +946,20 @@ An upgrade MUST apply the store defaults to an existing matrix exactly once: it 
 - **THEN** `course-package.share` stays `["admin", "coordinators"]`
 
 ### Requirement: The Store page shows each user the actions they may take
-The app MUST provide initial state `storeAccess` as `{install, publish}` for the signed-in user: `install` is whether the matrix admits `course-store.install`; `publish` is whether the matrix admits `course-package.share`, the installed OpenRegister can publish, and the store plane admits the user. The app MUST pass `canInstall` and `canPublish` from that state to every `type: "store"` page, and the Store page MUST name `publishRoute: "CoursePackageExport"`. The export screen MUST show its publish button only when `storeAccess.publish` is true, and the export menu entry MUST admit `team-lead`. With a `CnStorePage` that predates these props, the page MUST keep showing Install to administrators only.
+The app MUST provide initial state `storeAccess` as `{install, publish}` for the signed-in user: `install` is whether the matrix admits `course-store.install`; `publish` is whether the matrix admits `course-package.share`, the installed OpenRegister can publish, and the store plane admits the user. The app MUST pass `canInstall` and `canPublish` from that state to every `type: "store"` page, and the Marketplace page MUST name `publishRoute: "CoursePackageExport"`. The export screen MUST show its publish button only when `storeAccess.publish` is true, and the export menu entry MUST admit `team-lead`. With a `CnStorePage` that predates these props, the page MUST keep showing Install to administrators only.
 
 #### Scenario: A teacher opens the Store
 - **GIVEN** a user in `instructors` only
-- **WHEN** the user opens the Store page
+- **WHEN** the user opens the Marketplace page
 - **THEN** `storeAccess` is `{install: true, publish: false}` and the page config carries `canInstall: true` and `canPublish: false`
 
 #### Scenario: A team lead opens the export screen
 - **GIVEN** a user in `team-leads` whose primary role is `team-lead`
 - **WHEN** the user opens the menu
-- **THEN** "Export course package" is listed, and the export screen shows "Publish to the course store"
+- **THEN** "Export course package" is listed, and the export screen shows "Publish to the course marketplace"
 
 ### Requirement: An administrator connects the course registry in the admin settings
-The Learniq admin settings page MUST offer a "Course store" section with the registry address, the register and the token. `GET /api/admin/store-registry` and `PUT /api/admin/store-registry` MUST be admin-only. The GET MUST return the address, the register and whether a token is set, and MUST NOT return the token. The PUT MUST accept an empty address (which disconnects the store) or an absolute `http` or `https` URL without user credentials, a register that is empty or a lowercase slug, and a token that is kept when omitted, replaced when given, and removed when `clearToken` is true. The token MUST be stored as a sensitive app config value under `registry_token`; the address and register under `registry_url` and `registry_register`, the keys the store plane reads.
+The Learniq admin settings page MUST offer a "Marketplace" section with the registry address, the register and the token. `GET /api/admin/store-registry` and `PUT /api/admin/store-registry` MUST be admin-only. The GET MUST return the address, the register and whether a token is set, and MUST NOT return the token. The PUT MUST accept an empty address (which disconnects the store) or an absolute `http` or `https` URL without user credentials, a register that is empty or a lowercase slug, and a token that is kept when omitted, replaced when given, and removed when `clearToken` is true. The token MUST be stored as a sensitive app config value under `registry_token`; the address and register under `registry_url` and `registry_register`, the keys the store plane reads.
 
 #### Scenario: An administrator connects a registry
 - **GIVEN** an administrator on the Learniq admin settings page
@@ -951,7 +982,7 @@ Learniq MUST publish a shared course only through OpenRegister's `GenericStoreSe
 #### Scenario: A passing course is published through the plane
 - **GIVEN** a configured registry, a user the matrix and the plane both admit, and a course that passes the sharing gate
 - **WHEN** the user publishes "Betoog schrijven, havo 4"
-- **THEN** learniq calls `GenericStoreService::publish()` once with the course store descriptor and a payload whose `slug` starts with `course-package-`
+- **THEN** learniq calls `GenericStoreService::publish()` once with the course marketplace descriptor and a payload whose `slug` starts with `course-package-`
 - **AND** the response carries outcome `ok` and that slug
 
 #### Scenario: Only listed properties may travel
@@ -965,7 +996,7 @@ Learniq MUST publish a shared course only through OpenRegister's `GenericStoreSe
 - **THEN** its `publishGroups` are `["admin", "team-leads"]`
 
 ### Requirement: The plane decides who may publish before a package is built
-`POST /api/store/publish` MUST keep `requireAction('course-package.share')` and MUST then ask OpenRegister's `StoreActionAuthorizer::canPublish()` with the course store descriptor. When the plane refuses, learniq MUST answer 403 with outcome `forbidden` and MUST NOT run the sharing gate, record consent or send anything. Every other plane outcome MUST map to a status: `ok` and `not_configured` 200, `too_large` 413, `rate_limited` 429, `store_unreachable`, `store_rejected` and `store_invalid_response` 502, `not_publishable` 500 (a learniq defect: the descriptor did not opt in).
+`POST /api/store/publish` MUST keep `requireAction('course-package.share')` and MUST then ask OpenRegister's `StoreActionAuthorizer::canPublish()` with the course marketplace descriptor. When the plane refuses, learniq MUST answer 403 with outcome `forbidden` and MUST NOT run the sharing gate, record consent or send anything. Every other plane outcome MUST map to a status: `ok` and `not_configured` 200, `too_large` 413, `rate_limited` 429, `store_unreachable`, `store_rejected` and `store_invalid_response` 502, `not_publishable` 500 (a learniq defect: the descriptor did not opt in).
 
 #### Scenario: The plane refuses a user the matrix admitted
 - **GIVEN** the matrix entry for `course-package.share` is an empty list, so the plane names nobody

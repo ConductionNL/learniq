@@ -27,7 +27,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use OCA\Learniq\Service\LearnerMergeService;
+use OCA\Learniq\Kernel\Contracts\LearnerMergeServiceInterface;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use Psr\Log\LoggerInterface;
@@ -40,13 +40,13 @@ class LearnerMergeGuard implements LifecycleGuardInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param LearnerMergeService $mergeService Merge validation.
+	 * @param LearnerMergeServiceInterface $mergeService Merge validation.
 	 * @param LoggerInterface     $logger       PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly LearnerMergeService $mergeService,
+		private readonly LearnerMergeServiceInterface $mergeService,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
