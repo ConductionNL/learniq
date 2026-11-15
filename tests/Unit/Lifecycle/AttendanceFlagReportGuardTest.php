@@ -30,6 +30,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * The report transition against integriq's job row.
@@ -48,6 +49,7 @@ class AttendanceFlagReportGuardTest extends TestCase {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
 			static function (...$args) use ($job, &$calls) {
+				$args = LegacyObjectArgs::positional(method: 'find', args: $args);
 				$calls[] = $args;
 				if ($job === null) {
 					throw new RuntimeException('not found');

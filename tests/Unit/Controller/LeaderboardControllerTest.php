@@ -35,6 +35,7 @@ use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for LeaderboardController::getRankings().
@@ -78,7 +79,11 @@ class LeaderboardControllerTest extends TestCase {
 		// and returns ?ObjectEntity. willReturnCallback() hands the closure the
 		// mock's arguments POSITIONALLY, so the closure must mirror that order.
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($cohort) {
+			function (int|string $id, ?ObjectFindOptions $options = null) use ($cohort) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema === 'cohort' && $cohort !== null) {
 					return OrEntityFactory::make($cohort, 'cohort');
 				}

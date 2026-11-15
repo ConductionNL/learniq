@@ -37,6 +37,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCA\Learniq\Tests\Support\CapturingLogger;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for the PokActivationGuard lifecycle guard (pending-signatures → active).
@@ -75,7 +76,11 @@ class PokActivationGuardTest extends TestCase {
 			}
 		);
 		$objectService->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($rows) {
+			static function (int|string $id, ?ObjectFindOptions $options = null) use ($rows) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if (isset($rows[(string)$schema][(string)$id]) === false) {
 					throw new DoesNotExistException('not found');
 				}
@@ -343,7 +348,11 @@ class PokActivationGuardTest extends TestCase {
 			}
 		);
 		$objectService->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($rows) {
+			static function (int|string $id, ?ObjectFindOptions $options = null) use ($rows) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if (isset($rows[(string)$schema][(string)$id]) === false) {
 					throw new DoesNotExistException('not found');
 				}

@@ -31,6 +31,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -185,8 +186,7 @@ class AttendanceFlagResolveGuard implements LifecycleGuardInterface {
 		try {
 			return $this->objectService->find(
 				id: $flagId,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::FLAG_SCHEMA,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::FLAG_SCHEMA),
 				_rbac: false,
 				_multitenancy: false
 			);

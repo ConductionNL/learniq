@@ -34,6 +34,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Detection of Word and PowerPoint files in a teacher's onboarding folder.
@@ -81,7 +82,7 @@ class LessonOnboardingFileListenerTest extends TestCase {
 	 */
 	private static function named(array $args): array {
 		$named = [];
-		foreach ((new \ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters() as $index => $parameter) {
+		foreach (LegacyObjectArgs::parameters(ObjectService::class, 'saveObject') as $index => $parameter) {
 			if (array_key_exists($index, $args) === true) {
 				$named[$parameter->getName()] = $args[$index];
 			}
@@ -136,6 +137,7 @@ class LessonOnboardingFileListenerTest extends TestCase {
 		$options = [];
 		$this->objectService->expects($this->once())->method('saveObject')->willReturnCallback(
 			function (...$args) use (&$saved, &$options) {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$options = self::named(args: $args);
 				$saved = $options['object'];
 				return $this->createStub(\OCA\OpenRegister\Db\ObjectEntity::class);
@@ -168,6 +170,7 @@ class LessonOnboardingFileListenerTest extends TestCase {
 		$format = null;
 		$this->objectService->expects($this->once())->method('saveObject')->willReturnCallback(
 			function (...$args) use (&$format) {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$format = self::named(args: $args)['object']['format'];
 				return $this->createStub(\OCA\OpenRegister\Db\ObjectEntity::class);
 			}

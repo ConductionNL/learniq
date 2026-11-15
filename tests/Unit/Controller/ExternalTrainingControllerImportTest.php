@@ -43,6 +43,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use ReflectionClass;
 use ReflectionNamedType;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * @covers \OCA\Learniq\Controller\ExternalTrainingController::import
@@ -96,7 +97,10 @@ class ExternalTrainingControllerImportTest extends TestCase {
 				: [])
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null) {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$this->saved[] = $object;
 				return OrEntityFactory::make($object, (string)$schema);
 			}

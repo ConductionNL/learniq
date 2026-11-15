@@ -31,6 +31,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Each reason a confirmed assessment emits nothing, as logged, and the full GradeEntry it writes.
@@ -76,7 +77,10 @@ class WerkprocesGradeEmitHandlerGuardsTest extends TestCase {
 			}
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$this->saved[] = ['register' => (string)$register, 'schema' => (string)$schema, 'object' => $object];
 				return OrEntityFactory::make($object, (string)$schema, (string)$register);
 			}

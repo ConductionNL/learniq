@@ -29,6 +29,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use ReflectionMethod;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Pins every ObjectService call LessonProgress::record() makes, per scenario,
@@ -173,9 +174,10 @@ class LessonProgressGoldenTest extends TestCase {
 				return $found;
 			}
 		);
-		$params = (new ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters();
+		$params = LegacyObjectArgs::parameters(ObjectService::class, 'saveObject');
 		$service->method('saveObject')->willReturnCallback(
 			static function (...$args) use ($params, &$calls) {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$named = [];
 				foreach ($args as $i => $value) {
 					if ($params[$i]->isDefaultValueAvailable() === true && $params[$i]->getDefaultValue() === $value) {

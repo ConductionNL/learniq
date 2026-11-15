@@ -14,6 +14,8 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests CoursePackageObjectWriter: the payload of every object a package
@@ -241,7 +243,11 @@ class CoursePackageObjectWriterTest extends TestCase {
 	public function testDeleteForwardsToTheLearniqRegister(): void {
 		$this->objectService->expects($this->once())
 			->method('deleteObject')
-			->with('obj-1', 'learniq', 'lesson')
+			->with(...LegacyObjectArgs::with(method: 'deleteObject', expected: [
+					'uuid' => 'obj-1',
+					'register' => 'learniq',
+					'schema' => 'lesson',
+				]))
 			->willReturn(true);
 
 		$this->writer()->delete(schema: 'lesson', uuid: 'obj-1');
@@ -271,7 +277,10 @@ class CoursePackageObjectWriterTest extends TestCase {
 		$this->objectService->expects($this->once())
 			->method('saveObject')
 			->willReturnCallback(
-				function (array $object, ?array $extend = [], $register = null, $savedSchema = null) use ($holder, $schema, $uuid) {
+				function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use ($holder, $schema, $uuid) {
+					$extend = $options->extend ?? [];
+					$register = $options->target->register;
+					$savedSchema = $options->target->schema;
 					$this->assertSame('learniq', $register);
 					$this->assertSame($schema, $savedSchema);
 					$holder->object = $object;

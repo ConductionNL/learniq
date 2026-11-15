@@ -32,6 +32,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use InvalidArgumentException;
 use RuntimeException;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Tests for SegmentService::currentSegment().
@@ -349,18 +350,18 @@ class SegmentServiceTest extends TestCase {
 		$objectService->method('findAll')->willReturn([]);
 		$objectService->expects(self::once())
 			->method('saveObject')
-			->with(
-				self::callback(
+			->with(...LegacyObjectArgs::with(method: 'saveObject', expected: [
+					'object' => self::callback(
 					static fn (array $data): bool => $data['segment'] === 'po'
 						&& $data['setBy'] === 'admin'
 						&& strtotime((string)$data['setAt']) !== false
 				),
-				self::anything(),
-				'learniq',
-				'learniqsettings',
-				null,
-				false
-			);
+					'extend' => self::anything(),
+					'register' => 'learniq',
+					'schema' => 'learniqsettings',
+					'uuid' => null,
+					'_rbac' => false,
+				]));
 
 		(new SegmentService($objectService, $this->createMock(LoggerInterface::class), $this->users()))->setSegment('po', 'admin');
 	}//end testSetSegmentCreatesTheRecordWhenNoneExists()
@@ -379,14 +380,14 @@ class SegmentServiceTest extends TestCase {
 		$objectService->method('findAll')->willReturn([$row]);
 		$objectService->expects(self::once())
 			->method('saveObject')
-			->with(
-				self::callback(static fn (array $data): bool => $data['segment'] === 'vo'),
-				self::anything(),
-				'learniq',
-				'learniqsettings',
-				'ee000000-0000-4000-8000-000000000001',
-				false
-			);
+			->with(...LegacyObjectArgs::with(method: 'saveObject', expected: [
+					'object' => self::callback(static fn (array $data): bool => $data['segment'] === 'vo'),
+					'extend' => self::anything(),
+					'register' => 'learniq',
+					'schema' => 'learniqsettings',
+					'uuid' => 'ee000000-0000-4000-8000-000000000001',
+					'_rbac' => false,
+				]));
 
 		(new SegmentService($objectService, $this->createMock(LoggerInterface::class), $this->users()))->setSegment('vo', 'admin');
 	}//end testSetSegmentUpdatesTheCurrentRecord()
