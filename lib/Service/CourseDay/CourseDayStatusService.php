@@ -26,6 +26,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\CourseDay;
 
 use OCA\Learniq\Kernel\Contracts\CourseDayStatusServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 
@@ -624,9 +626,10 @@ class CourseDayStatusService implements CourseDayStatusServiceInterface {
 	private function save(array $cohort, string $cohortId, array $changes): void {
 		$this->objectService->saveObject(
 			object: array_merge($cohort, $changes),
-			register: self::REGISTER,
-			schema: 'cohort',
-			uuid: $cohortId,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: 'cohort'),
+				uuid: $cohortId
+			),
 			_rbac: false,
 			_multitenancy: false
 		);
@@ -644,9 +647,10 @@ class CourseDayStatusService implements CourseDayStatusServiceInterface {
 	private function moveRow(string $schema, array $row, string $targetId): void {
 		$this->objectService->saveObject(
 			object: array_merge($row, ['cohortId' => $targetId]),
-			register: self::REGISTER,
-			schema: $schema,
-			uuid: self::idOf(row: $row),
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: $schema),
+				uuid: self::idOf(row: $row)
+			),
 			_rbac: false,
 			_multitenancy: false
 		);

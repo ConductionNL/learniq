@@ -22,6 +22,7 @@ namespace OCA\Learniq\Tests\Unit\Service\CourseDay;
 use DateTime;
 use OCA\Learniq\Service\CourseDay\CourseDayException;
 use OCA\Learniq\Service\CourseDay\CourseDayStatusService;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -60,7 +61,8 @@ class CourseDayActionsTest extends TestCase {
 			fn (array $config): array => ($this->rows[$config['filters']['schema']] ?? [])
 		);
 		$this->objects->method('saveObject')->willReturnCallback(
-			function (array $object, mixed $extend, mixed $register, string $schema, string $uuid): ObjectEntity {
+			function (mixed ...$args): ObjectEntity {
+				[$object, , , $schema, $uuid] = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$this->saves[] = [$schema, $object];
 				foreach (($this->rows[$schema] ?? []) as $i => $row) {
 					if (($row['id'] ?? null) === $uuid) {

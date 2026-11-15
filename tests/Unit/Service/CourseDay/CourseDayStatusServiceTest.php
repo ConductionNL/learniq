@@ -21,6 +21,7 @@ namespace OCA\Learniq\Tests\Unit\Service\CourseDay;
 
 use DateTime;
 use OCA\Learniq\Service\CourseDay\CourseDayStatusService;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -106,8 +107,8 @@ class CourseDayStatusServiceTest extends TestCase {
 		$service = $this->service();
 		$this->objects->expects(self::once())
 			->method('saveObject')
-			->with(
-				[
+			->with(...LegacyObjectArgs::with(method: 'saveObject', expected: [
+				'object' => [
 					'id' => 'c-22',
 					'courseId' => 'hybride',
 					'capacity' => 12,
@@ -116,11 +117,10 @@ class CourseDayStatusServiceTest extends TestCase {
 					'dayDate' => '2026-10-22',
 					'dayStatusLog' => [['kind' => 'derived', 'from' => 'open', 'to' => 'goes-ahead', 'by' => null, 'at' => '2026-10-05T09:00:00+02:00']],
 				],
-				self::anything(),
-				'learniq',
-				'cohort',
-				'c-22'
-			);
+				'register' => 'learniq',
+				'schema' => 'cohort',
+				'uuid' => 'c-22',
+			]));
 
 		self::assertSame('goes-ahead', $service->restamp(cohortId: 'c-22'));
 	}//end testTheSixthPlaceIsWritten()
