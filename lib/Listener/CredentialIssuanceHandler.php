@@ -46,6 +46,9 @@ use OCA\Learniq\Kernel\Contracts\EuropassIssuerInterface;
 use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -125,8 +128,7 @@ class CredentialIssuanceHandler implements IEventListener {
 		// Read the Course to check for certificateTemplate.
 		$courseObj = $this->objectService->find(
 			id: $courseId,
-			register: self::LEARNIQ_REGISTER,
-			schema: 'course'
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: 'course')
 		);
 
 		if ($courseObj === null) {
@@ -240,10 +242,11 @@ class CredentialIssuanceHandler implements IEventListener {
 		// hr and compliance officers only, so saving under the caller's rights
 		// refused every live issue (NotAuthorizedException, 2026-09-30).
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: 'credential',
 			object: $signed,
-			uuid: $credentialId,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: 'credential'),
+				uuid: $credentialId
+			),
 			_rbac: false
 		);
 	}//end saveSignedCredential()

@@ -52,6 +52,7 @@ use OCA\Learniq\Service\ConferenceBookingMode;
 use OCA\Learniq\Support\TextValue;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -265,8 +266,7 @@ class ConferenceSignupPortalStamp implements IEventListener {
 
 		$object = $this->objectService->find(
 			id: $id,
-			register: self::REGISTER,
-			schema: $schema,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: $schema),
 			_rbac: false,
 			_multitenancy: false
 		);

@@ -54,6 +54,9 @@ namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\Contracts\PeerReviewAllocationServiceInterface;
 use OCA\Learniq\Support\SerialisedRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use Psr\Log\LoggerInterface;
@@ -226,8 +229,6 @@ class PeerReviewAllocationService implements PeerReviewAllocationServiceInterfac
 			$assignedCount++;
 
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::PEER_REVIEW_SCHEMA,
 				object: [
 					'assignmentId' => $rotation->assignmentId,
 					'submissionId' => $need->submissionId,
@@ -236,6 +237,7 @@ class PeerReviewAllocationService implements PeerReviewAllocationServiceInterfac
 					'lifecycle' => 'assigned',
 					'tenant_id' => $need->submission['tenant_id'] ?? '',
 				],
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::PEER_REVIEW_SCHEMA)),
 				_rbac: false
 			);
 		}//end while
@@ -457,7 +459,7 @@ class PeerReviewAllocationService implements PeerReviewAllocationServiceInterfac
 	 */
 	private function fetchObject(string $id, string $schema): ?array {
 		try {
-			$obj = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
+			$obj = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema));
 		} catch (DoesNotExistException) {
 			$obj = null;
 		}

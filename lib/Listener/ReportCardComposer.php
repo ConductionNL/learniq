@@ -61,6 +61,9 @@ use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Kernel\Contracts\ReportCardTemplateSectionResolverInterface;
 use OCA\Learniq\Support\EntityRow;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -198,7 +201,10 @@ class ReportCardComposer implements IEventListener {
 				context: $context + ['cohortId' => $cohortId, 'templateId' => $cohortTemplateMap[$cohortId] ?? null]
 			);
 
-			$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA, object: $reportCard);
+			$this->objectService->saveObject(
+				object: $reportCard,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA))
+			);
 			$createdCount++;
 		}
 
@@ -281,7 +287,10 @@ class ReportCardComposer implements IEventListener {
 			return;
 		}
 
-		$period = $this->objectService->find(id: $reportPeriodId, register: self::LEARNIQ_REGISTER, schema: self::REPORT_PERIOD_SCHEMA);
+		$period = $this->objectService->find(
+			id: $reportPeriodId,
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::REPORT_PERIOD_SCHEMA)
+		);
 		if ($period === null) {
 			$this->logger->warning(
 				'[ReportCardComposer] ReportCard {id} recompose: governing ReportPeriod {period} not found.',
@@ -299,7 +308,10 @@ class ReportCardComposer implements IEventListener {
 		$updated['attendanceSummary'] = $attendanceSummary;
 		$updated['composedAt'] = $this->now();
 
-		$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA, object: $updated);
+		$this->objectService->saveObject(
+			object: $updated,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA))
+		);
 
 		$this->logger->info('[ReportCardComposer] ReportCard {id} recomposed.', ['id' => $cardId]);
 
@@ -357,7 +369,10 @@ class ReportCardComposer implements IEventListener {
 		$qualifying = [];
 
 		foreach ($curriculumPlanIds as $curriculumPlanId) {
-			$plan = $this->objectService->find(id: $curriculumPlanId, register: self::LEARNIQ_REGISTER, schema: self::CURRICULUM_PLAN_SCHEMA);
+			$plan = $this->objectService->find(
+				id: $curriculumPlanId,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::CURRICULUM_PLAN_SCHEMA)
+			);
 			if ($plan === null) {
 				continue;
 			}
@@ -401,7 +416,10 @@ class ReportCardComposer implements IEventListener {
 		$cohortTemplateMap = [];
 
 		foreach ($cohortIds as $cohortId) {
-			$cohort = $this->objectService->find(id: $cohortId, register: self::LEARNIQ_REGISTER, schema: self::COHORT_SCHEMA);
+			$cohort = $this->objectService->find(
+				id: $cohortId,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::COHORT_SCHEMA)
+			);
 			if ($cohort === null) {
 				continue;
 			}

@@ -39,6 +39,9 @@ use DateTimeZone;
 use OCA\Learniq\Kernel\Contracts\ExternalTrainingServiceInterface;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\Learniq\Support\ObjectRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -226,9 +229,8 @@ class ExternalTrainingService implements ExternalTrainingServiceInterface {
 			// Do NOT set lifecycle — OR defaults it to 'submitted' and fires the
 			// 'created' notification rule.
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::SCHEMA,
-				object: $record
+				object: $record,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::SCHEMA))
 			);
 		}//end foreach
 
@@ -285,7 +287,12 @@ class ExternalTrainingService implements ExternalTrainingServiceInterface {
 		}
 
 		$find = fn () => $this->objectService
-			->find(id: $profileId, register: self::LEARNIQ_REGISTER, schema: 'learner-profile', _rbac: false, _multitenancy: false);
+			->find(
+				id: $profileId,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: 'learner-profile'),
+				_rbac: false,
+				_multitenancy: false
+			);
 		$profile = $this->findOrNull(find: $find);
 
 		$ncUserId = ($profile?->jsonSerialize()['ncUserId'] ?? null);

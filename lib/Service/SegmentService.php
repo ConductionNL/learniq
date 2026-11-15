@@ -37,6 +37,8 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use InvalidArgumentException;
 use OCA\Learniq\Kernel\Contracts\SegmentServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
@@ -279,9 +281,10 @@ class SegmentService implements SegmentServiceInterface {
 		$current = $this->currentRow();
 		$this->objectService->saveObject(
 			object: $data,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::SETTINGS_SCHEMA,
-			uuid: ($current['uuid'] ?? null),
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::SETTINGS_SCHEMA),
+				uuid: $current['uuid'] ?? null
+			),
 			_rbac: false
 		);
 	}//end setSegment()

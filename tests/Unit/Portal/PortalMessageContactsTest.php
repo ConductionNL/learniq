@@ -34,6 +34,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * The teachers a resident may write to, over the seeded schools.
@@ -79,6 +80,7 @@ class PortalMessageContactsTest extends TestCase {
 		);
 		$store->method('find')->willReturnCallback(
 			function (...$args) use ($objects): ?ObjectEntity {
+				$args = LegacyObjectArgs::flatten(args: $args);
 				// find(id, _extend, files, register, schema, ...), positional through the mock.
 				[$id, $schema] = [($args['id'] ?? $args[0]), (string)($args['schema'] ?? $args[4] ?? '')];
 				foreach ($objects[$schema] ?? [] as $row) {
@@ -185,6 +187,7 @@ class PortalMessageContactsTest extends TestCase {
 		$store = $this->createMock(ObjectService::class);
 		$store->method('find')->willReturnCallback(
 			function (...$args) use ($rows): ?ObjectEntity {
+				$args = LegacyObjectArgs::flatten(args: $args);
 				$row = ($rows[(string)($args['schema'] ?? $args[4] ?? '')][(string)($args['id'] ?? $args[0])] ?? null);
 				if ($row === null) {
 					return null;

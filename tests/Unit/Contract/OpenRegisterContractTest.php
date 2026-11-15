@@ -72,7 +72,7 @@ final class OpenRegisterContractTest extends TestCase {
 			// `_audit` was appended by openregister c9d96966 (2026-08-13), which
 			// lets a read opt out of writing its audit row. It is APPENDED, so
 			// no existing positional closure shifted.
-			['id', '_extend', 'files', 'register', 'schema', '_rbac', '_multitenancy', '_render', '_audit']
+			['id', 'options', '_rbac', '_multitenancy']
 		);
 
 		$this->assertReturnTypeIs(
@@ -133,7 +133,7 @@ final class OpenRegisterContractTest extends TestCase {
 		);
 
 		$this->assertSame(
-			['object', 'extend', 'register', 'schema'],
+			['object', 'options', '_rbac', '_multitenancy'],
 			array_map(
 				static fn ($parameter): string => $parameter->getName(),
 				array_slice($parameters, 0, 4)

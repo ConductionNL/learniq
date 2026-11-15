@@ -56,6 +56,8 @@ use OCA\Learniq\Kernel\Contracts\ItemAnalysisServiceInterface;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Service\AssessmentObjectReads;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -280,9 +282,8 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	private function upsert(string $schema, array $fields): array {
 		$existingData = $this->existingRow(schema: $schema, keys: array_intersect_key($fields, array_flip(self::UPSERT_KEYS[$schema])));
 		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: $schema,
 			object: array_merge($existingData, $fields),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: $schema)),
 			_rbac: false
 		);
 
@@ -379,8 +380,6 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 
 		// System context (item-revision-flag): as above.
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ITEM_REVISION_FLAG_SCHEMA,
 			object: [
 				'itemId' => $flag['itemId'],
 				'itemStatisticsId' => $flag['itemStatisticsId'],
@@ -391,6 +390,10 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 				'lifecycle' => 'open',
 				'tenant_id' => $flag['tenantId'],
 			],
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(
+					register: self::LEARNIQ_REGISTER,
+					schema: self::ITEM_REVISION_FLAG_SCHEMA
+				)),
 			_rbac: false
 		);
 
