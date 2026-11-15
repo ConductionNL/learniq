@@ -30,7 +30,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/external-training-recording/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
  */
 
 declare(strict_types=1);
@@ -59,7 +59,7 @@ use Psr\Log\LoggerInterface;
  * declared on the same transition: OpenRegister calls guards by value, so a
  * guard can not write onto the object (learniq#983).
  *
- * @spec openspec/changes/external-training-recording/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
  */
 class ExternalTrainingVerificationGuard implements LifecycleGuardInterface {
 	/**
@@ -103,7 +103,7 @@ class ExternalTrainingVerificationGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with what is missing.
 	 *
-	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -153,14 +153,9 @@ class ExternalTrainingVerificationGuard implements LifecycleGuardInterface {
 	 * @return bool True when the user is in admin / compliance-officer / hr.
 	 */
 	private function actorIsVerifier(string $actor): bool {
-		$user = $this->userManager->get($actor);
-		if ($user === null) {
-			return false;
-		}
+		$groups = new ActorGroups(userManager: $this->userManager, groupManager: $this->groupManager);
 
-		$actorGroups = $this->groupManager->getUserGroupIds($user);
-
-		return count(array_intersect($actorGroups, self::VERIFIER_GROUPS)) > 0;
+		return $groups->isInAny(actor: $actor, groups: self::VERIFIER_GROUPS);
 	}//end actorIsVerifier()
 
 	/**

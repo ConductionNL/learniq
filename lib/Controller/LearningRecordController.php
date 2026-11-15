@@ -29,15 +29,15 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
+ * @spec openspec/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\LearningRecordAggregationService;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\LearningRecordAggregationServiceInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -48,7 +48,7 @@ use OCP\IUserSession;
 /**
  * Serves the calling user's own composed learning-record trajectory.
  *
- * @spec openspec/changes/portable-learning-record/tasks.md#task-2-2
+ * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-2-2
  */
 class LearningRecordController extends Controller {
 	/**
@@ -56,16 +56,16 @@ class LearningRecordController extends Controller {
 	 *
 	 * @param IRequest $request HTTP request.
 	 * @param IUserSession $userSession Current user session.
-	 * @param LearningRecordAggregationService $aggregationService Cross-schema read composition.
+	 * @param LearningRecordAggregationServiceInterface $aggregationService Cross-schema read composition.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
-		private readonly LearningRecordAggregationService $aggregationService,
+		private readonly LearningRecordAggregationServiceInterface $aggregationService,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -73,7 +73,7 @@ class LearningRecordController extends Controller {
 	 *
 	 * @return JSONResponse `{learnerRef, ...composition}` or an error response.
 	 *
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-learner-opens-their-aggregate-record-and-sees-composed-read-only-data
+	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-learner-opens-their-aggregate-record-and-sees-composed-read-only-data
 	 */
 	#[NoAdminRequired]
 	public function mine(): JSONResponse {

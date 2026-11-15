@@ -1,0 +1,24 @@
+# Tasks: employer-portal-audience
+
+- [x] **T1**: schemas `client-organisation`, `course-booking`; `LearnerProfile.organisationRef`, `fullName`; the enrolment's employer fields; register 0.36.0
+  - `npm run check:register`, `check:schema-l10n`; PHPUnit through RegisterFaithfulStore (filters on the new fields)
+- [x] **T2**: readable copies: an enrolment's `learnerName`, `courseName`, `organisationRef`; a profile's `fullName`
+  - PHPUnit `ReadableCopyStampTest::testAnEnrolmentNamesItsParticipantCourseAndEmployer`, `BackfillReadableCopiesTest`
+- [x] **T3**: `EmployerBookingFacts` and `EmployerBookingProjection`: day, time, place, trainer, people, status, note, due time, participant tasks
+  - PHPUnit `EmployerBookingFactsTest`
+- [x] **T4**: `EmployerSitePages`: the employer audience, collections, three forms, overview, bookings page with steps, employees
+  - PHPUnit `EmployerSitePagesTest`, `PortalContributionProviderTest`, `PortalLabelTranslatorTest`; run through portaliq's `PortalManifestNormaliser` (development ca59103): only the `count` widget keys dropped
+- [x] **T5**: `PortalEmployerController` + `PortalEmployerBookings`: book, add a participant, supply a birth date; only her own company
+  - PHPUnit `PortalEmployerBookingsTest`
+- [x] **T6**: `EmployerBookingSteps` and the provider method `employerBookingSteps`
+  - PHPUnit `EmployerBookingFactsTest::testTheStepsOfABookingThatWaitsForADetail`, `EmployerSitePagesTest::testTheStepsProviderAsksTheService`
+- [x] **T7**: `EmployerBookingCascade` + `EmployerBookingRestampJob` (deferred)
+  - PHPUnit `EmployerBookingCascadeTest`
+- [x] **T8**: `EmployerPortalInvitation`, `occ learniq:portal:invite-employer`
+  - PHPUnit `EmployerSitePagesTest::testTheInvitationWritesTheClaimsTheCollectionsRead`
+- [x] **T9**: the training set: Jansen as `client-organisation`, its people, four bookings; Linda's account in the declaration
+  - `python3 scripts/example-sets/training.py --check`; PHPUnit `EmployerBookingFactsTest::testTheSeededBookingsAgreeWithTheServer`, the example-set tests
+- [x] **T10**: Dutch for every label, step and schema string
+  - `npm run check:l10n-js`, `check:schema-l10n`, `check:l10n`
+- [ ] **T11**: e2e: Linda's overview and bookings on the proof instance
+  - `tests/e2e/portal-design/warmtepompacademie.spec.ts` (written; runs on the spin-up after `occ learniq:example-set:load training` and Linda's password)

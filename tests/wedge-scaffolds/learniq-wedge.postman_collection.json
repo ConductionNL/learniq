@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "learniq-collection",
 		"name": "Learniq Integration Tests",
-		"description": "Integration test collection for the learniq Nextcloud app. One folder per capability spec (14 folders) covering the 19 critical-priority user stories captured in `intelligence-db.user_stories` (app_id=learniq, priority=critical). All requests are TDD stubs — they assert the contract the implementation must satisfy. They will fail until the corresponding endpoints land. Folder order follows the Learniq wedge plan: Phase 1 (course-management, enrolment, certification, compliance-audit), then dashboard + shell, then assessment surfaces, then NL-gatekeeper integrations and identity federation.",
+		"description": "@newman exclude CI does not run this collection: it is a wedge scaffold of TDD stubs that assert a contract, kept as a reference, and enable-newman is false in .github/workflows/code-quality.yml. Integration test collection for the learniq Nextcloud app. One folder per capability spec (14 folders) covering the 19 critical-priority user stories captured in `intelligence-db.user_stories` (app_id=learniq, priority=critical). All requests are TDD stubs — they assert the contract the implementation must satisfy. They will fail until the corresponding endpoints land. Folder order follows the Learniq wedge plan: Phase 1 (course-management, enrolment, certification, compliance-audit), then dashboard + shell, then assessment surfaces, then NL-gatekeeper integrations and identity federation.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"auth": {

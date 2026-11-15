@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/staff-role-vocabulary-extension/tasks.md#task-3-register-shape-tests
+ * @spec openspec/changes/archive/2026-09-28-staff-role-vocabulary-extension/tasks.md#task-3-register-shape-tests
  */
 
 declare(strict_types=1);

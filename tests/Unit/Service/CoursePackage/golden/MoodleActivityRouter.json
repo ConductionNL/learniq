@@ -1,0 +1,299 @@
+{
+    "scorm": {
+        "entries": [
+            {
+                "existing": true
+            },
+            {
+                "resourceIdentifier": "1",
+                "resourceType": "scorm",
+                "title": "Activity 1",
+                "result": {
+                    "outcome": "dropped",
+                    "targetType": null,
+                    "targetId": null,
+                    "reason": "requires ADR-002's lesson-content importer, not yet implemented"
+                }
+            }
+        ],
+        "calls": "[]"
+    },
+    "cmi5": {
+        "entries": [
+            {
+                "existing": true
+            },
+            {
+                "resourceIdentifier": "2",
+                "resourceType": "cmi5",
+                "title": "Activity 2",
+                "result": {
+                    "outcome": "dropped",
+                    "targetType": null,
+                    "targetId": null,
+                    "reason": "requires ADR-002's lesson-content importer, not yet implemented"
+                }
+            }
+        ],
+        "calls": "[]"
+    },
+    "forum": {
+        "entries": [
+            {
+                "existing": true
+            },
+            {
+                "resourceIdentifier": "3",
+                "resourceType": "forum",
+                "title": "Activity 3",
+                "result": {
+                    "outcome": "dropped",
+                    "targetType": null,
+                    "targetId": null,
+                    "reason": "No Learniq schema represents Moodle's forum module \u2014 migrate manually."
+                }
+            }
+        ],
+        "calls": "[]"
+    },
+    "wiki": {
+        "entries": [
+            {
+                "existing": true
+            },
+            {
+                "resourceIdentifier": "4",
+                "resourceType": "wiki",
+                "title": "Activity 4",
+                "result": {
+                    "outcome": "dropped",
+                    "targetType": null,
+                    "targetId": null,
+                    "reason": "No Learniq schema represents Moodle's wiki module \u2014 migrate manually."
+                }
+            }
+        ],
+        "calls": "[]"
+    },
+    "unknown": {
+        "entries": [
+            {
+                "existing": true
+            },
+            {
+                "resourceIdentifier": "5",
+                "resourceType": "chat",
+                "title": "Activity 5",
+                "result": {
+                    "outcome": "dropped",
+                    "targetType": null,
+                    "targetId": null,
+                    "reason": "Moodle module type not supported: chat."
+                }
+            }
+        ],
+        "calls": "[]"
+    },
+    "resource with directory": {
+        "entries": [
+            {
+                "existing": true
+            },
+            {
+                "resourceIdentifier": "10",
+                "resourceType": "resource",
+                "title": "Activity 10",
+                "result": {
+                    "outcome": "imported",
+                    "targetType": "material",
+                    "targetId": "material-2",
+                    "reason": null
+                }
+            }
+        ],
+        "calls": "[[\"resolveFileRef\",\"<dir>\",\"activities/resource_10/content.html\",\"anna\",\"tenant-1\"],[\"createMaterial\",{\"title\":\"Activity 10\",\"kind\":\"document\",\"fileRef\":\"file:activities/resource_10/content.html\",\"url\":null,\"courseId\":\"course-1\"},\"tenant-1\"],[\"createLesson\",{\"courseId\":\"course-1\",\"title\":\"Activity 10\",\"order\":10,\"contentType\":\"text\",\"contentRef\":\"material-2\"},\"tenant-1\"]]"
+    },
+    "page without directory": {
+        "entries": [
+            {
+                "existing": true
+            },
+            {
+                "resourceIdentifier": "11",
+                "resourceType": "page",
+                "title": "Activity 11",
+                "result": {
+                    "outcome": "imported",
+                    "targetType": "material",
+                    "targetId": "material-2",
+                    "reason": null
+                }
+            }
+        ],
+        "calls": "[[\"resolveFileRef\",\"<dir>\",null,\"anna\",\"tenant-1\"],[\"createMaterial\",{\"title\":\"Activity 11\",\"kind\":\"document\",\"fileRef\":null,\"url\":null,\"courseId\":\"course-1\"},\"tenant-1\"],[\"createLesson\",{\"courseId\":\"course-1\",\"title\":\"Activity 11\",\"order\":11,\"contentType\":\"text\",\"contentRef\":\"material-2\"},\"tenant-1\"]]"
+    },
+    "url resolved": {
+        "entries": [
+            {
+                "existing": true
+            },
+            {
+                "resourceIdentifier": "12",
+                "resourceType": "url",
+                "title": "Activity 12",
+                "result": {
+                    "outcome": "imported",
+                    "targetType": "material",
+                    "targetId": "material-2",
+                    "reason": null
+                }
+            }
+        ],
+        "calls": "[[\"readTextContent\",\"<dir>/activities/url_12/url.xml\",\"externalurl\"],[\"createMaterial\",{\"title\":\"Activity 12\",\"kind\":\"link\",\"fileRef\":null,\"url\":\"https://example.org/target\",\"courseId\":\"course-1\"},\"tenant-1\"]]"
+    },
+    "url unresolved": {
+        "entries": [
+            {
+                "existing": true
+            },
+            {
+                "resourceIdentifier": "13",
+                "resourceType": "url",
+                "title": "Activity 13",
+                "result": {
+                    "outcome": "imported",
+                    "targetType": "material",
+                    "targetId": "material-2",
+                    "reason": null
+                }
+            }
+        ],
+        "calls": "[[\"readTextContent\",\"<dir>/activities/url_missing/url.xml\",\"externalurl\"],[\"createMaterial\",{\"title\":\"Activity 13\",\"kind\":\"link\",\"fileRef\":null,\"url\":\"Activity 13\",\"courseId\":\"course-1\"},\"tenant-1\"]]"
+    },
+    "url without directory": {
+        "entries": [
+            {
+                "existing": true
+            },
+            {
+                "resourceIdentifier": "14",
+                "resourceType": "url",
+                "title": "Activity 14",
+                "result": {
+                    "outcome": "imported",
+                    "targetType": "material",
+                    "targetId": "material-1",
+                    "reason": null
+                }
+            }
+        ],
+        "calls": "[[\"createMaterial\",{\"title\":\"Activity 14\",\"kind\":\"link\",\"fileRef\":null,\"url\":\"Activity 14\",\"courseId\":\"course-1\"},\"tenant-1\"]]"
+    },
+    "assign": {
+        "entries": [
+            {
+                "existing": true
+            },
+            {
+                "resourceIdentifier": "15",
+                "resourceType": "assign",
+                "title": "Activity 15",
+                "result": {
+                    "outcome": "degraded",
+                    "targetType": "assignment",
+                    "targetId": "assignment-1",
+                    "reason": "Moodle-specific grading-workflow configuration (peer review, group config) was not carried over."
+                }
+            }
+        ],
+        "calls": "[[\"create\",\"assignment\",{\"title\":\"Activity 15\",\"instructions\":\"\",\"courseId\":\"course-1\",\"maxPoints\":100,\"tenant_id\":\"tenant-1\",\"lifecycle\":\"draft\"}]]"
+    },
+    "quiz without directory": {
+        "entries": [
+            {
+                "existing": true
+            },
+            {
+                "resourceIdentifier": "16",
+                "resourceType": "quiz",
+                "title": "Activity 16",
+                "result": {
+                    "outcome": "dropped",
+                    "targetType": null,
+                    "targetId": null,
+                    "reason": "Quiz activity has no readable question bank in the package."
+                }
+            }
+        ],
+        "calls": "[]"
+    },
+    "quiz without bank": {
+        "entries": [
+            {
+                "existing": true
+            },
+            {
+                "resourceIdentifier": "17",
+                "resourceType": "quiz",
+                "title": "Activity 17",
+                "result": {
+                    "outcome": "dropped",
+                    "targetType": null,
+                    "targetId": null,
+                    "reason": "Quiz activity has no readable question bank in the package."
+                }
+            }
+        ],
+        "calls": "[]"
+    },
+    "quiz with bank": {
+        "entries": [
+            {
+                "existing": true
+            },
+            {
+                "resourceIdentifier": "18-q0",
+                "resourceType": "quiz-question:multichoice",
+                "title": "Q one",
+                "result": {
+                    "outcome": "degraded",
+                    "targetType": "item",
+                    "targetId": "item-3",
+                    "reason": "Mapped from Moodle question XML, not QTI \u2014 verify correctResponse before publishing."
+                }
+            },
+            {
+                "resourceIdentifier": "18-q1",
+                "resourceType": "quiz-question:ddwtos",
+                "title": "Q two",
+                "result": {
+                    "outcome": "dropped",
+                    "targetType": null,
+                    "targetId": null,
+                    "reason": "Unsupported question type."
+                }
+            }
+        ],
+        "calls": "[[\"createItemBank\",\"Activity 18\",\"tenant-1\"],[\"mapQuestions\",\"<dir>/activities/quiz_6/questions.xml\",\"bank-1\",\"tenant-1\"],[\"create\",\"item\",{\"stem\":\"one\",\"itemBankId\":\"bank-1\"}]]"
+    },
+    "failing material": {
+        "entries": [
+            {
+                "existing": true
+            },
+            {
+                "resourceIdentifier": "19",
+                "resourceType": "resource",
+                "title": "boom",
+                "result": {
+                    "outcome": "dropped",
+                    "targetType": null,
+                    "targetId": null,
+                    "reason": "Import failed: material store down"
+                }
+            }
+        ],
+        "calls": "[[\"resolveFileRef\",\"<dir>\",null,\"anna\",\"tenant-1\"],[\"createMaterial\",{\"title\":\"boom\",\"kind\":\"document\",\"fileRef\":null,\"url\":null,\"courseId\":\"course-1\"},\"tenant-1\"]]"
+    },
+    "log": "[{\"level\":\"warning\",\"message\":\"[MoodleActivityRouter] Moodle activity {id} failed to import: {msg}\",\"context\":{\"id\":\"19\",\"msg\":\"material store down\"}}]"
+}

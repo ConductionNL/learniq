@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
+ * @spec openspec/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
  */
 
 declare(strict_types=1);
@@ -38,7 +38,7 @@ use RuntimeException;
 /**
  * Calls shillinq's contribution raise service in process, duck-typed.
  *
- * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
+ * @spec openspec/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
  */
 class ShillinqContributionClient {
 
@@ -69,7 +69,7 @@ class ShillinqContributionClient {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
+	 * @spec openspec/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
 	 */
 	public function isAvailable(): bool {
 		return $this->appManager->isInstalled(self::SHILLINQ_APP) === true && class_exists(self::RAISE_SERVICE) === true;
@@ -88,7 +88,7 @@ class ShillinqContributionClient {
 	 *
 	 * @throws RuntimeException When shillinq is not available or answers with something that is not an array.
 	 *
-	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
+	 * @spec openspec/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
 	 */
 	public function raise(array $payload): array {
 		if ($this->isAvailable() === false) {

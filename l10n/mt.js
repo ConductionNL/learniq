@@ -1,3 +1,7 @@
+/**
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ */
 OC.L10N.register(
     "learniq",
     {
@@ -466,7 +470,7 @@ OC.L10N.register(
         "How each assessment item performed, question by question.": "Kif mar kull oġġett ta' valutazzjoni, mistoqsija b'mistoqsija.",
         "What course evaluations said, per course.": "X'qalu l-evalwazzjonijiet tal-kors, kull kors.",
         "What was found on placement visits.": "X'instab fiż-żjarat fuq il-post tax-xogħol.",
-        "Store": "Ħanut",
+        "Marketplace": "Ħanut",
         "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Installa reġistri, skemi u flussi ppubblikati minn organizzazzjonijiet oħra.",
         "Enter the access code you were given to start this assessment.": "Daħħal il-kodiċi tal-aċċess li ngħatajt biex tibda din il-valutazzjoni.",
         "Access code": "Kodiċi tal-aċċess",

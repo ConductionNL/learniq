@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eportfolio/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+ * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
  */
 
 declare(strict_types=1);
@@ -34,8 +34,8 @@ use Psr\Log\LoggerInterface;
 /**
  * Tests for PortfolioGradeEmitHandler::handle() on Portfolio → graded.
  *
- * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-graded-course-bound-portfolio-flows-through-the-existing-gradeentry-pipeline-not-a-parallel-one
- * @spec openspec/changes/eportfolio/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+ * @spec openspec/specs/eportfolio/spec.md#requirement-a-graded-course-bound-portfolio-flows-through-the-existing-gradeentry-pipeline-not-a-parallel-one
+ * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
  */
 class PortfolioGradeEmitHandlerTest extends TestCase {
 
@@ -62,10 +62,11 @@ class PortfolioGradeEmitHandlerTest extends TestCase {
 	 *
 	 * @param array<string, mixed>|null $curriculumPlan CurriculumPlan returned for
 	 *                                                  curriculum-plan lookups.
+	 * @param bool                      $assignsId      Whether a saved GradeEntry comes back with an id.
 	 *
 	 * @return PortfolioGradeEmitHandler
 	 */
-	private function makeHandler(?array $curriculumPlan): PortfolioGradeEmitHandler {
+	private function makeHandler(?array $curriculumPlan, bool $assignsId=true): PortfolioGradeEmitHandler {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($curriculumPlan) {
@@ -78,7 +79,7 @@ class PortfolioGradeEmitHandlerTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null) use ($assignsId): ObjectEntity {
 				$schema = (string)$schema;
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 
@@ -87,7 +88,7 @@ class PortfolioGradeEmitHandlerTest extends TestCase {
 					'schema' => $schema,
 					'object' => $data,
 				];
-				if ($schema === 'grade-entry' && ($data['id'] ?? null) === null) {
+				if ($assignsId === true && $schema === 'grade-entry' && ($data['id'] ?? null) === null) {
 					$data['id'] = 'grade-entry-generated';
 				}
 
@@ -95,7 +96,7 @@ class PortfolioGradeEmitHandlerTest extends TestCase {
 			}
 		);
 
-		return new PortfolioGradeEmitHandler($objectService, $this->createMock(LoggerInterface::class));
+		return new PortfolioGradeEmitHandler($objectService, $this->createMock(LoggerInterface::class), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**
@@ -190,6 +191,35 @@ class PortfolioGradeEmitHandlerTest extends TestCase {
 		$this->assertCount(0, $this->savedObjects);
 
 	}//end testNoDuplicateWhenGradeEntryIdAlreadySet()
+
+	/**
+	 * A GradeEntry that comes back without an id is not linked onto the Portfolio.
+	 *
+	 * @return void
+	 */
+	public function testAGradeEntryWithoutAnIdIsNotLinkedBack(): void {
+		$handler = $this->makeHandler(['id' => 'plan-1', 'gradeScaleId' => 'scale-numeric'], assignsId: false);
+
+		$handler->handle(
+			$this->makeEvent(
+				[
+					'id' => 'portfolio-1',
+					'learnerId' => 'learner-7',
+					'curriculumPlanId' => 'plan-1',
+					'curriculumPlanComponentId' => 'component-9',
+					'gradeValue' => '6',
+					'tenant_id' => 'tenant-a',
+				]
+			)
+		);
+
+		$this->assertCount(1, $this->savedObjects);
+		$this->assertSame('grade-entry', $this->savedObjects[0]['schema']);
+		$this->assertSame(6.0, $this->savedObjects[0]['object']['value']);
+		$this->assertSame('scale-numeric', $this->savedObjects[0]['object']['gradeScaleId']);
+		$this->assertSame('teacher-1', $this->savedObjects[0]['object']['grader']);
+
+	}//end testAGradeEntryWithoutAnIdIsNotLinkedBack()
 
 	/**
 	 * A graded Portfolio missing a required field (learnerId/curriculumPlanId/

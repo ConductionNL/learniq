@@ -3,6 +3,9 @@
 /**
  * Learniq Entitlement Payment Settled Guard
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the Entitlement `grant` transition (pending -> active).
  * Replaces EntitlementOrderPaidGuard (D19, payments-to-shillinq-migration):
  * learniq no longer keeps orders or payment transactions. A school raises a
@@ -38,20 +41,18 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-an-entitlement-is-granted-only-once-shillinq-reports-its-payment-request-settled
+ * @spec openspec/specs/payments/spec.md#requirement-an-entitlement-is-granted-only-once-shillinq-reports-its-payment-request-settled
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use OCA\Learniq\Service\ContributionBeneficiaryResolver;
+use OCA\Learniq\Kernel\Contracts\ContributionBeneficiaryResolverInterface;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -62,7 +63,7 @@ use Throwable;
 /**
  * Guards the Entitlement `grant` transition on shillinq's settled signal.
  *
- * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-an-entitlement-is-granted-only-once-shillinq-reports-its-payment-request-settled
+ * @spec openspec/specs/payments/spec.md#requirement-an-entitlement-is-granted-only-once-shillinq-reports-its-payment-request-settled
  */
 class EntitlementPaymentSettledGuard implements LifecycleGuardInterface {
 
@@ -81,7 +82,7 @@ class EntitlementPaymentSettledGuard implements LifecycleGuardInterface {
 	 *
 	 * @param ObjectService $objectService OpenRegister object access (reads shillinq's register).
 	 * @param IAppManager $appManager Tells "shillinq absent" from "not paid".
-	 * @param ContributionBeneficiaryResolver $contributions Reads the request's chargeable and beneficiary.
+	 * @param ContributionBeneficiaryResolverInterface $contributions Reads the request's chargeable and beneficiary.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
@@ -89,7 +90,7 @@ class EntitlementPaymentSettledGuard implements LifecycleGuardInterface {
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly IAppManager $appManager,
-		private readonly ContributionBeneficiaryResolver $contributions,
+		private readonly ContributionBeneficiaryResolverInterface $contributions,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -103,7 +104,7 @@ class EntitlementPaymentSettledGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
-	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-an-entitlement-is-granted-only-once-shillinq-reports-its-payment-request-settled
+	 * @spec openspec/specs/payments/spec.md#requirement-an-entitlement-is-granted-only-once-shillinq-reports-its-payment-request-settled
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */

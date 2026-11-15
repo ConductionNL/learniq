@@ -29,21 +29,24 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-year-rollover/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\RolloverServiceInterface;
+use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\AppFramework\Db\DoesNotExistException;
 
 /**
  * Mapping-proposal and preview semantics for the school-year rollover.
  *
- * @spec openspec/changes/school-year-rollover/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
  */
-class RolloverService {
+class RolloverService implements RolloverServiceInterface {
 	/**
 	 * OpenRegister register slug.
 	 */
@@ -57,6 +60,13 @@ class RolloverService {
 	private const TERMINAL_ENROLMENT_STATES = ['completed', 'withdrawn', 'cancelled', 'expired'];
 
 	/**
+	 * Turns one OpenRegister result into a plain array.
+	 *
+	 * @var ObjectRow
+	 */
+	private readonly ObjectRow $objectRow;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object query/persistence.
@@ -64,6 +74,7 @@ class RolloverService {
 	public function __construct(
 		private readonly ObjectService $objectService,
 	) {
+		$this->objectRow = new ObjectRow();
 	}//end __construct()
 
 	/**
@@ -81,7 +92,7 @@ class RolloverService {
 	 *
 	 * @return array<int,array<string,mixed>> Proposed mappings.
 	 *
-	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
 	 */
 	public function proposeDefaultMapping(array $fromCohorts): array {
 		$mappings = [];
@@ -121,7 +132,7 @@ class RolloverService {
 	 *
 	 * @return array<string,mixed> The dry-run report.
 	 *
-	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
 	 */
 	public function preview(array $plan): array {
 		$mappings = (array)($plan['mappings'] ?? []);
@@ -137,52 +148,84 @@ class RolloverService {
 		];
 
 		foreach ($mappings as $mapping) {
-			$fromCohortId = (string)($mapping['fromCohortId'] ?? '');
-			$action = ($mapping['action'] ?? null);
-
-			if ($action === null) {
-				$report['blocked'] = true;
-				$report['blockingCohorts'][] = $fromCohortId;
-				continue;
-			}
-
-			$cohort = $this->loadCohort(cohortId: $fromCohortId);
-			$members = (array)($cohort['learnerIds'] ?? []);
-
-			if ($action === 'dissolve') {
-				$report['counts']['dissolve']++;
-				continue;
-			}
-
-			if ($action === 'graduate') {
-				$report['counts']['graduate'] += count($members);
-				continue;
-			}
-
-			// Promote: classify each member by override.
-			$toCohortName = (string)($mapping['toCohortName'] ?? '');
-			if ($toCohortName !== '') {
-				$report['cohortsToCreate'][] = $toCohortName;
-				$report['ncGroupsToSync'][] = $this->groupName(academicYear: (string)($plan['toAcademicYear'] ?? ''), cohortName: $toCohortName);
-			}
-
-			foreach ($members as $learnerId) {
-				$learnerAction = ($overrides[$learnerId]['action'] ?? 'promote');
-				$report['counts'][$learnerAction] = (($report['counts'][$learnerAction] ?? 0) + 1);
-			}
-
-			$report['enrolmentsToCarry'] += $this->countCarryableEnrolments(
-				learnerIds: $members,
-				overrides: $overrides,
-				carryNonMandatory: (bool)($mapping['carryNonMandatory'] ?? false)
-			);
-		}//end foreach
+			$report = $this->tallyMapping(report: $report, job: ['mapping' => $mapping, 'plan' => $plan, 'overrides' => $overrides]);
+		}
 
 		$report['cohortsToCreate'] = array_values(array_unique($report['cohortsToCreate']));
 		$report['ncGroupsToSync'] = array_values(array_unique($report['ncGroupsToSync']));
 
 		return $report;
 	}//end preview()
+
+	/**
+	 * Add one cohort mapping to the preview report.
+	 *
+	 * @param array<string, mixed> $report The report so far.
+	 * @param array<string, mixed> $job    mapping, plan and the indexed learner overrides.
+	 *
+	 * @return array<string, mixed> The report with the mapping counted.
+	 *
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
+	 */
+	private function tallyMapping(array $report, array $job): array {
+		$mapping = $job['mapping'];
+		$fromCohortId = (string)($mapping['fromCohortId'] ?? '');
+		$action = ($mapping['action'] ?? null);
+
+		if ($action === null) {
+			$report['blocked'] = true;
+			$report['blockingCohorts'][] = $fromCohortId;
+			return $report;
+		}
+
+		$cohort = $this->loadCohort(cohortId: $fromCohortId);
+		$members = (array)($cohort['learnerIds'] ?? []);
+
+		if ($action === 'dissolve') {
+			$report['counts']['dissolve']++;
+			return $report;
+		}
+
+		if ($action === 'graduate') {
+			$report['counts']['graduate'] += count($members);
+			return $report;
+		}
+
+		return $this->tallyPromotion(report: $report, job: $job + ['members' => $members]);
+	}//end tallyMapping()
+
+	/**
+	 * Add a promoting mapping: the cohort to create, its group, each member classified by override,
+	 * and the enrolments to carry.
+	 *
+	 * @param array<string, mixed> $report The report so far.
+	 * @param array<string, mixed> $job    mapping, plan, overrides and the cohort's members.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
+	 */
+	private function tallyPromotion(array $report, array $job): array {
+		$mapping = $job['mapping'];
+		$toCohortName = (string)($mapping['toCohortName'] ?? '');
+		if ($toCohortName !== '') {
+			$report['cohortsToCreate'][] = $toCohortName;
+			$report['ncGroupsToSync'][] = $this->groupName(academicYear: (string)($job['plan']['toAcademicYear'] ?? ''), cohortName: $toCohortName);
+		}
+
+		foreach ($job['members'] as $learnerId) {
+			$learnerAction = ($job['overrides'][$learnerId]['action'] ?? 'promote');
+			$report['counts'][$learnerAction] = (($report['counts'][$learnerAction] ?? 0) + 1);
+		}
+
+		$report['enrolmentsToCarry'] += $this->countCarryableEnrolments(
+			learnerIds: $job['members'],
+			overrides: $job['overrides'],
+			carryNonMandatory: (bool)($mapping['carryNonMandatory'] ?? false)
+		);
+
+		return $report;
+	}//end tallyPromotion()
 
 	/**
 	 * Deterministic NC group name for a to-year cohort.
@@ -192,7 +235,7 @@ class RolloverService {
 	 *
 	 * @return string A stable group identifier.
 	 *
-	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
 	 */
 	public function groupName(string $academicYear, string $cohortName): string {
 		$slug = strtolower(preg_replace('/[^A-Za-z0-9]+/', '-', $academicYear . '-' . $cohortName) ?? '');
@@ -210,7 +253,7 @@ class RolloverService {
 	 *
 	 * @return bool True when the stored dryRunReport matches the current mappings.
 	 *
-	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
 	 */
 	public function previewMatchesMappings(array $plan): bool {
 		$stored = ($plan['dryRunReport'] ?? null);
@@ -235,7 +278,7 @@ class RolloverService {
 	 *
 	 * @return array<string,array<string,mixed>> Indexed overrides.
 	 *
-	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
 	 */
 	public function indexOverrides(array $overrides): array {
 		$indexed = [];
@@ -259,14 +302,19 @@ class RolloverService {
 	 *
 	 * @return array<string,mixed> The cohort, or an empty array when not found.
 	 *
-	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
 	 */
 	public function loadCohort(string $cohortId): array {
 		if ($cohortId === '') {
 			return [];
 		}
 
-		$obj = $this->objectService->find(id: $cohortId, register: self::LEARNIQ_REGISTER, schema: 'cohort');
+		try {
+			$obj = $this->objectService->find(id: $cohortId, register: self::LEARNIQ_REGISTER, schema: 'cohort');
+		} catch (DoesNotExistException) {
+			return [];
+		}
+
 		if ($obj === null) {
 			return [];
 		}
@@ -283,18 +331,10 @@ class RolloverService {
 	 *
 	 * @return array<string,mixed> The row as an associative array.
 	 *
-	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
 	 */
 	public function toArray(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-			return (array)$row->jsonSerialize();
-		}
-
-		return [];
+		return $this->objectRow->asArray(object: $row);
 	}//end toArray()
 
 	/**

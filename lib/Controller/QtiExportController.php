@@ -3,7 +3,7 @@
 /**
  * Learniq QTI Export Controller
  *
- * Thin HTTP endpoint that streams an ItemBank's QTI 3.0 export package.
+ * Thin HTTP endpoint that streams an ItemBank's QTI 2.1 export package.
  * All heavy lifting is delegated to QtiExportService — this controller is
  * intentionally thin per ADR-022.
  *
@@ -23,16 +23,16 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-30-package
+ * @spec openspec/changes/archive/2026-07-16-course-package-import-export/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-30-package
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\QtiExportServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Service\QtiExportService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -42,7 +42,7 @@ use OCP\IRequest;
 use OCP\IUserSession;
 
 /**
- * Handles QTI 3.0 package export for an ItemBank.
+ * Handles QTI 2.1 package export for an ItemBank.
  *
  * Single endpoint: GET /api/assessment/qti-export?itemBankId=...
  */
@@ -51,7 +51,7 @@ class QtiExportController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest $request HTTP request.
-	 * @param QtiExportService $qtiExportService QTI export service.
+	 * @param QtiExportServiceInterface $qtiExportService QTI export service.
 	 * @param IUserSession $userSession Nextcloud user session.
 	 * @param ActionAuthService $actionAuth ADR-023 action authorization service.
 	 *
@@ -59,21 +59,22 @@ class QtiExportController extends Controller {
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly QtiExportService $qtiExportService,
+		private readonly QtiExportServiceInterface $qtiExportService,
 		private readonly IUserSession $userSession,
 		private readonly ActionAuthService $actionAuth,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
-	 * Export an ItemBank as a QTI 3.0 package ZIP.
+	 * Export an ItemBank as a QTI 2.1 package ZIP.
 	 *
 	 * @param string $itemBankId UUID of the ItemBank to export.
 	 *
 	 * @return DataDownloadResponse|JSONResponse ZIP stream, or a JSON error.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-30-package
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-30-package
+	 * @spec openspec/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-21-package
 	 */
 	#[NoAdminRequired]
 	public function export(string $itemBankId = ''): DataDownloadResponse|JSONResponse {
@@ -107,7 +108,7 @@ class QtiExportController extends Controller {
 
 		return new DataDownloadResponse(
 			data: $zipContent,
-			filename: 'item-bank_' . $itemBankId . '_qti3.zip',
+			filename: 'item-bank_' . $itemBankId . '_qti21.zip',
 			contentType: 'application/zip'
 		);
 	}//end export()

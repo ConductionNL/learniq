@@ -27,7 +27,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+ * @spec openspec/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
  */
 
 declare(strict_types=1);
@@ -63,7 +63,7 @@ class ObjectRowReader {
 	 *
 	 * @return array<string,mixed>|null The object data, or null when not found.
 	 *
-	 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
 	 */
 	public function load(string $schema, string $id): ?array {
 		if ($id === '') {
@@ -72,10 +72,10 @@ class ObjectRowReader {
 
 		$results = $this->objectService->findAll(
 			[
+				'ids' => [$id],
 				'filters' => [
 					'register' => self::LEARNIQ_REGISTER,
 					'schema' => $schema,
-					'id' => $id,
 				],
 				'limit' => 1,
 			]
@@ -89,13 +89,39 @@ class ObjectRowReader {
 	}//end load()
 
 	/**
+	 * Every Learniq object of one schema matching the filters, as plain arrays.
+	 *
+	 * @param string              $schema  Schema slug.
+	 * @param array<string,mixed> $filters Field filters, applied after the register and schema.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 *
+	 * @spec openspec/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
+	 */
+	public function rows(string $schema, array $filters): array {
+		$results = $this->objectService->findAll(
+			[
+				'filters' => array_merge(
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => $schema,
+					],
+					$filters
+				),
+			]
+		);
+
+		return array_map(fn (mixed $object): array => $this->toArray(object: $object), $results);
+	}//end rows()
+
+	/**
 	 * Normalise an OR object result (array or ObjectEntity-like) to a plain array.
 	 *
 	 * @param mixed $object The raw findAll()/saveObject() result element.
 	 *
 	 * @return array<string,mixed>
 	 *
-	 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
 	 */
 	public function toArray(mixed $object): array {
 		if (is_array($object) === true) {

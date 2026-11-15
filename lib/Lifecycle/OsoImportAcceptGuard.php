@@ -3,6 +3,9 @@
 /**
  * Learniq OSO Import Accept Guard
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the OsoImportDossier schema's `accept` transition
  * (`under-review → accepted`). An incoming overstapdossier is not proof the
  * transferred data is correct or complete for this school's record — an
@@ -30,13 +33,11 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/oso-inbound-contract/tasks.md#task-2
+ * @spec openspec/changes/archive/2026-09-28-oso-inbound-contract/tasks.md#task-2
  */
 
 declare(strict_types=1);
@@ -57,7 +58,7 @@ use Psr\Log\LoggerInterface;
  * on the same transition: OpenRegister calls guards by value, so a guard can
  * not write onto the object (learniq#983).
  *
- * @spec openspec/changes/oso-inbound-contract/tasks.md#task-2
+ * @spec openspec/changes/archive/2026-09-28-oso-inbound-contract/tasks.md#task-2
  */
 class OsoImportAcceptGuard implements LifecycleGuardInterface {
 
@@ -98,7 +99,7 @@ class OsoImportAcceptGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny when the caller may not accept.
 	 *
-	 * @spec openspec/changes/oso-inbound-contract/tasks.md#task-2
+	 * @spec openspec/changes/archive/2026-09-28-oso-inbound-contract/tasks.md#task-2
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -126,16 +127,11 @@ class OsoImportAcceptGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True when the user is in admin / coordinators.
 	 *
-	 * @spec openspec/changes/oso-inbound-contract/tasks.md#task-2
+	 * @spec openspec/changes/archive/2026-09-28-oso-inbound-contract/tasks.md#task-2
 	 */
 	private function actorIsAuthorised(string $actor): bool {
-		$user = $this->userManager->get($actor);
-		if ($user === null) {
-			return false;
-		}
+		$groups = new ActorGroups(userManager: $this->userManager, groupManager: $this->groupManager);
 
-		$actorGroups = $this->groupManager->getUserGroupIds($user);
-
-		return count(array_intersect($actorGroups, self::AUTHORISED_GROUPS)) > 0;
+		return $groups->isInAny(actor: $actor, groups: self::AUTHORISED_GROUPS);
 	}//end actorIsAuthorised()
 }//end class

@@ -3,6 +3,9 @@
 /**
  * Learniq Attendance Flag Creation Handler
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Listens for OpenRegister's ObjectTransitionedEvent for the special
  * `threshold-crossed` marker event when an AttendanceThreshold's
  * `isThresholdCrossed` calculatedChange flips to true.
@@ -11,8 +14,9 @@
  * 1. Resolves the learner's mentor from LearnerProfile.managerId.
  * 2. Creates an AttendanceFlag (`open`) with windowStart/windowEnd/
  *    metricValue/breachingRecordIds/mentorId.
- * 3. Records the dataExchangeTarget intent on the flag (actual
- *    DataExchangeJob queueing is deferred to the data-exchange spec).
+ * 3. When the threshold names a dataExchangeTarget, asks integriq for the
+ *    exchange job and stamps its id on the flag. The job waits in integriq
+ *    until a person takes the flag up (learniq's exchange gate).
  *
  * IMPORTANT: This handler ONLY creates the flag. It NEVER auto-acts
  * against the learner. The mentor's intervention and any outbound report
@@ -30,8 +34,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -44,16 +46,21 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\Learniq\Kernel\Contracts\IntegriqExchangeClientInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 /**
  * Creates an AttendanceFlag when an AttendanceThreshold crossing is detected.
  *
  * @implements IEventListener<Event>
+ *
+ * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
  */
 class AttendanceFlagCreationHandler implements IEventListener {
 
@@ -61,7 +68,8 @@ class AttendanceFlagCreationHandler implements IEventListener {
 	private const ATTENDANCE_THRESHOLD_SCHEMA = 'attendance-threshold';
 	private const ATTENDANCE_FLAG_SCHEMA = 'attendance-flag';
 	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
-	private const DATA_EXCHANGE_JOB_SCHEMA = 'data-exchange-job';
+	private const LEERPLICHT_TARGET = 'leerplicht';
+	private const LEERPLICHT_MAPPING = 'learniq-leerplicht-export-melding';
 
 	/**
 	 * The guarded manual transition action that records a real per-learner
@@ -75,16 +83,36 @@ class AttendanceFlagCreationHandler implements IEventListener {
 	private const CHECK_THRESHOLD_ACTION = 'check-threshold';
 
 	/**
+	 * The flag kind a crossing of each threshold kind carries. Only the
+	 * leerplicht profile is a statutory school concern; a course, programme,
+	 * training or company presence requirement gets the neutral kind. A
+	 * `generic` threshold is not listed, so its flag keeps the schema default
+	 * as it always has.
+	 *
+	 * @var array<string, string>
+	 */
+	private const FLAG_KIND_BY_THRESHOLD_KIND = [
+		'leerplicht-16uur' => 'signal-verzuim',
+		'college-aanwezigheid' => 'attendance-requirement',
+		'training-attendance' => 'attendance-requirement',
+		'compliance-presence' => 'attendance-requirement',
+	];
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object access service.
+	 * @param IntegriqExchangeClientInterface $integriq Asks integriq for the exchange job.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
+		private readonly IntegriqExchangeClientInterface $integriq,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -102,11 +130,11 @@ class AttendanceFlagCreationHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
-		if ($event->getSchema() !== self::ATTENDANCE_THRESHOLD_SCHEMA) {
+		if ($this->schemas->eventSchema(event: $event) !== self::ATTENDANCE_THRESHOLD_SCHEMA) {
 			return;
 		}
 
@@ -131,7 +159,7 @@ class AttendanceFlagCreationHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-threshold-calculation/specs/attendance/spec.md#scenario-a-guarded-manual-check-records-a-real-per-learner-crossing-and-creates-an-attendanceflag
+	 * @spec openspec/specs/attendance/spec.md#scenario-a-guarded-manual-check-records-a-real-per-learner-crossing-and-creates-an-attendanceflag
 	 */
 	private function createFlag(ObjectTransitionedEvent $event): void {
 		$threshold = $event->getObject()->jsonSerialize();
@@ -164,7 +192,7 @@ class AttendanceFlagCreationHandler implements IEventListener {
 	 *
 	 * @param array<string,mixed> $threshold The AttendanceThreshold data after the transition.
 	 *
-	 * @return array{thresholdId:string,cohortId:mixed,learnerId:string,windowStart:string,windowEnd:string,metricValue:mixed,breachingIds:mixed,tenantId:string}
+	 * @return array{thresholdId:string,cohortId:mixed,learnerId:string,windowStart:string,windowEnd:string,metricValue:mixed,breachingIds:mixed,tenantId:string,thresholdKind:string}
 	 */
 	private function extractCrossingDetail(array $threshold): array {
 		$thresholdId = $threshold['id'] ?? '';
@@ -191,33 +219,27 @@ class AttendanceFlagCreationHandler implements IEventListener {
 			'metricValue' => $metricValue,
 			'breachingIds' => $threshold['checkedBreachingRecordIds'] ?? [],
 			'tenantId' => $threshold['tenant_id'] ?? '',
+			'thresholdKind' => (string)($threshold['kind'] ?? ''),
 		];
 
 	}//end extractCrossingDetail()
 
 	/**
-	 * Build and save the AttendanceFlag, queuing a DataExchangeJob first when
-	 * the threshold's onCross.dataExchangeTarget is set.
+	 * Build and save the AttendanceFlag, then ask integriq for the exchange job
+	 * when the threshold's onCross.dataExchangeTarget is set.
+	 *
+	 * The flag is saved first so the job can name it as its owner; the job id is
+	 * stamped on afterwards. Without integriq the flag stays without a job id.
 	 *
 	 * @param array<string,mixed> $detail Crossing detail from extractCrossingDetail().
 	 * @param array<string,mixed> $onCross The threshold's onCross configuration.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/specs/attendance/spec.md#requirement-an-attendance-flag-outside-the-leerplicht-carries-a-neutral-kind
 	 */
 	private function saveFlag(array $detail, array $onCross): void {
 		$mentorId = $this->resolveMentorId(learnerId: $detail['learnerId']);
-
-		$dataExchangeTarget = $onCross['dataExchangeTarget'] ?? null;
-		$dataExchangeJobId = null;
-		if ($dataExchangeTarget !== null && $dataExchangeTarget !== '') {
-			$dataExchangeJobId = $this->queueDataExchangeJob(
-				target: $dataExchangeTarget,
-				learnerId: $detail['learnerId'],
-				windowStart: $detail['windowStart'],
-				windowEnd: $detail['windowEnd'],
-				tenantId: $detail['tenantId']
-			);
-		}
 
 		$flag = [
 			'learnerId' => $detail['learnerId'],
@@ -227,16 +249,25 @@ class AttendanceFlagCreationHandler implements IEventListener {
 			'windowEnd' => $detail['windowEnd'],
 			'metricValue' => (float)$detail['metricValue'],
 			'breachingRecordIds' => $detail['breachingIds'],
-			'dataExchangeJobId' => $dataExchangeJobId,
+			'dataExchangeJobId' => null,
 			'mentorId' => $mentorId,
 			'lifecycle' => 'open',
 			'tenant_id' => $detail['tenantId'],
 		];
 
-		$this->objectService->saveObject(
+		$flagKind = self::FLAG_KIND_BY_THRESHOLD_KIND[$detail['thresholdKind']] ?? null;
+		if ($flagKind !== null) {
+			$flag['flagKind'] = $flagKind;
+		}
+
+		// System context (attendance-flag): the write that crosses the threshold may be a learner's
+		// self check-in or a coordinator's register, and AttendanceFlag create/update is instructors
+		// and compliance officers only.
+		$saved = $this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: self::ATTENDANCE_FLAG_SCHEMA,
-			object: $flag
+			object: $flag,
+			_rbac: false
 		);
 
 		$this->logger->info(
@@ -248,6 +279,32 @@ class AttendanceFlagCreationHandler implements IEventListener {
 				'ws' => $detail['windowStart'],
 				'we' => $detail['windowEnd'],
 			]
+		);
+
+		$dataExchangeTarget = (string)($onCross['dataExchangeTarget'] ?? '');
+		if ($dataExchangeTarget === '') {
+			return;
+		}
+
+		$savedData = $saved->jsonSerialize();
+		$flagId = (string)($savedData['id'] ?? ($savedData['uuid'] ?? ''));
+		if ($flagId === '') {
+			$this->logger->warning('[AttendanceFlagCreationHandler] The saved flag has no id, so no exchange job is requested.');
+			return;
+		}
+
+		$jobId = $this->requestExchangeJob(target: $dataExchangeTarget, flagId: $flagId, tenantId: (string)$detail['tenantId']);
+		if ($jobId === null) {
+			return;
+		}
+
+		// System context (attendance-flag): as above: the flag update runs in the same crossing.
+		$this->objectService->saveObject(
+			register: self::LEARNIQ_REGISTER,
+			schema: self::ATTENDANCE_FLAG_SCHEMA,
+			object: array_merge($flag, ['dataExchangeJobId' => $jobId]),
+			uuid: $flagId,
+			_rbac: false
 		);
 
 	}//end saveFlag()
@@ -291,65 +348,55 @@ class AttendanceFlagCreationHandler implements IEventListener {
 	}//end flagAlreadyExists()
 
 	/**
-	 * Create and queue a DataExchangeJob for the given target.
+	 * Ask integriq for the exchange job of a new flag.
 	 *
-	 * Called when an AttendanceThreshold's onCross.dataExchangeTarget is set.
-	 * The job is created in `queued` state; the DataExchangeRunHandler will
-	 * execute it when the lifecycle engine transitions it to `running`.
+	 * The job waits in integriq until a person takes the flag up: learniq's
+	 * exchange gate refuses a leerplicht report while the flag is `open` (the
+	 * human in the loop the old `pending-review` job state stood for).
 	 *
-	 * @param string $target Named OpenConnector connection (e.g. 'leerplicht').
-	 * @param string $learnerId NC user ID of the learner who crossed the threshold.
-	 * @param string $windowStart Start date of the measurement window (Y-m-d).
-	 * @param string $windowEnd End date of the measurement window (Y-m-d).
+	 * @param string $target   The exchange target (e.g. 'leerplicht').
+	 * @param string $flagId   UUID of the saved AttendanceFlag.
 	 * @param string $tenantId Tenant UUID.
 	 *
-	 * @return string|null UUID of the created DataExchangeJob, or null on failure.
+	 * @return string|null The integriq job id, or null when integriq did not take it.
 	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-11
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
-	private function queueDataExchangeJob(
-		string $target,
-		string $learnerId,
-		string $windowStart,
-		string $windowEnd,
-		string $tenantId,
-	): ?string {
-		// #187: Create in `pending-review` (not `queued`) so a human reviewer must
-		// explicitly approve the job before it runs. The lifecycle engine will only
-		// transition to `queued`/`running` after a reviewer approves — satisfying the
-		// "human-in-the-loop" contract stated in the class docblock.
-		$job = [
-			'direction' => 'export',
-			'target' => $target,
-			'scope' => [
-				'schema' => 'attendance-flag',
-				'filters' => ['learnerId' => $learnerId],
-				'cohortId' => null,
-				'period' => $windowStart . '/' . $windowEnd,
-			],
-			'requestedBy' => 'system',
-			'requestedAt' => date('c'),
-			'lifecycle' => 'pending-review',
-			'tenant_id' => $tenantId,
-		];
+	private function requestExchangeJob(string $target, string $flagId, string $tenantId): ?string {
+		$mapping = null;
+		if ($target === self::LEERPLICHT_TARGET) {
+			$mapping = self::LEERPLICHT_MAPPING;
+		}
 
-		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::DATA_EXCHANGE_JOB_SCHEMA,
-			object: $job
-		);
-
-		$savedData = $saved->jsonSerialize();
-
-		$jobId = $savedData['id'] ?? ($savedData['uuid'] ?? null);
+		try {
+			$jobId = $this->integriq->requestJob(
+				target: $target,
+				direction: 'export',
+				ownerRef: self::ATTENDANCE_FLAG_SCHEMA . '/' . $flagId,
+				scope: [
+					'schema' => self::ATTENDANCE_FLAG_SCHEMA,
+					'recordIds' => [$flagId],
+					'tenantId' => $tenantId,
+				],
+				mappingSlug: $mapping,
+				requestedBy: 'system',
+				name: 'Verzuimmelding'
+			);
+		} catch (Throwable $exception) {
+			$this->logger->warning(
+				'[AttendanceFlagCreationHandler] No exchange job for flag {id} ({t}): {msg}',
+				['id' => $flagId, 't' => $target, 'msg' => $exception->getMessage()]
+			);
+			return null;
+		}
 
 		$this->logger->info(
-			'[AttendanceFlagCreationHandler] Queued DataExchangeJob {id} to target {t} for learner {l}.',
-			['id' => $jobId, 't' => $target, 'l' => $learnerId]
+			'[AttendanceFlagCreationHandler] Integriq exchange job {job} requested for flag {id} ({t}).',
+			['job' => $jobId, 'id' => $flagId, 't' => $target]
 		);
 
 		return $jobId;
-	}//end queueDataExchangeJob()
+	}//end requestExchangeJob()
 
 	/**
 	 * Resolve the learner's mentor from their LearnerProfile.managerId.

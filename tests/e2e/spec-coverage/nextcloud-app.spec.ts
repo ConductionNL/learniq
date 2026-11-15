@@ -7,9 +7,9 @@ import { apiUrl } from '../base-url.ts'
  * Covers:
  *   @e2e openspec/specs/nextcloud-app/spec.md#reading-current-settings
  *   @e2e openspec/specs/nextcloud-app/spec.md#persisting-a-changed-setting
- *   @e2e openspec/specs/nextcloud-app/spec.md#loading-the-register-picker
- *   @e2e openspec/specs/nextcloud-app/spec.md#saving-the-default-register
- *   @e2e openspec/specs/nextcloud-app/spec.md#rotating-the-signing-key
+ *   @e2e openspec/specs/nextcloud-app/spec.md#admin-panel-hosts-the-pickers
+ *   @e2e openspec/specs/nextcloud-app/spec.md#requirement-configure-default-register-and-ai-features-via-openregister-backed-pickers
+ *   @e2e openspec/specs/nextcloud-app/spec.md#admin-rotates-the-signing-key
  *   @e2e openspec/specs/nextcloud-app/spec.md#admin-panel-hosts-the-pickers
  *   @e2e openspec/specs/nextcloud-app/spec.md#admin-rotates-the-signing-key
  *   @e2e openspec/specs/nextcloud-app/spec.md#preferences-reflect-current-overrides
@@ -107,7 +107,7 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		).toBeVisible()
 	})
 
-	// @e2e openspec/specs/nextcloud-app/spec.md#loading-the-register-picker
+	// @e2e openspec/specs/nextcloud-app/spec.md#admin-panel-hosts-the-pickers
 	test('loading-the-register-picker: admin settings view shows populated register combobox', async ({
 		loggedInPage: page,
 	}) => {
@@ -155,7 +155,7 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		await expect(hermiqLink.or(hermiqMissingNotice).first()).toBeVisible()
 	})
 
-	// @e2e openspec/specs/nextcloud-app/spec.md#saving-the-default-register
+	// @e2e openspec/specs/nextcloud-app/spec.md#requirement-configure-default-register-and-ai-features-via-openregister-backed-pickers
 	test('saving-the-default-register: selecting a register in the picker POSTs to settings API', async ({
 		loggedInPage: page,
 	}) => {
@@ -208,7 +208,7 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		await expect(page.locator('text=Credential Signing')).toBeVisible()
 	})
 
-	// @e2e openspec/specs/nextcloud-app/spec.md#rotating-the-signing-key
+	// @e2e openspec/specs/nextcloud-app/spec.md#admin-rotates-the-signing-key
 	test('rotating-the-signing-key: clicking Rotate signing key shows success or failure message', async ({
 		loggedInPage: page,
 	}) => {

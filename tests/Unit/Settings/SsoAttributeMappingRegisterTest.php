@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/entree-surfconext-sso-contract/tasks.md#task-3
+ * @spec openspec/changes/archive/2026-09-28-entree-surfconext-sso-contract/tasks.md#task-3
  */
 
 declare(strict_types=1);
@@ -74,7 +74,7 @@ class SsoAttributeMappingRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/entree-surfconext-sso-contract/specs/identity-federation/spec.md#scenario-a-role-mapping-names-both-the-external-value-and-the-target-role
+	 * @spec openspec/specs/identity-federation/spec.md#scenario-a-role-mapping-names-both-the-external-value-and-the-target-role
 	 */
 	public function testRoleMappingCarriesRoleValue(): void {
 		$props = $this->config['components']['schemas']['SsoAttributeMapping']['properties'];
@@ -92,12 +92,13 @@ class SsoAttributeMappingRegisterTest extends TestCase {
 	 * @return void
 	 */
 	public function testLifecycleMirrorsDataMappingProfile(): void {
+		// DataMappingProfile left for integriq (data-exchange-to-integriq); the SSO
+		// mapping keeps the lifecycle it copied from it.
 		$lifecycle = $this->config['components']['schemas']['SsoAttributeMapping']['x-openregister-lifecycle'];
-		$dmpLifecycle = $this->config['components']['schemas']['DataMappingProfile']['x-openregister-lifecycle'];
 
-		self::assertSame($dmpLifecycle['property'], $lifecycle['property']);
-		self::assertSame($dmpLifecycle['initial'], $lifecycle['initial']);
-		self::assertSame(array_keys($dmpLifecycle['transitions']), array_keys($lifecycle['transitions']));
+		self::assertSame('lifecycle', $lifecycle['property']);
+		self::assertSame('draft', $lifecycle['initial']);
+		self::assertSame(['activate', 'archive', 'reactivate'], array_keys($lifecycle['transitions']));
 
 	}//end testLifecycleMirrorsDataMappingProfile()
 

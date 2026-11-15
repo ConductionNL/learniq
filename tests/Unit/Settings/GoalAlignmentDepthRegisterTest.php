@@ -20,8 +20,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/goal-alignment-depth/tasks.md#task-1-declare-competencyalignments-on-the-four-schemas
- * @spec openspec/changes/goal-alignment-depth/tasks.md#task-4-register-unit-test
+ * @spec openspec/changes/archive/2026-09-28-goal-alignment-depth/tasks.md#task-1-declare-competencyalignments-on-the-four-schemas
+ * @spec openspec/changes/archive/2026-09-28-goal-alignment-depth/tasks.md#task-4-register-unit-test
  */
 
 declare(strict_types=1);
@@ -119,8 +119,14 @@ class GoalAlignmentDepthRegisterTest extends TestCase {
 		$path  = __DIR__ . '/../../../lib/Settings/learniq_mock_register.json';
 		$mock  = json_decode((string) file_get_contents($path), true);
 		$found = [];
+		$keyBySlug = [];
+		foreach ($this->schemas as $key => $definition) {
+			$keyBySlug[(string)($definition['slug'] ?? $key)] = $key;
+		}
+
 		foreach ($mock['components']['objects'] as $object) {
-			$schema = ($object['@self']['schema'] ?? '');
+			// Demo rows name the schema by slug (`exam`); VERSIONS is keyed by definition key (`Assessment`).
+			$schema = ($keyBySlug[(string)($object['@self']['schema'] ?? '')] ?? '');
 			if (isset(self::VERSIONS[$schema]) === false || empty($object['competencyAlignments']) === true) {
 				continue;
 			}

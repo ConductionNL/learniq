@@ -4,9 +4,11 @@
  * Gate-19 e2e coverage — dashboard spec UI scenarios (role-aware dashboards).
  *
  * Covers:
- *   @e2e openspec/specs/dashboard/spec.md#learner-lands-on-the-student-dashboard
- *   @e2e openspec/specs/dashboard/spec.md#instructor-sees-the-teacher-dashboard
- *   @e2e openspec/specs/dashboard/spec.md#multi-role-user-switches-view
+ *   @e2e exclude the role-switcher test below. It was written for the removed
+ *     scenarios learner-lands-on-the-student-dashboard,
+ *     instructor-sees-the-teacher-dashboard and multi-role-user-switches-view.
+ *     The spec now requires three group-gated menu items and no in-page role
+ *     switcher, and no current scenario matches what that test asserts.
  *   @e2e openspec/specs/dashboard/spec.md#single-cndashboardpage-per-route
  *   @e2e openspec/specs/dashboard/spec.md#widgets-declared-on-the-manifest-page
  *
@@ -97,9 +99,11 @@ test.describe('dashboard — role-aware dashboard surface', () => {
 		expect(bodyText.trim().length).toBeGreaterThan(0)
 	})
 
-	// @e2e openspec/specs/dashboard/spec.md#multi-role-user-switches-view
-	// @e2e openspec/specs/dashboard/spec.md#instructor-sees-the-teacher-dashboard
-	// @e2e openspec/specs/dashboard/spec.md#learner-lands-on-the-student-dashboard
+	// @e2e exclude no current dashboard scenario matches this test: the scenarios
+	// it named (multi-role-user-switches-view, instructor-sees-the-teacher-dashboard,
+	// learner-lands-on-the-student-dashboard) were replaced by three group-gated
+	// menu items with no in-page role switcher, and those scenarios carry their
+	// own `@e2e exclude` in openspec/specs/dashboard/spec.md.
 	test('role-switcher and single Dashboards entry: only one Dashboards menu item, switcher when multi-role', async ({
 		loggedInPage: page,
 	}) => {

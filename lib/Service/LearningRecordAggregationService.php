@@ -3,6 +3,9 @@
 /**
  * Learniq Learning Record Aggregation Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Composes a learner's portable-learning-record trajectory LIVE, on read,
  * scoped by `learnerRef` — no materialized "LearningRecord" rollup schema is
  * persisted (design.md "Why no materialized rollup schema"). Reads across
@@ -29,28 +32,28 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
+ * @spec openspec/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\LearningRecordAggregationServiceInterface;
+use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
  * Reads a learner's trajectory live, across nine schemas, scoped by
  * `learnerRef`. No persistence — a pure read composition.
  *
- * @spec openspec/changes/portable-learning-record/tasks.md#task-2-1
+ * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-2-1
  */
-class LearningRecordAggregationService {
+class LearningRecordAggregationService implements LearningRecordAggregationServiceInterface {
 
 	private const REGISTER = 'learniq';
 
@@ -78,12 +81,14 @@ class LearningRecordAggregationService {
 	/**
 	 * Constructor.
 	 *
-	 * @param ObjectService $objectService OR object query service.
+	 * @param ObjectService      $objectService OR object query service.
+	 * @param LearnerRefResolver $learnerRefs   LearnerProfile uuid to the learner's Nextcloud user id.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
+		private readonly LearnerRefResolver $learnerRefs,
 	) {
 	}//end __construct()
 
@@ -94,7 +99,7 @@ class LearningRecordAggregationService {
 	 *
 	 * @return string|null The LearnerProfile UUID, or null when no LearnerProfile is bound to this user.
 	 *
-	 * @spec openspec/changes/portable-learning-record/tasks.md#task-2-2
+	 * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-2-2
 	 */
 	public function resolveLearnerRefForUser(string $ncUserId): ?string {
 		if ($ncUserId === '') {
@@ -134,12 +139,14 @@ class LearningRecordAggregationService {
 	 * @return array<string,mixed> Keyed by collection name — see the class docblock for the nine
 	 *                             schemas composed. Every value is a list of plain associative arrays.
 	 *
-	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
+	 * @spec openspec/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
 	 */
 	public function compose(string $learnerRef): array {
-		$enrolments = $this->findAllByLearnerRef(schema: self::SCHEMA_ENROLMENT, learnerRef: $learnerRef);
-		$finalGrades = $this->findAllByLearnerRef(schema: self::SCHEMA_FINAL_GRADE, learnerRef: $learnerRef);
-		$attainments = $this->findAllByLearnerRef(schema: self::SCHEMA_COMPETENCY_ATTAINMENT, learnerRef: $learnerRef);
+		$learner = $this->learnerScope(learnerRef: $learnerRef);
+
+		$enrolments = $this->findAll(schema: self::SCHEMA_ENROLMENT, filters: $learner);
+		$finalGrades = $this->findAll(schema: self::SCHEMA_FINAL_GRADE, filters: $learner);
+		$attainments = $this->findAll(schema: self::SCHEMA_COMPETENCY_ATTAINMENT, filters: $learner);
 
 		// Credential has no learnerRef field of its own — its existing
 		// `learnerId` property is already typed as a LearnerProfile UUID
@@ -147,18 +154,18 @@ class LearningRecordAggregationService {
 		// HEAD (learniq_register.json:223 region). Filter by that field.
 		$credentials = $this->findAll(schema: self::SCHEMA_CREDENTIAL, filters: ['learnerId' => $learnerRef]);
 
-		$portfolios = $this->findAllByLearnerRef(schema: self::SCHEMA_PORTFOLIO, learnerRef: $learnerRef);
+		$portfolios = $this->findAll(schema: self::SCHEMA_PORTFOLIO, filters: $learner);
 		$portfolioEntries = $this->resolvePortfolioEntries(portfolios: $portfolios);
 
 		$externalRecords = $this->findVerifiedExternalTrainingRecords(learnerRef: $learnerRef);
 
-		$bpvPlacements = $this->findAllByLearnerRef(schema: self::SCHEMA_BPV_PLACEMENT, learnerRef: $learnerRef);
+		$bpvPlacements = $this->findAll(schema: self::SCHEMA_BPV_PLACEMENT, filters: $learner);
 		$werkprocesResults = $this->resolveWerkprocesAssessments(bpvPlacements: $bpvPlacements);
 
-		$lessonCompletions = $this->findAllByLearnerRef(schema: self::SCHEMA_LESSON_COMPLETION, learnerRef: $learnerRef);
+		$lessonCompletions = $this->findAll(schema: self::SCHEMA_LESSON_COMPLETION, filters: $learner);
 		$lessonSummary = $this->summariseLessonCompletions(lessonCompletions: $lessonCompletions, enrolments: $enrolments);
 
-		$reportCards = $this->findPublishedReportCards(learnerRef: $learnerRef);
+		$reportCards = $this->findPublishedReportCards(learner: $learner);
 
 		return [
 			'enrolments' => $enrolments,
@@ -176,16 +183,33 @@ class LearningRecordAggregationService {
 	}//end compose()
 
 	/**
-	 * Find every row of a `learnerRef`-scoped schema for one learner.
+	 * The filter that finds one learner's rows in the schemas that name the
+	 * learner by Nextcloud user id in `learnerId`: Enrolment, FinalGrade,
+	 * CompetencyAttainment, Portfolio, BpvPlacement, LessonCompletion and
+	 * ReportCard.
 	 *
-	 * @param string $schema Schema slug.
+	 * `learnerId` is required on each of them and is what their read rule
+	 * matches for the learner (`{group: authenticated, match: {learnerId:
+	 * $userId}}`). `learnerRef` is not: CompetencyAttainmentWriter and
+	 * LessonProgress store only `learnerId`, so a filter on `learnerRef` never
+	 * found those rows and the learner's own record showed none of them.
+	 * When the profile names no active user (merged away, no account), the
+	 * rows are looked up by `learnerRef` as before.
+	 *
 	 * @param string $learnerRef LearnerProfile UUID.
 	 *
-	 * @return array<int,array<string,mixed>>
+	 * @return array<string,string>
+	 *
+	 * @spec openspec/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
 	 */
-	private function findAllByLearnerRef(string $schema, string $learnerRef): array {
-		return $this->findAll(schema: $schema, filters: ['learnerRef' => $learnerRef]);
-	}//end findAllByLearnerRef()
+	private function learnerScope(string $learnerRef): array {
+		$ncUserId = $this->learnerRefs->userIdOf(learnerRef: $learnerRef);
+		if ($ncUserId === null) {
+			return ['learnerRef' => $learnerRef];
+		}
+
+		return ['learnerId' => $ncUserId];
+	}//end learnerScope()
 
 	/**
 	 * Find every row of a schema matching arbitrary filters, normalised to plain arrays.
@@ -239,17 +263,14 @@ class LearningRecordAggregationService {
 	 * only — respects the existing visibleFrom/publication gating rather
 	 * than exposing a draft/under-review report.
 	 *
-	 * @param string $learnerRef LearnerProfile UUID.
+	 * @param array<string,string> $learner The learner filter from learnerScope().
 	 *
 	 * @return array<int,array<string,mixed>>
 	 */
-	private function findPublishedReportCards(string $learnerRef): array {
+	private function findPublishedReportCards(array $learner): array {
 		return $this->findAll(
 			schema: self::SCHEMA_REPORT_CARD,
-			filters: [
-				'learnerRef' => $learnerRef,
-				'lifecycle' => self::REPORT_CARD_PUBLISHED_LIFECYCLE,
-			]
+			filters: array_merge($learner, ['lifecycle' => self::REPORT_CARD_PUBLISHED_LIFECYCLE])
 		);
 	}//end findPublishedReportCards()
 
@@ -406,17 +427,6 @@ class LearningRecordAggregationService {
 	 * @return array<string,mixed>
 	 */
 	private function toArray(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-			$serialized = $row->jsonSerialize();
-			if (is_array($serialized) === true) {
-				return $serialized;
-			}
-		}
-
-		return [];
+		return (new SerialisedRow())->asArray(object: $row);
 	}//end toArray()
 }//end class

@@ -14,15 +14,13 @@
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
 
-  @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
+  @spec openspec/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
 -->
 
 <template>
-	<div class="learning-record-import">
+	<div class="learning-record-import lq-board-page">
 		<header class="learning-record-import__header">
-			<h2 class="learning-record-import__heading">
-				{{ t('learniq', 'Import prior learning record') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Import prior learning record')" />
 			<p class="learning-record-import__intro">
 				{{
 					t(
@@ -34,7 +32,7 @@
 		</header>
 
 		<!-- Upload form -->
-		<div v-if="!report" class="learning-record-import__upload">
+		<CnDetailCard v-if="!report" class="learning-record-import__upload">
 			<label class="learning-record-import__label" for="lri-source-format">
 				{{ t('learniq', 'Bundle format') }}
 			</label>
@@ -81,10 +79,10 @@
 			<p v-if="uploadError" role="alert" class="learning-record-import__error">
 				{{ uploadError }}
 			</p>
-		</div>
+		</CnDetailCard>
 
 		<!-- Report -->
-		<div v-else class="learning-record-import__report">
+		<CnDetailCard v-else class="learning-record-import__report">
 			<div
 				class="learning-record-import__summary"
 				:class="`learning-record-import__summary--${verificationSeverity}`"
@@ -153,15 +151,23 @@
 			<button class="button-vue" @click="reset">
 				{{ t('learniq', 'Upload another bundle') }}
 			</button>
-		</div>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
+import {
+	emptyImportState,
+	entriesWithOutcome,
+	pickedFileState,
+	postImportFile,
+} from '../utils/importUpload.js'
 
 export default {
 	name: 'LearningRecordImportView',
+	components: { CnDetailCard, CnPageHeader },
 
 	data() {
 		return {
@@ -180,7 +186,7 @@ export default {
 		 * The Application UUID this import is evidence for, from the route.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
+		 * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
 		 */
 		applicationId() {
 			return this.$route?.params?.applicationId ?? ''
@@ -190,7 +196,7 @@ export default {
 		 * Human-readable verification summary line.
 		 *
 		 * @return {string} Localised summary text.
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-coordinator-uploads-a-prior-scholiq-export-during-intake-and-sees-a-verified-coverage-report
+		 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-coordinator-uploads-a-prior-scholiq-export-during-intake-and-sees-a-verified-coverage-report
 		 */
 		verificationLabel() {
 			if (!this.report) return ''
@@ -220,7 +226,7 @@ export default {
 		 * CSS modifier matching the verification severity.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
+		 * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
 		 */
 		verificationSeverity() {
 			const map = {
@@ -235,12 +241,10 @@ export default {
 		 * Report entries filtered by the selected outcome.
 		 *
 		 * @return {Array<object>} Filtered entries.
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
+		 * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
 		 */
 		filteredEntries() {
-			const entries = this.report?.entries ?? []
-			if (this.outcomeFilter === 'all') return entries
-			return entries.filter((entry) => entry.outcome === this.outcomeFilter)
+			return entriesWithOutcome(this.report, this.outcomeFilter)
 		},
 	},
 
@@ -250,20 +254,17 @@ export default {
 		 *
 		 * @param {Event} event The change event.
 		 * @return {void}
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
+		 * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
 		 */
 		onFileSelected(event) {
-			const file = event.target.files?.[0] ?? null
-			this.selectedFile = file
-			this.selectedFileName = file ? file.name : ''
-			this.uploadError = null
+			Object.assign(this, pickedFileState(event))
 		},
 
 		/**
 		 * Upload the selected bundle and render the resulting report.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-coordinator-uploads-a-prior-scholiq-export-during-intake-and-sees-a-verified-coverage-report
+		 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-coordinator-uploads-a-prior-scholiq-export-during-intake-and-sees-a-verified-coverage-report
 		 */
 		async uploadBundle() {
 			if (!this.selectedFile || !this.applicationId) return
@@ -276,24 +277,12 @@ export default {
 			formData.append('sourceFormat', this.sourceFormat)
 
 			try {
-				const url = generateUrl(
-					`/apps/learniq/api/applications/${this.applicationId}/learning-record-imports`,
+				this.report = await postImportFile(
+					generateUrl(
+						`/apps/learniq/api/applications/${this.applicationId}/learning-record-imports`,
+					),
+					formData,
 				)
-				const resp = await fetch(url, {
-					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						requesttoken: window.OC?.requestToken ?? '',
-					},
-					body: formData,
-				})
-
-				const json = await resp.json()
-				if (!resp.ok) {
-					throw new Error(json.error ?? `Import failed: ${resp.status}`)
-				}
-
-				this.report = json
 			} catch (err) {
 				this.uploadError = this.t(
 					'learniq',
@@ -310,14 +299,10 @@ export default {
 		 * Reset the view to upload another bundle.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
+		 * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
 		 */
 		reset() {
-			this.report = null
-			this.selectedFile = null
-			this.selectedFileName = ''
-			this.outcomeFilter = 'all'
-			this.uploadError = null
+			Object.assign(this, emptyImportState())
 			if (this.$refs.fileInput) {
 				this.$refs.fileInput.value = ''
 			}
@@ -327,22 +312,8 @@ export default {
 </script>
 
 <style scoped>
-.learning-record-import {
-	max-width: 960px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.learning-record-import__heading {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-	margin-bottom: calc(var(--default-grid-baseline, 8px));
-}
-
 .learning-record-import__intro {
 	color: var(--color-text-maxcontrast);
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .learning-record-import__label {

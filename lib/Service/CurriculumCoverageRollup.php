@@ -32,7 +32,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
+ * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
  */
 
 declare(strict_types=1);
@@ -40,6 +40,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\CurriculumCoverageRollupInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -47,9 +48,9 @@ use Throwable;
 /**
  * Recomputes and stores a framework's curriculum coverage.
  *
- * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
+ * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
  */
-class CurriculumCoverageRollup {
+class CurriculumCoverageRollup implements CurriculumCoverageRollupInterface {
 
 	private const REGISTER          = 'learniq';
 	private const COVERAGE_SCHEMA   = 'curriculum-coverage';
@@ -97,7 +98,7 @@ class CurriculumCoverageRollup {
 	 *
 	 * @return array{saved: int, deleted: int, unchanged: int}
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
 	 */
 	public function recompute(string $frameworkId): array {
 		$result   = ['saved' => 0, 'deleted' => 0, 'unchanged' => 0];
@@ -109,10 +110,12 @@ class CurriculumCoverageRollup {
 			$goalIds  = array_values(array_filter(array_map(fn (array $goal): string => $this->idOf(row: $goal), $goals)));
 			$computed = $this->calculator->compute(
 				framework: array_merge($framework, ['id' => $frameworkId]),
-				goals: $goals,
-				planned: $this->rowsAligningTo(schemas: self::PLANNED_SCHEMAS, goalIds: $goalIds),
-				assessed: $this->rowsAligningTo(schemas: self::ASSESSED_SCHEMAS, goalIds: $goalIds),
-				now: (new DateTimeImmutable())->format(\DATE_ATOM)
+				evidence: [
+					'goals' => $goals,
+					'planned' => $this->rowsAligningTo(schemas: self::PLANNED_SCHEMAS, goalIds: $goalIds),
+					'assessed' => $this->rowsAligningTo(schemas: self::ASSESSED_SCHEMAS, goalIds: $goalIds),
+					'now' => (new DateTimeImmutable())->format(\DATE_ATOM),
+				]
 			);
 		}
 
@@ -144,7 +147,7 @@ class CurriculumCoverageRollup {
 	 *
 	 * @return array<int, string>
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
 	 */
 	public function frameworksForGoals(array $goalIds): array {
 		$frameworks = [];
@@ -164,7 +167,7 @@ class CurriculumCoverageRollup {
 	 *
 	 * @return array<int, string>
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-an-occ-command-fills-coverage-for-existing-data
+	 * @spec openspec/specs/competency/spec.md#requirement-an-occ-command-fills-coverage-for-existing-data
 	 */
 	public function allFrameworkIds(): array {
 		return array_values(
@@ -181,7 +184,7 @@ class CurriculumCoverageRollup {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-an-occ-command-fills-coverage-for-existing-data
+	 * @spec openspec/specs/competency/spec.md#requirement-an-occ-command-fills-coverage-for-existing-data
 	 */
 	public function frameworkExists(string $frameworkId): bool {
 		return $this->load(schema: self::FRAMEWORK_SCHEMA, id: $frameworkId) !== null;

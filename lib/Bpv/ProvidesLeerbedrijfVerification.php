@@ -3,6 +3,9 @@
 /**
  * Learniq Leerbedrijf Verification Provider Interface
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Pluggable interface for the SBB erkend-leerbedrijf check (WEB art.
  * 7.2.8/7.2.9 — the employer hosting a BPV placement must be a leerbedrijf
  * erkend by SBB, Samenwerkingsorganisatie Beroepsonderwijs Bedrijfsleven).
@@ -28,13 +31,11 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+ * @spec openspec/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
  */
 
 declare(strict_types=1);
@@ -74,7 +75,7 @@ interface ProvidesLeerbedrijfVerification {
 	 *
 	 * @throws \RuntimeException When the provider cannot be reached.
 	 *
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+	 * @spec openspec/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
 	 */
 	public function verify(string $kvkOrErkenningNumber): array;
 }//end interface

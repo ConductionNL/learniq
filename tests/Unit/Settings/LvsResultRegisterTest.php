@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lvs-import-contract/tasks.md#task-4
+ * @spec openspec/changes/archive/2026-09-28-lvs-import-contract/tasks.md#task-4
  */
 
 declare(strict_types=1);
@@ -56,7 +56,7 @@ class LvsResultRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/access-control-ratchet-compliance/specs/data-exchange/spec.md#requirement-imported-lvs-results-and-transfer-dossiers-are-read-and-written-by-the-groups-that-review-them
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-imported-lvs-results-and-transfer-dossiers-are-read-and-written-by-the-groups-that-review-them
 	 */
 	public function testRequiredFieldsAndNotAppendOnly(): void {
 		$schema = $this->config['components']['schemas']['LvsResult'];
@@ -95,7 +95,7 @@ class LvsResultRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/lvs-import-contract/specs/data-exchange/spec.md#scenario-an-imported-lvs-result-links-to-an-existing-assessmentresult-when-one-exists
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-an-imported-lvs-result-links-to-an-existing-assessmentresult-when-one-exists
 	 */
 	public function testAssessmentResultLinkIsNullable(): void {
 		$props = $this->config['components']['schemas']['LvsResult']['properties'];
@@ -104,7 +104,9 @@ class LvsResultRegisterTest extends TestCase {
 		self::assertTrue($props['assessmentResultId']['nullable']);
 		self::assertNull($props['assessmentResultId']['default']);
 
-		self::assertSame('DataExchangeJob', $props['dataExchangeJobId']['$ref']);
+		// data-exchange-to-integriq: the job lives in integriq, so the id is a plain uuid.
+		self::assertArrayNotHasKey('$ref', $props['dataExchangeJobId']);
+		self::assertStringContainsString('integriq', $props['dataExchangeJobId']['description']);
 
 	}//end testAssessmentResultLinkIsNullable()
 
@@ -114,7 +116,7 @@ class LvsResultRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/lvs-import-contract/specs/data-exchange/spec.md#scenario-an-imported-result-is-not-verified-until-a-coordinator-confirms-it
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-an-imported-result-is-not-verified-until-a-coordinator-confirms-it
 	 */
 	public function testInitialLifecycleStateIsImported(): void {
 		$schema = $this->config['components']['schemas']['LvsResult'];
@@ -140,7 +142,7 @@ class LvsResultRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/lvs-import-contract/specs/data-exchange/spec.md#scenario-a-learner-can-read-their-own-lvs-results-but-not-another-learners
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-a-learner-can-read-their-own-lvs-results-but-not-another-learners
 	 */
 	public function testRbacReadMirrorsAssessmentResult(): void {
 		$read = $this->config['components']['schemas']['LvsResult']['x-property-rbac']['read'];
@@ -151,51 +153,6 @@ class LvsResultRegisterTest extends TestCase {
 		self::assertSame('$userId', $read['anyOf'][1]['match']['value']);
 
 	}//end testRbacReadMirrorsAssessmentResult()
-
-	/**
-	 * DataExchangeJob.target's description now names the lvs-results target.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/changes/lvs-import-contract/specs/data-exchange/spec.md#scenario-delegate-the-lvs-results-import-to-openconnector
-	 */
-	public function testDataExchangeJobTargetDescribesLvsResults(): void {
-		$prop = $this->config['components']['schemas']['DataExchangeJob']['properties']['target'];
-
-		self::assertStringContainsString('lvs-results', $prop['description']);
-		self::assertStringContainsString('UWLR', $prop['description']);
-
-	}//end testDataExchangeJobTargetDescribesLvsResults()
-
-	/**
-	 * The lvs-results DataMappingProfile seed maps provider/instrument/moment
-	 * plus every normed-score field.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/changes/lvs-import-contract/specs/data-exchange/spec.md#scenario-the-lvs-results-mapping-profile-declares-the-normed-score-fields
-	 */
-	public function testLvsResultsMappingProfileSeedShape(): void {
-		$seed = $this->config['components']['schemas']['DataMappingProfile']['x-openregister-seed'];
-
-		$profile = null;
-		foreach ($seed as $entry) {
-			if ($entry['target'] === 'lvs-results') {
-				$profile = $entry;
-				break;
-			}
-		}
-
-		self::assertNotNull($profile, 'lvs-results DataMappingProfile seed must exist');
-		self::assertSame('import', $profile['direction']);
-		self::assertSame('assessment-result', $profile['sourceSchema']);
-
-		$mappedFields = array_column($profile['fieldMappings'], 'scholiqField');
-		foreach (['provider', 'instrument', 'moment', 'rawScore', 'vaardigheidsscore', 'niveau', 'referentieniveau', 'dle'] as $field) {
-			self::assertContains($field, $mappedFields, "{$field} must be mapped");
-		}
-
-	}//end testLvsResultsMappingProfileSeedShape()
 
 	/**
 	 * Every LvsResult property carries a title and description (gate-28

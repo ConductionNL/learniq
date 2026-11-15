@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
+ * @spec openspec/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
  */
 
 declare(strict_types=1);
@@ -34,7 +34,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\BackgroundJob\EnrolmentProgressRollupJob;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
@@ -55,13 +55,13 @@ class EnrolmentProgressRollupHandler implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ListenerDeferralService $deferral Buffers the roll-up for after the request.
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the entity's register/schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ListenerDeferralService $deferral,
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 	) {
 	}//end __construct()
 
@@ -72,7 +72,7 @@ class EnrolmentProgressRollupHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-recomputes-when-a-lesson-is-completed
+	 * @spec openspec/specs/enrolment/spec.md#scenario-progress-percentage-recomputes-when-a-lesson-is-completed
 	 * @spec openspec/specs/progress-tracking/spec.md#requirement-a-lesson-completion-belongs-to-one-enrolment
 	 */
 	public function handle(Event $event): void {

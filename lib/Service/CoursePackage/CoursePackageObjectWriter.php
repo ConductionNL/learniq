@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/design.md#data-model
+ * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#data-model
  */
 
 declare(strict_types=1);
@@ -66,8 +66,8 @@ class CoursePackageObjectWriter {
 	 *
 	 * @return string|null Created Course UUID.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#data-model
-	 * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-installing-a-shared-course-creates-an-independent-copy-that-keeps-the-credit
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#data-model
+	 * @spec openspec/specs/course-management/spec.md#requirement-installing-a-shared-course-creates-an-independent-copy-that-keeps-the-credit
 	 */
 	public function createCourse(string $title, ?string $parentCourseId, string $tenantId, array $metadata=[]): ?string {
 		$object = [
@@ -87,35 +87,24 @@ class CoursePackageObjectWriter {
 	}//end createCourse()
 
 	/**
-	 * Create a `Lesson` object.
+	 * Create a draft Lesson.
 	 *
-	 * @param string|null $courseId Enclosing Course UUID.
-	 * @param string $title Lesson title.
-	 * @param int $order Manifest order.
-	 * @param string $contentType Lesson content type.
-	 * @param string $contentRef Material UUID (nc:files-resolved content lives on the Material).
-	 * @param string $tenantId Tenant UUID.
+	 * @param array{courseId: string|null, title: string, order: int, contentType: string, contentRef: string} $lesson   The lesson.
+	 * @param string                                                                                            $tenantId Tenant id.
 	 *
-	 * @return string|null Created Lesson UUID.
+	 * @return string|null The new Lesson's UUID, or null when it was not created.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#data-model
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#data-model
 	 */
-	public function createLesson(
-		?string $courseId,
-		string $title,
-		int $order,
-		string $contentType,
-		string $contentRef,
-		string $tenantId,
-	): ?string {
+	public function createLesson(array $lesson, string $tenantId): ?string {
 		return $this->create(
 			schema: 'lesson',
 			object: [
-				'courseId' => $courseId,
-				'name' => $title,
-				'order' => $order,
-				'contentType' => $contentType,
-				'contentRef' => $contentRef,
+				'courseId' => $lesson['courseId'],
+				'name' => $lesson['title'],
+				'order' => $lesson['order'],
+				'contentType' => $lesson['contentType'],
+				'contentRef' => $lesson['contentRef'],
 				'lifecycle' => 'draft',
 				'tenant_id' => $tenantId,
 			]
@@ -123,28 +112,24 @@ class CoursePackageObjectWriter {
 	}//end createLesson()
 
 	/**
-	 * Create a `Material` object.
+	 * Create a Material.
 	 *
-	 * @param string $title Material title.
-	 * @param string $kind One of Material's `kind` enum values.
-	 * @param string|null $fileRef nc:files path, when `kind` carries file bytes.
-	 * @param string|null $url External URL, when `kind: link`.
-	 * @param string|null $courseId Enclosing Course UUID.
-	 * @param string $tenantId Tenant UUID.
+	 * @param array{title: string, kind: string, fileRef: string|null, url: string|null, courseId: string|null} $material The material.
+	 * @param string                                                                                              $tenantId Tenant id.
 	 *
-	 * @return string|null Created Material UUID.
+	 * @return string|null The new Material's UUID, or null when it was not created.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
-	public function createMaterial(string $title, string $kind, ?string $fileRef, ?string $url, ?string $courseId, string $tenantId): ?string {
+	public function createMaterial(array $material, string $tenantId): ?string {
 		return $this->create(
 			schema: 'material',
 			object: [
-				'title' => $title,
-				'kind' => $kind,
-				'fileRef' => $fileRef ?? '',
-				'url' => $url,
-				'courseId' => $courseId,
+				'title' => $material['title'],
+				'kind' => $material['kind'],
+				'fileRef' => $material['fileRef'] ?? '',
+				'url' => $material['url'],
+				'courseId' => $material['courseId'],
 				'tenant_id' => $tenantId,
 			]
 		);
@@ -158,7 +143,7 @@ class CoursePackageObjectWriter {
 	 *
 	 * @return string|null Created LtiToolPlacement UUID.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-lti-resource-becomes-a-placement-not-an-inline-link
+	 * @spec openspec/specs/course-management/spec.md#scenario-an-lti-resource-becomes-a-placement-not-an-inline-link
 	 */
 	public function createLtiPlacement(?string $courseId, string $tenantId): ?string {
 		return $this->create(
@@ -184,7 +169,7 @@ class CoursePackageObjectWriter {
 	 *
 	 * @return string|null Created ItemBank UUID.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#data-model
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#data-model
 	 */
 	public function createItemBank(string $name, string $tenantId): ?string {
 		return $this->create(
@@ -201,7 +186,7 @@ class CoursePackageObjectWriter {
 	 *
 	 * @return string|null Created object UUID.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#data-model
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#data-model
 	 */
 	public function create(string $schema, array $object): ?string {
 		$saved = $this->objectService->saveObject(
@@ -214,13 +199,27 @@ class CoursePackageObjectWriter {
 	}//end create()
 
 	/**
+	 * Delete a Learniq object from the `learniq` register.
+	 *
+	 * @param string $schema Schema slug.
+	 * @param string $uuid   Object UUID.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#data-model
+	 */
+	public function delete(string $schema, string $uuid): void {
+		$this->objectService->deleteObject(uuid: $uuid, register: self::LEARNIQ_REGISTER, schema: $schema);
+	}//end delete()
+
+	/**
 	 * Extract a created object's UUID from an `ObjectService::saveObject()` return value.
 	 *
 	 * @param mixed $saved Return value of `saveObject()` (array or an ObjectEntity-like object).
 	 *
 	 * @return string|null The UUID, or null if it could not be resolved.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#data-model
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#data-model
 	 */
 	private function extractUuid(mixed $saved): ?string {
 		if (is_array($saved) === true) {

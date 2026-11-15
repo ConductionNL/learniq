@@ -87,7 +87,8 @@ class ReportCardPdfTransitionListenerTest extends TestCase {
 				objectService: $this->objectService,
 				logger: new NullLogger()
 			),
-			logger: new NullLogger()
+			logger: new NullLogger(),
+			schemas: \OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 	}//end listener()
 

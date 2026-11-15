@@ -23,8 +23,8 @@
     - POST /apps/learniq/api/lesson-onboarding/files/:id/import {courseId}
     - GET /apps/openregister/api/objects/learniq/course (the course picker)
 
-  @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
-  @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
+  @spec openspec/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
+  @spec openspec/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
 -->
 <template>
 	<section
@@ -250,6 +250,19 @@ import {
 	rowsUrl,
 } from '../../utils/lessonOnboarding.js'
 
+/**
+ * The error key of a refused import, from its status and reason.
+ *
+ * @param {Error} err The request error.
+ * @return {string}
+ */
+function importErrorKeyOf(err) {
+	return importErrorKey(
+		err?.response?.status ?? 0,
+		err?.response?.data ?? null,
+	)
+}
+
 export default {
 	name: 'LessonOnboardingPanel',
 
@@ -288,7 +301,7 @@ export default {
 	computed: {
 		/**
 		 * @return {Array<{id: string, label: string}>} Course picker options.
-		 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
+		 * @spec openspec/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
 		 */
 		courseOptions() {
 			return this.courses.map((c) => ({
@@ -333,7 +346,7 @@ export default {
 		 * Load the folder, the teacher's rows and the courses.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
+		 * @spec openspec/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
 		 */
 		async load() {
 			this.loading = true
@@ -370,7 +383,7 @@ export default {
 		 * Pick a folder in the teacher's files and store it.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-teacher-picks-a-folder
+		 * @spec openspec/specs/course-management/spec.md#scenario-a-teacher-picks-a-folder
 		 */
 		async chooseFolder() {
 			let path
@@ -399,7 +412,7 @@ export default {
 		 * Stop watching: clear the setting.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
 		 */
 		stopWatching() {
 			return this.saveFolder('')
@@ -410,7 +423,7 @@ export default {
 		 *
 		 * @param {string} path Path in the teacher's files, or '' to clear.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-file-is-not-a-folder
+		 * @spec openspec/specs/course-management/spec.md#scenario-a-file-is-not-a-folder
 		 */
 		async saveFolder(path) {
 			this.savingFolder = true
@@ -449,40 +462,65 @@ export default {
 		 *
 		 * @param {object} row The detected row.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
+		 * @spec openspec/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
 		 */
 		async importRow(row) {
 			const id = this.rowId(row)
 			const courseId = this.courseChoice[id]
-			this.rowErrors = { ...this.rowErrors, [id]: '' }
+			this.setRowError(id, '')
 			if (!courseId) {
-				this.rowErrors = {
-					...this.rowErrors,
-					[id]: this.errorMessage('no-course'),
-				}
+				this.setRowError(id, this.errorMessage('no-course'))
 				return
 			}
+			await this.runImport(id, courseId)
+		},
 
+		/**
+		 * Show a message on one row, keeping the other rows' messages.
+		 *
+		 * @param {string} id The row id.
+		 * @param {string} message The message, '' for none.
+		 * @return {void}
+		 */
+		setRowError(id, message) {
+			this.rowErrors = { ...this.rowErrors, [id]: message }
+		},
+
+		/**
+		 * Import the file while its row is busy; a refusal is shown on the row.
+		 *
+		 * @param {string} id The row id.
+		 * @param {string} courseId The chosen course.
+		 * @return {Promise<void>}
+		 */
+		async runImport(id, courseId) {
 			this.busyRow = id
 			try {
-				const request = importRequest(id, courseId)
-				const resp = await axios.post(generateUrl(request.url), request.body)
-				this.results.unshift({ ...resp.data, notes: resp.data.notes ?? [] })
-				this.rows = this.rows.filter((r) => this.rowId(r) !== id)
-				this.liveMessage = this.t(
-					'learniq',
-					'Lesson draft "{name}" created.',
-					{ name: resp.data.lessonName },
-				)
+				await this.importInto(id, courseId)
 			} catch (err) {
-				const key = importErrorKey(
-					err?.response?.status ?? 0,
-					err?.response?.data ?? null,
-				)
-				this.rowErrors = { ...this.rowErrors, [id]: this.errorMessage(key) }
+				this.setRowError(id, this.errorMessage(importErrorKeyOf(err)))
 			} finally {
 				this.busyRow = ''
 			}
+		},
+
+		/**
+		 * POST the import, report the new draft and take its row off the list.
+		 *
+		 * @param {string} id The row id.
+		 * @param {string} courseId The chosen course.
+		 * @return {Promise<void>}
+		 */
+		async importInto(id, courseId) {
+			const request = importRequest(id, courseId)
+			const resp = await axios.post(generateUrl(request.url), request.body)
+			this.results.unshift({ ...resp.data, notes: resp.data.notes ?? [] })
+			this.rows = this.rows.filter((r) => this.rowId(r) !== id)
+			this.liveMessage = this.t(
+				'learniq',
+				'Lesson draft "{name}" created.',
+				{ name: resp.data.lessonName },
+			)
 		},
 
 		/**
@@ -490,7 +528,7 @@ export default {
 		 *
 		 * @param {object} row The detected row.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-teacher-dismisses-a-file
+		 * @spec openspec/specs/course-management/spec.md#scenario-a-teacher-dismisses-a-file
 		 */
 		async dismissRow(row) {
 			const id = this.rowId(row)
@@ -520,7 +558,7 @@ export default {
 		 *
 		 * @param {string} key From importErrorKey().
 		 * @return {string} The message.
-		 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-openregister-has-no-presentation-reader-yet
+		 * @spec openspec/specs/course-management/spec.md#scenario-openregister-has-no-presentation-reader-yet
 		 */
 		errorMessage(key) {
 			const messages = {
@@ -564,7 +602,7 @@ export default {
 		 * @param {string} courseId The course.
 		 * @param {string} lessonId The lesson.
 		 * @return {void}
-		 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-confirmed-word-file-becomes-one-lesson-draft
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-confirmed-word-file-becomes-one-lesson-draft
 		 */
 		openLesson(courseId, lessonId) {
 			if (this.$router) {

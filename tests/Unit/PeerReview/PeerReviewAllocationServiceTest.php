@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
+ * @spec openspec/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
  */
 
 declare(strict_types=1);
@@ -26,8 +26,10 @@ namespace OCA\Learniq\Tests\Unit\PeerReview;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\PeerReviewAllocationService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCP\AppFramework\Db\DoesNotExistException;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 
 /**
  * Tests for PeerReviewAllocationService::allocate().
@@ -142,7 +144,7 @@ class PeerReviewAllocationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-round-robin-allocates-the-configured-reviewer-count-while-excluding-self
+	 * @spec openspec/specs/assignments/spec.md#scenario-round-robin-allocates-the-configured-reviewer-count-while-excluding-self
 	 */
 	public function testRoundRobinAssignsExactCountExcludingSelf(): void {
 		$assignment = [
@@ -190,7 +192,7 @@ class PeerReviewAllocationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
+	 * @spec openspec/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
 	 */
 	public function testRandomExcludesSelf(): void {
 		$assignment = [
@@ -225,7 +227,7 @@ class PeerReviewAllocationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-manual-strategy-performs-no-automatic-allocation
+	 * @spec openspec/specs/assignments/spec.md#scenario-manual-strategy-performs-no-automatic-allocation
 	 */
 	public function testManualStrategyCreatesNothing(): void {
 		$assignment = [
@@ -248,7 +250,7 @@ class PeerReviewAllocationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-re-running-allocation-is-idempotent
+	 * @spec openspec/specs/assignments/spec.md#scenario-re-running-allocation-is-idempotent
 	 */
 	public function testReRunningAllocationIsIdempotentOnceFull(): void {
 		$assignment = [
@@ -278,7 +280,7 @@ class PeerReviewAllocationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
+	 * @spec openspec/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
 	 */
 	public function testGroupSubmissionExcludesEveryGroupMember(): void {
 		$assignment = [
@@ -314,7 +316,7 @@ class PeerReviewAllocationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-review-allocation-trigger/specs/assignments/spec.md#requirement-allocation-reads-and-writes-as-the-system-after-the-controllers-check
+	 * @spec openspec/specs/assignments/spec.md#requirement-allocation-reads-and-writes-as-the-system-after-the-controllers-check
 	 */
 	public function testReadsNestTheSchemaAndRunAsTheSystem(): void {
 		$assignment = [
@@ -346,7 +348,7 @@ class PeerReviewAllocationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-review-allocation-trigger/specs/assignments/spec.md#requirement-allocation-reads-and-writes-as-the-system-after-the-controllers-check
+	 * @spec openspec/specs/assignments/spec.md#requirement-allocation-reads-and-writes-as-the-system-after-the-controllers-check
 	 */
 	public function testDraftsAreNeitherReviewedNorReviewers(): void {
 		$assignment = [
@@ -368,4 +370,26 @@ class PeerReviewAllocationServiceTest extends TestCase {
 			self::assertNotSame('learner-e', $saved['object']['reviewerId']);
 		}
 	}//end testDraftsAreNeitherReviewedNorReviewers()
+
+	/**
+	 * A missing assignment allocates nothing; any other read failure is not read as missing.
+	 *
+	 * @return void
+	 */
+	public function testOnlyAMissingAssignmentReadsAsNothingToAllocate(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willThrowException(new DoesNotExistException('Object not found'));
+		$objectService->expects($this->never())->method('saveObject');
+		$service = new PeerReviewAllocationService($objectService, $this->createMock(LoggerInterface::class));
+
+		self::assertSame(
+			['strategy' => 'round-robin', 'submissionsProcessed' => 0, 'createdCount' => 0],
+			$service->allocate(assignmentId: self::ASSIGNMENT_ID)
+		);
+
+		$failing = $this->createMock(ObjectService::class);
+		$failing->method('find')->willThrowException(new RuntimeException('database gone'));
+		$this->expectExceptionMessage('database gone');
+		(new PeerReviewAllocationService($failing, $this->createMock(LoggerInterface::class)))->allocate(assignmentId: self::ASSIGNMENT_ID);
+	}//end testOnlyAMissingAssignmentReadsAsNothingToAllocate()
 }//end class

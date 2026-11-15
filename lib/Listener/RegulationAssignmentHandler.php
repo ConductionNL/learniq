@@ -29,7 +29,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\RegulationAssignmentService;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\RegulationAssignmentServiceInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -44,12 +45,14 @@ class RegulationAssignmentHandler implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param RegulationAssignmentService $assignment Assignment logic.
+	 * @param RegulationAssignmentServiceInterface $assignment Assignment logic.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly RegulationAssignmentService $assignment,
+		private readonly RegulationAssignmentServiceInterface $assignment,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -67,8 +70,8 @@ class RegulationAssignmentHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== 'learniq'
-			|| $event->getSchema() !== 'regulation'
+		if ($this->schemas->eventRegister(event: $event) !== 'learniq'
+			|| $this->schemas->eventSchema(event: $event) !== 'regulation'
 			|| $event->getTo() !== 'published'
 		) {
 			return;

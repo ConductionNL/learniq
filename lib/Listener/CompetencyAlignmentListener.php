@@ -3,6 +3,9 @@
 /**
  * Learniq Competency Alignment Listener
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Pre-save listener (OpenRegister ObjectCreatingEvent and ObjectUpdatingEvent)
  * for the four schemas that align to goals: Lesson, Course, Assignment and
  * Assessment (slug `exam`). It keeps the flat `competencyIds` derived from the
@@ -30,21 +33,19 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
+ * @spec openspec/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\CompetencyAlignmentNormaliser;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\CompetencyAlignmentNormaliserInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Service\ObjectRowReader;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
@@ -59,7 +60,7 @@ use Throwable;
  *
  * @template-implements IEventListener<Event>
  *
- * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
+ * @spec openspec/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
  */
 class CompetencyAlignmentListener implements IEventListener {
 
@@ -84,17 +85,17 @@ class CompetencyAlignmentListener implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver        $schemaResolver Resolves the event entity's schema slug.
+	 * @param ListenerSchemaResolverInterface        $schemaResolver Resolves the event entity's schema slug.
 	 * @param ObjectRowReader               $reader         Reads Competency and CompetencyFramework rows.
-	 * @param CompetencyAlignmentNormaliser $normaliser     The list rules.
+	 * @param CompetencyAlignmentNormaliserInterface $normaliser     The list rules.
 	 * @param LoggerInterface               $logger         PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly ObjectRowReader $reader,
-		private readonly CompetencyAlignmentNormaliser $normaliser,
+		private readonly CompetencyAlignmentNormaliserInterface $normaliser,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -106,7 +107,7 @@ class CompetencyAlignmentListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
+	 * @spec openspec/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
 	 */
 	public function handle(Event $event): void {
 		$write = $this->unpack(event: $event);
@@ -141,7 +142,7 @@ class CompetencyAlignmentListener implements IEventListener {
 	 *
 	 * @return array{event: ObjectCreatingEvent|ObjectUpdatingEvent, entity: ObjectEntity, old: array<string, mixed>}|null
 	 *
-	 * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
+	 * @spec openspec/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
 	 */
 	private function unpack(Event $event): ?array {
 		if ($event instanceof ObjectCreatingEvent === true) {
@@ -168,7 +169,7 @@ class CompetencyAlignmentListener implements IEventListener {
 	 *
 	 * @return array<int, array{competencyId: string, depth: string|null}>
 	 *
-	 * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
+	 * @spec openspec/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
 	 */
 	private function submittedAlignments(array $new, array $stored): array {
 		if (array_key_exists('competencyAlignments', $new) === false) {
@@ -187,7 +188,7 @@ class CompetencyAlignmentListener implements IEventListener {
 	 *
 	 * @return array<int, string>
 	 *
-	 * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
+	 * @spec openspec/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
 	 */
 	private function submittedIds(array $new, array $stored): array {
 		if (array_key_exists('competencyIds', $new) === false) {
@@ -207,7 +208,7 @@ class CompetencyAlignmentListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-a-depth-the-goals-framework-does-not-know-is-refused
+	 * @spec openspec/specs/competency/spec.md#requirement-a-depth-the-goals-framework-does-not-know-is-refused
 	 */
 	private function applyChangedAlignments(
 		ObjectCreatingEvent|ObjectUpdatingEvent $event,
@@ -238,7 +239,7 @@ class CompetencyAlignmentListener implements IEventListener {
 	 *
 	 * @return array<string, array{code: string, levels: array<int, string>}>
 	 *
-	 * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-a-depth-the-goals-framework-does-not-know-is-refused
+	 * @spec openspec/specs/competency/spec.md#requirement-a-depth-the-goals-framework-does-not-know-is-refused
 	 */
 	private function resolveGoals(array $alignments): array {
 		$goals = [];
@@ -269,7 +270,7 @@ class CompetencyAlignmentListener implements IEventListener {
 	 *
 	 * @return array<int, string>
 	 *
-	 * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-a-depth-the-goals-framework-does-not-know-is-refused
+	 * @spec openspec/specs/competency/spec.md#requirement-a-depth-the-goals-framework-does-not-know-is-refused
 	 */
 	private function frameworkLevels(string $frameworkId): array {
 		if (isset($this->levelsByFramework[$frameworkId]) === true) {
@@ -297,7 +298,7 @@ class CompetencyAlignmentListener implements IEventListener {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
+	 * @spec openspec/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
 	 */
 	private function isAlignedSchema(ObjectEntity $entity): bool {
 		try {
@@ -319,7 +320,7 @@ class CompetencyAlignmentListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
+	 * @spec openspec/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
 	 */
 	private function merge(ObjectCreatingEvent|ObjectUpdatingEvent $event, array $data): void {
 		$event->setModifiedData(array_merge($event->getModifiedData(), $data));

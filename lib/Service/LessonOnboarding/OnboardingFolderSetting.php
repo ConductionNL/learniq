@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
+ * @spec openspec/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
  */
 
 declare(strict_types=1);
@@ -30,7 +30,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\LessonOnboarding;
 
 use InvalidArgumentException;
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\OnboardingFolderSettingInterface;
+use OCA\Learniq\Service\CallerTenantResolver;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
@@ -39,7 +41,7 @@ use OCP\IConfig;
 /**
  * Reads and stores a teacher's lesson onboarding folder.
  */
-class OnboardingFolderSetting {
+class OnboardingFolderSetting implements OnboardingFolderSettingInterface {
 
 	/**
 	 * Per-user config key holding the folder's file id.
@@ -51,12 +53,14 @@ class OnboardingFolderSetting {
 	/**
 	 * Constructor.
 	 *
-	 * @param IConfig $config Per-user settings and the tenant binding.
+	 * @param IConfig $config Per-user settings.
 	 * @param IRootFolder $rootFolder Resolves a user's own files.
+	 * @param CallerTenantResolver $tenants Resolves the teacher's tenant.
 	 */
 	public function __construct(
 		private readonly IConfig $config,
 		private readonly IRootFolder $rootFolder,
+		private readonly CallerTenantResolver $tenants,
 	) {
 	}//end __construct()
 
@@ -67,10 +71,10 @@ class OnboardingFolderSetting {
 	 *
 	 * @return int The folder's file id, or 0.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
 	 */
 	public function folderId(string $userId): int {
-		$value = $this->config->getUserValue($userId, Application::APP_ID, self::CONFIG_KEY, '');
+		$value = $this->config->getUserValue($userId, AppIdentity::APP_ID, self::CONFIG_KEY, '');
 		if (is_numeric($value) === false) {
 			return 0;
 		}
@@ -86,7 +90,7 @@ class OnboardingFolderSetting {
 	 *
 	 * @return array{folderId: int|null, path: string|null}
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
 	 */
 	public function describe(string $userId): array {
 		$folderId = $this->folderId(userId: $userId);
@@ -116,12 +120,12 @@ class OnboardingFolderSetting {
 	 *
 	 * @throws InvalidArgumentException When the path is not a folder in the teacher's files.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-file-is-not-a-folder
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-file-is-not-a-folder
 	 */
 	public function choose(string $userId, string $path): array {
 		$path = trim($path);
 		if ($path === '') {
-			$this->config->deleteUserValue($userId, Application::APP_ID, self::CONFIG_KEY);
+			$this->config->deleteUserValue($userId, AppIdentity::APP_ID, self::CONFIG_KEY);
 			return ['folderId' => null, 'path' => null];
 		}
 
@@ -140,28 +144,22 @@ class OnboardingFolderSetting {
 			throw new InvalidArgumentException('Choose one folder inside your files, not all of your files.');
 		}
 
-		$this->config->setUserValue($userId, Application::APP_ID, self::CONFIG_KEY, (string)$node->getId());
+		$this->config->setUserValue($userId, AppIdentity::APP_ID, self::CONFIG_KEY, (string)$node->getId());
 
 		return ['folderId' => (int)$node->getId(), 'path' => $userFolder->getRelativePath($node->getPath())];
 	}//end choose()
 
 	/**
 	 * The tenant a teacher's objects belong to: their per-user binding, else
-	 * the instance id. The same resolution CoursePackageImportController and
-	 * QtiImportController use.
+	 * the default tenant (CallerTenantResolver, which every learniq path uses).
 	 *
 	 * @param string $userId The teacher.
 	 *
 	 * @return string The tenant id.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
 	 */
 	public function tenantOf(string $userId): string {
-		$tenantId = $this->config->getUserValue($userId, Application::APP_ID, 'tenant_id', '');
-		if ($tenantId !== '') {
-			return $tenantId;
-		}
-
-		return (string)$this->config->getSystemValue('instanceid', '');
+		return $this->tenants->forUserId(userId: $userId);
 	}//end tenantOf()
 }//end class

@@ -86,9 +86,9 @@ class GuardGroupsAreDeclaredTest extends TestCase {
 	public function testTheScanSeesTheExchangeGuards(): void {
 		$tested = $this->testedGroups();
 
-		$this->assertArrayHasKey('RejectionWaiveGuard::AUTHORISED_GROUPS', $tested);
-		$this->assertArrayHasKey('RejectionResubmitGuard::AUTHORISED_GROUPS', $tested);
+		// The rejection guards left with ExchangeRejection (data-exchange-to-integriq).
 		$this->assertArrayHasKey('MunicipalityFeedbackGuard::AUTHORISED_GROUPS', $tested);
+		$this->assertGreaterThan(1, count($tested), 'The scan must see more than one guard.');
 	}//end testTheScanSeesTheExchangeGuards()
 
 	/**

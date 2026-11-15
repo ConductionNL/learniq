@@ -45,7 +45,10 @@ class LifecycleWriteActionsTest extends TestCase {
 			'Attestation.sign' => [
 				'Attestation',
 				'sign',
-				['OCA\\Learniq\\Lifecycle\\Action\\TenantSignatureAction' => []],
+				[
+					'OCA\\Learniq\\Lifecycle\\Action\\StampTransitionTimeAction' => ['timeField' => 'signedAt'],
+					'OCA\\Learniq\\Lifecycle\\Action\\TenantSignatureAction' => [],
+				],
 				[],
 			],
 			'BsaWarning.issue' => [
@@ -77,28 +80,66 @@ class LifecycleWriteActionsTest extends TestCase {
 				],
 				[],
 			],
-			'ExchangeRejection.waive' => [
-				'ExchangeRejection',
-				'waive',
+			'ExchangePartnerApproval.approve' => [
+				'ExchangePartnerApproval',
+				'approve',
 				[
 					'OCA\\Learniq\\Lifecycle\\Action\\StampTransitionActorAction' => [
-						'actorField' => 'waivedBy',
-						'timeField' => 'waivedAt',
+						'actorField' => 'decidedBy',
+						'timeField' => 'decidedAt',
 					],
 				],
-				['waiveReason'],
+				[],
+			],
+			'ExchangePartnerApproval.reject' => [
+				'ExchangePartnerApproval',
+				'reject',
+				[
+					'OCA\\Learniq\\Lifecycle\\Action\\StampTransitionActorAction' => [
+						'actorField' => 'decidedBy',
+						'timeField' => 'decidedAt',
+					],
+				],
+				['note'],
+			],
+			'TeldatumCheck.confirm' => [
+				'TeldatumCheck',
+				'confirm',
+				[
+					'OCA\\Learniq\\Lifecycle\\Action\\StampTransitionActorAction' => [
+						'actorField' => 'confirmedBy',
+						'timeField' => 'confirmedAt',
+					],
+				],
+				[],
+			],
+			'DossierReview.approve' => [
+				'DossierReview',
+				'approve',
+				[
+					'OCA\\Learniq\\Lifecycle\\Action\\StampTransitionActorAction' => [
+						'actorField' => 'reviewedBy',
+						'timeField' => 'reviewedAt',
+					],
+				],
+				[],
+			],
+			'DossierReview.reject' => [
+				'DossierReview',
+				'reject',
+				[
+					'OCA\\Learniq\\Lifecycle\\Action\\StampTransitionActorAction' => [
+						'actorField' => 'reviewedBy',
+						'timeField' => 'reviewedAt',
+					],
+				],
+				['note'],
 			],
 			'FraudCase.decide' => [
 				'FraudCase',
 				'decide',
 				['OCA\\Learniq\\Lifecycle\\Action\\FraudCaseAppealDeadlineAction' => []],
 				['verdict', 'decisionRationale', 'sanctionType', 'sanctionDurationMonths', 'sanctionScope'],
-			],
-			'ExchangeRejection.resubmit' => [
-				'ExchangeRejection',
-				'resubmit',
-				['OCA\\Learniq\\Lifecycle\\Action\\RejectionResubmissionAction' => []],
-				[],
 			],
 			'OsoImportDossier.accept' => [
 				'OsoImportDossier',
@@ -208,7 +249,7 @@ class LifecycleWriteActionsTest extends TestCase {
 	 * @return void
 	 */
 	public function testRecordMunicipalityFeedbackAcceptsTheFeedback(): void {
-		$spec = self::transition(schema: 'DataExchangeJob', action: 'recordMunicipalityFeedback');
+		$spec = self::transition(schema: 'AttendanceFlag', action: 'recordMunicipalityFeedback');
 		$declared = array_map(
 			static fn (array $input): string => (string)($input['field'] ?? ''),
 			($spec['inputs'] ?? [])

@@ -37,16 +37,14 @@
  Uses Options API + direct fetch calls (no custom Pinia store modules),
  mirroring PupilDossierTimelineView.vue / BsaRiskDashboard.vue.
 
- @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#requirement-groupplansubgroup-differentiates-instructieniveau-and-links-to-without-duplicating-learningplan-and-supportrequest
- @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
+ @spec openspec/specs/learning-plan/spec.md#requirement-groupplansubgroup-differentiates-instructieniveau-and-links-to-without-duplicating-learningplan-and-supportrequest
+ @spec openspec/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 -->
 
 <template>
-	<div class="gp-subgroup-learner-context">
+	<div class="gp-subgroup-learner-context lq-board-page">
 		<header class="gp-subgroup-learner-context__header">
-			<h2 class="gp-subgroup-learner-context__title">
-				{{ t('learniq', 'Subgroup learner context') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Subgroup learner context')" />
 			<p class="gp-subgroup-learner-context__subtitle">
 				{{
 					t(
@@ -58,7 +56,7 @@
 		</header>
 
 		<!-- No subgroup selected: inline picker. -->
-		<div
+		<CnDetailCard
 			v-if="!subgroupId"
 			class="gp-subgroup-learner-context__picker"
 			role="form">
@@ -88,7 +86,7 @@
 					)
 				}}
 			</p>
-		</div>
+		</CnDetailCard>
 
 		<template v-else>
 			<!-- Loading -->
@@ -97,7 +95,7 @@
 				class="gp-subgroup-learner-context__loading"
 				aria-live="polite">
 				<span class="icon-loading" aria-hidden="true" />
-				<span>{{ t('learniq', 'Loading learner context...') }}</span>
+				<span>{{ t('learniq', 'Loading learner context…') }}</span>
 			</div>
 
 			<!-- Error -->
@@ -126,10 +124,7 @@
 			</div>
 
 			<!-- Learner list -->
-			<template v-else>
-				<h3 class="gp-subgroup-learner-context__subgroup-name">
-					{{ subgroup.name }}
-				</h3>
+			<CnDetailCard v-else :title="subgroup.name">
 				<ul class="gp-subgroup-learner-context__members">
 					<li
 						v-for="member in members"
@@ -162,16 +157,19 @@
 						</span>
 					</li>
 				</ul>
-			</template>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
+import { readRequiredList } from '../utils/requiredListRead.js'
 
 export default {
 	name: 'GroupPlanSubgroupLearnerContext',
+	components: { CnDetailCard, CnPageHeader },
 
 	data() {
 		return {
@@ -193,7 +191,7 @@ export default {
 		 * tile).
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
+		 * @spec openspec/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 		 */
 		subgroupId() {
 			return (
@@ -208,7 +206,7 @@ export default {
 		 * LearningPlans, never from a stored field on the subgroup itself.
 		 *
 		 * @return {Array<{learnerId: string, learningPlan: object|null}>}
-		 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
+		 * @spec openspec/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 		 */
 		members() {
 			if (!this.subgroup) return []
@@ -228,7 +226,7 @@ export default {
 		subgroupId: {
 			immediate: true,
 			/**
-			 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
+			 * @spec openspec/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 			 */
 			handler() {
 				if (this.subgroupId) this.loadAll()
@@ -243,7 +241,7 @@ export default {
 		 * navigation without a pre-selected subgroup).
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
+		 * @spec openspec/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 		 */
 		openSubgroup() {
 			const id = this.subgroupIdInput.trim()
@@ -262,7 +260,7 @@ export default {
 		 * @param {string} schema OpenRegister schema title (e.g. "GroupPlanSubgroup").
 		 * @param {string} id Object UUID.
 		 * @return {Promise<object|null>}
-		 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
+		 * @spec openspec/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 		 */
 		async fetchObject(schema, id) {
 			const url = generateUrl(
@@ -282,18 +280,13 @@ export default {
 		 * @param {string} query Query string, WITHOUT the leading "?" (already
 		 *   `encodeURIComponent`-escaped by the caller).
 		 * @return {Promise<Array<object>>}
-		 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
+		 * @spec openspec/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 		 */
 		async fetchSchema(schema, query) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/${schema}?${query}`,
+			return readRequiredList(
+				generateUrl(`/apps/openregister/api/objects/learniq/${schema}?${query}`),
+				`${schema} fetch failed`,
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) throw new Error(`${schema} fetch failed: ${resp.status}`)
-			const json = await resp.json()
-			return json.results ?? json.objects ?? json ?? []
 		},
 
 		/**
@@ -305,7 +298,7 @@ export default {
 		 * DeliberationRecord join).
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
+		 * @spec openspec/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 		 */
 		async loadAll() {
 			this.loading = true
@@ -339,22 +332,6 @@ export default {
 </script>
 
 <style scoped>
-.gp-subgroup-learner-context {
-	max-width: 900px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.gp-subgroup-learner-context__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.gp-subgroup-learner-context__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-}
-
 .gp-subgroup-learner-context__subtitle {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9em;
@@ -365,9 +342,6 @@ export default {
 	display: flex;
 	flex-direction: column;
 	gap: var(--default-grid-baseline, 8px);
-	padding: calc(var(--default-grid-baseline, 8px) * 2);
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius, 4px);
 }
 
 .gp-subgroup-learner-context__picker-row {
@@ -388,11 +362,6 @@ export default {
 	align-items: center;
 	gap: var(--default-grid-baseline, 8px);
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.gp-subgroup-learner-context__subgroup-name {
-	font-weight: bold;
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .gp-subgroup-learner-context__members {

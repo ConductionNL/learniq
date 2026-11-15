@@ -3,6 +3,9 @@
 /**
  * Learniq Peer Feedback Aggregator
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Listens for OpenRegister's ObjectTransitionedEvent, filtered to PeerReview
  * objects transitioning to `released`. Recomputes the linked Submission's
  * `PeerFeedbackSummary` — `reviewCount`, `averageScore` (mean of released
@@ -32,14 +35,12 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
- * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-open-anonymity-reveals-reviewer-identity-in-the-feedback-summary
+ * @spec openspec/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
+ * @spec openspec/specs/assignments/spec.md#scenario-open-anonymity-reveals-reviewer-identity-in-the-feedback-summary
  */
 
 declare(strict_types=1);
@@ -47,6 +48,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -57,7 +60,7 @@ use OCP\EventDispatcher\IEventListener;
  * Bridges PeerReview.released -> PeerFeedbackSummary recompute.
  *
  * @implements IEventListener<Event>
- * @spec       openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-identity-is-hidden-from-the-submission-author-via-a-server-enforced-feedback-projection
+ * @spec       openspec/changes/archive/2026-07-16-peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-identity-is-hidden-from-the-submission-author-via-a-server-enforced-feedback-projection
  */
 class PeerFeedbackAggregator implements IEventListener {
 
@@ -73,12 +76,14 @@ class PeerFeedbackAggregator implements IEventListener {
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly ITimeFactory $timeFactory,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -89,18 +94,18 @@ class PeerFeedbackAggregator implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-teacher-releases-a-submitted-peerreview
+	 * @spec openspec/specs/assignments/spec.md#scenario-a-teacher-releases-a-submitted-peerreview
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
-		if ($event->getSchema() !== self::PEER_REVIEW_SCHEMA || $event->getTo() !== 'released') {
+		if ($this->schemas->eventSchema(event: $event) !== self::PEER_REVIEW_SCHEMA || $event->getTo() !== 'released') {
 			return;
 		}
 
@@ -126,8 +131,8 @@ class PeerFeedbackAggregator implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
-	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-open-anonymity-reveals-reviewer-identity-in-the-feedback-summary
+	 * @spec openspec/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
+	 * @spec openspec/specs/assignments/spec.md#scenario-open-anonymity-reveals-reviewer-identity-in-the-feedback-summary
 	 */
 	private function recomputeSummary(string $submissionId, string $assignmentId): void {
 		$anonymity = $this->fetchAnonymityMode(assignmentId: $assignmentId);
@@ -309,17 +314,6 @@ class PeerFeedbackAggregator implements IEventListener {
 	 * @return array<string,mixed>
 	 */
 	private function toArray(mixed $value): array {
-		if (is_array($value) === true) {
-			return $value;
-		}
-
-		if (is_object($value) === true && method_exists($value, 'jsonSerialize') === true) {
-			$serialized = $value->jsonSerialize();
-			if (is_array($serialized) === true) {
-				return $serialized;
-			}
-		}
-
-		return [];
+		return (new SerialisedRow())->asArray(object: $value);
 	}//end toArray()
 }//end class

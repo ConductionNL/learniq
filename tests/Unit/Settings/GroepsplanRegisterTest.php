@@ -31,7 +31,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/groepsplan/tasks.md#1-schema-learning-plan-delta
+ * @spec openspec/changes/archive/2026-07-16-groepsplan/tasks.md#1-schema-learning-plan-delta
  */
 
 declare(strict_types=1);
@@ -282,7 +282,7 @@ class GroepsplanRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
 	 */
 	public function testSeedFixturesExerciseSubgroupSplitAndVersionChain(): void {
 		$closed = self::poObject(schema: 'group-plan', field: 'lifecycle', value: 'closed');

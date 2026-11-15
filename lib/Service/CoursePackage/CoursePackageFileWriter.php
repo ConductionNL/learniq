@@ -22,21 +22,22 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
+ * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service\CoursePackage;
 
-use OCP\Files\File;
+use OCA\Learniq\Service\FolderFileWriter;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
-use OCP\Files\NotFoundException;
 use Psr\Log\LoggerInterface;
 
 /**
  * Writes resolved course-package file bytes into nc:files.
+ *
+ * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
  */
 class CoursePackageFileWriter {
 	/**
@@ -66,26 +67,39 @@ class CoursePackageFileWriter {
 	 *
 	 * @return string|null The nc:files path, or null when the source file could not be resolved.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
+	 * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
 	 */
 	public function resolveFileRef(string $dir, ?string $href, string $importedBy, string $tenantId): ?string {
 		if ($href === null) {
 			return null;
 		}
 
-		$sourcePath = $dir . '/' . $href;
-		if (is_dir($sourcePath) === true) {
-			// Directory-shaped source (e.g. a Moodle activity folder) — nothing to attach directly.
-			return null;
-		}
-
-		if (file_exists($sourcePath) === false) {
+		$sourcePath = $this->sourceFile(dir: $dir, href: $href);
+		if ($sourcePath === null) {
 			return null;
 		}
 
 		$content = (string)file_get_contents($sourcePath);
 		return $this->writeBytesToFiles(content: $content, filename: basename($sourcePath), importedBy: $importedBy, tenantId: $tenantId);
 	}//end resolveFileRef()
+
+	/**
+	 * The package file an href points at, or null when it is missing or a directory.
+	 *
+	 * @param string $dir  Extracted package directory.
+	 * @param string $href Package-relative path.
+	 *
+	 * @return string|null The absolute path of the file.
+	 */
+	private function sourceFile(string $dir, string $href): ?string {
+		$sourcePath = $dir . '/' . $href;
+		// A directory-shaped source (e.g. a Moodle activity folder) has nothing to attach directly.
+		if (is_dir($sourcePath) === true || file_exists($sourcePath) === false) {
+			return null;
+		}
+
+		return $sourcePath;
+	}//end sourceFile()
 
 	/**
 	 * Write a base64-encoded Material's bytes (from a scholiq-native JSON
@@ -99,7 +113,7 @@ class CoursePackageFileWriter {
 	 *
 	 * @return string|null The nc:files path, or null when the content could not be decoded/written.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
+	 * @spec openspec/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
 	 */
 	public function writeBase64ToFiles(string $base64Content, string $title, string $importedBy, string $tenantId): ?string {
 		$decoded = base64_decode($base64Content, strict: true);
@@ -107,13 +121,24 @@ class CoursePackageFileWriter {
 			return null;
 		}
 
+		return $this->writeBytesToFiles(content: $decoded, filename: $this->safeFilename(title: $title), importedBy: $importedBy, tenantId: $tenantId);
+	}//end writeBase64ToFiles()
+
+	/**
+	 * A title as a file name: runs of other characters become one dash; 'material' when nothing is left.
+	 *
+	 * @param string $title The title.
+	 *
+	 * @return string
+	 */
+	private function safeFilename(string $title): string {
 		$filename = preg_replace('/[^A-Za-z0-9_.-]+/', '-', $title);
 		if ($filename === null || $filename === '') {
-			$filename = 'material';
+			return 'material';
 		}
 
-		return $this->writeBytesToFiles(content: $decoded, filename: $filename, importedBy: $importedBy, tenantId: $tenantId);
-	}//end writeBase64ToFiles()
+		return $filename;
+	}//end safeFilename()
 
 	/**
 	 * Write raw bytes into the importing tenant's Scholiq course-imports
@@ -126,21 +151,16 @@ class CoursePackageFileWriter {
 	 *
 	 * @return string|null The nc:files path, or null on failure.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
+	 * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
 	 */
 	public function writeBytesToFiles(string $content, string $filename, string $importedBy, string $tenantId): ?string {
 		try {
-			$tenantSegment = 'default';
-			if ($tenantId !== '') {
-				$tenantSegment = $tenantId;
-			}
-
-			$ncBaseDir = 'Scholiq/' . $tenantSegment . '/course-imports';
+			$ncBaseDir = $this->importFolder(tenantId: $tenantId);
 			$ncPath = $ncBaseDir . '/' . $filename;
 
-			$userFolder = $this->rootFolder->getUserFolder($importedBy);
-			$this->ensureFolder(userFolder: $userFolder, path: $ncBaseDir);
-			$this->putFileContent(userFolder: $userFolder, path: $ncPath, content: $content);
+			$files = new FolderFileWriter(userFolder: $this->rootFolder->getUserFolder($importedBy));
+			$files->ensureFolder(path: $ncBaseDir);
+			$files->put(path: $ncPath, content: $content);
 
 			return '/' . $ncPath;
 		} catch (\Throwable $e) {
@@ -153,88 +173,72 @@ class CoursePackageFileWriter {
 	}//end writeBytesToFiles()
 
 	/**
+	 * The course-imports folder of a tenant; 'default' when there is no tenant.
+	 *
+	 * @param string $tenantId Tenant UUID, or ''.
+	 *
+	 * @return string Folder-relative path.
+	 */
+	private function importFolder(string $tenantId): string {
+		$tenantSegment = 'default';
+		if ($tenantId !== '') {
+			$tenantSegment = $tenantId;
+		}
+
+		return 'Learniq/' . $tenantSegment . '/course-imports';
+	}//end importFolder()
+
+	/**
 	 * Recursively remove a directory and its contents.
 	 *
 	 * @param string $dir Absolute path to the directory.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#security--privacy-posture
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#security--privacy-posture
 	 */
 	public function removeDirectory(string $dir): void {
 		if (is_dir($dir) === false) {
 			return;
 		}
 
-		$items = scandir($dir);
-		if ($items === false) {
-			return;
+		foreach ($this->entries(dir: $dir) as $item) {
+			$this->removeEntry(path: $dir . '/' . $item);
 		}
 
-		foreach ($items as $item) {
-			if ($item === '.' || $item === '..') {
-				continue;
-			}
-
-			$path = $dir . '/' . $item;
-			if (is_dir($path) === true) {
-				$this->removeDirectory(dir: $path);
-				continue;
-			}
-
-			unlink($path);
-		}
+		rmdir($dir);
 	}//end removeDirectory()
 
 	/**
-	 * Write (or overwrite) a file node at the given nc:files path.
+	 * The names in a directory without `.` and `..`; none when it cannot be read.
 	 *
-	 * @param Folder $userFolder The root user folder.
-	 * @param string $path Folder-relative destination path.
-	 * @param string $content Raw file bytes.
+	 * @param string $dir Absolute path to the directory.
+	 *
+	 * @return array<int,string>
+	 */
+	private function entries(string $dir): array {
+		$items = scandir($dir);
+		if ($items === false) {
+			return [];
+		}
+
+		return array_diff($items, ['.', '..']);
+	}//end entries()
+
+	/**
+	 * Remove one directory entry: a directory's contents, or a file.
+	 *
+	 * @param string $path Absolute path.
 	 *
 	 * @return void
-	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
 	 */
-	private function putFileContent(Folder $userFolder, string $path, string $content): void {
-		if ($userFolder->nodeExists($path) === false) {
-			$userFolder->newFile($path, $content);
+	private function removeEntry(string $path): void {
+		if (is_dir($path) === true) {
+			$this->removeDirectory(dir: $path);
 			return;
 		}
 
-		$existingNode = $userFolder->get($path);
-		if ($existingNode instanceof File) {
-			$existingNode->putContent($content);
-		}
-	}//end putFileContent()
+		unlink($path);
+	}//end removeEntry()
 
-	/**
-	 * Ensure a nested nc:files folder path exists under the given folder.
-	 *
-	 * @param Folder $userFolder The root user folder.
-	 * @param string $path Slash-separated relative path to ensure.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
-	 */
-	private function ensureFolder(Folder $userFolder, string $path): void {
-		$segments = array_filter(explode('/', $path));
-		$current = '';
-		foreach ($segments as $segment) {
-			$prefix = '';
-			if ($current !== '') {
-				$prefix = $current . '/';
-			}
-
-			$current = $prefix . $segment;
-
-			try {
-				$userFolder->get($current);
-			} catch (NotFoundException $e) {
-				$userFolder->newFolder($current);
-			}
-		}
-	}//end ensureFolder()
 }//end class

@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md
+ * @spec openspec/specs/course-evaluation/spec.md
  */
 
 declare(strict_types=1);
@@ -98,7 +98,7 @@ class CourseEvaluationRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-a-response-is-anonymous-by-schema-shape-not-by-rbac
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-a-response-is-anonymous-by-schema-shape-not-by-rbac
 	 */
 	public function testCourseEvaluationResponseDeclaresNoLearnerIdentityProperty(): void {
 		$schema = $this->config['components']['schemas']['CourseEvaluationResponse'] ?? null;
@@ -129,7 +129,7 @@ class CourseEvaluationRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
 	 */
 	public function testCourseEvaluationResponseIsAppendOnlyAndGuardedOnSubmit(): void {
 		$schema = $this->config['components']['schemas']['CourseEvaluationResponse'] ?? null;
@@ -158,13 +158,44 @@ class CourseEvaluationRegisterTest extends TestCase {
 	}//end testCourseEvaluationResponseIsAppendOnlyAndGuardedOnSubmit()
 
 	/**
+	 * DECISIONS row 63: no learner holds any right on a response row. The
+	 * rule #1715 added, `{"group": "authenticated", "match": {"lifecycle":
+	 * "draft"}}` on read and update, let every signed-in user read and change
+	 * every draft; the submit now runs through transitionAsSystem() after
+	 * learniq's own guard. This fails if that rule, or any rule for every
+	 * signed-in user or the public, comes back in any action.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
+	 */
+	public function testNoSignedInUserHoldsAnyRightOnAResponse(): void {
+		$schema = $this->config['components']['schemas']['CourseEvaluationResponse'] ?? null;
+		$this->assertIsArray($schema, 'CourseEvaluationResponse schema MUST exist');
+		$authorization = $schema['authorization'] ?? null;
+		$this->assertIsArray($authorization, 'CourseEvaluationResponse MUST keep its own authorization block (else the register block applies)');
+
+		foreach ($authorization as $action => $rules) {
+			foreach ((array)$rules as $rule) {
+				$group = is_array($rule) === true ? (string)($rule['group'] ?? '') : (string)$rule;
+				$this->assertNotContains(
+					$group,
+					['authenticated', 'public'],
+					"CourseEvaluationResponse.authorization.$action MUST NOT grant every signed-in user or the public (DECISIONS row 63): " . json_encode($rule)
+				);
+			}
+		}
+
+	}//end testNoSignedInUserHoldsAnyRightOnAResponse()
+
+	/**
 	 * EvaluationInvitation is the ONLY object carrying both learnerId and
 	 * hasResponded — and it declares no field referencing which response
 	 * satisfied it (no responseId, no answers).
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
 	 */
 	public function testEvaluationInvitationCarriesIdentityButNoResponseLink(): void {
 		$schema = $this->config['components']['schemas']['EvaluationInvitation'] ?? null;
@@ -196,7 +227,7 @@ class CourseEvaluationRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-non-responder-reminders-reuse-the-verified-notification-dialect-s-scheduled-filter-shape
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-non-responder-reminders-reuse-the-verified-notification-dialect-s-scheduled-filter-shape
 	 */
 	public function testEvaluationInvitationReminderMatchesEnrolmentDueReminderShape(): void {
 		$schema = $this->config['components']['schemas']['EvaluationInvitation'] ?? null;
@@ -227,7 +258,7 @@ class CourseEvaluationRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-a-campaign-scopes-its-courses-cohorts-academic-period-and-instrument
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-a-campaign-scopes-its-courses-cohorts-academic-period-and-instrument
 	 */
 	public function testEvaluationCampaignShapeAndProvisioningTrigger(): void {
 		$schema = $this->config['components']['schemas']['EvaluationCampaign'] ?? null;
@@ -262,7 +293,7 @@ class CourseEvaluationRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-course-teacher-quality-scores-are-a-declared-aggregation-and-calculation-engine-not-a-timedjob
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-course-teacher-quality-scores-are-a-declared-aggregation-and-calculation-engine-not-a-timedjob
 	 */
 	public function testCourseQualityScoreIsReadOnlyWithRollupTrigger(): void {
 		$schema = $this->config['components']['schemas']['CourseQualityScore'] ?? null;
@@ -292,7 +323,7 @@ class CourseEvaluationRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-the-evaluation-cycle-closes-the-loop-with-a-recorded-improvement-action
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-the-evaluation-cycle-closes-the-loop-with-a-recorded-improvement-action
 	 */
 	public function testImprovementActionLifecycleHasNoGuard(): void {
 		$schema = $this->config['components']['schemas']['ImprovementAction'] ?? null;
@@ -320,7 +351,7 @@ class CourseEvaluationRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
 	 */
 	public function testCourseAndCohortAreReferencedNotModified(): void {
 		$schemas = $this->config['components']['schemas'] ?? [];

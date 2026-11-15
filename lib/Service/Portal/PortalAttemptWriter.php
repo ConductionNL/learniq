@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
+ * @spec openspec/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
  */
 
 declare(strict_types=1);
@@ -35,7 +35,7 @@ use OCA\OpenRegister\Service\ObjectService;
 /**
  * Pupil-scoped writes for portal attempts.
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
+ * @spec openspec/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
  */
 class PortalAttemptWriter {
 
@@ -64,7 +64,7 @@ class PortalAttemptWriter {
 	 *
 	 * @return array<string, mixed> The created attempt.
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
+	 * @spec openspec/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
 	 */
 	public function createAttempt(PortalLearner $learner, array $data): array {
 		$saved = $this->objectService->runAs(
@@ -88,7 +88,7 @@ class PortalAttemptWriter {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
+	 * @spec openspec/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
 	 */
 	public function saveAttempt(PortalLearner $learner, string $id, array $row): void {
 		unset($row['@self']);
@@ -113,7 +113,7 @@ class PortalAttemptWriter {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
+	 * @spec openspec/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
 	 */
 	public function fireSubmit(PortalLearner $learner, string $id): void {
 		$this->objectService->runAs(

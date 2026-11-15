@@ -1,0 +1,532 @@
+{
+	"_meta": {
+		"spdx-license": "EUPL-1.2",
+		"spdx-copyright": "2026 Conduction B.V.",
+		"change": "timetabling-exam-schedule",
+		"adr": "ADR-037 modular manifest fragment, never edit src/manifest.json",
+		"description": "GroupExamSchedule: test weeks, exam sittings, invigilation requests and invigilator availability, for planners and invigilators (staff roles). Relocated under GroupLearning by src/menu-layout.json, next to Timetabling. Rows are guarded by the register; the room and clash checks run in ExamSittingPlacementCheck, availability in InvigilatorAssignmentCheck. A sitting's accommodations and open invigilator places are served by GET /api/exam-sittings/{id}/overview."
+	},
+	"menu": [
+		{
+			"id": "GroupExamSchedule",
+			"label": "Exam schedule",
+			"icon": "CalendarClockOutline",
+			"order": 29,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"team-lead",
+						"coordinator",
+						"administration-manager",
+						"admin"
+					]
+				}
+			},
+			"children": [
+				{
+					"id": "ExamPeriodsMenu",
+					"label": "Test weeks",
+					"icon": "CalendarClockOutline",
+					"route": "ExamPeriods",
+					"order": 1,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"team-lead",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "ExamSittingsMenu",
+					"label": "Exam sittings",
+					"icon": "ClipboardTextClockOutline",
+					"route": "ExamSittings",
+					"order": 2,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"team-lead",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "InvigilatorAssignmentsMenu",
+					"label": "Invigilation requests",
+					"icon": "AccountCheckOutline",
+					"route": "InvigilatorAssignments",
+					"order": 3,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"team-lead",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "InvigilatorAvailabilityMenu",
+					"label": "Invigilator availability",
+					"icon": "AccountClockOutline",
+					"route": "InvigilatorAvailabilities",
+					"order": 4,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"team-lead",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				}
+			]
+		}
+	],
+	"pages": [
+		{
+			"id": "ExamPeriods",
+			"route": "/exam-periods",
+			"type": "index",
+			"title": "Test weeks",
+			"config": {
+				"showTitle": true,
+				"register": "learniq",
+				"schema": "exam-period"
+			}
+		},
+		{
+			"id": "ExamPeriodDetail",
+			"route": "/exam-periods/:id",
+			"type": "detail",
+			"title": "Test week",
+			"config": {
+				"register": "learniq",
+				"schema": "exam-period",
+				"_note": "Board LqCoToetsweek (G2): the test week as a card and its tests as a tab. Invigilation figures and clash notes wait on lane E (exam-schedule backend).",
+				"statusPill": {
+					"field": "lifecycle",
+					"labels": {
+						"planning": "Planning",
+						"published": "Published",
+						"closed": "Closed"
+					},
+					"colorMap": {
+						"published": "success"
+					}
+				},
+				"breadcrumb": {
+					"label": "Test weeks",
+					"route": "ExamPeriods"
+				},
+				"headerMeta": "{startsOn|longdate} to {endsOn|longdate}",
+				"widgets": [
+					{
+						"id": "exam-period-facts",
+						"type": "facts",
+						"title": "Test week",
+						"content": {
+							"fields": [
+								{
+									"path": "name",
+									"label": "Name"
+								},
+								{
+									"path": "startsOn",
+									"label": "First day",
+									"format": "longdate"
+								},
+								{
+									"path": "endsOn",
+									"label": "Last day",
+									"format": "longdate"
+								},
+								{
+									"path": "cohortIds",
+									"label": "Classes",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Cohort",
+										"labelField": "name"
+									}
+								},
+								{
+									"path": "courseIds",
+									"label": "Subjects",
+									"resolve": {
+										"register": "learniq",
+										"schema": "Course",
+										"labelField": "name"
+									}
+								},
+								{
+									"path": "lifecycle",
+									"label": "Status",
+									"map": {
+										"planning": "Planning",
+										"published": "Published",
+										"closed": "Closed"
+									}
+								}
+							],
+							"columns": 2
+						}
+					},
+					{
+						"id": "exam-period-sittings",
+						"type": "object-list",
+						"title": "Tests in this week",
+						"content": {
+							"register": "learniq",
+							"schema": "exam-sitting",
+							"filter": {
+								"examPeriodId": "@objectId"
+							},
+							"sort": {
+								"field": "startsAt",
+								"dir": "asc"
+							},
+							"limit": 50,
+							"columns": [
+								{
+									"key": "startsAt",
+									"label": "Start"
+								},
+								{
+									"key": "endsAt",
+									"label": "End"
+								},
+								{
+									"key": "headcount",
+									"label": "Number of learners"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							]
+						}
+					},
+					{
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
+					},
+					{
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
+								{
+									"label": "Overview",
+									"widgetIds": [
+										"exam-period-facts"
+									]
+								},
+								{
+									"label": "Tests",
+									"widgetId": "exam-period-sittings"
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
+								}
+							]
+						}
+					}
+				],
+				"sideColumn": [
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Overview",
+							"widgetIds": [
+								"exam-period-facts"
+							]
+						},
+						{
+							"label": "Tests",
+							"widgetId": "exam-period-sittings"
+						}
+					]
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
+			}
+		},
+		{
+			"id": "ExamSittings",
+			"route": "/exam-sittings",
+			"type": "index",
+			"title": "Exam sittings",
+			"config": {
+				"showTitle": true,
+				"register": "learniq",
+				"schema": "exam-sitting"
+			}
+		},
+		{
+			"id": "ExamSittingDetail",
+			"route": "/exam-sittings/:id",
+			"type": "detail",
+			"title": "Exam sitting",
+			"config": {
+				"register": "learniq",
+				"schema": "exam-sitting",
+				"_note": "timetabling-exam-schedule: one exam in a test week. The data widget shows the rooms, the headcount and the clashes the server recorded; the invigilation requests for this exam are listed below with their status, so a declined request shows as an open place.",
+				"widgets": [
+					{
+						"id": "exam-sitting-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ClipboardTextClockOutline"
+					},
+					{
+						"id": "exam-sitting-invigilators",
+						"type": "object-list",
+						"title": "Invigilators",
+						"content": {
+							"register": "learniq",
+							"schema": "invigilator-assignment",
+							"filter": {
+								"examSittingId": "@objectId"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "invigilatorId",
+									"label": "Invigilator"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							]
+						}
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "exam-sitting-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 6,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "exam-sitting-invigilators",
+						"gridX": 0,
+						"gridY": 6,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				},
+				"bodyWidgets": [
+					{
+						"id": "exam-sitting-overview",
+						"component": "ExamSittingOverview",
+						"title": "Extra time and invigilators",
+						"placement": "after-data",
+						"props": {
+							"objectId": "@objectId"
+						}
+					}
+				]
+			}
+		},
+		{
+			"id": "InvigilatorAssignments",
+			"route": "/invigilation-requests",
+			"type": "index",
+			"title": "Invigilation requests",
+			"config": {
+				"showTitle": true,
+				"register": "learniq",
+				"schema": "invigilator-assignment"
+			}
+		},
+		{
+			"id": "InvigilatorAssignmentDetail",
+			"route": "/invigilation-requests/:id",
+			"type": "detail",
+			"title": "Invigilation request",
+			"config": {
+				"register": "learniq",
+				"schema": "invigilator-assignment",
+				"_note": "timetabling-exam-schedule: a request to one colleague. The invigilator confirms or declines it through the lifecycle actions; InvigilatorResponseGuard lets nobody else answer.",
+				"widgets": [
+					{
+						"id": "invigilator-assignment-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AccountCheckOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "invigilator-assignment-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "InvigilatorAvailabilities",
+			"route": "/invigilator-availability",
+			"type": "index",
+			"title": "Invigilator availability",
+			"config": {
+				"showTitle": true,
+				"register": "learniq",
+				"schema": "invigilator-availability"
+			}
+		},
+		{
+			"id": "InvigilatorAvailabilityDetail",
+			"route": "/invigilator-availability/:id",
+			"type": "detail",
+			"title": "Invigilator availability",
+			"config": {
+				"register": "learniq",
+				"schema": "invigilator-availability",
+				"_note": "timetabling-exam-schedule: when one colleague can invigilate in a test week.",
+				"widgets": [
+					{
+						"id": "invigilator-availability-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AccountClockOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "invigilator-availability-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		}
+	]
+}

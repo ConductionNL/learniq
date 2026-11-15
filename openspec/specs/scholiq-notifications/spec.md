@@ -10,7 +10,9 @@ status: done
 
 ## Purpose
 Declares Scholiq's learner-facing notifications as `x-openregister-notifications` rules in the register, using only OpenRegister's verified engine dialect so the platform delivers them. Covers the four core learner events — grade availability, credential issuance, attendance flags, and course/lesson completion — each routed to the affected user, with delivery honouring the per-user override preference set through the Scholiq settings panel. Notification rendering and dispatch are performed by OpenRegister; Scholiq declares rules only and issues no imperative Nextcloud notifications.
+
 ## Requirements
+
 ### Requirement: Annotated schemas MUST declare notifications in the verified engine dialect
 
 Every `x-openregister-notifications` block in `scholiq_register.json` MUST use only verified keys: `trigger.type` (one of created|updated|transition|scheduled|threshold|calculatedChange), `channels[]`, `recipients[]` with `kind` of field|groups|object-acl, and inline `subject` with `nl` and `en` strings. Legacy keys (`channel`, `recipient`/`recipientField`/`recipientFromTenantRole`, `@self.`, `lifecycleEnter`, boolean `calculated`, `userPreferenceKey`, `idempotencyKey`, `alsoDispatchLifecycle`, `event`, `template`) MUST NOT remain.
@@ -139,3 +141,18 @@ collapse into "delivered after the deadline has passed".
 - **WHEN** a recipient's quiet hours defer that firing
 - **THEN** the deferred delivery still lands before the deadline has passed
 
+### Requirement: Group recipients MUST be groups an install provisions and that can read the object
+
+Every `kind: groups` recipient of an `x-openregister-notifications` rule MUST name only groups the register declares as oauth2 scopes in `components.securitySchemes.oauth2.flows.authorizationCode.scopes`, or `admin`. Where the schema declares `authorization.read` without `authenticated`, every recipient group other than `admin` MUST be on that list. Role words such as `coordinator`, `mentor`, `examboard`, `exam-board`, `study-advisor` and `compliance-officer` MUST NOT be used as group names.
+
+#### Scenario: A timetable conflict reaches the coordinators
+@e2e exclude Register-JSON recipient mapping with no DOM surface; pinned by tests/Unit/Register/NotificationRecipientGroupsAreDeclaredTest.php::testEveryGroupRecipientIsADeclaredGroup.
+- **GIVEN** the `TimetableConflict.conflictDetected` rule
+- **WHEN** a conflict is created
+- **THEN** the rule's group recipient is `coordinators`, a declared group
+
+#### Scenario: A fraud report reaches a group that can open it
+@e2e exclude Register-JSON recipient mapping with no DOM surface; pinned by tests/Unit/Register/NotificationRecipientGroupsAreDeclaredTest.php::testEveryGroupRecipientCanReadTheObject.
+- **GIVEN** `FraudCase` is read by `instructors` and `compliance-officers`
+- **WHEN** the `reported` rule fires
+- **THEN** it notifies `compliance-officers`, not the undeclared `examboard`

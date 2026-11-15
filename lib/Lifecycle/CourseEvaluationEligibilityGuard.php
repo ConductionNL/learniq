@@ -3,6 +3,9 @@
 /**
  * Learniq Course Evaluation Eligibility Guard
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the CourseEvaluationResponse schema's `submit` transition
  * (`draft → submitted`). Enforces that the caller holds an eligible, not-yet-
  * responded EvaluationInvitation for the response's campaignId — the same
@@ -30,13 +33,11 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
+ * @spec openspec/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
  */
 
 declare(strict_types=1);
@@ -78,6 +79,43 @@ class CourseEvaluationEligibilityGuard implements LifecycleGuardInterface {
 	private const EVALUATION_INVITATION_SCHEMA = 'evaluation-invitation';
 
 	/**
+	 * The fields of a response that must equal the caller's invitation.
+	 *
+	 * Read from the shipped fragments: evaluation-invitation carries these
+	 * (plus campaignId and tenant_id, which the lookup already filters on)
+	 * and CourseEvaluationResponseBuilder copies exactly these onto the row.
+	 *
+	 * @var array<int, string>
+	 */
+	private const PINNED_FIELDS = ['courseId', 'cohortId', 'academicYear', 'period'];
+
+	/**
+	 * Each refusal's log level and line.
+	 *
+	 * @var array<string, array{0: string, 1: string}>
+	 */
+	private const REFUSALS = [
+		'no-campaign' => [
+			'warning',
+			'[CourseEvaluationEligibilityGuard] CourseEvaluationResponse has no campaignId; blocking submit.',
+		],
+		'no-caller' => [
+			'info',
+			'[CourseEvaluationEligibilityGuard] No authenticated user in session; blocking submit.',
+		],
+		'no-invitation' => [
+			'info',
+			'[CourseEvaluationEligibilityGuard] Caller {caller} has no eligible EvaluationInvitation for '
+			. 'campaign {campaignId} (no invitation, or already responded); blocking submit (fail closed).',
+		],
+		'no-match' => [
+			'info',
+			'[CourseEvaluationEligibilityGuard] The response submitted by {caller} for campaign {campaignId} does not '
+			. 'match any of their open invitations (course, cohort, teacher, year or period differs); blocking submit.',
+		],
+	];
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IUserSession $userSession Current NC user session (server-resolved caller identity).
@@ -102,8 +140,8 @@ class CourseEvaluationEligibilityGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-a-response-is-anonymous-by-schema-shape-not-by-rbac
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-a-response-is-anonymous-by-schema-shape-not-by-rbac
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -129,62 +167,205 @@ class CourseEvaluationEligibilityGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True if the caller may submit this response; false blocks the transition.
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-a-response-is-anonymous-by-schema-shape-not-by-rbac
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-a-response-is-anonymous-by-schema-shape-not-by-rbac
 	 */
 	private function allows(array $object): bool {
 		$campaignId = $object['campaignId'] ?? '';
-
 		if ($campaignId === '') {
-			$this->logger->warning(
-				'[CourseEvaluationEligibilityGuard] CourseEvaluationResponse has no campaignId; blocking submit.'
-			);
-			return false;
+			return $this->refused(reason: 'no-campaign', context: []);
 		}
 
 		$user = $this->userSession->getUser();
-
 		if ($user === null) {
-			$this->logger->info(
-				'[CourseEvaluationEligibilityGuard] No authenticated user in session; blocking submit.'
-			);
-			return false;
+			return $this->refused(reason: 'no-caller', context: []);
 		}
 
-		$callerUid = $user->getUID();
-		$tenantId = $object['tenant_id'] ?? '';
+		return $this->callerMayRespond(object: $object, callerUid: $user->getUID());
+	}//end allows()
 
-		$filters = [
-			'campaignId' => $campaignId,
-			'learnerId' => $callerUid,
-			'hasResponded' => false,
+	/**
+	 * Whether the signed-in caller holds an open invitation describing this
+	 * response.
+	 *
+	 * @param array<string,mixed> $object    The response row at its target state, its campaignId set.
+	 * @param string              $callerUid The caller's NC user id.
+	 *
+	 * @return bool
+	 */
+	private function callerMayRespond(array $object, string $callerUid): bool {
+		$invitations = $this->openInvitations(object: $object, callerUid: $callerUid);
+		$context = ['caller' => $callerUid, 'campaignId' => $object['campaignId']];
+		if (empty($invitations) === true) {
+			return $this->refused(reason: 'no-invitation', context: $context);
+		}
+
+		if ($this->describedByAny(invitations: $invitations, object: $object) === true) {
+			return true;
+		}
+
+		return $this->refused(reason: 'no-match', context: $context);
+	}//end callerMayRespond()
+
+	/**
+	 * Log why the submit is refused, and refuse it.
+	 *
+	 * @param string              $reason  A key of REFUSALS.
+	 * @param array<string,mixed> $context The log context.
+	 *
+	 * @return false
+	 */
+	private function refused(string $reason, array $context): bool {
+		[$level, $message] = self::REFUSALS[$reason];
+		match ($level) {
+			'warning' => $this->logger->warning($message, $context),
+			default => $this->logger->info($message, $context),
+		};
+
+		return false;
+	}//end refused()
+
+	/**
+	 * The caller's invitations for the response's campaign that are not
+	 * answered yet.
+	 *
+	 * @param array<string,mixed> $object    The response row.
+	 * @param string              $callerUid The caller's NC user id.
+	 *
+	 * @return array<int,mixed> Invitations (entities or arrays).
+	 */
+	private function openInvitations(array $object, string $callerUid): array {
+		$invitations = $this->objectService->findAll($this->invitationQuery(object: $object, callerUid: $callerUid));
+
+		// Answered invitations are skipped here, not filtered in the query:
+		// OpenRegister binds a `hasResponded => false` filter as '' and
+		// PostgreSQL refuses that for a boolean column (live pass D5).
+		return array_values(
+			array_filter(
+				$invitations,
+				static fn ($invitation): bool => (self::dataOf(invitation: $invitation)['hasResponded'] ?? false) !== true
+			)
+		);
+	}//end openInvitations()
+
+	/**
+	 * The query for the caller's invitations to the campaign, scoped to the
+	 * response's tenant when it names one.
+	 *
+	 * @param array<string,mixed> $object    The response row.
+	 * @param string              $callerUid The caller's NC user id.
+	 *
+	 * @return array<string,mixed> findAll() config.
+	 */
+	private function invitationQuery(array $object, string $callerUid): array {
+		return [
+			'filters' => array_merge(
+				$this->invitationFilters(object: $object, callerUid: $callerUid),
+				[
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::EVALUATION_INVITATION_SCHEMA,
+				]
+			),
+			'limit' => 50,
 		];
+	}//end invitationQuery()
+
+	/**
+	 * The caller's own filters: the campaign, the caller, and the response's
+	 * tenant when it names one.
+	 *
+	 * @param array<string,mixed> $object    The response row.
+	 * @param string              $callerUid The caller's NC user id.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function invitationFilters(array $object, string $callerUid): array {
+		$filters = [
+			'campaignId' => $object['campaignId'],
+			'learnerId' => $callerUid,
+		];
+		$tenantId = $object['tenant_id'] ?? '';
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
-		$invitations = $this->objectService->findAll(
-			[
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::EVALUATION_INVITATION_SCHEMA,
-					]
-				),
-				'limit' => 1,
-			]
-		);
+		return $filters;
+	}//end invitationFilters()
 
-		if (empty($invitations) === true) {
-			$this->logger->info(
-				'[CourseEvaluationEligibilityGuard] Caller {caller} has no eligible EvaluationInvitation for '
-				. 'campaign {campaignId} (no invitation, or already responded); blocking submit (fail closed).',
-				['caller' => $callerUid, 'campaignId' => $campaignId]
-			);
-			return false;
+	/**
+	 * Whether any of the invitations describes the response.
+	 *
+	 * @param array<int,mixed>    $invitations The caller's open invitations.
+	 * @param array<string,mixed> $object      The response row.
+	 *
+	 * @return bool
+	 */
+	private function describedByAny(array $invitations, array $object): bool {
+		foreach ($invitations as $invitation) {
+			if (self::describes(invitation: $invitation, object: $object) === true) {
+				return true;
+			}
 		}
 
-		return true;
-	}//end allows()
+		return false;
+	}//end describedByAny()
+
+	/**
+	 * Whether the response row is the one this invitation describes.
+	 *
+	 * An invitation pins the course, the cohort, the academic year and the
+	 * period (campaignId and tenant are already in the lookup). It names no
+	 * teacher, and the answer page writes none, so a row naming a teacher is
+	 * not one an invitation describes. Without this, a draft pointed at another
+	 * course, cohort or teacher of the same campaign could be submitted. Since
+	 * the submit runs as the system (DECISIONS row 63) this guard is the only
+	 * caller check inside the transition, so it stays strict.
+	 *
+	 * @param mixed               $invitation An open invitation of the caller (entity or array).
+	 * @param array<string,mixed> $object     The response row at its target state.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
+	 */
+	private static function describes(mixed $invitation, array $object): bool {
+		$data = self::dataOf(invitation: $invitation);
+		foreach (self::PINNED_FIELDS as $field) {
+			if (self::text(value: ($data[$field] ?? null)) !== self::text(value: ($object[$field] ?? null))) {
+				return false;
+			}
+		}
+
+		return self::text(value: ($object['teacherId'] ?? null)) === '';
+	}//end describes()
+
+	/**
+	 * An invitation's data, whether it came back as an array or an entity.
+	 *
+	 * @param mixed $invitation The invitation.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private static function dataOf(mixed $invitation): array {
+		if (is_array($invitation) === true) {
+			return $invitation;
+		}
+
+		return $invitation->jsonSerialize();
+	}//end dataOf()
+
+	/**
+	 * A field value as comparable text; absent, null and '' are all ''.
+	 *
+	 * @param mixed $value The stored value.
+	 *
+	 * @return string
+	 */
+	private static function text(mixed $value): string {
+		if (is_scalar($value) === false) {
+			return '';
+		}
+
+		return trim((string)$value);
+	}//end text()
 }//end class

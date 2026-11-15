@@ -1,0 +1,2165 @@
+{
+    "cancel by the planner": {
+        "batch": {
+            "kind": "cancel",
+            "sessionIds": [
+                "s-open",
+                "s-done",
+                "s-gone",
+                "s-denied",
+                "s-fails",
+                "s-blank",
+                "s-restore-fails",
+                "s-progress",
+                "s-noid"
+            ],
+            "substituteTeacherId": null,
+            "roomId": null,
+            "changeReasonKind": "teacher-absence",
+            "changeReason": "Ziek",
+            "results": [
+                {
+                    "sessionId": "s-open",
+                    "startsAt": "2026-03-03T10:15:00+01:00",
+                    "outcome": "applied",
+                    "reason": null
+                },
+                {
+                    "sessionId": "s-done",
+                    "startsAt": "2026-03-04T10:15:00+01:00",
+                    "outcome": "refused",
+                    "reason": "This lesson already took place or was cancelled."
+                },
+                {
+                    "sessionId": "s-gone",
+                    "startsAt": null,
+                    "outcome": "refused",
+                    "reason": "This lesson cannot be found, or you cannot see it."
+                },
+                {
+                    "sessionId": "s-denied",
+                    "startsAt": "2026-03-05T10:15:00+01:00",
+                    "outcome": "refused",
+                    "reason": "Not your department."
+                },
+                {
+                    "sessionId": "s-fails",
+                    "startsAt": "2026-03-29T01:30:00+00:00",
+                    "outcome": "refused",
+                    "reason": "Dit lokaal is bezet."
+                },
+                {
+                    "sessionId": "s-blank",
+                    "startsAt": "2026-03-06T10:15:00+01:00",
+                    "outcome": "refused",
+                    "reason": "This lesson could not be changed."
+                },
+                {
+                    "sessionId": "s-restore-fails",
+                    "startsAt": "2026-03-07T10:15:00+01:00",
+                    "outcome": "refused",
+                    "reason": "Dit lokaal is bezet."
+                },
+                {
+                    "sessionId": "s-progress",
+                    "startsAt": "2026-03-10T23:30:00+00:00",
+                    "outcome": "applied",
+                    "reason": null
+                },
+                {
+                    "sessionId": "s-noid",
+                    "startsAt": "not a date",
+                    "outcome": "applied",
+                    "reason": null
+                }
+            ],
+            "appliedCount": 3,
+            "lessonDates": "3-3-2026, 11-3-2026",
+            "affectedLearnerIds": [
+                "l-1",
+                "l-s-open",
+                "l-s-progress",
+                "l-s-noid"
+            ],
+            "affectedParentIds": [
+                "p-1"
+            ],
+            "madeBy": "planner",
+            "tenant_id": "t-1",
+            "id": "{batch}",
+            "@self": {
+                "id": "{batch}",
+                "slug": null,
+                "name": "{batch}",
+                "description": null,
+                "summary": null,
+                "image": null,
+                "uri": null,
+                "version": null,
+                "register": "learniq",
+                "schema": "session-change-batch",
+                "schemaVersion": null,
+                "files": [],
+                "relations": [],
+                "locked": null,
+                "owner": null,
+                "organisation": null,
+                "groups": [],
+                "authorization": [],
+                "folder": null,
+                "application": null,
+                "validation": [],
+                "geo": [],
+                "retention": [],
+                "tmlo": [],
+                "size": null,
+                "updated": null,
+                "created": null,
+                "deleted": [],
+                "source": null
+            }
+        },
+        "calls": [
+            {
+                "find": "s-open"
+            },
+            {
+                "guard": [
+                    "s-open",
+                    "cancel",
+                    "planner",
+                    null,
+                    "r-1"
+                ]
+            },
+            {
+                "save": [
+                    "session",
+                    null,
+                    {
+                        "cohortId": "c-1",
+                        "courseId": "k-1",
+                        "tenant_id": "t-1",
+                        "lifecycle": "scheduled",
+                        "roomId": "r-1",
+                        "id": "s-open",
+                        "startsAt": "2026-03-03T10:15:00+01:00",
+                        "@self": {
+                            "id": "s-open",
+                            "slug": null,
+                            "name": "s-open",
+                            "description": null,
+                            "summary": null,
+                            "image": null,
+                            "uri": null,
+                            "version": null,
+                            "register": "learniq",
+                            "schema": "session",
+                            "schemaVersion": null,
+                            "files": [],
+                            "relations": [],
+                            "locked": null,
+                            "owner": null,
+                            "organisation": null,
+                            "groups": [],
+                            "authorization": [],
+                            "folder": null,
+                            "application": null,
+                            "validation": [],
+                            "geo": [],
+                            "retention": [],
+                            "tmlo": [],
+                            "size": null,
+                            "updated": null,
+                            "created": null,
+                            "deleted": [],
+                            "source": null
+                        },
+                        "changeBatchId": "{batch}",
+                        "changeReasonKind": "teacher-absence",
+                        "changeReason": "Ziek",
+                        "affectedLearnerIds": [],
+                        "affectedParentIds": []
+                    }
+                ]
+            },
+            {
+                "transition": [
+                    "s-open",
+                    "cancel"
+                ]
+            },
+            {
+                "find": "s-done"
+            },
+            {
+                "find": "s-gone"
+            },
+            {
+                "find": "s-denied"
+            },
+            {
+                "guard": [
+                    "s-denied",
+                    "cancel",
+                    "planner",
+                    null,
+                    "r-1"
+                ]
+            },
+            {
+                "find": "s-fails"
+            },
+            {
+                "guard": [
+                    "s-fails",
+                    "cancel",
+                    "planner",
+                    null,
+                    "r-1"
+                ]
+            },
+            {
+                "save": [
+                    "session",
+                    null,
+                    {
+                        "id": "s-fails",
+                        "startsAt": "2026-03-29T01:30:00+00:00",
+                        "tenant_id": "",
+                        "cohortId": "c-1",
+                        "courseId": "k-1",
+                        "lifecycle": "scheduled",
+                        "roomId": "r-1",
+                        "@self": {
+                            "id": "s-fails",
+                            "slug": null,
+                            "name": "s-fails",
+                            "description": null,
+                            "summary": null,
+                            "image": null,
+                            "uri": null,
+                            "version": null,
+                            "register": "learniq",
+                            "schema": "session",
+                            "schemaVersion": null,
+                            "files": [],
+                            "relations": [],
+                            "locked": null,
+                            "owner": null,
+                            "organisation": null,
+                            "groups": [],
+                            "authorization": [],
+                            "folder": null,
+                            "application": null,
+                            "validation": [],
+                            "geo": [],
+                            "retention": [],
+                            "tmlo": [],
+                            "size": null,
+                            "updated": null,
+                            "created": null,
+                            "deleted": [],
+                            "source": null
+                        },
+                        "changeBatchId": "{batch}",
+                        "changeReasonKind": "teacher-absence",
+                        "changeReason": "Ziek",
+                        "affectedLearnerIds": [],
+                        "affectedParentIds": []
+                    }
+                ]
+            },
+            {
+                "save": [
+                    "session",
+                    null,
+                    {
+                        "id": "s-fails",
+                        "startsAt": "2026-03-29T01:30:00+00:00",
+                        "tenant_id": "",
+                        "cohortId": "c-1",
+                        "courseId": "k-1",
+                        "lifecycle": "scheduled",
+                        "roomId": "r-1",
+                        "@self": {
+                            "id": "s-fails",
+                            "slug": null,
+                            "name": "s-fails",
+                            "description": null,
+                            "summary": null,
+                            "image": null,
+                            "uri": null,
+                            "version": null,
+                            "register": "learniq",
+                            "schema": "session",
+                            "schemaVersion": null,
+                            "files": [],
+                            "relations": [],
+                            "locked": null,
+                            "owner": null,
+                            "organisation": null,
+                            "groups": [],
+                            "authorization": [],
+                            "folder": null,
+                            "application": null,
+                            "validation": [],
+                            "geo": [],
+                            "retention": [],
+                            "tmlo": [],
+                            "size": null,
+                            "updated": null,
+                            "created": null,
+                            "deleted": [],
+                            "source": null
+                        }
+                    }
+                ]
+            },
+            {
+                "find": "s-blank"
+            },
+            {
+                "guard": [
+                    "s-blank",
+                    "cancel",
+                    "planner",
+                    null,
+                    "r-1"
+                ]
+            },
+            {
+                "save": [
+                    "session",
+                    null,
+                    {
+                        "cohortId": "c-1",
+                        "courseId": "k-1",
+                        "tenant_id": "t-1",
+                        "lifecycle": "scheduled",
+                        "roomId": "r-1",
+                        "id": "s-blank",
+                        "startsAt": "2026-03-06T10:15:00+01:00",
+                        "@self": {
+                            "id": "s-blank",
+                            "slug": null,
+                            "name": "s-blank",
+                            "description": null,
+                            "summary": null,
+                            "image": null,
+                            "uri": null,
+                            "version": null,
+                            "register": "learniq",
+                            "schema": "session",
+                            "schemaVersion": null,
+                            "files": [],
+                            "relations": [],
+                            "locked": null,
+                            "owner": null,
+                            "organisation": null,
+                            "groups": [],
+                            "authorization": [],
+                            "folder": null,
+                            "application": null,
+                            "validation": [],
+                            "geo": [],
+                            "retention": [],
+                            "tmlo": [],
+                            "size": null,
+                            "updated": null,
+                            "created": null,
+                            "deleted": [],
+                            "source": null
+                        },
+                        "changeBatchId": "{batch}",
+                        "changeReasonKind": "teacher-absence",
+                        "changeReason": "Ziek",
+                        "affectedLearnerIds": [],
+                        "affectedParentIds": []
+                    }
+                ]
+            },
+            {
+                "transition": [
+                    "s-blank",
+                    "cancel"
+                ]
+            },
+            {
+                "save": [
+                    "session",
+                    null,
+                    {
+                        "cohortId": "c-1",
+                        "courseId": "k-1",
+                        "tenant_id": "t-1",
+                        "lifecycle": "scheduled",
+                        "roomId": "r-1",
+                        "id": "s-blank",
+                        "startsAt": "2026-03-06T10:15:00+01:00",
+                        "@self": {
+                            "id": "s-blank",
+                            "slug": null,
+                            "name": "s-blank",
+                            "description": null,
+                            "summary": null,
+                            "image": null,
+                            "uri": null,
+                            "version": null,
+                            "register": "learniq",
+                            "schema": "session",
+                            "schemaVersion": null,
+                            "files": [],
+                            "relations": [],
+                            "locked": null,
+                            "owner": null,
+                            "organisation": null,
+                            "groups": [],
+                            "authorization": [],
+                            "folder": null,
+                            "application": null,
+                            "validation": [],
+                            "geo": [],
+                            "retention": [],
+                            "tmlo": [],
+                            "size": null,
+                            "updated": null,
+                            "created": null,
+                            "deleted": [],
+                            "source": null
+                        }
+                    }
+                ]
+            },
+            {
+                "find": "s-restore-fails"
+            },
+            {
+                "guard": [
+                    "s-restore-fails",
+                    "cancel",
+                    "planner",
+                    null,
+                    "r-1"
+                ]
+            },
+            {
+                "save": [
+                    "session",
+                    null,
+                    {
+                        "cohortId": "c-1",
+                        "courseId": "k-1",
+                        "tenant_id": "t-1",
+                        "lifecycle": "scheduled",
+                        "roomId": "r-1",
+                        "id": "s-restore-fails",
+                        "startsAt": "2026-03-07T10:15:00+01:00",
+                        "@self": {
+                            "id": "s-restore-fails",
+                            "slug": null,
+                            "name": "s-restore-fails",
+                            "description": null,
+                            "summary": null,
+                            "image": null,
+                            "uri": null,
+                            "version": null,
+                            "register": "learniq",
+                            "schema": "session",
+                            "schemaVersion": null,
+                            "files": [],
+                            "relations": [],
+                            "locked": null,
+                            "owner": null,
+                            "organisation": null,
+                            "groups": [],
+                            "authorization": [],
+                            "folder": null,
+                            "application": null,
+                            "validation": [],
+                            "geo": [],
+                            "retention": [],
+                            "tmlo": [],
+                            "size": null,
+                            "updated": null,
+                            "created": null,
+                            "deleted": [],
+                            "source": null
+                        },
+                        "changeBatchId": "{batch}",
+                        "changeReasonKind": "teacher-absence",
+                        "changeReason": "Ziek",
+                        "affectedLearnerIds": [],
+                        "affectedParentIds": []
+                    }
+                ]
+            },
+            {
+                "save": [
+                    "session",
+                    null,
+                    {
+                        "cohortId": "c-1",
+                        "courseId": "k-1",
+                        "tenant_id": "t-1",
+                        "lifecycle": "scheduled",
+                        "roomId": "r-1",
+                        "id": "s-restore-fails",
+                        "startsAt": "2026-03-07T10:15:00+01:00",
+                        "@self": {
+                            "id": "s-restore-fails",
+                            "slug": null,
+                            "name": "s-restore-fails",
+                            "description": null,
+                            "summary": null,
+                            "image": null,
+                            "uri": null,
+                            "version": null,
+                            "register": "learniq",
+                            "schema": "session",
+                            "schemaVersion": null,
+                            "files": [],
+                            "relations": [],
+                            "locked": null,
+                            "owner": null,
+                            "organisation": null,
+                            "groups": [],
+                            "authorization": [],
+                            "folder": null,
+                            "application": null,
+                            "validation": [],
+                            "geo": [],
+                            "retention": [],
+                            "tmlo": [],
+                            "size": null,
+                            "updated": null,
+                            "created": null,
+                            "deleted": [],
+                            "source": null
+                        }
+                    }
+                ]
+            },
+            {
+                "find": "s-progress"
+            },
+            {
+                "guard": [
+                    "s-progress",
+                    "cancel",
+                    "planner",
+                    null,
+                    "r-1"
+                ]
+            },
+            {
+                "save": [
+                    "session",
+                    null,
+                    {
+                        "id": "s-progress",
+                        "startsAt": "2026-03-10T23:30:00+00:00",
+                        "lifecycle": "in-progress",
+                        "tenant_id": "t-2",
+                        "cohortId": "c-1",
+                        "courseId": "k-1",
+                        "roomId": "r-1",
+                        "@self": {
+                            "id": "s-progress",
+                            "slug": null,
+                            "name": "s-progress",
+                            "description": null,
+                            "summary": null,
+                            "image": null,
+                            "uri": null,
+                            "version": null,
+                            "register": "learniq",
+                            "schema": "session",
+                            "schemaVersion": null,
+                            "files": [],
+                            "relations": [],
+                            "locked": null,
+                            "owner": null,
+                            "organisation": null,
+                            "groups": [],
+                            "authorization": [],
+                            "folder": null,
+                            "application": null,
+                            "validation": [],
+                            "geo": [],
+                            "retention": [],
+                            "tmlo": [],
+                            "size": null,
+                            "updated": null,
+                            "created": null,
+                            "deleted": [],
+                            "source": null
+                        },
+                        "changeBatchId": "{batch}",
+                        "changeReasonKind": "teacher-absence",
+                        "changeReason": "Ziek",
+                        "affectedLearnerIds": [],
+                        "affectedParentIds": []
+                    }
+                ]
+            },
+            {
+                "transition": [
+                    "s-progress",
+                    "cancel"
+                ]
+            },
+            {
+                "find": "s-noid"
+            },
+            {
+                "guard": [
+                    "s-noid",
+                    "cancel",
+                    "planner",
+                    null,
+                    "r-1"
+                ]
+            },
+            {
+                "save": [
+                    "session",
+                    null,
+                    {
+                        "startsAt": "not a date",
+                        "cohortId": "c-1",
+                        "courseId": "k-1",
+                        "tenant_id": "t-1",
+                        "lifecycle": "scheduled",
+                        "roomId": "r-1",
+                        "@self": {
+                            "id": null,
+                            "slug": null,
+                            "name": null,
+                            "description": null,
+                            "summary": null,
+                            "image": null,
+                            "uri": null,
+                            "version": null,
+                            "register": "learniq",
+                            "schema": "session",
+                            "schemaVersion": null,
+                            "files": [],
+                            "relations": [],
+                            "locked": null,
+                            "owner": null,
+                            "organisation": null,
+                            "groups": [],
+                            "authorization": [],
+                            "folder": null,
+                            "application": null,
+                            "validation": [],
+                            "geo": [],
+                            "retention": [],
+                            "tmlo": [],
+                            "size": null,
+                            "updated": null,
+                            "created": null,
+                            "deleted": [],
+                            "source": null
+                        },
+                        "id": "s-noid",
+                        "changeBatchId": "{batch}",
+                        "changeReasonKind": "teacher-absence",
+                        "changeReason": "Ziek",
+                        "affectedLearnerIds": [],
+                        "affectedParentIds": []
+                    }
+                ]
+            },
+            {
+                "transition": [
+                    "s-noid",
+                    "cancel"
+                ]
+            },
+            {
+                "save": [
+                    "session-change-batch",
+                    "{batch}",
+                    {
+                        "kind": "cancel",
+                        "sessionIds": [
+                            "s-open",
+                            "s-done",
+                            "s-gone",
+                            "s-denied",
+                            "s-fails",
+                            "s-blank",
+                            "s-restore-fails",
+                            "s-progress",
+                            "s-noid"
+                        ],
+                        "substituteTeacherId": null,
+                        "roomId": null,
+                        "changeReasonKind": "teacher-absence",
+                        "changeReason": "Ziek",
+                        "results": [
+                            {
+                                "sessionId": "s-open",
+                                "startsAt": "2026-03-03T10:15:00+01:00",
+                                "outcome": "applied",
+                                "reason": null
+                            },
+                            {
+                                "sessionId": "s-done",
+                                "startsAt": "2026-03-04T10:15:00+01:00",
+                                "outcome": "refused",
+                                "reason": "This lesson already took place or was cancelled."
+                            },
+                            {
+                                "sessionId": "s-gone",
+                                "startsAt": null,
+                                "outcome": "refused",
+                                "reason": "This lesson cannot be found, or you cannot see it."
+                            },
+                            {
+                                "sessionId": "s-denied",
+                                "startsAt": "2026-03-05T10:15:00+01:00",
+                                "outcome": "refused",
+                                "reason": "Not your department."
+                            },
+                            {
+                                "sessionId": "s-fails",
+                                "startsAt": "2026-03-29T01:30:00+00:00",
+                                "outcome": "refused",
+                                "reason": "Dit lokaal is bezet."
+                            },
+                            {
+                                "sessionId": "s-blank",
+                                "startsAt": "2026-03-06T10:15:00+01:00",
+                                "outcome": "refused",
+                                "reason": "This lesson could not be changed."
+                            },
+                            {
+                                "sessionId": "s-restore-fails",
+                                "startsAt": "2026-03-07T10:15:00+01:00",
+                                "outcome": "refused",
+                                "reason": "Dit lokaal is bezet."
+                            },
+                            {
+                                "sessionId": "s-progress",
+                                "startsAt": "2026-03-10T23:30:00+00:00",
+                                "outcome": "applied",
+                                "reason": null
+                            },
+                            {
+                                "sessionId": "s-noid",
+                                "startsAt": "not a date",
+                                "outcome": "applied",
+                                "reason": null
+                            }
+                        ],
+                        "appliedCount": 3,
+                        "lessonDates": "3-3-2026, 11-3-2026",
+                        "affectedLearnerIds": [
+                            "l-1",
+                            "l-s-open",
+                            "l-s-progress",
+                            "l-s-noid"
+                        ],
+                        "affectedParentIds": [
+                            "p-1"
+                        ],
+                        "madeBy": "planner",
+                        "tenant_id": "t-1"
+                    }
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "warning",
+                "message": "[SessionChangeBatchService] Could not restore lesson {id}: {msg}",
+                "context": {
+                    "id": "s-restore-fails",
+                    "msg": "restore refused"
+                }
+            },
+            {
+                "level": "info",
+                "message": "[SessionChangeBatchService] Batch {id} by {u}: {a} of {n} lesson(s) changed.",
+                "context": {
+                    "id": "{batch}",
+                    "u": "planner",
+                    "a": 3,
+                    "n": 9
+                }
+            }
+        ]
+    },
+    "substitute by the planner": {
+        "batch": {
+            "kind": "substitute",
+            "sessionIds": [
+                "s-open",
+                "s-done",
+                "s-gone",
+                "s-denied",
+                "s-fails",
+                "s-blank",
+                "s-restore-fails",
+                "s-progress",
+                "s-noid"
+            ],
+            "substituteTeacherId": "sub",
+            "roomId": null,
+            "changeReasonKind": "teacher-absence",
+            "changeReason": null,
+            "results": [
+                {
+                    "sessionId": "s-open",
+                    "startsAt": "2026-03-03T10:15:00+01:00",
+                    "outcome": "applied",
+                    "reason": null
+                },
+                {
+                    "sessionId": "s-done",
+                    "startsAt": "2026-03-04T10:15:00+01:00",
+                    "outcome": "refused",
+                    "reason": "This lesson already took place or was cancelled."
+                },
+                {
+                    "sessionId": "s-gone",
+                    "startsAt": null,
+                    "outcome": "refused",
+                    "reason": "This lesson cannot be found, or you cannot see it."
+                },
+                {
+                    "sessionId": "s-denied",
+                    "startsAt": "2026-03-05T10:15:00+01:00",
+                    "outcome": "refused",
+                    "reason": "Not your department."
+                },
+                {
+                    "sessionId": "s-fails",
+                    "startsAt": "2026-03-29T01:30:00+00:00",
+                    "outcome": "refused",
+                    "reason": "Dit lokaal is bezet."
+                },
+                {
+                    "sessionId": "s-blank",
+                    "startsAt": "2026-03-06T10:15:00+01:00",
+                    "outcome": "refused",
+                    "reason": "This lesson could not be changed."
+                },
+                {
+                    "sessionId": "s-restore-fails",
+                    "startsAt": "2026-03-07T10:15:00+01:00",
+                    "outcome": "refused",
+                    "reason": "Dit lokaal is bezet."
+                },
+                {
+                    "sessionId": "s-progress",
+                    "startsAt": "2026-03-10T23:30:00+00:00",
+                    "outcome": "applied",
+                    "reason": null
+                },
+                {
+                    "sessionId": "s-noid",
+                    "startsAt": "not a date",
+                    "outcome": "applied",
+                    "reason": null
+                }
+            ],
+            "appliedCount": 3,
+            "lessonDates": "3-3-2026, 11-3-2026",
+            "affectedLearnerIds": [
+                "l-1",
+                "l-s-open",
+                "l-s-progress",
+                "l-s-noid"
+            ],
+            "affectedParentIds": [
+                "p-1"
+            ],
+            "madeBy": "planner",
+            "tenant_id": "t-1",
+            "id": "{batch}",
+            "@self": {
+                "id": "{batch}",
+                "slug": null,
+                "name": "{batch}",
+                "description": null,
+                "summary": null,
+                "image": null,
+                "uri": null,
+                "version": null,
+                "register": "learniq",
+                "schema": "session-change-batch",
+                "schemaVersion": null,
+                "files": [],
+                "relations": [],
+                "locked": null,
+                "owner": null,
+                "organisation": null,
+                "groups": [],
+                "authorization": [],
+                "folder": null,
+                "application": null,
+                "validation": [],
+                "geo": [],
+                "retention": [],
+                "tmlo": [],
+                "size": null,
+                "updated": null,
+                "created": null,
+                "deleted": [],
+                "source": null
+            }
+        },
+        "calls": [
+            {
+                "find": "s-open"
+            },
+            {
+                "guard": [
+                    "s-open",
+                    "substitute-teacher",
+                    "planner",
+                    "sub",
+                    "r-1"
+                ]
+            },
+            {
+                "save": [
+                    "session",
+                    null,
+                    {
+                        "cohortId": "c-1",
+                        "courseId": "k-1",
+                        "tenant_id": "t-1",
+                        "lifecycle": "scheduled",
+                        "roomId": "r-1",
+                        "id": "s-open",
+                        "startsAt": "2026-03-03T10:15:00+01:00",
+                        "@self": {
+                            "id": "s-open",
+                            "slug": null,
+                            "name": "s-open",
+                            "description": null,
+                            "summary": null,
+                            "image": null,
+                            "uri": null,
+                            "version": null,
+                            "register": "learniq",
+                            "schema": "session",
+                            "schemaVersion": null,
+                            "files": [],
+                            "relations": [],
+                            "locked": null,
+                            "owner": null,
+                            "organisation": null,
+                            "groups": [],
+                            "authorization": [],
+                            "folder": null,
+                            "application": null,
+                            "validation": [],
+                            "geo": [],
+                            "retention": [],
+                            "tmlo": [],
+                            "size": null,
+                            "updated": null,
+                            "created": null,
+                            "deleted": [],
+                            "source": null
+                        },
+                        "changeBatchId": "{batch}",
+                        "changeReasonKind": "teacher-absence",
+                        "changeReason": null,
+                        "affectedLearnerIds": [],
+                        "affectedParentIds": [],
+                        "substituteTeacherId": "sub"
+                    }
+                ]
+            },
+            {
+                "transition": [
+                    "s-open",
+                    "substitute-teacher"
+                ]
+            },
+            {
+                "find": "s-done"
+            },
+            {
+                "find": "s-gone"
+            },
+            {
+                "find": "s-denied"
+            },
+            {
+                "guard": [
+                    "s-denied",
+                    "substitute-teacher",
+                    "planner",
+                    "sub",
+                    "r-1"
+                ]
+            },
+            {
+                "find": "s-fails"
+            },
+            {
+                "guard": [
+                    "s-fails",
+                    "substitute-teacher",
+                    "planner",
+                    "sub",
+                    "r-1"
+                ]
+            },
+            {
+                "save": [
+                    "session",
+                    null,
+                    {
+                        "id": "s-fails",
+                        "startsAt": "2026-03-29T01:30:00+00:00",
+                        "tenant_id": "",
+                        "cohortId": "c-1",
+                        "courseId": "k-1",
+                        "lifecycle": "scheduled",
+                        "roomId": "r-1",
+                        "@self": {
+                            "id": "s-fails",
+                            "slug": null,
+                            "name": "s-fails",
+                            "description": null,
+                            "summary": null,
+                            "image": null,
+                            "uri": null,
+                            "version": null,
+                            "register": "learniq",
+                            "schema": "session",
+                            "schemaVersion": null,
+                            "files": [],
+                            "relations": [],
+                            "locked": null,
+                            "owner": null,
+                            "organisation": null,
+                            "groups": [],
+                            "authorization": [],
+                            "folder": null,
+                            "application": null,
+                            "validation": [],
+                            "geo": [],
+                            "retention": [],
+                            "tmlo": [],
+                            "size": null,
+                            "updated": null,
+                            "created": null,
+                            "deleted": [],
+                            "source": null
+                        },
+                        "changeBatchId": "{batch}",
+                        "changeReasonKind": "teacher-absence",
+                        "changeReason": null,
+                        "affectedLearnerIds": [],
+                        "affectedParentIds": [],
+                        "substituteTeacherId": "sub"
+                    }
+                ]
+            },
+            {
+                "save": [
+                    "session",
+                    null,
+                    {
+                        "id": "s-fails",
+                        "startsAt": "2026-03-29T01:30:00+00:00",
+                        "tenant_id": "",
+                        "cohortId": "c-1",
+                        "courseId": "k-1",
+                        "lifecycle": "scheduled",
+                        "roomId": "r-1",
+                        "@self": {
+                            "id": "s-fails",
+                            "slug": null,
+                            "name": "s-fails",
+                            "description": null,
+                            "summary": null,
+                            "image": null,
+                            "uri": null,
+                            "version": null,
+                            "register": "learniq",
+                            "schema": "session",
+                            "schemaVersion": null,
+                            "files": [],
+                            "relations": [],
+                            "locked": null,
+                            "owner": null,
+                            "organisation": null,
+                            "groups": [],
+                            "authorization": [],
+                            "folder": null,
+                            "application": null,
+                            "validation": [],
+                            "geo": [],
+                            "retention": [],
+                            "tmlo": [],
+                            "size": null,
+                            "updated": null,
+                            "created": null,
+                            "deleted": [],
+                            "source": null
+                        }
+                    }
+                ]
+            },
+            {
+                "find": "s-blank"
+            },
+            {
+                "guard": [
+                    "s-blank",
+                    "substitute-teacher",
+                    "planner",
+                    "sub",
+                    "r-1"
+                ]
+            },
+            {
+                "save": [
+                    "session",
+                    null,
+                    {
+                        "cohortId": "c-1",
+                        "courseId": "k-1",
+                        "tenant_id": "t-1",
+                        "lifecycle": "scheduled",
+                        "roomId": "r-1",
+                        "id": "s-blank",
+                        "startsAt": "2026-03-06T10:15:00+01:00",
+                        "@self": {
+                            "id": "s-blank",
+                            "slug": null,
+                            "name": "s-blank",
+                            "description": null,
+                            "summary": null,
+                            "image": null,
+                            "uri": null,
+                            "version": null,
+                            "register": "learniq",
+                            "schema": "session",
+                            "schemaVersion": null,
+                            "files": [],
+                            "relations": [],
+                            "locked": null,
+                            "owner": null,
+                            "organisation": null,
+                            "groups": [],
+                            "authorization": [],
+                            "folder": null,
+                            "application": null,
+                            "validation": [],
+                            "geo": [],
+                            "retention": [],
+                            "tmlo": [],
+                            "size": null,
+                            "updated": null,
+                            "created": null,
+                            "deleted": [],
+                            "source": null
+                        },
+                        "changeBatchId": "{batch}",
+                        "changeReasonKind": "teacher-absence",
+                        "changeReason": null,
+                        "affectedLearnerIds": [],
+                        "affectedParentIds": [],
+                        "substituteTeacherId": "sub"
+                    }
+                ]
+            },
+            {
+                "transition": [
+                    "s-blank",
+                    "substitute-teacher"
+                ]
+            },
+            {
+                "save": [
+                    "session",
+                    null,
+                    {
+                        "cohortId": "c-1",
+                        "courseId": "k-1",
+                        "tenant_id": "t-1",
+                        "lifecycle": "scheduled",
+                        "roomId": "r-1",
+                        "id": "s-blank",
+                        "startsAt": "2026-03-06T10:15:00+01:00",
+                        "@self": {
+                            "id": "s-blank",
+                            "slug": null,
+                            "name": "s-blank",
+                            "description": null,
+                            "summary": null,
+                            "image": null,
+                            "uri": null,
+                            "version": null,
+                            "register": "learniq",
+                            "schema": "session",
+                            "schemaVersion": null,
+                            "files": [],
+                            "relations": [],
+                            "locked": null,
+                            "owner": null,
+                            "organisation": null,
+                            "groups": [],
+                            "authorization": [],
+                            "folder": null,
+                            "application": null,
+                            "validation": [],
+                            "geo": [],
+                            "retention": [],
+                            "tmlo": [],
+                            "size": null,
+                            "updated": null,
+                            "created": null,
+                            "deleted": [],
+                            "source": null
+                        }
+                    }
+                ]
+            },
+            {
+                "find": "s-restore-fails"
+            },
+            {
+                "guard": [
+                    "s-restore-fails",
+                    "substitute-teacher",
+                    "planner",
+                    "sub",
+                    "r-1"
+                ]
+            },
+            {
+                "save": [
+                    "session",
+                    null,
+                    {
+                        "cohortId": "c-1",
+                        "courseId": "k-1",
+                        "tenant_id": "t-1",
+                        "lifecycle": "scheduled",
+                        "roomId": "r-1",
+                        "id": "s-restore-fails",
+                        "startsAt": "2026-03-07T10:15:00+01:00",
+                        "@self": {
+                            "id": "s-restore-fails",
+                            "slug": null,
+                            "name": "s-restore-fails",
+                            "description": null,
+                            "summary": null,
+                            "image": null,
+                            "uri": null,
+                            "version": null,
+                            "register": "learniq",
+                            "schema": "session",
+                            "schemaVersion": null,
+                            "files": [],
+                            "relations": [],
+                            "locked": null,
+                            "owner": null,
+                            "organisation": null,
+                            "groups": [],
+                            "authorization": [],
+                            "folder": null,
+                            "application": null,
+                            "validation": [],
+                            "geo": [],
+                            "retention": [],
+                            "tmlo": [],
+                            "size": null,
+                            "updated": null,
+                            "created": null,
+                            "deleted": [],
+                            "source": null
+                        },
+                        "changeBatchId": "{batch}",
+                        "changeReasonKind": "teacher-absence",
+                        "changeReason": null,
+                        "affectedLearnerIds": [],
+                        "affectedParentIds": [],
+                        "substituteTeacherId": "sub"
+                    }
+                ]
+            },
+            {
+                "save": [
+                    "session",
+                    null,
+                    {
+                        "cohortId": "c-1",
+                        "courseId": "k-1",
+                        "tenant_id": "t-1",
+                        "lifecycle": "scheduled",
+                        "roomId": "r-1",
+                        "id": "s-restore-fails",
+                        "startsAt": "2026-03-07T10:15:00+01:00",
+                        "@self": {
+                            "id": "s-restore-fails",
+                            "slug": null,
+                            "name": "s-restore-fails",
+                            "description": null,
+                            "summary": null,
+                            "image": null,
+                            "uri": null,
+                            "version": null,
+                            "register": "learniq",
+                            "schema": "session",
+                            "schemaVersion": null,
+                            "files": [],
+                            "relations": [],
+                            "locked": null,
+                            "owner": null,
+                            "organisation": null,
+                            "groups": [],
+                            "authorization": [],
+                            "folder": null,
+                            "application": null,
+                            "validation": [],
+                            "geo": [],
+                            "retention": [],
+                            "tmlo": [],
+                            "size": null,
+                            "updated": null,
+                            "created": null,
+                            "deleted": [],
+                            "source": null
+                        }
+                    }
+                ]
+            },
+            {
+                "find": "s-progress"
+            },
+            {
+                "guard": [
+                    "s-progress",
+                    "substitute-teacher-in-progress",
+                    "planner",
+                    "sub",
+                    "r-1"
+                ]
+            },
+            {
+                "save": [
+                    "session",
+                    null,
+                    {
+                        "id": "s-progress",
+                        "startsAt": "2026-03-10T23:30:00+00:00",
+                        "lifecycle": "in-progress",
+                        "tenant_id": "t-2",
+                        "cohortId": "c-1",
+                        "courseId": "k-1",
+                        "roomId": "r-1",
+                        "@self": {
+                            "id": "s-progress",
+                            "slug": null,
+                            "name": "s-progress",
+                            "description": null,
+                            "summary": null,
+                            "image": null,
+                            "uri": null,
+                            "version": null,
+                            "register": "learniq",
+                            "schema": "session",
+                            "schemaVersion": null,
+                            "files": [],
+                            "relations": [],
+                            "locked": null,
+                            "owner": null,
+                            "organisation": null,
+                            "groups": [],
+                            "authorization": [],
+                            "folder": null,
+                            "application": null,
+                            "validation": [],
+                            "geo": [],
+                            "retention": [],
+                            "tmlo": [],
+                            "size": null,
+                            "updated": null,
+                            "created": null,
+                            "deleted": [],
+                            "source": null
+                        },
+                        "changeBatchId": "{batch}",
+                        "changeReasonKind": "teacher-absence",
+                        "changeReason": null,
+                        "affectedLearnerIds": [],
+                        "affectedParentIds": [],
+                        "substituteTeacherId": "sub"
+                    }
+                ]
+            },
+            {
+                "transition": [
+                    "s-progress",
+                    "substitute-teacher-in-progress"
+                ]
+            },
+            {
+                "find": "s-noid"
+            },
+            {
+                "guard": [
+                    "s-noid",
+                    "substitute-teacher",
+                    "planner",
+                    "sub",
+                    "r-1"
+                ]
+            },
+            {
+                "save": [
+                    "session",
+                    null,
+                    {
+                        "startsAt": "not a date",
+                        "cohortId": "c-1",
+                        "courseId": "k-1",
+                        "tenant_id": "t-1",
+                        "lifecycle": "scheduled",
+                        "roomId": "r-1",
+                        "@self": {
+                            "id": null,
+                            "slug": null,
+                            "name": null,
+                            "description": null,
+                            "summary": null,
+                            "image": null,
+                            "uri": null,
+                            "version": null,
+                            "register": "learniq",
+                            "schema": "session",
+                            "schemaVersion": null,
+                            "files": [],
+                            "relations": [],
+                            "locked": null,
+                            "owner": null,
+                            "organisation": null,
+                            "groups": [],
+                            "authorization": [],
+                            "folder": null,
+                            "application": null,
+                            "validation": [],
+                            "geo": [],
+                            "retention": [],
+                            "tmlo": [],
+                            "size": null,
+                            "updated": null,
+                            "created": null,
+                            "deleted": [],
+                            "source": null
+                        },
+                        "id": "s-noid",
+                        "changeBatchId": "{batch}",
+                        "changeReasonKind": "teacher-absence",
+                        "changeReason": null,
+                        "affectedLearnerIds": [],
+                        "affectedParentIds": [],
+                        "substituteTeacherId": "sub"
+                    }
+                ]
+            },
+            {
+                "transition": [
+                    "s-noid",
+                    "substitute-teacher"
+                ]
+            },
+            {
+                "save": [
+                    "session-change-batch",
+                    "{batch}",
+                    {
+                        "kind": "substitute",
+                        "sessionIds": [
+                            "s-open",
+                            "s-done",
+                            "s-gone",
+                            "s-denied",
+                            "s-fails",
+                            "s-blank",
+                            "s-restore-fails",
+                            "s-progress",
+                            "s-noid"
+                        ],
+                        "substituteTeacherId": "sub",
+                        "roomId": null,
+                        "changeReasonKind": "teacher-absence",
+                        "changeReason": null,
+                        "results": [
+                            {
+                                "sessionId": "s-open",
+                                "startsAt": "2026-03-03T10:15:00+01:00",
+                                "outcome": "applied",
+                                "reason": null
+                            },
+                            {
+                                "sessionId": "s-done",
+                                "startsAt": "2026-03-04T10:15:00+01:00",
+                                "outcome": "refused",
+                                "reason": "This lesson already took place or was cancelled."
+                            },
+                            {
+                                "sessionId": "s-gone",
+                                "startsAt": null,
+                                "outcome": "refused",
+                                "reason": "This lesson cannot be found, or you cannot see it."
+                            },
+                            {
+                                "sessionId": "s-denied",
+                                "startsAt": "2026-03-05T10:15:00+01:00",
+                                "outcome": "refused",
+                                "reason": "Not your department."
+                            },
+                            {
+                                "sessionId": "s-fails",
+                                "startsAt": "2026-03-29T01:30:00+00:00",
+                                "outcome": "refused",
+                                "reason": "Dit lokaal is bezet."
+                            },
+                            {
+                                "sessionId": "s-blank",
+                                "startsAt": "2026-03-06T10:15:00+01:00",
+                                "outcome": "refused",
+                                "reason": "This lesson could not be changed."
+                            },
+                            {
+                                "sessionId": "s-restore-fails",
+                                "startsAt": "2026-03-07T10:15:00+01:00",
+                                "outcome": "refused",
+                                "reason": "Dit lokaal is bezet."
+                            },
+                            {
+                                "sessionId": "s-progress",
+                                "startsAt": "2026-03-10T23:30:00+00:00",
+                                "outcome": "applied",
+                                "reason": null
+                            },
+                            {
+                                "sessionId": "s-noid",
+                                "startsAt": "not a date",
+                                "outcome": "applied",
+                                "reason": null
+                            }
+                        ],
+                        "appliedCount": 3,
+                        "lessonDates": "3-3-2026, 11-3-2026",
+                        "affectedLearnerIds": [
+                            "l-1",
+                            "l-s-open",
+                            "l-s-progress",
+                            "l-s-noid"
+                        ],
+                        "affectedParentIds": [
+                            "p-1"
+                        ],
+                        "madeBy": "planner",
+                        "tenant_id": "t-1"
+                    }
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "warning",
+                "message": "[SessionChangeBatchService] Could not restore lesson {id}: {msg}",
+                "context": {
+                    "id": "s-restore-fails",
+                    "msg": "restore refused"
+                }
+            },
+            {
+                "level": "info",
+                "message": "[SessionChangeBatchService] Batch {id} by {u}: {a} of {n} lesson(s) changed.",
+                "context": {
+                    "id": "{batch}",
+                    "u": "planner",
+                    "a": 3,
+                    "n": 9
+                }
+            }
+        ]
+    },
+    "room by the planner": {
+        "batch": {
+            "kind": "room",
+            "sessionIds": [
+                "s-open",
+                "s-progress",
+                "s-fails"
+            ],
+            "substituteTeacherId": null,
+            "roomId": "r-9",
+            "changeReasonKind": "room-unavailable",
+            "changeReason": null,
+            "results": [
+                {
+                    "sessionId": "s-open",
+                    "startsAt": "2026-03-03T10:15:00+01:00",
+                    "outcome": "applied",
+                    "reason": null
+                },
+                {
+                    "sessionId": "s-progress",
+                    "startsAt": "2026-03-10T23:30:00+00:00",
+                    "outcome": "applied",
+                    "reason": null
+                },
+                {
+                    "sessionId": "s-fails",
+                    "startsAt": "2026-03-29T01:30:00+00:00",
+                    "outcome": "applied",
+                    "reason": null
+                }
+            ],
+            "appliedCount": 3,
+            "lessonDates": "3-3-2026, 11-3-2026, 29-3-2026",
+            "affectedLearnerIds": [
+                "l-1",
+                "l-s-open",
+                "l-s-progress",
+                "l-s-fails"
+            ],
+            "affectedParentIds": [
+                "p-1"
+            ],
+            "madeBy": "planner",
+            "tenant_id": "t-1",
+            "id": "{batch}",
+            "@self": {
+                "id": "{batch}",
+                "slug": null,
+                "name": "{batch}",
+                "description": null,
+                "summary": null,
+                "image": null,
+                "uri": null,
+                "version": null,
+                "register": "learniq",
+                "schema": "session-change-batch",
+                "schemaVersion": null,
+                "files": [],
+                "relations": [],
+                "locked": null,
+                "owner": null,
+                "organisation": null,
+                "groups": [],
+                "authorization": [],
+                "folder": null,
+                "application": null,
+                "validation": [],
+                "geo": [],
+                "retention": [],
+                "tmlo": [],
+                "size": null,
+                "updated": null,
+                "created": null,
+                "deleted": [],
+                "source": null
+            }
+        },
+        "calls": [
+            {
+                "find": "s-open"
+            },
+            {
+                "guard": [
+                    "s-open",
+                    "room-change",
+                    "planner",
+                    null,
+                    "r-9"
+                ]
+            },
+            {
+                "save": [
+                    "session",
+                    null,
+                    {
+                        "cohortId": "c-1",
+                        "courseId": "k-1",
+                        "tenant_id": "t-1",
+                        "lifecycle": "scheduled",
+                        "roomId": "r-9",
+                        "id": "s-open",
+                        "startsAt": "2026-03-03T10:15:00+01:00",
+                        "@self": {
+                            "id": "s-open",
+                            "slug": null,
+                            "name": "s-open",
+                            "description": null,
+                            "summary": null,
+                            "image": null,
+                            "uri": null,
+                            "version": null,
+                            "register": "learniq",
+                            "schema": "session",
+                            "schemaVersion": null,
+                            "files": [],
+                            "relations": [],
+                            "locked": null,
+                            "owner": null,
+                            "organisation": null,
+                            "groups": [],
+                            "authorization": [],
+                            "folder": null,
+                            "application": null,
+                            "validation": [],
+                            "geo": [],
+                            "retention": [],
+                            "tmlo": [],
+                            "size": null,
+                            "updated": null,
+                            "created": null,
+                            "deleted": [],
+                            "source": null
+                        },
+                        "changeBatchId": "{batch}",
+                        "changeReasonKind": "room-unavailable",
+                        "changeReason": null,
+                        "affectedLearnerIds": [],
+                        "affectedParentIds": []
+                    }
+                ]
+            },
+            {
+                "find": "s-progress"
+            },
+            {
+                "guard": [
+                    "s-progress",
+                    "room-change",
+                    "planner",
+                    null,
+                    "r-9"
+                ]
+            },
+            {
+                "save": [
+                    "session",
+                    null,
+                    {
+                        "id": "s-progress",
+                        "startsAt": "2026-03-10T23:30:00+00:00",
+                        "lifecycle": "in-progress",
+                        "tenant_id": "t-2",
+                        "cohortId": "c-1",
+                        "courseId": "k-1",
+                        "roomId": "r-9",
+                        "@self": {
+                            "id": "s-progress",
+                            "slug": null,
+                            "name": "s-progress",
+                            "description": null,
+                            "summary": null,
+                            "image": null,
+                            "uri": null,
+                            "version": null,
+                            "register": "learniq",
+                            "schema": "session",
+                            "schemaVersion": null,
+                            "files": [],
+                            "relations": [],
+                            "locked": null,
+                            "owner": null,
+                            "organisation": null,
+                            "groups": [],
+                            "authorization": [],
+                            "folder": null,
+                            "application": null,
+                            "validation": [],
+                            "geo": [],
+                            "retention": [],
+                            "tmlo": [],
+                            "size": null,
+                            "updated": null,
+                            "created": null,
+                            "deleted": [],
+                            "source": null
+                        },
+                        "changeBatchId": "{batch}",
+                        "changeReasonKind": "room-unavailable",
+                        "changeReason": null,
+                        "affectedLearnerIds": [],
+                        "affectedParentIds": []
+                    }
+                ]
+            },
+            {
+                "find": "s-fails"
+            },
+            {
+                "guard": [
+                    "s-fails",
+                    "room-change",
+                    "planner",
+                    null,
+                    "r-9"
+                ]
+            },
+            {
+                "save": [
+                    "session",
+                    null,
+                    {
+                        "id": "s-fails",
+                        "startsAt": "2026-03-29T01:30:00+00:00",
+                        "tenant_id": "",
+                        "cohortId": "c-1",
+                        "courseId": "k-1",
+                        "lifecycle": "scheduled",
+                        "roomId": "r-9",
+                        "@self": {
+                            "id": "s-fails",
+                            "slug": null,
+                            "name": "s-fails",
+                            "description": null,
+                            "summary": null,
+                            "image": null,
+                            "uri": null,
+                            "version": null,
+                            "register": "learniq",
+                            "schema": "session",
+                            "schemaVersion": null,
+                            "files": [],
+                            "relations": [],
+                            "locked": null,
+                            "owner": null,
+                            "organisation": null,
+                            "groups": [],
+                            "authorization": [],
+                            "folder": null,
+                            "application": null,
+                            "validation": [],
+                            "geo": [],
+                            "retention": [],
+                            "tmlo": [],
+                            "size": null,
+                            "updated": null,
+                            "created": null,
+                            "deleted": [],
+                            "source": null
+                        },
+                        "changeBatchId": "{batch}",
+                        "changeReasonKind": "room-unavailable",
+                        "changeReason": null,
+                        "affectedLearnerIds": [],
+                        "affectedParentIds": []
+                    }
+                ]
+            },
+            {
+                "save": [
+                    "session-change-batch",
+                    "{batch}",
+                    {
+                        "kind": "room",
+                        "sessionIds": [
+                            "s-open",
+                            "s-progress",
+                            "s-fails"
+                        ],
+                        "substituteTeacherId": null,
+                        "roomId": "r-9",
+                        "changeReasonKind": "room-unavailable",
+                        "changeReason": null,
+                        "results": [
+                            {
+                                "sessionId": "s-open",
+                                "startsAt": "2026-03-03T10:15:00+01:00",
+                                "outcome": "applied",
+                                "reason": null
+                            },
+                            {
+                                "sessionId": "s-progress",
+                                "startsAt": "2026-03-10T23:30:00+00:00",
+                                "outcome": "applied",
+                                "reason": null
+                            },
+                            {
+                                "sessionId": "s-fails",
+                                "startsAt": "2026-03-29T01:30:00+00:00",
+                                "outcome": "applied",
+                                "reason": null
+                            }
+                        ],
+                        "appliedCount": 3,
+                        "lessonDates": "3-3-2026, 11-3-2026, 29-3-2026",
+                        "affectedLearnerIds": [
+                            "l-1",
+                            "l-s-open",
+                            "l-s-progress",
+                            "l-s-fails"
+                        ],
+                        "affectedParentIds": [
+                            "p-1"
+                        ],
+                        "madeBy": "planner",
+                        "tenant_id": "t-1"
+                    }
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[SessionChangeBatchService] Batch {id} by {u}: {a} of {n} lesson(s) changed.",
+                "context": {
+                    "id": "{batch}",
+                    "u": "planner",
+                    "a": 3,
+                    "n": 3
+                }
+            }
+        ]
+    },
+    "a forged maker in the request": {
+        "batch": {
+            "kind": "cancel",
+            "sessionIds": [
+                "s-open"
+            ],
+            "substituteTeacherId": null,
+            "roomId": null,
+            "changeReasonKind": "other",
+            "changeReason": null,
+            "results": [
+                {
+                    "sessionId": "s-open",
+                    "startsAt": "2026-03-03T10:15:00+01:00",
+                    "outcome": "refused",
+                    "reason": "Only the planner may change lessons."
+                }
+            ],
+            "appliedCount": 0,
+            "lessonDates": null,
+            "affectedLearnerIds": [],
+            "affectedParentIds": [],
+            "madeBy": "intruder",
+            "tenant_id": "",
+            "id": "{batch}",
+            "@self": {
+                "id": "{batch}",
+                "slug": null,
+                "name": "{batch}",
+                "description": null,
+                "summary": null,
+                "image": null,
+                "uri": null,
+                "version": null,
+                "register": "learniq",
+                "schema": "session-change-batch",
+                "schemaVersion": null,
+                "files": [],
+                "relations": [],
+                "locked": null,
+                "owner": null,
+                "organisation": null,
+                "groups": [],
+                "authorization": [],
+                "folder": null,
+                "application": null,
+                "validation": [],
+                "geo": [],
+                "retention": [],
+                "tmlo": [],
+                "size": null,
+                "updated": null,
+                "created": null,
+                "deleted": [],
+                "source": null
+            }
+        },
+        "calls": [
+            {
+                "find": "s-open"
+            },
+            {
+                "guard": [
+                    "s-open",
+                    "cancel",
+                    "intruder",
+                    null,
+                    "r-1"
+                ]
+            },
+            {
+                "save": [
+                    "session-change-batch",
+                    "{batch}",
+                    {
+                        "kind": "cancel",
+                        "sessionIds": [
+                            "s-open"
+                        ],
+                        "substituteTeacherId": null,
+                        "roomId": null,
+                        "changeReasonKind": "other",
+                        "changeReason": null,
+                        "results": [
+                            {
+                                "sessionId": "s-open",
+                                "startsAt": "2026-03-03T10:15:00+01:00",
+                                "outcome": "refused",
+                                "reason": "Only the planner may change lessons."
+                            }
+                        ],
+                        "appliedCount": 0,
+                        "lessonDates": null,
+                        "affectedLearnerIds": [],
+                        "affectedParentIds": [],
+                        "madeBy": "intruder",
+                        "tenant_id": ""
+                    }
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[SessionChangeBatchService] Batch {id} by {u}: {a} of {n} lesson(s) changed.",
+                "context": {
+                    "id": "{batch}",
+                    "u": "intruder",
+                    "a": 0,
+                    "n": 1
+                }
+            }
+        ]
+    },
+    "nothing applied": {
+        "batch": {
+            "kind": "cancel",
+            "sessionIds": [
+                "s-done",
+                "s-gone"
+            ],
+            "substituteTeacherId": null,
+            "roomId": null,
+            "changeReasonKind": "other",
+            "changeReason": null,
+            "results": [
+                {
+                    "sessionId": "s-done",
+                    "startsAt": "2026-03-04T10:15:00+01:00",
+                    "outcome": "refused",
+                    "reason": "This lesson already took place or was cancelled."
+                },
+                {
+                    "sessionId": "s-gone",
+                    "startsAt": null,
+                    "outcome": "refused",
+                    "reason": "This lesson cannot be found, or you cannot see it."
+                }
+            ],
+            "appliedCount": 0,
+            "lessonDates": null,
+            "affectedLearnerIds": [],
+            "affectedParentIds": [],
+            "madeBy": "planner",
+            "tenant_id": "",
+            "id": "{batch}",
+            "@self": {
+                "id": "{batch}",
+                "slug": null,
+                "name": "{batch}",
+                "description": null,
+                "summary": null,
+                "image": null,
+                "uri": null,
+                "version": null,
+                "register": "learniq",
+                "schema": "session-change-batch",
+                "schemaVersion": null,
+                "files": [],
+                "relations": [],
+                "locked": null,
+                "owner": null,
+                "organisation": null,
+                "groups": [],
+                "authorization": [],
+                "folder": null,
+                "application": null,
+                "validation": [],
+                "geo": [],
+                "retention": [],
+                "tmlo": [],
+                "size": null,
+                "updated": null,
+                "created": null,
+                "deleted": [],
+                "source": null
+            }
+        },
+        "calls": [
+            {
+                "find": "s-done"
+            },
+            {
+                "find": "s-gone"
+            },
+            {
+                "save": [
+                    "session-change-batch",
+                    "{batch}",
+                    {
+                        "kind": "cancel",
+                        "sessionIds": [
+                            "s-done",
+                            "s-gone"
+                        ],
+                        "substituteTeacherId": null,
+                        "roomId": null,
+                        "changeReasonKind": "other",
+                        "changeReason": null,
+                        "results": [
+                            {
+                                "sessionId": "s-done",
+                                "startsAt": "2026-03-04T10:15:00+01:00",
+                                "outcome": "refused",
+                                "reason": "This lesson already took place or was cancelled."
+                            },
+                            {
+                                "sessionId": "s-gone",
+                                "startsAt": null,
+                                "outcome": "refused",
+                                "reason": "This lesson cannot be found, or you cannot see it."
+                            }
+                        ],
+                        "appliedCount": 0,
+                        "lessonDates": null,
+                        "affectedLearnerIds": [],
+                        "affectedParentIds": [],
+                        "madeBy": "planner",
+                        "tenant_id": ""
+                    }
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[SessionChangeBatchService] Batch {id} by {u}: {a} of {n} lesson(s) changed.",
+                "context": {
+                    "id": "{batch}",
+                    "u": "planner",
+                    "a": 0,
+                    "n": 2
+                }
+            }
+        ]
+    }
+}

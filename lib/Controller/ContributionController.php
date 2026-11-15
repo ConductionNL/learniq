@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
+ * @spec openspec/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
  */
 
 declare(strict_types=1);
@@ -34,9 +34,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use InvalidArgumentException;
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\ContributionRaiserInterface;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Service\ContributionRaiser;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -50,7 +50,7 @@ use Throwable;
 /**
  * Raises a FeeItem's contributions in shillinq.
  *
- * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
+ * @spec openspec/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
  */
 class ContributionController extends Controller {
 
@@ -60,7 +60,7 @@ class ContributionController extends Controller {
 	 * @param IRequest $request HTTP request.
 	 * @param IUserSession $userSession Current user session.
 	 * @param ActionAuthService $actionAuth ADR-023 action matrix.
-	 * @param ContributionRaiser $raiser Finds the fee and the administration, builds and sends the raise.
+	 * @param ContributionRaiserInterface $raiser Finds the fee and the administration, builds and sends the raise.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
@@ -69,10 +69,10 @@ class ContributionController extends Controller {
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly ActionAuthService $actionAuth,
-		private readonly ContributionRaiser $raiser,
+		private readonly ContributionRaiserInterface $raiser,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -84,7 +84,7 @@ class ContributionController extends Controller {
 	 *
 	 * @throws \OCP\AppFramework\OCS\OCSForbiddenException When the user lacks fee-item.raise-contributions (HTTP 403).
 	 *
-	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
+	 * @spec openspec/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
 	 */
 	#[NoAdminRequired]
 	public function raise(string $id = ''): JSONResponse {

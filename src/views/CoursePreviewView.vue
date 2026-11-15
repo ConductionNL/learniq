@@ -1,0 +1,206 @@
+<!-- SPDX-License-Identifier: EUPL-1.2 -->
+<!-- Copyright (C) 2026 Conduction B.V. -->
+
+<!--
+ CoursePreviewView: a course author walks the course as a learner (route
+ /courses/:courseId/preview, content-adaptive-next-step-and-preview).
+
+ Lists the course's lessons in order from GET /api/courses/{id}/preview
+ (403 for anyone who does not author courses), takes the simulated score the
+ next step rules should see, and opens a lesson in the real lesson player in
+ preview mode. The player then records nothing (design D2).
+
+ @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-preview-as-learner/spec.md#requirement-preview-as-learner
+-->
+<template>
+	<div class="course-preview lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Preview as learner')" />
+		<NcLoadingIcon v-if="loading" :size="32" />
+		<NcNoteCard v-else-if="error" type="error">
+			{{ error }}
+		</NcNoteCard>
+		<template v-else>
+			<p class="course-preview__intro">
+				{{
+					t(
+						'learniq',
+						'You see {course} as a learner does. Nothing you do in the preview is recorded.',
+						{ course: courseName },
+					)
+				}}
+			</p>
+			<NcTextField
+				v-model="score"
+				type="number"
+				:label="t('learniq', 'Simulated score')"
+				:helperText="
+					t(
+						'learniq',
+						'The next step rules treat every test in the preview as if it got this score.',
+					)
+				" />
+			<NcEmptyContent
+				v-if="lessons.length === 0"
+				:name="t('learniq', 'This course has no lessons yet')" />
+			<CnDetailCard v-else :title="t('learniq', 'Lessons')">
+				<ol class="course-preview__lessons">
+					<li v-for="lesson in lessons" :key="lesson.id">
+						<NcButton variant="tertiary" @click="open(lesson.id)">
+							{{ lesson.name || lesson.id }}
+						</NcButton>
+					</li>
+				</ol>
+			</CnDetailCard>
+			<div class="course-preview__actions">
+				<NcButton
+					variant="primary"
+					:disabled="lessons.length === 0"
+					@click="open(lessons[0].id)">
+					{{ t('learniq', 'Start the preview') }}
+				</NcButton>
+			</div>
+		</template>
+	</div>
+</template>
+
+<script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
+import { generateUrl } from '@nextcloud/router'
+import {
+	NcButton,
+	NcEmptyContent,
+	NcLoadingIcon,
+	NcNoteCard,
+	NcTextField,
+} from '@nextcloud/vue'
+import { previewQuery } from '../utils/lessonPreview.js'
+
+export default {
+	name: 'CoursePreviewView',
+
+	components: { CnDetailCard, CnPageHeader, NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcTextField },
+
+	props: {
+		/** Course UUID from the route :courseId param. */
+		courseId: {
+			type: String,
+			required: true,
+		},
+	},
+
+	data() {
+		return {
+			loading: true,
+			error: '',
+			courseName: '',
+			lessons: [],
+			score: '',
+		}
+	},
+
+	/**
+	 * Load the course's lessons for the preview.
+	 *
+	 * @return {Promise<void>}
+	 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-preview-as-learner/spec.md#scenario-a-learner-cannot-preview
+	 */
+	async mounted() {
+		try {
+			const resp = await fetch(this.previewUrl(), { headers: { Accept: 'application/json' } })
+			const refusal = this.previewRefusal(resp)
+			if (refusal) {
+				this.error = refusal
+				return
+			}
+			this.showPreview(await resp.json())
+		} catch (e) {
+			this.error = e?.message ?? String(e)
+		} finally {
+			this.loading = false
+		}
+	},
+
+	methods: {
+		/**
+		 * The preview endpoint of this course.
+		 *
+		 * @return {string}
+		 */
+		previewUrl() {
+			return generateUrl(
+				'/apps/learniq/api/courses/'
+					+ encodeURIComponent(this.courseId)
+					+ '/preview',
+			)
+		},
+
+		/**
+		 * What to say when the preview is refused or fails, '' when it loaded.
+		 *
+		 * @param {Response} resp The preview response.
+		 * @return {string}
+		 */
+		previewRefusal(resp) {
+			if (resp.status === 403) {
+				return this.t(
+					'learniq',
+					'Only course authors can preview a course.',
+				)
+			}
+			return resp.ok ? '' : this.loadFailureText(resp.status)
+		},
+
+		/**
+		 * The message for a preview the server could not give.
+		 *
+		 * @param {number} status The HTTP status.
+		 * @return {string}
+		 */
+		loadFailureText(status) {
+			return this.t(
+				'learniq',
+				'Failed to load course (HTTP {status})',
+				{ status },
+			)
+		},
+
+		/**
+		 * Show the course name and its lessons.
+		 *
+		 * @param {object} body The preview answer.
+		 * @return {void}
+		 */
+		showPreview(body) {
+			this.courseName = body.name ?? ''
+			this.lessons = Array.isArray(body.lessons) ? body.lessons : []
+		},
+
+		/**
+		 * Open a lesson in the player in preview mode.
+		 *
+		 * @param {string} lessonId The lesson.
+		 * @return {void}
+		 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-preview-as-learner/spec.md#scenario-a-teacher-walks-the-course-as-a-learner
+		 */
+		open(lessonId) {
+			const score =
+				this.score === '' || Number.isNaN(Number(this.score))
+					? null
+					: Number(this.score)
+			this.$router
+				?.push({
+					name: 'LessonPlayer',
+					params: { courseId: this.courseId, lessonId },
+					query: previewQuery({ active: true, score }),
+				})
+				.catch(() => {})
+		},
+	},
+}
+</script>
+
+<style scoped>
+.course-preview__lessons {
+	padding-inline-start: calc(var(--default-grid-baseline) * 5);
+}
+</style>

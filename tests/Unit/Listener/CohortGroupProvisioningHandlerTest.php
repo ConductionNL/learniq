@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/cohort-group-provisioning/specs/school-structure/spec.md#requirement-cohort-activation-provisions-and-maintains-a-real-nextcloud-group
+ * @spec openspec/specs/school-structure/spec.md#requirement-cohort-activation-provisions-and-maintains-a-real-nextcloud-group
  */
 
 declare(strict_types=1);
@@ -186,7 +186,7 @@ class CohortGroupProvisioningHandlerTest extends TestCase {
 			}
 		);
 
-		return new CohortGroupProvisioningHandler($objectService, $groupManager, $userManager, new NullLogger());
+		return new CohortGroupProvisioningHandler($objectService, $groupManager, $userManager, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 
 	}//end makeHandler()
 
@@ -219,7 +219,7 @@ class CohortGroupProvisioningHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/cohort-group-provisioning/specs/school-structure/spec.md#scenario-activating-a-cohort-provisions-its-nextcloud-group
+	 * @spec openspec/specs/school-structure/spec.md#scenario-activating-a-cohort-provisions-its-nextcloud-group
 	 */
 	public function testActivatingCohortProvisionsGroupAndAddsMembers(): void {
 		$handler = $this->makeHandler();
@@ -250,7 +250,7 @@ class CohortGroupProvisioningHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/cohort-group-provisioning/specs/school-structure/spec.md#scenario-activating-an-already-provisioned-cohort-does-not-provision-a-second-group
+	 * @spec openspec/specs/school-structure/spec.md#scenario-activating-an-already-provisioned-cohort-does-not-provision-a-second-group
 	 */
 	public function testAlreadyProvisionedCohortIsNotReProvisioned(): void {
 		$handler = $this->makeHandler();
@@ -275,7 +275,7 @@ class CohortGroupProvisioningHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/cohort-group-provisioning/specs/school-structure/spec.md#scenario-an-unresolvable-user-id-is-skipped-not-fatal
+	 * @spec openspec/specs/school-structure/spec.md#scenario-an-unresolvable-user-id-is-skipped-not-fatal
 	 */
 	public function testUnresolvableUserIdIsSkippedNotFatal(): void {
 		$handler = $this->makeHandler(unresolvableUsers: ['ghost-user' => true]);
@@ -303,7 +303,7 @@ class CohortGroupProvisioningHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/cohort-group-provisioning/specs/school-structure/spec.md#scenario-enrolling-a-learner-into-an-active-cohort-adds-them-to-its-group
+	 * @spec openspec/specs/school-structure/spec.md#scenario-enrolling-a-learner-into-an-active-cohort-adds-them-to-its-group
 	 */
 	public function testActivatingEnrolmentAddsLearnerToProvisionedGroup(): void {
 		$group = $this->makeGroup(gid: 'learniq-cohort-cohort-4');
@@ -325,7 +325,7 @@ class CohortGroupProvisioningHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/cohort-group-provisioning/specs/school-structure/spec.md#scenario-withdrawing-an-enrolment-removes-the-learner-from-the-group
+	 * @spec openspec/specs/school-structure/spec.md#scenario-withdrawing-an-enrolment-removes-the-learner-from-the-group
 	 */
 	public function testWithdrawingEnrolmentRemovesLearnerFromGroup(): void {
 		$group = $this->makeGroup(gid: 'learniq-cohort-cohort-5');
@@ -348,7 +348,7 @@ class CohortGroupProvisioningHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/cohort-group-provisioning/specs/school-structure/spec.md#scenario-an-enrolment-change-on-a-not-yet-provisioned-cohort-is-a-no-op-not-an-error
+	 * @spec openspec/specs/school-structure/spec.md#scenario-an-enrolment-change-on-a-not-yet-provisioned-cohort-is-a-no-op-not-an-error
 	 */
 	public function testEnrolmentChangeOnUnprovisionedCohortIsNoOp(): void {
 		$handler = $this->makeHandler(foundCohort: ['id' => 'cohort-6', 'ncGroupId' => null]);
@@ -407,4 +407,38 @@ class CohortGroupProvisioningHandlerTest extends TestCase {
 		self::assertSame([], $this->savedObjects);
 
 	}//end testNonMatchingEventTypeIgnored()
+
+	/**
+	 * Only a cohort's activation, and an enrolment's activation or
+	 * withdrawal, in Learniq's register act; any other action, schema or
+	 * register is ignored.
+	 *
+	 * @return void
+	 */
+	public function testOnlyCohortActivationAndEnrolmentChangesAct(): void {
+		$group = $this->makeGroup(gid: 'learniq-cohort-cohort-4');
+		$handler = $this->makeHandler(
+			foundCohort: ['id' => 'cohort-4', 'ncGroupId' => 'learniq-cohort-cohort-4'],
+			existingGroups: ['learniq-cohort-cohort-4' => $group]
+		);
+		$enrolment = ['id' => 'enrol-1', 'cohortId' => 'cohort-4', 'learnerId' => 'learner-5'];
+
+		$handler->handle($this->makeEvent(schema: 'enrolment', action: 'archive', objectData: $enrolment));
+		$handler->handle($this->makeEvent(schema: 'session', action: 'activate', objectData: $enrolment));
+		$handler->handle($this->makeEvent(schema: 'cohort', action: 'withdraw', objectData: ['id' => 'cohort-9']));
+		$foreign = $this->createMock(ObjectTransitionedEvent::class);
+		$foreign->method('getRegister')->willReturn('opencatalogi');
+		$foreign->method('getSchema')->willReturn('enrolment');
+		$foreign->method('getAction')->willReturn('activate');
+		$foreign->expects(self::never())->method('getObject');
+		$handler->handle($foreign);
+		self::assertSame([], $this->added);
+		self::assertSame([], $this->removed);
+		self::assertSame([], $this->createdGroups);
+
+		$handler->handle($this->makeEvent(schema: 'enrolment', action: 'activate', objectData: $enrolment));
+		$handler->handle($this->makeEvent(schema: 'enrolment', action: 'withdraw', objectData: $enrolment));
+		self::assertSame(['learniq-cohort-cohort-4' => ['learner-5']], $this->added);
+		self::assertSame(['learniq-cohort-cohort-4' => ['learner-5']], $this->removed);
+	}//end testOnlyCohortActivationAndEnrolmentChangesAct()
 }//end class

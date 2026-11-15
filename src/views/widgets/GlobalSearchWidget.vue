@@ -23,7 +23,7 @@
  renders a real router-link, so every result is keyboard-reachable by Tab +
  Enter with no bespoke ARIA/roving-tabindex code needed here.
 
- @spec openspec/changes/global-search/specs/dashboard/spec.md#requirement-a-fast-finder-widget-on-the-people-dashboard
+ @spec openspec/specs/dashboard/spec.md#requirement-a-fast-finder-widget-on-the-people-dashboard
 -->
 <template>
 	<div class="learniq-global-search">
@@ -112,7 +112,7 @@ export default {
 		/**
 		 * @return {boolean} True when the current results have at least one row
 		 *  in any group.
-		 * @spec openspec/changes/global-search/specs/dashboard/spec.md#requirement-a-fast-finder-widget-on-the-people-dashboard
+		 * @spec openspec/specs/dashboard/spec.md#requirement-a-fast-finder-widget-on-the-people-dashboard
 		 */
 		hasResults() {
 			return (
@@ -132,7 +132,7 @@ export default {
 		 * Debounced input handler.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/global-search/specs/dashboard/spec.md#requirement-a-fast-finder-widget-on-the-people-dashboard
+		 * @spec openspec/specs/dashboard/spec.md#requirement-a-fast-finder-widget-on-the-people-dashboard
 		 */
 		onInput() {
 			clearTimeout(this.debounceTimer)
@@ -143,7 +143,7 @@ export default {
 		 * Clear the query and any shown results.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/global-search/specs/dashboard/spec.md#requirement-a-fast-finder-widget-on-the-people-dashboard
+		 * @spec openspec/specs/dashboard/spec.md#requirement-a-fast-finder-widget-on-the-people-dashboard
 		 */
 		clear() {
 			this.query = ''
@@ -155,7 +155,7 @@ export default {
 		 * Run the two per-kind OpenRegister searches and group the results.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/global-search/specs/dashboard/spec.md#requirement-a-fast-finder-query-builder-splits-one-search-term-into-per-kind-openregister-requests
+		 * @spec openspec/specs/dashboard/spec.md#requirement-a-fast-finder-query-builder-splits-one-search-term-into-per-kind-openregister-requests
 		 */
 		async runSearch() {
 			const requests = buildGlobalSearchRequests(this.query)
@@ -165,26 +165,26 @@ export default {
 				return
 			}
 
+			await this.searchAll(requests)
+		},
+
+		/**
+		 * Run every request and show the grouped hits, unless a newer search
+		 * started in the meantime.
+		 *
+		 * @param {Array<object>} requests Output of buildGlobalSearchRequests().
+		 * @return {Promise<void>}
+		 */
+		async searchAll(requests) {
 			const token = ++this.requestToken
 			this.loading = true
 			try {
-				const responses = await Promise.all(
-					requests.map((req) => this.fetchOne(req)),
-				)
+				const responses = await this.fetchAll(requests)
 				if (token !== this.requestToken) {
 					// A newer keystroke's search has already superseded this one.
 					return
 				}
-				// buildGlobalSearchRequests() always returns [people, cohorts] in
-				// that fixed order (see its own tests), so responses line up
-				// positionally with no need to search by `kind` here.
-				const peopleIndex = requests.findIndex((r) => r.kind === 'people')
-				const cohortsIndex = requests.findIndex((r) => r.kind === 'cohorts')
-				const peopleResults = peopleIndex >= 0 ? responses[peopleIndex] : []
-				const cohortResults =
-					cohortsIndex >= 0 ? responses[cohortsIndex] : []
-				this.results = groupGlobalSearchResults(peopleResults, cohortResults)
-				this.hasSearched = true
+				this.showGroupedResults(requests, responses)
 			} finally {
 				if (token === this.requestToken) {
 					this.loading = false
@@ -193,12 +193,42 @@ export default {
 		},
 
 		/**
+		 * Fetch every request at once.
+		 *
+		 * @param {Array<object>} requests The request descriptors.
+		 * @return {Promise<Array<object[]>>} The rows per request, in order.
+		 */
+		fetchAll(requests) {
+			return Promise.all(requests.map((req) => this.fetchOne(req)))
+		},
+
+		/**
+		 * Group the people and cohort hits into the result lists.
+		 *
+		 * @param {Array<object>} requests The request descriptors.
+		 * @param {Array<object[]>} responses The rows per request.
+		 * @return {void}
+		 */
+		showGroupedResults(requests, responses) {
+			// buildGlobalSearchRequests() always returns [people, cohorts] in
+			// that fixed order (see its own tests), so responses line up
+			// positionally with no need to search by `kind` here.
+			const peopleIndex = requests.findIndex((r) => r.kind === 'people')
+			const cohortsIndex = requests.findIndex((r) => r.kind === 'cohorts')
+			const peopleResults = peopleIndex >= 0 ? responses[peopleIndex] : []
+			const cohortResults =
+				cohortsIndex >= 0 ? responses[cohortsIndex] : []
+			this.results = groupGlobalSearchResults(peopleResults, cohortResults)
+			this.hasSearched = true
+		},
+
+		/**
 		 * Fetch one OpenRegister request descriptor's result rows.
 		 *
 		 * @param {{register: string, schema: string, params: object}} req One
 		 *  descriptor from `buildGlobalSearchRequests`.
 		 * @return {Promise<object[]>}
-		 * @spec openspec/changes/global-search/specs/dashboard/spec.md#requirement-a-fast-finder-query-builder-splits-one-search-term-into-per-kind-openregister-requests
+		 * @spec openspec/specs/dashboard/spec.md#requirement-a-fast-finder-query-builder-splits-one-search-term-into-per-kind-openregister-requests
 		 */
 		async fetchOne(req) {
 			try {

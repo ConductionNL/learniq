@@ -4,8 +4,8 @@
  * Gate-19 e2e coverage — secure-exam-test-mode spec UI scenarios.
  *
  * Covers (UI-observable surface):
- *   @e2e openspec/changes/secure-exam-test-mode/specs/assessment/spec.md#learner-sees-the-native-test-mode-disclosure-before-starting
- *   @e2e openspec/changes/secure-exam-test-mode/specs/assessment/spec.md#native-test-mode-sessions-appear-in-the-existing-review-queue-unchanged
+ *   @e2e openspec/specs/assessment/spec.md#learner-sees-the-native-test-mode-disclosure-before-starting
+ *   @e2e openspec/specs/assessment/spec.md#native-test-mode-sessions-appear-in-the-existing-review-queue-unchanged
  *
  * The fullscreen/visibility/blur/popstate event-to-flag mapping, the
  * ProctoringSession create/activate/end lifecycle transitions, the
@@ -54,7 +54,7 @@ function fatalOnly(errors: string[]): string[] {
 }
 
 test.describe('secure-exam-test-mode — TakeAssessmentView + ProctoringReviewQueue pages', () => {
-	// @e2e openspec/changes/secure-exam-test-mode/specs/assessment/spec.md#learner-sees-the-native-test-mode-disclosure-before-starting
+	// @e2e openspec/specs/assessment/spec.md#learner-sees-the-native-test-mode-disclosure-before-starting
 	test('take-assessment page renders without a fatal error for an unknown assessment id', async ({
 		loggedInPage: page,
 	}) => {
@@ -75,7 +75,7 @@ test.describe('secure-exam-test-mode — TakeAssessmentView + ProctoringReviewQu
 		)
 	})
 
-	// @e2e openspec/changes/secure-exam-test-mode/specs/assessment/spec.md#native-test-mode-sessions-appear-in-the-existing-review-queue-unchanged
+	// @e2e openspec/specs/assessment/spec.md#native-test-mode-sessions-appear-in-the-existing-review-queue-unchanged
 	test('proctoring review queue page renders without a fatal error', async ({
 		loggedInPage: page,
 	}) => {

@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-placement-capacity-is-enforced-and-a-waitlisted-application-is-auto-promoted-when-a-seat-frees-up
+ * @spec openspec/specs/enrolment/spec.md#requirement-placement-capacity-is-enforced-and-a-waitlisted-application-is-auto-promoted-when-a-seat-frees-up
  */
 
 declare(strict_types=1);
@@ -83,7 +83,7 @@ class AdmissionsWaitlistPromoterTest extends TestCase {
 			}
 		);
 
-		return new AdmissionsWaitlistPromoter($objectService, $transitionEngine, new NullLogger());
+		return new AdmissionsWaitlistPromoter($objectService, $transitionEngine, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**
@@ -113,7 +113,7 @@ class AdmissionsWaitlistPromoterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-withdrawal-promotes-the-oldest-waitlisted-applicant
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-withdrawal-promotes-the-oldest-waitlisted-applicant
 	 */
 	public function testOldestWaitlistedApplicationPromotedOnWithdrawal(): void {
 		$waitlisted = [

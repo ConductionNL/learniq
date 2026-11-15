@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
+ * @spec openspec/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
  */
 
 declare(strict_types=1);
@@ -110,6 +110,7 @@ class EvaluationInvitationProvisioningHandlerTest extends TestCase {
 		return new EvaluationInvitationProvisioningHandler(
 			$objectService,
 			$this->createMock(LoggerInterface::class),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver(),
 		);
 
 	}//end makeHandler()
@@ -142,7 +143,7 @@ class EvaluationInvitationProvisioningHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
 	 */
 	public function testOneInvitationPerLearnerAcrossMultiCohortCampaign(): void {
 		$cohorts = [
@@ -195,7 +196,7 @@ class EvaluationInvitationProvisioningHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
 	 */
 	public function testNoDuplicateInvitationOnRepeatedOpenEvent(): void {
 		$cohorts = [

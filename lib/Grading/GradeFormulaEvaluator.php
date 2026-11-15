@@ -38,12 +38,15 @@ declare(strict_types=1);
 namespace OCA\Learniq\Grading;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\GradeFormulaEvaluatorInterface;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
  * Evaluates CurriculumPlan formulas over a learner's published GradeEntries.
  */
-class GradeFormulaEvaluator {
+class GradeFormulaEvaluator implements GradeFormulaEvaluatorInterface {
+	use FindOrNull;
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
@@ -79,6 +82,8 @@ class GradeFormulaEvaluator {
 	 * @return array{value: float|null, passed: bool|null, breakdown: array, lastRecomputedAt: string}
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-5
+	 * @spec openspec/specs/grading/spec.md#requirement-a-plan-satisfied-entirely-by-exemptions-passes
+	 * @spec openspec/specs/grading/spec.md#requirement-the-scale-decides-how-a-final-grade-is-rounded-and-whether-it-passes
 	 */
 	public function evaluate(string $curriculumPlanId, string $learnerId): array {
 		$plan = $this->fetchPlan(curriculumPlanId: $curriculumPlanId);
@@ -100,7 +105,7 @@ class GradeFormulaEvaluator {
 		$passRules = $plan['passRules'] ?? [];
 		$gradeScaleId = $plan['gradeScaleId'] ?? null;
 
-		$passThreshold = $this->fetchPassThreshold(gradeScaleId: $gradeScaleId);
+		$scale = $this->fetchScaleRule(gradeScaleId: $gradeScaleId);
 
 		[$value, $breakdown] = $this->aggregation->applyFormula(
 			formula: $formula,
@@ -108,12 +113,19 @@ class GradeFormulaEvaluator {
 			components: $components
 		);
 
+		// Rounded by the scale before it is compared and before it is stored.
+		if ($value !== null && $scale !== null) {
+			$value = $scale->round(value: (float) $value);
+		}
+
 		$passed = $this->passEvaluator->evaluatePassed(
 			formula: $formula,
 			value: $value,
 			entries: $entries,
 			passRules: $passRules,
-			passThreshold: $passThreshold
+			passThreshold: $scale?->passThreshold,
+			components: $components,
+			scale: $scale
 		);
 
 		return [
@@ -135,11 +147,7 @@ class GradeFormulaEvaluator {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-5
 	 */
 	private function fetchPlan(string $curriculumPlanId): ?array {
-		$obj = $this->objectService->find(
-			id: $curriculumPlanId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::CURRICULUM_PLAN_SCHEMA
-		);
+		$obj = $this->systemRead(id: $curriculumPlanId, schema: self::CURRICULUM_PLAN_SCHEMA);
 
 		if ($obj === null) {
 			return null;
@@ -147,6 +155,28 @@ class GradeFormulaEvaluator {
 
 		return $obj->jsonSerialize();
 	}//end fetchPlan()
+
+	/**
+	 * Read a plan or scale the roll-up needs, whoever published the grade.
+	 *
+	 * The roll-up runs inside the publishing teacher's request, and a teacher
+	 * may not be allowed to read the curriculum plan: OpenRegister then throws
+	 * DoesNotExistException, and that exception stopped every listener after
+	 * the roll-up on the same event, so an approved correction was never marked
+	 * applied (live pass D9). The read is a system read (the publish itself was
+	 * authorised by the transition; nothing read here is returned to the
+	 * caller), and an object that is not there reads as null.
+	 *
+	 * @param string $id     The object UUID.
+	 * @param string $schema The schema slug.
+	 *
+	 * @return \OCA\OpenRegister\Db\ObjectEntity|null
+	 *
+	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+	 */
+	private function systemRead(string $id, string $schema): ?\OCA\OpenRegister\Db\ObjectEntity {
+		return $this->findOrNull(find: fn () => $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema, _rbac: false));
+	}//end systemRead()
 
 	/**
 	 * Fetch all published GradeEntries for this learner on this plan.
@@ -189,38 +219,26 @@ class GradeFormulaEvaluator {
 	}//end fetchPublishedEntries()
 
 	/**
-	 * Fetch the passThreshold from the GradeScale.
+	 * The rule of the plan's GradeScale: its pass limit, rounding rule and bands.
 	 *
 	 * @param string|null $gradeScaleId UUID or null.
 	 *
-	 * @return float|null
+	 * @return GradeScaleRule|null Null when the plan names no scale or it cannot be read.
 	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-5
+	 * @spec openspec/specs/grading/spec.md#requirement-the-scale-decides-how-a-final-grade-is-rounded-and-whether-it-passes
 	 */
-	private function fetchPassThreshold(?string $gradeScaleId): ?float {
+	private function fetchScaleRule(?string $gradeScaleId): ?GradeScaleRule {
 		if ($gradeScaleId === null) {
 			return null;
 		}
 
-		$obj = $this->objectService->find(
-			id: $gradeScaleId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::GRADE_SCALE_SCHEMA
-		);
-
+		$obj = $this->systemRead(id: $gradeScaleId, schema: self::GRADE_SCALE_SCHEMA);
 		if ($obj === null) {
 			return null;
 		}
 
-		$scale = $obj->jsonSerialize();
-
-		$threshold = $scale['passThreshold'] ?? null;
-		if ($threshold === null) {
-			return null;
-		}
-
-		return (float)$threshold;
-	}//end fetchPassThreshold()
+		return GradeScaleRule::fromScale(scale: $obj->jsonSerialize());
+	}//end fetchScaleRule()
 
 	/**
 	 * Return an empty result (no entries yet).

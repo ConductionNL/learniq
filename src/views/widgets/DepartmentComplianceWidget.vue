@@ -46,6 +46,9 @@
 						{{ t('learniq', 'Coverage') }}
 					</th>
 					<th scope="col">
+						{{ t('learniq', 'Excused') }}
+					</th>
+					<th scope="col">
 						{{ t('learniq', 'Due within 30 days') }}
 					</th>
 					<th scope="col">
@@ -68,6 +71,7 @@
 					</th>
 					<td>{{ row.learners }}</td>
 					<td>{{ coverageLabel(row) }}</td>
+					<td>{{ row.excused }}</td>
 					<td>{{ row.upcomingDeadlines }}</td>
 					<td>{{ row.overdue }}</td>
 					<td>{{ row.expiredCredentials }}</td>

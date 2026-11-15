@@ -4,8 +4,8 @@
  * Gate-19 e2e coverage — competency-framework spec UI scenarios.
  *
  * Covers (UI-observable surface):
- *   @e2e openspec/changes/competency-framework/specs/competency/spec.md#scenario-a-learner-sees-an-unmet-programme-required-competency-as-a-gap
- *   @e2e openspec/changes/competency-framework/specs/competency/spec.md#scenario-a-role-required-competency-surfaces-even-without-a-programme-link
+ *   @e2e openspec/specs/competency/spec.md#scenario-a-learner-sees-an-unmet-programme-required-competency-as-a-gap
+ *   @e2e openspec/specs/competency/spec.md#scenario-a-role-required-competency-surfaces-even-without-a-programme-link
  *
  * The CompetencyFramework/Competency taxonomy, the isLeaf/childCount
  * calculation, the CompetencyAttainmentRollupHandler roll-up (GradeEntry
@@ -40,8 +40,8 @@ const SKILLS_GAP_DASHBOARD_URL = '/index.php/apps/learniq/competencies/skills-ga
 const SkillsGapDashboard = SKILLS_GAP_DASHBOARD_URL
 
 test.describe('competency-framework — Skills gap dashboard', () => {
-	// @e2e openspec/changes/competency-framework/specs/competency/spec.md#scenario-a-learner-sees-an-unmet-programme-required-competency-as-a-gap
-	// @e2e openspec/changes/competency-framework/specs/competency/spec.md#scenario-a-role-required-competency-surfaces-even-without-a-programme-link
+	// @e2e openspec/specs/competency/spec.md#scenario-a-learner-sees-an-unmet-programme-required-competency-as-a-gap
+	// @e2e openspec/specs/competency/spec.md#scenario-a-role-required-competency-surfaces-even-without-a-programme-link
 	test('Skills gap dashboard renders programme-required and role-required sections without a fatal error', async ({
 		loggedInPage: page,
 	}) => {
