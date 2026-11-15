@@ -39,6 +39,8 @@ namespace OCA\Learniq\Service\Portal;
 
 use OCA\Learniq\Kernel\Contracts\PortalPracticalExamAssessmentInterface;
 use OCA\Learniq\Support\ObjectRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
@@ -209,9 +211,10 @@ class PortalPracticalExamAssessment implements PortalPracticalExamAssessmentInte
 	private function save(array $assessor, array $stamp, ?array $existing): mixed {
 		return $this->objectService->saveObject(
 			object: $this->stamped(assessor: $assessor, stamp: $stamp),
-			register: self::REGISTER,
-			schema: self::ASSESSMENT_SCHEMA,
-			uuid: $this->idOf(row: $existing),
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::ASSESSMENT_SCHEMA),
+				uuid: $this->idOf(row: $existing)
+			),
 			_rbac: false,
 			_multitenancy: false
 		);

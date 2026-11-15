@@ -36,6 +36,8 @@ namespace OCA\Learniq\Service\Portal;
 use DateTimeInterface;
 use OCA\Learniq\Kernel\Contracts\PortalPracticalExamSigningInterface;
 use OCA\Learniq\Support\ObjectRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IAppConfig;
@@ -221,8 +223,7 @@ class PortalPracticalExamSigning implements PortalPracticalExamSigningInterface 
 					'tenant_id' => $this->text(value: ($assessment['tenant_id'] ?? null)),
 				]
 			),
-			register: self::REGISTER,
-			schema: self::SIGNATURE_SCHEMA,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::SIGNATURE_SCHEMA)),
 			_rbac: false,
 			_multitenancy: false
 		);

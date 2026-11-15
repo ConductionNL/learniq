@@ -25,6 +25,7 @@ namespace OCA\Learniq\Tests\Unit\Service\Portal;
 
 use OCA\Learniq\Service\Portal\PortalPracticalExamAssessment;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
 use PHPUnit\Framework\TestCase;
@@ -74,12 +75,12 @@ class PortalPracticalExamAssessmentTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) {
 				if ($this->failSave === true) {
 					throw new RuntimeException('database gone');
 				}
 
-				return $this->store->save((string)$schema, $object, $uuid, false);
+				return $this->store->save((string)$options->target->schema, $object, $options->uuid, false);
 			}
 		);
 		$config = $this->createMock(IAppConfig::class);
