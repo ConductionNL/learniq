@@ -42,6 +42,7 @@ use OCP\Security\Bruteforce\IThrottler;
 use Psr\Log\LoggerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for LearningRecordShareVerifyController::verify().
@@ -101,7 +102,11 @@ class LearningRecordShareVerifyControllerTest extends TestCase {
 		// ObjectEntity's getters come from Entity::__call, so a real instance is
 		// required — a mock cannot configure them.
 		$this->objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
+			function (int|string $id, ?ObjectFindOptions $options = null): ?ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				$data = $this->objectsBySchemaId[$schema . ':' . $id] ?? null;
 				if ($data === null) {
 					return null;

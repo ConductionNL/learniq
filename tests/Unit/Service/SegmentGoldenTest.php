@@ -17,6 +17,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserManager;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Pins which settings row the segment is read from (currentSegment(),
@@ -99,7 +100,8 @@ class SegmentGoldenTest extends TestCase {
 		);
 		$objects->method('saveObject')->willReturnCallback(
 			static function (...$args) use (&$saved) {
-				$names = array_map(static fn ($param): string => $param->getName(), (new \ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters());
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
+				$names = array_map(static fn ($param): string => $param->getName(), LegacyObjectArgs::parameters(ObjectService::class, 'saveObject'));
 				$saved[] = (array_combine(array_slice($names, 0, count($args)), $args)['uuid'] ?? 'missing');
 				return OrEntityFactory::make(['segment' => 'vo'], 'learniqsettings');
 			}

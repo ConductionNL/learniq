@@ -49,6 +49,8 @@ use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Service\ObjectRowReader;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -141,9 +143,8 @@ class PortfolioGradeEmitHandler implements IEventListener {
 		}
 
 		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::GRADE_ENTRY_SCHEMA,
-			object: $this->gradeEntryFor(portfolio: $portfolio, portfolioId: $portfolioId, grader: $event->getUserId() ?? '')
+			object: $this->gradeEntryFor(portfolio: $portfolio, portfolioId: $portfolioId, grader: $event->getUserId() ?? ''),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::GRADE_ENTRY_SCHEMA))
 		);
 
 		$gradeEntryId = $saved->jsonSerialize()['id'] ?? null;
@@ -237,9 +238,8 @@ class PortfolioGradeEmitHandler implements IEventListener {
 	 */
 	private function linkGradeEntry(array $portfolio, mixed $portfolioId, mixed $gradeEntryId): void {
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::PORTFOLIO_SCHEMA,
-			object: array_merge($portfolio, ['gradeEntryId' => $gradeEntryId])
+			object: array_merge($portfolio, ['gradeEntryId' => $gradeEntryId]),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::PORTFOLIO_SCHEMA))
 		);
 
 		$this->logger->info(

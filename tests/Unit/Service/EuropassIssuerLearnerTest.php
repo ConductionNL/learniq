@@ -37,6 +37,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IAppConfig;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Which profile names the holder of the Europass form.
@@ -61,7 +62,11 @@ class EuropassIssuerLearnerTest extends TestCase {
 		$profile = ['id' => self::PROFILE, 'ncUserId' => 'p.ganpat', 'givenName' => 'Priya', 'familyName' => 'Ganpat'];
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($profile): ObjectEntity {
+			static function (int|string $id, ?ObjectFindOptions $options = null) use ($profile): ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema === 'learner-profile' && $id === self::PROFILE) {
 					return OrEntityFactory::make($profile, 'learner-profile');
 				}

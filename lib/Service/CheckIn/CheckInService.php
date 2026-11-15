@@ -48,6 +48,9 @@ use DateTimeZone;
 use OCA\Learniq\Kernel\Contracts\CheckInServiceInterface;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -128,7 +131,11 @@ class CheckInService implements CheckInServiceInterface {
 			'tenant_id' => (string)($window['tenant_id'] ?? ($session['tenant_id'] ?? '')),
 		];
 
-		$write = fn () => $this->objects->saveObject(object: $record, register: self::REGISTER, schema: self::RECORD_SCHEMA, _rbac: false);
+		$write = fn () => $this->objects->saveObject(
+			object: $record,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::RECORD_SCHEMA)),
+			_rbac: false
+		);
 		if ($runAs === null) {
 			$write();
 			return new PortalOutcome(status: Http::STATUS_OK, body: ['status' => $status, 'sessionId' => (string)$session['id']]);
@@ -401,7 +408,11 @@ class CheckInService implements CheckInServiceInterface {
 			return null;
 		}
 
-		$find = fn () => $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _render: false);
+		$find = fn () => $this->objects->find(
+			id: $id,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false),
+			_rbac: false
+		);
 		return $this->findRowWithIdOrNull(find: $find, id: $id);
 	}//end read()
 

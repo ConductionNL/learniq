@@ -62,6 +62,7 @@ namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\Contracts\ReportCardPdfDelegationServiceInterface;
 use OCA\Learniq\Support\FleetAppId;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -309,8 +310,10 @@ class ReportCardPdfDelegationService implements LifecycleGuardInterface, ReportC
 		try {
 			$template = $this->objectService->find(
 				id: (string)$templateId,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::REPORT_CARD_TEMPLATE_SCHEMA
+				options: new ObjectFindOptions(
+					register: self::LEARNIQ_REGISTER,
+					schema: self::REPORT_CARD_TEMPLATE_SCHEMA
+				)
 			);
 		} catch (Throwable $exception) {
 			$this->logger->warning(

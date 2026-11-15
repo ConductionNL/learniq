@@ -45,6 +45,7 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for the two listeners internship-hours adds.
@@ -114,7 +115,7 @@ class HourWeekListenersTest extends TestCase {
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): object => $this->store->save((string)$schema, $object, ($uuid ?? (string)($object['id'] ?? '')))
+			fn (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()): object => $this->store->save((string)($options->target->schema), $object, (($options->uuid) ?? (string)($object['id'] ?? '')))
 		);
 
 		return $objectService;
@@ -448,7 +449,11 @@ class HourWeekListenersTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use (&$writes): object {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$writes): object {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$writes++;
 				return $this->store->save((string)$schema, $object, ($uuid ?? (string)($object['id'] ?? '')));
 			}
@@ -625,7 +630,11 @@ class HourWeekListenersTest extends TestCase {
 			}
 		);
 		$service->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use (&$writes): object {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$writes): object {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$writes++;
 				return $this->store->save((string)$schema, $object, (string)($object['id'] ?? ''));
 			}

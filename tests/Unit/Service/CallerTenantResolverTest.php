@@ -28,6 +28,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IConfig;
 use OCP\IUser;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests the caller tenant resolution and the row ownership check.
@@ -111,7 +112,9 @@ class CallerTenantResolverTest extends TestCase {
 	public function testFindOwnedHidesForeignAndUnknownObjects(): void {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			static function (string $id, mixed $register = null, mixed $schema = null): mixed {
+			static function (string $id, ?ObjectFindOptions $options = null): mixed {
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($id === 'missing') {
 					throw new DoesNotExistException('no such object');
 				}

@@ -37,14 +37,14 @@ namespace OCA\Learniq\Lifecycle\Action;
 
 use OCA\Learniq\Kernel\Contracts\LearningRecordExportServiceInterface;
 use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
-use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
+use OCA\OpenRegister\Lifecycle\ContextLifecycleActionInterface;
 
 /**
  * Writes the signed bundle onto a generated LearningRecordExport.
  *
  * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-learner-initiated-export-produces-a-signed-dual-shaped-bundle
  */
-class LearningRecordExportGenerateAction implements LifecycleActionInterface {
+class LearningRecordExportGenerateAction implements ContextLifecycleActionInterface {
 
 	/**
 	 * Constructor.
