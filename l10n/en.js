@@ -2,10 +2,6 @@ OC.L10N.register(
     "learniq",
     {
         "Marketplace": "Marketplace",
-OC.L10N.register(
-    "learniq",
-    {
-        "Marketplace": "Marketplace",
         "All learners": "All learners",
         "Help and explanation": "Help and explanation",
         "QTI 2.1 interaction type.": "QTI 2.1 interaction type.",
@@ -5300,7 +5296,12 @@ OC.L10N.register(
         "Move notice": "Move notice",
         "The lesson and its new room or time, written server-side by SessionMoveNoticeHandler when one lesson moves outside a change batch; the lessonMoved notification names it. Derived — do not set manually.": "The lesson and its new room or time, written server-side by SessionMoveNoticeHandler when one lesson moves outside a change batch; the lessonMoved notification names it. Derived — do not set manually.",
         "Moved at": "Moved at",
-        "When SessionMoveNoticeHandler last recorded a move of this lesson to another room or time; the lessonMoved notification fires when it changes. Derived — do not set manually.": "When SessionMoveNoticeHandler last recorded a move of this lesson to another room or time; the lessonMoved notification fires when it changes. Derived — do not set manually."
+        "When SessionMoveNoticeHandler last recorded a move of this lesson to another room or time; the lessonMoved notification fires when it changes. Derived — do not set manually.": "When SessionMoveNoticeHandler last recorded a move of this lesson to another room or time; the lessonMoved notification fires when it changes. Derived — do not set manually.",
+        "Target level": "Target level",
+        "The levelId of proficiencyLevels a learner must reach for a competency to count as attained in the skills-gap views. Null: any recorded level counts.": "The levelId of proficiencyLevels a learner must reach for a competency to count as attained in the skills-gap views. Null: any recorded level counts.",
+        "Skills gap of {cohort}": "Skills gap of {cohort}",
+        "The programme of this cohort requires no competencies.": "The programme of this cohort requires no competencies.",
+        "{below} of {total} learners below the target level": "{below} of {total} learners below the target level"
     },
     "nplurals=2; plural=(n != 1);"
 )

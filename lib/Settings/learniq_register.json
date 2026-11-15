@@ -14337,6 +14337,12 @@
                         "description": "Plain-language description of the framework's scope.",
                         "title": "Framework Description"
                     },
+                    "targetLevelId": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "The levelId of proficiencyLevels a learner must reach for a competency to count as attained in the skills-gap views. Null: any recorded level counts.",
+                        "title": "Target level"
+                    },
                     "proficiencyLevels": {
                         "type": "array",
                         "minItems": 1,

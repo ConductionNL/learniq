@@ -5261,8 +5261,8 @@
       "area": "grading",
       "name": "See where a group's skills are thin, on one page.",
       "built": {
-        "state": "specified",
-        "evidence": "src/manifest.d/progress.json SkillsGapDashboard Not built: SkillsGapDashboard is per learner only (self or ?learnerId=), with no cohort-level view.",
+        "state": "built",
+        "evidence": "src/manifest.d/progress.json SkillsGapDashboard; src/views/SkillsGapDashboard.vue (cohort view with ?cohortId=: per required competency, the learners below the framework's targetLevelId); src/utils/cohortSkillsGap.js; tests/unit-js/cohortSkillsGap.test.mjs",
         "owner": "ConductionNL/learniq",
         "change": "2026-07-16-competency-framework",
         "requirement": [

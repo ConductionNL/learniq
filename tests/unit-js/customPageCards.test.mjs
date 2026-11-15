@@ -30,7 +30,7 @@ const views = {
 	LearniqAccessibilityStatement: 1,
 	RolloverWizard: 3,
 	RoomUtilisationReport: 3,
-	SkillsGapDashboard: 3,
+	SkillsGapDashboard: 4,
 	MyElectives: 1,
 	MyEvaluationsView: 2,
 	MyWorkGroups: 1,
