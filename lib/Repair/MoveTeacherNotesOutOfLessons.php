@@ -3,6 +3,9 @@
 /**
  * Learniq Move Teacher Notes Out Of Lessons
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Every signed-in user reads a Lesson (teacher-notes-protection), so a
  * `teacherNote` block inside Lesson.blocks was readable by learners through
  * the objects API, however well the lesson player hid it. Notes now live in
@@ -28,8 +31,6 @@
  * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

@@ -125,3 +125,34 @@ test('the decision pages carry a What now card per stage (G7)', () => {
 		assert.ok(Object.keys(config.nextStep.stages).length > 0, `${id} names a stage`)
 	}
 })
+
+test('a card-only history keeps the labels, drops string side entries it generated, and keeps an explicit follow', () => {
+	const page = expandBoardDetail({
+		id: 'X',
+		type: 'detail',
+		config: {
+			follow: true,
+			layout: [{ id: 'old' }],
+			widgets: [{ id: BOARD_TABS_ID }, 'facts'],
+			sideColumn: [BOARD_HISTORY_CARD_ID, 'side', { id: BOARD_HISTORY_ID }],
+			board: { history: { tab: false, actionLabels: { create: 'Made' } } },
+		},
+	})
+	assert.equal(page.config.follow, true)
+	assert.equal(page.config.showWidgetActions, false)
+	assert.equal(page.config.sidebar, undefined)
+	assert.deepEqual(page.config.widgets, [
+		'facts',
+		{ id: BOARD_TABS_ID, type: 'tabs', title: 'Panels', content: { ariaLabel: 'Details', tabs: [] } },
+	])
+	assert.deepEqual(page.config.sideColumn.slice(0, 1), ['side'])
+	assert.deepEqual(page.config.sideColumn[1].content, {
+		excludeActions: ['read'],
+		maxDisplay: 5,
+		layout: 'stacked',
+		actionLabels: { create: 'Made' },
+	})
+	assert.deepEqual(Object.keys(page.config), ['follow', 'widgets', 'sideColumn', 'board', 'showWidgetActions', 'layout'])
+	assert.equal(expandBoardDetail({ type: 'detail', config: { board: 'yes' } }).config.board, 'yes')
+	assert.equal(expandBoardDetail(null), null)
+})

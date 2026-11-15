@@ -18,27 +18,69 @@
  * @spec openspec/changes/hermiq-ai-tooling/specs/mcp-tool-surface/spec.md#requirement-an-agent-grade-is-a-concept-a-teacher-publishes-req-009
  */
 export async function resolveGradePlan(assignment, fetchObject) {
-	const componentId = assignment?.curriculumPlanComponentId ?? ''
-	const courseId = assignment?.courseId ?? ''
-	if (!componentId || !courseId) {
+	const link = planLink(assignment)
+	if (!isLinked(link)) {
 		return null
 	}
-
-	const course = await fetchObject('course', courseId)
-	const curriculumPlanId = course?.curriculumPlanId ?? ''
-	if (!curriculumPlanId) {
+	link.curriculumPlanId = await coursePlanId(link.courseId, fetchObject)
+	if (!link.curriculumPlanId) {
 		return null
 	}
-
-	const plan = await fetchObject('curriculum-plan', curriculumPlanId)
+	const plan = await fetchObject('curriculum-plan', link.curriculumPlanId)
 	if (!plan) {
 		return null
 	}
+	return gradePlanFor(link, plan)
+}
 
+/**
+ * The component and course an assignment points at, '' when unset.
+ *
+ * @param {object|null} assignment The Assignment.
+ * @return {{componentId: string, courseId: string, curriculumPlanId: string}} The link; the plan id is filled in later.
+ */
+function planLink(assignment) {
 	return {
-		curriculumPlanId,
-		componentId,
+		componentId: assignment?.curriculumPlanComponentId ?? '',
+		courseId: assignment?.courseId ?? '',
+		curriculumPlanId: '',
+	}
+}
+
+/**
+ * Whether an assignment names both a plan component and a course.
+ *
+ * @param {{componentId: string, courseId: string}} link Output of planLink().
+ * @return {boolean}
+ */
+function isLinked(link) {
+	return !(!link.componentId || !link.courseId)
+}
+
+/**
+ * The curriculum plan id of a course, '' when the course has none or is unreadable.
+ *
+ * @param {string} courseId The Course id.
+ * @param {function(string, string): Promise<object|null>} fetchObject Reads one learniq object.
+ * @return {Promise<string>}
+ */
+async function coursePlanId(courseId, fetchObject) {
+	const course = await fetchObject('course', courseId)
+	return course?.curriculumPlanId ?? ''
+}
+
+/**
+ * What the GradeEntry needs from the link and the plan.
+ *
+ * @param {{componentId: string, courseId: string, curriculumPlanId: string}} link The resolved link.
+ * @param {object} plan The CurriculumPlan.
+ * @return {{curriculumPlanId: string, componentId: string, gradeScaleId: string, courseId: string}}
+ */
+function gradePlanFor(link, plan) {
+	return {
+		curriculumPlanId: link.curriculumPlanId,
+		componentId: link.componentId,
 		gradeScaleId: plan.gradeScaleId ?? '',
-		courseId,
+		courseId: link.courseId,
 	}
 }

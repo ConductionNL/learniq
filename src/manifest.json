@@ -564,6 +564,8 @@
       "type": "flow",
       "title": "Flow",
       "config": {
+        "listMode": true,
+        "testPayload": true,
         "app": "learniq"
       },
       "sidebarComponent": "FlowDetailSidebar",

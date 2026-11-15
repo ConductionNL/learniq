@@ -36,10 +36,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\ElectiveBoardInterface;
+use OCA\Learniq\Kernel\Contracts\ElectiveServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Service\ElectiveBoard;
-use OCA\Learniq\Service\ElectiveService;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -67,19 +67,19 @@ class ElectiveController extends Controller {
 	 * @param IRequest          $request       HTTP request.
 	 * @param IUserSession      $userSession   Current user session.
 	 * @param ActionAuthService $actionAuth    ADR-023 action matrix.
-	 * @param ElectiveService   $electives     Offers and sign-ups.
-	 * @param ElectiveBoard     $board         The pages' data.
+	 * @param ElectiveServiceInterface   $electives     Offers and sign-ups.
+	 * @param ElectiveBoardInterface     $board         The pages' data.
 	 * @param ObjectService     $objectService Writes the sign-ups.
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly ActionAuthService $actionAuth,
-		private readonly ElectiveService $electives,
-		private readonly ElectiveBoard $board,
+		private readonly ElectiveServiceInterface $electives,
+		private readonly ElectiveBoardInterface $board,
 		private readonly ObjectService $objectService,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -140,7 +140,7 @@ class ElectiveController extends Controller {
 			return new JSONResponse(data: ['error' => 'This sign-up cannot be found.'], statusCode: Http::STATUS_NOT_FOUND);
 		}
 
-		$signUp['status'] = ElectiveService::WITHDRAWN;
+		$signUp['status'] = ElectiveServiceInterface::WITHDRAWN;
 
 		return $this->save(signUp: $signUp, asStaff: false, created: false);
 	}//end withdraw()
@@ -243,8 +243,8 @@ class ElectiveController extends Controller {
 		try {
 			$saved = $this->objectService->saveObject(
 				object: $signUp,
-				register: ElectiveService::REGISTER,
-				schema: ElectiveService::SIGN_UP_SCHEMA,
+				register: ElectiveServiceInterface::REGISTER,
+				schema: ElectiveServiceInterface::SIGN_UP_SCHEMA,
 				_rbac: $asStaff
 			);
 		} catch (Throwable $exception) {

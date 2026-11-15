@@ -401,4 +401,78 @@ class GradeFormulaEvaluatorTest extends TestCase {
 		self::assertSame(6.0, $result['value']);
 		self::assertFalse($result['passed']);
 	}//end testAComponentUnderItsMinValueFailsTheRollUp()
+
+	/**
+	 * A weighted average of 5.45 over two equal components.
+	 *
+	 * @param array<string,mixed> $scale The plan's GradeScale.
+	 *
+	 * @return array{value: float|null, passed: bool|null, breakdown: array, lastRecomputedAt: string}
+	 */
+	private function averageOf545(array $scale): array {
+		$plan = [
+			'id' => 'plan-1',
+			'formula' => 'weighted-average',
+			'gradeScaleId' => 'scale-1',
+			'components' => [
+				['componentId' => 'comp-a', 'weight' => 1],
+				['componentId' => 'comp-b', 'weight' => 1],
+			],
+			'passRules' => [],
+		];
+		$entries = [
+			['componentId' => 'comp-a', 'sourceKind' => 'manual', 'value' => 5.0, 'weight' => 1, 'gradedAt' => '2026-01-01T00:00:00Z'],
+			['componentId' => 'comp-b', 'sourceKind' => 'manual', 'value' => 5.9, 'weight' => 1, 'gradedAt' => '2026-01-01T00:00:00Z'],
+		];
+
+		return $this->makeEvaluator(plan: $plan, entries: $entries, scale: $scale)
+			->evaluate(curriculumPlanId: 'plan-1', learnerId: 'learner-1');
+	}//end averageOf545()
+
+	/**
+	 * Rounding to one decimal half up lifts 5.45 to 5.5, which is stored and passes.
+	 *
+	 * @return void
+	 * @spec openspec/specs/grading/spec.md#requirement-the-scale-decides-how-a-final-grade-is-rounded-and-whether-it-passes
+	 */
+	public function testRoundingLiftsAMarkOverTheLimit(): void {
+		$result = $this->averageOf545(scale: ['kind' => 'numeric', 'passThreshold' => 5.5, 'roundingRule' => 'half-up-1dp']);
+
+		self::assertSame(5.5, $result['value']);
+		self::assertTrue($result['passed']);
+	}//end testRoundingLiftsAMarkOverTheLimit()
+
+	/**
+	 * Without rounding the same 5.45 stays under the limit and fails.
+	 *
+	 * @return void
+	 * @spec openspec/specs/grading/spec.md#requirement-the-scale-decides-how-a-final-grade-is-rounded-and-whether-it-passes
+	 */
+	public function testWithoutRoundingTheSameMarkFails(): void {
+		$result = $this->averageOf545(scale: ['kind' => 'numeric', 'passThreshold' => 5.5, 'roundingRule' => 'none']);
+
+		self::assertEqualsWithDelta(5.45, $result['value'], 0.0001);
+		self::assertFalse($result['passed']);
+	}//end testWithoutRoundingTheSameMarkFails()
+
+	/**
+	 * On a letter scale the band decides: a grade in band E, which has no pass flag, fails
+	 * although it is above any number a threshold might hold.
+	 *
+	 * @return void
+	 * @spec openspec/specs/grading/spec.md#requirement-the-scale-decides-how-a-final-grade-is-rounded-and-whether-it-passes
+	 */
+	public function testABandWithoutThePassFlagFails(): void {
+		$bands = [
+			['bandId' => 'D', 'label' => 'D', 'minValue' => 6.0, 'maxValue' => 10.0, 'pass' => true],
+			['bandId' => 'E', 'label' => 'E', 'minValue' => 0.0, 'maxValue' => 5.99, 'pass' => false],
+		];
+
+		$failing = $this->averageOf545(scale: ['kind' => 'letter', 'passThreshold' => 1.0, 'roundingRule' => 'half-up-1dp', 'bands' => $bands]);
+		self::assertFalse($failing['passed']);
+
+		$bands[1]['pass'] = true;
+		$passing = $this->averageOf545(scale: ['kind' => 'letter', 'roundingRule' => 'half-up-1dp', 'bands' => $bands]);
+		self::assertTrue($passing['passed']);
+	}//end testABandWithoutThePassFlagFails()
 }//end class

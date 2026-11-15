@@ -30,6 +30,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\XapiCallerResolverInterface;
 use OCP\IRequest;
 use OCP\IUserSession;
 
@@ -38,7 +39,7 @@ use OCP\IUserSession;
  *
  * @spec openspec/specs/course-management/spec.md#requirement-run-cmi5--xapi-natively-with-scorm-shim
  */
-class XapiCallerResolver {
+class XapiCallerResolver implements XapiCallerResolverInterface {
 
 	/**
 	 * Constructor.

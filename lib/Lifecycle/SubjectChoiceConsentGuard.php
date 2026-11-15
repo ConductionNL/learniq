@@ -3,6 +3,9 @@
 /**
  * Learniq Subject Choice Consent Guard
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the SubjectChoice schema's `submit` transition
  * (`draft → submitted`). Enforces that the caller is authorised to submit a
  * vakkenpakket for the named learner: either the caller's NC user id is
@@ -32,8 +35,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *
@@ -69,16 +70,6 @@ class SubjectChoiceConsentGuard implements LifecycleGuardInterface {
 	 * @var string
 	 */
 	private const DENIAL = 'Only a guardian of this learner, or the adult learner, can submit this subject choice.';
-
-	/**
-	 * OR register slug for Learniq objects.
-	 */
-	private const LEARNIQ_REGISTER = 'learniq';
-
-	/**
-	 * OR schema slug for LearnerProfile.
-	 */
-	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
 
 	/**
 	 * Constructor.
@@ -133,112 +124,11 @@ class SubjectChoiceConsentGuard implements LifecycleGuardInterface {
 	 * @spec openspec/specs/school-structure/spec.md#requirement-guardian-consent-gates-a-minor-s-subject-choice-submission
 	 */
 	private function allows(array $object): bool {
-		$learnerId = $object['learnerId'] ?? '';
+		$check = new GuardianSubmitCheck(userSession: $this->userSession, objectService: $this->objectService);
+		$verdict = $check->verdict(object: $object);
+		$log = new GuardianSubmitLog(logger: $this->logger, guard: 'SubjectChoiceConsentGuard');
+		$log->refusal(verdict: $verdict, subject: 'SubjectChoice');
 
-		if ($learnerId === '') {
-			$this->logger->warning(
-				'[SubjectChoiceConsentGuard] SubjectChoice has no learnerId; blocking submit.'
-			);
-			return false;
-		}
-
-		$user = $this->userSession->getUser();
-
-		if ($user === null) {
-			$this->logger->info(
-				'[SubjectChoiceConsentGuard] No authenticated user in session; blocking submit.'
-			);
-			return false;
-		}
-
-		$callerUid = $user->getUID();
-
-		$profile = $this->loadLearnerProfile(learnerId: (string)$learnerId, tenantId: (string)($object['tenant_id'] ?? ''));
-		if ($profile === null) {
-			$this->logger->warning(
-				'[SubjectChoiceConsentGuard] No LearnerProfile found for learnerId {learnerId}; blocking submit (fail closed).',
-				['learnerId' => $learnerId]
-			);
-			return false;
-		}
-
-		if ($this->callerMayActForLearner(profile: $profile, callerUid: $callerUid) === true) {
-			return true;
-		}
-
-		$this->logger->info(
-			'[SubjectChoiceConsentGuard] Caller {caller} is not a linked guardian of learner '
-			. '{learnerId} and is not the learner; blocking submit.',
-			['caller' => $callerUid, 'learnerId' => $learnerId]
-		);
-
-		return false;
+		return $verdict->isAllowed();
 	}//end allows()
-
-	/**
-	 * Load the LearnerProfile the subject choice is about, scoped to its tenant.
-	 *
-	 * @param string $learnerId The learner's NC user id.
-	 * @param string $tenantId Tenant UUID, or '' when unknown.
-	 *
-	 * @return array<string,mixed>|null The profile, or null when it does not resolve.
-	 *
-	 * @spec openspec/specs/school-structure/spec.md#requirement-guardian-consent-gates-a-minor-s-subject-choice-submission
-	 */
-	private function loadLearnerProfile(string $learnerId, string $tenantId): ?array {
-		$filters = ['ncUserId' => $learnerId];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$profiles = $this->objectService->findAll(
-			[
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::LEARNER_PROFILE_SCHEMA,
-					]
-				),
-				'limit' => 1,
-			]
-		);
-
-		if (empty($profiles) === true) {
-			return null;
-		}
-
-		$profile = $profiles[0];
-		if (is_array($profile) === false) {
-			$profile = $profile->jsonSerialize();
-		}
-
-		return (array)$profile;
-	}//end loadLearnerProfile()
-
-	/**
-	 * Whether the caller may submit for this learner: either they ARE the
-	 * learner (18+ self-submission) or they are one of the linked guardians.
-	 *
-	 * Fails closed — anything that is not one of those two relationships is a no.
-	 *
-	 * @param array<string,mixed> $profile The learner's LearnerProfile.
-	 * @param string $callerUid The authenticated caller's NC user id.
-	 *
-	 * @return bool True when the caller is authorised to act for this learner.
-	 *
-	 * @spec openspec/specs/school-structure/spec.md#requirement-guardian-consent-gates-a-minor-s-subject-choice-submission
-	 */
-	private function callerMayActForLearner(array $profile, string $callerUid): bool {
-		// 18+ self-submission: caller IS the learner.
-		$profileNcUserId = ($profile['ncUserId'] ?? '');
-		if ($profileNcUserId !== '' && $profileNcUserId === $callerUid) {
-			return true;
-		}
-
-		// Linked guardian: caller's uid is in the LearnerProfile's parentIds.
-		$parentIds = ($profile['parentIds'] ?? []);
-
-		return (is_array($parentIds) === true && in_array($callerUid, $parentIds, true) === true);
-	}//end callerMayActForLearner()
 }//end class

@@ -36,6 +36,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use InvalidArgumentException;
 use OCA\Learniq\Exception\XapiRequestException;
+use OCA\Learniq\Kernel\Contracts\XapiStatementIngestInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
@@ -45,7 +46,7 @@ use OCP\AppFramework\Http;
  *
  * @spec openspec/specs/course-management/spec.md#requirement-run-cmi5--xapi-natively-with-scorm-shim
  */
-class XapiStatementIngest {
+class XapiStatementIngest implements XapiStatementIngestInterface {
 
 	/**
 	 * The learniq register slug.

@@ -20,7 +20,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\BackgroundJob;
 
-use OCA\Learniq\Service\EnrolmentProgressEvaluator;
+use OCA\Learniq\Kernel\Contracts\EnrolmentProgressEvaluatorInterface;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -66,13 +66,13 @@ class EnrolmentProgressRollupJob extends ForwardedJob {
 	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface            $logger        Logger; the base declares it protected.
 	 * @param ObjectService              $objectService OR object access.
-	 * @param EnrolmentProgressEvaluator $evaluator     progressPercent calculation engine.
+	 * @param EnrolmentProgressEvaluatorInterface $evaluator     progressPercent calculation engine.
 	 */
 	public function __construct(
 		ActorForwarding $forwarding,
 		LoggerInterface $logger,
 		private readonly ObjectService $objectService,
-		private readonly EnrolmentProgressEvaluator $evaluator,
+		private readonly EnrolmentProgressEvaluatorInterface $evaluator,
 	) {
 		parent::__construct(forwarding: $forwarding, logger: $logger);
 	}//end __construct()

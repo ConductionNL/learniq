@@ -250,6 +250,12 @@
 <script>
 import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
+import {
+	choicesFromQti,
+	correctChoiceIndex,
+	itemFormFields,
+	promptFromQtiBody,
+} from '../utils/itemAuthorForm.js'
 import { buildItemXml } from '../utils/qtiItemXml.js'
 
 export default {
@@ -323,62 +329,91 @@ export default {
 			this.error = null
 
 			try {
-				const url = generateUrl(
-					`/apps/openregister/api/objects/learniq/Item/${itemId}`,
-				)
-				const resp = await fetch(url, {
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-					},
-				})
-				if (!resp.ok) throw new Error(`Item fetch failed: ${resp.status}`)
-
-				const json = await resp.json()
-				const item = json.object ?? json ?? {}
-
-				this.form.title = item.title ?? ''
-				this.form.interactionType = item.interactionType ?? 'choice'
-				this.form.maxScore = item.maxScore ?? 1
-				this.itemBankId = item.itemBankId ?? null
-
-				// Extract prompt from qtiBody (strip XML).
-				this.form.prompt = (item.qtiBody ?? '')
-					.replace(/<[^>]+>/g, ' ')
-					.replace(/\s+/g, ' ')
-					.trim()
-
-				// Restore choices for choice interaction.
-				if (item.interactionType === 'choice' && item.qtiBody) {
-					const parser = new DOMParser()
-					const doc = parser.parseFromString(item.qtiBody, 'text/xml')
-					const simpleChoices = doc.getElementsByTagName('simpleChoice')
-					if (simpleChoices.length > 0) {
-						this.form.choices = Array.from(simpleChoices).map(
-							(sc, i) => ({
-								id:
-									sc.getAttribute('identifier')
-									?? String.fromCharCode(65 + i),
-								label: sc.textContent?.trim() ?? '',
-							}),
-						)
-					}
-
-					const cr = item.correctResponse
-					if (typeof cr === 'string') {
-						const idx = this.form.choices.findIndex((c) => c.id === cr)
-						this.form.correctChoiceIdx = idx >= 0 ? idx : 0
-					}
-				}
+				const item = await this.fetchItem(itemId)
+				this.applyItem(item)
 			} catch (err) {
-				this.error = this.t(
-					'learniq',
-					'Failed to load item. Please try again.',
-				)
-				// eslint-disable-next-line no-console
-				console.error('[ItemAuthorView] loadItem error', err)
+				this.reportLoadError(err)
 			} finally {
 				this.loading = false
+			}
+		},
+
+		/**
+		 * Show that the Item could not be loaded and log why.
+		 *
+		 * @param {Error} err The failure.
+		 * @return {void}
+		 */
+		reportLoadError(err) {
+			this.error = this.t(
+				'learniq',
+				'Failed to load item. Please try again.',
+			)
+			// eslint-disable-next-line no-console
+			console.error('[ItemAuthorView] loadItem error', err)
+		},
+
+		/**
+		 * Read one Item from OR.
+		 *
+		 * @param {string} itemId Item UUID
+		 * @return {Promise<object>} The stored Item, empty when the response holds none.
+		 */
+		async fetchItem(itemId) {
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/Item/${itemId}`,
+			)
+			const resp = await fetch(url, {
+				headers: {
+					'OCS-APIREQUEST': 'true',
+					Accept: 'application/json',
+				},
+			})
+			if (!resp.ok) throw new Error(`Item fetch failed: ${resp.status}`)
+
+			const json = await resp.json()
+			return json.object ?? json ?? {}
+		},
+
+		/**
+		 * Seed the form from a stored Item.
+		 *
+		 * @param {object} item The stored Item.
+		 * @return {void}
+		 */
+		applyItem(item) {
+			const fields = itemFormFields(item)
+			this.form.title = fields.title
+			this.form.interactionType = fields.interactionType
+			this.form.maxScore = fields.maxScore
+			this.itemBankId = item.itemBankId ?? null
+
+			// Extract prompt from qtiBody (strip XML).
+			this.form.prompt = promptFromQtiBody(item.qtiBody)
+
+			// Restore choices for choice interaction.
+			if (item.interactionType === 'choice' && item.qtiBody) {
+				this.restoreChoices(item)
+			}
+		},
+
+		/**
+		 * Restore the choices and the correct answer of a choice Item.
+		 *
+		 * @param {object} item The stored choice Item.
+		 * @return {void}
+		 */
+		restoreChoices(item) {
+			const parser = new DOMParser()
+			const doc = parser.parseFromString(item.qtiBody, 'text/xml')
+			const choices = choicesFromQti(doc)
+			if (choices.length > 0) {
+				this.form.choices = choices
+			}
+
+			const cr = item.correctResponse
+			if (typeof cr === 'string') {
+				this.form.correctChoiceIdx = correctChoiceIndex(this.form.choices, cr)
 			}
 		},
 

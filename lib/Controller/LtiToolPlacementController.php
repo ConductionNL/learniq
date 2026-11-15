@@ -34,7 +34,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -105,7 +105,7 @@ class LtiToolPlacementController extends Controller {
 		private readonly IURLGenerator $urlGenerator,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 
 	}//end __construct()
 
@@ -190,7 +190,7 @@ class LtiToolPlacementController extends Controller {
 
 		try {
 			$event = new $eventClass(
-				sourceApp: Application::APP_ID,
+				sourceApp: AppIdentity::APP_ID,
 				placementId: $placementId,
 				deploymentUuid: (string)$placement['openconnectorDeploymentId'],
 				userId: $uid,
@@ -247,24 +247,59 @@ class LtiToolPlacementController extends Controller {
 	 * @return JSONResponse The response.
 	 */
 	private function answer(Event $event, string $launchMode): JSONResponse {
-		$refusal = null;
-		if (method_exists($event, 'getRefusal') === true) {
-			$refusal = $event->getRefusal();
-		}
-
-		if (is_array($refusal) === true) {
+		$refusal = $this->refusalOf(event: $event);
+		if ($refusal !== null) {
 			return new JSONResponse(
 				data: ['error' => (string)($refusal['reason'] ?? 'The launch was refused'), 'code' => (string)($refusal['code'] ?? '')],
 				statusCode: Http::STATUS_CONFLICT
 			);
 		}
 
-		$form = null;
-		if (method_exists($event, 'getLoginInitiation') === true) {
-			$form = $event->getLoginInitiation();
+		return $this->loginForm(event: $event, launchMode: $launchMode);
+	}//end answer()
+
+	/**
+	 * The refusal a listener put on the event, when the event carries one.
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return array<string, mixed>|null The refusal, or null when there is none.
+	 */
+	private function refusalOf(Event $event): ?array {
+		$refusal = null;
+		if (method_exists($event, 'getRefusal') === true) {
+			$refusal = $event->getRefusal();
 		}
 
-		if (is_array($form) === false || (string)($form['formActionUrl'] ?? '') === '') {
+		return $this->arrayOrNull(value: $refusal);
+	}//end refusalOf()
+
+	/**
+	 * A listener's answer when it is an array, else null.
+	 *
+	 * @param mixed $value What the event returned.
+	 *
+	 * @return array<string, mixed>|null The array, or null.
+	 */
+	private function arrayOrNull($value): ?array {
+		if (is_array($value) === true) {
+			return $value;
+		}
+
+		return null;
+	}//end arrayOrNull()
+
+	/**
+	 * The login initiation form the event was answered with, or 503 when none came.
+	 *
+	 * @param Event  $event      The dispatched event.
+	 * @param string $launchMode The placement's launch mode.
+	 *
+	 * @return JSONResponse The response.
+	 */
+	private function loginForm(Event $event, string $launchMode): JSONResponse {
+		$form = $this->loginInitiationOf(event: $event);
+		if ($form === null || (string)($form['formActionUrl'] ?? '') === '') {
 			return new JSONResponse(data: ['error' => 'No LTI launch handler answered'], statusCode: Http::STATUS_SERVICE_UNAVAILABLE);
 		}
 
@@ -276,7 +311,23 @@ class LtiToolPlacementController extends Controller {
 				'launchMode'    => $launchMode,
 			]
 		);
-	}//end answer()
+	}//end loginForm()
+
+	/**
+	 * The login initiation a listener put on the event, when the event carries one.
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return array<string, mixed>|null The form, or null when there is none.
+	 */
+	private function loginInitiationOf(Event $event): ?array {
+		$form = null;
+		if (method_exists($event, 'getLoginInitiation') === true) {
+			$form = $event->getLoginInitiation();
+		}
+
+		return $this->arrayOrNull(value: $form);
+	}//end loginInitiationOf()
 
 	/**
 	 * The LTI role of a user: Instructor for teaching staff, else Learner.

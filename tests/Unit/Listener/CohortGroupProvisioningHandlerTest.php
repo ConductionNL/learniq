@@ -407,4 +407,38 @@ class CohortGroupProvisioningHandlerTest extends TestCase {
 		self::assertSame([], $this->savedObjects);
 
 	}//end testNonMatchingEventTypeIgnored()
+
+	/**
+	 * Only a cohort's activation, and an enrolment's activation or
+	 * withdrawal, in Learniq's register act; any other action, schema or
+	 * register is ignored.
+	 *
+	 * @return void
+	 */
+	public function testOnlyCohortActivationAndEnrolmentChangesAct(): void {
+		$group = $this->makeGroup(gid: 'learniq-cohort-cohort-4');
+		$handler = $this->makeHandler(
+			foundCohort: ['id' => 'cohort-4', 'ncGroupId' => 'learniq-cohort-cohort-4'],
+			existingGroups: ['learniq-cohort-cohort-4' => $group]
+		);
+		$enrolment = ['id' => 'enrol-1', 'cohortId' => 'cohort-4', 'learnerId' => 'learner-5'];
+
+		$handler->handle($this->makeEvent(schema: 'enrolment', action: 'archive', objectData: $enrolment));
+		$handler->handle($this->makeEvent(schema: 'session', action: 'activate', objectData: $enrolment));
+		$handler->handle($this->makeEvent(schema: 'cohort', action: 'withdraw', objectData: ['id' => 'cohort-9']));
+		$foreign = $this->createMock(ObjectTransitionedEvent::class);
+		$foreign->method('getRegister')->willReturn('opencatalogi');
+		$foreign->method('getSchema')->willReturn('enrolment');
+		$foreign->method('getAction')->willReturn('activate');
+		$foreign->expects(self::never())->method('getObject');
+		$handler->handle($foreign);
+		self::assertSame([], $this->added);
+		self::assertSame([], $this->removed);
+		self::assertSame([], $this->createdGroups);
+
+		$handler->handle($this->makeEvent(schema: 'enrolment', action: 'activate', objectData: $enrolment));
+		$handler->handle($this->makeEvent(schema: 'enrolment', action: 'withdraw', objectData: $enrolment));
+		self::assertSame(['learniq-cohort-cohort-4' => ['learner-5']], $this->added);
+		self::assertSame(['learniq-cohort-cohort-4' => ['learner-5']], $this->removed);
+	}//end testOnlyCohortActivationAndEnrolmentChangesAct()
 }//end class

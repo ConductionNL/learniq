@@ -36,7 +36,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
-use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
+use OCA\Learniq\Kernel\Contracts\RoomUtilisationServiceInterface;
+use OCA\Learniq\Kernel\Contracts\TimetableSourceResolverInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use RuntimeException;
 use Throwable;
@@ -46,7 +47,7 @@ use Throwable;
  *
  * @spec openspec/specs/school-structure/spec.md#requirement-a-planner-sees-how-well-rooms-are-used
  */
-class RoomUtilisationService {
+class RoomUtilisationService implements RoomUtilisationServiceInterface {
 
 	private const REGISTER = 'learniq';
 
@@ -59,14 +60,14 @@ class RoomUtilisationService {
 	 * Constructor.
 	 *
 	 * @param ObjectService           $objectService Rooms, cohorts and report periods (caller's RBAC).
-	 * @param TimetableSourceResolver $sources       Where lessons are read from.
+	 * @param TimetableSourceResolverInterface $sources       Where lessons are read from.
 	 * @param OpeningHoursSettings    $openingHours  Opening hours per weekday.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly TimetableSourceResolver $sources,
+		private readonly TimetableSourceResolverInterface $sources,
 		private readonly OpeningHoursSettings $openingHours,
 	) {
 	}//end __construct()

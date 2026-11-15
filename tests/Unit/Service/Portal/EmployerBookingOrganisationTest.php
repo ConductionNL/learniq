@@ -39,6 +39,8 @@ use RuntimeException;
  * @uses   \OCA\Learniq\Service\Portal\EmployerBookingFacts
  * @uses   \OCA\Learniq\Service\Portal\PortalOutcome
  * @uses   \OCA\Learniq\Service\Portal\CourseDayLines
+ * @uses   \OCA\Learniq\Support\SerialisedRow
+ * @uses   \OCA\Learniq\Support\TextValue
  */
 class EmployerBookingOrganisationTest extends TestCase {
 

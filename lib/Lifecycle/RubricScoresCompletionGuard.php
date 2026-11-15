@@ -3,6 +3,9 @@
 /**
  * Learniq Rubric Scores Completion Guard
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Shared lifecycle guard for PeerReview's `submit` (assigned -> submitted) and
  * SelfAssessment's `submit` (draft -> submitted) transitions. Blocks the transition
  * unless `rubricScores` covers every `criterionId` declared on the linked
@@ -30,8 +33,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *
@@ -123,25 +124,12 @@ class RubricScoresCompletionGuard implements LifecycleGuardInterface {
 	 * @spec openspec/specs/assignments/spec.md#scenario-submit-is-blocked-when-rubric-coverage-is-incomplete
 	 */
 	private function allows(array $object): bool {
-		$objectId = $object['id'] ?? ($object['uuid'] ?? '');
-		$assignmentId = $object['assignmentId'] ?? null;
-		$rubricScores = $object['rubricScores'] ?? [];
-
-		if (is_string($assignmentId) === false || $assignmentId === '') {
-			$this->logger->info(
-				'[RubricScoresCompletionGuard] {id} has no assignmentId — denying submit (fail closed).',
-				['id' => $objectId]
-			);
+		$assignmentId = $this->requiredAssignmentId(object: $object);
+		if ($assignmentId === null) {
 			return false;
 		}
 
-		$criterionIds = $this->fetchRequiredCriterionIds(assignmentId: $assignmentId);
-
-		if ($this->coversAllCriteria(rubricScores: $rubricScores, requiredCriterionIds: $criterionIds) === false) {
-			$this->logger->info(
-				'[RubricScoresCompletionGuard] {id} rubricScores does not cover every criterionId of the linked Rubric — blocking submit.',
-				['id' => $objectId]
-			);
+		if ($this->coversRubric(object: $object, assignmentId: $assignmentId) === false) {
 			return false;
 		}
 
@@ -149,17 +137,90 @@ class RubricScoresCompletionGuard implements LifecycleGuardInterface {
 		// carry `reviewerId` instead) — the discriminator is structural, per this
 		// class's docblock.
 		if (array_key_exists('learnerId', $object) === true) {
-			if ($this->isLearnerOnSubmission(object: $object) === false) {
-				$this->logger->info(
-					'[RubricScoresCompletionGuard] {id} learnerId is not a member of the linked Submission.learnerIds — blocking submit.',
-					['id' => $objectId]
-				);
-				return false;
-			}
+			return $this->selfAssessmentAllowed(object: $object);
 		}
 
 		return true;
 	}//end allows()
+
+	/**
+	 * The row's assignmentId, or null (logged, fail closed) when it has none.
+	 *
+	 * @param array<string,mixed> $object The PeerReview/SelfAssessment data array.
+	 *
+	 * @return string|null The assignment UUID, or null to deny.
+	 *
+	 * @spec openspec/specs/assignments/spec.md#scenario-submit-is-blocked-when-rubric-coverage-is-incomplete
+	 */
+	private function requiredAssignmentId(array $object): ?string {
+		$assignmentId = $object['assignmentId'] ?? null;
+		if ($this->isId(value: $assignmentId) === false) {
+			$this->logger->info(
+				'[RubricScoresCompletionGuard] {id} has no assignmentId — denying submit (fail closed).',
+				['id' => $this->objectIdOf(object: $object)]
+			);
+			return null;
+		}
+
+		return $assignmentId;
+	}//end requiredAssignmentId()
+
+	/**
+	 * Whether the row scores every criterion of its assignment's rubric; logs when not.
+	 *
+	 * @param array<string,mixed> $object       The PeerReview/SelfAssessment data array.
+	 * @param string              $assignmentId UUID of the Assignment.
+	 *
+	 * @return bool True when the coverage is complete.
+	 *
+	 * @spec openspec/specs/assignments/spec.md#scenario-submit-is-blocked-when-rubric-coverage-is-incomplete
+	 */
+	private function coversRubric(array $object, string $assignmentId): bool {
+		$rubricScores = $object['rubricScores'] ?? [];
+		$criterionIds = $this->fetchRequiredCriterionIds(assignmentId: $assignmentId);
+
+		if ($this->coversAllCriteria(rubricScores: $rubricScores, requiredCriterionIds: $criterionIds) === false) {
+			$this->logger->info(
+				'[RubricScoresCompletionGuard] {id} rubricScores does not cover every criterionId of the linked Rubric — blocking submit.',
+				['id' => $this->objectIdOf(object: $object)]
+			);
+			return false;
+		}
+
+		return true;
+	}//end coversRubric()
+
+	/**
+	 * Whether a SelfAssessment's learner is on its Submission; logs when not.
+	 *
+	 * @param array<string,mixed> $object The SelfAssessment data array.
+	 *
+	 * @return bool True when the learner is on the linked Submission.
+	 *
+	 * @spec openspec/specs/assignments/spec.md#requirement-self-assessment-lets-a-learner-score-their-own-submission-against-the-assignments-rubric
+	 */
+	private function selfAssessmentAllowed(array $object): bool {
+		if ($this->isLearnerOnSubmission(object: $object) === false) {
+			$this->logger->info(
+				'[RubricScoresCompletionGuard] {id} learnerId is not a member of the linked Submission.learnerIds — blocking submit.',
+				['id' => $this->objectIdOf(object: $object)]
+			);
+			return false;
+		}
+
+		return true;
+	}//end selfAssessmentAllowed()
+
+	/**
+	 * The id the log lines name the row by.
+	 *
+	 * @param array<string,mixed> $object The PeerReview/SelfAssessment data array.
+	 *
+	 * @return mixed The id, the uuid, or ''.
+	 */
+	private function objectIdOf(array $object) {
+		return $object['id'] ?? ($object['uuid'] ?? '');
+	}//end objectIdOf()
 
 	/**
 	 * Resolve the set of criterionId values the linked Assignment's Rubric declares.
@@ -180,7 +241,7 @@ class RubricScoresCompletionGuard implements LifecycleGuardInterface {
 		}
 
 		$rubricId = $assignment['rubricId'] ?? null;
-		if (is_string($rubricId) === false || $rubricId === '') {
+		if ($this->isId(value: $rubricId) === false) {
 			return [];
 		}
 
@@ -189,15 +250,28 @@ class RubricScoresCompletionGuard implements LifecycleGuardInterface {
 			return [];
 		}
 
+		return $this->criterionIdsIn(rows: ($rubric['criteria'] ?? []));
+	}//end fetchRequiredCriterionIds()
+
+	/**
+	 * The criterionId of every row that carries one, as strings, in order.
+	 *
+	 * @param iterable<mixed>|mixed $rows Rubric criteria or rubricScores.
+	 *
+	 * @return array<int,string> The criterionIds.
+	 *
+	 * @spec openspec/specs/assignments/spec.md#scenario-submit-is-blocked-when-rubric-coverage-is-incomplete
+	 */
+	private function criterionIdsIn($rows): array {
 		$criterionIds = [];
-		foreach (($rubric['criteria'] ?? []) as $criterion) {
-			if (is_array($criterion) === true && isset($criterion['criterionId']) === true) {
-				$criterionIds[] = (string)$criterion['criterionId'];
+		foreach ($rows as $row) {
+			if (is_array($row) === true && isset($row['criterionId']) === true) {
+				$criterionIds[] = (string)$row['criterionId'];
 			}
 		}
 
 		return $criterionIds;
-	}//end fetchRequiredCriterionIds()
+	}//end criterionIdsIn()
 
 	/**
 	 * Check that rubricScores covers every required criterionId.
@@ -214,13 +288,7 @@ class RubricScoresCompletionGuard implements LifecycleGuardInterface {
 			return true;
 		}
 
-		$scoredCriterionIds = [];
-		foreach ($rubricScores as $score) {
-			if (is_array($score) === true && isset($score['criterionId']) === true) {
-				$scoredCriterionIds[] = (string)$score['criterionId'];
-			}
-		}
-
+		$scoredCriterionIds = $this->criterionIdsIn(rows: $rubricScores);
 		foreach ($requiredCriterionIds as $criterionId) {
 			if (in_array($criterionId, $scoredCriterionIds, true) === false) {
 				return false;
@@ -246,12 +314,24 @@ class RubricScoresCompletionGuard implements LifecycleGuardInterface {
 		$submissionId = $object['submissionId'] ?? null;
 		$learnerId = $object['learnerId'] ?? null;
 
-		if (is_string($submissionId) === false || $submissionId === ''
-			|| is_string($learnerId) === false || $learnerId === ''
-		) {
+		if ($this->isId(value: $submissionId) === false || $this->isId(value: $learnerId) === false) {
 			return false;
 		}
 
+		return $this->submissionLists(submissionId: $submissionId, learnerId: $learnerId);
+	}//end isLearnerOnSubmission()
+
+	/**
+	 * Whether the Submission lists the learner; an unresolvable one does not.
+	 *
+	 * @param string $submissionId UUID of the Submission.
+	 * @param string $learnerId    The learner.
+	 *
+	 * @return bool True when the learner is a member of its learnerIds.
+	 *
+	 * @spec openspec/specs/assignments/spec.md#requirement-self-assessment-lets-a-learner-score-their-own-submission-against-the-assignments-rubric
+	 */
+	private function submissionLists(string $submissionId, string $learnerId): bool {
 		$submission = $this->fetchObject(id: $submissionId, schema: self::SUBMISSION_SCHEMA);
 		if ($submission === null) {
 			return false;
@@ -263,7 +343,18 @@ class RubricScoresCompletionGuard implements LifecycleGuardInterface {
 		}
 
 		return in_array($learnerId, $learnerIds, true) === true;
-	}//end isLearnerOnSubmission()
+	}//end submissionLists()
+
+	/**
+	 * Whether a value is a usable id: a non-empty string.
+	 *
+	 * @param mixed $value The value.
+	 *
+	 * @return bool True for a non-empty string.
+	 */
+	private function isId($value): bool {
+		return is_string($value) === true && $value !== '';
+	}//end isId()
 
 	/**
 	 * Fetch an object by id/schema, normalising to an array whether OR returns an

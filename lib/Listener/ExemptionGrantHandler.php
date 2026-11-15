@@ -38,8 +38,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
-use OCA\Learniq\Service\LearnerRefResolver;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
@@ -65,8 +65,8 @@ class ExemptionGrantHandler implements IEventListener {
 	 * @param ObjectService $objectService OR object access service.
 	 * @param TransitionEngine $transitionEngine OR lifecycle engine used to dispatch the `publish` transition.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param LearnerRefResolver $profiles The learner's user id from the case's LearnerProfile.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param LearnerRefResolverInterface $profiles The learner's user id from the case's LearnerProfile.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -74,8 +74,8 @@ class ExemptionGrantHandler implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly TransitionEngine $transitionEngine,
 		private readonly LoggerInterface $logger,
-		private readonly LearnerRefResolver $profiles,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly LearnerRefResolverInterface $profiles,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -120,48 +120,15 @@ class ExemptionGrantHandler implements IEventListener {
 		$case = $event->getObject()->jsonSerialize();
 		$caseId = $case['id'] ?? ($case['uuid'] ?? '');
 
-		$learnerId = $case['learnerId'] ?? '';
-		$curriculumPlanId = $case['curriculumPlanId'] ?? '';
-		$componentId = $case['componentId'] ?? '';
-		$tenantId = $case['tenant_id'] ?? '';
-
-		if ($learnerId === '' || $curriculumPlanId === '' || $componentId === '') {
-			$this->logger->warning(
-				'[ExemptionGrantHandler] ExemptionCase {id} missing learnerId/curriculumPlanId/componentId — skipping.',
-				['id' => $caseId]
-			);
-			return;
-		}
-
-		// ExemptionCase.learnerId is the LearnerProfile uuid; GradeEntry.learnerId
-		// is the Nextcloud user id (its learnerRef is stamped from it).
-		$userId = $this->learnerUserId(case: $case);
+		$userId = $this->gradedUserId(case: $case, caseId: $caseId);
 		if ($userId === null) {
-			$this->logger->warning(
-				'[ExemptionGrantHandler] ExemptionCase {id}: learner {learner} has no Nextcloud user — no GradeEntry created.',
-				['id' => $caseId, 'learner' => $learnerId]
-			);
 			return;
 		}
-
-		$gradeEntry = [
-			'learnerId' => $userId,
-			'curriculumPlanId' => $curriculumPlanId,
-			'componentId' => $componentId,
-			'sourceKind' => 'exemption',
-			'exemptionCaseId' => $caseId,
-			'value' => null,
-			'gradeScaleId' => $case['gradeScaleId'] ?? '',
-			'grader' => $case['decidedBy'] ?? 'examboard',
-			'gradedAt' => (new DateTimeImmutable())->format(\DATE_ATOM),
-			'tenant_id' => $tenantId,
-			'lifecycle' => 'concept',
-		];
 
 		$saved = $this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: self::GRADE_ENTRY_SCHEMA,
-			object: $gradeEntry
+			object: $this->gradeEntryFor(case: $case, caseId: $caseId, userId: $userId)
 		);
 
 		$savedData = $saved->jsonSerialize();
@@ -176,6 +143,80 @@ class ExemptionGrantHandler implements IEventListener {
 			return;
 		}
 
+		$this->publishAndLink(case: $case, caseId: $caseId, gradeEntryId: $gradeEntryId);
+
+	}//end createAndPublishGradeEntry()
+
+	/**
+	 * The Nextcloud user the exemption grades, or null (logged) when the case
+	 * lacks a required field or its learner has no user.
+	 *
+	 * @param array<string, mixed> $case   The granted ExemptionCase.
+	 * @param mixed                $caseId The case's id, for the log.
+	 *
+	 * @return string|null
+	 */
+	private function gradedUserId(array $case, mixed $caseId): ?string {
+		$learnerId = $case['learnerId'] ?? '';
+
+		if ($learnerId === '' || ($case['curriculumPlanId'] ?? '') === '' || ($case['componentId'] ?? '') === '') {
+			$this->logger->warning(
+				'[ExemptionGrantHandler] ExemptionCase {id} missing learnerId/curriculumPlanId/componentId — skipping.',
+				['id' => $caseId]
+			);
+			return null;
+		}
+
+		// ExemptionCase.learnerId is the LearnerProfile uuid; GradeEntry.learnerId
+		// is the Nextcloud user id (its learnerRef is stamped from it).
+		$userId = $this->learnerUserId(case: $case);
+		if ($userId === null) {
+			$this->logger->warning(
+				'[ExemptionGrantHandler] ExemptionCase {id}: learner {learner} has no Nextcloud user — no GradeEntry created.',
+				['id' => $caseId, 'learner' => $learnerId]
+			);
+		}
+
+		return $userId;
+
+	}//end gradedUserId()
+
+	/**
+	 * The concept exemption GradeEntry for a granted case.
+	 *
+	 * @param array<string, mixed> $case   The granted ExemptionCase.
+	 * @param mixed                $caseId The case's id.
+	 * @param string               $userId The learner's Nextcloud user id.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function gradeEntryFor(array $case, mixed $caseId, string $userId): array {
+		return [
+			'learnerId' => $userId,
+			'curriculumPlanId' => $case['curriculumPlanId'],
+			'componentId' => $case['componentId'],
+			'sourceKind' => 'exemption',
+			'exemptionCaseId' => $caseId,
+			'value' => null,
+			'gradeScaleId' => $case['gradeScaleId'] ?? '',
+			'grader' => $case['decidedBy'] ?? 'examboard',
+			'gradedAt' => (new DateTimeImmutable())->format(\DATE_ATOM),
+			'tenant_id' => $case['tenant_id'] ?? '',
+			'lifecycle' => 'concept',
+		];
+
+	}//end gradeEntryFor()
+
+	/**
+	 * Publish the GradeEntry through the existing transition and back-link the case.
+	 *
+	 * @param array<string, mixed> $case         The granted ExemptionCase.
+	 * @param mixed                $caseId       The case's id, for the log.
+	 * @param mixed                $gradeEntryId The created GradeEntry's id.
+	 *
+	 * @return void
+	 */
+	private function publishAndLink(array $case, mixed $caseId, mixed $gradeEntryId): void {
 		// Drive the *existing* publish transition — not a raw field write — so
 		// OR's lifecycle engine fires the gradePublished notification and audit
 		// trail exactly as it would for any other published entry.
@@ -193,7 +234,7 @@ class ExemptionGrantHandler implements IEventListener {
 			['id' => $caseId, 'gradeEntryId' => $gradeEntryId]
 		);
 
-	}//end createAndPublishGradeEntry()
+	}//end publishAndLink()
 
 	/**
 	 * The case's learner as a Nextcloud user id: the stamped learnerUserId,

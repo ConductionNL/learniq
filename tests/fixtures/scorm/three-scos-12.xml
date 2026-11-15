@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest identifier="three-scos" version="1.0"
+	xmlns="http://www.imsproject.org/xsd/imscp_rootv1p1p2"
+	xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_rootv1p2">
+	<metadata>
+		<schema>ADL SCORM</schema>
+		<schemaversion>1.2</schemaversion>
+	</metadata>
+	<organizations default="main">
+		<organization identifier="unused">
+			<title>Unused</title>
+			<item identifier="x" identifierref="res-a"><title>Not this one</title></item>
+		</organization>
+		<organization identifier="main">
+			<title>Data protection</title>
+			<item identifier="module-1">
+				<title>Module one</title>
+				<item identifier="lesson-1" identifierref="res-a"><title>What is personal data</title></item>
+				<item identifier="lesson-2" identifierref="res-b" parameters="?page=2"><title>Lawful grounds</title></item>
+			</item>
+			<item identifier="glossary" identifierref="res-asset"><title>Glossary</title></item>
+			<item identifier="lesson-3" identifierref="res-c"><title>Data breaches</title></item>
+		</organization>
+	</organizations>
+	<resources xml:base="content/">
+		<resource identifier="res-a" type="webcontent" adlcp:scormtype="sco" href="a/index.html">
+			<file href="a/index.html"/>
+			<file href="shared/style.css"/>
+		</resource>
+		<resource identifier="res-b" type="webcontent" adlcp:scormtype="sco" xml:base="b/" href="start.html">
+			<file href="start.html"/>
+		</resource>
+		<resource identifier="res-asset" type="webcontent" adlcp:scormtype="asset" href="glossary.pdf">
+			<file href="glossary.pdf"/>
+			<file href="shared/style.css"/>
+		</resource>
+		<resource identifier="res-c" type="webcontent" adlcp:scormtype="sco" href="c/index.html">
+			<file href="c/index.html"/>
+		</resource>
+	</resources>
+</manifest>

@@ -20,6 +20,24 @@ function text(value) {
 }
 
 /**
+ * @param {unknown} value An optional value.
+ * @return {boolean} Whether it is null, undefined or ''.
+ */
+function isBlank(value) {
+	return value === null || value === undefined || value === ''
+}
+
+/**
+ * @param {unknown} value An optional value.
+ * @return {boolean} Whether it is blank, an empty list or NaN.
+ */
+function isEmptyValue(value) {
+	return isBlank(value)
+		|| (Array.isArray(value) && value.length === 0)
+		|| (typeof value === 'number' && Number.isNaN(value))
+}
+
+/**
  * Copy the non-empty entries of `values` onto `body`.
  *
  * @param {object} body The body to extend.
@@ -28,10 +46,7 @@ function text(value) {
  */
 function withOptional(body, values) {
 	for (const [key, value] of Object.entries(values)) {
-		const empty = value === null || value === undefined || value === ''
-			|| (Array.isArray(value) && value.length === 0)
-			|| (typeof value === 'number' && Number.isNaN(value))
-		if (!empty) {
+		if (!isEmptyValue(value)) {
 			body[key] = typeof value === 'string' ? value.trim() : value
 		}
 	}
@@ -476,6 +491,28 @@ export function eveningSummary(picked, slotMinutes, bufferMinutes) {
 }
 
 /**
+ * The free half hours of one date as runs of neighbouring half hours, in
+ * minutes since midnight.
+ *
+ * @param {string} date The date (YYYY-MM-DD).
+ * @param {string[]} halfHours Its free half hours (HH:MM).
+ * @return {{date: string, start: number, end: number}[]} The runs, earliest first.
+ */
+function dateBlocks(date, halfHours) {
+	const starts = [...halfHours].map(minutesOf).sort((a, b) => a - b)
+	const blocks = []
+	for (const start of starts) {
+		const open = blocks[blocks.length - 1]
+		if (open && open.end === start) {
+			open.end = start + HALF_HOUR
+		} else {
+			blocks.push({ date, start, end: start + HALF_HOUR })
+		}
+	}
+	return blocks
+}
+
+/**
  * TeacherAvailability.blocks from the free half hours: neighbouring half
  * hours of one evening merge into one block.
  *
@@ -485,24 +522,7 @@ export function eveningSummary(picked, slotMinutes, bufferMinutes) {
  * @spec openspec/specs/parent-conferences/spec.md
  */
 export function availabilityBlocks(pickedByDate, toIso = (local) => new Date(local).toISOString()) {
-	const blocks = []
-	for (const date of Object.keys(pickedByDate).sort()) {
-		const starts = [...pickedByDate[date]].map(minutesOf).sort((a, b) => a - b)
-		let open = null
-		for (const start of starts) {
-			if (open && open.end === start) {
-				open.end = start + HALF_HOUR
-				continue
-			}
-			if (open) {
-				blocks.push(open)
-			}
-			open = { date, start, end: start + HALF_HOUR }
-		}
-		if (open) {
-			blocks.push(open)
-		}
-	}
+	const blocks = Object.keys(pickedByDate).sort().flatMap((date) => dateBlocks(date, pickedByDate[date]))
 	return blocks.map((block) => ({
 		startsAt: toIso(`${block.date}T${timeOf(block.start)}:00`),
 		endsAt: toIso(`${block.date}T${timeOf(block.end)}:00`),
@@ -519,17 +539,41 @@ export function availabilityBlocks(pickedByDate, toIso = (local) => new Date(loc
 export function pickedFromBlocks(blocks) {
 	const out = {}
 	for (const block of Array.isArray(blocks) ? blocks : []) {
-		const start = new Date(block.startsAt)
-		const end = new Date(block.endsAt)
-		if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-			continue
-		}
-		for (let at = start; at < end; at = new Date(at.getTime() + HALF_HOUR * 60000)) {
-			const date = `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, '0')}-${String(at.getDate()).padStart(2, '0')}`
+		for (const at of halfHourMoments(block)) {
+			const date = localDay(at)
 			out[date] = [...(out[date] ?? []), timeOf(at.getHours() * 60 + at.getMinutes())]
 		}
 	}
 	return out
+}
+
+/**
+ * The start of every half hour a saved block covers; none when the block
+ * cannot be read.
+ *
+ * @param {{startsAt: string, endsAt: string}} block One saved block.
+ * @return {Date[]} The moments, in local time.
+ */
+function halfHourMoments(block) {
+	const start = new Date(block.startsAt)
+	const end = new Date(block.endsAt)
+	if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+		return []
+	}
+	const moments = []
+	for (let at = start; at < end; at = new Date(at.getTime() + HALF_HOUR * 60000)) {
+		moments.push(at)
+	}
+	return moments
+}
+
+/**
+ * @param {Date} at A moment.
+ * @return {string} Its local date (YYYY-MM-DD).
+ * @spec openspec/specs/parent-conferences/spec.md
+ */
+export function localDay(at) {
+	return `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, '0')}-${String(at.getDate()).padStart(2, '0')}`
 }
 
 /**
@@ -590,31 +634,68 @@ export function dayStart(day) {
  */
 export function gradeEntryCreateBody(form, plan, teacherId, tenant) {
 	const component = planComponent(plan, form.componentId)
-	const weight = parseMark(form.weight)
-	return withOptional(
-		{
-			learnerId: text(form.learnerId),
-			curriculumPlanId: text(form.curriculumPlanId),
-			componentId: text(form.componentId),
-			gradeScaleId: text(form.gradeScaleId) || component.gradeScaleId || plan?.gradeScaleId || '',
-			sourceKind: GRADE_SOURCES.includes(form.sourceKind) ? form.sourceKind : 'manual',
-			value: parseMark(form.value),
-			grader: text(form.grader) || teacherId,
-		},
-		{
-			weight: weight ?? component.weight ?? null,
-			period: text(form.period) || (component.period === undefined ? '' : String(component.period)),
-			courseId: form.courseId,
-			courseName: form.courseName,
-			cohortId: form.cohortId,
-			gradedAt: dayStart(form.gradedAt),
-			visibleFrom: dayStart(form.visibleFrom),
-			methodName: form.methodName,
-			methodBlock: form.methodBlock,
-			comment: form.comment,
-			tenant_id: tenant,
-		},
-	)
+	const body = gradeEntryRequired(form, { plan, component })
+	body.grader = text(form.grader) || teacherId
+	return withOptional(body, { ...gradeEntryOptional(form, component), tenant_id: tenant })
+}
+
+/**
+ * The fields every GradeEntry carries, the grader aside.
+ *
+ * @param {object} form The dialog's fields.
+ * @param {{plan: object, component: object}} grading The chosen plan and its component.
+ * @return {object} The fields.
+ */
+function gradeEntryRequired(form, grading) {
+	return {
+		learnerId: text(form.learnerId),
+		curriculumPlanId: text(form.curriculumPlanId),
+		componentId: text(form.componentId),
+		gradeScaleId: gradeScaleOf(form, grading),
+		sourceKind: GRADE_SOURCES.includes(form.sourceKind) ? form.sourceKind : 'manual',
+		value: parseMark(form.value),
+	}
+}
+
+/**
+ * The scale of a grade: the form's, else the component's, else the plan's.
+ *
+ * @param {object} form The dialog's fields.
+ * @param {{plan: object, component: object}} grading The chosen plan and its component.
+ * @return {string} The scale id, or ''.
+ */
+function gradeScaleOf(form, grading) {
+	return text(form.gradeScaleId) || grading.component.gradeScaleId || grading.plan?.gradeScaleId || ''
+}
+
+/**
+ * The optional fields of a GradeEntry, before the empty ones are left out.
+ *
+ * @param {object} form The dialog's fields.
+ * @param {object} component The plan component the grade is for.
+ * @return {object} The fields.
+ */
+function gradeEntryOptional(form, component) {
+	return {
+		weight: parseMark(form.weight) ?? component.weight ?? null,
+		period: text(form.period) || componentPeriod(component),
+		courseId: form.courseId,
+		courseName: form.courseName,
+		cohortId: form.cohortId,
+		gradedAt: dayStart(form.gradedAt),
+		visibleFrom: dayStart(form.visibleFrom),
+		methodName: form.methodName,
+		methodBlock: form.methodBlock,
+		comment: form.comment,
+	}
+}
+
+/**
+ * @param {object} component A plan component.
+ * @return {string} Its period as text, or '' when it has none.
+ */
+function componentPeriod(component) {
+	return component.period === undefined ? '' : String(component.period)
 }
 
 /**

@@ -62,6 +62,7 @@ use RuntimeException;
  * @uses   \OCA\Learniq\Timetabling\Source\LocalSessionTimetableSource
  * @uses   \OCA\Learniq\Timetabling\Source\PlanninqTimetableSource
  * @uses   \OCA\Learniq\Timetabling\Source\TimetableSourceResolver
+ * @uses \OCA\Learniq\Timetabling\Source\TimetableWindow
  */
 class PlanninqTimetableImportGoldenTest extends TestCase {
 

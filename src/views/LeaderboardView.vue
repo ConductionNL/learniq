@@ -137,6 +137,21 @@ import {
 
 const OPT_OUT_PREFERENCE_KEY = 'leaderboardoptout'
 
+/**
+ * The cohort picker options: one per leaderboard that names a cohort.
+ *
+ * @param {Array<object>} rows Leaderboard rows.
+ * @return {Array<{cohortId: string, name: string}>}
+ */
+function leaderboardOptionsOf(rows) {
+	return rows
+		.filter((row) => !!row.cohortId)
+		.map((row) => ({
+			cohortId: row.cohortId,
+			name: row.name || row.cohortId,
+		}))
+}
+
 export default {
 	name: 'LeaderboardView',
 
@@ -184,23 +199,7 @@ export default {
 		async loadLeaderboards() {
 			this.loadingLeaderboards = true
 			try {
-				const params = new URLSearchParams({
-					lifecycle: 'active',
-					_limit: '100',
-				})
-				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/Leaderboard?'
-						+ params.toString(),
-				)
-				const response = await axios.get(url)
-				const data = response.data ?? {}
-				const rows = data.results ?? (Array.isArray(data) ? data : [])
-				this.leaderboardOptions = rows
-					.filter((row) => !!row.cohortId)
-					.map((row) => ({
-						cohortId: row.cohortId,
-						name: row.name || row.cohortId,
-					}))
+				this.leaderboardOptions = leaderboardOptionsOf(await this.readActiveLeaderboards())
 
 				if (this.leaderboardOptions.length > 0) {
 					this.selectedCohortId = this.leaderboardOptions[0].cohortId
@@ -211,6 +210,25 @@ export default {
 			} finally {
 				this.loadingLeaderboards = false
 			}
+		},
+
+		/**
+		 * Read every active Leaderboard row.
+		 *
+		 * @return {Promise<Array<object>>}
+		 */
+		async readActiveLeaderboards() {
+			const params = new URLSearchParams({
+				lifecycle: 'active',
+				_limit: '100',
+			})
+			const url = generateUrl(
+				'/apps/openregister/api/objects/learniq/Leaderboard?'
+					+ params.toString(),
+			)
+			const response = await axios.get(url)
+			const data = response.data ?? {}
+			return data.results ?? (Array.isArray(data) ? data : [])
 		},
 
 		/**

@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
+use OCA\Learniq\Kernel\Contracts\PortalLearnerResolverInterface;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCP\IUserManager;
 
@@ -36,7 +37,7 @@ use OCP\IUserManager;
  *
  * @spec openspec/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
  */
-class PortalLearnerResolver {
+class PortalLearnerResolver implements PortalLearnerResolverInterface {
 
 	/**
 	 * Constructor.

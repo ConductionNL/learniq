@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTime;
+use OCA\Learniq\Kernel\Contracts\ExchangeGateServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IL10N;
 use Psr\Log\LoggerInterface;
@@ -44,9 +45,8 @@ use Throwable;
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class ExchangeGateService {
+class ExchangeGateService implements ExchangeGateServiceInterface {
 
-	public const DECISION_ALLOW = 'allow';
 	public const DECISION_REFUSE = 'refuse';
 
 	private const LEARNIQ_REGISTER = 'learniq';
