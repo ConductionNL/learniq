@@ -5854,7 +5854,14 @@
         "Invoice": "Factuur",
         "Invoice status": "Factuurstatus",
         "When the attestation was signed. Stamped by the sign transition; part of the signed payload.": "Wanneer de verklaring is ondertekend. Vastgelegd bij het ondertekenen; maakt deel uit van de ondertekende gegevens.",
-        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Waarom een ondertekende verklaring is ingetrokken. Vastgelegd bij het intrekken, dat een lege reden weigert."
+        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Waarom een ondertekende verklaring is ingetrokken. Vastgelegd bij het intrekken, dat een lege reden weigert.",
+        "What would one more mark do?": "Wat doet één cijfer erbij?",
+        "Enter a possible next mark and its weight. This is a forecast only; no grade is saved.": "Vul een mogelijk volgend cijfer en de weging in. Dit is alleen een voorspelling; er wordt geen cijfer opgeslagen.",
+        "Possible next mark": "Mogelijk volgend cijfer",
+        "Average now": "Gemiddelde nu",
+        "Average it would become": "Gemiddelde dat het zou worden",
+        "Would pass": "Zou voldoende zijn",
+        "Would not pass": "Zou onvoldoende zijn"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

@@ -4929,8 +4929,8 @@
       "area": "grading",
       "name": "Show a learner what one more mark would do to their average.",
       "built": {
-        "state": "specified",
-        "evidence": "src/manifest.d/learning.json GradeImpactDetail Not built: there is no learner what-if calculation; GradeImpactDetail only shows the impact of an existing grade.",
+        "state": "built",
+        "evidence": "src/views/GradeImpactDetail.vue (What would one more mark do? card); src/utils/gradeForecast.js (average with a possible next mark and its weight, pass against the plan's final-grade rule, never saved); tests/unit-js/gradeForecast.test.mjs",
         "owner": "ConductionNL/learniq",
         "change": "grading",
         "requirement": [

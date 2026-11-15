@@ -68,7 +68,7 @@ const views = {
 	CoursePreviewView: 1,
 	DisplayScreenAddressView: 1,
 	ElectiveRosterView: 1,
-	GradeImpactDetail: 3,
+	GradeImpactDetail: 4,
 	GroupPlanSubgroupLearnerContext: 2,
 	HourPlanActivities: 1,
 	HourPlanEditor: 2,

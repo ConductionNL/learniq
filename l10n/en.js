@@ -2,6 +2,10 @@ OC.L10N.register(
     "learniq",
     {
         "Marketplace": "Marketplace",
+OC.L10N.register(
+    "learniq",
+    {
+        "Marketplace": "Marketplace",
         "All learners": "All learners",
         "Help and explanation": "Help and explanation",
         "QTI 2.1 interaction type.": "QTI 2.1 interaction type.",
@@ -5283,7 +5287,14 @@ OC.L10N.register(
         "Invoice status": "Invoice status",
         "Signed At": "Signed At",
         "When the attestation was signed. Stamped by the sign transition; part of the signed payload.": "When the attestation was signed. Stamped by the sign transition; part of the signed payload.",
-        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason."
+        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.",
+        "What would one more mark do?": "What would one more mark do?",
+        "Enter a possible next mark and its weight. This is a forecast only; no grade is saved.": "Enter a possible next mark and its weight. This is a forecast only; no grade is saved.",
+        "Possible next mark": "Possible next mark",
+        "Average now": "Average now",
+        "Average it would become": "Average it would become",
+        "Would pass": "Would pass",
+        "Would not pass": "Would not pass"
     },
     "nplurals=2; plural=(n != 1);"
 )
