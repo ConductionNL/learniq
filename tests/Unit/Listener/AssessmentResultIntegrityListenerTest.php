@@ -346,4 +346,155 @@ class AssessmentResultIntegrityListenerTest extends TestCase {
 
 		self::assertFalse($event->isPropagationStopped());
 	}//end testOtherSchemasAreIgnored()
+
+	/**
+	 * The refusal a teacher's update gets, or null when it is let through.
+	 *
+	 * @param array<string,mixed> $old The stored attempt.
+	 * @param array<string,mixed> $new The attempt as it would be saved.
+	 *
+	 * @return array<string,string>|null The refusal.
+	 */
+	private function teacherRefusal(array $old, array $new): ?array {
+		$event = $this->update($this->makeListener('teacher1', groups: ['instructors']), $old, $new);
+		if ($event->isPropagationStopped() === false) {
+			return null;
+		}
+
+		return $event->getErrors();
+	}//end teacherRefusal()
+
+	/**
+	 * Every refusal of a finished attempt names its exact reason and message.
+	 *
+	 * @return void
+	 */
+	public function testEachFinishedAttemptRefusalIsExact(): void {
+		$frozen = ['reason' => 'assessment-result-answers-frozen', 'message' => 'The answers of a submitted attempt cannot be changed.'];
+		$graded = ['reason' => 'assessment-result-graded', 'message' => 'A graded attempt is final.'];
+
+		$renumbered = $this->scored(3);
+		$renumbered['attemptNumber'] = 2;
+		self::assertSame($frozen, $this->teacherRefusal($this->submitted(), $renumbered));
+
+		$shorter = $this->submitted();
+		array_pop($shorter['responses']);
+		self::assertSame($frozen, $this->teacherRefusal($this->submitted(), $shorter));
+
+		$reopened = $this->submitted(['lifecycle' => 'in-progress']);
+		self::assertSame($graded, $this->teacherRefusal($this->submitted(), $reopened));
+
+		$gradedAttempt = $this->scored(3);
+		$gradedAttempt['lifecycle'] = 'graded';
+		$ungraded = $gradedAttempt;
+		$ungraded['lifecycle'] = 'submitted';
+		self::assertSame($graded, $this->teacherRefusal($gradedAttempt, $ungraded));
+
+		$rescored = $gradedAttempt;
+		$rescored['responses'][0]['manualScore'] = 5;
+		self::assertSame($graded, $this->teacherRefusal($gradedAttempt, $rescored));
+
+		self::assertSame(
+			['reason' => 'assessment-result-invalid-score', 'message' => 'A score must be a number of zero or more.'],
+			$this->teacherRefusal($this->submitted(), $this->scored('abc'))
+		);
+	}//end testEachFinishedAttemptRefusalIsExact()
+
+	/**
+	 * A teacher may clear a manual score, keep an equal one written as a float,
+	 * and save a graded attempt that changes nothing.
+	 *
+	 * @return void
+	 */
+	public function testAllowedFinishedAttemptWritesStayAllowed(): void {
+		self::assertNull($this->teacherRefusal($this->scored(3), $this->submitted()));
+		self::assertNull($this->teacherRefusal($this->scored(3), $this->scored(3.0)));
+		self::assertNull($this->teacherRefusal($this->scored(0), $this->scored(0)));
+
+		$gradedAttempt = $this->scored(3);
+		$gradedAttempt['lifecycle'] = 'graded';
+		self::assertNull($this->teacherRefusal($gradedAttempt, $gradedAttempt));
+
+		$noLifecycle = $this->scored(3);
+		unset($noLifecycle['lifecycle']);
+		$stored = $this->scored(3);
+		self::assertNull($this->teacherRefusal($stored, $noLifecycle));
+	}//end testAllowedFinishedAttemptWritesStayAllowed()
+
+	/**
+	 * In progress: the exact refusals, including a changed owner field and a
+	 * manual score in the submit save, and an attempt without a state.
+	 *
+	 * @return void
+	 */
+	public function testEachInProgressRefusalIsExact(): void {
+		$notYours = ['reason' => 'assessment-result-not-yours', 'message' => 'Only the learner taking this attempt can change it.'];
+		$selfScored = ['reason' => 'assessment-result-self-scored', 'message' => 'A learner cannot score their own answers.'];
+		$inProgress = $this->submitted(['lifecycle' => 'in-progress', 'responses' => []]);
+		$listener = $this->makeListener('learner1');
+
+		$moved = $this->submitted(['lifecycle' => 'in-progress', 'responses' => [], 'assessmentId' => 'a2']);
+		self::assertSame($notYours, $this->update($listener, $inProgress, $moved)->getErrors());
+
+		self::assertSame($notYours, $this->update($this->makeListener('learner2'), $inProgress, $inProgress)->getErrors());
+
+		$manualOnSubmit = $this->submitted();
+		$manualOnSubmit['responses'][0]['manualScore'] = 2;
+		self::assertSame($selfScored, $this->update($listener, $inProgress, $manualOnSubmit)->getErrors());
+
+		$autoWhileOpen = $this->submitted(['lifecycle' => 'in-progress']);
+		self::assertSame($selfScored, $this->update($listener, $inProgress, $autoWhileOpen)->getErrors());
+
+		$stateless = $this->submitted(['lifecycle' => '', 'responses' => []]);
+		self::assertFalse($this->update($listener, $stateless, $stateless)->isPropagationStopped());
+		self::assertSame($notYours, $this->update($this->makeListener('learner2'), $stateless, $stateless)->getErrors());
+	}//end testEachInProgressRefusalIsExact()
+
+	/**
+	 * A learner on a finished attempt, and a delete, get their exact refusal;
+	 * an update without a stored version and an unknown schema pass.
+	 *
+	 * @return void
+	 */
+	public function testTheRemainingAnswersAreExact(): void {
+		self::assertSame(
+			['reason' => 'assessment-result-finished', 'message' => 'A submitted attempt can only be scored by a teacher.'],
+			$this->update($this->makeListener('learner1'), $this->submitted(), $this->submitted())->getErrors()
+		);
+
+		$delete = new ObjectDeletingEvent(OrEntityFactory::make($this->submitted(), 'assessment-result'));
+		$this->makeListener('teacher1', groups: ['instructors'])->handle($delete);
+		self::assertSame(
+			['reason' => 'assessment-result-delete', 'message' => 'An assessment attempt is evidence and cannot be deleted.'],
+			$delete->getErrors()
+		);
+
+		$unstored = new ObjectUpdatingEvent(OrEntityFactory::make($this->scored(10), 'assessment-result'), null);
+		$this->makeListener('learner1')->handle($unstored);
+		self::assertFalse($unstored->isPropagationStopped());
+
+		$noSession = new ObjectDeletingEvent(OrEntityFactory::make($this->submitted(), 'assessment-result'));
+		$this->makeListener('')->handle($noSession);
+		self::assertFalse($noSession->isPropagationStopped());
+	}//end testTheRemainingAnswersAreExact()
+
+	/**
+	 * A schema that cannot be resolved is never policed.
+	 *
+	 * @return void
+	 */
+	public function testAnUnresolvableSchemaIsLetThrough(): void {
+		$resolver = $this->createMock(ListenerSchemaResolver::class);
+		$resolver->method('guardSchemaSlug')->willThrowException(new \RuntimeException('no schema'));
+		$groupManager = $this->createMock(IGroupManager::class);
+		$listener = new AssessmentResultIntegrityListener(
+			schemaResolver: $resolver,
+			userSession: $this->createMock(IUserSession::class),
+			groupManager: $groupManager,
+			roles: new DashboardRoleService(groupManager: $groupManager),
+			logger: new NullLogger(),
+		);
+
+		self::assertFalse($this->update($listener, $this->submitted(), $this->scored(10))->isPropagationStopped());
+	}//end testAnUnresolvableSchemaIsLetThrough()
 }//end class

@@ -24,11 +24,11 @@
 -->
 
 <template>
-	<div class="take-assessment">
+	<div class="take-assessment lq-board-page">
 		<!-- Loading -->
 		<div v-if="loading" class="take-assessment__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('learniq', 'Loading assessment...') }}</span>
+			<span>{{ t('learniq', 'Loading assessment…') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -186,151 +186,30 @@
 
 		<!-- Assessment header + item view -->
 		<template v-else-if="assessment && resultId">
-			<header class="take-assessment__header">
-				<h2 class="take-assessment__title">
-					{{ assessment.title }}
-				</h2>
-				<div class="take-assessment__meta">
-					<span
-						v-if="assessment.timeLimitMinutes"
-						class="take-assessment__timer"
-						:class="{ 'take-assessment__timer--warning': timeWarning }">
-						{{
-							t('learniq', 'Time remaining: {time}', {
-								time: formattedTimeRemaining,
-							})
-						}}
-					</span>
-					<span
-						v-if="autosaveState"
-						class="take-assessment__autosave"
-						role="status"
-						aria-live="polite">
-						{{ autosaveMessage }}
-					</span>
-					<span class="take-assessment__progress">
-						{{
-							t('learniq', 'Item {current} of {total}', {
-								current: currentItemIndex + 1,
-								total: items.length,
-							})
-						}}
-					</span>
-				</div>
-			</header>
+			<CnPageHeader :title="assessment.title" />
+			<div class="take-assessment__meta">
+				<span
+					v-if="assessment.timeLimitMinutes"
+					class="take-assessment__timer"
+					:class="{ 'take-assessment__timer--warning': timeWarning }">
+					{{
+						t('learniq', 'Time remaining: {time}', {
+							time: formattedTimeRemaining,
+						})
+					}}
+				</span>
+			</div>
 
-			<!-- Item display -->
-			<section
-				v-if="currentItem"
+			<!-- The items, one a page, each answer saved a moment after it is given (CnChecklistRunWidget) -->
+			<CnChecklistRunWidget
 				class="take-assessment__item"
-				aria-live="polite">
-				<h3 class="take-assessment__item-title">
-					{{ currentItem.title }}
-				</h3>
-
-				<!-- Choice interaction -->
-				<div
-					v-if="currentItem.interactionType === 'choice'"
-					class="take-assessment__choice">
-					<p
-						class="take-assessment__qti-body"
-						v-html="extractPrompt(currentItem.qtiBody)" />
-					<ul class="take-assessment__options" role="radiogroup">
-						<li
-							v-for="option in extractChoices(
-								currentItem.qtiBody,
-								currentItemOptionOrder,
-							)"
-							:key="option.id"
-							class="take-assessment__option">
-							<label>
-								<input
-									type="radio"
-									:name="'item-' + currentItem.uuid"
-									:value="option.id"
-									:checked="currentResponse === option.id"
-									@change="setResponse(option.id)" />
-								{{ option.label }}
-							</label>
-						</li>
-					</ul>
-				</div>
-
-				<!-- Extended text (essay) interaction -->
-				<div
-					v-else-if="currentItem.interactionType === 'extendedText'"
-					class="take-assessment__essay">
-					<p
-						id="take-assessment-essay-prompt"
-						class="take-assessment__qti-body"
-						v-html="extractPrompt(currentItem.qtiBody)" />
-					<textarea
-						id="take-assessment-essay-input"
-						class="take-assessment__essay-input"
-						rows="10"
-						aria-labelledby="take-assessment-essay-prompt"
-						:placeholder="t('learniq', 'Write your response here...')"
-						:value="currentResponse || ''"
-						@input="setResponse($event.target.value)" />
-					<p class="take-assessment__essay-note">
-						{{
-							t('learniq', 'This item will be marked by your teacher.')
-						}}
-					</p>
-				</div>
-
-				<!-- Other interaction types — no in-browser editor yet -->
-				<div v-else class="take-assessment__other-interaction">
-					<p
-						id="take-assessment-other-prompt"
-						class="take-assessment__qti-body"
-						v-html="extractPrompt(currentItem.qtiBody)" />
-					<p class="take-assessment__interaction-note">
-						{{
-							t(
-								'learniq',
-								'Interaction type "{type}" — please provide your response:',
-								{ type: currentItem.interactionType },
-							)
-						}}
-					</p>
-					<textarea
-						id="take-assessment-other-input"
-						class="take-assessment__essay-input"
-						rows="6"
-						aria-labelledby="take-assessment-other-prompt"
-						:placeholder="t('learniq', 'Enter your response...')"
-						:value="currentResponse || ''"
-						@input="setResponse($event.target.value)" />
-				</div>
-			</section>
-
-			<!-- Navigation -->
-			<nav class="take-assessment__nav">
-				<button
-					class="button-vue"
-					:disabled="currentItemIndex === 0"
-					@click="prevItem">
-					{{ t('learniq', 'Previous') }}
-				</button>
-				<button
-					v-if="currentItemIndex < items.length - 1"
-					class="button-vue button-vue--primary"
-					@click="nextItem">
-					{{ t('learniq', 'Next') }}
-				</button>
-				<button
-					v-else
-					class="button-vue button-vue--primary"
-					:disabled="submitting"
-					@click="submitAssessment">
-					<span
-						v-if="submitting"
-						class="icon-loading"
-						aria-hidden="true" />
-					{{ t('learniq', 'Submit assessment') }}
-				</button>
-			</nav>
+				:content="runContent"
+				:objectData="runRecord"
+				@finished="onRunFinished" />
+			<p v-if="submitting" class="take-assessment__submitting" role="status">
+				<span class="icon-loading" aria-hidden="true" />
+				{{ t('learniq', 'Handing in your assessment…') }}
+			</p>
 			<p v-if="submitError" role="alert" class="take-assessment__error-inline">
 				{{ submitError }}
 			</p>
@@ -339,18 +218,37 @@
 </template>
 
 <script>
+import { CnChecklistRunWidget, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
+import { applyAnswer, runAnswers, runContent, runQuestion, SAVE_ANSWER } from '../utils/assessmentRun.js'
 import {
 	answersFromResult,
 	responsesPayload,
 	secondsUntilDeadline,
 	serverOffsetMs,
 } from '../utils/attemptClock.js'
+import { attemptCreateError } from '../utils/attemptRefusal.js'
 import { transitionUrl } from '../utils/manualScoring.js'
+import { sendJson, sendJsonOrFail } from '../utils/ocsJson.js'
+import { lookupObject } from '../utils/portfolioEvidence.js'
+import { orderChoices, parseSimpleChoices } from '../utils/qtiChoices.js'
+import { readObject } from '../utils/registerRequests.js'
 
 export default {
 	name: 'TakeAssessmentView',
+
+	components: {
+		CnChecklistRunWidget,
+		CnPageHeader,
+	},
+
+	provide() {
+		return {
+			// The run widget hands each answer to this view, which keeps it on the attempt.
+			cnDispatchAction: (action) => this.onRunAction(action),
+		}
+	},
 
 	props: {
 		/**
@@ -378,8 +276,6 @@ export default {
 			 * @type {object|null}
 			 */
 			result: null,
-			/** @type {number} */
-			currentItemIndex: 0,
 			/** @type {Record<string, unknown>} */
 			responses: {},
 			loading: false,
@@ -401,10 +297,6 @@ export default {
 			timerInterval: null,
 			/** @type {number} Server time minus browser time, in milliseconds */
 			serverOffset: 0,
-			/** @type {number|null} Timeout ID of the pending autosave */
-			autosaveTimeout: null,
-			/** @type {string|null} 'saving', 'saved' or 'failed' */
-			autosaveState: null,
 			showTestModeIntro: false,
 			showTabLockBlocked: false,
 			nativeTestModeActive: false,
@@ -419,41 +311,34 @@ export default {
 
 	computed: {
 		/**
-		 * Current item object.
+		 * The attempt as the run widget reads it: one question per drawn item,
+		 * choices in the attempt's option order, and the answers kept so far.
 		 *
-		 * @return {object|null}
-		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
-		 */
-		currentItem() {
-			return this.items[this.currentItemIndex] ?? null
-		},
-
-		/**
-		 * Current response for the active item.
-		 *
-		 * @return {unknown}
-		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
-		 */
-		currentResponse() {
-			const item = this.currentItem
-			if (!item) return null
-			return this.responses[item.uuid] ?? null
-		},
-
-		/**
-		 * Server-resolved answer-option order for the current item, from
-		 * AssessmentResult.drawnItemRefs[].optionOrder (null when shuffle is
-		 * disabled or the item has no discrete choice identifiers).
-		 *
-		 * @return {string[]|null}
+		 * @return {object}
 		 * @spec openspec/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
 		 */
-		currentItemOptionOrder() {
-			const item = this.currentItem
-			if (!item) return null
-			const drawnItemRefs = this.result?.drawnItemRefs ?? []
-			const ref = drawnItemRefs.find((r) => r.itemId === item.uuid)
-			return ref?.optionOrder ?? null
+		runRecord() {
+			return {
+				id: this.resultId,
+				questions: this.items.map((item) => runQuestion(item, {
+					prompt: this.extractPrompt(item.qtiBody),
+					choices: this.extractChoices(item.qtiBody, this.optionOrderFor(item)),
+					help: this.helpFor(item),
+				})),
+
+				answers: runAnswers(this.responses),
+			}
+		},
+
+		/**
+		 * @return {object} The run widget's config.
+		 * @spec openspec/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
+		 */
+		runContent() {
+			return runContent({
+				submit: this.t('learniq', 'Submit assessment'),
+				saved: this.t('learniq', 'Your answers are saved'),
+			})
 		},
 
 		/**
@@ -477,25 +362,6 @@ export default {
 		 */
 		timeWarning() {
 			return this.secondsRemaining !== null && this.secondsRemaining <= 300
-		},
-
-		/**
-		 * What the autosave status line says.
-		 *
-		 * @return {string}
-		 * @spec openspec/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
-		 */
-		autosaveMessage() {
-			if (this.autosaveState === 'saving') {
-				return this.t('learniq', 'Saving your answers')
-			}
-			if (this.autosaveState === 'failed') {
-				return this.t(
-					'learniq',
-					'Your answers could not be saved just now. We try again with your next answer and when you hand in.',
-				)
-			}
-			return this.t('learniq', 'Your answers are saved')
 		},
 	},
 
@@ -528,7 +394,6 @@ export default {
 	 */
 	beforeUnmount() {
 		this.clearTimer()
-		this.clearAutosave()
 
 		if (!this.nativeTestModeActive) return
 
@@ -795,24 +660,14 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
 		async loadAssessment(id) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/exam/${id}`,
+			// `notFound` marks the single-object lookup — see the same guard
+			// in PortfolioBuilder.vue. init() also awaits list-shaped loads,
+			// and a 404 from one of those means a schema did not resolve
+			// rather than that this assessment is gone.
+			this.assessment = await lookupObject(
+				generateUrl(`/apps/openregister/api/objects/learniq/exam/${id}`),
+				'Assessment',
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				// `notFound` marks the single-object lookup — see the same guard
-				// in PortfolioBuilder.vue. init() also awaits list-shaped loads,
-				// and a 404 from one of those means a schema did not resolve
-				// rather than that this assessment is gone.
-				const err = new Error(`Assessment fetch failed: ${resp.status}`)
-				err.status = resp.status
-				err.notFound = resp.status === 404
-				throw err
-			}
-			const json = await resp.json()
-			this.assessment = json.object ?? json ?? {}
 		},
 
 		/**
@@ -837,18 +692,10 @@ export default {
 			// Fetch each item individually (OR REST supports single object fetch).
 			const fetched = await Promise.all(
 				itemIds.map(async (itemId) => {
-					const url = generateUrl(
-						`/apps/openregister/api/objects/learniq/Item/${itemId}`,
+					const read = await readObject(
+						generateUrl(`/apps/openregister/api/objects/learniq/Item/${itemId}`),
 					)
-					const resp = await fetch(url, {
-						headers: {
-							'OCS-APIREQUEST': 'true',
-							Accept: 'application/json',
-						},
-					})
-					if (!resp.ok) return null
-					const json = await resp.json()
-					return json.object ?? json ?? null
+					return read.ok ? (read.object ?? null) : null
 				}),
 			)
 
@@ -863,45 +710,39 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
 		async createResult(assessmentId) {
-			const currentUser = getCurrentUser()
-			const learnerId = currentUser?.uid ?? 'anonymous'
-
+			const body = this.newResultBody(assessmentId)
 			const url = generateUrl(
 				'/apps/openregister/api/objects/learniq/assessment-result',
 			)
-			const resp = await fetch(url, {
-				method: 'POST',
-				headers: {
-					'OCS-APIREQUEST': 'true',
-					Accept: 'application/json',
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					assessmentId,
-					learnerId,
-					attemptNumber: 1,
-					responses: [],
-					startedAt: new Date().toISOString(),
-					lifecycle: 'in-progress',
-					tenant_id: this.assessment?.tenant_id ?? '',
-					...(this.accessCode ? { accessCode: this.accessCode } : {}),
-				}),
-			})
+			const resp = await sendJson(url, { method: 'POST', body })
 			if (!resp.ok) {
-				const err = new Error(
-					`AssessmentResult create failed: ${resp.status}`,
-				)
-				if (resp.status === 422) {
-					// AssessmentAttemptGateListener refused the attempt.
-					const body = await resp.json().catch(() => ({}))
-					err.gateReason = body?.errors?.reason ?? null
-					err.gateMessage = body?.errors?.message ?? body?.error ?? null
-				}
-				throw err
+				throw await attemptCreateError(resp)
 			}
 			const json = await resp.json()
 			const created = json.object ?? json ?? {}
 			this.resultId = created.uuid ?? created.id
+		},
+
+		/**
+		 * The body of a new `in-progress` AssessmentResult for the current learner.
+		 *
+		 * @param {string} assessmentId Assessment UUID
+		 * @return {object}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
+		 */
+		newResultBody(assessmentId) {
+			const currentUser = getCurrentUser()
+			const learnerId = currentUser?.uid ?? 'anonymous'
+			return {
+				assessmentId,
+				learnerId,
+				attemptNumber: 1,
+				responses: [],
+				startedAt: new Date().toISOString(),
+				lifecycle: 'in-progress',
+				tenant_id: this.assessment?.tenant_id ?? '',
+				...(this.accessCode ? { accessCode: this.accessCode } : {}),
+			}
 		},
 
 		/**
@@ -1244,50 +1085,68 @@ export default {
 		 * @spec openspec/specs/assessment/spec.md
 		 */
 		async createProctoringSession() {
-			const currentUser = getCurrentUser()
-			const learnerId = currentUser?.uid ?? 'anonymous'
-
-			const url = generateUrl(
-				'/apps/openregister/api/objects/learniq/proctoring-session',
-			)
-			const resp = await fetch(url, {
-				method: 'POST',
-				headers: {
-					'OCS-APIREQUEST': 'true',
-					Accept: 'application/json',
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					assessmentResultId: this.resultId,
-					learnerId,
-					provider: 'native-test-mode',
-					status: 'created',
-					tenant_id: this.assessment?.tenant_id ?? '',
-				}),
-			})
-			if (!resp.ok) {
-				throw new Error(`ProctoringSession create failed: ${resp.status}`)
-			}
+			const resp = await this.postProctoringSession()
 			const json = await resp.json()
 			this.proctoringSession = json.object ?? json ?? {}
 
-			const activateUrl = generateUrl(
-				transitionUrl(this.proctoringSession.uuid),
-			)
-			const transitionResp = await fetch(activateUrl, {
-				method: 'POST',
-				headers: {
-					'OCS-APIREQUEST': 'true',
-					Accept: 'application/json',
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({ action: 'activate' }),
+			await this.dispatchTransition(this.proctoringSession.uuid, {
+				action: 'activate',
+				failure: 'ProctoringSession activate transition failed',
 			})
-			if (!transitionResp.ok) {
-				throw new Error(
-					`ProctoringSession activate transition failed: ${transitionResp.status}`,
-				)
+		},
+
+		/**
+		 * Store the native-mode ProctoringSession, rejecting unless it is created.
+		 *
+		 * @return {Promise<Response>}
+		 * @spec openspec/specs/assessment/spec.md
+		 */
+		postProctoringSession() {
+			const body = this.newProctoringSessionBody()
+			const url = generateUrl(
+				'/apps/openregister/api/objects/learniq/proctoring-session',
+			)
+			return sendJsonOrFail(url, {
+				method: 'POST',
+				body,
+				failure: 'ProctoringSession create failed',
+			})
+		},
+
+		/**
+		 * The body of the native-mode ProctoringSession for the current attempt.
+		 *
+		 * @return {object}
+		 * @spec openspec/specs/assessment/spec.md
+		 */
+		newProctoringSessionBody() {
+			const currentUser = getCurrentUser()
+			const learnerId = currentUser?.uid ?? 'anonymous'
+			return {
+				assessmentResultId: this.resultId,
+				learnerId,
+				provider: 'native-test-mode',
+				status: 'created',
+				tenant_id: this.assessment?.tenant_id ?? '',
 			}
+		},
+
+		/**
+		 * Dispatch a lifecycle transition on an object (Open Register routes
+		 * transitions at /api/objects/{id}/transition with the action in the
+		 * body, learniq#948), rejecting unless it succeeds.
+		 *
+		 * @param {string} id The object UUID
+		 * @param {{action: string, failure: string}} request The action and the error text before the status
+		 * @return {Promise<Response>}
+		 * @spec openspec/specs/assessment/spec.md
+		 */
+		dispatchTransition(id, { action, failure }) {
+			return sendJsonOrFail(generateUrl(transitionUrl(id)), {
+				method: 'POST',
+				body: { action },
+				failure,
+			})
 		},
 
 		/**
@@ -1394,37 +1253,13 @@ export default {
 		 */
 		async appendFlag(kind, severity) {
 			if (!this.proctoringSession?.uuid) return
+			if (!this.takeFlagSlot(kind)) return
 
-			const now = Date.now()
-			const lastAt = this.lastFlagAt[kind] ?? 0
-			if (now - lastAt < 5000) return
-			this.lastFlagAt = { ...this.lastFlagAt, [kind]: now }
-
-			const newFlag = {
-				flagId: this.generateId(),
-				kind,
-				occurredAt: new Date().toISOString(),
-				severity,
-				reviewDecision: 'pending',
-			}
+			const newFlag = this.newFlag(kind, severity)
 			const updatedFlags = [...(this.proctoringSession.flags ?? []), newFlag]
 
 			try {
-				const url = generateUrl(
-					`/apps/openregister/api/objects/learniq/proctoring-session/${this.proctoringSession.uuid}`,
-				)
-				const resp = await fetch(url, {
-					method: 'PATCH',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ flags: updatedFlags }),
-				})
-				if (!resp.ok) {
-					throw new Error(`Flag append failed: ${resp.status}`)
-				}
+				await this.saveSessionFlags(updatedFlags)
 				this.proctoringSession = {
 					...this.proctoringSession,
 					flags: updatedFlags,
@@ -1433,6 +1268,58 @@ export default {
 				// eslint-disable-next-line no-console
 				console.error('[TakeAssessmentView] appendFlag error', err)
 			}
+		},
+
+		/**
+		 * Claim the flag slot of a kind: false while the last flag of that kind is
+		 * under 5 seconds old, otherwise stamp now and return true.
+		 *
+		 * @param {string} kind Flag kind
+		 * @return {boolean}
+		 * @spec openspec/specs/assessment/spec.md
+		 */
+		takeFlagSlot(kind) {
+			const now = Date.now()
+			const lastAt = this.lastFlagAt[kind] ?? 0
+			if (now - lastAt < 5000) return false
+			this.lastFlagAt = { ...this.lastFlagAt, [kind]: now }
+			return true
+		},
+
+		/**
+		 * A new pending flag.
+		 *
+		 * @param {string} kind     Flag kind
+		 * @param {string} severity 'low' | 'medium' | 'high'
+		 * @return {object}
+		 * @spec openspec/specs/assessment/spec.md
+		 */
+		newFlag(kind, severity) {
+			return {
+				flagId: this.generateId(),
+				kind,
+				occurredAt: new Date().toISOString(),
+				severity,
+				reviewDecision: 'pending',
+			}
+		},
+
+		/**
+		 * Write the flag list of the current ProctoringSession.
+		 *
+		 * @param {Array<object>} flags The full flag list
+		 * @return {Promise<Response>}
+		 * @spec openspec/specs/assessment/spec.md
+		 */
+		saveSessionFlags(flags) {
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/proctoring-session/${this.proctoringSession.uuid}`,
+			)
+			return sendJsonOrFail(url, {
+				method: 'PATCH',
+				body: { flags },
+				failure: 'Flag append failed',
+			})
 		},
 
 		/**
@@ -1446,142 +1333,119 @@ export default {
 		async teardownNativeTestMode() {
 			this.detachNativeHardening()
 			this.releaseTabLock()
-
-			if (document.fullscreenElement) {
-				try {
-					await document.exitFullscreen()
-				} catch {
-					// best-effort only
-				}
-			}
+			await this.leaveFullscreen()
 
 			if (this.proctoringSession?.uuid) {
-				try {
-					const endUrl = generateUrl(
-						transitionUrl(this.proctoringSession.uuid),
-					)
-					const resp = await fetch(endUrl, {
-						method: 'POST',
-						headers: {
-							'OCS-APIREQUEST': 'true',
-							Accept: 'application/json',
-							'Content-Type': 'application/json',
-						},
-						body: JSON.stringify({ action: 'end' }),
-					})
-					if (!resp.ok) {
-						throw new Error(
-							`ProctoringSession end transition failed: ${resp.status}`,
-						)
-					}
-				} catch (err) {
-					// eslint-disable-next-line no-console
-					console.error(
-						'[TakeAssessmentView] teardownNativeTestMode error',
-						err,
-					)
-				}
+				await this.endProctoringSession()
 			}
 		},
 
 		/**
-		 * Save the answers a moment after the learner stops changing them, so a
-		 * closed tab or a stopped clock loses nothing already answered.
+		 * Leave fullscreen when the page is in it; best-effort only.
 		 *
-		 * @return {void}
-		 * @spec openspec/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/assessment/spec.md
 		 */
-		scheduleAutosave() {
-			if (!this.resultId || this.submitted || this.submitting) return
-			this.clearAutosave()
-			this.autosaveTimeout = setTimeout(() => {
-				this.autosaveTimeout = null
-				this.autosave()
-			}, 1500)
+		async leaveFullscreen() {
+			if (!document.fullscreenElement) return
+			try {
+				await document.exitFullscreen()
+			} catch {
+				// best-effort only
+			}
 		},
 
 		/**
-		 * Cancel a pending autosave.
+		 * Dispatch the ProctoringSession's `end` transition; a failure is logged.
 		 *
-		 * @return {void}
-		 * @spec openspec/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/assessment/spec.md
 		 */
-		clearAutosave() {
-			if (this.autosaveTimeout !== null) {
-				clearTimeout(this.autosaveTimeout)
-				this.autosaveTimeout = null
+		async endProctoringSession() {
+			try {
+				await this.dispatchTransition(this.proctoringSession.uuid, {
+					action: 'end',
+					failure: 'ProctoringSession end transition failed',
+				})
+			} catch (err) {
+				// eslint-disable-next-line no-console
+				console.error(
+					'[TakeAssessmentView] teardownNativeTestMode error',
+					err,
+				)
 			}
 		},
 
 		/**
 		 * Save the answers on the attempt in progress. PATCH, so only the
-		 * answers change; the server keeps them out after the deadline.
+		 * answers change; the server keeps them out after the deadline. A
+		 * failed save rejects, so the run widget says the answer is not saved.
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
 		 */
 		async autosave() {
 			if (!this.resultId || this.submitted || this.submitting) return
-			this.autosaveState = 'saving'
-			try {
-				const resp = await fetch(
-					generateUrl(
-						`/apps/openregister/api/objects/learniq/assessment-result/${this.resultId}`,
-					),
-					{
-						method: 'PATCH',
-						headers: {
-							'OCS-APIREQUEST': 'true',
-							Accept: 'application/json',
-							'Content-Type': 'application/json',
-						},
-						body: JSON.stringify({
-							responses: responsesPayload(this.items, this.responses),
-						}),
-					},
-				)
-				this.autosaveState = resp.ok ? 'saved' : 'failed'
-			} catch {
-				this.autosaveState = 'failed'
-			}
+			await sendJsonOrFail(
+				generateUrl(`/apps/openregister/api/objects/learniq/assessment-result/${this.resultId}`),
+				{
+					method: 'PATCH',
+					body: { responses: responsesPayload(this.items, this.responses) },
+					failure: 'autosave failed',
+				},
+			)
 		},
 
 		/**
-		 * Set the response for the current item.
+		 * The run widget gave an answer (its `saveEachAnswer` waited a moment
+		 * after the last change): keep it and save the attempt.
 		 *
-		 * @param {unknown} value Learner's response value
-		 * @return {void}
-		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
+		 * @param {{id: string, args?: Array<object>}} action The dispatched save action, the answer last.
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/assessment/spec.md#scenario-answers-are-saved-while-the-learner-works
 		 */
-		setResponse(value) {
-			const item = this.currentItem
-			if (!item) return
-			this.responses = { ...this.responses, [item.uuid]: value }
-			this.scheduleAutosave()
+		onRunAction(action) {
+			if (action?.id !== SAVE_ANSWER) return Promise.resolve()
+			const args = Array.isArray(action.args) ? action.args : []
+			this.responses = applyAnswer(this.responses, args[args.length - 1])
+			return this.autosave()
 		},
 
 		/**
-		 * Navigate to the previous item.
+		 * The learner handed in from the run widget, or its clock ran out.
 		 *
-		 * @return {void}
+		 * @return {Promise<void>|undefined}
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
-		prevItem() {
-			if (this.currentItemIndex > 0) {
-				this.currentItemIndex--
-			}
+		onRunFinished() {
+			if (this.submitting || this.submitted) return undefined
+			return this.submitAssessment()
 		},
 
 		/**
-		 * Navigate to the next item.
+		 * The server-resolved option order of one item, from
+		 * AssessmentResult.drawnItemRefs[].optionOrder (null when shuffle is off).
 		 *
-		 * @return {void}
+		 * @param {object} item The Item.
+		 * @return {string[]|null}
+		 * @spec openspec/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
+		 */
+		optionOrderFor(item) {
+			const ref = (this.result?.drawnItemRefs ?? []).find((r) => r.itemId === item.uuid)
+			return ref?.optionOrder ?? null
+		},
+
+		/**
+		 * The line under an item's question: how to answer it.
+		 *
+		 * @param {object} item The Item.
+		 * @return {string}
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
-		nextItem() {
-			if (this.currentItemIndex < this.items.length - 1) {
-				this.currentItemIndex++
-			}
+		helpFor(item) {
+			if (item.interactionType === 'choice') return this.t('learniq', 'Choose one answer.')
+			if (item.interactionType === 'extendedText') return this.t('learniq', 'This item will be marked by your teacher.')
+			return this.t('learniq', 'Write your answer in words.')
 		},
 
 		/**
@@ -1596,67 +1460,73 @@ export default {
 			this.submitting = true
 			this.submitError = null
 			this.clearTimer()
-			this.clearAutosave()
 
 			try {
-				// Persist responses.
-				const patchUrl = generateUrl(
-					`/apps/openregister/api/objects/learniq/assessment-result/${this.resultId}`,
-				)
-				// PATCH, not PUT: a PUT replaces the object, and this body carries
-				// only the responses and submittedAt.
-				const patchResp = await fetch(patchUrl, {
-					method: 'PATCH',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						responses: responsesPayload(this.items, this.responses),
-						submittedAt: new Date().toISOString(),
-					}),
-				})
-				if (!patchResp.ok) {
-					throw new Error(`Response save failed: ${patchResp.status}`)
-				}
-
-				// Dispatch submit transition (triggers AssessmentScoringHandler).
-				// Open Register routes transitions at /api/objects/{id}/transition
-				// with the action in the body (learniq#948).
-				const transitionResp = await fetch(
-					generateUrl(transitionUrl(this.resultId)),
-					{
-						method: 'POST',
-						headers: {
-							'OCS-APIREQUEST': 'true',
-							Accept: 'application/json',
-							'Content-Type': 'application/json',
-						},
-						body: JSON.stringify({ action: 'submit' }),
-					},
-				)
-				if (!transitionResp.ok) {
-					throw new Error(
-						`Submit transition failed: ${transitionResp.status}`,
-					)
-				}
-
-				this.submitted = true
-
-				if (this.nativeTestModeActive) {
-					await this.teardownNativeTestMode()
-				}
+				await this.handIn()
 			} catch (err) {
-				this.submitError = this.t(
-					'learniq',
-					'Failed to submit assessment. Please try again.',
-				)
-				// eslint-disable-next-line no-console
-				console.error('[TakeAssessmentView] submitAssessment error', err)
+				this.reportSubmitFailure(err)
 			} finally {
 				this.submitting = false
 			}
+		},
+
+		/**
+		 * Tell the learner the hand-in failed, and log why.
+		 *
+		 * @param {Error} err The failure
+		 * @return {void}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
+		 */
+		reportSubmitFailure(err) {
+			this.submitError = this.t(
+				'learniq',
+				'Failed to submit assessment. Please try again.',
+			)
+			// eslint-disable-next-line no-console
+			console.error('[TakeAssessmentView] submitAssessment error', err)
+		},
+
+		/**
+		 * Persist the responses, dispatch the `submit` transition (triggers
+		 * AssessmentScoringHandler) and, in native mode, tear the test mode down.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
+		 */
+		async handIn() {
+			await this.saveFinalResponses()
+			await this.dispatchTransition(this.resultId, {
+				action: 'submit',
+				failure: 'Submit transition failed',
+			})
+
+			this.submitted = true
+
+			if (this.nativeTestModeActive) {
+				await this.teardownNativeTestMode()
+			}
+		},
+
+		/**
+		 * Persist the responses with the hand-in time. PATCH, not PUT: a PUT
+		 * replaces the object, and this body carries only the responses and
+		 * submittedAt.
+		 *
+		 * @return {Promise<Response>}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
+		 */
+		saveFinalResponses() {
+			const patchUrl = generateUrl(
+				`/apps/openregister/api/objects/learniq/assessment-result/${this.resultId}`,
+			)
+			return sendJsonOrFail(patchUrl, {
+				method: 'PATCH',
+				body: {
+					responses: responsesPayload(this.items, this.responses),
+					submittedAt: new Date().toISOString(),
+				},
+				failure: 'Response save failed',
+			})
 		},
 
 		/**
@@ -1692,19 +1562,7 @@ export default {
 		 */
 		extractChoices(qtiBody, optionOrder = null) {
 			if (!qtiBody) return []
-			const parser = new DOMParser()
-			const doc = parser.parseFromString(qtiBody, 'text/xml')
-			const simpleChoices = doc.getElementsByTagName('simpleChoice')
-			const choices = []
-			for (const sc of simpleChoices) {
-				choices.push({
-					id:
-						sc.getAttribute('identifier')
-						?? sc.textContent?.trim()
-						?? '',
-					label: sc.textContent?.trim() ?? '',
-				})
-			}
+			const choices = parseSimpleChoices(qtiBody)
 
 			if (choices.length === 0) {
 				return [
@@ -1713,29 +1571,13 @@ export default {
 				]
 			}
 
-			if (!optionOrder || optionOrder.length === 0) {
-				return choices
-			}
-
-			const byId = new Map(choices.map((choice) => [choice.id, choice]))
-			const ordered = optionOrder.map((id) => byId.get(id)).filter(Boolean)
-			const remaining = choices.filter(
-				(choice) => !optionOrder.includes(choice.id),
-			)
-			return ordered.length > 0 ? [...ordered, ...remaining] : choices
+			return orderChoices(choices, optionOrder)
 		},
 	},
 }
 </script>
 
 <style scoped>
-.take-assessment {
-	max-width: 800px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
 .take-assessment__loading,
 .take-assessment__error {
 	display: flex;
@@ -1759,26 +1601,11 @@ export default {
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
-.take-assessment__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-	border-bottom: 1px solid var(--color-border);
-	padding-bottom: var(--default-grid-baseline, 8px);
-}
-
-.take-assessment__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-}
-
 .take-assessment__meta {
 	display: flex;
 	gap: calc(var(--default-grid-baseline, 8px) * 2);
 	margin-top: var(--default-grid-baseline, 8px);
 	font-size: 0.9em;
-	color: var(--color-text-maxcontrast);
-}
-
-.take-assessment__autosave {
 	color: var(--color-text-maxcontrast);
 }
 
@@ -1788,60 +1615,6 @@ export default {
 
 .take-assessment__timer--warning {
 	color: var(--color-error);
-}
-
-.take-assessment__item {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-	padding: calc(var(--default-grid-baseline, 8px) * 2);
-	background: var(--color-background-hover);
-	border-radius: var(--border-radius, 4px);
-}
-
-.take-assessment__item-title {
-	font-weight: bold;
-	margin-bottom: var(--default-grid-baseline, 8px);
-}
-
-.take-assessment__options {
-	list-style: none;
-	padding: 0;
-}
-
-.take-assessment__option {
-	padding: 4px 0;
-}
-
-.take-assessment__option label {
-	display: flex;
-	align-items: center;
-	gap: var(--default-grid-baseline, 8px);
-	cursor: pointer;
-}
-
-.take-assessment__essay-input {
-	width: 100%;
-	box-sizing: border-box;
-	padding: var(--default-grid-baseline, 8px);
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius, 4px);
-	font-family: inherit;
-	font-size: inherit;
-	resize: vertical;
-}
-
-.take-assessment__essay-note,
-.take-assessment__interaction-note {
-	font-size: 0.85em;
-	color: var(--color-text-maxcontrast);
-	margin-top: var(--default-grid-baseline, 8px);
-	font-style: italic;
-}
-
-.take-assessment__nav {
-	display: flex;
-	gap: calc(var(--default-grid-baseline, 8px) * 2);
-	justify-content: space-between;
-	margin-top: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .take-assessment__confirmation {

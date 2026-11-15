@@ -38,6 +38,7 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\LearningRecordImportIntakeServiceInterface;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Files\IRootFolder;
@@ -51,7 +52,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-4-2
  */
-class LearningRecordImportIntakeService {
+class LearningRecordImportIntakeService implements LearningRecordImportIntakeServiceInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const SCHEMA = 'learning-record-import';

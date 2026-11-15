@@ -29,16 +29,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\BackgroundJob;
 
-use OCA\Learniq\Service\ExchangeDisclosure;
-use OCA\Learniq\Service\IntegriqExchangeClient;
-use OCA\Learniq\Service\SchoolAdviesRodTiming;
-use OCA\OpenRegister\BackgroundJob\ActorForwardedJob;
+use OCA\Learniq\Kernel\Contracts\ExchangeDisclosureInterface;
+use OCA\Learniq\Kernel\Contracts\IntegriqExchangeClientInterface;
+use OCA\Learniq\Kernel\Contracts\SchoolAdviesRodTimingInterface;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\OpenRegister\Service\OrganisationService;
-use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\IUserManager;
-use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -47,7 +42,7 @@ use Throwable;
  *
  * @spec openspec/specs/data-exchange/spec.md#requirement-the-voorlopig-school-advice-goes-to-rod-when-it-is-given
  */
-class SchoolAdviesVoorlopigRodJob extends ActorForwardedJob {
+class SchoolAdviesVoorlopigRodJob extends ForwardedJob {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const SCHOOL_ADVIES_SCHEMA = 'school-advies';
@@ -56,32 +51,20 @@ class SchoolAdviesVoorlopigRodJob extends ActorForwardedJob {
 	/**
 	 * Constructor.
 	 *
-	 * @param ITimeFactory $time Time factory.
-	 * @param IUserSession $userSession User session, for the actor.
-	 * @param IUserManager $userManager User manager, for the actor.
-	 * @param OrganisationService $organisation The actor's organisation.
+	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface $logger Logger.
 	 * @param ObjectService $objectService OpenRegister object access.
-	 * @param IntegriqExchangeClient $integriq Asks integriq for the exchange.
-	 * @param SchoolAdviesRodTiming $timing Whether the advice is still due.
+	 * @param IntegriqExchangeClientInterface $integriq Asks integriq for the exchange.
+	 * @param SchoolAdviesRodTimingInterface $timing Whether the advice is still due.
 	 */
 	public function __construct(
-		ITimeFactory $time,
-		IUserSession $userSession,
-		IUserManager $userManager,
-		OrganisationService $organisation,
+		ActorForwarding $forwarding,
 		LoggerInterface $logger,
 		private readonly ObjectService $objectService,
-		private readonly IntegriqExchangeClient $integriq,
-		private readonly SchoolAdviesRodTiming $timing,
+		private readonly IntegriqExchangeClientInterface $integriq,
+		private readonly SchoolAdviesRodTimingInterface $timing,
 	) {
-		parent::__construct(
-			time: $time,
-			userSession: $userSession,
-			userManager: $userManager,
-			organisation: $organisation,
-			logger: $logger
-		);
+		parent::__construct(forwarding: $forwarding, logger: $logger);
 	}//end __construct()
 
 	/**
@@ -139,7 +122,7 @@ class SchoolAdviesVoorlopigRodJob extends ActorForwardedJob {
 				'tenantId' => (string)($advies['tenant_id'] ?? ''),
 				'berichtsoort' => 'schooladvies',
 			],
-			mappingSlug: ExchangeDisclosure::ROD_SCHOOL_ADVICE_MAPPING,
+			mappingSlug: ExchangeDisclosureInterface::ROD_SCHOOL_ADVICE_MAPPING,
 			requestedBy: 'system',
 			name: 'ROD voorlopig schooladvies'
 		);

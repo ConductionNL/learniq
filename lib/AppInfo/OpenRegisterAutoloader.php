@@ -62,11 +62,6 @@ namespace OCA\Learniq\AppInfo;
 final class OpenRegisterAutoloader {
 
 	/**
-	 * The app whose autoload prefix this prelude registers.
-	 */
-	private const OPENREGISTER_APP_ID = 'openregister';
-
-	/**
 	 * The PSR-4 namespace prefix OpenRegister's `lib/` serves.
 	 */
 	private const OPENREGISTER_NAMESPACE = 'OCA\\OpenRegister\\';
@@ -130,7 +125,7 @@ final class OpenRegisterAutoloader {
 	 */
 	public static function register(?string $appId=null, ?\OCP\App\IAppManager $appManager=null): void {
 		try {
-			$appId      ??= self::OPENREGISTER_APP_ID;
+			$appId      ??= 'openregister';
 			$appManager ??= \OCP\Server::get(\OCP\App\IAppManager::class);
 
 			// Checked before the short-circuit: under a long-lived worker this

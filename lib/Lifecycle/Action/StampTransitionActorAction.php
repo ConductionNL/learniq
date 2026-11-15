@@ -28,6 +28,7 @@ namespace OCA\Learniq\Lifecycle\Action;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 use OCP\IUserSession;
 use RuntimeException;
@@ -64,20 +65,21 @@ class StampTransitionActorAction implements LifecycleActionInterface {
 	/**
 	 * Stamp the actor (and the time, when declared) onto the object.
 	 *
-	 * @param array<string,mixed> $objectData   The object after the lifecycle field moved to its target.
-	 * @param array<string,mixed> $previousData The object before the transition (unused).
-	 * @param array<string,mixed> $parameters   The declared `actionParameters`: `actorField`, optional `timeField`.
-	 * @param string              $actionName   The declared action name.
+	 * @param LifecycleActionContext $context The transition; its objectData is the object after the lifecycle field
+	 *                                        moved to its target. Its parameters are the declared `actionParameters`:
+	 *                                        `actorField`, optional `timeField`.
 	 *
 	 * @return array<string,mixed> The object with the stamp applied.
 	 *
 	 * @throws RuntimeException When no actorField is declared or there is no session user.
 	 *
 	 * @spec openspec/specs/external-training-recording/spec.md#requirement-verification-must-be-gated-and-tamper-resistant
-	 *
-	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleActionInterface's.
 	 */
-	public function execute(array $objectData, array $previousData, array $parameters, string $actionName): array {
+	public function execute(LifecycleActionContext $context): array {
+		$objectData = $context->objectData;
+		$parameters = $context->parameters;
+		$actionName = $context->actionName;
+
 		$actorField = $parameters['actorField'] ?? null;
 		if (is_string($actorField) === false || $actorField === '') {
 			throw new RuntimeException(

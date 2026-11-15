@@ -151,8 +151,7 @@ class PruneRetiredSchemas implements IRepairStep {
 					$this->pruneOne(
 						schema: $schema,
 						slug: $slug,
-						registerMapper: $registerMapper,
-						deletionService: $deletionService,
+						services: ['registers' => $registerMapper, 'deletion' => $deletionService],
 						output: $output
 					);
 				} catch (Throwable $exception) {
@@ -195,19 +194,13 @@ class PruneRetiredSchemas implements IRepairStep {
 	 *
 	 * @param Schema $schema The retired schema row.
 	 * @param string $slug Its slug.
-	 * @param RegisterMapper $registerMapper The register store.
-	 * @param SchemaDeletionService $deletionService OpenRegister's cascade teardown.
+	 * @param array{registers: RegisterMapper, deletion: SchemaDeletionService} $services The register store and OpenRegister's cascade teardown.
 	 * @param IOutput $output Repair output.
 	 *
 	 * @return void
 	 */
-	private function pruneOne(
-		Schema $schema,
-		string $slug,
-		RegisterMapper $registerMapper,
-		SchemaDeletionService $deletionService,
-		IOutput $output
-	): void {
+	private function pruneOne(Schema $schema, string $slug, array $services, IOutput $output): void {
+		$deletionService = $services['deletion'];
 		if ($schema->hasArchivalAnnotation() === true) {
 			$output->warning('Learniq retired schemas: "' . $slug . '" declares archival retention, left in place.');
 			return;
@@ -219,7 +212,7 @@ class PruneRetiredSchemas implements IRepairStep {
 			return;
 		}
 
-		$this->unlinkFromRegisters(registerMapper: $registerMapper, schemaId: (int)$schema->getId());
+		$this->unlinkFromRegisters(registerMapper: $services['registers'], schemaId: (int)$schema->getId());
 		$result = $deletionService->cascadeDeleteSchema(schema: $schema);
 		$output->info(
 			'Learniq retired schemas: pruned "' . $slug . '" (rows removed: ' . (int)$result['deletedCount'] . ').'

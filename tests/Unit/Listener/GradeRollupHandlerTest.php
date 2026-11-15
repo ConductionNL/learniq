@@ -486,4 +486,40 @@ class GradeRollupHandlerTest extends TestCase {
 		self::assertArrayHasKey('programmeId', $saves[0]['object']);
 		self::assertNull($saves[0]['object']['programmeId']);
 	}//end testAPlanWithoutAProgrammeLeavesProgrammeIdNull()
+	/**
+	 * A stored FinalGrade read back as an entity is merged like an array row:
+	 * its id, programme and course carry over where the entry names none.
+	 *
+	 * @return void
+	 */
+	public function testAnEntityFinalGradeIsMergedLikeARow(): void {
+		$now = new DateTime('2026-07-13 12:00:00', new DateTimeZone('Europe/Amsterdam'));
+		$existing = OrEntityFactory::make(
+			[
+				'id' => 'final-2',
+				'learnerId' => 'learner-1',
+				'curriculumPlanId' => 'plan-9',
+				'programmeId' => 'programme-kept',
+				'courseId' => 'course-kept',
+				'gradeScaleId' => 'scale-kept',
+				'cohortId' => 'cohort-old',
+			],
+			'final-grade'
+		);
+
+		$handler = $this->makeHandler(curriculumPlan: ['id' => 'plan-9'], parentIds: [], now: $now, finalGrades: [$existing]);
+		$handler->handle(
+			$this->makeEvent(['id' => 'entry-1', 'learnerId' => 'learner-1', 'curriculumPlanId' => 'plan-9', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'])
+		);
+
+		$saves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'final-grade'));
+		self::assertCount(1, $saves);
+		$saved = $saves[0]['object'];
+		self::assertSame('final-2', $saved['id']);
+		self::assertSame('programme-kept', $saved['programmeId']);
+		self::assertSame('course-kept', $saved['courseId']);
+		self::assertSame('scale-kept', $saved['gradeScaleId']);
+		self::assertSame('tenant-a', $saved['tenant_id']);
+		self::assertArrayNotHasKey('cohortId', $saved);
+	}//end testAnEntityFinalGradeIsMergedLikeARow()
 }//end class

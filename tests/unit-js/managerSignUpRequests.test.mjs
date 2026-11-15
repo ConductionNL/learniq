@@ -54,9 +54,7 @@ function signUpEntries(user) {
 					|| passesContextPredicates(node.visibleIf, runtime))
 			if (
 				visible
-				&& node.route === 'Enrolments'
-				&& node.query?.source === 'self'
-				&& node.query?.lifecycle === 'pending'
+				&& node.route === 'SignUpRequests'
 			) {
 				found.push(node.id)
 			}

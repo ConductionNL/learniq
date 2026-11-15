@@ -109,7 +109,7 @@ The command hands the set's ids to OpenRegister's `openregister:objects:purge --
 
 ## Example portals: load a set from the command line
 
-Each school set also brings its portal website: po builds De Wilgenboom, vo Vaartveld College, mbo Esdoornveen and training the Warmtepompacademie. You need portaliq and thematiq next to learniq. Load the sets one at a time:
+Each school set also brings its portal website: po builds De Wilgenboom, vo Zuiddrecht College, mbo Esdoornveen and training the Warmtepompacademie. You need portaliq and thematiq next to learniq. Load the sets one at a time:
 
 ```bash
 php -d memory_limit=4G occ learniq:example-set:load po
@@ -166,13 +166,13 @@ php occ config:app:set portaliq oidc_secret_<organisation uuid>_digid --value=<s
 php occ config:app:set portaliq oidc_secret_<organisation uuid>_eherkenning --value=<secret> --sensitive
 ```
 
-Leave out a mode the organisation does not use. De Wilgenboom and Vaartveld use DigiD; Esdoornveen and the Warmtepompacademie use eHerkenning for companies.
+Leave out a mode the organisation does not use. De Wilgenboom and Zuiddrecht College use DigiD; Esdoornveen and the Warmtepompacademie use eHerkenning for companies.
 
 Do not leave out `loaClaim` and `loaMap`. They tell the portal which assurance level the broker reported. Without them every sign-in counts as level low, and a guardian sees none of her children: their records ask for level substantial.
 
 ### Portal accounts for pupils, students and participants
 
-Pupils, students and course participants sign in with their Nextcloud account. That works only when they also have a portal account. The load gives them one: Noor Bakker (vo), Milan de Groot and Aylin Demir (mbo) and Tom Verbeek (training). For the demo it also gives Petra Bakker, the trainer at Bakker Techniek BV, a Nextcloud account and a trainer's portal account, so she can approve Milan's hours without hand work. It needs the portal's organisation, so link the portals first and then load the set again. The load prints a line such as `Portal accounts: 1 given, 0 kept, 0 failed.` A second load gives nothing new.
+Pupils, students and course participants sign in with their Nextcloud account. That works only when they also have a portal account. The load gives them one: Fenna de Jong (vo), Milan de Groot and Aylin Demir (mbo) and Tom Verbeek (training). For the demo it also gives Petra Bakker, the trainer at Bakker Techniek BV, a Nextcloud account and a trainer's portal account, so she can approve Milan's hours without hand work. It needs the portal's organisation, so link the portals first and then load the set again. The load prints a line such as `Portal accounts: 1 given, 0 kept, 0 failed.` A second load gives nothing new.
 
 Guardians, trainers and employers get their account through an invitation: `occ learniq:portal:invite-guardian`, `learniq:portal:invite-trainer` and `learniq:portal:invite-employer`. A real trainer signs in with eHerkenning. Her invitation leaves a waiting account that her first eHerkenning sign-in completes, and it sends her a mail, so the instance must be able to send mail.
 

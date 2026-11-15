@@ -1,0 +1,732 @@
+{
+    "tuesday lesson": {
+        "candidates": [
+            {
+                "userId": "stand",
+                "displayName": "STAND",
+                "group": "standby",
+                "reason": "On standby 09:30 to 10:30",
+                "slot": {
+                    "startsAt": "09:30",
+                    "endsAt": "10:30"
+                }
+            },
+            {
+                "userId": "amy",
+                "displayName": "AMY",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "cancelled",
+                "displayName": "CANCELLED",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "later",
+                "displayName": "LATER",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "odd",
+                "displayName": "ODD",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "self",
+                "displayName": "SELF",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "zed",
+                "displayName": "ZED",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "ghost",
+                "displayName": "ghost",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "busy-stand",
+                "displayName": "BUSY-STAND",
+                "group": "busy",
+                "reason": "Has a lesson then"
+            }
+        ],
+        "asked": [
+            [
+                [
+                    "c-1",
+                    "c-2",
+                    "c-3",
+                    "c-4",
+                    "c-5",
+                    "c-6"
+                ],
+                "2026-09-29T00:00:00+02:00",
+                "2026-09-30T00:00:00+02:00"
+            ]
+        ]
+    },
+    "uuid instead of id": {
+        "candidates": [
+            {
+                "userId": "stand",
+                "displayName": "STAND",
+                "group": "standby",
+                "reason": "On standby 09:30 to 10:30",
+                "slot": {
+                    "startsAt": "09:30",
+                    "endsAt": "10:30"
+                }
+            },
+            {
+                "userId": "amy",
+                "displayName": "AMY",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "cancelled",
+                "displayName": "CANCELLED",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "later",
+                "displayName": "LATER",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "odd",
+                "displayName": "ODD",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "self",
+                "displayName": "SELF",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "zed",
+                "displayName": "ZED",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "ghost",
+                "displayName": "ghost",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "busy-stand",
+                "displayName": "BUSY-STAND",
+                "group": "busy",
+                "reason": "Has a lesson then"
+            }
+        ],
+        "asked": [
+            [
+                [
+                    "c-1",
+                    "c-2",
+                    "c-3",
+                    "c-4",
+                    "c-5",
+                    "c-6"
+                ],
+                "2026-09-29T00:00:00+02:00",
+                "2026-09-30T00:00:00+02:00"
+            ]
+        ]
+    },
+    "no id keeps every lesson": {
+        "candidates": [
+            {
+                "userId": "stand",
+                "displayName": "STAND",
+                "group": "standby",
+                "reason": "On standby 09:30 to 10:30",
+                "slot": {
+                    "startsAt": "09:30",
+                    "endsAt": "10:30"
+                }
+            },
+            {
+                "userId": "amy",
+                "displayName": "AMY",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "cancelled",
+                "displayName": "CANCELLED",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "later",
+                "displayName": "LATER",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "odd",
+                "displayName": "ODD",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "zed",
+                "displayName": "ZED",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "ghost",
+                "displayName": "ghost",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "busy-stand",
+                "displayName": "BUSY-STAND",
+                "group": "busy",
+                "reason": "Has a lesson then"
+            }
+        ],
+        "asked": [
+            [
+                [
+                    "c-1",
+                    "c-2",
+                    "c-3",
+                    "c-4",
+                    "c-5",
+                    "c-6"
+                ],
+                "2026-09-29T00:00:00+02:00",
+                "2026-09-30T00:00:00+02:00"
+            ]
+        ]
+    },
+    "timetable down": {
+        "candidates": [
+            {
+                "userId": "busy-stand",
+                "displayName": "BUSY-STAND",
+                "group": "standby",
+                "reason": "On standby 08:00 to 11:00",
+                "slot": {
+                    "startsAt": "08:00",
+                    "endsAt": "11:00"
+                }
+            },
+            {
+                "userId": "stand",
+                "displayName": "STAND",
+                "group": "standby",
+                "reason": "On standby 09:30 to 10:30",
+                "slot": {
+                    "startsAt": "09:30",
+                    "endsAt": "10:30"
+                }
+            },
+            {
+                "userId": "amy",
+                "displayName": "AMY",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "busy",
+                "displayName": "BUSY",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "cancelled",
+                "displayName": "CANCELLED",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "later",
+                "displayName": "LATER",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "odd",
+                "displayName": "ODD",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "planner",
+                "displayName": "PLANNER",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "self",
+                "displayName": "SELF",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "sub",
+                "displayName": "SUB",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "zed",
+                "displayName": "ZED",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "ghost",
+                "displayName": "ghost",
+                "group": "free",
+                "reason": "Free then"
+            }
+        ],
+        "asked": [
+            [
+                [
+                    "c-1",
+                    "c-2",
+                    "c-3",
+                    "c-4",
+                    "c-5",
+                    "c-6"
+                ],
+                "2026-09-29T00:00:00+02:00",
+                "2026-09-30T00:00:00+02:00"
+            ]
+        ]
+    },
+    "other location": {
+        "candidates": [
+            {
+                "userId": "stand",
+                "displayName": "STAND",
+                "group": "standby",
+                "reason": "On standby 09:30 to 10:30",
+                "slot": {
+                    "startsAt": "09:30",
+                    "endsAt": "10:30"
+                }
+            },
+            {
+                "userId": "amy",
+                "displayName": "AMY",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "cancelled",
+                "displayName": "CANCELLED",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "later",
+                "displayName": "LATER",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "odd",
+                "displayName": "ODD",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "self",
+                "displayName": "SELF",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "zed",
+                "displayName": "ZED",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "ghost",
+                "displayName": "ghost",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "busy-stand",
+                "displayName": "BUSY-STAND",
+                "group": "busy",
+                "reason": "Has a lesson then"
+            }
+        ],
+        "asked": [
+            [
+                [
+                    "c-1",
+                    "c-2",
+                    "c-3",
+                    "c-4",
+                    "c-5",
+                    "c-6"
+                ],
+                "2026-09-29T00:00:00+02:00",
+                "2026-09-30T00:00:00+02:00"
+            ]
+        ]
+    },
+    "no location": {
+        "candidates": [
+            {
+                "userId": "far",
+                "displayName": "FAR",
+                "group": "standby",
+                "reason": "On standby 08:00 to 11:00",
+                "slot": {
+                    "startsAt": "08:00",
+                    "endsAt": "11:00"
+                }
+            },
+            {
+                "userId": "stand",
+                "displayName": "STAND",
+                "group": "standby",
+                "reason": "On standby 09:30 to 10:30",
+                "slot": {
+                    "startsAt": "09:30",
+                    "endsAt": "10:30"
+                }
+            },
+            {
+                "userId": "amy",
+                "displayName": "AMY",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "cancelled",
+                "displayName": "CANCELLED",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "later",
+                "displayName": "LATER",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "odd",
+                "displayName": "ODD",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "self",
+                "displayName": "SELF",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "zed",
+                "displayName": "ZED",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "ghost",
+                "displayName": "ghost",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "busy-stand",
+                "displayName": "BUSY-STAND",
+                "group": "busy",
+                "reason": "Has a lesson then"
+            }
+        ],
+        "asked": [
+            [
+                [
+                    "c-1",
+                    "c-2",
+                    "c-3",
+                    "c-4",
+                    "c-5",
+                    "c-6"
+                ],
+                "2026-09-29T00:00:00+02:00",
+                "2026-09-30T00:00:00+02:00"
+            ]
+        ]
+    },
+    "nobody absent": {
+        "candidates": [
+            {
+                "userId": "absent",
+                "displayName": "ABSENT",
+                "group": "standby",
+                "reason": "On standby 08:00 to 11:00",
+                "slot": {
+                    "startsAt": "08:00",
+                    "endsAt": "11:00"
+                }
+            },
+            {
+                "userId": "stand",
+                "displayName": "STAND",
+                "group": "standby",
+                "reason": "On standby 09:30 to 10:30",
+                "slot": {
+                    "startsAt": "09:30",
+                    "endsAt": "10:30"
+                }
+            },
+            {
+                "userId": "amy",
+                "displayName": "AMY",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "cancelled",
+                "displayName": "CANCELLED",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "later",
+                "displayName": "LATER",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "odd",
+                "displayName": "ODD",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "self",
+                "displayName": "SELF",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "zed",
+                "displayName": "ZED",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "ghost",
+                "displayName": "ghost",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "busy-stand",
+                "displayName": "BUSY-STAND",
+                "group": "busy",
+                "reason": "Has a lesson then"
+            }
+        ],
+        "asked": [
+            [
+                [
+                    "c-1",
+                    "c-2",
+                    "c-3",
+                    "c-4",
+                    "c-5",
+                    "c-6"
+                ],
+                "2026-09-29T00:00:00+02:00",
+                "2026-09-30T00:00:00+02:00"
+            ]
+        ]
+    },
+    "late lesson": {
+        "candidates": [
+            {
+                "userId": "afternoon",
+                "displayName": "AFTERNOON",
+                "group": "standby",
+                "reason": "On standby 13:00 to 16:00",
+                "slot": {
+                    "startsAt": "13:00",
+                    "endsAt": "16:00"
+                }
+            },
+            {
+                "userId": "amy",
+                "displayName": "AMY",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "busy",
+                "displayName": "BUSY",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "busy-stand",
+                "displayName": "BUSY-STAND",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "cancelled",
+                "displayName": "CANCELLED",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "later",
+                "displayName": "LATER",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "odd",
+                "displayName": "ODD",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "planner",
+                "displayName": "PLANNER",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "self",
+                "displayName": "SELF",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "stand",
+                "displayName": "STAND",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "sub",
+                "displayName": "SUB",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "zed",
+                "displayName": "ZED",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "ghost",
+                "displayName": "ghost",
+                "group": "free",
+                "reason": "Free then"
+            }
+        ],
+        "asked": [
+            [
+                [
+                    "c-1",
+                    "c-2",
+                    "c-3",
+                    "c-4",
+                    "c-5",
+                    "c-6"
+                ],
+                "2026-09-29T00:00:00+02:00",
+                "2026-09-30T00:00:00+02:00"
+            ]
+        ]
+    },
+    "wednesday lesson": {
+        "candidates": [
+            {
+                "userId": "once",
+                "displayName": "ONCE",
+                "group": "standby",
+                "reason": "On standby 08:00 to 16:00",
+                "slot": {
+                    "startsAt": "08:00",
+                    "endsAt": "16:00"
+                }
+            },
+            {
+                "userId": "wed",
+                "displayName": "WED",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "zed",
+                "displayName": "ZED",
+                "group": "free",
+                "reason": "Free then"
+            },
+            {
+                "userId": "ghost",
+                "displayName": "ghost",
+                "group": "free",
+                "reason": "Free then"
+            }
+        ],
+        "asked": [
+            [
+                [
+                    "c-1",
+                    "c-2",
+                    "c-3",
+                    "c-4",
+                    "c-5",
+                    "c-6"
+                ],
+                "2026-09-30T00:00:00+02:00",
+                "2026-10-01T00:00:00+02:00"
+            ]
+        ]
+    },
+    "ends before it starts": {
+        "candidates": [],
+        "asked": []
+    },
+    "ends when it starts": {
+        "candidates": [],
+        "asked": []
+    },
+    "no start": {
+        "candidates": [],
+        "asked": []
+    },
+    "unreadable end": {
+        "candidates": [],
+        "asked": []
+    }
+}

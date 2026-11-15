@@ -3,6 +3,9 @@
 /**
  * Learniq Cohort Group Provisioning Handler
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Listens for OpenRegister's ObjectTransitionedEvent and:
  *
  * 1. On Cohort `activate` (planned -> active): provisions a real Nextcloud
@@ -35,8 +38,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -48,7 +49,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -90,7 +91,7 @@ class CohortGroupProvisioningHandler implements IEventListener {
 	 *                                  user ids to an `IUser` (mirrors
 	 *                                  `CohortTalkMembershipHandler::resolveUser()`).
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -99,7 +100,7 @@ class CohortGroupProvisioningHandler implements IEventListener {
 		private readonly IGroupManager $groupManager,
 		private readonly IUserManager $userManager,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -114,15 +115,26 @@ class CohortGroupProvisioningHandler implements IEventListener {
 	 * @spec openspec/specs/school-structure/spec.md#scenario-enrolling-a-learner-into-an-active-cohort-adds-them-to-its-group
 	 */
 	public function handle(Event $event): void {
-		if (($event instanceof ObjectTransitionedEvent) === false) {
+		if (($event instanceof ObjectTransitionedEvent) === false
+			|| $this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER
+		) {
 			return;
 		}
 
-		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
-			return;
-		}
+		$this->route(event: $event, schema: $this->schemas->eventSchema(event: $event));
 
-		$schema = $this->schemas->eventSchema(event: $event);
+	}//end handle()
+
+	/**
+	 * Provision a cohort's group on its activation, or sync an enrolment's
+	 * learner into or out of it on its activation or withdrawal.
+	 *
+	 * @param ObjectTransitionedEvent $event  The transition in Learniq's register.
+	 * @param string                  $schema The transitioned object's schema.
+	 *
+	 * @return void
+	 */
+	private function route(ObjectTransitionedEvent $event, string $schema): void {
 		$action = $event->getAction();
 
 		if ($schema === self::COHORT_SCHEMA && $action === self::ACTION_ACTIVATE) {
@@ -130,16 +142,24 @@ class CohortGroupProvisioningHandler implements IEventListener {
 			return;
 		}
 
-		if ($schema === self::ENROLMENT_SCHEMA
-			&& ($action === self::ACTION_ACTIVATE || $action === self::ACTION_WITHDRAW)
-		) {
+		if ($schema === self::ENROLMENT_SCHEMA && $this->changesMembership(action: $action) === true) {
 			$this->syncMembership(
 				enrolment: $event->getObject()->jsonSerialize(),
 				add: $action === self::ACTION_ACTIVATE
 			);
 		}
+	}//end route()
 
-	}//end handle()
+	/**
+	 * Whether an enrolment action changes group membership: activate or withdraw.
+	 *
+	 * @param string $action The transition action.
+	 *
+	 * @return bool
+	 */
+	private function changesMembership(string $action): bool {
+		return $action === self::ACTION_ACTIVATE || $action === self::ACTION_WITHDRAW;
+	}//end changesMembership()
 
 	/**
 	 * Provision the Cohort's Nextcloud group and write its id back. Idempotent:
@@ -169,35 +189,12 @@ class CohortGroupProvisioningHandler implements IEventListener {
 
 		$groupId = self::GROUP_ID_PREFIX . $cohortId;
 
-		try {
-			$group = $this->createOrGetGroup(groupId: $groupId);
-		} catch (Throwable $e) {
-			$this->logger->warning(
-				'[CohortGroupProvisioningHandler] Failed to create/resolve NC group {gid} for Cohort {id}: {msg}',
-				['gid' => $groupId, 'id' => $cohortId, 'msg' => $e->getMessage()]
-			);
-			return;
-		}
-
+		$group = $this->provisionedGroup(groupId: $groupId, cohortId: $cohortId);
 		if ($group === null) {
-			$this->logger->warning(
-				'[CohortGroupProvisioningHandler] NC group {gid} could not be created for Cohort {id}.',
-				['gid' => $groupId, 'id' => $cohortId]
-			);
 			return;
 		}
 
-		$memberIds = array_values(array_unique(array_merge(
-			$this->stringIds(ids: $cohort['teacherIds'] ?? []),
-			$this->stringIds(ids: $cohort['learnerIds'] ?? [])
-		)));
-
-		foreach ($memberIds as $userId) {
-			$user = $this->resolveUser(userId: $userId);
-			if ($user !== null) {
-				$group->addUser($user);
-			}
-		}
+		$memberIds = $this->addMembers(group: $group, cohort: $cohort);
 
 		$cohort['ncGroupId'] = $groupId;
 		$this->objectService->saveObject(
@@ -212,6 +209,63 @@ class CohortGroupProvisioningHandler implements IEventListener {
 		);
 
 	}//end provisionGroup()
+
+	/**
+	 * The cohort's NC group, created when missing; null (logged) when that failed.
+	 *
+	 * @param string $groupId  The group id to create or reuse.
+	 * @param string $cohortId The cohort, for the log.
+	 *
+	 * @return object|null
+	 *
+	 * @spec openspec/specs/school-structure/spec.md#scenario-activating-an-already-provisioned-cohort-does-not-provision-a-second-group
+	 */
+	private function provisionedGroup(string $groupId, string $cohortId): ?object {
+		try {
+			$group = $this->createOrGetGroup(groupId: $groupId);
+		} catch (Throwable $e) {
+			$this->logger->warning(
+				'[CohortGroupProvisioningHandler] Failed to create/resolve NC group {gid} for Cohort {id}: {msg}',
+				['gid' => $groupId, 'id' => $cohortId, 'msg' => $e->getMessage()]
+			);
+			return null;
+		}
+
+		if ($group === null) {
+			$this->logger->warning(
+				'[CohortGroupProvisioningHandler] NC group {gid} could not be created for Cohort {id}.',
+				['gid' => $groupId, 'id' => $cohortId]
+			);
+		}
+
+		return $group;
+	}//end provisionedGroup()
+
+	/**
+	 * Add the cohort's teachers and learners that resolve to a user to the group.
+	 *
+	 * @param object               $group  The NC group.
+	 * @param array<string, mixed> $cohort The cohort.
+	 *
+	 * @return list<string> Every member id, resolved or not.
+	 *
+	 * @spec openspec/specs/school-structure/spec.md#scenario-activating-an-already-provisioned-cohort-does-not-provision-a-second-group
+	 */
+	private function addMembers(object $group, array $cohort): array {
+		$memberIds = array_values(array_unique(array_merge(
+			$this->stringIds(ids: $cohort['teacherIds'] ?? []),
+			$this->stringIds(ids: $cohort['learnerIds'] ?? [])
+		)));
+
+		foreach ($memberIds as $userId) {
+			$user = $this->resolveUser(userId: $userId);
+			if ($user !== null) {
+				$group->addUser($user);
+			}
+		}
+
+		return $memberIds;
+	}//end addMembers()
 
 	/**
 	 * Add or remove an Enrolment's learner from its Cohort's Nextcloud group.

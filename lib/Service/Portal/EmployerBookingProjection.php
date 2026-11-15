@@ -31,6 +31,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Portal;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\EmployerBookingProjectionInterface;
+use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IUserManager;
@@ -40,7 +42,7 @@ use OCP\IUserManager;
  *
  * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
  */
-class EmployerBookingProjection {
+class EmployerBookingProjection implements EmployerBookingProjectionInterface {
 
 	private const REGISTER = 'learniq';
 
@@ -292,17 +294,6 @@ class EmployerBookingProjection {
 	 * @return array<string, mixed>
 	 */
 	private function toRow(mixed $object): array {
-		if (is_array($object) === true) {
-			return $object;
-		}
-
-		if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-			$row = $object->jsonSerialize();
-			if (is_array($row) === true) {
-				return $row;
-			}
-		}
-
-		return [];
+		return (new SerialisedRow())->asArray(object: $object);
 	}//end toRow()
 }//end class

@@ -1,7 +1,7 @@
 # ai-locality-guarantee Specification
 
 ## Purpose
-TBD - created by archiving change sovereign-ai-guarantee. Update Purpose after archive.
+Let a school decide where AI processing may happen, and check that against the real configuration. A feature outside the policy does not take effect, and the school can hand its data protection officer a disclosure.
 ## Requirements
 ### Requirement: The system SHALL let a school declare an AI-processing locality policy
 

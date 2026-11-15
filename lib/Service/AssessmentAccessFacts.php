@@ -30,6 +30,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\AssessmentAccessFactsInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Throwable;
 
@@ -38,7 +39,7 @@ use Throwable;
  *
  * @spec openspec/specs/assessment/spec.md#requirement-an-attempt-starts-only-inside-the-availability-window-and-with-the-access-code
  */
-class AssessmentAccessFacts {
+class AssessmentAccessFacts implements AssessmentAccessFactsInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const ASSESSMENT_SCHEMA = 'exam';

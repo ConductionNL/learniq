@@ -31,10 +31,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
-use OCA\Learniq\Lifecycle\SubmissionWindowGuard;
+use OCA\Learniq\Kernel\Contracts\PortalSubmissionHandInInterface;
+use OCA\Learniq\Kernel\Contracts\SubmissionWindowGuardInterface;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -44,7 +45,8 @@ use Throwable;
  *
  * @spec openspec/specs/assignments/spec.md#requirement-a-pupil-hands-in-a-portal-draft-through-learniqs-own-endpoint
  */
-class PortalSubmissionHandIn {
+class PortalSubmissionHandIn implements PortalSubmissionHandInInterface {
+	use FindOrNull;
 
 	private const REGISTER = 'learniq';
 	private const SCHEMA = 'submission';
@@ -60,7 +62,7 @@ class PortalSubmissionHandIn {
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
 	 * @param TransitionEngine $transitionEngine OpenRegister lifecycle transitions.
-	 * @param SubmissionWindowGuard $guard The hand-in rules.
+	 * @param SubmissionWindowGuardInterface $guard The hand-in rules.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
@@ -68,7 +70,7 @@ class PortalSubmissionHandIn {
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly TransitionEngine $transitionEngine,
-		private readonly SubmissionWindowGuard $guard,
+		private readonly SubmissionWindowGuardInterface $guard,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -93,19 +95,35 @@ class PortalSubmissionHandIn {
 			return new PortalOutcome(status: Http::STATUS_CONFLICT, body: ['error' => 'already_handed_in'], reason: 'already-handed-in');
 		}
 
-		$submit = $this->guard->check($submission, 'submit', $learner->ncUserId);
-		$action = 'submit';
-		if ($submit->isAllowed() === false) {
-			$late = $this->guard->check($submission, SubmissionWindowGuard::LATE_ACTION, $learner->ncUserId);
-			if ($late->isAllowed() === false) {
-				return $this->refused(message: (string)$late->getMessage());
-			}
-
-			$action = SubmissionWindowGuard::LATE_ACTION;
+		$action = $this->handInAction(learner: $learner, submission: $submission);
+		if ($action instanceof PortalOutcome) {
+			return $action;
 		}
 
 		return $this->fire(learner: $learner, submission: $submission, action: $action);
 	}//end handIn()
+
+	/**
+	 * How the draft may be handed in: `submit` inside the window, else
+	 * `submitLate` when late work is allowed, else the window's refusal.
+	 *
+	 * @param PortalLearner        $learner    The pupil.
+	 * @param array<string, mixed> $submission The draft.
+	 *
+	 * @return string|PortalOutcome The action, or the refusal.
+	 */
+	private function handInAction(PortalLearner $learner, array $submission): string|PortalOutcome {
+		if ($this->guard->check($submission, 'submit', $learner->ncUserId)->isAllowed() === true) {
+			return 'submit';
+		}
+
+		$late = $this->guard->check($submission, SubmissionWindowGuardInterface::LATE_ACTION, $learner->ncUserId);
+		if ($late->isAllowed() === false) {
+			return $this->refused(message: (string)$late->getMessage());
+		}
+
+		return SubmissionWindowGuardInterface::LATE_ACTION;
+	}//end handInAction()
 
 	/**
 	 * Run the transition as the pupil; a guard refusal on the write is
@@ -136,7 +154,7 @@ class PortalSubmissionHandIn {
 		}
 
 		$lifecycle = 'submitted';
-		if ($action === SubmissionWindowGuard::LATE_ACTION) {
+		if ($action === SubmissionWindowGuardInterface::LATE_ACTION) {
 			$lifecycle = 'late';
 		}
 
@@ -157,7 +175,7 @@ class PortalSubmissionHandIn {
 	 * @return PortalOutcome
 	 */
 	private function refused(string $message): PortalOutcome {
-		if ($message === SubmissionWindowGuard::DENY_LATE_NOT_ACCEPTED) {
+		if ($message === SubmissionWindowGuardInterface::DENY_LATE_NOT_ACCEPTED) {
 			return new PortalOutcome(
 				status: Http::STATUS_UNPROCESSABLE_ENTITY,
 				body: ['error' => 'late_not_accepted'],
@@ -220,26 +238,8 @@ class PortalSubmissionHandIn {
 			return null;
 		}
 
-		try {
-			$object = $this->objectService->find(
-				id: $id,
-				register: self::REGISTER,
-				schema: self::SCHEMA,
-				_rbac: false,
-				_multitenancy: false,
-				_render: false
-			);
-		} catch (DoesNotExistException) {
-			return null;
-		}
-
-		$row = $object?->jsonSerialize();
-		if (is_array($row) === false) {
-			return null;
-		}
-
-		$row['id'] = (string)($row['id'] ?? ($row['@self']['id'] ?? $id));
-
-		return $row;
+		$find = fn () => $this->objectService
+			->find(id: $id, register: self::REGISTER, schema: self::SCHEMA, _rbac: false, _multitenancy: false, _render: false);
+		return $this->findRowWithIdOrNull(find: $find, id: $id);
 	}//end submission()
 }//end class

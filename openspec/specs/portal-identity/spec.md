@@ -113,10 +113,10 @@ valid JSON.
 
 Learniq MUST let the school's administration (members of `admin` or `administration-managers`) invite a guardian to the portal with an email address the school verified. The invitation MUST provision a pending portal account (audience `parent`) through portaliq's `PortalAccountProvisionRequestedEvent` with that address marked verified, and MUST then write the claim `learniq.guardianRef` = the guardian's LearnerProfile uuid through `PortalAccountClaimRequestedEvent`. Only a LearnerProfile with the role `parent` MAY be invited. Without portaliq the invitation MUST dispatch nothing and answer `portal-unavailable`. Any other caller MUST get 403.
 
-#### Scenario: An invited guardian sees their own child after signing in
-- **GIVEN** the po example set, and guardian Fatima Hulstkamp invited with a verified address
+#### Scenario: An invited guardian sees her own children after signing in
+- **GIVEN** the po example set, where Fatima Hulstkamp is the guardian of Vera (groep 7) and Sami (groep 4), invited with a verified address
 - **WHEN** she signs in to the portal with DigiD at level substantial using that address
-- **THEN** "My children" lists Vera Hulstkamp and no other child
+- **THEN** "Overzicht" shows "Mijn kinderen" with Vera and Sami, one card each with group and teacher, and no other child
 - @e2e tests/e2e/po-parent-flows.spec.ts
 
 #### Scenario: A teacher cannot invite a guardian
@@ -202,3 +202,19 @@ Learniq MUST record every invitation it issues, on either channel, in Nextcloud'
 - **WHEN** they invite a guardian into `vaartveld-college`
 - **THEN** the answer is `403 organisation-not-yours` and nothing is dispatched
 - @e2e exclude covered by PHPUnit `PortalGuardianControllerTest::testTheOrganisationMustBeTheCallersOwnAndTheIssuerIsRecorded` and `CallerOrganisationsTest`, and checked live on a test instance
+
+### Requirement: The institute invites an employer over HTTP
+
+`POST /api/portal/employers/{organisationRef}/invite` MUST invite the contact person of a client company exactly as `occ learniq:portal:invite-employer` does. Only members of `admin`, `administration-managers` or `hr` MUST be allowed, and only into a portal organisation the caller belongs to. A refusal for the caller's input (an unknown or inactive company, an address that is no address, no organisation) MUST answer 400; any other refusal 502.
+
+#### Scenario: Linda signs in with eHerkenning after the invitation
+- **GIVEN** the training set, and the organisation's eHerkenning issuer points at the stub
+- **WHEN** the administration invites Jansen Installatietechniek BV and Linda signs in with eHerkenning
+- **THEN** she lands on Mijn academie, her chip names "Jansen Installatietechniek BV", and her overview asks for Youssef's birth date
+- @e2e tests/e2e/portal-design/warmtepompacademie.spec.ts
+
+#### Scenario: A trainer may not invite an employer
+- **GIVEN** a member of `instructors` only
+- **WHEN** they post an invitation
+- **THEN** the answer is 403 and nothing is provisioned
+- @e2e exclude authorisation, covered by PHPUnit `PortalEmployerInviteControllerTest`

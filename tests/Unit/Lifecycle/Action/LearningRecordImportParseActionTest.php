@@ -24,6 +24,7 @@ namespace OCA\Learniq\Tests\Unit\Lifecycle\Action;
 use OCA\Learniq\Lifecycle\Action\LearningRecordImportParseAction;
 use OCA\Learniq\Service\LearningRecordExportSigningService;
 use OCA\Learniq\Service\LearningRecordImportService;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 use OCP\Files\File;
 use OCP\Files\Folder;
@@ -97,7 +98,14 @@ class LearningRecordImportParseActionTest extends TestCase {
 	public function testParsedEntriesLandOnTheSavedObject(): void {
 		$bundle = (string)json_encode(['credentials' => [['name' => 'Foreign Diploma']]]);
 
-		$saved = $this->makeAction($bundle)->execute(self::parsedImport(), [], [], LearningRecordImportParseAction::class);
+		$saved = $this->makeAction($bundle)->execute(
+			new LifecycleActionContext(
+				objectData: self::parsedImport(),
+				previousData: [],
+				parameters: [],
+				actionName: LearningRecordImportParseAction::class
+			)
+		);
 
 		self::assertSame('parsed', $saved['lifecycle']);
 		self::assertSame('unverifiable', $saved['verificationStatus']);
@@ -114,6 +122,13 @@ class LearningRecordImportParseActionTest extends TestCase {
 	public function testUnparseableBundleThrows(): void {
 		$this->expectException(RuntimeException::class);
 
-		$this->makeAction('{not json')->execute(self::parsedImport(), [], [], LearningRecordImportParseAction::class);
+		$this->makeAction('{not json')->execute(
+			new LifecycleActionContext(
+				objectData: self::parsedImport(),
+				previousData: [],
+				parameters: [],
+				actionName: LearningRecordImportParseAction::class
+			)
+		);
 	}//end testUnparseableBundleThrows()
 }//end class

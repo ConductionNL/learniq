@@ -3,6 +3,9 @@
 /**
  * Learniq QTI Import Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Imports QTI 2.x packages and IMS Common Cartridge archives, stores each
  * item's QTI 2.1 XML as found, and creates `Item` objects in the specified
  * ItemBank.
@@ -29,8 +32,6 @@
  * @copyright 2024 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -45,7 +46,7 @@ namespace OCA\Learniq\Service;
 use DOMDocument;
 use DOMElement;
 use DOMNodeList;
-use DOMXPath;
+use OCA\Learniq\Kernel\Contracts\QtiImportServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -55,17 +56,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-4
  */
-class QtiImportService {
-
-	/**
-	 * QTI 3.0 namespace.
-	 */
-	private const QTI3_NS = 'http://www.imsglobal.org/xsd/imsqtiasi_v3p0';
-
-	/**
-	 * QTI 2.1 namespace.
-	 */
-	private const QTI2_NS = 'http://www.imsglobal.org/xsd/imsqti_v2p1';
+class QtiImportService implements QtiImportServiceInterface {
 
 	/**
 	 * Map of QTI interaction element names → Learniq interactionType slugs.
@@ -167,9 +158,10 @@ class QtiImportService {
 		$packageType = $this->manifestScanner->detectPackageType(dir: $dir);
 		$itemXmlPaths = $this->manifestScanner->collectItemPaths(dir: $dir, packageType: $packageType);
 
+		$target = new QtiItemTarget(itemBankId: $itemBankId, tenantId: $tenantId);
 		$createdUuids = [];
 		foreach ($itemXmlPaths as $xmlPath) {
-			$uuid = $this->importSingleItem(xmlPath: $xmlPath, itemBankId: $itemBankId, tenantId: $tenantId);
+			$uuid = $this->importSingleItem(xmlPath: $xmlPath, target: $target);
 			if ($uuid !== null) {
 				$createdUuids[] = $uuid;
 			}
@@ -236,18 +228,59 @@ class QtiImportService {
 	 * Other interaction types are imported with raw qtiBody and a placeholder
 	 * correctResponse pending future parser extensions.
 	 *
-	 * @param string $xmlPath Absolute path to the item XML file.
-	 * @param string $itemBankId UUID of the target ItemBank.
-	 * @param string $tenantId Tenant UUID to stamp on the created Item (H4).
+	 * @param string        $xmlPath Absolute path to the item XML file.
+	 * @param QtiItemTarget $target  The target ItemBank and the tenant to stamp on the created Item (H4).
 	 *
 	 * @return string|null Created Item UUID, or null on parse failure.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-4
 	 */
-	private function importSingleItem(string $xmlPath, string $itemBankId, string $tenantId = ''): ?string {
-		// `loadXML(file_get_contents())`, NOT `load($path)` — Nextcloud's
-		// XXE-blocking external entity loader makes `load()` fail on the
-		// primary document. See CommonCartridgeParser::parseManifest().
+	private function importSingleItem(string $xmlPath, QtiItemTarget $target): ?string {
+		$xml = $this->loadItemXml(xmlPath: $xmlPath);
+		$title = $this->titleOf(xml: $xml, xmlPath: $xmlPath);
+
+		$qtiBody = false;
+		if ($title !== null) {
+			$qtiBody = $xml->saveXML();
+		}
+
+		if ($qtiBody === false) {
+			return null;
+		}
+
+		$item = ['itemBankId' => $target->itemBankId, 'title' => $title, 'qtiBody' => $qtiBody, 'tenant_id' => $target->tenantId];
+
+		return $this->saveItem(itemData: $this->itemData(xml: $xml, item: $item));
+	}//end importSingleItem()
+
+	/**
+	 * The item's title, or null when the file is not XML or names none.
+	 *
+	 * @param DOMDocument|null $xml     The item document, or null when it did not parse.
+	 * @param string           $xmlPath Absolute path to the item file.
+	 *
+	 * @return string|null
+	 */
+	private function titleOf(?DOMDocument $xml, string $xmlPath): ?string {
+		if ($xml === null) {
+			return null;
+		}
+
+		return $this->itemTitle(xml: $xml, xmlPath: $xmlPath);
+	}//end titleOf()
+
+	/**
+	 * The item file as a document, or null (logged) when it is not XML.
+	 *
+	 * `loadXML(file_get_contents())`, NOT `load($path)` — Nextcloud's
+	 * XXE-blocking external entity loader makes `load()` fail on the primary
+	 * document. See CommonCartridgeParser::parseManifest().
+	 *
+	 * @param string $xmlPath Absolute path to the item file.
+	 *
+	 * @return DOMDocument|null
+	 */
+	private function loadItemXml(string $xmlPath): ?DOMDocument {
 		$xml = new DOMDocument();
 		libxml_use_internal_errors(true);
 		if ($xml->loadXML((string)file_get_contents($xmlPath)) === false) {
@@ -257,51 +290,49 @@ class QtiImportService {
 
 		libxml_clear_errors();
 
-		$xpath = new DOMXPath($xml);
+		return $xml;
+	}//end loadItemXml()
 
-		// Register namespaces for both QTI versions.
-		$xpath->registerNamespace('qti3', self::QTI3_NS);
-		$xpath->registerNamespace('qti2', self::QTI2_NS);
-
-		// Detect the root assessmentItem element.
+	/**
+	 * The item's title attribute, else the file name; null (logged) when there is no assessmentItem.
+	 *
+	 * @param DOMDocument $xml     The item document.
+	 * @param string      $xmlPath Path to the item file.
+	 *
+	 * @return string|null
+	 */
+	private function itemTitle(DOMDocument $xml, string $xmlPath): ?string {
 		$root = $this->firstElement(nodes: $xml->getElementsByTagName('assessmentItem'));
 		if ($root === null) {
 			$this->logger->warning('[QtiImportService] No assessmentItem in: {path}', ['path' => $xmlPath]);
 			return null;
 		}
 
-		$rawTitle = $root->getAttribute('title');
-		$title = basename($xmlPath, '.xml');
-		if ($rawTitle !== '') {
-			$title = $rawTitle;
+		$title = $root->getAttribute('title');
+		if ($title === '') {
+			return basename($xmlPath, '.xml');
 		}
 
-		$qtiBody = $xml->saveXML();
+		return $title;
+	}//end itemTitle()
 
-		if ($qtiBody === false) {
-			return null;
-		}
-
-		// Detect interaction type.
+	/**
+	 * The draft Item's fields: the interaction type with its correct response and max score.
+	 *
+	 * @param DOMDocument         $xml  The item document.
+	 * @param array<string,mixed> $item The item bank, title, QTI body and tenant.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function itemData(DOMDocument $xml, array $item): array {
 		$interactionType = $this->detectInteractionType(xml: $xml);
+		[$correctResponse, $maxScore] = $this->scoring(xml: $xml, interactionType: $interactionType);
 
-		// Parse correctResponse and maxScore for choice + extendedText.
-		$correctResponse = null;
-		$maxScore = 1.0;
-
-		if ($interactionType === 'choice') {
-			[$correctResponse, $maxScore] = $this->parseChoiceItem(xml: $xml);
-		} elseif ($interactionType === 'extendedText') {
-			// Essay — no correctResponse by definition.
-			$correctResponse = null;
-			$maxScore = $this->parseOutcomeMaxScore(xml: $xml);
-		}
-
-		$itemData = [
-			'itemBankId' => $itemBankId,
-			'title' => $title,
+		return [
+			'itemBankId' => $item['itemBankId'],
+			'title' => $item['title'],
 			'interactionType' => $interactionType,
-			'qtiBody' => $qtiBody,
+			'qtiBody' => $item['qtiBody'],
 			'correctResponse' => $correctResponse,
 			'maxScore' => $maxScore,
 			'subjectTags' => [],
@@ -309,28 +340,49 @@ class QtiImportService {
 			'lifecycle' => 'draft',
 			// H4: stamp the caller's tenant_id so cross-tenant Item lookups
 			// (e.g. AssessmentScoringHandler) scope correctly to this tenant.
-			'tenant_id' => $tenantId,
+			'tenant_id' => $item['tenant_id'],
 		];
+	}//end itemData()
 
-		// OpenRegister's saveObject() takes the payload FIRST and returns a
-		// non-nullable ObjectEntity. This used to be called positionally as
-		// saveObject('learniq', 'item', $itemData), which passes the register
-		// slug as the payload — a guaranteed TypeError against the real
-		// service. Named arguments are the only safe call shape here.
-		$saved = $this->objectService->saveObject(
-			register: 'learniq',
-			schema: 'item',
-			object: $itemData
-		);
+	/**
+	 * The correct response and max score: parsed for choice and extendedText items, none and 1.0 otherwise.
+	 *
+	 * @param DOMDocument $xml             The item document.
+	 * @param string      $interactionType The detected interaction type.
+	 *
+	 * @return array{0: string|array<int,string>|null, 1: float}
+	 */
+	private function scoring(DOMDocument $xml, string $interactionType): array {
+		if ($interactionType === 'choice') {
+			return $this->parseChoiceItem(xml: $xml);
+		}
 
-		$uuid = $saved->getUuid();
+		if ($interactionType === 'extendedText') {
+			// Essay — no correctResponse by definition.
+			return [null, $this->parseOutcomeMaxScore(xml: $xml)];
+		}
 
+		return [null, 1.0];
+	}//end scoring()
+
+	/**
+	 * Save the draft Item and return its uuid.
+	 *
+	 * OpenRegister's saveObject() takes the payload FIRST and returns a
+	 * non-nullable ObjectEntity, so it is called with named arguments only.
+	 *
+	 * @param array<string,mixed> $itemData The Item.
+	 *
+	 * @return string|null The uuid, or null when the saved entity has none.
+	 */
+	private function saveItem(array $itemData): ?string {
+		$uuid = $this->objectService->saveObject(register: 'learniq', schema: 'item', object: $itemData)->getUuid();
 		if (is_string($uuid) === true) {
 			return $uuid;
 		}
 
 		return null;
-	}//end importSingleItem()
+	}//end saveItem()
 
 	/**
 	 * Detect the interaction type of a QTI item XML document.

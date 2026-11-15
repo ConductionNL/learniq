@@ -3,6 +3,9 @@
 /**
  * Learniq Privacy Governance Controller
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * One read-only endpoint (privacy-governance-surfaces): composes the eight
  * `rbac-declare-groups` group ids with live Nextcloud member counts
  * (`IGroupManager`), a best-effort two-factor-adoption count across those
@@ -29,8 +32,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -42,8 +43,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\AppInfo\Application;
 use OCP\Authentication\TwoFactorAuth\IRegistry;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -51,6 +52,7 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IGroupManager;
 use OCP\IRequest;
+use OCP\IUser;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -111,7 +113,7 @@ class PrivacyGovernanceController extends Controller {
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -194,43 +196,76 @@ class PrivacyGovernanceController extends Controller {
 	 */
 	private function loadTwoFactorAdoption(): array {
 		try {
-			$seenUids = [];
-			foreach (self::GOVERNANCE_GROUPS as $groupId) {
-				$group = $this->groupManager->get($groupId);
-				if ($group === null) {
-					continue;
-				}
-
-				foreach ($group->getUsers() as $user) {
-					$seenUids[$user->getUID()] = $user;
-				}
-			}
-
-			$enabled = 0;
-			foreach ($seenUids as $user) {
-				$states = $this->twoFactorRegistry->getProviderStates(user: $user);
-				if (in_array(true, $states, true) === true) {
-					$enabled++;
-				}
-			}
+			$members = $this->governanceMembers();
 
 			return [
-				'eligibleCount' => count($seenUids),
-				'enabledCount' => $enabled,
+				'eligibleCount' => count($members),
+				'enabledCount' => $this->countWithTwoFactor(users: $members),
 			];
 		} catch (Throwable $e) {
-			$this->logger->info(
-				'[PrivacyGovernanceController] Two-factor adoption read failed ({message}); '
-				. 'returning unknown rather than a fabricated zero.',
-				['message' => $e->getMessage()]
-			);
-			return [
-				'eligibleCount' => null,
-				'enabledCount' => null,
-			];
+			return $this->unknownTwoFactorAdoption(exception: $e);
 		}//end try
 
 	}//end loadTwoFactorAdoption()
+
+	/**
+	 * The members of the governance groups that exist, each user once.
+	 *
+	 * @return array<string,IUser> The users by uid.
+	 */
+	private function governanceMembers(): array {
+		$seenUids = [];
+		foreach (self::GOVERNANCE_GROUPS as $groupId) {
+			$group = $this->groupManager->get($groupId);
+			if ($group === null) {
+				continue;
+			}
+
+			foreach ($group->getUsers() as $user) {
+				$seenUids[$user->getUID()] = $user;
+			}
+		}
+
+		return $seenUids;
+	}//end governanceMembers()
+
+	/**
+	 * How many of these users have any two-factor provider enabled.
+	 *
+	 * @param array<string,IUser> $users The users.
+	 *
+	 * @return int
+	 */
+	private function countWithTwoFactor(array $users): int {
+		$enabled = 0;
+		foreach ($users as $user) {
+			$states = $this->twoFactorRegistry->getProviderStates(user: $user);
+			if (in_array(true, $states, true) === true) {
+				$enabled++;
+			}
+		}
+
+		return $enabled;
+	}//end countWithTwoFactor()
+
+	/**
+	 * Log a two-factor read that failed and answer unknown, never a fabricated zero.
+	 *
+	 * @param Throwable $exception Why the read failed.
+	 *
+	 * @return array{eligibleCount: null, enabledCount: null}
+	 */
+	private function unknownTwoFactorAdoption(Throwable $exception): array {
+		$this->logger->info(
+			'[PrivacyGovernanceController] Two-factor adoption read failed ({message}); '
+			. 'returning unknown rather than a fabricated zero.',
+			['message' => $exception->getMessage()]
+		);
+		return [
+			'eligibleCount' => null,
+			'enabledCount' => null,
+		];
+	}//end unknownTwoFactorAdoption()
 
 	/**
 	 * Partner approval counts by status: the "sleeping" (pending) versus
@@ -243,27 +278,57 @@ class PrivacyGovernanceController extends Controller {
 	 */
 	private function loadDataExchangeApprovalCounts(): array {
 		try {
-			$approvals = $this->objectService->findAll(
-				[
-					'filters' => [
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::PARTNER_APPROVAL_SCHEMA,
-					],
-					'limit' => self::PARTNER_APPROVAL_LIMIT,
-				]
-			);
+			$approvals = $this->objectService->findAll($this->approvalQuery());
 		} catch (Throwable $e) {
-			$this->logger->info(
-				'[PrivacyGovernanceController] Partner approval read failed ({message}); returning unknown counts.',
-				['message' => $e->getMessage()]
-			);
-			return [
-				'pending' => null,
-				'approved' => null,
-				'rejected' => null,
-			];
+			return $this->unknownApprovalCounts(exception: $e);
 		}
 
+		return $this->countByStatus(approvals: $approvals);
+
+	}//end loadDataExchangeApprovalCounts()
+
+	/**
+	 * The bounded read of every partner approval.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function approvalQuery(): array {
+		return [
+			'filters' => [
+				'register' => self::LEARNIQ_REGISTER,
+				'schema' => self::PARTNER_APPROVAL_SCHEMA,
+			],
+			'limit' => self::PARTNER_APPROVAL_LIMIT,
+		];
+	}//end approvalQuery()
+
+	/**
+	 * Log an approval read that failed and answer unknown counts.
+	 *
+	 * @param Throwable $exception Why the read failed.
+	 *
+	 * @return array{pending: null, approved: null, rejected: null}
+	 */
+	private function unknownApprovalCounts(Throwable $exception): array {
+		$this->logger->info(
+			'[PrivacyGovernanceController] Partner approval read failed ({message}); returning unknown counts.',
+			['message' => $exception->getMessage()]
+		);
+		return [
+			'pending' => null,
+			'approved' => null,
+			'rejected' => null,
+		];
+	}//end unknownApprovalCounts()
+
+	/**
+	 * Approvals counted by their known status.
+	 *
+	 * @param array<int,mixed> $approvals The approvals read.
+	 *
+	 * @return array{pending: int, approved: int, rejected: int}
+	 */
+	private function countByStatus(array $approvals): array {
 		$counts = [
 			'pending' => 0,
 			'approved' => 0,
@@ -271,22 +336,33 @@ class PrivacyGovernanceController extends Controller {
 		];
 
 		foreach ($approvals as $approval) {
-			$row = $approval;
-			if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-				$row = $row->jsonSerialize();
-			}
-
-			if (is_array($row) === false) {
-				continue;
-			}
-
-			$status = $row['status'] ?? 'pending';
-			if (isset($counts[$status]) === true) {
+			$status = $this->approvalStatus(approval: $approval);
+			if ($status !== null && isset($counts[$status]) === true) {
 				$counts[$status]++;
 			}
 		}
 
 		return $counts;
+	}//end countByStatus()
 
-	}//end loadDataExchangeApprovalCounts()
+	/**
+	 * An approval's status (pending when it has none), or null for anything
+	 * that is not an approval row.
+	 *
+	 * @param mixed $approval An approval row or entity.
+	 *
+	 * @return mixed
+	 */
+	private function approvalStatus(mixed $approval): mixed {
+		$row = $approval;
+		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
+			$row = $row->jsonSerialize();
+		}
+
+		if (is_array($row) === false) {
+			return null;
+		}
+
+		return ($row['status'] ?? 'pending');
+	}//end approvalStatus()
 }//end class

@@ -3,6 +3,9 @@
 /**
  * Learniq xAPI Statement Comparator
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Decides whether two xAPI statements match, per xAPI 1.0.3 Data 2.3.1
  * (Statement Immutability) and its Statement Comparison Requirements. An LRS
  * that receives a statement whose id it already stores answers success when
@@ -27,8 +30,6 @@
  * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *
