@@ -20,7 +20,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Support;
 
 use Closure;
-use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Flattens a saveObject(object, options, _rbac, _multitenancy) call to the flat

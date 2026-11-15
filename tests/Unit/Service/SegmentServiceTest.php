@@ -25,7 +25,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service;
 
-use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\Learniq\Service\SegmentService;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserManager;

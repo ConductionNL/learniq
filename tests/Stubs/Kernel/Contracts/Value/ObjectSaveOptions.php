@@ -23,7 +23,7 @@
  * @or-spec openspec/specs/object-lifecycle/spec.md
  */
 
-namespace OCA\OpenRegister\Service\Object;
+namespace OCA\OpenRegister\Kernel\Contracts\Value;
 
 /**
  * How one object save runs: where it goes, which object it updates, what the answer expands,

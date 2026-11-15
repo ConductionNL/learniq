@@ -45,8 +45,8 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeInterface;
-use OCA\OpenRegister\Service\Object\ObjectFindTarget;
-use OCA\OpenRegister\Service\Object\ObjectSaveOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Lock\ILockingProvider;
 use OCP\Lock\LockedException;

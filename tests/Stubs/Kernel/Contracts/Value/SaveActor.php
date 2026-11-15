@@ -23,7 +23,7 @@
  * @or-spec openspec/specs/object-lifecycle/spec.md
  */
 
-namespace OCA\OpenRegister\Service\Object;
+namespace OCA\OpenRegister\Kernel\Contracts\Value;
 
 use OCP\IUser;
 
