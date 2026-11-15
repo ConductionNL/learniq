@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-year-rollover/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
  */
 
 declare(strict_types=1);
@@ -26,6 +26,7 @@ namespace OCA\Learniq\Tests\Unit\Controller;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Controller\RolloverController;
 use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\RolloverService;
 use OCP\AppFramework\Http;
 use OCP\IRequest;
@@ -65,6 +66,7 @@ class RolloverControllerNotFoundTest extends TestCase {
 			actionAuth: $actionAuth,
 			rolloverService: $this->createMock(RolloverService::class),
 			objectService: $objectService,
+			callerTenant: $this->createMock(CallerTenantResolver::class),
 		);
 	}//end controllerWithThrowingFind()
 
@@ -111,7 +113,7 @@ class RolloverControllerNotFoundTest extends TestCase {
 	public function testProposeMappingReturnsTheServiceMapping(): void {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturn(
-			[['id' => 'cohort-1', 'academicYear' => '2025-2026']]
+			[['id' => 'cohort-1', 'name' => '2A', 'academicYear' => '2025-2026']]
 		);
 
 		$expected = [['fromCohortId' => 'cohort-1', 'action' => 'promote', 'toCohortName' => '2026-2027']];
@@ -138,12 +140,14 @@ class RolloverControllerNotFoundTest extends TestCase {
 			actionAuth: $this->createMock(ActionAuthService::class),
 			rolloverService: $rolloverService,
 			objectService: $objectService,
+			callerTenant: $this->createMock(CallerTenantResolver::class),
 		);
 
 		$response = $controller->proposeMapping('2025-2026');
 
 		self::assertSame(Http::STATUS_OK, $response->getStatus());
 		self::assertSame($expected, ((array)$response->getData())['mappings']);
+		self::assertSame(['cohort-1' => '2A'], ((array)$response->getData())['cohortNames'], 'The wizard names each cohort instead of showing its id.');
 	}//end testProposeMappingReturnsTheServiceMapping()
 
 	/**

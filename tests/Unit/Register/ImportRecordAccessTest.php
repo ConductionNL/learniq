@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/access-control-ratchet-compliance/specs/data-exchange/spec.md#requirement-imported-lvs-results-and-transfer-dossiers-are-read-and-written-by-the-groups-that-review-them
+ * @spec openspec/specs/data-exchange/spec.md#requirement-imported-lvs-results-and-transfer-dossiers-are-read-and-written-by-the-groups-that-review-them
  */
 
 declare(strict_types=1);
@@ -74,7 +74,7 @@ class ImportRecordAccessTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/access-control-ratchet-compliance/specs/data-exchange/spec.md#scenario-a-pupil-reads-their-own-lvs-result-and-not-a-classmates
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-a-pupil-reads-their-own-lvs-result-and-not-a-classmates
 	 */
 	public function testLvsResultIsReadByTheReviewersAndThePupil(): void {
 		$this->assertSame(
@@ -89,7 +89,7 @@ class ImportRecordAccessTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/access-control-ratchet-compliance/specs/data-exchange/spec.md#scenario-an-instructor-no-longer-reads-transfer-dossiers
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-an-instructor-no-longer-reads-transfer-dossiers
 	 */
 	public function testOsoImportDossierIsReadByTheReviewersOnly(): void {
 		$this->assertSame(expected: self::REVIEWERS, actual: $this->schemas()['OsoImportDossier']['authorization']['read']);
@@ -117,7 +117,7 @@ class ImportRecordAccessTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/access-control-ratchet-compliance/specs/nextcloud-app/spec.md#scenario-a-coordinator-finds-the-transfer-dossier-they-must-review
+	 * @spec openspec/specs/nextcloud-app/spec.md#scenario-a-coordinator-finds-the-transfer-dossier-they-must-review
 	 */
 	public function testEveryGuardGroupReadsAndUpdatesTheRow(): void {
 		$schemas = $this->schemas();

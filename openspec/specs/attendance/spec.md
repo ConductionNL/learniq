@@ -41,7 +41,9 @@ Institutions record who was present, and some are obliged to act when absence cr
 - GIVEN an `AttendanceThreshold` of 16 unexcused lesuren in a rolling 4 weeks, WHEN a learner's count reaches 16 in any such window, THEN an `AttendanceFlag` is created (`open`) and the `onCross` notification fires to the mentor + coordinator (idempotency-keyed — re-crossing the same window doesn't re-flag).
 - GIVEN a threshold rule with `onCross` including a `data-exchange` target, WHEN the flag is created, THEN a `DataExchangeJob` (see `data-exchange`) is queued to that target; the flag moves `open → reported` only after the job succeeds, and the attempt is in the audit trail.
 - GIVEN a mentor opens the cohort attendance widget, THEN learners are shown with their current count against each applicable threshold, sorted by proximity to the limit.
+
 ## Requirements
+
 ### Requirement: Persist Attendance domain objects in OpenRegister
 
 The system MUST persist `AttendanceRecord`, `ExcuseRequest`, `AttendanceThreshold`, `AttendanceFlag` as
@@ -72,12 +74,49 @@ of the flag (ADR-008), never an in-place edit of a prior entry.
   audited version of the flag
 
 ### Requirement: Threshold crossing is a declared calculation trigger
-The threshold-crossing detection MUST be a declared calculation + `calculatedChange` trigger — NOT a PHP TimedJob. It MUST reuse the same threshold machinery as compliance-`Regulation` coverage thresholds (no parallel mechanism — ADR-022).
+
+The threshold-crossing detection MUST be a declared calculation +
+`calculatedChange` trigger — NOT a PHP TimedJob. It MUST reuse the same
+threshold machinery as compliance-`Regulation` coverage thresholds (no
+parallel mechanism — ADR-022).
+
+`AttendanceThreshold.x-openregister-calculations.unexcusedLesuren` is a
+materialised, `x-openregister-aggregations`-backed per-cohort aggregate
+(count of `attendance-record` rows where `cohortId == @self.cohortId` and
+`status == 'absent-unexcused'`, scaled by `lessonHourMinutes`), and
+`isThresholdCrossed` is `unexcusedLesuren >= limit` — the same
+aggregate-then-compare shape `Regulation.coveragePercent`/`ragStatus` already
+use. The existing `thresholdCrossed` notification's `calculatedChange`
+trigger on `unexcusedLesuren` now fires for real.
+
+A true per-INDIVIDUAL-learner (as opposed to per-cohort) continuously-live
+crossing figure is NOT achievable by this mechanism alone —
+`AttendanceThreshold` has no `learnerId` field to parameterise a per-learner
+aggregate against, and this is a named, open platform gap (see
+`openspec/changes/archive/2026-09-29-attendance-threshold-calculation/proposal.md`), not a
+silent limitation.
 
 #### Scenario: Threshold crossing fires via declared calculation trigger
+
 - **GIVEN** an `AttendanceThreshold` rule expressed as a declared calculation
-- **WHEN** a learner's rolling count crosses the limit
-- **THEN** detection fires through a `calculatedChange` trigger (not a PHP TimedJob), reusing the same threshold machinery as compliance-`Regulation` coverage thresholds (ADR-022)
+- **WHEN** a cohort's aggregated unexcused-lesuren count crosses the limit
+- **THEN** detection fires through a `calculatedChange` trigger (not a PHP TimedJob), reusing the same
+  threshold machinery as compliance-`Regulation` coverage thresholds (ADR-022)
+
+#### Scenario: A guarded manual check records a real per-learner crossing and creates an AttendanceFlag
+
+- **GIVEN** an `AttendanceThreshold` and a specific learner's externally-computed unexcused-lesuren value
+  that meets or exceeds the threshold's `limit`
+- **WHEN** the `check-threshold` transition is invoked with that learner id and metric value as inputs
+- **THEN** `AttendanceThresholdCrossingGuard` allows the transition, `ObjectTransitionedEvent` fires with
+  `action: check-threshold`, and `AttendanceFlagCreationHandler` creates an `AttendanceFlag` for that
+  learner
+
+#### Scenario: A guarded manual check below the limit is refused
+
+- **GIVEN** an `AttendanceThreshold` and a learner's metric value below the threshold's `limit`
+- **WHEN** the `check-threshold` transition is invoked with that value
+- **THEN** `AttendanceThresholdCrossingGuard` refuses the transition and no `AttendanceFlag` is created
 
 ### Requirement: Sick-reporting auth strength is declarative config
 The external authenticated sick-reporting flow's auth strength MUST be declarative config; the DigiD handshake itself is a `data-exchange`/openconnector concern.
@@ -138,6 +177,272 @@ The frontend MUST be declarative: `src/manifest.json` pages for AttendanceRecord
 - **GIVEN** the attendance app frontend
 - **WHEN** the UI is composed
 - **THEN** AttendanceRecord/ExcuseRequest/AttendanceThreshold/AttendanceFlag index+detail are declarative `src/manifest.json` pages, the only custom views are `MarkAttendanceView`, `SubmitExcuseModal`, and the `cohort-attendance` dashboard widget, and there are no PHP CRUD controllers
+
+### Requirement: AttendanceFlag classifies its statutory flagKind
+
+`AttendanceFlag` MUST carry a `flagKind` enum property (`signal-verzuim`, `langdurig-relatief-verzuim`,
+`thuiszitter`; default `signal-verzuim`) classifying which statutory concern the flag represents (finding
+4.9). SWV notification reuses the existing `dataExchangeJobId` field — no new field is needed for that half
+of the finding.
+
+#### Scenario: A langdurig-relatief-verzuim flag is classified distinctly from a routine signal
+
+- **GIVEN** an `AttendanceThreshold` crossing that represents a langdurig relatief verzuim case
+- **WHEN** the resulting `AttendanceFlag` is created with `flagKind: "langdurig-relatief-verzuim"`
+- **THEN** it is distinguishable from a routine `signal-verzuim` flag by that field alone
+
+#### Scenario: An existing AttendanceFlag without a declared flagKind defaults to signal-verzuim
+
+- **GIVEN** an `AttendanceFlag` row created before this change, with no `flagKind` value stored
+- **WHEN** the row is read
+- **THEN** `flagKind` resolves to its default, `"signal-verzuim"`
+
+### Requirement: A crossed threshold notifies each recipient group once
+
+The `thresholdCrossed` notification of `AttendanceThreshold` MUST name the mentor and the coordinator in one recipient entry, and no group MAY appear in more than one of its entries, so nobody receives the same notification twice.
+
+#### Scenario: The mentor is notified once
+@e2e exclude Register-content invariant; pinned by tests/Unit/Settings/AttendanceThresholdRegisterTest.php (testThresholdCrossedNotificationNotifiesMentorAndCoordinator).
+- **GIVEN** an `AttendanceThreshold` whose unexcused hours rise to its limit
+- **WHEN** the `thresholdCrossed` notification fires
+- **THEN** its recipients are one entry naming `mentor` and `coordinator`
+- **AND** no group is named in a second entry
+
+### Requirement: An attendance flag outside the leerplicht carries a neutral kind
+
+`AttendanceFlag.flagKind` MUST offer `attendance-requirement` next to the school concerns (`signal-verzuim`, `langdurig-relatief-verzuim`, `thuiszitter`), for a learner who falls below an attendance requirement of a course, programme or training that is not a statutory school concern. The flag created for a threshold crossing MUST take its kind from the threshold: `leerplicht-16uur` gives `signal-verzuim`; `college-aanwezigheid`, `training-attendance` and `compliance-presence` give `attendance-requirement`. A `generic` threshold MUST keep the schema default, so existing school installs see no change.
+
+#### Scenario: A university workgroup requirement is not a leerplicht signal
+
+- **GIVEN** an active AttendanceThreshold with `kind: college-aanwezigheid`
+- **WHEN** a guarded `check-threshold` records a crossing for a student
+- **THEN** the created AttendanceFlag has `flagKind: attendance-requirement`
+
+#### Scenario: A company compliance presence requirement is neutral
+
+- **GIVEN** an active AttendanceThreshold with `kind: compliance-presence`
+- **WHEN** a crossing is recorded for an employee
+- **THEN** the created AttendanceFlag has `flagKind: attendance-requirement`
+
+#### Scenario: The leerplicht profile still raises a verzuim signal
+
+- **GIVEN** an active AttendanceThreshold with `kind: leerplicht-16uur`
+- **WHEN** a crossing is recorded for a pupil
+- **THEN** the created AttendanceFlag has `flagKind: signal-verzuim`
+
+### Requirement: The municipality's feedback on a leerplicht report is recorded on the attendance flag
+A coordinator or administrator MUST record the municipality's case route (MAS route) on the reported `AttendanceFlag` through a `recordMunicipalityFeedback` transition that keeps the flag `reported`. The actor and the time MUST be stamped server-side. The report itself is sent by integriq; the flag moves to `reported` only once integriq concluded its job `succeeded`.
+
+#### Scenario: a coordinator records the MAS route
+- GIVEN an attendance flag in `reported`
+- WHEN a coordinator records the municipality's feedback with MAS route "casusoverleg"
+- THEN the flag stays `reported` and `municipalityFeedback.recordedBy` is that coordinator
+
+#### Scenario: the report is not sent yet
+- GIVEN an attendance flag in `in-handling` whose integriq job is `queued`
+- WHEN someone tries to move it to `reported`
+- THEN the transition is refused until integriq concluded the job `succeeded`
+
+### Requirement: The server stamps who an excuse request is about and who filed it
+
+`ExcuseRequest.required` MUST list only what every caller sends: `dateFrom`, `dateTo`, `reason` and `reasonKind`. OpenRegister validates `required` before any listener runs, so the owner fields MUST be filled and enforced by a pre-write listener instead. For a portal report (no Nextcloud session, no `learnerId`, a `learnerRef`) the server MUST take `learnerId`, `learnerRef` and `tenant_id` from the pupil's LearnerProfile, and MUST refuse the report when that profile is unknown or cannot be read. A pupil's own report MUST name the pupil as submitter and record `submittedAuthLevel` `basic`. A guardian's report (`submittedByRef` set) MUST be refused unless the pupil's profile lists that guardian in `guardianRefs`; it MUST record the guardian's user id in `submittedBy` when the guardian has one and `submittedAuthLevel` `substantial`. Every other write MUST have its `learnerRef` derived from `learnerId`, ignoring a client value, and MUST get `submittedAuthLevel` `basic` when it sends none. Every write that still lacks `learnerId`, a submitter (`submittedBy` or `submittedByRef`) or `tenant_id` MUST be refused.
+
+#### Scenario: A pupil reports an absence through the portal
+@e2e exclude Pre-write listener with no screen of its own in learniq; pinned by tests/Unit/Listener/ExcuseRequestOwnerStampTest.php (testAPupilReportIsStampedFromTheProfile).
+- **GIVEN** pupil `pupil-1` with LearnerProfile `lp-1`
+- **WHEN** portaliq creates an ExcuseRequest with the dates, reason and kind, and `learnerRef: "lp-1"`
+- **THEN** it is stored with `learnerId: "pupil-1"`, `submittedBy: "pupil-1"`, the pupil's school and `submittedAuthLevel: "basic"`
+
+#### Scenario: A guardian reports an absence for their child
+@e2e exclude Pre-write listener; pinned by tests/Unit/Listener/ExcuseRequestOwnerStampTest.php (testAGuardianReportNamesTheChildAndTheGuardian).
+- **GIVEN** the pupil's profile lists guardian `gp-1`, whose user is `ouder-1`
+- **WHEN** portaliq creates an ExcuseRequest with `learnerRef: "lp-1"` and `submittedByRef: "gp-1"`
+- **THEN** it is stored with `learnerId: "pupil-1"`, `submittedBy: "ouder-1"` and `submittedAuthLevel: "substantial"`
+
+#### Scenario: A guardian cannot report for somebody else's child
+@e2e exclude Pre-write listener; pinned by tests/Unit/Listener/ExcuseRequestOwnerStampTest.php (testAGuardianOfAnotherChildIsRefused).
+- **GIVEN** the pupil's profile does not list guardian `gp-9`
+- **WHEN** portaliq creates an ExcuseRequest with `learnerRef: "lp-1"` and `submittedByRef: "gp-9"`
+- **THEN** the write is refused with reason `excuse-guardian-unknown`
+
+#### Scenario: Staff are still held to the owner fields
+@e2e exclude Pre-write listener; pinned by tests/Unit/Listener/ExcuseRequestOwnerStampTest.php (testAStaffCreateWithoutItsOwnerFieldsIsRefused).
+- **GIVEN** a signed-in mentor
+- **WHEN** they create an ExcuseRequest without `learnerId`, without a submitter or without `tenant_id`
+- **THEN** the write is refused with reason `excuse-owner-missing`
+
+### Requirement: A coordinator compares owed, given and attended contact hours
+
+For a chosen period, learniq MUST show per cohort and course the contact hours owed by the cohort's hour plan, the hours given (the duration of the cohort's sessions for that course that were not cancelled) and the difference, with a total per cohort. A course whose given hours fall below its owed hours MUST be marked with the number of hours short. A cohort without an active hour plan MUST show owed hours as missing, not as zero. The report MUST be reachable from the Reports page and exportable as CSV, and MUST be readable only by `instructors`, `team-leads` and `compliance-officers`.
+
+#### Scenario: A coordinator finds a group short on English
+
+- **GIVEN** cohort "MV2A" owed 60 hours of "Engels" in periods 1 and 2, and three of its English lessons were cancelled
+- **WHEN** a coordinator opens Reports, chooses "Contact hours", picks periods 1 and 2 and cohort MV2A
+- **THEN** the row for "Engels" shows 60 owed, 57 given and 3 hours short, marked
+- **AND** the export holds the same numbers
+
+#### Scenario: A learner cannot open the report
+
+<!-- @e2e exclude Access rule on an endpoint; covered by ContactHoursControllerTest::testLearnerIsRefused. -->
+
+- **GIVEN** a user in no staff group
+- **WHEN** they request `GET /api/reports/contact-hours`
+- **THEN** the request is refused
+
+### Requirement: A learner who attended too little is marked
+
+Per learner of a cohort, the report MUST show the hours attended (the `lesuren` of their records with status present, late or left-early in the period) next to the hours given to the group, and MUST mark a learner who attended less than the given hours minus a configurable margin (default 10 percent).
+
+#### Scenario: A mentor sees a learner at seventy percent
+
+- **GIVEN** 40 hours of "Marketing" given to MV2A in period 1, and learner r.visser attended 28 of them
+- **WHEN** the mentor opens the MV2A row and the learner view
+- **THEN** r.visser shows 28 of 40 hours, marked as below the margin
+
+### Requirement: A teacher opens a self check-in window for a lesson
+
+A user in `instructors` or `compliance-officers` MUST be able to open a self check-in window for a session from the register screen, choosing `rotating-qr` for a lesson in a room or `link` for an online lesson. A window MUST close at its `closesAt`, which MUST NOT be later than the session's end, or earlier when the teacher closes it. A learner MUST NOT be able to read a `CheckInWindow` through any route.
+
+#### Scenario: A teacher shows the check-in code on the board
+
+- **GIVEN** a teacher on the register screen of "Wiskunde B, 4 havo" on Tuesday at 08:30
+- **WHEN** the teacher chooses "Open self check-in" in the room mode
+- **THEN** a full-screen QR code appears with the number of learners checked in so far
+- **AND** the code changes every thirty seconds
+
+### Requirement: The check-in code changes every thirty seconds in the room
+
+In `rotating-qr` mode the code MUST be derived from the window id and the current thirty-second step and MUST NOT be stored; the server MUST accept the current and the previous step only. In `link` mode one code MUST hold for the whole window.
+
+#### Scenario: An old photo of the code does not work
+
+<!-- @e2e exclude Time-based code rule; covered by CheckInServiceTest::testTheRotatingCodeLivesTwoSteps with a fixed clock. -->
+
+- **GIVEN** a code taken from the board two minutes ago
+- **WHEN** a learner of the group sends it
+- **THEN** the check-in is refused with the reason that the code has expired
+
+### Requirement: A learner checks in with the code
+
+A signed-in learner who is in the `learnerIds` of the session's cohort MUST be able to check in with a valid code while the window is open. The server MUST write one `AttendanceRecord` with `status` `present`, or `late` when the check-in comes after the session start plus `lateAfterMinutes`, with `markedVia: self-check-in`. A caller outside the cohort, after the window closed, or with an invalid code MUST be refused with a plain reason and nothing written.
+
+#### Scenario: A learner scans the code at the start of the lesson
+
+- **GIVEN** learner m.yilmaz in the cohort of "Wiskunde B, 4 havo" and an open window
+- **WHEN** m.yilmaz scans the QR code on the board and taps "Check in"
+- **THEN** m.yilmaz sees that attendance is recorded
+- **AND** the teacher's register shows m.yilmaz as present, labelled checked in
+
+#### Scenario: A learner checks in after the grace period
+
+<!-- @e2e exclude Status rule in the service; covered by CheckInServiceTest::testAfterTheGracePeriodTheRecordIsLate. -->
+
+- **GIVEN** a session starting at 08:30 with `lateAfterMinutes: 5`
+- **WHEN** a learner of the cohort checks in at 08:41
+- **THEN** the record is written with status `late`
+
+#### Scenario: A learner of another group is refused
+
+<!-- @e2e exclude Access rule in the service; covered by CheckInServiceTest::testRefusalsWriteNothing (the not-in-group refusal). -->
+
+- **GIVEN** a learner who is not in the session's cohort
+- **WHEN** they post a valid code to `POST /api/check-in/{windowId}`
+- **THEN** the answer says they are not in this lesson's group and no record is written
+
+### Requirement: A self check-in never overwrites a mark
+
+The check-in endpoint MUST NOT create a second record or change an existing `AttendanceRecord` for the same session and learner. The teacher MUST be able to change a self check-in record like any other; saving it MUST set `markedVia` to `teacher`.
+
+#### Scenario: The teacher already marked a learner absent
+
+- **GIVEN** the teacher marked learner t.devries `absent-excused` for the session
+- **WHEN** t.devries checks in with a valid code
+- **THEN** t.devries is told the attendance is already recorded
+- **AND** the register still shows `absent-excused`
+
+### Requirement: A decision on an absence report records who decided and when
+When an `ExcuseRequest` moves to `approved` or `rejected`, the transition MUST stamp `decidedBy` with the signed-in user who made the decision and `decidedAt` with the time of the decision.
+
+#### Scenario: The guardian sees who approved the report and when
+- **GIVEN** a guardian's absence report in `submitted`
+- **WHEN** the group teacher approves it
+- **THEN** the report carries `decidedBy` = the teacher's user id and a `decidedAt`
+- **AND** the guardian's portal list shows the report as "Goedgekeurd" with the teacher's name and the date and time of the decision, for example "Meester Daan, 1 oktober 8:20 uur"
+- **AND** the guardian's inbox names the teacher who approved it, for example "Meester Daan heeft de melding voor donderdag 1 oktober goedgekeurd"
+- @e2e tests/e2e/po-parent-flows.spec.ts
+
+### Requirement: An absence report is read by the teachers of the pupil's group and by school-wide staff
+Every `ExcuseRequest` write MUST stamp `teacherIds` on the server with the teachers of the pupil's current groups: the `teacherIds` and `teacherAssignments[].teacherId` of every cohort whose `learnerIds` lists the report's `learnerId` and whose lifecycle is not `completed` or `archived`. A value the client sends MUST be replaced. When the lookup fails, a create MUST stamp an empty list, and an update whose pupil did not change MUST keep the stored list. A member of `instructors` MUST read and update only the reports whose `teacherIds` contains them. Members of `coordinators`, `administration-managers` and `compliance-officers` MUST read every report. Members of `coordinators` and `compliance-officers` MUST be able to update, and so approve or reject, every report.
+
+#### Scenario: A parent's report reaches the group teacher and nobody else's
+@e2e exclude Pre-write listener and register rule with no screen of their own; pinned by tests/Unit/Listener/ExcuseRequestOwnerStampTest.php (testAPortalReportListsTheTeachersOfThePupilsGroup) and tests/Unit/Settings/ExcuseRequestRegisterTest.php (testATeacherReadsOnlyTheReportsOfTheirOwnGroups), and checked live per role.
+- **GIVEN** pupil `pupil-1` is in Groep 7, taught by `juf-7` with duo-partner `duo-7`, and was in last year's archived Groep 6 with `juf-6`
+- **WHEN** a guardian reports `pupil-1` absent through the portal
+- **THEN** the report is stored with `teacherIds` `["juf-7", "duo-7"]`
+- **AND** `juf-7` sees it in the list of absence reports, and the teacher of Groep 8 does not
+
+#### Scenario: Coordinators and directors see every report
+@e2e exclude Register rule; pinned by tests/Unit/Settings/ExcuseRequestRegisterTest.php (testATeacherReadsOnlyTheReportsOfTheirOwnGroups), and checked live as a coordinator and a director.
+- **GIVEN** absence reports for pupils in several groups
+- **WHEN** a member of `coordinators` or `administration-managers` opens the list of absence reports
+- **THEN** they see the reports of every group
+- **AND** only the coordinator can approve or reject them
+
+#### Scenario: Nobody adds themselves to a report's audience
+@e2e exclude Pre-write listener; pinned by tests/Unit/Listener/ExcuseRequestOwnerStampTest.php (testAClientCannotAddItselfToTheAudience).
+- **GIVEN** a teacher of Groep 7
+- **WHEN** they save a report for a pupil of Groep 8 with `teacherIds` `["juf-7"]`
+- **THEN** the report is stored with the teachers of Groep 8 only
+
+#### Scenario: A failed lookup never widens the audience
+@e2e exclude Pre-write listener; pinned by tests/Unit/Listener/ExcuseRequestOwnerStampTest.php (testAFailedGroupLookupStampsNobodyOnCreate, testAnUpdateKeepsTheStoredTeachersWhenTheLookupFails).
+- **GIVEN** the cohorts cannot be read
+- **WHEN** a report is created
+- **THEN** it is stored with an empty `teacherIds`, so only school-wide staff see it
+- **AND** an update of a report for the same pupil keeps the teachers it had
+
+### Requirement: Existing absence reports get their group teachers
+A repair step MUST stamp `teacherIds` on every existing `ExcuseRequest` the same way the write path does. It MUST save only reports whose stored teachers differ from the derived ones, so a second run saves nothing. A report whose lookup fails MUST be left as it was.
+
+#### Scenario: An old report reaches the group teacher
+@e2e exclude Repair step with no screen; pinned by tests/Unit/Repair/BackfillExcuseRequestTeachersTest.php (testStampsWhatTheServerWouldStampToday).
+- **GIVEN** a report for `pupil-1` written before this change, without `teacherIds`
+- **WHEN** the app is upgraded
+- **THEN** the report carries the teachers of `pupil-1`'s group
+
+#### Scenario: A second run changes nothing
+@e2e exclude Repair step with no screen; pinned by tests/Unit/Repair/BackfillExcuseRequestTeachersTest.php (testASecondRunSavesNothing).
+- **GIVEN** the repair step ran once
+- **WHEN** it runs again
+- **THEN** it saves no report
+
+### Requirement: An absence report names its pupil's learner profile
+
+`ExcuseRequest` MUST require `learnerRef`, the learner profile of the pupil whose absence it reports, and MUST NOT accept a null value. Every create path MUST send it before OpenRegister validates: the pupil's portal action through its scope field, the guardian's action as a required field, and the staff form from the picked pupil.
+
+#### Scenario: A report without the pupil is refused
+- GIVEN an absence report with dates, a reason and a kind, but no `learnerRef`
+- WHEN it is validated against the shipped `excuse-request` schema
+- THEN it is refused, and the same report with the pupil's `learnerRef` is accepted
+- @e2e exclude schema contract; covered by tests/Unit/Settings/RequiredLearnerRefRegisterTest.php (testTheFragmentsAcceptThePupilAndRefuseItsAbsence)
+
+#### Scenario: The guardian picks her child from cards, never a free field
+- GIVEN the guardian's absence form on the Wilgenboom site, Fatima with Vera and Sami
+- WHEN she opens it
+- THEN "Wie is er afwezig?" offers one card per child of hers, with group and teacher, and no "niet verplicht"; a report without a child is not sent
+- AND "Wanneer?" offers day cards: "Vandaag", "Morgen", "Een paar lessen vandaag", "Tot ... weer beter is" and "Een andere dag of een deel van de dag", the last one opening a date and time
+- @e2e tests/e2e/po-parent-flows.spec.ts
+
+### Requirement: Stored rows get the pupil's learner profile before it is required
+
+The upgrade MUST write `learnerRef` on every stored absence report and conference signup that lacks it, resolved from `learnerId`, before any other repair step writes those rows. A row whose pupil has no learner profile MUST be counted and left as it is. A second run MUST save nothing.
+
+#### Scenario: An old report gets its pupil
+- GIVEN a stored absence report with a `learnerId` and no `learnerRef`
+- WHEN the upgrade runs
+- THEN the report carries the pupil's learner profile, and a second run saves nothing
+- @e2e exclude repair step; covered by tests/Unit/Repair/BackfillRequiredLearnerRefsTest.php
 
 ## Standards
 

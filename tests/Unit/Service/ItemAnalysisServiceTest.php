@@ -20,8 +20,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
- * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-assessment-reliability-cronbachs-alpha-is-computed-with-a-minimum-sample-size
+ * @spec openspec/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
+ * @spec openspec/specs/assessment/spec.md#requirement-per-assessment-reliability-cronbachs-alpha-is-computed-with-a-minimum-sample-size
  */
 
 declare(strict_types=1);
@@ -123,7 +123,7 @@ class ItemAnalysisServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#scenario-an-items-statistics-remain-null-below-the-minimum-sample
+	 * @spec openspec/specs/assessment/spec.md#scenario-an-items-statistics-remain-null-below-the-minimum-sample
 	 */
 	public function testItemStatisticsInsufficientDataBelowMinimumSample(): void {
 		$this->seedAssessment();
@@ -166,7 +166,7 @@ class ItemAnalysisServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#scenario-an-items-p-value-and-discrimination-are-computed-once-the-minimum-sample-is-met
+	 * @spec openspec/specs/assessment/spec.md#scenario-an-items-p-value-and-discrimination-are-computed-once-the-minimum-sample-is-met
 	 */
 	public function testItemStatisticsPValueAndCorrelationAtMinimumSampleBoundary(): void {
 		$this->seedAssessment();
@@ -322,7 +322,7 @@ class ItemAnalysisServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#scenario-reliability-is-null-until-30-graded-attempts-exist
+	 * @spec openspec/specs/assessment/spec.md#scenario-reliability-is-null-until-30-graded-attempts-exist
 	 */
 	public function testReliabilityInsufficientDataBelowMinimumSample(): void {
 		$this->seedAssessment();
@@ -361,7 +361,7 @@ class ItemAnalysisServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-assessment-reliability-cronbachs-alpha-is-computed-with-a-minimum-sample-size
+	 * @spec openspec/specs/assessment/spec.md#requirement-per-assessment-reliability-cronbachs-alpha-is-computed-with-a-minimum-sample-size
 	 */
 	public function testReliabilityCronbachAlphaHandComputedFixture(): void {
 		$this->seedAssessment();

@@ -3,13 +3,17 @@
 /**
  * Learniq Portal Contribution Provider
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Learniq's contribution to the shared Portaliq external portal (hydra ADR-046
  * + contribution contract v2, 2026-07-06 amendment). Portaliq — the ONE shared
  * portal for people WITHOUT Nextcloud accounts — discovers this class by
  * convention FQCN (`OCA\{Namespace}\Portal\PortalContributionProvider`) and
  * duck-types it via method_exists(), never instanceof. This class is therefore
  * deliberately PLAIN: no portaliq imports, no `implements` clause, no info.xml
- * dependency, no constructor dependencies. Without portaliq installed it is
+ * dependency, and only one optional constructor dependency (the l10n factory
+ * that puts the guardian's labels in her language). Without portaliq installed it is
  * inert and Learniq behaves exactly as before (amendment A1).
  *
  * It declares — for the `student` (the learner) and `parent` (a guardian)
@@ -29,19 +33,20 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+ * @spec openspec/specs/portal-contribution/spec.md
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
+
+use OCA\Learniq\Kernel\Contracts\BpvPlacementStepsInterface;
+use OCA\Learniq\Kernel\Contracts\EmployerBookingStepsInterface;
+use OCP\L10N\IFactory;
 
 /**
  * Declares what an external portal subject may see and do in Learniq.
@@ -59,11 +64,14 @@ namespace OCA\Learniq\Portal;
  * comments on grades, the teacher's marking internals on submissions, the
  * marker and internal links on attendance, the staff decision fields on excuse
  * requests). Whitelist tables + the claim-names contract:
- * openspec/changes/portal-contribution/design.md. The parent reverse /
+ * openspec/changes/archive/2026-09-28-portal-contribution/design.md. The parent reverse /
  * scope-value join (`match: 'scopeField'`) + its minTrust story:
- * openspec/changes/portal-parent/design.md.
+ * openspec/changes/archive/2026-09-28-portal-parent/design.md.
  *
- * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+ * @spec openspec/specs/portal-contribution/spec.md
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) The provider is the one place portaliq meets every
+ *   audience, so it names each audience's declaration class.
  */
 class PortalContributionProvider {
 	/**
@@ -73,6 +81,280 @@ class PortalContributionProvider {
 	 */
 	private const REGISTER = 'learniq';
 
+	private const HAND_IN_ROW_WHEN = [
+		'field' => 'lifecycle',
+		'in' => ['draft'],
+	];
+
+	private const CREATE_SUBMISSION_FIELD_CONFIGS = [
+		// Same reason as the absence form below: an unlabelled field
+		// is drawn as `assignmentId`.
+		'assignmentId' => ['label' => 'The work you are handing in', 'required' => true],
+		'attachmentRefs' => [
+			'type' => 'file',
+			'label' => 'Your work',
+			'multiple' => true,
+			'accept' => ['.pdf', '.doc', '.docx', '.odt', '.pptx', '.jpg', '.png'],
+			'maxSizeMb' => 20,
+		],
+	];
+
+	private const CREATE_SUBMISSION_FIELDS = [
+		'assignmentId',
+		'attachmentRefs',
+	];
+
+	private const EXCUSE_REQUEST_REASON_KIND = [
+		'label' => 'Kind of absence',
+		'required' => true,
+		'valueLabels' => PortalValueLabels::ABSENCE_KIND,
+		'widget' => 'choices',
+		'choiceOptions' => ['illness', 'medical-appointment'],
+		'otherLabel' => 'Another reason',
+	];
+
+	private const STUDENT_EXCUSE_REQUEST_FIELDS = [
+		'dateFrom',
+		'dateTo',
+		'reason',
+		'reasonKind',
+		'attachmentRef',
+	];
+
+	private const STUDENT_EXCUSE_REQUEST_DATE_TO = [
+		'label' => 'Last day you are absent',
+		'required' => true,
+		'widget' => 'dateChoices',
+		'dateChoices' => 2,
+		'requiredMessage' => 'Choose the last day you are absent.',
+	];
+
+	private const PARENT_CONTRIBUTION_GUARDIAN_AUDIENCE = [
+		'children' => 'parentChildren',
+		'schoolField' => 'schoolId',
+		'groups' => [
+			'collection' => 'parentGroupMemberships',
+			'field' => 'cohortId',
+		],
+	];
+
+	private const PARENT_EXCUSE_REQUEST_SUMMARY = [
+		'label' => 'You report',
+		'template' => '{learnerRef} is {reasonKind} {dateFrom}.',
+		'phrases' => [
+			'reasonKind' => [
+				'illness' => 'ill',
+				'medical-appointment' => 'at the doctor or dentist',
+				'family-circumstance' => 'away for a family reason',
+				'religious-observance' => 'away for a religious holiday',
+				'bereavement' => 'away for a funeral',
+				'other' => 'away for another reason',
+			],
+		],
+	];
+
+	private const PARENT_EXCUSE_REQUEST_FIELDS = [
+		'learnerRef',
+		'dateFrom',
+		'dateTo',
+		'reason',
+		'reasonKind',
+		'attachmentRef',
+	];
+
+	private const PARENT_EXCUSE_REQUEST_DATE_TO = [
+		'label' => 'Last day absent',
+		'required' => true,
+		'widget' => 'dateChoices',
+		'dateChoices' => 2,
+		'requiredMessage' => 'Choose the last day your child is absent.',
+	];
+
+	private const PARENT_EXCUSE_REQUEST_CONFIRMATION = [
+		'title' => 'Your report has been sent',
+		'body' => 'The teacher sees it in the class right away. In the list of absence reports you see when the teacher has decided.',
+	];
+
+	private const PARENT_GRADES_FIELDS = [
+		'learnerRef',
+		'courseId',
+		// Readable copies and the weight (site-guardian-portal-design):
+		// the subject and test a grade is for, and how often it counts.
+		'courseName',
+		'methodName',
+		'methodBlock',
+		'weight',
+		'curriculumPlanId',
+		'componentId',
+		'value',
+		'gradeScaleId',
+		'period',
+		'gradedAt',
+	];
+
+	private const PARENT_ATTENDANCE_FIELDS = [
+		'learnerRef',
+		'sessionId',
+		'cohortId',
+		'status',
+		'minutesAttended',
+		'markedAt',
+	];
+
+	private const PARENT_GRADES_COLUMNS = [
+		['field' => 'value', 'label' => 'Grade'],
+		['field' => 'period', 'label' => 'Period'],
+		['field' => 'gradedAt', 'label' => 'Given on'],
+	];
+
+	private const PARENT_ATTENDANCE_COLUMNS = [
+		['field' => 'markedAt', 'label' => 'Date'],
+		['field' => 'status', 'label' => 'Attendance', 'valueLabels' => PortalValueLabels::ATTENDANCE_STATUS],
+		['field' => 'minutesAttended', 'label' => 'Minutes present'],
+	];
+
+	private const PARENT_EXCUSE_REQUESTS_FIELDS = [
+		'learnerRef',
+		'dateFrom',
+		'dateTo',
+		'reason',
+		'reasonKind',
+		'attachmentRef',
+		'lifecycle',
+		'decidedAt',
+		// Read only as a name (render: user), never as the user id.
+		'decidedBy',
+	];
+
+	private const PARENT_REPORT_CARDS_FIELDS = [
+		'learnerRef',
+		'reportPeriodId',
+		'periodName',
+		'gradeLines',
+		'attendanceSummary',
+		'mentorComment',
+		'docudeskDocumentRef',
+	];
+
+	private const PARENT_EXCUSE_REQUESTS_COLUMNS = [
+		['field' => 'dateFrom', 'label' => 'From'],
+		['field' => 'dateTo', 'label' => 'To'],
+		['field' => 'reason', 'label' => 'Reason'],
+		['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::EXCUSE_STATUS],
+		['field' => 'decidedAt', 'label' => 'Decided on'],
+		['field' => 'decidedBy', 'label' => 'Decided by', 'render' => 'user'],
+	];
+
+	private const PARENT_REPORT_CARDS_COLUMNS = [
+		['field' => 'periodName', 'label' => 'Period'],
+		['field' => 'mentorComment', 'label' => "Teacher's comment"],
+		['field' => 'gradeLines', 'label' => 'Grades'],
+	];
+
+	/**
+	 * Constructor; the container hands in the factory, `new` with no arguments answers in English.
+	 *
+	 * @param IFactory|null             $l10nFactory    Puts parent labels in the request's language (PortalLabelTranslator).
+	 * @param EmployerBookingStepsInterface|null $bookingSteps   Answers a company booking's steps (employer-portal-audience).
+	 * @param BpvPlacementStepsInterface|null    $placementSteps Answers a work placement's steps (site-workplace-trainer-portal-design).
+	 * @param PortalRecordProviders|null $records        Who a resident may write to and what a guardian may download, per row.
+	 * @param PortalPublicIndex|null     $publicIndex     What a visitor may find (portal-public-index).
+	 */
+	public function __construct(
+		private readonly ?IFactory $l10nFactory=null,
+		private readonly ?EmployerBookingStepsInterface $bookingSteps=null,
+		private readonly ?BpvPlacementStepsInterface $placementSteps=null,
+		private readonly ?PortalRecordProviders $records=null,
+		private readonly ?PortalPublicIndex $publicIndex=null,
+	) {
+	}//end __construct()
+
+	/**
+	 * What a portal's visitor may find without signing in (portal-public-index).
+	 *
+	 * @param string $portal The portal slug.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-a-school-offers-its-portal-an-index-of-its-public-courses-programmes-and-school-days
+	 */
+	public function getPublicIndex(string $portal): array {
+		return ($this->publicIndex?->forPortal(portal: $portal) ?? []);
+	}//end getPublicIndex()
+
+	/**
+	 * The steps of a work placement, for the student's and the trainer's placement page.
+	 *
+	 * Called by portaliq with the placement's id after its visibility check; none without the service.
+	 *
+	 * @param string $id The placement's uuid.
+	 *
+	 * @return array<int, array<string, string>>
+	 *
+	 * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md#requirement-new-a-placement-shows-where-it-stands
+	 */
+	public function bpvPlacementSteps(string $id): array {
+		return ($this->placementSteps?->forPlacement(placementId: $id) ?? []);
+	}//end bpvPlacementSteps()
+
+	/**
+	 * Who a guardian may write to about one child (the `contacts` provider
+	 * of `parentChildren`): the teachers of the child's current groups.
+	 * Portaliq calls this only for a child it read through the guardian's
+	 * own scoped collection (portal-message-contacts).
+	 *
+	 * @param string $id The child's learner profile id.
+	 *
+	 * @return array<int, array{staffRef: string, name: string, role: string}>
+	 *
+	 * @spec openspec/changes/portal-message-contacts/specs/portal-contribution/spec.md#requirement-a-guardian-and-a-pupil-may-write-to-the-teachers-of-the-pupils-current-groups
+	 */
+	public function childMessageContacts(string $id): array {
+		return ($this->records?->contacts?->childContacts(profileId: $id) ?? []);
+	}//end childMessageContacts()
+
+	/**
+	 * The `contacts` provider of `studentEnrolments`: the teachers of an active enrolment's group.
+	 *
+	 * @param string $id The enrolment id.
+	 *
+	 * @return array<int, array{staffRef: string, name: string, role: string}>
+	 *
+	 * @spec openspec/changes/portal-message-contacts/specs/portal-contribution/spec.md#requirement-a-guardian-and-a-pupil-may-write-to-the-teachers-of-the-pupils-current-groups
+	 */
+	public function ownMessageContacts(string $id): array {
+		return ($this->records?->contacts?->ownContacts(enrolmentId: $id) ?? []);
+	}//end ownMessageContacts()
+
+	/**
+	 * The `documents` provider of `parentChildren`: the files of the child's
+	 * published report cards. Portaliq calls this only for a child it read
+	 * through the guardian's own scoped collection.
+	 *
+	 * @param string $id The child's learner profile id.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/guardian-reports-and-documents/specs/portal-contribution/spec.md#requirement-a-guardian-reads-her-childrens-published-reports-and-the-schools-papers-on-one-page
+	 */
+	public function childDocuments(string $id): array {
+		return ($this->records?->documents?->childReports(profileId: $id) ?? []);
+	}//end childDocuments()
+
+	/**
+	 * The `documents` provider of `parentSchools`: the files of the school's
+	 * published documents for guardians, for a school one of her children attends.
+	 *
+	 * @param string $id The school's id.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/guardian-reports-and-documents/specs/portal-contribution/spec.md#requirement-a-guardian-reads-her-childrens-published-reports-and-the-schools-papers-on-one-page
+	 */
+	public function schoolDocuments(string $id): array {
+		return ($this->records?->documents?->schoolPapers(schoolId: $id) ?? []);
+	}//end schoolDocuments()
+
 	/**
 	 * The audiences this provider contributes to (contract v2, preferred).
 	 *
@@ -81,12 +363,13 @@ class PortalContributionProvider {
 	 *
 	 * @return array<int, string> The audience identifiers.
 	 *
-	 * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-praktijkopleider-portal-access-is-a-direct-scope-portalcontributionprovider-audience
-	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
+	 * @spec openspec/specs/portal-contribution/spec.md
+	 * @spec openspec/specs/bpv/spec.md#requirement-praktijkopleider-portal-access-is-a-direct-scope-portalcontributionprovider-audience
+	 * @spec openspec/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
+	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
 	 */
 	public function getAudiences(): array {
-		return ['student', 'parent', 'praktijkopleider', 'external-assessor'];
+		return ['student', 'parent', 'praktijkopleider', 'external-assessor', EmployerSitePages::AUDIENCE, ParticipantSitePages::AUDIENCE];
 	}//end getAudiences()
 
 	/**
@@ -97,7 +380,7 @@ class PortalContributionProvider {
 	 *
 	 * @return string The primary audience identifier.
 	 *
-	 * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
 	public function getAudience(): string {
 		return 'student';
@@ -115,30 +398,61 @@ class PortalContributionProvider {
 	 *
 	 * @return array<string, mixed>|null The manifest, or null when not contributing.
 	 *
-	 * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
 	public function getContribution(array $subject): ?array {
 		$audience = $subject['audience'] ?? '';
 
 		if ($audience === 'student') {
-			return $this->studentContribution();
+			// The pupil reads her labels in her language too (site-pupil-portal-design).
+			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: $this->studentContribution());
 		}
 
 		if ($audience === 'parent') {
-			return $this->parentContribution();
+			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: $this->parentContribution());
 		}
 
 		if ($audience === 'praktijkopleider') {
-			return $this->practicalTrainerContribution();
+			// The trainer and the assessor read their labels in their language too.
+			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new TrainerSitePages())->contribution());
 		}
 
 		if ($audience === 'external-assessor') {
-			return $this->externalAssessorContribution();
+			// The trainer and the assessor read their labels in their language too.
+			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new AssessorSitePages())->contribution());
+		}
+
+		if ($audience === EmployerSitePages::AUDIENCE) {
+			// A company that sends its people to the courses (employer-portal-audience).
+			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new EmployerSitePages())->contribution());
+		}
+
+		if ($audience === ParticipantSitePages::AUDIENCE) {
+			// A course participant at a training institute (participant-portal).
+			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new ParticipantSitePages())->contribution());
 		}
 
 		// Any audience Learniq does not serve → null (fail-closed; ADR-005).
 		return null;
 	}//end getContribution()
+
+	/**
+	 * The steps of a company booking, for the employer's booking page.
+	 *
+	 * Portaliq calls the provider named by `employerBookings.steps.provider`
+	 * with the booking's id, after it checked that the employer may see that
+	 * booking. Without the service (a test, an older container) there are no
+	 * steps, never an error.
+	 *
+	 * @param string $id The booking's uuid.
+	 *
+	 * @return array<int, array<string, string>>
+	 *
+	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 */
+	public function employerBookingSteps(string $id): array {
+		return ($this->bookingSteps?->forBooking(bookingId: $id) ?? []);
+	}//end employerBookingSteps()
 
 	/**
 	 * Manifest for the `student` audience (the learner themself).
@@ -153,228 +467,35 @@ class PortalContributionProvider {
 	 *
 	 * @return array<string, mixed> The student manifest.
 	 *
-	 * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
 	private function studentContribution(): array {
+		$site = new StudentPortalPages();
+		$own  = new StudentPortalCollections();
+		$collections = array_merge(
+			$own->studentResultCollections(),
+			$own->studentActivityCollections(site: $site),
+			[$own->studentTestsCollection(), $site->homeworkCollection(), $site->attendanceSummaryCollection(), $site->sessionsCollection()]
+		);
+		$actions = array_merge(
+			$this->studentActions(site: $site),
+			$this->studentTestActions(),
+			[$this->handInAction()],
+			(new CatalogueFlowActions())->actions(),
+			(new WorkGroupFlowActions())->actions(),
+			(new StudentFlowActions())->actions()
+		);
+
 		return [
 			'label' => 'Learniq',
-			'collections' => array_merge(
-				$this->studentResultCollections(),
-				$this->studentActivityCollections(),
-				[$this->studentTestsCollection()]
-			),
-			'actions' => array_merge($this->studentActions(), $this->studentTestActions()),
+			'collections' => $collections,
+			'actions' => $actions,
+			// The overview and a short menu (site-pupil-portal-design).
+			'pages' => $site->pages(collections: $collections, actions: $actions),
 			'notifications' => [],
 		];
 
 	}//end studentContribution()
-
-	/**
-	 * The learner's own result collections — grades, final grades and attendance.
-	 *
-	 * Every entry is scoped by `learnerRef` == the student's own LearnerProfile
-	 * UUID and field-projected to hide staff-only columns.
-	 *
-	 * @return array<int, array<string, mixed>> Student result collections.
-	 *
-	 * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
-	 */
-	private function studentResultCollections(): array {
-		return [
-			[
-				'id' => 'studentGrades',
-				'register' => self::REGISTER,
-				'schema' => 'grade-entry',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'label' => 'My grades',
-				'listable' => true,
-				'minTrust' => 'low',
-				'fields' => [
-					'learnerRef',
-					'courseId',
-					'curriculumPlanId',
-					'componentId',
-					'value',
-					'gradeScaleId',
-					'period',
-					'gradedAt',
-				],
-			],
-			[
-				'id' => 'studentFinalGrades',
-				'register' => self::REGISTER,
-				'schema' => 'final-grade',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'label' => 'My final grades',
-				'listable' => true,
-				'minTrust' => 'low',
-				'fields' => [
-					'learnerRef',
-					'courseId',
-					'programmeId',
-					'curriculumPlanId',
-					'gradeScaleId',
-					'value',
-					'passed',
-					'lastRecomputedAt',
-				],
-			],
-			[
-				'id' => 'studentAttendance',
-				'register' => self::REGISTER,
-				'schema' => 'attendance-record',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'label' => 'My attendance',
-				'listable' => true,
-				'minTrust' => 'low',
-				'fields' => [
-					'learnerRef',
-					'sessionId',
-					'cohortId',
-					'status',
-					'minutesAttended',
-					'markedAt',
-				],
-			],
-		];
-
-	}//end studentResultCollections()
-
-	/**
-	 * The learner's own activity collections — enrolments, submissions, excuses and inbox.
-	 *
-	 * Every entry is scoped by the scalar `learnerRef`: portaliq's direct scope
-	 * compares one value, so the Submission array `learnerRefs` never matched
-	 * (assignment-portal-wiring). The inbox entry carries `kind: inbox` so portaliq renders it
-	 * in the shared inbox surface rather than as a plain collection.
-	 *
-	 * @return array<int, array<string, mixed>> Student activity collections.
-	 *
-	 * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
-	 */
-	private function studentActivityCollections(): array {
-		return [
-			[
-				'id' => 'studentEnrolments',
-				'register' => self::REGISTER,
-				'schema' => 'enrolment',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'label' => 'My enrolments',
-				'listable' => true,
-				'fields' => [
-					'learnerRef',
-					'courseId',
-					'mandatory',
-					'dueDate',
-					'source',
-					'regulationSlug',
-					'cohortId',
-				],
-			],
-			[
-				'id' => 'studentSubmissions',
-				'register' => self::REGISTER,
-				'schema' => 'submission',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'label' => 'My submissions',
-				'listable' => true,
-				'fields' => [
-					'learnerRef',
-					'assignmentId',
-					'attachmentRefs',
-					'submittedAt',
-					'feedbackText',
-					'lifecycle',
-				],
-			],
-			[
-				'id' => 'studentExcuseRequests',
-				'register' => self::REGISTER,
-				'schema' => 'excuse-request',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'label' => 'My absence excuses',
-				'listable' => true,
-				'fields' => [
-					'learnerRef',
-					'dateFrom',
-					'dateTo',
-					'reason',
-					'reasonKind',
-					'attachmentRef',
-					'lifecycle',
-					'decidedAt',
-				],
-			],
-			// Inbox (contract v2): the learner's grade-published
-			// notifications, scoped by learnerRef. Portaliq renders
-			// `kind: inbox` collections in the shared inbox surface.
-			[
-				'id' => 'studentInbox',
-				'kind' => 'inbox',
-				'register' => self::REGISTER,
-				'schema' => 'grade-notification',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'label' => 'Notifications',
-				'listable' => true,
-				'fields' => [
-					'learnerRef',
-					'event',
-					'courseId',
-				],
-			],
-		];
-
-	}//end studentActivityCollections()
-
-	/**
-	 * The learner's tests as a portaliq timed task (ConductionNL/portaliq#749).
-	 *
-	 * The collection lists the learner's own attempts, scoped by the scalar
-	 * `AssessmentResult.learnerRef` the attempt gate stamps, and exposes no
-	 * responses or scores: a result only leaves learniq through the `result`
-	 * step, once the teacher released it. The `timedTask` block names the five
-	 * endpoint actions of studentTestActions().
-	 *
-	 * @return array<string, mixed> The studentTests collection.
-	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
-	 */
-	private function studentTestsCollection(): array {
-		return [
-			'id' => 'studentTests',
-			'kind' => 'timedTask',
-			'register' => self::REGISTER,
-			'schema' => 'assessment-result',
-			'scopeField' => 'learnerRef',
-			'scopeClaim' => 'learnerRef',
-			'label' => 'My tests',
-			'listable' => true,
-			'minTrust' => 'low',
-			'fields' => [
-				'assessmentId',
-				'assessmentTitle',
-				'lifecycle',
-				'attemptNumber',
-				'startedAt',
-				'submittedAt',
-			],
-			'timedTask' => [
-				'available' => 'listTests',
-				'start' => 'startTest',
-				'answer' => 'saveTestAnswer',
-				'submit' => 'submitTest',
-				'result' => 'readTestResult',
-			],
-		];
-
-	}//end studentTestsCollection()
 
 	/**
 	 * The five steps of the timed task, each a server-to-server forward to
@@ -387,7 +508,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<int, array<string, mixed>> The timed-task actions.
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
 	 */
 	private function studentTestActions(): array {
 		$steps = [
@@ -418,6 +539,40 @@ class PortalContributionProvider {
 	}//end studentTestActions()
 
 	/**
+	 * Hand in a draft submission: a server-to-server forward to
+	 * PortalSubmissionController, which runs `submit` or `submitLate` as the
+	 * pupil through SubmissionWindowGuard.
+	 *
+	 * Portaliq stamps the pupil's own `learnerRef` (`subjectField`) over any
+	 * client value. `rowField` and `rowWhen` make it a row action where
+	 * portaliq supports them (ConductionNL/portaliq#805): a button on the
+	 * pupil's draft rows only, with `submissionId` stamped from the row portaliq
+	 * read under the pupil's scope. Older portaliq ignores both keys and
+	 * forwards `submissionId` from the body; the endpoint checks ownership
+	 * either way.
+	 *
+	 * @return array<string, mixed> The hand-in action.
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-a-draft-submission-from-the-portal-req-pcon-009
+	 */
+	private function handInAction(): array {
+		return [
+			'id' => 'handIn',
+			'type' => 'endpoint-forward',
+			'label' => 'Hand in',
+			'endpoint' => '/apps/learniq/api/portal/submissions/hand-in',
+			'method' => 'POST',
+			'minTrust' => 'low',
+			'fields' => ['submissionId'],
+			'subjectField' => 'learnerRef',
+			'scopeClaim' => 'learnerRef',
+			'rowField' => 'submissionId',
+			'rowWhen' => self::HAND_IN_ROW_WHEN,
+		];
+
+	}//end handInAction()
+
+	/**
 	 * The learner's own create-actions — hand in an assignment, report an absence.
 	 *
 	 * Strict field whitelists: grades, status, staff decision and assurance
@@ -429,56 +584,86 @@ class PortalContributionProvider {
 	 * learners and tenant a portal create cannot send are stamped by
 	 * `SubmissionOwnerStamp` from the pupil's LearnerProfile.
 	 *
+	 * @param StudentPortalPages $site The pupil's own declarations.
+	 *
 	 * @return array<int, array<string, mixed>> Student create-actions.
 	 *
-	 * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
-	 * @spec openspec/changes/assignment-portal-wiring/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-work-through-the-portal-with-a-real-file-req-pcon-007
+	 * @spec openspec/specs/portal-contribution/spec.md
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-work-through-the-portal-with-a-real-file-req-pcon-007
 	 */
-	private function studentActions(): array {
+	private function studentActions(StudentPortalPages $site): array {
 		return [
-			[
-				'id' => 'createSubmission',
-				'type' => 'create',
-				'label' => 'Hand in an assignment',
-				'register' => self::REGISTER,
-				'schema' => 'submission',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'minTrust' => 'low',
-				'fields' => [
-					'assignmentId',
-					'attachmentRefs',
-				],
-				'fieldConfigs' => [
-					'attachmentRefs' => [
-						'type' => 'file',
-						'label' => 'Your work',
-						'multiple' => true,
-						'accept' => ['.pdf', '.doc', '.docx', '.odt', '.pptx', '.jpg', '.png'],
-						'maxSizeMb' => 20,
-					],
-				],
-			],
-			[
-				'id' => 'createExcuseRequest',
-				'type' => 'create',
-				'label' => 'Report an absence',
-				'register' => self::REGISTER,
-				'schema' => 'excuse-request',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'minTrust' => 'low',
-				'fields' => [
-					'dateFrom',
-					'dateTo',
-					'reason',
-					'reasonKind',
-					'attachmentRef',
-				],
-			],
+			$this->submissionAction(),
+			// Between them, in the order her pages read (internship-hours).
+			$site->hourWeekAction(),
+			// "Nu invullen" on her work processes (guardian-tasks-per-child-and-self-assessment).
+			(new StudentSelfAssessment())->action(),
+			$this->absenceAction(),
 		];
 
 	}//end studentActions()
+
+
+	/**
+	 * She hands in a piece of work.
+	 *
+	 * @return array<string, mixed> The create action.
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md
+	 */
+	private function submissionAction(): array {
+		return [
+			'id' => 'createSubmission',
+			'type' => 'create',
+			'label' => 'Hand in an assignment',
+			'register' => self::REGISTER,
+			'schema' => 'submission',
+			'scopeField' => 'learnerRef',
+			'scopeClaim' => 'learnerRef',
+			'minTrust' => 'low',
+			'fields' => self::CREATE_SUBMISSION_FIELDS,
+			'fieldConfigs' => self::CREATE_SUBMISSION_FIELD_CONFIGS,
+			'submitLabel' => 'Hand in your work',
+		];
+
+	}//end submissionAction()
+
+	/**
+	 * She reports herself absent, with the same widgets her guardian gets.
+	 *
+	 * @return array<string, mixed> The create action.
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md
+	 */
+	private function absenceAction(): array {
+		return [
+		'id' => 'createExcuseRequest',
+		'type' => 'create',
+		'label' => 'Report an absence',
+		'register' => self::REGISTER,
+		'schema' => 'excuse-request',
+		'scopeField' => 'learnerRef',
+		'scopeClaim' => 'learnerRef',
+		'minTrust' => 'low',
+		'fields' => self::STUDENT_EXCUSE_REQUEST_FIELDS,
+		// A field portaliq is given no label for is drawn under its own
+		// name, so the pupil's form read `dateFrom`, `reason`,
+		// `reasonKind` where her guardian's reads Dutch sentences
+		// (measured on a live instance, pupil-flows.spec.ts). She gets
+		// the same labels and the same widgets, addressed to her.
+		'fieldConfigs' => [
+			'dateFrom' => ['label' => 'First day you are absent', 'required' => true, 'widget' => 'dateChoices', 'dateChoices' => 2],
+			'dateTo' => self::STUDENT_EXCUSE_REQUEST_DATE_TO,
+			'reason' => ['label' => 'Reason', 'required' => true],
+			'reasonKind' => self::EXCUSE_REQUEST_REASON_KIND,
+			'attachmentRef' => (new ExcuseAttachmentField())->config(),
+		],
+		'submitLabel' => 'Report your absence',
+		'successMessage' => 'The school has your report. You see the decision in the list of absence reports.',
+		];
+
+	}//end absenceAction()
+
 
 	/**
 	 * Manifest for the `parent` audience (a guardian of the learner).
@@ -510,11 +695,11 @@ class PortalContributionProvider {
 	 * into `submittedByRef` (never `learnerRef`, which is the child) and is
 	 * likewise `substantial`. Field projection is identical to the student
 	 * surface (same staff-only columns dropped). Reverse-join semantics, the
-	 * minTrust story and a worked example: openspec/changes/portal-parent/design.md.
+	 * minTrust story and a worked example: openspec/changes/archive/2026-09-28-portal-parent/design.md.
 	 *
 	 * @return array<string, mixed> The parent manifest.
 	 *
-	 * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
 	private function parentContribution(): array {
 		// The one-hop reverse join shared by every parent read collection:
@@ -528,66 +713,43 @@ class PortalContributionProvider {
 			'targetField' => 'id',
 			'match' => 'scopeField',
 		];
+		$extras = new ParentPortalCollections();
+		$record = new ParentRecordPage();
+		$collections = array_merge(
+			[$record->childrenCollection()],
+			$this->parentResultCollections(childJoin: $childJoin),
+			[$extras->reportCardGradesCollection(childJoin: $childJoin)],
+			$this->parentWelfareCollections(childJoin: $childJoin),
+			$extras->conferenceCollections(childJoin: $childJoin),
+			[$extras->groupMembershipsCollection(childJoin: $childJoin)],
+			[$extras->reportSubjectGradesCollection(childJoin: $childJoin)],
+			$record->collections(childJoin: $childJoin),
+			[(new ParentDocumentsPage())->schoolsCollection(childJoin: $childJoin)],
+			(new ParentPermissionSlips())->collections(childJoin: $childJoin)
+		);
+		$actions = array_merge(
+			$this->parentActions(childJoin: $childJoin),
+			$extras->conferenceActions(),
+			(new ParentPermissionSlips())->actions()
+		);
 
 		return [
-			'label' => 'Learniq',
-			'collections' => array_merge(
-				[$this->parentChildrenCollection()],
-				$this->parentResultCollections(childJoin: $childJoin),
-				$this->parentWelfareCollections(childJoin: $childJoin)
-			),
-			// Portal-contribution-guardian-audiences: portaliq's writer
-			// cross-reference guard (portaliq#607, merged 2026-09-18) now
-			// validates that a client-supplied cross-reference declared via
-			// `via` resolves inside the subject's own scope — exactly the
-			// guard this action's create was waiting on. `submittedByRef`
-			// (never `learnerRef`) is the server-stamped scope field; the
-			// guardian-supplied `learnerRef` in the create body names WHICH
-			// child, validated against $childJoin the same way every parent
-			// read collection above already is.
-			'actions' => $this->parentActions(childJoin: $childJoin),
-			'notifications' => [],
+			// A parent reads "School" over these sections, not the app's name.
+			'label' => 'School',
+			'collections' => $collections,
+			// One page per child, the calendar, then every other section.
+			'pages' => $record->pages(collections: $collections, actions: $actions, sections: $extras),
+			// Cross-references are checked against the guardian's children (portaliq#607).
+			'actions' => $actions,
+			// The guardian hears when the teacher answers a conference booking.
+			'notifications' => [$extras->conferenceAnsweredRule()],
+			// Portaliq news-audience-from-the-school-app: which of the collections
+			// above name the guardian's children, their school and their groups,
+			// so a news item for the school or a group reaches the guardian.
+			'guardianAudience' => self::PARENT_CONTRIBUTION_GUARDIAN_AUDIENCE,
 		];
 
 	}//end parentContribution()
-
-	/**
-	 * The guardian's per-child, per-guardian-group directory, with current
-	 * beeldmateriaal consent state.
-	 *
-	 * Matches `learner-profile` DIRECTLY (no `via`) by `guardianRefs` (array)
-	 * containing the guardian's own `subjectRef`. Portaliq's direct scope
-	 * compared one value, so this list read empty; ConductionNL/portaliq#750
-	 * adds list membership to the reader and writer. There is no cross-object hop
-	 * here, since `guardianRefs` lives on
-	 * the very schema being read. `guardianRefs` is itself exposed so a
-	 * guardian can see the full co-guardian group sharing a child (the
-	 * "per-group" audience D1 names alongside "per-child").
-	 *
-	 * @return array<string, mixed> The parentChildren collection.
-	 *
-	 * @spec openspec/changes/portal-contribution-guardian-audiences/specs/portal-contribution/spec.md#requirement-the-parent-audience-exposes-per-child-and-per-guardian-group-directory-data-req-pcon-006
-	 */
-	private function parentChildrenCollection(): array {
-		return [
-			'id' => 'parentChildren',
-			'register' => self::REGISTER,
-			'schema' => 'learner-profile',
-			'scopeField' => 'guardianRefs',
-			'scopeClaim' => 'guardianRef',
-			'label' => 'My children',
-			'listable' => true,
-			'minTrust' => 'substantial',
-			'fields' => [
-				'givenName',
-				'familyName',
-				'guardianRefs',
-				'beeldmateriaalConsent',
-				'beeldmateriaalConsentReviewDueAt',
-			],
-		];
-
-	}//end parentChildrenCollection()
 
 	/**
 	 * The guardian's create-actions — report a child's absence.
@@ -605,7 +767,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<int, array<string, mixed>> Parent create-actions.
 	 *
-	 * @spec openspec/changes/portal-contribution-guardian-audiences/specs/portal-contribution/spec.md#requirement-the-parent-audience-can-report-a-childs-absence-validated-against-the-callers-own-children-req-pcon-007
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-parent-audience-can-report-a-childs-absence-validated-against-the-callers-own-children-req-pcon-007
 	 */
 	private function parentActions(array $childJoin): array {
 		return [
@@ -619,14 +781,33 @@ class PortalContributionProvider {
 				'scopeClaim' => 'guardianRef',
 				'via' => $childJoin,
 				'minTrust' => 'substantial',
-				'fields' => [
-					'learnerRef',
-					'dateFrom',
-					'dateTo',
-					'reason',
-					'reasonKind',
-					'attachmentRef',
+				'fields' => self::PARENT_EXCUSE_REQUEST_FIELDS,
+				// The child is picked from the guardian's own children, and portaliq
+				// refuses any other value before the write (portal-parent-conference-
+				// booking); ExcuseRequestOwnerStamp checks it again.
+				'crossRefs' => ['learnerRef' => (new ParentPortalCollections())->childCrossRef()],
+				'optionsProviders' => ['learnerRef' => (new ParentPortalCollections())->childOptions()],
+				'fieldConfigs' => [
+					// One card per child (wilgenboom/MobielDetail "Wie is er afwezig?").
+					'learnerRef' => ['label' => 'Child', 'required' => true, 'widget' => 'choices'],
+					// Today and the next day as cards, then "Een andere dag" (portaliq
+					// site-multi-step-forms REQ-SMF-005, LearniqAbsence.dc.html).
+					'dateFrom' => ['label' => 'First day absent', 'required' => true, 'widget' => 'dateChoices', 'dateChoices' => 2],
+					'dateTo' => self::PARENT_EXCUSE_REQUEST_DATE_TO,
+					'reason' => ['label' => 'Reason', 'required' => true],
+					// Two cards and "Een andere reden" for the other four kinds, as the
+					// approved mockup shows.
+					'reasonKind' => self::EXCUSE_REQUEST_REASON_KIND,
+					'attachmentRef' => (new ExcuseAttachmentField())->config(),
 				],
+				'submitLabel' => 'Report the absence',
+				'successMessage' => "The school has your report. You see the teacher's decision in the list of absence reports.",
+				// The sentence above the send button and on the confirmation (board MobielDetail:
+				// "Sami is vandaag de hele dag ziek."). A date answer reads as "vandaag", "morgen" or
+				// a weekday in the page language; the child reads as the option's own label (L2-3).
+				'summary' => self::PARENT_EXCUSE_REQUEST_SUMMARY,
+				// What she reads after sending (site-guardian-portal-design T6b, REQ-SMF-022).
+				'confirmation' => self::PARENT_EXCUSE_REQUEST_CONFIRMATION,
 			],
 		];
 
@@ -643,7 +824,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<int, array<string, mixed>> Parent result collections.
 	 *
-	 * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
 	private function parentResultCollections(array $childJoin): array {
 		return [
@@ -658,16 +839,8 @@ class PortalContributionProvider {
 				'label' => "My child's grades",
 				'listable' => true,
 				'minTrust' => 'substantial',
-				'fields' => [
-					'learnerRef',
-					'courseId',
-					'curriculumPlanId',
-					'componentId',
-					'value',
-					'gradeScaleId',
-					'period',
-					'gradedAt',
-				],
+				'fields' => self::PARENT_GRADES_FIELDS,
+				'columns' => self::PARENT_GRADES_COLUMNS,
 			],
 			[
 				'id' => 'parentAttendance',
@@ -680,14 +853,8 @@ class PortalContributionProvider {
 				'label' => "My child's attendance",
 				'listable' => true,
 				'minTrust' => 'substantial',
-				'fields' => [
-					'learnerRef',
-					'sessionId',
-					'cohortId',
-					'status',
-					'minutesAttended',
-					'markedAt',
-				],
+				'fields' => self::PARENT_ATTENDANCE_FIELDS,
+				'columns' => self::PARENT_ATTENDANCE_COLUMNS,
 			],
 		];
 
@@ -705,7 +872,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<int, array<string, mixed>> Parent welfare collections.
 	 *
-	 * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
 	private function parentWelfareCollections(array $childJoin): array {
 		return [
@@ -717,19 +884,14 @@ class PortalContributionProvider {
 				'scopeClaim' => 'guardianRef',
 				'via' => $childJoin,
 				'groupByField' => 'learnerRef',
+				// The newest absence first: a guardian looks for the report
+				// they just sent, not for the oldest one on file.
+				'defaultSort' => ['field' => 'dateFrom', 'direction' => 'desc'],
 				'label' => "My child's absence excuses",
 				'listable' => true,
 				'minTrust' => 'substantial',
-				'fields' => [
-					'learnerRef',
-					'dateFrom',
-					'dateTo',
-					'reason',
-					'reasonKind',
-					'attachmentRef',
-					'lifecycle',
-					'decidedAt',
-				],
+				'fields' => self::PARENT_EXCUSE_REQUESTS_FIELDS,
+				'columns' => self::PARENT_EXCUSE_REQUESTS_COLUMNS,
 			],
 			[
 				'id' => 'parentReportCards',
@@ -751,196 +913,16 @@ class PortalContributionProvider {
 				// filter, so it can only ever subset the guardian's own rows —
 				// mirrors pipelinq's PortalContributionProvider's own `filter` usage).
 				'filter' => ['lifecycle' => 'published-to-parents'],
-				'fields' => [
-					'learnerRef',
-					'reportPeriodId',
-					'subjectGrades',
-					'attendanceSummary',
-					'mentorComment',
-					'docudeskDocumentRef',
-				],
+				// The readable copies (periodName, gradeLines) stand in for the
+				// nested subjectGrades: the portal writes a nested list into one
+				// cell and leaves its uuids out, so it read "7,9, Yes" without a
+				// subject or a period (portal-parent-report-card-grades).
+				'fields' => self::PARENT_REPORT_CARDS_FIELDS,
+				'columns' => self::PARENT_REPORT_CARDS_COLUMNS,
 			],
 		];
 
 	}//end parentWelfareCollections()
 
-	/**
-	 * Manifest for the `praktijkopleider` audience (the workplace supervisor conducting BPV).
-	 *
-	 * `subject.subjectRef` is the praktijkopleider's own `Praktijkopleider` object UUID — a
-	 * DIRECT scope key on `BpvPlacement` (`praktijkopleiderId == subject.subjectRef`), unlike
-	 * `parent`'s reverse one-hop join, because the placement literally belongs to that
-	 * praktijkopleider (no join required). This follows the `student` shape (direct match,
-	 * safe to ship create-actions), not the `parent` shape (no create yet, pending a
-	 * cross-ref-validating writer). Both create-actions are `minTrust: substantial` — an
-	 * official werkproces assessment and a POK signature both feed diploma-track evidence,
-	 * the same trust floor `portal-parent` set for guardian actions over minor data.
-	 *
-	 * Field projection: the read collection excludes `schoolCoachId` (internal staff
-	 * identity) and `leerbedrijfVerification.raw` (the SBB provider's raw payload may carry
-	 * more than the erkenning status) — mirrors the staff-only-column drop table in
-	 * portal-contribution/design.md.
-	 *
-	 * eportfolio: gains one new direct-matched collection, `poSharedPortfolios`, over
-	 * `portfolio-share` (NOT a `via` join — `PortfolioShare` itself carries
-	 * `sharedWithPraktijkopleiderId`, so no cross-object resolution is needed, exactly the
-	 * same direct-scope shape `poBpvPlacements` above already uses). `filter: {lifecycle:
-	 * active}` is applied BEFORE the scope filter (mirrors `parentReportCards`'s own
-	 * `filter` usage) so a `revoked` share resolves no rows. The collection exposes the
-	 * grant's own `portfolioId`/`entryIds` pointer fields — resolving those into the
-	 * referenced `Portfolio`/`PortfolioEntry` content is downstream of this manifest (this
-	 * class stays a pure, I/O-free declaration per its own class docblock); it does not
-	 * declare a second `via`-joined collection here because the documented `via` contract
-	 * (`openspec/changes/portal-parent/design.md`'s `isValidVia()` key set — exactly
-	 * `{register, schema, scopeField, targetField, match}`) has no hook to filter the
-	 * *joined* schema by its own lifecycle, so a `via`-based `portfolio`/`portfolio-entry`
-	 * collection could not honour "a revoked share resolves no rows". Resolving
-	 * `portfolioId`/`entryIds` into the referenced `Portfolio`/`PortfolioEntry` content is
-	 * therefore left to the portal client reading those objects directly, out of this
-	 * manifest's declarative scope — flagged as a follow-up once portaliq's `via` contract
-	 * grows a joined-schema filter hook.
-	 *
-	 * @return array<string, mixed> The praktijkopleider manifest.
-	 *
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-praktijkopleider-portal-access-is-a-direct-scope-portalcontributionprovider-audience
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-praktijkopleider-portal-actions-never-trust-client-supplied-identity
-	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
-	 */
-	private function practicalTrainerContribution(): array {
-		return [
-			'label' => 'Learniq',
-			'collections' => [
-				[
-					'id' => 'poBpvPlacements',
-					'register' => self::REGISTER,
-					'schema' => 'bpv-placement',
-					'scopeField' => 'practicalTrainerId',
-					'scopeClaim' => 'practicalTrainerId',
-					'label' => 'My BPV placements',
-					'listable' => true,
-					'minTrust' => 'low',
-					'fields' => [
-						'practicalTrainerId',
-						'learnerRef',
-						'curriculumPlanId',
-						'trainingCompanyName',
-						'periodFrom',
-						'periodTo',
-						'lifecycle',
-					],
-				],
-				[
-					'id' => 'poSharedPortfolios',
-					'register' => self::REGISTER,
-					'schema' => 'portfolio-share',
-					'scopeField' => 'sharedWithPracticalTrainerId',
-					'scopeClaim' => 'practicalTrainerId',
-					'label' => 'Portfolios shared with me',
-					'listable' => true,
-					'minTrust' => 'low',
-					// Only active grants resolve — a revoked share must return no rows.
-					'filter' => ['lifecycle' => 'active'],
-					'fields' => [
-						'portfolioId',
-						'entryIds',
-						'sharedWithKind',
-						'sharedBy',
-						'expiresAt',
-						'lifecycle',
-					],
-				],
-			],
-			'actions' => [
-				[
-					'id' => 'createWerkprocesAssessment',
-					'type' => 'create',
-					'label' => 'Submit a werkproces assessment',
-					'register' => self::REGISTER,
-					'schema' => 'werkproces-assessment',
-					'scopeField' => 'assessorId',
-					'scopeClaim' => 'practicalTrainerId',
-					'minTrust' => 'substantial',
-					'fields' => [
-						'bpvPlacementId',
-						'curriculumPlanId',
-						'componentId',
-						'kwalificatiedossierCode',
-						'coreTaskCode',
-						'werkprocesCode',
-						'werkprocesLabel',
-						'assessment',
-						'notes',
-					],
-				],
-				[
-					'id' => 'signPraktijkovereenkomst',
-					'type' => 'create',
-					'label' => 'Sign the praktijkovereenkomst',
-					'register' => self::REGISTER,
-					'schema' => 'pok-signature',
-					'scopeField' => 'signerId',
-					'scopeClaim' => 'practicalTrainerId',
-					'minTrust' => 'substantial',
-					'fields' => [
-						'subjectId',
-						'subjectVersion',
-						'assuranceLevel',
-						'method',
-						'evidenceRef',
-					],
-				],
-			],
-			'notifications' => [],
-		];
 
-	}//end praktijkopleiderContribution()
-
-	/**
-	 * Manifest for the `external-assessor` audience (a non-BPV external assessor granted
-	 * read-only portfolio access, no Nextcloud account — `ExternalAssessor` schema).
-	 *
-	 * The fourth audience, added following the exact mechanism `bpv-praktijkovereenkomst`
-	 * used to add `praktijkopleider` as the third: one more `getAudiences()` value, one
-	 * more `getContribution()` branch, and this method. `subject.subjectRef` is the
-	 * assessor's own `ExternalAssessor` object UUID — a DIRECT scope key on
-	 * `PortfolioShare.sharedWithExternalAssessorId`, the same direct-match shape
-	 * `praktijkopleiderContribution()`'s new `poSharedPortfolios` collection uses (see that
-	 * method's docblock for why this stays a direct `portfolio-share` read rather than a
-	 * `via`-joined `portfolio` one). Zero create-actions — external-assessor access is
-	 * read-only per the brief.
-	 *
-	 * @return array<string, mixed> The external-assessor manifest.
-	 *
-	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
-	 */
-	private function externalAssessorContribution(): array {
-		return [
-			'label' => 'Learniq',
-			'collections' => [
-				[
-					'id' => 'eaSharedPortfolios',
-					'register' => self::REGISTER,
-					'schema' => 'portfolio-share',
-					'scopeField' => 'sharedWithExternalAssessorId',
-					'scopeClaim' => 'externalAssessorId',
-					'label' => 'Portfolios shared with me',
-					'listable' => true,
-					'minTrust' => 'low',
-					// Only active grants resolve — a revoked share must return no rows.
-					'filter' => ['lifecycle' => 'active'],
-					'fields' => [
-						'portfolioId',
-						'entryIds',
-						'sharedWithKind',
-						'sharedBy',
-						'expiresAt',
-						'lifecycle',
-					],
-				],
-			],
-			'actions' => [],
-			'notifications' => [],
-		];
-
-	}//end externalAssessorContribution()
 }//end class

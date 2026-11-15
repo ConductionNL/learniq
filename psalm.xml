@@ -33,35 +33,41 @@
              container. Real classes live in openregister/lib/Service/. -->
         <file name="tests/Stubs/Service/TenantKeyService.php" preloadClasses="true" />
         <file name="tests/Stubs/Service/TalkLinkService.php" preloadClasses="true" />
+        <file name="tests/Stubs/Service/OrganisationService.php" preloadClasses="true" />
+        <file name="tests/Stubs/Db/Organisation.php" preloadClasses="true" />
+        <file name="tests/Stubs/Db/MagicMapper.php" preloadClasses="true" />
         <file name="tests/Stubs/Service/FileService.php" preloadClasses="true" />
-        <!-- OpenRegister's store plane (ADR-080) and its SSRF guard, injected and
-             called by learniq's course store (lesson-sharing-via-store-plane). -->
+        <!-- OpenRegister's RBAC refusal, caught to answer 403 instead of 500. -->
+        <file name="tests/Stubs/Exception/NotAuthorizedException.php" preloadClasses="true" />
+        <!-- OpenRegister's store plane (ADR-080): discovery, publish and the
+             publish authorizer, used by learniq's course store
+             (lesson-sharing-via-store-plane, store-publish-through-plane). The
+             plane owns the SSRF guard, so learniq no longer stubs SecurityService. -->
         <file name="tests/Stubs/AppHost/Service/StoreDescriptor.php" preloadClasses="true" />
         <file name="tests/Stubs/AppHost/Service/GenericStoreService.php" preloadClasses="true" />
-        <file name="tests/Stubs/Service/SecurityService.php" preloadClasses="true" />
+        <file name="tests/Stubs/AppHost/Store/StoreActionAuthorizer.php" preloadClasses="true" />
         <!-- OpenRegister's lifecycle guard contract. A `requires` guard must
              implement the interface or OpenRegister refuses to run it. -->
         <file name="tests/Stubs/Lifecycle/GuardResult.php" preloadClasses="true" />
         <file name="tests/Stubs/Lifecycle/LifecycleGuardInterface.php" preloadClasses="true" />
         <!-- OpenRegister's lifecycle action contract: the transition `actions`
              that carry the writes the guards used to make (learniq#983). -->
+        <file name="tests/Stubs/Lifecycle/LifecycleActionContext.php" preloadClasses="true" />
         <file name="tests/Stubs/Lifecycle/LifecycleActionInterface.php" preloadClasses="true" />
         <!-- Integriq's connection-registry event (adopt-connection-registry).
              ConnectionReportService names it by string behind class_exists
              (ADR-041). Declaration-only stub, so psalm sees the constructor the
              service builds instead of reading the guarded branch as dead. -->
         <file name="tests/Stubs/Integriq/Event/ConnectionStatusReportedEvent.php" preloadClasses="true" />
+        <!-- Portaliq's claim scope event. PortalClaimScopeListener matches it by
+             class name (ADR-041). Declaration-only stub; the real class lives in
+             portaliq/lib/Event/. -->
+        <file name="tests/Stubs/Portaliq/Event/PortalClaimScopeEvent.php" preloadClasses="true" />
     </stubs>
     <issueHandlers>
         <UndefinedDocblockClass errorLevel="suppress"/>
         <UndefinedClass>
             <errorLevel type="suppress">
-                <!-- Nextcloud's legacy bootstrap class. There is no OCP
-                     interface for registering another app's autoloader, so the
-                     ADR-040 load-order prelude in AppInfo\OpenRegisterAutoloader
-                     has to call OC_App::registerAutoloading() directly. It is
-                     server-private and therefore absent from nextcloud/ocp. -->
-                <referencedClass name="OC_App"/>
                 <!-- Nextcloud OCP Classes -->
                 <referencedClass name="OCP\AppFramework\App"/>
                 <referencedClass name="OCP\AppFramework\Bootstrap\IBootstrap"/>
@@ -122,6 +128,8 @@
                 <referencedClass name="OCA\OpenRegister\Service\FileService"/>
                 <referencedClass name="OCA\OpenRegister\Service\CalendarEventService"/>
                 <referencedClass name="OCA\OpenRegister\Mcp\IMcpToolProvider"/>
+                <referencedClass name="OCA\OpenRegister\Mcp\IMcpScannableServices"/>
+                <referencedClass name="OCA\OpenRegister\Mcp\Attribute\McpTool"/>
                 <referencedClass name="OCA\OpenRegister\Event\ObjectTransitionedEvent"/>
                 <referencedClass name="OCA\OpenRegister\Service\Lifecycle\TransitionEngine"/>
                 <referencedClass name="OCA\OpenRegister\Db\AuditTrailMapper"/>
@@ -148,6 +156,13 @@
                 <referencedClass name="GuzzleHttp\Exception\GuzzleException"/>
             </errorLevel>
         </UndefinedClass>
+        <!-- OpenRegister's #[McpTool] attribute on the agent tools (hermiq-ai-tooling);
+             the class exists once openregister is installed. -->
+        <UndefinedAttributeClass>
+            <errorLevel type="suppress">
+                <referencedClass name="OCA\OpenRegister\Mcp\Attribute\McpTool"/>
+            </errorLevel>
+        </UndefinedAttributeClass>
         <UndefinedMagicMethod errorLevel="suppress"/>
         <UnusedClass errorLevel="suppress"/>
         <PossiblyUnusedMethod errorLevel="suppress"/>

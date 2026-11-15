@@ -31,14 +31,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-only-staff-set-a-resubmission-date
+ * @spec openspec/specs/assignments/spec.md#requirement-only-staff-set-a-resubmission-date
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -54,7 +54,7 @@ use Throwable;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-only-staff-set-a-resubmission-date
+ * @spec openspec/specs/assignments/spec.md#requirement-only-staff-set-a-resubmission-date
  */
 class SubmissionResubmissionDateListener implements IEventListener {
 
@@ -69,7 +69,7 @@ class SubmissionResubmissionDateListener implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
 	 * @param IUserSession $userSession The signed-in user, if any.
 	 * @param IGroupManager $groupManager Group membership and admin checks.
 	 * @param LoggerInterface $logger PSR logger.
@@ -77,7 +77,7 @@ class SubmissionResubmissionDateListener implements IEventListener {
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
 		private readonly LoggerInterface $logger,
@@ -91,7 +91,7 @@ class SubmissionResubmissionDateListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-only-staff-set-a-resubmission-date
+	 * @spec openspec/specs/assignments/spec.md#requirement-only-staff-set-a-resubmission-date
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {
@@ -133,11 +133,7 @@ class SubmissionResubmissionDateListener implements IEventListener {
 	 * @return ObjectEntity
 	 */
 	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
+		return (new WrittenObject())->entityOf(event: $event);
 	}//end entityOf()
 
 	/**

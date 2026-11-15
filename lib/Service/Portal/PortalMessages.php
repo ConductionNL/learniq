@@ -19,23 +19,24 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+ * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PortalMessagesInterface;
 use OCP\IUser;
 use OCP\L10N\IFactory;
 
 /**
  * Words a refusal reason for the pupil.
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+ * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
  */
-class PortalMessages {
+class PortalMessages implements PortalMessagesInterface {
 
 	/**
 	 * English source text per reason; translated through l10n.
@@ -50,6 +51,10 @@ class PortalMessages {
 		'access-code-wrong' => 'The access code is not correct.',
 		'attempt-closed' => 'This test is already handed in.',
 		'no-account' => 'Your school account is not ready for tests yet. Ask your school.',
+		'submission-not-found' => 'This work could not be found.',
+		'already-handed-in' => 'This work is already handed in.',
+		'late-not-accepted' => 'The deadline has passed and this assignment does not accept late work.',
+		'hand-in-refused' => 'This work cannot be handed in right now. Ask your teacher.',
 	];
 
 	/**
@@ -73,10 +78,10 @@ class PortalMessages {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function message(string $reason, ?IUser $user): string {
-		$l10n = $this->l10nFactory->get(Application::APP_ID, $this->l10nFactory->getUserLanguage($user));
+		$l10n = $this->l10nFactory->get(AppIdentity::APP_ID, $this->l10nFactory->getUserLanguage($user));
 
 		return $l10n->t(self::TEXTS[$reason] ?? self::TEXTS['not-available']);
 	}//end message()

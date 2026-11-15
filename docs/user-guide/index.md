@@ -1,6 +1,6 @@
-# Scholiq, User Guide
+# Learniq, User Guide
 
-This guide covers the three primary personas in Scholiq's compliance-training wedge: **Learner**, **Manager**, and **Compliance Officer**. Each section describes the tasks that persona performs day-to-day.
+This guide covers the three primary personas in Learniq's compliance-training wedge: **Learner**, **Manager**, and **Compliance Officer**. Each section describes the tasks that persona performs day-to-day.
 
 ---
 

@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lesson-sharing-consent-gate/tasks.md#task-2-share-export-service-consent-schema-and-record
+ * @spec openspec/changes/archive/2026-09-28-lesson-sharing-consent-gate/tasks.md#task-2-share-export-service-consent-schema-and-record
  */
 
 declare(strict_types=1);

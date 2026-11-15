@@ -3,6 +3,9 @@
 /**
  * Learniq Grade Rollup Handler
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Listens for OpenRegister's ObjectTransitionedEvent and handles two bridges:
  *
  * 1. GradeEntry → published: finds or creates the FinalGrade for the learner +
@@ -29,8 +32,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -45,21 +46,27 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\GradeFormulaEvaluatorInterface;
+use OCA\Learniq\Kernel\Contracts\GradeVisibilityResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Grading\GradeFormulaEvaluator;
-use OCA\Learniq\Grading\GradeVisibilityResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
+use Throwable;
 
 /**
  * Bridges GradeEntry.published → FinalGrade recompute and AssessmentResult.graded → GradeEntry creation.
  *
  * @implements IEventListener<Event>
- * @spec       openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+ * @spec       openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
  */
 class GradeRollupHandler implements IEventListener {
+	use FindOrNull;
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
@@ -67,22 +74,27 @@ class GradeRollupHandler implements IEventListener {
 	private const ASSESSMENT_RESULT_SCHEMA = 'assessment-result';
 	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
 	private const CURRICULUM_PLAN_SCHEMA = 'curriculum-plan';
+	private const PROGRAMME_SCHEMA = 'programme';
 
 	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
-	 * @param GradeFormulaEvaluator $evaluator Formula evaluation engine.
-	 * @param GradeVisibilityResolver $visibilityResolver Scheduled-visibility-window resolver.
+	 * @param GradeFormulaEvaluatorInterface $evaluator Formula evaluation engine.
+	 * @param GradeVisibilityResolverInterface $visibilityResolver Scheduled-visibility-window resolver.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param LoggerInterface        $logger  Logs a roll-up that failed.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly GradeFormulaEvaluator $evaluator,
-		private readonly GradeVisibilityResolver $visibilityResolver,
+		private readonly GradeFormulaEvaluatorInterface $evaluator,
+		private readonly GradeVisibilityResolverInterface $visibilityResolver,
 		private readonly ITimeFactory $timeFactory,
+		private readonly ListenerSchemaResolverInterface $schemas,
+		private readonly LoggerInterface $logger=new NullLogger(),
 	) {
 	}//end __construct()
 
@@ -96,28 +108,48 @@ class GradeRollupHandler implements IEventListener {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-5
 	 */
 	public function handle(Event $event): void {
-		if (($event instanceof ObjectTransitionedEvent) === false) {
+		if (($event instanceof ObjectTransitionedEvent) === false
+			|| $this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER
+		) {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
-			return;
+		// The transition is committed before this runs. A roll-up that fails
+		// must not throw: Nextcloud's dispatcher stops at a throwing listener,
+		// so the listeners after this one on the same event (the correction
+		// bookkeeping among them) would never run (live pass D9).
+		try {
+			$this->rollUpAfter(event: $event);
+		} catch (Throwable $exception) {
+			$this->logger->error(
+				'[GradeRollupHandler] The grade roll-up after a transition failed; the transition stands: {error}',
+				['error' => $exception->getMessage(), 'exception' => $exception]
+			);
 		}
 
-		if ($event->getSchema() === self::GRADE_ENTRY_SCHEMA
+	}//end handle()
+
+	/**
+	 * Roll up after a published grade entry or a graded assessment result.
+	 *
+	 * @param ObjectTransitionedEvent $event The transition.
+	 *
+	 * @return void
+	 */
+	private function rollUpAfter(ObjectTransitionedEvent $event): void {
+		if ($this->schemas->eventSchema(event: $event) === self::GRADE_ENTRY_SCHEMA
 			&& $event->getTo() === 'published'
 		) {
 			$this->handleGradeEntryPublished(event: $event);
 			return;
 		}
 
-		if ($event->getSchema() === self::ASSESSMENT_RESULT_SCHEMA
+		if ($this->schemas->eventSchema(event: $event) === self::ASSESSMENT_RESULT_SCHEMA
 			&& $event->getTo() === 'graded'
 		) {
 			$this->handleAssessmentResultGraded(event: $event);
 		}
-
-	}//end handle()
+	}//end rollUpAfter()
 
 	/**
 	 * Recompute FinalGrade and fan out parent notifications when a GradeEntry publishes.
@@ -127,7 +159,7 @@ class GradeRollupHandler implements IEventListener {
 	 * @return void
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-5
-	 * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+	 * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
 	 */
 	private function handleGradeEntryPublished(ObjectTransitionedEvent $event): void {
 		$entry = $event->getObject()->jsonSerialize();
@@ -173,7 +205,7 @@ class GradeRollupHandler implements IEventListener {
 	 *
 	 * @return string ISO-8601 resolved `visibleFrom`.
 	 *
-	 * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#scenario-curriculumplan-supplies-the-default-visibility-policy-when-a-teacher-does-not-override
+	 * @spec openspec/changes/archive/2026-07-13-grade-visibility-scheduling/specs/grading/spec.md#scenario-curriculumplan-supplies-the-default-visibility-policy-when-a-teacher-does-not-override
 	 */
 	private function resolveAndPersistVisibleFrom(string $curriculumPlanId, array $entry): string {
 		$policy = $this->fetchGradeVisibilityPolicy(curriculumPlanId: $curriculumPlanId);
@@ -207,15 +239,13 @@ class GradeRollupHandler implements IEventListener {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#scenario-curriculumplan-supplies-the-default-visibility-policy-when-a-teacher-does-not-override
+	 * @spec openspec/changes/archive/2026-07-13-grade-visibility-scheduling/specs/grading/spec.md#scenario-curriculumplan-supplies-the-default-visibility-policy-when-a-teacher-does-not-override
 	 */
 	private function fetchGradeVisibilityPolicy(string $curriculumPlanId): ?array {
-		$plan = $this->objectService->find(
-			id: $curriculumPlanId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::CURRICULUM_PLAN_SCHEMA
-		);
-
+		// A system read: the publishing teacher may not read the plan (D9).
+		$find = fn () => $this->objectService
+			->find(id: $curriculumPlanId, register: self::LEARNIQ_REGISTER, schema: self::CURRICULUM_PLAN_SCHEMA, _rbac: false);
+		$plan = $this->findOrNull(find: $find);
 		if ($plan === null) {
 			return null;
 		}
@@ -241,6 +271,7 @@ class GradeRollupHandler implements IEventListener {
 	 * @return void
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-21
+	 * @spec openspec/specs/grading/spec.md#requirement-the-final-grade-roll-up-writes-only-declared-properties
 	 */
 	private function recomputeFinalGrade(
 		string $learnerId,
@@ -253,35 +284,21 @@ class GradeRollupHandler implements IEventListener {
 			learnerId: $learnerId
 		);
 
-		// Find existing FinalGrade for this pair.
-		$existing = $this->objectService->findAll(
-			[
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::FINAL_GRADE_SCHEMA,
-					'learnerId' => $learnerId,
-					'curriculumPlanId' => $curriculumPlanId,
-				],
-				'limit' => 1,
-			]
-		);
+		$existingObj = $this->storedFinalGrade(learnerId: $learnerId, curriculumPlanId: $curriculumPlanId);
 
-		$existingObj = null;
-		if (empty($existing) === false && is_array($existing[0]) === true) {
-			$existingObj = $existing[0];
-		}
-
-		if (empty($existing) === false && is_array($existing[0]) === false) {
-			$existingObj = $existing[0]->jsonSerialize();
-		}
+		// FinalGrade declares no cohortId and no reader uses one (the programme
+		// KPI filters on programmeId), so a row written before this was fixed
+		// drops it on recompute instead of carrying an undeclared key forward.
+		$existingData = $existingObj ?? [];
+		unset($existingData['cohortId']);
 
 		$data = array_merge(
-			$existingObj ?? [],
+			$existingData,
 			[
 				'learnerId' => $learnerId,
 				'curriculumPlanId' => $curriculumPlanId,
+				'programmeId' => $this->programmeFor(curriculumPlanId: $curriculumPlanId, current: ($existingObj['programmeId'] ?? null)),
 				'courseId' => $entry['courseId'] ?? ($existingObj['courseId'] ?? null),
-				'cohortId' => $entry['cohortId'] ?? ($existingObj['cohortId'] ?? null),
 				'gradeScaleId' => $entry['gradeScaleId'] ?? ($existingObj['gradeScaleId'] ?? null),
 				'tenant_id' => $tenantId,
 				'value' => $result['value'],
@@ -300,6 +317,119 @@ class GradeRollupHandler implements IEventListener {
 	}//end recomputeFinalGrade()
 
 	/**
+	 * The stored FinalGrade for a learner and plan as an array, or null when there is none.
+	 *
+	 * @param string $learnerId        NC user ID.
+	 * @param string $curriculumPlanId Plan UUID.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private function storedFinalGrade(string $learnerId, string $curriculumPlanId): ?array {
+		$existing = $this->objectService->findAll(
+			[
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::FINAL_GRADE_SCHEMA,
+					'learnerId' => $learnerId,
+					'curriculumPlanId' => $curriculumPlanId,
+				],
+				'limit' => 1,
+			]
+		);
+
+		if (empty($existing) === true) {
+			return null;
+		}
+
+		if (is_array($existing[0]) === true) {
+			return $existing[0];
+		}
+
+		return $existing[0]->jsonSerialize();
+
+	}//end storedFinalGrade()
+
+	/**
+	 * The Programme a final grade belongs to: the one whose curriculum plan it
+	 * was computed from. The programme KPI filters FinalGrade on programmeId,
+	 * so a roll-up that never wrote it left every programme at zero. A plan no
+	 * programme uses keeps what the row had (null for a course-level grade).
+	 *
+	 * @param string $curriculumPlanId Plan UUID.
+	 * @param mixed $current The programmeId already on the row, if any.
+	 *
+	 * @return string|null The Programme UUID, or null.
+	 *
+	 * @spec openspec/specs/grading/spec.md#requirement-the-final-grade-roll-up-writes-the-programme-it-belongs-to
+	 */
+	private function programmeFor(string $curriculumPlanId, mixed $current): ?string {
+		$programmeId = $this->planProgrammeId(curriculumPlanId: $curriculumPlanId);
+		if ($programmeId !== null) {
+			return $programmeId;
+		}
+
+		if (is_string($current) === true && $current !== '') {
+			return $current;
+		}
+
+		return null;
+	}//end programmeFor()
+
+	/**
+	 * The id of the programme that uses a curriculum plan, or null.
+	 *
+	 * @param string $curriculumPlanId The curriculum plan.
+	 *
+	 * @return string|null
+	 */
+	private function planProgrammeId(string $curriculumPlanId): ?string {
+		$programmes = $this->objectService->findAll($this->programmeQuery(curriculumPlanId: $curriculumPlanId));
+		if (empty($programmes) === true) {
+			return null;
+		}
+
+		return $this->programmeId(programme: $programmes[0]);
+	}//end planProgrammeId()
+
+	/**
+	 * The read for the programme that uses a curriculum plan.
+	 *
+	 * @param string $curriculumPlanId The curriculum plan.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function programmeQuery(string $curriculumPlanId): array {
+		return [
+			'filters' => [
+				'register' => self::LEARNIQ_REGISTER,
+				'schema' => self::PROGRAMME_SCHEMA,
+				'curriculumPlanId' => $curriculumPlanId,
+			],
+			'limit' => 1,
+		];
+	}//end programmeQuery()
+
+	/**
+	 * A programme's id (or uuid) when it is a non-empty string, or null.
+	 *
+	 * @param mixed $programme The programme row or entity.
+	 *
+	 * @return string|null
+	 */
+	private function programmeId(mixed $programme): ?string {
+		if (is_array($programme) === false) {
+			$programme = $programme->jsonSerialize();
+		}
+
+		$id = ($programme['id'] ?? ($programme['uuid'] ?? null));
+		if (is_string($id) === true && $id !== '') {
+			return $id;
+		}
+
+		return null;
+	}//end programmeId()
+
+	/**
 	 * Resolve LearnerProfile.parentIds and fire the gradePublished notification for each parent.
 	 *
 	 * The declarative x-openregister-notifications on GradeEntry targets the learnerId only.
@@ -315,31 +445,15 @@ class GradeRollupHandler implements IEventListener {
 	 * @return void
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-22
-	 * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+	 * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
 	 */
 	private function fanOutParentNotifications(string $learnerId, array $gradeEntry, string $visibleFrom): void {
 		// LearnerProfile keys the pupil on ncUserId; it has no learnerId, and a
 		// filter on an undeclared property matches nothing. Read without RBAC:
 		// the publisher may not read LearnerProfile, and only parentIds is used.
-		$profiles = $this->objectService->findAll(
-			[
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::LEARNER_PROFILE_SCHEMA,
-					'ncUserId' => $learnerId,
-				],
-				'limit' => 1,
-			],
-			_rbac: false
-		);
-
-		if (empty($profiles) === true) {
+		$profile = $this->parentProfile(learnerId: $learnerId);
+		if ($profile === null) {
 			return;
-		}
-
-		$profile = $profiles[0];
-		if (is_array($profiles[0]) === false) {
-			$profile = $profiles[0]->jsonSerialize();
 		}
 
 		$parentIds = $profile['parentIds'] ?? [];
@@ -377,7 +491,11 @@ class GradeRollupHandler implements IEventListener {
 					'recipient' => $parentId,
 					'sourceId' => $sourceId,
 					'learnerId' => $gradeEntry['learnerId'] ?? '',
+					// The portal inbox reads a notice through the child it is about, and shows the
+					// subject's name, never the grade (school-portals-use-the-new-blocks).
+					'learnerRef' => ($profile['id'] ?? ($profile['uuid'] ?? ($gradeEntry['learnerRef'] ?? null))),
 					'courseId' => $gradeEntry['courseId'] ?? null,
+					'courseName' => $gradeEntry['courseName'] ?? null,
 					'idempotencyKey' => $sourceId . '-parent-' . $parentId,
 					'visibleFrom' => $visibleFrom,
 					'tenant_id' => $gradeEntry['tenant_id'] ?? '',
@@ -392,6 +510,40 @@ class GradeRollupHandler implements IEventListener {
 		}//end foreach
 
 	}//end fanOutParentNotifications()
+
+	/**
+	 * The pupil's LearnerProfile as an array, or null when there is none.
+	 *
+	 * @param string $learnerId The pupil's Nextcloud user id.
+	 *
+	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
+	 */
+	private function parentProfile(string $learnerId): ?array {
+		$profiles = $this->objectService->findAll(
+			[
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LEARNER_PROFILE_SCHEMA,
+					'ncUserId' => $learnerId,
+				],
+				'limit' => 1,
+			],
+			_rbac: false
+		);
+
+		if (empty($profiles) === true) {
+			return null;
+		}
+
+		$profile = $profiles[0];
+		if (is_array($profiles[0]) === false) {
+			$profile = $profiles[0]->jsonSerialize();
+		}
+
+		return $profile;
+	}//end parentProfile()
 
 	/**
 	 * Create a concept GradeEntry when an AssessmentResult reaches `graded`.
@@ -415,15 +567,8 @@ class GradeRollupHandler implements IEventListener {
 		$componentId = $result['gradeEntryComponentId'] ?? null;
 		$planId = $result['curriculumPlanId'] ?? null;
 		$scaleId = $result['gradeScaleId'] ?? null;
-		$existingId = $result['gradeEntryId'] ?? null;
 
-		if ($learnerId === '' || $totalScore === null || $componentId === null || $planId === null) {
-			// Insufficient data to create a meaningful GradeEntry — skip.
-			return;
-		}
-
-		// Do not create a duplicate if gradeEntryId is already set.
-		if ($existingId !== null) {
+		if ($this->needsGradeEntry(result: $result) === false) {
 			return;
 		}
 
@@ -463,4 +608,24 @@ class GradeRollupHandler implements IEventListener {
 		);
 
 	}//end handleAssessmentResultGraded()
+
+	/**
+	 * Whether a graded AssessmentResult should get a GradeEntry: it carries a learner,
+	 * a score, a component and a plan (otherwise no meaningful entry can be made), and
+	 * has no gradeEntryId yet (otherwise it would be a duplicate).
+	 *
+	 * @param array<string, mixed> $result The AssessmentResult.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-21
+	 */
+	private function needsGradeEntry(array $result): bool {
+		$complete = ($result['learnerId'] ?? '') !== ''
+			&& ($result['totalScore'] ?? null) !== null
+			&& ($result['gradeEntryComponentId'] ?? null) !== null
+			&& ($result['curriculumPlanId'] ?? null) !== null;
+
+		return $complete === true && ($result['gradeEntryId'] ?? null) === null;
+	}//end needsGradeEntry()
 }//end class

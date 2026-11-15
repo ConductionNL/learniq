@@ -28,15 +28,15 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+ * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\PeerReviewWorkProjection;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PeerReviewWorkProjectionInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -50,7 +50,7 @@ use Throwable;
 /**
  * The reviewer's read path to the work under review.
  *
- * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+ * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
  */
 class PeerReviewWorkController extends Controller {
 
@@ -59,16 +59,16 @@ class PeerReviewWorkController extends Controller {
 	 *
 	 * @param IRequest $request The request.
 	 * @param IUserSession $userSession The signed-in user.
-	 * @param PeerReviewWorkProjection $projection Builds and authorizes the projection.
+	 * @param PeerReviewWorkProjectionInterface $projection Builds and authorizes the projection.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
-		private readonly PeerReviewWorkProjection $projection,
+		private readonly PeerReviewWorkProjectionInterface $projection,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -78,7 +78,7 @@ class PeerReviewWorkController extends Controller {
 	 *
 	 * @return JSONResponse 200 with the projection; 401, 403 or 404 otherwise.
 	 *
-	 * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
 	 */
 	#[NoAdminRequired]
 	public function show(string $peerReviewId = ''): JSONResponse {
@@ -88,11 +88,11 @@ class PeerReviewWorkController extends Controller {
 		}
 
 		$context = $this->projection->resolve(peerReviewId: $peerReviewId, callerId: $user->getUID());
-		if ($context['verdict'] === PeerReviewWorkProjection::FORBIDDEN) {
+		if ($context['verdict'] === PeerReviewWorkProjectionInterface::FORBIDDEN) {
 			return new JSONResponse(data: ['error' => 'Only the reviewer can see this work.'], statusCode: Http::STATUS_FORBIDDEN);
 		}
 
-		if ($context['verdict'] !== PeerReviewWorkProjection::ALLOWED) {
+		if ($context['verdict'] !== PeerReviewWorkProjectionInterface::ALLOWED) {
 			return new JSONResponse(data: ['error' => 'Peer review not found'], statusCode: Http::STATUS_NOT_FOUND);
 		}
 
@@ -109,7 +109,7 @@ class PeerReviewWorkController extends Controller {
 	 *
 	 * @return DataDisplayResponse|JSONResponse The file as an attachment; or 401, 403 or 404.
 	 *
-	 * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -120,12 +120,12 @@ class PeerReviewWorkController extends Controller {
 		}
 
 		$context = $this->projection->resolve(peerReviewId: $peerReviewId, callerId: $user->getUID());
-		if ($context['verdict'] === PeerReviewWorkProjection::FORBIDDEN) {
+		if ($context['verdict'] === PeerReviewWorkProjectionInterface::FORBIDDEN) {
 			return new JSONResponse(data: ['error' => 'Only the reviewer can see this work.'], statusCode: Http::STATUS_FORBIDDEN);
 		}
 
 		$found = null;
-		if ($context['verdict'] === PeerReviewWorkProjection::ALLOWED) {
+		if ($context['verdict'] === PeerReviewWorkProjectionInterface::ALLOWED) {
 			$found = $this->projection->file(context: $context, fileId: $fileId);
 		}
 

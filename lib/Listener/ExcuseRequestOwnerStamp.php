@@ -3,6 +3,9 @@
 /**
  * Learniq Excuse Request Owner Stamp
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Decides, on the server, whose absence an ExcuseRequest reports, who filed it
  * and which school it belongs to.
  *
@@ -20,7 +23,16 @@
  *
  * For every other write it derives `learnerRef` from `learnerId`: a client
  * value is never kept, so nobody can point an excuse at another pupil's portal
- * list.
+ * list. A signed-in create is filed in the caller's name (`submittedBy`), and
+ * one that names the pupil only by profile (`learnerRef`, as the staff form
+ * does) gets the pupil's `learnerId` and, when missing, the school from that
+ * profile.
+ *
+ * On every write it also stamps `teacherIds`, the teachers of the pupil's
+ * current groups (PupilGroupTeachers). The schema's read rule lets a teacher
+ * read only the reports that list them, because an OpenRegister `match` can
+ * only compare a field on the object itself with the caller. A client value
+ * is never kept, so nobody can add themselves to a report's audience.
  *
  * @category Listener
  * @package  OCA\Learniq\Listener
@@ -29,27 +41,28 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/settings-and-excuse-authorization/specs/attendance/spec.md#requirement-the-server-stamps-who-an-excuse-request-is-about-and-who-filed-it
+ * @spec openspec/specs/attendance/spec.md#requirement-the-server-stamps-who-an-excuse-request-is-about-and-who-filed-it
+ * @spec openspec/changes/excuse-reports-follow-the-pupils-group/specs/attendance/spec.md#requirement-an-absence-report-is-read-by-the-teachers-of-the-pupils-group-and-by-school-wide-staff
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\Portal\LearnerProfileLookup;
+use OCA\Learniq\Kernel\Contracts\ExcuseRequestStaffOwnerInterface;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\PortalWriteSubjectInterface;
+use OCA\Learniq\Kernel\Contracts\PupilGroupTeachersInterface;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
-use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -58,7 +71,7 @@ use Throwable;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/settings-and-excuse-authorization/specs/attendance/spec.md#requirement-the-server-stamps-who-an-excuse-request-is-about-and-who-filed-it
+ * @spec openspec/specs/attendance/spec.md#requirement-the-server-stamps-who-an-excuse-request-is-about-and-who-filed-it
  */
 class ExcuseRequestOwnerStamp implements IEventListener {
 
@@ -91,18 +104,22 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
-	 * @param LearnerProfileLookup $profiles LearnerProfile by uuid, uuid by user.
-	 * @param IUserSession $userSession Tells a portal write (no session) from an app write.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
+	 * @param LearnerRefResolverInterface $profiles LearnerProfile by uuid, uuid by user.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param PupilGroupTeachersInterface $groupTeachers The teachers of a pupil's current groups.
+	 * @param PortalWriteSubjectInterface $writers Whether the portal's own subject is writing.
+	 * @param ExcuseRequestStaffOwnerInterface $staffOwner The submitter, pupil and school of a staff write.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly LearnerProfileLookup $profiles,
-		private readonly IUserSession $userSession,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		private readonly LearnerRefResolverInterface $profiles,
 		private readonly LoggerInterface $logger,
+		private readonly PupilGroupTeachersInterface $groupTeachers,
+		private readonly PortalWriteSubjectInterface $writers,
+		private readonly ExcuseRequestStaffOwnerInterface $staffOwner,
 	) {
 	}//end __construct()
 
@@ -113,7 +130,8 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/settings-and-excuse-authorization/specs/attendance/spec.md#requirement-the-server-stamps-who-an-excuse-request-is-about-and-who-filed-it
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-server-stamps-who-an-excuse-request-is-about-and-who-filed-it
+	 * @spec openspec/changes/excuse-reports-follow-the-pupils-group/specs/attendance/spec.md#requirement-an-absence-report-is-read-by-the-teachers-of-the-pupils-group-and-by-school-wide-staff
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {
@@ -137,8 +155,63 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 			return;
 		}
 
-		$event->setModifiedData(array_merge($event->getModifiedData(), $outcome['stamp']));
+		$stamp = $outcome['stamp'];
+		$learnerId = $this->text(value: ($stamp['learnerId'] ?? ($payload['learnerId'] ?? null)));
+		$stamp['teacherIds'] = $this->teachersFor(event: $event, learnerId: $learnerId);
+
+		$event->setModifiedData(array_merge($event->getModifiedData(), $stamp));
 	}//end handle()
+
+	/**
+	 * The teachers of the pupil's current groups. On an update whose pupil did
+	 * not change, a failed lookup keeps the stored value; otherwise it stamps
+	 * nobody, which leaves the report to school-wide staff and never widens
+	 * who reads it.
+	 *
+	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The write event.
+	 * @param string $learnerId Nextcloud user id of the pupil, '' when unknown.
+	 *
+	 * @return array<int, string>
+	 */
+	private function teachersFor(ObjectCreatingEvent|ObjectUpdatingEvent $event, string $learnerId): array {
+		try {
+			return $this->groupTeachers->forLearner(learnerId: $learnerId);
+		} catch (Throwable $exception) {
+			$kept = [];
+			if ($event instanceof ObjectUpdatingEvent === true) {
+				$kept = $this->storedTeachers(event: $event, learnerId: $learnerId);
+			}
+
+			$this->logger->warning(
+				'[ExcuseRequestOwnerStamp] Could not resolve the group teachers, keeping {count}: {msg}',
+				['count' => count($kept), 'msg' => $exception->getMessage()]
+			);
+			return $kept;
+		}
+	}//end teachersFor()
+
+	/**
+	 * The teacherIds stored before this update, or none when the update
+	 * changes the pupil (the old teachers then teach someone else).
+	 *
+	 * @param ObjectUpdatingEvent $event The update event.
+	 * @param string $learnerId The pupil as it will be saved.
+	 *
+	 * @return array<int, string>
+	 */
+	private function storedTeachers(ObjectUpdatingEvent $event, string $learnerId): array {
+		$old = $event->getOldObject();
+		if ($old === null) {
+			return [];
+		}
+
+		$oldData = ($old->getObject() ?? []);
+		if ($this->text(value: ($oldData['learnerId'] ?? null)) !== $learnerId) {
+			return [];
+		}
+
+		return array_values(array_filter((array)($oldData['teacherIds'] ?? []), static fn ($id): bool => is_string($id) === true && $id !== ''));
+	}//end storedTeachers()
 
 	/**
 	 * What to stamp on this write, or why to refuse it.
@@ -153,7 +226,10 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 			return $this->portalStamp(payload: $payload);
 		}
 
-		$stamp = ['learnerRef' => $this->derivedRef(event: $event, payload: $payload)];
+		$stamp = $this->staffOwner->ownerFields(isCreate: $event instanceof ObjectCreatingEvent, payload: $payload);
+		$stamp['learnerRef'] = $this->derivedRef(event: $event, payload: array_merge($payload, $stamp));
+		$stamp = array_merge($stamp, $this->staffOwner->schoolFields(payload: $payload, learnerRef: $stamp['learnerRef']));
+
 		if ($this->text(value: ($payload['submittedAuthLevel'] ?? null)) === '') {
 			$stamp['submittedAuthLevel'] = self::DEFAULT_LEVEL;
 		}
@@ -170,11 +246,24 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 	 * @return bool
 	 */
 	private function isPortalReport(array $payload): bool {
-		if ($this->userSession->getUser() !== null || $this->text(value: ($payload['learnerId'] ?? null)) !== '') {
+		if ($this->text(value: ($payload['learnerId'] ?? null)) !== '') {
 			return false;
 		}
 
-		return $this->text(value: ($payload['learnerRef'] ?? null)) !== '';
+		$learnerRef = $this->text(value: ($payload['learnerRef'] ?? null));
+		if ($learnerRef === '') {
+			return false;
+		}
+
+		// Who wrote it decides the branch, not whether anybody is signed in:
+		// a pupil signs in to her own portal with her school account
+		// (PortalWriteSubject).
+		$ref = $this->text(value: ($payload['submittedByRef'] ?? null));
+		if ($ref === '') {
+			$ref = $learnerRef;
+		}
+
+		return $this->writers->wroteItThemselves(ref: $ref);
 	}//end isPortalReport()
 
 	/**
@@ -250,7 +339,7 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 	 */
 	private function derivedRef(ObjectCreatingEvent|ObjectUpdatingEvent $event, array $payload): ?string {
 		try {
-			return $this->profiles->refForUser(ncUserId: $this->text(value: ($payload['learnerId'] ?? null)));
+			return $this->profiles->resolveAcrossTenants(learnerId: $this->text(value: ($payload['learnerId'] ?? null)));
 		} catch (Throwable $exception) {
 			$kept = null;
 			if ($event instanceof ObjectUpdatingEvent === true) {

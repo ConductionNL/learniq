@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bpv-coach-authorization/tasks.md#task-2-register-tests
+ * @spec openspec/changes/archive/2026-09-28-bpv-coach-authorization/tasks.md#task-2-register-tests
  */
 
 declare(strict_types=1);
@@ -165,8 +165,9 @@ class BpvCoachAuthorizationRegisterTest extends TestCase {
 	public function testChangedSchemasAreVersionBumped(): void {
 		$schemas = $this->config['components']['schemas'];
 
-		self::assertSame('0.2.0', $schemas['BpvPlacement']['version']);
-		self::assertSame('0.2.0', $schemas['Praktijkopleider']['version']);
+		// A floor, not an exact value: later changes bump these schemas again.
+		self::assertTrue(condition: version_compare(version1: $schemas['BpvPlacement']['version'], version2: '0.2.0', operator: '>='));
+		self::assertTrue(condition: version_compare(version1: $schemas['Praktijkopleider']['version'], version2: '0.2.0', operator: '>='));
 
 	}//end testChangedSchemasAreVersionBumped()
 }//end class

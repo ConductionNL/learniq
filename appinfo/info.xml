@@ -21,19 +21,19 @@
 - School-year rollover wizard (propose mapping, side-effect-free preview)
 - IMS QTI 2.x / 3.0 and Common Cartridge item-bank import
 - Open Badges 3.0 credential issuance and public verification endpoint
+- Launch cmi5 lessons and keep every xAPI result in learniq's own learning record store (an administrator generates the launch key once, before the first launch)
 
 **Later phases**
 
 - K-12 leerlingvolgsysteem (Phase 2): BRON/ROD, UWLR, OSO, Edukoppeling, SchoolID/ECK iD pseudonymisation, OPP cycle, PTA grading, DigiD parent flow — a generic data-exchange job queue with an OSO parent-approval gate already exists, but no BRON/ROD, OSO, or SURFconext OpenConnector adapter is wired yet, so no wire-level exchange runs today
 - Higher education (Phase 2): SURFconext federation, Studielink enrolment, OOAPI 5.0 catalog, eduPersonAffiliation, edubadges
 - Assessment authoring (Phase 3): proctored exams (ProctoringProviderInterface for ProctorU, Honorlock, ExamSoft — interface only, no provider wired), EDCI verifiable credentials
-- cmi5/xAPI learning-record ingest: the xAPI-statement schema and its lifecycle hook exist, but there is no learner-facing LRS ingest endpoint yet and cmi5 AU launch-token minting is a documented, currently-disabled stub (tracked in openspec/changes/cmi5-xapi-lrs-ingest/)
 - AI-assisted features (Phase 5): adaptive learning paths + AI item generation, gated behind EU AI Act high-risk feature flags
 
 **Technical foundations**
 
 - Built on OpenRegister (data layer), OpenConnector (external system adapters), and @conduction/nextcloud-vue
-- Content runtime target: cmi5 + xAPI primary, SCORM 1.2 / 2004 compatibility shim (learner-facing ingest and cmi5 launch not yet wired — see Later phases)
+- Content runtime: cmi5 + xAPI primary, with a SCORM 1.2 / 2004 compatibility shim
 - Immutable audit trail backs compliance evidence, AVG record-of-processing, and AI Act decision traces
 - Standards-first: 26 standards mapped (SCORM, xAPI, cmi5, LTI, QTI, EDCI, Open Badges 3.0, UWLR, OSO, ROD, Edukoppeling, SchoolID, ECK iD, SURFconext, AVG, EU AI Act, BIO2, NIS2) — most as design target, not all yet implemented
 
@@ -55,20 +55,21 @@ Free and open source under the EUPL-1.2 license.
 - Wizard voor schooljaarovergang (voorstel + side-effect-vrije preview)
 - Import van IMS QTI 2.x/3.0- en Common Cartridge-itembanken
 - Uitgifte en publieke verificatie van Open Badges 3.0-credentials
+- Start cmi5-lessen en bewaar elk xAPI-resultaat in de eigen leerregistratie van learniq (een beheerder maakt eenmalig de startsleutel aan, vóór de eerste start)
 
 **Latere fasen**
 
 - K-12 leerlingvolgsysteem (Fase 2): BRON/ROD, UWLR, OSO, Edukoppeling, SchoolID/ECK iD-pseudonimisatie, OPP-cyclus, PTA-beoordeling, DigiD-ouderflow — er bestaat al een generieke data-uitwisselingswachtrij met een OSO-ouderakkoordstap, maar er is nog geen BRON/ROD-, OSO- of SURFconext-OpenConnector-adapter gekoppeld, dus er loopt nog geen daadwerkelijke uitwisseling
 - Hoger onderwijs (Fase 2): SURFconext-federatie, Studielink-inschrijving, OOAPI 5.0-catalogus, eduPersonAffiliation, edubadges
 - Toetsing (Fase 3): proctored exams (alleen interface, nog geen gekoppelde provider), EDCI verifieerbare credentials
-- cmi5/xAPI-leerregistratie: het xAPI-statement-schema en de bijbehorende lifecycle-hook bestaan, maar er is nog geen leerling-gerichte LRS-ingest-endpoint en het aanmaken van cmi5-launchtokens is een gedocumenteerde, momenteel uitgeschakelde stub (zie openspec/changes/cmi5-xapi-lrs-ingest/)
 - AI-functies (Fase 5): adaptieve leerpaden, gegate achter EU AI Act high-risk feature flags
 
 Vrij en open source onder de EUPL-1.2-licentie.
 
 **Ondersteuning:** support@conduction.nl
     ]]></description>
-    <version>0.3.6-unstable.20260928090000</version>
+    <version>0.3.9-beta.20261105100000</version>
+    <!-- @spec openspec/specs/platform-properties/spec.md#REQ-PLAT-001, #REQ-PLAT-002 -->
     <licence>EUPL-1.2</licence>
     <author mail="info@conduction.nl" homepage="https://www.conduction.nl/">Conduction</author>
     <namespace>Learniq</namespace>
@@ -105,7 +106,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
         lib/Settings/learniq_register.json, as noted above.
         -->
         <php min-version="8.3" max-version="8.4"/>
-        <nextcloud min-version="32" max-version="34"/>
+        <nextcloud min-version="32" max-version="35"/>
     </dependencies>
 
     <background-jobs>
@@ -121,6 +122,15 @@ Vrij en open source onder de EUPL-1.2-licentie.
              of the last EUDI wallet offer. Sends nothing when integriq is not
              installed. -->
         <job>OCA\Learniq\BackgroundJob\ConnectionReportJob</job>
+        <!-- Every 15 minutes: removes course-evaluation-response rows left in
+             draft for longer than learniq.evaluation_draft_max_age_seconds
+             (default 3600, floor 600). A draft lives for one request; one a
+             crash leaves behind is readable by every signed-in user. -->
+        <job>OCA\Learniq\BackgroundJob\CourseEvaluationDraftCleanupJob</job>
+        <!-- attendance-warns-before-the-threshold: once a day, recounts the
+             pupils whose rolling unauthorised-hours window still holds hours,
+             so an absence that slid out of the window lowers the count. -->
+        <job>OCA\Learniq\BackgroundJob\AttendanceWindowSweepJob</job>
     </background-jobs>
 
     <repair-steps>
@@ -219,8 +229,22 @@ Vrij en open source onder de EUPL-1.2-licentie.
             -->
             <step>OCA\Learniq\Repair\PruneRetiredSchemas</step>
             <step>OCA\Learniq\Repair\InitializeSettings</step>
+            <!-- teacher-notes-protection: move teacherNote blocks out of lessons into the
+                 staff-only lesson-teacher-note schema. After InitializeSettings, which
+                 imports that schema; idempotent, a no-op once no lesson holds a note. -->
+            <step>OCA\Learniq\Repair\MoveTeacherNotesOutOfLessons</step>
             <!-- ADR-023: seed the action-authorization matrix (default admin-only). -->
             <step>OCA\Learniq\Repair\InitializeActions</step>
+            <!-- store-rights-for-teachers (D27): once per instance, add course-store.install
+                 and move course-package.share off the untouched old default. After
+                 InitializeActions, which owns an empty matrix. -->
+            <step>OCA\Learniq\Repair\ApplyStoreRightsDefaults</step>
+            <!--
+                The seed named compliance-officer and manager, groups that do
+                not exist; InitializeActions keeps a stored matrix, so this
+                renames them there once (live pass 2 Oct, D1).
+            -->
+            <step>OCA\Learniq\Repair\RenameStaleActionGroups</step>
             <!--
                 Must run AFTER the register sync that adds the English columns.
                 Covers every renamed property together: a register-scoped step
@@ -236,6 +260,109 @@ Vrij en open source onder de EUPL-1.2-licentie.
                 the next upgrade.
             -->
             <step>OCA\Learniq\Repair\BackfillGradeEntryLearnerRef</step>
+            <!--
+                lvs-result-learner-ref: stamps the LearnerProfile UUID on LVS
+                results imported before the server did it on every write.
+                After InitializeSettings (the register must exist).
+                Idempotent; a row it cannot resolve is retried on the next
+                upgrade.
+            -->
+            <step>OCA\Learniq\Repair\BackfillLvsResultLearnerRef</step>
+            <!--
+                learning-record-own-rows: stamps the student's user id on
+                werkproces assessments written before the server did it on
+                every write, so the student can read their own confirmed
+                assessments. After InitializeSettings (the register must
+                exist). Idempotent; a row whose placement names nobody is
+                left alone.
+            -->
+            <step>OCA\Learniq\Repair\BackfillWerkprocesAssessmentLearner</step>
+            <!--
+                default-tenant fallback (Ruben, 2026-09-29, option A): an unbound
+                user's tenant used to be the instance id, which is not a UUID and
+                matched no seeded row. Moves rows that carry it to the default
+                tenant. After InitializeSettings (the register must exist).
+                Idempotent; touches only rows whose tenant_id is the instance id.
+            -->
+            <step>OCA\Learniq\Repair\MoveInstanceIdTenantToDefaultTenant</step>
+            <!--
+                data-exchange-to-integriq (D7): archives every retired
+                DataExchangeJob, DataMappingProfile, ExchangeRejection and
+                ExchangeErrorCode row to data-exchange-archive/, then, when
+                integriq is installed, hands the jobs and customised mappings
+                to integriq through its events. After InitializeSettings, so
+                DossierReview exists for a job that still waits for a parent.
+                Runs once (app config exchange_migrated_to_integriq); deletes nothing.
+            -->
+            <step>OCA\Learniq\Repair\MigrateDataExchangeToIntegriq</step>
+            <!--
+                learnerrefs-backfill-and-lookup-dedupe: stamps learnerRefs and
+                learnerRef on submissions written before the server did, so they
+                reach the portal. After InitializeSettings (the register must
+                exist). Idempotent; a row it cannot resolve is retried on the
+                next upgrade.
+            -->
+            <step>OCA\Learniq\Repair\BackfillSubmissionLearnerRefs</step>
+            <!--
+                absence-and-booking-fields-are-required: writes learnerRef on
+                stored absence reports and conference signups that lack it, so
+                they still save now that the schemas require it. Before
+                BackfillExcuseRequestTeachers, whose writes need it. After
+                InitializeSettings. Idempotent: a second run saves nothing.
+            -->
+            <step>OCA\Learniq\Repair\BackfillRequiredLearnerRefs</step>
+            <!--
+                excuse-reports-follow-the-pupils-group: stamps teacherIds (the
+                teachers of the pupil's current groups) on absence reports
+                written before the server did, so the group teacher can read
+                them. After InitializeSettings (the register must declare the
+                field). Idempotent; a row it cannot resolve is retried on the
+                next upgrade.
+            -->
+            <step>OCA\Learniq\Repair\BackfillExcuseRequestTeachers</step>
+            <!--
+                portal-parent-report-card-grades: writes periodName and
+                gradeLines (the readable period and subject grades the parent
+                portal shows) on report cards composed before the server did.
+                After InitializeSettings (the register must declare the
+                fields). Idempotent; a row it cannot read is retried on the
+                next upgrade.
+            -->
+            <step>OCA\Learniq\Repair\BackfillReportCardGradeLines</step>
+            <!--
+                attendance-summary-per-school-year: counts the attendance
+                summary (absent days with and without permission, late
+                arrivals and minutes) of every learner with records written
+                before the summary existed. After InitializeSettings (the
+                register must declare the schema). Idempotent: a second run
+                saves nothing.
+            -->
+            <step>OCA\Learniq\Repair\BackfillAttendanceSummaries</step>
+            <!--
+                site-guardian-portal-design, site-external-assessor-portal-design:
+                writes courseName on grade entries, cohortName on enrolments,
+                portfolioTitle and learnerName on portfolio shares, and
+                teacherName on teacher availability (teacher-availability-reads-words)
+                written before the server did. After InitializeSettings (the register
+                must declare the fields). Idempotent: a second run saves nothing.
+            -->
+            <step>OCA\Learniq\Repair\BackfillReadableCopies</step>
+            <!--
+                pupils-read-by-name: saves every learner profile stored before
+                the schema named its objects from the given and family name,
+                so OpenRegister computes the name a teacher's list reads. After
+                InitializeSettings (the register must declare the template).
+                Idempotent: a second run saves nothing.
+            -->
+            <step>OCA\Learniq\Repair\BackfillLearnerProfileNames</step>
+            <!--
+                guardian-tasks-per-child-and-self-assessment: writes one
+                conference invitation per invited child for every round open
+                for booking, so a guardian's tasks name each child. After
+                InitializeSettings (the register must declare the schema).
+                Idempotent: a second run saves nothing.
+            -->
+            <step>OCA\Learniq\Repair\BackfillConferenceInvitations</step>
         </post-migration>
         <install>
             <!--
@@ -256,11 +383,21 @@ Vrij en open source onder de EUPL-1.2-licentie.
 
     <commands>
         <!-- Removes a loaded example set by handing its fixed uuids to
-             occ openregister:objects:purge (openspec/changes/segment-wizard-choice). -->
+             occ openregister:objects:purge (openspec/changes/archive/2026-09-28-segment-wizard-choice). -->
         <command>OCA\Learniq\Command\ExampleSetRemoveCommand</command>
         <!-- curriculum-coverage-rollup: fills CurriculumCoverage rows for data saved
              before the rollup existed; the listener keeps them current afterwards. -->
         <command>OCA\Learniq\Command\RecomputeCurriculumCoverage</command>
+        <!-- portal-guardian-invitation: links a guardian to the parent portal. -->
+        <command>OCA\Learniq\Command\PortalInviteGuardianCommand</command>
+        <command>OCA\Learniq\Command\PortalInviteTrainerCommand</command>
+        <command>OCA\Learniq\Command\PortalInviteAssessorCommand</command>
+        <command>OCA\Learniq\Command\PortalInviteEmployerCommand</command>
+        <command>OCA\Learniq\Command\PortalEmployerTenancyReportCommand</command>
+        <!-- example-sets-themed-portal: gives a loaded example set its themed portal
+             without importing the set again. -->
+        <command>OCA\Learniq\Command\ExampleSetPortalCommand</command>
+        <command>OCA\Learniq\Command\ExampleSetLoadCommand</command>
     </commands>
 
     <settings>

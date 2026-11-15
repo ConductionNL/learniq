@@ -21,12 +21,12 @@
  Storage/lifecycle/notifications are OpenRegister's; this view only creates
  the choice and drives its submit transition through the OR object API.
 
- @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
- @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-guardian-consent-gates-a-minor-s-subject-choice-submission
+ @spec openspec/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
+ @spec openspec/specs/school-structure/spec.md#requirement-guardian-consent-gates-a-minor-s-subject-choice-submission
 -->
 <template>
-	<div class="subject-choice-picker">
-		<h2>{{ t('learniq', 'Pick electives (vakkenpakket)') }}</h2>
+	<div class="subject-choice-picker lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Pick electives (vakkenpakket)')" />
 
 		<NcLoadingIcon v-if="loading" :size="32" />
 
@@ -40,7 +40,10 @@
 				)
 			" />
 
-		<template v-else>
+		<CnDetailCard
+			v-else
+			:title="selectedPlan ? selectedPlan.name || '' : ''"
+			class="subject-choice-picker__card">
 			<div class="subject-choice-picker__field">
 				<label for="scp-plan">{{ t('learniq', 'Curriculum plan') }}</label>
 				<NcSelect
@@ -89,11 +92,27 @@
 					multiple
 					:inputLabel="t('learniq', 'Electives')"
 					:aria-label-combobox="t('learniq', 'Electives')" />
+				<ul
+					v-if="chosenElectives.length > 0"
+					class="subject-choice-picker__slots"
+					data-testid="elective-slots">
+					<li v-for="elective in chosenElectives" :key="elective.id">
+						<strong>{{ elective.label }}</strong
+						>:
+						{{
+							elective.slots.length > 0
+								? elective.slots.map(slotText).join(', ')
+								: t('learniq', 'no lessons planned yet')
+						}}
+					</li>
+				</ul>
 			</div>
 
 			<!-- Live rule feedback -->
 			<div v-if="selectedPlan" class="subject-choice-picker__feedback">
-				<NcNoteCard v-if="feedback.length === 0" type="success">
+				<NcNoteCard
+					v-if="feedback.length === 0 && clashMessages.length === 0"
+					type="success">
 					{{
 						t(
 							'learniq',
@@ -103,6 +122,16 @@
 				</NcNoteCard>
 				<NcNoteCard v-for="(msg, idx) in feedback" :key="idx" type="warning">
 					{{ msg }}
+				</NcNoteCard>
+				<NcNoteCard
+					v-for="(msg, idx) in clashMessages"
+					:key="'clash-' + idx"
+					type="warning"
+					data-testid="elective-clash">
+					{{ msg }}
+				</NcNoteCard>
+				<NcNoteCard v-if="slotsError" type="error">
+					{{ slotsError }}
 				</NcNoteCard>
 			</div>
 
@@ -145,13 +174,15 @@
 						: t('learniq', 'Submit subject choice')
 				}}
 			</NcButton>
-		</template>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
+import { getLanguage } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import {
 	NcButton,
@@ -160,11 +191,15 @@ import {
 	NcNoteCard,
 	NcSelect,
 } from '@nextcloud/vue'
+import { clashes, slotLabel } from '../utils/electiveSlots.js'
+import { fetchLinkedLearners } from '../utils/linkedLearners.js'
 
 export default {
 	name: 'SubjectChoicePicker',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
@@ -187,6 +222,11 @@ export default {
 			submitting: false,
 			submitError: '',
 			submitSuccess: false,
+			// Weekly slots per elective and of the learner's own core lessons
+			// (timetabling-student-choice-placement).
+			electiveSlots: {},
+			coreSlots: [],
+			slotsError: '',
 		}
 	},
 
@@ -196,7 +236,7 @@ export default {
 		 * at least one elective course.
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
+		 * @spec openspec/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		planOptions() {
 			return this.plans
@@ -215,7 +255,7 @@ export default {
 		 * The currently selected CurriculumPlan object, or null.
 		 *
 		 * @return {object|null}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
+		 * @spec openspec/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		selectedPlan() {
 			return (
@@ -228,7 +268,7 @@ export default {
 		 * The selected plan's declared electiveRules, or an empty object when unset.
 		 *
 		 * @return {object}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
+		 * @spec openspec/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		electiveRules() {
 			return (this.selectedPlan && this.selectedPlan.electiveRules) || {}
@@ -238,7 +278,7 @@ export default {
 		 * Elective options scoped to the selected plan's electiveCourseIds.
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
+		 * @spec openspec/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		electiveOptions() {
 			if (!this.selectedPlan) return []
@@ -252,7 +292,7 @@ export default {
 		 * Learner options: the caller's linked children plus themselves (18+ self-choice).
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
+		 * @spec openspec/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		learnerOptions() {
 			return this.learners.map((l) => ({
@@ -266,7 +306,7 @@ export default {
 		 * only, the authoritative check is SubjectChoiceValidator server-side.
 		 *
 		 * @return {string[]}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-learner-picks-electives-with-live-rule-feedback
+		 * @spec openspec/specs/school-structure/spec.md#scenario-a-learner-picks-electives-with-live-rule-feedback
 		 */
 		feedback() {
 			const messages = []
@@ -327,10 +367,47 @@ export default {
 		},
 
 		/**
+		 * The chosen electives with their weekly slots.
+		 *
+		 * @return {Array<{id: string, label: string, slots: Array<object>}>}
+		 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-clash-warning-when-choosing
+		 */
+		chosenElectives() {
+			return this.selectedCourseIds.map((id) => {
+				const option = this.electiveOptions.find((o) => o.id === id)
+				return {
+					id,
+					label: (option && option.label) || id,
+					slots: this.electiveSlots[id] || [],
+				}
+			})
+		},
+
+		/**
+		 * One warning per pair of chosen electives, or elective and core lesson, that meet at the same time.
+		 *
+		 * @return {Array<string>}
+		 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-clash-warning-when-choosing
+		 */
+		clashMessages() {
+			return clashes(this.chosenElectives, this.coreSlots).map((c) =>
+				this.t(
+					'learniq',
+					'{first} and {second} meet at the same time: {slot}.',
+					{
+						first: c.first,
+						second: c.second,
+						slot: this.slotText(c.slot),
+					},
+				),
+			)
+		},
+
+		/**
 		 * Whether the form has enough input to submit.
 		 *
 		 * @return {boolean}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
+		 * @spec openspec/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		canSubmit() {
 			return (
@@ -342,6 +419,11 @@ export default {
 		},
 	},
 
+	watch: {
+		selectedCourseIds: 'loadSlots',
+		selectedLearnerId: 'loadSlots',
+	},
+
 	async mounted() {
 		await this.loadPlansAndCourses()
 		await this.loadLearners()
@@ -349,10 +431,61 @@ export default {
 
 	methods: {
 		/**
+		 * A slot as text in the reader's language.
+		 *
+		 * @param {object} slot The slot.
+		 * @return {string}
+		 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-clash-warning-when-choosing
+		 */
+		slotText(slot) {
+			return slotLabel(slot, getLanguage())
+		},
+
+		/**
+		 * Load the chosen electives' slots, and the learner's own core lessons
+		 * when the learner chooses for themselves (a guardian cannot read a
+		 * child's timetable here, so then only electives are compared).
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-clash-warning-when-choosing
+		 */
+		async loadSlots() {
+			this.slotsError = ''
+			if (this.selectedCourseIds.length === 0) {
+				this.electiveSlots = {}
+				this.coreSlots = []
+				return
+			}
+			const self =
+				this.selectedLearnerId !== ''
+				&& this.selectedLearnerId === getCurrentUser()?.uid
+			try {
+				const { data } = await axios.get(
+					generateUrl('/apps/learniq/api/timetable/course-slots'),
+					{
+						params: {
+							courseIds: this.selectedCourseIds.join(','),
+							withCore: self ? '1' : '0',
+						},
+					},
+				)
+				this.electiveSlots = data?.courses || {}
+				this.coreSlots = Array.isArray(data?.core) ? data.core : []
+			} catch {
+				this.electiveSlots = {}
+				this.coreSlots = []
+				this.slotsError = this.t(
+					'learniq',
+					'The lesson times of these electives could not be read.',
+				)
+			}
+		},
+
+		/**
 		 * Load CurriculumPlans and Courses (for elective display labels).
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
+		 * @spec openspec/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		async loadPlansAndCourses() {
 			this.loading = true
@@ -394,7 +527,7 @@ export default {
 		 * self via ncUserId for an 18+ self-choice).
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
+		 * @spec openspec/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		async loadLearners() {
 			this.loadingLearners = true
@@ -405,31 +538,10 @@ export default {
 			}
 
 			try {
-				const [childrenResp, selfResp] = await Promise.all([
-					axios.get(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/learner-profile?parentIds={uid}&_limit=50',
-							{ uid },
-						),
-					),
-					axios.get(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/learner-profile?ncUserId={uid}&_limit=1',
-							{ uid },
-						),
-					),
-				])
-				const children =
-					(childrenResp.data
-						&& (childrenResp.data.results || childrenResp.data.objects))
-					|| []
-				const self =
-					(selfResp.data
-						&& (selfResp.data.results || selfResp.data.objects))
-					|| []
-				const byId = new Map()
-				;[...children, ...self].forEach((l) => byId.set(l.ncUserId, l))
-				this.learners = Array.from(byId.values())
+				this.learners = await fetchLinkedLearners(
+					{ get: (url) => axios.get(url), urlFor: generateUrl },
+					uid,
+				)
 			} catch (e) {
 				// eslint-disable-next-line no-console
 				console.error('[SubjectChoicePicker] loadLearners failed', e)
@@ -443,19 +555,19 @@ export default {
 		 * Reset the elective selection when the plan changes.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
+		 * @spec openspec/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		onPlanChange() {
 			this.selectedCourseIds = []
 		},
 
 		/**
-		 * Create the SubjectChoice (draft) then trigger its submit transition.
-		 * A guard rejection (HTTP 4xx from OR's lifecycle engine) surfaces as a
-		 * user-facing error rather than a silent failure.
+		 * Submit the choice in one server call, which creates it, stamps the
+		 * tenant and who consented, and fires the submit transition. A guard
+		 * refusal comes back as a 403 and leaves no draft.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-linked-guardian-can-submit-a-subject-choice-for-their-own-child
+		 * @spec openspec/specs/school-structure/spec.md#scenario-a-linked-guardian-can-submit-a-subject-choice-for-their-own-child
 		 */
 		async submitChoice() {
 			if (!this.canSubmit) return
@@ -465,37 +577,13 @@ export default {
 			this.submitSuccess = false
 
 			try {
-				const body = {
+				await axios.post(generateUrl('/apps/learniq/api/subject-choices'), {
 					learnerId: this.selectedLearnerId,
 					curriculumPlanId: this.selectedPlanId,
 					academicYear: this.academicYear,
 					selectedElectiveCourseIds: this.selectedCourseIds,
 					guardianConsentGiven: this.guardianConsentGiven,
-					guardianConsentBy: this.guardianConsentGiven
-						? getCurrentUser()?.uid || null
-						: null,
-
-					tenant_id: this.selectedPlan
-						? this.selectedPlan.tenant_id
-						: undefined,
-				}
-
-				const createUrl = generateUrl(
-					'/apps/openregister/api/objects/learniq/subject-choice',
-				)
-				const created = await axios.post(createUrl, body)
-				const choiceId =
-					(created.data && (created.data.id || created.data.uuid)) || ''
-
-				if (choiceId === '') {
-					throw new Error('No subject-choice id returned')
-				}
-
-				const transitionUrl = generateUrl(
-					'/apps/openregister/api/objects/learniq/subject-choice/{id}',
-					{ id: choiceId },
-				)
-				await axios.put(transitionUrl, { lifecycle: 'submitted' })
+				})
 
 				this.submitSuccess = true
 				this.selectedCourseIds = []
@@ -515,9 +603,8 @@ export default {
 </script>
 
 <style scoped>
-.subject-choice-picker {
-	padding: 1rem;
-	max-width: 560px;
+.subject-choice-picker__card {
+	max-width: 860px;
 }
 
 .subject-choice-picker__field {
@@ -531,6 +618,11 @@ export default {
 	flex-direction: row;
 	align-items: center;
 	gap: 0.5rem;
+}
+
+.subject-choice-picker__slots {
+	margin: 8px 0 0;
+	padding-inline-start: 20px;
 }
 
 .subject-choice-picker__feedback {

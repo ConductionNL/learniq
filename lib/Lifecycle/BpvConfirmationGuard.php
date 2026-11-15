@@ -3,6 +3,9 @@
 /**
  * Learniq BPV Confirmation Guard
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the BpvPlacement schema's `confirm` transition
  * (sbb-verification-pending → confirmed). Blocks confirmation unless the
  * placement's stored `leerbedrijfVerification.status` is `verified` — WEB
@@ -29,13 +32,11 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-bpvplacement-confirmation-is-gated-on-verified-leerbedrijf-status
+ * @spec openspec/specs/bpv/spec.md#requirement-bpvplacement-confirmation-is-gated-on-verified-leerbedrijf-status
  */
 
 declare(strict_types=1);
@@ -54,7 +55,7 @@ use Psr\Log\LoggerInterface;
  * (`unverified`, `pending`, `rejected`, `expired`) or a missing verification
  * block fails closed.
  *
- * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-bpvplacement-confirmation-is-gated-on-verified-leerbedrijf-status
+ * @spec openspec/specs/bpv/spec.md#requirement-bpvplacement-confirmation-is-gated-on-verified-leerbedrijf-status
  */
 class BpvConfirmationGuard implements LifecycleGuardInterface {
 
@@ -91,7 +92,7 @@ class BpvConfirmationGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-bpvplacement-confirmation-is-gated-on-verified-leerbedrijf-status
+	 * @spec openspec/specs/bpv/spec.md#requirement-bpvplacement-confirmation-is-gated-on-verified-leerbedrijf-status
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -114,7 +115,7 @@ class BpvConfirmationGuard implements LifecycleGuardInterface {
 	 * @return bool True when leerbedrijfVerification.status is `verified`; false blocks the
 	 *              transition (HTTP 422).
 	 *
-	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-bpvplacement-confirmation-is-gated-on-verified-leerbedrijf-status
+	 * @spec openspec/specs/bpv/spec.md#requirement-bpvplacement-confirmation-is-gated-on-verified-leerbedrijf-status
 	 */
 	private function allows(array $placement): bool {
 		$placementId = $placement['id'] ?? ($placement['uuid'] ?? '');

@@ -24,10 +24,10 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#requirement-lesson-supports-drip-release-relative-to-each-learners-own-enrolment-date
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#requirement-assessment-declares-per-learner-release-conditions
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#requirement-assessment-supports-drip-release-relative-to-each-learners-own-enrolment-date
+ * @spec openspec/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
+ * @spec openspec/specs/course-management/spec.md#requirement-lesson-supports-drip-release-relative-to-each-learners-own-enrolment-date
+ * @spec openspec/specs/assessment/spec.md#requirement-assessment-declares-per-learner-release-conditions
+ * @spec openspec/specs/assessment/spec.md#requirement-assessment-supports-drip-release-relative-to-each-learners-own-enrolment-date
  */
 
 declare(strict_types=1);
@@ -165,7 +165,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-is-unavailable-until-its-prerequisite-lesson-is-completed
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-lesson-is-unavailable-until-its-prerequisite-lesson-is-completed
 	 */
 	public function testUnmetLessonCompletedConditionBlocks(): void {
 		$this->seed('lesson', ['id' => 'lesson-a', 'name' => 'Lesson A']);
@@ -193,7 +193,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-unlocks-once-its-prerequisite-lesson-is-completed
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-lesson-unlocks-once-its-prerequisite-lesson-is-completed
 	 */
 	public function testMetLessonCompletedConditionIsAvailable(): void {
 		$this->seed('lesson', ['id' => 'lesson-a', 'name' => 'Lesson A']);
@@ -261,7 +261,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#scenario-an-assessment-is-unavailable-until-a-minimum-score-on-a-prior-assessment-is-met
+	 * @spec openspec/specs/assessment/spec.md#scenario-an-assessment-is-unavailable-until-a-minimum-score-on-a-prior-assessment-is-met
 	 */
 	public function testUnmetAssessmentMinScoreConditionBlocks(): void {
 		$this->seed('exam', ['id' => 'assessment-a', 'title' => 'Quiz A']);
@@ -305,7 +305,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#scenario-an-assessment-unlocks-once-the-learner-meets-the-minimum-score-on-the-prior-assessment
+	 * @spec openspec/specs/assessment/spec.md#scenario-an-assessment-unlocks-once-the-learner-meets-the-minimum-score-on-the-prior-assessment
 	 */
 	public function testMetAssessmentMinScoreConditionIsAvailable(): void {
 		$this->seed('exam', ['id' => 'assessment-a', 'title' => 'Quiz A']);
@@ -345,6 +345,48 @@ class LessonReleaseEvaluatorTest extends TestCase {
 		self::assertTrue($result['available']);
 
 	}//end testMetAssessmentMinScoreConditionIsAvailable()
+
+	/**
+	 * Each response adds its numeric autoScore, else its numeric manualScore,
+	 * else nothing; numeric strings count, other values and non-responses do not.
+	 *
+	 * @return void
+	 */
+	public function testTheScoreSumCountsOnlyNumericScores(): void {
+		$this->seed('exam', ['id' => 'assessment-a', 'title' => 'Quiz A']);
+		$this->seed(
+			'assessment-result',
+			[
+				'assessmentId' => 'assessment-a',
+				'learnerId' => 'learner-1',
+				'lifecycle' => 'graded',
+				'tenant_id' => 'tenant-a',
+				'responses' => [
+					['itemId' => 'i1', 'autoScore' => '7.5', 'manualScore' => 100],
+					['itemId' => 'i2', 'autoScore' => 'x', 'manualScore' => 2.5],
+					'not a response',
+					['itemId' => 'i3', 'manualScore' => 'abc'],
+				],
+			]
+		);
+		$evaluator = $this->makeEvaluator();
+		$available = static fn (float $minScore): bool => $evaluator->evaluate(
+			item: [
+				'id' => 'lesson-b',
+				'tenant_id' => 'tenant-a',
+				'releaseConditions' => [
+					['kind' => 'assessment-min-score', 'assessmentId' => 'assessment-a', 'minScore' => $minScore],
+				],
+			],
+			itemSchema: 'lesson',
+			learnerId: 'learner-1',
+			enrolment: []
+		)['available'];
+
+		// 7.5 + 2.5 = 10.
+		self::assertTrue($available(10.0));
+		self::assertFalse($available(10.01));
+	}//end testTheScoreSumCountsOnlyNumericScores()
 
 	/**
 	 * With multiple graded attempts, the BEST (highest) summed score is used.
@@ -397,7 +439,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-is-locked-until-n-days-after-the-learners-own-enrolment-date
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-lesson-is-locked-until-n-days-after-the-learners-own-enrolment-date
 	 */
 	public function testDripNotYetElapsedBlocks(): void {
 		$evaluator = $this->makeEvaluator();
@@ -442,7 +484,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-two-learners-with-different-enrolment-dates-see-different-unlock-dates-for-the-same-lesson
+	 * @spec openspec/specs/course-management/spec.md#scenario-two-learners-with-different-enrolment-dates-see-different-unlock-dates-for-the-same-lesson
 	 */
 	public function testTwoLearnersDifferentEnrolmentDatesDifferentAvailability(): void {
 		$evaluator = $this->makeEvaluator();
@@ -494,7 +536,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#scenario-an-assessment-is-locked-until-n-days-after-the-learners-own-enrolment-date-even-within-its-absolute-availability-window
+	 * @spec openspec/specs/assessment/spec.md#scenario-an-assessment-is-locked-until-n-days-after-the-learners-own-enrolment-date-even-within-its-absolute-availability-window
 	 */
 	public function testAssessmentAbsoluteWindowBlocksEvenWhenDripElapsed(): void {
 		$evaluator = $this->makeEvaluator();
@@ -559,7 +601,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#scenario-an-assessment-is-locked-until-n-days-after-the-learners-own-enrolment-date-even-within-its-absolute-availability-window
+	 * @spec openspec/specs/assessment/spec.md#scenario-an-assessment-is-locked-until-n-days-after-the-learners-own-enrolment-date-even-within-its-absolute-availability-window
 	 */
 	public function testAssessmentDripBlocksEvenWhenAbsoluteWindowOpen(): void {
 		$evaluator = $this->makeEvaluator();

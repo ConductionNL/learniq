@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
+ * @spec openspec/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
  */
 
 declare(strict_types=1);
@@ -54,7 +54,7 @@ class WalletClaimSyncServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#scenario-a-claimed-wallet-offer-updates-the-credentials-wallet-offer-status
+	 * @spec openspec/specs/certification/spec.md#scenario-a-claimed-wallet-offer-updates-the-credentials-wallet-offer-status
 	 */
 	public function testClaimWritesStatusAndTimestamp(): void {
 		$credential = [
@@ -62,11 +62,13 @@ class WalletClaimSyncServiceTest extends TestCase {
 			'lifecycle' => 'issued',
 			'walletOfferStatus' => 'offered',
 			'walletClaimedAt' => null,
+			'walletOfferUri' => 'openid-credential-offer://?credential_offer_uri=x',
 		];
 
 		$saved = (new WalletClaimSyncService())->claim(credential: $credential);
 
 		self::assertSame('claimed', $saved['walletOfferStatus']);
+		self::assertNull($saved['walletOfferUri']);
 		self::assertNotEmpty($saved['walletClaimedAt']);
 		self::assertSame('issued', $saved['lifecycle']);
 	}//end testClaimWritesStatusAndTimestamp()

@@ -3,6 +3,9 @@
 /**
  * Learniq Wallet Claim Sync Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the Credential schema's `recordWalletClaim` transition.
  * System-triggered only (never a user-facing action) — invoked by
  * {@see \OCA\Learniq\Listener\WalletOfferConcludedListener} when openconnector
@@ -31,19 +34,18 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
+ * @spec openspec/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\WalletClaimSyncServiceInterface;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 
@@ -58,19 +60,19 @@ use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
  *
  * @spec openspec/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
  */
-class WalletClaimSyncService implements LifecycleGuardInterface {
+class WalletClaimSyncService implements LifecycleGuardInterface, WalletClaimSyncServiceInterface {
 	/**
 	 * OpenRegister lifecycle guard entry-point for `recordWalletClaim`.
 	 *
 	 * @param array<string,mixed> $object The Credential as it would be saved.
 	 * @param string $action The transition, `recordWalletClaim`.
-	 * @param string $userId The caller, or '' without a session.
+	 * @param string $userId The caller, or '' without a session (unused: this guard does not depend on who asks).
 	 *
 	 * @return GuardResult Always allow: this transition has no failure mode.
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The interface fixes the signature.
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
+	 * @spec openspec/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		return GuardResult::allow();
@@ -81,13 +83,15 @@ class WalletClaimSyncService implements LifecycleGuardInterface {
 	 *
 	 * @param array<string,mixed> $credential The Credential data array.
 	 *
-	 * @return array<string,mixed> The Credential with `walletOfferStatus=claimed` and `walletClaimedAt=now`.
+	 * @return array<string,mixed> The Credential with `walletOfferStatus=claimed`, `walletClaimedAt=now` and no offer link.
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
+	 * @spec openspec/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
+	 * @spec openspec/changes/credential-wallet-offer-for-the-learner/specs/certification/spec.md#requirement-the-credential-keeps-the-wallet-offer-link-while-the-offer-is-open
 	 */
 	public function claim(array $credential): array {
 		$credential['walletOfferStatus'] = 'claimed';
 		$credential['walletClaimedAt'] = gmdate('c');
+		$credential['walletOfferUri'] = null;
 
 		return $credential;
 	}//end claim()

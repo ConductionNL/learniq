@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#requirement-at-risk-detection-beyond-bsa-is-a-deterministic-rule-based-threshold--not-aiml
+ * @spec openspec/specs/student-analytics/spec.md#requirement-at-risk-detection-beyond-bsa-is-a-deterministic-rule-based-threshold--not-aiml
  */
 
 declare(strict_types=1);
@@ -30,6 +30,7 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\EngagementScoreEvaluator;
+use OCA\Learniq\BackgroundJob\ActorForwarding;
 use OCA\Learniq\BackgroundJob\EngagementSignalJob;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use OCA\OpenRegister\Service\OrganisationService;
@@ -213,10 +214,12 @@ class EngagementSignalJobTest extends TestCase {
 		$timeFactory->method('now')->willReturn(DateTimeImmutable::createFromMutable($now));
 
 		return new EngagementSignalJob(
-			$this->createMock(ITimeFactory::class),
-			$this->createMock(IUserSession::class),
-			$this->createMock(IUserManager::class),
-			$this->createMock(OrganisationService::class),
+			new ActorForwarding(
+				time: $this->createMock(ITimeFactory::class),
+				userSession: $this->createMock(IUserSession::class),
+				userManager: $this->createMock(IUserManager::class),
+				organisation: $this->createMock(OrganisationService::class)
+			),
 			new NullLogger(),
 			$objectService,
 			$evaluator,
@@ -306,7 +309,7 @@ class EngagementSignalJobTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-engagementscore-objects-persist-and-recompute-from-xapi-activity
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-engagementscore-objects-persist-and-recompute-from-xapi-activity
 	 */
 	public function testScoreRecomputeAlwaysRuns(): void {
 		$now = new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));
@@ -333,7 +336,7 @@ class EngagementSignalJobTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
 	 */
 	public function testFlagCreatedOnFirstCrossing(): void {
 		$now = new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));
@@ -368,6 +371,7 @@ class EngagementSignalJobTest extends TestCase {
 		self::assertSame('threshold-1', $flags[0]['engagementRiskThresholdId']);
 		self::assertSame('open', $flags[0]['lifecycle']);
 		self::assertSame(20.0, $flags[0]['metricValueAtFlag']);
+		self::assertSame(['course-1', 'tenant-a'], [$flags[0]['courseId'], $flags[0]['tenant_id']]);
 
 	}//end testFlagCreatedOnFirstCrossing()
 
@@ -377,7 +381,7 @@ class EngagementSignalJobTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#requirement-at-risk-detection-beyond-bsa-is-a-deterministic-rule-based-threshold--not-aiml
+	 * @spec openspec/specs/student-analytics/spec.md#requirement-at-risk-detection-beyond-bsa-is-a-deterministic-rule-based-threshold--not-aiml
 	 */
 	public function testNoDuplicateFlagWhileOpen(): void {
 		$now = new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));
@@ -422,7 +426,7 @@ class EngagementSignalJobTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-a-resolved-flag-does-not-block-re-flagging-on-a-later-relapse
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-a-resolved-flag-does-not-block-re-flagging-on-a-later-relapse
 	 */
 	public function testResolvedFlagAllowsNewFlagOnRelapse(): void {
 		$now = new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));
@@ -499,6 +503,39 @@ class EngagementSignalJobTest extends TestCase {
 	}//end testCohortScopedThresholdSkipsNonMember()
 
 	/**
+	 * Thresholds without a limit, not crossed, without an id, or scoped to a
+	 * cohort that is missing or has no learner list raise no flag; a crossed,
+	 * complete threshold beside them still does.
+	 *
+	 * @return void
+	 */
+	public function testIncompleteOrUncrossedThresholdsRaiseNoFlag(): void {
+		$now = new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));
+
+		$this->seed('cohort', ['id' => 'cohort-bad', 'learnerIds' => 'learner-1']);
+		$base = ['metric' => 'engagement-score-below', 'limit' => 30, 'lifecycle' => 'active', 'cohortId' => null];
+		$this->seed('engagement-risk-threshold', ['id' => 't-no-limit', 'limit' => null] + $base);
+		$this->seed('engagement-risk-threshold', ['id' => 't-not-crossed', 'limit' => 10] + $base);
+		$this->seed('engagement-risk-threshold', $base);
+		$this->seed('engagement-risk-threshold', ['id' => 't-missing-cohort', 'cohortId' => 'cohort-gone'] + $base);
+		$this->seed('engagement-risk-threshold', ['id' => 't-bad-cohort', 'cohortId' => 'cohort-bad'] + $base);
+		$this->seed('engagement-risk-threshold', ['id' => 't-ok'] + $base);
+
+		$handler = $this->makeHandler(
+			evaluated: ['timeOnTaskMinutes' => 1.0, 'lastActivityAt' => '2026-07-13T09:00:00+02:00', 'score' => 20],
+			now: $now
+		);
+
+		$this->runOne($handler, $this->entryFrom(
+				['verified_actor_id' => 'learner-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']
+			)
+		);
+
+		self::assertSame(['t-ok'], array_column($this->savedFor('engagement-risk-flag'), 'engagementRiskThresholdId'));
+
+	}//end testIncompleteOrUncrossedThresholdsRaiseNoFlag()
+
+	/**
 	 * No AI/ML client, HTTP call, or Hermiq dependency is constructed
 	 * anywhere by this handler — verified structurally: it depends only on
 	 * ObjectService, EngagementScoreEvaluator, ListenerSchemaResolver, and
@@ -506,7 +543,7 @@ class EngagementSignalJobTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#requirement-at-risk-detection-beyond-bsa-is-a-deterministic-rule-based-threshold--not-aiml
+	 * @spec openspec/specs/student-analytics/spec.md#requirement-at-risk-detection-beyond-bsa-is-a-deterministic-rule-based-threshold--not-aiml
 	 */
 	/**
 	 * An entry missing either id is skipped rather than recomputed against an
@@ -515,7 +552,7 @@ class EngagementSignalJobTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
 	 */
 	public function testAnEntryMissingAnIdIsSkipped(): void {
 		$job = $this->makeHandler(
@@ -541,7 +578,7 @@ class EngagementSignalJobTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
 	 */
 	public function testOneFailingEntryDoesNotLoseTheRestOfTheChunk(): void {
 		$now = new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));
@@ -591,7 +628,7 @@ class EngagementSignalJobTest extends TestCase {
 	 *
 	 * @dataProvider recencyProvider
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
 	 */
 	public function testRecencyDaysAboveCrossing(?string $lastActivityAt, float $limit, bool $expected): void {
 		$job = $this->makeHandler(
@@ -622,6 +659,9 @@ class EngagementSignalJobTest extends TestCase {
 			'null stamp is not a crossing' => [null, 7.0, false],
 			'empty stamp is not a crossing' => ['', 7.0, false],
 			'unparseable is not a crossing' => ['not-a-date', 7.0, false],
+			'a partial day rounds down'     => ['2026-07-05T10:00:01+02:00', 7.0, false],
+			'eight whole days, limit 7'     => ['2026-07-05T10:00:00+02:00', 7.0, true],
+			'a future stamp is not stale'   => ['2026-07-20T10:00:00+02:00', -1.0, false],
 		];
 	}//end recencyProvider()
 
@@ -637,7 +677,7 @@ class EngagementSignalJobTest extends TestCase {
 	 *
 	 * @dataProvider scoreBelowProvider
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
 	 */
 	public function testEngagementScoreBelowCrossing(mixed $score, float $limit, bool $expected): void {
 		$job = $this->makeHandler(
@@ -676,7 +716,7 @@ class EngagementSignalJobTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
 	 */
 	public function testAnUnknownMetricNeverCrosses(): void {
 		$job = $this->makeHandler(
@@ -699,7 +739,7 @@ class EngagementSignalJobTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
 	 */
 	public function testResolveMetricValuePicksTheMetricsOwnNumber(): void {
 		$job = $this->makeHandler(

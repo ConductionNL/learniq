@@ -1,0 +1,162 @@
+<?php
+
+/**
+ * Learniq portal guardian controller
+ *
+ * Invites a guardian to the shared parent portal: the school's
+ * administration enters the address it verified with the guardian, and
+ * GuardianPortalInvitation provisions the portal account and links it to
+ * the guardian's profile, so the guardian sees their own children after the
+ * first sign-in.
+ *
+ * @category Controller
+ * @package  OCA\Learniq\Controller
+ *
+ * @author    Conduction Development Team <info@conduction.nl>
+ * @copyright 2026 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
+ * @version GIT: <git-id>
+ *
+ * @link https://conduction.nl
+ *
+ * @spec openspec/changes/portal-guardian-invitation/specs/portal-identity/spec.md
+ */
+
+declare(strict_types=1);
+
+namespace OCA\Learniq\Controller;
+
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CallerOrganisationsInterface;
+use OCA\Learniq\Kernel\Contracts\GuardianPortalInvitationInterface;
+use OCA\Learniq\Service\CallerGroups;
+use OCP\AppFramework\Controller;
+use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\JSONResponse;
+use OCP\IGroupManager;
+use OCP\IRequest;
+use OCP\IUserSession;
+
+/**
+ * Invites a guardian to the parent portal.
+ *
+ * @spec openspec/changes/portal-guardian-invitation/specs/portal-identity/spec.md
+ */
+class PortalGuardianController extends Controller {
+
+	/**
+	 * The groups whose members may invite a guardian: the school's
+	 * administration, the same groups that may choose the segment.
+	 */
+	private const INVITE_GROUPS = ['admin', 'administration-managers'];
+
+	/**
+	 * Refusals that are the caller's input, answered 400; the rest are 502.
+	 */
+	private const BAD_INPUT = ['email-invalid', 'organisation-missing', 'guardian-unknown', 'channel-unknown'];
+
+	/**
+	 * The signed-in user.
+	 *
+	 * @var IUserSession
+	 */
+	private readonly IUserSession $userSession;
+
+	/**
+	 * Checks who may invite.
+	 *
+	 * @var IGroupManager
+	 */
+	private readonly IGroupManager $groups;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param IRequest $request The request.
+	 * @param GuardianPortalInvitationInterface $invitations Provisions and links the account.
+	 * @param CallerGroups $caller      The user session and the group manager.
+	 * @param CallerOrganisationsInterface $organisations The organisations the caller belongs to.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		IRequest $request,
+		private readonly GuardianPortalInvitationInterface $invitations,
+		CallerGroups $caller,
+		private readonly CallerOrganisationsInterface $organisations,
+	) {
+		$this->userSession = $caller->userSession;
+		$this->groups = $caller->groupManager;
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
+	}//end __construct()
+
+	/**
+	 * Invite the guardian `guardianRef` with a verified email address.
+	 *
+	 * @param string $guardianRef The guardian's LearnerProfile uuid.
+	 * @param string $email The address the school verified with the guardian.
+	 * @param string $organisation The portal organisation slug.
+	 * @param string $channel `mail` for a mailed link, `letter` for a code to print.
+	 *
+	 * @return JSONResponse
+	 *
+	 * @spec openspec/changes/portal-guardian-invitation/specs/portal-identity/spec.md
+	 * @spec openspec/changes/portal-guardian-invitation-letter/specs/portal-identity/spec.md
+	 */
+	#[NoAdminRequired]
+	public function invite(string $guardianRef, string $email='', string $organisation='', string $channel='mail'): JSONResponse {
+		if ($this->mayInvite() === false) {
+			return new JSONResponse(['error' => 'forbidden'], Http::STATUS_FORBIDDEN);
+		}
+
+		// The organisation is the caller's own, not a free parameter: a member
+		// of one school's administration cannot invite into another school's
+		// portal (security review L5).
+		if ($this->organisations->includes(slug: $organisation) === false) {
+			return new JSONResponse(['error' => 'organisation-not-yours'], Http::STATUS_FORBIDDEN);
+		}
+
+		$result = $this->invitations->invite(
+			guardianRef: $guardianRef,
+			email: $email,
+			organisation: $organisation,
+			channel: $channel,
+			issuedBy: (string)$this->userSession->getUser()?->getUID()
+		);
+		if ($result['status'] === 'invited') {
+			return new JSONResponse($result);
+		}
+
+		$status = Http::STATUS_BAD_GATEWAY;
+		if (in_array(($result['reason'] ?? ''), self::BAD_INPUT, true) === true) {
+			$status = Http::STATUS_BAD_REQUEST;
+		}
+
+		return new JSONResponse($result, $status);
+	}//end invite()
+
+	/**
+	 * Whether the signed-in user belongs to the school's administration.
+	 *
+	 * @return bool
+	 */
+	private function mayInvite(): bool {
+		$uid = $this->userSession->getUser()?->getUID();
+		if ($uid === null) {
+			return false;
+		}
+
+		foreach (self::INVITE_GROUPS as $group) {
+			if ($this->groups->isInGroup($uid, $group) === true) {
+				return true;
+			}
+		}
+
+		return false;
+	}//end mayInvite()
+}//end class

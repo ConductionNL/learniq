@@ -8,7 +8,7 @@
  * coverage rows per year label (plus all years) and per subject (plus all
  * subjects and no subject). No I/O, so every rule is unit-tested directly.
  *
- * Rules (openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md):
+ * Rules (openspec/changes/archive/2026-09-28-curriculum-coverage-rollup/specs/competency/spec.md):
  *   - only leaf goals count; archived goals are left out;
  *   - planned = a non-retired Lesson or non-archived Course aligns to the goal,
  *     assessed = a non-archived Assignment or Assessment does, both read
@@ -33,7 +33,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-counts-leaf-goals-planned-and-assessed-separately
+ * @spec openspec/specs/competency/spec.md#requirement-coverage-counts-leaf-goals-planned-and-assessed-separately
  */
 
 declare(strict_types=1);
@@ -43,7 +43,7 @@ namespace OCA\Learniq\Service;
 /**
  * Computes CurriculumCoverage rows for one framework.
  *
- * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-counts-leaf-goals-planned-and-assessed-separately
+ * @spec openspec/specs/competency/spec.md#requirement-coverage-counts-leaf-goals-planned-and-assessed-separately
  */
 class CurriculumCoverageCalculator {
 
@@ -64,26 +64,39 @@ class CurriculumCoverageCalculator {
 	/**
 	 * Compute every coverage row of one framework.
 	 *
-	 * @param array<string, mixed>             $framework The CompetencyFramework row.
-	 * @param array<int, array<string, mixed>> $goals     The framework's Competency rows.
-	 * @param array<int, array<string, mixed>> $planned   Lesson and Course rows that may align to them.
-	 * @param array<int, array<string, mixed>> $assessed  Assignment and Assessment rows that may align to them.
-	 * @param string                           $now       ISO timestamp for lastRecomputedAt.
+	 * @param array<string, mixed> $framework The CompetencyFramework row.
+	 * @param array{goals: array<string, mixed>[], planned: array<string, mixed>[], assessed: array<string, mixed>[], now: string} $evidence The
+	 *     framework's Competency rows, the Lesson and Course rows and the Assignment and Assessment rows that may align to them, and
+	 *     the ISO timestamp for lastRecomputedAt.
 	 *
 	 * @return array<int, array<string, mixed>> Coverage rows without ids, total row first.
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-is-bucketed-by-year-and-subject-with-totals
+	 * @spec openspec/specs/competency/spec.md#requirement-coverage-is-bucketed-by-year-and-subject-with-totals
 	 */
-	public function compute(array $framework, array $goals, array $planned, array $assessed, string $now): array {
+	public function compute(array $framework, array $evidence): array {
 		$levels = $this->levelRanks(framework: $framework);
-		$tree   = $this->tree->build(goals: $goals);
+		$tree   = $this->tree->build(goals: $evidence['goals']);
 		$leaves = $this->tree->leaves(tree: $tree);
 		$status = $this->goalStatus(
 			leaves: $leaves,
-			planned: $this->tally(rows: $planned, leaves: $leaves, levels: $levels),
-			assessed: $this->tally(rows: $assessed, leaves: $leaves, levels: $levels)
+			planned: $this->tally(rows: $evidence['planned'], leaves: $leaves, levels: $levels),
+			assessed: $this->tally(rows: $evidence['assessed'], leaves: $leaves, levels: $levels)
 		);
 
+		$context = ['framework' => $framework, 'leaves' => $leaves, 'status' => $status, 'levels' => $levels, 'now' => $evidence['now']];
+
+		return $this->bucketRows(scope: $this->goalScope(tree: $tree, leaves: $leaves), context: $context);
+	}//end compute()
+
+	/**
+	 * Each leaf goal's effective years and subject.
+	 *
+	 * @param array<string,mixed> $tree   The goal tree.
+	 * @param list<string>        $leaves The leaf goal ids.
+	 *
+	 * @return array<string,array{years: list<string>, subject: string|null}>
+	 */
+	private function goalScope(array $tree, array $leaves): array {
 		$scope = [];
 		foreach ($leaves as $goalId) {
 			$scope[$goalId] = [
@@ -92,23 +105,36 @@ class CurriculumCoverageCalculator {
 			];
 		}
 
+		return $scope;
+	}//end goalScope()
+
+	/**
+	 * One coverage row per bucket that holds a goal, plus the total row.
+	 *
+	 * @param array<string,array{years: list<string>, subject: string|null}> $scope   Each leaf goal's years and subject.
+	 * @param array<string,mixed>                                           $context The framework, leaves, goal status, level ranks and time.
+	 *
+	 * @return list<array<string,mixed>>
+	 */
+	private function bucketRows(array $scope, array $context): array {
 		$rows = [];
-		foreach ($this->buckets(scope: $scope) as $bucket) {
+		$buckets = new CoverageBuckets();
+		foreach ($buckets->forScope(scope: $scope) as $bucket) {
 			$inScope = array_values(
 				array_filter(
-					$leaves,
-					fn (string $goalId): bool => $this->inBucket(goal: $scope[$goalId], bucket: $bucket)
+					$context['leaves'],
+					fn (string $goalId): bool => $buckets->contains(goal: $scope[$goalId], bucket: $bucket)
 				)
 			);
-			if ($inScope === [] && $this->isTotal(bucket: $bucket) === false) {
+			if ($inScope === [] && $buckets->isTotal(bucket: $bucket) === false) {
 				continue;
 			}
 
-			$rows[] = $this->row(framework: $framework, bucket: $bucket, goalIds: $inScope, status: $status, levels: $levels, now: $now);
+			$rows[] = $this->row(bucket: $bucket, context: $context + ['goalIds' => $inScope]);
 		}
 
 		return $rows;
-	}//end compute()
+	}//end bucketRows()
 
 	/**
 	 * The key that identifies a coverage row within its framework.
@@ -117,7 +143,7 @@ class CurriculumCoverageCalculator {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
+	 * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
 	 */
 	public function bucketKey(array $row): string {
 		return implode(
@@ -236,100 +262,17 @@ class CurriculumCoverageCalculator {
 	}//end goalStatus()
 
 	/**
-	 * Every year × subject bucket, total first.
-	 *
-	 * @param array<string, array{years: array<int, string>, subject: string|null}> $scope Per goal scope.
-	 *
-	 * @return array<int, array{year: string|null, subjectScope: string, subjectId: string|null}>
-	 */
-	private function buckets(array $scope): array {
-		$years    = [];
-		$subjects = [];
-		$hasNone  = false;
-		foreach ($scope as $goal) {
-			$years = array_merge($years, $goal['years']);
-			if ($goal['subject'] === null) {
-				$hasNone = true;
-				continue;
-			}
-
-			$subjects[] = $goal['subject'];
-		}
-
-		$years = array_values(array_unique($years));
-		usort($years, 'strnatcasecmp');
-		$subjects = array_values(array_unique($subjects));
-		sort($subjects);
-
-		$subjectScopes = [['subjectScope' => 'all', 'subjectId' => null]];
-		foreach ($subjects as $subject) {
-			$subjectScopes[] = ['subjectScope' => 'subject', 'subjectId' => $subject];
-		}
-
-		if ($hasNone === true) {
-			$subjectScopes[] = ['subjectScope' => 'none', 'subjectId' => null];
-		}
-
-		$buckets = [];
-		foreach (array_merge([null], $years) as $year) {
-			foreach ($subjectScopes as $subjectScope) {
-				$buckets[] = array_merge(['year' => $year], $subjectScope);
-			}
-		}
-
-		return $buckets;
-	}//end buckets()
-
-	/**
-	 * Whether a goal falls in a bucket.
-	 *
-	 * @param array{years: array<int, string>, subject: string|null}                  $goal   The goal's scope.
-	 * @param array{year: string|null, subjectScope: string, subjectId: string|null} $bucket The bucket.
-	 *
-	 * @return bool
-	 */
-	private function inBucket(array $goal, array $bucket): bool {
-		$inYear = ($bucket['year'] === null || $goal['years'] === [] || in_array(needle: $bucket['year'], haystack: $goal['years'], strict: true) === true);
-		if ($inYear === false) {
-			return false;
-		}
-
-		if ($bucket['subjectScope'] === 'all') {
-			return true;
-		}
-
-		if ($bucket['subjectScope'] === 'none') {
-			return $goal['subject'] === null;
-		}
-
-		return $goal['subject'] === $bucket['subjectId'];
-	}//end inBucket()
-
-	/**
-	 * Whether a bucket is the all-years, all-subjects total.
-	 *
-	 * @param array{year: string|null, subjectScope: string, subjectId: string|null} $bucket The bucket.
-	 *
-	 * @return bool
-	 */
-	private function isTotal(array $bucket): bool {
-		return $bucket['year'] === null && $bucket['subjectScope'] === 'all';
-	}//end isTotal()
-
-	/**
 	 * Build one coverage row.
 	 *
-	 * @param array<string, mixed>                                                   $framework The framework row.
-	 * @param array{year: string|null, subjectScope: string, subjectId: string|null} $bucket    The bucket.
-	 * @param array<int, string>                                                     $goalIds   Goals in scope, tree order.
-	 * @param array<string, array<string, mixed>>                                    $status    Per goal status.
-	 * @param array<string, int>                                                     $levels    Level ranks.
-	 * @param string                                                                 $now       Timestamp.
+	 * @param array{year: string|null, subjectScope: string, subjectId: string|null} $bucket  The bucket.
+	 * @param array<string, mixed>                                                   $context Framework, goal status, level ranks, time, goalIds.
 	 *
 	 * @return array<string, mixed>
 	 */
-	private function row(array $framework, array $bucket, array $goalIds, array $status, array $levels, string $now): array {
-		$goals    = array_map(static fn (string $goalId): array => $status[$goalId], $goalIds);
+	private function row(array $bucket, array $context): array {
+		$framework = $context['framework'];
+		$levels    = $context['levels'];
+		$goals     = array_map(static fn (string $goalId): array => $context['status'][$goalId], $context['goalIds']);
 		$planned  = array_values(array_filter($goals, static fn (array $goal): bool => $goal['planned']));
 		$assessed = array_values(array_filter($goals, static fn (array $goal): bool => $goal['assessed']));
 		$gap      = array_values(array_filter($goals, static fn (array $goal): bool => $goal['planned'] && $goal['assessed'] === false));
@@ -352,7 +295,7 @@ class CurriculumCoverageCalculator {
 			'uncoveredIds'            => array_column($none, 'competencyId'),
 			'plannedNotAssessedIds'   => array_column($gap, 'competencyId'),
 			'goals'                   => $goals,
-			'lastRecomputedAt'        => $now,
+			'lastRecomputedAt'        => $context['now'],
 			'tenant_id'               => ($framework['tenant_id'] ?? null),
 		];
 	}//end row()

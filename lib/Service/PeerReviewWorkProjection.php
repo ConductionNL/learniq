@@ -33,13 +33,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+ * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\PeerReviewWorkProjectionInterface;
 use OCA\OpenRegister\Service\FileService;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Files\File;
@@ -50,9 +51,9 @@ use Throwable;
 /**
  * Builds the reviewer-facing view of a PeerReview's Submission.
  *
- * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+ * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
  */
-class PeerReviewWorkProjection {
+class PeerReviewWorkProjection implements PeerReviewWorkProjectionInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const PEER_REVIEW_SCHEMA = 'peer-review';
@@ -61,19 +62,9 @@ class PeerReviewWorkProjection {
 	private const DOUBLE_BLIND = 'double-blind';
 
 	/**
-	 * Verdict: the caller may see the projection.
-	 */
-	public const ALLOWED = 'allowed';
-
-	/**
 	 * Verdict: no such PeerReview (or its Submission is gone).
 	 */
 	public const NOT_FOUND = 'not-found';
-
-	/**
-	 * Verdict: the caller is neither the reviewer nor an admin.
-	 */
-	public const FORBIDDEN = 'forbidden';
 
 	/**
 	 * Constructor.
@@ -102,7 +93,7 @@ class PeerReviewWorkProjection {
 	 *
 	 * @return array{verdict: string, review?: array<string, mixed>, anonymity?: string, submission?: array<string, mixed>, hideAuthor?: bool}
 	 *
-	 * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
 	 */
 	public function resolve(string $peerReviewId, string $callerId): array {
 		$review = $this->load(id: $peerReviewId, schema: self::PEER_REVIEW_SCHEMA);
@@ -138,7 +129,7 @@ class PeerReviewWorkProjection {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
 	 */
 	public function project(array $context): array {
 		$submission = (array)($context['submission'] ?? []);
@@ -177,7 +168,7 @@ class PeerReviewWorkProjection {
 	 *
 	 * @return array{file: File, name: string}|null
 	 *
-	 * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
 	 */
 	public function file(array $context, string $fileId): ?array {
 		foreach ($this->files(context: $context) as $position => $file) {

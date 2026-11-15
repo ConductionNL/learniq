@@ -6,9 +6,13 @@
  * Listens for OpenRegister's ObjectTransitionedEvent on the Enrolment schema.
  * When the transition is `active → completed` and the associated Course has a
  * `certificateTemplate` configured, this handler calls CredentialSigningService
- * to build and sign an OB3 payload, then writes a new Credential object via OR
- * with `lifecycle=issued`, which triggers the OR-declared `issuedToLearner`
- * notification automatically.
+ * to build and sign an OB3 payload, then writes the signed Credential via OR.
+ * OR sets `lifecycle` to the schema's initial `issued`, and the created object
+ * triggers the declared `issuedToLearner` notification.
+ *
+ * The signing happens here, before the save, because OpenRegister runs
+ * lifecycle guards and actions on updates only: nothing signs a credential on
+ * create otherwise, and the schema requires the signed fields (learniq#182).
  *
  * Legitimate PHP per ADR-031: "Lifecycle handler — event-to-object-write bridge
  * that cannot be expressed as a schema declaration." Single responsibility:
@@ -37,10 +41,15 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\CredentialSigningServiceInterface;
+use OCA\Learniq\Kernel\Contracts\EuropassIssuerInterface;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use Psr\Log\LoggerInterface;
 
 /**
  * Bridges the OpenRegister Enrolment.completed transition to Credential issuance.
@@ -53,14 +62,29 @@ class CredentialIssuanceHandler implements IEventListener {
 	private const COMPLETED_STATE = 'completed';
 
 	/**
+	 * The renewal cycle a rule has when it sets none, as the Regulation schema defaults it.
+	 */
+	private const DEFAULT_RENEWAL_CYCLE_MONTHS = 12;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param ObjectService $objectService Reads Course and writes Credential via OpenRegister.
+	 * @param ObjectService $objectService Reads Course and School, writes Credential via OpenRegister.
+	 * @param CredentialSigningServiceInterface $signingService Signs the credential before it is saved.
+	 * @param LoggerInterface $logger Records a credential that could not be signed.
+	 * @param EuropassIssuerInterface $europass Adds the signed Europass form.
+	 * @param LearnerRefResolverInterface $profiles Finds the learner's LearnerProfile in the enrolment's tenant.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
+		private readonly CredentialSigningServiceInterface $signingService,
+		private readonly LoggerInterface $logger,
+		private readonly EuropassIssuerInterface $europass,
+		private readonly LearnerRefResolverInterface $profiles,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -69,8 +93,8 @@ class CredentialIssuanceHandler implements IEventListener {
 	 *
 	 * Only acts on Enrolment objects transitioning to `completed` within the
 	 * learniq register. When the related Course has `certificateTemplate` set,
-	 * creates a Credential via OR — the `issue` lifecycle guard
-	 * (CredentialSigningService) fires automatically via OR's declared requires[].
+	 * signs a Credential and creates it via OR. A credential that cannot be
+	 * signed is not saved: the public verify route could never verify it.
 	 *
 	 * @param Event $event The dispatched event.
 	 *
@@ -124,29 +148,142 @@ class CredentialIssuanceHandler implements IEventListener {
 			return;
 		}
 
-		$expiresAt = $this->resolveExpiresAt(course: $course, completedAt: (string)$completedAt);
+		$this->issue(enrolment: $enrolment, course: $course, enrolmentId: $enrolmentId, completedAt: (string)$completedAt);
+	}//end handle()
 
-		// C1 fix: Do NOT write `lifecycle` — let OR auto-fire the `issue` transition
-		// from null (initial: issued) which invokes the `requires:` guard
-		// (CredentialSigningService::check()) before persisting the object.
-		// Writing any lifecycle value directly bypasses the signing guard.
-		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: 'credential',
-			object: [
-				'learnerId' => $learnerId,
+	/**
+	 * Issue the credential for a completed enrolment to the learner's profile.
+	 *
+	 * Enrolment.learnerId is the Nextcloud user id; Credential.learnerId is the
+	 * LearnerProfile uuid (format uuid, $ref LearnerProfile), found in the
+	 * enrolment's tenant. The user id travels along as learnerUserId, which
+	 * the register's read rule matches on. A learner without a profile gets
+	 * no credential and a warning naming the learner and the course.
+	 *
+	 * @param array<string, mixed> $enrolment   The completed enrolment.
+	 * @param array<string, mixed> $course      The course being certified.
+	 * @param mixed                $enrolmentId The enrolment id, when it has one.
+	 * @param string               $completedAt When the enrolment completed.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
+	 */
+	private function issue(array $enrolment, array $course, mixed $enrolmentId, string $completedAt): void {
+		$learnerId = (string)$enrolment['learnerId'];
+		$courseId = $enrolment['courseId'];
+		$tenantId = (string)$enrolment['tenant_id'];
+
+		$profileId = $this->profiles->resolveInTenant(learnerId: $learnerId, tenantId: $tenantId);
+		if ($profileId === null) {
+			$this->logger->warning(
+				'Learniq: no credential issued to learner {learner} for course {course}: '
+				. 'the learner has no LearnerProfile in tenant {tenant}.',
+				['learner' => $learnerId, 'course' => $courseId, 'enrolment' => $enrolmentId, 'tenant' => $tenantId]
+			);
+			return;
+		}
+
+		$expiresAt = $this->resolveExpiresAt(course: $course, completedAt: $completedAt, tenantId: $tenantId);
+
+		$this->saveSignedCredential(
+			credential: [
+				'learnerId' => $profileId,
+				'learnerUserId' => $learnerId,
 				'courseId' => $courseId,
 				'enrolmentId' => $enrolmentId,
 				'kind' => 'certificate',
 				'issuedAt' => $completedAt,
 				'expiresAt' => $expiresAt,
-				'issuedBy' => $course['issuerName'] ?? '',
+				'issuedBy' => $this->resolveIssuerName(tenantId: $tenantId),
 				'source' => 'auto',
 				'regulationSlug' => $course['regulationSlug'] ?? null,
 				'tenant_id' => $tenantId,
 			]
 		);
-	}//end handle()
+	}//end issue()
+
+	/**
+	 * Sign a credential and save it under the uuid the signature covers.
+	 *
+	 * Signs before the save: OR runs no lifecycle guard or action on a create
+	 * (learniq#182), and `signature`, `openbadges3Payload` and `issuerDid` are
+	 * required. `lifecycle` is left to OR's declared initial `issued`. A
+	 * credential that cannot be signed is logged and not saved.
+	 *
+	 * @param array<string, mixed> $credential The unsigned credential fields.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
+	 */
+	private function saveSignedCredential(array $credential): void {
+		$signed = $this->signingService->sign(credential: $credential);
+
+		if ($signed === null) {
+			$this->logger->error(
+				'Learniq: no credential issued for enrolment {enrolment}: it could not be signed. '
+				. 'Generate the credential signing key for tenant {tenant} in the Learniq admin settings.',
+				['enrolment' => $credential['enrolmentId'], 'tenant' => $credential['tenant_id']]
+			);
+			return;
+		}
+
+		// The Europass form (credentials-europass-edci-export), signed with the
+		// same key, for a certificate, diploma or microcredential.
+		$signed = $this->europass->withEuropass(credential: $signed);
+		$credentialId = (string)$signed['id'];
+		unset($signed['id']);
+
+		// Issuance is the system's act, not the act of the teacher whose
+		// transition completed the enrolment: Credential `create` is granted to
+		// hr and compliance officers only, so saving under the caller's rights
+		// refused every live issue (NotAuthorizedException, 2026-09-30).
+		$this->objectService->saveObject(
+			register: self::LEARNIQ_REGISTER,
+			schema: 'credential',
+			object: $signed,
+			uuid: $credentialId,
+			_rbac: false
+		);
+	}//end saveSignedCredential()
+
+	/**
+	 * The issuing organisation's display name: the tenant's School `name`.
+	 *
+	 * Every segment's organisation is a School record (the company and training
+	 * example sets included). The Course schema declares no issuer field, so the
+	 * former read of `Course.issuerName` always gave an empty `issuedBy`.
+	 *
+	 * @param string $tenantId The tenant the credential is issued in.
+	 *
+	 * @return string The School name, or '' when the tenant has no School record.
+	 *
+	 * @spec openspec/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
+	 */
+	private function resolveIssuerName(string $tenantId): string {
+		$schools = $this->objectService->findAll(
+			[
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => 'school',
+					'tenant_id' => $tenantId,
+				],
+				'limit' => 1,
+			]
+		);
+
+		if (empty($schools) === true) {
+			return '';
+		}
+
+		$school = $schools[0];
+		if (is_array($school) === false) {
+			$school = $school->jsonSerialize();
+		}
+
+		return (string)($school['name'] ?? '');
+	}//end resolveIssuerName()
 
 	/**
 	 * Whether this transition is a learniq Enrolment entering `completed`.
@@ -158,11 +295,11 @@ class CredentialIssuanceHandler implements IEventListener {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-11
 	 */
 	private function isEnrolmentCompletion(ObjectTransitionedEvent $event): bool {
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return false;
 		}
 
-		if ($event->getSchema() !== self::ENROLMENT_SCHEMA) {
+		if ($this->schemas->eventSchema(event: $event) !== self::ENROLMENT_SCHEMA) {
 			return false;
 		}
 
@@ -203,23 +340,103 @@ class CredentialIssuanceHandler implements IEventListener {
 	}//end credentialAlreadyIssued()
 
 	/**
-	 * Calculate the credential's expiry from the course's validity period.
+	 * Calculate the credential's expiry: the course's own validity, else the
+	 * renewal cycle of the rule the course is bound to.
 	 *
-	 * @param array<string,mixed> $course The Course being certified.
-	 * @param string $completedAt When the enrolment completed.
+	 * A course's own validity wins. A course without one that names a rule in
+	 * `regulationSlug` expires after that rule's `renewalCycleMonths` (12 when
+	 * the rule leaves it unset), counted from completion, provided the rule is
+	 * published in the enrolment's tenant. Anything else expires never.
 	 *
-	 * @return string|null The expiry timestamp, or null when the course sets no validity period.
+	 * @param array<string,mixed> $course      The Course being certified.
+	 * @param string              $completedAt When the enrolment completed.
+	 * @param string              $tenantId    The enrolment's tenant, where the rule is read.
+	 *
+	 * @return string|null The expiry timestamp, or null when neither sets a validity.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-11
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-a-rule-says-how-often-retraining-is-due
 	 */
-	private function resolveExpiresAt(array $course, string $completedAt): ?string {
-		if (empty($course['defaultExpiresAfterDays']) === true) {
+	private function resolveExpiresAt(array $course, string $completedAt, string $tenantId): ?string {
+		if (empty($course['defaultExpiresAfterDays']) === false) {
+			return (new DateTimeImmutable($completedAt))
+				->modify('+' . (int)$course['defaultExpiresAfterDays'] . ' days')
+				->format(\DATE_ATOM);
+		}
+
+		$months = $this->renewalCycleMonths(slug: (string)($course['regulationSlug'] ?? ''), tenantId: $tenantId);
+		if ($months === null) {
 			return null;
 		}
 
-		return (new DateTimeImmutable($completedAt))
-			->modify('+' . (int)$course['defaultExpiresAfterDays'] . ' days')
-			->format(\DATE_ATOM);
-
+		return self::addMonths(from: new DateTimeImmutable($completedAt), months: $months)->format(\DATE_ATOM);
 	}//end resolveExpiresAt()
+
+	/**
+	 * The renewal cycle of the published rule with this slug in the tenant, or null.
+	 *
+	 * Read as the system: the teacher completing the enrolment need not be
+	 * able to read the rule for its cycle to apply. Scoped to the tenant, so
+	 * another tenant's rule with the same slug never counts.
+	 *
+	 * @param string $slug     The rule's slug, '' when the course names none.
+	 * @param string $tenantId The tenant.
+	 *
+	 * @return int|null The cycle in months, or null when no published rule applies.
+	 *
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-a-rule-says-how-often-retraining-is-due
+	 */
+	private function renewalCycleMonths(string $slug, string $tenantId): ?int {
+		if ($slug === '' || $tenantId === '') {
+			return null;
+		}
+
+		$rules = $this->objectService->findAll(
+			config: [
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => 'regulation',
+					'slug' => $slug,
+					'tenant_id' => $tenantId,
+				],
+			],
+			_rbac: false
+		);
+
+		foreach ($rules as $rule) {
+			$data = $rule;
+			if (is_object($rule) === true && method_exists($rule, 'jsonSerialize') === true) {
+				$data = $rule->jsonSerialize();
+			}
+
+			if (is_array($data) === false || ($data['slug'] ?? null) !== $slug || ($data['lifecycle'] ?? '') !== 'published') {
+				continue;
+			}
+
+			$months = (int)($data['renewalCycleMonths'] ?? self::DEFAULT_RENEWAL_CYCLE_MONTHS);
+			if ($months > 0) {
+				return $months;
+			}
+		}
+
+		return null;
+	}//end renewalCycleMonths()
+
+	/**
+	 * A moment some whole months later, kept on the last day of a shorter month.
+	 *
+	 * `modify('+1 month')` runs 31 January into March; a certificate earned on
+	 * the 31st expires on the last day of the target month instead.
+	 *
+	 * @param DateTimeImmutable $from   The start.
+	 * @param int               $months The number of months.
+	 *
+	 * @return DateTimeImmutable The moment.
+	 */
+	private static function addMonths(DateTimeImmutable $from, int $months): DateTimeImmutable {
+		$first = $from->modify('first day of this month')->modify('+' . $months . ' months');
+		$day = min((int)$from->format('j'), (int)$first->format('t'));
+
+		return $first->setDate((int)$first->format('Y'), (int)$first->format('n'), $day);
+	}//end addMonths()
 }//end class

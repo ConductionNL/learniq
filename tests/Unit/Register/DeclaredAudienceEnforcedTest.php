@@ -102,6 +102,28 @@ class DeclaredAudienceEnforcedTest extends TestCase {
 	}//end self()
 
 	/**
+	 * The self-match entries of a grade: the caller is the learner in `$field`,
+	 * the grade is published (or revised) and its `visibleFrom` has passed or
+	 * is not set.
+	 *
+	 * @param string $field The object field holding a user id.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	private static function released(string $field): array {
+		$rule = static fn (array $visibleFrom): array => [
+			'group' => 'authenticated',
+			'match' => [
+				$field        => '$userId',
+				'lifecycle'   => ['$in' => ['published', 'revised']],
+				'visibleFrom' => $visibleFrom,
+			],
+		];
+
+		return [$rule(['$lte' => '$now']), $rule(['$exists' => false])];
+	}//end released()
+
+	/**
 	 * Assert the exact enforced read audience of each named schema.
 	 *
 	 * @param array<string, list<mixed>> $expected Schema name to read rules.
@@ -158,7 +180,7 @@ class DeclaredAudienceEnforcedTest extends TestCase {
 					$value = ['$contains' => '$userId'];
 				}
 
-				if (in_array(['group' => 'authenticated', 'match' => [$field => $value]], $read, true) === false) {
+				if (self::hasSelfEntry(read: $read, field: $field, value: $value) === false) {
 					$unenforced[] = $name . '.' . $field;
 				}
 			}
@@ -166,6 +188,30 @@ class DeclaredAudienceEnforcedTest extends TestCase {
 
 		$this->assertSame([], $unenforced, 'self-match rules without an enforced read entry');
 	}//end testEverySelfMatchIsEnforced()
+
+	/**
+	 * Whether a read entry grants the person in `$field`, possibly narrowed by
+	 * further conditions on the row.
+	 *
+	 * @param list<mixed> $read  The enforced read entries.
+	 * @param string      $field The object field holding a user id.
+	 * @param mixed       $value The match value on that field.
+	 *
+	 * @return bool
+	 */
+	private static function hasSelfEntry(array $read, string $field, mixed $value): bool {
+		foreach ($read as $entry) {
+			if (is_array($entry) === true
+				&& ($entry['group'] ?? null) === 'authenticated'
+				&& array_key_exists($field, ($entry['match'] ?? [])) === true
+				&& $entry['match'][$field] === $value
+			) {
+				return true;
+			}
+		}
+
+		return false;
+	}//end hasSelfEntry()
 
 	/**
 	 * A match can only compare a field on the row, so every matched field is
@@ -192,7 +238,8 @@ class DeclaredAudienceEnforcedTest extends TestCase {
 
 	/**
 	 * Every group an authorization block names is one the register declares
-	 * (and so provisions), or the `authenticated` pseudo-group.
+	 * (and so provisions), the `authenticated` pseudo-group, or Nextcloud's
+	 * own `admin` group.
 	 *
 	 * @return void
 	 */
@@ -200,6 +247,7 @@ class DeclaredAudienceEnforcedTest extends TestCase {
 		self::schemas();
 		$declared = array_keys(self::$register['components']['securitySchemes']['oauth2']['flows']['authorizationCode']['scopes']);
 		$declared[] = 'authenticated';
+		$declared[] = 'admin';
 
 		$undeclared = [];
 		foreach (self::schemas() as $name => $schema) {
@@ -237,7 +285,7 @@ class DeclaredAudienceEnforcedTest extends TestCase {
 			[
 				'LessonCompletion'     => [self::I, self::TL, self::C, self::AM, self::self('learnerId')],
 				'Enrolment'            => [self::I, self::TL, self::HR, self::CO, self::self('learnerId'), self::self('managerId')],
-				'GradeEntry'           => [self::I, self::TL, self::CO, self::self('learnerId')],
+				'GradeEntry'           => [self::I, self::TL, self::CO, ...self::released(field: 'learnerId')],
 				'FinalGrade'           => [self::I, self::TL, self::CO, self::self('learnerId')],
 				'ReportCard'           => [self::I, self::TL, self::AM, self::self('learnerId')],
 				'CompetencyAttainment' => [self::HR, self::TL, self::AM, self::self('learnerId')],
@@ -277,7 +325,12 @@ class DeclaredAudienceEnforcedTest extends TestCase {
 				'ExamAccommodation'  => [self::CO, self::TL, self::self('learnerId'), self::self('submittedBy')],
 				'SupportRequest'     => [self::AM, self::self('raisedBy')],
 				'DeliberationRecord' => [self::AM],
-				'ExchangeRejection'  => [self::AM, self::C],
+				// data-exchange-to-integriq: rejections are integriq dead letters; the
+				// exchange gate's own records are staff-only, the parent review adds
+				// guardians and the learner the row is about.
+				'ExchangePartnerApproval' => [self::AM, self::CO, self::C],
+				'TeldatumCheck'           => [self::CO, self::AM],
+				'DossierReview'           => [self::AM, self::C, 'guardians', self::self('learnerUserId')],
 				'TimetableConflict'  => [self::C],
 				'RolloverPlan'       => [self::C],
 			]
@@ -327,14 +380,14 @@ class DeclaredAudienceEnforcedTest extends TestCase {
 		$staff = ['compliance-officers', 'team-leads'];
 		$this->assertReadAudience(
 			[
-				'Credential'             => ['hr', 'compliance-officers', self::self('learnerId')],
-				'ExternalTrainingRecord' => ['hr', 'compliance-officers', self::self('learnerId'), self::self('submittedBy')],
+				'Credential'             => ['hr', 'compliance-officers', self::self('learnerUserId')],
+				'ExternalTrainingRecord' => ['hr', 'compliance-officers', self::self('learnerUserId'), self::self('submittedBy')],
 				'LearnerProfile'         => ['instructors', 'hr', 'compliance-officers', self::self('ncUserId')],
 				'Submission'             => ['instructors', ...$staff, ['group' => 'authenticated', 'match' => ['learnerIds' => ['$contains' => '$userId']]]],
 				'PeerReview'             => [...$staff, self::self('reviewerId')],
 				'SelfAssessment'         => [...$staff, self::self('learnerId')],
-				'ExemptionCase'          => ['instructors', 'compliance-officers', self::self('learnerId')],
-				'FraudCase'              => ['instructors', 'compliance-officers', self::self('accusedLearnerId'), self::self('reporterId')],
+				'ExemptionCase'          => ['instructors', 'compliance-officers', self::self('learnerUserId')],
+				'FraudCase'              => ['instructors', 'compliance-officers', self::self('accusedLearnerUserId'), self::self('reporterId')],
 				'DossierNote'            => [
 					'instructors',
 					'compliance-officers',
@@ -358,12 +411,16 @@ class DeclaredAudienceEnforcedTest extends TestCase {
 	 * @return void
 	 */
 	public function testWritesKeepTheCascadeGrants(): void {
-		$learnerWrites = ['Portfolio', 'PortfolioEntry', 'LearningRecordExport', 'LearningRecordShare'];
+		// Enrolment adds one write after the staff grants: the learner's
+		// manager approves or declines a pending self sign-up of their own
+		// report (enrolment-catalogue-self-signup), pinned in
+		// CatalogueSignUpRegisterTest.
+		$learnerWrites = ['Portfolio', 'PortfolioEntry', 'LearningRecordExport', 'LearningRecordShare', 'Enrolment'];
 		$names = [
 			'LessonCompletion', 'Enrolment', 'RolloverPlan', 'TimetableConflict', 'ExamAccommodation',
 			'ItemStatistics', 'AssessmentReliability', 'ItemRevisionFlag', 'GradeEntry', 'FinalGrade',
 			'ReportCard', 'CompetencyAttainment', 'SupportRequest', 'DeliberationRecord', 'EngagementScore',
-			'EngagementRiskFlag', 'ExchangeRejection', 'Portfolio', 'PortfolioEntry', 'LearningRecordExport',
+			'EngagementRiskFlag', 'Portfolio', 'PortfolioEntry', 'LearningRecordExport',
 			'LearningRecordShare', 'LearnerEngagement', 'Entitlement',
 		];
 		$schemas = self::schemas();

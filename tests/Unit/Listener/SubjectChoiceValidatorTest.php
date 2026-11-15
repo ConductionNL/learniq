@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-a-submitted-subject-choice-is-validated-against-the-plan-s-elective-rules-not-persisted-unchecked
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-submitted-subject-choice-is-validated-against-the-plan-s-elective-rules-not-persisted-unchecked
  */
 
 declare(strict_types=1);
@@ -43,6 +43,20 @@ class SubjectChoiceValidatorTest extends TestCase {
 	 * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
 	 */
 	private array $savedObjects = [];
+
+	/**
+	 * Every findAll config sent.
+	 *
+	 * @var list<array<string,mixed>>
+	 */
+	private array $queries = [];
+
+	/**
+	 * Recorded capacity outcomes.
+	 *
+	 * @var string
+	 */
+	private const GOLDEN = __DIR__ . '/golden/SubjectChoiceCapacity.json';
 
 	/**
 	 * Reset the capture buffer before each test.
@@ -78,6 +92,7 @@ class SubjectChoiceValidatorTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($siblings) {
+				$this->queries[] = $config;
 				if (($config['filters']['schema'] ?? '') === 'subject-choice') {
 					return $siblings;
 				}
@@ -98,7 +113,7 @@ class SubjectChoiceValidatorTest extends TestCase {
 			}
 		);
 
-		return new SubjectChoiceValidator($objectService, new NullLogger());
+		return new SubjectChoiceValidator($objectService, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end makeHandler()
 
 	/**
@@ -127,7 +142,7 @@ class SubjectChoiceValidatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-choice-satisfying-every-rule-validates
+	 * @spec openspec/specs/school-structure/spec.md#scenario-a-choice-satisfying-every-rule-validates
 	 */
 	public function testValidChoiceMovesToValidated(): void {
 		$plan = [
@@ -159,7 +174,7 @@ class SubjectChoiceValidatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-choice-violating-a-mandatory-combination-is-sent-back-for-revision
+	 * @spec openspec/specs/school-structure/spec.md#scenario-a-choice-violating-a-mandatory-combination-is-sent-back-for-revision
 	 */
 	public function testMandatoryCombinationViolationMovesToNeedsRevision(): void {
 		$plan = [
@@ -190,7 +205,7 @@ class SubjectChoiceValidatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-choice-exceeding-a-course-s-capacity-is-sent-back-for-revision
+	 * @spec openspec/specs/school-structure/spec.md#scenario-a-choice-exceeding-a-course-s-capacity-is-sent-back-for-revision
 	 */
 	public function testCapacityExceededMovesToNeedsRevision(): void {
 		$plan = [
@@ -358,4 +373,84 @@ class SubjectChoiceValidatorTest extends TestCase {
 		self::assertCount(0, $this->savedObjects);
 
 	}//end testNonMatchingEventTypeIgnored()
+
+	/**
+	 * Capacity outcomes and sibling queries over tenants, limits and sibling shapes match the recorded set.
+	 *
+	 * @return void
+	 */
+	public function testCapacityMatchesGolden(): void {
+		$siblings = [
+			['id' => 'choice-9', 'selectedElectiveCourseIds' => ['course-a', 'course-b']],
+			['uuid' => 'choice-8', 'selectedElectiveCourseIds' => ['course-a']],
+			['id' => 'self', 'selectedElectiveCourseIds' => ['course-a', 'course-b', 'course-c']],
+			['uuid' => 'self', 'selectedElectiveCourseIds' => ['course-c']],
+			['id' => '', 'selectedElectiveCourseIds' => ['course-c']],
+			['id' => 'choice-7', 'selectedElectiveCourseIds' => 'course-a'],
+			OrEntityFactory::make(['id' => 'choice-6', 'selectedElectiveCourseIds' => ['course-b']], 'subject-choice'),
+		];
+		$limits = [
+			'none' => null,
+			'empty' => [],
+			'not-array' => 'x',
+			'mixed' => ['course-a' => 2, 'course-b' => 3, 'course-c' => '1', 'course-d' => 1],
+			'roomy' => ['course-a' => 9, 'course-b' => 9, 'course-c' => 9],
+			'tight' => ['course-a' => 1, 'course-b' => 1, 'course-c' => 1],
+			'edge' => ['course-a' => 5, 'course-c' => 3],
+		];
+		$cases = [];
+		foreach ($limits as $limitName => $capacity) {
+			foreach (['tenant-a', ''] as $tenant) {
+				$this->savedObjects = [];
+				$this->queries = [];
+				$plan = ['id' => 'plan-1', 'electiveRules' => ['capacityByCourseId' => $capacity]];
+				$choice = ['id' => 'self', 'curriculumPlanId' => 'plan-1', 'selectedElectiveCourseIds' => ['course-a', 'course-c', 'course-d'], 'tenant_id' => $tenant];
+				$this->makeHandler(plan: $plan, siblings: $siblings)->handle($this->makeEvent($choice));
+				$cases[$limitName . ' tenant=' . $tenant] = ['saved' => $this->savedObjects, 'queries' => $this->queries];
+			}
+		}
+
+		$actual = json_decode((string)json_encode($cases), true);
+		if (getenv('RECORD_GOLDEN') === '1') {
+			file_put_contents(self::GOLDEN, json_encode($actual, JSON_PRETTY_PRINT) . "\n");
+		}
+
+		foreach (json_decode((string)file_get_contents(self::GOLDEN), true) as $name => $expected) {
+			self::assertSame($expected, $actual[$name], $name);
+		}
+	}//end testCapacityMatchesGolden()
+	/**
+	 * Each mandatory combination not fully selected names what it misses, in
+	 * the combination's order; empty or malformed combinations are skipped.
+	 *
+	 * @return void
+	 */
+	public function testEveryMandatoryCombinationNamesWhatItMisses(): void {
+		$cases = [
+			'two missing, one complete, malformed skipped' => [
+				[['course-x', 'course-y', 'course-z'], 'not-a-list', [], ['course-a'], ['course-q', 'course-a']],
+				[
+					'Mandatory combination not fully selected: missing course-y, course-z.',
+					'Mandatory combination not fully selected: missing course-q.',
+				],
+			],
+			'combinations not a list' => ['course-x', null],
+		];
+
+		foreach ($cases as $label => [$combinations, $errors]) {
+			$this->savedObjects = [];
+			$plan = ['id' => 'plan-1', 'electiveRules' => ['mandatoryCombinations' => $combinations]];
+			$choice = ['id' => 'choice-2', 'curriculumPlanId' => 'plan-1', 'selectedElectiveCourseIds' => ['course-x', 'course-a'], 'tenant_id' => 'tenant-a'];
+
+			$this->makeHandler(plan: $plan)->handle($this->makeEvent($choice));
+
+			if ($errors === null) {
+				self::assertSame('validated', $this->savedObjects[0]['object']['lifecycle'], $label);
+				continue;
+			}
+
+			self::assertSame('needs-revision', $this->savedObjects[0]['object']['lifecycle'], $label);
+			self::assertSame($errors, $this->savedObjects[0]['object']['validationErrors'], $label);
+		}
+	}//end testEveryMandatoryCombinationNamesWhatItMisses()
 }//end class

@@ -4,7 +4,7 @@
  * Learniq Learning Record Bundle Writer
  *
  * Owns the nc:files side of a learner's signed learning-record export: JSON
- * encoding, the `Scholiq/{tenant}/learning-record-exports` destination
+ * encoding, the `Learniq/{tenant}/learning-record-exports` destination
  * convention `CoursePackageImportService::writeBytesToFiles()` established,
  * folder creation, and the create-or-overwrite of the bundle file itself.
  * Extracted out of `LearningRecordExportService` so that class stays a
@@ -31,23 +31,20 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-learner-initiated-export-produces-a-signed-dual-shaped-bundle
+ * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-learner-initiated-export-produces-a-signed-dual-shaped-bundle
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCP\Files\File;
-use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
-use OCP\Files\NotFoundException;
 use Psr\Log\LoggerInterface;
 
 /**
  * Writes a signed learning-record export bundle into the owner's nc:files home.
  *
- * @spec openspec/changes/portable-learning-record/tasks.md#task-2-3
+ * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-2-3
  */
 class LearningRecordBundleWriter {
 	/**
@@ -67,7 +64,7 @@ class LearningRecordBundleWriter {
 	/**
 	 * Write the signed bundle JSON to the owner's nc:files home, mirroring
 	 * `CoursePackageImportService::writeBytesToFiles()`'s destination
-	 * convention (`Scholiq/{tenant}/...`).
+	 * convention (`Learniq/{tenant}/...`).
 	 *
 	 * @param array<string,mixed> $bundle The signed bundle (bundle itself, not the JWS).
 	 * @param string $ownerUid Nextcloud user id who will own the file.
@@ -76,7 +73,7 @@ class LearningRecordBundleWriter {
 	 *
 	 * @return string|null The nc:files path, or null on failure.
 	 *
-	 * @spec openspec/changes/portable-learning-record/tasks.md#task-2-3
+	 * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-2-3
 	 */
 	public function write(array $bundle, string $ownerUid, string $tenantId, string $exportId): ?string {
 		if ($ownerUid === '') {
@@ -94,12 +91,12 @@ class LearningRecordBundleWriter {
 				$tenantSegment = $tenantId;
 			}
 
-			$ncBaseDir = 'Scholiq/' . $tenantSegment . '/learning-record-exports';
+			$ncBaseDir = 'Learniq/' . $tenantSegment . '/learning-record-exports';
 			$ncPath = $ncBaseDir . '/' . $exportId . '.json';
 
-			$userFolder = $this->rootFolder->getUserFolder($ownerUid);
-			$this->ensureFolder(userFolder: $userFolder, path: $ncBaseDir);
-			$this->putContents(userFolder: $userFolder, path: $ncPath, content: $encoded);
+			$files = new FolderFileWriter(userFolder: $this->rootFolder->getUserFolder($ownerUid));
+			$files->ensureFolder(path: $ncBaseDir);
+			$files->put(path: $ncPath, content: $encoded);
 
 			return '/' . $ncPath;
 		} catch (\Throwable $e) {
@@ -112,54 +109,4 @@ class LearningRecordBundleWriter {
 
 	}//end write()
 
-	/**
-	 * Create the bundle file, or overwrite it when a previous generation of the
-	 * same export already wrote one.
-	 *
-	 * @param Folder $userFolder The owner's user folder.
-	 * @param string $path Relative nc:files path of the bundle file.
-	 * @param string $content Encoded bundle JSON.
-	 *
-	 * @return void
-	 */
-	private function putContents(Folder $userFolder, string $path, string $content): void {
-		if ($userFolder->nodeExists($path) === false) {
-			$userFolder->newFile($path, $content);
-			return;
-		}
-
-		$existingNode = $userFolder->get($path);
-		if ($existingNode instanceof File) {
-			$existingNode->putContent($content);
-		}
-
-	}//end putContents()
-
-	/**
-	 * Ensure a nested nc:files folder path exists under the given folder.
-	 *
-	 * @param Folder $userFolder The root user folder.
-	 * @param string $path Slash-separated relative path to ensure.
-	 *
-	 * @return void
-	 */
-	private function ensureFolder(Folder $userFolder, string $path): void {
-		$segments = array_filter(explode('/', $path));
-		$current = '';
-		foreach ($segments as $segment) {
-			$prefix = '';
-			if ($current !== '') {
-				$prefix = $current . '/';
-			}
-
-			$current = $prefix . $segment;
-
-			try {
-				$userFolder->get($current);
-			} catch (NotFoundException $e) {
-				$userFolder->newFolder($current);
-			}
-		}
-
-	}//end ensureFolder()
 }//end class

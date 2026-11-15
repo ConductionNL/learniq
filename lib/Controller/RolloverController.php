@@ -25,17 +25,18 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-year-rollover/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
+use OCA\Learniq\Kernel\Contracts\RolloverServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Service\RolloverService;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
@@ -47,7 +48,7 @@ use OCP\IUserSession;
 /**
  * Default-mapping proposal + side-effect-free preview for the rollover wizard.
  *
- * @spec openspec/changes/school-year-rollover/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
  */
 class RolloverController extends Controller {
 	/**
@@ -56,17 +57,19 @@ class RolloverController extends Controller {
 	 * @param IRequest $request HTTP request.
 	 * @param IUserSession $userSession Current user session.
 	 * @param ActionAuthService $actionAuth ADR-023 action authorization.
-	 * @param RolloverService $rolloverService Rollover logic.
+	 * @param RolloverServiceInterface $rolloverService Rollover logic.
 	 * @param ObjectService $objectService OR object query/persistence.
+	 * @param CallerTenantResolverInterface $callerTenant Resolves the caller's tenant.
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly ActionAuthService $actionAuth,
-		private readonly RolloverService $rolloverService,
+		private readonly RolloverServiceInterface $rolloverService,
 		private readonly ObjectService $objectService,
+		private readonly CallerTenantResolverInterface $callerTenant,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -80,7 +83,8 @@ class RolloverController extends Controller {
 	 *
 	 * @return JSONResponse The proposed mappings.
 	 *
-	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
+	 * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
 	 */
 	#[NoAdminRequired]
 	public function proposeMapping(string $fromAcademicYear = ''): JSONResponse {
@@ -95,28 +99,93 @@ class RolloverController extends Controller {
 			return new JSONResponse(data: ['error' => 'fromAcademicYear is required'], statusCode: Http::STATUS_BAD_REQUEST);
 		}
 
-		$cohorts = $this->objectService->findAll(
+		$cohorts = self::asCohorts(
+			rows: $this->findCohorts(fromAcademicYear: $fromAcademicYear, tenantId: $this->callerTenant->resolve(user: $user))
+		);
+
+		return $this->mappingResponse(cohorts: $cohorts);
+	}//end proposeMapping()
+
+	/**
+	 * The from-year's cohorts of one tenant.
+	 *
+	 * @param string      $fromAcademicYear The year being rolled out of.
+	 * @param string $tenantId         The caller's tenant.
+	 *
+	 * @return array<int, mixed>
+	 */
+	private function findCohorts(string $fromAcademicYear, string $tenantId): array {
+		return $this->objectService->findAll(
 			[
 				'filters' => [
 					'register' => 'learniq',
 					'schema' => 'cohort',
 					'academicYear' => $fromAcademicYear,
+					// The action matrix is instance-wide: without this, a planner
+					// saw every tenant's cohorts for a shared year string.
+					'tenant_id' => $tenantId,
 				],
 			]
 		);
+	}//end findCohorts()
 
-		$fromCohorts = [];
-		foreach ($cohorts as $row) {
-			if (is_array($row) === true) {
-				$fromCohorts[] = $row;
-				continue;
+	/**
+	 * The rows as cohort arrays.
+	 *
+	 * @param array<int, mixed> $rows Rows or entities.
+	 *
+	 * @return array<int, array<mixed>>
+	 */
+	private static function asCohorts(array $rows): array {
+		$cohorts = [];
+		foreach ($rows as $row) {
+			$cohort = $row;
+			if (is_array($row) === false) {
+				$cohort = (array)$row->jsonSerialize();
 			}
 
-			$fromCohorts[] = (array)$row->jsonSerialize();
+			$cohorts[] = $cohort;
 		}
 
-		return new JSONResponse(data: ['mappings' => $this->rolloverService->proposeDefaultMapping(fromCohorts: $fromCohorts)]);
-	}//end proposeMapping()
+		return $cohorts;
+	}//end asCohorts()
+
+	/**
+	 * The proposed mappings, and the name of every cohort that has an id.
+	 *
+	 * @param array<int, array<mixed>> $cohorts The from-year's cohorts.
+	 *
+	 * @return JSONResponse
+	 */
+	private function mappingResponse(array $cohorts): JSONResponse {
+		$cohortNames = self::cohortNames(cohorts: $cohorts);
+
+		return new JSONResponse(
+			data: [
+				'mappings' => $this->rolloverService->proposeDefaultMapping(fromCohorts: $cohorts),
+				'cohortNames' => $cohortNames,
+			]
+		);
+	}//end mappingResponse()
+
+	/**
+	 * Cohort id to display name; a cohort without a name is named by its id.
+	 *
+	 * @param array<int, array<mixed>> $cohorts The cohorts.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function cohortNames(array $cohorts): array {
+		$cohortNames = [];
+		foreach ($cohorts as $cohort) {
+			$cohortId = (string)($cohort['id'] ?? ($cohort['uuid'] ?? ''));
+			if ($cohortId !== '') {
+				$cohortNames[$cohortId] = (string)($cohort['name'] ?? $cohortId);
+			}
+		}
+
+		return $cohortNames;
+	}//end cohortNames()
 
 	/**
 	 * Compute the preview for a plan and advance it to `previewed`.
@@ -130,7 +199,10 @@ class RolloverController extends Controller {
 	 *
 	 * @return JSONResponse The dry-run report (+ blocked flag).
 	 *
-	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @throws \Exception When OpenRegister refuses the plan save; it reaches the caller as before.
+	 *
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
+	 * @spec openspec/changes/archive/2026-09-29-fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
 	 */
 	#[NoAdminRequired]
 	public function preview(string $planId = ''): JSONResponse {
@@ -145,20 +217,14 @@ class RolloverController extends Controller {
 			return new JSONResponse(data: ['error' => 'planId is required'], statusCode: Http::STATUS_BAD_REQUEST);
 		}
 
-		// ObjectService::find() THROWS DoesNotExistException for an unknown id —
-		// it does not return null — so without this catch the 404 below was dead
-		// code and an unknown planId escaped as a 500 with a stack trace.
-		try {
-			$planObj = $this->objectService->find(id: $planId, register: 'learniq', schema: 'rollover-plan');
-		} catch (DoesNotExistException $e) {
+		// An unknown id and another tenant's plan both read as absent: no report,
+		// no lifecycle write (ObjectService::find() throws for an unknown id; the
+		// resolver turns that into null too).
+		$plan = $this->callerTenant->findOwned(user: $user, id: $planId, schema: 'rollover-plan');
+		if ($plan === null) {
 			return new JSONResponse(data: ['error' => 'Plan not found'], statusCode: Http::STATUS_NOT_FOUND);
 		}
 
-		if ($planObj === null) {
-			return new JSONResponse(data: ['error' => 'Plan not found'], statusCode: Http::STATUS_NOT_FOUND);
-		}
-
-		$plan = $planObj->jsonSerialize();
 		$report = $this->rolloverService->preview(plan: $plan);
 
 		$plan['dryRunReport'] = $report;
@@ -169,7 +235,12 @@ class RolloverController extends Controller {
 			$plan['lifecycle'] = 'previewed';
 		}
 
-		$this->objectService->saveObject(register: 'learniq', schema: 'rollover-plan', object: $plan);
+		// A plan deleted between the read above and this save reads as absent.
+		try {
+			$this->objectService->saveObject(register: 'learniq', schema: 'rollover-plan', object: $plan);
+		} catch (DoesNotExistException $e) {
+			return new JSONResponse(data: ['error' => 'Plan not found'], statusCode: Http::STATUS_NOT_FOUND);
+		}
 
 		return new JSONResponse(data: ['report' => $report, 'blocked' => ($report['blocked'] ?? false)]);
 	}//end preview()

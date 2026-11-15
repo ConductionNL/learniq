@@ -41,6 +41,43 @@ class MbzExtractorTest extends TestCase {
 	private const TRAVERSAL_FIXTURE = __DIR__ . '/../../fixtures/course-packages/malicious-path-traversal.tar.gz';
 
 	/**
+	 * Build directories the oversized fixture made, removed in tearDown.
+	 *
+	 * @var array<int, string>
+	 */
+	private array $buildDirs = [];
+
+	/**
+	 * Remove every fixture build directory, whatever the test's outcome.
+	 *
+	 * @return void
+	 */
+	protected function tearDown(): void {
+		foreach ($this->buildDirs as $dir) {
+			$this->rrmdir($dir);
+		}
+
+		$this->buildDirs = [];
+		parent::tearDown();
+	}//end tearDown()
+
+	/**
+	 * The oversized fixture's build directory (a ~100 MB tar and a sparse
+	 * 101 MB file) is gone after tearDown, so a run leaves no temp data.
+	 *
+	 * @return void
+	 */
+	public function testTheOversizedFixtureLeavesNothingInTheTempDir(): void {
+		$archive = $this->buildOversizedTarGz();
+		$workDir = dirname($archive);
+		self::assertDirectoryExists($workDir);
+
+		$this->tearDown();
+
+		self::assertDirectoryDoesNotExist($workDir);
+	}//end testTheOversizedFixtureLeavesNothingInTheTempDir()
+
+	/**
 	 * A valid `.mbz` extracts its full directory tree.
 	 *
 	 * @return void
@@ -104,6 +141,30 @@ class MbzExtractorTest extends TestCase {
 	}//end testExtractRejectsOversizedEntry()
 
 	/**
+	 * Raise memory_limit to at least the given size; never lower it.
+	 *
+	 * Lowering it below what the run already uses fails with a warning, which
+	 * happens in a full suite that started with a higher limit.
+	 *
+	 * @param int $bytes The least limit wanted.
+	 *
+	 * @return void
+	 */
+	private static function raiseMemoryLimitTo(int $bytes): void {
+		$current = trim((string)ini_get('memory_limit'));
+		if ($current === '-1') {
+			return;
+		}
+
+		$units = ['K' => 1024, 'M' => (1024 ** 2), 'G' => (1024 ** 3)];
+		$unit  = strtoupper(substr($current, -1));
+		$limit = (int)$current * ($units[$unit] ?? 1);
+		if ($limit < $bytes) {
+			ini_set('memory_limit', (string)$bytes);
+		}
+	}//end raiseMemoryLimitTo()
+
+	/**
 	 * Build a gzipped tar containing one entry larger than the 100 MB per-file cap.
 	 *
 	 * @return string Absolute path to the built `.tar.gz` file.
@@ -114,10 +175,11 @@ class MbzExtractorTest extends TestCase {
 		// purely to *build* the fixture (MbzExtractor's own extraction never loads
 		// the oversized entry into memory — it rejects it by size before reading
 		// any content, per the pre-flight pass in `extract()`).
-		ini_set('memory_limit', '512M');
+		self::raiseMemoryLimitTo(bytes: (512 * 1024 * 1024));
 
 		$workDir = sys_get_temp_dir() . '/learniq_test_mbz_oversize_build_' . bin2hex(random_bytes(6));
 		mkdir($workDir, 0700, true);
+		$this->buildDirs[] = $workDir;
 
 		// Sparse file: ftruncate reserves the size without writing real bytes,
 		// so the fixture builds in milliseconds instead of allocating 101 MB.

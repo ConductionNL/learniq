@@ -3,6 +3,9 @@
 /**
  * Learniq Session Change Notice Handler
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * IEventListener for Session lifecycle -> `cancel` / `substitute-teacher` /
  * `substitute-teacher-in-progress` (the OR ObjectTransitionedEvent with
  * register=learniq, schema=session, action in that set). Materialises
@@ -30,13 +33,11 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-cancellation-or-substitution-notifies-affected-learners-and-parents
+ * @spec openspec/specs/timetabling/spec.md#requirement-cancellation-or-substitution-notifies-affected-learners-and-parents
  */
 
 declare(strict_types=1);
@@ -46,6 +47,8 @@ namespace OCA\Learniq\Listener;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\SessionChangeNoticeHandlerInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -58,9 +61,9 @@ use Psr\Log\LoggerInterface;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-cancellation-or-substitution-notifies-affected-learners-and-parents
+ * @spec openspec/specs/timetabling/spec.md#requirement-cancellation-or-substitution-notifies-affected-learners-and-parents
  */
-class SessionChangeNoticeHandler implements IEventListener {
+class SessionChangeNoticeHandler implements IEventListener, SessionChangeNoticeHandlerInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const SESSION_SCHEMA = 'session';
@@ -79,12 +82,14 @@ class SessionChangeNoticeHandler implements IEventListener {
 	 *
 	 * @param ObjectService $objectService OR object access service.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -95,24 +100,69 @@ class SessionChangeNoticeHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-cancelling-a-session-notifies-every-affected-learner-and-parent
+	 * @spec openspec/specs/timetabling/spec.md#scenario-cancelling-a-session-notifies-every-affected-learner-and-parent
 	 */
 	public function handle(Event $event): void {
-		if (($event instanceof ObjectTransitionedEvent) === false) {
+		if (($event instanceof ObjectTransitionedEvent) === false || $this->isWatchedTransition(event: $event) === false) {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER || $event->getSchema() !== self::SESSION_SCHEMA) {
+		$session = $event->getObject()->jsonSerialize();
+
+		// A lesson changed in a batch sends no message of its own: its
+		// affected lists stay empty and the batch sends one message for all
+		// its lessons (timetabling-bulk-change-weeks).
+		if ($this->isInBatch(session: $session) === true) {
 			return;
 		}
 
-		if (in_array($event->getAction(), self::WATCHED_ACTIONS, true) === false) {
-			return;
-		}
-
-		$this->materialiseAffected(session: $event->getObject()->jsonSerialize());
+		$this->materialiseAffected(session: $session);
 
 	}//end handle()
+
+	/**
+	 * Whether a transition is a watched action on one of Learniq's sessions.
+	 *
+	 * @param ObjectTransitionedEvent $event The transition.
+	 *
+	 * @return bool
+	 */
+	private function isWatchedTransition(ObjectTransitionedEvent $event): bool {
+		return $this->schemas->eventRegister(event: $event) === self::LEARNIQ_REGISTER
+			&& $this->schemas->eventSchema(event: $event) === self::SESSION_SCHEMA
+			&& in_array($event->getAction(), self::WATCHED_ACTIONS, true) === true;
+	}//end isWatchedTransition()
+
+	/**
+	 * Whether a lesson was changed as part of a batch.
+	 *
+	 * @param array<string,mixed> $session The Session data.
+	 *
+	 * @return bool
+	 */
+	private function isInBatch(array $session): bool {
+		return is_string($session['changeBatchId'] ?? null) === true && $session['changeBatchId'] !== '';
+	}//end isInBatch()
+
+	/**
+	 * The learners and parents a change to this lesson affects, without
+	 * writing anything.
+	 *
+	 * @param array<string,mixed> $session The Session data.
+	 *
+	 * @return array{learnerIds: array<int,string>, parentIds: array<int,string>}
+	 *
+	 * @spec openspec/specs/timetabling/spec.md#requirement-affected-people-get-one-message-per-batch
+	 */
+	public function affectedPeople(array $session): array {
+		$tenantId = (string)($session['tenant_id'] ?? '');
+		$learnerIds = $this->resolveCohortLearnerIds(cohortId: (string)($session['cohortId'] ?? ''), tenantId: $tenantId);
+
+		return [
+			'learnerIds' => $learnerIds,
+			'parentIds' => $this->resolveParentIds(learnerIds: $learnerIds, tenantId: $tenantId),
+		];
+	}//end affectedPeople()
 
 	/**
 	 * Resolve and persist affectedLearnerIds/affectedParentIds/changedAt onto the Session.
@@ -121,7 +171,7 @@ class SessionChangeNoticeHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-cancelling-a-session-notifies-every-affected-learner-and-parent
+	 * @spec openspec/specs/timetabling/spec.md#scenario-cancelling-a-session-notifies-every-affected-learner-and-parent
 	 */
 	private function materialiseAffected(array $session): void {
 		$sessionId = (string)($session['id'] ?? ($session['uuid'] ?? ''));
@@ -166,39 +216,17 @@ class SessionChangeNoticeHandler implements IEventListener {
 			return [];
 		}
 
-		$filters = ['id' => $cohortId];
+		$filters = [];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
-		$results = $this->objectService->findAll(
-			[
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::COHORT_SCHEMA,
-					]
-				),
-				'limit' => 1,
-			]
-		);
-
-		if (empty($results) === true) {
+		$cohort = $this->firstObject(schema: self::COHORT_SCHEMA, query: ['ids' => [$cohortId], 'filters' => $filters]);
+		if ($cohort === null) {
 			return [];
 		}
 
-		$cohort = $results[0];
-		if (is_array($cohort) === false) {
-			$cohort = $cohort->jsonSerialize();
-		}
-
-		$learnerIds = $cohort['learnerIds'] ?? [];
-		if (is_array($learnerIds) === false) {
-			return [];
-		}
-
-		return array_values(array_unique(array_filter($learnerIds, static fn ($id) => is_string($id) === true && $id !== '')));
+		return $this->distinctIds(ids: ($cohort['learnerIds'] ?? []));
 	}//end resolveCohortLearnerIds()
 
 	/**
@@ -213,45 +241,75 @@ class SessionChangeNoticeHandler implements IEventListener {
 		$parentIds = [];
 
 		foreach ($learnerIds as $learnerId) {
-			$filters = ['ncUserId' => $learnerId];
-			if ($tenantId !== '') {
-				$filters['tenant_id'] = $tenantId;
+			foreach ($this->profileParentIds(learnerId: $learnerId, tenantId: $tenantId) as $parentId) {
+				$parentIds[$parentId] = true;
 			}
-
-			$results = $this->objectService->findAll(
-				[
-					'filters' => array_merge(
-						$filters,
-						[
-							'register' => self::LEARNIQ_REGISTER,
-							'schema' => self::LEARNER_PROFILE_SCHEMA,
-						]
-					),
-					'limit' => 1,
-				]
-			);
-
-			if (empty($results) === true) {
-				continue;
-			}
-
-			$profile = $results[0];
-			if (is_array($profile) === false) {
-				$profile = $profile->jsonSerialize();
-			}
-
-			$profileParentIds = $profile['parentIds'] ?? [];
-			if (is_array($profileParentIds) === false) {
-				continue;
-			}
-
-			foreach ($profileParentIds as $parentId) {
-				if (is_string($parentId) === true && $parentId !== '') {
-					$parentIds[$parentId] = true;
-				}
-			}
-		}//end foreach
+		}
 
 		return array_keys($parentIds);
 	}//end resolveParentIds()
+
+	/**
+	 * The parent ids on one learner's LearnerProfile in the tenant.
+	 *
+	 * @param string $learnerId The learner's Nextcloud user id.
+	 * @param string $tenantId  Tenant ID to enforce as a mandatory filter.
+	 *
+	 * @return array<int,string> The profile's distinct non-empty parent ids.
+	 */
+	private function profileParentIds(string $learnerId, string $tenantId): array {
+		$filters = ['ncUserId' => $learnerId];
+		if ($tenantId !== '') {
+			$filters['tenant_id'] = $tenantId;
+		}
+
+		$profile = $this->firstObject(schema: self::LEARNER_PROFILE_SCHEMA, query: ['filters' => $filters]);
+		if ($profile === null) {
+			return [];
+		}
+
+		return $this->distinctIds(ids: ($profile['parentIds'] ?? []));
+	}//end profileParentIds()
+
+	/**
+	 * The distinct non-empty string ids of a stored list, or none when it is not a list.
+	 *
+	 * @param mixed $ids The stored value.
+	 *
+	 * @return array<int,string>
+	 */
+	private function distinctIds(mixed $ids): array {
+		if (is_array($ids) === false) {
+			return [];
+		}
+
+		return array_values(array_unique(array_filter($ids, static fn ($id) => is_string($id) === true && $id !== '')));
+	}//end distinctIds()
+
+	/**
+	 * The first object of one of Learniq's schemas a query finds, as a row,
+	 * or null when it finds none. The query's filters gain the register and
+	 * schema, and it reads one object.
+	 *
+	 * @param string              $schema The schema.
+	 * @param array<string,mixed> $query  The query, with its `filters`.
+	 *
+	 * @return array<string,mixed>|null
+	 */
+	private function firstObject(string $schema, array $query): ?array {
+		$scoped = ['register' => self::LEARNIQ_REGISTER, 'schema' => $schema];
+		$results = $this->objectService->findAll(
+			array_merge($query, ['filters' => array_merge($query['filters'], $scoped), 'limit' => 1])
+		);
+		if (empty($results) === true) {
+			return null;
+		}
+
+		$row = $results[0];
+		if (is_array($row) === false) {
+			$row = $row->jsonSerialize();
+		}
+
+		return $row;
+	}//end firstObject()
 }//end class

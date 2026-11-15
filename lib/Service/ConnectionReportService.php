@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/adopt-connection-registry/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
+ * @spec openspec/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
  *
  * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
  * SPDX-License-Identifier: EUPL-1.2
@@ -33,7 +33,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeZone;
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\ConnectionReportServiceInterface;
+use OCP\App\IAppManager;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -44,9 +46,9 @@ use Throwable;
 /**
  * Records connection observations and sends them to integriq.
  *
- * @spec openspec/changes/adopt-connection-registry/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
+ * @spec openspec/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
  */
-class ConnectionReportService {
+class ConnectionReportService implements ConnectionReportServiceInterface {
 
 	/**
 	 * Integriq's report event (ADR-041). Named by string so learniq stays
@@ -57,26 +59,53 @@ class ConnectionReportService {
 	public const STATUS_EVENT = 'OCA\Integriq\Event\ConnectionStatusReportedEvent';
 
 	/**
-	 * The connection key of the EUDI wallet row in lib/Settings/connections.json.
+	 * The connection key of the timetable row. Learniq reports it from whether
+	 * planninq is enabled; integriq, which delivers the timetable, is present
+	 * whenever the report can be sent at all
+	 * (timetable-connection-and-import-screen).
 	 *
 	 * @var string
 	 */
-	public const WALLET_KEY = 'eudi-wallet';
+	public const TIMETABLE_KEY = 'timetable';
+
+	/**
+	 * The connection key of the LTI row. Learniq reports it from whether
+	 * integriq ships its LTI launch event (content-lti-launch-through-integriq).
+	 *
+	 * @var string
+	 */
+	public const LTI_KEY = 'lti';
+
+	/**
+	 * The connection key of the open learning material row. Learniq reports it
+	 * from how the source answered the last search (open-learning-material).
+	 *
+	 * @var string
+	 */
+	public const OPEN_MATERIAL_KEY = 'open-material-edurep';
+
+	/**
+	 * Integriq's LTI launch event, named by string like STATUS_EVENT.
+	 *
+	 * @var string
+	 */
+	public const LTI_LAUNCH_EVENT = 'OCA\Integriq\Event\LtiLaunchRequestedEvent';
 
 	/**
 	 * The connections learniq reports on. A unit test keeps every key declared.
 	 *
 	 * @var array<int, string>
 	 */
-	public const REPORTED_KEYS = [self::WALLET_KEY];
+	public const REPORTED_KEYS = [self::WALLET_KEY, self::TIMETABLE_KEY, self::LTI_KEY, self::OPEN_MATERIAL_KEY];
 
 	/**
 	 * The statuses an observation may carry: the call got through, it was not
-	 * sent for want of settings, or it failed. Learniq observes nothing else.
+	 * sent for want of settings, it failed, or an app it needs is missing.
+	 * Learniq observes nothing else.
 	 *
 	 * @var array<int, string>
 	 */
-	public const OBSERVABLE_STATUSES = ['configured', 'unconfigured', 'error'];
+	public const OBSERVABLE_STATUSES = ['configured', 'unconfigured', 'error', 'unavailable'];
 
 	/**
 	 * App-config key prefix for a stored observation, followed by the connection key.
@@ -99,12 +128,14 @@ class ConnectionReportService {
 	 * @param IEventDispatcher $eventDispatcher Sends the integriq event (ADR-041).
 	 * @param ITimeFactory     $timeFactory     Stamps when an outcome was first seen.
 	 * @param LoggerInterface  $logger          Records what could not be sent.
+	 * @param IAppManager      $appManager      Says whether planninq is enabled, for the timetable row.
 	 */
 	public function __construct(
 		private readonly IAppConfig $appConfig,
 		private readonly IEventDispatcher $eventDispatcher,
 		private readonly ITimeFactory $timeFactory,
 		private readonly LoggerInterface $logger,
+		private readonly IAppManager $appManager,
 	) {
 	}//end __construct()
 
@@ -121,7 +152,7 @@ class ConnectionReportService {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adopt-connection-registry/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
+	 * @spec openspec/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
 	 */
 	public function observe(string $key, string $status, string $reason): void {
 		if (in_array($key, self::REPORTED_KEYS, true) === false
@@ -143,7 +174,7 @@ class ConnectionReportService {
 			}
 
 			$this->appConfig->setValueString(
-				app: Application::APP_ID,
+				app: AppIdentity::APP_ID,
 				key: self::OBSERVATION_KEY_PREFIX . $key,
 				value: json_encode(
 					[
@@ -174,7 +205,7 @@ class ConnectionReportService {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adopt-connection-registry/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
+	 * @spec openspec/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
 	 */
 	public function reportObservations(): void {
 		$eventClass = $this->resolveEventClass(eventClass: self::STATUS_EVENT);
@@ -184,30 +215,114 @@ class ConnectionReportService {
 
 		foreach (self::REPORTED_KEYS as $key) {
 			try {
-				$stored = $this->readObservation(key: $key);
-				if ($stored === null) {
-					continue;
-				}
-
-				$event = new $eventClass(
-					app: Application::APP_ID,
-					key: $key,
-					status: $stored['status'],
-					message: $stored['reason'] . ' Unchanged since ' . $stored['since'] . ' UTC.',
-				);
-				if (($event instanceof Event) === false) {
-					continue;
-				}
-
-				$this->eventDispatcher->dispatchTyped($event);
+				$this->reportObservation(eventClass: $eventClass, key: $key);
 			} catch (Throwable $e) {
-				$this->logger->warning(
-					'Learniq: could not send a connection report to integriq',
-					['key' => $key, 'exception' => $e->getMessage()]
-				);
-			}//end try
-		}//end foreach
+				$this->reportFailed(key: $key, exception: $e);
+			}
+		}
 	}//end reportObservations()
+
+	/**
+	 * Log a connection report that could not be sent; the next key is still reported.
+	 *
+	 * @param string    $key       The connection key.
+	 * @param Throwable $exception Why it failed.
+	 *
+	 * @return void
+	 */
+	private function reportFailed(string $key, Throwable $exception): void {
+		$this->logger->warning(
+			'Learniq: could not send a connection report to integriq',
+			['key' => $key, 'exception' => $exception->getMessage()]
+		);
+	}//end reportFailed()
+
+	/**
+	 * Send one key's stored observation to integriq, if one is stored.
+	 *
+	 * @param string $eventClass The status event class integriq listens for.
+	 * @param string $key        The connection key.
+	 *
+	 * @return void
+	 */
+	private function reportObservation(string $eventClass, string $key): void {
+		$stored = $this->readObservation(key: $key);
+		if ($stored === null) {
+			return;
+		}
+
+		$event = new $eventClass(
+			app: AppIdentity::APP_ID,
+			key: $key,
+			status: $stored['status'],
+			message: $stored['reason'] . ' Unchanged since ' . $stored['since'] . ' UTC.',
+		);
+		if (($event instanceof Event) === true) {
+			$this->eventDispatcher->dispatchTyped($event);
+		}
+	}//end reportObservation()
+
+	/**
+	 * Record whether the timetable connection can work: integriq delivers the
+	 * timetable into planninq, so it is available exactly when planninq is
+	 * enabled. The daily job and a settings save call it before they report;
+	 * the report itself only goes out when integriq is there.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/timetabling/spec.md#requirement-the-timetable-connection-is-available-when-planninq-and-integriq-are-installed
+	 */
+	public function observeTimetable(): void {
+		if ($this->appManager->isEnabledForUser('planninq') === true) {
+			$this->observe(
+				key: self::TIMETABLE_KEY,
+				status: 'configured',
+				reason: 'Planninq and integriq are installed: integriq delivers the timetable to planninq, and learniq reads the lessons from planninq.'
+			);
+			return;
+		}
+
+		$this->observe(
+			key: self::TIMETABLE_KEY,
+			status: 'unavailable',
+			reason: 'Planninq is not installed. Integriq delivers the timetable to planninq, and learniq reads the lessons from there.'
+		);
+	}//end observeTimetable()
+
+	/**
+	 * Record whether LTI tools can open: integriq is the LTI platform, so the
+	 * row is available exactly when its launch event exists.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-connection-registry-says-whether-lti-works
+	 */
+	public function observeLti(): void {
+		if ($this->resolveEventClass(eventClass: self::LTI_LAUNCH_EVENT) !== null) {
+			$this->observe(
+				key: self::LTI_KEY,
+				status: 'configured',
+				reason: 'Integriq opens LTI tools from a lesson. Grades come back once the grade subscription is set in the LTI section.'
+			);
+			return;
+		}
+
+		$this->observe(key: self::LTI_KEY, status: 'unavailable', reason: 'LTI tools need integriq, which is not installed.');
+	}//end observeLti()
+
+	/**
+	 * The status last recorded for a connection (`configured`, `unconfigured`,
+	 * `error` or `unavailable`), or null when nothing was recorded.
+	 *
+	 * @param string $key The connection key.
+	 *
+	 * @return string|null
+	 *
+	 * @spec openspec/changes/credential-wallet-offer-for-the-learner/specs/certification/spec.md#requirement-the-setup-check-names-the-missing-wallet-token
+	 */
+	public function lastStatus(string $key): ?string {
+		return ($this->readObservation(key: $key)['status'] ?? null);
+	}//end lastStatus()
 
 	/**
 	 * The stored observation for a connection, or null when none is usable.
@@ -218,7 +333,7 @@ class ConnectionReportService {
 	 */
 	private function readObservation(string $key): ?array {
 		$raw = $this->appConfig->getValueString(
-			app: Application::APP_ID,
+			app: AppIdentity::APP_ID,
 			key: self::OBSERVATION_KEY_PREFIX . $key,
 			default: '',
 			lazy: true
@@ -227,12 +342,18 @@ class ConnectionReportService {
 			return null;
 		}
 
-		$decoded = json_decode($raw, true);
-		if (is_array($decoded) === false
-			|| is_string($decoded['status'] ?? null) === false
-			|| is_string($decoded['reason'] ?? null) === false
-			|| is_string($decoded['since'] ?? null) === false
-		) {
+		return $this->observationOf(decoded: json_decode($raw, true));
+	}//end readObservation()
+
+	/**
+	 * A decoded stored value as an observation, or null when it is not one.
+	 *
+	 * @param mixed $decoded The decoded value.
+	 *
+	 * @return array{status: string, reason: string, since: string}|null
+	 */
+	private function observationOf(mixed $decoded): ?array {
+		if ($this->isObservation(decoded: $decoded) === false) {
 			return null;
 		}
 
@@ -241,7 +362,23 @@ class ConnectionReportService {
 			'reason' => $decoded['reason'],
 			'since' => $decoded['since'],
 		];
-	}//end readObservation()
+	}//end observationOf()
+
+	/**
+	 * Whether a decoded stored value is an object with string status, reason and since.
+	 *
+	 * @param mixed $decoded The decoded value.
+	 *
+	 * @return bool
+	 *
+	 * @phpstan-assert-if-true array{status: string, reason: string, since: string} $decoded
+	 */
+	private function isObservation(mixed $decoded): bool {
+		return is_array($decoded) === true
+			&& is_string($decoded['status'] ?? null) === true
+			&& is_string($decoded['reason'] ?? null) === true
+			&& is_string($decoded['since'] ?? null) === true;
+	}//end isObservation()
 
 	/**
 	 * The event class to instantiate, or null when integriq does not ship it.
@@ -250,7 +387,7 @@ class ConnectionReportService {
 	 *
 	 * @return string|null The class name to instantiate, or null when absent.
 	 *
-	 * @spec openspec/changes/adopt-connection-registry/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
+	 * @spec openspec/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
 	 */
 	protected function resolveEventClass(string $eventClass): ?string {
 		$qualified = '\\' . $eventClass;

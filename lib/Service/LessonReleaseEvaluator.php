@@ -3,6 +3,9 @@
 /**
  * Learniq Lesson Release Evaluator
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Stateless service resolving, per (item, learner) pair, whether a Lesson or
  * Assessment is available to a specific learner right now — the "adaptive
  * release" / "drip scheduling" gate the adaptive-release-and-prerequisites
@@ -31,16 +34,14 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#requirement-lesson-supports-drip-release-relative-to-each-learners-own-enrolment-date
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#requirement-assessment-declares-per-learner-release-conditions
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#requirement-assessment-supports-drip-release-relative-to-each-learners-own-enrolment-date
+ * @spec openspec/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
+ * @spec openspec/specs/course-management/spec.md#requirement-lesson-supports-drip-release-relative-to-each-learners-own-enrolment-date
+ * @spec openspec/specs/assessment/spec.md#requirement-assessment-declares-per-learner-release-conditions
+ * @spec openspec/specs/assessment/spec.md#requirement-assessment-supports-drip-release-relative-to-each-learners-own-enrolment-date
  */
 
 declare(strict_types=1);
@@ -51,14 +52,15 @@ use DateInterval;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Exception;
+use OCA\Learniq\Kernel\Contracts\LessonReleaseEvaluatorInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
  * Evaluates release-gating for a single (Lesson|Assessment, learner) pair.
  *
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
+ * @spec openspec/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
  */
-class LessonReleaseEvaluator {
+class LessonReleaseEvaluator implements LessonReleaseEvaluatorInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 
@@ -126,8 +128,8 @@ class LessonReleaseEvaluator {
 	 *
 	 * @return array{available: bool, reason: string|null, availableAt: string|null}
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-is-unavailable-until-its-prerequisite-lesson-is-completed
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-is-locked-until-n-days-after-the-learners-own-enrolment-date
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-lesson-is-unavailable-until-its-prerequisite-lesson-is-completed
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-lesson-is-locked-until-n-days-after-the-learners-own-enrolment-date
 	 */
 	public function evaluate(array $item, string $itemSchema, string $learnerId, array $enrolment): array {
 		$tenantId = (string)($item['tenant_id'] ?? '');
@@ -295,7 +297,7 @@ class LessonReleaseEvaluator {
 	 *
 	 * @return array{blocked: bool, reason: string|null}
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
+	 * @spec openspec/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
 	 */
 	private function evaluateLessonCompletedCondition(array $condition, string $learnerId, string $tenantId): array {
 		$lessonId = (string)($condition['lessonId'] ?? '');
@@ -303,32 +305,8 @@ class LessonReleaseEvaluator {
 			return ['blocked' => false, 'reason' => null];
 		}
 
-		$filters = [
-			'lessonId' => $lessonId,
-			'verified_actor_id' => $learnerId,
-		];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$statements = $this->objectService->findAll(
-			[
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::XAPI_SCHEMA,
-					]
-				),
-			]
-		);
-
-		foreach ($statements as $statement) {
-			$data = $this->toArray(object: $statement);
-			$verbId = $data['verb']['id'] ?? '';
-			if (in_array($verbId, self::COMPLETION_VERBS, true) === true) {
-				return ['blocked' => false, 'reason' => null];
-			}
+		if ($this->hasCompleted(lessonId: $lessonId, learnerId: $learnerId, tenantId: $tenantId) === true) {
+			return ['blocked' => false, 'reason' => null];
 		}
 
 		$lessonName = ($this->resolveName(id: $lessonId, schema: self::LESSON_SCHEMA) ?? $lessonId);
@@ -355,7 +333,7 @@ class LessonReleaseEvaluator {
 	 *
 	 * @return array{blocked: bool, reason: string|null}
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#requirement-assessment-declares-per-learner-release-conditions
+	 * @spec openspec/specs/assessment/spec.md#requirement-assessment-declares-per-learner-release-conditions
 	 */
 	private function evaluateAssessmentMinScoreCondition(array $condition, string $learnerId, string $tenantId): array {
 		$assessmentId = (string)($condition['assessmentId'] ?? '');
@@ -364,6 +342,80 @@ class LessonReleaseEvaluator {
 			return ['blocked' => false, 'reason' => null];
 		}
 
+		$bestScore = $this->bestScore(assessmentId: $assessmentId, learnerId: $learnerId, tenantId: $tenantId);
+		if ($bestScore !== null && $bestScore >= (float)$minScore) {
+			return ['blocked' => false, 'reason' => null];
+		}
+
+		$assessmentName = ($this->resolveName(id: $assessmentId, schema: self::ASSESSMENT_SCHEMA) ?? $assessmentId);
+
+		return [
+			'blocked' => true,
+			'reason' => sprintf('Score at least %s on "%s" first.', $minScore, $assessmentName),
+		];
+
+	}//end evaluateAssessmentMinScoreCondition()
+
+	/**
+	 * Whether the learner has an xAPI statement completing or passing the
+	 * lesson: read for that learner only (`verified_actor_id`).
+	 *
+	 * @param string $lessonId  UUID of the lesson.
+	 * @param string $learnerId NC user ID of the learner.
+	 * @param string $tenantId  Tenant scope for the lookup ('' when unknown).
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
+	 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
+	 */
+	public function hasCompleted(string $lessonId, string $learnerId, string $tenantId): bool {
+		$filters = [
+			'lessonId' => $lessonId,
+			'verified_actor_id' => $learnerId,
+		];
+		if ($tenantId !== '') {
+			$filters['tenant_id'] = $tenantId;
+		}
+
+		$statements = $this->objectService->findAll(
+			[
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::XAPI_SCHEMA,
+					]
+				),
+			]
+		);
+
+		foreach ($statements as $statement) {
+			$data = $this->toArray(object: $statement);
+			$verbId = ($data['verb']['id'] ?? '');
+			if (in_array($verbId, self::COMPLETION_VERBS, true) === true) {
+				return true;
+			}
+		}
+
+		return false;
+	}//end hasCompleted()
+
+	/**
+	 * The learner's best summed score over their graded attempts on the
+	 * assessment, or null without a graded attempt: read for that learner
+	 * only (`learnerId`).
+	 *
+	 * @param string $assessmentId UUID of the assessment.
+	 * @param string $learnerId    NC user ID of the learner.
+	 * @param string $tenantId     Tenant scope for the lookup ('' when unknown).
+	 *
+	 * @return float|null
+	 *
+	 * @spec openspec/specs/assessment/spec.md#requirement-assessment-declares-per-learner-release-conditions
+	 * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
+	 */
+	public function bestScore(string $assessmentId, string $learnerId, string $tenantId): ?float {
 		$filters = [
 			'assessmentId' => $assessmentId,
 			'learnerId' => $learnerId,
@@ -388,55 +440,12 @@ class LessonReleaseEvaluator {
 		$bestScore = null;
 		foreach ($results as $result) {
 			$data = $this->toArray(object: $result);
-			$sumScore = $this->sumResponses(responses: ($data['responses'] ?? []));
-			if ($bestScore === null || $sumScore > $bestScore) {
-				$bestScore = $sumScore;
-			}
+			$sumScore = (new ResultResponseSum())->sumOf(responses: ($data['responses'] ?? []));
+			$bestScore = max(($bestScore ?? $sumScore), $sumScore);
 		}
 
-		if ($bestScore !== null && $bestScore >= (float)$minScore) {
-			return ['blocked' => false, 'reason' => null];
-		}
-
-		$assessmentName = ($this->resolveName(id: $assessmentId, schema: self::ASSESSMENT_SCHEMA) ?? $assessmentId);
-
-		return [
-			'blocked' => true,
-			'reason' => sprintf('Score at least %s on "%s" first.', $minScore, $assessmentName),
-		];
-
-	}//end evaluateAssessmentMinScoreCondition()
-
-	/**
-	 * Sum an AssessmentResult's per-item scores, preferring `autoScore` and
-	 * falling back to `manualScore`; a response with neither contributes 0.
-	 *
-	 * @param mixed $responses The AssessmentResult's `responses` array.
-	 *
-	 * @return float
-	 */
-	private function sumResponses($responses): float {
-		if (is_array($responses) === false) {
-			return 0.0;
-		}
-
-		$sum = 0.0;
-		foreach ($responses as $response) {
-			if (is_array($response) === false) {
-				continue;
-			}
-
-			$auto = ($response['autoScore'] ?? null);
-			$manual = ($response['manualScore'] ?? null);
-			if (is_numeric($auto) === true) {
-				$sum += (float)$auto;
-			} elseif (is_numeric($manual) === true) {
-				$sum += (float)$manual;
-			}
-		}
-
-		return $sum;
-	}//end sumResponses()
+		return $bestScore;
+	}//end bestScore()
 
 	/**
 	 * Resolve a Lesson/Assessment's display name (`name` or `title`) by id.

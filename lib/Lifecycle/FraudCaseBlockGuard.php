@@ -30,8 +30,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
- * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-permanently-fraud-proven-link-blocks-publish-even-after-decision
+ * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
+ * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/specs/grading/spec.md#scenario-a-permanently-fraud-proven-link-blocks-publish-even-after-decision
  */
 
 declare(strict_types=1);
@@ -51,7 +51,7 @@ use Psr\Log\LoggerInterface;
  * `verdict: unfounded` or `dismissed`. When `fraudCaseId` is unset, allows
  * unconditionally.
  *
- * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
+ * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
  */
 class FraudCaseBlockGuard implements LifecycleGuardInterface {
 
@@ -97,8 +97,8 @@ class FraudCaseBlockGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-permanently-fraud-proven-link-blocks-publish-even-after-decision
+	 * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
+	 * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/specs/grading/spec.md#scenario-a-permanently-fraud-proven-link-blocks-publish-even-after-decision
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -117,8 +117,8 @@ class FraudCaseBlockGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True if the transition is allowed; false blocks it (HTTP 422).
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-permanently-fraud-proven-link-blocks-publish-even-after-decision
+	 * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
+	 * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/specs/grading/spec.md#scenario-a-permanently-fraud-proven-link-blocks-publish-even-after-decision
 	 */
 	private function allows(array $entry): bool {
 		$entryId = $entry['id'] ?? ($entry['uuid'] ?? '');

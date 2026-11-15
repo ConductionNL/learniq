@@ -31,19 +31,23 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-publication-fans-out-a-learner-parent-notification-mirroring-gradenotifications-reason
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
+ * @spec openspec/specs/report-card/spec.md#requirement-publication-fans-out-a-learner-parent-notification-mirroring-gradenotifications-reason
+ * @spec openspec/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ReportSubjectGradeRowsInterface;
+use OCA\Learniq\Support\EntityRow;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use OCP\L10N\IFactory;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -52,7 +56,7 @@ use Psr\Log\LoggerInterface;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-publication-fans-out-a-learner-parent-notification-mirroring-gradenotifications-reason
+ * @spec openspec/specs/report-card/spec.md#requirement-publication-fans-out-a-learner-parent-notification-mirroring-gradenotifications-reason
  */
 class ReportCardPublishHandler implements IEventListener {
 
@@ -67,6 +71,9 @@ class ReportCardPublishHandler implements IEventListener {
 	 * @param ObjectService $objectService OR object access service.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param IFactory $l10nFactory The instance's language, for the readable subject of the notice.
+	 * @param ReportSubjectGradeRowsInterface $subjectRows Writes the card's per-subject rows for the parent portal.
 	 *
 	 * @return void
 	 */
@@ -74,6 +81,9 @@ class ReportCardPublishHandler implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly ITimeFactory $timeFactory,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolverInterface $schemas,
+		private readonly IFactory $l10nFactory,
+		private readonly ReportSubjectGradeRowsInterface $subjectRows,
 	) {
 	}//end __construct()
 
@@ -84,22 +94,34 @@ class ReportCardPublishHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
+	 * @spec openspec/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
-		if ($event->getSchema() !== self::REPORT_CARD_SCHEMA || $event->getTo() !== 'published-to-parents') {
+		if ($this->schemas->eventSchema(event: $event) !== self::REPORT_CARD_SCHEMA || $event->getTo() !== 'published-to-parents') {
 			return;
 		}
 
-		$this->fanOutParentNotifications(reportCard: $event->getObject()->jsonSerialize());
+		$card = $event->getObject()->jsonSerialize();
+		$this->fanOutParentNotifications(reportCard: $card);
+
+		// The parent portal's bars read one row per subject of the latest report
+		// (school-portals-use-the-new-blocks). A failure here never stops the notices.
+		try {
+			$this->subjectRows->replace(card: $card);
+		} catch (\Throwable $exception) {
+			$this->logger->warning(
+				'[ReportCardPublishHandler] The subject rows of report card {id} could not be written: {msg}',
+				['id' => (string)($card['id'] ?? ''), 'msg' => $exception->getMessage()]
+			);
+		}
 
 	}//end handle()
 
@@ -111,7 +133,7 @@ class ReportCardPublishHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
+	 * @spec openspec/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
 	 */
 	private function fanOutParentNotifications(array $reportCard): void {
 		$reportCardId = (string)($reportCard['id'] ?? ($reportCard['uuid'] ?? ''));
@@ -122,39 +144,22 @@ class ReportCardPublishHandler implements IEventListener {
 			return;
 		}
 
-		// LearnerProfile keys the pupil on ncUserId; it has no learnerId, and a
-		// filter on an undeclared property matches nothing. Read without RBAC:
-		// the publisher may not read LearnerProfile, and only parentIds is used.
-		$profiles = $this->objectService->findAll(
-			[
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::LEARNER_PROFILE_SCHEMA,
-					'ncUserId' => $learnerId,
-				],
-				'limit' => 1,
-			],
-			_rbac: false
-		);
-
-		if (empty($profiles) === true) {
-			return;
-		}
-
-		$profile = $this->normalise(row: $profiles[0]);
-		$parentIds = $profile['parentIds'] ?? [];
-
-		if (is_array($parentIds) === false || empty($parentIds) === true) {
+		$profile = $this->profileWithParents(learnerId: $learnerId);
+		if ($profile === null) {
 			return;
 		}
 
 		$learnerRef = $reportCard['learnerRef'] ?? null;
+		// The readable line a guardian reads in the portal inbox (site-guardian-portal-design T3), in the
+		// instance's language: "Het rapport van Vera staat klaar". It names the child, never a grade.
+		$subject = $this->l10nFactory->get('learniq', $this->l10nFactory->findGenericLanguage())
+			->t('The report of %s is ready', [trim((string)($profile['givenName'] ?? ''))]);
 		$tenantId = (string)($reportCard['tenant_id'] ?? '');
 		$visibleFrom = $this->timeFactory->getDateTime()->format(\DATE_ATOM);
 
 		$notifiedCount = 0;
 
-		foreach ($parentIds as $parentId) {
+		foreach ($profile['parentIds'] as $parentId) {
 			if (empty($parentId) === true) {
 				continue;
 			}
@@ -170,6 +175,7 @@ class ReportCardPublishHandler implements IEventListener {
 					'learnerRef' => $learnerRef,
 					'idempotencyKey' => $reportCardId . '-parent-' . $parentId,
 					'visibleFrom' => $visibleFrom,
+					'subject' => $subject,
 					'tenant_id' => $tenantId,
 				]
 			);
@@ -184,6 +190,47 @@ class ReportCardPublishHandler implements IEventListener {
 	}//end fanOutParentNotifications()
 
 	/**
+	 * The learner's LearnerProfile when it lists at least one parent, else null.
+	 *
+	 * LearnerProfile keys the pupil on ncUserId; it has no learnerId, and a
+	 * filter on an undeclared property matches nothing. Read without RBAC:
+	 * the publisher may not read LearnerProfile, and only parentIds is used.
+	 *
+	 * @param string $learnerId The learner's Nextcloud user id.
+	 *
+	 * @return array<string, mixed>|null The profile, its `parentIds` a non-empty array.
+	 *
+	 * @spec openspec/specs/report-card/spec.md#requirement-report-card-parent-notifications-find-the-learners-profile-on-ncuserid
+	 */
+	private function profileWithParents(string $learnerId): ?array {
+		$profiles = $this->objectService->findAll(
+			[
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LEARNER_PROFILE_SCHEMA,
+					'ncUserId' => $learnerId,
+				],
+				'limit' => 1,
+			],
+			_rbac: false
+		);
+
+		if (empty($profiles) === true) {
+			return null;
+		}
+
+		$profile = $this->normalise(row: $profiles[0]);
+		$parentIds = $profile['parentIds'] ?? [];
+
+		if (is_array($parentIds) === false || empty($parentIds) === true) {
+			return null;
+		}
+
+		return $profile;
+
+	}//end profileWithParents()
+
+	/**
 	 * Normalise an ObjectService row to a plain array.
 	 *
 	 * @param mixed $row Raw row from ObjectService::findAll().
@@ -191,10 +238,6 @@ class ReportCardPublishHandler implements IEventListener {
 	 * @return array<string,mixed>
 	 */
 	private function normalise(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		return $row->jsonSerialize();
+		return (new EntityRow())->asArray(row: $row);
 	}//end normalise()
 }//end class

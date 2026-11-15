@@ -17,10 +17,10 @@
  transition the grade's own page fires, once per entry, one after another.
 
  @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
- @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+ @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 -->
 <template>
-	<div class="cohort-gradebook">
+	<div class="cohort-gradebook lq-board-page">
 		<NcLoadingIcon v-if="loading" :size="32" />
 		<NcNoteCard v-else-if="loadError" type="error">
 			{{ loadError }}
@@ -40,13 +40,10 @@
 				{{ message }}
 			</NcNoteCard>
 
-			<section
+			<CnDetailCard
 				v-if="grid.columns.length > 0"
-				class="cohort-gradebook__publish"
-				aria-labelledby="cohort-gradebook-publish-title">
-				<h3 id="cohort-gradebook-publish-title">
-					{{ t('learniq', 'Publish marks') }}
-				</h3>
+				:title="t('learniq', 'Publish marks')"
+				class="cohort-gradebook__publish">
 				<label for="cohort-gradebook-scope">{{
 					t('learniq', 'Column')
 				}}</label>
@@ -187,13 +184,13 @@
 						</ul>
 					</template>
 				</NcNoteCard>
-			</section>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
-import { CnDataMatrix } from '@conduction/nextcloud-vue'
+import { CnDataMatrix, CnDetailCard } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -215,11 +212,12 @@ import {
 	publishReport,
 	scopeEntries,
 } from '../utils/gradebookPublish.js'
+import { fetchNamesByUser } from '../utils/learnerName.js'
 
 export default {
 	name: 'CohortGradebookView',
 
-	components: { CnDataMatrix, NcButton, NcLoadingIcon, NcNoteCard },
+	components: { CnDetailCard, CnDataMatrix, NcButton, NcLoadingIcon, NcNoteCard },
 
 	props: {
 		/** Cohort UUID from the route. */
@@ -274,7 +272,7 @@ export default {
 
 		/**
 		 * @return {object[]} The live entries of the chosen column, or of all.
-		 * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+		 * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 		 */
 		scoped() {
 			return scopeEntries(this.entries, this.scope)
@@ -282,7 +280,7 @@ export default {
 
 		/**
 		 * @return {object} How the marks in scope are spread.
-		 * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+		 * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 		 */
 		summary() {
 			return distribution(this.scoped, this.scale)
@@ -290,7 +288,7 @@ export default {
 
 		/**
 		 * @return {object[]} The concept marks a publish would send.
-		 * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+		 * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 		 */
 		toPublish() {
 			return publishable(this.scoped)
@@ -302,7 +300,7 @@ export default {
 		 * A new scope starts without a pending confirmation or an old report.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+		 * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 		 */
 		scope() {
 			this.confirming = false
@@ -361,21 +359,10 @@ export default {
 		 */
 		async loadNames() {
 			try {
-				const profiles = listRows(
-					(
-						await axios.get(generateUrl(objectsUrl('learner-profile')), {
-							params: { _limit: 1000 },
-						})
-					).data,
-				)
-				const names = {}
-				for (const p of profiles) {
-					const name = [p.givenName, p.familyName]
-						.filter(Boolean)
-						.join(' ')
-					if (p.ncUserId && name) names[p.ncUserId] = name
-				}
-				this.names = names
+				this.names = await fetchNamesByUser({
+					get: (url, config) => axios.get(url, config),
+					urlFor: generateUrl,
+				})
 			} catch {
 				this.names = {}
 			}
@@ -420,7 +407,10 @@ export default {
 			try {
 				if (existing) {
 					const id = objectId(existing)
-					await axios.put(generateUrl(objectsUrl('grade-entry', id)), body)
+					await axios.patch(
+						generateUrl(objectsUrl('grade-entry', id)),
+						body,
+					)
 					Object.assign(existing, body)
 				} else {
 					const created = oneObject(
@@ -456,7 +446,7 @@ export default {
 		 * Best effort: without it the preview skips the passing count.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+		 * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 		 */
 		async loadScale() {
 			if (!this.plan.gradeScaleId) return
@@ -478,7 +468,7 @@ export default {
 		/**
 		 * @param {string} learnerId Nextcloud user id.
 		 * @return {string} The display name.
-		 * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+		 * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 		 */
 		learnerName(learnerId) {
 			return this.names[learnerId] || learnerId
@@ -487,7 +477,7 @@ export default {
 		/**
 		 * @param {{from: number, to: number}} band A histogram band.
 		 * @return {string} "6 to 7", or one value for a single-point band.
-		 * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+		 * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 		 */
 		bandLabel(band) {
 			const round = (v) => Math.round(v * 10) / 10
@@ -501,7 +491,7 @@ export default {
 		/**
 		 * @param {{count: number}} band A histogram band.
 		 * @return {string} The bar length relative to the fullest band.
-		 * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+		 * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 		 */
 		barWidth(band) {
 			const top = Math.max(1, ...this.summary.bands.map((b) => b.count))
@@ -513,7 +503,7 @@ export default {
 		 * A refused entry never stops the rest.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+		 * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 		 */
 		async publishAll() {
 			const batch = [...this.toPublish]
@@ -546,7 +536,7 @@ export default {
 		/**
 		 * @param {object} error The axios error of a refused transition.
 		 * @return {string} The server's reason, or a plain fallback.
-		 * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
+		 * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
 		 */
 		refusalReason(error) {
 			const data = error?.response?.data ?? {}
@@ -576,15 +566,6 @@ export default {
 </script>
 
 <style scoped>
-.cohort-gradebook {
-	padding: calc(var(--default-grid-baseline, 4px) * 4);
-}
-
-.cohort-gradebook__publish {
-	margin-block-start: calc(var(--default-grid-baseline, 4px) * 6);
-	max-inline-size: 48rem;
-}
-
 .cohort-gradebook__publish select {
 	display: block;
 	margin-block: calc(var(--default-grid-baseline, 4px) * 1)

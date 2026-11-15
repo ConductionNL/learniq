@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
+ * @spec openspec/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
  */
 
 declare(strict_types=1);
@@ -72,7 +72,7 @@ class FraudCaseInvalidationGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-invalidate-succeeds-once-the-linked-case-is-decided-fraud-proven
+	 * @spec openspec/specs/grading/spec.md#scenario-invalidate-succeeds-once-the-linked-case-is-decided-fraud-proven
 	 */
 	public function testDecidedFraudProvenAllowsInvalidate(): void {
 		$guard = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => 'decided', 'verdict' => 'fraud-proven']);
@@ -87,7 +87,7 @@ class FraudCaseInvalidationGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-invalidate-is-blocked-without-a-fraud-proven-decision
+	 * @spec openspec/specs/grading/spec.md#scenario-invalidate-is-blocked-without-a-fraud-proven-decision
 	 */
 	public function testNotYetDecidedBlocks(): void {
 		foreach (['reported', 'hearing-scheduled', 'heard'] as $state) {
@@ -104,7 +104,7 @@ class FraudCaseInvalidationGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-invalidate-is-blocked-without-a-fraud-proven-decision
+	 * @spec openspec/specs/grading/spec.md#scenario-invalidate-is-blocked-without-a-fraud-proven-decision
 	 */
 	public function testDecidedUnfoundedBlocks(): void {
 		$guard = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => 'decided', 'verdict' => 'unfounded']);

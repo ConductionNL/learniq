@@ -3,6 +3,9 @@
 /**
  * Learniq Report Period Compose Guard
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the ReportPeriod schema's `compose` transition
  * (open -> composed). Blocks composition until the period is `isLocked`
  * (lockDate is set AND has passed @now) — a coordinator/mentor must not
@@ -32,20 +35,19 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
+ * @spec openspec/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
+ * @spec openspec/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\Learniq\Kernel\Contracts\ReportPeriodLocksInterface;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use Psr\Log\LoggerInterface;
@@ -56,7 +58,7 @@ use Psr\Log\LoggerInterface;
  * Allows the transition only when the period's `isLocked` calculation is
  * `true`. Blocks otherwise.
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-lock-date-is-enforced-by-a-materialised-calculation-and-guards-not-an-automatic-transition
+ * @spec openspec/specs/report-card/spec.md#requirement-lock-date-is-enforced-by-a-materialised-calculation-and-guards-not-an-automatic-transition
  */
 class ReportPeriodComposeGuard implements LifecycleGuardInterface {
 
@@ -69,11 +71,13 @@ class ReportPeriodComposeGuard implements LifecycleGuardInterface {
 	/**
 	 * Constructor.
 	 *
+	 * @param ReportPeriodLocksInterface $locks Whether a report period is locked.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
+		private readonly ReportPeriodLocksInterface $locks,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -87,8 +91,8 @@ class ReportPeriodComposeGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
+	 * @spec openspec/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
+	 * @spec openspec/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -111,19 +115,16 @@ class ReportPeriodComposeGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True when the period is locked; false blocks the transition.
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
+	 * @spec openspec/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
+	 * @spec openspec/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
 	 */
 	private function allows(array $object): bool {
 		$periodId = $object['id'] ?? ($object['uuid'] ?? '');
 
-		$isLocked = $object['isLocked'] ?? null;
-
-		if (is_bool($isLocked) === false) {
-			// Materialised value absent — defensive fallback, computed the same
-			// way as the declared x-openregister-calculations expression.
-			$isLocked = $this->computeIsLocked(object: $object);
-		}
+		// Decided from lockDate as well as the stored isLocked: OpenRegister
+		// does not keep the materialised value, and a period created before its
+		// lock date could carry a stale false (live pass D2).
+		$isLocked = $this->locks->isLocked(period: $object);
 
 		if ($isLocked === false) {
 			$this->logger->info(
@@ -135,29 +136,4 @@ class ReportPeriodComposeGuard implements LifecycleGuardInterface {
 
 		return true;
 	}//end allows()
-
-	/**
-	 * Defensive fallback: compute whether `lockDate` has passed `@now`,
-	 * mirroring the declared `isLocked` x-openregister-calculations
-	 * expression exactly (`lockDate` set AND `lockDate < now`).
-	 *
-	 * @param array<string,mixed> $object The ReportPeriod data array.
-	 *
-	 * @return bool True when lockDate is set and in the past.
-	 */
-	private function computeIsLocked(array $object): bool {
-		$lockDate = $object['lockDate'] ?? null;
-
-		if ($lockDate === null || $lockDate === '') {
-			return false;
-		}
-
-		$lockTimestamp = strtotime((string)$lockDate);
-
-		if ($lockTimestamp === false) {
-			return false;
-		}
-
-		return $lockTimestamp < time();
-	}//end computeIsLocked()
 }//end class

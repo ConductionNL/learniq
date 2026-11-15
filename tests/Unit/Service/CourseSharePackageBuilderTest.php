@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lesson-sharing-consent-gate/tasks.md#task-1-gate-and-package-builder
+ * @spec openspec/changes/archive/2026-09-28-lesson-sharing-consent-gate/tasks.md#task-1-gate-and-package-builder
  */
 
 declare(strict_types=1);
@@ -31,6 +31,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \OCA\Learniq\Service\CourseSharePackageBuilder
+ * @uses \OCA\Learniq\Support\TextValue
  */
 class CourseSharePackageBuilderTest extends TestCase {
 

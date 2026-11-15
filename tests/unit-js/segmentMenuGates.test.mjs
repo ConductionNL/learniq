@@ -123,10 +123,28 @@ function surfaces(state, all = false) {
 	return out
 }
 
+// Entries the admin deliberately does not get, because the admin reaches the
+// same page elsewhere: the Sign-up requests entries for line managers and team
+// leads under My learning duplicate the admin's People entry, and the line
+// manager's Request an exemption entry duplicates the admin's Exemptions entry
+// under Compliance. The compliance officer's Absence reports entry under
+// Compliance duplicates the admin's Absence reports entry under People, and
+// their Proctoring review entry under Compliance the admin's under Learning. They
+// are role gates, not segment gates, so they are left out of what this test
+// compares.
+const ADMIN_REACHES_ELSEWHERE = new Set([
+	'menu:ManagerSignUpRequestsMenu',
+	'menu:TeamLeadSignUpRequestsMenu',
+	'menu:RequestExemptionMenu',
+	'menu:AbsenceReportsComplianceMenu',
+	'menu:ProctoringReviewComplianceMenu',
+])
 const ALL = surfaces(NEVER, true)
 function hiddenIn(state) {
 	const shown = surfaces(state)
-	return [...ALL].filter((id) => !shown.has(id)).sort()
+	return [...ALL]
+		.filter((id) => !shown.has(id) && !ADMIN_REACHES_ELSEWHERE.has(id))
+		.sort()
 }
 
 const BPV_CARDS = [
@@ -175,6 +193,9 @@ const SCHOOL_ONLY_MENU = [
 	'TeacherAvailabilitiesMenu',
 	'ConferenceScheduleBoardMenu',
 	'ConferenceReportsMenu',
+	'AbsenceReportsMenu',
+	'SchoolEventsMenu',
+	'PermissionRequestsMenu',
 ].map((id) => `menu:${id}`)
 
 test('the built structure has the surfaces this test reasons about', () => {
@@ -197,15 +218,22 @@ test('an install that never chose sees every surface (no behaviour change)', () 
 	assert.deepEqual(hiddenIn(NEVER), [])
 })
 
-test('a company that chose Company loses exactly the school-only surfaces (D26)', () => {
+const SUBJECT_CHOICE_MENU = ['SubjectChoicesMenu', 'SubjectChoicePickerMenu'].map(
+	(id) => `menu:${id}`,
+)
+
+test('a company that chose Company loses exactly the school-only surfaces (D26, D34)', () => {
 	assert.deepEqual(
 		hiddenIn(chose('corporate')),
 		[
 			...SCHOOL_ONLY_MENU,
 			...BPV_CARDS,
+			...BSA_CARDS,
 			...EXAM_BOARD_CARDS,
+			...SUBJECT_CHOICE_MENU,
 			'report:AttendanceFlags',
 			'report:BpvVisitReports',
+			'report:BsaRiskDashboard',
 		].sort(),
 	)
 })
@@ -248,7 +276,7 @@ test('a primary school sees the school shape and not the rest', () => {
 	}
 })
 
-test('BPV is for MBO and installs that never chose; BSA for higher education and companies', () => {
+test('BPV is for MBO and installs that never chose; BSA for higher education only (D34)', () => {
 	const states = [['never', NEVER], ...SEGMENTS.map((s) => [s, chose(s)])]
 	const seeing = (id) =>
 		states.filter(([, state]) => surfaces(state).has(id)).map(([name]) => name)
@@ -256,7 +284,10 @@ test('BPV is for MBO and installs that never chose; BSA for higher education and
 		assert.deepEqual(seeing(id), ['never', 'mbo'], id)
 	}
 	for (const id of [...BSA_CARDS, 'report:BsaRiskDashboard']) {
-		assert.deepEqual(seeing(id), ['never', 'he', 'corporate'], id)
+		assert.deepEqual(seeing(id), ['never', 'he'], id)
+	}
+	for (const id of SUBJECT_CHOICE_MENU) {
+		assert.deepEqual(seeing(id), ['never', 'vo', 'mbo', 'he'], id)
 	}
 })
 

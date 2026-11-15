@@ -16,8 +16,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
+ * @spec openspec/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
+ * @spec openspec/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
  */
 
 declare(strict_types=1);
@@ -26,6 +26,8 @@ namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\Learniq\Lifecycle\ReportPeriodComposeGuard;
+use OCA\Learniq\Service\Grading\ReportPeriodLocks;
+use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -42,7 +44,7 @@ class ReportPeriodComposeGuardTest extends TestCase {
 	 * @return ReportPeriodComposeGuard
 	 */
 	private function makeGuard(): ReportPeriodComposeGuard {
-		return new ReportPeriodComposeGuard($this->createMock(LoggerInterface::class));
+		return new ReportPeriodComposeGuard(new ReportPeriodLocks(objects: $this->createMock(ObjectService::class)), $this->createMock(LoggerInterface::class));
 	}//end makeGuard()
 
 	/**
@@ -50,7 +52,7 @@ class ReportPeriodComposeGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
+	 * @spec openspec/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
 	 */
 	public function testMaterialisedIsLockedTrueAllowsCompose(): void {
 		$guard = $this->makeGuard();
@@ -65,7 +67,7 @@ class ReportPeriodComposeGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
+	 * @spec openspec/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
 	 */
 	public function testMaterialisedIsLockedFalseBlocksCompose(): void {
 		$guard = $this->makeGuard();

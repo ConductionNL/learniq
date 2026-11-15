@@ -1,0 +1,1783 @@
+{
+    "a note write throws": {
+        "result": {
+            "lessonId": "lesson-3",
+            "lessonName": "Breuken vergelijken",
+            "courseId": "course-1",
+            "blocks": 5,
+            "materials": 3,
+            "notes": [
+                "A table was flattened",
+                "2 teacher note(s) could not be saved"
+            ]
+        },
+        "calls": [
+            {
+                "extract": [
+                    "n.docx",
+                    "docx"
+                ]
+            },
+            {
+                "findAll": [
+                    {
+                        "filters": {
+                            "register": "learniq",
+                            "schema": "lesson",
+                            "courseId": "course-1"
+                        },
+                        "limit": 1000
+                    },
+                    true,
+                    true
+                ]
+            },
+            {
+                "create": [
+                    "lesson",
+                    {
+                        "courseId": "course-1",
+                        "name": "Breuken vergelijken",
+                        "order": 8,
+                        "contentType": "text",
+                        "blocks": [
+                            {
+                                "blockId": "<uuid-1>",
+                                "order": 1,
+                                "type": "richText",
+                                "text": "## Start\n\nWat weten we al?"
+                            },
+                            {
+                                "blockId": "<uuid-2>",
+                                "order": 3,
+                                "type": "richText",
+                                "text": "## Instructie\n\nUitleg.\n\nNog meer."
+                            },
+                            {
+                                "blockId": "<uuid-3>",
+                                "order": 4,
+                                "type": "richText",
+                                "text": "## Afsluiting"
+                            }
+                        ],
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "writeBytesToFiles": [
+                    "PNG",
+                    "n-99-image-1.png",
+                    "jdevries",
+                    "t-course"
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "image 1.png",
+                        "kind": "other",
+                        "fileRef": "/imports/n-99-image-1.png",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "writeBytesToFiles": [
+                    "X",
+                    "n-99-fail.png",
+                    "jdevries",
+                    "t-course"
+                ]
+            },
+            {
+                "writeBytesToFiles": [
+                    "Y",
+                    "n-99-nomaterial.png",
+                    "jdevries",
+                    "t-course"
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "nomaterial.png",
+                        "kind": "other",
+                        "fileRef": "/imports/n-99-nomaterial.png",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "writeBytesToFiles": [
+                    "JPG",
+                    "n-99-slot.jpg",
+                    "jdevries",
+                    "t-course"
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "slot.jpg",
+                        "kind": "other",
+                        "fileRef": "/imports/n-99-slot.jpg",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "saveObject": {
+                    "object": {
+                        "courseId": "course-1",
+                        "name": "Breuken vergelijken",
+                        "order": 8,
+                        "contentType": "text",
+                        "blocks": [
+                            {
+                                "blockId": "<uuid-4>",
+                                "order": 1,
+                                "type": "richText",
+                                "text": "## Start\n\nWat weten we al?"
+                            },
+                            {
+                                "blockId": "<uuid-5>",
+                                "order": 3,
+                                "type": "richText",
+                                "text": "## Instructie\n\nUitleg.\n\nNog meer."
+                            },
+                            {
+                                "blockId": "<uuid-6>",
+                                "order": 4,
+                                "type": "media",
+                                "materialId": "material-5"
+                            },
+                            {
+                                "blockId": "<uuid-7>",
+                                "order": 5,
+                                "type": "richText",
+                                "text": "## Afsluiting"
+                            },
+                            {
+                                "blockId": "<uuid-8>",
+                                "order": 6,
+                                "type": "media",
+                                "materialId": "material-10"
+                            }
+                        ],
+                        "tenant_id": "t-course"
+                    },
+                    "register": "learniq",
+                    "schema": "lesson",
+                    "uuid": "lesson-3"
+                }
+            },
+            {
+                "create": [
+                    "lesson-teacher-note",
+                    {
+                        "blockId": "<uuid-9>",
+                        "afterBlockId": "<uuid-4>",
+                        "position": 0,
+                        "text": "Vraag eerst naar pizza.",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "lesson-teacher-note",
+                    {
+                        "blockId": "<uuid-10>",
+                        "afterBlockId": "<uuid-8>",
+                        "position": 0,
+                        "text": "Exit ticket.",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "n.docx",
+                        "kind": "document",
+                        "fileRef": "/Lessen inbox/n.docx",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "transition": [
+                    "row-1",
+                    "import",
+                    {
+                        "lessonId": "lesson-3",
+                        "courseId": "course-1",
+                        "importNote": "A table was flattened; 2 teacher note(s) could not be saved"
+                    }
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "warning",
+                "message": "[LessonOnboardingImporter] A teacher note of lesson {lessonId} could not be saved: {error}",
+                "context": {
+                    "lessonId": "lesson-3",
+                    "error": "note store down"
+                }
+            },
+            {
+                "level": "warning",
+                "message": "[LessonOnboardingImporter] A teacher note of lesson {lessonId} could not be saved: {error}",
+                "context": {
+                    "lessonId": "lesson-3",
+                    "error": "note store down"
+                }
+            },
+            {
+                "level": "info",
+                "message": "[LessonOnboardingImporter] File {fileId} imported as lesson {lessonId} ({blocks} blocks, {materials} materials)",
+                "context": {
+                    "fileId": 99,
+                    "lessonId": "lesson-3",
+                    "blocks": 5,
+                    "materials": 3
+                }
+            }
+        ]
+    },
+    "a partial read with a lesson": {
+        "refused": [
+            "This file holds no lesson content learniq can read.",
+            422,
+            "unreadable"
+        ],
+        "calls": [
+            {
+                "extract": [
+                    "p.docx",
+                    "docx"
+                ]
+            }
+        ],
+        "log": []
+    },
+    "already imported": {
+        "refused": [
+            "This file was already imported or dismissed.",
+            409,
+            "not-detected"
+        ],
+        "calls": [],
+        "log": []
+    },
+    "docx with images and notes": {
+        "result": {
+            "lessonId": "lesson-3",
+            "lessonName": "Breuken vergelijken",
+            "courseId": "course-1",
+            "blocks": 5,
+            "materials": 3,
+            "notes": [
+                "A table was flattened"
+            ]
+        },
+        "calls": [
+            {
+                "extract": [
+                    "-Breuken & co!.docx",
+                    "docx"
+                ]
+            },
+            {
+                "findAll": [
+                    {
+                        "filters": {
+                            "register": "learniq",
+                            "schema": "lesson",
+                            "courseId": "course-1"
+                        },
+                        "limit": 1000
+                    },
+                    true,
+                    true
+                ]
+            },
+            {
+                "create": [
+                    "lesson",
+                    {
+                        "courseId": "course-1",
+                        "name": "Breuken vergelijken",
+                        "order": 8,
+                        "contentType": "text",
+                        "blocks": [
+                            {
+                                "blockId": "<uuid-1>",
+                                "order": 1,
+                                "type": "richText",
+                                "text": "## Start\n\nWat weten we al?"
+                            },
+                            {
+                                "blockId": "<uuid-2>",
+                                "order": 3,
+                                "type": "richText",
+                                "text": "## Instructie\n\nUitleg.\n\nNog meer."
+                            },
+                            {
+                                "blockId": "<uuid-3>",
+                                "order": 4,
+                                "type": "richText",
+                                "text": "## Afsluiting"
+                            }
+                        ],
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "writeBytesToFiles": [
+                    "PNG",
+                    "Breuken-co-99-image-1.png",
+                    "jdevries",
+                    "t-course"
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "image 1.png",
+                        "kind": "other",
+                        "fileRef": "/imports/Breuken-co-99-image-1.png",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "writeBytesToFiles": [
+                    "X",
+                    "Breuken-co-99-fail.png",
+                    "jdevries",
+                    "t-course"
+                ]
+            },
+            {
+                "writeBytesToFiles": [
+                    "Y",
+                    "Breuken-co-99-nomaterial.png",
+                    "jdevries",
+                    "t-course"
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "nomaterial.png",
+                        "kind": "other",
+                        "fileRef": "/imports/Breuken-co-99-nomaterial.png",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "writeBytesToFiles": [
+                    "JPG",
+                    "Breuken-co-99-slot.jpg",
+                    "jdevries",
+                    "t-course"
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "slot.jpg",
+                        "kind": "other",
+                        "fileRef": "/imports/Breuken-co-99-slot.jpg",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "saveObject": {
+                    "object": {
+                        "courseId": "course-1",
+                        "name": "Breuken vergelijken",
+                        "order": 8,
+                        "contentType": "text",
+                        "blocks": [
+                            {
+                                "blockId": "<uuid-4>",
+                                "order": 1,
+                                "type": "richText",
+                                "text": "## Start\n\nWat weten we al?"
+                            },
+                            {
+                                "blockId": "<uuid-5>",
+                                "order": 3,
+                                "type": "richText",
+                                "text": "## Instructie\n\nUitleg.\n\nNog meer."
+                            },
+                            {
+                                "blockId": "<uuid-6>",
+                                "order": 4,
+                                "type": "media",
+                                "materialId": "material-5"
+                            },
+                            {
+                                "blockId": "<uuid-7>",
+                                "order": 5,
+                                "type": "richText",
+                                "text": "## Afsluiting"
+                            },
+                            {
+                                "blockId": "<uuid-8>",
+                                "order": 6,
+                                "type": "media",
+                                "materialId": "material-10"
+                            }
+                        ],
+                        "tenant_id": "t-course"
+                    },
+                    "register": "learniq",
+                    "schema": "lesson",
+                    "uuid": "lesson-3"
+                }
+            },
+            {
+                "create": [
+                    "lesson-teacher-note",
+                    {
+                        "blockId": "<uuid-9>",
+                        "afterBlockId": "<uuid-4>",
+                        "position": 0,
+                        "text": "Vraag eerst naar pizza.",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "lesson-teacher-note",
+                    {
+                        "blockId": "<uuid-10>",
+                        "afterBlockId": "<uuid-8>",
+                        "position": 0,
+                        "text": "Exit ticket.",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "-Breuken & co!.docx",
+                        "kind": "document",
+                        "fileRef": "/Lessen inbox/-Breuken & co!.docx",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "transition": [
+                    "row-1",
+                    "import",
+                    {
+                        "lessonId": "lesson-3",
+                        "courseId": "course-1",
+                        "importNote": "A table was flattened"
+                    }
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[LessonOnboardingImporter] File {fileId} imported as lesson {lessonId} ({blocks} blocks, {materials} materials)",
+                "context": {
+                    "fileId": 99,
+                    "lessonId": "lesson-3",
+                    "blocks": 5,
+                    "materials": 3
+                }
+            }
+        ]
+    },
+    "long title": {
+        "result": {
+            "lessonId": "lesson-3",
+            "lessonName": "ééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé",
+            "courseId": "course-1",
+            "blocks": 1,
+            "materials": 1,
+            "notes": []
+        },
+        "calls": [
+            {
+                "extract": [
+                    "a.docx",
+                    "docx"
+                ]
+            },
+            {
+                "findAll": [
+                    {
+                        "filters": {
+                            "register": "learniq",
+                            "schema": "lesson",
+                            "courseId": "course-1"
+                        },
+                        "limit": 1000
+                    },
+                    true,
+                    true
+                ]
+            },
+            {
+                "create": [
+                    "lesson",
+                    {
+                        "courseId": "course-1",
+                        "name": "ééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé",
+                        "order": 8,
+                        "contentType": "text",
+                        "blocks": [
+                            {
+                                "blockId": "<uuid-1>",
+                                "order": 1,
+                                "type": "richText",
+                                "text": "## Een\n\nTekst"
+                            }
+                        ],
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "a.docx",
+                        "kind": "document",
+                        "fileRef": "/Lessen inbox/a.docx",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "transition": [
+                    "row-1",
+                    "import",
+                    {
+                        "lessonId": "lesson-3",
+                        "courseId": "course-1"
+                    }
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[LessonOnboardingImporter] File {fileId} imported as lesson {lessonId} ({blocks} blocks, {materials} materials)",
+                "context": {
+                    "fileId": 99,
+                    "lessonId": "lesson-3",
+                    "blocks": 1,
+                    "materials": 1
+                }
+            }
+        ]
+    },
+    "no course": {
+        "refused": [
+            "That course does not exist, or you cannot see it.",
+            422,
+            "course-not-found"
+        ],
+        "calls": [],
+        "log": []
+    },
+    "no file id": {
+        "refused": [
+            "The file is no longer in your files.",
+            410,
+            "file-gone"
+        ],
+        "calls": [],
+        "log": []
+    },
+    "no title, no images": {
+        "result": {
+            "lessonId": "lesson-3",
+            "lessonName": "Kale les",
+            "courseId": "course-1",
+            "blocks": 1,
+            "materials": 1,
+            "notes": []
+        },
+        "calls": [
+            {
+                "extract": [
+                    "Kale les.docx",
+                    "docx"
+                ]
+            },
+            {
+                "findAll": [
+                    {
+                        "filters": {
+                            "register": "learniq",
+                            "schema": "lesson",
+                            "courseId": "course-1"
+                        },
+                        "limit": 1000
+                    },
+                    true,
+                    true
+                ]
+            },
+            {
+                "create": [
+                    "lesson",
+                    {
+                        "courseId": "course-1",
+                        "name": "Kale les",
+                        "order": 8,
+                        "contentType": "text",
+                        "blocks": [
+                            {
+                                "blockId": "<uuid-1>",
+                                "order": 1,
+                                "type": "richText",
+                                "text": "## Een\n\nTekst"
+                            }
+                        ],
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "Kale les.docx",
+                        "kind": "document",
+                        "fileRef": "/Lessen inbox/Kale les.docx",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "transition": [
+                    "row-1",
+                    "import",
+                    {
+                        "lessonId": "lesson-3",
+                        "courseId": "course-1"
+                    }
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[LessonOnboardingImporter] File {fileId} imported as lesson {lessonId} ({blocks} blocks, {materials} materials)",
+                "context": {
+                    "fileId": 99,
+                    "lessonId": "lesson-3",
+                    "blocks": 1,
+                    "materials": 1
+                }
+            }
+        ]
+    },
+    "notes cannot be saved": {
+        "result": {
+            "lessonId": "lesson-3",
+            "lessonName": "Breuken vergelijken",
+            "courseId": "course-1",
+            "blocks": 5,
+            "materials": 3,
+            "notes": [
+                "A table was flattened",
+                "2 teacher note(s) could not be saved"
+            ]
+        },
+        "calls": [
+            {
+                "extract": [
+                    "n.docx",
+                    "docx"
+                ]
+            },
+            {
+                "findAll": [
+                    {
+                        "filters": {
+                            "register": "learniq",
+                            "schema": "lesson",
+                            "courseId": "course-1"
+                        },
+                        "limit": 1000
+                    },
+                    true,
+                    true
+                ]
+            },
+            {
+                "create": [
+                    "lesson",
+                    {
+                        "courseId": "course-1",
+                        "name": "Breuken vergelijken",
+                        "order": 8,
+                        "contentType": "text",
+                        "blocks": [
+                            {
+                                "blockId": "<uuid-1>",
+                                "order": 1,
+                                "type": "richText",
+                                "text": "## Start\n\nWat weten we al?"
+                            },
+                            {
+                                "blockId": "<uuid-2>",
+                                "order": 3,
+                                "type": "richText",
+                                "text": "## Instructie\n\nUitleg.\n\nNog meer."
+                            },
+                            {
+                                "blockId": "<uuid-3>",
+                                "order": 4,
+                                "type": "richText",
+                                "text": "## Afsluiting"
+                            }
+                        ],
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "writeBytesToFiles": [
+                    "PNG",
+                    "n-99-image-1.png",
+                    "jdevries",
+                    "t-course"
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "image 1.png",
+                        "kind": "other",
+                        "fileRef": "/imports/n-99-image-1.png",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "writeBytesToFiles": [
+                    "X",
+                    "n-99-fail.png",
+                    "jdevries",
+                    "t-course"
+                ]
+            },
+            {
+                "writeBytesToFiles": [
+                    "Y",
+                    "n-99-nomaterial.png",
+                    "jdevries",
+                    "t-course"
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "nomaterial.png",
+                        "kind": "other",
+                        "fileRef": "/imports/n-99-nomaterial.png",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "writeBytesToFiles": [
+                    "JPG",
+                    "n-99-slot.jpg",
+                    "jdevries",
+                    "t-course"
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "slot.jpg",
+                        "kind": "other",
+                        "fileRef": "/imports/n-99-slot.jpg",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "saveObject": {
+                    "object": {
+                        "courseId": "course-1",
+                        "name": "Breuken vergelijken",
+                        "order": 8,
+                        "contentType": "text",
+                        "blocks": [
+                            {
+                                "blockId": "<uuid-4>",
+                                "order": 1,
+                                "type": "richText",
+                                "text": "## Start\n\nWat weten we al?"
+                            },
+                            {
+                                "blockId": "<uuid-5>",
+                                "order": 3,
+                                "type": "richText",
+                                "text": "## Instructie\n\nUitleg.\n\nNog meer."
+                            },
+                            {
+                                "blockId": "<uuid-6>",
+                                "order": 4,
+                                "type": "media",
+                                "materialId": "material-5"
+                            },
+                            {
+                                "blockId": "<uuid-7>",
+                                "order": 5,
+                                "type": "richText",
+                                "text": "## Afsluiting"
+                            },
+                            {
+                                "blockId": "<uuid-8>",
+                                "order": 6,
+                                "type": "media",
+                                "materialId": "material-10"
+                            }
+                        ],
+                        "tenant_id": "t-course"
+                    },
+                    "register": "learniq",
+                    "schema": "lesson",
+                    "uuid": "lesson-3"
+                }
+            },
+            {
+                "create": [
+                    "lesson-teacher-note",
+                    {
+                        "blockId": "<uuid-9>",
+                        "afterBlockId": "<uuid-4>",
+                        "position": 0,
+                        "text": "Vraag eerst naar pizza.",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "lesson-teacher-note",
+                    {
+                        "blockId": "<uuid-10>",
+                        "afterBlockId": "<uuid-8>",
+                        "position": 0,
+                        "text": "Exit ticket.",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "n.docx",
+                        "kind": "document",
+                        "fileRef": "/Lessen inbox/n.docx",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "transition": [
+                    "row-1",
+                    "import",
+                    {
+                        "lessonId": "lesson-3",
+                        "courseId": "course-1",
+                        "importNote": "A table was flattened; 2 teacher note(s) could not be saved"
+                    }
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[LessonOnboardingImporter] File {fileId} imported as lesson {lessonId} ({blocks} blocks, {materials} materials)",
+                "context": {
+                    "fileId": 99,
+                    "lessonId": "lesson-3",
+                    "blocks": 5,
+                    "materials": 3
+                }
+            }
+        ]
+    },
+    "notes without images, one note lost": {
+        "result": {
+            "lessonId": "lesson-3",
+            "lessonName": "T",
+            "courseId": "course-1",
+            "blocks": 1,
+            "materials": 1,
+            "notes": [
+                "1 teacher note(s) could not be saved"
+            ]
+        },
+        "calls": [
+            {
+                "extract": [
+                    "(Les) 4!.docx",
+                    "docx"
+                ]
+            },
+            {
+                "findAll": [
+                    {
+                        "filters": {
+                            "register": "learniq",
+                            "schema": "lesson",
+                            "courseId": "course-1"
+                        },
+                        "limit": 1000
+                    },
+                    true,
+                    true
+                ]
+            },
+            {
+                "create": [
+                    "lesson",
+                    {
+                        "courseId": "course-1",
+                        "name": "T",
+                        "order": 8,
+                        "contentType": "text",
+                        "blocks": [
+                            {
+                                "blockId": "<uuid-1>",
+                                "order": 1,
+                                "type": "richText",
+                                "text": "## Een\n\nTekst"
+                            }
+                        ],
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "lesson-teacher-note",
+                    {
+                        "blockId": "<uuid-2>",
+                        "afterBlockId": "<uuid-1>",
+                        "position": 0,
+                        "text": "Alleen voor mij.",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "(Les) 4!.docx",
+                        "kind": "document",
+                        "fileRef": "/Lessen inbox/(Les) 4!.docx",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "transition": [
+                    "row-1",
+                    "import",
+                    {
+                        "lessonId": "lesson-3",
+                        "courseId": "course-1",
+                        "importNote": "1 teacher note(s) could not be saved"
+                    }
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[LessonOnboardingImporter] File {fileId} imported as lesson {lessonId} ({blocks} blocks, {materials} materials)",
+                "context": {
+                    "fileId": 99,
+                    "lessonId": "lesson-3",
+                    "blocks": 1,
+                    "materials": 1
+                }
+            }
+        ]
+    },
+    "ok without a lesson": {
+        "refused": [
+            "This file holds no lesson content learniq can read.",
+            422,
+            "unreadable"
+        ],
+        "calls": [
+            {
+                "extract": [
+                    "u.docx",
+                    "docx"
+                ]
+            }
+        ],
+        "log": []
+    },
+    "pptx outside the user folder, course without tenant": {
+        "result": {
+            "lessonId": "lesson-4",
+            "lessonName": "Breuken vergelijken",
+            "courseId": "course-1",
+            "blocks": 5,
+            "materials": 3,
+            "notes": [
+                "A table was flattened"
+            ]
+        },
+        "calls": [
+            {
+                "extract": [
+                    "Les 3.pptx",
+                    "pptx"
+                ]
+            },
+            {
+                "tenantOf": "jdevries"
+            },
+            {
+                "findAll": [
+                    {
+                        "filters": {
+                            "register": "learniq",
+                            "schema": "lesson",
+                            "courseId": "course-1"
+                        },
+                        "limit": 1000
+                    },
+                    true,
+                    true
+                ]
+            },
+            {
+                "create": [
+                    "lesson",
+                    {
+                        "courseId": "course-1",
+                        "name": "Breuken vergelijken",
+                        "order": 8,
+                        "contentType": "text",
+                        "blocks": [
+                            {
+                                "blockId": "<uuid-1>",
+                                "order": 1,
+                                "type": "richText",
+                                "text": "## Start\n\nWat weten we al?"
+                            },
+                            {
+                                "blockId": "<uuid-2>",
+                                "order": 3,
+                                "type": "richText",
+                                "text": "## Instructie\n\nUitleg.\n\nNog meer."
+                            },
+                            {
+                                "blockId": "<uuid-3>",
+                                "order": 4,
+                                "type": "richText",
+                                "text": "## Afsluiting"
+                            }
+                        ],
+                        "tenant_id": "t-folder"
+                    }
+                ]
+            },
+            {
+                "writeBytesToFiles": [
+                    "PNG",
+                    "Les-3-99-image-1.png",
+                    "jdevries",
+                    "t-folder"
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "image 1.png",
+                        "kind": "other",
+                        "fileRef": "/imports/Les-3-99-image-1.png",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-4",
+                        "tenant_id": "t-folder"
+                    }
+                ]
+            },
+            {
+                "writeBytesToFiles": [
+                    "X",
+                    "Les-3-99-fail.png",
+                    "jdevries",
+                    "t-folder"
+                ]
+            },
+            {
+                "writeBytesToFiles": [
+                    "Y",
+                    "Les-3-99-nomaterial.png",
+                    "jdevries",
+                    "t-folder"
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "nomaterial.png",
+                        "kind": "other",
+                        "fileRef": "/imports/Les-3-99-nomaterial.png",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-4",
+                        "tenant_id": "t-folder"
+                    }
+                ]
+            },
+            {
+                "writeBytesToFiles": [
+                    "JPG",
+                    "Les-3-99-slot.jpg",
+                    "jdevries",
+                    "t-folder"
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "slot.jpg",
+                        "kind": "other",
+                        "fileRef": "/imports/Les-3-99-slot.jpg",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-4",
+                        "tenant_id": "t-folder"
+                    }
+                ]
+            },
+            {
+                "saveObject": {
+                    "object": {
+                        "courseId": "course-1",
+                        "name": "Breuken vergelijken",
+                        "order": 8,
+                        "contentType": "text",
+                        "blocks": [
+                            {
+                                "blockId": "<uuid-4>",
+                                "order": 1,
+                                "type": "richText",
+                                "text": "## Start\n\nWat weten we al?"
+                            },
+                            {
+                                "blockId": "<uuid-5>",
+                                "order": 3,
+                                "type": "richText",
+                                "text": "## Instructie\n\nUitleg.\n\nNog meer."
+                            },
+                            {
+                                "blockId": "<uuid-6>",
+                                "order": 4,
+                                "type": "media",
+                                "materialId": "material-6"
+                            },
+                            {
+                                "blockId": "<uuid-7>",
+                                "order": 5,
+                                "type": "richText",
+                                "text": "## Afsluiting"
+                            },
+                            {
+                                "blockId": "<uuid-8>",
+                                "order": 6,
+                                "type": "media",
+                                "materialId": "material-11"
+                            }
+                        ],
+                        "tenant_id": "t-folder"
+                    },
+                    "register": "learniq",
+                    "schema": "lesson",
+                    "uuid": "lesson-4"
+                }
+            },
+            {
+                "create": [
+                    "lesson-teacher-note",
+                    {
+                        "blockId": "<uuid-9>",
+                        "afterBlockId": "<uuid-4>",
+                        "position": 0,
+                        "text": "Vraag eerst naar pizza.",
+                        "lessonId": "lesson-4",
+                        "tenant_id": "t-folder"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "lesson-teacher-note",
+                    {
+                        "blockId": "<uuid-10>",
+                        "afterBlockId": "<uuid-8>",
+                        "position": 0,
+                        "text": "Exit ticket.",
+                        "lessonId": "lesson-4",
+                        "tenant_id": "t-folder"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "Les 3.pptx",
+                        "kind": "slides",
+                        "fileRef": "/elsewhere/Les 3.pptx",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-4",
+                        "tenant_id": "t-folder"
+                    }
+                ]
+            },
+            {
+                "transition": [
+                    "row-1",
+                    "import",
+                    {
+                        "lessonId": "lesson-4",
+                        "courseId": "course-1",
+                        "importNote": "A table was flattened"
+                    }
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[LessonOnboardingImporter] File {fileId} imported as lesson {lessonId} ({blocks} blocks, {materials} materials)",
+                "context": {
+                    "fileId": 99,
+                    "lessonId": "lesson-4",
+                    "blocks": 5,
+                    "materials": 3
+                }
+            }
+        ]
+    },
+    "reader unavailable": {
+        "refused": [
+            "PowerPoint import needs a newer OpenRegister. The file stays in your list.",
+            503,
+            "reader-unavailable"
+        ],
+        "calls": [
+            {
+                "extract": [
+                    "p.pptx",
+                    "pptx"
+                ]
+            }
+        ],
+        "log": []
+    },
+    "someone else's row": {
+        "refused": [
+            "This file is not in your list.",
+            404,
+            "not-found"
+        ],
+        "calls": [],
+        "log": []
+    },
+    "the lesson is not created": {
+        "refused": [
+            "The lesson draft could not be created.",
+            500,
+            "lesson-not-created"
+        ],
+        "calls": [
+            {
+                "extract": [
+                    "n.docx",
+                    "docx"
+                ]
+            },
+            {
+                "findAll": [
+                    {
+                        "filters": {
+                            "register": "learniq",
+                            "schema": "lesson",
+                            "courseId": "course-1"
+                        },
+                        "limit": 1000
+                    },
+                    true,
+                    true
+                ]
+            },
+            {
+                "create": [
+                    "lesson",
+                    {
+                        "courseId": "course-1",
+                        "name": "Breuken vergelijken",
+                        "order": 8,
+                        "contentType": "text",
+                        "blocks": [
+                            {
+                                "blockId": "<uuid-1>",
+                                "order": 1,
+                                "type": "richText",
+                                "text": "## Start\n\nWat weten we al?"
+                            },
+                            {
+                                "blockId": "<uuid-2>",
+                                "order": 3,
+                                "type": "richText",
+                                "text": "## Instructie\n\nUitleg.\n\nNog meer."
+                            },
+                            {
+                                "blockId": "<uuid-3>",
+                                "order": 4,
+                                "type": "richText",
+                                "text": "## Afsluiting"
+                            }
+                        ],
+                        "tenant_id": "t-course"
+                    }
+                ]
+            }
+        ],
+        "log": []
+    },
+    "the original material is not created": {
+        "result": {
+            "lessonId": "lesson-3",
+            "lessonName": "o",
+            "courseId": "course-1",
+            "blocks": 1,
+            "materials": 0,
+            "notes": []
+        },
+        "calls": [
+            {
+                "extract": [
+                    "o.docx",
+                    "docx"
+                ]
+            },
+            {
+                "findAll": [
+                    {
+                        "filters": {
+                            "register": "learniq",
+                            "schema": "lesson",
+                            "courseId": "course-1"
+                        },
+                        "limit": 1000
+                    },
+                    true,
+                    true
+                ]
+            },
+            {
+                "create": [
+                    "lesson",
+                    {
+                        "courseId": "course-1",
+                        "name": "o",
+                        "order": 8,
+                        "contentType": "text",
+                        "blocks": [
+                            {
+                                "blockId": "<uuid-1>",
+                                "order": 1,
+                                "type": "richText",
+                                "text": "## Een\n\nTekst"
+                            }
+                        ],
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "o.docx",
+                        "kind": "document",
+                        "fileRef": "/Lessen inbox/o.docx",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "transition": [
+                    "row-1",
+                    "import",
+                    {
+                        "lessonId": "lesson-3",
+                        "courseId": "course-1"
+                    }
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[LessonOnboardingImporter] File {fileId} imported as lesson {lessonId} ({blocks} blocks, {materials} materials)",
+                "context": {
+                    "fileId": 99,
+                    "lessonId": "lesson-3",
+                    "blocks": 1,
+                    "materials": 0
+                }
+            }
+        ]
+    },
+    "the transition fails": {
+        "result": {
+            "lessonId": "lesson-3",
+            "lessonName": "Breuken vergelijken",
+            "courseId": "course-1",
+            "blocks": 5,
+            "materials": 3,
+            "notes": [
+                "A table was flattened",
+                "The file stays in your list; dismiss it so you do not import it twice"
+            ]
+        },
+        "calls": [
+            {
+                "extract": [
+                    "n.docx",
+                    "docx"
+                ]
+            },
+            {
+                "findAll": [
+                    {
+                        "filters": {
+                            "register": "learniq",
+                            "schema": "lesson",
+                            "courseId": "course-1"
+                        },
+                        "limit": 1000
+                    },
+                    true,
+                    true
+                ]
+            },
+            {
+                "create": [
+                    "lesson",
+                    {
+                        "courseId": "course-1",
+                        "name": "Breuken vergelijken",
+                        "order": 8,
+                        "contentType": "text",
+                        "blocks": [
+                            {
+                                "blockId": "<uuid-1>",
+                                "order": 1,
+                                "type": "richText",
+                                "text": "## Start\n\nWat weten we al?"
+                            },
+                            {
+                                "blockId": "<uuid-2>",
+                                "order": 3,
+                                "type": "richText",
+                                "text": "## Instructie\n\nUitleg.\n\nNog meer."
+                            },
+                            {
+                                "blockId": "<uuid-3>",
+                                "order": 4,
+                                "type": "richText",
+                                "text": "## Afsluiting"
+                            }
+                        ],
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "writeBytesToFiles": [
+                    "PNG",
+                    "n-99-image-1.png",
+                    "jdevries",
+                    "t-course"
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "image 1.png",
+                        "kind": "other",
+                        "fileRef": "/imports/n-99-image-1.png",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "writeBytesToFiles": [
+                    "X",
+                    "n-99-fail.png",
+                    "jdevries",
+                    "t-course"
+                ]
+            },
+            {
+                "writeBytesToFiles": [
+                    "Y",
+                    "n-99-nomaterial.png",
+                    "jdevries",
+                    "t-course"
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "nomaterial.png",
+                        "kind": "other",
+                        "fileRef": "/imports/n-99-nomaterial.png",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "writeBytesToFiles": [
+                    "JPG",
+                    "n-99-slot.jpg",
+                    "jdevries",
+                    "t-course"
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "slot.jpg",
+                        "kind": "other",
+                        "fileRef": "/imports/n-99-slot.jpg",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "saveObject": {
+                    "object": {
+                        "courseId": "course-1",
+                        "name": "Breuken vergelijken",
+                        "order": 8,
+                        "contentType": "text",
+                        "blocks": [
+                            {
+                                "blockId": "<uuid-4>",
+                                "order": 1,
+                                "type": "richText",
+                                "text": "## Start\n\nWat weten we al?"
+                            },
+                            {
+                                "blockId": "<uuid-5>",
+                                "order": 3,
+                                "type": "richText",
+                                "text": "## Instructie\n\nUitleg.\n\nNog meer."
+                            },
+                            {
+                                "blockId": "<uuid-6>",
+                                "order": 4,
+                                "type": "media",
+                                "materialId": "material-5"
+                            },
+                            {
+                                "blockId": "<uuid-7>",
+                                "order": 5,
+                                "type": "richText",
+                                "text": "## Afsluiting"
+                            },
+                            {
+                                "blockId": "<uuid-8>",
+                                "order": 6,
+                                "type": "media",
+                                "materialId": "material-10"
+                            }
+                        ],
+                        "tenant_id": "t-course"
+                    },
+                    "register": "learniq",
+                    "schema": "lesson",
+                    "uuid": "lesson-3"
+                }
+            },
+            {
+                "create": [
+                    "lesson-teacher-note",
+                    {
+                        "blockId": "<uuid-9>",
+                        "afterBlockId": "<uuid-4>",
+                        "position": 0,
+                        "text": "Vraag eerst naar pizza.",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "lesson-teacher-note",
+                    {
+                        "blockId": "<uuid-10>",
+                        "afterBlockId": "<uuid-8>",
+                        "position": 0,
+                        "text": "Exit ticket.",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "material",
+                    {
+                        "title": "n.docx",
+                        "kind": "document",
+                        "fileRef": "/Lessen inbox/n.docx",
+                        "courseId": "course-1",
+                        "lessonId": "lesson-3",
+                        "tenant_id": "t-course"
+                    }
+                ]
+            },
+            {
+                "transition": [
+                    "row-1",
+                    "import",
+                    {
+                        "lessonId": "lesson-3",
+                        "courseId": "course-1",
+                        "importNote": "A table was flattened"
+                    }
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "warning",
+                "message": "[LessonOnboardingImporter] Row {rowId} stays detected after import: {exception}",
+                "context": {
+                    "rowId": "row-1",
+                    "exception": "RuntimeException"
+                }
+            },
+            {
+                "level": "info",
+                "message": "[LessonOnboardingImporter] File {fileId} imported as lesson {lessonId} ({blocks} blocks, {materials} materials)",
+                "context": {
+                    "fileId": 99,
+                    "lessonId": "lesson-3",
+                    "blocks": 5,
+                    "materials": 3
+                }
+            }
+        ]
+    },
+    "unreadable": {
+        "refused": [
+            "This file holds no lesson content learniq can read.",
+            422,
+            "unreadable"
+        ],
+        "calls": [
+            {
+                "extract": [
+                    "u.docx",
+                    "docx"
+                ]
+            }
+        ],
+        "log": []
+    }
+}

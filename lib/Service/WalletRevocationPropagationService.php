@@ -3,6 +3,9 @@
 /**
  * Learniq Wallet Revocation Propagation Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the Credential schema's `revoke` transition. When a
  * credential with an outstanding wallet offer is revoked, propagates the
  * revocation to openconnector's OpenID4VCI adapter so the wallet-held
@@ -40,19 +43,18 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-revoking-a-credential-propagates-to-any-outstanding-wallet-offer-fail-soft
+ * @spec openspec/specs/certification/spec.md#requirement-revoking-a-credential-propagates-to-any-outstanding-wallet-offer-fail-soft
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\WalletRevocationPropagationServiceInterface;
 use OCA\Learniq\Support\FleetAppId;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
@@ -75,7 +77,7 @@ use Throwable;
  * config, HTTP error, thrown exception) is logged and swallowed — the
  * `revoke` transition itself is never blocked.
  */
-class WalletRevocationPropagationService implements LifecycleGuardInterface {
+class WalletRevocationPropagationService implements LifecycleGuardInterface, WalletRevocationPropagationServiceInterface {
 
 	/**
 	 * OpenConnector REST endpoint template for consumer-gated offer
@@ -139,13 +141,13 @@ class WalletRevocationPropagationService implements LifecycleGuardInterface {
 	 *
 	 * @param array<string,mixed> $object The Credential as it would be saved.
 	 * @param string $action The transition, `revoke`.
-	 * @param string $userId The caller, or '' without a session.
+	 * @param string $userId The caller, or '' without a session (unused: this guard does not depend on who asks).
 	 *
 	 * @return GuardResult Always allow (fail-soft by design).
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The interface fixes the signature.
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-revoking-a-credential-propagates-to-any-outstanding-wallet-offer-fail-soft
+	 * @spec openspec/specs/certification/spec.md#requirement-revoking-a-credential-propagates-to-any-outstanding-wallet-offer-fail-soft
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		return GuardResult::allow();
@@ -154,18 +156,24 @@ class WalletRevocationPropagationService implements LifecycleGuardInterface {
 	/**
 	 * Propagate a revocation to any outstanding wallet offer, best-effort.
 	 *
-	 * No-op (credential returned unchanged, no call made) unless there is an
-	 * outstanding offer with a correlation key. On a confirmed revocation sets
-	 * `walletOfferStatus=revoked`; on any failure records `walletOfferError`
-	 * and never throws.
+	 * The offer link is cleared first, whatever follows: a revoked
+	 * certificate is never offered. Otherwise no call is made unless there is
+	 * an outstanding offer with a correlation key. On a confirmed revocation
+	 * sets `walletOfferStatus=revoked`; on any failure records
+	 * `walletOfferError` and never throws.
 	 *
 	 * @param array<string,mixed> $credential The Credential data array.
 	 *
 	 * @return array<string,mixed> The Credential with the propagation outcome applied.
 	 *
-	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-revoking-a-credential-propagates-to-any-outstanding-wallet-offer-fail-soft
+	 * @spec openspec/specs/certification/spec.md#requirement-revoking-a-credential-propagates-to-any-outstanding-wallet-offer-fail-soft
+	 * @spec openspec/changes/credential-wallet-offer-for-the-learner/specs/certification/spec.md#requirement-the-credential-keeps-the-wallet-offer-link-while-the-offer-is-open
 	 */
 	public function propagate(array $credential): array {
+		if (isset($credential['walletOfferUri']) === true) {
+			$credential['walletOfferUri'] = null;
+		}
+
 		$walletOfferStatus = ($credential['walletOfferStatus'] ?? null);
 		if (in_array($walletOfferStatus, self::OUTSTANDING_STATUSES, true) === false) {
 			// Nothing outstanding to revoke — no-op.

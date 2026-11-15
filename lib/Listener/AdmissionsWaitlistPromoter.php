@@ -3,6 +3,9 @@
 /**
  * Learniq Admissions Waitlist Promoter
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * IEventListener for Application lifecycle -> withdrawn/rejected FROM placed
  * (the OR ObjectTransitionedEvent with register=learniq, schema=application).
  * A freed seat promotes the single oldest-submittedAt waitlisted Application
@@ -31,19 +34,19 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-placement-capacity-is-enforced-and-a-waitlisted-application-is-auto-promoted-when-a-seat-frees-up
+ * @spec openspec/specs/enrolment/spec.md#requirement-placement-capacity-is-enforced-and-a-waitlisted-application-is-auto-promoted-when-a-seat-frees-up
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Support\EntityRow;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
@@ -56,7 +59,7 @@ use Psr\Log\LoggerInterface;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-placement-capacity-is-enforced-and-a-waitlisted-application-is-auto-promoted-when-a-seat-frees-up
+ * @spec openspec/specs/enrolment/spec.md#requirement-placement-capacity-is-enforced-and-a-waitlisted-application-is-auto-promoted-when-a-seat-frees-up
  */
 class AdmissionsWaitlistPromoter implements IEventListener {
 
@@ -76,6 +79,7 @@ class AdmissionsWaitlistPromoter implements IEventListener {
 	 * @param ObjectService $objectService OR object access service.
 	 * @param TransitionEngine $transitionEngine OR lifecycle engine used to dispatch the `promote` transition.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -83,6 +87,7 @@ class AdmissionsWaitlistPromoter implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly TransitionEngine $transitionEngine,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -93,18 +98,18 @@ class AdmissionsWaitlistPromoter implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-placement-capacity-is-enforced-and-a-waitlisted-application-is-auto-promoted-when-a-seat-frees-up
+	 * @spec openspec/specs/enrolment/spec.md#requirement-placement-capacity-is-enforced-and-a-waitlisted-application-is-auto-promoted-when-a-seat-frees-up
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
-		if ($event->getSchema() !== self::APPLICATION_SCHEMA) {
+		if ($this->schemas->eventSchema(event: $event) !== self::APPLICATION_SCHEMA) {
 			return;
 		}
 
@@ -127,7 +132,7 @@ class AdmissionsWaitlistPromoter implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-withdrawal-promotes-the-oldest-waitlisted-applicant
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-withdrawal-promotes-the-oldest-waitlisted-applicant
 	 */
 	private function promoteOldestWaitlisted(array $freed): void {
 		$roundId = (string)($freed['admissionsRoundId'] ?? '');
@@ -194,10 +199,6 @@ class AdmissionsWaitlistPromoter implements IEventListener {
 	 * @return array<string,mixed>
 	 */
 	private function normalise(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		return $row->jsonSerialize();
+		return (new EntityRow())->asArray(row: $row);
 	}//end normalise()
 }//end class

@@ -29,11 +29,14 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\AppInfo;
 
-use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
-use OCA\Learniq\AppInfo\Registrar\TransitionBridgeListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\EventListenerWiring;
+use OCA\Learniq\Listener\Registrar\TransitionBridgeListenerRegistrar;
 use OCA\Learniq\Listener\CredentialRenewalListener;
 use OCA\Learniq\Listener\SchoolAdviesSendToRodHandler;
+use OCA\Learniq\Listener\SchoolAdviesVoorlopigRodHandler;
+use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use PHPUnit\Framework\TestCase;
 
@@ -64,7 +67,8 @@ class TransitionBridgeListenerRegistrarTest extends TestCase {
 	}//end capture()
 
 	/**
-	 * The registrar wires both bridges on the transition event.
+	 * The registrar wires both bridges on the transition event, and the
+	 * voorlopig school advice to ROD on create and update.
 	 *
 	 * @return void
 	 */
@@ -79,6 +83,8 @@ class TransitionBridgeListenerRegistrarTest extends TestCase {
 			expected: [
 				ObjectTransitionedEvent::class . ' => ' . CredentialRenewalListener::class,
 				ObjectTransitionedEvent::class . ' => ' . SchoolAdviesSendToRodHandler::class,
+				ObjectCreatedEvent::class . ' => ' . SchoolAdviesVoorlopigRodHandler::class,
+				ObjectUpdatedEvent::class . ' => ' . SchoolAdviesVoorlopigRodHandler::class,
 			],
 			actual: $pairs
 		);

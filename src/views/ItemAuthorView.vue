@@ -10,7 +10,7 @@
   - Edit title, interactionType, maxScore.
   - For `choice`: add/remove answer options; mark correct answer.
   - For `extendedText`: configure prompt only (no correctResponse — teacher scores).
-  - Writes `qtiBody` (simplified QTI 3.0 XML) and `correctResponse` to the Item.
+  - Writes `qtiBody` (simplified QTI 2.1 XML) and `correctResponse` to the Item.
   - Loads existing Item data if a UUID is in the route.
   - When editing an existing item, links to ItemAnalysisView (p-value,
     item-total correlation, distractor bars — assessment-item-pools-and-analysis).
@@ -21,15 +21,15 @@
   Copyright (C) 2026 Conduction B.V.
 
   @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
-  @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-item-and-assessment-statistics-are-read-restricted-to-staff-roles
+  @spec openspec/specs/assessment/spec.md#requirement-item-and-assessment-statistics-are-read-restricted-to-staff-roles
 -->
 
 <template>
-	<div class="item-author">
+	<div class="item-author lq-board-page">
 		<!-- Loading -->
 		<div v-if="loading" class="item-author__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('learniq', 'Loading item...') }}</span>
+			<span>{{ t('learniq', 'Loading item…') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -50,9 +50,7 @@
 
 		<template v-else>
 			<header class="item-author__header">
-				<h2 class="item-author__heading">
-					{{ id ? t('learniq', 'Edit item') : t('learniq', 'New item') }}
-				</h2>
+				<CnPageHeader :title="id ? t('learniq', 'Edit item') : t('learniq', 'New item')" />
 				<router-link
 					v-if="id"
 					class="item-author__analysis-link"
@@ -61,119 +59,119 @@
 				</router-link>
 			</header>
 
-			<!-- Title -->
-			<div class="item-author__field">
-				<label class="item-author__label" for="item-title">
-					{{ t('learniq', 'Item title') }}
-				</label>
-				<input
-					id="item-title"
-					v-model="form.title"
-					class="item-author__input"
-					type="text"
-					:placeholder="t('learniq', 'Enter item title...')" />
-			</div>
+			<CnDetailCard class="item-author__form">
+				<!-- Title -->
+				<div class="item-author__field">
+					<label class="item-author__label" for="item-title">
+						{{ t('learniq', 'Item title') }}
+					</label>
+					<input
+						id="item-title"
+						v-model="form.title"
+						class="item-author__input"
+						type="text"
+						:placeholder="t('learniq', 'Enter item title…')" />
+				</div>
 
-			<!-- Interaction type -->
-			<div class="item-author__field">
-				<label class="item-author__label" for="item-type">
-					{{ t('learniq', 'Interaction type') }}
-				</label>
-				<select
-					id="item-type"
-					v-model="form.interactionType"
-					class="item-author__select">
-					<option value="choice">
-						{{ t('learniq', 'Multiple choice') }}
-					</option>
-					<option value="extendedText">
-						{{ t('learniq', 'Essay (extended text)') }}
-					</option>
-					<option disabled value="textEntry">
-						{{
-							t(
-								'learniq',
-								'Text entry (editor coming soon — use QTI import)',
-							)
-						}}
-					</option>
-					<option disabled value="hotspot">
-						{{
-							t(
-								'learniq',
-								'Hotspot (editor coming soon — use QTI import)',
-							)
-						}}
-					</option>
-					<option disabled value="order">
-						{{
-							t(
-								'learniq',
-								'Order (editor coming soon — use QTI import)',
-							)
-						}}
-					</option>
-					<option disabled value="match">
-						{{
-							t(
-								'learniq',
-								'Match (editor coming soon — use QTI import)',
-							)
-						}}
-					</option>
-					<option disabled value="gapMatch">
-						{{
-							t(
-								'learniq',
-								'Gap match (editor coming soon — use QTI import)',
-							)
-						}}
-					</option>
-					<option disabled value="inlineChoice">
-						{{
-							t(
-								'learniq',
-								'Inline choice (editor coming soon — use QTI import)',
-							)
-						}}
-					</option>
-				</select>
-			</div>
+				<!-- Interaction type -->
+				<div class="item-author__field">
+					<label class="item-author__label" for="item-type">
+						{{ t('learniq', 'Interaction type') }}
+					</label>
+					<select
+						id="item-type"
+						v-model="form.interactionType"
+						class="item-author__select">
+						<option value="choice">
+							{{ t('learniq', 'Multiple choice') }}
+						</option>
+						<option value="extendedText">
+							{{ t('learniq', 'Essay (extended text)') }}
+						</option>
+						<option disabled value="textEntry">
+							{{
+								t(
+									'learniq',
+									'Text entry (editor coming soon — use QTI import)',
+								)
+							}}
+						</option>
+						<option disabled value="hotspot">
+							{{
+								t(
+									'learniq',
+									'Hotspot (editor coming soon — use QTI import)',
+								)
+							}}
+						</option>
+						<option disabled value="order">
+							{{
+								t(
+									'learniq',
+									'Order (editor coming soon — use QTI import)',
+								)
+							}}
+						</option>
+						<option disabled value="match">
+							{{
+								t(
+									'learniq',
+									'Match (editor coming soon — use QTI import)',
+								)
+							}}
+						</option>
+						<option disabled value="gapMatch">
+							{{
+								t(
+									'learniq',
+									'Gap match (editor coming soon — use QTI import)',
+								)
+							}}
+						</option>
+						<option disabled value="inlineChoice">
+							{{
+								t(
+									'learniq',
+									'Inline choice (editor coming soon — use QTI import)',
+								)
+							}}
+						</option>
+					</select>
+				</div>
 
-			<!-- Max score -->
-			<div class="item-author__field">
-				<label class="item-author__label" for="item-max-score">
-					{{ t('learniq', 'Max score') }}
-				</label>
-				<input
-					id="item-max-score"
-					v-model.number="form.maxScore"
-					class="item-author__input item-author__input--narrow"
-					type="number"
-					min="0"
-					step="0.5" />
-			</div>
+				<!-- Max score -->
+				<div class="item-author__field">
+					<label class="item-author__label" for="item-max-score">
+						{{ t('learniq', 'Max score') }}
+					</label>
+					<input
+						id="item-max-score"
+						v-model.number="form.maxScore"
+						class="item-author__input item-author__input--narrow"
+						type="number"
+						min="0"
+						step="0.5" />
+				</div>
 
-			<!-- Prompt / stem -->
-			<div class="item-author__field">
-				<label class="item-author__label" for="item-prompt">
-					{{ t('learniq', 'Question prompt / stem') }}
-				</label>
-				<textarea
-					id="item-prompt"
-					v-model="form.prompt"
-					class="item-author__textarea"
-					rows="4"
-					:placeholder="t('learniq', 'Enter the question text...')" />
-			</div>
+				<!-- Prompt / stem -->
+				<div class="item-author__field">
+					<label class="item-author__label" for="item-prompt">
+						{{ t('learniq', 'Question prompt / stem') }}
+					</label>
+					<textarea
+						id="item-prompt"
+						v-model="form.prompt"
+						class="item-author__textarea"
+						rows="4"
+						:placeholder="t('learniq', 'Enter the question text…')" />
+				</div>
+			</CnDetailCard>
 
 			<!-- Choice-specific: answer options -->
-			<div
+			<CnDetailCard
 				v-if="form.interactionType === 'choice'"
+				:title="t('learniq', 'Answer options')"
 				class="item-author__choices">
-				<h3 class="item-author__sub-heading">
-					{{ t('learniq', 'Answer options') }}
-				</h3>
 				<ul class="item-author__choice-list">
 					<li
 						v-for="(choice, idx) in form.choices"
@@ -215,7 +213,7 @@
 						)
 					}}
 				</p>
-			</div>
+			</CnDetailCard>
 
 			<!-- extendedText note -->
 			<div
@@ -250,10 +248,19 @@
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
+import {
+	choicesFromQti,
+	correctChoiceIndex,
+	itemFormFields,
+	promptFromQtiBody,
+} from '../utils/itemAuthorForm.js'
+import { buildItemXml } from '../utils/qtiItemXml.js'
 
 export default {
 	name: 'ItemAuthorView',
+	components: { CnDetailCard, CnPageHeader },
 
 	props: {
 		/**
@@ -322,62 +329,91 @@ export default {
 			this.error = null
 
 			try {
-				const url = generateUrl(
-					`/apps/openregister/api/objects/learniq/Item/${itemId}`,
-				)
-				const resp = await fetch(url, {
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-					},
-				})
-				if (!resp.ok) throw new Error(`Item fetch failed: ${resp.status}`)
-
-				const json = await resp.json()
-				const item = json.object ?? json ?? {}
-
-				this.form.title = item.title ?? ''
-				this.form.interactionType = item.interactionType ?? 'choice'
-				this.form.maxScore = item.maxScore ?? 1
-				this.itemBankId = item.itemBankId ?? null
-
-				// Extract prompt from qtiBody (strip XML).
-				this.form.prompt = (item.qtiBody ?? '')
-					.replace(/<[^>]+>/g, ' ')
-					.replace(/\s+/g, ' ')
-					.trim()
-
-				// Restore choices for choice interaction.
-				if (item.interactionType === 'choice' && item.qtiBody) {
-					const parser = new DOMParser()
-					const doc = parser.parseFromString(item.qtiBody, 'text/xml')
-					const simpleChoices = doc.getElementsByTagName('simpleChoice')
-					if (simpleChoices.length > 0) {
-						this.form.choices = Array.from(simpleChoices).map(
-							(sc, i) => ({
-								id:
-									sc.getAttribute('identifier')
-									?? String.fromCharCode(65 + i),
-								label: sc.textContent?.trim() ?? '',
-							}),
-						)
-					}
-
-					const cr = item.correctResponse
-					if (typeof cr === 'string') {
-						const idx = this.form.choices.findIndex((c) => c.id === cr)
-						this.form.correctChoiceIdx = idx >= 0 ? idx : 0
-					}
-				}
+				const item = await this.fetchItem(itemId)
+				this.applyItem(item)
 			} catch (err) {
-				this.error = this.t(
-					'learniq',
-					'Failed to load item. Please try again.',
-				)
-				// eslint-disable-next-line no-console
-				console.error('[ItemAuthorView] loadItem error', err)
+				this.reportLoadError(err)
 			} finally {
 				this.loading = false
+			}
+		},
+
+		/**
+		 * Show that the Item could not be loaded and log why.
+		 *
+		 * @param {Error} err The failure.
+		 * @return {void}
+		 */
+		reportLoadError(err) {
+			this.error = this.t(
+				'learniq',
+				'Failed to load item. Please try again.',
+			)
+			// eslint-disable-next-line no-console
+			console.error('[ItemAuthorView] loadItem error', err)
+		},
+
+		/**
+		 * Read one Item from OR.
+		 *
+		 * @param {string} itemId Item UUID
+		 * @return {Promise<object>} The stored Item, empty when the response holds none.
+		 */
+		async fetchItem(itemId) {
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/Item/${itemId}`,
+			)
+			const resp = await fetch(url, {
+				headers: {
+					'OCS-APIREQUEST': 'true',
+					Accept: 'application/json',
+				},
+			})
+			if (!resp.ok) throw new Error(`Item fetch failed: ${resp.status}`)
+
+			const json = await resp.json()
+			return json.object ?? json ?? {}
+		},
+
+		/**
+		 * Seed the form from a stored Item.
+		 *
+		 * @param {object} item The stored Item.
+		 * @return {void}
+		 */
+		applyItem(item) {
+			const fields = itemFormFields(item)
+			this.form.title = fields.title
+			this.form.interactionType = fields.interactionType
+			this.form.maxScore = fields.maxScore
+			this.itemBankId = item.itemBankId ?? null
+
+			// Extract prompt from qtiBody (strip XML).
+			this.form.prompt = promptFromQtiBody(item.qtiBody)
+
+			// Restore choices for choice interaction.
+			if (item.interactionType === 'choice' && item.qtiBody) {
+				this.restoreChoices(item)
+			}
+		},
+
+		/**
+		 * Restore the choices and the correct answer of a choice Item.
+		 *
+		 * @param {object} item The stored choice Item.
+		 * @return {void}
+		 */
+		restoreChoices(item) {
+			const parser = new DOMParser()
+			const doc = parser.parseFromString(item.qtiBody, 'text/xml')
+			const choices = choicesFromQti(doc)
+			if (choices.length > 0) {
+				this.form.choices = choices
+			}
+
+			const cr = item.correctResponse
+			if (typeof cr === 'string') {
+				this.form.correctChoiceIdx = correctChoiceIndex(this.form.choices, cr)
 			}
 		},
 
@@ -408,76 +444,31 @@ export default {
 		},
 
 		/**
-		 * Build the QTI 3.0 item XML body from the form values.
+		 * Build the QTI 2.1 item XML body from the form values.
 		 *
-		 * @return {string} QTI 3.0 XML string
+		 * @return {string} QTI 2.1 XML string
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
+		 * @spec openspec/specs/assessment/spec.md#requirement-items-are-stored-as-qti-21-and-labelled-as-qti-21
 		 */
 		buildQtiBody() {
-			const { interactionType, prompt, choices, correctChoiceIdx } = this.form
-			const identifier = `item-${Date.now()}`
+			const {
+				interactionType,
+				prompt,
+				choices,
+				correctChoiceIdx,
+				title,
+				maxScore,
+			} = this.form
 
-			if (interactionType === 'choice') {
-				const optionXml = choices
-					.map(
-						(c) =>
-							`<simpleChoice identifier="${c.id}">${this.escapeXml(c.label)}</simpleChoice>`,
-					)
-					.join('\n      ')
-
-				return `<?xml version="1.0" encoding="UTF-8"?>
-<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0"
-    identifier="${identifier}"
-    title="${this.escapeXml(this.form.title)}"
-    adaptive="false"
-    timeDependent="false">
-  <responseDeclaration identifier="RESPONSE" cardinality="single" baseType="identifier">
-    <correctResponse>
-      <value>${this.escapeXml(choices[correctChoiceIdx]?.id ?? 'A')}</value>
-    </correctResponse>
-  </responseDeclaration>
-  <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float">
-    <defaultValue><value>${this.form.maxScore}</value></defaultValue>
-  </outcomeDeclaration>
-  <itemBody>
-    <p>${this.escapeXml(prompt)}</p>
-    <choiceInteraction responseIdentifier="RESPONSE" shuffle="false" maxChoices="1">
-      ${optionXml}
-    </choiceInteraction>
-  </itemBody>
-</assessmentItem>`
-			}
-
-			// extendedText and other types.
-			return `<?xml version="1.0" encoding="UTF-8"?>
-<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0"
-    identifier="${identifier}"
-    title="${this.escapeXml(this.form.title)}"
-    adaptive="false"
-    timeDependent="false">
-  <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float">
-    <defaultValue><value>${this.form.maxScore}</value></defaultValue>
-  </outcomeDeclaration>
-  <itemBody>
-    <p>${this.escapeXml(prompt)}</p>
-    <extendedTextInteraction responseIdentifier="RESPONSE" expectedLength="500" />
-  </itemBody>
-</assessmentItem>`
-		},
-
-		/**
-		 * Escape XML special characters.
-		 *
-		 * @param {string} str Raw string
-		 * @return {string} XML-escaped string
-		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
-		 */
-		escapeXml(str) {
-			return (str ?? '')
-				.replace(/&/g, '&amp;')
-				.replace(/</g, '&lt;')
-				.replace(/>/g, '&gt;')
-				.replace(/"/g, '&quot;')
+			return buildItemXml({
+				identifier: `item-${Date.now()}`,
+				title,
+				interactionType,
+				prompt,
+				choices,
+				correctChoiceIdx,
+				maxScore,
+			})
 		},
 
 		/**
@@ -519,7 +510,7 @@ export default {
 
 			try {
 				const resp = await fetch(url, {
-					method: isEdit ? 'PUT' : 'POST',
+					method: isEdit ? 'PATCH' : 'POST',
 					headers: {
 						'OCS-APIREQUEST': 'true',
 						Accept: 'application/json',
@@ -545,13 +536,6 @@ export default {
 </script>
 
 <style scoped>
-.item-author {
-	max-width: 720px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
 .item-author__loading,
 .item-author__error {
 	display: flex;
@@ -565,12 +549,6 @@ export default {
 	align-items: baseline;
 	justify-content: space-between;
 	gap: calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.item-author__heading {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .item-author__analysis-link {
@@ -606,11 +584,6 @@ export default {
 
 .item-author__textarea {
 	resize: vertical;
-}
-
-.item-author__sub-heading {
-	font-weight: 600;
-	margin-bottom: var(--default-grid-baseline, 8px);
 }
 
 .item-author__choice-list {

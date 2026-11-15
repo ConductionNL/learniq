@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/adopt-connection-registry/specs/integrations/spec.md#requirement-req-int-conn-001-learniq-declares-its-outside-connections-in-one-static-file
+ * @spec openspec/specs/integrations/spec.md#requirement-req-int-conn-001-learniq-declares-its-outside-connections-in-one-static-file
  *
  * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
  * SPDX-License-Identifier: EUPL-1.2
@@ -75,6 +75,8 @@ class ConnectionsDeclarationTest extends TestCase {
 		'lti',
 		'eudi-wallet',
 		'payment',
+		'open-material-edurep',
+		'open-material-edusources',
 		'sbb',
 		'proctoring',
 		'plagiarism',
@@ -88,6 +90,9 @@ class ConnectionsDeclarationTest extends TestCase {
 	private const ADMIN_PAGE_FILES = [
 		'src/views/settings/AdminRoot.vue',
 		'src/views/settings/DataExchangeSettingsSection.vue',
+		'src/views/settings/TimetableExchangeSettingsSection.vue',
+		'src/views/settings/LtiSettingsSection.vue',
+		'src/views/settings/OpenMaterialSettingsSection.vue',
 		'src/views/LearniqSettings.vue',
 	];
 
@@ -218,10 +223,11 @@ class ConnectionsDeclarationTest extends TestCase {
 	}//end testNoTextCarriesAnEmDash()
 
 	/**
-	 * Every settings link lands on a section the admin page really has.
+	 * Every settings link opens a tab and lands on a section the admin page really has.
 	 *
 	 * A link into a section that does not exist opens the page at the top and
-	 * logs nothing. Gate 116 checks the same rule on the whole of `src/`.
+	 * logs nothing, and without the tab it opens the first tab, where the section
+	 * is not rendered. Gate 116 checks the same rule on the whole of `src/`.
 	 *
 	 * @return void
 	 */
@@ -238,8 +244,13 @@ class ConnectionsDeclarationTest extends TestCase {
 			}
 
 			$url = (string)$connection['settingsUrl'];
-			$this->assertStringStartsWith(prefix: '/settings/admin/learniq#section-', string: $url, message: $connection['key']);
+			$this->assertMatchesRegularExpression(pattern: '~^/settings/admin/learniq\?tab=([a-z-]+)#section-\1$~', string: $url, message: $connection['key']);
 			$anchor = substr($url, (strpos($url, '#') + 1));
+			$this->assertStringContainsString(
+				needle: "{ id: '" . substr($anchor, strlen('section-')) . "',",
+				haystack: $adminPage,
+				message: $connection['key'] . ' links to a missing tab'
+			);
 			$this->assertStringContainsString(
 				needle: 'id="' . $anchor . '"',
 				haystack: $adminPage,
@@ -248,7 +259,7 @@ class ConnectionsDeclarationTest extends TestCase {
 			$linked[] = $connection['key'];
 		}
 
-		$this->assertSame(expected: ['data-exchange', 'timetable'], actual: $linked);
+		$this->assertSame(expected: ['data-exchange', 'timetable', 'lti', 'open-material-edurep'], actual: $linked);
 	}//end testEverySettingsLinkPointsAtAnExistingSection()
 
 	/**
@@ -273,37 +284,48 @@ class ConnectionsDeclarationTest extends TestCase {
 		}
 
 		$this->assertSame(
-			expected: ['data-exchange', 'timetable', 'lti', 'sbb', 'proctoring', 'plagiarism'],
+			expected: ['open-material-edusources', 'sbb', 'proctoring', 'plagiarism'],
 			actual: $unavailable
 		);
 	}//end testEveryUnavailableConnectionSaysWhy()
 
 	/**
-	 * The unavailable messages name the paths learniq really calls.
+	 * LTI launches through integriq's typed event, and learniq reports the row
+	 * from whether that event exists (content-lti-launch-through-integriq).
 	 *
-	 * When one of these constants moves to an endpoint integriq publishes, this
-	 * test goes red. That is the moment to make the row available again.
+	 * @return void
+	 *
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-connection-registry-says-whether-lti-works
+	 */
+	public function testLtiLaunchesThroughIntegriqsEventAndIsReported(): void {
+		$byKey = $this->connectionsByKey();
+
+		$this->assertArrayNotHasKey(key: 'available', array: $byKey['lti']);
+		$this->assertTrue($byKey['lti']['reportedOnly']);
+		$this->assertContains(needle: 'lti', haystack: ConnectionReportService::REPORTED_KEYS);
+		$controller = (string)file_get_contents($this->root() . '/lib/Controller/LtiToolPlacementController.php');
+		$this->assertStringContainsString(needle: "'OCA\\Integriq\\Event\\LtiLaunchRequestedEvent'", haystack: $controller);
+		$this->assertStringNotContainsString(needle: 'api/lti/deployments', haystack: $controller);
+	}//end testLtiLaunchesThroughIntegriqsEventAndIsReported()
+
+	/**
+	 * Data exchange runs through integriq's events, not a route learniq calls
+	 * (data-exchange-to-integriq); the timetable is planninq's (D10).
 	 *
 	 * @return void
 	 */
-	public function testTheUnavailableMessagesNameTheCalledPaths(): void {
+	public function testDataExchangeRunsThroughIntegriqAndTheTimetableIsPlanninqs(): void {
 		$byKey = $this->connectionsByKey();
-		$calls = [
-			'data-exchange' => ['lib/Listener/DataExchangeRunHandler.php', "'/apps/openconnector/api/sources/%s/run'", 'api/sources/[target]/run'],
-			'timetable' => ['lib/Timetabling/TimetableImportHandler.php', "'api/sources/%s/run'", 'api/sources/timetable-import/run'],
-			'lti' => [
-				'lib/Controller/LtiToolPlacementController.php',
-				"'/apps/openconnector/api/lti/deployments/%s/launch'",
-				'api/lti/deployments/[id]/launch',
-			],
-		];
 
-		foreach ($calls as $key => [$file, $constant, $named]) {
-			$source = (string)file_get_contents($this->root() . '/' . $file);
-			$this->assertStringContainsString(needle: $constant, haystack: $source, message: $key . ': the called path changed');
-			$this->assertStringContainsString(needle: $named, haystack: (string)$byKey[$key]['unavailableMessage'], message: $key);
-		}
-	}//end testTheUnavailableMessagesNameTheCalledPaths()
+		$this->assertTrue($byKey['data-exchange']['available']);
+		$client = (string)file_get_contents($this->root() . '/lib/Service/IntegriqExchangeClient.php');
+		$this->assertStringContainsString(needle: 'OCA\\\\Integriq\\\\Event\\\\ExchangeJobRequestedEvent', haystack: $client);
+		// timetable-connection-and-import-screen: learniq reports the row from
+		// whether planninq is enabled, so the row is not declared unavailable.
+		$this->assertArrayNotHasKey(key: 'available', array: $byKey['timetable']);
+		$this->assertTrue($byKey['timetable']['reportedOnly']);
+		$this->assertStringContainsString(needle: 'planninq', haystack: (string)$byKey['timetable']['unconfiguredMessage']);
+	}//end testDataExchangeRunsThroughIntegriqAndTheTimetableIsPlanninqs()
 
 	/**
 	 * Payments need the shillinq administration the raise sends.

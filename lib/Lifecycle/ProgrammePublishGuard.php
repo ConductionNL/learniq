@@ -120,13 +120,14 @@ class ProgrammePublishGuard implements LifecycleGuardInterface {
 		}
 
 		// H1: scope CurriculumPlan lookup to the same tenant.
-		$planFilters = ['uuid' => $curriculumPlanId, 'lifecycle' => 'published'];
+		$planFilters = ['lifecycle' => 'published'];
 		if ($tenantId !== '') {
 			$planFilters['tenant_id'] = $tenantId;
 		}
 
 		$plans = $this->objectService->findAll(
 			[
+				'ids' => [$curriculumPlanId],
 				'filters' => array_merge(
 					$planFilters,
 					[

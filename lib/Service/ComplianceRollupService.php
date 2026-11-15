@@ -38,20 +38,25 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use DateInterval;
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\ComplianceRollupServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
  * Per-department compliance figures, aggregated up the department path.
  */
-class ComplianceRollupService {
+class ComplianceRollupService implements ComplianceRollupServiceInterface {
 
-	private const LEARNIQ_REGISTER = 'learniq';
 	private const OPEN_ENROLMENT_STATES = ['pending', 'active'];
-	private const UPCOMING_WINDOW_DAYS = 30;
 	private const PAGE_LIMIT = 10000;
+
+	/**
+	 * Reads the rows of one learniq schema.
+	 *
+	 * @var SchemaRows
+	 */
+	private readonly SchemaRows $schemaRows;
 
 	/**
 	 * Constructor.
@@ -59,14 +64,17 @@ class ComplianceRollupService {
 	 * @param ObjectService              $objectService   OR object access.
 	 * @param RegulationAudienceResolver $audience        Audience-scope predicate.
 	 * @param ExternalTrainingService    $trainingService Coverage predicate.
+	 * @param RunningExemptions          $runningExemptions The exemptions that run on a day.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ObjectService $objectService,
+		ObjectService $objectService,
 		private readonly RegulationAudienceResolver $audience,
 		private readonly ExternalTrainingService $trainingService,
+		private readonly RunningExemptions $runningExemptions=new RunningExemptions(),
 	) {
+		$this->schemaRows = new SchemaRows(objectService: $objectService, limit: self::PAGE_LIMIT);
 	}//end __construct()
 
 	/**
@@ -76,35 +84,22 @@ class ComplianceRollupService {
 	 *
 	 * @return array<int,array<string,mixed>>
 	 *
-	 * @spec openspec/parity/capabilities.json#comp-roll-up-by-department
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-coverage-rolls-up-from-team-to-department-to-directorate
 	 */
 	public function byDepartment(?DateTimeImmutable $now=null): array {
 		$now = ($now ?? new DateTimeImmutable('now', new DateTimeZone('UTC')));
-		$horizon = $now->add(new DateInterval('P'.self::UPCOMING_WINDOW_DAYS.'D'));
 
-		$regulations = array_values(
-			array_filter(
-				$this->rows(schema: 'regulation'),
-				static fn (array $reg): bool => ($reg['lifecycle'] ?? '') === 'published' && ($reg['active'] ?? true) !== false
-			)
+		$population = $this->population();
+		$snapshot = new ComplianceSnapshot(
+			population: $population,
+			enrolments: $this->rows(schema: 'enrolment', filters: ['mandatory' => true]),
+			credentials: $this->rows(schema: 'credential'),
+			now: $now
 		);
-		$enrolments = $this->rows(schema: 'enrolment', filters: ['mandatory' => true]);
-		$credentials = $this->rows(schema: 'credential');
 
 		$nodes = [];
-		foreach ($this->rows(schema: 'learner-profile') as $profile) {
-			if (($profile['lifecycle'] ?? 'active') !== 'active') {
-				continue;
-			}
-
-			$figures = $this->learnerFigures(
-				profile: $profile,
-				regulations: $regulations,
-				enrolments: $enrolments,
-				credentials: $credentials,
-				now: $now,
-				horizon: $horizon
-			);
+		foreach ($population['learners'] as $profile) {
+			$figures = $this->learnerFigures(profile: $profile, snapshot: $snapshot);
 
 			foreach ($this->audience->departmentLevels(department: (string)($profile['department'] ?? '')) as $level) {
 				$nodes[$level] = $this->addFigures(node: ($nodes[$level] ?? $this->emptyNode(department: $level)), figures: $figures);
@@ -117,32 +112,51 @@ class ComplianceRollupService {
 	}//end byDepartment()
 
 	/**
+	 * Who and what a coverage count runs over: the published, enforced
+	 * regulations, the active learner profiles (not merged or archived) and
+	 * the granted exemptions (RunningExemptions decides which run on a day).
+	 *
+	 * @return array{regulations:array<int,array<string,mixed>>,learners:array<int,array<string,mixed>>,exemptions:array<int,array<string,mixed>>}
+	 * @spec openspec/changes/compliance-rule-coverage-table/specs/compliance-rule-coverage/spec.md#requirement-per-rule-coverage-table
+	 */
+	public function population(): array {
+		return [
+			'regulations' => array_values(
+				array_filter(
+					$this->rows(schema: 'regulation'),
+					static fn (array $reg): bool => ($reg['lifecycle'] ?? '') === 'published' && ($reg['active'] ?? true) !== false
+				)
+			),
+			'learners' => array_values(
+				array_filter(
+					$this->rows(schema: 'learner-profile'),
+					static fn (array $profile): bool => ($profile['lifecycle'] ?? 'active') === 'active'
+				)
+			),
+			'exemptions' => $this->rows(schema: 'regulation-exemption', filters: ['lifecycle' => 'granted']),
+		];
+	}//end population()
+
+	/**
 	 * One learner's contribution to every level of their department.
 	 *
-	 * @param array<string,mixed>            $profile     The learner.
-	 * @param array<int,array<string,mixed>> $regulations Published regulations.
-	 * @param array<int,array<string,mixed>> $enrolments  Mandatory enrolments.
-	 * @param array<int,array<string,mixed>> $credentials All credentials.
-	 * @param DateTimeImmutable              $now         Evaluation instant.
-	 * @param DateTimeImmutable              $horizon     End of the upcoming window.
+	 * @param array<string,mixed> $profile  The learner.
+	 * @param ComplianceSnapshot  $snapshot The rows and instant of this roll-up.
 	 *
 	 * @return array<string,int>
 	 */
-	private function learnerFigures(
-		array $profile,
-		array $regulations,
-		array $enrolments,
-		array $credentials,
-		DateTimeImmutable $now,
-		DateTimeImmutable $horizon,
-	): array {
+	private function learnerFigures(array $profile, ComplianceSnapshot $snapshot): array {
 		$keys = $this->learnerKeys(profile: $profile);
-		$regulationFigures = $this->regulationFigures(profile: $profile, keys: $keys, regulations: $regulations, now: $now);
-		$deadlineFigures = $this->deadlineFigures(keys: $keys, enrolments: $enrolments, now: $now, horizon: $horizon);
+		$excusedFrom = $this->runningExemptions->regulationsFor(keys: $keys, exemptions: $snapshot->exemptions, now: $snapshot->now);
+		$regulationFigures = $this->regulationFigures(
+			learner: ['profile' => $profile, 'keys' => $keys, 'excusedFrom' => $excusedFrom],
+			snapshot: $snapshot
+		);
+		$deadlineFigures = $this->deadlineFigures(keys: $keys, snapshot: $snapshot);
 
 		$expired = 0;
-		foreach ($credentials as $credential) {
-			if ($this->ownedBy(row: $credential, keys: $keys) === true && $this->isExpired(credential: $credential, now: $now) === true) {
+		foreach ($snapshot->credentials as $credential) {
+			if ($this->ownedBy(row: $credential, keys: $keys) === true && $this->isExpired(credential: $credential, now: $snapshot->now) === true) {
 				$expired++;
 			}
 		}
@@ -153,24 +167,32 @@ class ComplianceRollupService {
 	}//end learnerFigures()
 
 	/**
-	 * Obligations and covered obligations for one learner.
+	 * Obligations, covered obligations and excused rules for one learner. A
+	 * rule the learner holds a running exemption from is not an obligation:
+	 * it is counted as excused, so an auditor sees it.
 	 *
-	 * @param array<string,mixed>            $profile     The learner.
-	 * @param array<int,string>              $keys        The learner's keys.
-	 * @param array<int,array<string,mixed>> $regulations Published regulations.
-	 * @param DateTimeImmutable              $now         Evaluation instant.
+	 * @param array{profile: array<string,mixed>, keys: array<int,string>, excusedFrom: array<string,true>} $learner The learner, the
+	 *     learner's keys and the regulation slugs the learner is exempt from today.
+	 * @param ComplianceSnapshot $snapshot The published regulations and the evaluation instant of this roll-up.
 	 *
-	 * @return array{obligations: int, covered: int}
+	 * @return array{obligations: int, covered: int, excused: int}
+	 *
+	 * @spec openspec/changes/compliance-exemption-record/specs/compliance-exemptions/spec.md#requirement-exemptions-in-the-roll-up
 	 */
-	private function regulationFigures(array $profile, array $keys, array $regulations, DateTimeImmutable $now): array {
-		$figures = ['obligations' => 0, 'covered' => 0];
-		foreach ($regulations as $regulation) {
-			if ($this->audience->covers(regulation: $regulation, profile: $profile) === false) {
+	private function regulationFigures(array $learner, ComplianceSnapshot $snapshot): array {
+		$figures = ['obligations' => 0, 'covered' => 0, 'excused' => 0];
+		foreach ($snapshot->regulations as $regulation) {
+			if ($this->audience->covers(regulation: $regulation, profile: $learner['profile']) === false) {
+				continue;
+			}
+
+			if (isset($learner['excusedFrom'][(string)($regulation['slug'] ?? '')]) === true) {
+				$figures['excused']++;
 				continue;
 			}
 
 			$figures['obligations']++;
-			if ($this->isCovered(keys: $keys, regulationSlug: (string)($regulation['slug'] ?? ''), now: $now) === true) {
+			if ($this->isCovered(keys: $learner['keys'], regulationSlug: (string)($regulation['slug'] ?? ''), now: $snapshot->now) === true) {
 				$figures['covered']++;
 			}
 		}
@@ -181,16 +203,14 @@ class ComplianceRollupService {
 	/**
 	 * Upcoming and overdue open mandatory enrolments for one learner.
 	 *
-	 * @param array<int,string>              $keys       The learner's keys.
-	 * @param array<int,array<string,mixed>> $enrolments Mandatory enrolments.
-	 * @param DateTimeImmutable              $now        Evaluation instant.
-	 * @param DateTimeImmutable              $horizon    End of the upcoming window.
+	 * @param array<int,string>  $keys     The learner's keys.
+	 * @param ComplianceSnapshot $snapshot Mandatory enrolments, evaluation instant and window end.
 	 *
 	 * @return array{upcomingDeadlines: int, overdue: int}
 	 */
-	private function deadlineFigures(array $keys, array $enrolments, DateTimeImmutable $now, DateTimeImmutable $horizon): array {
+	private function deadlineFigures(array $keys, ComplianceSnapshot $snapshot): array {
 		$figures = ['upcomingDeadlines' => 0, 'overdue' => 0];
-		foreach ($enrolments as $enrolment) {
+		foreach ($snapshot->enrolments as $enrolment) {
 			if ($this->ownedBy(row: $enrolment, keys: $keys) === false
 				|| in_array($enrolment['lifecycle'] ?? '', self::OPEN_ENROLMENT_STATES, true) === false
 			) {
@@ -198,9 +218,9 @@ class ComplianceRollupService {
 			}
 
 			$due = $this->parseDate(value: $enrolment['dueDate'] ?? null);
-			if ($due !== null && $due < $now) {
+			if ($due !== null && $due < $snapshot->now) {
 				$figures['overdue']++;
-			} else if ($due !== null && $due <= $horizon) {
+			} else if ($due !== null && $due <= $snapshot->horizon) {
 				$figures['upcomingDeadlines']++;
 			}
 		}
@@ -218,8 +238,9 @@ class ComplianceRollupService {
 	 * @param DateTimeImmutable $now            Evaluation instant.
 	 *
 	 * @return bool
+	 * @spec openspec/changes/compliance-rule-coverage-table/specs/compliance-rule-coverage/spec.md#requirement-per-rule-coverage-table
 	 */
-	private function isCovered(array $keys, string $regulationSlug, DateTimeImmutable $now): bool {
+	public function isCovered(array $keys, string $regulationSlug, DateTimeImmutable $now): bool {
 		foreach ($keys as $key) {
 			if ($this->trainingService->isLearnerCovered(learnerId: $key, regulationSlug: $regulationSlug, now: $now) === true) {
 				return true;
@@ -235,8 +256,9 @@ class ComplianceRollupService {
 	 * @param array<string,mixed> $profile The learner.
 	 *
 	 * @return array<int,string>
+	 * @spec openspec/changes/compliance-rule-coverage-table/specs/compliance-rule-coverage/spec.md#requirement-per-rule-coverage-table
 	 */
-	private function learnerKeys(array $profile): array {
+	public function learnerKeys(array $profile): array {
 		$keys = [(string)($profile['id'] ?? ($profile['uuid'] ?? '')), (string)($profile['ncUserId'] ?? '')];
 
 		return array_values(array_filter($keys, static fn (string $key): bool => $key !== ''));
@@ -323,6 +345,7 @@ class ComplianceRollupService {
 			'learners' => 0,
 			'obligations' => 0,
 			'covered' => 0,
+			'excused' => 0,
 			'upcomingDeadlines' => 0,
 			'overdue' => 0,
 			'expiredCredentials' => 0,
@@ -370,26 +393,6 @@ class ComplianceRollupService {
 	 * @return array<int,array<string,mixed>>
 	 */
 	private function rows(string $schema, array $filters=[]): array {
-		$config = [
-			'filters' => array_merge(
-				$filters,
-				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => $schema,
-				]
-			),
-			'limit' => self::PAGE_LIMIT,
-		];
-
-		$out = [];
-		foreach ($this->objectService->findAll($config) as $row) {
-			if (is_array($row) === false) {
-				$row = $row->jsonSerialize();
-			}
-
-			$out[] = $row;
-		}
-
-		return $out;
+		return $this->schemaRows->serialised(schema: $schema, filters: $filters);
 	}//end rows()
 }//end class

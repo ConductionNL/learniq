@@ -35,7 +35,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle\Action;
 
-use OCA\Learniq\Service\LearningRecordImportService;
+use OCA\Learniq\Kernel\Contracts\LearningRecordImportServiceInterface;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 
 /**
@@ -48,32 +49,30 @@ class LearningRecordImportParseAction implements LifecycleActionInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param LearningRecordImportService $importService The bundle parser.
+	 * @param LearningRecordImportServiceInterface $importService The bundle parser.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly LearningRecordImportService $importService,
+		private readonly LearningRecordImportServiceInterface $importService,
 	) {
 	}//end __construct()
 
 	/**
 	 * Return the import with its parsed coverage report recorded.
 	 *
-	 * @param array<string,mixed> $objectData The import after the lifecycle moved to `parsed`.
-	 * @param array<string,mixed> $previousData The import before the transition.
-	 * @param array<string,mixed> $parameters The declared actionParameters (unused).
-	 * @param string $actionName The declared action name.
+	 * @param LifecycleActionContext $context The transition; its objectData is the import after the lifecycle moved to
+	 *                                        `parsed`.
 	 *
 	 * @return array<string,mixed> The import to save.
 	 *
 	 * @throws \RuntimeException When the bundle can not be read, decoded or recognised.
 	 *
-	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The interface fixes the signature.
-	 *
 	 * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
 	 */
-	public function execute(array $objectData, array $previousData, array $parameters, string $actionName): array {
+	public function execute(LifecycleActionContext $context): array {
+		$objectData = $context->objectData;
+
 		return $this->importService->parse(import: $objectData);
 	}//end execute()
 }//end class

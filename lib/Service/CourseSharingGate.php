@@ -27,12 +27,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-a-course-leaves-the-school-only-through-the-sharing-gate
+ * @spec openspec/specs/course-management/spec.md#requirement-a-course-leaves-the-school-only-through-the-sharing-gate
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
+
+use OCA\Learniq\Support\TextValue;
 
 /**
  * Returns the reasons a course may not leave the school, or none.
@@ -73,7 +75,7 @@ class CourseSharingGate {
 	 *
 	 * @return array<int, array{code: string, id: string, name: string}> One entry per reason; empty when the course may leave.
 	 *
-	 * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-a-course-leaves-the-school-only-through-the-sharing-gate
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-leaves-the-school-only-through-the-sharing-gate
 	 */
 	public function check(array $course, array $lessons, array $materials, bool $noPupilData, bool $rightsCleared): array {
 		$blockers = $this->checkCourse(course: $course);
@@ -112,7 +114,7 @@ class CourseSharingGate {
 	 *
 	 * @return string The licence code, or '' when neither sets one.
 	 *
-	 * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-a-course-leaves-the-school-only-through-the-sharing-gate
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-leaves-the-school-only-through-the-sharing-gate
 	 */
 	public function lessonLicense(array $lesson, array $course): string {
 		$own = $this->text(value: ($lesson['license'] ?? null));
@@ -132,7 +134,7 @@ class CourseSharingGate {
 	 *
 	 * @return bool True for CC0 and the CC 4.0 family.
 	 *
-	 * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-a-course-leaves-the-school-only-through-the-sharing-gate
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-leaves-the-school-only-through-the-sharing-gate
 	 */
 	public static function isOpen(string $license): bool {
 		$wanted = strtoupper(trim($license));
@@ -197,11 +199,6 @@ class CourseSharingGate {
 	 * @return string
 	 */
 	private function text(mixed $value): string {
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return trim($value);
-
+		return (new TextValue())->trimmedOrEmpty(value: $value);
 	}//end text()
 }//end class

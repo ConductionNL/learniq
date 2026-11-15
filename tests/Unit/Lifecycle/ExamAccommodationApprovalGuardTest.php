@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-exam-accommodations-are-recorded-as-approved-evidence-backed-entitlements
+ * @spec openspec/specs/timetabling/spec.md#requirement-exam-accommodations-are-recorded-as-approved-evidence-backed-entitlements
  */
 
 declare(strict_types=1);
@@ -93,7 +93,7 @@ class ExamAccommodationApprovalGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-learner-requests-an-accommodation-and-a-mentor-approves-it
+	 * @spec openspec/specs/timetabling/spec.md#scenario-a-learner-requests-an-accommodation-and-a-mentor-approves-it
 	 */
 	public function testMentorApprovalIsAllowed(): void {
 		self::assertTrue($this->makeGuard(['team-leads'])->check($this->accommodation(), 'approve', 'actor-1')->isAllowed());
@@ -125,7 +125,7 @@ class ExamAccommodationApprovalGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-learner-cannot-self-approve-their-own-accommodation
+	 * @spec openspec/specs/timetabling/spec.md#scenario-a-learner-cannot-self-approve-their-own-accommodation
 	 */
 	public function testLearnerCannotSelfApprove(): void {
 		$result = $this->makeGuard([])->check($this->accommodation(), 'approve', 'actor-1');

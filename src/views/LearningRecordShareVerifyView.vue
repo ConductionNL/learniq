@@ -16,23 +16,26 @@
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
 
-  @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
+  @spec openspec/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
 -->
 
 <template>
-	<div class="lrs-verify">
+	<div class="lrs-verify lq-board-page">
 		<p v-if="loading" class="lrs-verify__loading">
 			{{ t('learniq', 'Verifying…') }}
 		</p>
 
 		<template v-else>
-			<div
+			<CnPageHeader
+				:title="
+					valid
+						? t('learniq', 'Verified learning record')
+						: t('learniq', 'This share could not be verified')
+				" />
+			<CnDetailCard
 				v-if="valid"
 				class="lrs-verify__result lrs-verify__result--valid"
 				role="status">
-				<h2 class="lrs-verify__heading">
-					{{ t('learniq', 'Verified learning record') }}
-				</h2>
 				<p class="lrs-verify__hint">
 					{{
 						t(
@@ -51,26 +54,25 @@
 					<summary>{{ t('learniq', 'Full record content') }}</summary>
 					<pre>{{ prettyBundle }}</pre>
 				</details>
-			</div>
+			</CnDetailCard>
 
-			<div
+			<CnDetailCard
 				v-else
 				class="lrs-verify__result lrs-verify__result--denied"
 				role="alert">
-				<h2 class="lrs-verify__heading">
-					{{ t('learniq', 'This share could not be verified') }}
-				</h2>
 				<p>{{ deniedReasonLabel }}</p>
-			</div>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'LearningRecordShareVerifyView',
+	components: { CnDetailCard, CnPageHeader },
 
 	data() {
 		return {
@@ -86,7 +88,7 @@ export default {
 		 * The LearningRecordShare UUID from the route.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
+		 * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
 		 */
 		shareId() {
 			return this.$route?.params?.id ?? ''
@@ -96,7 +98,7 @@ export default {
 		 * Pretty-printed bundle JSON for the disclosure panel.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
+		 * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
 		 */
 		prettyBundle() {
 			return this.bundle ? JSON.stringify(this.bundle, null, 2) : ''
@@ -106,7 +108,7 @@ export default {
 		 * Human-readable label for the denial reason.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
+		 * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
 		 */
 		deniedReasonLabel() {
 			const labels = {
@@ -148,8 +150,8 @@ export default {
 		 * Call the public verification endpoint and render its result.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-valid-unexpired-share-resolves-to-the-shared-bundle
-		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-an-expired-share-is-denied-even-though-its-lifecycle-is-still-active
+		 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-valid-unexpired-share-resolves-to-the-shared-bundle
+		 * @spec openspec/specs/portable-learning-record/spec.md#scenario-an-expired-share-is-denied-even-though-its-lifecycle-is-still-active
 		 */
 		async verify() {
 			this.loading = true
@@ -197,28 +199,9 @@ export default {
 </script>
 
 <style scoped>
-.lrs-verify {
-	max-width: 720px;
-	margin: 0 auto;
-	padding: calc(var(--default-grid-baseline, 8px) * 3)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.lrs-verify__heading {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-	margin-bottom: var(--default-grid-baseline, 8px);
-}
-
 .lrs-verify__hint {
 	color: var(--color-text-maxcontrast);
 	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.lrs-verify__result {
-	padding: calc(var(--default-grid-baseline, 8px) * 2);
-	border-radius: var(--border-radius, 4px);
-	background: var(--color-background-hover);
 }
 
 .lrs-verify__result--valid {
@@ -244,9 +227,7 @@ export default {
 .lrs-verify__raw pre {
 	white-space: pre-wrap;
 	overflow-wrap: break-word;
-	max-height: 480px;
-	overflow: auto;
-	background: var(--color-background-dark, #f5f5f5);
+	background: var(--color-background-dark);
 	padding: var(--default-grid-baseline, 8px);
 	border-radius: var(--border-radius, 4px);
 }

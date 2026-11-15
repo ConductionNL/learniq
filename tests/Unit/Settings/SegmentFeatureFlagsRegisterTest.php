@@ -7,7 +7,7 @@
  * does not live in this repository. What this suite verifies is the
  * declared SHAPE, mirroring SchoolAndLocationRegisterTest. It deliberately
  * does NOT test any visibleIf/menu-gating behaviour on `segment`, because
- * this change does not add any (see openspec/changes/segment-feature-flags/
+ * this change does not add any (see openspec/changes/archive/2026-09-28-segment-feature-flags/
  * proposal.md Out of Scope and design.md Discovery: manifest.runtime has no
  * generic settings-to-runtime bridge, so declaring that gating now would
  * ship broken).
@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/segment-feature-flags/tasks.md#task-1-add-the-learniqsettings-schema
+ * @spec openspec/changes/archive/2026-09-28-segment-feature-flags/tasks.md#task-1-add-the-learniqsettings-schema
  */
 
 declare(strict_types=1);
@@ -85,7 +85,7 @@ class SegmentFeatureFlagsRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-learniqsettings-knows-six-organisation-kinds
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-learniqsettings-knows-six-organisation-kinds
 	 */
 	public function testEverySegmentHasATranslatedLabel(): void {
 		$segment = $this->config['components']['schemas']['LearniqSettings']['properties']['segment'];
@@ -112,7 +112,7 @@ class SegmentFeatureFlagsRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-generic-demo-data-does-not-change-the-segment
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-generic-demo-data-does-not-change-the-segment
 	 */
 	public function testGenericDemoRowsKeepTheCorporateDefault(): void {
 		$path = __DIR__ . '/../../../lib/Settings/learniq_mock_register.json';
@@ -155,7 +155,7 @@ class SegmentFeatureFlagsRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/settings-and-excuse-authorization/specs/nextcloud-app/spec.md#requirement-only-administration-managers-and-admins-change-the-organisations-segment
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-only-administration-managers-and-admins-change-the-organisations-segment
 	 */
 	public function testOnlyAdministrationManagersChangeTheSegment(): void {
 		$authorization = $this->config['components']['schemas']['LearniqSettings']['authorization'];

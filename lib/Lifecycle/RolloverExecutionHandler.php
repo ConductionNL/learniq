@@ -32,17 +32,19 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-year-rollover/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\Learniq\Exception\RolloverInterruptedException;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\RolloverExecutionServiceInterface;
+use OCA\Learniq\Kernel\Contracts\RolloverServiceInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Service\RolloverExecutionService;
-use OCA\Learniq\Service\RolloverService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
@@ -51,7 +53,7 @@ use Throwable;
 /**
  * Runs the rollover when a RolloverPlan transitions to `executing`.
  *
- * @spec openspec/changes/school-year-rollover/tasks.md
+ * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
  */
 class RolloverExecutionHandler implements IEventListener {
 	/**
@@ -68,15 +70,17 @@ class RolloverExecutionHandler implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object access service.
-	 * @param RolloverService $rolloverService Rollover preview logic (the dry-run gate).
-	 * @param RolloverExecutionService $executionService Rollover execution logic (the writes).
+	 * @param RolloverServiceInterface $rolloverService Rollover preview logic (the dry-run gate).
+	 * @param RolloverExecutionServiceInterface $executionService Rollover execution logic (the writes).
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly RolloverService $rolloverService,
-		private readonly RolloverExecutionService $executionService,
+		private readonly RolloverServiceInterface $rolloverService,
+		private readonly RolloverExecutionServiceInterface $executionService,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -87,15 +91,15 @@ class RolloverExecutionHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER
-			|| $event->getSchema() !== self::SCHEMA
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER
+			|| $this->schemas->eventSchema(event: $event) !== self::SCHEMA
 			|| $event->getTo() !== 'executing'
 		) {
 			return;
@@ -122,6 +126,10 @@ class RolloverExecutionHandler implements IEventListener {
 			$this->logger->info('[RolloverExecutionHandler] Rollover plan {p} completed.', ['p' => $planId]);
 		} catch (Throwable $e) {
 			// Record progress so far + fail; the plan is resumable via `retry`.
+			if ($e instanceof RolloverInterruptedException) {
+				$plan['perMappingProgress'] = $e->getProgress();
+			}
+
 			$this->logger->error('[RolloverExecutionHandler] Rollover plan {p} failed: {m}.', ['p' => $planId, 'm' => $e->getMessage()]);
 			$this->failPlan(plan: $plan, reason: $e->getMessage());
 		}

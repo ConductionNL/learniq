@@ -4,7 +4,7 @@
 // peer-review-allocation-trigger: when the peer review section shows, whether
 // it offers the allocate button, and how it reads the endpoint's answer.
 //
-// @spec openspec/changes/peer-review-allocation-trigger/specs/assignments/spec.md#requirement-a-teacher-allocates-peer-reviewers-from-the-assignment-page
+// @spec openspec/specs/assignments/spec.md#requirement-a-teacher-allocates-peer-reviewers-from-the-assignment-page
 
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
@@ -108,4 +108,18 @@ test('the endpoint answer reads as created, complete or empty', () => {
 		'empty',
 	)
 	assert.equal(allocationOutcome(undefined).kind, 'empty')
+})
+
+test('unreadable counts read as zero, and no work processed is empty even with reviews created', () => {
+	assert.deepEqual(allocationOutcome({ result: { createdCount: 'x', submissionsProcessed: '3' } }), {
+		kind: 'complete',
+		created: 0,
+		processed: 3,
+	})
+	assert.deepEqual(allocationOutcome({ result: { createdCount: 4, submissionsProcessed: null } }), {
+		kind: 'empty',
+		created: 4,
+		processed: 0,
+	})
+	assert.deepEqual(allocationOutcome({ result: null }), { kind: 'empty', created: 0, processed: 0 })
 })

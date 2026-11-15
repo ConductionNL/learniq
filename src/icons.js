@@ -48,6 +48,8 @@ import CalendarCheckOutline from 'vue-material-design-icons/CalendarCheckOutline
 import CalendarClockOutline from 'vue-material-design-icons/CalendarClockOutline.vue'
 import CalendarMultiselectOutline from 'vue-material-design-icons/CalendarMultiselectOutline.vue'
 import CalendarRangeOutline from 'vue-material-design-icons/CalendarRangeOutline.vue'
+import CalendarRemoveOutline from 'vue-material-design-icons/CalendarRemoveOutline.vue'
+import CalendarStar from 'vue-material-design-icons/CalendarStar.vue'
 import CalendarSyncOutline from 'vue-material-design-icons/CalendarSyncOutline.vue'
 import CartOutline from 'vue-material-design-icons/CartOutline.vue'
 import Cash from 'vue-material-design-icons/Cash.vue'
@@ -69,6 +71,7 @@ import ClipboardListOutline from 'vue-material-design-icons/ClipboardListOutline
 import ClipboardOutline from 'vue-material-design-icons/ClipboardOutline.vue'
 import ClipboardTextClockOutline from 'vue-material-design-icons/ClipboardTextClockOutline.vue'
 import ClipboardTextOutline from 'vue-material-design-icons/ClipboardTextOutline.vue'
+import ClockOutline from 'vue-material-design-icons/ClockOutline.vue'
 import CloseCircleOutline from 'vue-material-design-icons/CloseCircleOutline.vue'
 import CommentOutline from 'vue-material-design-icons/CommentOutline.vue'
 import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
@@ -83,6 +86,7 @@ import EmoticonOutline from 'vue-material-design-icons/EmoticonOutline.vue'
 import ExportVariant from 'vue-material-design-icons/ExportVariant.vue'
 import Eye from 'vue-material-design-icons/Eye.vue'
 import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
+import FileAccountOutline from 'vue-material-design-icons/FileAccountOutline.vue'
 import FileCertificateOutline from 'vue-material-design-icons/FileCertificateOutline.vue'
 import FileChartOutline from 'vue-material-design-icons/FileChartOutline.vue'
 import FileDocument from 'vue-material-design-icons/FileDocument.vue'
@@ -108,6 +112,7 @@ import HandshakeOutline from 'vue-material-design-icons/HandshakeOutline.vue'
 import Heart from 'vue-material-design-icons/Heart.vue'
 import History from 'vue-material-design-icons/History.vue'
 import Home from 'vue-material-design-icons/Home.vue'
+import HomeOutline from 'vue-material-design-icons/HomeOutline.vue'
 import Human from 'vue-material-design-icons/Human.vue'
 import HumanWheelchair from 'vue-material-design-icons/HumanWheelchair.vue'
 import InformationOutline from 'vue-material-design-icons/InformationOutline.vue'
@@ -122,6 +127,7 @@ import MedalOutline from 'vue-material-design-icons/MedalOutline.vue'
 import MedicalBag from 'vue-material-design-icons/MedicalBag.vue'
 import MessageAlertOutline from 'vue-material-design-icons/MessageAlertOutline.vue'
 import MessageTextOutline from 'vue-material-design-icons/MessageTextOutline.vue'
+import MonitorDashboard from 'vue-material-design-icons/MonitorDashboard.vue'
 import NotebookOutline from 'vue-material-design-icons/NotebookOutline.vue'
 import NoteTextOutline from 'vue-material-design-icons/NoteTextOutline.vue'
 import OfficeBuilding from 'vue-material-design-icons/OfficeBuilding.vue'
@@ -142,7 +148,9 @@ import SchoolOutline from 'vue-material-design-icons/SchoolOutline.vue'
 import ShareVariant from 'vue-material-design-icons/ShareVariant.vue'
 import ShareVariantOutline from 'vue-material-design-icons/ShareVariantOutline.vue'
 import ShieldAccountOutline from 'vue-material-design-icons/ShieldAccountOutline.vue'
+import ShieldAlertOutline from 'vue-material-design-icons/ShieldAlertOutline.vue'
 import ShieldCheckOutline from 'vue-material-design-icons/ShieldCheckOutline.vue'
+import ShieldOffOutline from 'vue-material-design-icons/ShieldOffOutline.vue'
 import SignDirection from 'vue-material-design-icons/SignDirection.vue'
 import Sitemap from 'vue-material-design-icons/Sitemap.vue'
 import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
@@ -203,6 +211,8 @@ export default {
 	CalendarClockOutline,
 	CalendarMultiselectOutline,
 	CalendarRangeOutline,
+	CalendarRemoveOutline,
+	CalendarStar,
 	CalendarSyncOutline,
 	CartOutline,
 	Cash,
@@ -224,6 +234,7 @@ export default {
 	ClipboardOutline,
 	ClipboardTextClockOutline,
 	ClipboardTextOutline,
+	ClockOutline,
 	CloseCircleOutline,
 	CommentOutline,
 	ContentCopy,
@@ -238,6 +249,7 @@ export default {
 	ExportVariant,
 	Eye,
 	EyeOutline,
+	FileAccountOutline,
 	FileCertificateOutline,
 	FileChartOutline,
 	FileDocument,
@@ -263,6 +275,7 @@ export default {
 	Heart,
 	History,
 	Home,
+	HomeOutline,
 	Human,
 	HumanWheelchair,
 	InformationOutline,
@@ -277,6 +290,7 @@ export default {
 	MedicalBag,
 	MessageAlertOutline,
 	MessageTextOutline,
+	MonitorDashboard,
 	NoteTextOutline,
 	NotebookOutline,
 	OfficeBuilding,
@@ -297,7 +311,9 @@ export default {
 	ShareVariant,
 	ShareVariantOutline,
 	ShieldAccountOutline,
+	ShieldAlertOutline,
 	ShieldCheckOutline,
+	ShieldOffOutline,
 	SignDirection,
 	Sitemap,
 	SitemapOutline,
