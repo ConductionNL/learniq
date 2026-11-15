@@ -855,7 +855,8 @@ class VocationalCollegeExampleSetTest extends TestCase {
 		$milan = $people['Milan de Groot'];
 		$aylin = $people['Aylin Demir'];
 		self::assertSame('mbo-student-251', $milan['ncUserId']);
-		self::assertSame(['mbo-student-251', 'mbo-student-252'], $cohort['learnerIds']);
+		// Sem Visser (mbo-student-253) joins the class for attendance-warns-before-the-threshold.
+		self::assertSame(['mbo-student-251', 'mbo-student-252', 'mbo-student-253'], $cohort['learnerIds']);
 		$enrolment = self::by(self::of('enrolment'), 'learnerId')[$milan['ncUserId']];
 		self::assertSame(2, $enrolment['leerjaar']);
 		self::assertSame($cohort['uuid'], $enrolment['cohortId']);
