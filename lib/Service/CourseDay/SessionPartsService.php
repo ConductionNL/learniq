@@ -26,7 +26,6 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\CourseDay;
 
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\OCS\OCSForbiddenException;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -38,13 +37,7 @@ use OCP\IUser;
  * @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
  */
 class SessionPartsService {
-
-	/**
-	 * The register.
-	 *
-	 * @var string
-	 */
-	private const REGISTER = 'learniq';
+	use CourseDayRows;
 
 	/**
 	 * The planner's action.
@@ -114,19 +107,7 @@ class SessionPartsService {
 	 * @return list<array<string, mixed>>
 	 */
 	private function records(string $sessionId): array {
-		$records = [];
-		foreach ($this->objectService->findAll(
-			config: ['filters' => ['register' => self::REGISTER, 'schema' => 'attendance-record', 'sessionId' => $sessionId], 'limit' => 500],
-			_rbac: false,
-			_multitenancy: false
-		) as $object) {
-			$row = (new SerialisedRow())->asArray(object: $object);
-			if (($row['sessionId'] ?? null) === $sessionId) {
-				$records[] = $row;
-			}
-		}
-
-		return $records;
+		return $this->many(schema: 'attendance-record', filters: ['sessionId' => $sessionId]);
 	}//end records()
 
 	/**
@@ -151,32 +132,4 @@ class SessionPartsService {
 
 		return true;
 	}//end mayRead()
-
-	/**
-	 * The row with this uuid, or null.
-	 *
-	 * @param string $schema The schema slug.
-	 * @param string $id     The uuid.
-	 *
-	 * @return array<string, mixed>|null
-	 */
-	private function one(string $schema, string $id): ?array {
-		if ($id === '') {
-			return null;
-		}
-
-		$objects = $this->objectService->findAll(
-			config: ['filters' => ['register' => self::REGISTER, 'schema' => $schema], 'ids' => [$id], 'limit' => 1],
-			_rbac: false,
-			_multitenancy: false
-		);
-		foreach ($objects as $object) {
-			$row = (new SerialisedRow())->asArray(object: $object);
-			if (($row['id'] ?? ($row['uuid'] ?? null)) === $id) {
-				return $row;
-			}
-		}
-
-		return null;
-	}//end one()
 }//end class

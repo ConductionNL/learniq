@@ -25,7 +25,6 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\CourseDay;
 
-use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 
@@ -35,6 +34,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
  * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
  */
 class CourseDayStatusService {
+	use CourseDayRows;
 
 	/**
 	 * The register.
@@ -816,76 +816,4 @@ class CourseDayStatusService {
 
 		return null;
 	}//end intOrNull()
-
-	/**
-	 * The row with this uuid, or null.
-	 *
-	 * @param string $schema The schema slug.
-	 * @param string $id     The uuid.
-	 *
-	 * @return array<string, mixed>|null
-	 */
-	private function one(string $schema, string $id): ?array {
-		if ($id === '') {
-			return null;
-		}
-
-		$objects = $this->objectService->findAll(
-			config: ['filters' => ['register' => self::REGISTER, 'schema' => $schema], 'ids' => [$id], 'limit' => 1],
-			_rbac: false,
-			_multitenancy: false
-		);
-		foreach ($objects as $object) {
-			$row = (new SerialisedRow())->asArray(object: $object);
-			if (($row['id'] ?? ($row['uuid'] ?? null)) === $id) {
-				return $row;
-			}
-		}
-
-		return null;
-	}//end one()
-
-	/**
-	 * The rows of a schema whose fields equal the filters.
-	 *
-	 * @param string                $schema  The schema slug.
-	 * @param array<string, string> $filters Field equals value.
-	 *
-	 * @return list<array<string, mixed>>
-	 */
-	private function many(string $schema, array $filters): array {
-		$objects = $this->objectService->findAll(
-			config: ['filters' => array_merge(['register' => self::REGISTER, 'schema' => $schema], $filters), 'limit' => 500],
-			_rbac: false,
-			_multitenancy: false
-		);
-		$rows = [];
-		foreach ($objects as $object) {
-			$row = (new SerialisedRow())->asArray(object: $object);
-			// Never trust the store to have applied a filter on a field.
-			if (self::matches(row: $row, filters: $filters) === true) {
-				$rows[] = $row;
-			}
-		}
-
-		return $rows;
-	}//end many()
-
-	/**
-	 * Whether a row carries every filtered value.
-	 *
-	 * @param array<string, mixed> $row     The row.
-	 * @param array<string, mixed> $filters Field => value.
-	 *
-	 * @return bool
-	 */
-	private static function matches(array $row, array $filters): bool {
-		foreach ($filters as $field => $value) {
-			if (($row[$field] ?? null) !== $value) {
-				return false;
-			}
-		}
-
-		return true;
-	}//end matches()
 }//end class
