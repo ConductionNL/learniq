@@ -46,9 +46,9 @@ Add your school's vertrouwenspersoon to the Nextcloud group *confidential-counse
 
 Nextcloud admins can read every record, including these notes. Keep the *admin* group to IT staff who are not school leaders.
 
-## Connect the course store
+## Connect the course marketplace
 
-The **Store** page lists courses other schools share. It needs a course registry: another learniq, for example your school board's. Ask its administrator for its address and for a token of an account in the *instructors* group there.
+The **Marketplace** page lists courses other schools share. It needs a course registry: another learniq, for example your school board's. Ask its administrator for its address and for a token of an account in the *instructors* group there.
 
 Then open **Administration settings**, **Learniq**, and fill in the **Course store** section:
 
@@ -63,7 +63,7 @@ occ config:app:set learniq registry_url --value=https://store.example.nl
 occ config:app:set learniq registry_token --value=YOUR_TOKEN_HERE --sensitive
 ```
 
-Until the address is set, the Store page says no store is set up, and publishing tells the teacher to ask you.
+Until the address is set, the Marketplace page says no store is set up, and publishing tells the teacher to ask you.
 
 ### Who installs and who publishes
 
@@ -78,7 +78,7 @@ An update to this version sets these defaults once. It leaves a row alone when y
 
 Publishing goes through OpenRegister's store connection, which keeps the token on the server. It needs an OpenRegister that can publish to a store; on an older one, publishing says so and sends nothing. A user outside the publish groups gets a clear refusal, and nothing leaves the school.
 
-The **Install** and **Publish** buttons on the Store page follow these rows once the app runs a nextcloud-vue release with the store page change (nextcloud-vue #1268). Until then the Store page shows **Install** to Nextcloud admins only, while teachers can already install through the rows above.
+The **Install** and **Publish** buttons on the Marketplace page follow these rows once the app runs a nextcloud-vue release with the marketplace page change (nextcloud-vue #1268). Until then the Marketplace page shows **Install** to Nextcloud admins only, while teachers can already install through the rows above.
 
 Publishing goes through OpenRegister's store connection, which also keeps the token on the server. It needs an OpenRegister that can publish to a store; on an older one, publishing says so and sends nothing. Who may publish is the list of groups for **course-package.share** under **Action authorization**. A user outside those groups gets a clear refusal, and nothing leaves the school.
 

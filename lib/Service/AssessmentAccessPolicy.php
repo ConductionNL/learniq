@@ -35,6 +35,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Support\TextValue;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Exception;
@@ -191,11 +192,7 @@ class AssessmentAccessPolicy {
 	 * @return string
 	 */
 	private function normaliseCode(mixed $value): string {
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return trim($value);
+		return (new TextValue())->trimmedOrEmpty(value: $value);
 	}//end normaliseCode()
 
 	/**

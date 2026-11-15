@@ -64,7 +64,7 @@ test.describe('peer-and-self-assessment — reviewer/learner/author flows (live 
 		await page.waitForSelector('.peer-review-marking-view', { timeout: 15_000 })
 
 		// Every rubric criterion renders with selectable levels.
-		const criteria = page.locator('.peer-review-marking-view__criterion')
+		const criteria = page.locator('.peer-review-marking-view__rubric .cn-choice-matrix__row')
 		await expect(criteria.first()).toBeVisible()
 
 		// Score every visible criterion by picking its first level.
@@ -88,7 +88,7 @@ test.describe('peer-and-self-assessment — reviewer/learner/author flows (live 
 		)
 		await page.waitForSelector('.self-assessment-view', { timeout: 15_000 })
 
-		const criteria = page.locator('.self-assessment-view__criterion')
+		const criteria = page.locator('.self-assessment-view__rubric .cn-choice-matrix__row')
 		await expect(criteria.first()).toBeVisible()
 
 		const count = await criteria.count()

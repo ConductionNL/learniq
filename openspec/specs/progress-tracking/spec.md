@@ -1,7 +1,7 @@
 # progress-tracking Specification
 
 ## Purpose
-TBD - created by archiving change learning-progress-and-analytics. Update Purpose after archive.
+Record per enrolment which lessons a learner has completed, from xAPI statements or from the learner's own report.
 
 ## Requirements
 

@@ -1342,5 +1342,13 @@
     "reason": "Reopened by decision 100 (8 Oct): board LqProctoring draws the review queue, and native test mode already fills it without an external provider.",
     "change": "proctoring-flag-review-page",
     "decidedOn": "2026-10-08"
+  },
+  {
+    "row": "gov-show-users-the-ai-disclosure",
+    "matrix": "learniq",
+    "decision": "build",
+    "reason": "Decision 399 (12 Nov 2026): every user can read the disclosure and admins edit it; the spec gated it to admins, so it is specified anew in ai-disclosure-for-every-user.",
+    "change": "ai-disclosure-for-every-user",
+    "decidedOn": "2026-11-12"
   }
 ]

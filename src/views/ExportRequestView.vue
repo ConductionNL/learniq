@@ -19,122 +19,125 @@
  @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
 -->
 <template>
-	<div class="export-request">
-		<h2>{{ heading }}</h2>
-		<form class="export-request__form" @submit.prevent="submit">
-			<template v-if="kind === 'audit-pack'">
-				<NcSelect
-					v-model="regulationSlug"
-					:options="regulationOptions"
-					:reduce="(option) => option.id"
-					:inputLabel="t('learniq', 'Regulation')" />
-				<label for="er-from">{{ t('learniq', 'From') }}</label>
-				<input id="er-from" v-model="dateFrom" type="date" required />
-				<label for="er-to">{{ t('learniq', 'Until') }}</label>
-				<input id="er-to" v-model="dateTo" type="date" required />
-			</template>
-
-			<template v-else-if="kind === 'course-package'">
-				<NcSelect
-					v-model="courseId"
-					:options="courseOptions"
-					:reduce="(option) => option.id"
-					:inputLabel="t('learniq', 'Course')" />
-				<NcSelect
-					v-if="!share"
-					v-model="format"
-					:options="packageFormats"
-					:reduce="(option) => option.id"
-					:clearable="false"
-					:inputLabel="t('learniq', 'Format')" />
-				<NcCheckboxRadioSwitch v-model="share" type="switch">
-					{{ t('learniq', 'Share outside the school') }}
-				</NcCheckboxRadioSwitch>
-				<template v-if="share">
-					<NcNoteCard type="info">
-						{{
-							t(
-								'learniq',
-								"A shared package leaves out your school's own links, file paths and access codes. Your confirmation is recorded with your name.",
-							)
-						}}
-					</NcNoteCard>
-					<NcCheckboxRadioSwitch v-model="noPupilData">
-						{{
-							t(
-								'learniq',
-								'This package holds no pupil names, photos, work or other personal data.',
-							)
-						}}
-					</NcCheckboxRadioSwitch>
-					<NcCheckboxRadioSwitch v-model="rightsCleared">
-						{{
-							t(
-								'learniq',
-								"The school may share everything in it. Nothing comes from a publisher's method without permission.",
-							)
-						}}
-					</NcCheckboxRadioSwitch>
+	<div class="export-request lq-board-page">
+		<CnPageHeader :title="heading" />
+		<CnDetailCard class="export-request__card">
+			<form class="export-request__form" @submit.prevent="submit">
+				<template v-if="kind === 'audit-pack'">
+					<NcSelect
+						v-model="regulationSlug"
+						:options="regulationOptions"
+						:reduce="(option) => option.id"
+						:inputLabel="t('learniq', 'Regulation')" />
+					<label for="er-from">{{ t('learniq', 'From') }}</label>
+					<input id="er-from" v-model="dateFrom" type="date" required />
+					<label for="er-to">{{ t('learniq', 'Until') }}</label>
+					<input id="er-to" v-model="dateTo" type="date" required />
 				</template>
-			</template>
 
-			<template v-else>
-				<NcSelect
-					v-model="target"
-					:options="targetOptions"
-					:reduce="(option) => option.id"
-					:clearable="false"
-					:inputLabel="t('learniq', 'Send to')" />
-				<label for="er-learner">{{
-					t('learniq', 'Learner user id (optional)')
-				}}</label>
-				<input id="er-learner" v-model="learnerId" type="text" />
-			</template>
+				<template v-else-if="kind === 'course-package'">
+					<NcSelect
+						v-model="courseId"
+						:options="courseOptions"
+						:reduce="(option) => option.id"
+						:inputLabel="t('learniq', 'Course')" />
+					<NcSelect
+						v-if="!share"
+						v-model="format"
+						:options="packageFormats"
+						:reduce="(option) => option.id"
+						:clearable="false"
+						:inputLabel="t('learniq', 'Format')" />
+					<NcCheckboxRadioSwitch v-model="share" type="switch">
+						{{ t('learniq', 'Share outside the school') }}
+					</NcCheckboxRadioSwitch>
+					<template v-if="share">
+						<NcNoteCard type="info">
+							{{
+								t(
+									'learniq',
+									"A shared package leaves out your school's own links, file paths and access codes. Your confirmation is recorded with your name.",
+								)
+							}}
+						</NcNoteCard>
+						<NcCheckboxRadioSwitch v-model="noPupilData">
+							{{
+								t(
+									'learniq',
+									'This package holds no pupil names, photos, work or other personal data.',
+								)
+							}}
+						</NcCheckboxRadioSwitch>
+						<NcCheckboxRadioSwitch v-model="rightsCleared">
+							{{
+								t(
+									'learniq',
+									"The school may share everything in it. Nothing comes from a publisher's method without permission.",
+								)
+							}}
+						</NcCheckboxRadioSwitch>
+					</template>
+				</template>
 
-			<NcNoteCard v-if="error" type="error">
-				{{ error }}
-			</NcNoteCard>
-			<NcNoteCard v-if="blockers.length > 0" type="warning">
-				<p>
-					{{ t('learniq', 'This course may not leave the school yet:') }}
+				<template v-else>
+					<NcSelect
+						v-model="target"
+						:options="targetOptions"
+						:reduce="(option) => option.id"
+						:clearable="false"
+						:inputLabel="t('learniq', 'Send to')" />
+					<label for="er-learner">{{
+						t('learniq', 'Learner user id (optional)')
+					}}</label>
+					<input id="er-learner" v-model="learnerId" type="text" />
+				</template>
+
+				<NcNoteCard v-if="error" type="error">
+					{{ error }}
+				</NcNoteCard>
+				<NcNoteCard v-if="blockers.length > 0" type="warning">
+					<p>
+						{{ t('learniq', 'This course may not leave the school yet:') }}
+					</p>
+					<ul class="export-request__blockers">
+						<li v-for="(reason, index) in blockerTexts" :key="index">
+							{{ reason }}
+						</li>
+					</ul>
+				</NcNoteCard>
+				<NcNoteCard v-if="done" type="success">
+					{{ done }}
+				</NcNoteCard>
+				<p v-if="jobId">
+					<router-link
+						:to="{ name: 'DataExchangeJobDetail', params: { id: jobId } }">
+						{{ t('learniq', 'Open the export job') }}
+					</router-link>
 				</p>
-				<ul class="export-request__blockers">
-					<li v-for="(reason, index) in blockerTexts" :key="index">
-						{{ reason }}
-					</li>
-				</ul>
-			</NcNoteCard>
-			<NcNoteCard v-if="done" type="success">
-				{{ done }}
-			</NcNoteCard>
-			<p v-if="jobId">
-				<router-link
-					:to="{ name: 'DataExchangeJobDetail', params: { id: jobId } }">
-					{{ t('learniq', 'Open the export job') }}
-				</router-link>
-			</p>
 
-			<div class="export-request__actions">
-				<NcButton type="submit" variant="primary" :disabled="busy || !ready">
-					{{
-						kind === 'data-exchange'
-							? t('learniq', 'Request the export')
-							: t('learniq', 'Download')
-					}}
-				</NcButton>
-				<NcButton
-					v-if="kind === 'course-package' && share && canPublish"
-					variant="secondary"
-					:disabled="busy || !ready"
-					@click="publish">
-					{{ t('learniq', 'Publish to the course store') }}
-				</NcButton>
-			</div>
-		</form>
+				<div class="export-request__actions">
+					<NcButton type="submit" variant="primary" :disabled="busy || !ready">
+						{{
+							kind === 'data-exchange'
+								? t('learniq', 'Request the export')
+								: t('learniq', 'Download')
+						}}
+					</NcButton>
+					<NcButton
+						v-if="kind === 'course-package' && share && canPublish"
+						variant="secondary"
+						:disabled="busy || !ready"
+						@click="publish">
+						{{ t('learniq', 'Publish to the course marketplace') }}
+					</NcButton>
+				</div>
+			</form>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
@@ -155,12 +158,13 @@ import {
 	objectId,
 	objectsUrl,
 } from '../utils/customPages.js'
+import { blockerText, publishText } from '../utils/exportOutcomeTexts.js'
 import { normaliseStoreAccess } from '../utils/storeAccess.js'
 
 export default {
 	name: 'ExportRequestView',
 
-	components: { NcButton, NcCheckboxRadioSwitch, NcNoteCard, NcSelect },
+	components: { CnDetailCard, CnPageHeader, NcButton, NcCheckboxRadioSwitch, NcNoteCard, NcSelect },
 
 	props: {
 		/** 'audit-pack', 'course-package' or 'data-exchange' (page config). */
@@ -253,7 +257,7 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#requirement-the-export-page-offers-sharing-with-the-confirmations
 		 */
 		blockerTexts() {
-			return this.blockers.map((blocker) => this.blockerText(blocker))
+			return this.blockers.map((blocker) => blockerText(blocker))
 		},
 
 		/**
@@ -261,14 +265,12 @@ export default {
 		 * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
 		 */
 		ready() {
-			if (this.kind === 'audit-pack')
-				return Boolean(this.regulationSlug && this.dateFrom && this.dateTo)
-			if (this.kind === 'course-package' && this.share)
-				return Boolean(
-					this.courseId && this.noPupilData && this.rightsCleared,
-				)
-			if (this.kind === 'course-package')
-				return Boolean(this.courseId && this.format)
+			if (this.kind === 'audit-pack') {
+				return this.auditPackReady()
+			}
+			if (this.kind === 'course-package') {
+				return this.coursePackageReady()
+			}
 			return Boolean(this.target)
 		},
 	},
@@ -281,28 +283,9 @@ export default {
 	async mounted() {
 		try {
 			if (this.kind === 'audit-pack') {
-				const regs = listRows(
-					(
-						await axios.get(generateUrl(objectsUrl('regulation')), {
-							params: { _limit: 500 },
-						})
-					).data,
-				)
-				this.regulationOptions = regs
-					.filter((r) => r.slug)
-					.map((r) => ({ id: r.slug, label: r.name || r.slug }))
+				this.regulationOptions = await this.loadRegulationOptions()
 			} else {
-				const courses = listRows(
-					(
-						await axios.get(generateUrl(objectsUrl('course')), {
-							params: { _limit: 500 },
-						})
-					).data,
-				)
-				this.courseOptions = courses.map((c) => ({
-					id: objectId(c),
-					label: c.name || c.code || objectId(c),
-				}))
+				this.courseOptions = await this.loadCourseOptions()
 			}
 		} catch {
 			this.error = this.t('learniq', 'The choices could not be loaded.')
@@ -310,6 +293,67 @@ export default {
 	},
 
 	methods: {
+		/**
+		 * @return {boolean} Whether the audit pack has its regulation and period.
+		 */
+		auditPackReady() {
+			return Boolean(this.regulationSlug && this.dateFrom && this.dateTo)
+		},
+
+		/**
+		 * @return {boolean} Whether a course package can be made: a course and
+		 *     both confirmations to share it, else a course and a format.
+		 */
+		coursePackageReady() {
+			if (this.share) {
+				return Boolean(
+					this.courseId && this.noPupilData && this.rightsCleared,
+				)
+			}
+			return Boolean(this.courseId && this.format)
+		},
+
+		/**
+		 * Up to 500 objects of one schema, as rows.
+		 *
+		 * @param {string} schema The schema slug.
+		 * @return {Promise<Array<object>>} The rows.
+		 */
+		async fetchRows(schema) {
+			return listRows(
+				(
+					await axios.get(generateUrl(objectsUrl(schema)), {
+						params: { _limit: 500 },
+					})
+				).data,
+			)
+		},
+
+		/**
+		 * The regulations an audit pack can cover, by slug.
+		 *
+		 * @return {Promise<Array<{id: string, label: string}>>} The options.
+		 */
+		async loadRegulationOptions() {
+			const regs = await this.fetchRows('regulation')
+			return regs
+				.filter((r) => r.slug)
+				.map((r) => ({ id: r.slug, label: r.name || r.slug }))
+		},
+
+		/**
+		 * The courses a package or share can be made of.
+		 *
+		 * @return {Promise<Array<{id: string, label: string}>>} The options.
+		 */
+		async loadCourseOptions() {
+			const courses = await this.fetchRows('course')
+			return courses.map((c) => ({
+				id: objectId(c),
+				label: c.name || c.code || objectId(c),
+			}))
+		},
+
 		/**
 		 * Download or request, depending on the kind.
 		 *
@@ -323,64 +367,142 @@ export default {
 			this.jobId = ''
 			this.blockers = []
 			try {
-				if (this.kind === 'audit-pack') {
-					const response = await axios.post(
-						generateUrl(
-							auditPackUrl(
-								this.regulationSlug,
-								this.dateFrom,
-								this.dateTo,
-							),
-						),
-						{},
-						{ responseType: 'blob' },
-					)
-					this.download(response, 'audit-pack.zip')
-				} else if (this.kind === 'course-package' && this.share) {
-					const response = await axios.post(
-						generateUrl(coursePackageShareUrl()),
-						{
-							courseId: this.courseId,
-							noPupilData: this.noPupilData,
-							rightsCleared: this.rightsCleared,
-						},
-						{ responseType: 'blob' },
-					)
-					this.download(response, 'course-share.json')
-				} else if (this.kind === 'course-package') {
-					const response = await axios.get(
-						generateUrl(coursePackageUrl(this.courseId, this.format)),
-						{
-							responseType: 'blob',
-						},
-					)
-					this.download(response, 'course-package.zip')
-				} else {
-					const response = await axios.post(
-						generateUrl(exchangeRequestUrl()),
-						exchangeRequestBody({
-							target: this.target,
-							learnerId: this.learnerId,
-						}),
-					)
-					this.jobId = response.data?.jobId ?? ''
-					this.done = this.t(
-						'learniq',
-						"Integriq has the export. It runs once learniq's checks allow it.",
-					)
-				}
+				await this.runExport()
 			} catch (e) {
-				const body = await this.errorBody(e)
-				if (Array.isArray(body.blockers) && body.blockers.length > 0) {
-					this.blockers = body.blockers
-				} else {
-					this.error =
-						(body.error ?? '')
-						|| this.t('learniq', 'The export could not be made.')
-				}
+				this.showExportFailure(await this.errorBody(e))
 			} finally {
 				this.busy = false
 			}
+		},
+
+		/**
+		 * Run the export this page's kind makes.
+		 *
+		 * @return {Promise<void>}
+		 */
+		runExport() {
+			if (this.kind === 'audit-pack') {
+				return this.downloadAuditPack()
+			}
+			if (this.kind === 'course-package' && this.share) {
+				return this.downloadCourseShare()
+			}
+			if (this.kind === 'course-package') {
+				return this.downloadCoursePackage()
+			}
+			return this.requestExchange()
+		},
+
+		/**
+		 * Download the audit pack for the chosen regulation and period.
+		 *
+		 * @return {Promise<void>}
+		 */
+		async downloadAuditPack() {
+			const response = await axios.post(
+				generateUrl(
+					auditPackUrl(
+						this.regulationSlug,
+						this.dateFrom,
+						this.dateTo,
+					),
+				),
+				{},
+				{ responseType: 'blob' },
+			)
+			this.download(response, 'audit-pack.zip')
+		},
+
+		/**
+		 * Download the course as a share package, behind the sharing gate.
+		 *
+		 * @return {Promise<void>}
+		 */
+		async downloadCourseShare() {
+			const response = await axios.post(
+				generateUrl(coursePackageShareUrl()),
+				this.shareConfirmations(),
+				{ responseType: 'blob' },
+			)
+			this.download(response, 'course-share.json')
+		},
+
+		/**
+		 * Download the course package in the chosen format.
+		 *
+		 * @return {Promise<void>}
+		 */
+		async downloadCoursePackage() {
+			const response = await axios.get(
+				generateUrl(coursePackageUrl(this.courseId, this.format)),
+				{
+					responseType: 'blob',
+				},
+			)
+			this.download(response, 'course-package.zip')
+		},
+
+		/**
+		 * Hand a data export to the chosen connection.
+		 *
+		 * @return {Promise<void>}
+		 */
+		async requestExchange() {
+			const response = await axios.post(
+				generateUrl(exchangeRequestUrl()),
+				exchangeRequestBody({
+					target: this.target,
+					learnerId: this.learnerId,
+				}),
+			)
+			this.jobId = response.data?.jobId ?? ''
+			this.done = this.t(
+				'learniq',
+				"Integriq has the export. It runs once learniq's checks allow it.",
+			)
+		},
+
+		/**
+		 * The course and the two sharing confirmations, as the share and
+		 * publish endpoints take them.
+		 *
+		 * @return {{courseId: string, noPupilData: boolean, rightsCleared: boolean}} The body.
+		 */
+		shareConfirmations() {
+			return {
+				courseId: this.courseId,
+				noPupilData: this.noPupilData,
+				rightsCleared: this.rightsCleared,
+			}
+		},
+
+		/**
+		 * Show a failed export: the sharing gate's reasons, else the server's
+		 * error or a general sentence.
+		 *
+		 * @param {object} body The error body.
+		 * @return {void}
+		 */
+		showExportFailure(body) {
+			if (!this.takeBlockers(body)) {
+				this.error =
+					(body.error ?? '')
+					|| this.t('learniq', 'The export could not be made.')
+			}
+		},
+
+		/**
+		 * Show the sharing gate's reasons when the error body carries any.
+		 *
+		 * @param {object} body The error body.
+		 * @return {boolean} Whether there were reasons to show.
+		 */
+		takeBlockers(body) {
+			if (Array.isArray(body.blockers) && body.blockers.length > 0) {
+				this.blockers = body.blockers
+				return true
+			}
+			return false
 		},
 
 		/**
@@ -395,75 +517,51 @@ export default {
 			this.done = ''
 			this.blockers = []
 			try {
-				const response = await axios.post(
-					generateUrl(coursePackagePublishUrl()),
-					{
-						courseId: this.courseId,
-						noPupilData: this.noPupilData,
-						rightsCleared: this.rightsCleared,
-					},
-				)
-				if (response.data?.outcome === 'ok') {
-					this.done = this.t('learniq', 'Published to the course store.')
-				} else {
-					this.error = this.publishText(response.data?.outcome)
-				}
+				const response = await this.sendPublish()
+				this.showPublishOutcome(response.data?.outcome)
 			} catch (e) {
-				const body = e?.response?.data ?? {}
-				if (Array.isArray(body.blockers) && body.blockers.length > 0) {
-					this.blockers = body.blockers
-				} else {
-					this.error = this.publishText(body.outcome)
-				}
+				this.showPublishFailure(e?.response?.data ?? {})
 			} finally {
 				this.busy = false
 			}
 		},
 
 		/**
-		 * A publish outcome other than ok, as a sentence.
+		 * Send the course and its confirmations to the publish endpoint.
+		 *
+		 * @return {Promise<object>} The axios response.
+		 */
+		sendPublish() {
+			return axios.post(
+				generateUrl(coursePackagePublishUrl()),
+				this.shareConfirmations(),
+			)
+		},
+
+		/**
+		 * Show what a publish answered.
 		 *
 		 * @param {string} outcome The server's outcome.
-		 * @return {string} The sentence.
-		 * @spec openspec/specs/course-management/spec.md#requirement-publishing-sends-a-gated-package-to-the-registry
+		 * @return {void}
 		 * @spec openspec/specs/course-management/spec.md#requirement-the-plane-decides-who-may-publish-before-a-package-is-built
 		 */
-		publishText(outcome) {
-			switch (outcome) {
-				case 'not_configured':
-					return this.t(
-						'learniq',
-						'No course store is set up yet. Ask your administrator.',
-					)
-				case 'too_large':
-					return this.t(
-						'learniq',
-						'This course is too large for the store.',
-					)
-				case 'store_unreachable':
-				case 'store_rejected':
-				case 'store_invalid_response':
-					return this.t(
-						'learniq',
-						'The course store could not take the course. Try again later.',
-					)
-				case 'rate_limited':
-					return this.t(
-						'learniq',
-						'The course store is busy. Try again in a few minutes.',
-					)
-				case 'forbidden':
-					return this.t(
-						'learniq',
-						'You may not publish courses to the store. Your administrator decides who may.',
-					)
-				case 'publish_not_supported':
-					return this.t(
-						'learniq',
-						'This server cannot publish to a course store yet. Ask your administrator to update OpenRegister.',
-					)
-				default:
-					return this.t('learniq', 'The course could not be published.')
+		showPublishOutcome(outcome) {
+			if (outcome === 'ok') {
+				this.done = this.t('learniq', 'Published to the course marketplace.')
+			} else {
+				this.error = publishText(outcome)
+			}
+		},
+
+		/**
+		 * Show a failed publish: the sharing gate's reasons, else the outcome.
+		 *
+		 * @param {object} body The error body.
+		 * @return {void}
+		 */
+		showPublishFailure(body) {
+			if (!this.takeBlockers(body)) {
+				this.error = publishText(body.outcome)
 			}
 		},
 
@@ -505,62 +603,12 @@ export default {
 			}
 			return data && typeof data === 'object' ? data : {}
 		},
-
-		/**
-		 * One sharing-gate reason as a sentence in the user's language.
-		 *
-		 * @param {{code: string, name: string}} blocker The reason.
-		 * @return {string} The sentence.
-		 * @spec openspec/specs/course-management/spec.md#requirement-the-export-page-offers-sharing-with-the-confirmations
-		 */
-		blockerText(blocker) {
-			const name = blocker?.name ?? ''
-			switch (blocker?.code) {
-				case 'licence-missing':
-					return this.t('learniq', 'Set a licence on the course first.')
-				case 'licence-not-open':
-					return this.t(
-						'learniq',
-						'The course licence does not allow sharing. Choose an open licence.',
-					)
-				case 'author-missing':
-					return this.t(
-						'learniq',
-						'Name the author on the course, so others can credit them.',
-					)
-				case 'lesson-licence-not-open':
-					return this.t(
-						'learniq',
-						'Lesson {name} has a licence that does not allow sharing.',
-						{ name },
-					)
-				case 'material-licence-not-open':
-					return this.t(
-						'learniq',
-						'Material {name} has a licence that does not allow sharing.',
-						{ name },
-					)
-				case 'pupil-data-not-confirmed':
-					return this.t(
-						'learniq',
-						'Confirm that the package holds no pupil data.',
-					)
-				case 'rights-not-confirmed':
-					return this.t(
-						'learniq',
-						'Confirm that the school may share everything in it.',
-					)
-				default:
-					return blocker?.code ?? ''
-			}
-		},
 	},
 }
 </script>
 
 <style scoped>
-.export-request {
-	padding: calc(var(--default-grid-baseline, 4px) * 4);
+.export-request__card {
 	max-inline-size: 40rem;
 }
 

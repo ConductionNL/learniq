@@ -30,6 +30,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Settings;
 
 use OCA\Learniq\Service\DemoDataService;
+use OCA\Learniq\Service\ExampleSetPreparation;
+use OCA\Learniq\Service\ExampleSetSources;
 use OCA\Learniq\Service\SeedProfileService;
 use OCP\App\IAppManager;
 use PHPUnit\Framework\TestCase;
@@ -245,7 +247,21 @@ class PrimarySchoolExampleSetTest extends TestCase {
 		$appManager->method('getAppPath')->willReturn(dirname(__DIR__, 3));
 		$demo = $this->createMock(DemoDataService::class);
 		$demo->method('listChoices')->willReturn([]);
-		$service = new SeedProfileService($appManager, $this->createMock(ContainerInterface::class), $this->createMock(LoggerInterface::class), $demo, $this->createMock(\OCA\Learniq\Service\SharedCodeFilter::class), $this->createMock(\OCA\Learniq\Service\LoadedExampleSets::class), $this->createMock(\OCA\Learniq\Portal\ExamplePortalProvisioner::class), $this->createMock(\OCA\Learniq\Service\ExampleSetDates::class));
+		$service = new SeedProfileService(
+			sources: new ExampleSetSources(
+				appManager: $appManager,
+				demoData: $demo,
+				loadedSets: $this->createMock(\OCA\Learniq\Service\LoadedExampleSets::class)
+			),
+			preparation: new ExampleSetPreparation(
+				sharedCodes: $this->createMock(\OCA\Learniq\Service\SharedCodeFilter::class),
+				dates: $this->createMock(\OCA\Learniq\Service\ExampleSetDates::class),
+				organisation: $this->createMock(\OCA\Learniq\Service\ExampleSetOrganisation::class),
+				examplePortals: $this->createMock(\OCA\Learniq\Portal\ExamplePortalProvisioner::class)
+			),
+			container: $this->createMock(ContainerInterface::class),
+			logger: $this->createMock(LoggerInterface::class)
+		);
 
 		$offered = array_values(array_filter($service->listChoices(), static fn (array $c): bool => $c['id'] === 'po'))[0];
 		self::of('school');
@@ -389,4 +405,42 @@ class PrimarySchoolExampleSetTest extends TestCase {
 		self::assertCount(1, $cards);
 		self::assertSame([7.9, 8.3, 7.9, 7.7, 7.7, 8.2], array_column($cards[0]['subjectGrades'], 'periodAverage'));
 	}//end testTheWilgenboomStoryIsInTheData()
+
+	/**
+	 * Groep 7's permission slips: the trip to the Openluchtmuseum open with
+	 * nobody answered, so Vera's guardian can answer, and the sports day
+	 * closed with every pupil but four answered by a guardian of their own.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/permission-slips/tasks.md
+	 */
+	public function testGroupSevenHasAnOpenAndAClosedPermissionSlip(): void {
+		$cohorts  = self::by(self::of('cohort'), 'uuid');
+		$requests = self::by(self::of('permission-request'), 'title');
+		self::assertSame(['Schoolreisje naar het Openluchtmuseum', 'Sportdag op het sportpark'], array_keys($requests));
+
+		$trip   = $requests['Schoolreisje naar het Openluchtmuseum'];
+		$sports = $requests['Sportdag op het sportpark'];
+		self::assertSame('Groep 7', $cohorts[$trip['cohortId']]['name']);
+		self::assertSame(['open', '2026-10-22', '2026-10-16T17:00:00+02:00', true], [$trip['lifecycle'], $trip['happensOn'], $trip['respondBy'], $trip['treatSilenceAsRefusal']]);
+		self::assertSame('closed', $sports['lifecycle']);
+		self::assertSame($trip['learnerRefs'], $sports['learnerRefs']);
+
+		$profiles = self::by(self::of('learner-profile'), 'uuid');
+		$vera     = array_values(array_filter($profiles, static fn (array $p): bool => $p['givenName'] === 'Vera' && $p['familyName'] === 'Hulstkamp'))[0];
+		self::assertContains($vera['uuid'], $trip['learnerRefs']);
+
+		$byRequest = [];
+		foreach (self::of('permission-response') as $response) {
+			$byRequest[$response['permissionRequestId']][] = $response;
+			self::assertContains($response['learnerRef'], $sports['learnerRefs']);
+			self::assertContains($response['answeredByRef'], $profiles[$response['learnerRef']]['guardianRefs']);
+		}
+
+		self::assertArrayNotHasKey($trip['uuid'], $byRequest);
+		self::assertCount(count($sports['learnerRefs']) - 4, $byRequest[$sports['uuid']]);
+		self::assertCount(count(array_unique(array_column($byRequest[$sports['uuid']], 'learnerRef'))), $byRequest[$sports['uuid']]);
+		self::assertContains('no', array_column($byRequest[$sports['uuid']], 'answer'));
+	}//end testGroupSevenHasAnOpenAndAClosedPermissionSlip()
 }//end class

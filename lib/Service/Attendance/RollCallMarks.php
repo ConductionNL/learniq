@@ -50,26 +50,24 @@ class RollCallMarks {
 	 * The row of one pupil as the page shows it: the saved mark, else an
 	 * approved report, else present.
 	 *
-	 * @param string                    $learnerId The pupil.
-	 * @param string                    $name      Display name.
-	 * @param array<string, mixed>|null $profile   The pupil's profile.
-	 * @param array<string, mixed>|null $record    The saved record.
-	 * @param array<string, mixed>|null $report    A report covering the day.
+	 * @param array{learnerId: string, name: string, profile: array<string, mixed>|null} $pupil The pupil, the display name and the pupil's profile.
+	 * @param array{record: array<string, mixed>|null, report: array<string, mixed>|null} $day   The saved record and a report covering the day.
 	 *
 	 * @return array<string, mixed>
 	 *
 	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-an-approved-absence-report-fills-in-the-register
 	 */
-	public function pupilRow(string $learnerId, string $name, ?array $profile, ?array $record, ?array $report): array {
+	public function pupilRow(array $pupil, array $day): array {
 		$learnerRef = null;
-		if ($profile !== null) {
-			$learnerRef = $this->idOf(row: $profile);
+		if ($pupil['profile'] !== null) {
+			$learnerRef = $this->idOf(row: $pupil['profile']);
 		}
 
+		$report = $day['report'];
 		$row = [
-			'learnerId' => $learnerId,
+			'learnerId' => $pupil['learnerId'],
 			'learnerRef' => $learnerRef,
-			'name' => $name,
+			'name' => $pupil['name'],
 			'status' => 'present',
 			'lateMinutes' => null,
 			'absenceReasonKind' => null,
@@ -80,19 +78,8 @@ class RollCallMarks {
 			'report' => $this->reportSummary(report: $report),
 		];
 
-		if ($record !== null) {
-			return array_merge(
-				$row,
-				[
-					'status' => (string)($record['status'] ?? 'present'),
-					'lateMinutes' => $this->intOrNull(value: ($record['lateMinutes'] ?? null)),
-					'absenceReasonKind' => $this->kindOrNull(value: ($record['absenceReasonKind'] ?? null)),
-					'reason' => (string)($record['reason'] ?? ''),
-					'recordId' => $this->idOf(row: $record),
-					'markedVia' => (string)($record['markedVia'] ?? 'teacher'),
-					'saved' => true,
-				]
-			);
+		if ($day['record'] !== null) {
+			return $this->savedRow(row: $row, record: $day['record']);
 		}
 
 		if ($report !== null && ($report['lifecycle'] ?? null) === 'approved') {
@@ -103,6 +90,29 @@ class RollCallMarks {
 
 		return $row;
 	}//end pupilRow()
+
+	/**
+	 * A pupil's page row with the saved mark filled in.
+	 *
+	 * @param array<string, mixed> $row    The row without a mark.
+	 * @param array<string, mixed> $record The saved record.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function savedRow(array $row, array $record): array {
+		return array_merge(
+			$row,
+			[
+				'status' => (string)($record['status'] ?? 'present'),
+				'lateMinutes' => $this->intOrNull(value: ($record['lateMinutes'] ?? null)),
+				'absenceReasonKind' => $this->kindOrNull(value: ($record['absenceReasonKind'] ?? null)),
+				'reason' => (string)($record['reason'] ?? ''),
+				'recordId' => $this->idOf(row: $record),
+				'markedVia' => (string)($record['markedVia'] ?? 'teacher'),
+				'saved' => true,
+			]
+		);
+	}//end savedRow()
 
 	/**
 	 * The roll-call reason for an ExcuseRequest.reasonKind.

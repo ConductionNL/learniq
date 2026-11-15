@@ -3,6 +3,9 @@
 /**
  * Learniq Report Card PDF Delegation Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the ReportCard schema's `renderToPdf`
  * (finalised -> finalised) and `rerenderToPdf` (published-to-parents ->
  * published-to-parents) self-loop transitions. POSTs a **proposed, not-yet-
@@ -43,8 +46,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -59,6 +60,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ReportCardPdfDelegationServiceInterface;
 use OCA\Learniq\Support\FleetAppId;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
@@ -83,7 +85,7 @@ use Throwable;
  *
  * @spec openspec/specs/report-card/spec.md#requirement-docudesk-pdf-rendering-is-fail-soft-non-blocking-and-its-contract-is-explicitly-proposed
  */
-class ReportCardPdfDelegationService implements LifecycleGuardInterface {
+class ReportCardPdfDelegationService implements LifecycleGuardInterface, ReportCardPdfDelegationServiceInterface {
 
 	/**
 	 * Proposed, not-yet-verified docudesk REST contract for rendering a

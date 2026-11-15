@@ -37,12 +37,14 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\CredentialLearnerInterface;
+
 /**
  * Resolves a credential's learner to a Nextcloud user id.
  *
  * @spec openspec/specs/certification/spec.md#requirement-a-learner-downloads-their-certificate-for-europass
  */
-class CredentialLearner {
+class CredentialLearner implements CredentialLearnerInterface {
 
 	private const UUID_PATTERN = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
 

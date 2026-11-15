@@ -500,4 +500,92 @@ class AdmissionsDecisionGuardTest extends TestCase {
 		self::assertAllowed($this->makeGuard()->check($object, 'reject', ''));
 
 	}//end testGenericKindSkipsToelatingsrechtAndSchooladviesBranches()
+
+	/**
+	 * The toelatingsrecht safeguard at every boundary: a rejection without a
+	 * named reason is blocked unless the application came in after a readable
+	 * deadline or without a studiekeuzeadvies; an unreadable or missing date
+	 * counts as on time, an unparsable one as late.
+	 *
+	 * @return void
+	 */
+	public function testToelatingsrechtAtEveryBoundary(): void {
+		$cases = [
+			'on the deadline'        => ['2026-04-01', '2026-04-01T00:00:00+00:00', true, '', false],
+			'one second late'        => ['2026-04-01T00:00:00+00:00', '2026-04-01T00:00:01+00:00', true, '', true],
+			'no deadline'            => [null, '2026-09-01T10:00:00+01:00', true, '', false],
+			'empty deadline'         => ['', '2026-09-01T10:00:00+01:00', true, '', false],
+			'no submission date'     => ['2026-04-01', null, true, '', false],
+			'numeric submission'     => ['2026-04-01', 20260901, true, '', false],
+			'unparsable deadline'    => ['not a date', '2026-03-01T10:00:00+01:00', true, '', true],
+			'unparsable submission'  => ['2026-04-01', 'soon', true, '', true],
+			'no advies'              => ['2026-04-01', '2026-03-01T10:00:00+01:00', false, '', true],
+			'advies as string'       => ['2026-04-01', '2026-03-01T10:00:00+01:00', 'yes', '', true],
+			'blank reason'           => ['2026-04-01', '2026-03-01T10:00:00+01:00', true, '   ', false],
+			'named reason'           => ['2026-04-01', '2026-03-01T10:00:00+01:00', true, 'no diploma', true],
+		];
+
+		foreach ($cases as $name => [$deadline, $submittedAt, $advies, $reason, $allowed]) {
+			$this->objectService = $this->createMock(ObjectService::class);
+			$this->wireRound(['kind' => 'mbo-toelatingsrecht', 'applicationDeadline' => $deadline]);
+			$object = array_merge(
+				$this->application(['submittedAt' => $submittedAt, 'studiekeuzeadviesGiven' => $advies, 'decisionReason' => $reason]),
+				['lifecycle' => 'rejected']
+			);
+
+			$verdict = $this->makeGuard()->check($object, 'reject', '');
+			if ($allowed === true) {
+				self::assertAllowed($verdict, $name);
+				continue;
+			}
+
+			self::assertDenied($verdict, $name);
+		}
+	}//end testToelatingsrechtAtEveryBoundary()
+
+	/**
+	 * The schooladvies rule at every branch: nothing to compare, a toets that
+	 * does not outrank, a matching adjustment, a motivation, and the pro /
+	 * vmbo-bb exemption only when both levels are in it.
+	 *
+	 * @return void
+	 */
+	public function testSchooladviesAtEveryBranch(): void {
+		$cases = [
+			'nothing recorded'     => [null, null, null, '', true],
+			'unknown level'        => ['vmbo-gt', 'gymnasium-plus', null, '', true],
+			'toets lower'          => ['havo', 'vmbo-gt', null, '', true],
+			'toets equal'          => ['havo', 'havo', null, '', true],
+			'adjusted to toets'    => ['vmbo-gt', 'havo', 'havo', '', true],
+			'adjusted elsewhere'   => ['vmbo-gt', 'havo', 'vmbo-kb', '', false],
+			'blank motivation'     => ['vmbo-gt', 'havo', null, '  ', false],
+			'motivated'            => ['vmbo-gt', 'havo', null, 'past niet', true],
+			'pro to vmbo-bb'       => ['pro', 'vmbo-bb', null, '', true],
+			'pro to vmbo-kb'       => ['pro', 'vmbo-kb', null, '', false],
+		];
+
+		foreach ($cases as $name => [$advice, $toets, $adjusted, $motivation, $allowed]) {
+			$this->objectService = $this->createMock(ObjectService::class);
+			$this->wireRound(['kind' => 'vo-schooladvies-doorstroomtoets']);
+			$object = array_merge(
+				$this->application(
+					[
+						'schoolAdviceLevel' => $advice,
+						'progressionTestLevel' => $toets,
+						'schoolAdviceAdjustedLevel' => $adjusted,
+						'adjustmentMotivation' => $motivation,
+					]
+				),
+				['lifecycle' => 'waitlisted']
+			);
+
+			$verdict = $this->makeGuard()->check($object, 'waitlist', '');
+			if ($allowed === true) {
+				self::assertAllowed($verdict, $name);
+				continue;
+			}
+
+			self::assertDenied($verdict, $name);
+		}
+	}//end testSchooladviesAtEveryBranch()
 }//end class

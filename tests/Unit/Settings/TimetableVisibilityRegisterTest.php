@@ -49,7 +49,7 @@ class TimetableVisibilityRegisterTest extends TestCase {
 	}//end setUp()
 
 	/**
-	 * The policy's defaults are the service's defaults, and only team leads and compliance officers write it.
+	 * The policy's defaults are the service's defaults, and only admins write it.
 	 *
 	 * @return void
 	 *
@@ -64,7 +64,7 @@ class TimetableVisibilityRegisterTest extends TestCase {
 		}
 
 		self::assertSame(['authenticated'], $policy['authorization']['read']);
-		self::assertSame(['team-leads', 'compliance-officers'], $policy['authorization']['create']);
+		self::assertSame(['admin'], $policy['authorization']['create']);
 		self::assertSame($policy['authorization']['create'], $policy['authorization']['update']);
 	}//end testPolicy()
 

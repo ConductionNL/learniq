@@ -37,6 +37,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\SovereigntyPolicyServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -47,7 +48,7 @@ use Throwable;
  *
  * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-let-a-school-declare-an-ai-processing-locality-policy
  */
-class SovereigntyPolicyService {
+class SovereigntyPolicyService implements SovereigntyPolicyServiceInterface {
 
 	/**
 	 * OR register slug for Learniq objects.

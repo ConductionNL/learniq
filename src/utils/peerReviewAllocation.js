@@ -56,11 +56,22 @@ export function allocationOutcome(body) {
 	const result = body?.result ?? {}
 	const created = Number(result.createdCount) || 0
 	const processed = Number(result.submissionsProcessed) || 0
-	let kind = 'created'
+	return { kind: outcomeKind(created, processed), created, processed }
+}
+
+/**
+ * What an allocation did: nothing to review, nothing left to add, or reviews added.
+ *
+ * @param {number} created Reviews created.
+ * @param {number} processed Submissions processed.
+ * @return {'empty'|'complete'|'created'}
+ */
+function outcomeKind(created, processed) {
 	if (processed === 0) {
-		kind = 'empty'
-	} else if (created === 0) {
-		kind = 'complete'
+		return 'empty'
 	}
-	return { kind, created, processed }
+	if (created === 0) {
+		return 'complete'
+	}
+	return 'created'
 }

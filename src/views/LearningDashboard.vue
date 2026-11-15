@@ -18,7 +18,12 @@
 -->
 <template>
 	<div class="learniq-domain-dashboard">
-		<CnDashboardPage :title="pageTitle" :widgets="widgets" :layout="layout">
+		<CnDashboardPage
+			:title="pageTitle"
+			:widgets="widgets"
+			:layout="layout"
+			:showActionsMenu="false"
+			:showWidgetActions="false">
 			<template #widget-manage-courses>
 				<ManageListWidget
 					schema="Course"
@@ -74,6 +79,72 @@
 <script>
 import { CnDashboardPage } from '@conduction/nextcloud-vue'
 import ManageListWidget from './widgets/ManageListWidget.vue'
+import {
+	countTile,
+	customTile,
+	freshLayout,
+} from '../utils/dashboardTiles.js'
+
+/** The learning dashboard grid (12 columns): the course count, then six lists. */
+const LEARNING_LAYOUT = [
+	{
+		id: 1,
+		widgetId: 'kpi-courses',
+		gridX: 0,
+		gridY: 0,
+		gridWidth: 3,
+		gridHeight: 2,
+		showTitle: false,
+	},
+	{
+		id: 2,
+		widgetId: 'manage-courses',
+		gridX: 0,
+		gridY: 2,
+		gridWidth: 6,
+		gridHeight: 4,
+	},
+	{
+		id: 3,
+		widgetId: 'manage-curriculum',
+		gridX: 6,
+		gridY: 2,
+		gridWidth: 6,
+		gridHeight: 4,
+	},
+	{
+		id: 4,
+		widgetId: 'manage-assignments',
+		gridX: 0,
+		gridY: 6,
+		gridWidth: 6,
+		gridHeight: 4,
+	},
+	{
+		id: 5,
+		widgetId: 'manage-assessments',
+		gridX: 6,
+		gridY: 6,
+		gridWidth: 6,
+		gridHeight: 4,
+	},
+	{
+		id: 6,
+		widgetId: 'manage-learning-plans',
+		gridX: 0,
+		gridY: 10,
+		gridWidth: 6,
+		gridHeight: 4,
+	},
+	{
+		id: 7,
+		widgetId: 'manage-grades',
+		gridX: 6,
+		gridY: 10,
+		gridWidth: 6,
+		gridHeight: 4,
+	},
+]
 
 export default {
 	name: 'LearningDashboard',
@@ -102,55 +173,14 @@ export default {
 		 */
 		widgets() {
 			return [
-				{
-					id: 'kpi-courses',
-					title: this.t('learniq', 'Courses'),
-					// Declared, not written: `type: 'stat'` resolves to the shared
-					// CnStatWidget, which counts server-side. The wrapper it
-					// replaces did its own fetch and answered
-					// `catch { this.count = 0 }`.
-					type: 'stat',
-					content: {
-						label: this.t('learniq', 'Courses'),
-						variant: 'primary',
-						clickRoute: { path: '/courses' },
-						source: {
-							register: 'learniq',
-							schema: 'course',
-							metric: 'count',
-						},
-					},
-				},
-				{
-					id: 'manage-courses',
-					title: this.t('learniq', 'Courses'),
-					type: 'custom',
-				},
-				{
-					id: 'manage-curriculum',
-					title: this.t('learniq', 'Curriculum'),
-					type: 'custom',
-				},
-				{
-					id: 'manage-assignments',
-					title: this.t('learniq', 'Assignments'),
-					type: 'custom',
-				},
-				{
-					id: 'manage-assessments',
-					title: this.t('learniq', 'Assessments'),
-					type: 'custom',
-				},
-				{
-					id: 'manage-learning-plans',
-					title: this.t('learniq', 'Learning plans'),
-					type: 'custom',
-				},
-				{
-					id: 'manage-grades',
-					title: this.t('learniq', 'Grades'),
-					type: 'custom',
-				},
+				// Declared, not written (src/utils/dashboardTiles.js).
+				countTile('kpi-courses', this.t('learniq', 'Courses')),
+				customTile('manage-courses', this.t('learniq', 'Courses')),
+				customTile('manage-curriculum', this.t('learniq', 'Curriculum')),
+				customTile('manage-assignments', this.t('learniq', 'Assignments')),
+				customTile('manage-assessments', this.t('learniq', 'Assessments')),
+				customTile('manage-learning-plans', this.t('learniq', 'Learning plans')),
+				customTile('manage-grades', this.t('learniq', 'Grades')),
 			]
 		},
 
@@ -161,65 +191,7 @@ export default {
 		 * @spec openspec/specs/dashboard/spec.md#requirement-learning-domain-dashboard
 		 */
 		layout() {
-			return [
-				{
-					id: 1,
-					widgetId: 'kpi-courses',
-					gridX: 0,
-					gridY: 0,
-					gridWidth: 3,
-					gridHeight: 2,
-					showTitle: false,
-				},
-				{
-					id: 2,
-					widgetId: 'manage-courses',
-					gridX: 0,
-					gridY: 2,
-					gridWidth: 6,
-					gridHeight: 4,
-				},
-				{
-					id: 3,
-					widgetId: 'manage-curriculum',
-					gridX: 6,
-					gridY: 2,
-					gridWidth: 6,
-					gridHeight: 4,
-				},
-				{
-					id: 4,
-					widgetId: 'manage-assignments',
-					gridX: 0,
-					gridY: 6,
-					gridWidth: 6,
-					gridHeight: 4,
-				},
-				{
-					id: 5,
-					widgetId: 'manage-assessments',
-					gridX: 6,
-					gridY: 6,
-					gridWidth: 6,
-					gridHeight: 4,
-				},
-				{
-					id: 6,
-					widgetId: 'manage-learning-plans',
-					gridX: 0,
-					gridY: 10,
-					gridWidth: 6,
-					gridHeight: 4,
-				},
-				{
-					id: 7,
-					widgetId: 'manage-grades',
-					gridX: 6,
-					gridY: 10,
-					gridWidth: 6,
-					gridHeight: 4,
-				},
-			]
+			return freshLayout(LEARNING_LAYOUT)
 		},
 	},
 }

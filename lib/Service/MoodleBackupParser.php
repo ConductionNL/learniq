@@ -68,14 +68,33 @@ class MoodleBackupParser {
 	 * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
 	 */
 	public function parseManifest(string $dir): array {
+		$xml = $this->loadManifest(dir: $dir);
+
+		return [
+			'sectionNodes' => $this->sectionNodes(xml: $xml),
+			'activities' => $this->activities(xml: $xml),
+		];
+	}//end parseManifest()
+
+	/**
+	 * Load `$dir/moodle_backup.xml` as a document.
+	 *
+	 * `loadXML(file_get_contents())`, NOT `load($path)` — Nextcloud's
+	 * XXE-blocking external entity loader makes `load()` fail on the
+	 * primary document. See CommonCartridgeParser::parseManifest().
+	 *
+	 * @param string $dir Absolute path to the extracted backup directory.
+	 *
+	 * @return DOMDocument
+	 *
+	 * @throws RuntimeException When moodle_backup.xml is missing or not parseable XML.
+	 */
+	private function loadManifest(string $dir): DOMDocument {
 		$manifestPath = $dir . '/moodle_backup.xml';
 		if (file_exists($manifestPath) === false) {
 			throw new RuntimeException("No moodle_backup.xml found in '{$dir}' — not a recognisable Moodle backup archive.");
 		}
 
-		// `loadXML(file_get_contents())`, NOT `load($path)` — Nextcloud's
-		// XXE-blocking external entity loader makes `load()` fail on the
-		// primary document. See CommonCartridgeParser::parseManifest().
 		$xml = new DOMDocument();
 		libxml_use_internal_errors(true);
 		$loaded = $xml->loadXML((string)file_get_contents($manifestPath));
@@ -84,51 +103,72 @@ class MoodleBackupParser {
 			throw new RuntimeException("Could not parse moodle_backup.xml in '{$dir}' as XML.");
 		}
 
-		$sectionNodes = [];
-		$order = 0;
-		foreach ($xml->getElementsByTagName('section') as $sectionEl) {
-			// Only <section> elements directly under <sections> carry a <sectionid>; skip any
-			// unrelated same-named elements elsewhere in the document.
-			$sectionId = $this->childText(element: $sectionEl, tagName: 'sectionid');
-			if ($sectionId === null) {
-				continue;
-			}
+		return $xml;
+	}//end loadManifest()
 
-			$sectionNodes[] = [
-				'identifier' => $sectionId,
-				'title' => $this->childText(element: $sectionEl, tagName: 'title') ?? $sectionId,
-				'order' => $order,
-			];
-			$order++;
+	/**
+	 * The backup's sections, in order. Only <section> elements directly
+	 * under <sections> carry a <sectionid>; other same-named elements are skipped.
+	 *
+	 * @param DOMDocument $xml The manifest.
+	 *
+	 * @return array<int, array{identifier: string, title: string, order: int}>
+	 */
+	private function sectionNodes(DOMDocument $xml): array {
+		$sectionNodes = [];
+		foreach ($xml->getElementsByTagName('section') as $sectionEl) {
+			$sectionId = $this->childText(element: $sectionEl, tagName: 'sectionid');
+			if ($sectionId !== null) {
+				$sectionNodes[] = [
+					'identifier' => $sectionId,
+					'title' => $this->childText(element: $sectionEl, tagName: 'title') ?? $sectionId,
+					'order' => count($sectionNodes),
+				];
+			}
 		}
 
+		return $sectionNodes;
+	}//end sectionNodes()
+
+	/**
+	 * The backup's activities, in order; activities without a <moduleid> are skipped.
+	 *
+	 * @param DOMDocument $xml The manifest.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function activities(DOMDocument $xml): array {
 		$activities = [];
-		$order = 0;
 		foreach ($xml->getElementsByTagName('activity') as $activityEl) {
 			$moduleId = $this->childText(element: $activityEl, tagName: 'moduleid');
-			if ($moduleId === null) {
-				continue;
+			if ($moduleId !== null) {
+				$activities[] = $this->activity(activityEl: $activityEl, moduleId: $moduleId) + ['order' => count($activities)];
 			}
+		}
 
-			$moduleType = $this->childText(element: $activityEl, tagName: 'modulename') ?? 'other';
+		return $activities;
+	}//end activities()
 
-			$activities[] = [
-				'identifier' => $moduleId,
-				'sectionIdentifier' => $this->childText(element: $activityEl, tagName: 'sectionid'),
-				'moduleType' => $moduleType,
-				'classification' => $this->classify(moduleType: $moduleType),
-				'title' => $this->childText(element: $activityEl, tagName: 'title') ?? $moduleType,
-				'directory' => $this->childText(element: $activityEl, tagName: 'directory'),
-				'order' => $order,
-			];
-			$order++;
-		}//end foreach
+	/**
+	 * One activity's fields.
+	 *
+	 * @param DOMElement $activityEl The <activity> element.
+	 * @param string     $moduleId   Its module id.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function activity(DOMElement $activityEl, string $moduleId): array {
+		$moduleType = $this->childText(element: $activityEl, tagName: 'modulename') ?? 'other';
 
 		return [
-			'sectionNodes' => $sectionNodes,
-			'activities' => $activities,
+			'identifier' => $moduleId,
+			'sectionIdentifier' => $this->childText(element: $activityEl, tagName: 'sectionid'),
+			'moduleType' => $moduleType,
+			'classification' => $this->classify(moduleType: $moduleType),
+			'title' => $this->childText(element: $activityEl, tagName: 'title') ?? $moduleType,
+			'directory' => $this->childText(element: $activityEl, tagName: 'directory'),
 		];
-	}//end parseManifest()
+	}//end activity()
 
 	/**
 	 * Classify a Moodle module name into a fidelity-table category.
@@ -170,17 +210,6 @@ class MoodleBackupParser {
 	 * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
 	 */
 	private function childText(DOMElement $element, string $tagName): ?string {
-		foreach ($element->childNodes as $child) {
-			if ($child instanceof DOMElement && $child->tagName === $tagName) {
-				$text = trim((string)$child->textContent);
-				if ($text !== '') {
-					return $text;
-				}
-
-				return null;
-			}
-		}
-
-		return null;
+		return (new XmlChildText())->firstOf(element: $element, tagName: $tagName);
 	}//end childText()
 }//end class

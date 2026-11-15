@@ -3,6 +3,9 @@
 /**
  * Learniq POK Parent Signature Rule
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Decides whether a parent or guardian signs a praktijkovereenkomst (POK),
  * and which accounts may. A student under 18 cannot bind themselves to a
  * work placement agreement alone, so their parent co-signs.
@@ -29,8 +32,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -44,8 +45,9 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use Exception;
+use OCA\Learniq\Kernel\Contracts\PokParentSignatureRuleInterface;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
 
 /**
@@ -53,17 +55,13 @@ use OCP\AppFramework\Utility\ITimeFactory;
  *
  * @spec openspec/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
  */
-class PokParentSignatureRule {
+class PokParentSignatureRule implements PokParentSignatureRuleInterface {
+	use FindOrNull;
 
 	/**
 	 * The student was under 18 on the day that counts.
 	 */
 	public const REASON_MINOR = 'minor';
-
-	/**
-	 * The student's age cannot be established.
-	 */
-	public const REASON_UNKNOWN_AGE = 'unknown-age';
 
 	/**
 	 * The student was 18 or older on the day that counts.
@@ -183,23 +181,8 @@ class PokParentSignatureRule {
 			return null;
 		}
 
-		try {
-			$object = $this->objectService->find(
-				id: $id,
-				register: self::LEARNIQ_REGISTER,
-				schema: $schema,
-				_rbac: false,
-				_multitenancy: false
-			);
-		} catch (DoesNotExistException $exception) {
-			return null;
-		}
-
-		if ($object === null) {
-			return null;
-		}
-
-		return $object->jsonSerialize();
+		$find = fn () => $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema, _rbac: false, _multitenancy: false);
+		return $this->findOrNull(find: $find)?->jsonSerialize();
 	}//end row()
 
 	/**

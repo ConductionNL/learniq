@@ -72,8 +72,8 @@ Scholiq SHALL provide manifest index and detail pages for its verwerkingsregiste
 <!-- @e2e tests/e2e/spec-coverage/avg-verwerkingsregister.spec.ts -->
 
 - **GIVEN** a user holding the privacy-officer delegation in OpenRegister
-- **WHEN** they open the Compliance → Verwerkingsregister page in scholiq
-- **THEN** they see exactly the scholiq-slice activities (index + detail), served by manifest pages over the platform API
+- **WHEN** they open the section Verwerkingsregister (AVG artikel 30) on App-instellingen (learniq/LqAppInstellingen)
+- **THEN** the section opens the learniq-slice activities in OpenRegister (index + detail), served over the platform API; the Compliance page carries no card for it
 
 #### Scenario: Non-privileged user cannot edit
 

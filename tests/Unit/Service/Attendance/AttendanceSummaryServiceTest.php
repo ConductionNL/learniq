@@ -64,6 +64,12 @@ class AttendanceSummaryServiceTest extends TestCase {
 	/** @var array<int, string>|null */
 	private ?array $teachers = ['juf-7'];
 
+	/** @var array<int, array<string, mixed>> */
+	private array $thresholds = [];
+
+	/** @var array<int, array<string, mixed>>|null Learner profiles; null when they cannot be read. */
+	private ?array $profileRows = [];
+
 	/**
 	 * Reset the fakes.
 	 *
@@ -81,6 +87,8 @@ class AttendanceSummaryServiceTest extends TestCase {
 		$this->saved = [];
 		$this->recordQueries = [];
 		$this->teachers = ['juf-7'];
+		$this->thresholds = [];
+		$this->profileRows = [];
 	}//end setUp()
 
 	/**
@@ -106,6 +114,18 @@ class AttendanceSummaryServiceTest extends TestCase {
 						static fn (array $s): ObjectEntity => OrEntityFactory::make($s, 'session'),
 						array_values(array_filter($this->sessions, static fn (array $s): bool => in_array($s['id'], $ids, true)))
 					);
+				}
+
+				if ($filters['schema'] === 'attendance-threshold') {
+					return array_map(static fn (array $t): ObjectEntity => OrEntityFactory::make($t, 'attendance-threshold'), $this->thresholds);
+				}
+
+				if ($filters['schema'] === 'learner-profile') {
+					if ($this->profileRows === null) {
+						throw new RuntimeException('profiles unreadable');
+					}
+
+					return array_map(static fn (array $p): ObjectEntity => OrEntityFactory::make($p, 'learner-profile'), $this->profileRows);
 				}
 
 				if ($filters['schema'] === 'attendance-summary') {
@@ -342,4 +362,81 @@ class AttendanceSummaryServiceTest extends TestCase {
 	public function testSchoolYearsOfSessions(): void {
 		self::assertSame(['2025-2026', '2026-2027'], $this->service()->schoolYearsOf(sessionIds: ['s-mon', 's-tue', 's-sep', 'unknown']));
 	}//end testSchoolYearsOfSessions()
+	/**
+	 * The current school year's row carries the window count against the threshold; no flag is written.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 */
+	public function testTheCurrentYearCarriesTheWindowCount(): void {
+		$this->sessions = [];
+		$this->records = [];
+		for ($i = 0; $i < 14; $i++) {
+			$this->sessions[] = ['id' => 's-w' . $i, 'startsAt' => '2026-09-14T08:30:00+02:00', 'endsAt' => '2026-09-14T09:30:00+02:00'];
+			$this->records[] = self::record('s-w' . $i, 'absent-unexcused');
+		}
+
+		$this->sessions[] = ['id' => 's-mon', 'startsAt' => '2026-03-02T08:30:00+01:00', 'endsAt' => '2026-03-02T09:30:00+01:00'];
+		$this->records[] = self::record('s-mon', 'absent-unexcused');
+		$this->thresholds = [
+			['id' => 't-cohort', 'name' => 'Klas 2B', 'metric' => 'unexcused-lesuren', 'limit' => 8, 'window' => ['type' => 'rolling-weeks', 'weeks' => 4], 'cohortId' => 'c-2b', 'active' => true, 'tenant_id' => self::TENANT],
+			['id' => 't-16', 'name' => 'Leerplicht', 'metric' => 'unexcused-lesuren', 'limit' => 16, 'window' => ['type' => 'rolling-weeks', 'weeks' => 4], 'scope' => 'per-learner', 'active' => true, 'tenant_id' => self::TENANT],
+		];
+
+		$this->service()->recompute(learnerId: 'pupil-1');
+
+		$current = $this->savedFor('2026-2027')[0]['object'];
+		self::assertSame(14.0, $current['unauthorisedHoursWindow']);
+		self::assertSame(16.0, $current['thresholdHours']);
+		self::assertSame('14 van 16 uur', $current['windowLabel']);
+		self::assertTrue($current['thresholdNearing']);
+
+		$earlier = $this->savedFor('2025-2026')[0]['object'];
+		self::assertArrayNotHasKey('unauthorisedHoursWindow', $earlier);
+
+		self::assertSame([], array_filter($this->saved, static fn (array $s): bool => $s['schema'] !== 'attendance-summary'), 'the warning writes no flag');
+	}//end testTheCurrentYearCarriesTheWindowCount()
+
+	/**
+	 * The pupil's mentor (their profile's managerId) is stamped on the row,
+	 * and a profile of another pupil in the answer is ignored.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 */
+	public function testTheMentorIsStampedFromTheProfile(): void {
+		$this->records = [self::record('s-mon', 'absent-unexcused')];
+		$this->profileRows = [
+			['id' => 'p-other', 'ncUserId' => 'pupil-2', 'managerId' => 'meester-2'],
+			['id' => self::PROFILE, 'ncUserId' => 'pupil-1', 'managerId' => 'mentor-1'],
+		];
+
+		$this->service()->recompute(learnerId: 'pupil-1');
+
+		self::assertSame('mentor-1', $this->savedFor('2025-2026')[0]['object']['mentorId']);
+	}//end testTheMentorIsStampedFromTheProfile()
+
+	/**
+	 * A failed profile read keeps the stored mentor, and stamps nobody on a new row.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 */
+	public function testAFailedMentorLookupKeepsTheStoredMentor(): void {
+		$this->profileRows = null;
+		$this->records = [self::record('s-mon', 'absent-unexcused'), self::record('s-sep', 'late', ['lateMinutes' => 5])];
+		$this->summaries = [[
+			'id' => 'aaaaaaaa-0000-4000-8000-000000000001', 'learnerId' => 'pupil-1', 'schoolYear' => '2025-2026',
+			'absentDays' => 0, 'absentAuthorisedDays' => 0, 'absentUnauthorisedDays' => 0, 'lateCount' => 0, 'lateMinutes' => 0,
+			'teacherIds' => ['juf-7'], 'mentorId' => 'mentor-1', 'tenant_id' => self::TENANT,
+		]];
+
+		$this->service()->recompute(learnerId: 'pupil-1');
+
+		self::assertSame('mentor-1', $this->savedFor('2025-2026')[0]['object']['mentorId']);
+		self::assertNull($this->savedFor('2026-2027')[0]['object']['mentorId']);
+	}//end testAFailedMentorLookupKeepsTheStoredMentor()
 }//end class

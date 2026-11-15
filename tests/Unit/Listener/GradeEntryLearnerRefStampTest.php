@@ -23,7 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\IntegrityListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\IntegrityListenerRegistrar;
 use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;

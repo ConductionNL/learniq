@@ -46,6 +46,190 @@ class StudentPortalCollections {
 	 */
 	private const REGISTER = 'learniq';
 
+	private const STUDENT_GRADES = [
+		'id' => 'studentGrades',
+		'register' => self::REGISTER,
+		'schema' => 'grade-entry',
+		'scopeField' => 'learnerRef',
+		'scopeClaim' => 'learnerRef',
+		'label' => 'My grades',
+		'listable' => true,
+		'minTrust' => 'low',
+		'fields' => [
+			'learnerRef',
+			'courseId',
+			// Readable copies and the weight (site-guardian-portal-design):
+			// the subject and test a grade is for, and how often it counts.
+			'courseName',
+			'methodName',
+			'methodBlock',
+			'weight',
+			'curriculumPlanId',
+			'componentId',
+			'value',
+			'gradeScaleId',
+			'period',
+			'gradedAt',
+		],
+		// Readable headers instead of field keys (portal proof run 1,
+		// defect 10): subject, date and grade, as on the board. The
+		// test's own name ("Leestoets") is a curriculum-plan component
+		// label with no readable copy on the grade yet.
+		'columns' => [
+			['field' => 'courseName', 'label' => 'Subject'],
+			['field' => 'gradedAt', 'label' => 'Date', 'render' => 'date'],
+			['field' => 'value', 'label' => 'Grade'],
+		],
+	];
+
+	private const STUDENT_FINAL_GRADES = [
+		'id' => 'studentFinalGrades',
+		'register' => self::REGISTER,
+		'schema' => 'final-grade',
+		'scopeField' => 'learnerRef',
+		'scopeClaim' => 'learnerRef',
+		'label' => 'My final grades',
+		'listable' => true,
+		'minTrust' => 'low',
+		'fields' => [
+			'learnerRef',
+			'courseId',
+			'programmeId',
+			'curriculumPlanId',
+			'gradeScaleId',
+			'value',
+			'passed',
+			'lastRecomputedAt',
+		],
+	];
+
+	private const STUDENT_ATTENDANCE = [
+		'id' => 'studentAttendance',
+		'register' => self::REGISTER,
+		'schema' => 'attendance-record',
+		'scopeField' => 'learnerRef',
+		'scopeClaim' => 'learnerRef',
+		'label' => 'My attendance',
+		'listable' => true,
+		'minTrust' => 'low',
+		'fields' => [
+			'learnerRef',
+			'sessionId',
+			'cohortId',
+			'status',
+			'minutesAttended',
+			'markedAt',
+		],
+	];
+
+	private const STUDENT_ENROLMENTS = [
+		'id' => 'studentEnrolments',
+		'register' => self::REGISTER,
+		'schema' => 'enrolment',
+		'scopeField' => 'learnerRef',
+		'scopeClaim' => 'learnerRef',
+		'label' => 'My enrolments',
+		'listable' => true,
+		'fields' => [
+			'learnerRef',
+			'courseId',
+			'mandatory',
+			'dueDate',
+			'source',
+			'regulationSlug',
+			'cohortId',
+		],
+		// Who she may write to: the teachers of each active group
+		// (portal-message-contacts, portaliq site-messages-per-record).
+		'contacts' => [
+			'provider' => 'ownMessageContacts',
+			'composeLabel' => 'A message to your teacher',
+			'composeHint' => 'Your teacher usually answers within two school days.',
+		],
+	];
+
+	private const STUDENT_SUBMISSIONS = [
+		'id' => 'studentSubmissions',
+		'register' => self::REGISTER,
+		'schema' => 'submission',
+		'scopeField' => 'learnerRef',
+		'scopeClaim' => 'learnerRef',
+		'label' => 'My submissions',
+		'listable' => true,
+		// Portal-assignment-hand-in-endpoint: a per-row hand-in on the
+		// pupil's drafts (portaliq contribution-pay-screen row actions).
+		'rowActions' => ['handIn'],
+		'fields' => [
+			'learnerRef',
+			'assignmentId',
+			'attachmentRefs',
+			'submittedAt',
+			'feedbackText',
+			'lifecycle',
+		],
+	];
+
+	private const STUDENT_INBOX = [
+		'id' => 'studentInbox',
+		'kind' => 'inbox',
+		'register' => self::REGISTER,
+		'schema' => 'grade-notification',
+		'scopeField' => 'learnerRef',
+		'scopeClaim' => 'learnerRef',
+		'label' => 'Notifications',
+		'listable' => true,
+		'fields' => [
+			'learnerRef',
+			'event',
+			'courseId',
+			'courseName',
+			'visibleFrom',
+		],
+		// A grade held back by the teacher stays out until its moment (portaliq #1198).
+		'visibleFromField' => 'visibleFrom',
+		'messageFields' => [
+			'subject' => 'courseName',
+			'receivedAt' => 'visibleFrom',
+		],
+	];
+
+	private const STUDENT_EXCUSE_REQUESTS = [
+		'id' => 'studentExcuseRequests',
+		'register' => self::REGISTER,
+		'schema' => 'excuse-request',
+		'scopeField' => 'learnerRef',
+		'scopeClaim' => 'learnerRef',
+		'label' => 'My absence excuses',
+		'listable' => true,
+		'fields' => [
+			'learnerRef',
+			'dateFrom',
+			'dateTo',
+			'reason',
+			'reasonKind',
+			'attachmentRef',
+			'lifecycle',
+			'decidedAt',
+		],
+	];
+
+	private const STUDENT_TESTS_FIELDS = [
+		'assessmentId',
+		'assessmentTitle',
+		'lifecycle',
+		'attemptNumber',
+		'startedAt',
+		'submittedAt',
+	];
+
+	private const STUDENT_TESTS_TIMED_TASK = [
+		'available' => 'listTests',
+		'start' => 'startTest',
+		'answer' => 'saveTestAnswer',
+		'submit' => 'submitTest',
+		'result' => 'readTestResult',
+	];
+
 	/**
 	 * The learner's own result collections — grades, final grades and attendance.
 	 *
@@ -59,79 +243,9 @@ class StudentPortalCollections {
 	 */
 	public function studentResultCollections(): array {
 		return [
-			[
-				'id' => 'studentGrades',
-				'register' => self::REGISTER,
-				'schema' => 'grade-entry',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'label' => 'My grades',
-				'listable' => true,
-				'minTrust' => 'low',
-				'fields' => [
-					'learnerRef',
-					'courseId',
-					// Readable copies and the weight (site-guardian-portal-design):
-					// the subject and test a grade is for, and how often it counts.
-					'courseName',
-					'methodName',
-					'methodBlock',
-					'weight',
-					'curriculumPlanId',
-					'componentId',
-					'value',
-					'gradeScaleId',
-					'period',
-					'gradedAt',
-				],
-				// Readable headers instead of field keys (portal proof run 1,
-				// defect 10): subject, date and grade, as on the board. The
-				// test's own name ("Leestoets") is a curriculum-plan component
-				// label with no readable copy on the grade yet.
-				'columns' => [
-					['field' => 'courseName', 'label' => 'Subject'],
-					['field' => 'gradedAt', 'label' => 'Date', 'render' => 'date'],
-					['field' => 'value', 'label' => 'Grade'],
-				],
-			],
-			[
-				'id' => 'studentFinalGrades',
-				'register' => self::REGISTER,
-				'schema' => 'final-grade',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'label' => 'My final grades',
-				'listable' => true,
-				'minTrust' => 'low',
-				'fields' => [
-					'learnerRef',
-					'courseId',
-					'programmeId',
-					'curriculumPlanId',
-					'gradeScaleId',
-					'value',
-					'passed',
-					'lastRecomputedAt',
-				],
-			],
-			[
-				'id' => 'studentAttendance',
-				'register' => self::REGISTER,
-				'schema' => 'attendance-record',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'label' => 'My attendance',
-				'listable' => true,
-				'minTrust' => 'low',
-				'fields' => [
-					'learnerRef',
-					'sessionId',
-					'cohortId',
-					'status',
-					'minutesAttended',
-					'markedAt',
-				],
-			],
+			self::STUDENT_GRADES,
+			self::STUDENT_FINAL_GRADES,
+			self::STUDENT_ATTENDANCE,
 		];
 
 	}//end studentResultCollections()
@@ -170,51 +284,8 @@ class StudentPortalCollections {
 	 */
 	public function studentEnrolmentAndSubmissionCollections(): array {
 		return [
-			[
-				'id' => 'studentEnrolments',
-				'register' => self::REGISTER,
-				'schema' => 'enrolment',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'label' => 'My enrolments',
-				'listable' => true,
-				'fields' => [
-					'learnerRef',
-					'courseId',
-					'mandatory',
-					'dueDate',
-					'source',
-					'regulationSlug',
-					'cohortId',
-				],
-				// Who she may write to: the teachers of each active group
-				// (portal-message-contacts, portaliq site-messages-per-record).
-				'contacts' => [
-					'provider' => 'ownMessageContacts',
-					'composeLabel' => 'A message to your teacher',
-					'composeHint' => 'Your teacher usually answers within two school days.',
-				],
-			],
-			[
-				'id' => 'studentSubmissions',
-				'register' => self::REGISTER,
-				'schema' => 'submission',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'label' => 'My submissions',
-				'listable' => true,
-				// Portal-assignment-hand-in-endpoint: a per-row hand-in on the
-				// pupil's drafts (portaliq contribution-pay-screen row actions).
-				'rowActions' => ['handIn'],
-				'fields' => [
-					'learnerRef',
-					'assignmentId',
-					'attachmentRefs',
-					'submittedAt',
-					'feedbackText',
-					'lifecycle',
-				],
-			],
+			self::STUDENT_ENROLMENTS,
+			self::STUDENT_SUBMISSIONS,
 		];
 
 	}//end studentEnrolmentAndSubmissionCollections()
@@ -229,51 +300,11 @@ class StudentPortalCollections {
 	 */
 	public function studentWelfareAndInboxCollections(): array {
 		return [
-			[
-				'id' => 'studentExcuseRequests',
-				'register' => self::REGISTER,
-				'schema' => 'excuse-request',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'label' => 'My absence excuses',
-				'listable' => true,
-				'fields' => [
-					'learnerRef',
-					'dateFrom',
-					'dateTo',
-					'reason',
-					'reasonKind',
-					'attachmentRef',
-					'lifecycle',
-					'decidedAt',
-				],
-			],
+			self::STUDENT_EXCUSE_REQUESTS,
 			// Inbox (contract v2): the learner's grade-published
 			// notifications, scoped by learnerRef. Portaliq renders
 			// `kind: inbox` collections in the shared inbox surface.
-			[
-				'id' => 'studentInbox',
-				'kind' => 'inbox',
-				'register' => self::REGISTER,
-				'schema' => 'grade-notification',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'label' => 'Notifications',
-				'listable' => true,
-				'fields' => [
-					'learnerRef',
-					'event',
-					'courseId',
-					'courseName',
-					'visibleFrom',
-				],
-				// A grade held back by the teacher stays out until its moment (portaliq #1198).
-				'visibleFromField' => 'visibleFrom',
-				'messageFields' => [
-					'subject' => 'courseName',
-					'receivedAt' => 'visibleFrom',
-				],
-			],
+			self::STUDENT_INBOX,
 		];
 
 	}//end studentWelfareAndInboxCollections()
@@ -302,21 +333,8 @@ class StudentPortalCollections {
 			'label' => 'My tests',
 			'listable' => true,
 			'minTrust' => 'low',
-			'fields' => [
-				'assessmentId',
-				'assessmentTitle',
-				'lifecycle',
-				'attemptNumber',
-				'startedAt',
-				'submittedAt',
-			],
-			'timedTask' => [
-				'available' => 'listTests',
-				'start' => 'startTest',
-				'answer' => 'saveTestAnswer',
-				'submit' => 'submitTest',
-				'result' => 'readTestResult',
-			],
+			'fields' => self::STUDENT_TESTS_FIELDS,
+			'timedTask' => self::STUDENT_TESTS_TIMED_TASK,
 		];
 
 	}//end studentTestsCollection()
