@@ -3,6 +3,9 @@
 /**
  * Learniq Learning Record Owner Stamp
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Decides, on the server, whose learning record an export or a share is.
  *
  * An export is signed over the learner profile it names, so a client that
@@ -28,8 +31,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -41,10 +42,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\CallerTenantResolver;
-use OCA\Learniq\Service\LearningRecordAggregationService;
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\OpenRegister\Db\ObjectEntity;
+use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
+use OCA\Learniq\Kernel\Contracts\LearningRecordAggregationServiceInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -52,7 +52,6 @@ use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\IGroupManager;
 use OCP\IUserSession;
-use Throwable;
 
 /**
  * Stamps the owner of a LearningRecordExport or LearningRecordShare on create and keeps it on update.
@@ -83,9 +82,9 @@ class LearningRecordOwnerStamp implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver           $schemaResolver  Entity schema id to slug.
-	 * @param CallerTenantResolver             $tenants         The learner's tenant.
-	 * @param LearningRecordAggregationService $learningRecords The learner's own profile.
+	 * @param ListenerSchemaResolverInterface           $schemaResolver  Entity schema id to slug.
+	 * @param CallerTenantResolverInterface             $tenants         The learner's tenant.
+	 * @param LearningRecordAggregationServiceInterface $learningRecords The learner's own profile.
 	 * @param IGroupManager                    $groupManager    Whether the caller is an administrator.
 	 * @param IUserSession                     $userSession     The signed-in user.
 	 * @param ITimeFactory                     $timeFactory     The server's clock.
@@ -93,9 +92,9 @@ class LearningRecordOwnerStamp implements IEventListener {
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly CallerTenantResolver $tenants,
-		private readonly LearningRecordAggregationService $learningRecords,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		private readonly CallerTenantResolverInterface $tenants,
+		private readonly LearningRecordAggregationServiceInterface $learningRecords,
 		private readonly IGroupManager $groupManager,
 		private readonly IUserSession $userSession,
 		private readonly ITimeFactory $timeFactory,
@@ -112,25 +111,24 @@ class LearningRecordOwnerStamp implements IEventListener {
 	 * @spec openspec/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
 	 */
 	public function handle(Event $event): void {
-		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {
+		$write = SchemaWrite::of(event: $event, schemaResolver: $this->schemaResolver);
+		if ($write === null || isset(self::OWNER_FIELDS[$write->slug]) === false) {
 			return;
 		}
 
-		if ($event->isPropagationStopped() === true) {
-			return;
-		}
+		$this->stampWrite(write: $write);
+	}//end handle()
 
-		try {
-			$slug = $this->schemaResolver->guardSchemaSlug(entity: $this->entityOf(event: $event));
-		} catch (Throwable $exception) {
-			// Not knowing the schema is not knowing it is ours: never touch
-			// another app's writes.
-			return;
-		}
-
-		if (isset(self::OWNER_FIELDS[$slug]) === false) {
-			return;
-		}
+	/**
+	 * Stamp one write of a schema this listener owns.
+	 *
+	 * @param SchemaWrite $write The write and its schema slug.
+	 *
+	 * @return void
+	 */
+	private function stampWrite(SchemaWrite $write): void {
+		$event = $write->event;
+		$slug = $write->slug;
 
 		$userId = (string)($this->userSession->getUser()?->getUID() ?? '');
 		if ($userId === '' || $this->groupManager->isAdmin($userId) === true) {
@@ -144,7 +142,7 @@ class LearningRecordOwnerStamp implements IEventListener {
 		}
 
 		$this->stampOwner(event: $event, userId: $userId, fields: $fields);
-	}//end handle()
+	}//end stampWrite()
 
 	/**
 	 * Put the stored owner fields back over whatever the update sends.
@@ -215,20 +213,4 @@ class LearningRecordOwnerStamp implements IEventListener {
 
 		return $userId;
 	}//end learnerOf()
-
-	/**
-	 * The object being written: an update carries it in getNewObject(), only
-	 * a create has getObject().
-	 *
-	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The write event.
-	 *
-	 * @return ObjectEntity
-	 */
-	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
-	}//end entityOf()
 }//end class

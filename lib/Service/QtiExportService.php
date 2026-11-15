@@ -3,6 +3,9 @@
 /**
  * Learniq QTI Export Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Exports an `ItemBank` and its `Item`s as a QTI 2.1 package (a ZIP
  * containing `imsmanifest.xml` + one `assessmentItem` XML per Item),
  * completing the item import into a round-trip.
@@ -28,8 +31,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -41,15 +42,16 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\QtiExportServiceInterface;
+use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use RuntimeException;
-use ZipArchive;
 
 /**
  * Builds a QTI 2.1 export package for an `ItemBank`.
  */
-class QtiExportService {
+class QtiExportService implements QtiExportServiceInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 
@@ -64,6 +66,13 @@ class QtiExportService {
 	private const OLD_LABEL_NAMESPACE = 'http://www.imsglobal.org/xsd/imsqtiasi_v3p0';
 
 	/**
+	 * Turns one OpenRegister result into a plain array.
+	 *
+	 * @var ObjectRow
+	 */
+	private readonly ObjectRow $objectRow;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object service for reading ItemBank/Item objects.
@@ -73,6 +82,7 @@ class QtiExportService {
 	public function __construct(
 		private readonly ObjectService $objectService,
 	) {
+		$this->objectRow = new ObjectRow();
 	}//end __construct()
 
 	/**
@@ -189,27 +199,7 @@ class QtiExportService {
 	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-30-package
 	 */
 	private function buildZip(array $files): string {
-		$tmpFile = tempnam(sys_get_temp_dir(), 'learniq_qti_export_');
-		if ($tmpFile === false) {
-			return '';
-		}
-
-		$zip = new ZipArchive();
-		if ($zip->open($tmpFile, ZipArchive::OVERWRITE) !== true) {
-			unlink($tmpFile);
-			return '';
-		}
-
-		foreach ($files as $filename => $content) {
-			$zip->addFromString($filename, $content);
-		}
-
-		$zip->close();
-
-		$zipContent = (string)file_get_contents($tmpFile);
-		unlink($tmpFile);
-
-		return $zipContent;
+		return (new InMemoryZip(tempPrefix: 'learniq_qti_export_'))->build(files: $files);
 	}//end buildZip()
 
 	/**
@@ -222,14 +212,6 @@ class QtiExportService {
 	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-30-package
 	 */
 	private function toArray(mixed $object): array {
-		if (is_array($object) === true) {
-			return $object;
-		}
-
-		if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-			return (array)$object->jsonSerialize();
-		}
-
-		return [];
+		return $this->objectRow->asArray(object: $object);
 	}//end toArray()
 }//end class

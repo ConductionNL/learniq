@@ -36,6 +36,7 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\DisplayScreenServiceInterface;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Security\ISecureRandom;
@@ -46,7 +47,7 @@ use Throwable;
  *
  * @spec openspec/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
  */
-class DisplayScreenService {
+class DisplayScreenService implements DisplayScreenServiceInterface {
 
 	public const REGISTER = 'learniq';
 	public const SCHEMA = 'display-screen';

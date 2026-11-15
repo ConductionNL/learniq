@@ -37,13 +37,15 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\RegulationAssignmentServiceInterface;
+use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
 /**
  * Creates mandatory enrolments for the learners a regulation covers.
  */
-class RegulationAssignmentService {
+class RegulationAssignmentService implements RegulationAssignmentServiceInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const PAGE_LIMIT = 10000;
@@ -53,6 +55,14 @@ class RegulationAssignmentService {
 	 * whose only enrolment is in one of these is assigned again.
 	 */
 	private const ENDED_STATES = ['withdrawn', 'failed'];
+	private const OPEN_STATES = ['pending', 'active'];
+
+	/**
+	 * Reads the rows of one learniq schema.
+	 *
+	 * @var SchemaRows
+	 */
+	private readonly SchemaRows $schemaRows;
 
 	/**
 	 * Constructor.
@@ -68,6 +78,7 @@ class RegulationAssignmentService {
 		private readonly RegulationAudienceResolver $audience,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->schemaRows = new SchemaRows(objectService: $objectService, limit: self::PAGE_LIMIT);
 	}//end __construct()
 
 	/**
@@ -83,6 +94,7 @@ class RegulationAssignmentService {
 	 *
 	 * @spec openspec/parity/capabilities.json#comp-assign-from-hr-roles
 	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-a-course-is-bound-to-the-rule-it-trains-for
 	 */
 	public function assign(array $regulation, ?array $audience=null, ?string $dueDate=null): array {
 		$result = ['created' => 0, 'skipped' => 0, 'inScope' => 0, 'courses' => 0];
@@ -134,6 +146,156 @@ class RegulationAssignmentService {
 
 		return $result;
 	}//end assign()
+
+	/**
+	 * Check every published regulation against one person: enrol them in the
+	 * mandatory courses of each regulation that now covers them and that
+	 * they have no live enrolment for, and mark their open enrolments of each
+	 * regulation that no longer covers them as out of scope since today.
+	 * Nobody is withdrawn; a replay creates nothing twice.
+	 *
+	 * @param array<string, mixed> $profile The LearnerProfile, as it now stands.
+	 * @param string               $today   Today, `Y-m-d`, written on an enrolment that fell out of scope.
+	 *
+	 * @return array{created: list<string>, outOfScope: list<string>} The ids of the enrolments created and marked.
+	 *
+	 * @spec openspec/changes/compliance-assign-from-hr-roles/specs/compliance-rule-coverage/spec.md#requirement-a-change-of-department-roles-or-job-title-re-runs-the-assignment-for-that-person
+	 * @spec openspec/changes/compliance-assign-from-hr-roles/specs/compliance-rule-coverage/spec.md#requirement-dropping-out-of-scope-is-marked-never-withdrawn
+	 */
+	public function assignPerson(array $profile, string $today): array {
+		$result = ['created' => [], 'outOfScope' => []];
+		$userId = (string)($profile['ncUserId'] ?? '');
+		if ($userId === '') {
+			return $result;
+		}
+
+		$enrolments = $this->rows(schema: 'enrolment', filters: ['learnerId' => $userId]);
+		foreach ($this->publishedRegulations() as $regulation) {
+			if ($this->audience->covers(regulation: $regulation, profile: $profile) === true) {
+				$result['created'] = array_merge($result['created'], $this->enrolPerson(regulation: $regulation, profile: $profile, enrolments: $enrolments));
+				continue;
+			}
+
+			$marked = $this->markOutOfScope(slug: (string)$regulation['slug'], enrolments: $enrolments, today: $today);
+			$result['outOfScope'] = array_merge($result['outOfScope'], $marked);
+		}
+
+		return $result;
+	}//end assignPerson()
+
+	/**
+	 * The regulations that are published and active, with a slug.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	private function publishedRegulations(): array {
+		return array_values(
+			array_filter(
+				$this->rows(schema: 'regulation', filters: ['lifecycle' => 'published']),
+				static fn (array $regulation): bool => ($regulation['lifecycle'] ?? '') === 'published'
+					&& ($regulation['active'] ?? true) !== false
+					&& (string)($regulation['slug'] ?? '') !== ''
+			)
+		);
+	}//end publishedRegulations()
+
+	/**
+	 * Enrol one person in a regulation's published courses they have no live enrolment for.
+	 *
+	 * @param array<string, mixed>       $regulation The regulation that covers them.
+	 * @param array<string, mixed>       $profile    The person.
+	 * @param list<array<string, mixed>> $enrolments The person's enrolments.
+	 *
+	 * @return list<string> The ids of the enrolments created.
+	 */
+	private function enrolPerson(array $regulation, array $profile, array $enrolments): array {
+		$created = [];
+		foreach ($this->publishedCourses(regulation: $regulation) as $course) {
+			$courseId = (string)($course['id'] ?? ($course['uuid'] ?? ''));
+			if ($courseId === '' || $this->hasLiveEnrolment(enrolments: $enrolments, courseId: $courseId) === true) {
+				continue;
+			}
+
+			$saved = $this->objectService->saveObject(
+				object: [
+					'learnerId' => (string)$profile['ncUserId'],
+					'learnerRef' => (string)($profile['id'] ?? ($profile['uuid'] ?? '')),
+					'courseId' => $courseId,
+					'mandatory' => true,
+					'regulationSlug' => (string)$regulation['slug'],
+					'source' => 'system',
+					'managerId' => $profile['managerId'] ?? null,
+					'tenant_id' => (string)($regulation['tenant_id'] ?? ($course['tenant_id'] ?? '')),
+				],
+				register: self::LEARNIQ_REGISTER,
+				schema: 'enrolment'
+			);
+			$created[] = (string)($this->asRow(object: $saved)['id'] ?? '');
+		}//end foreach
+
+		return $created;
+	}//end enrolPerson()
+
+	/**
+	 * Mark the person's open enrolments of a regulation as out of scope since today, once.
+	 *
+	 * @param string                     $slug       The regulation that no longer covers them.
+	 * @param list<array<string, mixed>> $enrolments The person's enrolments.
+	 * @param string                     $today      Today, `Y-m-d`.
+	 *
+	 * @return list<string> The ids of the enrolments marked.
+	 */
+	private function markOutOfScope(string $slug, array $enrolments, string $today): array {
+		$marked = [];
+		foreach ($enrolments as $enrolment) {
+			$id = (string)($enrolment['id'] ?? ($enrolment['uuid'] ?? ''));
+			if ($id === ''
+				|| (string)($enrolment['regulationSlug'] ?? '') !== $slug
+				|| in_array(($enrolment['lifecycle'] ?? 'pending'), self::OPEN_STATES, true) === false
+				|| (string)($enrolment['outOfScopeSince'] ?? '') !== ''
+			) {
+				continue;
+			}
+
+			$object = array_merge($enrolment, ['outOfScopeSince' => $today]);
+			unset($object['@self'], $object['id'], $object['uuid']);
+			$this->objectService->saveObject(object: $object, register: self::LEARNIQ_REGISTER, schema: 'enrolment', uuid: $id);
+			$marked[] = $id;
+		}
+
+		return $marked;
+	}//end markOutOfScope()
+
+	/**
+	 * Whether the person has an enrolment in the course that has not ended.
+	 *
+	 * @param list<array<string, mixed>> $enrolments The person's enrolments.
+	 * @param string                     $courseId   The course.
+	 *
+	 * @return bool
+	 */
+	private function hasLiveEnrolment(array $enrolments, string $courseId): bool {
+		foreach ($enrolments as $enrolment) {
+			if ((string)($enrolment['courseId'] ?? '') === $courseId
+				&& in_array(($enrolment['lifecycle'] ?? 'pending'), self::ENDED_STATES, true) === false
+			) {
+				return true;
+			}
+		}
+
+		return false;
+	}//end hasLiveEnrolment()
+
+	/**
+	 * A saved object as a row.
+	 *
+	 * @param mixed $object The saved object.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function asRow(mixed $object): array {
+		return (new SerialisedRow())->asArray(object: $object);
+	}//end asRow()
 
 	/**
 	 * The audience a request names: null for none, false when it is not valid.
@@ -267,26 +429,6 @@ class RegulationAssignmentService {
 	 * @return array<int,array<string,mixed>>
 	 */
 	private function rows(string $schema, array $filters=[]): array {
-		$config = [
-			'filters' => array_merge(
-				$filters,
-				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => $schema,
-				]
-			),
-			'limit' => self::PAGE_LIMIT,
-		];
-
-		$out = [];
-		foreach ($this->objectService->findAll($config) as $row) {
-			if (is_array($row) === false) {
-				$row = $row->jsonSerialize();
-			}
-
-			$out[] = $row;
-		}
-
-		return $out;
+		return $this->schemaRows->serialised(schema: $schema, filters: $filters);
 	}//end rows()
 }//end class

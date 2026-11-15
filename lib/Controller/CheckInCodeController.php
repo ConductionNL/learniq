@@ -28,8 +28,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\CheckIn\CheckInCodeService;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CheckInCodeServiceInterface;
+use OCA\Learniq\Service\StaffGroupCheck;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
@@ -61,7 +62,7 @@ class CheckInCodeController extends Controller {
 	 * @param IRequest           $request      The request.
 	 * @param IUserSession       $userSession  The signed-in user.
 	 * @param IGroupManager      $groupManager Group membership and admin checks.
-	 * @param CheckInCodeService $codes        The code for the board.
+	 * @param CheckInCodeServiceInterface $codes        The code for the board.
 	 * @param ObjectService      $objects      OpenRegister object access.
 	 * @param IURLGenerator      $urls         Builds the check-in link.
 	 *
@@ -71,11 +72,11 @@ class CheckInCodeController extends Controller {
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
-		private readonly CheckInCodeService $codes,
+		private readonly CheckInCodeServiceInterface $codes,
 		private readonly ObjectService $objects,
 		private readonly IURLGenerator $urls,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -156,17 +157,7 @@ class CheckInCodeController extends Controller {
 	 * @return bool
 	 */
 	private function isStaff(string $userId): bool {
-		if ($this->groupManager->isAdmin($userId) === true) {
-			return true;
-		}
-
-		foreach (self::STAFF_GROUPS as $group) {
-			if ($this->groupManager->isInGroup($userId, $group) === true) {
-				return true;
-			}
-		}
-
-		return false;
+		return (new StaffGroupCheck(groupManager: $this->groupManager, staffGroups: self::STAFF_GROUPS))->isStaff(uid: $userId);
 	}//end isStaff()
 
 	/**

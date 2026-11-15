@@ -29,7 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Calendar;
 
 use DateTimeImmutable;
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCP\IAppConfig;
 
 /**
@@ -66,7 +66,7 @@ class SchoolYear {
 	 * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
 	 */
 	public function start(): string {
-		$value = trim((string)($this->appConfig?->getValueString(Application::APP_ID, self::KEY, self::DEFAULT_START) ?? self::DEFAULT_START));
+		$value = trim((string)($this->appConfig?->getValueString(AppIdentity::APP_ID, self::KEY, self::DEFAULT_START) ?? self::DEFAULT_START));
 		if (preg_match('/^(\d{2})-(\d{2})$/', $value, $match) !== 1 || checkdate((int)$match[1], (int)$match[2], 2001) === false) {
 			return self::DEFAULT_START;
 		}

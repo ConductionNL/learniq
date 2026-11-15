@@ -223,4 +223,29 @@ class NextStepResolverTest extends TestCase {
 		$lesson['defaultNextLessonId'] = 'l-next';
 		self::assertSame(['nextLessonId' => 'l-next', 'rule' => null], $resolver->resolve(lesson: $lesson, learnerId: 'jan'));
 	}//end testHalfWrittenRulesAreSkipped()
+
+	/**
+	 * A score equal to the minimum passes and equal to the bound is not below;
+	 * a non-numeric threshold or a non-array condition never matches, and a
+	 * keyed rule list is numbered by its order.
+	 *
+	 * @return void
+	 */
+	public function testScoreBoundariesAndKeyedRules(): void {
+		$resolver = $this->resolver();
+		$lesson   = [
+			'id' => 'l-quiz',
+			'nextStepRules' => [
+				'first'  => ['when' => 'score-below', 'goToLessonId' => 'l-x'],
+				'second' => ['when' => ['kind' => 'score-below', 'assessmentId' => 'a', 'belowScore' => 'sixty'], 'goToLessonId' => 'l-x'],
+				'third'  => ['when' => ['kind' => 'score-below', 'assessmentId' => 'a', 'belowScore' => 60, 'minScore' => 90], 'goToLessonId' => 'l-below'],
+				'fourth' => ['when' => ['kind' => 'assessment-min-score', 'assessmentId' => 'a', 'minScore' => '60', 'belowScore' => 10], 'goToLessonId' => 'l-min'],
+			],
+			'defaultNextLessonId' => '',
+		];
+
+		self::assertSame(['nextLessonId' => 'l-min', 'rule' => 3], $resolver->resolvePreview(lesson: $lesson, simulatedScore: 60.0));
+		self::assertSame(['nextLessonId' => 'l-below', 'rule' => 2], $resolver->resolvePreview(lesson: $lesson, simulatedScore: 59.5));
+		self::assertSame(['nextLessonId' => null, 'rule' => null], $resolver->resolvePreview(lesson: $lesson, simulatedScore: null));
+	}//end testScoreBoundariesAndKeyedRules()
 }//end class

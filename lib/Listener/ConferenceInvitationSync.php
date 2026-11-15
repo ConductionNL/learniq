@@ -37,8 +37,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ConferenceInvitations;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ConferenceInvitationsInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
@@ -72,17 +72,17 @@ class ConferenceInvitationSync implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
 	 * @param ObjectService $objectService Reads the slot's round.
-	 * @param ConferenceInvitations $invitations Writes the round's invitation rows.
+	 * @param ConferenceInvitationsInterface $invitations Writes the round's invitation rows.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly ObjectService $objectService,
-		private readonly ConferenceInvitations $invitations,
+		private readonly ConferenceInvitationsInterface $invitations,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -109,18 +109,45 @@ class ConferenceInvitationSync implements IEventListener {
 			return;
 		}
 
+		$round = $this->roundToSync(new: $new, old: $old);
+		if ($round !== null) {
+			$this->syncRound(round: $round);
+		}
+	}//end handle()
+
+	/**
+	 * The round whose invitations this write changes, or null.
+	 *
+	 * @param ObjectEntity      $new The round or slot after the write.
+	 * @param ObjectEntity|null $old The round or slot before, or null on create.
+	 *
+	 * @return array<string, mixed>|null The round to sync.
+	 *
+	 * @spec openspec/changes/guardian-tasks-per-child-and-self-assessment/specs/parent-conferences/spec.md#requirement-the-guardian-gets-one-task-per-child-per-open-conference-round
+	 */
+	private function roundToSync(ObjectEntity $new, ?ObjectEntity $old): ?array {
 		$schema = $this->schemaResolver->guardSchemaSlug(entity: $new);
-		$round = null;
 		if ($schema === self::ROUND_SCHEMA) {
-			$round = $this->changedRound(new: $new->jsonSerialize(), old: $old?->jsonSerialize());
-		} else if ($schema === self::SLOT_SCHEMA) {
-			$round = $this->roundOfMovedSlot(new: $new->jsonSerialize(), old: $old?->jsonSerialize());
+			return $this->changedRound(new: $new->jsonSerialize(), old: $old?->jsonSerialize());
 		}
 
-		if ($round === null) {
-			return;
+		if ($schema === self::SLOT_SCHEMA) {
+			return $this->roundOfMovedSlot(new: $new->jsonSerialize(), old: $old?->jsonSerialize());
 		}
 
+		return null;
+	}//end roundToSync()
+
+	/**
+	 * Write the round's invitations; a failure is logged, never thrown.
+	 *
+	 * @param array<string, mixed> $round The round.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/guardian-tasks-per-child-and-self-assessment/specs/parent-conferences/spec.md#requirement-the-guardian-gets-one-task-per-child-per-open-conference-round
+	 */
+	private function syncRound(array $round): void {
 		try {
 			$this->invitations->syncRound(round: $round);
 		} catch (Throwable $exception) {
@@ -129,7 +156,7 @@ class ConferenceInvitationSync implements IEventListener {
 				['round' => ($round['id'] ?? ''), 'msg' => $exception->getMessage()]
 			);
 		}
-	}//end handle()
+	}//end syncRound()
 
 	/**
 	 * The new and old entity of a create or update.
@@ -159,18 +186,30 @@ class ConferenceInvitationSync implements IEventListener {
 	 * @return array<string, mixed>|null
 	 */
 	private function changedRound(array $new, ?array $old): ?array {
-		if ($old === null) {
+		if ($old === null || $this->roundFieldChanged(new: $new, old: $old) === true) {
 			return $new;
-		}
-
-		foreach (self::ROUND_FIELDS as $field) {
-			if (($new[$field] ?? null) !== ($old[$field] ?? null)) {
-				return $new;
-			}
 		}
 
 		return null;
 	}//end changedRound()
+
+	/**
+	 * Whether a field an invitation depends on differs between the two versions.
+	 *
+	 * @param array<string, mixed> $new The round after the write.
+	 * @param array<string, mixed> $old The round before.
+	 *
+	 * @return bool True when one differs.
+	 */
+	private function roundFieldChanged(array $new, array $old): bool {
+		foreach (self::ROUND_FIELDS as $field) {
+			if (($new[$field] ?? null) !== ($old[$field] ?? null)) {
+				return true;
+			}
+		}
+
+		return false;
+	}//end roundFieldChanged()
 
 	/**
 	 * The round of a slot whose child holds or gives back a time.

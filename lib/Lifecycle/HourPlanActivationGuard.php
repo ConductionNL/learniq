@@ -74,68 +74,135 @@ class HourPlanActivationGuard implements LifecycleGuardInterface {
 	 * @spec openspec/specs/school-structure/spec.md#requirement-a-programme-has-an-hour-plan-over-its-whole-length
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
-		$programmeId = (string)($object['programmeId'] ?? '');
-		$intakeYear = (string)($object['intakeYear'] ?? '');
-		if ($programmeId === '' || $intakeYear === '') {
+		$refusal = ($this->incompleteRefusal(plan: $object) ?? $this->siblingRefusal(plan: $object, userId: $userId));
+
+		return ($refusal ?? GuardResult::allow());
+	}//end check()
+
+	/**
+	 * The refusal of a plan without a programme or an intake year, or null.
+	 *
+	 * @param array<string,mixed> $plan The hour plan being activated.
+	 *
+	 * @return GuardResult|null
+	 */
+	private function incompleteRefusal(array $plan): ?GuardResult {
+		if ((string)($plan['programmeId'] ?? '') === '' || (string)($plan['intakeYear'] ?? '') === '') {
 			return GuardResult::deny('An hour plan needs a programme and an intake year before it can be activated.');
 		}
 
-		$self = (string)($object['id'] ?? ($object['uuid'] ?? ''));
-		try {
-			$rows = $this->objectService->findAll(
-				[
-					'filters' => [
-						'register' => self::REGISTER,
-						'schema' => self::SCHEMA,
-						'programmeId' => $programmeId,
-						'intakeYear' => $intakeYear,
-					],
-				],
-				_rbac: false
-			);
-		} catch (Throwable $exception) {
-			$this->logger->warning('[HourPlanActivationGuard] Could not read hour plans: {msg}', ['msg' => $exception->getMessage()]);
+		return null;
+	}//end incompleteRefusal()
+
+	/**
+	 * The refusal while another plan of the programme and intake is active, or
+	 * when the other plans could not be read; null when none is active.
+	 *
+	 * @param array<string,mixed> $plan   The hour plan being activated.
+	 * @param string              $userId The acting user.
+	 *
+	 * @return GuardResult|null
+	 */
+	private function siblingRefusal(array $plan, string $userId): ?GuardResult {
+		$rows = $this->intakePlans(plan: $plan);
+		if ($rows === null) {
 			return GuardResult::deny('The other hour plans of this programme could not be checked. Try again.');
 		}
 
-		$active = $this->activeSibling(rows: $rows, self: $self, programmeId: $programmeId, intakeYear: $intakeYear);
-		if ($active !== null) {
-			$this->logger->info(
-				'[HourPlanActivationGuard] {user} tried a second active plan for {p} {y}.',
-				['user' => $userId, 'p' => $programmeId, 'y' => $intakeYear]
-			);
-			return GuardResult::deny(sprintf('The hour plan "%s" is already active for this programme and intake year. Archive it first.', $active));
+		$active = $this->activeSibling(rows: $rows, plan: $plan);
+		if ($active === null) {
+			return null;
 		}
 
-		return GuardResult::allow();
-	}//end check()
+		$this->logger->info(
+			'[HourPlanActivationGuard] {user} tried a second active plan for {p} {y}.',
+			['user' => $userId, 'p' => (string)($plan['programmeId'] ?? ''), 'y' => (string)($plan['intakeYear'] ?? '')]
+		);
+		return GuardResult::deny(sprintf('The hour plan "%s" is already active for this programme and intake year. Archive it first.', $active));
+	}//end siblingRefusal()
+
+	/**
+	 * The plans of the plan's programme and intake, or null when they could not be read.
+	 *
+	 * @param array<string,mixed> $plan The hour plan being activated.
+	 *
+	 * @return array<int,mixed>|null
+	 */
+	private function intakePlans(array $plan): ?array {
+		try {
+			return $this->objectService->findAll($this->intakeQuery(plan: $plan), _rbac: false);
+		} catch (Throwable $exception) {
+			$this->logger->warning('[HourPlanActivationGuard] Could not read hour plans: {msg}', ['msg' => $exception->getMessage()]);
+			return null;
+		}
+	}//end intakePlans()
+
+	/**
+	 * The query for every plan of the plan's programme and intake year.
+	 *
+	 * @param array<string,mixed> $plan The hour plan being activated.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function intakeQuery(array $plan): array {
+		return [
+			'filters' => [
+				'register' => self::REGISTER,
+				'schema' => self::SCHEMA,
+				'programmeId' => (string)($plan['programmeId'] ?? ''),
+				'intakeYear' => (string)($plan['intakeYear'] ?? ''),
+			],
+		];
+	}//end intakeQuery()
 
 	/**
 	 * The name of another active plan of the same programme and intake, or null.
 	 *
-	 * @param array<int,mixed> $rows        The plans of the programme and intake.
-	 * @param string           $self        The plan being activated.
-	 * @param string           $programmeId The programme.
-	 * @param string           $intakeYear  The intake year.
+	 * @param array<int,mixed>    $rows The plans of the programme and intake.
+	 * @param array<string,mixed> $plan The plan being activated.
 	 *
 	 * @return string|null The active plan's name (or id), or null when there is none.
 	 */
-	private function activeSibling(array $rows, string $self, string $programmeId, string $intakeYear): ?string {
+	private function activeSibling(array $rows, array $plan): ?string {
 		foreach ($rows as $row) {
-			$plan = $this->toArray(row: $row);
-			if (($plan['lifecycle'] ?? '') !== 'active') {
-				continue;
-			}
-
-			$id = (string)($plan['id'] ?? ($plan['uuid'] ?? ''));
-			$sameIntake = (string)($plan['programmeId'] ?? '') === $programmeId && (string)($plan['intakeYear'] ?? '') === $intakeYear;
-			if ($id !== $self && $sameIntake === true) {
-				return (string)($plan['name'] ?? $id);
+			$candidate = $this->toArray(row: $row);
+			if ($this->isOtherActivePlan(candidate: $candidate, plan: $plan) === true) {
+				return (string)($candidate['name'] ?? $this->planId(plan: $candidate));
 			}
 		}
 
 		return null;
 	}//end activeSibling()
+
+	/**
+	 * Whether a stored plan is another active plan of the same programme and intake.
+	 *
+	 * @param array<string,mixed> $candidate A stored plan.
+	 * @param array<string,mixed> $plan      The plan being activated.
+	 *
+	 * @return bool
+	 */
+	private function isOtherActivePlan(array $candidate, array $plan): bool {
+		if (($candidate['lifecycle'] ?? '') !== 'active') {
+			return false;
+		}
+
+		$sameIntake = (string)($candidate['programmeId'] ?? '') === (string)($plan['programmeId'] ?? '')
+			&& (string)($candidate['intakeYear'] ?? '') === (string)($plan['intakeYear'] ?? '');
+
+		return $this->planId(plan: $candidate) !== $this->planId(plan: $plan) && $sameIntake === true;
+	}//end isOtherActivePlan()
+
+	/**
+	 * A plan's id, else its uuid, else ''.
+	 *
+	 * @param array<string,mixed> $plan A plan.
+	 *
+	 * @return string
+	 */
+	private function planId(array $plan): string {
+		return (string)($plan['id'] ?? ($plan['uuid'] ?? ''));
+	}//end planId()
 
 	/**
 	 * An ObjectService row as an array.

@@ -45,6 +45,7 @@ use Stringable;
  * @covers \OCA\Learniq\Timetabling\SessionPair
  * @uses   \OCA\Learniq\Timetabling\SessionWindowLoader
  * @uses   \OCA\Learniq\Timetabling\SessionOverlapEvaluator
+ * @uses   \OCA\Learniq\Support\EntityRow
  */
 class TimetableConflictGoldenTest extends TestCase {
 

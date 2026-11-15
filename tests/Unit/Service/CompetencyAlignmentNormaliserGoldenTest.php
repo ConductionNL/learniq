@@ -18,6 +18,7 @@ use PHPUnit\Framework\TestCase;
  * golden/CompetencyAlignmentNormaliser.json.
  *
  * @covers \OCA\Learniq\Service\CompetencyAlignmentNormaliser
+ * @uses \OCA\Learniq\Support\TextValue
  */
 class CompetencyAlignmentNormaliserGoldenTest extends TestCase {
 	use GoldenFile;

@@ -32,6 +32,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\LessonOnboarding;
 
+use OCA\Learniq\Kernel\Contracts\LessonOnboardingImporterInterface;
 use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
@@ -48,7 +49,7 @@ use Throwable;
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects) The import touches the row, the course, the
  * file, the readers and two writers by design; each collaborator is already its own class.
  */
-class LessonOnboardingImporter {
+class LessonOnboardingImporter implements LessonOnboardingImporterInterface {
 
 	private const REGISTER = 'learniq';
 

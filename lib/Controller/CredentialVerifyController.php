@@ -34,17 +34,17 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\JwsProofVerifierInterface;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\JwsProofVerifier;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
-use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
-use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 use OCP\Security\Bruteforce\IThrottler;
@@ -94,7 +94,7 @@ class CredentialVerifyController extends Controller {
 	 *
 	 * @param IRequest $request The HTTP request.
 	 * @param ObjectService $objectService OR object-read service.
-	 * @param JwsProofVerifier $proofs Verifies a payload's detached JWS against the tenant key.
+	 * @param JwsProofVerifierInterface $proofs Verifies a payload's detached JWS against the tenant key.
 	 * @param IThrottler $throttler Brute-force throttler counting failed verifications.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
@@ -103,11 +103,11 @@ class CredentialVerifyController extends Controller {
 	public function __construct(
 		IRequest $request,
 		private readonly ObjectService $objectService,
-		private readonly JwsProofVerifier $proofs,
+		private readonly JwsProofVerifierInterface $proofs,
 		private readonly IThrottler $throttler,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -124,13 +124,30 @@ class CredentialVerifyController extends Controller {
 	 * @NoCSRFRequired
 	 * @PublicPage
 	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
+	 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-anyone-checks-a-certificate-from-its-link-without-logging-in
+	 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-rotating-the-signing-key-keeps-earlier-certificates-checkable
 	 */
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[AnonRateLimit(limit: 60, period: 60)]
 	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
 	public function verify(string $id): JSONResponse {
+		$found = $this->findCredential(id: $id);
+		if ($found instanceof JSONResponse) {
+			return $found;
+		}
+
+		return $this->verdictFor(data: $found);
+	}//end verify()
+
+	/**
+	 * The stored credential's data, or the answer for a credential that cannot be read.
+	 *
+	 * @param string $id Credential UUID.
+	 *
+	 * @return array<string, mixed>|JSONResponse The data, or a 404 (a counted guess) or 500 answer.
+	 */
+	private function findCredential(string $id): array|JSONResponse {
 		// ABSENCE REACHES THIS METHOD IN TWO SHAPES, NOT ONE. `find()`
 		// documents `@throws Exception If the object is not found`, and
 		// resolving the `learniq` register / `credential` schema slug goes
@@ -175,8 +192,17 @@ class CredentialVerifyController extends Controller {
 			return new JSONResponse(['valid' => false, 'error' => 'not_found'], 404);
 		}
 
-		$data = $credentialObj->jsonSerialize();
+		return $credentialObj->jsonSerialize();
+	}//end findCredential()
 
+	/**
+	 * The verification answer for a found credential: revoked, signature invalid, or its validity.
+	 *
+	 * @param array<string, mixed> $data The credential data.
+	 *
+	 * @return JSONResponse
+	 */
+	private function verdictFor(array $data): JSONResponse {
 		$lifecycle = $data['lifecycle'] ?? 'issued';
 		$isExpired = $data['isExpired'] ?? false;
 
@@ -188,6 +214,10 @@ class CredentialVerifyController extends Controller {
 					'revocationReason' => $data['revocationReason'] ?? null,
 				]
 			);
+		}
+
+		if (($data['source'] ?? null) === 'migrated') {
+			return $this->migratedVerdict(data: $data, lifecycle: $lifecycle, isExpired: $isExpired);
 		}
 
 		// C1: validate the JWS proof before declaring the credential valid.
@@ -213,7 +243,40 @@ class CredentialVerifyController extends Controller {
 				'issuerName' => $data['issuedBy'] ?? null,
 			]
 		);
-	}//end verify()
+	}//end verdictFor()
+
+	/**
+	 * The answer for a certificate taken over from the previous system.
+	 *
+	 * Learniq did not issue it and holds no signature for it, so there is no
+	 * signature to check: the answer says so, with the old number, the old
+	 * issuer and when it was taken over (credentials-migrate-with-validity
+	 * D2). Who took it over is not shown on this public route.
+	 *
+	 * @param array<string, mixed> $data      The credential data.
+	 * @param mixed                $lifecycle The credential's lifecycle state.
+	 * @param mixed                $isExpired The calculated expiry flag.
+	 *
+	 * @return JSONResponse
+	 *
+	 * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#requirement-a-migrated-certificate-keeps-its-dates-and-is-not-signed-as-learniqs-own
+	 */
+	private function migratedVerdict(array $data, mixed $lifecycle, mixed $isExpired): JSONResponse {
+		return new JSONResponse(
+			[
+				'valid' => ($lifecycle === 'issued') && ($isExpired !== true),
+				'issuedAt' => $data['issuedAt'] ?? null,
+				'expiresAt' => $data['expiresAt'] ?? null,
+				'issuerName' => $data['legacyIssuer'] ?? null,
+				'migrated' => true,
+				'issuedByLearniq' => false,
+				'signatureChecked' => false,
+				'legacyNumber' => $data['legacyNumber'] ?? null,
+				'legacyIssuer' => $data['legacyIssuer'] ?? null,
+				'migratedAt' => $data['migratedAt'] ?? null,
+			]
+		);
+	}//end migratedVerdict()
 
 	/**
 	 * Check a Europass file for a credential (credentials-europass-edci-export).

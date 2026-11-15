@@ -29,8 +29,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\ElectiveSlotService;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\ElectiveSlotServiceInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -50,18 +50,18 @@ class ElectiveSlotsController extends Controller {
 	 *
 	 * @param IRequest            $request     HTTP request.
 	 * @param IUserSession        $userSession The signed-in user.
-	 * @param ElectiveSlotService $slots       Slots of courses and of the caller's lessons.
+	 * @param ElectiveSlotServiceInterface $slots       Slots of courses and of the caller's lessons.
 	 * @param IDateTimeZone       $zone        The reader's time zone.
 	 * @param ITimeFactory        $time        The clock.
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
-		private readonly ElectiveSlotService $slots,
+		private readonly ElectiveSlotServiceInterface $slots,
 		private readonly IDateTimeZone $zone,
 		private readonly ITimeFactory $time,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -85,7 +85,7 @@ class ElectiveSlotsController extends Controller {
 		}
 
 		$ids = array_values(array_filter(array_map('trim', explode(',', $courseIds)), static fn (string $id): bool => $id !== ''));
-		if (count($ids) > ElectiveSlotService::MAX_COURSES) {
+		if (count($ids) > ElectiveSlotServiceInterface::MAX_COURSES) {
 			return new JSONResponse(data: ['error' => 'Ask for at most 20 courses at once.'], statusCode: Http::STATUS_BAD_REQUEST);
 		}
 

@@ -1,4 +1,7 @@
 <!--
+  SPDX-License-Identifier: EUPL-1.2
+  Copyright (C) 2026 Conduction B.V.
+
   CourseBuilder.vue
   Custom page component for the CourseBuilder manifest page (type: custom).
 
@@ -35,9 +38,6 @@
 
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring PortfolioBuilder.vue's existing shape.
-
-  SPDX-License-Identifier: EUPL-1.2
-  Copyright (C) 2026 Conduction B.V.
 
   @spec openspec/specs/course-management/spec.md#requirement-a-course-declares-its-display-order-among-sibling-modules
   @spec openspec/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard

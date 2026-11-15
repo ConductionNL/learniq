@@ -3,6 +3,9 @@
 /**
  * Static-analysis stub for OpenRegister's AppHost engine classes (ADR-040).
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Analysis-only — discovered by phpstan.neon `scanDirectories` (tests/Stubs)
  * and psalm.xml `<stubs>`, and NEVER loaded at runtime. The file name does not
  * match any class name, so PSR-4 autoloading can never reach it.
@@ -29,9 +32,6 @@
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * @link https://conduction.nl
- *
- * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
- * SPDX-License-Identifier: EUPL-1.2
  */
 
 declare(strict_types=1);
@@ -203,15 +203,34 @@ namespace OCA\OpenRegister\AppHost {
 		/**
 		 * Register the AppHost engine bindings on the leaf app's container.
 		 *
-		 * @param IRegistrationContext $context The app registration context.
-		 * @param string $appId The leaf app id.
-		 * @param array<string, mixed> $options The AppHost options block.
+		 * @param IRegistrationContext $context  The app registration context.
+		 * @param LeafAdoption         $adoption The leaf app id and its AppHost options block.
 		 *
 		 * @return void
 		 */
-		public static function register(IRegistrationContext $context, string $appId, array $options = []): void {
+		public static function register(IRegistrationContext $context, LeafAdoption $adoption): void {
 
 		}//end register()
+
+	}//end class
+
+	/**
+	 * Analysis-only stub for the AppHost adoption request: the leaf app id plus
+	 * the options of {@see Bootstrap::register()}.
+	 */
+	final class LeafAdoption {
+
+		/**
+		 * Hold the app id and the options.
+		 *
+		 * @param string               $appId   Leaf app id.
+		 * @param array<string, mixed> $options The options documented on Bootstrap::register().
+		 */
+		public function __construct(
+			public readonly string $appId,
+			private readonly array $options,
+		) {
+		}//end __construct()
 
 	}//end class
 

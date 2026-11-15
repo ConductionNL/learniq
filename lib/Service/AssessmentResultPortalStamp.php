@@ -34,6 +34,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\AssessmentResultPortalStampInterface;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
@@ -45,7 +46,7 @@ use Throwable;
  *
  * @spec openspec/specs/assessment/spec.md#requirement-every-attempt-carries-a-server-stamped-learnerref-and-assessment-title
  */
-class AssessmentResultPortalStamp {
+class AssessmentResultPortalStamp implements AssessmentResultPortalStampInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const ASSESSMENT_SCHEMA = 'exam';

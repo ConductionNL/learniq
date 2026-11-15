@@ -284,4 +284,56 @@ class ElectiveSignUpRulesTest extends TestCase {
 		self::assertFalse($event->isPropagationStopped());
 		self::assertSame([], $event->getModifiedData());
 	}//end testOtherSchemasAreIgnored()
+
+	/**
+	 * Event plumbing: only creating and updating events of a sign-up with a
+	 * signed-in user are checked; a check that throws refuses with UNCHECKED
+	 * and logs; only a created sign-up is stamped with who made it and how.
+	 *
+	 * @return void
+	 */
+	public function testOnlyCheckedWritesAreStampedAndAFailingCheckRefuses(): void {
+		$signUp = OrEntityFactory::make(['offerId' => 'offer-1', 'sessionId' => 'lesson-1', 'status' => 'signed-up', 'learnerId' => 'j.bakker'], 'elective-sign-up');
+
+		$other = $this->getMockBuilder(\OCP\EventDispatcher\Event::class)->onlyMethods(['stopPropagation'])->getMock();
+		$other->expects($this->never())->method('stopPropagation');
+		$this->rules('j.bakker', ['learners'])->handle($other);
+
+		$created = new ObjectCreatingEvent($signUp);
+		$this->rules('j.bakker', ['learners'])->handle($created);
+		self::assertFalse($created->isPropagationStopped());
+		self::assertSame(['madeBy' => 'j.bakker', 'madeVia' => 'learner'], $created->getModifiedData());
+
+		$updated = new ObjectUpdatingEvent($signUp, $signUp);
+		$this->rules('j.bakker', ['learners'])->handle($updated);
+		self::assertFalse($updated->isPropagationStopped());
+		self::assertSame([], $updated->getModifiedData());
+
+		$session = $this->createMock(IUserSession::class);
+		$session->method('getUser')->willReturn(null);
+		$anonymous = new ObjectCreatingEvent($signUp);
+		$resolver = $this->createMock(ListenerSchemaResolver::class);
+		$resolver->method('registerSlug')->willReturn('learniq');
+		$resolver->method('schemaSlug')->willReturn('elective-sign-up');
+		$electives = $this->createMock(ElectiveService::class);
+		$electives->expects($this->never())->method('caller');
+		(new ElectiveSignUpRules($electives, $resolver, $session, $this->createMock(IGroupManager::class), new NullLogger()))->handle($anonymous);
+		self::assertFalse($anonymous->isPropagationStopped());
+		self::assertSame([], $anonymous->getModifiedData());
+
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('j.bakker');
+		$signedIn = $this->createMock(IUserSession::class);
+		$signedIn->method('getUser')->willReturn($user);
+		$failing = $this->createMock(ElectiveService::class);
+		$failing->method('caller')->willReturn(['uid' => 'j.bakker', 'admin' => false, 'staff' => false, 'integration' => false, 'via' => 'portal']);
+		$failing->method('offer')->willThrowException(new \RuntimeException('store down'));
+		$logger = $this->createMock(\Psr\Log\LoggerInterface::class);
+		$logger->expects($this->once())->method('warning')->with('[ElectiveSignUpRules] Check failed: {msg}', ['msg' => 'store down']);
+		$broken = new ObjectCreatingEvent($signUp);
+		(new ElectiveSignUpRules($failing, $resolver, $signedIn, $this->createMock(IGroupManager::class), $logger))->handle($broken);
+		self::assertTrue($broken->isPropagationStopped());
+		self::assertSame(['message' => ElectiveSignUpRules::UNCHECKED], $broken->getErrors());
+		self::assertSame([], $broken->getModifiedData());
+	}//end testOnlyCheckedWritesAreStampedAndAFailingCheckRefuses()
 }//end class

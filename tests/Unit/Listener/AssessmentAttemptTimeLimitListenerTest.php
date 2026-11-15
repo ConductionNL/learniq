@@ -24,7 +24,7 @@ namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\Learniq\Tests\Support\FindCallShape;
 use DateTime;
-use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
+use OCA\Learniq\Listener\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\AssessmentAttemptTimeLimitListener;
 use OCA\Learniq\Service\AssessmentAccessPolicy;
 use OCA\Learniq\Service\AssessmentAttemptLimits;

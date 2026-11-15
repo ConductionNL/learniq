@@ -3,6 +3,9 @@
 /**
  * Learniq AI Locality Classifier
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Derives a {locality, verified, evidence} verdict for an AI-assisted feature's
  * processing destination from real, code-enforced configuration — never from a
  * hand-typed field an admin could get wrong or lie in (sovereign-ai-guarantee).
@@ -35,8 +38,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -48,6 +49,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\AiLocalityClassifierInterface;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\App\IAppManager;
@@ -61,8 +63,9 @@ use Throwable;
  * pair.
  *
  * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-derive-an-ai-feature-s-processing-locality-from-real-code-enforced-configuration-never-a-hand-typed-field
+ * @spec openspec/specs/platform-properties/spec.md#REQ-PLAT-003
  */
-class AiLocalityClassifier {
+class AiLocalityClassifier implements AiLocalityClassifierInterface {
 
 	/**
 	 * App id of the central AI governance/inference app (Hermiq).

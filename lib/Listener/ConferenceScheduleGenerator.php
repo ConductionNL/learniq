@@ -3,6 +3,9 @@
 /**
  * Learniq Conference Schedule Generator
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * IEventListener for ConferenceRound lifecycle → `scheduled` (the OR
  * ObjectTransitionedEvent with register=learniq, schema=conference-round,
  * to=scheduled — fired by both the `generate` transition, booking-closed →
@@ -46,8 +49,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -59,11 +60,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Service\ConferenceBookingMode;
 use OCA\Learniq\Service\ConferenceSignupRequest;
 use OCA\Learniq\Service\ConferenceSlotPass;
 use OCA\Learniq\Service\ConferenceSlotSlicer;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Support\EntityRow;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -99,7 +101,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 *
 	 * @param ObjectService $objectService OR object access service.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 * @param IUserManager|null $users The teacher's display name for the parent portal (direct-conference-booking).
 	 *
 	 * @return void
@@ -107,7 +109,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 		private readonly ?IUserManager $users=null,
 	) {
 	}//end __construct()
@@ -613,10 +615,6 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 * @return array<string,mixed>
 	 */
 	private function normalise(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		return $row->jsonSerialize();
+		return (new EntityRow())->asArray(row: $row);
 	}//end normalise()
 }//end class

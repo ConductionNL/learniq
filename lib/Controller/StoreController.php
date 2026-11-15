@@ -3,6 +3,9 @@
 /**
  * Learniq Store Controller
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * The course store: find courses other schools share, install a copy, and
  * publish a course that passed the sharing gate.
  *
@@ -28,8 +31,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -41,13 +42,14 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Exception\SharingBlockedException;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CourseShareExportServiceInterface;
+use OCA\Learniq\Kernel\Contracts\CourseStoreDescriptorInterface;
+use OCA\Learniq\Kernel\Contracts\CourseStoreInstallerInterface;
+use OCA\Learniq\Kernel\Contracts\CourseStorePublisherInterface;
+use OCA\Learniq\Kernel\Contracts\StoreActionsInterface;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Service\CourseShareExportService;
-use OCA\Learniq\Service\CourseStore\CourseStoreDescriptor;
-use OCA\Learniq\Service\CourseStore\CourseStoreInstaller;
-use OCA\Learniq\Service\CourseStore\CourseStorePublisher;
 use OCA\OpenRegister\AppHost\Service\GenericStoreService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -65,30 +67,22 @@ use Throwable;
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects) One collaborator per store operation (plane, descriptor,
  *   installer, publisher, sharing gate); grouping them would hide which path each action takes.
  */
-class StoreController extends Controller {
-
-	/**
-	 * Installing a shared course as a copy (D27: any teacher). Not
-	 * `course-package.import`, which also guards the Canvas and Moodle upload.
-	 */
-	public const ACTION_INSTALL = 'course-store.install';
-
-	public const ACTION_PUBLISH = 'course-package.share';
+class StoreController extends Controller implements StoreActionsInterface {
 
 	/**
 	 * Publish outcome => HTTP status.
 	 */
 	private const PUBLISH_STATUS = [
-		CourseStorePublisher::OUTCOME_OK              => Http::STATUS_OK,
-		CourseStorePublisher::OUTCOME_NOT_CONFIGURED  => Http::STATUS_OK,
-		CourseStorePublisher::OUTCOME_TOO_LARGE       => Http::STATUS_REQUEST_ENTITY_TOO_LARGE,
-		CourseStorePublisher::OUTCOME_RATE_LIMITED    => Http::STATUS_TOO_MANY_REQUESTS,
-		CourseStorePublisher::OUTCOME_UNREACHABLE     => Http::STATUS_BAD_GATEWAY,
-		CourseStorePublisher::OUTCOME_REJECTED        => Http::STATUS_BAD_GATEWAY,
-		CourseStorePublisher::OUTCOME_INVALID         => Http::STATUS_BAD_GATEWAY,
+		CourseStorePublisherInterface::OUTCOME_OK              => Http::STATUS_OK,
+		CourseStorePublisherInterface::OUTCOME_NOT_CONFIGURED  => Http::STATUS_OK,
+		CourseStorePublisherInterface::OUTCOME_TOO_LARGE       => Http::STATUS_REQUEST_ENTITY_TOO_LARGE,
+		CourseStorePublisherInterface::OUTCOME_RATE_LIMITED    => Http::STATUS_TOO_MANY_REQUESTS,
+		CourseStorePublisherInterface::OUTCOME_UNREACHABLE     => Http::STATUS_BAD_GATEWAY,
+		CourseStorePublisherInterface::OUTCOME_REJECTED        => Http::STATUS_BAD_GATEWAY,
+		CourseStorePublisherInterface::OUTCOME_INVALID         => Http::STATUS_BAD_GATEWAY,
 		// The descriptor did not opt in: a learniq defect, not the user's.
-		CourseStorePublisher::OUTCOME_NOT_PUBLISHABLE => Http::STATUS_INTERNAL_SERVER_ERROR,
-		CourseStorePublisher::OUTCOME_NOT_SUPPORTED   => Http::STATUS_NOT_IMPLEMENTED,
+		CourseStorePublisherInterface::OUTCOME_NOT_PUBLISHABLE => Http::STATUS_INTERNAL_SERVER_ERROR,
+		CourseStorePublisherInterface::OUTCOME_NOT_SUPPORTED   => Http::STATUS_NOT_IMPLEMENTED,
 	];
 
 	/**
@@ -96,10 +90,10 @@ class StoreController extends Controller {
 	 *
 	 * @param IRequest                 $request      HTTP request.
 	 * @param GenericStoreService      $storeService OpenRegister's store plane client.
-	 * @param CourseStoreDescriptor    $descriptor   Learniq's store parameters.
-	 * @param CourseStoreInstaller     $installer    Imports a shared course as a copy.
-	 * @param CourseStorePublisher     $publisher    Sends a gated package to the registry.
-	 * @param CourseShareExportService $shareService The sharing gate and consent record.
+	 * @param CourseStoreDescriptorInterface    $descriptor   Learniq's store parameters.
+	 * @param CourseStoreInstallerInterface     $installer    Imports a shared course as a copy.
+	 * @param CourseStorePublisherInterface     $publisher    Sends a gated package to the registry.
+	 * @param CourseShareExportServiceInterface $shareService The sharing gate and consent record.
 	 * @param IUserSession             $userSession  Nextcloud user session.
 	 * @param ActionAuthService        $actionAuth   ADR-023 action authorization.
 	 * @param LoggerInterface          $logger       Server-side diagnostics only.
@@ -109,15 +103,15 @@ class StoreController extends Controller {
 	public function __construct(
 		IRequest $request,
 		private readonly GenericStoreService $storeService,
-		private readonly CourseStoreDescriptor $descriptor,
-		private readonly CourseStoreInstaller $installer,
-		private readonly CourseStorePublisher $publisher,
-		private readonly CourseShareExportService $shareService,
+		private readonly CourseStoreDescriptorInterface $descriptor,
+		private readonly CourseStoreInstallerInterface $installer,
+		private readonly CourseStorePublisherInterface $publisher,
+		private readonly CourseShareExportServiceInterface $shareService,
 		private readonly IUserSession $userSession,
 		private readonly ActionAuthService $actionAuth,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 
 	}//end __construct()
 
@@ -152,7 +146,7 @@ class StoreController extends Controller {
 			data: [
 				'outcome' => $result['outcome'],
 				'cards'   => $result['cards'],
-				'kinds'   => [CourseStoreDescriptor::KIND],
+				'kinds'   => [CourseStoreDescriptorInterface::KIND],
 				'builtIn' => [],
 			]
 		);
@@ -181,13 +175,19 @@ class StoreController extends Controller {
 			return new JSONResponse(data: ['success' => false, 'message' => 'Malformed course slug.'], statusCode: Http::STATUS_BAD_REQUEST);
 		}
 
-		try {
-			$item = $this->storeService->resolve(descriptor: $this->descriptor->descriptor(), slug: $slug);
-		} catch (Throwable $e) {
-			$this->logger->error(message: 'Learniq course store: resolve failed for ' . $slug . ': ' . $e->getMessage());
-			$item = null;
-		}
+		return $this->installCourse(request: new CourseInstallRequest(slug: $slug, userId: $user->getUID()));
 
+	}//end install()
+
+	/**
+	 * Resolve a shared course and install it, answering the installer's report.
+	 *
+	 * @param CourseInstallRequest $request The course's slug and the installing user.
+	 *
+	 * @return JSONResponse The report; 404 unresolved; 422 import failed; 500 install threw.
+	 */
+	private function installCourse(CourseInstallRequest $request): JSONResponse {
+		$item = $this->resolvedItem(slug: $request->slug);
 		if ($item === null) {
 			return new JSONResponse(
 				data: ['success' => false, 'message' => 'The shared course could not be found.'],
@@ -196,23 +196,62 @@ class StoreController extends Controller {
 		}
 
 		try {
-			$report = $this->installer->install(item: $item, userId: $user->getUID());
+			$report = $this->installer->install(item: $item, userId: $request->userId);
 		} catch (Throwable $e) {
-			$this->logger->error(message: 'Learniq course store: install failed for ' . $slug . ': ' . $e->getMessage());
-			return new JSONResponse(
-				data: ['success' => false, 'message' => 'The shared course could not be installed.'],
-				statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
-			);
+			return $this->installFailed(slug: $request->slug, exception: $e);
 		}
 
+		return $this->reportResponse(report: $report);
+	}//end installCourse()
+
+	/**
+	 * The shared course with this slug, or null when it is not found or the
+	 * store cannot be read (logged).
+	 *
+	 * @param string $slug The shared course's slug.
+	 *
+	 * @return mixed The store item, or null.
+	 */
+	private function resolvedItem(string $slug): mixed {
+		try {
+			return $this->storeService->resolve(descriptor: $this->descriptor->descriptor(), slug: $slug);
+		} catch (Throwable $e) {
+			$this->logger->error(message: 'Learniq course store: resolve failed for ' . $slug . ': ' . $e->getMessage());
+			return null;
+		}
+	}//end resolvedItem()
+
+	/**
+	 * Log an install that threw and answer 500.
+	 *
+	 * @param string    $slug      The shared course's slug.
+	 * @param Throwable $exception Why it failed.
+	 *
+	 * @return JSONResponse
+	 */
+	private function installFailed(string $slug, Throwable $exception): JSONResponse {
+		$this->logger->error(message: 'Learniq course store: install failed for ' . $slug . ': ' . $exception->getMessage());
+		return new JSONResponse(
+			data: ['success' => false, 'message' => 'The shared course could not be installed.'],
+			statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
+		);
+	}//end installFailed()
+
+	/**
+	 * The installer's report: 200 when it succeeded, 422 otherwise.
+	 *
+	 * @param array<string,mixed> $report The installer's report.
+	 *
+	 * @return JSONResponse
+	 */
+	private function reportResponse(array $report): JSONResponse {
 		$status = Http::STATUS_OK;
 		if ($report['success'] !== true) {
 			$status = Http::STATUS_UNPROCESSABLE_ENTITY;
 		}
 
 		return new JSONResponse(data: $report, statusCode: $status);
-
-	}//end install()
+	}//end reportResponse()
 
 	/**
 	 * Publish a course to the course store, behind the sharing gate.
@@ -240,24 +279,43 @@ class StoreController extends Controller {
 			return new JSONResponse(data: ['error' => 'courseId is required'], statusCode: Http::STATUS_BAD_REQUEST);
 		}
 
+		$blocked = $this->publishBlocked(user: $user);
+		if ($blocked !== null) {
+			return $blocked;
+		}
+
+		return $this->publishCourse(courseId: $courseId, userId: $user->getUID());
+
+	}//end publish()
+
+	/**
+	 * Why nothing is published for this caller before a package is built:
+	 * no registry is configured, or the plane refuses; null when neither.
+	 *
+	 * @param IUser $user The caller.
+	 *
+	 * @return JSONResponse|null
+	 */
+	private function publishBlocked(IUser $user): ?JSONResponse {
 		// No registry, no gate run and no consent record: nothing would leave.
 		if ($this->publisher->isConfigured() === false) {
-			return new JSONResponse(data: ['outcome' => CourseStorePublisher::OUTCOME_NOT_CONFIGURED, 'slug' => '']);
+			return new JSONResponse(data: ['outcome' => CourseStorePublisherInterface::OUTCOME_NOT_CONFIGURED, 'slug' => '']);
 		}
 
-		$refusal = $this->publishRefusal(user: $user);
-		if ($refusal !== null) {
-			return $refusal;
-		}
+		return $this->publishRefusal(user: $user);
+	}//end publishBlocked()
 
+	/**
+	 * Build a course's store package behind the sharing gate and publish it.
+	 *
+	 * @param string $courseId UUID of the course.
+	 * @param string $userId   The publishing user's id.
+	 *
+	 * @return JSONResponse `{outcome, slug}`; 422 with `blockers`; 500 when the package cannot be built; see PUBLISH_STATUS.
+	 */
+	private function publishCourse(string $courseId, string $userId): JSONResponse {
 		try {
-			$package = $this->shareService->buildPackage(
-				courseId: $courseId,
-				userId: $user->getUID(),
-				noPupilData: $this->confirmed(key: 'noPupilData'),
-				rightsCleared: $this->confirmed(key: 'rightsCleared'),
-				purpose: CourseShareExportService::PURPOSE_STORE
-			);
+			$package = $this->storePackage(courseId: $courseId, userId: $userId);
 		} catch (SharingBlockedException $e) {
 			return new JSONResponse(
 				data: ['error' => $e->getMessage(), 'blockers' => $e->getBlockers()],
@@ -271,8 +329,27 @@ class StoreController extends Controller {
 		$result = $this->publisher->publish(package: $package);
 
 		return new JSONResponse(data: $result, statusCode: (self::PUBLISH_STATUS[$result['outcome']] ?? Http::STATUS_BAD_GATEWAY));
+	}//end publishCourse()
 
-	}//end publish()
+	/**
+	 * A course's store package, with the caller's two confirmations.
+	 *
+	 * @param string $courseId UUID of the course.
+	 * @param string $userId   The publishing user's id.
+	 *
+	 * @return mixed The package.
+	 *
+	 * @throws SharingBlockedException When the sharing gate refuses the course.
+	 */
+	private function storePackage(string $courseId, string $userId): mixed {
+		return $this->shareService->buildPackage(
+			courseId: $courseId,
+			userId: $userId,
+			noPupilData: $this->confirmed(key: 'noPupilData'),
+			rightsCleared: $this->confirmed(key: 'rightsCleared'),
+			purpose: CourseShareExportServiceInterface::PURPOSE_STORE
+		);
+	}//end storePackage()
 
 	/**
 	 * Why the plane will not take a publish from this user, as a response, or
@@ -288,14 +365,14 @@ class StoreController extends Controller {
 	private function publishRefusal(IUser $user): ?JSONResponse {
 		if ($this->publisher->supportsPublish() === false) {
 			return new JSONResponse(
-				data: ['outcome' => CourseStorePublisher::OUTCOME_NOT_SUPPORTED, 'slug' => ''],
+				data: ['outcome' => CourseStorePublisherInterface::OUTCOME_NOT_SUPPORTED, 'slug' => ''],
 				statusCode: Http::STATUS_NOT_IMPLEMENTED
 			);
 		}
 
 		if ($this->publisher->mayPublish(user: $user) === false) {
 			return new JSONResponse(
-				data: ['outcome' => CourseStorePublisher::OUTCOME_FORBIDDEN, 'slug' => ''],
+				data: ['outcome' => CourseStorePublisherInterface::OUTCOME_FORBIDDEN, 'slug' => ''],
 				statusCode: Http::STATUS_FORBIDDEN
 			);
 		}

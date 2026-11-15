@@ -37,19 +37,21 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\CoursePackageImportServiceInterface;
 use OCA\Learniq\Service\CoursePackage\ArchivePackage;
 use OCA\Learniq\Service\CoursePackage\CoursePackageImporters;
 use OCA\Learniq\Service\CoursePackage\CoursePackageOutput;
 use OCA\Learniq\Service\CoursePackage\ImportOrigin;
 use OCA\Learniq\Service\CoursePackage\ImportReportOutcome;
 use OCA\Learniq\Service\CoursePackage\PackageContext;
+use OCA\Learniq\Service\CoursePackage\ScormCourseImporter;
 use Psr\Log\LoggerInterface;
 
 /**
  * Orchestrates course-package import: format detection, extraction,
  * manifest-driven object creation, and the resulting import report.
  */
-class CoursePackageImportService {
+class CoursePackageImportService implements CoursePackageImportServiceInterface {
 
 	private const FORMAT_COMMON_CARTRIDGE = 'common-cartridge-1.3';
 	private const FORMAT_MOODLE_BACKUP = 'moodle-backup';
@@ -101,8 +103,8 @@ class CoursePackageImportService {
 						sourceFormat: self::FORMAT_COMMON_CARTRIDGE,
 						courseId: null,
 						entries: [],
-						errorMessage: 'Archive is not a recognised IMS Common Cartridge (ZIP), Moodle backup '
-							. '(.mbz / gzipped tar), or scholiq-native JSON package.',
+						errorMessage: 'Archive is not a recognised IMS Common Cartridge (ZIP), SCORM 1.2 or 2004 (ZIP), '
+							. 'Moodle backup (.mbz / gzipped tar), or scholiq-native JSON package.',
 					),
 				);
 			}
@@ -112,6 +114,13 @@ class CoursePackageImportService {
 			// format-support matrix), read and walked directly.
 			if ($format === self::FORMAT_SCHOLIQ_JSON) {
 				return $this->importers->learniqJson->importPackage(packagePath: $packagePath, origin: $origin);
+			}
+
+			// A zip whose root manifest declares SCORM 1.2 or 2004 is a SCORM
+			// package, not a Common Cartridge (content-scorm-package-upload).
+			$scorm = $this->scormImporterFor(format: $format, packagePath: $packagePath);
+			if ($scorm !== null) {
+				return $scorm->importPackage(packagePath: $packagePath, origin: $origin);
 			}
 
 			mkdir(directory: $tmpDir, permissions: 0700, recursive: true);
@@ -124,6 +133,29 @@ class CoursePackageImportService {
 			$this->output->fileWriter->removeDirectory(dir: $tmpDir);
 		}//end try
 	}//end import()
+
+	/**
+	 * The SCORM importer when a zip read as Common Cartridge is a SCORM package, else null.
+	 *
+	 * @param string $format      The detected format.
+	 * @param string $packagePath The uploaded file.
+	 *
+	 * @return ScormCourseImporter|null
+	 *
+	 * @spec openspec/changes/content-scorm-package-upload/specs/course-management/spec.md#requirement-the-package-import-accepts-a-scorm-zip
+	 */
+	private function scormImporterFor(string $format, string $packagePath): ?ScormCourseImporter {
+		$scorm = $this->importers->scorm;
+		if ($format !== self::FORMAT_COMMON_CARTRIDGE || $scorm === null) {
+			return null;
+		}
+
+		if ($scorm->isScormPackage(packagePath: $packagePath) === true) {
+			return $scorm;
+		}
+
+		return null;
+	}//end scormImporterFor()
 
 	/**
 	 * Extract, parse and materialise an archive-shaped package (Common

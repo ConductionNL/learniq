@@ -446,6 +446,38 @@ import {
 import { buildLtiLaunchForm, isLaunchForm } from '../utils/ltiLaunchForm.js'
 import { createScorm12Api } from '../utils/scorm12Runtime.js'
 
+/**
+ * Whether a cmi5 launch answer says the package cannot be played here: no
+ * such launch (404) or no LRS behind it (503).
+ *
+ * @param {Response} res The launch response.
+ * @return {boolean} True when cmi5 is unavailable.
+ * @spec openspec/specs/course-management/spec.md
+ */
+function cmi5Unavailable(res) {
+	return res.status === 404 || res.status === 503
+}
+
+/**
+ * The objects a lesson's blocks reference: the block type, the block field
+ * naming the object, its schema and the cache it is read into.
+ */
+const BLOCK_REFERENCES = [
+	{ type: 'media', key: 'materialId', schema: 'Material', cache: 'materialsById' },
+	{ type: 'quiz', key: 'assessmentId', schema: 'exam', cache: 'assessmentsById' },
+	{ type: 'assignment', key: 'assignmentId', schema: 'Assignment', cache: 'assignmentsById' },
+]
+
+/**
+ * The text of a thrown value: its message, else the value itself.
+ *
+ * @param {Error|object|string} e What was thrown.
+ * @return {string}
+ */
+function errorText(e) {
+	return e?.message ?? String(e)
+}
+
 // learning-progress-and-analytics: contentTypes that do NOT emit xAPI
 // statements and therefore need the learner self-serve manual-completion
 // path (progress-tracking spec "Learners can self-report completion of
@@ -771,40 +803,7 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async loadLesson() {
-			try {
-				const [courseRes, lessonRes] = await Promise.all([
-					fetch(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/Course/'
-								+ this.courseId,
-						),
-					),
-					fetch(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/Lesson/'
-								+ this.lessonId,
-						),
-					),
-				])
-				if (!courseRes.ok)
-					throw new Error(
-						this.t('learniq', 'Failed to load course (HTTP {status})', {
-							status: courseRes.status,
-						}),
-					)
-				if (!lessonRes.ok)
-					throw new Error(
-						this.t('learniq', 'Failed to load lesson (HTTP {status})', {
-							status: lessonRes.status,
-						}),
-					)
-				this.course = await courseRes.json()
-				this.lesson = await lessonRes.json()
-			} catch (e) {
-				this.error = e?.message ?? String(e)
-			} finally {
-				this.loading = false
-			}
+			await this.fetchCourseAndLesson()
 
 			if (this.lesson && !this.error) {
 				// adaptive-release-and-prerequisites: MUST resolve before
@@ -820,6 +819,73 @@ export default {
 				return
 			}
 
+			await this.openNextStepAndCompletion()
+			await this.openContentRenderer()
+			await this.openPackagePlayer()
+		},
+
+		/**
+		 * Read the course and the lesson; a failure is the page's error.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md
+		 */
+		async fetchCourseAndLesson() {
+			try {
+				const [courseRes, lessonRes] = await Promise.all([
+					fetch(
+						generateUrl(
+							'/apps/openregister/api/objects/learniq/Course/'
+								+ this.courseId,
+						),
+					),
+					fetch(
+						generateUrl(
+							'/apps/openregister/api/objects/learniq/Lesson/'
+								+ this.lessonId,
+						),
+					),
+				])
+				this.assertCourseAndLessonRead(courseRes, lessonRes)
+				this.course = await courseRes.json()
+				this.lesson = await lessonRes.json()
+			} catch (e) {
+				this.error = e?.message ?? String(e)
+			} finally {
+				this.loading = false
+			}
+		},
+
+		/**
+		 * Throw when the course or the lesson could not be read.
+		 *
+		 * @param {Response} courseRes The course read.
+		 * @param {Response} lessonRes The lesson read.
+		 * @return {void}
+		 * @spec openspec/specs/course-management/spec.md
+		 */
+		assertCourseAndLessonRead(courseRes, lessonRes) {
+			if (!courseRes.ok)
+				throw new Error(
+					this.t('learniq', 'Failed to load course (HTTP {status})', {
+						status: courseRes.status,
+					}),
+				)
+			if (!lessonRes.ok)
+				throw new Error(
+					this.t('learniq', 'Failed to load lesson (HTTP {status})', {
+						status: lessonRes.status,
+					}),
+				)
+		},
+
+		/**
+		 * Load the next step, and whether the lesson is already marked done.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md
+		 */
+		async openNextStepAndCompletion() {
 			if (this.lesson && !this.error) {
 				await this.loadNextStep()
 			}
@@ -830,7 +896,16 @@ export default {
 				// from rendering (the action simply defaults to "not completed").
 				await this.checkExistingManualCompletion()
 			}
+		},
 
+		/**
+		 * Start the LTI tool of an LTI lesson and load the references of a
+		 * text lesson's blocks.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md
+		 */
+		async openContentRenderer() {
 			if (this.isLtiLesson && !this.preview.active) {
 				await this.launchLti()
 			}
@@ -841,7 +916,15 @@ export default {
 				// whole lesson from rendering.
 				await this.loadBlockReferences()
 			}
+		},
 
+		/**
+		 * Start the SCORM 1.2 runtime or the cmi5 package of a package lesson.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md
+		 */
+		async openPackagePlayer() {
 			if (this.isScorm12Lesson) {
 				this.initScorm12()
 			}
@@ -960,50 +1043,52 @@ export default {
 		 * @spec openspec/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
 		 */
 		async loadBlockReferences() {
-			const materialIds = new Set()
-			const assessmentIds = new Set()
-			const assignmentIds = new Set()
-			for (const block of this.sortedBlocks) {
-				if (block.type === 'media' && block.materialId)
-					materialIds.add(block.materialId)
-				if (block.type === 'quiz' && block.assessmentId)
-					assessmentIds.add(block.assessmentId)
-				if (block.type === 'assignment' && block.assignmentId)
-					assignmentIds.add(block.assignmentId)
-			}
+			await Promise.all(
+				BLOCK_REFERENCES.flatMap((reference) =>
+					this.referencedIds(reference).map((id) =>
+						this.fetchBlockReference(reference, id),
+					),
+				),
+			)
+		},
 
-			const fetchInto = async (schema, id, target) => {
-				try {
-					const resp = await fetch(
-						generateUrl(
-							`/apps/openregister/api/objects/learniq/${schema}/${id}`,
-						),
-						{
-							headers: {
-								'OCS-APIREQUEST': 'true',
-								Accept: 'application/json',
-							},
-						},
-					)
-					if (!resp.ok) return
-					const json = await resp.json()
-					target[id] = json.object ?? json ?? {}
-				} catch {
-					// Best-effort — the block renders its "unavailable" state.
+		/**
+		 * The distinct ids one kind of block references, in block order.
+		 *
+		 * @param {{type: string, key: string}} reference The block type and its id field.
+		 * @return {string[]}
+		 */
+		referencedIds(reference) {
+			const ids = new Set()
+			for (const block of this.sortedBlocks) {
+				if (block.type === reference.type && block[reference.key]) {
+					ids.add(block[reference.key])
 				}
 			}
+			return [...ids]
+		},
 
-			await Promise.all([
-				...[...materialIds].map((id) =>
-					fetchInto('Material', id, this.materialsById),
-				),
-				...[...assessmentIds].map((id) =>
-					fetchInto('exam', id, this.assessmentsById),
-				),
-				...[...assignmentIds].map((id) =>
-					fetchInto('Assignment', id, this.assignmentsById),
-				),
-			])
+		/**
+		 * Read one referenced object into its cache. Best-effort: a failed read
+		 * leaves the block in its "unavailable" state.
+		 *
+		 * @param {{schema: string, cache: string}} reference The schema and the cache to fill.
+		 * @param {string} id The object id.
+		 * @return {Promise<void>}
+		 */
+		async fetchBlockReference(reference, id) {
+			const target = this[reference.cache]
+			try {
+				const resp = await fetch(
+					generateUrl(`/apps/openregister/api/objects/learniq/${reference.schema}/${id}`),
+					{ headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } },
+				)
+				if (!resp.ok) return
+				const json = await resp.json()
+				target[id] = json.object ?? json ?? {}
+			} catch {
+				// Best-effort — the block renders its "unavailable" state.
+			}
 		},
 
 		/**
@@ -1140,39 +1225,7 @@ export default {
 			this.blockLtiState[block.blockId] = { launching: true, error: '' }
 
 			try {
-				const res = await fetch(
-					generateUrl(
-						'/apps/learniq/api/lti-placements/'
-							+ placementId
-							+ '/launch',
-					),
-					{
-						method: 'POST',
-						headers: writeHeaders(this.preview, {
-							requesttoken: window.OC?.requestToken ?? '',
-						}),
-					},
-				)
-				const body = await res.json().catch(() => ({}))
-				if (!res.ok) {
-					throw new Error(
-						body?.error
-							|| this.t(
-								'learniq',
-								'Failed to start the tool (HTTP {status})',
-								{ status: res.status },
-							),
-					)
-				}
-				if (!isLaunchForm(body)) {
-					throw new Error(
-						this.t(
-							'learniq',
-							'Integriq returned an unexpected launch response.',
-						),
-					)
-				}
-
+				const body = await this.requestLtiLaunch(placementId)
 				this.blockLtiState[block.blockId] = { launching: false, error: '' }
 				this.submitLtiLaunchForm(body)
 			} catch (e) {
@@ -1181,6 +1234,67 @@ export default {
 					error: e?.message ?? String(e),
 				}
 			}
+		},
+
+		/**
+		 * Post a launch request with the request token (and the preview header
+		 * in a preview).
+		 *
+		 * @param {string} path The app-relative launch path.
+		 * @return {Promise<Response>} The response.
+		 * @spec openspec/specs/course-management/spec.md
+		 */
+		postLaunch(path) {
+			return fetch(generateUrl(path), {
+				method: 'POST',
+				headers: writeHeaders(this.preview, {
+					requesttoken: window.OC?.requestToken ?? '',
+				}),
+			})
+		},
+
+		/**
+		 * The body of a launch answer; a refusal throws the server's reason,
+		 * else the given refusal message.
+		 *
+		 * @param {Response} res The launch response.
+		 * @param {(status: number) => string} refusal The message for a refusal without a reason.
+		 * @return {Promise<object>} The body.
+		 * @spec openspec/specs/course-management/spec.md
+		 */
+		async launchBody(res, refusal) {
+			const body = await res.json().catch(() => ({}))
+			if (!res.ok) {
+				throw new Error(body?.error || refusal(res.status))
+			}
+			return body
+		},
+
+		/**
+		 * Ask integriq for the launch form of an LTI tool placement.
+		 *
+		 * @param {string} placementId The placement.
+		 * @return {Promise<object>} The launch form.
+		 * @spec openspec/specs/course-management/spec.md
+		 */
+		async requestLtiLaunch(placementId) {
+			const res = await this.postLaunch(
+				'/apps/learniq/api/lti-placements/' + placementId + '/launch',
+			)
+			const body = await this.launchBody(res, (status) =>
+				this.t('learniq', 'Failed to start the tool (HTTP {status})', {
+					status,
+				}),
+			)
+			if (!isLaunchForm(body)) {
+				throw new Error(
+					this.t(
+						'learniq',
+						'Integriq returned an unexpected launch response.',
+					),
+				)
+			}
+			return body
 		},
 
 		/**
@@ -1196,45 +1310,76 @@ export default {
 		 */
 		async checkExistingManualCompletion() {
 			try {
-				const currentUser = getCurrentUser()
-				const learnerId = currentUser?.uid ?? ''
+				const learnerId = getCurrentUser()?.uid ?? ''
 				if (!learnerId) return
 
 				this.currentEnrolment = await this.loadCurrentEnrolment(learnerId)
 
-				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/lesson-completion',
-				)
-				const params = new URLSearchParams({
-					learnerId,
-					lessonId: this.lessonId,
-					_limit: '100',
-				})
-				const resp = await fetch(`${url}?${params.toString()}`, {
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-					},
-				})
-				if (!resp.ok) return
+				const results = await this.loadLessonCompletions(learnerId)
+				if (results === null) return
 
-				const json = await resp.json()
-				const results = json.results ?? json.objects ?? json ?? []
-				// learniq#945: only a completion of the CURRENT enrolment counts,
-				// so a retake starts with this lesson open again.
-				const existing = results.find(
-					(row) =>
-						row.learnerId === learnerId
-						&& row.lessonId === this.lessonId
-						&& completionBelongsTo(row, this.currentEnrolment),
-				)
-
-				this.manualCompletion.completed = !!existing
+				this.manualCompletion.completed = this.hasCurrentCompletion(results, learnerId)
 			} catch {
 				// Best-effort — swallow, action defaults to "not completed".
 			} finally {
 				this.manualCompletion.checked = true
 			}
+		},
+
+		/**
+		 * The learner's LessonCompletions of this lesson, or null when the
+		 * read is refused.
+		 *
+		 * @param {string} learnerId Nextcloud user id.
+		 * @return {Promise<Array<object>|null>} The rows.
+		 */
+		async loadLessonCompletions(learnerId) {
+			const resp = await fetch(this.lessonCompletionsUrl(learnerId), {
+				headers: {
+					'OCS-APIREQUEST': 'true',
+					Accept: 'application/json',
+				},
+			})
+			if (!resp.ok) return null
+			const json = await resp.json()
+			return json.results ?? json.objects ?? json ?? []
+		},
+
+		/**
+		 * The list URL of the learner's completions of this lesson.
+		 *
+		 * @param {string} learnerId Nextcloud user id.
+		 * @return {string}
+		 */
+		lessonCompletionsUrl(learnerId) {
+			const url = generateUrl(
+				'/apps/openregister/api/objects/learniq/lesson-completion',
+			)
+			const params = new URLSearchParams({
+				learnerId,
+				lessonId: this.lessonId,
+				_limit: '100',
+			})
+			return `${url}?${params.toString()}`
+		},
+
+		/**
+		 * Whether a row completes this lesson for this learner within the
+		 * current enrolment. learniq#945: only a completion of the CURRENT
+		 * enrolment counts, so a retake starts with this lesson open again.
+		 *
+		 * @param {Array<object>} results LessonCompletion rows.
+		 * @param {string} learnerId Nextcloud user id.
+		 * @return {boolean}
+		 */
+		hasCurrentCompletion(results, learnerId) {
+			const existing = results.find(
+				(row) =>
+					row.learnerId === learnerId
+					&& row.lessonId === this.lessonId
+					&& completionBelongsTo(row, this.currentEnrolment),
+			)
+			return !!existing
 		},
 
 		/**
@@ -1318,50 +1463,95 @@ export default {
 				return
 			}
 
+			await this.saveManualCompletion()
+		},
+
+		/**
+		 * Post the manual completion and keep its outcome on the screen.
+		 *
+		 * @return {Promise<void>}
+		 */
+		async saveManualCompletion() {
 			this.manualCompletion.saving = true
 			this.manualCompletion.error = ''
 
 			try {
-				const currentUser = getCurrentUser()
-				const learnerId = currentUser?.uid ?? ''
-
-				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/lesson-completion',
-				)
-				const resp = await fetch(url, {
-					method: 'POST',
-					headers: writeHeaders(this.preview, {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					}),
-					body: JSON.stringify({
-						learnerId,
-						lessonId: this.lessonId,
-						courseId: this.courseId,
-						enrolmentId: this.currentEnrolmentId,
-						source: 'manual',
-						completedAt: new Date().toISOString(),
-						tenant_id:
-							this.lesson?.tenant_id ?? this.course?.tenant_id ?? '',
-					}),
-				})
-
-				if (!resp.ok) {
-					throw new Error(
-						this.t(
-							'learniq',
-							'Failed to mark lesson complete (HTTP {status})',
-							{ status: resp.status },
-						),
-					)
-				}
-
+				await this.postManualCompletion()
 				this.manualCompletion.completed = true
 			} catch (e) {
-				this.manualCompletion.error = e?.message ?? String(e)
+				this.manualCompletion.error = errorText(e)
 			} finally {
 				this.manualCompletion.saving = false
+			}
+		},
+
+		/**
+		 * POST a LessonCompletion (source: manual) for the current learner.
+		 *
+		 * @return {Promise<void>}
+		 * @throws {Error} When the server refuses it.
+		 */
+		async postManualCompletion() {
+			const learnerId = getCurrentUser()?.uid ?? ''
+			const url = generateUrl(
+				'/apps/openregister/api/objects/learniq/lesson-completion',
+			)
+			const resp = await fetch(url, this.manualCompletionRequest(learnerId))
+			if (!resp.ok) {
+				throw this.completionRefused(resp.status)
+			}
+		},
+
+		/**
+		 * The error a refused manual completion shows.
+		 *
+		 * @param {number} status The HTTP status.
+		 * @return {Error}
+		 */
+		completionRefused(status) {
+			return new Error(
+				this.t(
+					'learniq',
+					'Failed to mark lesson complete (HTTP {status})',
+					{ status },
+				),
+			)
+		},
+
+		/**
+		 * The POST that records a manual completion, with the preview headers.
+		 *
+		 * @param {string} learnerId Nextcloud user id.
+		 * @return {object} The fetch options.
+		 */
+		manualCompletionRequest(learnerId) {
+			return {
+				method: 'POST',
+				headers: writeHeaders(this.preview, {
+					'OCS-APIREQUEST': 'true',
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				}),
+
+				body: JSON.stringify(this.manualCompletionBody(learnerId)),
+			}
+		},
+
+		/**
+		 * The LessonCompletion a manual completion creates.
+		 *
+		 * @param {string} learnerId Nextcloud user id.
+		 * @return {object} The body.
+		 */
+		manualCompletionBody(learnerId) {
+			return {
+				learnerId,
+				lessonId: this.lessonId,
+				courseId: this.courseId,
+				enrolmentId: this.currentEnrolmentId,
+				source: 'manual',
+				completedAt: new Date().toISOString(),
+				tenant_id: this.lesson?.tenant_id ?? this.course?.tenant_id ?? '',
 			}
 		},
 
@@ -1390,39 +1580,7 @@ export default {
 			this.ltiLaunch = null
 
 			try {
-				const res = await fetch(
-					generateUrl(
-						'/apps/learniq/api/lti-placements/'
-							+ placementId
-							+ '/launch',
-					),
-					{
-						method: 'POST',
-						headers: writeHeaders(this.preview, {
-							requesttoken: window.OC?.requestToken ?? '',
-						}),
-					},
-				)
-				const body = await res.json().catch(() => ({}))
-				if (!res.ok) {
-					throw new Error(
-						body?.error
-							|| this.t(
-								'learniq',
-								'Failed to start the tool (HTTP {status})',
-								{ status: res.status },
-							),
-					)
-				}
-				if (!isLaunchForm(body)) {
-					throw new Error(
-						this.t(
-							'learniq',
-							'Integriq returned an unexpected launch response.',
-						),
-					)
-				}
-
+				const body = await this.requestLtiLaunch(placementId)
 				this.ltiLaunch = body
 				this.$nextTick(() => this.submitLtiLaunchForm(body))
 			} catch (e) {
@@ -1554,36 +1712,18 @@ export default {
 			this.cmi5.launching = true
 			this.cmi5.error = ''
 			try {
-				const res = await fetch(
-					generateUrl(
-						'/apps/learniq/api/lessons/'
-							+ this.lessonId
-							+ '/cmi5-launch',
-					),
-					{
-						method: 'POST',
-						headers: writeHeaders(this.preview, {
-							requesttoken: window.OC?.requestToken ?? '',
-						}),
-					},
+				const res = await this.postLaunch(
+					'/apps/learniq/api/lessons/' + this.lessonId + '/cmi5-launch',
 				)
-				if (res.status === 404 || res.status === 503) {
+				if (cmi5Unavailable(res)) {
 					this.cmi5.available = false
 					return
 				}
-				const body = await res.json().catch(() => ({}))
-				if (!res.ok) {
-					throw new Error(
-						body?.error
-							|| this.t(
-								'learniq',
-								'Failed to start the cmi5 package (HTTP {status})',
-								{
-									status: res.status,
-								},
-							),
-					)
-				}
+				const body = await this.launchBody(res, (status) =>
+					this.t('learniq', 'Failed to start the cmi5 package (HTTP {status})', {
+						status,
+					}),
+				)
 				this.cmi5.launchUrl = buildCmi5LaunchUrl(
 					this.lesson.contentRef,
 					body,

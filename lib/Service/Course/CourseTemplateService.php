@@ -31,6 +31,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Course;
 
 use OCA\Learniq\Exception\CourseTemplateRefusedException;
+use OCA\Learniq\Kernel\Contracts\CourseTemplateServiceInterface;
 use OCA\OpenRegister\Exception\NotAuthorizedException;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -45,7 +46,7 @@ use Throwable;
  *
  * @spec openspec/specs/course-management/spec.md#requirement-a-course-structure-can-be-saved-as-a-reusable-template-and-instantiated
  */
-class CourseTemplateService {
+class CourseTemplateService implements CourseTemplateServiceInterface {
 
 	private const REGISTER = 'learniq';
 

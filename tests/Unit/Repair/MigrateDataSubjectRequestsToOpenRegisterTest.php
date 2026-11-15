@@ -66,6 +66,13 @@ class MigrateDataSubjectRequestsToOpenRegisterTest extends TestCase {
 	private bool $noSourceSchema = false;
 
 	/**
+	 * When set, reads return plain arrays plus one object that cannot be serialised.
+	 *
+	 * @var bool
+	 */
+	private bool $rawRows = false;
+
+	/**
 	 * Messages the step wrote.
 	 *
 	 * @var array<int, string>
@@ -87,6 +94,9 @@ class MigrateDataSubjectRequestsToOpenRegisterTest extends TestCase {
 				}
 
 				$rows = array_slice(($this->rows[$key] ?? []), (int)($config['offset'] ?? 0), (int)($config['limit'] ?? 200));
+				if ($this->rawRows === true) {
+					return array_merge($rows, [new \stdClass()]);
+				}
 
 				return OrEntityFactory::makeMany($rows, (string)($config['filters']['schema'] ?? ''));
 			}
@@ -260,4 +270,99 @@ class MigrateDataSubjectRequestsToOpenRegisterTest extends TestCase {
 		self::assertNotFalse($import);
 		self::assertLessThan($import, $migrate);
 	}//end testTheStepRunsBeforeTheRegisterImport()
+
+	/**
+	 * The notes carry the marker, an unmapped kind, the trimmed description
+	 * and one history line per entry, exactly; they stop at 4000 characters.
+	 *
+	 * @return void
+	 */
+	public function testTheNotesAreWrittenExactly(): void {
+		$row = [
+			'kind'        => 'objection',
+			'description' => "  Bezwaar tegen verwerking.\n",
+			'auditTrail'  => [
+				['recordedAt' => '2026-03-02', 'recordedBy' => 'po-1', 'action' => 'startReview', 'note' => 'urgent'],
+				'not-an-entry',
+				['action' => 'close', 'note' => ''],
+			],
+		];
+		self::assertSame(
+			"learniq-migration: dsr-9\nOriginal kind: objection\n\nBezwaar tegen verwerking.\n\nHistory:\n- 2026-03-02 po-1: startReview (urgent)\n-  : close",
+			MigrateDataSubjectRequestsToOpenRegister::toCase(row: $row, sourceId: 'dsr-9')['notes']
+		);
+
+		$bare = ['kind' => 'deletion', 'description' => '   ', 'auditTrail' => 'none'];
+		self::assertSame('learniq-migration: dsr-9', MigrateDataSubjectRequestsToOpenRegister::toCase(row: $bare, sourceId: 'dsr-9')['notes']);
+
+		$long = ['description' => str_repeat('a', 5000)];
+		self::assertSame(4000, mb_strlen(MigrateDataSubjectRequestsToOpenRegister::toCase(row: $long, sourceId: 'dsr-9')['notes']));
+	}//end testTheNotesAreWrittenExactly()
+
+	/**
+	 * Only a case whose notes start with the marker and name a source counts
+	 * as migrated; every other case leaves its request to be moved.
+	 *
+	 * @return void
+	 */
+	public function testOnlyAMarkedCaseCountsAsMigrated(): void {
+		$this->rows['learniq/data-subject-request'] = [
+			$this->request(id: 'dsr-1'),
+			$this->request(id: 'dsr-2'),
+			$this->request(id: 'dsr-3'),
+			$this->request(id: 'dsr-4'),
+		];
+		$this->rows['data-subject-requests/dataSubjectRequest'] = [
+			['id' => 'c-1', 'notes' => MigrateDataSubjectRequestsToOpenRegister::MARKER . "dsr-1\nmore"],
+			['id' => 'c-2', 'notes' => "learniz-migration: dsr-2\n"],
+			['id' => 'c-3', 'notes' => MigrateDataSubjectRequestsToOpenRegister::MARKER . " dsr-3 \n"],
+			['id' => 'c-4', 'notes' => MigrateDataSubjectRequestsToOpenRegister::MARKER . "   \ndsr-4"],
+			['id' => 'c-5'],
+		];
+		$this->makeStep()->run($this->repairOutput());
+
+		self::assertSame(['dsr-2', 'dsr-4'], array_map(static fn (array $save): string => substr(strtok($save['object']['notes'], "\n"), 19), $this->saves));
+		self::assertSame('Learniq privacy requests: 2 moved, 2 already moved, 0 failed (of 4).', end($this->messages));
+	}//end testOnlyAMarkedCaseCountsAsMigrated()
+
+	/**
+	 * Every page is read, plain array rows count, and an object that cannot
+	 * be serialised is passed over.
+	 *
+	 * @return void
+	 */
+	public function testEveryPageAndEveryRowShapeIsRead(): void {
+		$this->rows['learniq/data-subject-request'] = array_map(fn (int $i): array => $this->request(id: 'dsr-' . $i), range(1, 450));
+		$this->makeStep()->run($this->repairOutput());
+		self::assertSame('Learniq privacy requests: 450 moved, 0 already moved, 0 failed (of 450).', end($this->messages));
+
+		$this->rawRows = true;
+		$this->rows['learniq/data-subject-request'][] = $this->request(id: 'dsr-new');
+		$this->makeStep()->run($this->repairOutput());
+		self::assertSame('Learniq privacy requests: 1 moved, 450 already moved, 0 failed (of 451).', end($this->messages));
+	}//end testEveryPageAndEveryRowShapeIsRead()
+
+	/**
+	 * An unreadable OpenRegister register stops the run before anything moves.
+	 *
+	 * @return void
+	 */
+	public function testAnUnreadableTargetMovesNothing(): void {
+		$this->rows['learniq/data-subject-request'] = [$this->request(id: 'dsr-1')];
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			function (array $config = []): array {
+				if (($config['filters']['register'] ?? '') === 'data-subject-requests') {
+					throw new RuntimeException('register missing');
+				}
+
+				return OrEntityFactory::makeMany($this->rows['learniq/data-subject-request'], 'data-subject-request');
+			}
+		);
+		$objectService->expects(self::never())->method('saveObject');
+
+		(new MigrateDataSubjectRequestsToOpenRegister($objectService, new NullLogger()))->run($this->repairOutput());
+
+		self::assertSame('Learniq privacy requests: could not read the OpenRegister register, nothing moved (register missing).', end($this->messages));
+	}//end testAnUnreadableTargetMovesNothing()
 }//end class

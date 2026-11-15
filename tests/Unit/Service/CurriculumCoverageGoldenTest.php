@@ -38,6 +38,7 @@ use PHPUnit\Framework\TestCase;
  * @covers \OCA\Learniq\Service\CoverageBuckets
  * @uses   \OCA\Learniq\Service\CompetencyAlignmentNormaliser
  * @uses   \OCA\Learniq\Service\CompetencyTree
+ * @uses   \OCA\Learniq\Support\TextValue
  */
 class CurriculumCoverageGoldenTest extends TestCase {
 

@@ -97,4 +97,44 @@ class EdciPayloadBuilderTest extends TestCase {
 		self::assertArrayNotHasKey('validUntil', $payload);
 		self::assertArrayNotHasKey('givenName', $payload['credentialSubject']);
 	}//end testAnElementWithoutASourceIsLeftOut()
+	/**
+	 * A credential without a course claims no achievement; the rest of the
+	 * payload is built whole, the BRIN registration included.
+	 *
+	 * @return void
+	 */
+	public function testACredentialWithoutACourseClaimsNothing(): void {
+		$payload = (new EdciPayloadBuilder())->build(
+			credential: ['id' => 'y', 'kind' => 'diploma', 'issuedAt' => '2026-09-01T00:00:00+00:00', 'expiresAt' => '2031-09-01T00:00:00+00:00', 'issuerDid' => 'did:web:y'],
+			course: null,
+			learner: ['givenName' => ' Noor ', 'familyName' => 'Yilmaz'],
+			issuer: ['name' => 'Vaartveld College', 'identifier' => ' 12AB ', 'identifierScheme' => 'BRIN'],
+			competences: [['id' => 'k1', 'title' => 'Plannen']]
+		);
+
+		self::assertSame(
+			[
+				'@context' => ['https://www.w3.org/2018/credentials/v1', EdciPayloadBuilder::ELM_CONTEXT],
+				'id' => 'urn:uuid:y',
+				'type' => ['VerifiableCredential', 'EuropeanDigitalCredential'],
+				'credentialProfiles' => [['id' => 'http://data.europa.eu/snb/credential/e34929035b', 'type' => 'Concept', 'prefLabel' => ['en' => 'Generic'], 'notation' => 'elm-3.2']],
+				'issuer' => [
+					'id' => 'did:web:y',
+					'type' => 'Organisation',
+					'legalName' => ['en' => 'Vaartveld College'],
+					'registration' => [
+						'type' => 'LegalIdentifier',
+						'notation' => '12AB',
+						'schemeName' => 'BRIN',
+						'spatial' => ['id' => 'http://publications.europa.eu/resource/authority/country/NLD', 'type' => 'Concept'],
+					],
+				],
+				'issuanceDate' => '2026-09-01T00:00:00+00:00',
+				'validFrom' => '2026-09-01T00:00:00+00:00',
+				'validUntil' => '2031-09-01T00:00:00+00:00',
+				'credentialSubject' => ['id' => 'urn:uuid:y#holder', 'type' => 'Person', 'givenName' => ['en' => 'Noor'], 'familyName' => ['en' => 'Yilmaz']],
+			],
+			$payload
+		);
+	}//end testACredentialWithoutACourseClaimsNothing()
 }//end class

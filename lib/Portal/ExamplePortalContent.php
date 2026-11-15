@@ -270,7 +270,18 @@ class ExamplePortalContent {
 	 * @return array<int, array<string, mixed>>
 	 */
 	private function findAll(string $schema, ?callable $match = null): array {
-		$rows = $this->objectService->findAll(
+		return $this->matching(rows: $this->allRows(schema: $schema), match: $match);
+	}//end findAll()
+
+	/**
+	 * Every row of one of portaliq's schemas, read as the system.
+	 *
+	 * @param string $schema The schema.
+	 *
+	 * @return array<int, mixed>
+	 */
+	private function allRows(string $schema): array {
+		return $this->objectService->findAll(
 			config: [
 				'filters' => [
 					'register' => self::REGISTER,
@@ -281,17 +292,39 @@ class ExamplePortalContent {
 			_rbac: false,
 			_multitenancy: false
 		);
+	}//end allRows()
 
+	/**
+	 * The non-empty rows, as arrays, that the match accepts (all when there is none).
+	 *
+	 * @param array<int, mixed> $rows  The rows read.
+	 * @param callable|null     $match Keeps a row when it answers true.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function matching(array $rows, ?callable $match): array {
 		$found = [];
 		foreach ($rows as $row) {
 			$data = self::asArray(row: $row);
-			if ($data !== [] && ($match === null || $match($data) === true)) {
+			if ($this->accepts(data: $data, match: $match) === true) {
 				$found[] = $data;
 			}
 		}
 
 		return $found;
-	}//end findAll()
+	}//end matching()
+
+	/**
+	 * Whether a row is kept: it is not empty and the match, if any, accepts it.
+	 *
+	 * @param array<string, mixed> $data  The row.
+	 * @param callable|null        $match Keeps a row when it answers true.
+	 *
+	 * @return bool
+	 */
+	private function accepts(array $data, ?callable $match): bool {
+		return $data !== [] && ($match === null || $match($data) === true);
+	}//end accepts()
 
 	/**
 	 * Save one portaliq object and answer its id.

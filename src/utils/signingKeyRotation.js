@@ -34,6 +34,69 @@ export function signingKeyStatusOf(data) {
 }
 
 /**
+ * Whether the admin said yes to the rotation question. Closing the question
+ * rejects in some @nextcloud/dialogs versions; that is a no.
+ *
+ * @param {() => Promise<boolean>} confirm Asks the admin.
+ * @return {Promise<unknown>} The answer; only `true` goes on.
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-allow-the-credential-signing-key-to-be-rotated-from-settings
+ */
+function askToRotate(confirm) {
+	return Promise.resolve()
+		.then(() => confirm())
+		.catch(() => false)
+}
+
+/**
+ * A failed outcome with its message.
+ *
+ * @param {string} message The translated message.
+ * @return {{status: 'failed', message: string, fingerprint: string}} The outcome.
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-allow-the-credential-signing-key-to-be-rotated-from-settings
+ */
+function failedRotation(message) {
+	return { status: 'failed', message, fingerprint: '' }
+}
+
+/**
+ * The outcome of the server's answer: done only for a 201 with a fingerprint.
+ *
+ * @param {{status: number, data: object}|undefined} response The answer.
+ * @param {(text: string, vars?: object) => string} t Translates.
+ * @return {{status: 'done'|'failed', message: string, fingerprint: string}} What happened.
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-allow-the-credential-signing-key-to-be-rotated-from-settings
+ */
+function rotationOutcome(response, t) {
+	const fingerprint = typeof response?.data?.fingerprint === 'string' ? response.data.fingerprint : ''
+	if (response?.status !== 201 || fingerprint === '') {
+		return failedRotation(t('The signing key was not changed.'))
+	}
+	const message = response.data.rotated === true
+		? t('The signing key was rotated. Credentials issued before stay verifiable.')
+		: t('A signing key was generated.')
+	return { status: 'done', message, fingerprint }
+}
+
+/**
+ * The message for a refused or failed post.
+ *
+ * @param {unknown} error What the post threw.
+ * @param {(text: string, vars?: object) => string} t Translates.
+ * @return {string} The translated message.
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-allow-the-credential-signing-key-to-be-rotated-from-settings
+ */
+function refusalMessage(error, t) {
+	const status = error?.response?.status
+	if (status === 429) {
+		return t('The signing key was rotated less than a day ago. Try again tomorrow.')
+	}
+	if (status === 403) {
+		return t('Only an administrator can change the signing key.')
+	}
+	return t('The signing key was not changed.')
+}
+
+/**
  * Generate the first key, or ask and then rotate the existing one.
  *
  * @param {{configured: boolean}} status The current key status.
@@ -45,33 +108,14 @@ export function signingKeyStatusOf(data) {
  * @spec openspec/specs/nextcloud-app/spec.md#requirement-allow-the-credential-signing-key-to-be-rotated-from-settings
  */
 export async function rotateSigningKey(status, { confirm, post, t }) {
-	if (status?.configured === true) {
-		// Closing the question rejects in some @nextcloud/dialogs versions; that is a no.
-		const confirmed = await Promise.resolve()
-			.then(() => confirm())
-			.catch(() => false)
-		if (confirmed !== true) {
-			return { status: 'cancelled', message: '', fingerprint: '' }
-		}
+	if (status?.configured === true && (await askToRotate(confirm)) !== true) {
+		return { status: 'cancelled', message: '', fingerprint: '' }
 	}
 
 	try {
 		const response = await post(SIGNING_KEY_ROTATE_URL, status?.configured === true ? { confirm: 'true' } : {})
-		const fingerprint = typeof response?.data?.fingerprint === 'string' ? response.data.fingerprint : ''
-		if (response?.status !== 201 || fingerprint === '') {
-			return { status: 'failed', message: t('The signing key was not changed.'), fingerprint: '' }
-		}
-		const message = response.data.rotated === true
-			? t('The signing key was rotated. Credentials issued before stay verifiable.')
-			: t('A signing key was generated.')
-		return { status: 'done', message, fingerprint }
+		return rotationOutcome(response, t)
 	} catch (e) {
-		if (e?.response?.status === 429) {
-			return { status: 'failed', message: t('The signing key was rotated less than a day ago. Try again tomorrow.'), fingerprint: '' }
-		}
-		if (e?.response?.status === 403) {
-			return { status: 'failed', message: t('Only an administrator can change the signing key.'), fingerprint: '' }
-		}
-		return { status: 'failed', message: t('The signing key was not changed.'), fingerprint: '' }
+		return failedRotation(refusalMessage(e, t))
 	}
 }

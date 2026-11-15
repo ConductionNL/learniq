@@ -23,8 +23,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Listener\Registrar\EventListenerWiring;
 use OCA\Learniq\Tests\Support\FindCallShape;
-use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\LearnerUserIdStamp;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;

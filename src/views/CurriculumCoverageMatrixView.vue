@@ -232,7 +232,7 @@ export default {
 		 * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 		 */
 		subjectChoices() {
-			return subjectOptions(this.coverageRows, this.subjectNames, this.labels)
+			return subjectOptions(this.coverageRows, { subjectNames: this.subjectNames, labels: this.labels })
 		},
 
 		/**

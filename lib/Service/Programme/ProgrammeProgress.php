@@ -33,7 +33,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Programme;
 
+use OCA\Learniq\Kernel\Contracts\ProgrammeProgressInterface;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 
@@ -51,7 +53,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *     complete: bool, mandatory: list<ProgrammePart>, optional: list<ProgrammePart>
  * }
  */
-class ProgrammeProgress {
+class ProgrammeProgress implements ProgrammeProgressInterface {
 	use FindOrNull;
 
 	/**
@@ -212,14 +214,6 @@ class ProgrammeProgress {
 	 * @return array<string, mixed>
 	 */
 	private function toArray(mixed $value): array {
-		if (is_object($value) === true && method_exists($value, 'jsonSerialize') === true) {
-			$value = $value->jsonSerialize();
-		}
-
-		if (is_array($value) === false) {
-			return [];
-		}
-
-		return $value;
+		return (new SerialisedRow())->asArray(object: $value);
 	}//end toArray()
 }//end class

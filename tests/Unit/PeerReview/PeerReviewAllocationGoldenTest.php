@@ -40,6 +40,7 @@ use ReflectionMethod;
  * @covers \OCA\Learniq\Service\PeerReviewAllocationService
  * @covers \OCA\Learniq\Service\PeerReviewNeed
  * @covers \OCA\Learniq\Service\PeerReviewRotation
+ * @uses \OCA\Learniq\Support\SerialisedRow
  */
 class PeerReviewAllocationGoldenTest extends TestCase {
 

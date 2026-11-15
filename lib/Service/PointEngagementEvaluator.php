@@ -3,6 +3,9 @@
 /**
  * Learniq Point Engagement Evaluator
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Stateless calculation engine that sums a learner's PointAward.points,
  * resolves the highest EngagementLevel the learner has reached, and computes
  * their current/longest activity streak from distinct PointAward.awardedAt
@@ -38,8 +41,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -52,6 +53,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\PointEngagementEvaluatorInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 
@@ -61,7 +63,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
  *
  * @spec openspec/specs/engagement/spec.md#requirement-learner-totals-level-and-streak-are-computed-by-a-php-evaluator-not-a-sum-aggregation
  */
-class PointEngagementEvaluator {
+class PointEngagementEvaluator implements PointEngagementEvaluatorInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const POINT_AWARD_SCHEMA = 'point-award';

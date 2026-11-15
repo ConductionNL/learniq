@@ -93,6 +93,88 @@ const REQUIRED = ['learner', 'title', 'provider', 'completedAt']
 const FAILED = ['unmatched', 'invalid']
 
 /**
+ * The delimiter of a CSV file: a semicolon when its first line holds more
+ * semicolons than commas, else a comma.
+ *
+ * @param {string} source The file contents.
+ * @return {string} `;` or `,`.
+ * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#requirement-spreadsheet-import-of-external-training
+ */
+function csvDelimiter(source) {
+	const firstLine = source.split(/\r?\n/, 1)[0] ?? ''
+	const semicolons = (firstLine.match(/;/g) ?? []).length
+	return semicolons > (firstLine.match(/,/g) ?? []).length ? ';' : ','
+}
+
+/**
+ * Close the cell being read and start the next one.
+ *
+ * @param {{row: string[], cell: string}} run The reader.
+ * @return {void}
+ * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#requirement-spreadsheet-import-of-external-training
+ */
+function endCell(run) {
+	run.row.push(run.cell)
+	run.cell = ''
+}
+
+/**
+ * Close the row being read at a line break; a CRLF counts as one break.
+ *
+ * @param {{source: string, at: number, rows: string[][], row: string[], cell: string}} run The reader.
+ * @return {void}
+ * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#requirement-spreadsheet-import-of-external-training
+ */
+function endRow(run) {
+	if (run.source[run.at] === '\r' && run.source[run.at + 1] === '\n') {
+		run.at++
+	}
+	endCell(run)
+	run.rows.push(run.row)
+	run.row = []
+}
+
+/**
+ * Read one character inside quotes: a doubled quote is a quote, a single
+ * one closes the quotes.
+ *
+ * @param {{source: string, at: number, cell: string, quoted: boolean}} run The reader.
+ * @return {void}
+ * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#requirement-spreadsheet-import-of-external-training
+ */
+function readQuotedChar(run) {
+	const char = run.source[run.at]
+	if (char !== '"') {
+		run.cell += char
+	} else if (run.source[run.at + 1] === '"') {
+		run.cell += '"'
+		run.at++
+	} else {
+		run.quoted = false
+	}
+}
+
+/**
+ * Read one character outside quotes.
+ *
+ * @param {{source: string, at: number, delimiter: string, rows: string[][], row: string[], cell: string, quoted: boolean}} run The reader.
+ * @return {void}
+ * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#requirement-spreadsheet-import-of-external-training
+ */
+function readPlainChar(run) {
+	const char = run.source[run.at]
+	if (char === '"') {
+		run.quoted = true
+	} else if (char === run.delimiter) {
+		endCell(run)
+	} else if (char === '\n' || char === '\r') {
+		endRow(run)
+	} else {
+		run.cell += char
+	}
+}
+
+/**
  * Split CSV text into rows of cells (RFC 4180 quoting). The delimiter is a
  * comma or, as a Dutch spreadsheet saves it, a semicolon: whichever the
  * first line holds more of.
@@ -103,69 +185,40 @@ const FAILED = ['unmatched', 'invalid']
  */
 export function parseCsv(text) {
 	const source = String(text ?? '').replace(/^\uFEFF/, '')
-	const firstLine = source.split(/\r?\n/, 1)[0] ?? ''
-	const delimiter =
-		(firstLine.match(/;/g) ?? []).length > (firstLine.match(/,/g) ?? []).length
-			? ';'
-			: ','
-
-	const rows = []
-	let row = []
-	let cell = ''
-	let quoted = false
-	for (let i = 0; i < source.length; i++) {
-		const char = source[i]
-		if (quoted) {
-			if (char === '"' && source[i + 1] === '"') {
-				cell += '"'
-				i++
-			} else if (char === '"') {
-				quoted = false
-			} else {
-				cell += char
-			}
-			continue
-		}
-		if (char === '"') {
-			quoted = true
-		} else if (char === delimiter) {
-			row.push(cell)
-			cell = ''
-		} else if (char === '\n' || char === '\r') {
-			if (char === '\r' && source[i + 1] === '\n') {
-				i++
-			}
-			row.push(cell)
-			rows.push(row)
-			row = []
-			cell = ''
+	const run = { source, delimiter: csvDelimiter(source), rows: [], row: [], cell: '', quoted: false, at: 0 }
+	for (; run.at < source.length; run.at++) {
+		if (run.quoted) {
+			readQuotedChar(run)
 		} else {
-			cell += char
+			readPlainChar(run)
 		}
 	}
-	row.push(cell)
-	rows.push(row)
+	endCell(run)
+	run.rows.push(run.row)
 
-	return rows.filter((cells) => cells.some((value) => value.trim() !== ''))
+	return run.rows.filter((cells) => cells.some((value) => value.trim() !== ''))
 }
 
 /**
- * Turn a parsed CSV into the rows the import route takes.
+ * Turn a CSV into rows keyed by column, recognising each heading by its aliases.
  *
  * @param {string} text The file contents.
- * @return {{rows: object[], missing: string[], ignored: string[]}} The rows, the required
- *   columns the header lacks (by heading), and the headings that were not recognised.
+ * @param {{columns: Array<{key: string, heading: string, aliases: string[]}>, required: string[]}} layout
+ *   The columns a row carries, and the keys of the columns a file cannot do without.
+ * @return {{rows: object[], missing: string[], ignored: string[], keys: Array<string|null>}} The rows,
+ *   the required columns the header lacks (by heading), the headings that were not recognised,
+ *   and the column key each heading was recognised as (null when it was not).
  * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#requirement-spreadsheet-import-of-external-training
  */
-export function rowsFromCsv(text) {
+export function rowsByColumns(text, { columns, required }) {
 	const [header = [], ...body] = parseCsv(text)
 	const keys = header.map((heading) => {
 		const normal = heading.trim().toLowerCase()
-		return COLUMNS.find((column) => column.aliases.includes(normal))?.key ?? null
+		return columns.find((column) => column.aliases.includes(normal))?.key ?? null
 	})
 
-	const missing = REQUIRED.filter((key) => !keys.includes(key)).map(
-		(key) => COLUMNS.find((column) => column.key === key).heading,
+	const missing = required.filter((key) => !keys.includes(key)).map(
+		(key) => columns.find((column) => column.key === key).heading,
 	)
 	const ignored = header.filter(
 		(heading, index) => keys[index] === null && heading.trim() !== '',
@@ -181,6 +234,19 @@ export function rowsFromCsv(text) {
 		return row
 	})
 
+	return { rows, missing, ignored, keys }
+}
+
+/**
+ * Turn a parsed CSV into the rows the import route takes.
+ *
+ * @param {string} text The file contents.
+ * @return {{rows: object[], missing: string[], ignored: string[]}} The rows, the required
+ *   columns the header lacks (by heading), and the headings that were not recognised.
+ * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#requirement-spreadsheet-import-of-external-training
+ */
+export function rowsFromCsv(text) {
+	const { rows, missing, ignored } = rowsByColumns(text, { columns: COLUMNS, required: REQUIRED })
 	return { rows, missing, ignored }
 }
 
@@ -225,6 +291,29 @@ function csvCell(value) {
 }
 
 /**
+ * One CSV line of quoted cells.
+ *
+ * @param {Array<unknown>} values The values.
+ * @return {string} The line.
+ * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#scenario-the-officer-fixes-the-failed-rows
+ */
+function csvLine(values) {
+	return values.map(csvCell).join(',')
+}
+
+/**
+ * The line of one failed row: its original columns and the reason.
+ *
+ * @param {object} row The row that was posted.
+ * @param {object} line Its row in the server's report.
+ * @return {string} The CSV line.
+ * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#scenario-the-officer-fixes-the-failed-rows
+ */
+function failedRowLine(row, line) {
+	return csvLine([...COLUMNS.map((column) => row[column.key]), reasonText(line)])
+}
+
+/**
  * The failed rows as a CSV the officer can correct and upload again: the
  * original columns plus a `reason` column, which the upload ignores.
  *
@@ -234,21 +323,9 @@ function csvCell(value) {
  * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#scenario-the-officer-fixes-the-failed-rows
  */
 export function failedRowsCsv(rows, report) {
-	const lines = [
-		[...COLUMNS.map((column) => column.heading), 'reason']
-			.map(csvCell)
-			.join(','),
-	]
-	for (const line of Array.isArray(report) ? report : []) {
-		if (!isFailed(line)) {
-			continue
-		}
-		const row = rows[line.row - 1] ?? {}
-		lines.push(
-			[...COLUMNS.map((column) => row[column.key]), reasonText(line)]
-				.map(csvCell)
-				.join(','),
-		)
+	const lines = [csvLine([...COLUMNS.map((column) => column.heading), 'reason'])]
+	for (const line of (Array.isArray(report) ? report : []).filter(isFailed)) {
+		lines.push(failedRowLine(rows[line.row - 1] ?? {}, line))
 	}
 	return lines.join('\r\n') + '\r\n'
 }

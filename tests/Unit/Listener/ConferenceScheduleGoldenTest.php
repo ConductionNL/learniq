@@ -46,6 +46,8 @@ use ReflectionMethod;
  * @uses   \OCA\Learniq\Service\ConferenceBookingMode
  * @uses   \OCA\Learniq\Service\ConferenceSlotSlicer
  * @uses   \OCA\Learniq\Service\ListenerSchemaResolver
+ * @uses   \OCA\Learniq\Service\ConferenceSlotPattern
+ * @uses   \OCA\Learniq\Support\EntityRow
  */
 class ConferenceScheduleGoldenTest extends TestCase {
 

@@ -23,7 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\Calendar;
 
-use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
+use OCA\Learniq\Listener\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\SchoolYearClock;
 use OCA\Learniq\Listener\StandbySlotDefaultsStamp;
 use OCA\Learniq\Service\Calendar\SchoolYear;

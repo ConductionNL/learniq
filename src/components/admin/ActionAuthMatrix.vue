@@ -95,6 +95,7 @@ const MATRIX_URL = '/apps/learniq/api/admin/action-matrix'
  * Nextcloud admins always pass `ActionAuthService::requireAction()`.
  *
  * @spec openspec/architecture/adr-023-action-authorization.md
+ * @spec openspec/specs/action-authorization/spec.md#requirement-an-administrator-changes-the-matrix-without-a-developer
  */
 export default {
 	name: 'ActionAuthMatrix',

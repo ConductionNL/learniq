@@ -96,3 +96,13 @@ test('only a response with a form action and a fields object is a launch form', 
 	assert.equal(isLaunchForm({ fields: {} }), false)
 	assert.equal(isLaunchForm(null), false)
 })
+
+test('a launch form needs a non-empty action string and a plain fields object', () => {
+	assert.equal(isLaunchForm({ formActionUrl: '', fields: {} }), false)
+	assert.equal(isLaunchForm({ formActionUrl: 42, fields: {} }), false)
+	assert.equal(isLaunchForm({ formActionUrl: 'https://t', fields: [] }), false)
+	assert.equal(isLaunchForm({ formActionUrl: 'https://t', fields: 'a=1' }), false)
+	assert.equal(isLaunchForm({ formActionUrl: 'https://t', fields: null }), false)
+	assert.equal(isLaunchForm({ formActionUrl: 'https://t', fields: {} }), true)
+	assert.equal(isLaunchForm(undefined), false)
+})

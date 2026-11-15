@@ -40,6 +40,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\CurriculumCoverageRollupInterface;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -50,7 +51,7 @@ use Throwable;
  *
  * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
  */
-class CurriculumCoverageRollup {
+class CurriculumCoverageRollup implements CurriculumCoverageRollupInterface {
 
 	private const REGISTER          = 'learniq';
 	private const COVERAGE_SCHEMA   = 'curriculum-coverage';

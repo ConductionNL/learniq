@@ -135,13 +135,13 @@ function build(layout, role, state = NEVER, flags = {}) {
 		workspace: buildWorkspaceRuntime(undefined, state.segment, state.chosen),
 	}
 	return applyReportCardGates(
-		buildProfiledManifest(
+		buildProfiledManifest({
 			buildManifest,
 			base,
-			structuredClone(FRAGMENTS),
-			structuredClone(layout),
-			passesContextPredicates,
-		),
+			fragments: structuredClone(FRAGMENTS),
+			profileFile: structuredClone(layout),
+			passes: passesContextPredicates,
+		}),
 	)
 }
 
@@ -379,6 +379,8 @@ const KNOWN_UNLINKED = {
 		'MyElectivesMenu',
 		'MyEvaluationsMenu',
 		'MyWorkGroupsMenu',
+		'PermissionRequestsMenu',
+		'ProctoringReviewMenu',
 		'RegulationExemptionsMenu',
 		'SchoolAdviezenMenu',
 		'SchoolEventsMenu',
@@ -396,6 +398,7 @@ const KNOWN_UNLINKED = {
 		'AbsenceReportsComplianceMenu',
 		'DashboardAdmin',
 		'DashboardStudent',
+		'ProctoringReviewComplianceMenu',
 	],
 	hr: [...CONCERN, 'DashboardAdmin', 'DashboardStudent'],
 	'administration-manager': [
@@ -411,6 +414,7 @@ const KNOWN_UNLINKED = {
 		'GradeCorrectionsMenu',
 		'GroupPlans',
 		'ImportExportToolsMenu',
+		'PermissionRequestsMenu',
 		'SchoolAdviezenMenu',
 		'SchoolEventsMenu',
 		'StandbyPlanningMenu',
@@ -427,6 +431,7 @@ const KNOWN_UNLINKED = {
 		'DashboardStudent',
 		'DashboardTeacher',
 		'GradeCorrectionsMenu',
+		'PermissionRequestsMenu',
 		'SchoolEventsMenu',
 	],
 	coordinator: [
@@ -438,6 +443,7 @@ const KNOWN_UNLINKED = {
 		'GroupPeople',
 		'HourPlanActivitiesMenu',
 		'MyLearningRecordMenu',
+		'PermissionRequestsMenu',
 		'SchoolAdviezenMenu',
 		'SchoolEventsMenu',
 		'StandbyPlanningMenu',
@@ -453,6 +459,8 @@ const KNOWN_UNLINKED = {
 		'GroupPeople',
 		'HourPlanActivitiesMenu',
 		'MyLearningRecordMenu',
+		'PermissionRequestsMenu',
+		'ProctoringReviewMenu',
 		'SubjectChoicesMenu',
 		'TeacherAvailabilitiesMenu',
 		'TimetablesMenu',
@@ -578,12 +586,12 @@ test('the full profile is exactly the plain manifest build', () => {
 		structuredClone(FRAGMENTS),
 		structuredClone(FULL),
 	)
-	const profiled = buildProfiledManifest(
+	const profiled = buildProfiledManifest({
 		buildManifest,
-		structuredClone(BASE),
-		structuredClone(FRAGMENTS),
-		structuredClone(FULL),
-	)
+		base: structuredClone(BASE),
+		fragments: structuredClone(FRAGMENTS),
+		profileFile: structuredClone(FULL),
+	})
 	// The one difference: every index page that did not choose keeps the
 	// plain header row it had before nextcloud-vue 2.62.0 gave every header a
 	// sort and filter control (menu-layout.json pageDefaults).
@@ -608,17 +616,21 @@ test('the full profile is exactly the plain manifest build', () => {
 	const entries = flat(plain.menu)
 	const count = (section) =>
 		entries.filter((item) => sectionOf(item) === section).length
-	assert.equal(entries.length, 109)
-	assert.equal(plain.menu.length, 26)
+	// 112 since permission-slips added the Permission slips entry at the top
+	// level, beside the School calendar.
+	assert.equal(entries.length, 112)
+	assert.equal(plain.menu.length, 27)
 	assert.deepEqual(
 		[count('main'), count('footer'), count('settings')],
-		[100, 2, 7],
+		[103, 2, 7],
 	)
 	// 347 since the four unreached pages (BulkEnrol, CohortTimetable,
 	// MarkAttendanceView, SubmitExcuseModal) became actions; 348 with
 	// SignUpRequests (Aanmeldverzoeken); 349 with MyGrades (LqLlCijfers); 348 once
 	// MyGrades became the learner lens of GradeEntries.
-	assert.equal(plain.pages.length, 348)
+	// 349 with AttendanceNearingLimit (attendance-warns-before-the-threshold);
+	// 351 with the permission-slips list and detail.
+	assert.equal(plain.pages.length, 351)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {
@@ -1053,12 +1065,12 @@ test('the page at / is the Today dashboard for the teaching roles, in the simple
 })
 
 test('an overlay with a condition is skipped when nothing can judge the condition', () => {
-	const built = buildProfiledManifest(
+	const built = buildProfiledManifest({
 		buildManifest,
-		structuredClone(BASE),
-		structuredClone(FRAGMENTS),
-		structuredClone(SIMPLE),
-	)
+		base: structuredClone(BASE),
+		fragments: structuredClone(FRAGMENTS),
+		profileFile: structuredClone(SIMPLE),
+	})
 	assert.equal(built.pages.find((page) => page.id === 'Dashboard').type, 'custom')
 })
 
@@ -1558,14 +1570,14 @@ function buildNav(
 ) {
 	const base = structuredClone(BASE)
 	base.runtime = { user: { primaryRole: role }, workspace: {} }
-	return buildProfiledManifest(
+	return buildProfiledManifest({
 		buildManifest,
 		base,
-		structuredClone(FRAGMENTS),
-		structuredClone(layout),
+		fragments: structuredClone(FRAGMENTS),
+		profileFile: structuredClone(layout),
 		passes,
-		{ theming },
-	).nav
+		theming,
+	}).nav
 }
 
 test('the simple navigation opens with the brand block, named after the instance', () => {
@@ -1671,7 +1683,8 @@ test('the two lists on Today open what they show', () => {
 	const lists = TEACHER.widgets.filter(
 		(widget) => widget.type === 'object-table',
 	)
-	assert.equal(lists.length, 2)
+	// Three since attendance-warns-before-the-threshold added Nearly 16 hours.
+	assert.equal(lists.length, 3)
 	for (const list of lists) {
 		const { source, columns, rowRoute, viewAllRoute } = list.content
 		const schema = schemaOf(source.schema)
@@ -1684,10 +1697,13 @@ test('the two lists on Today open what they show', () => {
 				`${list.id}: no field ${field}`,
 			)
 		}
-		const detail = pageOf(rowRoute)
-		assert.equal(detail.type, 'detail', list.id)
-		assert.ok(detail.route.endsWith('/:id'), list.id)
-		assert.equal(schemaOf(detail.config.schema).slug, schema.slug, list.id)
+		// A read model with nothing beyond its list (the summary) opens no row.
+		if (rowRoute !== undefined) {
+			const detail = pageOf(rowRoute)
+			assert.equal(detail.type, 'detail', list.id)
+			assert.ok(detail.route.endsWith('/:id'), list.id)
+			assert.equal(schemaOf(detail.config.schema).slug, schema.slug, list.id)
+		}
 		const index = pageOf(viewAllRoute.name)
 		assert.equal(index.type, 'index', list.id)
 		assert.ok(!index.route.includes(':'), list.id)
