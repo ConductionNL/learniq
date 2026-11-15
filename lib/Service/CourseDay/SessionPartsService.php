@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\CourseDay;
 
+use OCA\Learniq\Kernel\Contracts\SessionPartsServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\OCS\OCSForbiddenException;
@@ -36,7 +37,7 @@ use OCP\IUser;
  *
  * @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
  */
-class SessionPartsService {
+class SessionPartsService implements SessionPartsServiceInterface {
 	use CourseDayRows;
 
 	/**

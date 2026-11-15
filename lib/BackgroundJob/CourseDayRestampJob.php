@@ -24,7 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\BackgroundJob;
 
-use OCA\Learniq\Service\CourseDay\CourseDayStatusService;
+use OCA\Learniq\Kernel\Contracts\CourseDayStatusServiceInterface;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -39,16 +39,16 @@ class CourseDayRestampJob extends ForwardedJob {
 	/**
 	 * Constructor.
 	 *
-	 * @param ActorForwarding        $forwarding Clock, session, user manager and tenant context.
-	 * @param LoggerInterface        $log        Logger.
-	 * @param CourseDayStatusService $status     Re-derives one course day.
+	 * @param ActorForwarding                 $forwarding Clock, session, user manager and tenant context.
+	 * @param LoggerInterface                 $log        Logger.
+	 * @param CourseDayStatusServiceInterface $status     Re-derives one course day.
 	 *
 	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	public function __construct(
 		ActorForwarding $forwarding,
 		private readonly LoggerInterface $log,
-		private readonly CourseDayStatusService $status,
+		private readonly CourseDayStatusServiceInterface $status,
 	) {
 		parent::__construct(forwarding: $forwarding, logger: $log);
 	}//end __construct()

@@ -27,10 +27,10 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CourseDayStatusServiceInterface;
+use OCA\Learniq\Kernel\Contracts\SessionPartsServiceInterface;
 use OCA\Learniq\Service\CallerActions;
 use OCA\Learniq\Service\CourseDay\CourseDayException;
-use OCA\Learniq\Service\CourseDay\CourseDayStatusService;
-use OCA\Learniq\Service\CourseDay\SessionPartsService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -57,19 +57,19 @@ class CourseDayController extends Controller {
 	/**
 	 * Constructor.
 	 *
-	 * @param IRequest               $request The request.
-	 * @param CallerActions          $caller  The signed-in user and the action matrix.
-	 * @param CourseDayStatusService $days    The course day rules.
-	 * @param SessionPartsService    $parts   Attendance per part of the day.
-	 * @param LoggerInterface        $logger  PSR logger.
+	 * @param IRequest                        $request The request.
+	 * @param CallerActions                   $caller  The signed-in user and the action matrix.
+	 * @param CourseDayStatusServiceInterface $days    The course day rules.
+	 * @param SessionPartsServiceInterface    $parts   Attendance per part of the day.
+	 * @param LoggerInterface                 $logger  PSR logger.
 	 *
 	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly CallerActions $caller,
-		private readonly CourseDayStatusService $days,
-		private readonly SessionPartsService $parts,
+		private readonly CourseDayStatusServiceInterface $days,
+		private readonly SessionPartsServiceInterface $parts,
 		private readonly LoggerInterface $logger,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);

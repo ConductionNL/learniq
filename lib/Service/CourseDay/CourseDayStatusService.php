@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\CourseDay;
 
+use OCA\Learniq\Kernel\Contracts\CourseDayStatusServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 
@@ -33,7 +34,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
  *
  * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
  */
-class CourseDayStatusService {
+class CourseDayStatusService implements CourseDayStatusServiceInterface {
 	use CourseDayRows;
 
 	/**
