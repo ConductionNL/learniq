@@ -25,7 +25,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\OpenRegister\Service\Object;
+namespace OCA\OpenRegister\Kernel\Contracts\Value;
 
 use OCP\IUser;
 
@@ -58,6 +58,7 @@ final class ObjectDeletion {
 		public readonly ObjectFindTarget $target=new ObjectFindTarget(),
 		public readonly ?IUser $currentUser=null,
 		public readonly bool $permanent=false,
+		public readonly ?\Closure $reach=null,
 	) {
 	}//end __construct()
 

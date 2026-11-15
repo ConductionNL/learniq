@@ -20,7 +20,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Support;
 
 use Closure;
-use OCA\OpenRegister\Service\Object\ObjectDeletion;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
 
 /**
  * Flattens a deleteObject(deletion, _rbac, _multitenancy, _retentionSweep) call

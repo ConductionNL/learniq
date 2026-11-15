@@ -33,7 +33,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Integration\Lifecycle;
 
-use OCA\OpenRegister\Service\Object\ObjectDeletion;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\XapiCompletionHandler;
 use OCP\EventDispatcher\Event;
