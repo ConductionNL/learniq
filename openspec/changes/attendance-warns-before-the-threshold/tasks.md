@@ -4,5 +4,5 @@
   - `npm run check:register`
 - [x] **T2**: the recount fills the window count on every attendance change and on the daily sweep
 - [x] **T3**: a staff list "Bijna 16 uur" (filter on the summary), readable by group teachers, mentor and head of school
-- [ ] **T4**: example sets: mbo Sem Visser at 14, po Finn at 6 and Ryan at 12
+- [x] **T4**: example sets: mbo Sem Visser at 14, po Finn at 6 and Ryan at 12 (po: a missed school day is 5,75 lesuren, so Finn reads 5,8 and Ryan 11,5)
 - [x] **T5**: unit tests for the window, the warning level and the drop below it
