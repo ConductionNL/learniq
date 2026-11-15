@@ -155,19 +155,7 @@ class PortalPracticalExamSigning implements PortalPracticalExamSigningInterface 
 	 */
 	private function signChecked(string $assessorRef, string $assurance, string $assessmentId): PortalOutcome {
 		$assessment = $this->first(schema: self::ASSESSMENT_SCHEMA, wanted: ['id' => $assessmentId]);
-		$assignment = null;
-		if ($assessment !== null) {
-			$assignment = $this->first(
-				schema: self::ASSIGNMENT_SCHEMA,
-				wanted: [
-					'externalAssessorId' => $assessorRef,
-					'examSittingId' => ($assessment['examSittingId'] ?? null),
-					'learnerRef' => ($assessment['learnerRef'] ?? null),
-					'lifecycle' => 'assigned',
-				]
-			);
-		}
-
+		$assignment = $this->assignmentFor(assessorRef: $assessorRef, assessment: $assessment);
 		if ($assessment === null || $assignment === null) {
 			return new PortalOutcome(status: 403, body: ['error' => 'not_assigned'], reason: 'not-assigned');
 		}
@@ -181,6 +169,44 @@ class PortalPracticalExamSigning implements PortalPracticalExamSigningInterface 
 			return new PortalOutcome(status: 409, body: ['error' => 'already_signed'], reason: 'already-signed');
 		}
 
+		return $this->store(own: $own, assurance: $assurance, assignment: $assignment, assessment: $assessment);
+	}//end signChecked()
+
+	/**
+	 * The assessor's live assignment for the assessment's candidate at its sitting, or null.
+	 *
+	 * @param string                    $assessorRef The calling assessor.
+	 * @param array<string, mixed>|null $assessment  The assessment, null when it does not exist.
+	 *
+	 * @return array<string, mixed>|null The assignment.
+	 */
+	private function assignmentFor(string $assessorRef, ?array $assessment): ?array {
+		if ($assessment === null) {
+			return null;
+		}
+
+		return $this->first(
+			schema: self::ASSIGNMENT_SCHEMA,
+			wanted: [
+				'externalAssessorId' => $assessorRef,
+				'examSittingId' => ($assessment['examSittingId'] ?? null),
+				'learnerRef' => ($assessment['learnerRef'] ?? null),
+				'lifecycle' => 'assigned',
+			]
+		);
+	}//end assignmentFor()
+
+	/**
+	 * Store the assessor's signature on the assessment and answer 201.
+	 *
+	 * @param array<string, mixed> $own        The subject and the signer.
+	 * @param string               $assurance  The assurance level of his session.
+	 * @param array<string, mixed> $assignment His assignment.
+	 * @param array<string, mixed> $assessment The assessment.
+	 *
+	 * @return PortalOutcome The outcome.
+	 */
+	private function store(array $own, string $assurance, array $assignment, array $assessment): PortalOutcome {
 		$signedAt = $this->timeFactory->getDateTime()->format(DateTimeInterface::ATOM);
 		$saved    = $this->objectService->saveObject(
 			object: array_merge(
@@ -210,7 +236,7 @@ class PortalPracticalExamSigning implements PortalPracticalExamSigningInterface 
 				'signedAt' => $signedAt,
 			]
 		);
-	}//end signChecked()
+	}//end store()
 
 	/**
 	 * The first row of a schema whose fields hold exactly the wanted values.

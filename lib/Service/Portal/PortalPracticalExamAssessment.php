@@ -171,26 +171,20 @@ class PortalPracticalExamAssessment implements PortalPracticalExamAssessmentInte
 			}
 
 			$existing = $this->ownAssessment(assessorRef: $assessorRef, pair: $pair);
-			if ($existing !== null && ($existing['lifecycle'] ?? null) === 'submitted') {
+			if (self::hasLifecycle(row: $existing, lifecycle: 'submitted') === true) {
 				return new PortalOutcome(status: 409, body: ['error' => 'already_submitted'], reason: 'already-submitted');
 			}
 
-			$saved = $this->objectService->saveObject(
-				object: $this->stamped(
-					assessor: $assessor,
-					stamp: [
-						'assessorRef' => $assessorRef,
-						'assurance' => $request['assurance'],
-						'lifecycle' => $request['lifecycle'],
-						'tenant' => $this->text(value: ($assignment['tenant_id'] ?? null)),
-						'body' => $request['body'],
-					]
-				),
-				register: self::REGISTER,
-				schema: self::ASSESSMENT_SCHEMA,
-				uuid: $this->idOf(row: $existing),
-				_rbac: false,
-				_multitenancy: false
+			$saved = $this->save(
+				assessor: $assessor,
+				stamp: [
+					'assessorRef' => $assessorRef,
+					'assurance' => $request['assurance'],
+					'lifecycle' => $request['lifecycle'],
+					'tenant' => $this->text(value: ($assignment['tenant_id'] ?? null)),
+					'body' => $request['body'],
+				],
+				existing: $existing
 			);
 		} catch (Throwable $exception) {
 			$this->logger->error(
@@ -200,9 +194,42 @@ class PortalPracticalExamAssessment implements PortalPracticalExamAssessmentInte
 			return new PortalOutcome(status: 502, body: ['error' => 'downstream_error'], reason: 'downstream');
 		}//end try
 
-		$status = 201;
-		if ($existing !== null) {
-			$status = 200;
+		return $this->stored(saved: $saved, request: $request, created: $existing === null);
+	}//end store()
+
+	/**
+	 * Save the stamped assessment, over the assessor's own earlier one when there is one.
+	 *
+	 * @param array<string, mixed>      $assessor The assessor.
+	 * @param array<string, mixed>      $stamp    What the portal stamps on the body.
+	 * @param array<string, mixed>|null $existing The assessor's own earlier assessment.
+	 *
+	 * @return mixed The saved object.
+	 */
+	private function save(array $assessor, array $stamp, ?array $existing): mixed {
+		return $this->objectService->saveObject(
+			object: $this->stamped(assessor: $assessor, stamp: $stamp),
+			register: self::REGISTER,
+			schema: self::ASSESSMENT_SCHEMA,
+			uuid: $this->idOf(row: $existing),
+			_rbac: false,
+			_multitenancy: false
+		);
+	}//end save()
+
+	/**
+	 * The answer to a stored assessment: 201 when it is new, 200 when it replaced a draft.
+	 *
+	 * @param mixed                $saved   The saved object.
+	 * @param array<string, mixed> $request The request.
+	 * @param bool                 $created Whether the assessment is new.
+	 *
+	 * @return PortalOutcome
+	 */
+	private function stored(mixed $saved, array $request, bool $created): PortalOutcome {
+		$status = 200;
+		if ($created === true) {
+			$status = 201;
 		}
 
 		return new PortalOutcome(
@@ -213,7 +240,30 @@ class PortalPracticalExamAssessment implements PortalPracticalExamAssessmentInte
 				'lifecycle' => $request['lifecycle'],
 			]
 		);
-	}//end store()
+	}//end stored()
+
+	/**
+	 * Whether a row exists and is in the given lifecycle.
+	 *
+	 * @param array<string, mixed>|null $row       The row.
+	 * @param string                    $lifecycle The lifecycle.
+	 *
+	 * @return bool
+	 */
+	private static function hasLifecycle(?array $row, string $lifecycle): bool {
+		return $row !== null && ($row['lifecycle'] ?? null) === $lifecycle;
+	}//end hasLifecycle()
+
+	/**
+	 * Whether any of the given values is empty.
+	 *
+	 * @param array<int, string> $values The values.
+	 *
+	 * @return bool
+	 */
+	private static function anyEmpty(array $values): bool {
+		return in_array('', $values, true);
+	}//end anyEmpty()
 
 	/**
 	 * The assessor's own draft for one candidate at one sitting, to resume it.
@@ -228,7 +278,7 @@ class PortalPracticalExamAssessment implements PortalPracticalExamAssessmentInte
 	 */
 	public function draft(string $assessorRef, string $sittingId, string $learnerRef): PortalOutcome {
 		$pair = ['sittingId' => $sittingId, 'learnerRef' => $learnerRef];
-		if ($assessorRef === '' || $sittingId === '' || $learnerRef === '') {
+		if (self::anyEmpty(values: [$assessorRef, $sittingId, $learnerRef]) === true) {
 			return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
 		}
 
@@ -246,8 +296,19 @@ class PortalPracticalExamAssessment implements PortalPracticalExamAssessmentInte
 			return new PortalOutcome(status: 502, body: ['error' => 'downstream_error'], reason: 'downstream');
 		}
 
-		if ($existing === null || ($existing['lifecycle'] ?? null) !== 'draft') {
-			return new PortalOutcome(status: 200, body: ['draft' => null]);
+		return new PortalOutcome(status: 200, body: ['draft' => $this->draftOf(existing: $existing)]);
+	}//end draft()
+
+	/**
+	 * The resumable draft of an own assessment, or null when it is none.
+	 *
+	 * @param array<string, mixed>|null $existing The assessor's own assessment.
+	 *
+	 * @return array<string, mixed>|null The draft.
+	 */
+	private function draftOf(?array $existing): ?array {
+		if (self::hasLifecycle(row: $existing, lifecycle: 'draft') === false) {
+			return null;
 		}
 
 		$draft = ['assessmentId' => $this->idOf(row: $existing)];
@@ -255,8 +316,8 @@ class PortalPracticalExamAssessment implements PortalPracticalExamAssessmentInte
 			$draft[$field] = ($existing[$field] ?? null);
 		}
 
-		return new PortalOutcome(status: 200, body: ['draft' => $draft]);
-	}//end draft()
+		return $draft;
+	}//end draftOf()
 
 	/**
 	 * Why the request is refused before any read: assurance below the floor, or an incomplete request.
@@ -273,7 +334,7 @@ class PortalPracticalExamAssessment implements PortalPracticalExamAssessmentInte
 			return new PortalOutcome(status: 403, body: ['error' => 'assurance_too_low', 'required' => $floor], reason: 'assurance-too-low');
 		}
 
-		if ($assessorRef === '' || $pair['sittingId'] === '' || $pair['learnerRef'] === '') {
+		if (self::anyEmpty(values: [$assessorRef, $pair['sittingId'], $pair['learnerRef']]) === true) {
 			return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
 		}
 

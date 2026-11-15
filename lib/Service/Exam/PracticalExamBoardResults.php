@@ -91,7 +91,7 @@ class PracticalExamBoardResults implements PracticalExamBoardResultsInterface {
 		$assessors = $this->assessorsByCandidate(sittingId: $sittingId);
 		$results   = [];
 		foreach ($this->rows(schema: 'practical-exam-assessment', filters: ['examSittingId' => $sittingId, 'lifecycle' => 'submitted']) as $assessment) {
-			if (($assessment['examSittingId'] ?? null) !== $sittingId || ($assessment['lifecycle'] ?? null) !== 'submitted') {
+			if (self::isSubmittedIn(assessment: $assessment, sittingId: $sittingId) === false) {
 				continue;
 			}
 
@@ -126,20 +126,43 @@ class PracticalExamBoardResults implements PracticalExamBoardResultsInterface {
 	private function assessorsByCandidate(string $sittingId): array {
 		$byCandidate = [];
 		foreach ($this->rows(schema: 'exam-assessor-assignment', filters: ['examSittingId' => $sittingId, 'lifecycle' => 'assigned']) as $assignment) {
-			$learner  = ($assignment['learnerRef'] ?? null);
-			$role     = ($assignment['role'] ?? null);
-			$assessor = ($assignment['externalAssessorId'] ?? null);
-			if (($assignment['examSittingId'] ?? null) !== $sittingId || ($assignment['lifecycle'] ?? null) !== 'assigned'
-				|| is_string($learner) === false || in_array($role, self::ROLES, true) === false || is_string($assessor) === false
-			) {
-				continue;
+			if (self::isLiveAssignment(assignment: $assignment, sittingId: $sittingId) === true) {
+				$byCandidate[$assignment['learnerRef']][$assignment['role']] = $assignment['externalAssessorId'];
 			}
-
-			$byCandidate[$learner][$role] = $assessor;
 		}
 
 		return $byCandidate;
 	}//end assessorsByCandidate()
+
+	/**
+	 * Whether an assessment is a submitted one of the sitting.
+	 *
+	 * @param array<string, mixed> $assessment The assessment row.
+	 * @param string               $sittingId  The sitting.
+	 *
+	 * @return bool
+	 */
+	private static function isSubmittedIn(array $assessment, string $sittingId): bool {
+		return ($assessment['examSittingId'] ?? null) === $sittingId && ($assessment['lifecycle'] ?? null) === 'submitted';
+	}//end isSubmittedIn()
+
+	/**
+	 * Whether an assignment is a live one of the sitting, naming a candidate, a known role and an assessor.
+	 *
+	 * @param array<string, mixed> $assignment The assignment row.
+	 * @param string               $sittingId  The sitting.
+	 *
+	 * @return bool
+	 */
+	private static function isLiveAssignment(array $assignment, string $sittingId): bool {
+		if (($assignment['examSittingId'] ?? null) !== $sittingId || ($assignment['lifecycle'] ?? null) !== 'assigned') {
+			return false;
+		}
+
+		return is_string($assignment['learnerRef'] ?? null) === true
+			&& in_array(($assignment['role'] ?? null), self::ROLES, true) === true
+			&& is_string($assignment['externalAssessorId'] ?? null) === true;
+	}//end isLiveAssignment()
 
 	/**
 	 * The first and the second assessor's signatures on one assessment, or null while either is missing.
@@ -154,15 +177,7 @@ class PracticalExamBoardResults implements PracticalExamBoardResultsInterface {
 			return null;
 		}
 
-		$bySigner = [];
-		foreach ($this->rows(schema: 'signature', filters: ['subjectKind' => 'practical-exam-assessment', 'subjectId' => $assessmentId]) as $signature) {
-			if (($signature['subjectKind'] ?? null) === 'practical-exam-assessment' && ($signature['subjectId'] ?? null) === $assessmentId
-				&& ($signature['signerRole'] ?? null) === 'assessor' && is_string($signature['signerId'] ?? null) === true
-			) {
-				$bySigner[$signature['signerId']] = $signature;
-			}
-		}
-
+		$bySigner   = $this->assessorSignatures(assessmentId: $assessmentId);
 		$signatures = [];
 		foreach (self::ROLES as $role) {
 			$signature = ($bySigner[$pair[$role]] ?? null);
@@ -180,6 +195,40 @@ class PracticalExamBoardResults implements PracticalExamBoardResultsInterface {
 
 		return $signatures;
 	}//end pairSignatures()
+
+	/**
+	 * The assessors' signatures on one assessment, by signer.
+	 *
+	 * @param string $assessmentId The assessment.
+	 *
+	 * @return array<string, array<string, mixed>> signerId => signature.
+	 */
+	private function assessorSignatures(string $assessmentId): array {
+		$bySigner = [];
+		foreach ($this->rows(schema: 'signature', filters: ['subjectKind' => 'practical-exam-assessment', 'subjectId' => $assessmentId]) as $signature) {
+			if (self::isAssessorSignatureOn(signature: $signature, assessmentId: $assessmentId) === true) {
+				$bySigner[$signature['signerId']] = $signature;
+			}
+		}
+
+		return $bySigner;
+	}//end assessorSignatures()
+
+	/**
+	 * Whether a signature is an assessor's signature on the assessment.
+	 *
+	 * @param array<string, mixed> $signature    The signature row.
+	 * @param string               $assessmentId The assessment.
+	 *
+	 * @return bool
+	 */
+	private static function isAssessorSignatureOn(array $signature, string $assessmentId): bool {
+		if (($signature['subjectKind'] ?? null) !== 'practical-exam-assessment' || ($signature['subjectId'] ?? null) !== $assessmentId) {
+			return false;
+		}
+
+		return ($signature['signerRole'] ?? null) === 'assessor' && is_string($signature['signerId'] ?? null) === true;
+	}//end isAssessorSignatureOn()
 
 	/**
 	 * The rows of one schema matching the filters, read with the caller's rights.

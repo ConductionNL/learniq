@@ -99,16 +99,7 @@ class PortalExamSittingDocuments implements PortalExamSittingDocumentsInterface 
 		}
 
 		try {
-			$assigned = $this->rows(
-				schema: 'exam-assessor-assignment',
-				filters: ['externalAssessorId' => $assessorRef, 'examSittingId' => $sittingId, 'lifecycle' => 'assigned'],
-				ids: []
-			);
-			$sitting  = null;
-			if ($assigned !== []) {
-				$sitting = ($this->rows(schema: 'exam-sitting', filters: [], ids: [$sittingId])[0] ?? null);
-			}
-
+			$sitting = $this->assignedSitting(assessorRef: $assessorRef, sittingId: $sittingId);
 			if ($sitting === null) {
 				return new PortalOutcome(status: 403, body: ['error' => 'not_assigned'], reason: 'not-assigned');
 			}
@@ -122,14 +113,64 @@ class PortalExamSittingDocuments implements PortalExamSittingDocumentsInterface 
 			return new PortalOutcome(status: 502, body: ['error' => 'downstream_error'], reason: 'downstream');
 		}
 
-		$body = ['id' => $sittingId];
-		foreach (self::SITTING_FIELDS as $field) {
-			$body[$field] = ($sitting[$field] ?? null);
-		}
-
+		$body = array_merge(['id' => $sittingId], self::pick(row: $sitting, fields: self::SITTING_FIELDS));
 		$body['documents'] = $documents;
 		return new PortalOutcome(status: 200, body: $body);
 	}//end sitting()
+
+	/**
+	 * The sitting, when the assessor holds a live assignment to it; null otherwise.
+	 *
+	 * @param string $assessorRef The assessor.
+	 * @param string $sittingId   The sitting.
+	 *
+	 * @return array<string, mixed>|null The sitting.
+	 */
+	private function assignedSitting(string $assessorRef, string $sittingId): ?array {
+		$assigned = $this->rows(
+			schema: 'exam-assessor-assignment',
+			filters: ['externalAssessorId' => $assessorRef, 'examSittingId' => $sittingId, 'lifecycle' => 'assigned'],
+			ids: []
+		);
+		if ($assigned === []) {
+			return null;
+		}
+
+		return ($this->rows(schema: 'exam-sitting', filters: [], ids: [$sittingId])[0] ?? null);
+	}//end assignedSitting()
+
+	/**
+	 * The given fields of a row, null where absent, in the fields' order.
+	 *
+	 * @param array<string, mixed> $row    The row.
+	 * @param array<int, string>   $fields The fields.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function pick(array $row, array $fields): array {
+		$picked = [];
+		foreach ($fields as $field) {
+			$picked[$field] = ($row[$field] ?? null);
+		}
+
+		return $picked;
+	}//end pick()
+
+	/**
+	 * The non-empty document ids the sitting names, in its order.
+	 *
+	 * @param array<string, mixed> $sitting The sitting.
+	 *
+	 * @return array<int, string>
+	 */
+	private static function namedIds(array $sitting): array {
+		$named = ($sitting['documentIds'] ?? []);
+		if (is_array($named) === false) {
+			return [];
+		}
+
+		return array_values(array_filter($named, static fn (mixed $id): bool => is_string($id) === true && $id !== ''));
+	}//end namedIds()
 
 	/**
 	 * The documents the sitting names, in the sitting's order.
@@ -139,12 +180,7 @@ class PortalExamSittingDocuments implements PortalExamSittingDocumentsInterface 
 	 * @return array<int, array<string, mixed>> The documents.
 	 */
 	private function documents(array $sitting): array {
-		$named = ($sitting['documentIds'] ?? []);
-		if (is_array($named) === false) {
-			return [];
-		}
-
-		$ids = array_values(array_filter($named, static fn (mixed $id): bool => is_string($id) === true && $id !== ''));
+		$ids = self::namedIds(sitting: $sitting);
 		if ($ids === []) {
 			return [];
 		}
@@ -156,16 +192,9 @@ class PortalExamSittingDocuments implements PortalExamSittingDocumentsInterface 
 
 		$documents = [];
 		foreach ($ids as $id) {
-			if (isset($byId[$id]) === false) {
-				continue;
+			if (isset($byId[$id]) === true) {
+				$documents[] = array_merge(['id' => $id], self::pick(row: $byId[$id], fields: self::DOCUMENT_FIELDS));
 			}
-
-			$document = ['id' => $id];
-			foreach (self::DOCUMENT_FIELDS as $field) {
-				$document[$field] = ($byId[$id][$field] ?? null);
-			}
-
-			$documents[] = $document;
 		}
 
 		return $documents;
