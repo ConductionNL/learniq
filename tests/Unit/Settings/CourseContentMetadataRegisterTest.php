@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-content-metadata/tasks.md#task-3-register-test
+ * @spec openspec/changes/archive/2026-09-28-course-content-metadata/tasks.md#task-3-register-test
  */
 
 declare(strict_types=1);

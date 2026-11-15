@@ -4,7 +4,7 @@
 		"spdx-copyright": "2026 Conduction B.V.",
 		"change": "confidential-counsellor-channel",
 		"adr": "ADR-037 modular manifest fragment, never edit src/manifest.json",
-		"description": "ConfidentialNotesMenu: the vertrouwenspersoon's own notes. Gated on user.isConfidentialCounsellor (group membership), not on primaryRole, so a teacher who is also the vertrouwenspersoon sees it next to the teacher menus. Access to the rows is enforced by ConfidentialNote.authorization in the register; this gate only hides the entry from everyone else."
+		"description": "ConfidentialNotesMenu: the vertrouwenspersoon's own notes. Gated on user.isConfidentialCounsellor (group membership), not on primaryRole, so a teacher who is also the vertrouwenspersoon sees it next to the teacher menus. Access to the rows is enforced by ConfidentialNote.authorization in the register; this gate only hides the entry from everyone else. ConcernReportsMenu (support-confidential-concern-report): every counsellor's inbox of learner reports, gated the same way. ReportConcernMenu: every signed-in user files a report and follows its status; the list shows only the user's own reports because ConcernReport.authorization matches reporterId."
 	},
 	"menu": [
 		{
@@ -18,6 +18,25 @@
 					"eq": true
 				}
 			}
+		},
+		{
+			"id": "ConcernReportsMenu",
+			"label": "Concern reports",
+			"icon": "ShieldAlertOutline",
+			"route": "ConcernReports",
+			"order": 36,
+			"visibleIf": {
+				"user.isConfidentialCounsellor": {
+					"eq": true
+				}
+			}
+		},
+		{
+			"id": "ReportConcernMenu",
+			"label": "Report a concern",
+			"icon": "ShieldAlertOutline",
+			"route": "ReportConcern",
+			"order": 89
 		}
 	],
 	"pages": [
@@ -27,8 +46,64 @@
 			"type": "index",
 			"title": "Confidential notes",
 			"config": {
+				"headerButtons": [
+					{
+						"action": "export",
+						"label": "Download",
+						"icon": "TrayArrowDown"
+					},
+					{
+						"action": "add",
+						"label": "New note",
+						"variant": "primary",
+						"icon": "Plus"
+					}
+				],
+				"showTitle": true,
 				"register": "learniq",
-				"schema": "confidential-note"
+				"schema": "confidential-note",
+				"countText": "{shown} of {total} notes",
+				"searchPlaceholder": "Search by case or name",
+				"quickFilters": [
+					{
+						"label": "All",
+						"filter": {},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Open",
+						"filter": {
+							"status": "open"
+						},
+						"showCount": true
+					}
+				],
+				"columns": [
+					{
+						"key": "title",
+						"label": "Short name of the case"
+					},
+					{
+						"key": "status",
+						"label": "Status"
+					},
+					{
+						"key": "participantIds",
+						"label": "People with access"
+					},
+					{
+						"key": "destroyAfter",
+						"label": "Destroy after",
+						"formatter": "date"
+					},
+					{
+						"key": "@self.updated",
+						"label": "Changed"
+					}
+				],
+				"allowSavedViews": true,
+				"createModal": "ConfidentialNoteCreateDialog"
 			}
 		},
 		{
@@ -78,6 +153,287 @@
 						}
 					]
 				}
+			}
+		},
+		{
+			"id": "ReportConcern",
+			"route": "/report-a-concern",
+			"type": "index",
+			"title": "Report a concern",
+			"config": {
+				"showTitle": true,
+				"register": "learniq",
+				"schema": "concern-report",
+				"excludeFields": [
+					"learnerId"
+				],
+				"createModal": "ConcernReportDialog"
+			}
+		},
+		{
+			"id": "ConcernReports",
+			"route": "/concern-reports",
+			"type": "index",
+			"title": "Concern reports",
+			"config": {
+				"headerButtons": [
+					{
+						"action": "export",
+						"label": "Download",
+						"icon": "TrayArrowDown"
+					}
+				],
+				"showTitle": true,
+				"register": "learniq",
+				"schema": "concern-report",
+				"countText": "{shown} of {total} reports",
+				"searchPlaceholder": "Search in reports",
+				"quickFilters": [
+					{
+						"label": "All",
+						"filter": {},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Not picked up yet",
+						"filter": {
+							"status": "received"
+						},
+						"showCount": true
+					},
+					{
+						"label": "In progress",
+						"filter": {
+							"status": "in-progress"
+						},
+						"showCount": true
+					}
+				],
+				"defaultSort": {
+					"field": "happenedOn",
+					"direction": "desc"
+				},
+				"columns": [
+					{
+						"key": "topic",
+						"label": "What is it about"
+					},
+					{
+						"key": "happenedOn",
+						"label": "When did it happen",
+						"formatter": "date"
+					},
+					{
+						"key": "wantsConversation",
+						"label": "Wants to talk"
+					},
+					{
+						"key": "status",
+						"label": "Status"
+					}
+				],
+				"allowSavedViews": true
+			}
+		},
+		{
+			"id": "ConcernReportDetail",
+			"route": "/concern-reports/:id",
+			"type": "detail",
+			"title": "Concern report",
+			"config": {
+				"register": "learniq",
+				"schema": "concern-report",
+				"_note": "Board LqZoMelding (G2): the report as a card (what, when, wants to talk, who reported), what happened, and the contact the reporter expects beside it. History as the last tab and side card.",
+				"statusPill": {
+					"field": "status",
+					"labels": {
+						"received": "Received",
+						"in-progress": "In progress",
+						"closed": "Closed"
+					},
+					"colorMap": {
+						"in-progress": "purple",
+						"closed": "success"
+					}
+				},
+				"typePill": {
+					"field": "wantsConversation",
+					"labels": {
+						"true": "Wants to talk"
+					},
+					"colorMap": {
+						"true": "warning"
+					},
+					"values": [
+						"true"
+					]
+				},
+				"breadcrumb": {
+					"label": "Concern reports",
+					"route": "ConcernReports"
+				},
+				"headerMeta": "happened on {happenedOn|longdate}",
+				"widgets": [
+					{
+						"id": "cr-facts",
+						"type": "facts",
+						"title": "Report",
+						"content": {
+							"fields": [
+								{
+									"path": "topic",
+									"label": "What it is about",
+									"map": {
+										"bullying": "Bullying",
+										"harassment": "Harassment",
+										"discrimination": "Discrimination",
+										"violence": "Violence",
+										"other": "Something else"
+									}
+								},
+								{
+									"path": "happenedOn",
+									"label": "When it happened",
+									"format": "longdate"
+								},
+								{
+									"path": "wantsConversation",
+									"label": "I would like to talk to a counsellor",
+									"map": {
+										"true": "Yes",
+										"false": "No"
+									}
+								},
+								{
+									"path": "learnerId",
+									"label": "Reported by",
+									"resolve": {
+										"register": "learniq",
+										"schema": "learner-profile",
+										"labelField": "fullName"
+									}
+								}
+							],
+							"columns": 2
+						}
+					},
+					{
+						"id": "cr-what",
+						"type": "facts",
+						"title": "What happened",
+						"content": {
+							"fields": [
+								{
+									"as": "text",
+									"path": "description"
+								}
+							]
+						}
+					},
+					{
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
+					},
+					{
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
+								{
+									"label": "Overview",
+									"widgetIds": [
+										"cr-facts",
+										"cr-what"
+									],
+									"sections": true
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
+								}
+							]
+						}
+					}
+				],
+				"sideColumn": [
+					{
+						"id": "cr-contact",
+						"type": "facts",
+						"title": "Contact with the reporter",
+						"content": {
+							"fields": [
+								{
+									"as": "line",
+									"text": "The reporter wants to talk and expects a counsellor to get in touch. The reporter can see the status.",
+									"when": {
+										"field": "wantsConversation",
+										"op": "eq",
+										"value": true
+									}
+								},
+								{
+									"as": "line",
+									"text": "The reporter did not ask for a conversation. The reporter can see the status.",
+									"when": {
+										"field": "wantsConversation",
+										"op": "neq",
+										"value": true
+									}
+								}
+							]
+						}
+					},
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Overview",
+							"widgetIds": [
+								"cr-facts",
+								"cr-what"
+							],
+							"sections": true
+						}
+					]
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		}
 	]

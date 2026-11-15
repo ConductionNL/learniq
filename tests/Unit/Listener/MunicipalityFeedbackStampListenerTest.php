@@ -34,8 +34,8 @@ use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
 /**
- * DataExchangeJob.recordMunicipalityFeedback is a self-loop (succeeded to
- * succeeded). OpenRegister runs neither guards nor actions on a self-loop, so
+ * AttendanceFlag.recordMunicipalityFeedback is a self-loop (reported to
+ * reported). OpenRegister runs neither guards nor actions on a self-loop, so
  * the recordedBy/receivedAt stamp MunicipalityFeedbackGuard used to write into
  * the payload now lands through an ObjectTransitionedEvent listener, which
  * TransitionEngine dispatches after the save for every transition (learniq#983).
@@ -66,12 +66,12 @@ class MunicipalityFeedbackStampListenerTest extends TestCase {
 	 *
 	 * @return MunicipalityFeedbackStampListener
 	 */
-	private function makeListener(string $schemaSlug = 'data-exchange-job'): MunicipalityFeedbackStampListener {
+	private function makeListener(string $schemaSlug = 'attendance-flag'): MunicipalityFeedbackStampListener {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('saveObject')->willReturnCallback(
 			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null): ObjectEntity {
 				$this->saved[] = ['object' => $object, 'register' => $register, 'schema' => $schema, 'uuid' => $uuid];
-				return OrEntityFactory::make($object, 'data-exchange-job');
+				return OrEntityFactory::make($object, 'attendance-flag');
 			}
 		);
 
@@ -124,7 +124,7 @@ class MunicipalityFeedbackStampListenerTest extends TestCase {
 		self::assertCount(1, $this->saved);
 		$saved = $this->saved[0];
 		self::assertSame('job-1', $saved['uuid']);
-		self::assertSame('data-exchange-job', $saved['schema']);
+		self::assertSame('attendance-flag', $saved['schema']);
 
 		$feedback = $saved['object']['municipalityFeedback'];
 		self::assertSame('actor-1', $feedback['recordedBy']);

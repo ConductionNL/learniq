@@ -21,8 +21,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-let-a-school-declare-an-ai-processing-locality-policy
- * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-refuse-to-let-an-ai-assisted-feature-take-effect-when-its-verified-or-unverified-locality-violates-the-school-s-policy
+ * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-let-a-school-declare-an-ai-processing-locality-policy
+ * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-refuse-to-let-an-ai-assisted-feature-take-effect-when-its-verified-or-unverified-locality-violates-the-school-s-policy
  */
 
 declare(strict_types=1);
@@ -59,7 +59,7 @@ class SovereigntyPolicyServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-no-policy-set-yet-defaults-to-the-documented-default
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-no-policy-set-yet-defaults-to-the-documented-default
 	 */
 	public function testDefaultsToEuHostedAllowedWhenUnset(): void {
 		$service = $this->buildService([]);
@@ -98,7 +98,7 @@ class SovereigntyPolicyServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-refuse-to-let-an-ai-assisted-feature-take-effect-when-its-verified-or-unverified-locality-violates-the-school-s-policy
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-refuse-to-let-an-ai-assisted-feature-take-effect-when-its-verified-or-unverified-locality-violates-the-school-s-policy
 	 */
 	public function testUnverifiedNeverSatisfiesOnPremisesOrEuHostedTiers(): void {
 		$onPremisesOnly = $this->buildService([['policy' => 'on-premises-only']]);
@@ -118,7 +118,7 @@ class SovereigntyPolicyServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-publish-succeeds-when-the-school-accepts-the-permissive-tier
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-publish-succeeds-when-the-school-accepts-the-permissive-tier
 	 */
 	public function testUnverifiedSatisfiesThirdCountryAllowedTier(): void {
 		$service = $this->buildService([['policy' => 'third-country-allowed']]);
@@ -148,7 +148,7 @@ class SovereigntyPolicyServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-publish-is-blocked-when-a-verified-third-country-provider-violates-an-on-premises-only-policy
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-publish-is-blocked-when-a-verified-third-country-provider-violates-an-on-premises-only-policy
 	 */
 	public function testEuHostedAllowedAcceptsOnPremisesOrEuHostedButNotThirdCountry(): void {
 		$service = $this->buildService([['policy' => 'eu-hosted-allowed']]);

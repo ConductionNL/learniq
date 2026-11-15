@@ -32,7 +32,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-exemptioncase-decisions-require-a-rationale-and-policy-reference
+ * @spec openspec/specs/exam-board/spec.md#requirement-exemptioncase-decisions-require-a-rationale-and-policy-reference
  */
 
 declare(strict_types=1);
@@ -49,7 +49,7 @@ use Psr\Log\LoggerInterface;
  * Passes only when both `decisionRationale` and `policyReference` are
  * non-empty strings on the transitioning object. Fails closed otherwise.
  *
- * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-exemptioncase-decisions-require-a-rationale-and-policy-reference
+ * @spec openspec/specs/exam-board/spec.md#requirement-exemptioncase-decisions-require-a-rationale-and-policy-reference
  */
 class ExemptionDecisionGuard implements LifecycleGuardInterface {
 
@@ -88,7 +88,7 @@ class ExemptionDecisionGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-exemptioncase-decisions-require-a-rationale-and-policy-reference
+	 * @spec openspec/specs/exam-board/spec.md#requirement-exemptioncase-decisions-require-a-rationale-and-policy-reference
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -111,7 +111,7 @@ class ExemptionDecisionGuard implements LifecycleGuardInterface {
 	 * @return bool True when both fields are set; false blocks the transition
 	 *              (HTTP 422).
 	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-exemptioncase-decisions-require-a-rationale-and-policy-reference
+	 * @spec openspec/specs/exam-board/spec.md#requirement-exemptioncase-decisions-require-a-rationale-and-policy-reference
 	 */
 	private function allows(array $object): bool {
 		$caseId = $object['id'] ?? ($object['uuid'] ?? '');

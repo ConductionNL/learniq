@@ -144,8 +144,11 @@ test('a score is a number from zero up to the maximum', () => {
 
 test('the learner submit saves with a PATCH and reaches the transition endpoint, so an attempt can become submitted', () => {
 	const view = read('src/views/TakeAssessmentView.vue')
-	const submit = view.slice(view.indexOf('async submitAssessment()'))
-	const body = submit.slice(0, submit.indexOf('\n\t\t},\n'))
+	// submitAssessment hands in through handIn() and saveFinalResponses(), which
+	// follow it, and dispatchTransition(), which builds the transition URL.
+	const body = view.slice(view.indexOf('async submitAssessment()'), view.indexOf('extractChoices(qtiBody'))
+	const dispatch = view.slice(view.indexOf('dispatchTransition(id'))
+	const dispatchBody = dispatch.slice(0, dispatch.indexOf('\n\t\t},\n'))
 	// The old URL, /objects/learniq/assessment-result/{id}/transition/submit, is
 	// not an Open Register route and answered 404.
 	assert.ok(
@@ -153,7 +156,10 @@ test('the learner submit saves with a PATCH and reaches the transition endpoint,
 		'submit still calls a route that does not exist',
 	)
 	assert.ok(body.includes("action: 'submit'"), 'submit does not send the action')
-	assert.ok(body.includes('transitionUrl('), 'submit does not use transitionUrl')
+	assert.ok(
+		body.includes('this.dispatchTransition(this.resultId') && dispatchBody.includes('transitionUrl('),
+		'submit does not use transitionUrl',
+	)
 	// A PUT replaces the object; the learner sends only responses and submittedAt.
 	assert.ok(
 		body.includes("method: 'PATCH'"),

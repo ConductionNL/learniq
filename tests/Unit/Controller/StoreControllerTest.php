@@ -15,7 +15,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lesson-sharing-via-store-plane/tasks.md#task-4-storecontroller-and-routes
+ * @spec openspec/changes/archive/2026-09-28-lesson-sharing-via-store-plane/tasks.md#task-4-storecontroller-and-routes
  */
 
 declare(strict_types=1);
@@ -37,10 +37,14 @@ use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
 /**
  * @covers \OCA\Learniq\Controller\StoreController
+ * @uses   \OCA\Learniq\Service\CourseStore\CourseStoreDescriptor
+ * @uses   \OCA\Learniq\Exception\SharingBlockedException
+ * @uses   \OCA\Learniq\Controller\CourseInstallRequest
  */
 class StoreControllerTest extends TestCase {
 
@@ -53,6 +57,20 @@ class StoreControllerTest extends TestCase {
 	private CourseShareExportService&MockObject $shareService;
 
 	private ActionAuthService&MockObject $actionAuth;
+
+	/**
+	 * A logger that records errors, when a test sets one.
+	 *
+	 * @var LoggerInterface|null
+	 */
+	private ?LoggerInterface $logger = null;
+
+	/**
+	 * Errors logged through $logger.
+	 *
+	 * @var list<string>
+	 */
+	private array $errors = [];
 
 	/**
 	 * Fresh doubles per test.
@@ -94,13 +112,13 @@ class StoreControllerTest extends TestCase {
 		return new StoreController(
 			request: $request,
 			storeService: $this->storeService,
-			descriptor: new CourseStoreDescriptor(),
+			descriptor: new CourseStoreDescriptor($this->createMock(ActionAuthService::class)),
 			installer: $this->installer,
 			publisher: $this->publisher,
 			shareService: $this->shareService,
 			userSession: $userSession,
 			actionAuth: $this->actionAuth,
-			logger: new NullLogger(),
+			logger: ($this->logger ?? new NullLogger()),
 		);
 	}//end controller()
 
@@ -158,13 +176,13 @@ class StoreControllerTest extends TestCase {
 	}//end testASearchFailureIsUnreachable()
 
 	/**
-	 * Install checks the import action, refuses a foreign slug, and 404s an
-	 * unresolved one.
+	 * Install checks the store install action (D27: any teacher, not the
+	 * package-import action), refuses a foreign slug, and 404s an unresolved one.
 	 *
 	 * @return void
 	 */
 	public function testInstallGuardsSlugAndResolution(): void {
-		$this->actionAuth->expects(self::exactly(2))->method('requireAction')->with(self::anything(), 'course-package.import');
+		$this->actionAuth->expects(self::exactly(2))->method('requireAction')->with(self::anything(), 'course-store.install');
 		$this->storeService->method('resolve')->willReturn(null);
 
 		self::assertSame(Http::STATUS_BAD_REQUEST, $this->controller()->install('openregister-configset-x')->getStatus());
@@ -215,6 +233,8 @@ class StoreControllerTest extends TestCase {
 	public function testARefusedPublishCarriesTheBlockers(): void {
 		$blockers = [['code' => 'licence-missing', 'id' => 'course-1', 'name' => 'Betoog']];
 		$this->publisher->method('isConfigured')->willReturn(true);
+		$this->publisher->method('supportsPublish')->willReturn(true);
+		$this->publisher->method('mayPublish')->willReturn(true);
 		$this->shareService->method('buildPackage')->willThrowException(new SharingBlockedException($blockers));
 		$this->publisher->expects(self::never())->method('publish');
 
@@ -232,6 +252,8 @@ class StoreControllerTest extends TestCase {
 	 */
 	public function testAPassingCourseIsPublished(): void {
 		$this->publisher->method('isConfigured')->willReturn(true);
+		$this->publisher->method('supportsPublish')->willReturn(true);
+		$this->publisher->method('mayPublish')->willReturn(true);
 		$this->shareService->expects(self::exactly(2))->method('buildPackage')
 			->with('course-1', 'docent-07', true, false, 'store')
 			->willReturn(['course' => ['name' => 'Betoog']]);
@@ -247,4 +269,153 @@ class StoreControllerTest extends TestCase {
 
 		self::assertSame(Http::STATUS_BAD_GATEWAY, $this->controller(true, $params)->publish('course-1')->getStatus());
 	}//end testAPassingCourseIsPublished()
+
+	/**
+	 * TC-4: the plane refuses a user the matrix admitted (an empty matrix
+	 * entry names nobody): 403, and no gate, consent or publish ran.
+	 *
+	 * @return void
+	 */
+	public function testThePlaneRefusesBeforeAnythingIsBuilt(): void {
+		$this->publisher->method('isConfigured')->willReturn(true);
+		$this->publisher->method('supportsPublish')->willReturn(true);
+		$this->publisher->expects(self::once())->method('mayPublish')->willReturn(false);
+		$this->shareService->expects(self::never())->method('buildPackage');
+		$this->publisher->expects(self::never())->method('publish');
+
+		$response = $this->controller(true, ['noPupilData' => true, 'rightsCleared' => true])->publish('course-1');
+
+		self::assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+		self::assertSame('forbidden', $response->getData()['outcome']);
+	}//end testThePlaneRefusesBeforeAnythingIsBuilt()
+
+	/**
+	 * TC-7: an OpenRegister without the publish path answers 501 and runs no gate.
+	 *
+	 * @return void
+	 */
+	public function testAnOpenRegisterWithoutThePublishPathIsNotImplemented(): void {
+		$this->publisher->method('isConfigured')->willReturn(true);
+		$this->publisher->method('supportsPublish')->willReturn(false);
+		$this->publisher->expects(self::never())->method('mayPublish');
+		$this->shareService->expects(self::never())->method('buildPackage');
+
+		$response = $this->controller()->publish('course-1');
+
+		self::assertSame(Http::STATUS_NOT_IMPLEMENTED, $response->getStatus());
+		self::assertSame('publish_not_supported', $response->getData()['outcome']);
+	}//end testAnOpenRegisterWithoutThePublishPathIsNotImplemented()
+
+	/**
+	 * TC-5: every plane outcome maps to its status.
+	 *
+	 * @return array<string, array{0: string, 1: int}>
+	 */
+	public static function planeOutcomes(): array {
+		return [
+			'ok'                     => ['ok', Http::STATUS_OK],
+			'too_large'              => ['too_large', Http::STATUS_REQUEST_ENTITY_TOO_LARGE],
+			'rate_limited'           => ['rate_limited', Http::STATUS_TOO_MANY_REQUESTS],
+			'store_unreachable'      => ['store_unreachable', Http::STATUS_BAD_GATEWAY],
+			'store_rejected'         => ['store_rejected', Http::STATUS_BAD_GATEWAY],
+			'store_invalid_response' => ['store_invalid_response', Http::STATUS_BAD_GATEWAY],
+			'not_publishable'        => ['not_publishable', Http::STATUS_INTERNAL_SERVER_ERROR],
+			'unknown'                => ['something_new', Http::STATUS_BAD_GATEWAY],
+		];
+	}//end planeOutcomes()
+
+	/**
+	 * @dataProvider planeOutcomes
+	 *
+	 * @param string $outcome The plane's outcome.
+	 * @param int    $status  The expected HTTP status.
+	 *
+	 * @return void
+	 */
+	public function testEveryPlaneOutcomeMapsToAStatus(string $outcome, int $status): void {
+		$this->publisher->method('isConfigured')->willReturn(true);
+		$this->publisher->method('supportsPublish')->willReturn(true);
+		$this->publisher->method('mayPublish')->willReturn(true);
+		$this->shareService->method('buildPackage')->willReturn(['course' => ['name' => 'Betoog']]);
+		$this->publisher->method('publish')->willReturn(['outcome' => $outcome, 'slug' => '']);
+
+		self::assertSame($status, $this->controller()->publish('course-1')->getStatus());
+	}//end testEveryPlaneOutcomeMapsToAStatus()
+
+	/**
+	 * Record every error the controller logs.
+	 *
+	 * @return void
+	 */
+	private function recordErrors(): void {
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->method('error')->willReturnCallback(
+			function (string|\Stringable $message): void {
+				$this->errors[] = (string)$message;
+			}
+		);
+		$this->logger = $logger;
+	}//end recordErrors()
+
+	/**
+	 * Install failures: a resolve that throws is logged and answers like an
+	 * unknown course; an install that throws is logged and answers 500; the
+	 * installer gets the resolved item and the caller's id.
+	 *
+	 * @return void
+	 */
+	public function testInstallFailuresAreLoggedAndAnswered(): void {
+		$this->recordErrors();
+		$item = ['slug' => 'course-package-betoog-1a2b3c4d'];
+		$this->storeService->method('resolve')->willReturnCallback(
+			static function (StoreDescriptor $descriptor, string $slug) use ($item): array {
+				if ($slug === 'course-package-boom-1a2b3c4d') {
+					throw new \RuntimeException('registry down');
+				}
+
+				return $item;
+			}
+		);
+		$this->installer->method('install')->with($item, 'docent-07')->willThrowException(new \RuntimeException('disk full'));
+
+		$gone = $this->controller()->install('course-package-boom-1a2b3c4d');
+		self::assertSame(Http::STATUS_NOT_FOUND, $gone->getStatus());
+		self::assertSame(['success' => false, 'message' => 'The shared course could not be found.'], $gone->getData());
+
+		$failed = $this->controller()->install('course-package-betoog-1a2b3c4d');
+		self::assertSame(Http::STATUS_INTERNAL_SERVER_ERROR, $failed->getStatus());
+		self::assertSame(['success' => false, 'message' => 'The shared course could not be installed.'], $failed->getData());
+
+		self::assertSame(
+			[
+				'Learniq course store: resolve failed for course-package-boom-1a2b3c4d: registry down',
+				'Learniq course store: install failed for course-package-betoog-1a2b3c4d: disk full',
+			],
+			$this->errors
+		);
+	}//end testInstallFailuresAreLoggedAndAnswered()
+
+	/**
+	 * Publish refusals in order: no course id before the registry is asked,
+	 * and a package that cannot be built is logged and answers 500.
+	 *
+	 * @return void
+	 */
+	public function testPublishWithoutACourseOrAPackage(): void {
+		$this->recordErrors();
+		$this->publisher->expects(self::once())->method('isConfigured')->willReturn(true);
+		$this->publisher->method('supportsPublish')->willReturn(true);
+		$this->publisher->method('mayPublish')->willReturn(true);
+		$this->shareService->method('buildPackage')->willThrowException(new \RuntimeException('course gone'));
+		$this->publisher->expects(self::never())->method('publish');
+
+		$missing = $this->controller()->publish('');
+		self::assertSame(Http::STATUS_BAD_REQUEST, $missing->getStatus());
+		self::assertSame(['error' => 'courseId is required'], $missing->getData());
+
+		$broken = $this->controller()->publish('course-1');
+		self::assertSame(Http::STATUS_INTERNAL_SERVER_ERROR, $broken->getStatus());
+		self::assertSame(['error' => 'The course could not be prepared for the store.'], $broken->getData());
+		self::assertSame(['Learniq course store: publish failed for course-1: course gone'], $this->errors);
+	}//end testPublishWithoutACourseOrAPackage()
 }//end class

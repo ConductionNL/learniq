@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-a-negative-bsa-decision-must-be-blocked-without-a-logged-issued-warning
+ * @spec openspec/specs/study-progress/spec.md#requirement-a-negative-bsa-decision-must-be-blocked-without-a-logged-issued-warning
  */
 
 declare(strict_types=1);
@@ -27,6 +27,7 @@ use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\OpenRegister\Service\TenantKeyService;
 use OCA\Learniq\Lifecycle\BsaDecisionGuard;
+use OCA\Learniq\Tests\Support\CapturingLogger;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -87,7 +88,7 @@ class BsaDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-negative-decision-without-a-warning-is-refused
+	 * @spec openspec/specs/study-progress/spec.md#scenario-negative-decision-without-a-warning-is-refused
 	 */
 	public function testNegativeWithoutWarningRefused(): void {
 		$objectService = $this->createMock(ObjectService::class);
@@ -107,7 +108,7 @@ class BsaDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-negative-decision-with-a-logged-warning-is-allowed
+	 * @spec openspec/specs/study-progress/spec.md#scenario-negative-decision-with-a-logged-warning-is-allowed
 	 */
 	public function testNegativeWithIssuedWarningAllowed(): void {
 		$objectService = $this->createMock(ObjectService::class);
@@ -144,7 +145,7 @@ class BsaDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-negative-decision-without-rationale-is-refused
+	 * @spec openspec/specs/study-progress/spec.md#scenario-negative-decision-without-rationale-is-refused
 	 */
 	public function testNegativeWithoutRationaleRefused(): void {
 		$objectService = $this->createMock(ObjectService::class);
@@ -164,7 +165,7 @@ class BsaDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-a-negative-bsa-decision-must-be-blocked-without-a-logged-issued-warning
+	 * @spec openspec/specs/study-progress/spec.md#requirement-a-negative-bsa-decision-must-be-blocked-without-a-logged-issued-warning
 	 */
 	public function testPositiveDecisionUnaffectedByWarningCheck(): void {
 		$objectService = $this->createMock(ObjectService::class);
@@ -214,4 +215,69 @@ class BsaDecisionGuardTest extends TestCase {
 		self::assertFalse($this->makeGuard($objectService, $tenantKeyService)->check($object, 'decide', 'advisor-1')->isAllowed());
 
 	}//end testUnavailableTenantKeyRejected()
+	/**
+	 * Every outcome with what it asked OpenRegister and what it logged: the
+	 * warning query with and without a tenant, no query without a learner,
+	 * and each refusal's message and log line.
+	 *
+	 * @return void
+	 */
+	public function testEachOutcomeQueriesAndLogsAsRecorded(): void {
+		$cases = [
+			'negative, warned, keyed' => [$this->decisionObject('negative', 'Reason.'), [['id' => 'w']], 'key'],
+			'negative, no tenant' => [array_merge($this->decisionObject('negative', 'Reason.'), ['tenant_id' => '']), [['id' => 'w']], 'key'],
+			'negative, no learner' => [array_merge($this->decisionObject('negative', 'Reason.'), ['learnerId' => '']), [['id' => 'w']], 'key'],
+			'negative, not warned' => [$this->decisionObject('negative', 'Reason.'), [], 'key'],
+			'negative, blank rationale' => [$this->decisionObject('negative', '   '), [['id' => 'w']], 'key'],
+			'negative, rationale not text' => [array_merge($this->decisionObject('negative'), ['rationale' => ['x']]), [['id' => 'w']], 'key'],
+			'positive, no key' => [$this->decisionObject('positive'), [], ''],
+		];
+
+		$actual = [];
+		foreach ($cases as $name => [$object, $warnings, $key]) {
+			$queries = [];
+			$objectService = $this->createMock(ObjectService::class);
+			$objectService->method('findAll')->willReturnCallback(
+				function (array $config) use (&$queries, $warnings): array {
+					$queries[] = $config;
+					return $warnings;
+				}
+			);
+			$tenantKeyService = $this->createMock(TenantKeyService::class);
+			$tenantKeyService->method('getCurrentTenantKey')->willReturn($key);
+			$logger = new CapturingLogger();
+
+			$result = (new BsaDecisionGuard($objectService, $tenantKeyService, $logger))->check($object, 'decide', 'advisor-1');
+			$actual[$name] = [$result->isAllowed(), $result->getMessage(), $queries, $logger->dump()];
+		}
+
+		$warningQuery = static fn (array $tenant): array => [[
+			'filters' => array_merge(
+				['learnerId' => 'learner-7', 'programmeId' => 'programme-1', 'academicYear' => '2026-2027', 'lifecycle' => 'issued'],
+				$tenant,
+				['register' => 'learniq', 'schema' => 'bsa-warning']
+			),
+			'limit' => 1,
+		]];
+		$noWarning = 'A negative decision needs an issued warning for this learner, programme and academic year.';
+		$warningLog = '[{"level":"info","message":"BsaDecisionGuard: no issued BsaWarning found for learner {l}, programme {p}, year {y} \u2014 blocking negative decision.","context":{"l":"%s","p":"programme-1","y":"2026-2027"}}]';
+		$rationaleLog = '[{"level":"info","message":"BsaDecisionGuard: rationale missing\/empty \u2014 blocking negative decision.","context":{"learnerId":"learner-7"}}]';
+		self::assertSame(
+			[
+				'negative, warned, keyed' => [true, null, $warningQuery(['tenant_id' => 'tenant-a']), '[]'],
+				'negative, no tenant' => [true, null, $warningQuery([]), '[]'],
+				'negative, no learner' => [false, $noWarning, [], sprintf($warningLog, '')],
+				'negative, not warned' => [false, $noWarning, $warningQuery(['tenant_id' => 'tenant-a']), sprintf($warningLog, 'learner-7')],
+				'negative, blank rationale' => [false, 'A negative decision needs a rationale.', $warningQuery(['tenant_id' => 'tenant-a']), $rationaleLog],
+				'negative, rationale not text' => [false, 'A negative decision needs a rationale.', $warningQuery(['tenant_id' => 'tenant-a']), $rationaleLog],
+				'positive, no key' => [
+					false,
+					'No signing key is available for this organisation, so the decision can not be recorded.',
+					[],
+					'[{"level":"error","message":"BsaDecisionGuard: OR tenant key unavailable; refusing to decide without HMAC key","context":{"tenantId":"tenant-a"}}]',
+				],
+			],
+			$actual
+		);
+	}//end testEachOutcomeQueriesAndLogsAsRecorded()
 }//end class

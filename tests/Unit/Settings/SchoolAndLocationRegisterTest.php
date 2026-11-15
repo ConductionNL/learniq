@@ -20,8 +20,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-and-location-records/tasks.md#task-1-add-the-school-and-location-schemas
- * @spec openspec/changes/school-and-location-records/tasks.md#task-2-add-cohortlocationid
+ * @spec openspec/changes/archive/2026-09-28-school-and-location-records/tasks.md#task-1-add-the-school-and-location-schemas
+ * @spec openspec/changes/archive/2026-09-28-school-and-location-records/tasks.md#task-2-add-cohortlocationid
  */
 
 declare(strict_types=1);
@@ -145,7 +145,7 @@ class SchoolAndLocationRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
 	 */
 	public function testSeedFixturesExerciseRelationAndBackfill(): void {
 		$schools = self::poObjects(schema: 'school');

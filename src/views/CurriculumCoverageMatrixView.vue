@@ -13,14 +13,12 @@
  comes from the CurriculumCoverage rows the rollup keeps current; this view
  computes nothing itself beyond laying the rows out.
 
- @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+ @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 -->
 <template>
-	<div class="curriculum-coverage">
+	<div class="curriculum-coverage lq-board-page">
 		<header class="curriculum-coverage__header">
-			<h2 class="curriculum-coverage__title">
-				{{ t('learniq', 'Curriculum coverage') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Curriculum coverage')" />
 			<p class="curriculum-coverage__intro">
 				{{
 					t(
@@ -42,22 +40,24 @@
 				t('learniq', 'Add a competency framework with its goals first.')
 			" />
 		<template v-else>
-			<div class="curriculum-coverage__filters">
-				<NcSelect
-					v-model="frameworkId"
-					:options="frameworkOptions"
-					:reduce="(o) => o.id"
-					label="label"
-					:clearable="false"
-					:inputLabel="t('learniq', 'Framework')" />
-				<NcSelect
-					v-model="subjectKey"
-					:options="subjectChoices"
-					:reduce="(o) => o.id"
-					label="label"
-					:clearable="false"
-					:inputLabel="t('learniq', 'Subject')" />
-			</div>
+			<CnDetailCard>
+				<div class="curriculum-coverage__filters">
+					<NcSelect
+						v-model="frameworkId"
+						:options="frameworkOptions"
+						:reduce="(o) => o.id"
+						label="label"
+						:clearable="false"
+						:inputLabel="t('learniq', 'Framework')" />
+					<NcSelect
+						v-model="subjectKey"
+						:options="subjectChoices"
+						:reduce="(o) => o.id"
+						label="label"
+						:clearable="false"
+						:inputLabel="t('learniq', 'Subject')" />
+				</div>
+			</CnDetailCard>
 
 			<NcLoadingIcon v-if="loadingFramework" :size="32" />
 			<NcNoteCard v-else-if="coverageRows.length === 0" type="info">
@@ -69,22 +69,24 @@
 				}}
 			</NcNoteCard>
 			<template v-else>
-				<p
-					v-if="matrix.total"
-					class="curriculum-coverage__summary"
-					role="status">
-					{{ summary }}
-				</p>
-				<CnDataMatrix
-					:rows="matrix.rows"
-					:columns="matrix.columns"
-					:readOnly="true"
-					:title="t('learniq', 'Goals by year')"
-					:rowHeader="t('learniq', 'Goal')"
-					:emptyLabel="t('learniq', 'No goals for this subject.')" />
+				<CnDetailCard :title="t('learniq', 'Goals by year')">
+					<p
+						v-if="matrix.total"
+						class="curriculum-coverage__summary"
+						role="status">
+						{{ summary }}
+					</p>
+					<CnDataMatrix
+						:rows="matrix.rows"
+						:columns="matrix.columns"
+						:readOnly="true"
+						:rowHeader="t('learniq', 'Goal')"
+						:emptyLabel="t('learniq', 'No goals for this subject.')" />
+				</CnDetailCard>
 
-				<section class="curriculum-coverage__gaps">
-					<h3>{{ t('learniq', 'Gaps per subject and year') }}</h3>
+				<CnDetailCard
+					:title="t('learniq', 'Gaps per subject and year')"
+					class="curriculum-coverage__gaps">
 					<p v-if="gaps.length === 0">
 						{{
 							t(
@@ -123,14 +125,14 @@
 							</ul>
 						</template>
 					</div>
-				</section>
+				</CnDetailCard>
 			</template>
 		</template>
 	</div>
 </template>
 
 <script>
-import { CnDataMatrix } from '@conduction/nextcloud-vue'
+import { CnDataMatrix, CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcEmptyContent, NcLoadingIcon, NcNoteCard, NcSelect } from '@nextcloud/vue'
@@ -148,6 +150,8 @@ export default {
 
 	components: {
 		CnDataMatrix,
+		CnDetailCard,
+		CnPageHeader,
 		NcEmptyContent,
 		NcLoadingIcon,
 		NcNoteCard,
@@ -171,7 +175,7 @@ export default {
 	computed: {
 		/**
 		 * @return {object} The translated labels the pure builders use.
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+		 * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 		 */
 		labels() {
 			return {
@@ -187,7 +191,7 @@ export default {
 
 		/**
 		 * @return {Array<{id: string, label: string}>} Framework choices.
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+		 * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 		 */
 		frameworkOptions() {
 			return this.frameworks.map((framework) => ({
@@ -200,7 +204,7 @@ export default {
 
 		/**
 		 * @return {object} The selected framework row.
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+		 * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 		 */
 		framework() {
 			return (
@@ -212,7 +216,7 @@ export default {
 
 		/**
 		 * @return {object} levelId to label, from the framework's scale.
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+		 * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 		 */
 		levelLabels() {
 			const labels = {}
@@ -225,15 +229,15 @@ export default {
 
 		/**
 		 * @return {Array<{id: string, label: string}>} Subject choices.
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+		 * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 		 */
 		subjectChoices() {
-			return subjectOptions(this.coverageRows, this.subjectNames, this.labels)
+			return subjectOptions(this.coverageRows, { subjectNames: this.subjectNames, labels: this.labels })
 		},
 
 		/**
 		 * @return {{columns: object[], rows: object[], total: object|null}} The matrix input.
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+		 * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 		 */
 		matrix() {
 			return coverageMatrix({
@@ -247,7 +251,7 @@ export default {
 
 		/**
 		 * @return {string} One sentence with the selection's totals.
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+		 * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 		 */
 		summary() {
 			const total = this.matrix.total ?? {}
@@ -264,7 +268,7 @@ export default {
 
 		/**
 		 * @return {object[]} The gap list sections.
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-gap-list-names-the-uncovered-goals-per-subject-and-year
+		 * @spec openspec/specs/competency/spec.md#requirement-a-gap-list-names-the-uncovered-goals-per-subject-and-year
 		 */
 		gaps() {
 			return gapList({
@@ -279,7 +283,7 @@ export default {
 	watch: {
 		/**
 		 * @return {void}
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+		 * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 		 */
 		frameworkId() {
 			this.subjectKey = 'all'
@@ -296,7 +300,7 @@ export default {
 		 * Load the frameworks and preselect one: the ?framework= query, or the first.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+		 * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 		 */
 		async load() {
 			this.loading = true
@@ -326,7 +330,7 @@ export default {
 		 * Load the selected framework's goals, coverage rows and subject names.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
+		 * @spec openspec/specs/competency/spec.md#requirement-a-coverage-matrix-shows-goals-by-year-with-planned-and-assessed-marked
 		 */
 		async loadFramework() {
 			if (!this.frameworkId) return
@@ -358,7 +362,7 @@ export default {
 		 * Resolve each subject's Course name; an unreadable course keeps its id.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/curriculum-coverage-matrix-view/specs/competency/spec.md#requirement-a-gap-list-names-the-uncovered-goals-per-subject-and-year
+		 * @spec openspec/specs/competency/spec.md#requirement-a-gap-list-names-the-uncovered-goals-per-subject-and-year
 		 */
 		async loadSubjectNames() {
 			const names = {}
@@ -382,10 +386,6 @@ export default {
 </script>
 
 <style scoped>
-.curriculum-coverage {
-	padding: calc(var(--default-grid-baseline, 4px) * 4);
-}
-
 .curriculum-coverage__intro,
 .curriculum-coverage__summary {
 	color: var(--color-text-maxcontrast);
@@ -396,11 +396,6 @@ export default {
 	display: flex;
 	flex-wrap: wrap;
 	gap: calc(var(--default-grid-baseline, 4px) * 4);
-	margin-block-end: calc(var(--default-grid-baseline, 4px) * 4);
-}
-
-.curriculum-coverage__gaps {
-	margin-block-start: calc(var(--default-grid-baseline, 4px) * 6);
 }
 
 .curriculum-coverage__gap {

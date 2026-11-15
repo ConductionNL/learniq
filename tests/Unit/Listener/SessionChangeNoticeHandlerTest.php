@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-cancellation-or-substitution-notifies-affected-learners-and-parents
+ * @spec openspec/specs/timetabling/spec.md#requirement-cancellation-or-substitution-notifies-affected-learners-and-parents
  */
 
 declare(strict_types=1);
@@ -65,7 +65,7 @@ class SessionChangeNoticeHandlerTest extends TestCase {
 	 * @return SessionChangeNoticeHandler
 	 */
 	private function handler(): SessionChangeNoticeHandler {
-		return new SessionChangeNoticeHandler($this->objectService, new NullLogger());
+		return new SessionChangeNoticeHandler($this->objectService, new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());
 	}//end handler()
 
 	/**
@@ -84,7 +84,7 @@ class SessionChangeNoticeHandlerTest extends TestCase {
 				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 
 				if ($schema === 'cohort') {
-					return array_values(array_filter($cohorts, static fn (array $c): bool => ($c['id'] ?? null) === ($filters['id'] ?? null)));
+					return array_values(array_filter($cohorts, static fn (array $c): bool => ($c['id'] ?? null) === ($config['ids'][0] ?? null)));
 				}
 
 				if ($schema === 'learner-profile') {
@@ -132,7 +132,7 @@ class SessionChangeNoticeHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-cancelling-a-session-notifies-every-affected-learner-and-parent
+	 * @spec openspec/specs/timetabling/spec.md#scenario-cancelling-a-session-notifies-every-affected-learner-and-parent
 	 */
 	public function testCancelMaterialisesAffectedLearnersAndParents(): void {
 		$this->wire(
@@ -224,4 +224,138 @@ class SessionChangeNoticeHandlerTest extends TestCase {
 		self::assertCount(0, $this->saved);
 
 	}//end testUnwatchedActionIsIgnored()
+	/**
+	 * A lesson changed in a batch sends no message of its own: nothing is
+	 * written onto it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/timetabling/spec.md#requirement-affected-people-get-one-message-per-batch
+	 */
+	public function testALessonInABatchIsLeftToTheBatch(): void {
+		$this->wire([['id' => 'cohort-1', 'learnerIds' => ['alice']]], [['ncUserId' => 'alice', 'parentIds' => ['parent-alice']]]);
+
+		$this->handler()->handle(
+			$this->makeEvent('cancel', ['id' => 'session-1', 'cohortId' => 'cohort-1', 'changeBatchId' => 'batch-1'])
+		);
+
+		self::assertCount(0, $this->saved);
+
+	}//end testALessonInABatchIsLeftToTheBatch()
+
+	/**
+	 * affectedPeople() resolves learners and parents without writing.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/timetabling/spec.md#requirement-affected-people-get-one-message-per-batch
+	 */
+	public function testAffectedPeopleResolvesWithoutWriting(): void {
+		$this->wire([['id' => 'cohort-1', 'learnerIds' => ['alice', 'bob']]], [['ncUserId' => 'bob', 'parentIds' => ['parent-bob']]]);
+
+		$people = $this->handler()->affectedPeople(['id' => 'session-1', 'cohortId' => 'cohort-1']);
+
+		self::assertSame(['learnerIds' => ['alice', 'bob'], 'parentIds' => ['parent-bob']], $people);
+		self::assertCount(0, $this->saved);
+
+	}//end testAffectedPeopleResolvesWithoutWriting()
+
+	/**
+	 * The reads behind the affected people, recorded: the cohort by id and
+	 * each learner's profile by user id, both tenant-forced; learner ids are
+	 * the cohort's distinct non-empty strings, parent ids the distinct
+	 * non-empty strings across every profile, in first-seen order.
+	 *
+	 * @return void
+	 */
+	public function testAffectedPeopleReadsTenantScopedAndKeepsOnlyRealIds(): void {
+		$queries = [];
+		$this->objectService->method('findAll')->willReturnCallback(
+			function (array $config) use (&$queries): array {
+				$queries[] = $config;
+				$schema = $config['filters']['schema'];
+				if ($schema === 'cohort') {
+					return [OrEntityFactory::make(['learnerIds' => ['alice', '', 7, 'bob', 'alice', 'carol', 'dave']], 'cohort', 'learniq', 'cohort-1')];
+				}
+
+				return match ($config['filters']['ncUserId']) {
+					'alice' => [['parentIds' => ['p-1', '', 'p-2']]],
+					'bob'   => [OrEntityFactory::make(['parentIds' => ['p-2', 3, 'p-3']], 'learner-profile')],
+					'carol' => [['parentIds' => 'p-9']],
+					default => [],
+				};
+			}
+		);
+
+		$people = $this->handler()->affectedPeople(['cohortId' => 'cohort-1', 'tenant_id' => 'tenant-a']);
+
+		self::assertSame(['learnerIds' => ['alice', 'bob', 'carol', 'dave'], 'parentIds' => ['p-1', 'p-2', 'p-3']], $people);
+		$profile = static fn (string $uid): array => [
+			'filters' => ['ncUserId' => $uid, 'tenant_id' => 'tenant-a', 'register' => 'learniq', 'schema' => 'learner-profile'],
+			'limit'   => 1,
+		];
+		self::assertSame(
+			[
+				['ids' => ['cohort-1'], 'filters' => ['tenant_id' => 'tenant-a', 'register' => 'learniq', 'schema' => 'cohort'], 'limit' => 1],
+				$profile('alice'),
+				$profile('bob'),
+				$profile('carol'),
+				$profile('dave'),
+			],
+			$queries
+		);
+	}//end testAffectedPeopleReadsTenantScopedAndKeepsOnlyRealIds()
+
+	/**
+	 * No cohort id reads nothing; a missing cohort or one whose learnerIds is
+	 * not a list affects nobody; without a tenant no tenant filter is sent.
+	 *
+	 * @return void
+	 */
+	public function testNoCohortAffectsNobody(): void {
+		$queries = [];
+		$this->objectService->method('findAll')->willReturnCallback(
+			function (array $config) use (&$queries): array {
+				$queries[] = $config;
+				return match ($config['ids'][0] ?? '') {
+					'odd' => [['learnerIds' => 'alice']],
+					default => [],
+				};
+			}
+		);
+
+		$none = ['learnerIds' => [], 'parentIds' => []];
+		self::assertSame($none, $this->handler()->affectedPeople(['cohortId' => '', 'tenant_id' => 'tenant-a']));
+		self::assertSame([], $queries);
+		self::assertSame($none, $this->handler()->affectedPeople(['cohortId' => 'gone']));
+		self::assertSame($none, $this->handler()->affectedPeople(['cohortId' => 'odd']));
+		self::assertSame(
+			['ids' => ['gone'], 'filters' => ['register' => 'learniq', 'schema' => 'cohort'], 'limit' => 1],
+			$queries[0]
+		);
+	}//end testNoCohortAffectsNobody()
+
+	/**
+	 * Only a watched transition of a Learniq session outside a batch is
+	 * materialised; an empty or non-string batch id does not count as a batch.
+	 *
+	 * @return void
+	 */
+	public function testOnlyAWatchedTransitionOutsideABatchMaterialises(): void {
+		$this->wire([['id' => 'cohort-1', 'learnerIds' => ['alice']]], [['ncUserId' => 'alice', 'parentIds' => ['parent-alice']]]);
+
+		$this->handler()->handle($this->createMock(\OCP\EventDispatcher\Event::class));
+		$foreign = $this->createMock(ObjectTransitionedEvent::class);
+		$foreign->method('getRegister')->willReturn('opencatalogi');
+		$foreign->method('getSchema')->willReturn('session');
+		$foreign->method('getAction')->willReturn('cancel');
+		$foreign->expects(self::never())->method('getObject');
+		$this->handler()->handle($foreign);
+		self::assertCount(0, $this->saved);
+
+		$this->handler()->handle($this->makeEvent('cancel', ['id' => 's-1', 'cohortId' => 'cohort-1', 'changeBatchId' => '']));
+		$this->handler()->handle($this->makeEvent('cancel', ['id' => 's-2', 'cohortId' => 'cohort-1', 'changeBatchId' => 5]));
+		self::assertSame(['s-1', 's-2'], array_column($this->saved, 'id'));
+		self::assertSame(['parent-alice'], $this->saved[0]['affectedParentIds']);
+	}//end testOnlyAWatchedTransitionOutsideABatchMaterialises()
 }//end class

@@ -1,10 +1,10 @@
-# Scholiq, API Reference
+# Learniq, API Reference
 
-Scholiq exposes two categories of API surface:
+Learniq exposes two categories of API surface:
 
-1. **OpenRegister object API**, all CRUD and lifecycle operations on the 9 schemas go through OR's REST API. Scholiq does not wrap these with its own controllers.
-2. **Scholiq-specific endpoints**, thin PHP controllers for operations OR cannot yet express declaratively: public credential verification, audit-pack ZIP export, and admin key management.
-3. **AppHost generic endpoints** (ADR-040), served by the OpenRegister AppHost generic controllers aliased onto Scholiq's controller class names: the public `/api/health` and admin `/api/metrics` observability endpoints (driven by the `observability` block in `src/manifest.json`), plus the generic settings and preferences endpoints.
+1. **OpenRegister object API**, all CRUD and lifecycle operations on the 9 schemas go through OR's REST API. Learniq does not wrap these with its own controllers.
+2. **Learniq-specific endpoints**, thin PHP controllers for operations OR cannot yet express declaratively: public credential verification, audit-pack ZIP export, and admin key management.
+3. **AppHost generic endpoints** (ADR-040), served by the OpenRegister AppHost generic controllers aliased onto Learniq's controller class names: the public `/api/health` and admin `/api/metrics` observability endpoints (driven by the `observability` block in `src/manifest.json`), plus the generic settings and preferences endpoints.
 
 Base URL (local dev): `http://localhost:8080/index.php/apps`
 
@@ -12,7 +12,7 @@ Base URL (local dev): `http://localhost:8080/index.php/apps`
 
 ## OpenRegister object API
 
-Scholiq uses the standard OR objects API. The register slug is `scholiq`.
+Learniq uses the standard OR objects API. The register slug is `learniq`.
 
 ### List objects
 
@@ -110,7 +110,7 @@ Content-Type: application/json
 
 ---
 
-## Scholiq-specific endpoints
+## Learniq-specific endpoints
 
 All endpoints below require an authenticated Nextcloud session unless marked `@PublicPage`.
 
@@ -197,19 +197,19 @@ with `"status": "unhealthy"`.
 
 Prometheus text exposition served by the AppHost `GenericMetricsController`
 from the `observability.metrics` block in `src/manifest.json`. New with the
-AppHost adoption — Scholiq had no metrics endpoint before. Each gauge is an
-`objectCount` over the Scholiq register, replacing the old placeholder
+AppHost adoption — Learniq had no metrics endpoint before. Each gauge is an
+`objectCount` over the Learniq register, replacing the old placeholder
 counters (`audit_trail_events_24h: 0`, `last_audit_pack_export: null`) with
 live values:
 
 ```
-# HELP scholiq_courses_total Number of Course objects in the Scholiq register.
+# HELP scholiq_courses_total Number of Course objects in the Learniq register.
 # TYPE scholiq_courses_total gauge
 scholiq_courses_total 12
-# HELP scholiq_enrolments_total Number of Enrolment objects in the Scholiq register.
+# HELP scholiq_enrolments_total Number of Enrolment objects in the Learniq register.
 # TYPE scholiq_enrolments_total gauge
 scholiq_enrolments_total 87
-# HELP scholiq_learner_profiles_total Number of LearnerProfile objects in the Scholiq register.
+# HELP scholiq_learner_profiles_total Number of LearnerProfile objects in the Learniq register.
 # TYPE scholiq_learner_profiles_total gauge
 scholiq_learner_profiles_total 34
 ```
@@ -277,7 +277,7 @@ Lists signing key metadata (key ID, created at, algorithm). Does not expose priv
 
 **Auth required. Admin-only.**
 
-Generates a new RSA key pair and stores it via `ICrypto`. Equivalent to `occ scholiq:keys:generate`.
+Generates a new RSA key pair and stores it via `ICrypto`. Equivalent to `occ learniq:keys:generate`.
 
 **Request:** No body required.
 
@@ -299,7 +299,7 @@ Generates a new RSA key pair and stores it via `ICrypto`. Equivalent to `occ sch
 
 User and admin settings endpoints backed by `SettingsController`.
 
-`GET /scholiq/api/settings`, returns current user's Scholiq preferences.
+`GET /scholiq/api/settings`, returns current user's Learniq preferences.
 `POST /scholiq/api/settings`, updates preferences.
 
 **User preference keys:**

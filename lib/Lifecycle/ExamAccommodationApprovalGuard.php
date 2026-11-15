@@ -31,8 +31,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-exam-accommodations-are-recorded-as-approved-evidence-backed-entitlements
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-learner-cannot-self-approve-their-own-accommodation
+ * @spec openspec/specs/timetabling/spec.md#requirement-exam-accommodations-are-recorded-as-approved-evidence-backed-entitlements
+ * @spec openspec/specs/timetabling/spec.md#scenario-a-learner-cannot-self-approve-their-own-accommodation
  */
 
 declare(strict_types=1);
@@ -53,7 +53,7 @@ use Psr\Log\LoggerInterface;
  * OpenRegister calls guards by value, so a guard can not write onto the object
  * (learniq#983).
  *
- * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-exam-accommodations-are-recorded-as-approved-evidence-backed-entitlements
+ * @spec openspec/specs/timetabling/spec.md#requirement-exam-accommodations-are-recorded-as-approved-evidence-backed-entitlements
  */
 class ExamAccommodationApprovalGuard implements LifecycleGuardInterface {
 
@@ -89,8 +89,8 @@ class ExamAccommodationApprovalGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny when the caller may not approve.
 	 *
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-learner-requests-an-accommodation-and-a-mentor-approves-it
-	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-learner-cannot-self-approve-their-own-accommodation
+	 * @spec openspec/specs/timetabling/spec.md#scenario-a-learner-requests-an-accommodation-and-a-mentor-approves-it
+	 * @spec openspec/specs/timetabling/spec.md#scenario-a-learner-cannot-self-approve-their-own-accommodation
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -119,13 +119,8 @@ class ExamAccommodationApprovalGuard implements LifecycleGuardInterface {
 	 * @return bool True when the user is in admin/compliance-officer/mentor.
 	 */
 	private function actorIsAuthorised(string $actor): bool {
-		$user = $this->userManager->get($actor);
-		if ($user === null) {
-			return false;
-		}
+		$groups = new ActorGroups(userManager: $this->userManager, groupManager: $this->groupManager);
 
-		$actorGroups = $this->groupManager->getUserGroupIds($user);
-
-		return count(array_intersect($actorGroups, self::AUTHORISED_GROUPS)) > 0;
+		return $groups->isInAny(actor: $actor, groups: self::AUTHORISED_GROUPS);
 	}//end actorIsAuthorised()
 }//end class

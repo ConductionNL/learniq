@@ -7,7 +7,8 @@
  * analysis and the unit suite do not have that app on their path, so learniq's
  * course store (lesson-sharing-via-store-plane) resolves it through the
  * `OCA\OpenRegister\ => tests/Stubs/` autoload-dev mapping. Same constructor
- * as the real class.
+ * and publish opt-in as the real class at OpenRegister 84352bae
+ * (store-plane-publish).
  *
  * SPDX-License-Identifier: EUPL-1.2
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
@@ -33,6 +34,8 @@ final class StoreDescriptor {
 	 * @param string                $defaultRegister Remote register used when `registry_register` is empty.
 	 * @param array<string, string> $cardFields      Card field => remote property.
 	 * @param array<int, string>    $types           Shareable configuration type ids (federated discovery).
+	 * @param array<int, string>    $publishFields   Remote properties a publish may send next to the slug.
+	 * @param array<int, string>    $publishGroups   Nextcloud groups whose members may publish.
 	 */
 	public function __construct(
 		public readonly string $appId,
@@ -46,8 +49,37 @@ final class StoreDescriptor {
 			'version'     => 'version',
 		],
 		public readonly array $types=[],
+		public readonly array $publishFields=[],
+		public readonly array $publishGroups=[],
 	) {
 	}//end __construct()
+
+	/**
+	 * Whether this descriptor opted in to publishing: at least one field and
+	 * one non-empty group.
+	 *
+	 * @return bool
+	 */
+	public function isPublishable(): bool {
+		return $this->publishFields !== [] && $this->namedPublishGroups() !== [];
+	}//end isPublishable()
+
+	/**
+	 * The publish groups with blank entries removed.
+	 *
+	 * @return array<int, string>
+	 */
+	public function namedPublishGroups(): array {
+		$named = [];
+		foreach ($this->publishGroups as $group) {
+			$group = trim((string) $group);
+			if ($group !== '') {
+				$named[] = $group;
+			}
+		}
+
+		return array_values(array_unique($named));
+	}//end namedPublishGroups()
 
 	/**
 	 * Whether this descriptor selects federated configuration discovery.

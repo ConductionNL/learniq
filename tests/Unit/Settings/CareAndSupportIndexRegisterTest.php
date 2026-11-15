@@ -19,9 +19,9 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/care-and-support-index/specs/learning-plan/spec.md#requirement-learningplan-declares-a-materialised-six-week-activation-clock
- * @spec openspec/changes/care-and-support-index/specs/learning-plan/spec.md#requirement-observationinstrument-records-structured-kleuter-leerlijn-observations
- * @spec openspec/changes/care-and-support-index/specs/learning-plan/spec.md#requirement-trajectory-tracks-a-bovenschoolse-voorziening-placement-lifecycle-with-an-append-only-status-log
+ * @spec openspec/specs/learning-plan/spec.md#requirement-learningplan-declares-a-materialised-six-week-activation-clock
+ * @spec openspec/specs/learning-plan/spec.md#requirement-observationinstrument-records-structured-kleuter-leerlijn-observations
+ * @spec openspec/specs/learning-plan/spec.md#requirement-trajectory-tracks-a-bovenschoolse-voorziening-placement-lifecycle-with-an-append-only-status-log
  */
 
 declare(strict_types=1);
@@ -60,7 +60,7 @@ class CareAndSupportIndexRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/care-and-support-index/specs/learning-plan/spec.md#scenario-isoverdueforactivation-is-true-once-the-deadline-has-passed-on-a-still-draft-plan
+	 * @spec openspec/specs/learning-plan/spec.md#scenario-isoverdueforactivation-is-true-once-the-deadline-has-passed-on-a-still-draft-plan
 	 */
 	public function testLearningPlanSixWeekClockCalculationShapes(): void {
 		$calcs = $this->config['components']['schemas']['LearningPlan']['x-openregister-calculations'];
@@ -103,7 +103,7 @@ class CareAndSupportIndexRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/care-and-support-index/specs/learning-plan/spec.md#scenario-a-tracked-growth-entry-persists-against-the-declared-bandwidth
+	 * @spec openspec/specs/learning-plan/spec.md#scenario-a-tracked-growth-entry-persists-against-the-declared-bandwidth
 	 */
 	public function testOutflowBandwidthAndTrackedGrowthShape(): void {
 		$props = $this->config['components']['schemas']['LearningPlan']['properties'];
@@ -124,7 +124,7 @@ class CareAndSupportIndexRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/care-and-support-index/specs/learning-plan/spec.md#scenario-an-observationinstrument-persists-one-entry-per-leerlijn-per-observation-moment
+	 * @spec openspec/specs/learning-plan/spec.md#scenario-an-observationinstrument-persists-one-entry-per-leerlijn-per-observation-moment
 	 */
 	public function testObservationInstrumentRegisteredWithFullEnums(): void {
 		$schemas = $this->config['components']['schemas'];
@@ -149,7 +149,7 @@ class CareAndSupportIndexRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/care-and-support-index/specs/learning-plan/spec.md#scenario-a-trajectory-moves-through-its-full-lifecycle-with-a-status-update-at-each-stage
+	 * @spec openspec/specs/learning-plan/spec.md#scenario-a-trajectory-moves-through-its-full-lifecycle-with-a-status-update-at-each-stage
 	 */
 	public function testTrajectoryLifecycleAndStatusUpdateAppendOnly(): void {
 		$schemas = $this->config['components']['schemas'];

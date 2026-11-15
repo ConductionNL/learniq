@@ -23,11 +23,15 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\DashboardRoleService;
-use OCA\Learniq\Service\SegmentService;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
+use OCA\Learniq\Kernel\Contracts\DashboardRoleServiceInterface;
+use OCA\Learniq\Kernel\Contracts\LineManagerCheckInterface;
+use OCA\Learniq\Kernel\Contracts\LoadedExampleSetsInterface;
+use OCA\Learniq\Kernel\Contracts\MenuStructureInterface;
+use OCA\Learniq\Kernel\Contracts\SegmentServiceInterface;
+use OCA\Learniq\Kernel\Contracts\StoreAccessServiceInterface;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\JSONResponse;
@@ -45,7 +49,13 @@ use Throwable;
  * blob unchanged (v0.1). A partial-override hook from IAppConfig is deferred
  * to v0.2 — the frontend loader's silent-fallback path is exercised in v0.1.
  *
- * @spec exclude framework glue — SPA shell + manifest passthrough + role and segment initial-state provider; no business behaviour
+ * @spec exclude framework glue — SPA shell, manifest passthrough and initial-state provider (role, segment, store access, tenant)
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) One over the threshold since
+ * the caller's tenant joined the initial state. This controller is where the
+ * page's per-user values are gathered, and each one comes from its own service,
+ * resolved lazily (segment, store access, tenant) so the default route stays
+ * up without OpenRegister.
  */
 class PageController extends Controller {
 	/**
@@ -54,8 +64,9 @@ class PageController extends Controller {
 	 * @param IRequest $request The request object.
 	 * @param IUserSession $userSession The user session.
 	 * @param IInitialState $initialState The initial-state service.
-	 * @param DashboardRoleService $dashboardRoleSvc Resolves the user's role + dashboard views.
+	 * @param DashboardRoleServiceInterface $dashboardRoleSvc Resolves the user's role + dashboard views.
 	 * @param ContainerInterface $container Resolves SegmentService lazily (see resolveSegment()).
+	 * @param LoadedExampleSetsInterface $loadedSets The example sets the wizard loaded (app config only).
 	 *
 	 * @return void
 	 */
@@ -63,10 +74,11 @@ class PageController extends Controller {
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly IInitialState $initialState,
-		private readonly DashboardRoleService $dashboardRoleSvc,
+		private readonly DashboardRoleServiceInterface $dashboardRoleSvc,
 		private readonly ContainerInterface $container,
+		private readonly LoadedExampleSetsInterface $loadedSets,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -96,9 +108,21 @@ class PageController extends Controller {
 			$this->initialState->provideInitialState('segment', $workspace['segment']);
 			$this->initialState->provideInitialState('chosenSegment', $workspace['chosenSegment']);
 			$this->initialState->provideInitialState('confidentialCounsellor', $this->dashboardRoleSvc->isConfidentialCounsellor($user));
+			// A line manager has no staff role but approves their reports'
+			// self sign-ups, so the menu needs this flag to show them the requests.
+			$this->initialState->provideInitialState('managesLearners', $this->resolveManagesLearners());
+			$this->initialState->provideInitialState('storeAccess', $this->resolveStoreAccess());
+			// One removal step per loaded example set in the setup wizard (D34).
+			$this->initialState->provideInitialState('loadedExampleSets', $this->loadedSets->all());
+			// The caller's tenant, for nextcloud-vue's tenant context: the
+			// shared create dialog fills a hidden `tenant_id` from it.
+			$this->initialState->provideInitialState('callerTenant', $this->resolveCallerTenant());
+			// Which structure `src/main.js` builds: the simple menu (the default)
+			// or the full one (simple-structure-profile).
+			$this->initialState->provideInitialState(MenuStructureInterface::KEY, $this->resolveMenuStructure());
 		}
 
-		return new TemplateResponse(Application::APP_ID, 'index');
+		return new TemplateResponse(AppIdentity::APP_ID, 'index');
 	}//end index()
 
 	/**
@@ -117,11 +141,107 @@ class PageController extends Controller {
 	 */
 	private function resolveWorkspace(): array {
 		try {
-			return $this->container->get(SegmentService::class)->workspace();
+			return $this->container->get(SegmentServiceInterface::class)->workspace();
 		} catch (Throwable $e) {
-			return ['segment' => SegmentService::DEFAULT_SEGMENT, 'chosenSegment' => null];
+			return ['segment' => SegmentServiceInterface::DEFAULT_SEGMENT, 'chosenSegment' => null];
 		}
 	}//end resolveWorkspace()
+
+	/**
+	 * Which structure the app shows: `simple` (the default) or `full`.
+	 *
+	 * Resolved lazily and degraded to the default on failure, like the other
+	 * values this page provides: this is the app's default route, and a start
+	 * screen that fails over a menu setting helps nobody.
+	 *
+	 * @return string `simple` or `full`.
+	 *
+	 * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
+	 */
+	private function resolveMenuStructure(): string {
+		try {
+			return $this->container->get(MenuStructureInterface::class)->current();
+		} catch (Throwable $e) {
+			return MenuStructureInterface::SIMPLE;
+		}
+	}//end resolveMenuStructure()
+
+	/**
+	 * Which course store actions the signed-in user may take, for the Store page and
+	 * the export screen (store-rights-for-teachers, D27).
+	 *
+	 * Resolved lazily and degraded to "none" on failure, for the same reason
+	 * as resolveSegment(): the store service reaches OpenRegister, and this is
+	 * the app's default route. Showing no store buttons is the safe answer; the
+	 * store endpoints enforce the rights either way.
+	 *
+	 * @return array{install: bool, publish: bool}
+	 *
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
+	 */
+	private function resolveStoreAccess(): array {
+		try {
+			return $this->container->get(StoreAccessServiceInterface::class)->forCurrentUser();
+		} catch (Throwable $e) {
+			return ['install' => false, 'publish' => false];
+		}
+	}//end resolveStoreAccess()
+
+	/**
+	 * Whether the signed-in user is anyone's line manager, for the
+	 * `user.managesLearners` menu gate.
+	 *
+	 * Resolved lazily and degraded to false on failure, for the same reason
+	 * as resolveWorkspace(): LineManagerCheckInterface reads OpenRegister, and this is
+	 * the app's default route.
+	 *
+	 * @return bool True when at least one learner names the user as manager.
+	 */
+	private function resolveManagesLearners(): bool {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return false;
+		}
+
+		try {
+			return $this->container->get(LineManagerCheckInterface::class)->managesLearners(user: $user);
+		} catch (Throwable $e) {
+			return false;
+		}
+	}//end resolveManagesLearners()
+
+	/**
+	 * The signed-in user's tenant, as CallerTenantResolver resolves it: the
+	 * per-user `tenant_id` binding, else the instance id. Every row learniq
+	 * writes server-side carries this value, so a record created through the
+	 * shared create dialog must carry it too; nextcloud-vue reads it from the
+	 * tenant context `src/main.js` feeds with this initial state.
+	 *
+	 * Resolved lazily and degraded to null on failure, for the same reason
+	 * as resolveWorkspace(): CallerTenantResolverInterface takes OpenRegister's
+	 * ObjectService, and this is the app's default route. Null means no
+	 * tenant context, so the dialog leaves the key out rather than guess.
+	 *
+	 * @return string|null The tenant id, or null when it cannot be resolved.
+	 */
+	private function resolveCallerTenant(): ?string {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return null;
+		}
+
+		try {
+			$tenant = $this->container->get(CallerTenantResolverInterface::class)->resolve(user: $user);
+		} catch (Throwable $e) {
+			return null;
+		}
+
+		if ($tenant === '') {
+			return null;
+		}
+
+		return $tenant;
+	}//end resolveCallerTenant()
 
 	/**
 	 * Serve the SPA for deep links (Vue history mode). Delegates to index().
@@ -152,7 +272,7 @@ class PageController extends Controller {
 	#[NoCSRFRequired]
 	public function manifest(): JSONResponse {
 		if ($this->userSession->getUser() === null) {
-			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
+			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: 401);
 		}
 
 		$manifestPath = __DIR__ . '/../../src/manifest.json';

@@ -4,11 +4,11 @@
  * Gate-19 e2e coverage — pupil-dossier spec UI scenarios.
  *
  * Covers (UI-observable surface):
- *   @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-a-mentor-records-a-dossier-note
- *   @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-a-learner-submits-a-wellbeing-check-in
- *   @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-an-incident-escalates-into-a-supportrequest-by-reference
- *   @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-pages-are-manifest-declared-with-one-shared-timeline-view-exception
- *   @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
+ *   @e2e openspec/specs/pupil-dossier/spec.md#scenario-a-mentor-records-a-dossier-note
+ *   @e2e openspec/specs/pupil-dossier/spec.md#scenario-a-learner-submits-a-wellbeing-check-in
+ *   @e2e openspec/specs/pupil-dossier/spec.md#scenario-an-incident-escalates-into-a-supportrequest-by-reference
+ *   @e2e openspec/specs/pupil-dossier/spec.md#scenario-pages-are-manifest-declared-with-one-shared-timeline-view-exception
+ *   @e2e openspec/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
  *
  * The schema shape (appendOnly, required fields, x-property-rbac read floor,
  * x-openregister-authorization create restriction, the escalatedSupportRequestId
@@ -71,8 +71,8 @@ function assertNoFatalErrors(errors: string[]): void {
 }
 
 test.describe('pupil-dossier — declarative index pages', () => {
-	// @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-a-mentor-records-a-dossier-note
-	// @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-pages-are-manifest-declared-with-one-shared-timeline-view-exception
+	// @e2e openspec/specs/pupil-dossier/spec.md#scenario-a-mentor-records-a-dossier-note
+	// @e2e openspec/specs/pupil-dossier/spec.md#scenario-pages-are-manifest-declared-with-one-shared-timeline-view-exception
 	test('Dossier notes index page renders without a fatal error', async ({
 		loggedInPage: page,
 	}) => {
@@ -88,8 +88,8 @@ test.describe('pupil-dossier — declarative index pages', () => {
 		assertNoFatalErrors(errors)
 	})
 
-	// @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-an-incident-escalates-into-a-supportrequest-by-reference
-	// @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-pages-are-manifest-declared-with-one-shared-timeline-view-exception
+	// @e2e openspec/specs/pupil-dossier/spec.md#scenario-an-incident-escalates-into-a-supportrequest-by-reference
+	// @e2e openspec/specs/pupil-dossier/spec.md#scenario-pages-are-manifest-declared-with-one-shared-timeline-view-exception
 	test('Behaviour incidents index page renders without a fatal error', async ({
 		loggedInPage: page,
 	}) => {
@@ -105,8 +105,8 @@ test.describe('pupil-dossier — declarative index pages', () => {
 		assertNoFatalErrors(errors)
 	})
 
-	// @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-a-learner-submits-a-wellbeing-check-in
-	// @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-pages-are-manifest-declared-with-one-shared-timeline-view-exception
+	// @e2e openspec/specs/pupil-dossier/spec.md#scenario-a-learner-submits-a-wellbeing-check-in
+	// @e2e openspec/specs/pupil-dossier/spec.md#scenario-pages-are-manifest-declared-with-one-shared-timeline-view-exception
 	test('Wellbeing check-ins index page renders without a fatal error', async ({
 		loggedInPage: page,
 	}) => {
@@ -122,7 +122,7 @@ test.describe('pupil-dossier — declarative index pages', () => {
 		assertNoFatalErrors(errors)
 	})
 
-	// @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-an-incident-escalates-into-a-supportrequest-by-reference
+	// @e2e openspec/specs/pupil-dossier/spec.md#scenario-an-incident-escalates-into-a-supportrequest-by-reference
 	test('Behaviour incident detail route resolves the registered component, not a blank/404 shell', async ({
 		loggedInPage: page,
 	}) => {
@@ -148,7 +148,7 @@ test.describe('pupil-dossier — declarative index pages', () => {
 })
 
 test.describe('pupil-dossier — PupilDossierTimelineView resolves (registry.js wiring)', () => {
-	// @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-pages-are-manifest-declared-with-one-shared-timeline-view-exception
+	// @e2e openspec/specs/pupil-dossier/spec.md#scenario-pages-are-manifest-declared-with-one-shared-timeline-view-exception
 	test('PupilDossierTimelineView route renders its empty-state learner picker with no learnerId query param', async ({
 		loggedInPage: page,
 	}) => {
@@ -164,7 +164,7 @@ test.describe('pupil-dossier — PupilDossierTimelineView resolves (registry.js 
 		assertNoFatalErrors(errors)
 	})
 
-	// @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
+	// @e2e openspec/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
 	test('PupilDossierTimelineView route resolves the registered component for a given learnerId, not a blank/404 shell', async ({
 		loggedInPage: page,
 	}) => {

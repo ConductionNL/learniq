@@ -111,11 +111,13 @@ function main() {
 
 	const locales = fs
 		.readdirSync(L10N_DIR)
-		// Dotfiles are never locale catalogues. `l10n/.schema-l10n-baseline.json`
-		// sits here so prettier ignores it, and without this guard it was read as
-		// a locale named `.schema-l10n-baseline` and failed for having no
-		// `translations` key.
-		.filter((f) => f.endsWith('.json') && !f.startsWith('.'))
+		// Only a file NAMED like a locale is a catalogue: `nl.json`, `prs.json`,
+		// `en_US.json`. Two files in l10n/ are not, and each once broke this
+		// script by being read as a locale with no `translations` key:
+		// `.schema-l10n-baseline.json` (the schema-string ratchet) and
+		// `ai-translated.json` (the keys whose Dutch value an AI wrote and no
+		// human has reviewed yet, see docs/Technical/ai-translated-catalogue.md).
+		.filter((f) => /^[a-z]{2,3}(_[A-Z]{2})?\.json$/.test(f))
 		.map((f) => f.slice(0, -5))
 		.sort()
 	if (locales.length === 0) {

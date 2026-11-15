@@ -15,9 +15,9 @@
 
  Opened by RapportvergaderingReviewView for an `open` ReportPeriod.
 
- @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
- @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
- @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
+ @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+ @spec openspec/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
+ @spec openspec/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
 -->
 <template>
 	<NcDialog
@@ -92,6 +92,7 @@
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcDialog, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
+import { transitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'ComposeReportPeriodModal',
@@ -175,7 +176,7 @@ export default {
 		 * Dialog title.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
+		 * @spec openspec/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
 		 */
 		dialogTitle() {
 			if (!this.period) return t('learniq', 'Compose report period')
@@ -196,7 +197,7 @@ export default {
 		 * Load the ReportPeriod being composed.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
+		 * @spec openspec/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
 		 */
 		async loadPeriod() {
 			this.loading = true
@@ -217,11 +218,12 @@ export default {
 		},
 
 		/**
-		 * Trigger the ReportPeriod's `compose` transition
-		 * (open -> composed, requires ReportPeriodComposeGuard).
+		 * Run the ReportPeriod's `compose` transition (open -> composed,
+		 * requires ReportPeriodComposeGuard) through OR's transition
+		 * endpoint; ReportCardComposer builds the report cards on it.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
+		 * @spec openspec/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
 		 */
 		async compose() {
 			if (!this.period || !this.isLocked) return
@@ -229,11 +231,9 @@ export default {
 			this.composing = true
 			this.error = ''
 			try {
-				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/report-period/{id}',
-					{ id: this.reportPeriodId },
-				)
-				await axios.put(url, { lifecycle: 'composed' })
+				await axios.post(generateUrl(transitionUrl(this.reportPeriodId)), {
+					action: 'compose',
+				})
 				this.$emit('composed')
 				this.$emit('close')
 			} catch (e) {

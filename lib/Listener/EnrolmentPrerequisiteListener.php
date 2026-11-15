@@ -3,6 +3,9 @@
 /**
  * Learniq Enrolment Prerequisite Listener
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Closes the "prerequisite hole": openspec/specs/enrolment/spec.md has required
  * "Validate prerequisites before persistence" since 2026-05-11, but no code ever
  * implemented it. This listener is that enforcement — a creation-time veto on
@@ -43,22 +46,20 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
+ * @spec openspec/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
@@ -71,7 +72,7 @@ use Throwable;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/adaptive-release-and-prerequisites/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
+ * @spec openspec/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
  */
 class EnrolmentPrerequisiteListener implements IEventListener {
 
@@ -92,14 +93,14 @@ class EnrolmentPrerequisiteListener implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object access service.
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the entity's register/schema ids to slugs.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -111,7 +112,7 @@ class EnrolmentPrerequisiteListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
+	 * @spec openspec/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatingEvent === false) {
@@ -141,7 +142,7 @@ class EnrolmentPrerequisiteListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
+	 * @spec openspec/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
 	 */
 	private function evaluate(ObjectCreatingEvent $event): void {
 		$entity = $event->getObject();
@@ -252,7 +253,7 @@ class EnrolmentPrerequisiteListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/enrolment/spec.md#scenario-block-enrolment-when-prerequisites-are-unmet
+	 * @spec openspec/specs/enrolment/spec.md#scenario-block-enrolment-when-prerequisites-are-unmet
 	 */
 	private function rejectForUnmetPrerequisite(ObjectCreatingEvent $event, string $prereqCourseId): void {
 		$prereqCourseName = $prereqCourseId;

@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-a-teacher-can-ask-for-returned-work-to-be-handed-in-again
+ * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-can-ask-for-returned-work-to-be-handed-in-again
  */
 
 declare(strict_types=1);

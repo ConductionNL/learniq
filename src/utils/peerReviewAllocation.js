@@ -5,7 +5,7 @@
  * What the peer review section on an assignment shows, and how it reads the
  * allocation endpoint's answer. Pure functions, pinned by node tests.
  *
- * @spec openspec/changes/peer-review-allocation-trigger/specs/assignments/spec.md#requirement-a-teacher-allocates-peer-reviewers-from-the-assignment-page
+ * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-allocates-peer-reviewers-from-the-assignment-page
  */
 
 import { canSeeHandInStatus } from './handInStatus.js'
@@ -20,7 +20,7 @@ export const ALLOCATION_STRATEGIES = ['round-robin', 'random', 'manual']
  * @param {string[]} dashboardViews The `dashboardRoles` initial state.
  * @param {Date} now The current moment.
  * @return {{visible: boolean, canAllocate: boolean, strategy: string, reviewersPerSubmission: number, beforeDeadline: boolean}}
- * @spec openspec/changes/peer-review-allocation-trigger/specs/assignments/spec.md#requirement-a-teacher-allocates-peer-reviewers-from-the-assignment-page
+ * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-allocates-peer-reviewers-from-the-assignment-page
  */
 export function peerReviewPanel(assignment, dashboardViews, now = new Date()) {
 	const strategy = ALLOCATION_STRATEGIES.includes(
@@ -50,17 +50,28 @@ export function peerReviewPanel(assignment, dashboardViews, now = new Date()) {
  * @return {{kind: string, created: number, processed: number}} `created`
  *   when reviews were added, `complete` when every submission already had
  *   its reviewers, `empty` when there was no handed-in work.
- * @spec openspec/changes/peer-review-allocation-trigger/specs/assignments/spec.md#requirement-a-teacher-allocates-peer-reviewers-from-the-assignment-page
+ * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-allocates-peer-reviewers-from-the-assignment-page
  */
 export function allocationOutcome(body) {
 	const result = body?.result ?? {}
 	const created = Number(result.createdCount) || 0
 	const processed = Number(result.submissionsProcessed) || 0
-	let kind = 'created'
+	return { kind: outcomeKind(created, processed), created, processed }
+}
+
+/**
+ * What an allocation did: nothing to review, nothing left to add, or reviews added.
+ *
+ * @param {number} created Reviews created.
+ * @param {number} processed Submissions processed.
+ * @return {'empty'|'complete'|'created'}
+ */
+function outcomeKind(created, processed) {
 	if (processed === 0) {
-		kind = 'empty'
-	} else if (created === 0) {
-		kind = 'complete'
+		return 'empty'
 	}
-	return { kind, created, processed }
+	if (created === 0) {
+		return 'complete'
+	}
+	return 'created'
 }

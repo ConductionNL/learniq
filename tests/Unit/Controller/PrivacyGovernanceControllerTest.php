@@ -5,7 +5,7 @@
  *
  * Coverage for privacy-governance-surfaces: the overview endpoint composes
  * the eight rbac-declare-groups group ids' member counts, best-effort 2FA
- * adoption, and DataExchangeJob partner-approval counts — and degrades to
+ * adoption, and partner approval counts — and degrades to
  * `null` (never a fabricated zero) on any read failure.
  *
  * @category Tests
@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#requirement-a-board-facing-dashboard-composes-group-2fa-and-integration-approval-state
+ * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-a-board-facing-dashboard-composes-group-2fa-and-integration-approval-state
  */
 
 declare(strict_types=1);
@@ -67,7 +67,7 @@ class PrivacyGovernanceControllerTest extends TestCase {
 	 * `null` member count — never a fabricated `0`.
 	 *
 	 * @return void
-	 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
 	 */
 	public function testUnprovisionedGroupReportsNullNotZero(): void {
 		$groupManager = $this->createMock(IGroupManager::class);
@@ -90,7 +90,7 @@ class PrivacyGovernanceControllerTest extends TestCase {
 	 * A provisioned group reports its real member count.
 	 *
 	 * @return void
-	 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
 	 */
 	public function testProvisionedGroupReportsMemberCount(): void {
 		$group = $this->createMock(IGroup::class);
@@ -118,7 +118,7 @@ class PrivacyGovernanceControllerTest extends TestCase {
 	 * ("unknown"), never a fabricated `0` or the literal `false`.
 	 *
 	 * @return void
-	 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
 	 */
 	public function testProvisionedGroupWithUncountableMembersReportsNull(): void {
 		$group = $this->createMock(IGroup::class);
@@ -145,7 +145,7 @@ class PrivacyGovernanceControllerTest extends TestCase {
 	 * members, and only a user with at least one enabled provider counts.
 	 *
 	 * @return void
-	 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
 	 */
 	public function testTwoFactorAdoptionCountsOnlyEnabledUsers(): void {
 		$userWith2fa = $this->createMock(IUser::class);
@@ -188,7 +188,7 @@ class PrivacyGovernanceControllerTest extends TestCase {
 	 * zero.
 	 *
 	 * @return void
-	 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#scenario-two-factor-adoption-degrades-to-unknown-rather-than-a-fabricated-zero
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#scenario-two-factor-adoption-degrades-to-unknown-rather-than-a-fabricated-zero
 	 */
 	public function testTwoFactorRegistryFailureDegradesToUnknown(): void {
 		$user = $this->createMock(IUser::class);
@@ -216,23 +216,26 @@ class PrivacyGovernanceControllerTest extends TestCase {
 	}//end testTwoFactorRegistryFailureDegradesToUnknown()
 
 	/**
-	 * DataExchangeJob counts are grouped by partnerApprovalStatus, restricted
-	 * to jobs with requiresPartnerApproval: true.
+	 * ExchangePartnerApproval rows are counted by status; an unknown status is
+	 * ignored (data-exchange-to-integriq).
 	 *
 	 * @return void
-	 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
 	 */
-	public function testDataExchangeJobCountsGroupedByApprovalStatus(): void {
+	public function testPartnerApprovalCountsGroupedByStatus(): void {
 		$groupManager = $this->createMock(IGroupManager::class);
 		$groupManager->method('get')->willReturn(null);
 
+		// data-exchange-to-integriq: each row is a standing ExchangePartnerApproval.
 		$objectService = $this->createMock(ObjectService::class);
-		$objectService->method('findAll')->willReturn(
+		$objectService->expects($this->once())->method('findAll')->with(
+			$this->callback(static fn (array $config): bool => ($config['filters']['schema'] ?? '') === 'exchange-partner-approval')
+		)->willReturn(
 			[
-				['requiresPartnerApproval' => true, 'partnerApprovalStatus' => 'pending'],
-				['requiresPartnerApproval' => true, 'partnerApprovalStatus' => 'approved'],
-				['requiresPartnerApproval' => true, 'partnerApprovalStatus' => 'approved'],
-				['requiresPartnerApproval' => false, 'partnerApprovalStatus' => 'not-required'],
+				['target' => 'swv', 'status' => 'pending'],
+				['target' => 'oso', 'status' => 'approved'],
+				['target' => 'hr', 'status' => 'approved'],
+				['target' => 'bron-rod', 'status' => 'withdrawn-by-typo'],
 			]
 		);
 
@@ -243,7 +246,7 @@ class PrivacyGovernanceControllerTest extends TestCase {
 		self::assertSame(2, $data['dataExchange']['approved']);
 		self::assertSame(0, $data['dataExchange']['rejected']);
 
-	}//end testDataExchangeJobCountsGroupedByApprovalStatus()
+	}//end testPartnerApprovalCountsGroupedByStatus()
 
 	/**
 	 * `ObjectService::findAll()` may hand back OpenRegister entity objects
@@ -253,9 +256,9 @@ class PrivacyGovernanceControllerTest extends TestCase {
 	 * own normalisation.
 	 *
 	 * @return void
-	 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
 	 */
-	public function testDataExchangeJobCountsNormaliseJsonSerializableObjects(): void {
+	public function testPartnerApprovalCountsNormaliseJsonSerializableObjects(): void {
 		$groupManager = $this->createMock(IGroupManager::class);
 		$groupManager->method('get')->willReturn(null);
 
@@ -264,7 +267,7 @@ class PrivacyGovernanceControllerTest extends TestCase {
 			 * @return array<string, mixed>
 			 */
 			public function jsonSerialize(): array {
-				return ['requiresPartnerApproval' => true, 'partnerApprovalStatus' => 'approved'];
+				return ['target' => 'swv', 'status' => 'approved'];
 			}
 		};
 
@@ -276,10 +279,10 @@ class PrivacyGovernanceControllerTest extends TestCase {
 
 		self::assertSame(1, $data['dataExchange']['approved']);
 
-	}//end testDataExchangeJobCountsNormaliseJsonSerializableObjects()
+	}//end testPartnerApprovalCountsNormaliseJsonSerializableObjects()
 
 	/**
-	 * A DataExchangeJob read failure degrades to unknown counts rather than
+	 * A partner approval read failure degrades to unknown counts rather than
 	 * erroring the whole dashboard.
 	 *
 	 * @return void
@@ -338,4 +341,113 @@ class PrivacyGovernanceControllerTest extends TestCase {
 		);
 
 	}//end buildController()
+
+	/**
+	 * The approval read and its counting: one bounded read of the partner
+	 * approvals; a row without a status counts as pending, an unknown status
+	 * and anything that is not a row count nowhere; a failing read is logged.
+	 *
+	 * @return void
+	 */
+	public function testApprovalCountsAtEveryEdge(): void {
+		$groupManager = $this->createMock(IGroupManager::class);
+		$groupManager->method('get')->willReturn(null);
+		$queries = [];
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			static function (array $config) use (&$queries): array {
+				$queries[] = $config;
+				return [
+					['target' => 'swv'],
+					['status' => 'rejected'],
+					['status' => 'approved'],
+					['status' => null],
+					'not a row',
+					7,
+					new \stdClass(),
+				];
+			}
+		);
+
+		$data = $this->buildController(groupManager: $groupManager, objectService: $objectService)->overview()->getData();
+
+		self::assertSame(['pending' => 2, 'approved' => 1, 'rejected' => 1], $data['dataExchange']);
+		self::assertSame(
+			[['filters' => ['register' => 'learniq', 'schema' => 'exchange-partner-approval'], 'limit' => 500]],
+			$queries
+		);
+	}//end testApprovalCountsAtEveryEdge()
+
+	/**
+	 * The two-factor read across groups: missing groups are skipped, a user
+	 * in several groups counts once, a user counts as enabled when any
+	 * provider is on; a failure of either read is logged once with its reason.
+	 *
+	 * @return void
+	 */
+	public function testTwoFactorAcrossGroupsAndLoggedFailures(): void {
+		$users = [];
+		foreach (['a', 'b', 'c'] as $uid) {
+			$users[$uid] = $this->createMock(IUser::class);
+			$users[$uid]->method('getUID')->willReturn($uid);
+		}
+
+		$first = $this->createMock(IGroup::class);
+		$first->method('getUsers')->willReturn([$users['a'], $users['b']]);
+		$second = $this->createMock(IGroup::class);
+		$second->method('getUsers')->willReturn([$users['b'], $users['c']]);
+		$groupManager = $this->createMock(IGroupManager::class);
+		$groupManager->method('get')->willReturnCallback(
+			static fn (string $groupId): ?IGroup => match ($groupId) {
+				'instructors' => $first,
+				'hr' => $second,
+				default => null,
+			}
+		);
+		$registry = $this->createMock(IRegistry::class);
+		$registry->method('getProviderStates')->willReturnCallback(
+			static fn (IUser $user): array => match ($user->getUID()) {
+				'a' => ['totp' => false, 'u2f' => true],
+				'b' => [],
+				default => ['totp' => false],
+			}
+		);
+
+		$data = $this->buildController(groupManager: $groupManager, registry: $registry)->overview()->getData();
+		self::assertSame(['eligibleCount' => 3, 'enabledCount' => 1], $data['twoFactor']);
+
+		$messages = [];
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->method('info')->willReturnCallback(
+			static function (string $message, array $context) use (&$messages): void {
+				$messages[] = strtr($message, ['{message}' => $context['message']]);
+			}
+		);
+		$unreadable = $this->createMock(IGroup::class);
+		$unreadable->method('count')->willReturn(1);
+		$unreadable->method('getUsers')->willThrowException(new \RuntimeException('groups down'));
+		$failingGroups = $this->createMock(IGroupManager::class);
+		$failingGroups->method('get')->willReturn($unreadable);
+		$failingStore = $this->createMock(ObjectService::class);
+		$failingStore->method('findAll')->willThrowException(new \RuntimeException('store down'));
+		$user = $this->createMock(IUser::class);
+		$session = $this->createMock(IUserSession::class);
+		$session->method('getUser')->willReturn($user);
+		$controller = new PrivacyGovernanceController(
+			request: $this->createMock(IRequest::class),
+			userSession: $session,
+			groupManager: $failingGroups,
+			twoFactorRegistry: $registry,
+			objectService: $failingStore,
+			logger: $logger
+		);
+
+		$controller->overview();
+
+		self::assertContains(
+			'[PrivacyGovernanceController] Two-factor adoption read failed (groups down); returning unknown rather than a fabricated zero.',
+			$messages
+		);
+		self::assertContains('[PrivacyGovernanceController] Partner approval read failed (store down); returning unknown counts.', $messages);
+	}//end testTwoFactorAcrossGroupsAndLoggedFailures()
 }//end class

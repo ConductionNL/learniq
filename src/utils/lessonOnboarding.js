@@ -10,7 +10,7 @@
  * `node --test` without an SFC compile step. URLs are app-relative; the page
  * passes them through `generateUrl`.
  *
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
+ * @spec openspec/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
  */
 
 /** OpenRegister's object API for the detection rows. */
@@ -27,7 +27,7 @@ export const ONBOARDING_API = '/apps/learniq/api/lesson-onboarding'
  * @param {string} lifecycle `detected` or `imported`.
  * @param {number} [limit] How many rows.
  * @return {string} The app-relative URL.
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
+ * @spec openspec/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
  */
 export function rowsUrl(userId, lifecycle, limit = 100) {
 	const query = new URLSearchParams({
@@ -45,7 +45,7 @@ export function rowsUrl(userId, lifecycle, limit = 100) {
  *
  * @param {string} rowId The row uuid.
  * @return {{url: string, body: object}} The request.
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-teacher-dismisses-a-file
+ * @spec openspec/specs/course-management/spec.md#scenario-a-teacher-dismisses-a-file
  */
 export function dismissRequest(rowId) {
 	return {
@@ -60,7 +60,7 @@ export function dismissRequest(rowId) {
  * @param {string} rowId The row uuid.
  * @param {string} courseId The chosen course.
  * @return {{url: string, body: object}} The request.
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
+ * @spec openspec/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
  */
 export function importRequest(rowId, courseId) {
 	return {
@@ -74,7 +74,7 @@ export function importRequest(rowId, courseId) {
  *
  * @param {object|Array} json The answer.
  * @return {Array<object>} The rows.
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
+ * @spec openspec/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
  */
 export function rowsFrom(json) {
 	if (Array.isArray(json)) return json
@@ -88,7 +88,7 @@ export function rowsFrom(json) {
  * @param {number} status The HTTP status.
  * @param {object|null} body The answer body.
  * @return {string} One of the message keys below.
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-openregister-has-no-presentation-reader-yet
+ * @spec openspec/specs/course-management/spec.md#scenario-openregister-has-no-presentation-reader-yet
  */
 export function importErrorKey(status, body) {
 	const reason = body?.reason ?? ''

@@ -16,14 +16,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
+ * @spec openspec/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\Portal;
 
-use OCA\Learniq\Service\Portal\LearnerProfileLookup;
+use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\Portal\PortalLearnerResolver;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -43,7 +43,7 @@ class PortalLearnerResolverTest extends TestCase {
 	 * @return PortalLearnerResolver
 	 */
 	private function makeResolver(?array $profile, bool $accountExists = true): PortalLearnerResolver {
-		$lookup = $this->createMock(LearnerProfileLookup::class);
+		$lookup = $this->createMock(LearnerRefResolver::class);
 		$lookup->method('byRef')->willReturn($profile);
 
 		$user = $this->createMock(IUser::class);

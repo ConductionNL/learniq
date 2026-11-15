@@ -20,15 +20,13 @@
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
 
-  @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-frontend-is-declarative-with-one-named-admissions-review-exception
+  @spec openspec/specs/enrolment/spec.md#requirement-frontend-is-declarative-with-one-named-admissions-review-exception
 -->
 
 <template>
-	<div class="admissions-review-board">
+	<div class="admissions-review-board lq-board-page">
 		<header class="admissions-review-board__header">
-			<h2 class="admissions-review-board__title">
-				{{ t('learniq', 'Admissions review board') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Admissions review board')" />
 			<p class="admissions-review-board__subtitle">
 				{{
 					t(
@@ -71,60 +69,66 @@
 		</div>
 
 		<!-- Application list -->
-		<ul v-else class="admissions-review-board__list">
-			<li
-				v-for="application in pendingApplications"
-				:key="application.id || application.uuid"
-				class="admissions-review-board__item">
-				<div class="admissions-review-board__info">
-					<span class="admissions-review-board__applicant">
-						{{ applicantName(application) }}
-					</span>
-					<span class="admissions-review-board__round-kind">
-						{{ roundKindLabel(application) }}
-					</span>
-					<span class="admissions-review-board__deadline">
-						{{
-							t('learniq', 'Deadline: {deadline}', {
-								deadline: formatDate(
-									/**
-									 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
-									 */
-									roundFor(application)
-										&& roundFor(application).applicationDeadline,
-								),
-							})
-						}}
-					</span>
-					<span class="admissions-review-board__capacity">
-						{{ capacityLabel(application) }}
-					</span>
-					<span class="admissions-review-board__submitted">
-						{{
-							t('learniq', 'Submitted {when}', {
-								when: formatDate(application.submittedAt),
-							})
-						}}
-					</span>
-				</div>
+		<CnDetailCard v-else flush>
+			<ul class="admissions-review-board__list">
+				<li
+					v-for="application in pendingApplications"
+					:key="application.id || application.uuid"
+					class="admissions-review-board__item">
+					<div class="admissions-review-board__info">
+						<span class="admissions-review-board__applicant">
+							{{ applicantName(application) }}
+						</span>
+						<span class="admissions-review-board__round-kind">
+							{{ roundKindLabel(application) }}
+						</span>
+						<span class="admissions-review-board__deadline">
+							{{
+								t('learniq', 'Deadline: {deadline}', {
+									deadline: formatDate(
+										/**
+										 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+										 */
+										roundFor(application)
+											&& roundFor(application).applicationDeadline,
+									),
+								})
+							}}
+						</span>
+						<span class="admissions-review-board__capacity">
+							{{ capacityLabel(application) }}
+						</span>
+						<span class="admissions-review-board__submitted">
+							{{
+								t('learniq', 'Submitted {when}', {
+									when: formatDate(application.submittedAt),
+								})
+							}}
+						</span>
+					</div>
 
-				<div class="admissions-review-board__actions">
-					<a
-						class="button-vue button-vue--vue-primary"
-						:href="decisionHref(application)">
-						{{ t('learniq', 'Record decision') }}
-					</a>
-				</div>
-			</li>
-		</ul>
+					<div class="admissions-review-board__actions">
+						<RouterLink
+							class="button-vue button-vue--vue-primary"
+							:to="decisionRoute(application)">
+							{{ t('learniq', 'Record decision') }}
+						</RouterLink>
+					</div>
+				</li>
+			</ul>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
+import { getCanonicalLocale } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
+import { assertOk, listOf, readAll, runLoad } from '../utils/objectListing.js'
 
 export default {
 	name: 'AdmissionsReviewBoard',
+	components: { CnDetailCard, CnPageHeader },
 
 	data() {
 		return {
@@ -144,7 +148,7 @@ export default {
 		 * not yet ready, or already decided.
 		 *
 		 * @return {object[]}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+		 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
 		pendingApplications() {
 			return this.applications.filter(
@@ -162,67 +166,51 @@ export default {
 		 * Fetch open Applications and their AdmissionsRounds.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+		 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
-		async loadData() {
-			this.loading = true
-			this.error = null
+		loadData() {
+			return runLoad(this, {
+				read: () => this.readApplicationsAndRounds(),
+				fail: (err) => this.reportLoadFailure(err),
+			})
+		},
 
-			try {
-				const [applicationsResp, roundsResp] = await Promise.all([
-					fetch(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/admission?_limit=200',
-						),
-						{
-							headers: {
-								'OCS-APIREQUEST': 'true',
-								Accept: 'application/json',
-							},
-						},
-					),
-					fetch(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/admissions-round?_limit=200',
-						),
-						{
-							headers: {
-								'OCS-APIREQUEST': 'true',
-								Accept: 'application/json',
-							},
-						},
-					),
-				])
+		/**
+		 * Read the open Applications and the AdmissionsRounds; rejects when
+		 * either read fails.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+		 */
+		async readApplicationsAndRounds() {
+			const [applicationsResp, roundsResp] = await readAll([
+				generateUrl('/apps/openregister/api/objects/learniq/admission?_limit=200'),
+				generateUrl('/apps/openregister/api/objects/learniq/admissions-round?_limit=200'),
+			])
+			assertOk(applicationsResp, 'Application fetch failed')
+			assertOk(roundsResp, 'AdmissionsRound fetch failed')
 
-				if (!applicationsResp.ok)
-					throw new Error(
-						`Application fetch failed: ${applicationsResp.status}`,
-					)
-				if (!roundsResp.ok)
-					throw new Error(
-						`AdmissionsRound fetch failed: ${roundsResp.status}`,
-					)
+			const applicationsJson = await applicationsResp.json()
+			const roundsJson = await roundsResp.json()
 
-				const applicationsJson = await applicationsResp.json()
-				const roundsJson = await roundsResp.json()
+			this.applications = listOf(applicationsJson)
+			this.rounds = listOf(roundsJson)
+		},
 
-				this.applications =
-					applicationsJson.results
-					?? applicationsJson.objects
-					?? applicationsJson
-					?? []
-				this.rounds =
-					roundsJson.results ?? roundsJson.objects ?? roundsJson ?? []
-			} catch (err) {
-				this.error = this.t(
-					'learniq',
-					'Failed to load pending applications. Please try again.',
-				)
-				// eslint-disable-next-line no-console
-				console.error('[AdmissionsReviewBoard] loadData error', err)
-			} finally {
-				this.loading = false
-			}
+		/**
+		 * Tell the coordinator the board could not load, and log why.
+		 *
+		 * @param {Error} err The failure
+		 * @return {void}
+		 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+		 */
+		reportLoadFailure(err) {
+			this.error = this.t(
+				'learniq',
+				'Failed to load pending applications. Please try again.',
+			)
+			// eslint-disable-next-line no-console
+			console.error('[AdmissionsReviewBoard] loadData error', err)
 		},
 
 		/**
@@ -241,7 +229,7 @@ export default {
 		 *
 		 * @param {object} application Application object
 		 * @return {string}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+		 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
 		applicantName(application) {
 			const given = application.applicantGivenName || ''
@@ -254,7 +242,7 @@ export default {
 		 *
 		 * @param {object} application Application object
 		 * @return {string}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+		 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
 		roundKindLabel(application) {
 			const round = this.roundFor(application)
@@ -278,7 +266,7 @@ export default {
 		 *
 		 * @param {object} application Application object
 		 * @return {string}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+		 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
 		capacityLabel(application) {
 			const round = this.roundFor(application)
@@ -301,15 +289,15 @@ export default {
 		},
 
 		/**
-		 * Build the href to record a decision for this application on its detail page.
+		 * The application's detail page, where the decision is recorded.
 		 *
 		 * @param {object} application Application object
 		 * @return {string}
-		 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+		 * @spec openspec/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
-		decisionHref(application) {
+		decisionRoute(application) {
 			const id = application.id || application.uuid
-			return `#/admissions/applications/${id}`
+			return `/admissions/applications/${encodeURIComponent(id)}`
 		},
 
 		/**
@@ -322,7 +310,7 @@ export default {
 		formatDate(dt) {
 			if (!dt) return this.t('learniq', 'not set')
 			try {
-				return new Intl.DateTimeFormat(navigator.language, {
+				return new Intl.DateTimeFormat(getCanonicalLocale(), {
 					year: 'numeric',
 					month: 'short',
 					day: 'numeric',
@@ -336,22 +324,6 @@ export default {
 </script>
 
 <style scoped>
-.admissions-review-board {
-	max-width: 960px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.admissions-review-board__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.admissions-review-board__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-}
-
 .admissions-review-board__subtitle {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9em;
@@ -368,6 +340,7 @@ export default {
 }
 
 .admissions-review-board__list {
+	margin: 0;
 	list-style: none;
 	padding: 0;
 }
@@ -377,12 +350,12 @@ export default {
 	align-items: center;
 	justify-content: space-between;
 	gap: calc(var(--default-grid-baseline, 8px) * 2);
-	margin-bottom: var(--default-grid-baseline, 8px);
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-	border: 1px solid var(--color-border);
-	border-left: 4px solid var(--color-primary-element);
-	border-radius: var(--border-radius, 4px);
+	padding: 16px 18px;
+	border-top: 1px solid var(--color-border);
+}
+
+.admissions-review-board__item:first-child {
+	border-top: none;
 }
 
 .admissions-review-board__info {

@@ -19,14 +19,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/learner-lookup-and-learnerrefs-fixes/specs/assignments/spec.md#requirement-every-submission-carries-server-stamped-learnerrefs
+ * @spec openspec/specs/assignments/spec.md#requirement-every-submission-carries-server-stamped-learnerrefs
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\IntegrityListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\IntegrityListenerRegistrar;
 use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;

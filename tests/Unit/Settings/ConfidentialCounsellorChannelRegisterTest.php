@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/confidential-counsellor-channel/tasks.md#task-4-register-test
+ * @spec openspec/changes/archive/2026-09-28-confidential-counsellor-channel/tasks.md#task-4-register-test
  */
 
 declare(strict_types=1);
@@ -212,6 +212,10 @@ class ConfidentialCounsellorChannelRegisterTest extends TestCase {
 
 		self::assertSame(['user.isConfidentialCounsellor' => ['eq' => true]], $fragment['menu'][0]['visibleIf']);
 		foreach ($fragment['pages'] as $page) {
+			if (str_starts_with($page['id'], 'ConfidentialNote') === false) {
+				continue;
+			}
+
 			self::assertSame('confidential-note', $page['config']['schema']);
 		}
 

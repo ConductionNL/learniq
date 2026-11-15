@@ -20,15 +20,13 @@
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
 
-  @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
+  @spec openspec/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
 -->
 
 <template>
-	<div class="skills-gap-dashboard">
+	<div class="skills-gap-dashboard lq-board-page">
 		<header class="skills-gap-dashboard__header">
-			<h2 class="skills-gap-dashboard__title">
-				{{ t('learniq', 'Skills gap dashboard') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Skills gap dashboard')" />
 			<p class="skills-gap-dashboard__subtitle">
 				{{
 					t(
@@ -42,7 +40,7 @@
 		<!-- Loading -->
 		<div v-if="loading" class="skills-gap-dashboard__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('learniq', 'Loading skills gap...') }}</span>
+			<span>{{ t('learniq', 'Loading skills gap…') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -52,8 +50,9 @@
 		</div>
 
 		<template v-else>
-			<section class="skills-gap-dashboard__section">
-				<h3>{{ t('learniq', 'Required by programme') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Required by programme')"
+				class="skills-gap-dashboard__section">
 				<div
 					v-if="programmeGaps.length === 0"
 					class="skills-gap-dashboard__empty"
@@ -77,10 +76,11 @@
 						</span>
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 
-			<section class="skills-gap-dashboard__section">
-				<h3>{{ t('learniq', 'Required by role') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Required by role')"
+				class="skills-gap-dashboard__section">
 				<div
 					v-if="roleGaps.length === 0"
 					class="skills-gap-dashboard__empty"
@@ -104,10 +104,11 @@
 						</span>
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 
-			<section class="skills-gap-dashboard__section">
-				<h3>{{ t('learniq', 'Attained') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Attained')"
+				class="skills-gap-dashboard__section">
 				<div
 					v-if="attainedList.length === 0"
 					class="skills-gap-dashboard__empty"
@@ -130,18 +131,20 @@
 						</span>
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'SkillsGapDashboard',
+	components: { CnDetailCard, CnPageHeader },
 
 	data() {
 		return {
@@ -163,7 +166,7 @@ export default {
 		 * target level is a documented follow-up, not built here).
 		 *
 		 * @return {Set<string>}
-		 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
+		 * @spec openspec/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
 		 */
 		attainedCompetencyIds() {
 			return new Set(
@@ -181,7 +184,7 @@ export default {
 		 * Programme-required competencies with no attainment row at/above met status.
 		 *
 		 * @return {object[]}
-		 * @spec openspec/changes/competency-framework/specs/competency/spec.md#scenario-a-learner-sees-an-unmet-programme-required-competency-as-a-gap
+		 * @spec openspec/specs/competency/spec.md#scenario-a-learner-sees-an-unmet-programme-required-competency-as-a-gap
 		 */
 		programmeGaps() {
 			return this.requiredProgrammeCompetencies.filter(
@@ -194,7 +197,7 @@ export default {
 		 * surfaced independent of any Programme enrolment.
 		 *
 		 * @return {object[]}
-		 * @spec openspec/changes/competency-framework/specs/competency/spec.md#scenario-a-role-required-competency-surfaces-even-without-a-programme-link
+		 * @spec openspec/specs/competency/spec.md#scenario-a-role-required-competency-surfaces-even-without-a-programme-link
 		 */
 		roleGaps() {
 			return this.requiredRoleCompetencies.filter(
@@ -236,7 +239,7 @@ export default {
 		 * enforces who may actually read another learner's data).
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
+		 * @spec openspec/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
 		 */
 		async loadSkillsGap() {
 			this.loading = true
@@ -321,7 +324,7 @@ export default {
 		 *
 		 * @param {string} ncUserId Nextcloud user id.
 		 * @return {Promise<object|null>}
-		 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
+		 * @spec openspec/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
 		 */
 		async fetchLearnerProfile(ncUserId) {
 			// Declared slug, verbatim (see above).
@@ -338,7 +341,7 @@ export default {
 		 * @param {string} schema Schema name/slug as used in the OR object API path.
 		 * @param {object} params Query filter params.
 		 * @return {Promise<object[]>}
-		 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
+		 * @spec openspec/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
 		 */
 		async fetchCollection(schema, params) {
 			const query = new URLSearchParams(
@@ -360,7 +363,7 @@ export default {
 		 * @param {string} schema Schema name/slug.
 		 * @param {string} id     Object UUID.
 		 * @return {Promise<object|null>}
-		 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
+		 * @spec openspec/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
 		 */
 		async fetchObject(schema, id) {
 			if (!id) return null
@@ -384,22 +387,6 @@ export default {
 </script>
 
 <style scoped>
-.skills-gap-dashboard {
-	max-width: 900px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.skills-gap-dashboard__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.skills-gap-dashboard__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-}
-
 .skills-gap-dashboard__subtitle {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9em;
@@ -413,10 +400,6 @@ export default {
 	align-items: center;
 	gap: var(--default-grid-baseline, 8px);
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.skills-gap-dashboard__section {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
 }
 
 .skills-gap-dashboard__list {

@@ -19,12 +19,12 @@
  Storage/lifecycle/notifications are OpenRegister's; this view only creates
  the signup and drives its submit transition through the OR object API.
 
- @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
- @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-a-guardian-or-self-signup-submission-is-gated-by-a-per-object-authorization-guard
+ @spec openspec/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+ @spec openspec/specs/parent-conferences/spec.md#requirement-a-guardian-or-self-signup-submission-is-gated-by-a-per-object-authorization-guard
 -->
 <template>
-	<div class="book-conference-slots">
-		<h2>{{ t('learniq', 'Book a parent-teacher conversation') }}</h2>
+	<div class="book-conference-slots lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Book a parent-teacher conversation')" />
 
 		<NcLoadingIcon v-if="loading" :size="32" />
 
@@ -38,7 +38,10 @@
 				)
 			" />
 
-		<template v-else>
+		<CnDetailCard
+			v-else
+			:title="t('learniq', 'Your request')"
+			class="book-conference-slots__card">
 			<div class="book-conference-slots__field">
 				<label for="bcs-round">{{ t('learniq', 'Conference round') }}</label>
 				<NcSelect
@@ -110,11 +113,12 @@
 						: t('learniq', 'Submit request')
 				}}
 			</NcButton>
-		</template>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -125,11 +129,21 @@ import {
 	NcNoteCard,
 	NcSelect,
 } from '@nextcloud/vue'
+import {
+	fetchRounds,
+	findRound,
+	roundOptions,
+	roundTeacherOptions,
+} from '../utils/conferenceRounds.js'
+import { conferenceSignupBody } from '../utils/conferenceSignupBody.js'
+import { fetchLinkedLearners } from '../utils/linkedLearners.js'
 
 export default {
 	name: 'BookConferenceSlotsView',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
@@ -158,13 +172,10 @@ export default {
 		 * Options for the round picker.
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		roundOptions() {
-			return this.rounds.map((r) => ({
-				id: r.id || r.uuid,
-				label: r.name || r.id || r.uuid,
-			}))
+			return roundOptions(this.rounds)
 		},
 
 		/**
@@ -173,31 +184,24 @@ export default {
 		 * @return {object|null}
 		 */
 		selectedRound() {
-			return (
-				this.rounds.find((r) => (r.id || r.uuid) === this.selectedRoundId)
-				|| null
-			)
+			return findRound(this.rounds, this.selectedRoundId)
 		},
 
 		/**
 		 * Teacher options scoped to the selected round's teacherIds.
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		teacherOptions() {
-			if (!this.selectedRound) return []
-			return (this.selectedRound.teacherIds || []).map((id) => ({
-				id,
-				label: id,
-			}))
+			return roundTeacherOptions(this.selectedRound)
 		},
 
 		/**
 		 * Learner options: the caller's linked children plus themselves (18+ self-signup).
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		learnerOptions() {
 			return this.learners.map((l) => ({
@@ -210,7 +214,7 @@ export default {
 		 * Whether the form has enough input to submit.
 		 *
 		 * @return {boolean}
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-a-linked-guardian-can-submit-a-signup-for-their-own-child
+		 * @spec openspec/specs/parent-conferences/spec.md#scenario-a-linked-guardian-can-submit-a-signup-for-their-own-child
 		 */
 		canSubmit() {
 			return (
@@ -232,20 +236,15 @@ export default {
 		 * Load ConferenceRounds currently open for booking.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadRounds() {
 			this.loading = true
 			try {
-				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/conference-round?lifecycle=booking-open&_limit=100',
+				this.rounds = await fetchRounds(
+					{ get: (url) => axios.get(url), urlFor: generateUrl },
+					'booking-open',
 				)
-				const response = await axios.get(url)
-				this.rounds =
-					(response.data
-						&& (response.data.results || response.data.objects))
-					|| response.data
-					|| []
 			} catch (e) {
 				console.error('[BookConferenceSlotsView] loadRounds failed', e)
 				this.rounds = []
@@ -259,7 +258,7 @@ export default {
 		 * self via ncUserId for an 18+ self-signup).
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-a-linked-guardian-can-submit-a-signup-for-their-own-child
+		 * @spec openspec/specs/parent-conferences/spec.md#scenario-a-linked-guardian-can-submit-a-signup-for-their-own-child
 		 */
 		async loadLearners() {
 			this.loadingLearners = true
@@ -270,31 +269,10 @@ export default {
 			}
 
 			try {
-				const [childrenResp, selfResp] = await Promise.all([
-					axios.get(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/learner-profile?parentIds={uid}&_limit=50',
-							{ uid },
-						),
-					),
-					axios.get(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/learner-profile?ncUserId={uid}&_limit=1',
-							{ uid },
-						),
-					),
-				])
-				const children =
-					(childrenResp.data
-						&& (childrenResp.data.results || childrenResp.data.objects))
-					|| []
-				const self =
-					(selfResp.data
-						&& (selfResp.data.results || selfResp.data.objects))
-					|| []
-				const byId = new Map()
-				;[...children, ...self].forEach((l) => byId.set(l.ncUserId, l))
-				this.learners = Array.from(byId.values())
+				this.learners = await fetchLinkedLearners(
+					{ get: (url) => axios.get(url), urlFor: generateUrl },
+					uid,
+				)
 			} catch (e) {
 				console.error('[BookConferenceSlotsView] loadLearners failed', e)
 				this.learners = []
@@ -307,20 +285,21 @@ export default {
 		 * Reset the teacher/learner selection when the round changes.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		onRoundChange() {
 			this.selectedTeacherIds = []
 		},
 
 		/**
-		 * Create the ConferenceSignup (draft) then trigger its submit transition.
-		 * A guard rejection (HTTP 4xx from OR's lifecycle engine) surfaces as a
-		 * user-facing error rather than a silent failure.
+		 * Submit the request in one server call, which creates it, takes the
+		 * tenant from the round and the pupil's profile from the pupil, and
+		 * fires the submit transition. A guard refusal comes back as a 403
+		 * and leaves no draft.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-a-linked-guardian-can-submit-a-signup-for-their-own-child
-		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-an-unrelated-user-cannot-submit-a-signup-for-someone-else-s-child
+		 * @spec openspec/specs/parent-conferences/spec.md#scenario-a-linked-guardian-can-submit-a-signup-for-their-own-child
+		 * @spec openspec/specs/parent-conferences/spec.md#scenario-an-unrelated-user-cannot-submit-a-signup-for-someone-else-s-child
 		 */
 		async submitSignup() {
 			if (!this.canSubmit) return
@@ -330,32 +309,15 @@ export default {
 			this.submitSuccess = false
 
 			try {
-				const body = {
-					conferenceRoundId: this.selectedRoundId,
-					learnerId: this.selectedLearnerId,
-					requestedTeacherIds: this.selectedTeacherIds,
-					notes: this.notes || null,
-					tenant_id: this.selectedRound
-						? this.selectedRound.tenant_id
-						: undefined,
-				}
-
-				const createUrl = generateUrl(
-					'/apps/openregister/api/objects/learniq/conference-signup',
+				await axios.post(
+					generateUrl('/apps/learniq/api/conference-signups'),
+					conferenceSignupBody({
+						roundId: this.selectedRoundId,
+						learnerId: this.selectedLearnerId,
+						teacherIds: this.selectedTeacherIds,
+						notes: this.notes,
+					}),
 				)
-				const created = await axios.post(createUrl, body)
-				const signupId =
-					(created.data && (created.data.id || created.data.uuid)) || ''
-
-				if (signupId === '') {
-					throw new Error('No signup id returned')
-				}
-
-				const transitionUrl = generateUrl(
-					'/apps/openregister/api/objects/learniq/conference-signup/{id}',
-					{ id: signupId },
-				)
-				await axios.put(transitionUrl, { lifecycle: 'submitted' })
 
 				this.submitSuccess = true
 				this.selectedTeacherIds = []
@@ -375,9 +337,8 @@ export default {
 </script>
 
 <style scoped>
-.book-conference-slots {
-	padding: 1rem;
-	max-width: 480px;
+.book-conference-slots__card {
+	max-width: 860px;
 }
 
 .book-conference-slots__field {

@@ -3,11 +3,16 @@
 /**
  * Learniq Application Conversion Handler
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * IEventListener for Application lifecycle -> placed (the OR
  * ObjectTransitionedEvent with register=learniq, schema=application,
  * to=placed). Creates a LearnerProfile (guardianRefs stamped from
  * Application.guardianRef when set), bulk-creates one Enrolment
- * (source: "admission") per course in the chosen Programme.courseIds, stamps
+ * (source: "admission", naming the programme, `mandatory` from the part's
+ * default in Programme.mandatoryCourseIds) per course in the chosen
+ * Programme.courseIds, stamps
  * Application.convertedLearnerProfileId/convertedEnrolmentIds, and drives the
  * Application through its existing `convert` transition to `converted`.
  *
@@ -36,19 +41,19 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-accepted-application-converts-into-a-learnerprofile-and-enrolments
+ * @spec openspec/specs/enrolment/spec.md#requirement-an-accepted-application-converts-into-a-learnerprofile-and-enrolments
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ProgrammeRequirementsInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
@@ -61,7 +66,7 @@ use Psr\Log\LoggerInterface;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-accepted-application-converts-into-a-learnerprofile-and-enrolments
+ * @spec openspec/specs/enrolment/spec.md#requirement-an-accepted-application-converts-into-a-learnerprofile-and-enrolments
  */
 class ApplicationConversionHandler implements IEventListener {
 
@@ -77,6 +82,8 @@ class ApplicationConversionHandler implements IEventListener {
 	 * @param ObjectService $objectService OR object access service.
 	 * @param TransitionEngine $transitionEngine OR lifecycle engine used to dispatch the `convert` transition.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ProgrammeRequirementsInterface $requirements Which programme parts are mandatory by default.
 	 *
 	 * @return void
 	 */
@@ -84,6 +91,8 @@ class ApplicationConversionHandler implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly TransitionEngine $transitionEngine,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolverInterface $schemas,
+		private readonly ProgrammeRequirementsInterface $requirements,
 	) {
 	}//end __construct()
 
@@ -94,18 +103,18 @@ class ApplicationConversionHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-accepted-application-converts-into-a-learnerprofile-and-enrolments
+	 * @spec openspec/specs/enrolment/spec.md#requirement-an-accepted-application-converts-into-a-learnerprofile-and-enrolments
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
-		if ($event->getSchema() !== self::APPLICATION_SCHEMA || $event->getTo() !== 'placed') {
+		if ($this->schemas->eventSchema(event: $event) !== self::APPLICATION_SCHEMA || $event->getTo() !== 'placed') {
 			return;
 		}
 
@@ -120,7 +129,7 @@ class ApplicationConversionHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
+	 * @spec openspec/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
 	 */
 	private function convert(array $application): void {
 		$applicationId = (string)($application['id'] ?? ($application['uuid'] ?? ''));
@@ -171,7 +180,7 @@ class ApplicationConversionHandler implements IEventListener {
 	 *
 	 * @return mixed The created LearnerProfile's id, or null when unavailable.
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
+	 * @spec openspec/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
 	 */
 	private function createLearnerProfile(array $application, string $ncUserId, string $tenantId): mixed {
 		$guardianRef = $application['guardianRef'] ?? null;
@@ -180,6 +189,8 @@ class ApplicationConversionHandler implements IEventListener {
 			$guardianRefs[] = $guardianRef;
 		}
 
+		// System context (learner-profile): admissions staff (coordinators, administration managers)
+		// place the applicant, and LearnerProfile create is hr and compliance officers only.
 		$saved = $this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: self::LEARNER_PROFILE_SCHEMA,
@@ -191,14 +202,16 @@ class ApplicationConversionHandler implements IEventListener {
 				'roles' => ['learner'],
 				'guardianRefs' => $guardianRefs,
 				'tenant_id' => $tenantId,
-			]
+			],
+			_rbac: false
 		);
 
 		return $this->extractId(row: $saved);
 	}//end createLearnerProfile()
 
 	/**
-	 * Bulk-create one Enrolment (source: admission) per Programme.courseIds entry.
+	 * Bulk-create one Enrolment (source: admission) per Programme.courseIds
+	 * entry, naming the programme and carrying the part's mandatory default.
 	 *
 	 * @param string $programmeId The Programme UUID applied for.
 	 * @param string $ncUserId The learner's (placeholder) Nextcloud user id.
@@ -206,22 +219,32 @@ class ApplicationConversionHandler implements IEventListener {
 	 *
 	 * @return array<int,mixed> The created Enrolment ids.
 	 *
-	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
+	 * @spec openspec/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
+	 * @spec openspec/changes/enrolment-programme-mandatory-per-person/specs/programme-mandatory-parts/spec.md#scenario-an-author-marks-a-part-optional
 	 */
 	private function createEnrolments(string $programmeId, string $ncUserId, string $tenantId): array {
-		$courseIds = $this->fetchProgrammeCourseIds(programmeId: $programmeId);
+		$programme = $this->fetchProgramme(programmeId: $programmeId);
+		$courseIds = $programme['courseIds'] ?? [];
+		if (is_array($courseIds) === false) {
+			$courseIds = [];
+		}
 
 		$enrolmentIds = [];
 		foreach ($courseIds as $courseId) {
+			// System context (enrolment): admissions staff place the applicant, and Enrolment create is
+			// instructors, hr, compliance officers and team leads only.
 			$saved = $this->objectService->saveObject(
 				register: self::LEARNIQ_REGISTER,
 				schema: self::ENROLMENT_SCHEMA,
 				object: [
 					'learnerId' => $ncUserId,
 					'courseId' => $courseId,
+					'programmeId' => $programmeId,
+					'mandatory' => $this->requirements->mandatoryFor(programme: $programme, courseId: (string)$courseId),
 					'source' => 'admission',
 					'tenant_id' => $tenantId,
-				]
+				],
+				_rbac: false
 			);
 
 			$enrolmentId = $this->extractId(row: $saved);
@@ -234,13 +257,13 @@ class ApplicationConversionHandler implements IEventListener {
 	}//end createEnrolments()
 
 	/**
-	 * Fetch a Programme's courseIds.
+	 * Fetch a Programme as an array; empty when there is none.
 	 *
 	 * @param string $programmeId Programme UUID.
 	 *
-	 * @return array<int,mixed>
+	 * @return array<string,mixed>
 	 */
-	private function fetchProgrammeCourseIds(string $programmeId): array {
+	private function fetchProgramme(string $programmeId): array {
 		if ($programmeId === '') {
 			return [];
 		}
@@ -255,16 +278,8 @@ class ApplicationConversionHandler implements IEventListener {
 			return [];
 		}
 
-		$data = $programme->jsonSerialize();
-
-		$courseIds = $data['courseIds'] ?? [];
-
-		if (is_array($courseIds) === false) {
-			return [];
-		}
-
-		return $courseIds;
-	}//end fetchProgrammeCourseIds()
+		return $programme->jsonSerialize();
+	}//end fetchProgramme()
 
 	/**
 	 * Extract the `id` (or `uuid`) from a saveObject() return value.

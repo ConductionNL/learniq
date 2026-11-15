@@ -37,6 +37,7 @@ namespace OCA\Learniq\Lifecycle;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\SubmissionWindowGuardInterface;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -60,7 +61,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/specs/assignments/spec.md#requirement-a-learner-hands-in-their-own-work-and-the-teacher-marks-it
  */
-class SubmissionWindowGuard implements LifecycleGuardInterface {
+class SubmissionWindowGuard implements LifecycleGuardInterface, SubmissionWindowGuardInterface {
 
 	/**
 	 * OR register slug for Learniq objects.
@@ -68,9 +69,34 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
-	 * The late hand-in transition.
+	 * Refusal: The submission names no assignment.
 	 */
-	public const LATE_ACTION = 'submitLate';
+	public const DENY_NO_ASSIGNMENT_LINK = 'This submission is not linked to an assignment.';
+
+	/**
+	 * Refusal: The caller is not one of the submission's learners.
+	 */
+	public const DENY_NOT_A_LEARNER = 'Only the learners this submission belongs to can hand it in.';
+
+	/**
+	 * Refusal: The assignment does not exist in the submission's tenant.
+	 */
+	public const DENY_ASSIGNMENT_MISSING = 'The assignment of this submission could not be found.';
+
+	/**
+	 * Refusal: The assignment's deadline is malformed.
+	 */
+	public const DENY_DEADLINE_UNREADABLE = 'The deadline of this assignment could not be read.';
+
+	/**
+	 * Refusal: `submitLate` before the deadline.
+	 */
+	public const DENY_NOT_LATE_YET = 'The deadline has not passed, so hand the work in normally.';
+
+	/**
+	 * Refusal: `submit` after the deadline, on an assignment that takes late work.
+	 */
+	public const DENY_ONLY_LATE = 'The deadline has passed, so this work can only be handed in late.';
 
 	/**
 	 * Constructor.
@@ -98,12 +124,12 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
 	 * @spec openspec/specs/assignments/spec.md#requirement-a-learner-hands-in-their-own-work-and-the-teacher-marks-it
-	 * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-a-requested-resubmission-has-its-own-deadline
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-requested-resubmission-has-its-own-deadline
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		$assignmentId = $object['assignmentId'] ?? null;
 		if ($assignmentId === null || $assignmentId === '') {
-			return GuardResult::deny('This submission is not linked to an assignment.');
+			return GuardResult::deny(self::DENY_NO_ASSIGNMENT_LINK);
 		}
 
 		if ($this->callerMayHandIn(object: $object, userId: $userId) === false) {
@@ -111,12 +137,12 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 				'[SubmissionWindowGuard] Caller {uid} is not one of the learners of Submission {id}; blocking {action}.',
 				['uid' => $userId, 'id' => ($object['id'] ?? ''), 'action' => $action]
 			);
-			return GuardResult::deny('Only the learners this submission belongs to can hand it in.');
+			return GuardResult::deny(self::DENY_NOT_A_LEARNER);
 		}
 
 		$assignment = $this->loadAssignment(assignmentId: (string)$assignmentId, tenantId: (string)($object['tenant_id'] ?? ''));
 		if ($assignment === null) {
-			return GuardResult::deny('The assignment of this submission could not be found.');
+			return GuardResult::deny(self::DENY_ASSIGNMENT_MISSING);
 		}
 
 		return $this->windowVerdict(
@@ -134,7 +160,7 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 	 *
 	 * @return array<string,mixed>
 	 *
-	 * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-a-requested-resubmission-has-its-own-deadline
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-requested-resubmission-has-its-own-deadline
 	 */
 	private function withDeadline(array $assignment, array $submission): array {
 		$resubmissionDueAt = ($submission['resubmissionDueAt'] ?? null);
@@ -157,12 +183,12 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 		$window = $this->windowState(assignment: $assignment);
 
 		if ($window === 'malformed') {
-			return GuardResult::deny('The deadline of this assignment could not be read.');
+			return GuardResult::deny(self::DENY_DEADLINE_UNREADABLE);
 		}
 
 		if ($window === 'open') {
 			if ($late === true) {
-				return GuardResult::deny('The deadline has not passed, so hand the work in normally.');
+				return GuardResult::deny(self::DENY_NOT_LATE_YET);
 			}
 
 			return GuardResult::allow();
@@ -170,11 +196,11 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 
 		// The deadline has passed.
 		if ((bool)($assignment['allowLateSubmission'] ?? false) === false) {
-			return GuardResult::deny('The deadline has passed and this assignment does not accept late work.');
+			return GuardResult::deny(self::DENY_LATE_NOT_ACCEPTED);
 		}
 
 		if ($late === false) {
-			return GuardResult::deny('The deadline has passed, so this work can only be handed in late.');
+			return GuardResult::deny(self::DENY_ONLY_LATE);
 		}
 
 		return GuardResult::allow();
@@ -183,6 +209,28 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 	/**
 	 * Load the parent Assignment, scoped to the Submission's tenant.
 	 *
+	 * WHY THIS READS WITH RBAC OFF. The guard runs on two kinds of caller. A
+	 * teacher hands work in with a Nextcloud session; a pupil hands it in from
+	 * the portal, where `PortalSubmissionController::handIn()` is
+	 * `#[PublicPage]` and the receiver has no session at all. With RBAC on,
+	 * that second caller read NOTHING here, the guard answered "Assignment not
+	 * found", and every portal hand-in was refused with a message about the
+	 * deadline. Measured on a live instance on 4 October 2026
+	 * (pupil-flows.spec.ts, step c): 422 `hand_in_refused`, and the log line
+	 * `[SubmissionWindowGuard] Assignment <uuid> not found; blocking hand-in.`
+	 * while the same transition as the pupil's own account succeeded.
+	 *
+	 * Turning RBAC off here is not a hole, for three reasons. Nothing read is
+	 * returned to anyone: the method answers a `GuardResult`, which is an
+	 * allow or a refusal message about a deadline. The tenant filter below is
+	 * kept and is the isolation that matters — it is applied explicitly rather
+	 * than left to the session. And who may hand in is settled separately by
+	 * `callerMayHandIn()`, against the Submission's own learners.
+	 *
+	 * This mirrors the sibling read in `PortalSubmissionHandIn::submission()`,
+	 * which already passes `_rbac: false, _multitenancy: false` with the
+	 * comment "the receiver has no session".
+	 *
 	 * @param string $assignmentId The Assignment UUID.
 	 * @param string $tenantId     The tenant UUID, '' when unscoped.
 	 *
@@ -190,13 +238,14 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 	 */
 	private function loadAssignment(string $assignmentId, string $tenantId): ?array {
 		// H1: scope Assignment lookup to the same tenant.
-		$filters = ['uuid' => $assignmentId];
+		$filters = [];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
 		$assignments = $this->objectService->findAll(
 			[
+				'ids' => [$assignmentId],
 				'filters' => array_merge(
 					$filters,
 					[
@@ -205,7 +254,9 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 					]
 				),
 				'limit' => 1,
-			]
+			],
+			_rbac: false,
+			_multitenancy: false
 		);
 
 		if (empty($assignments) === true) {

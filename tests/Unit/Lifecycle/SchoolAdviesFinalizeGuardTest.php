@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#requirement-a-po-schooladvies-may-only-be-raised-on-heroverweging-never-lowered-unless-motivated
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-po-schooladvies-may-only-be-raised-on-heroverweging-never-lowered-unless-motivated
  */
 
 declare(strict_types=1);
@@ -54,7 +54,7 @@ class SchoolAdviesFinalizeGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#scenario-a-higher-doorstroomtoets-result-without-a-raised-definitief-or-a-motivation-blocks-finalisation
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-higher-doorstroomtoets-result-without-a-raised-definitief-or-a-motivation-blocks-finalisation
 	 */
 	public function testHigherDoorstroomtoetsWithoutRaiseOrMotivationBlocksFinalisation(): void {
 		$object = [
@@ -75,7 +75,7 @@ class SchoolAdviesFinalizeGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#scenario-raising-definitiefadvieslevel-to-match-the-doorstroomtoets-result-allows-finalisation
+	 * @spec openspec/specs/enrolment/spec.md#scenario-raising-definitiefadvieslevel-to-match-the-doorstroomtoets-result-allows-finalisation
 	 */
 	public function testRaisedDefinitiefAllowsFinalisation(): void {
 		$object = [
@@ -96,7 +96,7 @@ class SchoolAdviesFinalizeGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#scenario-a-motivation-allows-finalisation-without-raising-the-level
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-motivation-allows-finalisation-without-raising-the-level
 	 */
 	public function testMotivationAllowsFinalisationWithoutRaise(): void {
 		$object = [
@@ -117,7 +117,7 @@ class SchoolAdviesFinalizeGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#scenario-the-provmbo-bb-exemption-allows-finalisation-without-a-raise-or-motivation
+	 * @spec openspec/specs/enrolment/spec.md#scenario-the-provmbo-bb-exemption-allows-finalisation-without-a-raise-or-motivation
 	 */
 	public function testProVmboBbExemptionAllowsFinalisation(): void {
 		$object = [
@@ -139,7 +139,7 @@ class SchoolAdviesFinalizeGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#scenario-a-doorstroomtoets-result-that-does-not-outrank-the-definitief-advies-never-blocks-finalisation
+	 * @spec openspec/specs/enrolment/spec.md#scenario-a-doorstroomtoets-result-that-does-not-outrank-the-definitief-advies-never-blocks-finalisation
 	 */
 	public function testNonOutrankingResultNeverBlocks(): void {
 		$object = [

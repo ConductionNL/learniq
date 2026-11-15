@@ -3,6 +3,9 @@
 /**
  * Learniq Shillinq Contribution Settled Listener
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Grants a learner's Entitlement when shillinq reports the school contribution
  * for it settled (D19, payments-to-shillinq-migration; shillinq contract
  * extracurricular-fee-to-shillinq v1).
@@ -39,20 +42,18 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-settled-shillinq-contribution-grants-the-learners-entitlement
+ * @spec openspec/specs/payments/spec.md#requirement-a-settled-shillinq-contribution-grants-the-learners-entitlement
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ContributionBeneficiaryResolver;
+use OCA\Learniq\Kernel\Contracts\ContributionBeneficiaryResolverInterface;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
@@ -67,7 +68,7 @@ use Throwable;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-settled-shillinq-contribution-grants-the-learners-entitlement
+ * @spec openspec/specs/payments/spec.md#requirement-a-settled-shillinq-contribution-grants-the-learners-entitlement
  */
 class ShillinqContributionSettledListener implements IEventListener {
 
@@ -83,7 +84,7 @@ class ShillinqContributionSettledListener implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
-	 * @param ContributionBeneficiaryResolver $contributions Reads the request's chargeable and beneficiary.
+	 * @param ContributionBeneficiaryResolverInterface $contributions Reads the request's chargeable and beneficiary.
 	 * @param TransitionEngine $transitionEngine Fires the Entitlement grant transition.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
@@ -91,7 +92,7 @@ class ShillinqContributionSettledListener implements IEventListener {
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly ContributionBeneficiaryResolver $contributions,
+		private readonly ContributionBeneficiaryResolverInterface $contributions,
 		private readonly TransitionEngine $transitionEngine,
 		private readonly LoggerInterface $logger,
 	) {
@@ -111,7 +112,7 @@ class ShillinqContributionSettledListener implements IEventListener {
 	 * The work is bounded: it runs only on the one save that first stamps
 	 * settledAt, reads at most ten entitlements, and saves and grants those.
 	 *
-	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-settled-shillinq-contribution-grants-the-learners-entitlement
+	 * @spec openspec/specs/payments/spec.md#requirement-a-settled-shillinq-contribution-grants-the-learners-entitlement
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectUpdatedEvent === false) {

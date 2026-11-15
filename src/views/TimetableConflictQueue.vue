@@ -16,15 +16,13 @@
  Mirrors ProctoringReviewQueue's Options API + direct fetch/axios shape (no
  custom Pinia store module).
 
- @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
+ @spec openspec/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
 -->
 
 <template>
-	<div class="timetable-conflict-queue">
+	<div class="timetable-conflict-queue lq-board-page">
 		<header class="timetable-conflict-queue__header">
-			<h2 class="timetable-conflict-queue__title">
-				{{ t('learniq', 'Timetable conflicts') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Timetable conflicts')" />
 			<p class="timetable-conflict-queue__subtitle">
 				{{
 					t(
@@ -33,7 +31,30 @@
 					)
 				}}
 			</p>
+			<NcButton
+				v-if="canImport"
+				variant="secondary"
+				:disabled="!planninqReady"
+				data-testid="timetable-import-open"
+				@click="importOpen = true">
+				{{ t('learniq', 'Import a timetable') }}
+			</NcButton>
+			<p
+				v-if="canImport && !planninqReady"
+				class="timetable-conflict-queue__subtitle">
+				{{
+					t(
+						'learniq',
+						'Install planninq to import a timetable: integriq delivers it there.',
+					)
+				}}
+			</p>
 		</header>
+
+		<TimetableImportDialog
+			v-if="importOpen"
+			@imported="load"
+			@close="importOpen = false" />
 
 		<div
 			v-if="loading"
@@ -58,81 +79,93 @@
 			</template>
 		</NcEmptyContent>
 
-		<ul v-else class="timetable-conflict-queue__list">
-			<li
-				v-for="conflict in visibleConflicts"
-				:key="conflict.id"
-				class="timetable-conflict-queue__item"
-				:class="'timetable-conflict-queue__item--' + conflict.severity">
-				<div class="timetable-conflict-queue__info">
-					<span class="timetable-conflict-queue__kind">{{
-						/**
-						 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
-						 */
-						kindLabel(conflict.kind)
-					}}</span>
-					<span class="timetable-conflict-queue__severity">{{
-						conflict.severity
-					}}</span>
-					<span class="timetable-conflict-queue__sessions">
-						{{
-							t('learniq', 'Sessions: {ids}', {
-								ids: (conflict.sessionIds || []).join(', '),
-							})
-						}}
-					</span>
-					<span class="timetable-conflict-queue__detected">{{
-						/**
-						 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
-						 */
-						formatDate(conflict.detectedAt)
-					}}</span>
-				</div>
+		<CnDetailCard v-else flush>
+			<ul class="timetable-conflict-queue__list">
+				<li
+					v-for="conflict in visibleConflicts"
+					:key="conflict.id"
+					class="timetable-conflict-queue__item"
+					:class="'timetable-conflict-queue__item--' + conflict.severity">
+					<div class="timetable-conflict-queue__info">
+						<span class="timetable-conflict-queue__kind">{{
+							/**
+							 * @spec openspec/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
+							 */
+							kindLabel(conflict.kind)
+						}}</span>
+						<span class="timetable-conflict-queue__severity">{{
+							conflict.severity
+						}}</span>
+						<span class="timetable-conflict-queue__sessions">
+							{{
+								t('learniq', 'Sessions: {ids}', {
+									ids: (conflict.sessionIds || []).join(', '),
+								})
+							}}
+						</span>
+						<span class="timetable-conflict-queue__detected">{{
+							/**
+							 * @spec openspec/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
+							 */
+							formatDate(conflict.detectedAt)
+						}}</span>
+					</div>
 
-				<div class="timetable-conflict-queue__actions">
-					<template v-if="conflict.lifecycle === 'open'">
+					<div class="timetable-conflict-queue__actions">
+						<template v-if="conflict.lifecycle === 'open'">
+							<NcButton
+								:disabled="savingId === conflict.id"
+								@click="transition(conflict, 'acknowledged')">
+								{{ t('learniq', 'Acknowledge') }}
+							</NcButton>
+						</template>
 						<NcButton
+							variant="primary"
 							:disabled="savingId === conflict.id"
-							@click="transition(conflict, 'acknowledged')">
-							{{ t('learniq', 'Acknowledge') }}
+							@click="transition(conflict, 'resolved')">
+							{{ t('learniq', 'Resolve') }}
 						</NcButton>
-					</template>
-					<NcButton
-						variant="primary"
-						:disabled="savingId === conflict.id"
-						@click="transition(conflict, 'resolved')">
-						{{ t('learniq', 'Resolve') }}
-					</NcButton>
-				</div>
+					</div>
 
-				<p
-					v-if="itemError[conflict.id]"
-					role="alert"
-					class="timetable-conflict-queue__error-inline">
-					{{ itemError[conflict.id] }}
-				</p>
-			</li>
-		</ul>
+					<p
+						v-if="itemError[conflict.id]"
+						role="alert"
+						class="timetable-conflict-queue__error-inline">
+						{{ itemError[conflict.id] }}
+					</p>
+				</li>
+			</ul>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
+import TimetableImportDialog from '../dialogs/TimetableImportDialog.vue'
+import { displayDateTime } from '../utils/displayDateTime.js'
+import { IMPORT_ACCESS_URL } from '../utils/timetableExchangeSettings.js'
 
 export default {
 	name: 'TimetableConflictQueue',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
 		NcNoteCard,
+		TimetableImportDialog,
 	},
 
 	data() {
 		return {
+			canImport: false,
+			planninqReady: false,
+			importOpen: false,
 			conflicts: [],
 			loading: false,
 			error: '',
@@ -146,7 +179,7 @@ export default {
 		 * Open + acknowledged conflicts, ordered newest-first.
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
+		 * @spec openspec/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
 		 */
 		visibleConflicts() {
 			return this.conflicts
@@ -162,18 +195,42 @@ export default {
 		},
 	},
 
+	/**
+	 * Load the queue, and whether this user may import a timetable.
+	 *
+	 * @spec openspec/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
+	 * @spec openspec/specs/timetabling/spec.md#requirement-the-timetable-page-offers-the-import-to-whoever-may-request-an-exchange
+	 */
 	created() {
 		this.load()
+		this.loadImportAccess()
 	},
 
 	methods: {
 		t,
 
 		/**
+		 * Show the import button only to someone the import endpoint admits
+		 * (exchange.request), and enable it where planninq takes the delivery.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/timetabling/spec.md#requirement-the-timetable-page-offers-the-import-to-whoever-may-request-an-exchange
+		 */
+		async loadImportAccess() {
+			try {
+				const { data } = await axios.get(generateUrl(IMPORT_ACCESS_URL))
+				this.canImport = data?.canImport === true
+				this.planninqReady = data?.planninq === true
+			} catch {
+				this.canImport = false
+			}
+		},
+
+		/**
 		 * Fetch every TimetableConflict object.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
+		 * @spec openspec/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
 		 */
 		async load() {
 			this.loading = true
@@ -230,7 +287,7 @@ export default {
 		 * @param {object} conflict The TimetableConflict object.
 		 * @param {string} lifecycle Target lifecycle value.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-coordinator-sees-a-newly-detected-conflict-in-their-review-queue
+		 * @spec openspec/specs/timetabling/spec.md#scenario-a-coordinator-sees-a-newly-detected-conflict-in-their-review-queue
 		 */
 		async transition(conflict, lifecycle) {
 			this.savingId = conflict.id
@@ -241,7 +298,7 @@ export default {
 					'/apps/openregister/api/objects/learniq/timetable-conflict/{id}',
 					{ id: conflict.id },
 				)
-				await axios.put(url, { lifecycle })
+				await axios.patch(url, { lifecycle })
 
 				const idx = this.conflicts.findIndex((c) => c.id === conflict.id)
 				if (idx >= 0) {
@@ -269,40 +326,13 @@ export default {
 		 * @return {string}
 		 */
 		formatDate(dt) {
-			if (!dt) return ''
-			try {
-				return new Intl.DateTimeFormat(navigator.language, {
-					year: 'numeric',
-					month: 'short',
-					day: 'numeric',
-					hour: '2-digit',
-					minute: '2-digit',
-				}).format(new Date(dt))
-			} catch {
-				return dt
-			}
+			return displayDateTime(dt)
 		},
 	},
 }
 </script>
 
 <style scoped>
-.timetable-conflict-queue {
-	max-width: 900px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.timetable-conflict-queue__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.timetable-conflict-queue__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-}
-
 .timetable-conflict-queue__subtitle {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9em;
@@ -317,6 +347,7 @@ export default {
 }
 
 .timetable-conflict-queue__list {
+	margin: 0;
 	list-style: none;
 	padding: 0;
 }
@@ -326,11 +357,12 @@ export default {
 	flex-wrap: wrap;
 	align-items: center;
 	gap: calc(var(--default-grid-baseline, 8px) * 2);
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-	margin-bottom: var(--default-grid-baseline, 8px);
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius, 4px);
+	padding: 16px 18px;
+	border-top: 1px solid var(--color-border);
+}
+
+.timetable-conflict-queue__item:first-child {
+	border-top: none;
 }
 
 .timetable-conflict-queue__item--error {

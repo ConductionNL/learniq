@@ -14,14 +14,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/curriculum-coverage-rollup/tasks.md#task-4-curriculumcoveragerolluphandler-and-its-registration
+ * @spec openspec/changes/archive/2026-09-28-curriculum-coverage-rollup/tasks.md#task-4-curriculumcoveragerolluphandler-and-its-registration
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\CoverageListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\CoverageListenerRegistrar;
 use OCA\Learniq\Listener\CurriculumCoverageRollupHandler;
 use OCA\Learniq\Service\CompetencyAlignmentNormaliser;
 use OCA\Learniq\Service\CurriculumCoverageRollup;

@@ -15,7 +15,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/trend-and-export-reporting/specs/grading/spec.md#requirement-gradescale-declares-dle-and-leerrendement-as-scale-kinds-for-later-lvs-data
+ * @spec openspec/specs/grading/spec.md#requirement-gradescale-declares-dle-and-leerrendement-as-scale-kinds-for-later-lvs-data
  */
 
 declare(strict_types=1);
@@ -54,7 +54,7 @@ class GradeScaleDleLeerrendementRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/trend-and-export-reporting/specs/grading/spec.md#scenario-a-gradescale-can-be-declared-with-the-new-kind-values
+	 * @spec openspec/specs/grading/spec.md#scenario-a-gradescale-can-be-declared-with-the-new-kind-values
 	 */
 	public function testGradeScaleKindIncludesDleAndLeerrendement(): void {
 		$kindEnum = $this->config['components']['schemas']['GradeScale']['properties']['kind']['enum'];

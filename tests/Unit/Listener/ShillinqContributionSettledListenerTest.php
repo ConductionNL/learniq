@@ -20,14 +20,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-settled-shillinq-contribution-grants-the-learners-entitlement
+ * @spec openspec/specs/payments/spec.md#requirement-a-settled-shillinq-contribution-grants-the-learners-entitlement
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\BootListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\BootListenerRegistrar;
 use OCA\Learniq\Listener\ShillinqContributionSettledListener;
 use OCA\Learniq\Service\ContributionBeneficiaryResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;

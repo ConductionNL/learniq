@@ -17,13 +17,13 @@
 
  Route param: :id (ReportPeriod UUID).
 
- @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
- @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-the-rapportvergadering-review-lifecycle-gates-parent-visibility-behind-a-finalise-step
- @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-publishtoparents-must-not-surface-a-grade-before-its-own-scheduled-visibility-window
+ @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+ @spec openspec/specs/report-card/spec.md#requirement-the-rapportvergadering-review-lifecycle-gates-parent-visibility-behind-a-finalise-step
+ @spec openspec/specs/report-card/spec.md#requirement-publishtoparents-must-not-surface-a-grade-before-its-own-scheduled-visibility-window
 -->
 <template>
-	<div class="rapportvergadering-review">
-		<h2>{{ t('learniq', 'Rapportvergadering review') }}</h2>
+	<div class="rapportvergadering-review lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Rapportvergadering review')" />
 
 		<NcLoadingIcon v-if="loadingPeriod" :size="32" />
 
@@ -63,7 +63,7 @@
 						)
 					" />
 
-				<div v-else class="rapportvergadering-review__table-wrap">
+				<CnDetailCard v-else flush class="rapportvergadering-review__table-wrap">
 					<table class="rapportvergadering-review__table">
 						<thead>
 							<tr>
@@ -89,7 +89,7 @@
 										<div class="rapportvergadering-review__cell">
 											<strong>{{
 												/**
-												 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+												 * @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 												 */
 												formatAverage(
 													subjectRow(card, plan.id)
@@ -120,7 +120,7 @@
 												rows="2"
 												@change="
 													/**
-													 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+													 * @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 													 */
 													onTeacherCommentChange(
 														card,
@@ -150,7 +150,7 @@
 										rows="2"
 										@change="
 											/**
-											 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+											 * @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 											 */
 											onMentorCommentChange(
 												card,
@@ -165,12 +165,7 @@
 											v-if="card.lifecycle === 'draft'"
 											variant="tertiary"
 											:disabled="!!transitioning[cardId(card)]"
-											@click="
-												transition(
-													card,
-													'rapportvergadering-review',
-												)
-											">
+											@click="transition(card, 'pullIntoReview')">
 											{{ t('learniq', 'Pull into review') }}
 										</NcButton>
 										<NcButton
@@ -180,31 +175,21 @@
 											"
 											variant="tertiary"
 											:disabled="!!transitioning[cardId(card)]"
-											@click="transition(card, 'finalised')">
+											@click="transition(card, 'finalise')">
 											{{ t('learniq', 'Finalise') }}
 										</NcButton>
 										<NcButton
 											v-if="card.lifecycle === 'finalised'"
 											variant="tertiary"
 											:disabled="!!transitioning[cardId(card)]"
-											@click="
-												transition(
-													card,
-													'rapportvergadering-review',
-												)
-											">
+											@click="transition(card, 'reopen')">
 											{{ t('learniq', 'Reopen') }}
 										</NcButton>
 										<NcButton
 											v-if="card.lifecycle === 'finalised'"
 											variant="primary"
 											:disabled="!!transitioning[cardId(card)]"
-											@click="
-												transition(
-													card,
-													'published-to-parents',
-												)
-											">
+											@click="transition(card, 'publishToParents')">
 											{{ t('learniq', 'Publish to parents') }}
 										</NcButton>
 									</div>
@@ -217,7 +202,7 @@
 							</tr>
 						</tbody>
 					</table>
-				</div>
+				</CnDetailCard>
 			</template>
 		</template>
 
@@ -234,15 +219,19 @@
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
 import ComposeReportPeriodModal from '../dialogs/ComposeReportPeriodModal.vue'
+import { transitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'RapportvergaderingReviewView',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		ComposeReportPeriodModal,
 		NcButton,
 		NcEmptyContent,
@@ -278,7 +267,7 @@ export default {
 		 * One column per in-scope CurriculumPlan, in ReportPeriod.curriculumPlanIds order.
 		 *
 		 * @return {Array<{id: string, label: string}>}
-		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		subjectColumns() {
 			if (!this.period) return []
@@ -304,7 +293,7 @@ export default {
 		 * CurriculumPlan labels and ReportCards.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadPeriod() {
 			this.loadingPeriod = true
@@ -331,7 +320,7 @@ export default {
 		 * Resolve display labels for the period's in-scope CurriculumPlans.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadCurriculumPlans() {
 			const planIds = (this.period && this.period.curriculumPlanIds) || []
@@ -361,7 +350,7 @@ export default {
 		 * Load every ReportCard composed for this ReportPeriod.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadCards() {
 			this.loadingCards = true
@@ -388,7 +377,7 @@ export default {
 		 * Called when ComposeReportPeriodModal successfully triggers `compose`.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async onComposed() {
 			await this.loadPeriod()
@@ -427,7 +416,7 @@ export default {
 		 *
 		 * @param {object} card A ReportCard.
 		 * @return {string}
-		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		cardId(card) {
 			return card.id || card.uuid || ''
@@ -477,7 +466,7 @@ export default {
 		 *
 		 * @param {object} card The ReportCard to save.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+		 * @spec openspec/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async saveCard(card) {
 			const id = this.cardId(card)
@@ -498,27 +487,24 @@ export default {
 		},
 
 		/**
-		 * Trigger a ReportCard lifecycle transition by writing the target
-		 * `lifecycle` value through OR's object API.
+		 * Run a ReportCard lifecycle transition through OR's transition
+		 * endpoint, so its guard runs and its listeners (publish to parents,
+		 * the PDF, the notification) fire.
 		 *
-		 * @param {object} card         The ReportCard.
-		 * @param {string} toLifecycle  Target lifecycle state.
+		 * @param {object} card   The ReportCard.
+		 * @param {string} action The transition, e.g. `finalise`.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-mentor-reopens-a-finalised-report-card-to-correct-it-before-publication
-		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publish-succeeds-once-every-contributing-grades-window-has-opened
+		 * @spec openspec/specs/report-card/spec.md#scenario-a-mentor-reopens-a-finalised-report-card-to-correct-it-before-publication
+		 * @spec openspec/specs/report-card/spec.md#scenario-publish-succeeds-once-every-contributing-grades-window-has-opened
 		 */
-		async transition(card, toLifecycle) {
+		async transition(card, action) {
 			const id = this.cardId(card)
 			if (!id) return
 
 			this.transitioning[id] = true
 			this.cardErrors[id] = ''
 			try {
-				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/report-card/{id}',
-					{ id },
-				)
-				await axios.put(url, { lifecycle: toLifecycle })
+				await axios.post(generateUrl(transitionUrl(id)), { action })
 				await this.loadCards()
 			} catch (e) {
 				console.error('[RapportvergaderingReviewView] transition failed', e)
@@ -535,13 +521,8 @@ export default {
 </script>
 
 <style scoped>
-.rapportvergadering-review {
-	padding: 1rem;
-}
-
 .rapportvergadering-review__meta {
 	color: var(--color-text-maxcontrast);
-	margin-bottom: 1rem;
 }
 
 .rapportvergadering-review__compose {

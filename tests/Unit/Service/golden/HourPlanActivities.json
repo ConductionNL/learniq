@@ -1,0 +1,274 @@
+{
+    "2026-2027": {
+        "out": {
+            "academicYear": "2026-2027",
+            "activities": [
+                {
+                    "cohortId": "c-mv2a",
+                    "cohortName": "MV2A",
+                    "programmeYear": 2,
+                    "hourPlanId": "hp-2025",
+                    "courseId": "co-ne",
+                    "courseName": "Nederlands",
+                    "periodCode": "P1",
+                    "contactHours": 30.0,
+                    "otherHours": 5.0,
+                    "activityKind": "lesson",
+                    "teacherIds": [
+                        "mbo-docent-01"
+                    ],
+                    "note": null
+                },
+                {
+                    "cohortId": "c-mv2a",
+                    "cohortName": "MV2A",
+                    "programmeYear": 2,
+                    "hourPlanId": "hp-2025",
+                    "courseId": "co-bpv",
+                    "courseName": "BPV",
+                    "periodCode": null,
+                    "contactHours": 0.0,
+                    "otherHours": 400.0,
+                    "activityKind": "work-placement",
+                    "teacherIds": [],
+                    "note": null
+                },
+                {
+                    "cohortId": "c-mv2b",
+                    "cohortName": "MV2B",
+                    "programmeYear": 2,
+                    "hourPlanId": "hp-2025",
+                    "courseId": "co-ne",
+                    "courseName": "Nederlands",
+                    "periodCode": "P1",
+                    "contactHours": 30.0,
+                    "otherHours": 5.0,
+                    "activityKind": "lesson",
+                    "teacherIds": [],
+                    "note": null
+                },
+                {
+                    "cohortId": "c-mv2b",
+                    "cohortName": "MV2B",
+                    "programmeYear": 2,
+                    "hourPlanId": "hp-2025",
+                    "courseId": "co-bpv",
+                    "courseName": "BPV",
+                    "periodCode": null,
+                    "contactHours": 0.0,
+                    "otherHours": 400.0,
+                    "activityKind": "work-placement",
+                    "teacherIds": [
+                        "bpv-01",
+                        "bpv-02"
+                    ],
+                    "note": null
+                },
+                {
+                    "cohortId": "c-mv3a",
+                    "cohortName": "MV3A",
+                    "programmeYear": 3,
+                    "hourPlanId": "hp-2024",
+                    "courseId": "co-ne",
+                    "courseName": "Nederlands",
+                    "periodCode": "P2",
+                    "contactHours": 12.5,
+                    "otherHours": 0.0,
+                    "activityKind": "lesson",
+                    "teacherIds": [],
+                    "note": "examenjaar"
+                },
+                {
+                    "cohortId": "c-mv3a",
+                    "cohortName": "MV3A",
+                    "programmeYear": 3,
+                    "hourPlanId": "hp-2024",
+                    "courseId": "co-ex",
+                    "courseName": "",
+                    "periodCode": null,
+                    "contactHours": 0.0,
+                    "otherHours": 0.0,
+                    "activityKind": "exam",
+                    "teacherIds": [],
+                    "note": null
+                }
+            ],
+            "cohortsWithoutPlan": [
+                {
+                    "cohortId": "c-mv1a",
+                    "cohortName": "MV1A",
+                    "programmeYear": 1,
+                    "programmeId": "p-mmc",
+                    "intakeYear": "2026-2027"
+                }
+            ]
+        },
+        "queries": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "cohort",
+                    "academicYear": "2026-2027"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "hour-plan",
+                    "programmeId": "p-mmc",
+                    "intakeYear": "2025-2026"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "subjectteacherassignment",
+                    "cohortId": "c-mv2a"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "hour-plan",
+                    "programmeId": "p-mmc",
+                    "intakeYear": "2026-2027"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "subjectteacherassignment",
+                    "cohortId": "c-mv2b"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "hour-plan",
+                    "programmeId": "p-mmc",
+                    "intakeYear": "2024-2025"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "subjectteacherassignment",
+                    "cohortId": "c-mv3a"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "course"
+                },
+                "ids": [
+                    "co-ne",
+                    "co-bpv",
+                    "co-ex"
+                ]
+            }
+        ]
+    },
+    "2025-2026": {
+        "out": {
+            "academicYear": "2025-2026",
+            "activities": [
+                {
+                    "cohortId": "c-art",
+                    "cohortName": "ART1",
+                    "programmeYear": 1,
+                    "hourPlanId": "hp-art",
+                    "courseId": "co-ne",
+                    "courseName": "Nederlands",
+                    "periodCode": null,
+                    "contactHours": 8.0,
+                    "otherHours": 0.0,
+                    "activityKind": "lesson",
+                    "teacherIds": [],
+                    "note": null
+                }
+            ],
+            "cohortsWithoutPlan": []
+        },
+        "queries": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "cohort",
+                    "academicYear": "2025-2026"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "hour-plan",
+                    "programmeId": "p-mmc",
+                    "intakeYear": "2024-2025"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "subjectteacherassignment",
+                    "cohortId": "c-old"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "hour-plan",
+                    "programmeId": "p-art",
+                    "intakeYear": "2025-2026"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "subjectteacherassignment",
+                    "cohortId": "c-art"
+                }
+            },
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "course"
+                },
+                "ids": [
+                    "co-ne"
+                ]
+            }
+        ]
+    },
+    "2027-2028": {
+        "out": {
+            "academicYear": "2027-2028",
+            "activities": [],
+            "cohortsWithoutPlan": []
+        },
+        "queries": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "cohort",
+                    "academicYear": "2027-2028"
+                }
+            }
+        ]
+    },
+    "next": {
+        "out": {
+            "academicYear": "next",
+            "activities": [],
+            "cohortsWithoutPlan": []
+        },
+        "queries": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "cohort",
+                    "academicYear": "next"
+                }
+            }
+        ]
+    }
+}

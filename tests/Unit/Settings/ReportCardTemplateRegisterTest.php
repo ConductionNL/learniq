@@ -19,9 +19,9 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#requirement-reportcardtemplate-declares-typed-sections-with-a-scale-from-a-shared-library
- * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#requirement-a-template-maps-an-imported-test-kind-to-a-report-section-per-group
- * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#requirement-a-reportcardtemplate-is-assigned-per-group-per-period
+ * @spec openspec/specs/report-card/spec.md#requirement-reportcardtemplate-declares-typed-sections-with-a-scale-from-a-shared-library
+ * @spec openspec/specs/report-card/spec.md#requirement-a-template-maps-an-imported-test-kind-to-a-report-section-per-group
+ * @spec openspec/specs/report-card/spec.md#requirement-a-reportcardtemplate-is-assigned-per-group-per-period
  */
 
 declare(strict_types=1);
@@ -71,8 +71,8 @@ class ReportCardTemplateRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-template-with-a-scale-from-every-library-value-validates
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-template-with-no-sections-fails-schema-validation-on-save
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-template-with-a-scale-from-every-library-value-validates
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-template-with-no-sections-fails-schema-validation-on-save
 	 */
 	public function testSectionsMinItemsOneAndFullEnums(): void {
 		$template = $this->config['components']['schemas']['ReportCardTemplate'];
@@ -102,7 +102,7 @@ class ReportCardTemplateRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-test-kind-mapping-is-declared-without-a-corresponding-data-source-present
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-test-kind-mapping-is-declared-without-a-corresponding-data-source-present
 	 */
 	public function testTestKindSectionMapShape(): void {
 		$map = $this->config['components']['schemas']['ReportCardTemplate']['properties']['testKindSectionMap'];
@@ -153,7 +153,7 @@ class ReportCardTemplateRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-cohorts-assigned-template-determines-its-report-cards-sections
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-cohorts-assigned-template-determines-its-report-cards-sections
 	 */
 	public function testCohortAndReportCardReferenceProperties(): void {
 		$cohort = $this->config['components']['schemas']['Cohort']['properties']['reportCardTemplateId'];

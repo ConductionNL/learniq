@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/oso-inbound-contract/tasks.md#task-2
+ * @spec openspec/changes/archive/2026-09-28-oso-inbound-contract/tasks.md#task-2
  */
 
 declare(strict_types=1);
@@ -125,7 +125,7 @@ class OsoImportAcceptGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/access-control-ratchet-compliance/specs/data-exchange/spec.md#scenario-the-singular-coordinator-group-accepts-nothing
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-the-singular-coordinator-group-accepts-nothing
 	 */
 	public function testSingularCoordinatorGroupIsDenied(): void {
 		self::assertFalse($this->makeGuard(['coordinator'])->check(self::DOSSIER, 'accept', 'actor-1')->isAllowed());

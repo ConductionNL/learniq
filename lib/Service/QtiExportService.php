@@ -3,15 +3,20 @@
 /**
  * Learniq QTI Export Service
  *
- * Exports an `ItemBank` and its `Item`s as a QTI 3.0 package (a ZIP
- * containing `imsmanifest.xml` + one `assessmentItem` XML per Item),
- * completing the "Items use QTI 3.0 as canonical form" requirement's
- * import-only coverage into a round-trip.
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
  *
- * Every `Item.qtiBody` already holds verbatim, valid QTI 3.0 XML — written by
- * both `QtiImportService` on import and `ItemAuthorView` on manual authoring
- * — so this exporter wraps the stored `qtiBody` directly rather than
- * re-deriving it from `interactionType`/`correctResponse`. Export fidelity is
+ * Exports an `ItemBank` and its `Item`s as a QTI 2.1 package (a ZIP
+ * containing `imsmanifest.xml` + one `assessmentItem` XML per Item),
+ * completing the item import into a round-trip.
+ *
+ * Every `Item.qtiBody` holds QTI 2.1 markup, written by `QtiImportService` on
+ * import, `ItemAuthorView` on manual authoring and `MoodleQuizQuestionMapper`
+ * for course packages. So this exporter wraps the stored `qtiBody` directly
+ * rather than re-deriving it from `interactionType`/`correctResponse`. The
+ * one rewrite is the label: items written before
+ * grading-defects-from-example-sets carry the QTI 3.0 namespace on their 2.1
+ * markup, and are exported with the 2.1 namespace (see relabel()). Export fidelity is
  * therefore unaffected by the pre-existing import-side interaction-type
  * parsing gap documented in `QtiImportService`'s own class docblock.
  *
@@ -26,29 +31,45 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-30-package
+ * @spec openspec/changes/archive/2026-07-16-course-package-import-export/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-30-package
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\QtiExportServiceInterface;
+use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
 use RuntimeException;
-use ZipArchive;
 
 /**
- * Builds a QTI 3.0 export package for an `ItemBank`.
+ * Builds a QTI 2.1 export package for an `ItemBank`.
  */
-class QtiExportService {
+class QtiExportService implements QtiExportServiceInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
+
+	/**
+	 * The QTI 2.1 namespace: the dialect every item is written in.
+	 */
+	public const QTI21_NAMESPACE = 'http://www.imsglobal.org/xsd/imsqti_v2p1';
+
+	/**
+	 * The QTI 3.0 namespace that writers used to stamp on QTI 2.1 markup.
+	 */
+	private const OLD_LABEL_NAMESPACE = 'http://www.imsglobal.org/xsd/imsqtiasi_v3p0';
+
+	/**
+	 * Turns one OpenRegister result into a plain array.
+	 *
+	 * @var ObjectRow
+	 */
+	private readonly ObjectRow $objectRow;
 
 	/**
 	 * Constructor.
@@ -60,10 +81,11 @@ class QtiExportService {
 	public function __construct(
 		private readonly ObjectService $objectService,
 	) {
+		$this->objectRow = new ObjectRow();
 	}//end __construct()
 
 	/**
-	 * Export an ItemBank's Items as a QTI 3.0 package ZIP.
+	 * Export an ItemBank's Items as a QTI 2.1 package ZIP.
 	 *
 	 * @param string $itemBankId UUID of the ItemBank to export.
 	 *
@@ -71,7 +93,8 @@ class QtiExportService {
 	 *
 	 * @throws \RuntimeException When the ItemBank does not exist.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/assessment/spec.md#scenario-exporting-an-itembank-produces-a-valid-qti-30-package
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/specs/assessment/spec.md#scenario-exporting-an-itembank-produces-a-valid-qti-30-package
+	 * @spec openspec/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-21-package
 	 */
 	public function export(string $itemBankId): string {
 		$bank = $this->objectService->find(id: $itemBankId, register: self::LEARNIQ_REGISTER, schema: 'item-bank');
@@ -100,15 +123,16 @@ class QtiExportService {
 	}//end export()
 
 	/**
-	 * Build the QTI 3.0 package ZIP: `imsmanifest.xml` + one item XML per Item,
-	 * each holding that Item's stored `qtiBody` verbatim.
+	 * Build the QTI 2.1 package ZIP: `imsmanifest.xml` + one item XML per Item,
+	 * each holding that Item's stored `qtiBody`, relabelled when needed.
 	 *
 	 * @param array<string, mixed> $bankData The ItemBank's own data.
 	 * @param array<int, array<string, mixed>> $items The bank's resolved Items.
 	 *
 	 * @return string Raw ZIP bytes.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/assessment/spec.md#scenario-export-fidelity-is-not-limited-by-the-import-side-parsing-gap
+	 * @spec openspec/specs/assessment/spec.md#scenario-export-fidelity-is-not-limited-by-the-import-side-parsing-gap
+	 * @spec openspec/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-21-package
 	 */
 	private function buildPackage(array $bankData, array $items): string {
 		$resourceEntries = '';
@@ -116,12 +140,11 @@ class QtiExportService {
 
 		foreach ($items as $idx => $item) {
 			$itemFilename = 'item-' . ($idx + 1) . '.xml';
-			$qtiBody = (string)($item['qtiBody'] ?? '');
-			$files[$itemFilename] = $qtiBody;
+			$files[$itemFilename] = $this->relabel(qtiBody: (string)($item['qtiBody'] ?? ''));
 
 			$identifier = 'ITEM-' . ($item['id'] ?? $item['uuid'] ?? ($idx + 1));
 			$resourceEntries .= '<resource identifier="' . htmlspecialchars((string)$identifier, ENT_XML1 | ENT_QUOTES)
-				. '" type="imsqti_item_xmlv3p0" href="' . $itemFilename . '">'
+				. '" type="imsqti_item_xmlv2p1" href="' . $itemFilename . '">'
 				. '<file href="' . $itemFilename . '"/></resource>';
 		}
 
@@ -129,8 +152,8 @@ class QtiExportService {
 
 		$manifest = '<?xml version="1.0" encoding="UTF-8"?>'
 			. '<manifest xmlns="http://www.imsglobal.org/xsd/imscp_v1p1" '
-			. 'xmlns:imsqti="http://www.imsglobal.org/xsd/imsqtiasi_v3p0" identifier="MANIFEST-1">'
-			. '<metadata><schema>QTIv3.0 Package</schema><title>' . $bankTitle . '</title></metadata>'
+			. 'xmlns:imsqti="' . self::QTI21_NAMESPACE . '" identifier="MANIFEST-1">'
+			. '<metadata><schema>QTIv2.1 Package</schema><title>' . $bankTitle . '</title></metadata>'
 			. '<organizations/>'
 			. '<resources>' . $resourceEntries . '</resources>'
 			. '</manifest>';
@@ -141,36 +164,41 @@ class QtiExportService {
 	}//end buildPackage()
 
 	/**
+	 * Give an item stored under the old label the QTI 2.1 namespace.
+	 *
+	 * Only a root `assessmentItem` (the QTI 2.1 element name) in the QTI 3.0
+	 * namespace is relabelled, and only its namespace URI changes. An item
+	 * already labelled 2.1, and a real QTI 3.0 item (`qti-assessment-item`),
+	 * pass through byte for byte.
+	 *
+	 * @param string $qtiBody The stored qtiBody.
+	 *
+	 * @return string The qtiBody to export.
+	 *
+	 * @spec openspec/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-21-package
+	 */
+	private function relabel(string $qtiBody): string {
+		$pattern = '/(<assessmentItem\b[^>]*\bxmlns=")' . preg_quote(self::OLD_LABEL_NAMESPACE, '/') . '"/';
+
+		$relabelled = preg_replace($pattern, '${1}' . self::QTI21_NAMESPACE . '"', $qtiBody, 1);
+		if ($relabelled === null) {
+			return $qtiBody;
+		}
+
+		return $relabelled;
+	}//end relabel()
+
+	/**
 	 * Build an in-memory ZIP archive from named string content entries.
 	 *
 	 * @param array<string,string> $files Map of filename => content.
 	 *
 	 * @return string Raw ZIP bytes.
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-30-package
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-30-package
 	 */
 	private function buildZip(array $files): string {
-		$tmpFile = tempnam(sys_get_temp_dir(), 'learniq_qti_export_');
-		if ($tmpFile === false) {
-			return '';
-		}
-
-		$zip = new ZipArchive();
-		if ($zip->open($tmpFile, ZipArchive::OVERWRITE) !== true) {
-			unlink($tmpFile);
-			return '';
-		}
-
-		foreach ($files as $filename => $content) {
-			$zip->addFromString($filename, $content);
-		}
-
-		$zip->close();
-
-		$zipContent = (string)file_get_contents($tmpFile);
-		unlink($tmpFile);
-
-		return $zipContent;
+		return (new InMemoryZip(tempPrefix: 'learniq_qti_export_'))->build(files: $files);
 	}//end buildZip()
 
 	/**
@@ -180,17 +208,9 @@ class QtiExportService {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/course-package-import-export/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-30-package
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-30-package
 	 */
 	private function toArray(mixed $object): array {
-		if (is_array($object) === true) {
-			return $object;
-		}
-
-		if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-			return (array)$object->jsonSerialize();
-		}
-
-		return [];
+		return $this->objectRow->asArray(object: $object);
 	}//end toArray()
 }//end class

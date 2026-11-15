@@ -3,6 +3,9 @@
 /**
  * Learniq BSA Progress Evaluator
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Stateless calculation engine that sums a learner's cumulative ECTS credits
  * earned within a Programme's scope: resolves each of the learner's
  * `passed: true` FinalGrades to its Course.ectsCredits (treating a null
@@ -30,25 +33,24 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+ * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\BsaProgressEvaluatorInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
  * Sums a learner's earned ECTS credits within a Programme's course scope.
  */
-class BsaProgressEvaluator {
+class BsaProgressEvaluator implements BsaProgressEvaluatorInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const FINAL_GRADE_SCHEMA = 'final-grade';
@@ -82,7 +84,7 @@ class BsaProgressEvaluator {
 	 *
 	 * @return array{ectsEarned: float}
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
 	 */
 	public function evaluate(string $programmeId, string $learnerId): array {
 		if ($programmeId === '' || $learnerId === '') {
@@ -118,7 +120,7 @@ class BsaProgressEvaluator {
 	 *
 	 * @return array<string, float>
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
 	 */
 	private function fetchCourseCredits(string $programmeId): array {
 		$results = $this->objectService->findAll(
@@ -160,7 +162,7 @@ class BsaProgressEvaluator {
 	 *
 	 * @return array<int, array>
 	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
 	 */
 	private function fetchPassedFinalGrades(string $learnerId): array {
 		$results = $this->objectService->findAll(

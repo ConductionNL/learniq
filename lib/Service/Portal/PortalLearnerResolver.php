@@ -21,32 +21,34 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
+ * @spec openspec/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
+use OCA\Learniq\Kernel\Contracts\PortalLearnerResolverInterface;
+use OCA\Learniq\Service\LearnerRefResolver;
 use OCP\IUserManager;
 
 /**
  * Resolves a learnerRef to a PortalLearner, or null.
  *
- * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
+ * @spec openspec/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
  */
-class PortalLearnerResolver {
+class PortalLearnerResolver implements PortalLearnerResolverInterface {
 
 	/**
 	 * Constructor.
 	 *
-	 * @param LearnerProfileLookup $profiles LearnerProfile by uuid.
+	 * @param LearnerRefResolver $profiles LearnerProfile by uuid.
 	 * @param IUserManager $userManager Nextcloud accounts.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly LearnerProfileLookup $profiles,
+		private readonly LearnerRefResolver $profiles,
 		private readonly IUserManager $userManager,
 	) {
 	}//end __construct()
@@ -58,7 +60,7 @@ class PortalLearnerResolver {
 	 *
 	 * @return PortalLearner|null
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
+	 * @spec openspec/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
 	 */
 	public function resolve(string $learnerRef): ?PortalLearner {
 		$profile = $this->profiles->byRef(learnerRef: $learnerRef);

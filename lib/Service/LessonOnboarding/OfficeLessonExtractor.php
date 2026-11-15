@@ -6,10 +6,12 @@
  * One entry point that turns a confirmed Word or PowerPoint file into a lesson
  * structure (office-file-lesson-onboarding):
  *
- * - docx: DocxLessonReader reads headings, paragraphs, lists, tables and
- *   images. When that yields no text at all, OpenRegister's WordExtractor
- *   (flat text, on `development`) is asked instead, duck-typed, and its lines
- *   become one untitled section.
+ * - docx: OpenRegister's DocumentExtractor (openregister #4111), duck-typed
+ *   through DocumentLessonReader, reads headings, paragraphs, lists, tables
+ *   and images. On an OpenRegister without it, or when it reads nothing,
+ *   learniq's own DocxLessonReader does. When that yields no text at all,
+ *   OpenRegister's WordExtractor (flat text) is asked instead, duck-typed, and
+ *   its lines become one untitled section.
  * - pptx: PresentationLessonReader, over OpenRegister's PresentationExtractor
  *   (openregister PR 4077), duck-typed; "unavailable" until that ships.
  *
@@ -26,7 +28,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-confirmed-word-file-becomes-one-lesson-draft
+ * @spec openspec/specs/course-management/spec.md#requirement-a-confirmed-word-file-becomes-one-lesson-draft
+ * @spec openspec/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
  */
 
 declare(strict_types=1);
@@ -48,24 +51,46 @@ class OfficeLessonExtractor {
 	 *
 	 * @var string
 	 */
-	public const WORD_EXTRACTOR = 'OCA\\OpenRegister\\Service\\TextExtraction\\WordExtractor';
+	public const WORD_EXTRACTOR = 'OCA\\OpenRegister\\Files\\Service\\TextExtraction\\WordExtractor';
+
+	/**
+	 * Structured Word reader.
+	 *
+	 * @var DocxLessonReader
+	 */
+	private readonly DocxLessonReader $docxReader;
+
+	/**
+	 * Adapter over OpenRegister's deck reader.
+	 *
+	 * @var PresentationLessonReader
+	 */
+	private readonly PresentationLessonReader $presentationReader;
+
+	/**
+	 * Adapter over OpenRegister's Word reader.
+	 *
+	 * @var DocumentLessonReader
+	 */
+	private readonly DocumentLessonReader $documentReader;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param DocxLessonReader $docxReader Structured Word reader.
-	 * @param PresentationLessonReader $presentationReader Adapter over OpenRegister's deck reader.
+	 * @param LessonFileReaders $readers The Word, deck and document readers.
 	 * @param ContainerInterface $container Resolves the Word fallback when it exists.
 	 * @param LoggerInterface $logger Logs a failed fallback (never document text).
 	 * @param string $wordExtractorClass The fallback class; tests pass a fake.
 	 */
 	public function __construct(
-		private readonly DocxLessonReader $docxReader,
-		private readonly PresentationLessonReader $presentationReader,
+		LessonFileReaders $readers,
 		private readonly ContainerInterface $container,
 		private readonly LoggerInterface $logger,
 		private readonly string $wordExtractorClass = self::WORD_EXTRACTOR,
 	) {
+		$this->docxReader = $readers->docx;
+		$this->presentationReader = $readers->presentation;
+		$this->documentReader = $readers->document;
 	}//end __construct()
 
 	/**
@@ -76,7 +101,7 @@ class OfficeLessonExtractor {
 	 *
 	 * @return array{status: string, lesson: array|null} `status` is `ok`, `unavailable` or `unreadable`.
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-confirmed-powerpoint-file-becomes-one-lesson-draft-or-waits-when-the-reader-is-missing
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-confirmed-powerpoint-file-becomes-one-lesson-draft-or-waits-when-the-reader-is-missing
 	 */
 	public function extract(File $file, string $format): array {
 		if ($format === 'pptx') {
@@ -92,6 +117,24 @@ class OfficeLessonExtractor {
 			return ['status' => 'ok', 'lesson' => $read['lesson']];
 		}
 
+		return $this->extractDocx(file: $file);
+	}//end extract()
+
+	/**
+	 * Read a Word file: OpenRegister's reader, then learniq's own, then flat text.
+	 *
+	 * @param File $file The confirmed file.
+	 *
+	 * @return array{status: string, lesson: array|null}
+	 *
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
+	 */
+	private function extractDocx(File $file): array {
+		$shared = $this->documentReader->read(file: $file);
+		if ($shared['lesson'] !== null && self::hasContent(lesson: $shared['lesson']) === true) {
+			return ['status' => 'ok', 'lesson' => $shared['lesson']];
+		}
+
 		$lesson = $this->docxReader->read(content: (string)$file->getContent());
 		if ($lesson !== null && self::hasContent(lesson: $lesson) === true) {
 			return ['status' => 'ok', 'lesson' => $lesson];
@@ -103,7 +146,7 @@ class OfficeLessonExtractor {
 		}
 
 		return ['status' => 'unreadable', 'lesson' => null];
-	}//end extract()
+	}//end extractDocx()
 
 	/**
 	 * Whether a lesson structure holds any heading, paragraph or image.
@@ -112,7 +155,7 @@ class OfficeLessonExtractor {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-confirmed-word-file-becomes-one-lesson-draft
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-confirmed-word-file-becomes-one-lesson-draft
 	 */
 	public static function hasContent(array $lesson): bool {
 		foreach (($lesson['sections'] ?? []) as $section) {

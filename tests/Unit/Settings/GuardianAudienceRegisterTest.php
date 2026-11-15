@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portal-contribution-guardian-audiences/specs/avg-verwerkingsregister/spec.md
+ * @spec openspec/specs/avg-verwerkingsregister/spec.md
  */
 
 declare(strict_types=1);
@@ -62,7 +62,7 @@ class GuardianAudienceRegisterTest extends TestCase {
 	 * required.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/portal-contribution-guardian-audiences/specs/avg-verwerkingsregister/spec.md#requirement-learnerprofile-records-per-purpose-beeldmateriaal-consent
+	 * @spec   openspec/specs/avg-verwerkingsregister/spec.md#requirement-learnerprofile-records-per-purpose-beeldmateriaal-consent
 	 */
 	public function testLearnerProfileGainsBeeldmateriaalConsent(): void {
 		$schema = $this->config['components']['schemas']['LearnerProfile'] ?? null;
@@ -94,7 +94,7 @@ class GuardianAudienceRegisterTest extends TestCase {
 	 * default null, not required.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/portal-contribution-guardian-audiences/specs/avg-verwerkingsregister/spec.md#requirement-learnerprofile-records-per-purpose-beeldmateriaal-consent
+	 * @spec   openspec/specs/avg-verwerkingsregister/spec.md#requirement-learnerprofile-records-per-purpose-beeldmateriaal-consent
 	 */
 	public function testLearnerProfileGainsConsentReviewDueDate(): void {
 		$schema = $this->config['components']['schemas']['LearnerProfile'] ?? null;

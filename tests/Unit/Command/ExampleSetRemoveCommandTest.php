@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-a-loaded-set-can-be-removed-exactly
+ * @spec openspec/specs/example-sets/spec.md#requirement-a-loaded-set-can-be-removed-exactly
  */
 
 declare(strict_types=1);
@@ -142,7 +142,7 @@ class ExampleSetRemoveCommandTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-removing-the-primary-school-set
+	 * @spec openspec/specs/example-sets/spec.md#scenario-removing-the-primary-school-set
 	 */
 	public function testApplyHandsEveryUuidWithForceAndApply(): void {
 		$purge  = self::fakePurge();
@@ -159,7 +159,7 @@ class ExampleSetRemoveCommandTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-a-dry-run-changes-nothing
+	 * @spec openspec/specs/example-sets/spec.md#scenario-a-dry-run-changes-nothing
 	 */
 	public function testWithoutApplyThePurgeIsADryRun(): void {
 		$purge  = self::fakePurge();
@@ -176,7 +176,7 @@ class ExampleSetRemoveCommandTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-the-generated-set-is-refused
+	 * @spec openspec/specs/example-sets/spec.md#scenario-the-generated-set-is-refused
 	 */
 	public function testTheGeneratedSetIsRefused(): void {
 		$purge  = self::fakePurge();

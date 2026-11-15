@@ -1,3 +1,7 @@
+/**
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ */
 import AxeBuilder from '@axe-core/playwright'
 import { effectiveManifest } from './effective-manifest.ts'
 import { expect, test } from './fixtures.ts'
@@ -26,7 +30,7 @@ import { expect, test } from './fixtures.ts'
  * automated-scan` cites (spec.md "Automated accessibility scans MUST be
  * wired into the Playwright suite as citable evidence").
  *
- * @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-automated-accessibility-scans-must-be-wired-into-the-playwright-suite-as-citable-evidence
+ * @e2e openspec/specs/accessibility-conformance/spec.md#requirement-automated-accessibility-scans-must-be-wired-into-the-playwright-suite-as-citable-evidence
  */
 
 const APP_BASE = '/index.php/apps/learniq'

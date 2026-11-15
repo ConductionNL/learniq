@@ -1,0 +1,578 @@
+{
+    "folders, leaf items and unreferenced resources": [
+        {
+            "saveObject": {
+                "object": {
+                    "code": "IMPORT-(random)",
+                    "name": "Node F1",
+                    "level": "other",
+                    "language": "en",
+                    "parentCourseId": null,
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "course"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "code": "IMPORT-(random)",
+                    "name": "Node F2",
+                    "level": "other",
+                    "language": "en",
+                    "parentCourseId": "saved-1",
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "course"
+            }
+        },
+        {
+            "getUserFolder": "teacher1"
+        },
+        {
+            "newFolder": "Learniq"
+        },
+        {
+            "newFolder": "Learniq/t1"
+        },
+        {
+            "newFolder": "Learniq/t1/course-imports"
+        },
+        {
+            "newFile": [
+                "Learniq/t1/course-imports/page.html",
+                "<p>page</p>"
+            ]
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "title": "Node I1",
+                    "kind": "document",
+                    "fileRef": "/Learniq/t1/course-imports/page.html",
+                    "url": null,
+                    "courseId": "saved-2",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "material"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "courseId": "saved-2",
+                    "name": "Node I1",
+                    "order": 2,
+                    "contentType": "text",
+                    "contentRef": "saved-8",
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lesson"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "title": "Node I2",
+                    "kind": "link",
+                    "fileRef": "",
+                    "url": "https://example.org/target",
+                    "courseId": "saved-1",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "material"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "openconnectorDeploymentId": "",
+                    "launchMode": "resource-link",
+                    "courseId": "saved-1",
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lti-tool-placement"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "title": "Title R9",
+                    "kind": "document",
+                    "fileRef": "",
+                    "url": null,
+                    "courseId": "saved-1",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "material"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "courseId": "saved-1",
+                    "name": "Title R9",
+                    "order": 0,
+                    "contentType": "text",
+                    "contentRef": "saved-12",
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lesson"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "name": "Imported items",
+                    "tenant_id": "t1",
+                    "lifecycle": "draft"
+                },
+                "register": "learniq",
+                "schema": "item-bank"
+            }
+        },
+        {
+            "courseId": "saved-1"
+        },
+        {
+            "entries": [
+                {
+                    "resourceIdentifier": "F1",
+                    "resourceType": "organization",
+                    "title": "Node F1",
+                    "outcome": "imported",
+                    "targetType": "course",
+                    "targetId": "saved-1",
+                    "reason": null
+                },
+                {
+                    "resourceIdentifier": "F2",
+                    "resourceType": "organization",
+                    "title": "Node F2",
+                    "outcome": "imported",
+                    "targetType": "course",
+                    "targetId": "saved-2",
+                    "reason": null
+                },
+                {
+                    "resourceIdentifier": "R1",
+                    "resourceType": "webcontent",
+                    "title": "Title R1",
+                    "outcome": "imported",
+                    "targetType": "material",
+                    "targetId": "saved-8",
+                    "reason": null
+                },
+                {
+                    "resourceIdentifier": "R2",
+                    "resourceType": "imswl_xmlv1p1",
+                    "title": "Title R2",
+                    "outcome": "imported",
+                    "targetType": "material",
+                    "targetId": "saved-10",
+                    "reason": null
+                },
+                {
+                    "resourceIdentifier": "R3",
+                    "resourceType": "imsbasiclti_xmlv1p0",
+                    "title": "Title R3",
+                    "outcome": "degraded",
+                    "targetType": "lti-tool-placement",
+                    "targetId": "saved-11",
+                    "reason": "LTI placement created without a configured OpenConnector deployment; an admin must bind a deployment before this tool can be launched."
+                },
+                {
+                    "resourceIdentifier": "R4",
+                    "resourceType": "imsdt_xmlv1p1",
+                    "title": "Title R4",
+                    "outcome": "dropped",
+                    "targetType": null,
+                    "targetId": null,
+                    "reason": "No Learniq schema represents discussion/forum content \u2014 migrate manually."
+                },
+                {
+                    "resourceIdentifier": "R5",
+                    "resourceType": "imsqti_xmlv1p2",
+                    "title": "Title R5",
+                    "outcome": "degraded",
+                    "targetType": null,
+                    "targetId": null,
+                    "reason": "Item could not be parsed from the package (see application log)."
+                },
+                {
+                    "resourceIdentifier": "R6",
+                    "resourceType": "imsqti_xmlv1p2/imscc_xmlv1p1/assessment",
+                    "title": "Title R6",
+                    "outcome": "degraded",
+                    "targetType": null,
+                    "targetId": null,
+                    "reason": "Item could not be parsed from the package (see application log)."
+                },
+                {
+                    "resourceIdentifier": "R7",
+                    "resourceType": "associatedcontent/x",
+                    "title": "Title R7",
+                    "outcome": "dropped",
+                    "targetType": null,
+                    "targetId": null,
+                    "reason": "Resource type not supported: associatedcontent/x."
+                },
+                {
+                    "resourceIdentifier": "R8",
+                    "resourceType": "adlcp:SCORM",
+                    "title": "Title R8",
+                    "outcome": "dropped",
+                    "targetType": null,
+                    "targetId": null,
+                    "reason": "requires ADR-002's lesson-content importer, not yet implemented"
+                },
+                {
+                    "resourceIdentifier": "R9",
+                    "resourceType": "webcontent",
+                    "title": "Title R9",
+                    "outcome": "imported",
+                    "targetType": "material",
+                    "targetId": "saved-12",
+                    "reason": null
+                }
+            ]
+        }
+    ],
+    "leaf item without a folder makes an implicit course": [
+        {
+            "saveObject": {
+                "object": {
+                    "code": "IMPORT-(random)",
+                    "name": "Imported course",
+                    "level": "other",
+                    "language": "en",
+                    "parentCourseId": null,
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "course"
+            }
+        },
+        {
+            "getUserFolder": "teacher1"
+        },
+        {
+            "newFolder": "Learniq"
+        },
+        {
+            "newFolder": "Learniq/t1"
+        },
+        {
+            "newFolder": "Learniq/t1/course-imports"
+        },
+        {
+            "newFile": [
+                "Learniq/t1/course-imports/page.html",
+                "<p>page</p>"
+            ]
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "title": "Node I1",
+                    "kind": "document",
+                    "fileRef": "/Learniq/t1/course-imports/page.html",
+                    "url": null,
+                    "courseId": "saved-1",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "material"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "courseId": "saved-1",
+                    "name": "Node I1",
+                    "order": 5,
+                    "contentType": "text",
+                    "contentRef": "saved-7",
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lesson"
+            }
+        },
+        {
+            "courseId": "saved-1"
+        },
+        {
+            "entries": [
+                {
+                    "resourceIdentifier": "R1",
+                    "resourceType": "webcontent",
+                    "title": "Title R1",
+                    "outcome": "imported",
+                    "targetType": "material",
+                    "targetId": "saved-7",
+                    "reason": null
+                }
+            ]
+        }
+    ],
+    "item referencing an unknown resource becomes a course": [
+        {
+            "saveObject": {
+                "object": {
+                    "code": "IMPORT-(random)",
+                    "name": "Node I1",
+                    "level": "other",
+                    "language": "en",
+                    "parentCourseId": null,
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "course"
+            }
+        },
+        {
+            "courseId": "saved-1"
+        },
+        {
+            "entries": [
+                {
+                    "resourceIdentifier": "I1",
+                    "resourceType": "organization",
+                    "title": "Node I1",
+                    "outcome": "imported",
+                    "targetType": "course",
+                    "targetId": "saved-1",
+                    "reason": null
+                }
+            ]
+        }
+    ],
+    "weblinks: no href, unreadable descriptor, under no course": [
+        {
+            "saveObject": {
+                "object": {
+                    "title": "Title W1",
+                    "kind": "link",
+                    "fileRef": "",
+                    "url": null,
+                    "courseId": null,
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "material"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "title": "Title W2",
+                    "kind": "link",
+                    "fileRef": "",
+                    "url": "bad.xml",
+                    "courseId": null,
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "material"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "title": "Title W3",
+                    "kind": "document",
+                    "fileRef": "",
+                    "url": null,
+                    "courseId": null,
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "material"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "courseId": null,
+                    "name": "Title W3",
+                    "order": 0,
+                    "contentType": "text",
+                    "contentRef": "saved-3",
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lesson"
+            }
+        },
+        {
+            "courseId": null
+        },
+        {
+            "entries": [
+                {
+                    "resourceIdentifier": "W1",
+                    "resourceType": "imswl_xmlv1p1",
+                    "title": "Title W1",
+                    "outcome": "imported",
+                    "targetType": "material",
+                    "targetId": "saved-1",
+                    "reason": null
+                },
+                {
+                    "resourceIdentifier": "W2",
+                    "resourceType": "imswl_xmlv1p1",
+                    "title": "Title W2",
+                    "outcome": "imported",
+                    "targetType": "material",
+                    "targetId": "saved-2",
+                    "reason": null
+                },
+                {
+                    "resourceIdentifier": "W3",
+                    "resourceType": "webcontent",
+                    "title": "Title W3",
+                    "outcome": "imported",
+                    "targetType": "material",
+                    "targetId": "saved-3",
+                    "reason": null
+                }
+            ]
+        }
+    ],
+    "a failing resource becomes a dropped entry": [
+        {
+            "saveObject": {
+                "object": {
+                    "code": "IMPORT-(random)",
+                    "name": "Node F1",
+                    "level": "other",
+                    "language": "en",
+                    "parentCourseId": null,
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "course"
+            }
+        },
+        {
+            "getUserFolder": "teacher1"
+        },
+        {
+            "newFolder": "Learniq"
+        },
+        {
+            "newFolder": "Learniq/t1"
+        },
+        {
+            "newFolder": "Learniq/t1/course-imports"
+        },
+        {
+            "newFile": [
+                "Learniq/t1/course-imports/page.html",
+                "<p>page</p>"
+            ]
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "title": "Node IX",
+                    "kind": "document",
+                    "fileRef": "/Learniq/t1/course-imports/page.html",
+                    "url": null,
+                    "courseId": "saved-1",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "material"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "courseId": "saved-1",
+                    "name": "Node IX",
+                    "order": 1,
+                    "contentType": "text",
+                    "contentRef": "saved-7",
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lesson"
+            }
+        },
+        {
+            "deleteObject": {
+                "uuid": "saved-7",
+                "register": "learniq",
+                "schema": "material"
+            }
+        },
+        {
+            "saveObject": {
+                "object": {
+                    "openconnectorDeploymentId": "",
+                    "launchMode": "resource-link",
+                    "courseId": "saved-1",
+                    "lifecycle": "draft",
+                    "tenant_id": "t1"
+                },
+                "register": "learniq",
+                "schema": "lti-tool-placement"
+            }
+        },
+        {
+            "courseId": "saved-1"
+        },
+        {
+            "entries": [
+                {
+                    "resourceIdentifier": "F1",
+                    "resourceType": "organization",
+                    "title": "Node F1",
+                    "outcome": "imported",
+                    "targetType": "course",
+                    "targetId": "saved-1",
+                    "reason": null
+                },
+                {
+                    "resourceIdentifier": "BOOM",
+                    "resourceType": "webcontent",
+                    "title": "Title BOOM",
+                    "outcome": "dropped",
+                    "targetType": null,
+                    "targetId": null,
+                    "reason": "Import failed: lesson store down"
+                },
+                {
+                    "resourceIdentifier": "R2",
+                    "resourceType": "imsbasiclti_xmlv1p0",
+                    "title": "Title R2",
+                    "outcome": "degraded",
+                    "targetType": "lti-tool-placement",
+                    "targetId": "saved-10",
+                    "reason": "LTI placement created without a configured OpenConnector deployment; an admin must bind a deployment before this tool can be launched."
+                }
+            ]
+        }
+    ]
+}

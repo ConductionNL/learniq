@@ -10,7 +10,7 @@
  can read the roster but only their own submission, so for them the diff
  would call every classmate missing.
 
- @spec openspec/changes/assignment-missing-submissions-view/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
+ @spec openspec/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
 -->
 <template>
 	<div v-if="allowed" class="hand-in-status">
@@ -66,6 +66,7 @@ import {
 	handInSummary,
 	rosterFor,
 } from '../../utils/handInStatus.js'
+import { fetchNamesByUser } from '../../utils/learnerName.js'
 
 export default {
 	name: 'AssignmentHandInStatus',
@@ -90,7 +91,7 @@ export default {
 	computed: {
 		/**
 		 * @return {object} Counts per state.
-		 * @spec openspec/changes/assignment-missing-submissions-view/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
+		 * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
 		 */
 		summary() {
 			return handInSummary(this.rows)
@@ -100,7 +101,7 @@ export default {
 		 * Started first, then not started, each in roster order.
 		 *
 		 * @return {object[]} The learners who have not handed in.
-		 * @spec openspec/changes/assignment-missing-submissions-view/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
+		 * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
 		 */
 		missing() {
 			return [
@@ -115,7 +116,7 @@ export default {
 		 * Reload when the page moves to another assignment.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/assignment-missing-submissions-view/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
+		 * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
 		 */
 		assignmentId() {
 			this.load()
@@ -131,7 +132,7 @@ export default {
 		 * Load the assignment, its roster and its submissions, then diff.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/assignment-missing-submissions-view/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
+		 * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
 		 */
 		async load() {
 			if (!this.allowed || !this.assignmentId) {
@@ -157,7 +158,7 @@ export default {
 					).data,
 				)
 				const roster = rosterFor(assignment, cohorts)
-				this.rows = handInRows(roster, submissions, assignment, new Date())
+				this.rows = handInRows({ learnerIds: roster, submissions, assignment }, new Date())
 				await this.loadNames()
 			} catch {
 				this.loadError = this.t(
@@ -174,7 +175,7 @@ export default {
 		 *
 		 * @param {object} assignment The Assignment.
 		 * @return {Promise<object[]>} Cohort rows.
-		 * @spec openspec/changes/assignment-missing-submissions-view/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
+		 * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
 		 */
 		async loadCohorts(assignment) {
 			if (assignment.cohortId) {
@@ -201,26 +202,15 @@ export default {
 		 * Names from LearnerProfile; the user id is the fallback.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/assignment-missing-submissions-view/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
+		 * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
 		 */
 		async loadNames() {
 			if (this.missing.length === 0) return
 			try {
-				const profiles = listRows(
-					(
-						await axios.get(generateUrl(objectsUrl('learner-profile')), {
-							params: { _limit: 1000 },
-						})
-					).data,
-				)
-				const names = {}
-				for (const p of profiles) {
-					const name = [p.givenName, p.familyName]
-						.filter(Boolean)
-						.join(' ')
-					if (p.ncUserId && name) names[p.ncUserId] = name
-				}
-				this.names = names
+				this.names = await fetchNamesByUser({
+					get: (url, config) => axios.get(url, config),
+					urlFor: generateUrl,
+				})
 			} catch {
 				this.names = {}
 			}
@@ -229,7 +219,7 @@ export default {
 		/**
 		 * @param {string} learnerId Nextcloud user id.
 		 * @return {string} The display name.
-		 * @spec openspec/changes/assignment-missing-submissions-view/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
+		 * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
 		 */
 		learnerName(learnerId) {
 			return this.names[learnerId] || learnerId
@@ -238,7 +228,7 @@ export default {
 		/**
 		 * @param {object} row A hand-in row.
 		 * @return {string} The translated state.
-		 * @spec openspec/changes/assignment-missing-submissions-view/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
+		 * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
 		 */
 		stateLabel(row) {
 			return row.state === 'started'

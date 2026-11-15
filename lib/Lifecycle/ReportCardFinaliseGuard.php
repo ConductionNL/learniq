@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-finalise-is-blocked-without-a-mentor-comment
+ * @spec openspec/specs/report-card/spec.md#scenario-finalise-is-blocked-without-a-mentor-comment
  */
 
 declare(strict_types=1);
@@ -46,7 +46,7 @@ use Psr\Log\LoggerInterface;
  * Allows the transition only when `mentorComment` is a non-empty string and
  * `subjectGrades` is a non-empty array.
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-the-rapportvergadering-review-lifecycle-gates-parent-visibility-behind-a-finalise-step
+ * @spec openspec/specs/report-card/spec.md#requirement-the-rapportvergadering-review-lifecycle-gates-parent-visibility-behind-a-finalise-step
  */
 class ReportCardFinaliseGuard implements LifecycleGuardInterface {
 
@@ -77,7 +77,7 @@ class ReportCardFinaliseGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-finalise-is-blocked-without-a-mentor-comment
+	 * @spec openspec/specs/report-card/spec.md#scenario-finalise-is-blocked-without-a-mentor-comment
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -96,7 +96,7 @@ class ReportCardFinaliseGuard implements LifecycleGuardInterface {
 	 *
 	 * @return bool True when the card carries a mentor comment and at least one subject grade; false blocks it.
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-finalise-is-blocked-without-a-mentor-comment
+	 * @spec openspec/specs/report-card/spec.md#scenario-finalise-is-blocked-without-a-mentor-comment
 	 */
 	private function allows(array $object): bool {
 		$objectId = $object['id'] ?? ($object['uuid'] ?? '');

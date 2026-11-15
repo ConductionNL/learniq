@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
  */
 
 declare(strict_types=1);
@@ -30,6 +30,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Settings;
 
 use OCA\Learniq\Service\DemoDataService;
+use OCA\Learniq\Service\ExampleSetPreparation;
+use OCA\Learniq\Service\ExampleSetSources;
 use OCA\Learniq\Service\SeedProfileService;
 use OCP\App\IAppManager;
 use PHPUnit\Framework\TestCase;
@@ -87,7 +89,7 @@ class PrimarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
 	 */
 	public function testTheSchoolHasItsPromisedShape(): void {
 		self::assertCount(1, self::of('school'));
@@ -129,7 +131,7 @@ class PrimarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
 	 */
 	public function testEveryMarkBelongsToThePupilsOwnClassAndTeacher(): void {
 		$sessions  = self::by(self::of('session'), 'uuid');
@@ -188,7 +190,7 @@ class PrimarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
 	 */
 	public function testReportCardsCountTheMarksOfTheirPeriod(): void {
 		$sessions = self::by(self::of('session'), 'uuid');
@@ -238,14 +240,28 @@ class PrimarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-primary-school-set-loads-and-removes-cleanly
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-primary-school-set-loads-and-removes-cleanly
 	 */
 	public function testTheServiceOffersAndRemovesExactlyThisSet(): void {
 		$appManager = $this->createMock(IAppManager::class);
 		$appManager->method('getAppPath')->willReturn(dirname(__DIR__, 3));
 		$demo = $this->createMock(DemoDataService::class);
 		$demo->method('listChoices')->willReturn([]);
-		$service = new SeedProfileService($appManager, $this->createMock(ContainerInterface::class), $this->createMock(LoggerInterface::class), $demo);
+		$service = new SeedProfileService(
+			sources: new ExampleSetSources(
+				appManager: $appManager,
+				demoData: $demo,
+				loadedSets: $this->createMock(\OCA\Learniq\Service\LoadedExampleSets::class)
+			),
+			preparation: new ExampleSetPreparation(
+				sharedCodes: $this->createMock(\OCA\Learniq\Service\SharedCodeFilter::class),
+				dates: $this->createMock(\OCA\Learniq\Service\ExampleSetDates::class),
+				organisation: $this->createMock(\OCA\Learniq\Service\ExampleSetOrganisation::class),
+				examplePortals: $this->createMock(\OCA\Learniq\Portal\ExamplePortalProvisioner::class)
+			),
+			container: $this->createMock(ContainerInterface::class),
+			logger: $this->createMock(LoggerInterface::class)
+		);
 
 		$offered = array_values(array_filter($service->listChoices(), static fn (array $c): bool => $c['id'] === 'po'))[0];
 		self::of('school');
@@ -268,7 +284,7 @@ class PrimarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#scenario-the-file-is-reproducible
+	 * @spec openspec/specs/example-sets/spec.md#scenario-the-file-is-reproducible
 	 */
 	public function testTheFileIsWhatTheGeneratorProduces(): void {
 		$python = trim((string)shell_exec('command -v python3 2>/dev/null'));
@@ -289,10 +305,10 @@ class PrimarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-register-no-longer-carries-dark-primary-school-seeds
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-register-no-longer-carries-dark-primary-school-seeds
 	 */
 	public function testThePromotedSeedMovedOutOfTheRegister(): void {
-		self::assertContains('Voorbeeldschool De Wilgenboom', array_column(self::of('school'), 'name'));
+		self::assertContains('Basisschool De Wilgenboom', array_column(self::of('school'), 'name'));
 		self::assertContains('Dependance Noorderpark', array_column(self::of('vestiging'), 'name'));
 		self::assertContains('technisch lezen', array_column(self::of('group-plan'), 'subject'));
 
@@ -305,4 +321,126 @@ class PrimarySchoolExampleSetTest extends TestCase {
 			self::assertSame([], ($register['components']['schemas'][$schema]['x-openregister-seed'] ?? []), $schema . ' still carries seed rows');
 		}
 	}//end testThePromotedSeedMovedOutOfTheRegister()
+
+	/**
+	 * The designed portal's story is in the data: the Hulstkamp family on
+	 * Monday 5 October 2026, with the numbers the boards show.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/example-sets-are-the-four-schools/specs/example-sets/spec.md#requirement-each-example-set-is-the-school-its-portal-was-designed-for
+	 */
+	public function testTheWilgenboomStoryIsInTheData(): void {
+		self::assertSame('Basisschool De Wilgenboom', self::of('school')[0]['name']);
+		self::assertSame(['Zuiddrecht'], array_values(array_unique(array_column(self::of('vestiging'), 'city'))));
+
+		$profiles = self::of('learner-profile');
+		$find     = static function (string $given) use ($profiles): array {
+			$hits = array_values(array_filter($profiles, static fn (array $p): bool => $p['givenName'] === $given && $p['familyName'] === 'Hulstkamp'));
+			self::assertCount(1, $hits, $given . ' Hulstkamp exists once');
+			return $hits[0];
+		};
+		$fatima  = $find('Fatima');
+		$vera    = $find('Vera');
+		$sami    = $find('Sami');
+		$cohorts = self::by(self::of('cohort'), 'uuid');
+		$groupOf = [];
+		foreach (self::of('enrolment') as $enrolment) {
+			$groupOf[$enrolment['learnerRef']] = $cohorts[$enrolment['cohortId']];
+		}
+
+		self::assertSame('Groep 7', $groupOf[$vera['uuid']]['name']);
+		self::assertSame(['po-leerkracht-09'], $groupOf[$vera['uuid']]['teacherIds']);
+		self::assertSame('Groep 4', $groupOf[$sami['uuid']]['name']);
+		self::assertSame(['po-leerkracht-07'], $groupOf[$sami['uuid']]['teacherIds']);
+		self::assertContains($fatima['uuid'], $sami['guardianRefs']);
+
+		// Today's report: Sami, buikgriep, not decided yet; the teacher marked him at 8.12.
+		$today = array_values(array_filter(self::of('excuse-request'), static fn (array $e): bool => $e['learnerRef'] === $sami['uuid'] && $e['dateFrom'] === '2026-10-05'));
+		self::assertCount(1, $today);
+		self::assertSame('Sami heeft buikgriep', $today[0]['reason']);
+		self::assertSame('submitted', $today[0]['lifecycle']);
+		self::assertSame($fatima['uuid'], $today[0]['submittedByRef']);
+		$marks = array_values(array_filter(self::of('attendance-record'), static fn (array $m): bool => $m['excuseRequestId'] === $today[0]['uuid']));
+		self::assertCount(1, $marks);
+		self::assertSame('2026-10-05T08:12:00+02:00', $marks[0]['markedAt']);
+
+		// The figures for 2026-2027 on the board: Vera 1 day and late once for 10 minutes, Sami 2 days.
+		$summaries = [];
+		foreach (self::of('attendance-summary') as $summary) {
+			if ($summary['schoolYear'] === '2026-2027') {
+				$summaries[$summary['learnerRef']] = $summary;
+			}
+		}
+
+		self::assertSame([1, 1, 10], [$summaries[$vera['uuid']]['absentDays'], $summaries[$vera['uuid']]['lateCount'], $summaries[$vera['uuid']]['lateMinutes']]);
+		self::assertSame([2, 0], [$summaries[$sami['uuid']]['absentDays'], $summaries[$sami['uuid']]['lateCount']]);
+
+		// Vera's parent-evening time: Thursday 29 October, 18.00 to 18.10, confirmed by the teacher.
+		$booked = array_values(array_filter(self::of('conference-slot'), static fn (array $s): bool => ($s['learnerRef'] ?? null) === $vera['uuid']));
+		self::assertCount(1, $booked);
+		self::assertSame('2026-10-29T18:00:00+01:00', $booked[0]['startsAt']);
+		self::assertSame('2026-10-29T18:10:00+01:00', $booked[0]['endsAt']);
+		self::assertSame('acknowledged', $booked[0]['lifecycle']);
+
+		// Groep 4's round closes on Friday 16 October; Sami is invited and has no time yet.
+		$round4 = array_values(array_filter(self::of('conference-round'), static fn (array $r): bool => $r['name'] === 'Oudergesprekken groep 4, oktober 2026'));
+		self::assertCount(1, $round4);
+		self::assertSame('2026-10-16T17:00:00+02:00', $round4[0]['bookingClosesAt']);
+		self::assertContains($sami['uuid'], $round4[0]['invitedLearnerRefs']);
+
+		// The calendar of October 2026.
+		$events = [];
+		foreach (self::of('school-event') as $event) {
+			$events[$event['title']] = substr($event['startsAt'], 0, 10);
+		}
+
+		self::assertSame('2026-10-07', $events['Schoolfotograaf']);
+		self::assertSame('2026-10-07', $events['Naar de kinderboerderij']);
+		self::assertSame('2026-10-09', $events['Studiedag']);
+		self::assertSame('2026-10-29', $events['Ouderavond']);
+
+		// Vera's last report, June 2026, with the grades on the board.
+		$cards = array_values(array_filter(self::of('report-card'), static fn (array $c): bool => $c['learnerRef'] === $vera['uuid'] && $c['periodName'] === 'Rapport 2'));
+		self::assertCount(1, $cards);
+		self::assertSame([7.9, 8.3, 7.9, 7.7, 7.7, 8.2], array_column($cards[0]['subjectGrades'], 'periodAverage'));
+	}//end testTheWilgenboomStoryIsInTheData()
+
+	/**
+	 * Groep 7's permission slips: the trip to the Openluchtmuseum open with
+	 * nobody answered, so Vera's guardian can answer, and the sports day
+	 * closed with every pupil but four answered by a guardian of their own.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/permission-slips/tasks.md
+	 */
+	public function testGroupSevenHasAnOpenAndAClosedPermissionSlip(): void {
+		$cohorts  = self::by(self::of('cohort'), 'uuid');
+		$requests = self::by(self::of('permission-request'), 'title');
+		self::assertSame(['Schoolreisje naar het Openluchtmuseum', 'Sportdag op het sportpark'], array_keys($requests));
+
+		$trip   = $requests['Schoolreisje naar het Openluchtmuseum'];
+		$sports = $requests['Sportdag op het sportpark'];
+		self::assertSame('Groep 7', $cohorts[$trip['cohortId']]['name']);
+		self::assertSame(['open', '2026-10-22', '2026-10-16T17:00:00+02:00', true], [$trip['lifecycle'], $trip['happensOn'], $trip['respondBy'], $trip['treatSilenceAsRefusal']]);
+		self::assertSame('closed', $sports['lifecycle']);
+		self::assertSame($trip['learnerRefs'], $sports['learnerRefs']);
+
+		$profiles = self::by(self::of('learner-profile'), 'uuid');
+		$vera     = array_values(array_filter($profiles, static fn (array $p): bool => $p['givenName'] === 'Vera' && $p['familyName'] === 'Hulstkamp'))[0];
+		self::assertContains($vera['uuid'], $trip['learnerRefs']);
+
+		$byRequest = [];
+		foreach (self::of('permission-response') as $response) {
+			$byRequest[$response['permissionRequestId']][] = $response;
+			self::assertContains($response['learnerRef'], $sports['learnerRefs']);
+			self::assertContains($response['answeredByRef'], $profiles[$response['learnerRef']]['guardianRefs']);
+		}
+
+		self::assertArrayNotHasKey($trip['uuid'], $byRequest);
+		self::assertCount(count($sports['learnerRefs']) - 4, $byRequest[$sports['uuid']]);
+		self::assertCount(count(array_unique(array_column($byRequest[$sports['uuid']], 'learnerRef'))), $byRequest[$sports['uuid']]);
+		self::assertContains('no', array_column($byRequest[$sports['uuid']], 'answer'));
+	}//end testGroupSevenHasAnOpenAndAClosedPermissionSlip()
 }//end class

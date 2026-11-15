@@ -1,10 +1,10 @@
-# Scholiq, Architecture
+# Learniq, Architecture
 
-Scholiq is an open-source leerlingvolgsysteem (LVS) + leeromgeving (LMS) for Nextcloud. The **Wave-2 compliance-audit wedge (Path A MVP)** is the shipped baseline documented here.
+Learniq is an open-source leerlingvolgsysteem (LVS) + leeromgeving (LMS) for Nextcloud. The **Wave-2 compliance-audit wedge (Path A MVP)** is the shipped baseline documented here.
 
 | | |
 |---|---|
-| **Slug** | `scholiq` |
+| **Slug** | `learniq` |
 | **License** | EUPL-1.2 |
 | **Status** | Wave 2 applied (compliance-audit wedge) |
 | **Predecessors** | `learniq` (deprecated), `edudesk` (deprecated) |
@@ -14,12 +14,12 @@ Scholiq is an open-source leerlingvolgsysteem (LVS) + leeromgeving (LMS) for Nex
 
 ## 1. Architectural overview
 
-Scholiq is a **thin Nextcloud client** that owns no database tables of its own and writes no PHP service classes for behaviour that can be expressed declaratively.
+Learniq is a **thin Nextcloud client** that owns no database tables of its own and writes no PHP service classes for behaviour that can be expressed declaratively.
 
 - **All persistent state**, courses, lessons, enrolments, credentials, regulations, attestations, xAPI statements, learner profiles, AI feature flags, lives in **OpenRegister** as schemas declared in `lib/Settings/scholiq_register.json`.
 - **All entity behaviour** that fits an `x-openregister-*` extension, state machines, aggregations, derived fields, notifications, relations, dashboard widgets, is declared in the schema register, not in a PHP service class. (ADR-031.)
 - **All UI shell**, sidebar, page dispatch, dependency check, routing, is consumed from the `CnAppRoot` component in `@conduction/nextcloud-vue`, configured by `src/manifest.json`. (ADR-024.)
-- **All cross-cutting capabilities**, audit trail, RBAC, archival/retention, relations, are consumed from OpenRegister. Scholiq never reimplements an OR abstraction. (ADR-022.)
+- **All cross-cutting capabilities**, audit trail, RBAC, archival/retention, relations, are consumed from OpenRegister. Learniq never reimplements an OR abstraction. (ADR-022.)
 
 ```
 +----------------------------------------------------------------------+
@@ -37,7 +37,7 @@ Scholiq is a **thin Nextcloud client** that owns no database tables of its own a
       |                            |
       v                            v
 +-----------+   +-------------------------------------------+
-|  Scholiq  |   |  OpenRegister (foundation)                |
+|  Learniq  |   |  OpenRegister (foundation)                |
 |  thin     +-->+  9 Schemas + REST API                     |
 |  client   |   |  Audit trail (immutable, append-only)     |
 |  (PHP +   |   |  RBAC (role + state)                      |
@@ -94,7 +94,7 @@ The `publish` transition is guarded by `CoursePublishGuard`, at least one publis
 
 Every save emits an `xapi.statement.received` audit entry via OR's audit-trail abstraction.
 
-**Key fields:** `actor`, `verb`, `object`, `result`, `context`, `timestamp`, `stored`, `authority`, `version` (const `"1.0.3"`), `courseId`, `lessonId` (Scholiq denormalisations for filtering), `tenant_id`
+**Key fields:** `actor`, `verb`, `object`, `result`, `context`, `timestamp`, `stored`, `authority`, `version` (const `"1.0.3"`), `courseId`, `lessonId` (Learniq denormalisations for filtering), `tenant_id`
 
 ### 2.4 Enrolment (slug `enrolment`)
 
@@ -264,11 +264,11 @@ ADR-031 prohibits writing PHP service classes for behaviour that fits `x-openreg
 > `GenericHealthController` (public `GET /api/health`, ADR-006 declarative
 > checks), and a new admin-only `GenericMetricsController` serves
 > `GET /api/metrics`, both driven by the `observability` block in
-> `src/manifest.json` and aliased onto Scholiq's controller namespace by
+> `src/manifest.json` and aliased onto Learniq's controller namespace by
 > `\OCA\OpenRegister\AppHost\Bootstrap::register()` in `Application.php`.
 > `PreferencesController`, `InitializeSettings`/`InitializeActions`,
 > `AdminSettings`, and `SettingsSection` are now one-line subclass stubs
-> extending the AppHost generics (the class names must exist in Scholiq's
+> extending the AppHost generics (the class names must exist in Learniq's
 > namespace because `info.xml` and `#[AuthorizedAdminSetting]` references load
 > them by name). `ActionAuthService` is a stub subclass of
 > `GenericActionAuthService` for the same reason. The SPA `PageController`
@@ -284,7 +284,7 @@ Per ADR-031, the following classes were deliberately **not** written: `Attestati
 
 ## 5. The manifest, `src/manifest.json`
 
-Scholiq adopts `CnAppRoot` Tier 4 from `@conduction/nextcloud-vue`. `src/manifest.json` is the single source of truth for menu, pages, and cross-app dependencies.
+Learniq adopts `CnAppRoot` Tier 4 from `@conduction/nextcloud-vue`. `src/manifest.json` is the single source of truth for menu, pages, and cross-app dependencies.
 
 **21 pages declared:**
 
@@ -364,10 +364,10 @@ scholiq/
 
 ## 7. OOAPI 5.0 catalog-publication contract (cross-repo)
 
-Scholiq does **not** serve `/ooapi/v5/*` itself — `course-management`'s "Publish course catalog via OOAPI
+Learniq does **not** serve `/ooapi/v5/*` itself — `course-management`'s "Publish course catalog via OOAPI
 5.0" requirement and `data-exchange`'s "Delegate wire protocols to OpenConnector" requirement both name
-OOAPI as a protocol Scholiq must not implement (see `openspec/changes/delegate-ooapi-to-opencatalogi/`,
-which resolved a prior self-contradiction between those two specs). Scholiq's obligation stops at the
+OOAPI as a protocol Learniq must not implement (see `openspec/changes/archive/2026-07-13-delegate-ooapi-to-opencatalogi/`,
+which resolved a prior self-contradiction between those two specs). Learniq's obligation stops at the
 **publication contract**: which objects are eligible, how they map to OOAPI 5.0 resources, and the
 `DataExchangeJob` that carries the sync request. The public endpoint and the wire-format adapter are owned
 by other apps in the fleet.
@@ -376,15 +376,15 @@ by other apps in the fleet.
 
 | Concern | Owner |
 |---|---|
-| Eligible objects (`Course`/`Programme` with `lifecycle: published`; `Cohort` as a course "run") | Scholiq (this contract) |
-| Field mapping (below) | Scholiq (this contract) |
-| Publish/archive → `DataExchangeJob` queuing (`direction: sync`, `target: ooapi-catalog`) | Scholiq's existing `lifecycle` + `DataExchangeJob` machinery |
+| Eligible objects (`Course`/`Programme` with `lifecycle: published`; `Cohort` as a course "run") | Learniq (this contract) |
+| Field mapping (below) | Learniq (this contract) |
+| Publish/archive → `DataExchangeJob` queuing (`direction: sync`, `target: ooapi-catalog`) | Learniq's existing `lifecycle` + `DataExchangeJob` machinery |
 | Field-mapping adapter / `Synchronization` target | OpenConnector (`ooapi-catalog-publication`, tracked as a filed issue — not built in this repo) |
 | Public `/ooapi/v5/*` HTTP surface, faceting | OpenCatalogi — **already shipped**, see `opencatalogi/openspec/changes/ooapi-catalog-publication/` |
 
-**Field mapping (OOAPI 5.0 ↔ Scholiq ↔ RIO):**
+**Field mapping (OOAPI 5.0 ↔ Learniq ↔ RIO):**
 
-| OOAPI 5.0 resource | Scholiq object | Key Scholiq fields | RIO model (keyed when present) |
+| OOAPI 5.0 resource | Learniq object | Key Learniq fields | RIO model (keyed when present) |
 |---|---|---|---|
 | `course` | `Course` | `code`, `name`, `name_nl`, `description`, `level`, `language` | `opleidingseenheid` |
 | `program` | `Programme` | `name`, `code`, `level`, `description`, `courseIds` | `aangeboden opleiding` |
@@ -404,33 +404,33 @@ outstanding.
 
 ## 8. LTI 1.3 tool placement (cross-repo)
 
-Scholiq does **not** implement any LTI protocol code — OIDC third-party-initiated login, `id_token`
+Learniq does **not** implement any LTI protocol code — OIDC third-party-initiated login, `id_token`
 signing/verification, JWKS, or Assignment & Grade Services (AGS)/NRPS wire handling all live in
 OpenConnector's `lti-13-platform` adapter (`openconnector/openspec/changes/lti-13-platform/`).
-Scholiq's obligation is the **consuming-app contract** the adapter defines (REQ-LTI-010): model a
+Learniq's obligation is the **consuming-app contract** the adapter defines (REQ-LTI-010): model a
 placement inside a Course/Lesson, delegate the launch, and translate an AGS score CloudEvent into a
-`GradeEntry`. See `openspec/changes/lti-tool-placement/`.
+`GradeEntry`. See `openspec/changes/archive/2026-07-13-lti-tool-placement/`.
 
 **Who owns what:**
 
 | Concern | Owner |
 |---|---|
-| `LtiToolPlacement` (which Lesson/Course, which grading component) | Scholiq (this contract) |
-| Launch delegation (`LtiToolPlacementController::launch`) | Scholiq — thin, opaque REST proxy, no LTI claim parsing |
+| `LtiToolPlacement` (which Lesson/Course, which grading component) | Learniq (this contract) |
+| Launch delegation (`LtiToolPlacementController::launch`) | Learniq — thin, opaque REST proxy, no LTI claim parsing |
 | OIDC login/launch, `id_token` signing/verification, JWKS, AGS/NRPS protocol | OpenConnector — **already shipped** for the Tool-role/inbound surface; the Platform-role launch-initiation REST wrapper this contract assumes is **not yet exposed** (see the "known gap" note below) |
-| AGS score → `GradeEntry` (via `LtiAgsScorePollJob`) | Scholiq (this contract) |
-| Grade destination mapping (`curriculumPlanId`/`gradeEntryComponentId`/`gradeScaleId`) | Scholiq, configured once per placement, never auto-derived from the LTI payload |
+| AGS score → `GradeEntry` (via `LtiAgsScorePollJob`) | Learniq (this contract) |
+| Grade destination mapping (`curriculumPlanId`/`gradeEntryComponentId`/`gradeScaleId`) | Learniq, configured once per placement, never auto-derived from the LTI payload |
 
 **Admin bootstrap (once per tool placement), per REQ-LTI-010:**
 
-1. On the OpenConnector side, create an `lti_deployment` naming this Scholiq instance's launch-resolve
+1. On the OpenConnector side, create an `lti_deployment` naming this Learniq instance's launch-resolve
    endpoint as `launchTargetUrl`. `gradeSink`/`rosterSource` are informational only — OpenConnector never
-   writes to Scholiq's register directly (REQ-LTI-007); grade passback flows through the CloudEvent +
+   writes to Learniq's register directly (REQ-LTI-007); grade passback flows through the CloudEvent +
    poll job below instead. Note the returned `lti_deployment` UUID — it is the
    `LtiToolPlacement.openconnectorDeploymentId` value.
 2. Still on OpenConnector, create an `event_subscription` filtered to
    `type = 'nl.conduction.lti.ags.score.received'`, `style = 'pull'`. Set the resulting subscription UUID
-   as Scholiq's `scholiq.lti_ags_subscription_id` app-config value
+   as Learniq's `scholiq.lti_ags_subscription_id` app-config value
    (`occ config:app:set scholiq lti_ags_subscription_id --value=<uuid>`) — `LtiAgsScorePollJob` no-ops
    until this is set.
 3. Set `scholiq.openconnector_api_token` (already required for `DataExchangeRunHandler`) and the new
@@ -438,15 +438,15 @@ placement inside a Course/Lesson, delegate the launch, and translate an AGS scor
    `event.pull` action — as the app-password pair `LtiAgsScorePollJob` uses to authenticate its pull call
    (`EventsController::pull()` requires an authenticated NC session + group authorization, not a bearer
    token — see the class docblock on `LtiAgsScorePollJob` for the full auth-shape note).
-4. In Scholiq, create the `LtiToolPlacement` object (via the generic OpenRegister object-save path —
+4. In Learniq, create the `LtiToolPlacement` object (via the generic OpenRegister object-save path —
    no dedicated create UI ships in this change) naming the `lessonId`/`courseId`, the
    `openconnectorDeploymentId` from step 1, and, when grade passback is wanted, the
    `curriculumPlanId`/`gradeEntryComponentId`/`gradeScaleId` triple. Set `Lesson.contentType = 'lti'` and
    `Lesson.contentRef` to the new placement's UUID.
 
 **NRPS (roster) is explicitly out of scope** for this change (design.md Non-goals) — `lti_deployment
-.rosterSource` exists on the OpenConnector contract but Scholiq does not yet configure or consume it.
-Exposing Scholiq's `Enrolment`/`Cohort` membership through OpenConnector's ADR-008 register/schema read
+.rosterSource` exists on the OpenConnector contract but Learniq does not yet configure or consume it.
+Exposing Learniq's `Enrolment`/`Cohort` membership through OpenConnector's ADR-008 register/schema read
 path is a real, separate follow-up.
 
 **Known gap (documented, not silently dropped):** `LtiToolPlacementController::launch()` calls an
@@ -461,7 +461,7 @@ The assumed request/response shape is documented on `LtiToolPlacementController:
 
 ## 8a. Timetabling operational layer (`timetabling-and-substitution`, cross-repo import seam)
 
-Scholiq does not generate a timetable — that stays permanently Zermelo's/Untis's job. This change adds the
+Learniq does not generate a timetable — that stays permanently Zermelo's/Untis's job. This change adds the
 *operational* layer between "an external optimiser produced a timetable" and "a learner/teacher sees today's
 reality":
 
@@ -473,29 +473,29 @@ reality":
 - **Import seam** — a generated timetable is pulled via the existing `DataExchangeJob`/`DataMappingProfile`
   mechanism (`target: timetable-import`, `direction: import`), never a parallel job schema. Three seeded
   `DataMappingProfile` rows (Zermelo/Untis/Xedule) declare the field mapping;
-  `OCA\Scholiq\Timetabling\TimetableImportHandler` (an ADR-031 external-system bridge, the same shape as
+  `OCA\Learniq\Timetabling\TimetableImportHandler` (an ADR-031 external-system bridge, the same shape as
   `DataExchangeRunHandler`) resolves the profile in reverse and idempotently upserts `Session` objects keyed
   by `externalRef`. `DataExchangeRunHandler` bails out for this target so exactly one handler owns the job.
-- **Conflict detection, not resolution** — `OCA\Scholiq\Timetabling\TimetableConflictDetector` (an
+- **Conflict detection, not resolution** — `OCA\Learniq\Timetabling\TimetableConflictDetector` (an
   ADR-031 cross-object write bridge, the same class as `ConferenceScheduleGenerator`) pairwise-scans
   `Session`s in the affected date window for teacher/room/cohort/learner double-booking,
   room-capacity-exceeded, and exam-clash, writing idempotent `TimetableConflict` rows — it never edits a
-  `Session`. `OCA\Scholiq\Listener\SessionConflictListener` triggers it on `Session` create/update
+  `Session`. `OCA\Learniq\Listener\SessionConflictListener` triggers it on `Session` create/update
   (`ObjectCreatedEvent`/`ObjectUpdatedEvent` — the fleet's first use of `ObjectUpdatedEvent`); the import
   handler triggers it once in batch after a successful import.
 - **Substitution / lesuitval-vervanging** — `Session.cancel` (now guarded) and two new self-loop
   transitions, `substitute-teacher` (`scheduled` → `scheduled`) and `substitute-teacher-in-progress`
-  (`in-progress` → `in-progress`), both requiring `OCA\Scholiq\Lifecycle\SessionChangeGuard` (caller must be
+  (`in-progress` → `in-progress`), both requiring `OCA\Learniq\Lifecycle\SessionChangeGuard` (caller must be
   a `Cohort.teacherIds` member or admin/coordinator; `changeReasonKind` always required,
   `substituteTeacherId` required for the substitute transitions). Split into two action names because
   `TransitionEngine::transition()` resolves a single scalar `to` value — an array `from` converging on one
   `to` is only correct for a state-changing transition (`cancel`), not a true multi-state self-loop.
-  `OCA\Scholiq\Listener\SessionChangeNoticeHandler` materialises `affectedLearnerIds`/`affectedParentIds`
+  `OCA\Learniq\Listener\SessionChangeNoticeHandler` materialises `affectedLearnerIds`/`affectedParentIds`
   (mirroring `ConferenceRound.invitedLearnerIds`) and a server-stamped `changedAt` at both transitions, so
   the declared `x-openregister-notifications` rules can resolve recipients without a runtime join.
 - **`ExamAccommodation`** — a learner's approved, evidence-backed exam entitlement (extra time, separate
   room, reader, etc.). `create` is open to learner/parent-portal roles; `approve` is restricted to
-  admin/compliance-officer/mentor via `OCA\Scholiq\Lifecycle\ExamAccommodationApprovalGuard` (a PHP guard,
+  admin/compliance-officer/mentor via `OCA\Learniq\Lifecycle\ExamAccommodationApprovalGuard` (a PHP guard,
   since no `x-openregister-authorization` key expresses a per-transition role gate in this register).
   Wiring the effective time limit into `TakeAssessmentView`/`AssessmentResult` is an explicit
   `assessment`-capability follow-up, not built here.
@@ -510,7 +510,7 @@ reality":
 - **Out of scope, tracked as cross-repo follow-ups**: the OpenConnector Zermelo/Untis/Xedule wire adapters
   themselves (`ConductionNL/openconnector`), and wiring `ExamAccommodation` into the `assessment` capability.
 
-See `openspec/changes/timetabling-and-substitution/` for the full proposal/design/specs.
+See `openspec/changes/archive/2026-07-16-timetabling-and-substitution/` for the full proposal/design/specs.
 
 ---
 
@@ -525,7 +525,7 @@ See `openspec/changes/timetabling-and-substitution/` for the full proposal/desig
 - Schema source: `lib/Settings/scholiq_register.json`
 - Manifest source: `src/manifest.json`
 - Applied specs: `openspec/changes/` (6 directories)
-- OOAPI 5.0 catalog-publication contract: `openspec/changes/delegate-ooapi-to-opencatalogi/` (this repo,
+- OOAPI 5.0 catalog-publication contract: `openspec/changes/archive/2026-07-13-delegate-ooapi-to-opencatalogi/` (this repo,
   spec-consistency only); `opencatalogi/openspec/changes/ooapi-catalog-publication/` (merged, opencatalogi
   side)
 - Specs summary: `docs/SPECS.md`

@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/gradeentry-learnerref-stamp/specs/grading/spec.md#requirement-existing-gradeentries-are-back-filled-once
+ * @spec openspec/specs/grading/spec.md#requirement-existing-gradeentries-are-back-filled-once
  */
 
 declare(strict_types=1);

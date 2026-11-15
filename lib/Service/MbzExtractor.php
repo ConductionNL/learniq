@@ -66,7 +66,7 @@ class MbzExtractor {
 	 * @throws \RuntimeException When the archive cannot be opened, is not a valid gzipped tar,
 	 *                           or a security violation is detected (oversize / path traversal).
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#security--privacy-posture
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#security--privacy-posture
 	 */
 	public function extract(string $mbzPath, string $targetDir): void {
 		if (is_dir($targetDir) === false) {
@@ -94,7 +94,7 @@ class MbzExtractor {
 			// Extraction pass: zip-slip (tar-slip) protection per entry, mirroring extractZip().
 			$this->extractEntries(tar: $tar, targetDirReal: $targetDirReal);
 		} finally {
-			$this->removeDirectory(dir: $workDir);
+			ExtractionTarget::removeDirectory(dir: $workDir);
 		}//end try
 	}//end extract()
 
@@ -112,7 +112,7 @@ class MbzExtractor {
 	 *
 	 * @throws RuntimeException When the archive cannot be read, opened or decompressed.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#security--privacy-posture
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#security--privacy-posture
 	 */
 	private function openDecompressedTar(string $mbzPath, string $tarGzPath): PharData {
 		if (copy($mbzPath, $tarGzPath) === false) {
@@ -148,7 +148,7 @@ class MbzExtractor {
 	 *
 	 * @throws RuntimeException When any entry, or the archive as a whole, exceeds its cap.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#security--privacy-posture
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#security--privacy-posture
 	 */
 	private function assertWithinSizeLimits(PharData $tar): void {
 		$totalUncompressed = 0;
@@ -188,7 +188,7 @@ class MbzExtractor {
 	 *
 	 * @throws RuntimeException When an entry would extract outside the target directory.
 	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#security--privacy-posture
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#security--privacy-posture
 	 */
 	private function extractEntries(PharData $tar, string $targetDirReal): void {
 		$iterator = new RecursiveIteratorIterator($tar, RecursiveIteratorIterator::LEAVES_ONLY);
@@ -197,13 +197,7 @@ class MbzExtractor {
 			$relativePath = $iterator->getSubPathname();
 			$destPath = $targetDirReal . DIRECTORY_SEPARATOR . $relativePath;
 
-			$parentDir = dirname($destPath);
-			if (is_dir($parentDir) === false) {
-				mkdir(directory: $parentDir, permissions: 0700, recursive: true);
-			}
-
-			$resolvedParent = realpath($parentDir);
-			if ($resolvedParent === false || str_starts_with($resolvedParent, $targetDirReal) === false) {
+			if (ExtractionTarget::parentInside(destPath: $destPath, targetDirReal: $targetDirReal) === false) {
 				throw new RuntimeException(
 					"Moodle backup entry '{$relativePath}' would extract outside the target directory (tar-slip attack)."
 				);
@@ -213,40 +207,4 @@ class MbzExtractor {
 		}//end foreach
 
 	}//end extractEntries()
-
-	/**
-	 * Recursively remove a directory and its contents.
-	 *
-	 * @param string $dir Absolute path to the directory.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/changes/course-package-import-export/design.md#security--privacy-posture
-	 */
-	private function removeDirectory(string $dir): void {
-		if (is_dir($dir) === false) {
-			return;
-		}
-
-		$items = scandir($dir);
-		if ($items === false) {
-			return;
-		}
-
-		foreach ($items as $item) {
-			if ($item === '.' || $item === '..') {
-				continue;
-			}
-
-			$path = $dir . '/' . $item;
-			if (is_dir($path) === true) {
-				$this->removeDirectory(dir: $path);
-				continue;
-			}
-
-			unlink($path);
-		}
-
-		rmdir($dir);
-	}//end removeDirectory()
 }//end class

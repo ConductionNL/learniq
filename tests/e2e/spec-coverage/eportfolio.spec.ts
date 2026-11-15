@@ -4,13 +4,13 @@
  * Gate-19 e2e coverage — eportfolio spec UI scenarios.
  *
  * Covers (UI-observable surface):
- *   @e2e openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-a-learner-creates-a-personal-portfolio-that-is-never-submitted-for-grading
- *   @e2e openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-a-course-task-instantiates-a-course-bound-portfolio-from-a-template
- *   @e2e openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-a-learner-adds-an-existing-submission-as-portfolio-evidence
- *   @e2e openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-a-learner-adds-a-free-text-reflection-with-no-external-evidence
- *   @e2e openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-submission-succeeds-once-every-required-section-has-evidence
- *   @e2e openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-a-learner-builds-a-portfolio-using-the-evidence-picker-not-raw-uuid-entry
- *   @e2e openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-a-teacher-reviews-and-grades-a-submitted-course-bound-portfolio
+ *   @e2e openspec/specs/eportfolio/spec.md#scenario-a-learner-creates-a-personal-portfolio-that-is-never-submitted-for-grading
+ *   @e2e openspec/specs/eportfolio/spec.md#scenario-a-course-task-instantiates-a-course-bound-portfolio-from-a-template
+ *   @e2e openspec/specs/eportfolio/spec.md#scenario-a-learner-adds-an-existing-submission-as-portfolio-evidence
+ *   @e2e openspec/specs/eportfolio/spec.md#scenario-a-learner-adds-a-free-text-reflection-with-no-external-evidence
+ *   @e2e openspec/specs/eportfolio/spec.md#scenario-submission-succeeds-once-every-required-section-has-evidence
+ *   @e2e openspec/specs/eportfolio/spec.md#scenario-a-learner-builds-a-portfolio-using-the-evidence-picker-not-raw-uuid-entry
+ *   @e2e openspec/specs/eportfolio/spec.md#scenario-a-teacher-reviews-and-grades-a-submitted-course-bound-portfolio
  *
  * The register-level schema/lifecycle registration, PortfolioSubmissionGuard,
  * PortfolioGradeEmitHandler, PortfolioShareGrantHandler, and the
@@ -66,8 +66,8 @@ function assertNoFatalErrors(errors: string[]): void {
 }
 
 test.describe('eportfolio — declarative index pages', () => {
-	// @e2e openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-a-learner-creates-a-personal-portfolio-that-is-never-submitted-for-grading
-	// @e2e openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-a-course-task-instantiates-a-course-bound-portfolio-from-a-template
+	// @e2e openspec/specs/eportfolio/spec.md#scenario-a-learner-creates-a-personal-portfolio-that-is-never-submitted-for-grading
+	// @e2e openspec/specs/eportfolio/spec.md#scenario-a-course-task-instantiates-a-course-bound-portfolio-from-a-template
 	test('Portfolios index page renders without a fatal error', async ({
 		loggedInPage: page,
 	}) => {
@@ -98,8 +98,8 @@ test.describe('eportfolio — declarative index pages', () => {
 		assertNoFatalErrors(errors)
 	})
 
-	// @e2e openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-a-learner-adds-an-existing-submission-as-portfolio-evidence
-	// @e2e openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-a-learner-adds-a-free-text-reflection-with-no-external-evidence
+	// @e2e openspec/specs/eportfolio/spec.md#scenario-a-learner-adds-an-existing-submission-as-portfolio-evidence
+	// @e2e openspec/specs/eportfolio/spec.md#scenario-a-learner-adds-a-free-text-reflection-with-no-external-evidence
 	test('Portfolio entries index page renders without a fatal error', async ({
 		loggedInPage: page,
 	}) => {
@@ -117,8 +117,8 @@ test.describe('eportfolio — declarative index pages', () => {
 })
 
 test.describe('eportfolio — custom views resolve (registry.js wiring)', () => {
-	// @e2e openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-a-learner-builds-a-portfolio-using-the-evidence-picker-not-raw-uuid-entry
-	// @e2e openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-submission-succeeds-once-every-required-section-has-evidence
+	// @e2e openspec/specs/eportfolio/spec.md#scenario-a-learner-builds-a-portfolio-using-the-evidence-picker-not-raw-uuid-entry
+	// @e2e openspec/specs/eportfolio/spec.md#scenario-submission-succeeds-once-every-required-section-has-evidence
 	test('PortfolioBuilder route resolves the registered component, not a blank/404 shell', async ({
 		loggedInPage: page,
 	}) => {
@@ -144,7 +144,7 @@ test.describe('eportfolio — custom views resolve (registry.js wiring)', () => 
 		assertNoFatalErrors(errors)
 	})
 
-	// @e2e openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-a-teacher-reviews-and-grades-a-submitted-course-bound-portfolio
+	// @e2e openspec/specs/eportfolio/spec.md#scenario-a-teacher-reviews-and-grades-a-submitted-course-bound-portfolio
 	test('PortfolioReviewView route resolves the registered component, not a blank/404 shell', async ({
 		loggedInPage: page,
 	}) => {

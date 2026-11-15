@@ -18,13 +18,13 @@
  Uses Options API + direct fetch calls (no custom Pinia store modules),
  mirroring GroupTrendHeatmap.vue/BsaRiskDashboard.vue.
 
- @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-frontend-is-declarative-with-one-named-custom-view-for-the-quality-report
- @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
+ @spec openspec/specs/course-evaluation/spec.md#requirement-frontend-is-declarative-with-one-named-custom-view-for-the-quality-report
+ @spec openspec/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 -->
 <template>
-	<div class="course-quality-report">
+	<div class="course-quality-report lq-board-page">
 		<header class="course-quality-report__header">
-			<h2>{{ t('learniq', 'Course quality report') }}</h2>
+			<CnPageHeader :title="t('learniq', 'Course quality report')" />
 			<p class="course-quality-report__subtitle">
 				{{
 					t(
@@ -80,8 +80,9 @@
 					" />
 
 				<template v-else>
-					<section class="course-quality-report__section">
-						<h3>{{ t('learniq', 'Score trend') }}</h3>
+					<CnDetailCard
+						:title="t('learniq', 'Score trend')"
+						class="course-quality-report__section">
 						<table class="course-quality-report__table">
 							<thead>
 								<tr>
@@ -116,10 +117,11 @@
 								</tr>
 							</tbody>
 						</table>
-					</section>
+					</CnDetailCard>
 
-					<section class="course-quality-report__section">
-						<h3>{{ t('learniq', 'Free-text answers') }}</h3>
+					<CnDetailCard
+						:title="t('learniq', 'Free-text answers')"
+						class="course-quality-report__section">
 						<ul
 							v-if="freeTextAnswers.length > 0"
 							class="course-quality-report__answers">
@@ -132,7 +134,7 @@
 						<p v-else class="course-quality-report__empty-text">
 							{{ t('learniq', 'No free-text answers submitted yet.') }}
 						</p>
-					</section>
+					</CnDetailCard>
 
 					<NcButton variant="secondary" @click="draftImprovementAction">
 						{{ t('learniq', 'Draft improvement action') }}
@@ -144,13 +146,17 @@
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcSelect } from '@nextcloud/vue'
+import { listOrEmpty, readAll } from '../utils/objectListing.js'
 
 export default {
 	name: 'CourseQualityReport',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
@@ -175,7 +181,7 @@ export default {
 		 * Course picker options.
 		 *
 		 * @return {Array<{id: string, label: string}>}
-		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
+		 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		courseOptions() {
 			return this.courses.map((c) => ({
@@ -190,7 +196,7 @@ export default {
 		 * rows — plus an "All teachers" (course-level, teacherId:null) option.
 		 *
 		 * @return {Array<{id: string, label: string}>}
-		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
+		 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		teacherOptions() {
 			const ids = new Set(
@@ -210,7 +216,7 @@ export default {
 		 * sorted oldest to newest by academicYear/period.
 		 *
 		 * @return {object[]}
-		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
+		 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		trendRows() {
 			const teacherId = this.selectedTeacherId || null
@@ -230,7 +236,7 @@ export default {
 		 * carries no learner-identifying field to display alongside these.
 		 *
 		 * @return {string[]}
-		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
+		 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		freeTextAnswers() {
 			const teacherId = this.selectedTeacherId || null
@@ -254,7 +260,7 @@ export default {
 		 * can always change the campaign in the create form itself.
 		 *
 		 * @return {object|null}
-		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
+		 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		latestCampaignForCourse() {
 			const matches = this.campaigns
@@ -281,48 +287,12 @@ export default {
 		 * API — no new schema.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
+		 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		async loadCourses() {
 			this.loadingCourses = true
 			try {
-				const [coursesResp, campaignsResp] = await Promise.all([
-					fetch(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/Course?_limit=500',
-						),
-						{
-							headers: {
-								'OCS-APIREQUEST': 'true',
-								Accept: 'application/json',
-							},
-						},
-					),
-					fetch(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/evaluation-campaign?_limit=200',
-						),
-						{
-							headers: {
-								'OCS-APIREQUEST': 'true',
-								Accept: 'application/json',
-							},
-						},
-					),
-				])
-
-				const coursesJson = coursesResp.ok ? await coursesResp.json() : {}
-				const campaignsJson = campaignsResp.ok
-					? await campaignsResp.json()
-					: {}
-
-				this.courses =
-					coursesJson.results ?? coursesJson.objects ?? coursesJson ?? []
-				this.campaigns =
-					campaignsJson.results
-					?? campaignsJson.objects
-					?? campaignsJson
-					?? []
+				await this.readCoursesAndCampaigns()
 			} catch (err) {
 				// eslint-disable-next-line no-console
 				console.error('[CourseQualityReport] loadCourses error', err)
@@ -332,11 +302,30 @@ export default {
 		},
 
 		/**
+		 * Read every Course and every EvaluationCampaign; a failed read is an
+		 * empty answer.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
+		 */
+		async readCoursesAndCampaigns() {
+			const [coursesResp, campaignsResp] = await readAll([
+				generateUrl('/apps/openregister/api/objects/learniq/Course?_limit=500'),
+				generateUrl('/apps/openregister/api/objects/learniq/evaluation-campaign?_limit=200'),
+			])
+			const courses = await listOrEmpty(coursesResp)
+			const campaigns = await listOrEmpty(campaignsResp)
+
+			this.courses = courses
+			this.campaigns = campaigns
+		},
+
+		/**
 		 * Handle a course selection: reset the teacher filter and (re)load
 		 * this course's CourseQualityScore rows and CourseEvaluationResponses.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
+		 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		async onCourseChange() {
 			this.selectedTeacherId = ''
@@ -359,7 +348,7 @@ export default {
 		 * selected course.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
+		 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		async loadReport() {
 			if (!this.selectedCourseId) {
@@ -370,44 +359,7 @@ export default {
 
 			this.loadingReport = true
 			try {
-				const courseId = encodeURIComponent(this.selectedCourseId)
-				const [scoresResp, responsesResp] = await Promise.all([
-					fetch(
-						generateUrl(
-							`/apps/openregister/api/objects/learniq/course-quality-score?courseId=${courseId}&_limit=100`,
-						),
-						{
-							headers: {
-								'OCS-APIREQUEST': 'true',
-								Accept: 'application/json',
-							},
-						},
-					),
-					fetch(
-						generateUrl(
-							`/apps/openregister/api/objects/learniq/course-evaluation-response?courseId=${courseId}&_limit=200`,
-						),
-						{
-							headers: {
-								'OCS-APIREQUEST': 'true',
-								Accept: 'application/json',
-							},
-						},
-					),
-				])
-
-				const scoresJson = scoresResp.ok ? await scoresResp.json() : {}
-				const responsesJson = responsesResp.ok
-					? await responsesResp.json()
-					: {}
-
-				this.scores =
-					scoresJson.results ?? scoresJson.objects ?? scoresJson ?? []
-				this.responses =
-					responsesJson.results
-					?? responsesJson.objects
-					?? responsesJson
-					?? []
+				await this.readCourseReport()
 			} catch (err) {
 				// eslint-disable-next-line no-console
 				console.error('[CourseQualityReport] loadReport error', err)
@@ -417,13 +369,33 @@ export default {
 		},
 
 		/**
+		 * Read the selected course's CourseQualityScore and
+		 * CourseEvaluationResponse rows; a failed read is an empty answer.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
+		 */
+		async readCourseReport() {
+			const courseId = encodeURIComponent(this.selectedCourseId)
+			const [scoresResp, responsesResp] = await readAll([
+				generateUrl(`/apps/openregister/api/objects/learniq/course-quality-score?courseId=${courseId}&_limit=100`),
+				generateUrl(`/apps/openregister/api/objects/learniq/course-evaluation-response?courseId=${courseId}&_limit=200`),
+			])
+			const scores = await listOrEmpty(scoresResp)
+			const responses = await listOrEmpty(responsesResp)
+
+			this.scores = scores
+			this.responses = responses
+		},
+
+		/**
 		 * Navigate to the ImprovementAction create route, pre-filled with
 		 * the selected course and (best-effort resolved) campaign via query
 		 * params — CnDetailPage's isCreateMode reads these and filters them
 		 * to the schema's own properties (ADR-062).
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
+		 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		draftImprovementAction() {
 			const query = { courseId: this.selectedCourseId }
@@ -439,7 +411,7 @@ export default {
 		 *
 		 * @param {number|null} value Average overall score.
 		 * @return {string}
-		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
+		 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		formatScore(value) {
 			return value === null || value === undefined
@@ -452,7 +424,7 @@ export default {
 		 *
 		 * @param {number|null} value Response rate (0-1).
 		 * @return {string}
-		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
+		 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		formatRate(value) {
 			return value === null || value === undefined
@@ -464,17 +436,6 @@ export default {
 </script>
 
 <style scoped>
-.course-quality-report {
-	max-width: 900px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.course-quality-report__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
 .course-quality-report__subtitle {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9em;
@@ -490,10 +451,6 @@ export default {
 	display: block;
 	font-weight: 600;
 	margin-bottom: 4px;
-}
-
-.course-quality-report__section {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
 }
 
 .course-quality-report__table {

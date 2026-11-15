@@ -21,17 +21,18 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assignment-portal-wiring/specs/assignments/spec.md#requirement-the-server-stamps-who-a-submission-belongs-to
+ * @spec openspec/specs/assignments/spec.md#requirement-the-server-stamps-who-a-submission-belongs-to
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\IntegrityListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\IntegrityListenerRegistrar;
 use OCA\Learniq\Listener\SubmissionOwnerStamp;
+use OCA\Learniq\Service\Portal\PortalWriteSubject;
 use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\Portal\LearnerProfileLookup;
+use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -53,14 +54,14 @@ class SubmissionOwnerStampTest extends TestCase {
 	private const OTHER_TENANT = '22222222-2222-4222-8222-222222222222';
 
 	/**
-	 * Active LearnerProfile rows keyed by uuid, as LearnerProfileLookup::byRef returns them.
+	 * Active LearnerProfile rows keyed by uuid, as LearnerRefResolver::byRef returns them.
 	 *
 	 * @var array<string, array<string, mixed>>
 	 */
 	private array $profiles = [];
 
 	/**
-	 * Profile uuid per Nextcloud user id, as LearnerProfileLookup::refForUser returns it.
+	 * Profile uuid per Nextcloud user id, as LearnerRefResolver::resolveAcrossTenants() returns it.
 	 *
 	 * @var array<string, string>
 	 */
@@ -82,11 +83,11 @@ class SubmissionOwnerStampTest extends TestCase {
 	 *
 	 * @return SubmissionOwnerStamp
 	 */
-	private function makeStamp(string $schemaSlug = 'submission', bool $hasUser = false, bool $lookupThrows = false): SubmissionOwnerStamp {
+	private function makeStamp(string $schemaSlug = 'submission', bool $hasUser = false, bool $lookupThrows = false, string $uid = 'pupil-1'): SubmissionOwnerStamp {
 		$resolver = $this->createMock(ListenerSchemaResolver::class);
 		$resolver->method('guardSchemaSlug')->willReturn($schemaSlug);
 
-		$lookup = $this->createMock(LearnerProfileLookup::class);
+		$lookup = $this->createMock(LearnerRefResolver::class);
 		$lookup->method('byRef')->willReturnCallback(
 			function (string $learnerRef) use ($lookupThrows): ?array {
 				if ($lookupThrows === true) {
@@ -96,7 +97,8 @@ class SubmissionOwnerStampTest extends TestCase {
 				return $this->profiles[$learnerRef] ?? null;
 			}
 		);
-		$lookup->method('refForUser')->willReturnCallback(
+		// The owner stamp may run without a session: only the across-tenants lookup answers.
+		$lookup->method('resolveAcrossTenants')->willReturnCallback(
 			function (string $ncUserId) use ($lookupThrows): ?string {
 				if ($lookupThrows === true) {
 					throw new RuntimeException('database gone');
@@ -118,7 +120,7 @@ class SubmissionOwnerStampTest extends TestCase {
 		);
 
 		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn('pupil-1');
+		$user->method('getUID')->willReturn($uid);
 		$session = $this->createMock(IUserSession::class);
 		$session->method('getUser')->willReturn($hasUser === true ? $user : null);
 
@@ -126,8 +128,14 @@ class SubmissionOwnerStampTest extends TestCase {
 			schemaResolver: $resolver,
 			profiles: $lookup,
 			objectService: $objectService,
-			userSession: $session,
 			logger: new NullLogger(),
+			// The real collaborator, over the same lookup and the same session:
+			// who is writing is the question the branch turns on.
+			writers: new PortalWriteSubject(
+				profiles: $lookup,
+				userSession: $session,
+				logger: new NullLogger()
+			),
 		);
 	}//end makeStamp()
 
@@ -263,20 +271,43 @@ class SubmissionOwnerStampTest extends TestCase {
 	}//end testAFailedLookupRefusesThePortalHandIn()
 
 	/**
-	 * A signed-in caller never takes the portal path: sending only a learnerRef
-	 * does not hand in in somebody else's name.
+	 * The pupil's own session still takes the portal path.
+	 *
+	 * WHY THIS TEST CHANGED SIDES. It used to assert that any session at all
+	 * refuses the portal shape, which was right while every portal citizen was
+	 * a DigiD guardian with no Nextcloud account. A pupil signs in to her
+	 * portal with her school account, so her browser carries a session cookie
+	 * and this rule refused her own hand-in. Measured on a live instance on 4
+	 * October 2026 (pupil-flows.spec.ts).
 	 *
 	 * @return void
 	 */
-	public function testASignedInCallerCannotUseThePortalPath(): void {
+	public function testThePupilsOwnSessionStillTakesThePortalPath(): void {
 		$this->seedPupil();
 		$event = $this->portalCreate();
 
-		$this->makeStamp(hasUser: true)->handle($event);
+		$this->makeStamp(hasUser: true, uid: 'pupil-1')->handle($event);
+
+		self::assertFalse($event->isPropagationStopped());
+		self::assertSame(['pupil-1'], $event->getModifiedData()['learnerIds']);
+		self::assertSame('lp-1', $event->getModifiedData()['learnerRef']);
+	}//end testThePupilsOwnSessionStillTakesThePortalPath()
+
+	/**
+	 * Anybody else's session does not: sending only a learnerRef never hands
+	 * work in in somebody else's name, which is what the old rule protected.
+	 *
+	 * @return void
+	 */
+	public function testAnotherSignedInCallerCannotUseThePortalPath(): void {
+		$this->seedPupil();
+		$event = $this->portalCreate();
+
+		$this->makeStamp(hasUser: true, uid: 'teacher-1')->handle($event);
 
 		self::assertTrue($event->isPropagationStopped());
 		self::assertSame('submission-owner-missing', $event->getErrors()['reason']);
-	}//end testASignedInCallerCannotUseThePortalPath()
+	}//end testAnotherSignedInCallerCannotUseThePortalPath()
 
 	/**
 	 * A staff create without learners is refused, as `required` used to do.

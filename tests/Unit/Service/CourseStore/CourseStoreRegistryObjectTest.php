@@ -15,13 +15,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lesson-sharing-via-store-plane/tasks.md#task-1-store-plane-descriptor-registry-object-and-sharedcoursepackage-schema
+ * @spec openspec/changes/archive/2026-09-28-lesson-sharing-via-store-plane/tasks.md#task-1-store-plane-descriptor-registry-object-and-sharedcoursepackage-schema
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\CourseStore;
 
+use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CourseStore\CourseStoreDescriptor;
 use OCA\Learniq\Service\CourseStore\CourseStoreRegistryObject;
 use PHPUnit\Framework\TestCase;
@@ -29,6 +30,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * @covers \OCA\Learniq\Service\CourseStore\CourseStoreDescriptor
  * @covers \OCA\Learniq\Service\CourseStore\CourseStoreRegistryObject
+ * @uses \OCA\Learniq\Support\TextValue
  */
 class CourseStoreRegistryObjectTest extends TestCase {
 
@@ -62,7 +64,7 @@ class CourseStoreRegistryObjectTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheDescriptorNamesTheCourseStore(): void {
-		$descriptor = (new CourseStoreDescriptor())->descriptor();
+		$descriptor = (new CourseStoreDescriptor($this->createMock(ActionAuthService::class)))->descriptor();
 
 		self::assertSame('learniq', $descriptor->appId);
 		self::assertSame('shared-course-package', $descriptor->schema);
@@ -105,7 +107,7 @@ class CourseStoreRegistryObjectTest extends TestCase {
 	 */
 	public function testTheSlugIsReadableAndDiffersPerContent(): void {
 		$builder    = new CourseStoreRegistryObject();
-		$descriptor = new CourseStoreDescriptor();
+		$descriptor = new CourseStoreDescriptor($this->createMock(ActionAuthService::class));
 		$slug       = $builder->slug($this->package());
 		$other      = $builder->slug([...$this->package(), 'lessons' => []]);
 
@@ -121,7 +123,7 @@ class CourseStoreRegistryObjectTest extends TestCase {
 	 * @return void
 	 */
 	public function testOnlyCoursePackageSlugsCount(): void {
-		$descriptor = new CourseStoreDescriptor();
+		$descriptor = new CourseStoreDescriptor($this->createMock(ActionAuthService::class));
 
 		self::assertFalse($descriptor->isCourseSlug('openregister-configset-owner-repo'));
 		self::assertFalse($descriptor->isCourseSlug('course-package-'));

@@ -16,14 +16,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-only-staff-set-a-resubmission-date
+ * @spec openspec/specs/assignments/spec.md#requirement-only-staff-set-a-resubmission-date
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\IntegrityListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\IntegrityListenerRegistrar;
 use OCA\Learniq\Listener\SubmissionResubmissionDateListener;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;

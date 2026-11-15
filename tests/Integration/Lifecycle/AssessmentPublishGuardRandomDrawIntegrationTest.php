@@ -27,7 +27,7 @@
  * guards its own preconditions in setUp(). Mirrors
  * XapiCompletionHandlerIntegrationTest.php's shape.
  *
- * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-publishing-an-assessment-requires-a-resolvable-item-source
+ * @spec openspec/specs/assessment/spec.md#requirement-publishing-an-assessment-requires-a-resolvable-item-source
  */
 
 declare(strict_types=1);
@@ -153,7 +153,7 @@ class AssessmentPublishGuardRandomDrawIntegrationTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#scenario-a-random-draw-assessment-with-an-insufficient-pool-cannot-publish
+	 * @spec openspec/specs/assessment/spec.md#scenario-a-random-draw-assessment-with-an-insufficient-pool-cannot-publish
 	 */
 	public function testInsufficientPoolBlocksPublish(): void {
 		$bank = $this->createObject('ItemBank', ['name' => 'Integration Test Bank ' . uniqid()]);

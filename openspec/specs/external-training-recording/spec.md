@@ -7,7 +7,9 @@ status: done
 ## Purpose
 
 Capture externally-completed training (classroom, third-party e-learning, conferences, on-the-job) per learner as `ExternalTrainingRecord` OpenRegister objects with evidence file attachments and an officer verification gate — a separate, clearly-labelled evidence class that feeds compliance coverage and audit packs without diluting the signed-attestation model.
+
 ## Requirements
+
 ### Requirement: ExternalTrainingRecord MUST be an OpenRegister object with evidence attachments
 
 The system MUST persist `ExternalTrainingRecord` objects (learnerId, title, provider, kind `classroom | external-elearning | conference | on-the-job | other`, optional regulationSlug, optional courseId, completedAt, optional validUntil, submittedBy, verifiedBy, rejectionReason, optional credentialId, optional batchId, tenant_id) with lifecycle `submitted → verified | rejected`. Evidence files (certificate scan, signed attendance list) MUST be OpenRegister file attachments on the record; the app MUST NOT store file bytes itself. Records MUST NOT be persisted as Attestations or Enrolments.
@@ -54,15 +56,29 @@ The system MUST support recording one external training (title, provider, comple
 
 ### Requirement: Verification MAY issue a linked manual Credential for expiring certificates
 
-On verification of a record with `validUntil` set, the verifier MUST be offered issuance of a `Credential` via the existing manual issuance path (`source: manual`, `expiresAt = validUntil`, regulationSlug carried over), with `credentialId` stored back on the record — so the certification capability's existing expiry alerts and renewal auto-enrolment cover external certificates. No Credential schema change is made.
+On verification of a record with `validUntil` set, the verifier MUST be offered issuance of a `Credential`
+via the existing manual issuance path (`source: manual`, `expiresAt = validUntil`, regulationSlug carried
+over), with `credentialId` stored back on the record — so the certification capability's existing expiry
+alerts and renewal auto-enrolment cover external certificates. No Credential schema change is made. The
+`issueCredential` endpoint MUST resolve the caller's own tenant and MUST reject (404) a `recordId` whose
+`ExternalTrainingRecord.tenant_id` does not match the caller's tenant, before checking the record's
+`verified` lifecycle state or building/saving the Credential.
 
 #### Scenario: External BHV certificate enters the expiry machinery
-<!-- @e2e exclude Manual-credential payload (ExternalTrainingService::buildManualCredentialPayload) verified by PHPUnit ExternalTrainingServiceTest::testBuildManualCredentialPayload; the resulting Credential's expiry rules are OR/declarative. No scholiq DOM surface. -->
 
 - **GIVEN** a verified record "BHV herhaling" with `validUntil` 2027-06-01
 - **WHEN** the verifier opts to issue the linked credential
 - **THEN** a Credential exists with `source: manual` and `expiresAt: 2027-06-01`, linked via `credentialId`
 - **AND** the certification capability's expiry notification rules apply to it unchanged
+
+#### Scenario: A record belonging to another tenant cannot have a credential issued against it
+
+- **GIVEN** `ExternalTrainingRecord` R is `verified` and belongs to tenant B
+- **WHEN** a user authenticated as tenant A (holding the `external-training.issue-credential` action grant)
+  calls `issueCredential(recordId: R)`
+- **THEN** the endpoint MUST return HTTP 404
+- **AND** no Credential MUST be created
+- **AND** R's `credentialId` MUST remain unset
 
 ### Requirement: Decision notifications MUST use the verified dialect
 
@@ -101,3 +117,17 @@ every other consumed schema.
 - **AND** existing `ExternalTrainingRecord` rows with no `learnerRef` remain valid and stay invisible to any
   `learnerRef`-scoped read until backfilled
 
+### Requirement: Learner coverage lookups MUST be tenant-scoped
+
+`learnerCoverage(learnerId, regulationSlug)` MUST resolve the target `learnerId`'s tenant via the
+`LearnerProfile` schema and MUST NOT return the real `covered`/`evidenceClass` values when that tenant does
+not match the caller's own tenant; it MUST instead behave as if the learner has no coverage record
+(`covered: false, evidenceClass: null`), so no cross-tenant learner coverage/regulation data is disclosed.
+
+#### Scenario: Coverage of a learner in another tenant is not disclosed
+
+- **GIVEN** learner L belongs to tenant B and is covered for regulation `NIS2`
+- **WHEN** a user authenticated as tenant A (holding the `external-training.bulk-record` action grant) calls
+  `learnerCoverage(learnerId: L, regulationSlug: 'NIS2')`
+- **THEN** the response MUST be `{ covered: false, evidenceClass: null }`
+- **AND** MUST NOT reveal L's real coverage status

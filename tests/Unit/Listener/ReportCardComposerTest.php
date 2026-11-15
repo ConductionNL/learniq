@@ -21,8 +21,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
- * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-subject-with-no-matching-period-component-contributes-no-row-not-an-error
+ * @spec openspec/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
+ * @spec openspec/specs/report-card/spec.md#scenario-a-subject-with-no-matching-period-component-contributes-no-row-not-an-error
  */
 
 declare(strict_types=1);
@@ -32,6 +32,7 @@ namespace OCA\Learniq\Tests\Unit\Listener;
 use DateTime;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Listener\ReportCardComposer;
 use OCA\Learniq\Service\AttendanceWindowAggregator;
@@ -163,7 +164,8 @@ class ReportCardComposerTest extends TestCase {
 			new NullLogger(),
 			new AttendanceWindowAggregator($objectService),
 			new ReportCardTemplateSectionResolver($objectService, new NullLogger()),
-			new LearnerRefResolver($objectService)
+			new LearnerRefResolver($objectService),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 
 	}//end makeComposer()
@@ -199,8 +201,8 @@ class ReportCardComposerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-subject-with-no-matching-period-component-contributes-no-row-not-an-error
+	 * @spec openspec/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-subject-with-no-matching-period-component-contributes-no-row-not-an-error
 	 */
 	public function testComposeCreatesOneReportCardPerCohortLearnerWithQualifyingSubjectsOnly(): void {
 		$composer = $this->makeComposer(
@@ -268,13 +270,42 @@ class ReportCardComposerTest extends TestCase {
 	}//end testComposeCreatesOneReportCardPerCohortLearnerWithQualifyingSubjectsOnly()
 
 	/**
+	 * Writing `lifecycle: composed` on the period is an update, not the
+	 * compose transition, and builds no report card. The compose dialog must
+	 * run the transition.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
+	 */
+	public function testALifecycleWriteComposesNothing(): void {
+		$composer = $this->makeComposer(
+			cohorts: ['cohort-a' => ['id' => 'cohort-a', 'learnerIds' => ['learner-1']]],
+			plans: ['plan-bio' => ['id' => 'plan-bio', 'components' => [['componentId' => 'c1', 'period' => '1', 'weight' => 1, 'kind' => 'assessment']]]],
+			finalGrades: ['learner-1|plan-bio' => ['learnerId' => 'learner-1', 'curriculumPlanId' => 'plan-bio', 'courseId' => 'course-1', 'passed' => true, 'breakdown' => ['periods' => ['1' => 7.5]]]],
+			gradeEntries: ['learner-1|plan-bio|1' => [['id' => 'entry-1']]],
+		);
+		$period = ['id' => 'period-1', 'periodCode' => '1', 'curriculumPlanIds' => ['plan-bio'], 'cohortIds' => ['cohort-a'], 'attendanceIncluded' => false, 'lifecycle' => 'composed', 'tenant_id' => 'tenant-a'];
+
+		$entity = $this->createMock(ObjectEntity::class);
+		$entity->method('jsonSerialize')->willReturn($period);
+		$update = $this->createMock(ObjectUpdatedEvent::class);
+		$update->method('getNewObject')->willReturn($entity);
+		$composer->handle($update);
+		self::assertSame([], array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'report-card'));
+
+		$composer->handle($this->makeEvent($period, 'report-period', 'compose', 'composed'));
+		self::assertCount(1, array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'report-card'));
+	}//end testALifecycleWriteComposesNothing()
+
+	/**
 	 * Each card carries the learner's LearnerProfile UUID as learnerRef, found
 	 * on ncUserId. LearnerProfile has no learnerId property, so the old lookup
 	 * on learnerId matched nothing and no card ever reached the portal.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learner-lookup-and-learnerrefs-fixes/specs/report-card/spec.md#requirement-a-composed-report-card-carries-the-learners-profile-as-learnerref
+	 * @spec openspec/specs/report-card/spec.md#requirement-a-composed-report-card-carries-the-learners-profile-as-learnerref
 	 */
 	public function testComposeStampsTheLearnerRefFromTheProfileKeyedOnNcUserId(): void {
 		$composer = $this->makeComposer(
@@ -325,7 +356,7 @@ class ReportCardComposerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-subject-with-no-matching-period-component-contributes-no-row-not-an-error
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-subject-with-no-matching-period-component-contributes-no-row-not-an-error
 	 */
 	public function testNoQualifyingSubjectsYieldsEmptySubjectGrades(): void {
 		$composer = $this->makeComposer(
@@ -470,7 +501,8 @@ class ReportCardComposerTest extends TestCase {
 			new NullLogger(),
 			new AttendanceWindowAggregator($objectService),
 			new ReportCardTemplateSectionResolver($objectService, new NullLogger()),
-			new LearnerRefResolver($objectService)
+			new LearnerRefResolver($objectService),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 
 		$card = [
@@ -502,7 +534,7 @@ class ReportCardComposerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
 	 */
 	public function testRecomposeWithTemplateLimitsPopulatedSections(): void {
 		$composer = $this->makeTemplateAwareRecomposer();
@@ -567,7 +599,8 @@ class ReportCardComposerTest extends TestCase {
 			new NullLogger(),
 			new AttendanceWindowAggregator($objectService),
 			new ReportCardTemplateSectionResolver($objectService, new NullLogger()),
-			new LearnerRefResolver($objectService)
+			new LearnerRefResolver($objectService),
+			\OCA\Learniq\Tests\Support\TransitionScope::resolver()
 		);
 
 	}//end makeTemplateAwareRecomposer()
@@ -654,7 +687,7 @@ class ReportCardComposerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-an-untemplated-cohort-composes-exactly-as-before-this-change
+	 * @spec openspec/specs/report-card/spec.md#scenario-an-untemplated-cohort-composes-exactly-as-before-this-change
 	 */
 	public function testComposeWithoutTemplateFallsBackToFixedShape(): void {
 		$composer = $this->makeComposer(
@@ -698,8 +731,8 @@ class ReportCardComposerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-cohorts-assigned-template-determines-its-report-cards-sections
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-cohorts-assigned-template-determines-its-report-cards-sections
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
 	 */
 	public function testComposeWithTemplateLimitsPopulatedSections(): void {
 		$composer = $this->makeComposer(

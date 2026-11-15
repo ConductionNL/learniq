@@ -8,22 +8,17 @@
  * action=verzendenNaarRod).
  *
  * Algorithm:
- * 1. Create a DataExchangeJob in `queued` state: target=bron-rod,
- *    scope.schema=school-advies, scope.filters={learnerId, schoolAdviesId}.
- * 2. Stamp the new job's UUID back onto the SchoolAdvies' dataExchangeJobId.
+ * 1. Ask integriq for a `bron-rod` exchange job for this advice, with
+ *    `berichtsoort: schooladvies` in its scope.
+ * 2. Stamp the job's id back onto the SchoolAdvies' dataExchangeJobId.
  *
- * Unlike `SupportRequestSubmitHandler`'s `swv` job, `bron-rod` is not one of
- * `DataExchangeRunHandler`'s gated targets (`DataExchangeJob.lifecycle`'s own
- * description: "Other targets: queued -> running -> ..."), so no
- * pending-parent-review advance is needed here — queued is the job's
- * terminal state from this listener's own point of view; `bron-rod`'s
- * DataExchangeRunHandler/OpenConnector delegation takes it from there,
- * mirroring the same job-type-owns-mapping pattern already established.
+ * The job names mapping `learniq-bron-rod-export-schooladvies`: the gate
+ * composes DUO's AanleverenAdviesVO field set for it (decision D32) and
+ * refuses the job `statutory-incomplete` when a required field is missing.
+ * Without integriq nothing is asked.
  *
- * ADR-031 legitimate exception: cross-schema object creation in response to a
- * lifecycle transition cannot be expressed as schema metadata declarations.
- * Mirrors SupportRequestSubmitHandler's "queue a DataExchangeJob on this
- * trigger" shape exactly, minus the SWV-specific pending-parent-review step.
+ * ADR-031 legitimate exception: cross-app work in response to a lifecycle
+ * transition cannot be expressed as schema metadata declarations.
  *
  * @category Listener
  * @package  OCA\Learniq\Listener
@@ -38,45 +33,51 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#requirement-sending-a-definitief-schooladvies-to-rod-auto-queues-the-existing-bron-rod-dataexchangejob
+ * @spec openspec/specs/enrolment/spec.md#requirement-sending-a-definitief-schooladvies-to-rod-auto-queues-the-existing-bron-rod-dataexchangejob
+ * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+ * @spec openspec/specs/data-exchange/spec.md#requirement-a-school-advice-goes-to-rod-with-duos-aanleverenadviesvo-field-set
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Kernel\Contracts\ExchangeDisclosureInterface;
+use OCA\Learniq\Kernel\Contracts\IntegriqExchangeClientInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 /**
- * Auto-queues a DataExchangeJob (target: bron-rod) when a SchoolAdvies is sent to ROD.
+ * Asks integriq for the bron-rod exchange job when a SchoolAdvies is sent to ROD.
  *
- * @implements IEventListener<Event>
- *
- * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#requirement-sending-a-definitief-schooladvies-to-rod-auto-queues-the-existing-bron-rod-dataexchangejob
+ * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
  */
 class SchoolAdviesSendToRodHandler implements IEventListener {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const SCHOOL_ADVIES_SCHEMA = 'school-advies';
-	private const JOB_SCHEMA = 'data-exchange-job';
-
 	private const ROD_TARGET = 'bron-rod';
 
 	/**
 	 * Constructor.
 	 *
-	 * @param ObjectService $objectService OR object access service.
-	 * @param LoggerInterface $logger PSR logger.
+	 * @param ObjectService          $objectService OR object access service.
+	 * @param IntegriqExchangeClientInterface $integriq      Asks integriq for the job.
+	 * @param LoggerInterface        $logger        PSR logger.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
+		private readonly IntegriqExchangeClientInterface $integriq,
 		private readonly LoggerInterface $logger,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -87,182 +88,73 @@ class SchoolAdviesSendToRodHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#scenario-sending-a-definitief-advies-creates-and-links-a-bron-rod-dataexchangejob
+	 * @spec openspec/specs/enrolment/spec.md#scenario-sending-a-definitief-advies-creates-and-links-a-bron-rod-dataexchangejob
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
 			return;
 		}
 
-		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER
+			|| $this->schemas->eventSchema(event: $event) !== self::SCHOOL_ADVIES_SCHEMA
+			|| $event->getTo() !== 'verzonden-naar-rod'
+		) {
 			return;
 		}
 
-		if ($event->getSchema() !== self::SCHOOL_ADVIES_SCHEMA) {
-			return;
-		}
-
-		if ($event->getTo() !== 'verzonden-naar-rod') {
-			return;
-		}
-
-		$this->queueRodJob(event: $event);
+		$this->requestRodJob(event: $event);
 
 	}//end handle()
 
 	/**
-	 * Create and queue the bron-rod DataExchangeJob for the sent SchoolAdvies.
+	 * Ask integriq for the bron-rod job and stamp it on the advice.
 	 *
 	 * @param ObjectTransitionedEvent $event The verzonden-naar-rod transition event.
 	 *
 	 * @return void
-	 *
-	 * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#scenario-sending-a-definitief-advies-creates-and-links-a-bron-rod-dataexchangejob
 	 */
-	private function queueRodJob(ObjectTransitionedEvent $event): void {
+	private function requestRodJob(ObjectTransitionedEvent $event): void {
 		$schoolAdvies = $event->getObject()->jsonSerialize();
-		$schoolAdviesId = $schoolAdvies['id'] ?? ($schoolAdvies['uuid'] ?? '');
-
-		if ($schoolAdviesId === '') {
-			$this->logger->error(
-				'[SchoolAdviesSendToRodHandler] SchoolAdvies has no id — cannot queue bron-rod DataExchangeJob.'
-			);
-			return;
-		}
-
+		$schoolAdviesId = (string)($schoolAdvies['id'] ?? ($schoolAdvies['uuid'] ?? ''));
 		$learnerId = (string)($schoolAdvies['learnerId'] ?? '');
-		$tenantId = (string)($schoolAdvies['tenant_id'] ?? '');
 
-		if ($learnerId === '') {
+		if ($schoolAdviesId === '' || $learnerId === '') {
 			$this->logger->warning(
-				'[SchoolAdviesSendToRodHandler] SchoolAdvies {id} has no learnerId — cannot queue bron-rod job.',
+				'[SchoolAdviesSendToRodHandler] SchoolAdvies {id} has no id or learnerId, so no ROD exchange is requested.',
 				['id' => $schoolAdviesId]
 			);
 			return;
 		}
 
-		$job = $this->buildRodJobPayload(
-			learnerId: $learnerId,
-			schoolAdviesId: $schoolAdviesId,
-			tenantId: $tenantId
-		);
-
-		$jobId = $this->persistRodJob(job: $job, schoolAdviesId: $schoolAdviesId);
-
-		if ($jobId === null) {
-			return;
-		}
-
-		$this->saveSchoolAdviesFields(
-			schoolAdviesId: $schoolAdviesId,
-			fields: ['dataExchangeJobId' => $jobId]
-		);
-
-	}//end queueRodJob()
-
-	/**
-	 * Build the DataExchangeJob payload array for the ROD schooladvies delivery.
-	 *
-	 * @param string $learnerId NC user ID of the learner.
-	 * @param string $schoolAdviesId UUID of the SchoolAdvies being sent.
-	 * @param string $tenantId Tenant UUID.
-	 *
-	 * @return array<string,mixed>
-	 */
-	private function buildRodJobPayload(string $learnerId, string $schoolAdviesId, string $tenantId): array {
-		return [
-			'direction' => 'export',
-			'target' => self::ROD_TARGET,
-			'mappingProfileId' => null,
-			'scope' => [
-				'schema' => self::SCHOOL_ADVIES_SCHEMA,
-				'filters' => [
-					'learnerId' => $learnerId,
-					'schoolAdviesId' => $schoolAdviesId,
-				],
-				'cohortId' => null,
-				'period' => null,
-			],
-			'requestedBy' => 'system',
-			'requestedAt' => date('c'),
-			'lifecycle' => 'queued',
-			'tenant_id' => $tenantId,
-		];
-
-	}//end buildRodJobPayload()
-
-	/**
-	 * Save the DataExchangeJob and return its UUID, logging and returning null
-	 * on any failure (save failure or a saved row with no resolvable id).
-	 *
-	 * @param array<string,mixed> $job The job payload to save.
-	 * @param string $schoolAdviesId UUID of the originating SchoolAdvies (for logging).
-	 *
-	 * @return string|null UUID of the saved job, or null on failure.
-	 */
-	private function persistRodJob(array $job, string $schoolAdviesId): ?string {
-		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::JOB_SCHEMA,
-			object: $job
-		);
-
-		$savedJob = $saved->jsonSerialize();
-
-		$jobId = $savedJob['id'] ?? ($savedJob['uuid'] ?? null);
-
-		if (is_string($jobId) === false || $jobId === '') {
-			$this->logger->error(
-				'[SchoolAdviesSendToRodHandler] bron-rod DataExchangeJob saved but returned no id for SchoolAdvies {id}.',
-				['id' => $schoolAdviesId]
-			);
-			return null;
-		}
-
-		return $jobId;
-	}//end persistRodJob()
-
-	/**
-	 * Persist updated fields on the SchoolAdvies without triggering a lifecycle
-	 * event loop (mirrors SupportRequestSubmitHandler::saveSupportRequestFields()).
-	 *
-	 * @param string $schoolAdviesId UUID of the SchoolAdvies.
-	 * @param array<string,mixed> $fields Fields to update.
-	 *
-	 * @return void
-	 */
-	private function saveSchoolAdviesFields(string $schoolAdviesId, array $fields): void {
-		$existing = $this->objectService->findAll(
-			[
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
+		try {
+			$jobId = $this->integriq->requestJob(
+				target: self::ROD_TARGET,
+				direction: 'export',
+				ownerRef: self::SCHOOL_ADVIES_SCHEMA . '/' . $schoolAdviesId,
+				scope: [
 					'schema' => self::SCHOOL_ADVIES_SCHEMA,
-					'id' => $schoolAdviesId,
+					'recordIds' => [$schoolAdviesId],
+					'tenantId' => (string)($schoolAdvies['tenant_id'] ?? ''),
+					'berichtsoort' => 'schooladvies',
 				],
-				'limit' => 1,
-			]
-		);
-
-		if (empty($existing) === true) {
+				mappingSlug: ExchangeDisclosureInterface::ROD_SCHOOL_ADVICE_MAPPING,
+				requestedBy: 'system',
+				name: 'ROD schooladvies'
+			);
+		} catch (Throwable $exception) {
 			$this->logger->warning(
-				'[SchoolAdviesSendToRodHandler] SchoolAdvies {id} not found for field update.',
-				['id' => $schoolAdviesId]
+				'[SchoolAdviesSendToRodHandler] No ROD exchange for SchoolAdvies {id}: {msg}',
+				['id' => $schoolAdviesId, 'msg' => $exception->getMessage()]
 			);
 			return;
 		}
-
-		$current = $existing[0];
-		if (is_array($existing[0]) === false) {
-			$current = $existing[0]->jsonSerialize();
-		}
-
-		$updated = array_merge($current, $fields);
 
 		$this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: self::SCHOOL_ADVIES_SCHEMA,
-			object: $updated
+			object: array_merge($schoolAdvies, ['dataExchangeJobId' => $jobId]),
+			uuid: $schoolAdviesId
 		);
 
-	}//end saveSchoolAdviesFields()
+	}//end requestRodJob()
 }//end class

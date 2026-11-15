@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/segment-example-datasets-he/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
  */
 
 declare(strict_types=1);
@@ -32,6 +32,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Settings;
 
 use OCA\Learniq\Grading\GradeAggregationEngine;
+use OCA\Learniq\Service\ExampleSetPreparation;
+use OCA\Learniq\Service\ExampleSetSources;
 use OCA\Learniq\Grading\GradePassEvaluator;
 use OCA\Learniq\Service\DemoDataService;
 use OCA\Learniq\Service\SeedProfileService;
@@ -146,10 +148,10 @@ class HigherEducationExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-he/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
 	 */
 	public function testTheInstitutionHasItsPromisedShape(): void {
-		self::assertSame('00X4', self::find(schema: 'school', field: 'name', value: 'Voorbeeldhogeschool Esdoornstad')['brin']);
+		self::assertSame(expected: '00X4', actual: self::find(schema: 'school', field: 'name', value: 'Hogeschool Zuiddrecht')['brin']);
 		$faculties = array_column(self::of(schema: 'vestiging'), 'name');
 		self::assertContains('Faculteit Gezondheid en Welzijn, Campus Zuid', $faculties);
 		self::assertContains('Faculteit Techniek en ICT, Campus Noord', $faculties);
@@ -218,7 +220,7 @@ class HigherEducationExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-he/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
 	 */
 	public function testEveryFinalGradeIsWhatTheEngineComputes(): void {
 		$engine = new GradeAggregationEngine();
@@ -251,7 +253,7 @@ class HigherEducationExampleSetTest extends TestCase {
 			self::assertEqualsWithDelta($value, $final['value'], 0.00001, $final['slug']);
 			self::assertEquals($breakdown, $final['breakdown'], $final['slug']);
 
-			$passed = $pass->evaluatePassed($plan['formula'], $value, $rows, $plan['passRules'], (float)$scales[$plan['gradeScaleId']]['passThreshold']);
+			$passed = $pass->evaluatePassed($plan['formula'], $value, $rows, $plan['passRules'], (float)$scales[$plan['gradeScaleId']]['passThreshold'], $engine->indexComponents($plan));
 			self::assertSame($passed, $final['passed'], $final['slug']);
 
 			$expected = 'failed';
@@ -283,7 +285,7 @@ class HigherEducationExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-he/specs/example-sets/spec.md#requirement-the-binding-study-advice-follows-the-grades
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-binding-study-advice-follows-the-grades
 	 */
 	public function testTheBindingStudyAdviceCountsThePassedCredits(): void {
 		$courses  = self::by(rows: self::of(schema: 'course'), field: 'uuid');
@@ -334,7 +336,7 @@ class HigherEducationExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-he/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
 	 */
 	public function testEveryMarkBelongsToTheStudentsOwnWorkgroup(): void {
 		$sessions = self::by(rows: self::of(schema: 'session'), field: 'uuid');
@@ -375,7 +377,7 @@ class HigherEducationExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-he/specs/example-sets/spec.md#requirement-the-item-bank-exams-agree-with-their-statistics
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-item-bank-exams-agree-with-their-statistics
 	 */
 	public function testTheItemBankExamsAgreeWithTheirStatistics(): void {
 		$items   = self::by(rows: self::of(schema: 'item'), field: 'uuid');
@@ -456,7 +458,7 @@ class HigherEducationExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-he/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
 	 */
 	public function testPeerReviewsNeverReviewTheirOwnGroup(): void {
 		$submissions = self::by(rows: self::of(schema: 'submission'), field: 'uuid');
@@ -493,7 +495,7 @@ class HigherEducationExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-he/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
 	 */
 	public function testEveryInternshipPortfolioIsGradedAndShared(): void {
 		$entries   = self::by(rows: self::of(schema: 'grade-entry'), field: 'uuid');
@@ -525,7 +527,7 @@ class HigherEducationExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-he/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-higher-education-set-is-one-consistent-institution
 	 */
 	public function testExamBoardCasesAndExportsLeaveATrail(): void {
 		$entries  = self::by(rows: self::of(schema: 'grade-entry'), field: 'uuid');
@@ -579,14 +581,28 @@ class HigherEducationExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-he/specs/example-sets/spec.md#requirement-the-higher-education-set-loads-and-removes-cleanly
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-higher-education-set-loads-and-removes-cleanly
 	 */
 	public function testTheServiceOffersAndRemovesExactlyThisSet(): void {
 		$appManager = $this->createMock(IAppManager::class);
 		$appManager->method('getAppPath')->willReturn(dirname(__DIR__, 3));
 		$demo = $this->createMock(DemoDataService::class);
 		$demo->method('listChoices')->willReturn([]);
-		$service = new SeedProfileService($appManager, $this->createMock(ContainerInterface::class), $this->createMock(LoggerInterface::class), $demo);
+		$service = new SeedProfileService(
+			sources: new ExampleSetSources(
+				appManager: $appManager,
+				demoData: $demo,
+				loadedSets: $this->createMock(\OCA\Learniq\Service\LoadedExampleSets::class)
+			),
+			preparation: new ExampleSetPreparation(
+				sharedCodes: $this->createMock(\OCA\Learniq\Service\SharedCodeFilter::class),
+				dates: $this->createMock(\OCA\Learniq\Service\ExampleSetDates::class),
+				organisation: $this->createMock(\OCA\Learniq\Service\ExampleSetOrganisation::class),
+				examplePortals: $this->createMock(\OCA\Learniq\Portal\ExamplePortalProvisioner::class)
+			),
+			container: $this->createMock(ContainerInterface::class),
+			logger: $this->createMock(LoggerInterface::class)
+		);
 
 		$offered = array_values(array_filter($service->listChoices(), static fn (array $c): bool => $c['id'] === 'he'))[0];
 		self::of(schema: 'school');
@@ -605,12 +621,54 @@ class HigherEducationExampleSetTest extends TestCase {
 	}//end testTheServiceOffersAndRemovesExactlyThisSet()
 
 	/**
+	 * LqBsaBesluit and LqStudievoortgang draw Hogeschool Zuiddrecht, the
+	 * negative decision of Femke de Boer and the students flagged with her at
+	 * the interim check; the set carries those names on the same user ids.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/example-sets/spec.md
+	 */
+	public function testTheSetCarriesTheNamesTheBoardsDraw(): void {
+		$school = self::of(schema: 'school')[0];
+		self::assertSame(expected: 'Hogeschool Zuiddrecht', actual: $school['name']);
+		foreach (self::of(schema: 'vestiging') as $faculty) {
+			self::assertSame(expected: 'Zuiddrecht', actual: $faculty['city']);
+		}
+
+		$profiles = self::by(rows: self::of(schema: 'learner-profile'), field: 'ncUserId');
+		$expected = [
+			'he-student-008' => ['Femke', 'de Boer'],
+			'he-student-004' => ['Lucas', 'Peters'],
+			'he-student-006' => ['Ravi', 'Doekhie'],
+			'he-student-007' => ['Sara', 'El Khatib'],
+			'he-student-017' => ['Zoë', 'Vermeulen'],
+			'he-student-022' => ['Milan', 'de Jong'],
+		];
+		$flags    = self::by(rows: self::of(schema: 'bsa-progress-flag'), field: 'learnerId');
+		foreach ($expected as $userId => [$given, $family]) {
+			self::assertSame(
+				expected: [$given, $family],
+				actual: [$profiles[$userId]['givenName'], $profiles[$userId]['familyName']],
+				message: $userId
+			);
+			self::assertArrayHasKey(key: $userId, array: $flags, message: $userId . ' is flagged at the interim check');
+		}
+
+		self::assertSame(expected: 'resolved', actual: $flags['he-student-022']['lifecycle']);
+
+		$decision = self::find(schema: 'bsa-decision', field: 'uuid', value: 'ee04002e-0000-4000-8000-000000000007');
+		self::assertSame(expected: 'he-student-008', actual: $decision['learnerId']);
+		self::assertSame(expected: 'negative', actual: $decision['decisionType']);
+	}//end testTheSetCarriesTheNamesTheBoardsDraw()
+
+	/**
 	 * The file is what the generator produces, so nobody edits the JSON by
 	 * hand and the rules in scripts/example-sets/he.py stay the truth.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-he/specs/example-sets/spec.md#scenario-the-file-is-reproducible
+	 * @spec openspec/specs/example-sets/spec.md#scenario-the-file-is-reproducible
 	 */
 	public function testTheFileIsWhatTheGeneratorProduces(): void {
 		$python = trim((string)shell_exec('command -v python3 2>/dev/null'));
