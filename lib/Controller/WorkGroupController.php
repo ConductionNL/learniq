@@ -30,11 +30,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\WorkGroupMembershipServiceInterface;
+use OCA\Learniq\Kernel\Contracts\WorkGroupMessagesInterface;
 use OCA\Learniq\Service\Portal\PortalLearner;
 use OCA\Learniq\Service\Portal\PortalOutcome;
-use OCA\Learniq\Service\WorkGroup\WorkGroupMembershipService;
-use OCA\Learniq\Service\WorkGroup\WorkGroupMessages;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -54,18 +54,18 @@ class WorkGroupController extends Controller {
 	 *
 	 * @param IRequest                   $request     The request.
 	 * @param IUserSession               $userSession The signed-in user.
-	 * @param WorkGroupMembershipService $memberships The overview and the join, move and leave rules.
-	 * @param WorkGroupMessages          $messages    Plain refusal reasons.
+	 * @param WorkGroupMembershipServiceInterface $memberships The overview and the join, move and leave rules.
+	 * @param WorkGroupMessagesInterface          $messages    Plain refusal reasons.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
-		private readonly WorkGroupMembershipService $memberships,
-		private readonly WorkGroupMessages $messages,
+		private readonly WorkGroupMembershipServiceInterface $memberships,
+		private readonly WorkGroupMessagesInterface $messages,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

@@ -31,7 +31,8 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
+use OCA\Learniq\Kernel\Contracts\ElectiveSlotServiceInterface;
+use OCA\Learniq\Kernel\Contracts\TimetableSourceResolverInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use RuntimeException;
 use Throwable;
@@ -39,7 +40,7 @@ use Throwable;
 /**
  * Weekly slots of courses and of the caller's core lessons.
  */
-class ElectiveSlotService {
+class ElectiveSlotService implements ElectiveSlotServiceInterface {
 	/**
 	 * Days ahead the slots are read from.
 	 *
@@ -48,22 +49,15 @@ class ElectiveSlotService {
 	private const DAYS_AHEAD = 28;
 
 	/**
-	 * Most courses asked for at once.
-	 *
-	 * @var int
-	 */
-	public const MAX_COURSES = 20;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService            $objectService OR object service; a course is read with RBAC on first.
-	 * @param TimetableSourceResolver  $sources       Where sessions are read from.
+	 * @param TimetableSourceResolverInterface  $sources       Where sessions are read from.
 	 * @param PersonalTimetableService $timetable     The caller's own lessons.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly TimetableSourceResolver $sources,
+		private readonly TimetableSourceResolverInterface $sources,
 		private readonly PersonalTimetableService $timetable,
 	) {
 	}//end __construct()
@@ -73,11 +67,9 @@ class ElectiveSlotService {
 	 *
 	 * A course the caller cannot read is left out, and none of its lessons is read.
 	 *
-	 * @param string            $uid       The caller.
-	 * @param array<int,string> $courseIds The electives.
-	 * @param bool              $withCore  Whether to add the caller's own other lessons.
-	 * @param DateTimeZone      $zone      The reader's time zone.
-	 * @param int               $now       Now (unix seconds).
+	 * @param string                                                                          $uid   The caller.
+	 * @param array{courseIds: array<int,string>, withCore: bool, zone: DateTimeZone, now: int} $query The electives, whether to add the
+	 *     caller's own other lessons, the reader's time zone and now (unix seconds).
 	 *
 	 * @return array{courses: array<string,array<int,array<string,mixed>>>, core: array<int,array<string,mixed>>}
 	 *
@@ -85,36 +77,71 @@ class ElectiveSlotService {
 	 *
 	 * @spec openspec/changes/timetabling-student-choice-placement/specs/timetable-student-choice/spec.md#requirement-clash-warning-when-choosing
 	 */
-	public function slots(string $uid, array $courseIds, bool $withCore, DateTimeZone $zone, int $now): array {
-		$from = gmdate(DATE_ATOM, $now);
-		$to = gmdate(DATE_ATOM, ($now + (self::DAYS_AHEAD * 86400)));
-
-		$readable = array_values(array_filter(array_unique($courseIds), fn (string $id): bool => $this->canReadCourse(courseId: $id)));
-		$courses = array_fill_keys($readable, []);
-		if ($readable !== []) {
-			$sessions = $this->sources->current()->sessionsForCourses(courseIds: $readable, from: $from, to: $to);
-			foreach ($sessions as $session) {
-				$courseId = (string)($session['courseId'] ?? '');
-				if (isset($courses[$courseId]) === true && $this->inWindow(session: $session, from: $now, to: ($now + (self::DAYS_AHEAD * 86400))) === true) {
-					$courses[$courseId][] = $session;
-				}
-			}
-		}
+	public function slots(string $uid, array $query): array {
+		$window = ['from' => $query['now'], 'to' => ($query['now'] + (self::DAYS_AHEAD * 86400))];
+		$courses = $this->courseSessions(courseIds: $query['courseIds'], window: $window);
 
 		$core = [];
-		if ($withCore === true) {
-			foreach ($this->timetable->forUser(uid: $uid, windowFrom: $from, windowTo: $to)['sessions'] as $session) {
-				if (isset($courses[(string)($session['courseId'] ?? '')]) === false && ($session['lifecycle'] ?? '') !== 'cancelled') {
-					$core[] = $session;
-				}
-			}
+		if ($query['withCore'] === true) {
+			$core = $this->coreSessions(uid: $uid, scope: ['courses' => $courses, 'window' => $window]);
 		}
 
 		return [
-			'courses' => array_map(fn (array $list): array => $this->toSlots(sessions: $list, zone: $zone), $courses),
-			'core' => $this->toSlots(sessions: $core, zone: $zone),
+			'courses' => array_map(fn (array $list): array => $this->toSlots(sessions: $list, zone: $query['zone']), $courses),
+			'core' => $this->toSlots(sessions: $core, zone: $query['zone']),
 		];
 	}//end slots()
+
+	/**
+	 * The sessions of each readable course inside the window, by course id.
+	 *
+	 * @param array<int,string>          $courseIds The electives.
+	 * @param array{from: int, to: int} $window    The window (unix seconds).
+	 *
+	 * @return array<string,array<int,array<string,mixed>>>
+	 */
+	private function courseSessions(array $courseIds, array $window): array {
+		$readable = array_values(array_filter(array_unique($courseIds), fn (string $id): bool => $this->canReadCourse(courseId: $id)));
+		$courses = array_fill_keys($readable, []);
+		if ($readable === []) {
+			return $courses;
+		}
+
+		$sessions = $this->sources->current()->sessionsForCourses(
+			courseIds: $readable,
+			from: gmdate(DATE_ATOM, $window['from']),
+			to: gmdate(DATE_ATOM, $window['to'])
+		);
+		foreach ($sessions as $session) {
+			$courseId = (string)($session['courseId'] ?? '');
+			if (isset($courses[$courseId]) === true && $this->inWindow(session: $session, window: $window) === true) {
+				$courses[$courseId][] = $session;
+			}
+		}
+
+		return $courses;
+	}//end courseSessions()
+
+	/**
+	 * The caller's own lessons in the window that are not one of the asked courses and not cancelled.
+	 *
+	 * @param string                                                                              $uid   The caller.
+	 * @param array{courses: array<string,array<int,mixed>>, window: array{from: int, to: int}} $scope The asked courses by id and the window.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function coreSessions(string $uid, array $scope): array {
+		$window = $scope['window'];
+		$core = [];
+		$own = $this->timetable->forUser(uid: $uid, windowFrom: gmdate(DATE_ATOM, $window['from']), windowTo: gmdate(DATE_ATOM, $window['to']));
+		foreach ($own['sessions'] as $session) {
+			if (isset($scope['courses'][(string)($session['courseId'] ?? '')]) === false && ($session['lifecycle'] ?? '') !== 'cancelled') {
+				$core[] = $session;
+			}
+		}
+
+		return $core;
+	}//end coreSessions()
 
 	/**
 	 * Whether the caller can read a course, through OpenRegister RBAC; fails closed.
@@ -138,15 +165,14 @@ class ElectiveSlotService {
 	/**
 	 * Whether a session starts inside the window.
 	 *
-	 * @param array<string,mixed> $session The session.
-	 * @param int                 $from    Window start (unix seconds).
-	 * @param int                 $to      Window end (unix seconds).
+	 * @param array<string,mixed>       $session The session.
+	 * @param array{from: int, to: int} $window  The window (unix seconds).
 	 *
 	 * @return bool
 	 */
-	private function inWindow(array $session, int $from, int $to): bool {
+	private function inWindow(array $session, array $window): bool {
 		$start = strtotime((string)($session['startsAt'] ?? ''));
-		return $start !== false && $start >= $from && $start < $to;
+		return $start !== false && $start >= $window['from'] && $start < $window['to'];
 	}//end inWindow()
 
 	/**

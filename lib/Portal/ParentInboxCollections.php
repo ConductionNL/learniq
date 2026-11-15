@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
  */
 
 declare(strict_types=1);
@@ -31,11 +31,28 @@ namespace OCA\Learniq\Portal;
 /**
  * The guardian's inbox collections.
  *
- * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
  */
 class ParentInboxCollections {
 
 	private const REGISTER = 'learniq';
+
+	private const PARENT_INBOX_FIELDS = [
+		'learnerRef',
+		'event',
+		'subject',
+		'visibleFrom',
+	];
+
+	private const PARENT_INBOX_MESSAGE_FIELDS = [
+		'subject' => 'subject',
+		'receivedAt' => 'visibleFrom',
+	];
+
+	private const PARENT_GRADE_INBOX_MESSAGE_FIELDS = [
+		'subject' => 'courseName',
+		'receivedAt' => 'visibleFrom',
+	];
 
 	/**
 	 * Both inbox collections, report cards first.
@@ -44,7 +61,7 @@ class ParentInboxCollections {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
 	 */
 	public function collections(array $childJoin): array {
 		return [$this->reportCardInbox(childJoin: $childJoin), $this->gradeInbox(childJoin: $childJoin)];
@@ -67,7 +84,7 @@ class ParentInboxCollections {
 	 *
 	 * @return array<string, mixed> The collection.
 	 *
-	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-school-notices-about-a-child-reach-the-guardians-inbox
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-school-notices-about-a-child-reach-the-guardians-inbox
 	 */
 	private function reportCardInbox(array $childJoin): array {
 		return [
@@ -82,16 +99,8 @@ class ParentInboxCollections {
 			'label' => 'Messages from school',
 			'listable' => true,
 			'minTrust' => 'substantial',
-			'fields' => [
-				'learnerRef',
-				'event',
-				'subject',
-				'visibleFrom',
-			],
-			'messageFields' => [
-				'subject' => 'subject',
-				'receivedAt' => 'visibleFrom',
-			],
+			'fields' => self::PARENT_INBOX_FIELDS,
+			'messageFields' => self::PARENT_INBOX_MESSAGE_FIELDS,
 			// A notice waits until its moment has come (lane L2, portaliq #1198).
 			'visibleFromField' => 'visibleFrom',
 		];
@@ -108,7 +117,7 @@ class ParentInboxCollections {
 	 *
 	 * @return array<string, mixed> The collection.
 	 *
-	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
 	 */
 	private function gradeInbox(array $childJoin): array {
 		return [
@@ -124,10 +133,7 @@ class ParentInboxCollections {
 			'listable' => true,
 			'minTrust' => 'substantial',
 			'fields' => ['learnerRef', 'event', 'courseName', 'visibleFrom'],
-			'messageFields' => [
-				'subject' => 'courseName',
-				'receivedAt' => 'visibleFrom',
-			],
+			'messageFields' => self::PARENT_GRADE_INBOX_MESSAGE_FIELDS,
 			'visibleFromField' => 'visibleFrom',
 		];
 

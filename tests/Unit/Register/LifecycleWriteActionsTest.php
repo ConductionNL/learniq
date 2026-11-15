@@ -45,7 +45,10 @@ class LifecycleWriteActionsTest extends TestCase {
 			'Attestation.sign' => [
 				'Attestation',
 				'sign',
-				['OCA\\Learniq\\Lifecycle\\Action\\TenantSignatureAction' => []],
+				[
+					'OCA\\Learniq\\Lifecycle\\Action\\StampTransitionTimeAction' => ['timeField' => 'signedAt'],
+					'OCA\\Learniq\\Lifecycle\\Action\\TenantSignatureAction' => [],
+				],
 				[],
 			],
 			'BsaWarning.issue' => [

@@ -41,6 +41,7 @@ namespace OCA\Learniq\Service\Portal;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\PortalEmployerBookingsInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -50,7 +51,7 @@ use Throwable;
  *
  * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
  */
-class PortalEmployerBookings {
+class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 
 	private const REGISTER = 'learniq';
 
@@ -105,7 +106,7 @@ class PortalEmployerBookings {
 					return new PortalOutcome(status: 404, body: ['error' => 'edition_not_bookable'], reason: 'edition-not-bookable');
 				}
 
-				$saved = $this->save(
+				$saved = $this->inCompanyOrganisation(company: $company, write: fn (): array => $this->save(
 					schema: 'course-booking',
 					row: [
 						'organisationRef' => $organisationRef,
@@ -119,7 +120,7 @@ class PortalEmployerBookings {
 						'lifecycle' => 'received',
 						'tenant_id' => ($company['tenant_id'] ?? null),
 					]
-				);
+				));
 				$booking = ($this->projection->project(bookingId: (string)($saved['id'] ?? '')) ?? $saved);
 
 				return new PortalOutcome(status: 201, body: $this->bookingBody(booking: $booking));
@@ -356,6 +357,29 @@ class PortalEmployerBookings {
 			return new PortalOutcome(status: 502, body: ['error' => 'downstream_error'], reason: 'downstream');
 		}
 	}//end guarded()
+
+	/**
+	 * Run a write acting for the company's OpenRegister organisation, so a
+	 * row created without a user gets the company's organisation and not the
+	 * default one. A company without an organisation writes as before.
+	 *
+	 * @param array<string, mixed>        $company The company row, with its `@self`.
+	 * @param callable(): array<string, mixed> $write   The write.
+	 *
+	 * @return array<string, mixed> What the write answered.
+	 *
+	 * @throws \Throwable When OpenRegister cannot be written, or the organisation does not exist.
+	 *
+	 * @spec openspec/changes/system-saved-bookings-get-the-employer-organisation/specs/portal-contribution/spec.md#requirement-a-booking-an-employer-makes-belongs-to-the-companys-organisation
+	 */
+	private function inCompanyOrganisation(array $company, callable $write): array {
+		$organisation = (string)($company['@self']['organisation'] ?? '');
+		if ($organisation === '') {
+			return $write();
+		}
+
+		return $this->objectService->runForOrganisation(organisationUuid: $organisation, operation: $write);
+	}//end inCompanyOrganisation()
 
 	/**
 	 * Store a row; answers it as stored.

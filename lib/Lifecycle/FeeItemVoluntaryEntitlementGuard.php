@@ -3,6 +3,9 @@
 /**
  * Learniq FeeItem Voluntary Entitlement Guard
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the Entitlement schema's `grant` transition (pending ->
  * active). This is the STRUCTURAL enforcement of the Wet vrijwillige
  * ouderbijdrage (in force since 1 August 2021, amending WPO/WVO): non-payment
@@ -41,8 +44,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

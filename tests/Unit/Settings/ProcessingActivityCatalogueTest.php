@@ -4,6 +4,9 @@
  * Unit tests for the AVG Art. 30 processing-activity catalogue annotations
  * added to `learniq_register.json` by the `avg-verwerkingsregister` change.
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Learniq is a THIN CONSUMER of OpenRegister's platform processing-activity
  * register (OR-PA-1..9): it declares its eleven processing activities (seven
  * from the original catalogue, the three pupil-dossier-notes activities —
@@ -32,8 +35,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @link https://conduction.nl
  *

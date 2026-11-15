@@ -573,7 +573,7 @@ A sign-up for a course on request MUST stay pending until a user in `instructors
 #### Scenario: A manager approves a request
 
 - **GIVEN** a pending sign-up by p.ganpat for "Leidinggeven aan hybride teams", with p.ganpat's manager as `managerId`
-- **WHEN** the manager opens "Sign-up requests" and chooses "Approve"
+- **WHEN** the manager opens "Aanmeldverzoeken", finds the request as "Aangevraagd" under "Wachten op besluit", and approves it from the row's "Acties" menu
 - **THEN** the enrolment is active and p.ganpat gets a notification that the sign-up was approved
 
 ### Requirement: A learner withdraws their own sign-up

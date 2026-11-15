@@ -68,6 +68,12 @@ final class OrEntityFactory {
 
 		$entity->setRegister($register);
 		$entity->setSchema($schema);
+		// The organisation is entity metadata in OpenRegister, served under `@self`.
+		if (is_string($data['@self']['organisation'] ?? null) === true) {
+			$entity->setOrganisation($data['@self']['organisation']);
+			unset($data['@self']);
+		}
+
 		$entity->setObject($data);
 
 		return $entity;

@@ -109,3 +109,17 @@ test('the endpoint answer reads as created, complete or empty', () => {
 	)
 	assert.equal(allocationOutcome(undefined).kind, 'empty')
 })
+
+test('unreadable counts read as zero, and no work processed is empty even with reviews created', () => {
+	assert.deepEqual(allocationOutcome({ result: { createdCount: 'x', submissionsProcessed: '3' } }), {
+		kind: 'complete',
+		created: 0,
+		processed: 3,
+	})
+	assert.deepEqual(allocationOutcome({ result: { createdCount: 4, submissionsProcessed: null } }), {
+		kind: 'empty',
+		created: 4,
+		processed: 0,
+	})
+	assert.deepEqual(allocationOutcome({ result: null }), { kind: 'empty', created: 0, processed: 0 })
+})

@@ -87,4 +87,53 @@ class LessonDraftBuilderTest extends TestCase {
 		$this->assertSame([], $builder->build(sections: [['heading' => '', 'paragraphs' => []]]));
 
 	}//end testHeadingOnlyAndEmptySections()
+	/**
+	 * Paragraphs join with a blank line, consecutive list items with a single
+	 * newline, and the heading leads when there is one.
+	 *
+	 * @return void
+	 */
+	public function testEveryJoinBetweenParagraphsAndListItems(): void {
+		$builder = new LessonDraftBuilder();
+
+		$this->assertSame("- a\n- b\n\nTekst\n\n- c", $builder->sectionMarkdown(heading: '', paragraphs: ['- a', '- b', 'Tekst', '- c']));
+		$this->assertSame("## Kop\n\nEen\n\nTwee", $builder->sectionMarkdown(heading: "\tKop ", paragraphs: ['Een', 'Twee']));
+		$this->assertSame("## Kop\n\n-geen lijst\n\n- wel", $builder->sectionMarkdown(heading: 'Kop', paragraphs: ['-geen lijst', '- wel']));
+		$this->assertSame('- x', $builder->sectionMarkdown(heading: '', paragraphs: ['', '', '- x']));
+	}//end testEveryJoinBetweenParagraphsAndListItems()
+
+	/**
+	 * Each section gives its text, then its images, then its trimmed notes;
+	 * every block gets a v4 uuid and its 1-based position first.
+	 *
+	 * @return void
+	 */
+	public function testBlocksPerSectionInOrderWithIds(): void {
+		$blocks = (new LessonDraftBuilder())->build(
+			sections: [
+				['heading' => '', 'paragraphs' => [], 'notes' => '  '],
+				['heading' => 'Twee', 'paragraphs' => [], 'notes' => ' Let op. '],
+				['heading' => '', 'paragraphs' => ['Drie']],
+			],
+			materialIds: [0 => ['m-0'], 2 => ['m-2a', 'm-2b']]
+		);
+
+		$this->assertSame(
+			[
+				['order' => 1, 'type' => 'media', 'materialId' => 'm-0'],
+				['order' => 2, 'type' => 'richText', 'text' => '## Twee'],
+				['order' => 3, 'type' => 'teacherNote', 'text' => 'Let op.'],
+				['order' => 4, 'type' => 'richText', 'text' => 'Drie'],
+				['order' => 5, 'type' => 'media', 'materialId' => 'm-2a'],
+				['order' => 6, 'type' => 'media', 'materialId' => 'm-2b'],
+			],
+			array_map(static fn (array $block): array => array_diff_key($block, ['blockId' => true]), $blocks)
+		);
+		foreach ($blocks as $block) {
+			$this->assertSame('blockId', array_key_first($block));
+			$this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $block['blockId']);
+		}
+
+		$this->assertCount(6, array_unique(array_column($blocks, 'blockId')));
+	}//end testBlocksPerSectionInOrderWithIds()
 }//end class

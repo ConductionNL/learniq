@@ -32,9 +32,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\StandbyCalendar;
-use OCA\Learniq\Service\SubstitutionCandidateService;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\StandbyCalendarInterface;
+use OCA\Learniq\Kernel\Contracts\SubstitutionCandidateServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -65,8 +65,8 @@ class StandbyController extends Controller {
 	 * @param IUserSession                 $userSession   The caller.
 	 * @param IGroupManager                $groupManager  Group checks.
 	 * @param ObjectService                $objectService Reads the lesson and its cohort.
-	 * @param SubstitutionCandidateService $candidates    Lists the candidates.
-	 * @param StandbyCalendar              $calendar      A teacher's standby blocks.
+	 * @param SubstitutionCandidateServiceInterface $candidates    Lists the candidates.
+	 * @param StandbyCalendarInterface              $calendar      A teacher's standby blocks.
 	 *
 	 * @return void
 	 */
@@ -75,10 +75,10 @@ class StandbyController extends Controller {
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
 		private readonly ObjectService $objectService,
-		private readonly SubstitutionCandidateService $candidates,
-		private readonly StandbyCalendar $calendar,
+		private readonly SubstitutionCandidateServiceInterface $candidates,
+		private readonly StandbyCalendarInterface $calendar,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

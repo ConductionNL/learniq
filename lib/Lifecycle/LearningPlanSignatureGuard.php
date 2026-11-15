@@ -315,6 +315,43 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 			return $signatures;
 		}
 
+		$authorisedParentIds = $this->authorisedParentIds(learnerId: $learnerId, tenantId: $tenantId);
+
+		$filtered = [];
+		foreach ($signatures as $sig) {
+			if (($sig['signerRole'] ?? '') !== 'parent') {
+				// Non-parent roles pass through — only 'parent' needs join-verification.
+				$filtered[] = $sig;
+				continue;
+			}
+
+			$signerId = $sig['signerId'] ?? ($sig['userId'] ?? '');
+			if (in_array($signerId, $authorisedParentIds, strict: true) === true) {
+				// Signer is a registered parent of this learner — accept.
+				$filtered[] = $sig;
+				continue;
+			}
+
+			$this->logger->warning(
+				'[LearningPlanSignatureGuard] Parent co-sign from {signer} rejected — not in LearnerProfile.parentIds for learner {learner}.',
+				['signer' => $signerId, 'learner' => $learnerId]
+			);
+		}//end foreach
+
+		return $filtered;
+	}//end filterVerifiedParentSignatures()
+
+	/**
+	 * The parentIds on the learner's LearnerProfile in the tenant, or [] when there is no profile.
+	 *
+	 * @param string $learnerId The learner's Nextcloud user id.
+	 * @param string $tenantId  The tenant, or '' for any.
+	 *
+	 * @return mixed
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-15
+	 */
+	private function authorisedParentIds(string $learnerId, string $tenantId): mixed {
 		// Load the LearnerProfile to resolve the authoritative parentIds.
 		// H1: scope to the same tenant.
 		// LearnerProfile keys the pupil on ncUserId; it has no learnerId, and a
@@ -350,29 +387,8 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 			$authorisedParentIds = $profile['parentIds'] ?? [];
 		}
 
-		$filtered = [];
-		foreach ($signatures as $sig) {
-			if (($sig['signerRole'] ?? '') !== 'parent') {
-				// Non-parent roles pass through — only 'parent' needs join-verification.
-				$filtered[] = $sig;
-				continue;
-			}
-
-			$signerId = $sig['signerId'] ?? ($sig['userId'] ?? '');
-			if (in_array($signerId, $authorisedParentIds, strict: true) === true) {
-				// Signer is a registered parent of this learner — accept.
-				$filtered[] = $sig;
-				continue;
-			}
-
-			$this->logger->warning(
-				'[LearningPlanSignatureGuard] Parent co-sign from {signer} rejected — not in LearnerProfile.parentIds for learner {learner}.',
-				['signer' => $signerId, 'learner' => $learnerId]
-			);
-		}//end foreach
-
-		return $filtered;
-	}//end filterVerifiedParentSignatures()
+		return $authorisedParentIds;
+	}//end authorisedParentIds()
 
 	/**
 	 * Index signatures by signerRole, keeping the highest assurance per role.

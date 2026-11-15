@@ -347,6 +347,48 @@ class LessonReleaseEvaluatorTest extends TestCase {
 	}//end testMetAssessmentMinScoreConditionIsAvailable()
 
 	/**
+	 * Each response adds its numeric autoScore, else its numeric manualScore,
+	 * else nothing; numeric strings count, other values and non-responses do not.
+	 *
+	 * @return void
+	 */
+	public function testTheScoreSumCountsOnlyNumericScores(): void {
+		$this->seed('exam', ['id' => 'assessment-a', 'title' => 'Quiz A']);
+		$this->seed(
+			'assessment-result',
+			[
+				'assessmentId' => 'assessment-a',
+				'learnerId' => 'learner-1',
+				'lifecycle' => 'graded',
+				'tenant_id' => 'tenant-a',
+				'responses' => [
+					['itemId' => 'i1', 'autoScore' => '7.5', 'manualScore' => 100],
+					['itemId' => 'i2', 'autoScore' => 'x', 'manualScore' => 2.5],
+					'not a response',
+					['itemId' => 'i3', 'manualScore' => 'abc'],
+				],
+			]
+		);
+		$evaluator = $this->makeEvaluator();
+		$available = static fn (float $minScore): bool => $evaluator->evaluate(
+			item: [
+				'id' => 'lesson-b',
+				'tenant_id' => 'tenant-a',
+				'releaseConditions' => [
+					['kind' => 'assessment-min-score', 'assessmentId' => 'assessment-a', 'minScore' => $minScore],
+				],
+			],
+			itemSchema: 'lesson',
+			learnerId: 'learner-1',
+			enrolment: []
+		)['available'];
+
+		// 7.5 + 2.5 = 10.
+		self::assertTrue($available(10.0));
+		self::assertFalse($available(10.01));
+	}//end testTheScoreSumCountsOnlyNumericScores()
+
+	/**
 	 * With multiple graded attempts, the BEST (highest) summed score is used.
 	 *
 	 * @return void

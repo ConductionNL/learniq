@@ -73,14 +73,14 @@ test('a year below its norm is marked with the hours it is short', () => {
 })
 
 test('setting a cell adds, changes and drops lines', () => {
-	let lines = setCell(plan.lines, 'en', 1, 'P2', '80')
-	assert.equal(cellHours(lines, 'en', 1, 'P2'), 80)
-	lines = setCell(lines, 'en', 1, 'P2', 0)
+	let lines = setCell(plan.lines, { courseId: 'en', programmeYear: 1, periodCode: 'P2', hours: '80' })
+	assert.equal(cellHours(lines, { courseId: 'en', programmeYear: 1, periodCode: 'P2' }), 80)
+	lines = setCell(lines, { courseId: 'en', programmeYear: 1, periodCode: 'P2', hours: 0 })
 	assert.equal(lines.length, 3)
 	// A line with other hours is kept at 0 contact hours.
-	lines = setCell(lines, 'bpv', 2, null, 0)
+	lines = setCell(lines, { courseId: 'bpv', programmeYear: 2, periodCode: null, hours: 0 })
 	assert.equal(lines.find((l) => l.courseId === 'bpv').otherHours, 400)
-	assert.equal(cellHours(lines, 'bpv', 2, null), 0)
+	assert.equal(cellHours(lines, { courseId: 'bpv', programmeYear: 2, periodCode: null }), 0)
 })
 
 test('the copy is a draft for the next intake with the same lines', () => {
@@ -111,4 +111,78 @@ test('the activities CSV quotes what needs quoting', () => {
 	)
 	assert.equal(csv.split('\n')[1], 'MV2A,2,"Nederlands, taal",P1,30,0,lesson,a b')
 	assert.ok(csv.startsWith('Group,programmeYear'))
+})
+
+test('a plan without a length has one year, and a period without a label shows its code', () => {
+	assert.deepEqual(planColumns({}), [
+		{ programmeYear: 1, periodCode: null, label: '' },
+	])
+	assert.deepEqual(
+		planColumns({ durationYears: '0', periodsPerYear: [{ periodCode: 'Q1' }] }),
+		[{ programmeYear: 1, periodCode: 'Q1', label: 'Q1' }],
+	)
+	assert.deepEqual(planColumns(null), [
+		{ programmeYear: 1, periodCode: null, label: '' },
+	])
+})
+
+test('a year without a norm, or with an empty one, is never short', () => {
+	const totals = yearTotals({
+		durationYears: 3,
+		lines: [
+			{ programmeYear: '1', contactHours: 'x', otherHours: 5 },
+			{ programmeYear: 3, contactHours: 900 },
+		],
+		yearNorms: [
+			{ programmeYear: 1, contactHours: null },
+			{ programmeYear: 3, contactHours: '800' },
+		],
+	})
+	assert.deepEqual(totals, [
+		{ programmeYear: 1, contactHours: 0, otherHours: 5, norm: null, shortBy: 0 },
+		{ programmeYear: 2, contactHours: 0, otherHours: 0, norm: null, shortBy: 0 },
+		{ programmeYear: 3, contactHours: 900, otherHours: 0, norm: 800, shortBy: 0 },
+	])
+	assert.deepEqual(yearTotals(null), [
+		{ programmeYear: 1, contactHours: 0, otherHours: 0, norm: null, shortBy: 0 },
+	])
+	assert.equal(
+		yearTotals({ yearNorms: [{ programmeYear: 1 }] })[0].norm,
+		null,
+	)
+})
+
+test('a new cell becomes a lesson line, an empty or negative cell adds nothing', () => {
+	assert.deepEqual(setCell(null, { courseId: 'wi', programmeYear: 2, periodCode: undefined, hours: '12' }), [
+		{
+			courseId: 'wi',
+			programmeYear: 2,
+			periodCode: null,
+			contactHours: 12,
+			otherHours: 0,
+			activityKind: 'lesson',
+		},
+	])
+	assert.deepEqual(setCell([], { courseId: 'wi', programmeYear: 2, periodCode: null, hours: '-4' }), [])
+	assert.deepEqual(setCell([], { courseId: 'wi', programmeYear: 2, periodCode: null, hours: 'abc' }), [])
+	const kept = setCell(plan.lines, { courseId: 'ne', programmeYear: 2, periodCode: 'P1', hours: -3 })
+	assert.deepEqual(kept[1], { ...plan.lines[1], contactHours: 0 })
+	assert.equal(kept[0], plan.lines[0])
+	const changed = setCell(plan.lines, { courseId: 'ne', programmeYear: 1, periodCode: 'P1', hours: 10 })
+	assert.deepEqual(changed.map((l) => l.contactHours), [10, 340, 300])
+	assert.equal(cellHours(undefined, { courseId: 'ne', programmeYear: 1, periodCode: 'P1' }), 0)
+	assert.equal(
+		cellHours(
+			[{ courseId: 'ne', programmeYear: '1', contactHours: 'x' }],
+			{ courseId: 'ne', programmeYear: 1, periodCode: undefined },
+		),
+		0,
+	)
+	assert.equal(
+		cellHours(
+			[{ courseId: 'ne', programmeYear: '1', contactHours: '7' }],
+			{ courseId: 'ne', programmeYear: 1, periodCode: null },
+		),
+		7,
+	)
 })

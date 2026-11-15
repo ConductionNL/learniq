@@ -13,9 +13,9 @@ The system MUST let hr and compliance-officers upload a CSV of existing certific
 
 #### Scenario: A row with an unknown learner
 
-- **GIVEN** a CSV row with an email no learner has
+- **GIVEN** a CSV row with an email nobody at the organisation has
 - **WHEN** it is uploaded
-- **THEN** the preview shows that row as refused with "Geen leerling met dit e-mailadres"
+- **THEN** the preview shows that row as refused with "Geen medewerker met dit e-mailadres"
 - **AND** the other rows are still written on confirm
 
 #### Scenario: The same file twice

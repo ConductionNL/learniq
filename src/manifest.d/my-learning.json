@@ -22,7 +22,7 @@
 			"id": "ManagerSignUpRequestsMenu",
 			"label": "Sign-up requests",
 			"icon": "AccountGroup",
-			"route": "Enrolments",
+			"route": "SignUpRequests",
 			"order": 29,
 			"visibleIf": {
 				"user.managesLearners": true,
@@ -36,17 +36,13 @@
 						"team-lead"
 					]
 				}
-			},
-			"query": {
-				"source": "self",
-				"lifecycle": "pending"
 			}
 		},
 		{
 			"id": "TeamLeadSignUpRequestsMenu",
 			"label": "Sign-up requests",
 			"icon": "AccountGroup",
-			"route": "Enrolments",
+			"route": "SignUpRequests",
 			"order": 30,
 			"visibleIf": {
 				"user.primaryRole": {
@@ -54,10 +50,6 @@
 						"team-lead"
 					]
 				}
-			},
-			"query": {
-				"source": "self",
-				"lifecycle": "pending"
 			}
 		},
 		{
@@ -184,6 +176,7 @@
 			"title": "Learning record exports",
 			"_note": "portable-learning-record: read-only history of LearningRecordExport rows — a learner-initiated, signed, dual-shaped bundle of the learner's own trajectory. No create/edit actions beyond the declarative generate lifecycle action.",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "learning-record-export",
 				"columns": [
@@ -286,6 +279,7 @@
 			"title": "Learning record shares",
 			"_note": "portable-learning-record: read-only history of LearningRecordShare rows — a time-boxed, revocable grant of one generated export to a named external recipient. No create/edit actions beyond the declarative grant/revoke lifecycle actions.",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "learning-record-share",
 				"columns": [
@@ -379,6 +373,7 @@
 			"title": "Learning record imports",
 			"_note": "portable-learning-record: read-only history of LearningRecordImport rows — a coordinator-facing, evidence-only report of an applicant-uploaded prior-institution bundle during Application intake. No create/edit actions beyond the declarative parse lifecycle action.",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "learning-record-import"
 			}

@@ -32,7 +32,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\OpenRegister\Service\ObjectService;
 use Throwable;
 
@@ -113,6 +113,25 @@ class AuditEntryAttribution {
 	 * @return array<string, array<string, mixed>> Objects by uuid.
 	 */
 	private function objectsFor(array $entries): array {
+		$objects = [];
+		foreach (self::uuidsBySchema(entries: $entries) as $schema => $uuids) {
+			foreach (array_chunk(array_keys($uuids), self::CHUNK) as $chunk) {
+				$objects = self::keyedByUuid(rows: $this->load(schema: (string)$schema, uuids: $chunk), objects: $objects);
+			}
+		}
+
+		return $objects;
+	}//end objectsFor()
+
+	/**
+	 * The object uuids the entries point at, per schema; an entry without
+	 * both a uuid and a schema points at nothing.
+	 *
+	 * @param array<int, array<string, mixed>> $entries The audit entries.
+	 *
+	 * @return array<string, array<string, true>> Uuids (as keys) per schema.
+	 */
+	private static function uuidsBySchema(array $entries): array {
 		$bySchema = [];
 		foreach ($entries as $entry) {
 			$uuid   = (string)($entry['objectUuid'] ?? '');
@@ -122,20 +141,27 @@ class AuditEntryAttribution {
 			}
 		}
 
-		$objects = [];
-		foreach ($bySchema as $schema => $uuids) {
-			foreach (array_chunk(array_keys($uuids), self::CHUNK) as $chunk) {
-				foreach ($this->load(schema: (string)$schema, uuids: $chunk) as $row) {
-					$uuid = (string)($row['id'] ?? ($row['@self']['id'] ?? ''));
-					if ($uuid !== '') {
-						$objects[$uuid] = $row;
-					}
-				}
+		return $bySchema;
+	}//end uuidsBySchema()
+
+	/**
+	 * The loaded objects so far, with one chunk's rows added under their uuid.
+	 *
+	 * @param array<int, array<string, mixed>>    $rows    One chunk's rows.
+	 * @param array<string, array<string, mixed>> $objects The objects loaded so far, by uuid.
+	 *
+	 * @return array<string, array<string, mixed>>
+	 */
+	private static function keyedByUuid(array $rows, array $objects): array {
+		foreach ($rows as $row) {
+			$uuid = (string)($row['id'] ?? ($row['@self']['id'] ?? ''));
+			if ($uuid !== '') {
+				$objects[$uuid] = $row;
 			}
 		}
 
 		return $objects;
-	}//end objectsFor()
+	}//end keyedByUuid()
 
 	/**
 	 * One chunk of objects of one schema in the learniq register.
@@ -153,7 +179,7 @@ class AuditEntryAttribution {
 		try {
 			$rows = $this->objectService->findAll(
 				config: [
-					'filters' => ['register' => Application::APP_ID, 'schema' => $schema],
+					'filters' => ['register' => AppIdentity::APP_ID, 'schema' => $schema],
 					'ids'     => $uuids,
 					'limit'   => count($uuids),
 				],
@@ -193,7 +219,23 @@ class AuditEntryAttribution {
 			return $object['regulationSlug'];
 		}
 
-		$changed = ($entry['changed'] ?? []);
+		$value = self::changedRegulation(changed: ($entry['changed'] ?? []));
+		if (is_string($value) === false) {
+			return '';
+		}
+
+		return $value;
+	}//end regulationOf()
+
+	/**
+	 * The regulation value an entry's `changed` record carries: its new value,
+	 * else its old one; `changed` may arrive as JSON.
+	 *
+	 * @param mixed $changed The entry's `changed` record.
+	 *
+	 * @return mixed The value, which the caller only uses when it is a string.
+	 */
+	private static function changedRegulation(mixed $changed): mixed {
 		if (is_string($changed) === true) {
 			$changed = (array)json_decode($changed, associative: true);
 		}
@@ -207,10 +249,6 @@ class AuditEntryAttribution {
 			$value = ($value['new'] ?? ($value['old'] ?? null));
 		}
 
-		if (is_string($value) === false) {
-			return '';
-		}
-
 		return $value;
-	}//end regulationOf()
+	}//end changedRegulation()
 }//end class

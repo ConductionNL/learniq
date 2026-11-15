@@ -29,8 +29,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\IntegriqExchangeClient;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\IntegriqExchangeClientInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\AppData\IAppDataFactory;
@@ -87,7 +87,7 @@ class MigrateDataExchangeToIntegriq implements IRepairStep {
 	 * Constructor.
 	 *
 	 * @param ObjectService            $objectService  OpenRegister object access.
-	 * @param IntegriqExchangeClient   $integriq       Hands rows to integriq.
+	 * @param IntegriqExchangeClientInterface   $integriq       Hands rows to integriq.
 	 * @param LegacyExchangeTranslator $translator     Turns old rows into integriq requests.
 	 * @param IAppDataFactory          $appDataFactory Learniq's app data folder.
 	 * @param IAppConfig               $appConfig      Remembers that the move ran.
@@ -96,7 +96,7 @@ class MigrateDataExchangeToIntegriq implements IRepairStep {
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly IntegriqExchangeClient $integriq,
+		private readonly IntegriqExchangeClientInterface $integriq,
 		private readonly LegacyExchangeTranslator $translator,
 		private readonly IAppDataFactory $appDataFactory,
 		private readonly IAppConfig $appConfig,
@@ -126,7 +126,7 @@ class MigrateDataExchangeToIntegriq implements IRepairStep {
 	 * @spec openspec/specs/data-exchange/spec.md#requirement-existing-exchange-rows-are-moved-to-integriq-or-archived
 	 */
 	public function run(IOutput $output): void {
-		if ($this->appConfig->getValueString(Application::APP_ID, self::MIGRATED_KEY, '') !== '') {
+		if ($this->appConfig->getValueString(AppIdentity::APP_ID, self::MIGRATED_KEY, '') !== '') {
 			$output->info('Learniq data exchange: already moved to integriq, nothing to do.');
 			return;
 		}
@@ -178,7 +178,7 @@ class MigrateDataExchangeToIntegriq implements IRepairStep {
 	 */
 	private function archive(array $rows, IOutput $output): void {
 		try {
-			$appData = $this->appDataFactory->get(Application::APP_ID);
+			$appData = $this->appDataFactory->get(AppIdentity::APP_ID);
 			try {
 				$folder = $appData->getFolder(self::FOLDER);
 			} catch (NotFoundException $exception) {
@@ -257,31 +257,58 @@ class MigrateDataExchangeToIntegriq implements IRepairStep {
 	private function migrateMappings(array $profiles): int {
 		$stored = 0;
 		foreach ($profiles as $profile) {
-			$name = (string)($profile['name'] ?? '');
-			if ($name === '' || isset(self::SEEDED_PROFILES[$name]) === true) {
-				continue;
-			}
-
-			$rules = $this->translator->rulesOf(profile: $profile);
-			if ($rules === []) {
-				continue;
-			}
-
-			try {
-				$this->integriq->requestMapping(
-					slug: $this->translator->slugOf(profile: $profile),
-					name: 'learniq: ' . $name,
-					description: 'Migrated from learniq DataMappingProfile "' . $name . '" (target ' . (string)($profile['target'] ?? '') . ').',
-					mapping: $rules
-				);
+			if ($this->migrateMapping(profile: $profile) === true) {
 				$stored++;
-			} catch (Throwable $exception) {
-				$this->logger->warning('[MigrateDataExchangeToIntegriq] mapping "' . $name . '" not moved: ' . $exception->getMessage());
 			}
 		}
 
 		return $stored;
 	}//end migrateMappings()
+
+	/**
+	 * Move one custom profile to integriq: a named, non-seeded profile with rules.
+	 *
+	 * @param array<string,mixed> $profile The DataMappingProfile.
+	 *
+	 * @return bool Whether integriq stored it.
+	 */
+	private function migrateMapping(array $profile): bool {
+		$name = (string)($profile['name'] ?? '');
+		if ($name === '' || isset(self::SEEDED_PROFILES[$name]) === true) {
+			return false;
+		}
+
+		$rules = $this->translator->rulesOf(profile: $profile);
+		if ($rules === []) {
+			return false;
+		}
+
+		return $this->sendMapping(profile: $profile, rules: $rules);
+	}//end migrateMapping()
+
+	/**
+	 * Ask integriq to store a profile's rules as a mapping; a refusal is logged.
+	 *
+	 * @param array<string,mixed> $profile The DataMappingProfile.
+	 * @param array<string,mixed> $rules   Its rules, translated.
+	 *
+	 * @return bool Whether integriq stored it.
+	 */
+	private function sendMapping(array $profile, array $rules): bool {
+		$name = (string)($profile['name'] ?? '');
+		try {
+			$this->integriq->requestMapping(
+				slug: $this->translator->slugOf(profile: $profile),
+				name: 'learniq: ' . $name,
+				description: 'Migrated from learniq DataMappingProfile "' . $name . '" (target ' . (string)($profile['target'] ?? '') . ').',
+				mapping: $rules
+			);
+			return true;
+		} catch (Throwable $exception) {
+			$this->logger->warning('[MigrateDataExchangeToIntegriq] mapping "' . $name . '" not moved: ' . $exception->getMessage());
+			return false;
+		}
+	}//end sendMapping()
 
 	/**
 	 * Point the rows that named the old job at its integriq job.
@@ -406,7 +433,7 @@ class MigrateDataExchangeToIntegriq implements IRepairStep {
 	 */
 	private function markMigrated(): void {
 		$this->appConfig->setValueString(
-			Application::APP_ID,
+			AppIdentity::APP_ID,
 			self::MIGRATED_KEY,
 			$this->timeFactory->getDateTime()->format(\DATE_ATOM)
 		);

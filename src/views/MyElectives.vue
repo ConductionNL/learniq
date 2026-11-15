@@ -8,8 +8,8 @@
  @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
 -->
 <template>
-	<div class="my-electives">
-		<h2>{{ t('learniq', 'Optional lessons') }}</h2>
+	<div class="my-electives lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Optional lessons')" />
 		<NcNoteCard v-if="error" type="error">
 			{{ error }}
 		</NcNoteCard>
@@ -19,8 +19,11 @@
 		<p v-else-if="offers.length === 0">
 			{{ t('learniq', 'There are no optional lessons for you right now.') }}
 		</p>
-		<section v-for="offer in offers" :key="offer.id" class="my-electives__offer">
-			<h3>{{ offer.name }}</h3>
+		<CnDetailCard
+			v-for="offer in offers"
+			:key="offer.id"
+			:title="offer.name"
+			class="my-electives__offer">
 			<p v-if="offer.description">
 				{{ offer.description }}
 			</p>
@@ -67,20 +70,28 @@
 					</NcButton>
 				</li>
 			</ul>
-		</section>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { translatePlural as n, translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcNoteCard } from '@nextcloud/vue'
+import {
+	lessonDateTime,
+	lessonReference,
+	refusalReason,
+} from '../utils/electiveLessons.js'
 
 export default {
 	name: 'MyElectives',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcButton,
 		NcNoteCard,
 	},
@@ -135,9 +146,7 @@ export default {
 				generateUrl('/apps/learniq/api/electives/{id}/sign-up', {
 					id: offer.id,
 				}),
-				lesson.sessionId
-					? { sessionId: lesson.sessionId }
-					: { timetableSessionRef: lesson.timetableSessionRef },
+				lessonReference(lesson),
 			)
 		},
 
@@ -202,15 +211,7 @@ export default {
 		 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
 		 */
 		formatDate(iso) {
-			const date = new Date(iso)
-			if (!iso || Number.isNaN(date.getTime())) return ''
-			return date.toLocaleString(undefined, {
-				weekday: 'short',
-				day: 'numeric',
-				month: 'short',
-				hour: '2-digit',
-				minute: '2-digit',
-			})
+			return lessonDateTime(iso)
 		},
 
 		/**
@@ -221,21 +222,13 @@ export default {
 		 * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-for-an-optional-lesson-inside-the-window
 		 */
 		reason(e) {
-			return (
-				e?.response?.data?.error
-				|| t('learniq', 'Something went wrong. Try again.')
-			)
+			return refusalReason(e, t)
 		},
 	},
 }
 </script>
 
 <style scoped>
-.my-electives {
-	padding: 16px;
-	max-width: 900px;
-}
-
 .my-electives__lessons {
 	display: flex;
 	flex-direction: column;

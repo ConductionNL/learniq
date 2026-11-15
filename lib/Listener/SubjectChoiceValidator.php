@@ -3,6 +3,9 @@
 /**
  * Learniq Subject Choice Validator
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * IEventListener for SubjectChoice lifecycle -> submitted (the OR
  * ObjectTransitionedEvent with register=learniq, schema=subject-choice,
  * to=submitted). Checks selectedElectiveCourseIds against the referenced
@@ -34,8 +37,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -47,8 +48,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -68,26 +70,29 @@ class SubjectChoiceValidator implements IEventListener {
 	private const CURRICULUM_PLAN_SCHEMA = 'curriculum-plan';
 
 	/**
-	 * SubjectChoice lifecycle states that occupy capacityByCourseId seats.
+	 * Holds a minor's own choice until a linked guardian consents.
 	 *
-	 * @var string[]
+	 * @var GuardianConsentHold|null
 	 */
-	private const OCCUPYING_STATES = ['approved', 'locked'];
+	private readonly ?GuardianConsentHold $consentHold;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param ObjectService $objectService OR object access service.
-	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ObjectService                   $objectService OR object access service.
+	 * @param LoggerInterface                 $logger        PSR logger.
+	 * @param ListenerSchemaResolverInterface $schemas       Resolves the transition event's register and schema ids to slugs.
+	 * @param GuardianConsentHold|null        $consentHold   Holds a minor's own choice until a linked guardian consents; null checks no consent.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
+		?GuardianConsentHold $consentHold=null,
 	) {
+		$this->consentHold = $consentHold;
 	}//end __construct()
 
 	/**
@@ -100,6 +105,11 @@ class SubjectChoiceValidator implements IEventListener {
 	 * @spec openspec/specs/school-structure/spec.md#requirement-a-submitted-subject-choice-is-validated-against-the-plan-s-elective-rules-not-persisted-unchecked
 	 */
 	public function handle(Event $event): void {
+		if ($event instanceof ObjectUpdatedEvent) {
+			$this->handleConsent(event: $event);
+			return;
+		}
+
 		if (($event instanceof ObjectTransitionedEvent) === false) {
 			return;
 		}
@@ -112,9 +122,69 @@ class SubjectChoiceValidator implements IEventListener {
 			return;
 		}
 
-		$this->validate(choice: $event->getObject()->jsonSerialize());
+		$choice = $event->getObject()->jsonSerialize();
+		if ($this->waitsForConsent(choice: $choice) === true) {
+			return;
+		}
+
+		$this->validate(choice: $choice);
 
 	}//end handle()
+
+	/**
+	 * A minor's submitted choice whose consent was just given is validated
+	 * now, once the consent is a linked guardian's.
+	 *
+	 * @param ObjectUpdatedEvent $event The update of a SubjectChoice.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/school-structure/spec.md#scenario-the-guardian-consents
+	 */
+	private function handleConsent(ObjectUpdatedEvent $event): void {
+		$entity = $event->getNewObject();
+		// The guard slug is '' for another app's object.
+		if ($this->consentHold === null || $this->schemas->guardSchemaSlug(entity: $entity) !== self::SUBJECT_CHOICE_SCHEMA) {
+			return;
+		}
+
+		$choice = $entity->jsonSerialize();
+		$old = ($event->getOldObject()?->jsonSerialize() ?? []);
+		if (($choice['lifecycle'] ?? null) !== 'submitted' || ($choice['guardianConsentGiven'] ?? false) !== true
+			|| ($old['guardianConsentGiven'] ?? false) === true
+		) {
+			return;
+		}
+
+		// An adult's choice was validated when it was submitted.
+		if ($this->consentHold->isMinor(object: $choice) === false || $this->waitsForConsent(choice: $choice) === true) {
+			return;
+		}
+
+		$this->validate(choice: $choice);
+	}//end handleConsent()
+
+	/**
+	 * Whether a minor's choice still waits for a linked guardian's consent; logged when it does.
+	 *
+	 * @param array<string,mixed> $choice The SubjectChoice.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/school-structure/spec.md#scenario-a-15-year-old-submits-their-own-choice
+	 */
+	private function waitsForConsent(array $choice): bool {
+		if ($this->consentHold === null || $this->consentHold->holds(object: $choice) === false) {
+			return false;
+		}
+
+		$this->logger->info(
+			'[SubjectChoiceValidator] SubjectChoice {id} waits for a guardian\'s consent.',
+			['id' => (string)($choice['id'] ?? ($choice['uuid'] ?? ''))]
+		);
+
+		return true;
+	}//end waitsForConsent()
 
 	/**
 	 * Validate a submitted SubjectChoice and write validated/needs-revision.
@@ -132,10 +202,7 @@ class SubjectChoiceValidator implements IEventListener {
 		$curriculumPlanId = (string)($choice['curriculumPlanId'] ?? '');
 		$tenantId = (string)($choice['tenant_id'] ?? '');
 
-		$selected = $choice['selectedElectiveCourseIds'] ?? [];
-		if (is_array($selected) === false) {
-			$selected = [];
-		}
+		$selected = $this->arrayOrEmpty(value: $choice['selectedElectiveCourseIds'] ?? []);
 
 		if ($choiceId === '' || $curriculumPlanId === '') {
 			$this->logger->warning('[SubjectChoiceValidator] SubjectChoice has no id or curriculumPlanId; skipping validation.');
@@ -143,10 +210,7 @@ class SubjectChoiceValidator implements IEventListener {
 		}
 
 		$plan = $this->fetchPlan(curriculumPlanId: $curriculumPlanId);
-		$rules = ($plan['electiveRules'] ?? null);
-		if (is_array($rules) === false) {
-			$rules = [];
-		}
+		$rules = $this->arrayOrEmpty(value: $plan['electiveRules'] ?? null);
 
 		$errors = array_merge(
 			$this->checkMinMax(rules: $rules, selected: $selected),
@@ -154,10 +218,12 @@ class SubjectChoiceValidator implements IEventListener {
 			$this->checkMutuallyExclusive(rules: $rules, selected: $selected),
 			$this->checkCapacity(
 				rules: $rules,
-				selected: $selected,
-				curriculumPlanId: $curriculumPlanId,
-				tenantId: $tenantId,
-				choiceId: (string)$choiceId
+				choice: [
+					'selected' => $selected,
+					'curriculumPlanId' => $curriculumPlanId,
+					'tenantId' => $tenantId,
+					'choiceId' => (string)$choiceId,
+				]
 			)
 		);
 
@@ -182,6 +248,23 @@ class SubjectChoiceValidator implements IEventListener {
 		);
 
 	}//end validate()
+
+	/**
+	 * The value when it is an array, otherwise an empty array.
+	 *
+	 * @param mixed $value The value read from an object.
+	 *
+	 * @return array<mixed>
+	 *
+	 * @spec openspec/specs/school-structure/spec.md#scenario-a-choice-exceeding-a-course-s-capacity-is-sent-back-for-revision
+	 */
+	private function arrayOrEmpty(mixed $value): array {
+		if (is_array($value) === true) {
+			return $value;
+		}
+
+		return [];
+	}//end arrayOrEmpty()
 
 	/**
 	 * MinElectives/maxElectives check.
@@ -224,18 +307,35 @@ class SubjectChoiceValidator implements IEventListener {
 		}
 
 		foreach ($combinations as $combination) {
-			if (is_array($combination) === false || count($combination) === 0) {
-				continue;
-			}
-
-			$missing = array_values(array_diff($combination, $selected));
-			if (count($missing) > 0) {
-				$errors[] = sprintf('Mandatory combination not fully selected: missing %s.', implode(', ', $missing));
+			$error = self::combinationError(combination: $combination, selected: $selected);
+			if ($error !== null) {
+				$errors[] = $error;
 			}
 		}
 
 		return $errors;
 	}//end checkMandatoryCombinations()
+
+	/**
+	 * What one mandatory combination misses, or null when it is selected in full or is no combination.
+	 *
+	 * @param mixed            $combination The named combination.
+	 * @param array<int,mixed> $selected    selectedElectiveCourseIds.
+	 *
+	 * @return string|null
+	 */
+	private static function combinationError(mixed $combination, array $selected): ?string {
+		if (is_array($combination) === false || count($combination) === 0) {
+			return null;
+		}
+
+		$missing = array_values(array_diff($combination, $selected));
+		if (count($missing) > 0) {
+			return sprintf('Mandatory combination not fully selected: missing %s.', implode(', ', $missing));
+		}
+
+		return null;
+	}//end combinationError()
 
 	/**
 	 * MutuallyExclusive check — at most one course per named set.
@@ -270,36 +370,48 @@ class SubjectChoiceValidator implements IEventListener {
 	 * CapacityByCourseId check — counts sibling approved/locked SubjectChoice rows.
 	 *
 	 * @param array<string,mixed> $rules electiveRules block.
-	 * @param array<int,mixed> $selected selectedElectiveCourseIds.
-	 * @param string $curriculumPlanId The governing CurriculumPlan UUID.
-	 * @param string $tenantId Tenant ID.
-	 * @param string $choiceId The SubjectChoice being validated (excluded from occupancy).
+	 * @param array{selected: array<int,mixed>, curriculumPlanId: string, tenantId: string, choiceId: string} $choice The
+	 *     selectedElectiveCourseIds, the governing CurriculumPlan UUID, the tenant and the SubjectChoice being validated (excluded from
+	 *     occupancy).
 	 *
 	 * @return string[]
 	 */
-	private function checkCapacity(array $rules, array $selected, string $curriculumPlanId, string $tenantId, string $choiceId): array {
+	private function checkCapacity(array $rules, array $choice): array {
+		$selected = $choice['selected'];
 		$errors = [];
 		$capacityByCourseId = $rules['capacityByCourseId'] ?? null;
 		if (is_array($capacityByCourseId) === false || count($capacityByCourseId) === 0) {
 			return $errors;
 		}
 
-		$siblings = $this->fetchOccupyingSiblings(curriculumPlanId: $curriculumPlanId, tenantId: $tenantId, excludeId: $choiceId);
-
-		foreach ($capacityByCourseId as $courseId => $limit) {
-			if (in_array($courseId, $selected, true) === false || is_int($limit) === false) {
-				continue;
-			}
-
-			$occupied = $this->countOccupied(siblings: $siblings, courseId: (string)$courseId);
-
-			if ($occupied >= $limit) {
+		$siblings = (new OccupyingSubjectChoices(objectService: $this->objectService))->forChoice(choice: $choice);
+		foreach (self::selectedLimits(capacityByCourseId: $capacityByCourseId, selected: $selected) as $courseId => $limit) {
+			if ($this->countOccupied(siblings: $siblings, courseId: (string)$courseId) >= $limit) {
 				$errors[] = sprintf('Capacity reached for course %s (limit %d).', $courseId, $limit);
 			}
 		}
 
 		return $errors;
 	}//end checkCapacity()
+
+	/**
+	 * The whole-number limits of the selected courses, in the rules' order.
+	 *
+	 * @param array<mixed,mixed> $capacityByCourseId The capacity rule.
+	 * @param array<int,mixed>   $selected           selectedElectiveCourseIds.
+	 *
+	 * @return array<mixed,int>
+	 */
+	private static function selectedLimits(array $capacityByCourseId, array $selected): array {
+		$limits = [];
+		foreach ($capacityByCourseId as $courseId => $limit) {
+			if (in_array($courseId, $selected, true) === true && is_int($limit) === true) {
+				$limits[$courseId] = $limit;
+			}
+		}
+
+		return $limits;
+	}//end selectedLimits()
 
 	/**
 	 * Count how many sibling SubjectChoice rows already occupy a seat on `$courseId`.
@@ -321,57 +433,6 @@ class SubjectChoiceValidator implements IEventListener {
 
 		return $occupied;
 	}//end countOccupied()
-
-	/**
-	 * Fetch sibling SubjectChoice rows in an occupying state for the same plan.
-	 *
-	 * @param string $curriculumPlanId Governing CurriculumPlan UUID.
-	 * @param string $tenantId Tenant ID.
-	 * @param string $excludeId The SubjectChoice id being validated, excluded from results.
-	 *
-	 * @return array<int,array<string,mixed>>
-	 */
-	private function fetchOccupyingSiblings(string $curriculumPlanId, string $tenantId, string $excludeId): array {
-		$siblings = [];
-
-		foreach (self::OCCUPYING_STATES as $lifecycle) {
-			$filters = [
-				'curriculumPlanId' => $curriculumPlanId,
-				'lifecycle' => $lifecycle,
-			];
-			if ($tenantId !== '') {
-				$filters['tenant_id'] = $tenantId;
-			}
-
-			$rows = $this->objectService->findAll(
-				[
-					'filters' => array_merge(
-						$filters,
-						[
-							'register' => self::LEARNIQ_REGISTER,
-							'schema' => self::SUBJECT_CHOICE_SCHEMA,
-						]
-					),
-					'limit' => 5000,
-				]
-			);
-
-			foreach ($rows as $row) {
-				if (is_array($row) === false) {
-					$row = $row->jsonSerialize();
-				}
-
-				$id = (string)($row['id'] ?? ($row['uuid'] ?? ''));
-				if ($id !== '' && $id === $excludeId) {
-					continue;
-				}
-
-				$siblings[] = $row;
-			}
-		}//end foreach
-
-		return $siblings;
-	}//end fetchOccupyingSiblings()
 
 	/**
 	 * Fetch the referenced CurriculumPlan, normalised to a plain array.

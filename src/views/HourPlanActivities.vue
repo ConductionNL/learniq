@@ -14,11 +14,9 @@
  @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 -->
 <template>
-	<div class="hour-plan-activities">
+	<div class="hour-plan-activities lq-board-page">
 		<header class="hour-plan-activities__header">
-			<h2 class="hour-plan-activities__title">
-				{{ t('learniq', 'Teaching activities') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Teaching activities')" />
 			<p class="hour-plan-activities__intro">
 				{{
 					t(
@@ -67,18 +65,16 @@
 					)
 				" />
 
-			<section
+			<CnDetailCard
 				v-for="group in groups"
 				:key="group.cohortId"
+				:title="
+					t('learniq', '{group}, year {n} of the programme', {
+						group: group.cohortName,
+						n: group.programmeYear,
+					})
+				"
 				class="hour-plan-activities__group">
-				<h3>
-					{{
-						t('learniq', '{group}, year {n} of the programme', {
-							group: group.cohortName,
-							n: group.programmeYear,
-						})
-					}}
-				</h3>
 				<table class="hour-plan-activities__table">
 					<thead>
 						<tr>
@@ -123,12 +119,13 @@
 						</tr>
 					</tbody>
 				</table>
-			</section>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import {
@@ -154,7 +151,7 @@ function schoolYearOf(date) {
 export default {
 	name: 'HourPlanActivities',
 
-	components: { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcSelect },
+	components: { CnDetailCard, CnPageHeader, NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcSelect },
 
 	data() {
 		return {
@@ -318,17 +315,6 @@ export default {
 </script>
 
 <style scoped>
-.hour-plan-activities {
-	padding: 16px;
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-}
-
-.hour-plan-activities__title {
-	margin: 0;
-}
-
 .hour-plan-activities__intro {
 	margin: 4px 0 0;
 	color: var(--color-text-maxcontrast);

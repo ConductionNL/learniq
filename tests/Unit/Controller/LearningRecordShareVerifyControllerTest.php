@@ -295,4 +295,126 @@ class LearningRecordShareVerifyControllerTest extends TestCase {
 		self::assertSame('not_found', $response->getData()['reason']);
 		self::assertSame(404, $response->getStatus());
 	}//end testThrowingObjectServiceIsDeniedRatherThanPropagated()
+
+	/**
+	 * Every refusal after the share is found, in check order, and the one
+	 * acceptance: each answers 200 with its reason, never a bundle, and only
+	 * the signature is checked with the export's own JWS, bundle and tenant.
+	 *
+	 * @return void
+	 */
+	public function testEveryRefusalReasonInCheckOrder(): void {
+		$export = [
+			'id' => 'e',
+			'learnerId' => 'anna',
+			'bundleRef' => '/b.json',
+			'bundleSignature' => 'h..s',
+			'tenant_id' => 't-1',
+		];
+		$good = ['lifecycle' => 'active', 'isExpired' => false, 'learningRecordExportId' => 'e'];
+		$cases = [
+			'revoked and expired'  => [['lifecycle' => 'revoked', 'isExpired' => true] + $good, $export, '{}', 'revoked'],
+			'expired'              => [['isExpired' => true] + $good, $export, '{}', 'expired'],
+			'expired as string'    => [['isExpired' => 'true'] + $good, $export, '{"x":1}', 'valid'],
+			'no lifecycle'         => [['lifecycle' => null] + $good, $export, '{"x":1}', 'valid'],
+			'no export id'         => [['learningRecordExportId' => ''] + $good, $export, '{}', 'export_not_found'],
+			'missing export id'    => [['learningRecordExportId' => null] + $good, $export, '{}', 'export_not_found'],
+			'unknown export'       => [['learningRecordExportId' => 'other'] + $good, $export, '{}', 'export_not_found'],
+			'no bundle ref'        => [$good, ['bundleRef' => ''] + $export, '{}', 'bundle_unreadable'],
+			'no owner'             => [$good, ['learnerId' => ''] + $export, '{}', 'bundle_unreadable'],
+			'not json'             => [$good, $export, 'nope', 'bundle_unreadable'],
+			'json scalar'          => [$good, $export, '42', 'bundle_unreadable'],
+			'no signature'         => [$good, ['bundleSignature' => ''] + $export, '{"x":1}', 'signature_invalid'],
+			'bad signature'        => [$good, ['bundleSignature' => 'bad'] + $export, '{"x":1}', 'signature_invalid'],
+		];
+
+		foreach ($cases as $name => [$share, $exportRow, $content, $reason]) {
+			$this->objectsBySchemaId = [
+				'learning-record-share:s' => ['id' => 's'] + array_filter($share, static fn ($value): bool => $value !== null),
+				'learning-record-export:e' => $exportRow,
+			];
+			$this->bundleFileContent = $content;
+			$signing = $this->createMock(LearningRecordExportSigningService::class);
+			$signing->method('verify')->willReturnCallback(
+				static fn (string $jws, array $bundle, string $tenantId): bool => $jws === 'h..s' && $bundle === ['x' => 1] && $tenantId === 't-1'
+			);
+			$controller = new LearningRecordShareVerifyController(
+				request: $this->createMock(IRequest::class),
+				objectService: $this->objectService,
+				signingService: $signing,
+				rootFolder: $this->rootFolderWith(content: $content),
+				throttler: $this->createMock(IThrottler::class),
+				logger: $this->createMock(LoggerInterface::class),
+			);
+
+			$response = $controller->verify('s');
+
+			self::assertSame(200, $response->getStatus(), $name);
+			if ($reason === 'valid') {
+				self::assertSame(['valid' => true, 'bundle' => ['x' => 1]], $response->getData(), $name);
+				continue;
+			}
+
+			self::assertSame(['valid' => false, 'reason' => $reason], $response->getData(), $name);
+		}
+	}//end testEveryRefusalReasonInCheckOrder()
+
+	/**
+	 * A bundle whose node is not a file, or whose folder throws, is unreadable.
+	 *
+	 * @return void
+	 */
+	public function testABundleThatIsNotAReadableFileIsUnreadable(): void {
+		$this->objectsBySchemaId = [
+			'learning-record-share:s' => ['id' => 's', 'lifecycle' => 'active', 'learningRecordExportId' => 'e'],
+			'learning-record-export:e' => ['id' => 'e', 'learnerId' => 'anna', 'bundleRef' => 'b.json', 'bundleSignature' => 'h..s'],
+		];
+		$notAFile = $this->createMock(Folder::class);
+		$notAFile->method('get')->willReturn($this->createMock(Folder::class));
+		$throwing = $this->createMock(Folder::class);
+		$throwing->method('get')->willThrowException(new \RuntimeException('gone'));
+
+		foreach ([$notAFile, $throwing] as $folder) {
+			$root = $this->createMock(IRootFolder::class);
+			$root->method('getUserFolder')->willReturn($folder);
+			$controller = new LearningRecordShareVerifyController(
+				request: $this->createMock(IRequest::class),
+				objectService: $this->objectService,
+				signingService: $this->signingService,
+				rootFolder: $root,
+				throttler: $this->createMock(IThrottler::class),
+				logger: $this->createMock(LoggerInterface::class),
+			);
+
+			self::assertSame(['valid' => false, 'reason' => 'bundle_unreadable'], $controller->verify('s')->getData());
+		}
+	}//end testABundleThatIsNotAReadableFileIsUnreadable()
+
+	/**
+	 * A root folder whose user folder answers one file with this content,
+	 * asked for the owner's bundle path without its leading slash.
+	 *
+	 * @param string $content The file content.
+	 *
+	 * @return IRootFolder
+	 */
+	private function rootFolderWith(string $content): IRootFolder {
+		$file = $this->createMock(File::class);
+		$file->method('getContent')->willReturn($content);
+		$folder = $this->createMock(Folder::class);
+		$folder->method('get')->willReturnCallback(
+			static function (string $path) use ($file): File {
+				self::assertSame('b.json', $path);
+				return $file;
+			}
+		);
+		$root = $this->createMock(IRootFolder::class);
+		$root->method('getUserFolder')->willReturnCallback(
+			static function (string $uid) use ($folder): Folder {
+				self::assertSame('anna', $uid);
+				return $folder;
+			}
+		);
+		return $root;
+	}//end rootFolderWith()
 }//end class

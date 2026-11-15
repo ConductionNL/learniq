@@ -3,6 +3,9 @@
 /**
  * Learniq Leerbedrijf Verification Provider Interface
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Pluggable interface for the SBB erkend-leerbedrijf check (WEB art.
  * 7.2.8/7.2.9 — the employer hosting a BPV placement must be a leerbedrijf
  * erkend by SBB, Samenwerkingsorganisatie Beroepsonderwijs Bedrijfsleven).
@@ -27,8 +30,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

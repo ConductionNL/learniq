@@ -3,8 +3,8 @@
 /**
  * Who a guardian or a pupil may write to on the portal, read over the real
  * example sets: Fatima writes to Meester Daan about Vera and to Juf Esra about
- * Sami; Noor writes to the teachers of H4b, Sanne Kramer (her mentor) first,
- * and her completed H3b enrolment names nobody (portal-message-contacts).
+ * Sami; Fenna writes to the teachers of 3HV-B, Pieter Jansen (her mentor) first,
+ * and her completed 3HV-A enrolment names nobody (portal-message-contacts).
  *
  * @category Test
  * @package  OCA\Learniq\Tests\Unit\Portal
@@ -28,6 +28,7 @@ namespace OCA\Learniq\Tests\Unit\Portal;
 
 use OCA\Learniq\Portal\PortalContributionProvider;
 use OCA\Learniq\Portal\PortalMessageContacts;
+use OCA\Learniq\Portal\PortalRecordProviders;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserManager;
@@ -135,8 +136,8 @@ class PortalMessageContactsTest extends TestCase {
 	}//end testAGuardianWritesToTheTeacherOfEachChildsGroup()
 
 	/**
-	 * Noor's active H4b enrolment names its teachers, her mentor first and as
-	 * a mentor; her completed H3b enrolment names nobody.
+	 * Fenna's active 3HV-B enrolment names its teachers, her mentor first and as
+	 * a mentor; her completed 3HV-A enrolment names nobody.
 	 *
 	 * @return void
 	 */
@@ -147,7 +148,7 @@ class PortalMessageContactsTest extends TestCase {
 		$done     = self::row(set: 'vo', schema: 'enrolment', match: ['learnerRef' => $noor['uuid'], 'lifecycle' => 'completed']);
 
 		$teachers = $contacts->ownContacts(enrolmentId: $active['uuid']);
-		self::assertSame(['staffRef' => 'vo-docent-01', 'name' => 'Sanne Kramer', 'role' => 'Mentor'], $teachers[0]);
+		self::assertSame(expected: ['staffRef' => 'vo-docent-01', 'name' => 'Pieter Jansen', 'role' => 'Mentor'], actual: $teachers[0]);
 		self::assertSame(array_unique(array_column($teachers, 'staffRef')), array_column($teachers, 'staffRef'), 'each teacher once');
 		foreach ($teachers as $teacher) {
 			self::assertNotSame($teacher['staffRef'], $teacher['name'], 'a teacher without a display name is left out');
@@ -155,6 +156,71 @@ class PortalMessageContactsTest extends TestCase {
 
 		self::assertSame([], $contacts->ownContacts(enrolmentId: $done['uuid']));
 	}//end testAPupilWritesToTheTeachersOfHerActiveGroupOnly()
+
+	/**
+	 * A group's primary teachers come first, then its other teachers, each
+	 * once; ids that are not names, and accounts without a name of their
+	 * own, are left out; names and roles are read in that order.
+	 *
+	 * @return void
+	 */
+	public function testTheTeachersOfAGroupInOrderEachOnce(): void {
+		$rows = [
+			'enrolment' => ['enr-1' => ['uuid' => 'enr-1', 'lifecycle' => 'active', 'cohortId' => 'c-1']],
+			'cohort' => [
+				'c-1' => [
+					'uuid' => 'c-1',
+					'lifecycle' => 'active',
+					'teacherAssignments' => [
+						['teacherId' => 'mentor', 'role' => 'assistant'],
+						'not a teacher entry',
+						['teacherId' => 'prim', 'role' => 'primary'],
+						['role' => 'primary'],
+					],
+					'teacherIds' => ['anna', 'prim', 7, '', 'nameless', 'anna', 'mentor'],
+				],
+			],
+		];
+		$reads = [];
+		$store = $this->createMock(ObjectService::class);
+		$store->method('find')->willReturnCallback(
+			function (...$args) use ($rows): ?ObjectEntity {
+				$row = ($rows[(string)($args['schema'] ?? $args[4] ?? '')][(string)($args['id'] ?? $args[0])] ?? null);
+				if ($row === null) {
+					return null;
+				}
+
+				$entity = $this->createMock(ObjectEntity::class);
+				$entity->method('jsonSerialize')->willReturn($row);
+				return $entity;
+			}
+		);
+		$store->method('findAll')->willReturnCallback(
+			static function (array $config) use (&$reads): array {
+				$reads[] = 'staff:' . $config['filters']['ncUserId'];
+				return [['roles' => ($config['filters']['ncUserId'] === 'mentor' ? ['mentor'] : [])]];
+			}
+		);
+		$users = $this->createMock(IUserManager::class);
+		$users->method('getDisplayName')->willReturnCallback(
+			static function (string $uid) use (&$reads): ?string {
+				$reads[] = 'name:' . $uid;
+				return ['prim' => 'Pim Prins', 'anna' => ' Anna de Wit ', 'mentor' => 'Mo Mentor', 'nameless' => 'nameless'][$uid] ?? null;
+			}
+		);
+
+		$contacts = (new PortalMessageContacts($store, $users, $this->createMock(LoggerInterface::class)))->ownContacts(enrolmentId: 'enr-1');
+
+		self::assertSame(
+			[
+				['staffRef' => 'prim', 'name' => 'Pim Prins', 'role' => 'Teacher'],
+				['staffRef' => 'anna', 'name' => 'Anna de Wit', 'role' => 'Teacher'],
+				['staffRef' => 'mentor', 'name' => 'Mo Mentor', 'role' => 'Mentor'],
+			],
+			$contacts
+		);
+		self::assertSame(['name:prim', 'staff:prim', 'name:anna', 'staff:anna', 'name:nameless', 'name:mentor', 'staff:mentor'], $reads);
+	}//end testTheTeachersOfAGroupInOrderEachOnce()
 
 	/**
 	 * The manifests declare the two providers on the collections portaliq
@@ -176,7 +242,7 @@ class PortalMessageContactsTest extends TestCase {
 		self::assertSame([], $provider->ownMessageContacts('x'));
 
 		$vera = self::row(set: 'po', schema: 'learner-profile', match: ['ncUserId' => 'po-leerling-147']);
-		$with = new PortalContributionProvider(messageContacts: $this->over(set: 'po'));
+		$with = new PortalContributionProvider(records: new PortalRecordProviders(contacts: $this->over(set: 'po')));
 		self::assertSame('po-leerkracht-09', $with->childMessageContacts($vera['uuid'])[0]['staffRef']);
 	}//end testTheManifestsNameTheProvidersAndTheProviderAnswers()
 }//end class

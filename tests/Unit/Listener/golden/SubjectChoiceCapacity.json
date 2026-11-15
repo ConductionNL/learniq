@@ -1,0 +1,466 @@
+{
+    "none tenant=tenant-a": {
+        "saved": [
+            {
+                "register": "learniq",
+                "schema": "subject-choice",
+                "object": {
+                    "id": "self",
+                    "curriculumPlanId": "plan-1",
+                    "selectedElectiveCourseIds": [
+                        "course-a",
+                        "course-c",
+                        "course-d"
+                    ],
+                    "tenant_id": "tenant-a",
+                    "lifecycle": "validated",
+                    "validationErrors": []
+                }
+            }
+        ],
+        "queries": []
+    },
+    "none tenant=": {
+        "saved": [
+            {
+                "register": "learniq",
+                "schema": "subject-choice",
+                "object": {
+                    "id": "self",
+                    "curriculumPlanId": "plan-1",
+                    "selectedElectiveCourseIds": [
+                        "course-a",
+                        "course-c",
+                        "course-d"
+                    ],
+                    "tenant_id": "",
+                    "lifecycle": "validated",
+                    "validationErrors": []
+                }
+            }
+        ],
+        "queries": []
+    },
+    "empty tenant=tenant-a": {
+        "saved": [
+            {
+                "register": "learniq",
+                "schema": "subject-choice",
+                "object": {
+                    "id": "self",
+                    "curriculumPlanId": "plan-1",
+                    "selectedElectiveCourseIds": [
+                        "course-a",
+                        "course-c",
+                        "course-d"
+                    ],
+                    "tenant_id": "tenant-a",
+                    "lifecycle": "validated",
+                    "validationErrors": []
+                }
+            }
+        ],
+        "queries": []
+    },
+    "empty tenant=": {
+        "saved": [
+            {
+                "register": "learniq",
+                "schema": "subject-choice",
+                "object": {
+                    "id": "self",
+                    "curriculumPlanId": "plan-1",
+                    "selectedElectiveCourseIds": [
+                        "course-a",
+                        "course-c",
+                        "course-d"
+                    ],
+                    "tenant_id": "",
+                    "lifecycle": "validated",
+                    "validationErrors": []
+                }
+            }
+        ],
+        "queries": []
+    },
+    "not-array tenant=tenant-a": {
+        "saved": [
+            {
+                "register": "learniq",
+                "schema": "subject-choice",
+                "object": {
+                    "id": "self",
+                    "curriculumPlanId": "plan-1",
+                    "selectedElectiveCourseIds": [
+                        "course-a",
+                        "course-c",
+                        "course-d"
+                    ],
+                    "tenant_id": "tenant-a",
+                    "lifecycle": "validated",
+                    "validationErrors": []
+                }
+            }
+        ],
+        "queries": []
+    },
+    "not-array tenant=": {
+        "saved": [
+            {
+                "register": "learniq",
+                "schema": "subject-choice",
+                "object": {
+                    "id": "self",
+                    "curriculumPlanId": "plan-1",
+                    "selectedElectiveCourseIds": [
+                        "course-a",
+                        "course-c",
+                        "course-d"
+                    ],
+                    "tenant_id": "",
+                    "lifecycle": "validated",
+                    "validationErrors": []
+                }
+            }
+        ],
+        "queries": []
+    },
+    "mixed tenant=tenant-a": {
+        "saved": [
+            {
+                "register": "learniq",
+                "schema": "subject-choice",
+                "object": {
+                    "id": "self",
+                    "curriculumPlanId": "plan-1",
+                    "selectedElectiveCourseIds": [
+                        "course-a",
+                        "course-c",
+                        "course-d"
+                    ],
+                    "tenant_id": "tenant-a",
+                    "lifecycle": "needs-revision",
+                    "validationErrors": [
+                        "Capacity reached for course course-a (limit 2)."
+                    ]
+                }
+            }
+        ],
+        "queries": [
+            {
+                "filters": {
+                    "curriculumPlanId": "plan-1",
+                    "lifecycle": "approved",
+                    "tenant_id": "tenant-a",
+                    "register": "learniq",
+                    "schema": "subject-choice"
+                },
+                "limit": 5000
+            },
+            {
+                "filters": {
+                    "curriculumPlanId": "plan-1",
+                    "lifecycle": "locked",
+                    "tenant_id": "tenant-a",
+                    "register": "learniq",
+                    "schema": "subject-choice"
+                },
+                "limit": 5000
+            }
+        ]
+    },
+    "mixed tenant=": {
+        "saved": [
+            {
+                "register": "learniq",
+                "schema": "subject-choice",
+                "object": {
+                    "id": "self",
+                    "curriculumPlanId": "plan-1",
+                    "selectedElectiveCourseIds": [
+                        "course-a",
+                        "course-c",
+                        "course-d"
+                    ],
+                    "tenant_id": "",
+                    "lifecycle": "needs-revision",
+                    "validationErrors": [
+                        "Capacity reached for course course-a (limit 2)."
+                    ]
+                }
+            }
+        ],
+        "queries": [
+            {
+                "filters": {
+                    "curriculumPlanId": "plan-1",
+                    "lifecycle": "approved",
+                    "register": "learniq",
+                    "schema": "subject-choice"
+                },
+                "limit": 5000
+            },
+            {
+                "filters": {
+                    "curriculumPlanId": "plan-1",
+                    "lifecycle": "locked",
+                    "register": "learniq",
+                    "schema": "subject-choice"
+                },
+                "limit": 5000
+            }
+        ]
+    },
+    "roomy tenant=tenant-a": {
+        "saved": [
+            {
+                "register": "learniq",
+                "schema": "subject-choice",
+                "object": {
+                    "id": "self",
+                    "curriculumPlanId": "plan-1",
+                    "selectedElectiveCourseIds": [
+                        "course-a",
+                        "course-c",
+                        "course-d"
+                    ],
+                    "tenant_id": "tenant-a",
+                    "lifecycle": "validated",
+                    "validationErrors": []
+                }
+            }
+        ],
+        "queries": [
+            {
+                "filters": {
+                    "curriculumPlanId": "plan-1",
+                    "lifecycle": "approved",
+                    "tenant_id": "tenant-a",
+                    "register": "learniq",
+                    "schema": "subject-choice"
+                },
+                "limit": 5000
+            },
+            {
+                "filters": {
+                    "curriculumPlanId": "plan-1",
+                    "lifecycle": "locked",
+                    "tenant_id": "tenant-a",
+                    "register": "learniq",
+                    "schema": "subject-choice"
+                },
+                "limit": 5000
+            }
+        ]
+    },
+    "roomy tenant=": {
+        "saved": [
+            {
+                "register": "learniq",
+                "schema": "subject-choice",
+                "object": {
+                    "id": "self",
+                    "curriculumPlanId": "plan-1",
+                    "selectedElectiveCourseIds": [
+                        "course-a",
+                        "course-c",
+                        "course-d"
+                    ],
+                    "tenant_id": "",
+                    "lifecycle": "validated",
+                    "validationErrors": []
+                }
+            }
+        ],
+        "queries": [
+            {
+                "filters": {
+                    "curriculumPlanId": "plan-1",
+                    "lifecycle": "approved",
+                    "register": "learniq",
+                    "schema": "subject-choice"
+                },
+                "limit": 5000
+            },
+            {
+                "filters": {
+                    "curriculumPlanId": "plan-1",
+                    "lifecycle": "locked",
+                    "register": "learniq",
+                    "schema": "subject-choice"
+                },
+                "limit": 5000
+            }
+        ]
+    },
+    "tight tenant=tenant-a": {
+        "saved": [
+            {
+                "register": "learniq",
+                "schema": "subject-choice",
+                "object": {
+                    "id": "self",
+                    "curriculumPlanId": "plan-1",
+                    "selectedElectiveCourseIds": [
+                        "course-a",
+                        "course-c",
+                        "course-d"
+                    ],
+                    "tenant_id": "tenant-a",
+                    "lifecycle": "needs-revision",
+                    "validationErrors": [
+                        "Capacity reached for course course-a (limit 1).",
+                        "Capacity reached for course course-c (limit 1)."
+                    ]
+                }
+            }
+        ],
+        "queries": [
+            {
+                "filters": {
+                    "curriculumPlanId": "plan-1",
+                    "lifecycle": "approved",
+                    "tenant_id": "tenant-a",
+                    "register": "learniq",
+                    "schema": "subject-choice"
+                },
+                "limit": 5000
+            },
+            {
+                "filters": {
+                    "curriculumPlanId": "plan-1",
+                    "lifecycle": "locked",
+                    "tenant_id": "tenant-a",
+                    "register": "learniq",
+                    "schema": "subject-choice"
+                },
+                "limit": 5000
+            }
+        ]
+    },
+    "tight tenant=": {
+        "saved": [
+            {
+                "register": "learniq",
+                "schema": "subject-choice",
+                "object": {
+                    "id": "self",
+                    "curriculumPlanId": "plan-1",
+                    "selectedElectiveCourseIds": [
+                        "course-a",
+                        "course-c",
+                        "course-d"
+                    ],
+                    "tenant_id": "",
+                    "lifecycle": "needs-revision",
+                    "validationErrors": [
+                        "Capacity reached for course course-a (limit 1).",
+                        "Capacity reached for course course-c (limit 1)."
+                    ]
+                }
+            }
+        ],
+        "queries": [
+            {
+                "filters": {
+                    "curriculumPlanId": "plan-1",
+                    "lifecycle": "approved",
+                    "register": "learniq",
+                    "schema": "subject-choice"
+                },
+                "limit": 5000
+            },
+            {
+                "filters": {
+                    "curriculumPlanId": "plan-1",
+                    "lifecycle": "locked",
+                    "register": "learniq",
+                    "schema": "subject-choice"
+                },
+                "limit": 5000
+            }
+        ]
+    },
+    "edge tenant=tenant-a": {
+        "saved": [
+            {
+                "register": "learniq",
+                "schema": "subject-choice",
+                "object": {
+                    "id": "self",
+                    "curriculumPlanId": "plan-1",
+                    "selectedElectiveCourseIds": [
+                        "course-a",
+                        "course-c",
+                        "course-d"
+                    ],
+                    "tenant_id": "tenant-a",
+                    "lifecycle": "validated",
+                    "validationErrors": []
+                }
+            }
+        ],
+        "queries": [
+            {
+                "filters": {
+                    "curriculumPlanId": "plan-1",
+                    "lifecycle": "approved",
+                    "tenant_id": "tenant-a",
+                    "register": "learniq",
+                    "schema": "subject-choice"
+                },
+                "limit": 5000
+            },
+            {
+                "filters": {
+                    "curriculumPlanId": "plan-1",
+                    "lifecycle": "locked",
+                    "tenant_id": "tenant-a",
+                    "register": "learniq",
+                    "schema": "subject-choice"
+                },
+                "limit": 5000
+            }
+        ]
+    },
+    "edge tenant=": {
+        "saved": [
+            {
+                "register": "learniq",
+                "schema": "subject-choice",
+                "object": {
+                    "id": "self",
+                    "curriculumPlanId": "plan-1",
+                    "selectedElectiveCourseIds": [
+                        "course-a",
+                        "course-c",
+                        "course-d"
+                    ],
+                    "tenant_id": "",
+                    "lifecycle": "validated",
+                    "validationErrors": []
+                }
+            }
+        ],
+        "queries": [
+            {
+                "filters": {
+                    "curriculumPlanId": "plan-1",
+                    "lifecycle": "approved",
+                    "register": "learniq",
+                    "schema": "subject-choice"
+                },
+                "limit": 5000
+            },
+            {
+                "filters": {
+                    "curriculumPlanId": "plan-1",
+                    "lifecycle": "locked",
+                    "register": "learniq",
+                    "schema": "subject-choice"
+                },
+                "limit": 5000
+            }
+        ]
+    }
+}
