@@ -34,6 +34,8 @@ use OCA\Learniq\Service\BsaProgressEvaluator;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for BsaProgressFlagHandler::handle() on GradeEntry → published.
@@ -81,7 +83,11 @@ class BsaProgressFlagHandlerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($programmeIds) {
+			function (int|string $id, ?ObjectFindOptions $options = null) use ($programmeIds) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema === 'course') {
 					return OrEntityFactory::make(['id' => (string)$id, 'programmeIds' => $programmeIds], 'course');
 				}
@@ -106,7 +112,10 @@ class BsaProgressFlagHandlerTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$this->savedObjects[] = [
 					'register' => (string)$register,
 					'schema' => (string)$schema,
@@ -384,7 +393,11 @@ class BsaProgressFlagHandlerTest extends TestCase {
 		$reads = [];
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use (&$reads) {
+			function (int|string $id, ?ObjectFindOptions $options = null) use (&$reads) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				$reads[] = 'find:' . $schema . ':' . $id;
 				return OrEntityFactory::make(['id' => (string)$id, 'programmeIds' => ['p-1', '', 'p-2']], 'course');
 			}

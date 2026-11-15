@@ -22,6 +22,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Repair;
 
 use OCA\Learniq\Kernel\Contracts\ReportCardGradeLinesInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -287,9 +289,10 @@ class BackfillReportCardGradeLines implements IRepairStep {
 
 			$this->objectService->saveObject(
 				object: $object,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::REPORT_CARD_SCHEMA,
-				uuid: $uuid,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA),
+					uuid: $uuid
+				),
 				_rbac: false,
 				_multitenancy: false
 			);

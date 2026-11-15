@@ -41,6 +41,8 @@ use OCP\EventDispatcher\IEventDispatcher;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for ShillinqContributionSettledListener::handle().
@@ -97,7 +99,11 @@ class ShillinqContributionSettledListenerTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
+			function (int|string $id, ?ObjectFindOptions $options = null): ?ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				foreach (($this->store->rows[(string)$schema] ?? []) as $row) {
 					if (($row['id'] ?? null) === $id) {
 						return OrEntityFactory::make($row, (string)$schema);
@@ -108,7 +114,7 @@ class ShillinqContributionSettledListenerTest extends TestCase {
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): ObjectEntity => $this->store->save((string)$schema, $object, $uuid)
+			fn (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity => $this->store->save((string)($options->target->schema), $object, ($options->uuid))
 		);
 
 		$engine = $this->createMock(TransitionEngine::class);

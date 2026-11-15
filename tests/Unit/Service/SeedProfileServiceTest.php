@@ -41,6 +41,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Listing, loading and naming the uuids of the example sets.
@@ -929,7 +930,11 @@ class SeedProfileServiceTest extends TestCase {
 			 *
 			 * @return \OCA\OpenRegister\Db\ObjectEntity
 			 */
-			public function find(int|string $id, mixed $register=null, mixed $schema=null, bool $_rbac=true, bool $_multitenancy=true, bool $_render=true, bool $_audit=true): \OCA\OpenRegister\Db\ObjectEntity {
+			public function find(int|string $id, ?ObjectFindOptions $options = null, bool $_rbac = true, bool $_multitenancy = true): \OCA\OpenRegister\Db\ObjectEntity {
+				$register = $options?->register;
+				$schema = $options?->schema;
+				$_render = $options?->render ?? true;
+				$_audit = $options?->audit ?? true;
 				if (isset($this->store->rows[(string)$id]) === false) {
 					throw new \Exception('Object not found');
 				}

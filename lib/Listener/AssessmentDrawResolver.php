@@ -62,6 +62,8 @@ use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Kernel\Contracts\QtiChoiceOrderResolverInterface;
 use OCA\Learniq\Service\AssessmentObjectReads;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -231,9 +233,8 @@ class AssessmentDrawResolver implements IEventListener {
 	 */
 	private function saveDraw(array $result, array $drawnItemRefs): void {
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ASSESSMENT_RESULT_SCHEMA,
-			object: array_merge($result, ['drawnItemRefs' => $drawnItemRefs])
+			object: array_merge($result, ['drawnItemRefs' => $drawnItemRefs]),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ASSESSMENT_RESULT_SCHEMA))
 		);
 
 		$this->logger->info(

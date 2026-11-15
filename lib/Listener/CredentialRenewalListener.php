@@ -42,6 +42,8 @@ namespace OCA\Learniq\Listener;
 use OCA\Learniq\Kernel\Contracts\CredentialLearnerInterface;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -152,9 +154,8 @@ class CredentialRenewalListener implements IEventListener {
 		}
 
 		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ENROLMENT_SCHEMA,
-			object: $enrolment
+			object: $enrolment,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ENROLMENT_SCHEMA))
 		);
 
 		$savedData = $saved->jsonSerialize();
@@ -169,9 +170,8 @@ class CredentialRenewalListener implements IEventListener {
 		}
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::CREDENTIAL_SCHEMA,
-			object: array_merge($credential, ['renewalEnrolmentId' => $enrolmentId])
+			object: array_merge($credential, ['renewalEnrolmentId' => $enrolmentId]),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::CREDENTIAL_SCHEMA))
 		);
 
 		$this->logger->info(

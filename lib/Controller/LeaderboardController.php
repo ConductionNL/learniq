@@ -57,6 +57,7 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\CallerGroups;
 use OCP\AppFramework\Controller;
@@ -485,7 +486,7 @@ class LeaderboardController extends Controller {
 	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException When the id matches more than one object; LookupIntegrityMiddleware answers it.
 	 */
 	private function fetchObject(string $id, string $schema): ?array {
-		$find = fn () => $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
+		$find = fn () => $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema));
 		return $this->findOrNull(find: $find)?->jsonSerialize();
 	}//end fetchObject()
 }//end class

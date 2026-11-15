@@ -32,6 +32,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * AttendanceFlag.recordMunicipalityFeedback is a self-loop (reported to
@@ -69,7 +70,11 @@ class MunicipalityFeedbackStampListenerTest extends TestCase {
 	private function makeListener(string $schemaSlug = 'attendance-flag'): MunicipalityFeedbackStampListener {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$this->saved[] = ['object' => $object, 'register' => $register, 'schema' => $schema, 'uuid' => $uuid];
 				return OrEntityFactory::make($object, 'attendance-flag');
 			}

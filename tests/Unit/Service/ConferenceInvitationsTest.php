@@ -30,6 +30,8 @@ use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\Learniq\Tests\Support\RegisterSchemaPayloads;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * One invitation row per invited child: open while the child has no time in
@@ -264,10 +266,14 @@ class ConferenceInvitationsTest extends TestCase {
 			static fn (array $config, bool $_rbac=true, bool $_multitenancy=true): array => $store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			static fn (array $object, ?array $extend=[], $register=null, $schema=null, ?string $uuid=null) => $store->save((string)$schema, $object, $uuid, false)
+			static fn (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) => $store->save((string)($options->target->schema), $object, ($options->uuid), false)
 		);
 		$objectService->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) use ($store) {
+			static function (int|string $id, ?ObjectFindOptions $options = null) use ($store) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				foreach (($store->rows[(string)$schema] ?? []) as $row) {
 					if ($row['id'] === $id) {
 						return OrEntityFactory::make($row, (string)$schema);

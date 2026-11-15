@@ -44,6 +44,8 @@ use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\PortalHourWeekApprovalInterface;
 use OCA\Learniq\Service\HourDayLines;
 use OCA\Learniq\Support\SerialisedRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
@@ -139,8 +141,7 @@ class PortalHourWeekApproval implements PortalHourWeekApprovalInterface {
 					body: $body,
 					return: $return
 				),
-				register: self::REGISTER,
-				schema: self::WEEK_SCHEMA,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::WEEK_SCHEMA)),
 				_rbac: false,
 				_multitenancy: false
 			);

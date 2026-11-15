@@ -53,6 +53,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use OCA\Learniq\Tests\Support\RegisterSchemaPayloads;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Content and consistency of lib/Settings/profiles/mbo.json.
@@ -570,7 +571,11 @@ class VocationalCollegeExampleSetTest extends TestCase {
 
 		$store = $this->createMock(ObjectService::class);
 		$store->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($rows) {
+			static function (int|string $id, ?ObjectFindOptions $options = null) use ($rows) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if (isset($rows[(string)$schema][(string)$id]) === false) {
 					throw new DoesNotExistException('not in the set');
 				}

@@ -32,6 +32,8 @@ namespace OCA\Learniq\BackgroundJob;
 
 use DateTimeInterface;
 use OCA\OpenRegister\Db\ObjectEntity;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
@@ -180,12 +182,13 @@ class CourseEvaluationDraftCleanupJob extends TimedJob {
 	private function remove(string $uuid): int {
 		try {
 			$this->objectService->deleteObject(
-				uuid: $uuid,
-				register: self::REGISTER,
-				schema: self::SCHEMA,
+				new ObjectDeletion(
+					uuid: $uuid,
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA),
+					permanent: true
+				),
 				_rbac: false,
-				_multitenancy: false,
-				permanent: true,
+				_multitenancy: false
 			);
 			return 1;
 		} catch (Throwable $exception) {
