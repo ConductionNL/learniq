@@ -25,7 +25,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
-use OCA\Learniq\Service\CallerTenantResolver;
+use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IConfig;
 use OCP\Migration\IOutput;
@@ -34,7 +34,7 @@ use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
- * Rewrites `tenant_id` from the instance id to CallerTenantResolver::DEFAULT_TENANT.
+ * Rewrites `tenant_id` from the instance id to CallerTenantResolverInterface::DEFAULT_TENANT.
  *
  * Until 2026-09-29 an unbound user's tenant fell back to the instance id. It
  * is not a UUID, so only the schemas whose `tenant_id` has no `format: uuid`
@@ -137,7 +137,7 @@ class MoveInstanceIdTenantToDefaultTenant implements IRepairStep {
 	 */
 	public function run(IOutput $output): void {
 		$instanceId = trim((string)$this->config->getSystemValue('instanceid', ''));
-		if ($instanceId === '' || $instanceId === CallerTenantResolver::DEFAULT_TENANT) {
+		if ($instanceId === '' || $instanceId === CallerTenantResolverInterface::DEFAULT_TENANT) {
 			$output->info('MoveInstanceIdTenantToDefaultTenant: no instance id, nothing to move.');
 			return;
 		}
@@ -220,7 +220,7 @@ class MoveInstanceIdTenantToDefaultTenant implements IRepairStep {
 
 		try {
 			$this->objectService->saveObject(
-				object: array_merge($row, ['tenant_id' => CallerTenantResolver::DEFAULT_TENANT]),
+				object: array_merge($row, ['tenant_id' => CallerTenantResolverInterface::DEFAULT_TENANT]),
 				register: self::REGISTER,
 				schema: $schema,
 				uuid: $uuid,

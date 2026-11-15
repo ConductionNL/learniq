@@ -123,11 +123,16 @@ class LessonProgressHandlerTest extends TestCase {
 				$schema = $config['filters']['schema'];
 				$records = $this->db[$schema] ?? [];
 				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
+				$ids     = ($config['ids'] ?? null);
 
 				$matched = array_values(
 					array_filter(
 						$records,
-						static function (array $rec) use ($filters) {
+						static function (array $rec) use ($filters, $ids) {
+							if ($ids !== null && in_array(($rec['id'] ?? null), $ids, true) === false) {
+								return false;
+							}
+
 							foreach ($filters as $key => $value) {
 								if (($rec[$key] ?? null) !== $value) {
 									return false;
@@ -283,7 +288,6 @@ class LessonProgressHandlerTest extends TestCase {
 				'order' => 3,
 				'mandatoryTraining' => false,
 				'lifecycle' => 'published',
-				'xapiObjectId' => 'https://learniq.test/lessons/lesson-3',
 				'tenant_id' => 'tenant-a',
 			]
 		);
@@ -294,6 +298,7 @@ class LessonProgressHandlerTest extends TestCase {
 			[
 				'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed'],
 				'object' => ['id' => 'https://learniq.test/lessons/lesson-3'],
+				'lessonId' => 'lesson-3',
 				'verified_actor_id' => 'learner-1',
 				'tenant_id' => 'tenant-a',
 			]
@@ -328,7 +333,6 @@ class LessonProgressHandlerTest extends TestCase {
 				'id' => 'lesson-3',
 				'courseId' => 'course-1',
 				'lifecycle' => 'published',
-				'xapiObjectId' => 'https://learniq.test/lessons/lesson-3',
 				'tenant_id' => 'tenant-a',
 			]
 		);
@@ -350,6 +354,7 @@ class LessonProgressHandlerTest extends TestCase {
 			[
 				'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/passed'],
 				'object' => ['id' => 'https://learniq.test/lessons/lesson-3'],
+				'lessonId' => 'lesson-3',
 				'verified_actor_id' => 'learner-1',
 				'tenant_id' => 'tenant-a',
 			]
@@ -381,7 +386,6 @@ class LessonProgressHandlerTest extends TestCase {
 				'id' => 'lesson-3',
 				'courseId' => 'course-1',
 				'lifecycle' => 'published',
-				'xapiObjectId' => 'https://learniq.test/lessons/lesson-3',
 				'tenant_id' => 'tenant-a',
 			]
 		);
@@ -406,6 +410,7 @@ class LessonProgressHandlerTest extends TestCase {
 				[
 					'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed'],
 					'object' => ['id' => 'https://learniq.test/lessons/lesson-3'],
+					'lessonId' => 'lesson-3',
 					'verified_actor_id' => 'learner-1',
 					'tenant_id' => 'tenant-a',
 				]
@@ -428,7 +433,7 @@ class LessonProgressHandlerTest extends TestCase {
 	public function testAPendingEnrolmentIsUsedWhenNoneIsActive(): void {
 		$now = new DateTime('2027-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));
 
-		$this->seed('lesson', ['id' => 'lesson-3', 'courseId' => 'course-1', 'lifecycle' => 'published', 'xapiObjectId' => 'https://learniq.test/lessons/lesson-3', 'tenant_id' => 'tenant-a']);
+		$this->seed('lesson', ['id' => 'lesson-3', 'courseId' => 'course-1', 'lifecycle' => 'published', 'tenant_id' => 'tenant-a']);
 		$this->seed('enrolment', ['id' => 'enrol-2', 'learnerId' => 'learner-1', 'courseId' => 'course-1', 'lifecycle' => 'pending', 'tenant_id' => 'tenant-a']);
 
 		$handler = $this->makeHandler(now: $now);
@@ -437,6 +442,7 @@ class LessonProgressHandlerTest extends TestCase {
 				[
 					'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed'],
 					'object' => ['id' => 'https://learniq.test/lessons/lesson-3'],
+					'lessonId' => 'lesson-3',
 					'verified_actor_id' => 'learner-1',
 					'tenant_id' => 'tenant-a',
 				]
@@ -462,6 +468,7 @@ class LessonProgressHandlerTest extends TestCase {
 			[
 				'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed'],
 				'object' => ['id' => 'https://learniq.test/lessons/does-not-exist'],
+				'lessonId' => 'does-not-exist',
 				'verified_actor_id' => 'learner-1',
 				'tenant_id' => 'tenant-a',
 			]
@@ -486,7 +493,6 @@ class LessonProgressHandlerTest extends TestCase {
 				'id' => 'lesson-3',
 				'courseId' => 'course-1',
 				'lifecycle' => 'published',
-				'xapiObjectId' => 'https://learniq.test/lessons/lesson-3',
 			]
 		);
 
@@ -496,6 +502,7 @@ class LessonProgressHandlerTest extends TestCase {
 			[
 				'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/launched'],
 				'object' => ['id' => 'https://learniq.test/lessons/lesson-3'],
+				'lessonId' => 'lesson-3',
 				'verified_actor_id' => 'learner-1',
 				'tenant_id' => 'tenant-a',
 			]
@@ -521,7 +528,6 @@ class LessonProgressHandlerTest extends TestCase {
 				'id' => 'lesson-3',
 				'courseId' => 'course-1',
 				'lifecycle' => 'published',
-				'xapiObjectId' => 'https://learniq.test/lessons/lesson-3',
 			]
 		);
 
@@ -531,6 +537,7 @@ class LessonProgressHandlerTest extends TestCase {
 			[
 				'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed'],
 				'object' => ['id' => 'https://learniq.test/lessons/lesson-3'],
+				'lessonId' => 'lesson-3',
 				'actor' => ['account' => ['name' => 'attacker-controlled']],
 				'tenant_id' => 'tenant-a',
 			]
@@ -588,7 +595,7 @@ class LessonProgressHandlerTest extends TestCase {
 	 */
 	public function testTheHandlerQueuesTheWorkAndWritesNothingItself(): void {
 		$now = new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));
-		$this->seed('lesson', ['id' => 'lesson-3', 'courseId' => 'course-1', 'xapiObjectId' => 'https://learniq.test/lessons/lesson-3']);
+		$this->seed('lesson', ['id' => 'lesson-3', 'courseId' => 'course-1']);
 		$this->runQueued = false;
 		$handler = $this->makeHandler(now: $now);
 
@@ -596,6 +603,7 @@ class LessonProgressHandlerTest extends TestCase {
 			'id' => 'stmt-1',
 			'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed'],
 			'object' => ['id' => 'https://learniq.test/lessons/lesson-3'],
+			'lessonId' => 'lesson-3',
 			'verified_actor_id' => 'learner-1',
 		];
 		$handler->handle($this->makeXapiEvent($statement));

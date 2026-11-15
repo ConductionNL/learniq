@@ -25,7 +25,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Controller;
 
+use OCA\Learniq\Controller\ExampleSetsController;
 use OCA\Learniq\Controller\SetupController;
+use OCA\Learniq\Service\ExampleSetSizes;
 use OCA\Learniq\Service\LoadedExampleSets;
 use OCA\Learniq\Service\SeedProfileService;
 use OCA\Learniq\Service\SegmentService;
@@ -143,6 +145,36 @@ class SetupControllerTest extends TestCase {
 	}//end controller()
 
 	/**
+	 * The admin page's example-sets endpoint, over the same stored config.
+	 *
+	 * @param array<string, string> $stored App-config values by key.
+	 *
+	 * @return ExampleSetsController The controller under test.
+	 */
+	private function exampleSetsController(array $stored = []): ExampleSetsController {
+		$this->appConfig->method('getValueString')->willReturnCallback(
+			static fn (string $app, string $key, string $default = ''): string => ($stored[$key] ?? $default)
+		);
+
+		return new ExampleSetsController($this->request, $this->profiles, new ExampleSetSizes(seedProfiles: $this->profiles));
+	}//end exampleSetsController()
+
+	/**
+	 * SetupController no longer carries the admin list, which keeps it under
+	 * phpmd's class complexity threshold; the URL moved controllers, not paths.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/wizard-drops-the-removal-step/specs/example-sets/spec.md
+	 */
+	public function testTheExampleSetListLivesInItsOwnController(): void {
+		self::assertFalse(method_exists(SetupController::class, 'exampleSets'));
+		$routes = include __DIR__ . '/../../../appinfo/routes.php';
+		$names  = array_column($routes['routes'], 'name', 'url');
+		self::assertSame('exampleSets#exampleSets', $names['/api/setup/example-sets']);
+	}//end testTheExampleSetListLivesInItsOwnController()
+
+	/**
 	 * Capture every app-config write.
 	 *
 	 * @return \ArrayObject<string, string> Written values, filled as the test runs.
@@ -173,11 +205,10 @@ class SetupControllerTest extends TestCase {
 		self::assertSame(['none', 'po', 'demo'], array_column($data['profiles'], 'id'));
 		self::assertSame(['po'], array_column($data['segments'], 'id'));
 		self::assertSame(
-			['example-set', 'load-example-set', 'segment', 'remove-example-set', 'remove-example-set-po', 'remove-example-set-demo'],
+			['welcome', 'example-set', 'segment', 'remove-example-set', 'done', 'remove-example-set-po', 'remove-example-set-demo'],
 			array_keys($data['steps'])
 		);
 		self::assertFalse($data['steps']['example-set']['done']);
-		self::assertFalse($data['steps']['load-example-set']['done']);
 		self::assertFalse($data['steps']['segment']['done']);
 	}//end testStatusReportsEveryStepAndBothOptionLists()
 
@@ -195,17 +226,17 @@ class SetupControllerTest extends TestCase {
 	}//end testAStoredSegmentClosesTheSegmentStep()
 
 	/**
-	 * Choosing "None" closes both example steps; an answer given under the
+	 * Choosing "None" closes the example step; an answer given under the
 	 * legacy key still counts.
 	 *
 	 * @return void
 	 */
-	public function testChoosingNoneClosesBothExampleSteps(): void {
+	public function testChoosingNoneClosesTheExampleStep(): void {
 		$data = $this->controller(stored: ['demo_dataset' => 'none'])->status()->getData();
 
 		self::assertTrue($data['steps']['example-set']['done']);
-		self::assertTrue($data['steps']['load-example-set']['done']);
-	}//end testChoosingNoneClosesBothExampleSteps()
+		self::assertArrayNotHasKey('load-example-set', $data['steps']);
+	}//end testChoosingNoneClosesTheExampleStep()
 
 	/**
 	 * A set on offer is stored under the new key, also when posted under the
@@ -309,6 +340,7 @@ class SetupControllerTest extends TestCase {
 		self::assertTrue($data['success']);
 		self::assertStringContainsString('3', $data['message']);
 		self::assertSame('installed', $written['demo_data_decided']);
+		self::assertSame('po', $written['example_profile']);
 	}//end testLoadingImportsThePickedSetAndNamesTheCount()
 
 	/**
@@ -337,7 +369,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/specs/example-sets/spec.md#scenario-removing-one-of-two-loaded-sets
+	 * @spec openspec/specs/example-sets/spec.md#scenario-removing-the-company-set
 	 */
 	public function testAPerSetStepRemovesThatSet(): void {
 		$this->profiles->expects(self::once())->method('remove')->with('demo')->willReturn(
@@ -355,7 +387,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
 	 */
 	public function testAPerSetStepForAnUnknownSetIsRefused(): void {
 		$this->profiles->expects(self::never())->method('remove');
@@ -590,4 +622,274 @@ class SetupControllerTest extends TestCase {
 
 		self::assertSame(['segment' => 'po'], $data['config']);
 	}//end testAnAdministrationManagerChoosesTheSegment()
+
+	/**
+	 * Every manifest step id is reported; the extra ids are the removal
+	 * actions, still reported done so a browser holding an older manifest
+	 * never starts one by itself (the wizard no longer declares them).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/wizard-dataset-card-load/specs/first-time-setup/spec.md
+	 */
+	public function testStatusReportsEveryManifestStepId(): void {
+		$manifest = json_decode((string)file_get_contents(__DIR__ . '/../../../src/manifest.json'), true);
+		$declared = array_column($manifest['setup']['steps'], 'id');
+		$reported = array_keys($this->controller()->status()->getData()['steps']);
+
+		self::assertSame([], array_values(array_diff($declared, $reported)), 'every manifest step is reported');
+		foreach (array_diff($reported, $declared) as $extra) {
+			self::assertStringStartsWith('remove-example-set', $extra);
+			self::assertTrue($this->controller()->status()->getData()['steps'][$extra]['done']);
+		}
+
+		$steps = array_column($manifest['setup']['steps'], null, 'id');
+		self::assertSame('load-example-set', $steps['example-set']['loadAction'] ?? null);
+		self::assertArrayNotHasKey('load-example-set', $steps);
+	}//end testStatusReportsEveryManifestStepId()
+
+	/**
+	 * The card's Load button posts `{ dataset }`; the load records the pick.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/wizard-dataset-card-load/specs/first-time-setup/spec.md
+	 */
+	public function testTheCardPostsItsSetAndTheLoadRecordsTheChoice(): void {
+		$written = $this->captureWrites();
+		$this->profiles->expects(self::once())->method('install')->with('po')->willReturn(['objects' => 3, 'profile' => 'po']);
+
+		$data = $this->controller(params: ['dataset' => 'po'])->runAction('load-example-set')->getData();
+
+		self::assertTrue($data['success']);
+		self::assertSame(['example_profile' => 'po', 'demo_data_decided' => 'installed'], $written->getArrayCopy());
+	}//end testTheCardPostsItsSetAndTheLoadRecordsTheChoice()
+
+	/**
+	 * A posted set no card offers is refused, and nothing loads.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/wizard-dataset-card-load/specs/first-time-setup/spec.md
+	 */
+	public function testAnUnknownPostedSetIsRefusedAndNothingLoads(): void {
+		$written = $this->captureWrites();
+		$this->profiles->expects(self::never())->method('install');
+
+		$response = $this->controller(params: ['dataset' => 'atlantis'], stored: ['example_profile' => 'po'])->runAction('load-example-set');
+
+		self::assertSame(400, $response->getStatus());
+		self::assertStringContainsString('atlantis', $response->getData()['message']);
+		self::assertSame([], $written->getArrayCopy());
+	}//end testAnUnknownPostedSetIsRefusedAndNothingLoads()
+
+	/**
+	 * A failed card load stores neither the pick nor the decision.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/wizard-dataset-card-load/specs/first-time-setup/spec.md
+	 */
+	public function testAFailedCardLoadStoresNothing(): void {
+		$written = $this->captureWrites();
+		$this->profiles->method('install')->willThrowException(new RuntimeException('OpenRegister is not installed'));
+
+		$response = $this->controller(params: ['dataset' => 'po'])->runAction('load-example-set');
+
+		self::assertSame(500, $response->getStatus());
+		self::assertSame([], $written->getArrayCopy());
+	}//end testAFailedCardLoadStoresNothing()
+
+	/**
+	 * Nothing loaded, nothing listed.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/wizard-drops-the-removal-step/specs/example-sets/spec.md
+	 */
+	public function testTheAdminPageListsNothingWhenNothingWasLoaded(): void {
+		self::assertSame(['sets' => []], $this->exampleSetsController()->exampleSets()->getData());
+	}//end testTheAdminPageListsNothingWhenNothingWasLoaded()
+
+	/**
+	 * The admin page lists the loaded example sets, with their labels and,
+	 * for a curated set, how many objects it holds.
+	 *
+	 * The wizard no longer removes example data; the admin page's Example
+	 * data section reads this list and offers a Remove button per set.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/wizard-drops-the-removal-step/specs/example-sets/spec.md
+	 */
+	public function testTheAdminPageReadsTheLoadedSets(): void {
+		$stored = ['example_sets_loaded' => json_encode([['id' => 'po', 'label' => 'Primary school'], ['id' => 'demo', 'label' => 'Generated']])];
+		$this->profiles->method('uuidsFor')->willReturnCallback(
+			static function (string $profileId): array {
+				if ($profileId !== 'po') {
+					throw new RuntimeException(message: 'No fixed uuids.');
+				}
+
+				return ['a', 'b', 'c'];
+			}
+		);
+
+		$data = $this->exampleSetsController(stored: $stored)->exampleSets()->getData();
+
+		self::assertSame(
+			[['id' => 'po', 'label' => 'Primary school', 'objects' => 3], ['id' => 'demo', 'label' => 'Generated']],
+			$data['sets']
+		);
+	}//end testTheAdminPageReadsTheLoadedSets()
+
+	/**
+	 * The `load-demo-data` alias loads the stored pick like `load-example-set`.
+	 *
+	 * @return void
+	 */
+	public function testTheLoadDemoDataAliasImportsTheStoredPick(): void {
+		$written = $this->captureWrites();
+		$this->profiles->expects(self::once())->method('install')->with('po')->willReturn(['objects' => 3, 'profile' => 'po']);
+
+		$data = $this->controller(stored: ['example_profile' => 'po'])->runAction('load-demo-data')->getData();
+
+		self::assertSame(['success' => true, 'message' => 'Imported 3 example object(s).', 'objects' => 3, 'skipped' => 0], $data);
+		self::assertSame('installed', $written['demo_data_decided']);
+	}//end testTheLoadDemoDataAliasImportsTheStoredPick()
+
+	/**
+	 * The legacy `install-demo-data` keeps a stored pick rather than the generated set.
+	 *
+	 * @return void
+	 */
+	public function testTheLegacyActionKeepsAStoredPick(): void {
+		$this->captureWrites();
+		$this->profiles->expects(self::once())->method('install')->with('po')->willReturn(['objects' => 3, 'profile' => 'po']);
+
+		self::assertTrue($this->controller(stored: ['example_profile' => 'po'])->runAction('install-demo-data')->getData()['success']);
+	}//end testTheLegacyActionKeepsAStoredPick()
+
+	/**
+	 * A posted list is read by its first entry, and a skip names the exact message.
+	 *
+	 * @return void
+	 */
+	public function testAPostedListLoadsItsFirstEntry(): void {
+		$this->captureWrites();
+		$this->profiles->expects(self::once())->method('install')->with('po')->willReturn(['objects' => 5, 'profile' => 'po', 'skipped' => 2]);
+
+		$data = $this->controller(params: ['dataset' => ['po']])->runAction('load-example-set')->getData();
+
+		self::assertSame(
+			'Imported 3 of 5 example object(s). 2 could not be imported; the Nextcloud log names each one.',
+			$data['message']
+		);
+		self::assertSame(2, $data['skipped']);
+	}//end testAPostedListLoadsItsFirstEntry()
+
+	/**
+	 * A card that posts "None" declines both example steps and imports nothing.
+	 *
+	 * @return void
+	 */
+	public function testAPostedNoneDeclinesWithoutImporting(): void {
+		$written = $this->captureWrites();
+		$this->profiles->expects(self::never())->method('install');
+
+		$data = $this->controller(params: ['dataset' => 'none'])->runAction('load-example-set')->getData();
+
+		self::assertSame(['success' => true, 'message' => 'No example data was loaded.'], $data);
+		self::assertSame('none', $written['example_profile']);
+		self::assertSame('skipped', $written['demo_data_decided']);
+	}//end testAPostedNoneDeclinesWithoutImporting()
+
+	/**
+	 * An unknown posted set names itself in the refusal.
+	 *
+	 * @return void
+	 */
+	public function testAnUnknownPostedSetIsNamedInTheRefusal(): void {
+		$data = $this->controller(params: ['dataset' => 'atlantis'])->runAction('load-example-set')->getData();
+
+		self::assertSame(['success' => false, 'message' => 'No example set is called "atlantis".'], $data);
+	}//end testAnUnknownPostedSetIsNamedInTheRefusal()
+
+	/**
+	 * A failed import names the reason and the 500.
+	 *
+	 * @return void
+	 */
+	public function testAFailedImportNamesItsReason(): void {
+		$this->profiles->method('install')->willThrowException(new RuntimeException('boom'));
+
+		$response = $this->controller(stored: ['example_profile' => 'po'])->runAction('load-example-set');
+
+		self::assertSame(500, $response->getStatus());
+		self::assertSame(['success' => false, 'message' => 'Could not import the example data: boom'], $response->getData());
+	}//end testAFailedImportNamesItsReason()
+
+	/**
+	 * The per-set step for the generated set removes it although no curated set has that id.
+	 *
+	 * @return void
+	 */
+	public function testAPerSetStepForTheGeneratedSetRemovesIt(): void {
+		$this->profiles = $this->createMock(SeedProfileService::class);
+		$this->profiles->method('loadedSets')->willReturn(new LoadedExampleSets($this->appConfig));
+		$this->profiles->method('isKnown')->willReturn(false);
+		$this->profiles->expects(self::once())->method('remove')->with(SeedProfileService::GENERATED_PROFILE)->willReturn(
+			['supported' => true, 'appId' => 'learniq.demo', 'jobs' => ['job-1'], 'softDeleted' => 4, 'errors' => 0, 'failedJobs' => []]
+		);
+		$written = $this->captureWrites();
+
+		$data = $this->controller()->runAction('remove-example-set-' . SeedProfileService::GENERATED_PROFILE)->getData();
+
+		self::assertSame(['success' => true, 'message' => 'Moved 4 example object(s) to the trash.'], $data);
+		self::assertSame('removed', $written['demo_data_decided']);
+	}//end testAPerSetStepForTheGeneratedSetRemovesIt()
+
+	/**
+	 * Without the removal method the generated set is told to update OpenRegister.
+	 *
+	 * @return void
+	 */
+	public function testTheGeneratedSetWithoutTheMethodAsksForAnUpdate(): void {
+		$this->profiles->method('remove')->willReturn(['supported' => false]);
+
+		$data = $this->controller(stored: ['example_profile' => SeedProfileService::GENERATED_PROFILE])->runAction('remove-example-set')->getData();
+
+		self::assertSame(
+			['success' => false, 'message' => 'This OpenRegister cannot remove the generated example data from here. Update OpenRegister and run this step again.'],
+			$data
+		);
+	}//end testTheGeneratedSetWithoutTheMethodAsksForAnUpdate()
+
+	/**
+	 * A failed removal names the reason.
+	 *
+	 * @return void
+	 */
+	public function testAFailedRemovalNamesItsReason(): void {
+		$this->profiles->method('remove')->willThrowException(new RuntimeException('gone'));
+
+		$data = $this->controller(stored: ['example_profile' => 'po'])->runAction('remove-example-set')->getData();
+
+		self::assertSame(['success' => false, 'message' => 'Could not remove the example data: gone'], $data);
+	}//end testAFailedRemovalNamesItsReason()
+
+	/**
+	 * Nothing loaded is answered with the exact message, and an unknown action names itself.
+	 *
+	 * @return void
+	 */
+	public function testTheEmptyAndUnknownAnswersNameThemselves(): void {
+		self::assertSame(
+			['success' => true, 'message' => 'No example data was loaded, so there is nothing to remove.'],
+			$this->controller()->runAction('remove-example-set')->getData()
+		);
+		self::assertSame(
+			['success' => false, 'message' => 'Unknown setup action: remove-everything'],
+			$this->controller()->runAction('remove-everything')->getData()
+		);
+	}//end testTheEmptyAndUnknownAnswersNameThemselves()
 }//end class

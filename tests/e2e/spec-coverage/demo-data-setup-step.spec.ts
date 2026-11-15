@@ -133,6 +133,12 @@ test.describe('ADR-111 demo data', () => {
 			Object.keys(res.json?.steps ?? {}),
 			'setup/status must report the segment step',
 		).toContain('segment')
+		// The cards load themselves (`loadAction`), so the separate load step is
+		// gone from the manifest and from the status document.
+		expect(
+			Object.keys(res.json?.steps ?? {}),
+			'the run-action load step is retired',
+		).not.toContain('load-example-set')
 		expect(
 			(res.json?.segments ?? []).map((s: any) => s.id),
 			'setup/status must offer the six kinds of organisation',
@@ -177,18 +183,33 @@ test.describe('ADR-111 demo data', () => {
 		).toBe(true)
 	})
 
+	test('a card that names an unknown set loads nothing', async ({ page }) => {
+		// The card's Load button posts `{ dataset }` to the step's loadAction.
+		const res = await api(
+			page,
+			'POST',
+			`${BASE}/api/setup/action/load-example-set`,
+			{ dataset: 'atlantis' },
+		)
+
+		expect(res.status).toBe(400)
+		expect(res.json?.success).toBe(false)
+	})
+
 	test('re-installing is safe, because the step promises it is', async ({
 		page,
 	}) => {
 		// The step body tells the operator it is "safe to run more than once".
 		// That sentence is a contract; this asserts the server keeps it rather
 		// than erroring or reporting failure on a second pass.
-		await pickShippedDataset(page)
+		const shipped = await pickShippedDataset(page)
 
+		// Posted the way a dataset card's Load button posts it.
 		const again = await api(
 			page,
 			'POST',
 			`${BASE}/api/setup/action/load-example-set`,
+			{ dataset: shipped },
 		)
 
 		expect(again.status).toBe(200)

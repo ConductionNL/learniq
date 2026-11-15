@@ -33,6 +33,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ReportCardGradeLinesInterface;
+use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -40,7 +42,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/changes/portal-parent-report-card-grades/specs/report-card/spec.md#requirement-a-report-card-carries-its-subject-grades-in-readable-form
  */
-class ReportCardGradeLines {
+class ReportCardGradeLines implements ReportCardGradeLinesInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const COURSE_SCHEMA = 'course';
@@ -57,6 +59,13 @@ class ReportCardGradeLines {
 	private array $names = [];
 
 	/**
+	 * Turns one OpenRegister result into a plain array.
+	 *
+	 * @var ObjectRow
+	 */
+	private readonly ObjectRow $objectRow;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
@@ -66,6 +75,7 @@ class ReportCardGradeLines {
 	public function __construct(
 		private readonly ObjectService $objectService,
 	) {
+		$this->objectRow = new ObjectRow();
 	}//end __construct()
 
 	/**
@@ -203,15 +213,7 @@ class ReportCardGradeLines {
 	 * @return array<string, mixed>
 	 */
 	private function toRow(mixed $object): array {
-		if (is_array($object) === true) {
-			return $object;
-		}
-
-		if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-			return (array)$object->jsonSerialize();
-		}
-
-		return [];
+		return $this->objectRow->asArray(object: $object);
 	}//end toRow()
 
 	/**

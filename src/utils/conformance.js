@@ -75,17 +75,36 @@ export function recordFor(criterion, records) {
 	}
 	let latest = null
 	for (const record of records) {
-		if (!record || criterionNumber(record.wcagCriterion) !== criterion) {
-			continue
-		}
-		if (
-			latest === null
-			|| String(record.testedOn ?? '') >= String(latest.testedOn ?? '')
-		) {
+		if (isRecordOf(record, criterion) && isAtLeastAsRecent(record, latest)) {
 			latest = record
 		}
 	}
 	return latest
+}
+
+/**
+ * Whether a stored row records the given criterion.
+ *
+ * @param {object|null} record An AccessibilityCriterionResult row.
+ * @param {string} criterion The criterion number.
+ * @return {boolean}
+ */
+function isRecordOf(record, criterion) {
+	return !(!record || criterionNumber(record.wcagCriterion) !== criterion)
+}
+
+/**
+ * Whether a record is tested on or after the latest one so far (none counts as older).
+ *
+ * @param {object} record An AccessibilityCriterionResult row.
+ * @param {object|null} latest The latest row so far.
+ * @return {boolean}
+ */
+function isAtLeastAsRecent(record, latest) {
+	return (
+		latest === null
+		|| String(record.testedOn ?? '') >= String(latest.testedOn ?? '')
+	)
 }
 
 /**
@@ -127,14 +146,24 @@ export function resultPayload(form, context) {
 		result: RESULTS.includes(form.result) ? form.result : 'not-tested',
 		tenant_id: context.tenantId,
 	}
+	addFilledTextFields(payload, form)
+	if (payload.result === 'fail' && form.limitationId) {
+		payload.limitationId = form.limitationId
+	}
+	return payload
+}
+
+/**
+ * Copy the text fields the dialog filled in, trimmed, onto the payload.
+ *
+ * @param {object} payload The payload being built.
+ * @param {object} form The dialog values.
+ */
+function addFilledTextFields(payload, form) {
 	for (const field of ['method', 'evidenceReference', 'testedOn']) {
 		const value = typeof form[field] === 'string' ? form[field].trim() : ''
 		if (value !== '') {
 			payload[field] = value
 		}
 	}
-	if (payload.result === 'fail' && form.limitationId) {
-		payload.limitationId = form.limitationId
-	}
-	return payload
 }

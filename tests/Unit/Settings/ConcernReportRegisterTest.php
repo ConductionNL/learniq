@@ -80,13 +80,21 @@ class ConcernReportRegisterTest extends TestCase {
 
 	/**
 	 * The report stands alone, is not searchable and is deleted for real;
-	 * the reporter cannot be changed after it is filed.
+	 * the reporter cannot be changed after it is filed. Since 0.2.0 it holds
+	 * one optional reference out, `learnerId` to the pupil a member of staff
+	 * reported about (Ruben, 7 October 2026), and nothing references it.
 	 *
 	 * @return void
 	 */
 	public function testTheReportIsStructurallyIsolated(): void {
 		$schema = $this->schemas['ConcernReport'];
-		self::assertStringNotContainsString('$ref', (string)json_encode($schema['properties']));
+		$properties = $schema['properties'];
+		self::assertSame('LearnerProfile', $properties['learnerId']['$ref']);
+		self::assertTrue($properties['learnerId']['nullable']);
+		self::assertNotContains('learnerId', $schema['required'] ?? [], 'a pupil or a guardian files without a pupil');
+		self::assertArrayNotHasKey('inversedBy', $properties['learnerId'], 'the pupil must not lead back to the report');
+		unset($properties['learnerId']);
+		self::assertStringNotContainsString('$ref', (string)json_encode($properties), 'learnerId is the only reference out');
 		self::assertFalse($schema['x-openregister']['searchable']);
 		self::assertTrue($schema['x-openregister']['hardDelete']);
 		self::assertTrue($schema['properties']['reporterId']['readOnly']);

@@ -31,7 +31,7 @@
 -->
 
 <template>
-	<div class="accessibility-statement">
+	<div class="accessibility-statement lq-board-page">
 		<NcLoadingIcon
 			v-if="loading"
 			:size="44"
@@ -58,157 +58,159 @@
 
 		<template v-else>
 			<div class="accessibility-statement__header">
-				<h2>{{ t('learniq', 'Accessibility statement') }}</h2>
+				<CnPageHeader :title="t('learniq', 'Accessibility statement')" />
 				<NcButton variant="primary" @click="openFeedbackForm">
 					{{ t('learniq', 'Report an accessibility problem') }}
 				</NcButton>
 			</div>
 
-			<dl class="accessibility-statement__fields">
-				<dt>{{ t('learniq', 'Channel') }}</dt>
-				<dd>{{ statement.channelTitle }}</dd>
+			<CnDetailCard class="accessibility-statement__card">
+				<dl class="accessibility-statement__fields">
+					<dt>{{ t('learniq', 'Channel') }}</dt>
+					<dd>{{ statement.channelTitle }}</dd>
 
-				<dt>{{ t('learniq', 'Conformance status') }}</dt>
-				<dd>{{ statusLabel }}</dd>
+					<dt>{{ t('learniq', 'Conformance status') }}</dt>
+					<dd>{{ statusLabel }}</dd>
 
-				<dt>{{ t('learniq', 'Evaluation method') }}</dt>
-				<dd>{{ statement.evaluationMethod }}</dd>
+					<dt>{{ t('learniq', 'Evaluation method') }}</dt>
+					<dd>{{ statement.evaluationMethod }}</dd>
 
-				<dt>{{ t('learniq', 'Evaluation date') }}</dt>
-				<dd>{{ statement.evaluationDate }}</dd>
+					<dt>{{ t('learniq', 'Evaluation date') }}</dt>
+					<dd>{{ statement.evaluationDate }}</dd>
 
-				<dt>{{ t('learniq', 'Standard applied') }}</dt>
-				<dd>{{ statement.standardApplied }}</dd>
+					<dt>{{ t('learniq', 'Standard applied') }}</dt>
+					<dd>{{ statement.standardApplied }}</dd>
 
-				<dt>{{ t('learniq', 'Feedback contact') }}</dt>
-				<dd>{{ statement.feedbackContact }}</dd>
+					<dt>{{ t('learniq', 'Feedback contact') }}</dt>
+					<dd>{{ statement.feedbackContact }}</dd>
 
-				<dt>{{ t('learniq', 'Escalation route') }}</dt>
-				<dd>{{ statement.escalationRoute }}</dd>
+					<dt>{{ t('learniq', 'Escalation route') }}</dt>
+					<dd>{{ statement.escalationRoute }}</dd>
 
-				<dt v-if="statement.lastReviewedAt">
-					{{ t('learniq', 'Last reviewed') }}
-				</dt>
-				<dd v-if="statement.lastReviewedAt">
-					{{ statement.lastReviewedAt }}
-				</dd>
-			</dl>
+					<dt v-if="statement.lastReviewedAt">
+						{{ t('learniq', 'Last reviewed') }}
+					</dt>
+					<dd v-if="statement.lastReviewedAt">
+						{{ statement.lastReviewedAt }}
+					</dd>
+				</dl>
 
-			<h3>{{ t('learniq', 'Known limitations') }}</h3>
-			<p
-				v-if="limitations.length === 0"
-				class="accessibility-statement__no-limitations">
-				{{ t('learniq', 'No known limitations are currently logged.') }}
-			</p>
-			<table v-else class="accessibility-statement__limitations">
-				<thead>
-					<tr>
-						<th scope="col">{{ t('learniq', 'WCAG criterion') }}</th>
-						<th scope="col">{{ t('learniq', 'Severity') }}</th>
-						<th scope="col">{{ t('learniq', 'Affected surface') }}</th>
-						<th scope="col">{{ t('learniq', 'Status') }}</th>
-						<th scope="col">{{ t('learniq', 'Planned fix date') }}</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr v-for="limitation in limitations" :key="limitation.id">
-						<td>{{ limitation.wcagCriterion }}</td>
-						<td>{{ limitation.severity }}</td>
-						<td>{{ limitation.affectedSurface }}</td>
-						<td>{{ limitation.lifecycle }}</td>
-						<td>
-							{{
-								limitation.plannedFixDate
-								|| t('learniq', 'Not yet determined')
-							}}
-						</td>
-					</tr>
-				</tbody>
-			</table>
+				<h3>{{ t('learniq', 'Known limitations') }}</h3>
+				<p
+					v-if="limitations.length === 0"
+					class="accessibility-statement__no-limitations">
+					{{ t('learniq', 'No known limitations are currently logged.') }}
+				</p>
+				<table v-else class="accessibility-statement__limitations">
+					<thead>
+						<tr>
+							<th scope="col">{{ t('learniq', 'WCAG criterion') }}</th>
+							<th scope="col">{{ t('learniq', 'Severity') }}</th>
+							<th scope="col">{{ t('learniq', 'Affected surface') }}</th>
+							<th scope="col">{{ t('learniq', 'Status') }}</th>
+							<th scope="col">{{ t('learniq', 'Planned fix date') }}</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="limitation in limitations" :key="limitation.id">
+							<td>{{ limitation.wcagCriterion }}</td>
+							<td>{{ limitation.severity }}</td>
+							<td>{{ limitation.affectedSurface }}</td>
+							<td>{{ limitation.lifecycle }}</td>
+							<td>
+								{{
+									limitation.plannedFixDate
+									|| t('learniq', 'Not yet determined')
+								}}
+							</td>
+						</tr>
+					</tbody>
+				</table>
 
-			<h3>{{ t('learniq', 'Conformance per WCAG criterion') }}</h3>
-			<p class="accessibility-statement__summary">
-				{{
-					t(
-						'learniq',
-						'{pass} pass, {fail} fail, {notApplicable} not applicable, {notTested} not tested, of {total} criteria.',
-						{
-							pass: summary.pass,
-							fail: summary.fail,
-							notApplicable: summary['not-applicable'],
-							notTested: summary['not-tested'],
-							total: summary.total,
-						},
-					)
-				}}
-			</p>
-			<p class="accessibility-statement__downloads">
-				<a :href="evidenceUrl('csv')" download>{{
-					t('learniq', 'Download evidence as CSV')
-				}}</a>
-				<a :href="evidenceUrl('json')" download>{{
-					t('learniq', 'Download evidence as JSON')
-				}}</a>
-				<a :href="publicPageUrl">{{
-					t('learniq', 'Public statement page')
-				}}</a>
-			</p>
-			<table class="accessibility-statement__limitations">
-				<thead>
-					<tr>
-						<th scope="col">{{ t('learniq', 'WCAG criterion') }}</th>
-						<th scope="col">{{ t('learniq', 'Level') }}</th>
-						<th scope="col">{{ t('learniq', 'Result') }}</th>
-						<th scope="col">{{ t('learniq', 'Method') }}</th>
-						<th scope="col">{{ t('learniq', 'Evidence reference') }}</th>
-						<th scope="col">{{ t('learniq', 'Tested on') }}</th>
-						<th scope="col">{{ t('learniq', 'Known limitation') }}</th>
-						<th v-if="canEdit" scope="col">
-							<span class="hidden-visually">{{
-								t('learniq', 'Actions')
-							}}</span>
-						</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr v-for="row in criteria" :key="row.criterion">
-						<td>{{ row.criterion }} {{ row.title }}</td>
-						<td>{{ row.level }}</td>
-						<td>{{ resultLabel(row.result) }}</td>
-						<td>{{ row.method }}</td>
-						<td>
-							<a
-								v-if="isLink(row.evidenceReference)"
-								:href="row.evidenceReference"
-								rel="noopener noreferrer"
-								target="_blank"
-								>{{
-									t('learniq', 'Evidence for {criterion}', {
-										criterion: row.criterion,
-									})
-								}}</a
-							>
-							<span v-else>{{ row.evidenceReference }}</span>
-						</td>
-						<td>{{ row.testedOn }}</td>
-						<td>{{ row.limitation }}</td>
-						<td v-if="canEdit">
-							<NcButton
-								variant="tertiary"
-								:aria-label="
-									t(
-										'learniq',
-										'Record the result of {criterion}',
-										{ criterion: row.criterion },
-									)
-								"
-								@click="editing = row">
-								{{ t('learniq', 'Record result') }}
-							</NcButton>
-						</td>
-					</tr>
-				</tbody>
-			</table>
+				<h3>{{ t('learniq', 'Conformance per WCAG criterion') }}</h3>
+				<p class="accessibility-statement__summary">
+					{{
+						t(
+							'learniq',
+							'{pass} pass, {fail} fail, {notApplicable} not applicable, {notTested} not tested, of {total} criteria.',
+							{
+								pass: summary.pass,
+								fail: summary.fail,
+								notApplicable: summary['not-applicable'],
+								notTested: summary['not-tested'],
+								total: summary.total,
+							},
+						)
+					}}
+				</p>
+				<p class="accessibility-statement__downloads">
+					<a :href="evidenceUrl('csv')" download>{{
+						t('learniq', 'Download evidence as CSV')
+					}}</a>
+					<a :href="evidenceUrl('json')" download>{{
+						t('learniq', 'Download evidence as JSON')
+					}}</a>
+					<a :href="publicPageUrl">{{
+						t('learniq', 'Public statement page')
+					}}</a>
+				</p>
+				<table class="accessibility-statement__limitations">
+					<thead>
+						<tr>
+							<th scope="col">{{ t('learniq', 'WCAG criterion') }}</th>
+							<th scope="col">{{ t('learniq', 'Level') }}</th>
+							<th scope="col">{{ t('learniq', 'Result') }}</th>
+							<th scope="col">{{ t('learniq', 'Method') }}</th>
+							<th scope="col">{{ t('learniq', 'Evidence reference') }}</th>
+							<th scope="col">{{ t('learniq', 'Tested on') }}</th>
+							<th scope="col">{{ t('learniq', 'Known limitation') }}</th>
+							<th v-if="canEdit" scope="col">
+								<span class="hidden-visually">{{
+									t('learniq', 'Actions')
+								}}</span>
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="row in criteria" :key="row.criterion">
+							<td>{{ row.criterion }} {{ row.title }}</td>
+							<td>{{ row.level }}</td>
+							<td>{{ resultLabel(row.result) }}</td>
+							<td>{{ row.method }}</td>
+							<td>
+								<a
+									v-if="isLink(row.evidenceReference)"
+									:href="row.evidenceReference"
+									rel="noopener noreferrer"
+									target="_blank"
+									>{{
+										t('learniq', 'Evidence for {criterion}', {
+											criterion: row.criterion,
+										})
+									}}</a
+								>
+								<span v-else>{{ row.evidenceReference }}</span>
+							</td>
+							<td>{{ row.testedOn }}</td>
+							<td>{{ row.limitation }}</td>
+							<td v-if="canEdit">
+								<NcButton
+									variant="tertiary"
+									:aria-label="
+										t(
+											'learniq',
+											'Record the result of {criterion}',
+											{ criterion: row.criterion },
+										)
+									"
+									@click="editing = row">
+									{{ t('learniq', 'Record result') }}
+								</NcButton>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</CnDetailCard>
 
 			<CriterionResultDialog
 				v-if="editing"
@@ -224,13 +226,14 @@
 </template>
 
 <script>
-import { useObjectStore } from '@conduction/nextcloud-vue'
+import { CnDetailCard, CnPageHeader, useObjectStore } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon } from '@nextcloud/vue'
 import CriterionResultDialog from '../dialogs/CriterionResultDialog.vue'
 import { recordFor, summarise } from '../utils/conformance.js'
+import { collectionOrEmpty } from '../utils/storeCollection.js'
 
 const REGISTER = 'learniq'
 // Address a schema by the SLUG it declares in lib/Settings/learniq_register.json,
@@ -256,8 +259,7 @@ const RESULT_SCHEMA = 'accessibility-criterion-result'
 const RESULT_TYPE = `${REGISTER}-${RESULT_SCHEMA}`
 
 // The roles that may record results: the same gate as the Accessibility
-// limitations menu entry in src/manifest.d/dashboard.json. The register's
-// own authorization is what actually refuses a write.
+// limitations menu entry in src/manifest.d/dashboard.json.
 const EDITOR_ROLES = ['compliance-officer', 'admin']
 
 const RESULT_LABELS = {
@@ -277,6 +279,8 @@ export default {
 	name: 'LearniqAccessibilityStatement',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		CriterionResultDialog,
 		NcButton,
 		NcEmptyContent,
@@ -368,49 +372,71 @@ export default {
 		async loadStatement() {
 			this.loading = true
 			const store = useObjectStore()
+			this.registerStatementTypes(store)
 
-			if (typeof store.registerObjectType === 'function') {
-				store.registerObjectType(STATEMENT_TYPE, STATEMENT_SCHEMA, REGISTER)
-				store.registerObjectType(
-					LIMITATION_TYPE,
-					LIMITATION_SCHEMA,
-					REGISTER,
-				)
-			}
-
-			const results =
-				typeof store.fetchCollection === 'function'
-					? await store
-							.fetchCollection(STATEMENT_TYPE, {
-								lifecycle: 'published',
-								_limit: 1,
-							})
-							.catch(() => [])
-					: []
-			this.statement =
-				Array.isArray(results) && results.length > 0 ? results[0] : null
+			this.statement = await this.publishedStatement(store)
 
 			if (this.statement) {
-				const statementId =
-					this.statement.id
-					?? (this.statement['@self'] && this.statement['@self'].id)
-				const limitationResults =
-					typeof store.fetchCollection === 'function'
-						? await store
-								.fetchCollection(LIMITATION_TYPE, {
-									accessibilityStatementId: statementId,
-								})
-								.catch(() => [])
-						: []
-				this.limitations = Array.isArray(limitationResults)
-					? limitationResults
-					: []
-				await this.loadConformance()
+				await this.loadLimitations(store)
 			} else {
 				this.limitations = []
 			}
 
 			this.loading = false
+		},
+
+		/**
+		 * The current `published` statement, or null when there is none.
+		 *
+		 * @param {object} store The object store.
+		 * @return {Promise<object|null>}
+		 * @spec openspec/specs/accessibility-conformance/spec.md#requirement-the-accessibility-statement-must-carry-the-dutch-government-model-s-mandatory-fields
+		 */
+		async publishedStatement(store) {
+			const results = await collectionOrEmpty(store, {
+				type: STATEMENT_TYPE,
+				query: { lifecycle: 'published', _limit: 1 },
+			})
+			return results.length > 0 ? results[0] : null
+		},
+
+		/**
+		 * Register the statement and limitation object types, when the store
+		 * supports registering.
+		 *
+		 * @param {object} store The object store.
+		 * @return {void}
+		 * @spec openspec/specs/accessibility-conformance/spec.md#requirement-the-accessibility-statement-must-carry-the-dutch-government-model-s-mandatory-fields
+		 */
+		registerStatementTypes(store) {
+			if (typeof store.registerObjectType !== 'function') {
+				return
+			}
+			store.registerObjectType(STATEMENT_TYPE, STATEMENT_SCHEMA, REGISTER)
+			store.registerObjectType(
+				LIMITATION_TYPE,
+				LIMITATION_SCHEMA,
+				REGISTER,
+			)
+		},
+
+		/**
+		 * Read the limitations linked to the shown statement, then its
+		 * conformance table.
+		 *
+		 * @param {object} store The object store.
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/accessibility-conformance/spec.md#requirement-the-accessibility-statement-must-carry-the-dutch-government-model-s-mandatory-fields
+		 */
+		async loadLimitations(store) {
+			const statementId =
+				this.statement.id
+				?? (this.statement['@self'] && this.statement['@self'].id)
+			this.limitations = await collectionOrEmpty(store, {
+				type: LIMITATION_TYPE,
+				query: { accessibilityStatementId: statementId },
+			})
+			await this.loadConformance()
 		},
 
 		/**
@@ -434,6 +460,21 @@ export default {
 		 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-per-criterion-conformance-record
 		 */
 		async loadConformance() {
+			await this.loadCriteria()
+			if (!this.canEdit) {
+				return
+			}
+			await this.loadResultRecords()
+		},
+
+		/**
+		 * Read the conformance table from the public evidence endpoint; a
+		 * failed read leaves it empty.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-per-criterion-conformance-record
+		 */
+		async loadCriteria() {
 			try {
 				const response = await axios.get(this.evidenceUrl('json'))
 				this.criteria = Array.isArray(response.data?.criteria)
@@ -442,23 +483,24 @@ export default {
 			} catch {
 				this.criteria = []
 			}
+		},
 
-			if (!this.canEdit) {
-				return
-			}
+		/**
+		 * Read the stored result records of the shown statement, for the
+		 * dialog to update.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/governance-wcag-evidence-report/specs/accessibility-evidence/spec.md#requirement-per-criterion-conformance-record
+		 */
+		async loadResultRecords() {
 			const store = useObjectStore()
 			if (typeof store.registerObjectType === 'function') {
 				store.registerObjectType(RESULT_TYPE, RESULT_SCHEMA, REGISTER)
 			}
-			const records =
-				typeof store.fetchCollection === 'function'
-					? await store
-							.fetchCollection(RESULT_TYPE, {
-								accessibilityStatementId: this.statementId,
-							})
-							.catch(() => [])
-					: []
-			this.records = Array.isArray(records) ? records : []
+			this.records = await collectionOrEmpty(store, {
+				type: RESULT_TYPE,
+				query: { accessibilityStatementId: this.statementId },
+			})
 		},
 
 		/**
@@ -527,9 +569,6 @@ export default {
 
 <style scoped lang="scss">
 .accessibility-statement {
-	padding: calc(var(--default-grid-baseline, 4px) * 4);
-	max-width: 900px;
-
 	&__loading {
 		margin: calc(var(--default-grid-baseline, 4px) * 8) auto;
 	}
@@ -538,7 +577,6 @@ export default {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		margin-bottom: calc(var(--default-grid-baseline, 4px) * 4);
 	}
 
 	&__fields {

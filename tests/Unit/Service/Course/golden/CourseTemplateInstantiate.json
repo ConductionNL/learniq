@@ -1,0 +1,628 @@
+{
+    "a lesson write returns null": {
+        "refused": [
+            500,
+            "not-saved",
+            "The course could not be created from this template."
+        ],
+        "calls": [
+            {
+                "create": [
+                    "curriculum-plan",
+                    {
+                        "name": "[t]Curriculum plan for Naam",
+                        "kind": "weighted",
+                        "formula": null,
+                        "components": [
+                            {
+                                "code": "A"
+                            },
+                            {
+                                "code": "B"
+                            }
+                        ],
+                        "periods": [
+                            {
+                                "period": 1
+                            }
+                        ],
+                        "passRules": [],
+                        "tenant_id": "t-1"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "course",
+                    {
+                        "code": "NAAM-<time>-<rand>",
+                        "name": "Naam",
+                        "level": "mbo-4",
+                        "language": "nl",
+                        "lifecycle": "draft",
+                        "curriculumPlanId": "id-1",
+                        "tenant_id": "t-1"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "course",
+                    {
+                        "code": "NAAM-<time>-<rand>-intro",
+                        "name": "Introductie",
+                        "level": "mbo-4",
+                        "language": "nl",
+                        "lifecycle": "draft",
+                        "parentCourseId": "id-2",
+                        "order": 3,
+                        "ectsCredits": 2.5,
+                        "tenant_id": "t-1"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "lesson",
+                    {
+                        "courseId": "id-3",
+                        "name": "Les een",
+                        "order": 1,
+                        "contentType": "text",
+                        "blocks": [
+                            {
+                                "blockId": "b1",
+                                "type": "richText",
+                                "order": null,
+                                "text": "Hallo"
+                            },
+                            {
+                                "blockId": null,
+                                "type": "video",
+                                "order": 2,
+                                "text": null
+                            }
+                        ],
+                        "tenant_id": "t-1"
+                    }
+                ]
+            },
+            {
+                "delete": [
+                    "id-3",
+                    "learniq",
+                    "course",
+                    [
+                        true,
+                        true,
+                        false,
+                        null,
+                        false
+                    ]
+                ]
+            },
+            {
+                "delete": [
+                    "id-2",
+                    "learniq",
+                    "course",
+                    [
+                        true,
+                        true,
+                        false,
+                        null,
+                        false
+                    ]
+                ]
+            },
+            {
+                "delete": [
+                    "id-1",
+                    "learniq",
+                    "curriculum-plan",
+                    [
+                        true,
+                        true,
+                        false,
+                        null,
+                        false
+                    ]
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "warning",
+                "message": "[CourseTemplateService] Could not remove {schema} {id} after a failed instantiation: {error}",
+                "context": {
+                    "schema": "curriculum-plan",
+                    "id": "id-1",
+                    "error": "cannot delete"
+                }
+            }
+        ]
+    },
+    "a module write is not allowed": {
+        "refused": [
+            403,
+            "not-allowed",
+            "You are not allowed to do this."
+        ],
+        "calls": [
+            {
+                "create": [
+                    "curriculum-plan",
+                    {
+                        "name": "[t]Curriculum plan for Naam",
+                        "kind": "weighted",
+                        "formula": null,
+                        "components": [
+                            {
+                                "code": "A"
+                            },
+                            {
+                                "code": "B"
+                            }
+                        ],
+                        "periods": [
+                            {
+                                "period": 1
+                            }
+                        ],
+                        "passRules": [],
+                        "tenant_id": "t-1"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "course",
+                    {
+                        "code": "NAAM-<time>-<rand>",
+                        "name": "Naam",
+                        "level": "mbo-4",
+                        "language": "nl",
+                        "lifecycle": "draft",
+                        "curriculumPlanId": "id-1",
+                        "tenant_id": "t-1"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "course",
+                    {
+                        "code": "NAAM-<time>-<rand>-intro",
+                        "name": "Introductie",
+                        "level": "mbo-4",
+                        "language": "nl",
+                        "lifecycle": "draft",
+                        "parentCourseId": "id-2",
+                        "order": 3,
+                        "ectsCredits": 2.5,
+                        "tenant_id": "t-1"
+                    }
+                ]
+            },
+            {
+                "delete": [
+                    "id-2",
+                    "learniq",
+                    "course",
+                    [
+                        true,
+                        true,
+                        false,
+                        null,
+                        false
+                    ]
+                ]
+            },
+            {
+                "delete": [
+                    "id-1",
+                    "learniq",
+                    "curriculum-plan",
+                    [
+                        true,
+                        true,
+                        false,
+                        null,
+                        false
+                    ]
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "warning",
+                "message": "[CourseTemplateService] Could not remove {schema} {id} after a failed instantiation: {error}",
+                "context": {
+                    "schema": "curriculum-plan",
+                    "id": "id-1",
+                    "error": "cannot delete"
+                }
+            }
+        ]
+    },
+    "default language, no plan": {
+        "result": {
+            "id": "id-1"
+        },
+        "calls": [
+            {
+                "create": [
+                    "course",
+                    {
+                        "code": "KORT-<time>-<rand>",
+                        "name": "Kort",
+                        "level": "vo",
+                        "language": "nl",
+                        "lifecycle": "draft",
+                        "tenant_id": ""
+                    }
+                ]
+            }
+        ],
+        "log": []
+    },
+    "empty name": {
+        "refused": [
+            422,
+            "invalid-name",
+            "Give a name of at most 255 characters."
+        ],
+        "calls": [],
+        "log": []
+    },
+    "full template": {
+        "result": {
+            "id": "id-2"
+        },
+        "calls": [
+            {
+                "create": [
+                    "curriculum-plan",
+                    {
+                        "name": "[t]Curriculum plan for Wiskunde voor beginners",
+                        "kind": "weighted",
+                        "formula": null,
+                        "components": [
+                            {
+                                "code": "A"
+                            },
+                            {
+                                "code": "B"
+                            }
+                        ],
+                        "periods": [
+                            {
+                                "period": 1
+                            }
+                        ],
+                        "passRules": [],
+                        "tenant_id": "t-1"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "course",
+                    {
+                        "code": "WISKUNDE-VOO-<time>-<rand>",
+                        "name": "Wiskunde voor beginners",
+                        "level": "mbo-4",
+                        "language": "en",
+                        "lifecycle": "draft",
+                        "curriculumPlanId": "id-1",
+                        "tenant_id": "t-1"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "course",
+                    {
+                        "code": "WISKUNDE-VOO-<time>-<rand>-intro",
+                        "name": "Introductie",
+                        "level": "mbo-4",
+                        "language": "en",
+                        "lifecycle": "draft",
+                        "parentCourseId": "id-2",
+                        "order": 3,
+                        "ectsCredits": 2.5,
+                        "tenant_id": "t-1"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "lesson",
+                    {
+                        "courseId": "id-3",
+                        "name": "Les een",
+                        "order": 1,
+                        "contentType": "text",
+                        "blocks": [
+                            {
+                                "blockId": "b1",
+                                "type": "richText",
+                                "order": null,
+                                "text": "Hallo"
+                            },
+                            {
+                                "blockId": null,
+                                "type": "video",
+                                "order": 2,
+                                "text": null
+                            }
+                        ],
+                        "tenant_id": "t-1"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "lesson",
+                    {
+                        "courseId": "id-3",
+                        "name": "Les twee",
+                        "order": 7,
+                        "contentType": "quiz",
+                        "durationMinutes": 45,
+                        "blocks": [],
+                        "tenant_id": "t-1"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "lesson",
+                    {
+                        "courseId": "id-3",
+                        "name": "",
+                        "order": 3,
+                        "contentType": "text",
+                        "blocks": [],
+                        "tenant_id": "t-1"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "course",
+                    {
+                        "code": "WISKUNDE-VOO-<time>-<rand>-module-2",
+                        "name": "Zonder sleutel",
+                        "level": "mbo-4",
+                        "language": "en",
+                        "lifecycle": "draft",
+                        "parentCourseId": "id-2",
+                        "order": 2,
+                        "tenant_id": "t-1"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "course",
+                    {
+                        "code": "WISKUNDE-VOO-<time>-<rand>-module-3",
+                        "name": "",
+                        "level": "mbo-4",
+                        "language": "en",
+                        "lifecycle": "draft",
+                        "parentCourseId": "id-2",
+                        "order": 3,
+                        "tenant_id": "t-1"
+                    }
+                ]
+            }
+        ],
+        "log": []
+    },
+    "name too long": {
+        "refused": [
+            422,
+            "invalid-name",
+            "Give a name of at most 255 characters."
+        ],
+        "calls": [],
+        "log": []
+    },
+    "plan not an array, bare template": {
+        "result": {
+            "id": "id-1"
+        },
+        "calls": [
+            {
+                "create": [
+                    "course",
+                    {
+                        "code": "B-<time>-<rand>",
+                        "name": "B",
+                        "level": "",
+                        "language": "de",
+                        "lifecycle": "draft",
+                        "tenant_id": ""
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "course",
+                    {
+                        "code": "B-<time>-<rand>-module-1",
+                        "name": "",
+                        "level": "",
+                        "language": "de",
+                        "lifecycle": "draft",
+                        "parentCourseId": "id-1",
+                        "order": 1,
+                        "tenant_id": ""
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "lesson",
+                    {
+                        "courseId": "id-2",
+                        "name": "",
+                        "order": 1,
+                        "contentType": "text",
+                        "blocks": [],
+                        "tenant_id": ""
+                    }
+                ]
+            }
+        ],
+        "log": []
+    },
+    "template empty": {
+        "result": {
+            "id": "id-1"
+        },
+        "calls": [
+            {
+                "create": [
+                    "course",
+                    {
+                        "code": "NAAM-<time>-<rand>",
+                        "name": "Naam",
+                        "level": "",
+                        "language": "nl",
+                        "lifecycle": "draft",
+                        "tenant_id": ""
+                    }
+                ]
+            }
+        ],
+        "log": []
+    },
+    "template missing": {
+        "refused": [
+            404,
+            "template-not-found",
+            "Template not found."
+        ],
+        "calls": [],
+        "log": []
+    },
+    "the course write returns null, a rollback delete fails": {
+        "refused": [
+            500,
+            "not-saved",
+            "The course could not be created from this template."
+        ],
+        "calls": [
+            {
+                "create": [
+                    "curriculum-plan",
+                    {
+                        "name": "[t]Curriculum plan for Naam",
+                        "kind": "weighted",
+                        "formula": null,
+                        "components": [
+                            {
+                                "code": "A"
+                            },
+                            {
+                                "code": "B"
+                            }
+                        ],
+                        "periods": [
+                            {
+                                "period": 1
+                            }
+                        ],
+                        "passRules": [],
+                        "tenant_id": "t-1"
+                    }
+                ]
+            },
+            {
+                "create": [
+                    "course",
+                    {
+                        "code": "NAAM-<time>-<rand>",
+                        "name": "Naam",
+                        "level": "mbo-4",
+                        "language": "nl",
+                        "lifecycle": "draft",
+                        "curriculumPlanId": "id-1",
+                        "tenant_id": "t-1"
+                    }
+                ]
+            },
+            {
+                "delete": [
+                    "id-1",
+                    "learniq",
+                    "curriculum-plan",
+                    [
+                        true,
+                        true,
+                        false,
+                        null,
+                        false
+                    ]
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "warning",
+                "message": "[CourseTemplateService] Could not remove {schema} {id} after a failed instantiation: {error}",
+                "context": {
+                    "schema": "curriculum-plan",
+                    "id": "id-1",
+                    "error": "cannot delete"
+                }
+            }
+        ]
+    },
+    "the plan write breaks": {
+        "refused": [
+            500,
+            "not-saved",
+            "The course could not be created from this template."
+        ],
+        "calls": [
+            {
+                "create": [
+                    "curriculum-plan",
+                    {
+                        "name": "[t]Curriculum plan for Naam",
+                        "kind": "weighted",
+                        "formula": null,
+                        "components": [
+                            {
+                                "code": "A"
+                            },
+                            {
+                                "code": "B"
+                            }
+                        ],
+                        "periods": [
+                            {
+                                "period": 1
+                            }
+                        ],
+                        "passRules": [],
+                        "tenant_id": "t-1"
+                    }
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "error",
+                "message": "[CourseTemplateService] The course could not be created from this template. {error}",
+                "context": {
+                    "error": "database down"
+                }
+            }
+        ]
+    }
+}

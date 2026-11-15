@@ -1,7 +1,7 @@
 # apphost-adoption Specification
 
 ## Purpose
-TBD - created by archiving change adopt-apphost. Update Purpose after archive.
+Serve health, metrics, preferences, settings and deep links through OpenRegister's AppHost instead of local code, with the same behaviour as before. OpenRegister's autoloader is registered first, so this works in any app order.
 ## Requirements
 ### Requirement: Standard Public Health Endpoint
 
@@ -85,18 +85,26 @@ Scholiq SHALL serve its per-user preferences, action authorization, repair-step 
 
 ### Requirement: OpenRegister's Autoloader Is Registered Before AppHost Is Referenced
 
-`AppInfo\OpenRegisterAutoloader::register()` SHALL put OpenRegister's PSR-4 prefix on the composer autoloader — via `OC_App::registerAutoloading('openregister', …)` — before the composition root references any `OCA\OpenRegister\AppHost\…` name, including any `class_exists()` guard.
+`AppInfo\OpenRegisterAutoloader::register()` SHALL put OpenRegister's PSR-4 prefix (`OCA\OpenRegister\` → `<openregister>/lib/`) on the autoloader — via `spl_autoload_register()` and the public `IAppManager` only, because Nextcloud 35 removed the private `OC_App::registerAutoloading()` — before the composition root references any `OCA\OpenRegister\AppHost\…` name, including any `class_exists()` guard.
 
 Nextcloud registers apps in sorted order: `OC_App::getEnabledApps()` does `sort($apps)` and `Coordinator::registerApps()` walks that list calling `OC_App::registerAutoloading($appId, $path)` and then `$app->register()` for one app at a time, so every app's `register()` runs before the PSR-4 prefix of every alphabetically-later app exists.
 
-`OC_App::registerAutoloading()` is idempotent and touches only the autoloader. `IAppManager::loadApp('openregister')` MUST NOT be used instead: it marks OpenRegister loaded and calls `Coordinator::bootApp()`, booting OpenRegister before its own `register()` has run.
+The registration is idempotent and touches only the autoloader; OpenRegister's `vendor/autoload.php` MUST NOT be required. `IAppManager::loadApp('openregister')` MUST NOT be used instead: it marks OpenRegister loaded and calls `Coordinator::bootApp()`, booting OpenRegister before its own `register()` has run.
 
 The prelude MUST NOT throw under any instance state. An exception escaping it would abort the entire `register()`, which is strictly worse than the failure it prevents — `Coordinator::registerApps()` catches the Throwable, logs an `emergency` and continues, leaving the app enabled and serving with every later registration silently missing.
 
-These behaviours are asserted at the unit level rather than as spec scenarios,
-in `tests/Unit/AppInfo/OpenRegisterAutoloaderTest.php`, and mechanically by
-hydra gate-64 (`apphost-autoload-prelude`). Neither behaviour is reachable from
-a browser or an HTTP client: both live in the app-registration phase, which
+These behaviours are asserted at the unit level in
+`tests/Unit/AppInfo/OpenRegisterAutoloaderTest.php`, and mechanically by hydra
+gate-64 (`apphost-autoload-prelude`). Neither behaviour is reachable from a
+browser or an HTTP client: both live in the app-registration phase, which
 completes before the first request is dispatched, and the absent-OpenRegister
 path cannot be set up on an instance that must have OpenRegister to serve this
-app at all.
+app at all. The scenario below therefore carries an `@e2e exclude`.
+
+#### Scenario: OpenRegister's prefix is on the autoloader before AppHost is referenced
+
+- **GIVEN** Nextcloud registers this app before OpenRegister, in sorted app order
+- **WHEN** this app's `register()` runs
+- **THEN** OpenRegister's PSR-4 prefix MUST be on the autoloader before any `OCA\OpenRegister\AppHost\…` name is referenced
+- **AND** OpenRegister MUST NOT be booted, and the prelude MUST NOT throw
+- @e2e exclude App-registration phase, before any request is dispatched; covered by OpenRegisterAutoloaderTest and hydra gate-64

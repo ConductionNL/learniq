@@ -38,9 +38,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
-use OCA\Learniq\Service\LearnerRefResolver;
+use OCA\Learniq\Kernel\Contracts\GuardianPortalInvitationInterface;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
+use OCP\Log\Audit\CriticalActionPerformedEvent;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -49,7 +51,7 @@ use Throwable;
  *
  * @spec openspec/changes/portal-guardian-invitation/specs/portal-identity/spec.md
  */
-class GuardianPortalInvitation {
+class GuardianPortalInvitation implements GuardianPortalInvitationInterface {
 
 	/**
 	 * Portaliq's provision event (portal-identity-space REQ-PIS-001/003).
@@ -60,6 +62,12 @@ class GuardianPortalInvitation {
 	 * Portaliq's claim event (portal-identity-space REQ-PIS-003).
 	 */
 	public const CLAIM_EVENT = 'OCA\\Portaliq\\Event\\PortalAccountClaimRequestedEvent';
+
+	/**
+	 * Portaliq's invitation event: portaliq mails the guardian a one-time
+	 * link (invitation-secret-joins-the-signed-in-account REQ-PIS-007).
+	 */
+	public const INVITATION_EVENT = 'OCA\\Portaliq\\Event\\PortalAccountInvitationRequestedEvent';
 
 	/**
 	 * The claim the parent contribution scopes by.
@@ -79,20 +87,22 @@ class GuardianPortalInvitation {
 	/**
 	 * Constructor.
 	 *
-	 * @param LearnerRefResolver $profiles LearnerProfile by uuid.
+	 * @param LearnerRefResolverInterface $profiles LearnerProfile by uuid.
 	 * @param IEventDispatcher $dispatcher Dispatches portaliq's typed events.
 	 * @param LoggerInterface $logger PSR logger.
 	 * @param string $provisionEventClass The provision event class (overridable in tests).
 	 * @param string $claimEventClass The claim event class (overridable in tests).
+	 * @param string $invitationEventClass The invitation event class (overridable in tests).
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly LearnerRefResolver $profiles,
+		private readonly LearnerRefResolverInterface $profiles,
 		private readonly IEventDispatcher $dispatcher,
 		private readonly LoggerInterface $logger,
 		private readonly string $provisionEventClass=self::PROVISION_EVENT,
 		private readonly string $claimEventClass=self::CLAIM_EVENT,
+		private readonly string $invitationEventClass=self::INVITATION_EVENT,
 	) {
 	}//end __construct()
 
@@ -104,26 +114,56 @@ class GuardianPortalInvitation {
 	 * login find the account). Returns `status: invited` with the account's
 	 * `subjectRef`, or `status: refused` with a `reason`.
 	 *
+	 * Once the account is linked, portaliq is asked to mail the guardian a
+	 * one-time link. `invitation` says what came of it: `sent`, `not-sent`
+	 * (the mail did not leave; inviting again sends a new one) or
+	 * `unavailable` (this portaliq sends none). The link never comes back
+	 * here, so nobody at the school sees it. The guardian is linked either
+	 * way: a first sign-in with the verified address still finds the account.
+	 *
+	 * On the channel `letter` no mail is sent. Portaliq answers a short
+	 * one-time code instead, and `invitation` is `code` with the code under
+	 * `code` and its expiry under `expiresAt`. The school prints it in a
+	 * letter; the guardian signs in and types it on "My account".
+	 *
 	 * @param string $guardianRef The guardian's LearnerProfile uuid.
 	 * @param string $email The guardian's verified email address.
 	 * @param string $organisation The portal organisation slug.
+	 * @param string $channel CHANNEL_MAIL or CHANNEL_LETTER.
+	 * @param string $issuedBy Who issued it: the staff user's uid, or `occ`.
 	 *
-	 * @return array{status: string, reason?: string, subjectRef?: string}
+	 * @return array{status: string, reason?: string, subjectRef?: string, invitation?: string, code?: string, expiresAt?: string}
 	 *
 	 * @spec openspec/changes/portal-guardian-invitation/specs/portal-identity/spec.md
+	 * @spec openspec/changes/portal-guardian-invitation-mail/specs/portal-identity/spec.md
+	 * @spec openspec/changes/portal-guardian-invitation-letter/specs/portal-identity/spec.md
 	 */
-	public function invite(string $guardianRef, string $email, string $organisation): array {
-		$email = trim($email);
-		$organisation = trim($organisation);
-		if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-			return self::refused(reason: 'email-invalid');
+	public function invite(string $guardianRef, string $email, string $organisation, string $channel=self::CHANNEL_MAIL, string $issuedBy=''): array {
+		$request = new GuardianInvitationRequest();
+		$request->guardianRef = $guardianRef;
+		$request->email = trim($email);
+		$request->organisation = trim($organisation);
+		$request->channel = $channel;
+		$request->issuedBy = $issuedBy;
+
+		return $this->inviteGuardian(request: $request);
+	}//end invite()
+
+	/**
+	 * Refuse unusable input, an unknown guardian or a missing portaliq before
+	 * anything is dispatched; otherwise issue the invitation.
+	 *
+	 * @param GuardianInvitationRequest $request The invitation being worked through.
+	 *
+	 * @return array{status: string, reason?: string, subjectRef?: string, invitation?: string, code?: string, expiresAt?: string}
+	 */
+	private function inviteGuardian(GuardianInvitationRequest $request): array {
+		$inputRefusal = $this->inputRefusal(request: $request);
+		if ($inputRefusal !== '') {
+			return self::refused(reason: $inputRefusal);
 		}
 
-		if ($organisation === '') {
-			return self::refused(reason: 'organisation-missing');
-		}
-
-		$guardian = $this->guardian(guardianRef: $guardianRef);
+		$guardian = $this->guardian(guardianRef: $request->guardianRef);
 		if ($guardian === null) {
 			return self::refused(reason: 'guardian-unknown');
 		}
@@ -132,28 +172,143 @@ class GuardianPortalInvitation {
 			return self::refused(reason: 'portal-unavailable');
 		}
 
-		try {
-			$subjectRef = $this->provision(guardian: $guardian, email: $email, organisation: $organisation);
-			if ($subjectRef === '') {
-				return self::refused(reason: 'provision-refused');
-			}
+		$request->guardian = $guardian;
+		return $this->issue(request: $request);
+	}//end inviteGuardian()
 
-			if ($this->claim(subjectRef: $subjectRef, guardianRef: (string)$guardian['id']) === false) {
-				return self::refused(reason: 'claim-refused');
-			}
+	/**
+	 * Provision, link and invite the guardian, and record who issued it once
+	 * it went through; a portaliq that throws is logged and refused.
+	 *
+	 * @param GuardianInvitationRequest $request The invitation, its guardian found.
+	 *
+	 * @return array{status: string, reason?: string, subjectRef?: string, invitation?: string, code?: string, expiresAt?: string}
+	 */
+	private function issue(GuardianInvitationRequest $request): array {
+		try {
+			$result = $this->provisionLinkAndSend(request: $request);
 		} catch (Throwable $exception) {
 			$this->logger->warning(
 				'[GuardianPortalInvitation] Could not invite guardian {guardian}: {msg}',
-				['guardian' => $guardianRef, 'msg' => $exception->getMessage()]
+				['guardian' => $request->guardianRef, 'msg' => $exception->getMessage()]
 			);
 			return self::refused(reason: 'portal-unavailable');
 		}
 
-		return [
+		if ($result['status'] === 'invited') {
+			$this->recordIssue(request: $request);
+		}
+
+		return $result;
+	}//end issue()
+
+	/**
+	 * Have portaliq provision the account, write the claim on it and send the
+	 * invitation; refused when the account or the claim is not confirmed.
+	 *
+	 * @param GuardianInvitationRequest $request The invitation, its guardian found.
+	 *
+	 * @return array{status: string, reason?: string, subjectRef?: string, invitation?: string, code?: string, expiresAt?: string}
+	 */
+	private function provisionLinkAndSend(GuardianInvitationRequest $request): array {
+		$subjectRef = $this->provision(request: $request);
+		if ($subjectRef === '') {
+			return self::refused(reason: 'provision-refused');
+		}
+
+		if ($this->claim(subjectRef: $subjectRef, guardianRef: (string)$request->guardian['id']) === false) {
+			return self::refused(reason: 'claim-refused');
+		}
+
+		return ([
 			'status' => 'invited',
 			'subjectRef' => $subjectRef,
+		] + $this->sendInvitation(subjectRef: $subjectRef, channel: $request->channel));
+	}//end provisionLinkAndSend()
+
+	/**
+	 * Record who issued an invitation (security review L5): the issuer, the
+	 * guardian, the channel and the organisation, never the code or the
+	 * link. Nextcloud's audit log (admin_audit) takes the event; the app log
+	 * gets the same line.
+	 *
+	 * @param GuardianInvitationRequest $request The invitation that was issued.
+	 *
+	 * @return void
+	 */
+	private function recordIssue(GuardianInvitationRequest $request): void {
+		$facts = $this->issueFacts(request: $request);
+		$this->dispatcher->dispatchTyped(
+			new CriticalActionPerformedEvent(
+				'Portal invitation issued by "%s" for guardian "%s" on channel "%s" in organisation "%s"',
+				$facts
+			)
+		);
+		$this->logger->info('[GuardianPortalInvitation] Portal invitation issued', $facts);
+	}//end recordIssue()
+
+	/**
+	 * The facts an issued invitation is recorded with; an unknown issuer reads `unknown`.
+	 *
+	 * @param GuardianInvitationRequest $request The invitation that was issued.
+	 *
+	 * @return array{issuedBy: string, guardianRef: string, channel: string, organisation: string}
+	 */
+	private function issueFacts(GuardianInvitationRequest $request): array {
+		$issuedBy = $request->issuedBy;
+		if ($issuedBy === '') {
+			$issuedBy = 'unknown';
+		}
+
+		return [
+			'issuedBy' => $issuedBy,
+			'guardianRef' => (string)$request->guardian['id'],
+			'channel' => $request->channel,
+			'organisation' => $request->organisation,
 		];
-	}//end invite()
+	}//end issueFacts()
+
+	/**
+	 * Why the caller's input is refused, or '' when it is usable.
+	 *
+	 * @param GuardianInvitationRequest $request The trimmed address and organisation, and the channel asked for.
+	 *
+	 * @return string The refusal reason, or ''.
+	 */
+	private function inputRefusal(GuardianInvitationRequest $request): string {
+		if (filter_var($request->email, FILTER_VALIDATE_EMAIL) === false) {
+			return 'email-invalid';
+		}
+
+		if ($request->organisation === '') {
+			return 'organisation-missing';
+		}
+
+		if (in_array($request->channel, [self::CHANNEL_MAIL, self::CHANNEL_LETTER], true) === false) {
+			return 'channel-unknown';
+		}
+
+		return '';
+	}//end inputRefusal()
+
+	/**
+	 * Have portaliq send the invitation on the channel asked for: a mailed
+	 * link, or a code for a paper letter.
+	 *
+	 * @param string $subjectRef The account's subjectRef.
+	 * @param string $channel CHANNEL_MAIL or CHANNEL_LETTER.
+	 *
+	 * @return array{invitation: string, code?: string, expiresAt?: string}
+	 *
+	 * @spec openspec/changes/portal-guardian-invitation-letter/specs/portal-identity/spec.md
+	 */
+	private function sendInvitation(string $subjectRef, string $channel): array {
+		if ($channel === self::CHANNEL_LETTER) {
+			return $this->letterCode(subjectRef: $subjectRef);
+		}
+
+		return ['invitation' => $this->mailInvitation(subjectRef: $subjectRef)];
+	}//end sendInvitation()
 
 	/**
 	 * The guardian's active profile, or null when the uuid names no profile
@@ -180,21 +335,19 @@ class GuardianPortalInvitation {
 	/**
 	 * Ask portaliq for the guardian's account; answers its subjectRef or ''.
 	 *
-	 * @param array<string, mixed> $guardian The guardian's profile.
-	 * @param string $email The verified email address.
-	 * @param string $organisation The portal organisation slug.
+	 * @param GuardianInvitationRequest $request The invitation: the guardian's profile, the verified address and the organisation.
 	 *
 	 * @return string
 	 */
-	private function provision(array $guardian, string $email, string $organisation): string {
-		$displayName = trim(((string)($guardian['givenName'] ?? '')) . ' ' . ((string)($guardian['familyName'] ?? '')));
+	private function provision(GuardianInvitationRequest $request): string {
+		$displayName = trim(((string)($request->guardian['givenName'] ?? '')) . ' ' . ((string)($request->guardian['familyName'] ?? '')));
 		$event = new ($this->provisionEventClass)(
 			appId: self::APP_ID,
 			audience: self::AUDIENCE,
-			organisation: $organisation,
+			organisation: $request->organisation,
 			identityType: '',
 			identityRef: '',
-			email: $email,
+			email: $request->email,
 			verifiedEmail: true,
 			displayName: $displayName,
 		);
@@ -222,6 +375,84 @@ class GuardianPortalInvitation {
 
 		return $event->getResult() === 'ok';
 	}//end claim()
+
+	/**
+	 * Ask portaliq to mail the guardian the one-time link of the account.
+	 *
+	 * A portaliq without the event (an older version) sends nothing, and
+	 * the invitation stands without a mail.
+	 *
+	 * @param string $subjectRef The account's subjectRef.
+	 *
+	 * @return string One of the MAIL_* constants.
+	 *
+	 * @spec openspec/changes/portal-guardian-invitation-mail/specs/portal-identity/spec.md
+	 */
+	private function mailInvitation(string $subjectRef): string {
+		if (class_exists($this->invitationEventClass) === false) {
+			return self::MAIL_UNAVAILABLE;
+		}
+
+		$event = new ($this->invitationEventClass)(
+			appId: self::APP_ID,
+			subjectRef: $subjectRef,
+		);
+		$this->dispatch(event: $event);
+
+		$result = (string)$event->getResult();
+		if ($result === 'sent') {
+			return self::MAIL_SENT;
+		}
+
+		if ($result === 'not_sent') {
+			return self::MAIL_NOT_SENT;
+		}
+
+		return self::MAIL_UNAVAILABLE;
+	}//end mailInvitation()
+
+	/**
+	 * Ask portaliq for the one-time code of the account, for a paper letter.
+	 *
+	 * A portaliq without the event, or with the event from before it had a
+	 * channel, makes no code: the answer is `invitation: unavailable` and the
+	 * guardian stays linked on the verified address.
+	 *
+	 * @param string $subjectRef The account's subjectRef.
+	 *
+	 * @return array{invitation: string, code?: string, expiresAt?: string}
+	 *
+	 * @spec openspec/changes/portal-guardian-invitation-letter/specs/portal-identity/spec.md
+	 */
+	private function letterCode(string $subjectRef): array {
+		if (class_exists($this->invitationEventClass) === false) {
+			return ['invitation' => self::MAIL_UNAVAILABLE];
+		}
+
+		try {
+			$event = new ($this->invitationEventClass)(
+				appId: self::APP_ID,
+				subjectRef: $subjectRef,
+				channel: self::CHANNEL_LETTER,
+			);
+			$this->dispatch(event: $event);
+			$code = (string)$event->getCode();
+		} catch (Throwable) {
+			// An event class without the channel or the code slot: an older
+			// portaliq. Nothing was issued.
+			return ['invitation' => self::MAIL_UNAVAILABLE];
+		}
+
+		if ((string)$event->getResult() !== 'code' || $code === '') {
+			return ['invitation' => self::MAIL_UNAVAILABLE];
+		}
+
+		return [
+			'invitation' => self::LETTER_CODE,
+			'code'       => $code,
+			'expiresAt'  => (string)$event->getExpiresAt(),
+		];
+	}//end letterCode()
 
 	/**
 	 * Dispatch one typed event.

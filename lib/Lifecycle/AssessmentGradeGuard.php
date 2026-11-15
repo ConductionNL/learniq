@@ -60,11 +60,6 @@ class AssessmentGradeGuard implements LifecycleGuardInterface {
 	private const DENIAL = 'Every item that needs manual scoring must have a score before the result can be graded.';
 
 	/**
-	 * OR register slug for Learniq objects.
-	 */
-	private const LEARNIQ_REGISTER = 'learniq';
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object service for Assessment and Item lookups.
@@ -113,9 +108,6 @@ class AssessmentGradeGuard implements LifecycleGuardInterface {
 	 */
 	private function allows(array $result): bool {
 		$assessmentId = $result['assessmentId'] ?? null;
-		$responses = $result['responses'] ?? [];
-		$tenantId = $result['tenant_id'] ?? '';
-
 		if ($assessmentId === null) {
 			$this->logger->info(
 				'[AssessmentGradeGuard] AssessmentResult has no assessmentId; blocking grade.'
@@ -123,78 +115,85 @@ class AssessmentGradeGuard implements LifecycleGuardInterface {
 			return false;
 		}
 
-		$assessments = $this->objectService->findAll(
-			[
-				'ids' => [$assessmentId],
-				// H1: scope Assessment lookup to the same tenant.
-				'filters' => $this->tenantScoped(
-					filters: [
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => 'exam',
-					],
-					tenantId: $tenantId
-				),
-				'limit' => 1,
-			]
-		);
+		$itemRefs = $this->assessmentItemRefs(assessmentId: $assessmentId, tenantId: ($result['tenant_id'] ?? ''));
+		if ($itemRefs === null) {
+			return false;
+		}
+
+		return $this->everyManualItemScored(result: $result, itemRefs: $itemRefs);
+	}//end allows()
+
+	/**
+	 * The itemRefs of the result's Assessment, looked up in the result's own
+	 * tenant (H1); null when the Assessment can not be found.
+	 *
+	 * @param mixed  $assessmentId The Assessment id on the result.
+	 * @param string $tenantId     Tenant UUID, or '' when unknown.
+	 *
+	 * @return array<int,array<string,mixed>>|null
+	 */
+	private function assessmentItemRefs(mixed $assessmentId, string $tenantId): ?array {
+		$query = new TenantScopedQuery(schema: 'exam', tenantId: $tenantId);
+		$assessments = $this->objectService->findAll($query->forIds(ids: [$assessmentId], limit: 1));
 
 		if (empty($assessments) === true) {
 			$this->logger->info(
 				'[AssessmentGradeGuard] Assessment {id} not found; blocking grade.',
 				['id' => $assessmentId]
 			);
-			return false;
+			return null;
 		}
 
 		$assessment = $assessments[0];
-		$itemRefs = $assessment['itemRefs'] ?? [];
 
+		return $assessment['itemRefs'] ?? [];
+	}//end assessmentItemRefs()
+
+	/**
+	 * Whether every item that needs manual scoring has a manual or an auto
+	 * score in the result.
+	 *
+	 * @param array<string,mixed>            $result   The AssessmentResult.
+	 * @param array<int,array<string,mixed>> $itemRefs The Assessment's itemRefs.
+	 *
+	 * @return bool
+	 */
+	private function everyManualItemScored(array $result, array $itemRefs): bool {
+		$unscored = $this->unscoredItem(result: $result, itemRefs: $itemRefs);
+		if ($unscored === null) {
+			return true;
+		}
+
+		$this->logger->info(
+			'[AssessmentGradeGuard] Item {itemId} (interactionType={type}) needs manual scoring but '
+			. 'neither manualScore nor autoScore is set; blocking grade.',
+			['itemId' => $unscored['itemId'], 'type' => $unscored['interactionType']]
+		);
+		return false;
+	}//end everyManualItemScored()
+
+	/**
+	 * The first item that needs manual scoring but has no score, or null.
+	 *
+	 * @param array<string,mixed>            $result   The AssessmentResult.
+	 * @param array<int,array<string,mixed>> $itemRefs The Assessment's itemRefs.
+	 *
+	 * @return array{itemId: string, interactionType: string}|null
+	 */
+	private function unscoredItem(array $result, array $itemRefs): ?array {
 		// #196: collect all item IDs in one pass, then bulk-fetch in a single OR query
 		// rather than issuing one query per item (which causes N+1 under load).
 		$allItemIds = $this->collectItemIds(itemRefs: $itemRefs);
 		if (empty($allItemIds) === true) {
-			return true;
+			return null;
 		}
 
-		$unscored = $this->findUnscoredItem(
+		return $this->findUnscoredItem(
 			itemRefs: $itemRefs,
-			itemByUuid: $this->fetchItemsByUuid(itemIds: $allItemIds, tenantId: $tenantId),
-			responseByItemId: $this->indexResponsesByItemId(responses: $responses),
+			itemByUuid: $this->fetchItemsByUuid(itemIds: $allItemIds, tenantId: ($result['tenant_id'] ?? '')),
+			responseByItemId: $this->indexResponsesByItemId(responses: ($result['responses'] ?? [])),
 		);
-
-		if ($unscored !== null) {
-			$this->logger->info(
-				'[AssessmentGradeGuard] Item {itemId} (interactionType={type}) needs manual scoring but '
-				. 'neither manualScore nor autoScore is set; blocking grade.',
-				['itemId' => $unscored['itemId'], 'type' => $unscored['interactionType']]
-			);
-			return false;
-		}
-
-		return true;
-	}//end allows()
-
-	/**
-	 * Add the tenant filter to a filter set when a tenant scope is known.
-	 *
-	 * H1: every lookup this guard makes must be scoped to the AssessmentResult's
-	 * own tenant, so neither the Assessment nor its Items can be read across a
-	 * tenant boundary.
-	 *
-	 * @param array<string,mixed> $filters The filters built so far.
-	 * @param string $tenantId Tenant UUID, or '' when unknown.
-	 *
-	 * @return array<string,mixed> The filters, tenant-scoped when possible.
-	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-7
-	 */
-	private function tenantScoped(array $filters, string $tenantId): array {
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		return $filters;
-	}//end tenantScoped()
+	}//end unscoredItem()
 
 	/**
 	 * Index an AssessmentResult's responses by the item they answer.
@@ -250,21 +249,22 @@ class AssessmentGradeGuard implements LifecycleGuardInterface {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-7
 	 */
 	private function fetchItemsByUuid(array $itemIds, string $tenantId): array {
-		$fetchedItems = $this->objectService->findAll(
-			[
-				'ids' => array_values($itemIds),
-				// H1: scope the Item lookup to the same tenant.
-				'filters' => $this->tenantScoped(
-					filters: [
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => 'item',
-					],
-					tenantId: $tenantId
-				),
-				'limit' => (count($itemIds) + 1),
-			]
-		);
+		// H1: scope the Item lookup to the same tenant.
+		$query = new TenantScopedQuery(schema: 'item', tenantId: $tenantId);
+		$fetchedItems = $this->objectService->findAll($query->forIds(ids: array_values($itemIds), limit: (count($itemIds) + 1)));
 
+		return $this->indexItemsByUuid(fetchedItems: $fetchedItems);
+	}//end fetchItemsByUuid()
+
+	/**
+	 * Fetched Items keyed by uuid (else id); entities are serialised and rows
+	 * without either are skipped.
+	 *
+	 * @param array<int,mixed> $fetchedItems Item rows or entities.
+	 *
+	 * @return array<string,array<string,mixed>>
+	 */
+	private function indexItemsByUuid(array $fetchedItems): array {
 		$itemByUuid = [];
 		foreach ($fetchedItems as $rawItem) {
 			$itemArr = $rawItem;
@@ -279,7 +279,7 @@ class AssessmentGradeGuard implements LifecycleGuardInterface {
 		}
 
 		return $itemByUuid;
-	}//end fetchItemsByUuid()
+	}//end indexItemsByUuid()
 
 	/**
 	 * Find the first referenced Item that needs manual scoring but carries no
@@ -301,31 +301,40 @@ class AssessmentGradeGuard implements LifecycleGuardInterface {
 	private function findUnscoredItem(array $itemRefs, array $itemByUuid, array $responseByItemId): ?array {
 		foreach ($itemRefs as $itemRef) {
 			$itemId = $itemRef['itemId'] ?? null;
-			if ($itemId === null) {
-				continue;
-			}
 
 			// Bulk-fetched above (#196): O(1) lookup, tenant-scoped.
-			$item = ($itemByUuid[$itemId] ?? null);
-			if ($item === null) {
-				continue;
+			$item = null;
+			if ($itemId !== null) {
+				$item = ($itemByUuid[$itemId] ?? null);
 			}
 
-			if ($this->needsManualScoring(item: $item) === false) {
-				continue;
-			}
-
-			$response = ($responseByItemId[$itemId] ?? null);
-			if (($response['manualScore'] ?? null) === null && ($response['autoScore'] ?? null) === null) {
+			if ($item !== null && $this->isUnscored(item: $item, response: ($responseByItemId[$itemId] ?? null)) === true) {
 				return [
 					'itemId' => (string)$itemId,
 					'interactionType' => (string)($item['interactionType'] ?? ''),
 				];
 			}
-		}//end foreach
+		}
 
 		return null;
 	}//end findUnscoredItem()
+
+	/**
+	 * Whether an item that needs manual scoring has neither a manual nor an
+	 * auto score in its response.
+	 *
+	 * @param array<string,mixed>      $item     The Item.
+	 * @param array<string,mixed>|null $response The learner's response to it, or null.
+	 *
+	 * @return bool
+	 */
+	private function isUnscored(array $item, ?array $response): bool {
+		if ($this->needsManualScoring(item: $item) === false) {
+			return false;
+		}
+
+		return (($response['manualScore'] ?? null) === null && ($response['autoScore'] ?? null) === null);
+	}//end isUnscored()
 
 	/**
 	 * Whether an Item can only be scored by a human.

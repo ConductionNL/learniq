@@ -3,6 +3,9 @@
 /**
  * Unit tests for the Learniq PortalContributionProvider.
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Pins the ADR-046 contribution contract v2: the dual v2/v1 audience
  * declaration, the fail-closed null for unserved audiences, and the exact
  * declarative manifest shape for the `student` and `parent` audiences
@@ -120,9 +123,10 @@ class PortalContributionProviderTest extends TestCase {
 
 	/**
 	 * The class is plain: no interfaces, no parent, and no required
-	 * constructor deps. Its one optional dependency is Nextcloud's own l10n
-	 * factory (never a portaliq class), so `new` with no arguments still
-	 * builds an inert, English provider.
+	 * constructor deps. Its optional dependencies are Nextcloud's own l10n
+	 * factory and learniq's own booking steps (employer-portal-audience),
+	 * never a portaliq class, so `new` with no arguments still builds an
+	 * inert, English provider.
 	 *
 	 * @return void
 	 */
@@ -136,7 +140,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame(0, $constructor->getNumberOfRequiredParameters());
 		foreach ($constructor->getParameters() as $parameter) {
 			$this->assertTrue($parameter->allowsNull());
-			$this->assertStringStartsWith('OCP\\', (string) $parameter->getType()?->getName());
+			$this->assertMatchesRegularExpression('/^(OCP|OCA\\\\Learniq)\\\\/', (string) $parameter->getType()?->getName());
 		}
 
 	}//end testClassIsPlainAndDependencyFree()
@@ -146,13 +150,14 @@ class PortalContributionProviderTest extends TestCase {
 	 * 'external-assessor'] and getAudience() (v1 fallback) is one of them. The `parent`
 	 * audience is re-enabled now that portaliq ships the reverse / scope-value `via` join
 	 * (match: 'scopeField'); `praktijkopleider` is the bpv-praktijkovereenkomst change's third
-	 * audience; `external-assessor` is the eportfolio change's fourth audience.
+	 * audience; `external-assessor` is the eportfolio change's fourth audience; `employer`
+	 * (a client company of a training institute) is employer-portal-audience's fifth.
 	 *
 	 * @return void
 	 */
 	public function testAudienceContract(): void {
 		$this->assertSame(
-			['student', 'parent', 'praktijkopleider', 'external-assessor'],
+			['student', 'parent', 'praktijkopleider', 'external-assessor', 'employer', 'participant'],
 			$this->provider->getAudiences()
 		);
 		$this->assertSame('student', $this->provider->getAudience());
@@ -196,7 +201,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(11, $collections);
+		$this->assertCount(16, $collections);
 		$this->assertSame(
 			[
 				'studentGrades',
@@ -208,10 +213,19 @@ class PortalContributionProviderTest extends TestCase {
 				// hours with both numbers on it.
 				'studentBpvPlacements',
 				'studentHourWeeks',
+				// board-data-the-schemas-lacked: her own record per work process.
+				'studentWorkProcesses',
+				// Her supervisors: the trainer at the company and her coach at school.
+				'studentTrainers',
+				'studentSchoolCoaches',
 				'studentExcuseRequests',
 				'studentInbox',
 				'studentTests',
 				'studentHomework',
+				// site-pupil-portal-design: the absence strip of her overview.
+				'studentAttendanceSummary',
+				// site-pupil-portal-design T1: her timetable (its page still follows the overview).
+				'studentSessions',
 			],
 			array_column($collections, 'id')
 		);
@@ -227,6 +241,20 @@ class PortalContributionProviderTest extends TestCase {
 				$this->assertSame('learnerRefs', $collection['scopeField']);
 				$this->assertNotContains('learnerRefs', $collection['fields']);
 				$this->assertSame(['lifecycle' => 'published'], $collection['filter']);
+				continue;
+			}
+
+			if ($collection['id'] === 'studentSessions') {
+				// A lesson belongs to her group: reached through her own live
+				// enrolments, never by a field on the lesson (StudentTimetableTest).
+				$this->assertSame('cohortId', $collection['scopeField']);
+				$this->assertSame('learnerRef', $collection['via']['scopeField']);
+				continue;
+			}
+
+			if (in_array($collection['id'], ['studentTrainers', 'studentSchoolCoaches'], true) === true) {
+				// Her supervisors: reached through her own placements, never by a field on the person.
+				$this->assertSame(['bpv-placement', 'learnerRef'], [$collection['via']['schema'], $collection['via']['scopeField']]);
 				continue;
 			}
 
@@ -268,7 +296,7 @@ class PortalContributionProviderTest extends TestCase {
 		$actions = $manifest['actions'];
 
 		$this->assertSame(
-			['createSubmission', 'submitHourWeek', 'createExcuseRequest', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult', 'handIn', 'listCatalogue', 'signUpForCourse', 'withdrawSignUp', 'listWorkGroups', 'joinWorkGroup', 'leaveWorkGroup', 'checkIn'],
+			['createSubmission', 'submitHourWeek', 'fillInSelfAssessment', 'createExcuseRequest', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult', 'handIn', 'listCatalogue', 'signUpForCourse', 'withdrawSignUp', 'listWorkGroups', 'joinWorkGroup', 'leaveWorkGroup', 'checkIn'],
 			array_column($actions, 'id')
 		);
 		$byId = array_column($actions, null, 'id');
@@ -483,9 +511,9 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame(['conference.answered'], array_column($manifest['notifications'], 'ruleKey'), 'one rule: the teacher answered a booking');
 
 		$collections = $manifest['collections'];
-		$this->assertCount(16, $collections);
+		$this->assertCount(22, $collections);
 		$this->assertSame(
-			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceFreeSlots', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships', 'parentAttendanceSummary', 'parentHomework', 'parentSubmissions', 'parentSchoolEvents', 'parentSchoolCalendar'],
+			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceInvitations', 'parentConferenceFreeSlots', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships', 'parentReportSubjectGrades', 'parentInbox', 'parentGradeInbox', 'parentAttendanceSummary', 'parentHomework', 'parentSubmissions', 'parentSchoolEvents', 'parentSchoolCalendar', 'parentSchools', 'parentPermissionRequests'],
 			array_column($collections, 'id')
 		);
 
@@ -499,7 +527,7 @@ class PortalContributionProviderTest extends TestCase {
 		// testParentBooksAConferenceForTheirOwnChildOnly; parentConferenceFreeSlots
 		// matches a free time on the pupils who may book it
 		// (ParentConferenceDirectBookingTest).
-		$reverseJoinedCollections = array_filter($collections, static fn ($c) => in_array($c['id'], ['parentChildren', 'parentConferenceRounds', 'parentConferenceFreeSlots', ...self::RECORD_PAGE_COLLECTIONS], true) === false);
+		$reverseJoinedCollections = array_filter($collections, static fn ($c) => in_array($c['id'], ['parentChildren', 'parentConferenceRounds', 'parentConferenceFreeSlots', 'parentSchools', 'parentPermissionRequests', ...self::RECORD_PAGE_COLLECTIONS], true) === false);
 		foreach ($reverseJoinedCollections as $collection) {
 			$this->assertSame('learniq', $collection['register']);
 			// Parent scope key is the guardian claim; the outer record scope
@@ -542,6 +570,10 @@ class PortalContributionProviderTest extends TestCase {
 			['learnerRef', 'dateFrom', 'dateTo', 'reason', 'reasonKind', 'attachmentRef', 'lifecycle', 'decidedAt', 'decidedBy'],
 			$byId['parentExcuseRequests']['fields']
 		);
+		// The newest absence first, on a field the collection projects (the
+		// portal drops a sort on a field it does not hand out).
+		$this->assertSame(['field' => 'dateFrom', 'direction' => 'desc'], $byId['parentExcuseRequests']['defaultSort']);
+		$this->assertContains('dateFrom', $byId['parentExcuseRequests']['fields']);
 		$this->assertSame(
 			['learnerRef', 'reportPeriodId', 'periodName', 'gradeLines', 'attendanceSummary', 'mentorComment', 'docudeskDocumentRef'],
 			$byId['parentReportCards']['fields']
@@ -628,7 +660,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame('guardianRef', $children['scopeClaim']);
 		$this->assertSame('substantial', $children['minTrust']);
 		$this->assertSame(
-			['givenName', 'familyName', 'guardianRefs', 'schoolId', 'beeldmateriaalConsent', 'beeldmateriaalConsentReviewDueAt'],
+			['givenName', 'familyName', 'groupLabel', 'teacherName', 'teacherRef', 'guardianRefs', 'schoolId', 'beeldmateriaalConsent', 'beeldmateriaalConsentReviewDueAt'],
 			$children['fields']
 		);
 
@@ -651,10 +683,14 @@ class PortalContributionProviderTest extends TestCase {
 		// parentChildren is deliberately excluded — it matches learner-profile
 		// directly (see testParentChildrenCollectionMatchesDirectly), the one
 		// parent collection with no cross-object hop and therefore no via.
+		// parentSchools is the one forward join: the schools whose OWN id a
+		// child names in schoolId (guardian-reports-and-documents).
 		$reverseJoinedCollections = array_filter(
 			$manifest['collections'],
-			static fn ($c) => $c['id'] !== 'parentChildren'
+			static fn ($c) => in_array($c['id'], ['parentChildren', 'parentSchools'], true) === false
 		);
+		$schools = array_column($manifest['collections'], null, 'id')['parentSchools'];
+		$this->assertSame(['guardianRefs', 'schoolId', 'id'], [$schools['via']['scopeField'], $schools['via']['targetField'], $schools['via']['match']]);
 
 		foreach ($reverseJoinedCollections as $collection) {
 			$via = $collection['via'] ?? null;
@@ -688,6 +724,7 @@ class PortalContributionProviderTest extends TestCase {
 			$expected = [
 				'parentConferenceRounds' => 'invitedLearnerRefs',
 				'parentHomework' => 'learnerRefs',
+				'parentPermissionRequests' => 'learnerRefs',
 				'parentSchoolEvents' => 'schoolId',
 				'parentSchoolCalendar' => 'schoolId',
 			][$collection['id']] ?? 'learnerRef';
@@ -721,8 +758,9 @@ class PortalContributionProviderTest extends TestCase {
 	public function testParentShipsCreateExcuseRequestValidatedAgainstOwnChildren(): void {
 		$manifest = $this->provider->getContribution(self::PARENT_SUBJECT);
 
-		// The absence report, then the three conference actions (direct-conference-booking).
-		$this->assertCount(4, $manifest['actions']);
+		// The absence report, then the three conference actions (direct-conference-booking),
+		// then the permission answer (permission-slips).
+		$this->assertCount(5, $manifest['actions']);
 		$action = $manifest['actions'][0];
 
 		$this->assertSame('createExcuseRequest', $action['id']);
@@ -762,9 +800,10 @@ class PortalContributionProviderTest extends TestCase {
 		$collections = $manifest['collections'];
 		// Her placements, the portfolios shared with her, the assessments she
 		// wrote (site-workplace-trainer-portal-design) and the weeks of hours
-		// waiting for her (internship-hours).
+		// waiting for her (internship-hours), and her students by name
+		// (site-workplace-trainer-portal-design T1).
 		$this->assertSame(
-			['poBpvPlacements', 'poSharedPortfolios', 'poWerkprocesAssessments', 'poHourWeeks'],
+			['poBpvPlacements', 'poSharedPortfolios', 'poWerkprocesAssessments', 'poHourWeeks', 'poLearners'],
 			array_column($collections, 'id')
 		);
 		$collection = $collections[0];
@@ -831,7 +870,8 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['actions']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(1, $collections);
+		// The shares, then the entries those shares open: selected, or a whole portfolio (site-external-assessor-portal-design T3).
+		$this->assertSame(['eaSharedPortfolios', 'eaSharedPortfolioEntries', 'eaWholePortfolioEntries'], array_column($collections, 'id'));
 		$collection = $collections[0];
 
 		$this->assertSame('eaSharedPortfolios', $collection['id']);
@@ -1004,7 +1044,9 @@ class PortalContributionProviderTest extends TestCase {
 				$this->assertArrayHasKey($slug, $propsBySlug, "manifest schema '$slug' missing from register");
 				$props = $propsBySlug[$slug];
 
-				$this->assertContains($collection['scopeField'], $props, "scopeField on '$slug' not in register");
+				// A forward join (match: id) compares the row's own identity token.
+				$identity = (($collection['via']['match'] ?? '') === 'id') ? ['id'] : [];
+				$this->assertContains($collection['scopeField'], array_merge($props, $identity), "scopeField on '$slug' not in register");
 				foreach (($collection['fields'] ?? []) as $field) {
 					$this->assertContains($field, $props, "field '$field' on '$slug' not in register");
 				}
@@ -1122,4 +1164,115 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame('string', $enrolment['properties']['cohortName']['type']);
 		$this->assertArrayNotHasKey('format', $enrolment['properties']['cohortName']);
 	}//end testParentGroupColumnReadsTheGroupName()
+
+	/**
+	 * The pupil's grades read as subject, date and grade, never as field keys
+	 * (portal proof run 1, defect 10). Every column is a projected field.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/student-portal-reads-like-the-boards/specs/portal-contribution/spec.md#requirement-the-student-pages-use-the-words-of-the-boards
+	 */
+	public function testStudentGradesHaveReadableColumns(): void {
+		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);
+		$grades = array_column($manifest['collections'], null, 'id')['studentGrades'];
+
+		$this->assertSame(
+			[
+				['field' => 'courseName', 'label' => 'Subject'],
+				['field' => 'gradedAt', 'label' => 'Date', 'render' => 'date'],
+				['field' => 'value', 'label' => 'Grade'],
+			],
+			$grades['columns']
+		);
+		foreach ($grades['columns'] as $column) {
+			$this->assertContains($column['field'], $grades['fields']);
+		}
+	}//end testStudentGradesHaveReadableColumns()
+
+	/**
+	 * The BPV hours page is in the student's menu as "BPV and hours", and a
+	 * week the trainer sent back reads "Sent back", not "Rejected"
+	 * (portal proof run 1, defects 12 and 13).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/student-portal-reads-like-the-boards/specs/portal-contribution/spec.md#requirement-the-student-pages-use-the-words-of-the-boards
+	 */
+	public function testHoursPageIsInTheMenuAndASentBackWeekSaysSo(): void {
+		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);
+		$pages = array_column($manifest['pages'], null, 'id');
+
+		$this->assertSame('BPV and hours', $pages['studentHourWeeks']['label']);
+		$this->assertArrayNotHasKey('menu', $pages['studentHourWeeks']);
+
+		$weeks = array_column($manifest['collections'], null, 'id')['studentHourWeeks'];
+		$status = array_column($weeks['columns'], null, 'field')['lifecycle'];
+		$this->assertSame('Sent back', $status['valueLabels']['rejected']);
+	}//end testHoursPageIsInTheMenuAndASentBackWeekSaysSo()
+
+	/**
+	 * The placement reads in words (no "Period From" or "Lifecycle State"),
+	 * its status labels cover the schema's states, and its page shows the
+	 * hours bar under where it stands (REPORT-2, item 8).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/placement-and-bookings-follow-the-boards/specs/portal-contribution/spec.md#requirement-the-placement-page-reads-in-words-and-shows-the-hours
+	 */
+	public function testThePlacementReadsInWordsAndShowsTheHours(): void {
+		$manifest  = $this->provider->getContribution(self::STUDENT_SUBJECT);
+		$placement = array_column($manifest['collections'], null, 'id')['studentBpvPlacements'];
+		foreach ($placement['fields'] as $field) {
+			if ($field === 'learnerRef') {
+				continue;
+			}
+
+			self::assertArrayHasKey($field, $placement['fieldConfigs'], $field . ' has a label');
+		}
+
+		$register = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'), true);
+		$schema   = array_column($register['components']['schemas'], null, 'slug')['bpv-placement'];
+		self::assertSame($schema['properties']['lifecycle']['enum'], array_keys($placement['fieldConfigs']['lifecycle']['valueLabels']));
+
+		$page  = array_column($manifest['pages'], null, 'id')['studentBpvPlacements'];
+		$types = array_column($page['blocks'], 'type');
+		self::assertLessThan(array_search('kpi', $types, true), array_search('steps', $types, true), 'the hours bar sits under the steps');
+		$steps = array_values(array_filter($page['blocks'], static fn (array $b): bool => $b['type'] === 'steps'));
+		self::assertSame(['highlight', 'bars'], array_column($steps, 'display'), 'the next step as a card, then the bars');
+	}//end testThePlacementReadsInWordsAndShowsTheHours()
+
+	/**
+	 * The placement page shows the agreements and her work processes, narrowed
+	 * to the open placement; every column reads a projected field and every
+	 * estimate has words (board-data-the-schemas-lacked).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/board-data-the-schemas-lacked/specs/portal-contribution/spec.md#requirement-the-placement-page-shows-the-agreements-and-the-work-processes
+	 */
+	public function testThePlacementShowsItsAgreementsAndWorkProcesses(): void {
+		$manifest    = $this->provider->getContribution(self::STUDENT_SUBJECT);
+		$collections = array_column($manifest['collections'], null, 'id');
+		foreach (['workdaysLabel', 'workplaceAddress', 'qualificationName', 'crebo'] as $field) {
+			self::assertContains($field, $collections['studentBpvPlacements']['fields'], $field);
+			self::assertArrayHasKey($field, $collections['studentBpvPlacements']['fieldConfigs'], $field);
+		}
+
+		$work = $collections['studentWorkProcesses'];
+		self::assertSame(['werkproces-progress', 'learnerRef', false], [$work['schema'], $work['scopeField'], $work['listable']]);
+		foreach ($work['columns'] as $column) {
+			self::assertContains($column['field'], $work['fields']);
+		}
+
+		$register = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'), true);
+		$schema   = array_column($register['components']['schemas'], null, 'slug')['werkproces-progress'];
+		self::assertSame(array_values(array_filter($schema['properties']['selfAssessment']['enum'])), array_keys($work['columns'][3]['valueLabels']));
+
+		$page   = array_column($manifest['pages'], null, 'id')['studentBpvPlacements'];
+		$blocks = array_column($page['blocks'], null, 'type');
+		self::assertSame('Agreements', $blocks['detail']['label']);
+		$table = array_values(array_filter($page['blocks'], static fn (array $b): bool => ($b['collection'] ?? '') === 'studentWorkProcesses'))[0];
+		self::assertSame('bpvPlacementId', $table['recordField']);
+	}//end testThePlacementShowsItsAgreementsAndWorkProcesses()
 }//end class

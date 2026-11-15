@@ -2,27 +2,37 @@
   ProctoringReviewQueue.vue
   Custom page component for the ProctoringReviewQueue manifest page (type: custom).
 
-  Invigilator flag-review queue. Lists ProctoringSession objects with at least one
-  pending flag; allows the invigilator to mark each flag as `allowed` or `annulled`.
+  Staff review queue for proctoring flags (board LqProctoring). Lists the
+  ProctoringSession objects with at least one open flag, one card per session,
+  one row per flag, and lets an instructor or compliance officer allow or annul
+  each open flag once.
 
-  EU AI Act Art. 14 compliance: this view is the ONLY place where a flag decision
-  is recorded. The decision NEVER automatically alters the associated AssessmentResult.
-  Invigilators must consciously choose to take action on the result separately.
-
-  Uses Options API + direct fetch calls (no custom Pinia store modules).
+  EU AI Act Art. 14: a decision is recorded here and never changes the
+  AssessmentResult by itself. The page sends only the decision; the server
+  (ProctoringFlagReviewGuard) stamps who decided and when.
 
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
 
-  @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
+  @spec openspec/specs/assessment/spec.md#requirement-staff-reach-the-proctoring-flag-review-page
 -->
 
 <template>
-	<div class="proctoring-review-queue">
+	<div class="proctoring-review-queue lq-board-page">
 		<header class="proctoring-review-queue__header">
-			<h2 class="proctoring-review-queue__title">
-				{{ t('learniq', 'Proctoring flag review queue') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Proctoring: review flags')" />
+			<p
+				v-if="!loading && !error && sessionsWithPendingFlags.length > 0"
+				class="proctoring-review-queue__count">
+				{{
+					n(
+						'learniq',
+						'%n session with open flags',
+						'%n sessions with open flags',
+						sessionsWithPendingFlags.length,
+					)
+				}}
+			</p>
 			<p class="proctoring-review-queue__subtitle">
 				{{
 					t(
@@ -58,135 +68,156 @@
 		</div>
 
 		<!-- Session list -->
-		<ul v-else class="proctoring-review-queue__sessions">
-			<li
-				v-for="session in sessionsWithPendingFlags"
-				:key="session.uuid"
-				class="proctoring-review-queue__session">
-				<header class="proctoring-review-queue__session-header">
-					<h3>
-						{{
-							t('learniq', 'Session {id}', {
-								id: shortId(session.uuid),
+		<template v-else>
+			<ul class="proctoring-review-queue__sessions">
+				<li
+					v-for="session in sessionsWithPendingFlags"
+					:key="session.uuid"
+					class="proctoring-review-queue__session">
+					<CnDetailCard
+						:title="
+							t('learniq', 'Session for {assessment}', {
+								assessment: assessmentTitle(session),
 							})
-						}}
-					</h3>
-					<span class="proctoring-review-queue__meta">
-						{{
-							t('learniq', 'Learner: {id}', { id: session.learnerId })
-						}}
-						&mdash;
-						{{ t('learniq', 'Provider: {p}', { p: session.provider }) }}
-					</span>
-					<span class="proctoring-review-queue__pending-count">
-						{{
-							t('learniq', '{n} pending flag(s)', {
-								n: pendingCount(session),
-							})
-						}}
-					</span>
-				</header>
+						">
+						<template #actions>
+							<span class="proctoring-review-queue__pending-count">
+								{{
+									n(
+										'learniq',
+										'%n open flag',
+										'%n open flags',
+										pendingCount(session),
+									)
+								}}
+							</span>
+						</template>
+						<p class="proctoring-review-queue__meta">
+							{{
+								t('learniq', 'Learner: {name} · provider: {provider}', {
+									name: nameOf(session.learnerId),
+									provider: session.provider || '',
+								})
+							}}
+						</p>
 
-				<!-- Flags -->
-				<ul class="proctoring-review-queue__flags">
-					<li
-						v-for="flag in session.flags"
-						:key="flag.flagId"
-						class="proctoring-review-queue__flag"
-						:class="'proctoring-review-queue__flag--' + flag.severity">
-						<div class="proctoring-review-queue__flag-info">
-							<span class="proctoring-review-queue__flag-kind">{{
-								flagKindLabel(flag.kind)
-							}}</span>
-							<span class="proctoring-review-queue__flag-severity">{{
-								flag.severity
-							}}</span>
-							<span class="proctoring-review-queue__flag-time">{{
-								formatDate(flag.occurredAt)
-							}}</span>
-						</div>
+						<!-- Flags -->
+						<ul class="proctoring-review-queue__flags">
+							<li
+								v-for="flag in session.flags"
+								:key="flag.flagId"
+								class="proctoring-review-queue__flag">
+								<div class="proctoring-review-queue__flag-info">
+									<span class="proctoring-review-queue__flag-kind">{{
+										flagKindLabel(flag.kind)
+									}}</span>
+									<span class="proctoring-review-queue__flag-time">{{
+										flagTime(session, flag)
+									}}</span>
+								</div>
 
-						<div class="proctoring-review-queue__flag-decision">
-							<template v-if="flag.reviewDecision === 'pending'">
-								<button
-									class="button-vue"
-									:disabled="savingFlagId === flag.flagId"
-									@click="
-										recordDecision(session, flag, 'allowed')
-									">
+								<div class="proctoring-review-queue__flag-decision">
+									<template v-if="isOpen(flag)">
+										<button
+											class="button-vue"
+											:disabled="savingFlagId === flag.flagId"
+											@click="
+												recordDecision(session, flag, 'allowed')
+											">
+											<span
+												v-if="savingFlagId === flag.flagId"
+												class="icon-loading"
+												aria-hidden="true" />
+											{{ t('learniq', 'Allow') }}
+										</button>
+										<button
+											class="button-vue button-vue--error"
+											:disabled="savingFlagId === flag.flagId"
+											@click="
+												recordDecision(session, flag, 'annulled')
+											">
+											{{ t('learniq', 'Annul') }}
+										</button>
+									</template>
 									<span
-										v-if="savingFlagId === flag.flagId"
-										class="icon-loading"
-										aria-hidden="true" />
-									{{ t('learniq', 'Allow') }}
-								</button>
-								<button
-									class="button-vue button-vue--error"
-									:disabled="savingFlagId === flag.flagId"
-									@click="
-										recordDecision(session, flag, 'annulled')
-									">
-									{{ t('learniq', 'Annul') }}
-								</button>
-							</template>
-							<template v-else>
-								<span
-									class="proctoring-review-queue__flag-decided"
-									:class="
-										'proctoring-review-queue__flag-decided--'
-										+ flag.reviewDecision
-									">
-									{{
-										flag.reviewDecision === 'allowed'
-											? t('learniq', 'Allowed')
-											: t('learniq', 'Annulled')
-									}}
-								</span>
-								<span class="proctoring-review-queue__flag-reviewer">
-									{{
-										t('learniq', 'by {who} at {when}', {
-											who: flag.reviewedBy,
-											when: formatDate(flag.reviewedAt),
-										})
-									}}
-								</span>
-							</template>
-						</div>
-					</li>
-				</ul>
+										v-else
+										class="proctoring-review-queue__flag-decided"
+										:class="
+											'proctoring-review-queue__flag-decided--'
+											+ flag.reviewDecision
+										">
+										{{ decisionLine(flag) }}
+									</span>
+								</div>
+							</li>
+						</ul>
 
-				<p
-					v-if="sessionError[session.uuid]"
-					role="alert"
-					class="proctoring-review-queue__error-inline">
-					{{ sessionError[session.uuid] }}
-				</p>
+						<p
+							v-if="sessionError[session.uuid]"
+							role="alert"
+							class="proctoring-review-queue__error-inline">
+							{{ sessionError[session.uuid] }}
+						</p>
+					</CnDetailCard>
+				</li>
+			</ul>
 
-				<!-- Human-oversight reminder -->
-				<p class="proctoring-review-queue__oversight-note">
-					{{
-						t(
-							'learniq',
-							'Annulling a flag does not automatically invalidate the result. Use the AssessmentResult view to take further action.',
-						)
-					}}
-				</p>
-			</li>
-		</ul>
+			<!-- Human-oversight reminder -->
+			<p class="proctoring-review-queue__oversight-note">
+				{{
+					t(
+						'learniq',
+						'Annulling a flag does not invalidate the result automatically. Use the assessment result page for a next step.',
+					)
+				}}
+			</p>
+		</template>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
-import { generateUrl } from '@nextcloud/router'
+import { generateOcsUrl, generateUrl } from '@nextcloud/router'
+import { displayDateTime } from '../utils/displayDateTime.js'
+import { createLearnerNameResolver } from '../utils/learnerName.js'
+import {
+	minutesIn,
+	nameOrId,
+	openFlagCount,
+	withDecision,
+} from '../utils/proctoringFlags.js'
+
+const HEADERS = { 'OCS-APIREQUEST': 'true', Accept: 'application/json' }
+
+/**
+ * Fetch a URL and resolve to its JSON body.
+ *
+ * @param {string} url The URL.
+ * @return {Promise<object>} The body.
+ */
+async function getJson(url) {
+	const resp = await fetch(url, { headers: HEADERS })
+	if (!resp.ok) {
+		throw new Error(`Fetch failed: ${resp.status}`)
+	}
+	return resp.json()
+}
 
 export default {
 	name: 'ProctoringReviewQueue',
+	components: { CnDetailCard, CnPageHeader },
 
 	data() {
 		return {
 			/** @type {object[]} */
 			sessions: [],
+			/** @type {Record<string, object>} The assessment result of each session, by result uuid. */
+			results: {},
+			/** @type {Record<string, string>} Assessment titles by assessment uuid. */
+			assessments: {},
+			/** @type {Record<string, string>} Display names by Nextcloud user id. */
+			names: {},
 			loading: false,
 			error: null,
 			/** @type {string|null} */
@@ -198,10 +229,10 @@ export default {
 
 	computed: {
 		/**
-		 * Sessions that have at least one pending flag.
+		 * Sessions that have at least one open flag.
 		 *
 		 * @return {object[]}
-		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
+		 * @spec openspec/specs/assessment/spec.md#requirement-staff-reach-the-proctoring-flag-review-page
 		 */
 		sessionsWithPendingFlags() {
 			return this.sessions.filter((s) => this.pendingCount(s) > 0)
@@ -214,28 +245,21 @@ export default {
 
 	methods: {
 		/**
-		 * Fetch all ProctoringSession objects.
+		 * Fetch the ProctoringSession objects, then what their cards name.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
+		 * @spec openspec/specs/assessment/spec.md#requirement-staff-reach-the-proctoring-flag-review-page
 		 */
 		async loadSessions() {
 			this.loading = true
 			this.error = null
 
 			try {
-				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/proctoring-session?_limit=100',
+				const json = await getJson(
+					generateUrl(
+						'/apps/openregister/api/objects/learniq/proctoring-session?_limit=100',
+					),
 				)
-				const resp = await fetch(url, {
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-					},
-				})
-				if (!resp.ok)
-					throw new Error(`Sessions fetch failed: ${resp.status}`)
-				const json = await resp.json()
 				this.sessions = json.results ?? json.objects ?? json ?? []
 			} catch (err) {
 				this.error = this.t(
@@ -247,100 +271,245 @@ export default {
 			} finally {
 				this.loading = false
 			}
+
+			this.loadContext()
 		},
 
 		/**
-		 * Count pending flags on a session.
+		 * Resolve the assessment results, assessment titles and people the
+		 * open sessions name (design D3). A lookup that fails leaves the id.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/assessment/spec.md#requirement-staff-reach-the-proctoring-flag-review-page
+		 */
+		async loadContext() {
+			const sessions = this.sessionsWithPendingFlags
+			const people = new Set()
+			for (const session of sessions) {
+				people.add(session.learnerId)
+				for (const flag of session.flags ?? []) {
+					people.add(flag.reviewedBy)
+				}
+			}
+
+			await Promise.all([
+				...sessions.map((session) => this.loadResult(session.assessmentResultId)),
+				...[...people].filter(Boolean).map((uid) => this.loadName(uid)),
+			])
+		},
+
+		/**
+		 * Load one assessment result and, when it carries no title, its assessment.
+		 *
+		 * @param {string} resultId The result uuid.
+		 * @return {Promise<void>}
+		 */
+		async loadResult(resultId) {
+			if (!resultId || this.results[resultId]) {
+				return
+			}
+			try {
+				const result = await getJson(
+					generateUrl('/apps/openregister/api/objects/learniq/assessment-result/{id}', { id: resultId }),
+				)
+				this.results = { ...this.results, [resultId]: result }
+				const assessmentId = result.assessmentId
+				if (!result.assessmentTitle && assessmentId && !this.assessments[assessmentId]) {
+					const assessment = await getJson(
+						generateUrl('/apps/openregister/api/objects/learniq/exam/{id}', { id: assessmentId }),
+					)
+					this.assessments = { ...this.assessments, [assessmentId]: assessment.title || '' }
+				}
+			} catch {
+				// The card shows the id instead (design D3).
+			}
+		},
+
+		/**
+		 * Resolve one person's display name: a learner by their profile, staff by
+		 * their account. A failed lookup leaves the user id.
+		 *
+		 * @param {string} uid The Nextcloud user id.
+		 * @return {Promise<void>}
+		 */
+		async loadName(uid) {
+			let name = ''
+			const current = getCurrentUser()
+			if (current && current.uid === uid) {
+				name = current.displayName || ''
+			}
+			if (name === '') {
+				name = await this.learnerNames().nameOf({ ref: '', userId: uid })
+			}
+			if (name === '' || name === uid) {
+				try {
+					const body = await getJson(generateOcsUrl('cloud/users/{uid}', { uid }) + '?format=json')
+					name = body?.ocs?.data?.displayname || name
+				} catch {
+					// Keep what there is.
+				}
+			}
+			this.names = { ...this.names, [uid]: name || uid }
+		},
+
+		/**
+		 * The page's learner-name resolver, shared by every lookup.
+		 *
+		 * @return {{nameOf: (lookup: {ref: string, userId: string}) => Promise<string>}}
+		 */
+		learnerNames() {
+			if (!this.$options.learnerResolver) {
+				this.$options.learnerResolver = createLearnerNameResolver({ getJson, urlFor: generateUrl })
+			}
+			return this.$options.learnerResolver
+		},
+
+		/**
+		 * The name to show for a user id; the id until the name is known.
+		 *
+		 * @param {string} uid The Nextcloud user id.
+		 * @return {string}
+		 * @spec openspec/specs/assessment/spec.md#requirement-staff-reach-the-proctoring-flag-review-page
+		 */
+		nameOf(uid) {
+			return nameOrId(this.names, uid)
+		},
+
+		/**
+		 * The title of the assessment a session belongs to; the result id when it cannot be found.
+		 *
+		 * @param {object} session ProctoringSession object
+		 * @return {string}
+		 * @spec openspec/specs/assessment/spec.md#requirement-staff-reach-the-proctoring-flag-review-page
+		 */
+		assessmentTitle(session) {
+			const result = this.results[session.assessmentResultId]
+			const title = result?.assessmentTitle || (result ? this.assessments[result.assessmentId] : '')
+			return title || session.assessmentResultId || ''
+		},
+
+		/**
+		 * Count open flags on a session.
 		 *
 		 * @param {object} session ProctoringSession object
 		 * @return {number}
-		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
+		 * @spec openspec/specs/assessment/spec.md#requirement-staff-reach-the-proctoring-flag-review-page
 		 */
 		pendingCount(session) {
-			return (session.flags ?? []).filter(
-				(f) => f.reviewDecision === 'pending',
-			).length
+			return openFlagCount(session)
 		},
 
 		/**
-		 * Human-readable label for a flag kind. Falls back to the raw kind value
-		 * for kinds this app has no label for (e.g. external-provider-specific
-		 * kinds like gaze-away/audio-event/object-detected) — the queue stays
-		 * generic for any provider, native or external.
+		 * Whether a flag still waits for a decision.
+		 *
+		 * @param {object} flag The flag
+		 * @return {boolean}
+		 */
+		isOpen(flag) {
+			return (flag.reviewDecision ?? 'pending') === 'pending'
+		},
+
+		/**
+		 * A flag kind in words (design D5). An unknown kind, such as an external
+		 * provider's own, is shown as sent.
 		 *
 		 * @param {string} kind Flag kind value
 		 * @return {string}
-		 * @spec openspec/specs/assessment/spec.md
+		 * @spec openspec/specs/assessment/spec.md#requirement-staff-reach-the-proctoring-flag-review-page
 		 */
 		flagKindLabel(kind) {
 			const labels = {
-				'fullscreen-exit': this.t('learniq', 'Fullscreen exit'),
-				'tab-hidden': this.t('learniq', 'Tab switched or window minimised'),
+				'tab-hidden': this.t('learniq', 'Switched tab or minimised the window'),
+				'fullscreen-exit': this.t('learniq', 'Left full screen'),
 				'window-blur': this.t('learniq', 'Window lost focus'),
-				'blocked-navigation': this.t('learniq', 'Back-navigation attempt'),
-				'concurrent-session-detected': this.t(
-					'learniq',
-					'Opened in a second tab or window',
-				),
+				'concurrent-session-detected': this.t('learniq', 'Opened in a second tab or window'),
+				'blocked-navigation': this.t('learniq', 'Tried to leave the test page'),
 			}
 			return labels[kind] ?? kind
 		},
 
 		/**
-		 * Record an invigilator decision for a flag and persist it to OR.
-		 * NEVER touches the associated AssessmentResult — EU AI Act Art. 14 compliance.
+		 * When a flag came: the time, and the minutes into the attempt when the
+		 * result says when it started (design D4).
+		 *
+		 * @param {object} session ProctoringSession object
+		 * @param {object} flag    The flag
+		 * @return {string}
+		 * @spec openspec/specs/assessment/spec.md#requirement-staff-reach-the-proctoring-flag-review-page
+		 */
+		flagTime(session, flag) {
+			const time = this.formatDate(flag.occurredAt)
+			const minutes = minutesIn(flag.occurredAt, this.results[session.assessmentResultId]?.startedAt)
+			if (minutes === null) {
+				return time
+			}
+			return this.n('learniq', '{time}, after %n minute', '{time}, after %n minutes', minutes, { time })
+		},
+
+		/**
+		 * The line a decided flag shows instead of its buttons.
+		 *
+		 * @param {object} flag The flag
+		 * @return {string}
+		 * @spec openspec/specs/assessment/spec.md#requirement-staff-reach-the-proctoring-flag-review-page
+		 */
+		decisionLine(flag) {
+			const vars = { name: this.nameOf(flag.reviewedBy), date: this.formatDate(flag.reviewedAt) }
+			if (flag.reviewDecision === 'allowed') {
+				return this.t('learniq', 'Allowed by {name} on {date}', vars)
+			}
+			return this.t('learniq', 'Annulled by {name} on {date}', vars)
+		},
+
+		/**
+		 * Format a datetime string in the reader's language.
+		 *
+		 * @param {string} dt ISO datetime string
+		 * @return {string}
+		 * @spec openspec/specs/assessment/spec.md#requirement-staff-reach-the-proctoring-flag-review-page
+		 */
+		formatDate(dt) {
+			return displayDateTime(dt)
+		},
+
+		/**
+		 * Record a decision on one flag. Only the decision is sent; the server
+		 * stamps who and when, and its answer is what the page shows next.
+		 * NEVER touches the associated AssessmentResult (EU AI Act Art. 14).
 		 *
 		 * @param {object} session    ProctoringSession object
 		 * @param {object} flag       The flag to decide on
 		 * @param {string} decision   'allowed' or 'annulled'
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
+		 * @spec openspec/specs/assessment/spec.md#requirement-staff-reach-the-proctoring-flag-review-page
 		 */
 		async recordDecision(session, flag, decision) {
-			const currentUser = getCurrentUser()
-			const reviewedBy = currentUser?.uid ?? 'unknown'
-
 			this.savingFlagId = flag.flagId
 			this.sessionError = { ...this.sessionError, [session.uuid]: null }
 
 			try {
-				// Update the flag in the session's flags array.
-				const updatedFlags = (session.flags ?? []).map((f) => {
-					if (f.flagId !== flag.flagId) return f
-					return {
-						...f,
-						reviewDecision: decision,
-						reviewedBy,
-						reviewedAt: new Date().toISOString(),
-					}
-				})
-
+				const flags = withDecision(session.flags, flag.flagId, decision)
 				const url = generateUrl(
 					`/apps/openregister/api/objects/learniq/proctoring-session/${session.uuid}`,
 				)
 				const resp = await fetch(url, {
 					method: 'PATCH',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ flags: updatedFlags }),
+					headers: { ...HEADERS, 'Content-Type': 'application/json' },
+					body: JSON.stringify({ flags }),
 				})
 
 				if (!resp.ok) {
 					throw new Error(`Flag decision save failed: ${resp.status}`)
 				}
 
-				// Update local state.
-				const idx = this.sessions.findIndex((s) => s.uuid === session.uuid)
-				if (idx >= 0) {
-					this.sessions[idx] = {
-						...this.sessions[idx],
-						flags: updatedFlags,
-					}
-					// Force Vue 2 reactivity.
-					this.sessions = [...this.sessions]
+				const saved = await resp.json().catch(() => null)
+				const stored = Array.isArray(saved?.flags) ? saved.flags : flags
+				this.sessions = this.sessions.map((s) =>
+					s.uuid === session.uuid ? { ...s, flags: stored } : s,
+				)
+				const reviewer = stored.find((f) => f.flagId === flag.flagId)?.reviewedBy
+				if (reviewer && !this.names[reviewer]) {
+					this.loadName(reviewer)
 				}
 			} catch (err) {
 				this.sessionError = {
@@ -356,58 +525,15 @@ export default {
 				this.savingFlagId = null
 			}
 		},
-
-		/**
-		 * Format a datetime string for display.
-		 *
-		 * @param {string} dt ISO datetime string
-		 * @return {string}
-		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
-		 */
-		formatDate(dt) {
-			if (!dt) return ''
-			try {
-				return new Intl.DateTimeFormat(navigator.language, {
-					year: 'numeric',
-					month: 'short',
-					day: 'numeric',
-					hour: '2-digit',
-					minute: '2-digit',
-				}).format(new Date(dt))
-			} catch {
-				return dt
-			}
-		},
-
-		/**
-		 * Return a short display identifier (first 8 chars of UUID).
-		 *
-		 * @param {string} uuid Full UUID
-		 * @return {string}
-		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
-		 */
-		shortId(uuid) {
-			return (uuid ?? '').slice(0, 8)
-		},
 	},
 }
 </script>
 
 <style scoped>
-.proctoring-review-queue {
-	max-width: 900px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
 
-.proctoring-review-queue__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.proctoring-review-queue__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
+.proctoring-review-queue__count {
+	color: var(--color-text-maxcontrast);
+	margin-top: 4px;
 }
 
 .proctoring-review-queue__subtitle {
@@ -426,30 +552,12 @@ export default {
 }
 
 .proctoring-review-queue__sessions {
+	display: flex;
+	flex-direction: column;
+	gap: var(--cn-board-section-gap, 16px);
+	margin: 0;
 	list-style: none;
 	padding: 0;
-}
-
-.proctoring-review-queue__session {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius, 4px);
-	overflow: hidden;
-}
-
-.proctoring-review-queue__session-header {
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-	background: var(--color-background-dark);
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: var(--default-grid-baseline, 8px);
-}
-
-.proctoring-review-queue__session-header h3 {
-	margin: 0;
-	font-weight: bold;
 }
 
 .proctoring-review-queue__meta {
@@ -458,12 +566,12 @@ export default {
 }
 
 .proctoring-review-queue__pending-count {
-	margin-left: auto;
 	font-weight: bold;
 	color: var(--color-warning);
 }
 
 .proctoring-review-queue__flags {
+	margin: 0;
 	list-style: none;
 	padding: 0;
 }
@@ -472,8 +580,7 @@ export default {
 	display: flex;
 	align-items: center;
 	gap: calc(var(--default-grid-baseline, 8px) * 2);
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
+	padding: 12px 0;
 	border-top: 1px solid var(--color-border);
 }
 
@@ -536,12 +643,9 @@ export default {
 }
 
 .proctoring-review-queue__oversight-note {
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
 	font-size: 0.85em;
 	color: var(--color-text-maxcontrast);
 	font-style: italic;
-	background: var(--color-background-hover);
 }
 
 .proctoring-review-queue__error-inline {

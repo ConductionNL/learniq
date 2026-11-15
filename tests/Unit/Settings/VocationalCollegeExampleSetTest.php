@@ -32,6 +32,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Settings;
 
 use DateTimeImmutable;
+use OCA\Learniq\Service\ExampleSetPreparation;
+use OCA\Learniq\Service\ExampleSetSources;
 use DateTimeZone;
 use OCA\Learniq\Grading\GradeAggregationEngine;
 use OCA\Learniq\Grading\GradePassEvaluator;
@@ -42,6 +44,7 @@ use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\PokParentSignatureRule;
 use OCA\Learniq\Service\SeedProfileService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -512,7 +515,21 @@ class VocationalCollegeExampleSetTest extends TestCase {
 		$appManager->method('getAppPath')->willReturn(dirname(__DIR__, 3));
 		$demo = $this->createMock(DemoDataService::class);
 		$demo->method('listChoices')->willReturn([]);
-		$service = new SeedProfileService($appManager, $this->createMock(ContainerInterface::class), $this->createMock(LoggerInterface::class), $demo, $this->createMock(\OCA\Learniq\Service\SharedCodeFilter::class), $this->createMock(\OCA\Learniq\Service\LoadedExampleSets::class), $this->createMock(\OCA\Learniq\Portal\ExamplePortalProvisioner::class));
+		$service = new SeedProfileService(
+			sources: new ExampleSetSources(
+				appManager: $appManager,
+				demoData: $demo,
+				loadedSets: $this->createMock(\OCA\Learniq\Service\LoadedExampleSets::class)
+			),
+			preparation: new ExampleSetPreparation(
+				sharedCodes: $this->createMock(\OCA\Learniq\Service\SharedCodeFilter::class),
+				dates: $this->createMock(\OCA\Learniq\Service\ExampleSetDates::class),
+				organisation: $this->createMock(\OCA\Learniq\Service\ExampleSetOrganisation::class),
+				examplePortals: $this->createMock(\OCA\Learniq\Portal\ExamplePortalProvisioner::class)
+			),
+			container: $this->createMock(ContainerInterface::class),
+			logger: $this->createMock(LoggerInterface::class)
+		);
 
 		$offered = array_values(array_filter($service->listChoices(), static fn (array $c): bool => $c['id'] === 'mbo'))[0];
 		self::assertSame('Vocational education (MBO)', $offered['label']);
@@ -574,7 +591,8 @@ class VocationalCollegeExampleSetTest extends TestCase {
 		foreach (self::of('praktijkovereenkomst') as $agreement) {
 			$pok = array_merge($agreement, ['id' => $agreement['uuid']]);
 			self::assertTrue($guard->check($pok, 'activate', 'mbo-stagecoordinator-01')->isAllowed(), $agreement['slug'] . ' passes the activation guard');
-			self::assertSame($stamp->execute($pok, [], [], 'activate')['parentSignatureRequired'], $agreement['parentSignatureRequired'], $agreement['slug']);
+			$stamped = $stamp->execute(new LifecycleActionContext(objectData: $pok, previousData: [], parameters: [], actionName: 'activate'));
+			self::assertSame($stamped['parentSignatureRequired'], $agreement['parentSignatureRequired'], $agreement['slug']);
 
 			$parentSigners = array_column(array_filter($signaturesBySubject[$agreement['uuid']], static fn (array $s): bool => $s['signerRole'] === 'parent'), 'signerId');
 			if ($agreement['parentSignatureRequired'] === false) {
@@ -685,8 +703,8 @@ class VocationalCollegeExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
+	 * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 * @spec openspec/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
 	 */
 	public function testTheSetSeedsWeeksOfRealisedHours(): void {
 		$placements = self::by(self::of('bpv-placement'), 'uuid');
@@ -695,6 +713,7 @@ class VocationalCollegeExampleSetTest extends TestCase {
 		self::assertNotEmpty($weeks);
 
 		$perPlacement = [];
+		$story        = [];
 		foreach ($weeks as $week) {
 			self::assertArrayHasKey($week['bpvPlacementId'], $placements, $week['slug'] . ' names a placement of this set');
 			$placement = $placements[$week['bpvPlacementId']];
@@ -703,13 +722,22 @@ class VocationalCollegeExampleSetTest extends TestCase {
 			self::assertSame($placement['learnerRef'], $week['submittedBy'], $week['slug']);
 			self::assertMatchesRegularExpression('/^\d{4}-W\d{2}$/', $week['isoWeek'], $week['slug']);
 			$perPlacement[$week['bpvPlacementId']][] = $week;
+			// The Esdoornveen story's placements follow their boards, not the
+			// pattern below; testTheEsdoornveenStoryIsInTheSet asserts them.
+			if ($placement['trainingCompanyName'] === 'Bakker Techniek BV') {
+				$story[$week['bpvPlacementId']] = true;
+			}
 		}
 
-		// Every work placement unit has weeks, so every trainer in the set has
-		// something waiting for her.
+		self::assertNotEmpty($story, 'the story placements carry weeks');
+
+		// Every work placement unit of the school year has weeks, so every
+		// trainer in the set has something waiting for her.
 		$units = [];
 		foreach (array_keys($perPlacement) as $placementId) {
-			$units[$placements[$placementId]['curriculumPlanId']] = true;
+			if (isset($story[$placementId]) === false) {
+				$units[$placements[$placementId]['curriculumPlanId']] = true;
+			}
 		}
 
 		self::assertCount(5, $units, 'every BPV unit has a placement with weeks');
@@ -718,8 +746,10 @@ class VocationalCollegeExampleSetTest extends TestCase {
 			$placement = $placements[$placementId];
 			$label = $placement['slug'];
 			$states = array_column($rows, 'lifecycle');
-			self::assertSame(1, count(array_keys($states, 'submitted', true)), $label . ' has one week still waiting');
-			self::assertSame(1, count(array_keys($states, 'corrected', true)), $label . ' has one corrected week');
+			if (isset($story[$placementId]) === false) {
+				self::assertSame(1, count(array_keys($states, 'submitted', true)), $label . ' has one week still waiting');
+				self::assertSame(1, count(array_keys($states, 'corrected', true)), $label . ' has one corrected week');
+			}
 
 			$total = 0.0;
 			foreach ($rows as $week) {
@@ -742,6 +772,10 @@ class VocationalCollegeExampleSetTest extends TestCase {
 					// A correction keeps what the student entered and says why.
 					self::assertLessThan($week['hoursSubmitted'], $week['hoursApproved'], $week['slug']);
 					self::assertNotEmpty($week['note'], $week['slug']);
+				} else if ($week['lifecycle'] === 'rejected') {
+					// Sent back: none approved, and the note says why.
+					self::assertEquals(0, $week['hoursApproved'], $week['slug']);
+					self::assertNotEmpty($week['note'], $week['slug']);
 				} else {
 					self::assertSame($week['hoursSubmitted'], $week['hoursApproved'], $week['slug']);
 				}
@@ -760,4 +794,169 @@ class VocationalCollegeExampleSetTest extends TestCase {
 			self::assertArrayHasKey('agreedHours', $placement, $placement['slug']);
 		}
 	}//end testTheSetSeedsWeeksOfRealisedHours()
+
+	/**
+	 * The Esdoornveen story is in the set, and its numbers come out of the
+	 * rows the way the boards show them: Milan de Groot in Mechatronica
+	 * niveau 4, leerjaar 2, on his placement at Bakker Techniek BV with Petra
+	 * Bakker; 96 hours approved, 16 waiting, 8 sent back and 360 still to do
+	 * of 480; the tussenbeoordeling, the voortgangsgesprek, the exam and the
+	 * lessons of week 41; and Aylin Demir as Petra's second student.
+	 *
+	 * WHY WEEK 40 IS TWO ROWS. A `bpv-hour-week` has no per-day lines
+	 * (deviation D-7), so "8 of the 24 hours sent back" cannot be one row. The
+	 * Monday and Wednesday wait as one submitted row; the Tuesday is a row
+	 * Petra approved none of (`rejected`), and her note names the day.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/example-sets-are-the-four-schools/specs/example-sets/spec.md
+	 */
+	public function testTheEsdoornveenStoryIsInTheSet(): void {
+		self::assertSame('Esdoornveen', self::of('school')[0]['name']);
+		$streets = array_column(self::of('vestiging'), 'street');
+		self::assertContains('Esdoornlaan 40', $streets);
+		self::assertSame(['Zuiddrecht'], array_values(array_unique(array_column(self::of('vestiging'), 'city'))));
+
+		// The fourth programme, with its crebo and its six werkprocessen.
+		$programme = self::by(self::of('programme'), 'name')['Mechatronica'];
+		self::assertSame('mbo', $programme['level']);
+		self::assertStringContainsString('25743', $programme['description']);
+		$framework   = array_values(array_filter(self::of('competency-framework'), static fn (array $f): bool => ($f['sourceRef'] ?? null) === '25743'))[0];
+		$werkproces  = [];
+		foreach (self::of('competency') as $competency) {
+			if ($competency['frameworkId'] === $framework['uuid'] && str_contains($competency['code'], '-W') === true) {
+				$werkproces[$competency['code']] = $competency['title'];
+				self::assertContains($competency['uuid'], $programme['requiredCompetencyIds'], $competency['slug']);
+			}
+		}
+
+		self::assertSame(
+			[
+				'B1-K1-W1' => 'Bereidt het werk voor',
+				'B1-K1-W2' => 'Maakt onderdelen',
+				'B1-K1-W3' => 'Bouwt mechatronische systemen op',
+				'B1-K1-W4' => 'Test en stelt systemen af',
+				'B1-K2-W1' => 'Lokaliseert storingen',
+				'B1-K2-W2' => 'Voert onderhoud uit',
+			],
+			$werkproces
+		);
+
+		// The class and its two students.
+		$cohort = self::by(self::of('cohort'), 'name')['MT4-2A'];
+		self::assertSame($programme['uuid'], $cohort['programmeId']);
+		self::assertSame(2, $cohort['programmeYear']);
+		$people = [];
+		foreach (self::of('learner-profile') as $profile) {
+			$people[($profile['givenName'] ?? '') . ' ' . ($profile['familyName'] ?? '')] = $profile;
+		}
+
+		$milan = $people['Milan de Groot'];
+		$aylin = $people['Aylin Demir'];
+		self::assertSame('mbo-student-251', $milan['ncUserId']);
+		// Sem Visser (mbo-student-253) joins the class for attendance-warns-before-the-threshold.
+		self::assertSame(['mbo-student-251', 'mbo-student-252', 'mbo-student-253'], $cohort['learnerIds']);
+		$enrolment = self::by(self::of('enrolment'), 'learnerId')[$milan['ncUserId']];
+		self::assertSame(2, $enrolment['leerjaar']);
+		self::assertSame($cohort['uuid'], $enrolment['cohortId']);
+
+		// The leerbedrijf, the trainer and the BPV-begeleider.
+		$staff  = self::by(self::of('staff'), 'ncUserId');
+		$petras = array_values(array_filter(self::of('praktijkopleider'), static fn (array $t): bool => $t['givenName'] === 'Petra' && $t['familyName'] === 'Bakker'));
+		self::assertCount(1, $petras);
+		$petra = $petras[0];
+		self::assertTrue($petra['active'], 'an active row, so the trainer can be invited');
+		self::assertNotEmpty($petra['email']);
+		self::assertSame('Bakker Techniek BV', $petra['trainingCompanyName']);
+		foreach (['mbo-docent-15', 'mbo-docent-16', 'mbo-examencommissie-02'] as $ncUserId) {
+			self::assertArrayHasKey($ncUserId, $staff, $ncUserId . ' (Ruud Hermans, Fenna Yilmaz, Karin de Boer)');
+		}
+
+		$placements = [];
+		foreach (self::of('bpv-placement') as $placement) {
+			$placements[$placement['learnerRef']][] = $placement;
+		}
+
+		self::assertCount(1, $placements[$milan['uuid']]);
+		$placement = $placements[$milan['uuid']][0];
+		self::assertSame(['2026-08-31', '2027-01-29', 480], [$placement['periodFrom'], $placement['periodTo'], $placement['agreedHours']]);
+		self::assertSame($petra['uuid'], $placement['practicalTrainerId']);
+		self::assertSame('mbo-docent-15', $placement['schoolCoachId']);
+		self::assertSame('active', $placement['lifecycle']);
+		$pok = array_values(array_filter(self::of('praktijkovereenkomst'), static fn (array $p): bool => $p['bpvPlacementId'] === $placement['uuid']))[0];
+		foreach (self::of('pok-signature') as $signature) {
+			if ($signature['subjectId'] === $pok['uuid']) {
+				self::assertSame('2026-08-27', substr($signature['signedAt'], 0, 10), $signature['slug']);
+			}
+		}
+
+		// The hours, counted from the weeks the way the student page counts them.
+		$hours = ['approved' => 0.0, 'waiting' => 0.0, 'returned' => 0.0];
+		foreach (self::of('bpv-hour-week') as $week) {
+			if ($week['bpvPlacementId'] !== $placement['uuid']) {
+				continue;
+			}
+
+			match ($week['lifecycle']) {
+				'approved', 'corrected' => $hours['approved'] += (float)$week['hoursApproved'],
+				'submitted' => $hours['waiting'] += (float)$week['hoursSubmitted'],
+				'rejected' => $hours['returned'] += (float)$week['hoursSubmitted'],
+			};
+			if ($week['lifecycle'] === 'rejected') {
+				self::assertSame('2026-W40', $week['isoWeek']);
+				self::assertStringContainsString('29 september', $week['note']);
+			}
+		}
+
+		self::assertEquals(['approved' => 96, 'waiting' => 16, 'returned' => 8], $hours);
+		self::assertEquals(360, $placement['agreedHours'] - array_sum($hours), 'still to do');
+		self::assertEquals(96, $placement['hoursApprovedTotal']);
+
+		$aylinPlacement = $placements[$aylin['uuid']][0];
+		self::assertSame($petra['uuid'], $aylinPlacement['practicalTrainerId']);
+		self::assertEquals([640, 160], [$aylinPlacement['agreedHours'], $aylinPlacement['hoursApprovedTotal']]);
+
+		// The dates of the overview.
+		$visits = [];
+		foreach (self::of('bpv-visit-report') as $visit) {
+			if ($visit['bpvPlacementId'] === $placement['uuid']) {
+				$visits[$visit['visitDate']] = $visit;
+			}
+		}
+
+		self::assertSame('tussentijds-gesprek', $visits['2026-10-13']['visitKind']);
+		self::assertSame('draft', $visits['2026-10-13']['lifecycle'], 'the tussenbeoordeling has not happened yet');
+		self::assertArrayHasKey('2026-09-09', $visits, 'the werkplan visit');
+
+		$rooms = self::by(self::of('room'), 'uuid');
+		$slot  = self::of('conference-slot')[0];
+		self::assertSame(['2026-10-15T15:15:00+02:00', 'mbo-docent-16', 'mbo-student-251'], [$slot['startsAt'], $slot['teacherId'], $slot['learnerId']]);
+		self::assertStringContainsString('B2.11', $slot['location']);
+		$sitting = self::of('exam-sitting')[0];
+		self::assertSame('2026-11-03T09:00:00+01:00', $sitting['startsAt']);
+		self::assertSame('B1.08', $rooms[$sitting['roomIds'][0]]['code']);
+		self::assertSame('Examen Nederlands lezen en luisteren', self::by(self::of('exam'), 'uuid')[$sitting['assessmentId']]['title']);
+
+		// The lessons of Thursday 8 and Friday 9 October.
+		$courses = self::by(self::of('course'), 'uuid');
+		$days    = [];
+		foreach (self::of('session') as $session) {
+			if ($session['cohortId'] === $cohort['uuid']) {
+				$days[substr($session['startsAt'], 0, 10)][$session['startsAt']] = $session;
+			}
+		}
+
+		self::assertCount(4, $days['2026-10-08']);
+		self::assertCount(3, $days['2026-10-09']);
+		ksort($days['2026-10-08']);
+		ksort($days['2026-10-09']);
+		$thursday = array_values($days['2026-10-08']);
+		$friday   = array_values($days['2026-10-09']);
+		self::assertSame(['PLC-programmeren', 'T0.14'], [$courses[$thursday[0]['courseId']]['name'], $rooms[$thursday[0]['roomId']]['code']]);
+		self::assertSame('2026-10-08T15:00:00+02:00', $thursday[3]['endsAt']);
+		self::assertSame(['Nederlands', 'B1.08'], [$courses[$friday[0]['courseId']]['name'], $rooms[$friday[0]['roomId']]['code']]);
+		self::assertSame('2026-10-09T12:15:00+02:00', $friday[2]['endsAt']);
+		self::assertSame(['Engels', 'cancelled'], [$courses[$friday[1]['courseId']]['name'], $friday[1]['lifecycle']]);
+	}//end testTheEsdoornveenStoryIsInTheSet()
 }//end class

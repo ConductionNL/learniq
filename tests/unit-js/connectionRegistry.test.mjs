@@ -53,7 +53,7 @@ describe('connection formatters', () => {
 		const labels = [
 			page.title,
 			page.config.headerActions[0].label,
-			page.config.folderSidebar.allLabel,
+			...page.config.quickFilters.map((q) => q.label),
 			...page.config.columns.map((c) => c.label),
 		]
 		for (const label of labels) {

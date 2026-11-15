@@ -39,8 +39,8 @@
  *
  * @spec openspec/changes/an-invited-trainer-may-assess/specs/bpv/spec.md#requirement-an-invited-trainer-may-submit-a-werkproces-assessment
  * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md#requirement-a-workplace-trainer-lands-on-what-is-waiting-for-her
- * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
- * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
+ * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+ * @spec openspec/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
  * @spec openspec/specs/bpv/spec.md#requirement-praktijkopleider-portal-access-is-a-direct-scope-portalcontributionprovider-audience
  */
 
@@ -58,12 +58,12 @@ import {
 	createRowIfSupported,
 	grantPortalAccount,
 	nextcloudAccountExists,
-	offerSignInMode,
 	openHome,
 	openRoute,
 	portalRows,
 	removeNextcloudAccount,
 	removeRows,
+	requireSignInMode,
 	shot,
 	signInWithNextcloudAccount,
 } from './helpers/portal-fixture.ts'
@@ -117,7 +117,6 @@ test.describe('trainer: an invited workplace trainer', () => {
 
 	const created: SeededRow[] = []
 	let admin: APIRequestContext
-	let restoreModes: () => Promise<void> = async () => undefined
 	let trainer: PortalLogin
 	let trainerRef = ''
 	let placementId = ''
@@ -133,8 +132,7 @@ test.describe('trainer: an invited workplace trainer', () => {
 		test.setTimeout(300_000)
 		admin = await asUser(ADMIN)
 
-		const mode = await offerSignInMode(admin, PORTAL, 'nextcloud')
-		restoreModes = mode.restore
+		const mode = await requireSignInMode(admin, PORTAL, 'nextcloud')
 		const organisation = mode.organisation
 
 		test.skip(
@@ -252,7 +250,6 @@ test.describe('trainer: an invited workplace trainer', () => {
 	})
 
 	test.afterAll(async () => {
-		await restoreModes()
 		await removeRows(admin, created, 'trainer-flow')
 		if (createdAccount === true) {
 			await removeNextcloudAccount(admin, TRAINER.user)

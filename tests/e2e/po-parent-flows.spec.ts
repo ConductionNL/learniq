@@ -109,12 +109,12 @@ const CHILD = {
 	name: 'Vera',
 	userId: 'po-leerling-147',
 }
-// Vera's younger brother in groep 3 (po example set, learniq#1647).
+// Vera's younger brother in groep 4 (po example set, learniq#1647, example-sets-are-the-four-schools).
 const SIBLING = { ref: 'ee010008-0000-4000-8000-000000000467', name: 'Sami' }
 const OTHER_CHILD = 'ee010008-0000-4000-8000-000000000411'
 const GROUP_7 = 'ee010006-0000-4000-8000-000000000006'
-// Sami's group, groep 3.
-const GROUP_3 = 'ee010006-0000-4000-8000-000000000003'
+// Sami's group, groep 4.
+const GROUP_4 = 'ee010006-0000-4000-8000-000000000004'
 const REPORT_PERIOD_1 = 'ee01000b-0000-4000-8000-000000000001'
 const SCHOOL = 'ee010001-0000-4000-8000-000000000001'
 const TENANT = '00000000-0000-4000-8000-000000000000'
@@ -750,12 +750,12 @@ test.describe('po: teacher and parent flows', () => {
 		).toContain('Herfstvakantie')
 
 		// Homework is her children's groups', and no other pupil's uuid leaves.
-		// Vera's groep 7 is there; Sami's groep 3 may be (see expectOwnChildrenOnly).
+		// Vera's groep 7 is there; Sami's groep 4 may be (see expectOwnChildrenOnly).
 		const assignments = await portalRows('assignment', 'parentHomework')
 		expect(assignments.length).toBeGreaterThan(0)
 		const groups = new Set(assignments.map((row) => row.cohortId))
 		expect(groups.has(GROUP_7)).toBe(true)
-		expect([...groups].filter((id) => id !== GROUP_7 && id !== GROUP_3)).toEqual(
+		expect([...groups].filter((id) => id !== GROUP_7 && id !== GROUP_4)).toEqual(
 			[],
 		)
 		expect(assignments.every((row) => row.learnerRefs === undefined)).toBe(true)
@@ -763,6 +763,61 @@ test.describe('po: teacher and parent flows', () => {
 		await openPage(parent, 'learniq/parentCalendar')
 		await expect(parent.getByTestId('calendar-block')).toBeVisible()
 		await shot(parent, 'f2-calendar')
+	})
+
+	test('h. the guardian switches child, reads the task and reports Vera sick from the overview', async () => {
+		// site-guardian-portal-design T10, on the overview of the board
+		// (school-design wilgenboom MijnOverzicht): greeting, the task, the switcher.
+		await parent.goto(`${SITE}&route=${encodeURIComponent('/mijn')}`)
+		await waitForAccountPage(parent)
+		await expect(parent.getByTestId('mijn-greeting')).toContainText('Fatima')
+
+		// The switcher lists both children with their group line; Sami first, then back to Vera.
+		const switcher = parent.getByTestId('mijn-record-switcher')
+		await expect(switcher).toContainText('Groep 7')
+		await switcher.getByText(SIBLING.name, { exact: true }).click()
+		await expect(parent).toHaveURL(new RegExp(SIBLING.ref))
+		await switcher.getByText(CHILD.name, { exact: true }).click()
+		await expect(parent).toHaveURL(new RegExp(CHILD.ref))
+
+		// "Wat u nog moet doen": a conference round that is still open for booking.
+		await expect(
+			parent.getByTestId('mijn-task-highlight').first(),
+		).toContainText('Oudergesprekken')
+		await shot(parent, 'h1-overview')
+
+		// The greeting's one button opens the absence form; the sentence sums it up.
+		await parent.getByTestId('mijn-greeting-action').click()
+		const form = parent.getByTestId('schema-form').first()
+		const reason = `Koorts, vanaf het overzicht (${RUN})`
+		await form
+			.getByRole('combobox', { name: 'Kind', exact: true })
+			.selectOption({ label: CHILD.name })
+		await fillDate(form, 'Eerste dag afwezig', '2026-10-09')
+		await fillDate(form, 'Laatste dag afwezig', '2026-10-09')
+		await form.getByRole('textbox', { name: 'Reden', exact: true }).fill(reason)
+		await form
+			.getByRole('group', { name: 'Soort afwezigheid', exact: true })
+			.getByRole('radio', { name: 'Ziekte', exact: true })
+			.check()
+		await expect(form).toContainText('U meldt')
+		await expect(form).toContainText(`${CHILD.name} is`)
+		await form.getByRole('button', { name: 'Afwezigheid melden' }).click()
+
+		// The confirmation, and the report really stored for Vera.
+		await expect(
+			parent.getByTestId('schema-form-confirmation-heading'),
+		).toContainText('Uw melding is verstuurd', { timeout: 15_000 })
+		await expect
+			.poll(async () => (await excuseFor(reason))?.learnerRef, {
+				timeout: 15_000,
+			})
+			.toBe(CHILD.ref)
+		const sent = await excuseFor(reason)
+		if (sent?.id) {
+			created.push({ schema: 'excuse-request', id: sent.id })
+		}
+		await shot(parent, 'h2-confirmation')
 	})
 
 	test("g. the guardian reads her child's teacher by name", async () => {

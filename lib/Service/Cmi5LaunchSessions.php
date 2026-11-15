@@ -27,6 +27,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\Cmi5LaunchSessionsInterface;
 use OCP\ICache;
 use OCP\ICacheFactory;
 use OCP\IURLGenerator;
@@ -39,7 +40,7 @@ use Throwable;
  *
  * @spec openspec/specs/course-management/spec.md#requirement-run-cmi5--xapi-natively-with-scorm-shim
  */
-class Cmi5LaunchSessions {
+class Cmi5LaunchSessions implements Cmi5LaunchSessionsInterface {
 
 	/**
 	 * The stateId of the launch data document (cmi5 section 10.2.1).

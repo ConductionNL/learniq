@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Portal;
 
+use OCA\Learniq\Portal\EmployerSitePages;
 use OCA\Learniq\Portal\PortalContributionProvider;
 use OCA\Learniq\Portal\PortalLabelTranslator;
 use OCA\Learniq\Portal\PortalValueLabels;
@@ -116,7 +117,9 @@ class PortalLabelTranslatorTest extends TestCase {
 	 * @return bool
 	 */
 	private static function isVisible(string $path): bool {
-		return preg_match('#/(label|submitLabel|successMessage|unit|fallback|group|otherLabel|requiredMessage)$#', $path) === 1
+		return preg_match('#/(label|submitLabel|successMessage|unit|fallback|group|otherLabel|requiredMessage|buttonLabel|template|eyebrow|soonLabel|noteLabel|help|composeLabel|composeHint|firstLabel|titleTemplate|subtitle|emptyLabel|markdown)$#', $path) === 1
+			|| preg_match('#/confirmation/(title|body|next)$#', $path) === 1
+			|| preg_match('#/phrases/[^/]+/[^/]+$#', $path) === 1
 			|| preg_match('#/(label|unit)/(one|other)$#', $path) === 1
 			|| preg_match('#/sources/\d+/(kind|title)$#', $path) === 1
 			|| preg_match('#/values/[^/]+$#', $path) === 1;
@@ -169,6 +172,36 @@ class PortalLabelTranslatorTest extends TestCase {
 	}//end testTheParentManifestArrivesInDutch()
 
 	/**
+	 * Every visible string of the employer's manifest, and every step of a
+	 * booking, has a Dutch entry (employer-portal-audience).
+	 *
+	 * @return void
+	 */
+	public function testEveryEmployerLabelHasADutchEntry(): void {
+		$strings = self::visibleStrings(manifest: (new PortalContributionProvider())->getContribution(['audience' => 'employer']));
+		$strings = array_merge(
+			$strings,
+			['Booked', 'Confirmed', 'Details complete', 'Course day', 'Result and certificate', 'Within 10 working days after the course', '%s place', '%s places']
+		);
+
+		$missing = array_values(array_filter($strings, fn (string $text): bool => isset($this->dutch[$text]) === false));
+		self::assertSame([], $missing, 'Employer portal strings without a Dutch entry in l10n/nl.json');
+	}//end testEveryEmployerLabelHasADutchEntry()
+
+	/**
+	 * Every visible string of the participant's manifest has a Dutch entry (participant-portal).
+	 *
+	 * @return void
+	 */
+	public function testEveryParticipantLabelHasADutchEntry(): void {
+		$strings = self::visibleStrings(manifest: (new PortalContributionProvider())->getContribution(['audience' => 'participant']));
+
+		self::assertNotEmpty($strings);
+		$missing = array_values(array_filter($strings, fn (string $text): bool => isset($this->dutch[$text]) === false));
+		self::assertSame([], $missing, 'Participant portal strings without a Dutch entry in l10n/nl.json');
+	}//end testEveryParticipantLabelHasADutchEntry()
+
+	/**
 	 * Every visible string of the student manifest has a Dutch entry
 	 * (site-pupil-portal-design).
 	 *
@@ -205,6 +238,14 @@ class PortalLabelTranslatorTest extends TestCase {
 		self::assertSame('Je werk', $actions['createSubmission']['fieldConfigs']['attachmentRefs']['label']);
 		self::assertSame('Toetsen die je kunt maken', $actions['listTests']['label']);
 		self::assertSame('Afwezig melden', $actions['createExcuseRequest']['label']);
+
+		// Her timetable (site-pupil-portal-design T5b): the label over the first lesson and the word of a change.
+		$pages = array_column($manifest['pages'], null, 'id');
+		self::assertSame('Je rooster vandaag', $pages['studentOverview']['blocks'][1]['label']);
+		self::assertSame('Je eerste les', $pages['studentOverview']['blocks'][1]['firstLabel']);
+		self::assertSame('Rooster', $pages['studentSessions']['label']);
+		$sessions = array_column($manifest['collections'], null, 'id')['studentSessions'];
+		self::assertSame('Ander lokaal', $sessions['fieldConfigs']['changeReasonKind']['valueLabels']['room-unavailable']);
 	}//end testTheStudentManifestArrivesInDutch()
 
 	/**
@@ -335,6 +376,8 @@ class PortalLabelTranslatorTest extends TestCase {
 			[PortalValueLabels::SIGNUP_STATUS, 'conference-signup', 'lifecycle'],
 			[PortalValueLabels::SLOT_STATUS, 'conference-slot', 'lifecycle'],
 			[PortalValueLabels::WERKPROCES_ASSESSMENT, 'werkproces-assessment', 'assessment'],
+			[EmployerSitePages::BOOKING_STATUS, 'course-booking', 'employerStatus'],
+			[EmployerSitePages::DETAILS_STATUS, 'enrolment', 'detailsStatus'],
 		];
 		foreach ($labelSets as [$labels, $schema, $property]) {
 			self::assertSame($enumOf($schema, $property), array_keys($labels), $schema.'.'.$property);
@@ -351,4 +394,37 @@ class PortalLabelTranslatorTest extends TestCase {
 
 		self::assertSame($manifest, (new PortalLabelTranslator())->translate(manifest: $manifest));
 	}//end testWithoutATranslatorTheManifestStaysEnglish()
+
+	/**
+	 * The child-card chip and the other words the school boards brought in
+	 * (school-portals-match-their-boards, student-portal-reads-like-the-boards)
+	 * reach a Dutch guardian and pupil in Dutch: "Ziek gemeld", "Op school",
+	 * "BPV en uren", "Teruggestuurd", the grade columns and the conversation tile.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/school-portals-match-their-boards/specs/portal-contribution/spec.md#requirement-a-childs-card-says-where-the-child-is-today
+	 */
+	public function testTheBoardWordsArriveInDutch(): void {
+		$factory = $this->createMock(IFactory::class);
+		$factory->method('get')->with('learniq')->willReturn($this->dutchL10n());
+		$provider = new PortalContributionProvider(l10nFactory: $factory);
+
+		$parent   = $provider->getContribution(['audience' => 'parent']);
+		$overview = array_column($parent['pages'], null, 'id')['parentOverview'];
+		$cards    = array_values(array_filter($overview['blocks'], static fn (array $b): bool => ($b['display'] ?? '') === 'cards'))[0];
+		self::assertSame(['Ziek gemeld', 'Op school'], [$cards['status']['label'], $cards['status']['otherLabel']]);
+		$calendar = array_values(array_filter($overview['blocks'], static fn (array $b): bool => $b['type'] === 'calendar'))[0];
+		$slots    = array_values(array_filter($calendar['sources'], static fn (array $src): bool => $src['collection'] === 'parentConferenceSlots'))[0];
+		self::assertSame($this->dutch['Parent-teacher conversation'], $slots['title']);
+		self::assertNotSame('Parent-teacher conversation', $slots['title']);
+
+		$student = $provider->getContribution(['audience' => 'student']);
+		$pages   = array_column($student['pages'], null, 'id');
+		self::assertSame('BPV en uren', $pages['studentHourWeeks']['label']);
+		$collections = array_column($student['collections'], null, 'id');
+		self::assertSame(['Vak', 'Datum', 'Cijfer'], array_column($collections['studentGrades']['columns'], 'label'));
+		$status = array_column($collections['studentHourWeeks']['columns'], null, 'field')['lifecycle'];
+		self::assertSame('Teruggestuurd', $status['valueLabels']['rejected']);
+	}//end testTheBoardWordsArriveInDutch()
 }//end class

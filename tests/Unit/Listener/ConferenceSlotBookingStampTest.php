@@ -23,7 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\CollaborationListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\CollaborationListenerRegistrar;
 use OCA\Learniq\Listener\ConferenceSlotBookingStamp;
 use OCA\Learniq\Service\ConferenceSlotClaim;
 use OCA\Learniq\Service\LearnerRefResolver;
@@ -276,6 +276,81 @@ class ConferenceSlotBookingStampTest extends TestCase {
 	}//end testASignedInWriteOrAPreferenceSignupIsNotTouched()
 
 	/**
+	 * In a round that lets pupils book, a pupil books a free time for herself:
+	 * the slot and the booking are hers, with no guardian on them, and both
+	 * pass the real schema.
+	 *
+	 * @return void
+	 */
+	public function testAPupilBooksHerOwnTimeWhenTheRoundAllowsIt(): void {
+		$this->store->rows['conference-round'][0]['pupilMayBook'] = true;
+		$event = $this->pupilBooking(child: self::VERA, slot: self::SLOT_1);
+
+		$this->stamp()->handle($event);
+
+		$this->assertFalse($event->isPropagationStopped(), json_encode($event->getErrors()));
+		$data = $event->getModifiedData();
+		$this->assertSame('booked', $data['lifecycle']);
+		$this->assertSame(self::VERA, $data['learnerRef']);
+		$this->assertSame('po-leerling-147', $data['learnerId']);
+		$this->assertSame('', $data['guardianId']);
+		$slot = $this->slot(id: self::SLOT_1);
+		$this->assertSame('booked', $slot['lifecycle']);
+		$this->assertSame(self::VERA, $slot['learnerRef']);
+		$this->assertSame($event->getObject()->getUuid(), $slot['signupId']);
+		$this->assertNull(self::schemaError('conference-signup', array_merge($event->getObject()->getObject(), $data)));
+		$this->assertNull(self::schemaError('conference-slot', $this->store->saves[0]['object']));
+	}//end testAPupilBooksHerOwnTimeWhenTheRoundAllowsIt()
+
+	/**
+	 * A round that does not let pupils book refuses the pupil in words and
+	 * no time changes; an unknown pupil is refused too.
+	 *
+	 * @return void
+	 */
+	public function testAPupilCannotBookWhenTheRoundDoesNotAllowIt(): void {
+		foreach ([null, false, 'true'] as $flag) {
+			$this->store->rows['conference-round'][0]['pupilMayBook'] = $flag;
+			$event = $this->pupilBooking(child: self::VERA, slot: self::SLOT_1);
+			$this->stamp()->handle($event);
+
+			$this->assertTrue($event->isPropagationStopped());
+			$this->assertSame('slot-pupil-not-allowed', $event->getErrors()['reason']);
+			$this->assertSame(ConferenceSlotBookingStamp::REFUSALS['slot-pupil-not-allowed'], $event->getErrors()['message']);
+		}
+
+		$this->store->rows['conference-round'][0]['pupilMayBook'] = true;
+		$stranger = $this->pupilBooking(child: 'aa000005-0000-4000-8000-0000000000ff', slot: self::SLOT_1);
+		$this->stamp()->handle($stranger);
+		$this->assertSame('signup-learner-unknown', $stranger->getErrors()['reason']);
+
+		$this->assertSame([], $this->store->saves);
+		$this->assertSame('free', $this->slot(id: self::SLOT_1)['lifecycle']);
+	}//end testAPupilCannotBookWhenTheRoundDoesNotAllowIt()
+
+	/**
+	 * The pupil's booking and her guardian's count as one: once she has a
+	 * time, her guardian's booking in the same round is refused, and the
+	 * other way round.
+	 *
+	 * @return void
+	 */
+	public function testAPupilAndHerGuardianShareOneBooking(): void {
+		$this->store->rows['conference-round'][0]['pupilMayBook'] = true;
+		$this->stamp()->handle($this->pupilBooking(child: self::VERA, slot: self::SLOT_1));
+
+		$guardian = $this->booking(child: self::VERA, guardian: self::FATIMA, slot: self::SLOT_2);
+		$this->stamp()->handle($guardian);
+		$this->assertSame('child-already-booked', $guardian->getErrors()['reason']);
+
+		$this->stamp()->handle($this->booking(child: self::DAAN, guardian: self::MARK, slot: self::SLOT_2));
+		$pupil = $this->pupilBooking(child: self::DAAN, slot: self::SLOT_1);
+		$this->stamp()->handle($pupil);
+		$this->assertTrue($pupil->isPropagationStopped());
+		$this->assertContains($pupil->getErrors()['reason'], ['child-already-booked', 'slot-taken']);
+	}//end testAPupilAndHerGuardianShareOneBooking()
+
+	/**
 	 * The listener is wired for creates, asserted from the registrar the app
 	 * actually runs.
 	 *
@@ -349,6 +424,19 @@ class ConferenceSlotBookingStampTest extends TestCase {
 
 		return new ObjectCreatingEvent($entity);
 	}//end booking()
+
+	/**
+	 * A pupil's own booking, as the student audience writes it: her
+	 * learnerRef stamped from her claim and no guardian.
+	 *
+	 * @param string $child The pupil's LearnerProfile uuid.
+	 * @param string $slot  The picked slot.
+	 *
+	 * @return ObjectCreatingEvent
+	 */
+	private function pupilBooking(string $child, string $slot): ObjectCreatingEvent {
+		return new ObjectCreatingEvent(OrEntityFactory::make(['learnerRef' => $child, 'slotId' => $slot], 'conference-signup'));
+	}//end pupilBooking()
 
 	/**
 	 * The listener with the real claim, over the in-memory register and locks.

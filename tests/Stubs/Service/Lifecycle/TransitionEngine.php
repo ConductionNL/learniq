@@ -56,4 +56,25 @@ abstract class TransitionEngine {
 	 */
 	abstract public function transition(string $objectId, string $action, array $data = []): ObjectEntity;
 
+	/**
+	 * Run a lifecycle transition as the system, after the calling app approved the caller.
+	 *
+	 * Mirrors openregister `lib/Service/Lifecycle/TransitionEngine.php:354`
+	 * (#4327, first tag v2.1.36-unstable.20261005083254):
+	 *   `public function transitionAsSystem(string $objectId, string $action, string $app, array $data = []): ObjectEntity`
+	 *
+	 * Skips only OpenRegister's own read and update checks on the subject and
+	 * RBAC on the save; the transition's guard, condition and actions still
+	 * run with the session user. Older OpenRegister releases lack it, so
+	 * callers check for it before use.
+	 *
+	 * @param string $objectId Object uuid.
+	 * @param string $action Transition action name.
+	 * @param string $app The app that approved the caller.
+	 * @param array  $data Declared transition inputs.
+	 *
+	 * @return ObjectEntity
+	 */
+	abstract public function transitionAsSystem(string $objectId, string $action, string $app, array $data = []): ObjectEntity;
+
 }//end class

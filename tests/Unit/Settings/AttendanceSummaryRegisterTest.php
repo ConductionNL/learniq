@@ -69,7 +69,7 @@ class AttendanceSummaryRegisterTest extends TestCase {
 	}//end strings()
 
 	/**
-	 * Teachers read their own pupils' rows, school-wide staff read all, nobody writes through the API.
+	 * Teachers read their own pupils' rows, the mentor reads their pupils' rows, school-wide staff read all, nobody writes through the API.
 	 *
 	 * @return void
 	 */
@@ -80,6 +80,8 @@ class AttendanceSummaryRegisterTest extends TestCase {
 			[
 				'read' => [
 					['group' => 'instructors', 'match' => ['teacherIds' => ['$contains' => '$userId']]],
+					// attendance-warns-before-the-threshold: the pupil's mentor reads their rows.
+					['group' => 'instructors', 'match' => ['mentorId' => '$userId']],
 					'coordinators',
 					'administration-managers',
 					'compliance-officers',
@@ -97,7 +99,12 @@ class AttendanceSummaryRegisterTest extends TestCase {
 	 */
 	public function testTheSummaryFieldsAreDeclaredAndTranslated(): void {
 		$schema = self::shippedSchema(slug: 'attendance-summary');
-		$fields = ['learnerId', 'learnerRef', 'schoolYear', 'absentDays', 'absentAuthorisedDays', 'absentUnauthorisedDays', 'lateCount', 'lateMinutes', 'updatedAt', 'teacherIds', 'tenant_id'];
+		$fields = [
+			'learnerId', 'learnerRef', 'schoolYear', 'absentDays', 'absentAuthorisedDays', 'absentUnauthorisedDays', 'lateCount', 'lateMinutes', 'updatedAt',
+			// attendance-warns-before-the-threshold: the rolling count against the limit.
+			'unauthorisedHoursWindow', 'thresholdHours', 'windowLabel', 'thresholdNearing',
+			'teacherIds', 'mentorId', 'tenant_id',
+		];
 		self::assertSame($fields, array_keys($schema['properties']));
 		foreach (['absentDays', 'absentAuthorisedDays', 'absentUnauthorisedDays', 'lateCount', 'lateMinutes'] as $count) {
 			self::assertSame('integer', $schema['properties'][$count]['type']);
@@ -157,13 +164,15 @@ class AttendanceSummaryRegisterTest extends TestCase {
 
 		$calculator = new AttendanceSummaryCalculator();
 		$summaries = $objects['attendance-summary'];
-		self::assertCount(count($objects['enrolment']), $summaries, 'one summary per enrolled pupil');
+		$baseYear  = array_values(array_filter($summaries, static fn (array $s): bool => $s['schoolYear'] === '2025-2026'));
+		self::assertCount(count($objects['enrolment']), $baseYear, 'one 2025-2026 summary per enrolled pupil');
+		// The designed portal's story adds 2026-2027 rows for the Hulstkamp children (example-sets-are-the-four-schools).
+		self::assertSame(['2025-2026', '2026-2027'], array_values(array_unique(array_column($summaries, 'schoolYear'))));
 		$late = 0;
 		$unauthorised = 0;
 		foreach ($summaries as $summary) {
-			$counted = ($calculator->summarise(records: ($records[$summary['learnerId']] ?? []), sessions: $sessions)['2025-2026'] ?? AttendanceSummaryCalculator::emptyCounts());
-			self::assertSame($counted, array_intersect_key($summary, $counted), $summary['learnerId']);
-			self::assertSame('2025-2026', $summary['schoolYear']);
+			$counted = ($calculator->summarise(records: ($records[$summary['learnerId']] ?? []), sessions: $sessions)[$summary['schoolYear']] ?? AttendanceSummaryCalculator::emptyCounts());
+			self::assertSame($counted, array_intersect_key($summary, $counted), $summary['learnerId'] . ' ' . $summary['schoolYear']);
 			self::assertNull(self::schemaError(slug: 'attendance-summary', payload: array_diff_key($summary, ['@self' => 1, 'uuid' => 1, 'slug' => 1])));
 			$late += $summary['lateMinutes'];
 			$unauthorised += $summary['absentUnauthorisedDays'];

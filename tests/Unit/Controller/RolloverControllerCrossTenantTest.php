@@ -29,6 +29,7 @@ use OCA\Learniq\Controller\RolloverController;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\RolloverService;
+use OCA\Learniq\Tests\Support\ContractImplementations;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -207,7 +208,7 @@ class RolloverControllerCrossTenantTest extends TestCase {
 		foreach (($class->getConstructor()?->getParameters() ?? []) as $parameter) {
 			$type = $parameter->getType();
 			self::assertInstanceOf(ReflectionNamedType::class, $type);
-			$arguments[$parameter->getName()] = match ($type->getName()) {
+			$arguments[$parameter->getName()] = match (ContractImplementations::concrete($type->getName())) {
 				IUserSession::class => $userSession,
 				ObjectService::class => $objectService,
 				RolloverService::class => $rolloverService,

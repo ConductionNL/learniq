@@ -23,11 +23,22 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\AppInfo;
 
+use OCA\Learniq\Grading\GradingContractBindings;
+use OCA\Learniq\Lifecycle\LifecycleContractBindings;
+use OCA\Learniq\Listener\ListenerContractBindings;
+use OCA\Learniq\Portal\PortalContractBindings;
+use OCA\Learniq\Proctoring\ProctoringContractBindings;
+use OCA\Learniq\Timetabling\TimetablingContractBindings;
 use OCA\OpenRegister\AppHost\Bootstrap;
-use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
+use OCA\OpenRegister\AppHost\LeafAdoption;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Listener\Registrar\EventListenerWiring;
 use OCA\Learniq\Middleware\ActionForbiddenMiddleware;
+use OCA\Learniq\Middleware\LookupIntegrityMiddleware;
+use OCA\Learniq\SetupCheck\WalletOfferTokenCheck;
 use OCA\Learniq\AppInfo\Registrar\ServiceOverrideRegistrar;
 use OCA\Learniq\Mcp\LearniqScannableServices;
+use OCA\Learniq\Service\ServiceRegistrar;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -51,12 +62,12 @@ use OCP\EventDispatcher\IEventDispatcher;
  * Vue component) — no OCP\Settings\ISettings PHP class needed (per ADR-024).
  *
  * The listener wiring itself lives in domain-scoped registrars under
- * {@see \OCA\Learniq\AppInfo\Registrar}, reached through
+ * {@see \OCA\Learniq\Listener\Registrar}, reached through
  * {@see EventListenerWiring}. This class therefore names the bootstrap seams,
  * not the ~40 listener classes behind them.
  */
 class Application extends App implements IBootstrap {
-	public const APP_ID = 'learniq';
+	public const APP_ID = AppIdentity::APP_ID;
 
 	/**
 	 * Constructor for the Application class.
@@ -89,6 +100,12 @@ class Application extends App implements IBootstrap {
 		// controller is a 403, not Nextcloud's 500 page (live pass D1, D7).
 		// First, so nothing below that throws can leave it unregistered.
 		$context->registerMiddleware(ActionForbiddenMiddleware::class);
+		// A lookup by id that matches more than one object is a generic 500, logged with the ids.
+		$context->registerMiddleware(LookupIntegrityMiddleware::class);
+
+		// The admin overview names a missing integriq token, which makes every
+		// wallet offer fail (credential-wallet-offer-for-the-learner).
+		$context->registerSetupCheck(WalletOfferTokenCheck::class);
 
 		// ADR-040: adopt the OpenRegister AppHost. One call wires the generic
 		// SPA/settings/preferences/health/metrics controllers, the settings +
@@ -103,8 +120,8 @@ class Application extends App implements IBootstrap {
 		// `x-openregister-mcp` blocks in the register (ADR-063).
 		//
 		// LOAD-ORDER PRELUDE (ADR-040). OC_App::getEnabledApps() sort()s the app
-		// list, and Coordinator::registerApps() walks THAT sorted list calling
-		// OC_App::registerAutoloading($appId) and then $app->register() for one
+		// list, and Coordinator::registerApps() walks THAT sorted list registering
+		// each app's autoloader and then calling $app->register() for one
 		// app at a time — so every app registers BEFORE the PSR-4 prefix of every
 		// alphabetically-LATER app exists. This app's former id, `scholiq`, sorted
 		// after `openregister`, so OCA\OpenRegister\ happened to be autoloadable
@@ -118,26 +135,38 @@ class Application extends App implements IBootstrap {
 		// two registrars below silently never wired.
 		//
 		// Registering the prefix ourselves removes the dependency on ordering.
-		// OC_App::registerAutoloading() touches only the autoloader and is
-		// idempotent (it early-returns on an $alreadyRegistered key), so on the
-		// current ordering this call costs nothing. IAppManager::loadApp() would
-		// NOT be correct here: it marks OpenRegister loaded and calls
+		// OpenRegisterAutoloader touches only the autoloader, uses public API
+		// only (NC35 removed the private OC_App::registerAutoloading()) and is
+		// idempotent, so on the current ordering this call costs nothing.
+		// IAppManager::loadApp() would NOT be correct here: it marks OpenRegister loaded and calls
 		// Coordinator::bootApp(), booting it before its own register() has run.
 		OpenRegisterAutoloader::register();
 
 		Bootstrap::register(
-			$context,
-			self::APP_ID,
-			[
-				'namespace' => 'OCA\\Learniq',
-				'sectionName' => 'Learniq',
-			]
+			context: $context,
+			adoption: new LeafAdoption(
+				appId: self::APP_ID,
+				options: [
+					'namespace' => 'OCA\\Learniq',
+					'sectionName' => 'Learniq',
+				]
+			)
 		);
 
 		// Override cookbook (ADR-040): re-point the settings controller/service,
 		// the action-auth service and the install repair step at Learniq's own
 		// implementations, AFTER Bootstrap so they win over the generic aliases.
 		(new ServiceOverrideRegistrar())->register(context: $context, appId: self::APP_ID);
+
+		// Every Kernel contract that a caller type-hints resolves to its
+		// implementation; each component binds the contracts its classes implement.
+		(new ServiceRegistrar())->register(context: $context);
+		(new TimetablingContractBindings())->register(context: $context);
+		(new ProctoringContractBindings())->register(context: $context);
+		(new PortalContractBindings())->register(context: $context);
+		(new ListenerContractBindings())->register(context: $context);
+		(new LifecycleContractBindings())->register(context: $context);
+		(new GradingContractBindings())->register(context: $context);
 
 		// The curated agent tools (hermiq-ai-tooling): OpenRegister's attribute
 		// scan enumerates this alias to find learniq's `#[McpTool]` methods. It is
@@ -160,7 +189,7 @@ class Application extends App implements IBootstrap {
 	 * Every object-event listener that declares a register/schema interest is
 	 * subscribed here rather than in register(): OpenRegister's
 	 * `ObjectEventSubscription` is only guaranteed autoloadable once every app's
-	 * register() has run. See {@see \OCA\Learniq\AppInfo\Registrar\BootListenerRegistrar}.
+	 * register() has run. See {@see \OCA\Learniq\Listener\Registrar\BootListenerRegistrar}.
 	 *
 	 * @param IBootContext $context The boot context
 	 *

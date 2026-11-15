@@ -30,7 +30,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use OCA\Learniq\Service\Grading\CorrectionApprovals;
+use OCA\Learniq\Kernel\Contracts\CorrectionApprovalsInterface;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -47,13 +47,13 @@ class DataCorrectionDecisionGuard implements LifecycleGuardInterface {
 	 * Constructor.
 	 *
 	 * @param ObjectService       $objects   OpenRegister object access, to read the grade entry on apply.
-	 * @param CorrectionApprovals $approvals Whether a grade carries the approved value.
+	 * @param CorrectionApprovalsInterface $approvals Whether a grade carries the approved value.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objects,
-		private readonly CorrectionApprovals $approvals,
+		private readonly CorrectionApprovalsInterface $approvals,
 	) {
 	}//end __construct()
 

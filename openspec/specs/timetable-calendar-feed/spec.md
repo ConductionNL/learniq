@@ -1,7 +1,7 @@
 # timetable-calendar-feed Specification
 
 ## Purpose
-TBD - created by archiving change attendance-timetable-calendar-feed. Update Purpose after archive.
+Subscribe to your own timetable in a calendar app through a private feed address, and revoke that address when you want to.
 
 ## Requirements
 

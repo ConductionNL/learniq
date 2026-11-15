@@ -40,12 +40,15 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\CompetencyAlignmentNormaliserInterface;
+use OCA\Learniq\Support\TextValue;
+
 /**
  * Derives, syncs, checks and reads competency alignments.
  *
  * @spec openspec/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
  */
-class CompetencyAlignmentNormaliser {
+class CompetencyAlignmentNormaliser implements CompetencyAlignmentNormaliserInterface {
 
 	/**
 	 * Normalise a raw `competencyAlignments` value to a list of
@@ -63,26 +66,31 @@ class CompetencyAlignmentNormaliser {
 			return [];
 		}
 
-		$alignments = [];
-		foreach ($raw as $entry) {
-			if (is_array($entry) === false) {
-				$entry = [];
-			}
+		return array_map(fn (mixed $entry): array => $this->alignmentOf(entry: $entry), array_values($raw));
+	}//end normalise()
 
-			$goal  = $entry['competencyId'] ?? '';
-			$depth = $entry['depth'] ?? null;
-			if (is_string($depth) === false || trim($depth) === '') {
-				$depth = null;
-			}
-
-			$alignments[] = [
-				'competencyId' => $this->stringOrEmpty(value: $goal),
-				'depth'        => $depth,
-			];
+	/**
+	 * One raw entry as a `{competencyId, depth}` pair.
+	 *
+	 * @param mixed $entry The raw entry.
+	 *
+	 * @return array{competencyId: string, depth: string|null}
+	 */
+	private function alignmentOf(mixed $entry): array {
+		if (is_array($entry) === false) {
+			$entry = [];
 		}
 
-		return $alignments;
-	}//end normalise()
+		$depth = ($entry['depth'] ?? null);
+		if (is_string($depth) === false || trim($depth) === '') {
+			$depth = null;
+		}
+
+		return [
+			'competencyId' => $this->stringOrEmpty(value: ($entry['competencyId'] ?? '')),
+			'depth'        => $depth,
+		];
+	}//end alignmentOf()
 
 	/**
 	 * The flat goal list a list of alignments derives: alignment order, no
@@ -158,26 +166,40 @@ class CompetencyAlignmentNormaliser {
 				return 'A goal alignment points at a goal that does not exist. Pick an existing goal.';
 			}
 
-			$code = $goals[$goal]['code'];
 			if (isset($seen[$goal]) === true) {
-				return sprintf('Goal %s is aligned twice. Keep one alignment per goal.', $code);
+				return sprintf('Goal %s is aligned twice. Keep one alignment per goal.', $goals[$goal]['code']);
 			}
 
 			$seen[$goal] = true;
-			$depth       = $alignment['depth'];
-			$levels      = $goals[$goal]['levels'];
-			if ($depth !== null && in_array(needle: $depth, haystack: $levels, strict: true) === false) {
-				return sprintf(
-					'Depth "%s" is not a level of the framework of goal %s. Use one of: %s, or leave it empty.',
-					$depth,
-					$code,
-					implode(separator: ', ', array: $levels)
-				);
+			$problem     = $this->depthProblem(depth: $alignment['depth'], goal: $goals[$goal]);
+			if ($problem !== null) {
+				return $problem;
 			}
-		}//end foreach
+		}
 
 		return null;
 	}//end problem()
+
+	/**
+	 * Why a depth may not be saved on a goal, or null when it may.
+	 *
+	 * @param string|null                                  $depth The depth.
+	 * @param array{code: string, levels: array<int, string>} $goal  The goal's code and its framework's level ids.
+	 *
+	 * @return string|null The refusal message, or null.
+	 */
+	private function depthProblem(?string $depth, array $goal): ?string {
+		if ($depth === null || in_array(needle: $depth, haystack: $goal['levels'], strict: true) === true) {
+			return null;
+		}
+
+		return sprintf(
+			'Depth "%s" is not a level of the framework of goal %s. Use one of: %s, or leave it empty.',
+			$depth,
+			$goal['code'],
+			implode(separator: ', ', array: $goal['levels'])
+		);
+	}//end depthProblem()
 
 	/**
 	 * The effective alignments of a Lesson, Course, Assignment or Assessment
@@ -193,38 +215,53 @@ class CompetencyAlignmentNormaliser {
 	 * @spec openspec/specs/competency/spec.md#requirement-readers-treat-a-flat-only-row-as-alignments-without-depth
 	 */
 	public function effectiveAlignments(array $row, array $levelsByGoal=[]): array {
-		$alignments = $this->normalise(raw: ($row['competencyAlignments'] ?? []));
-		$alignments = array_values(
-			array_filter(
-				$alignments,
-				static fn (array $alignment): bool => $alignment['competencyId'] !== ''
-			)
-		);
-		if ($alignments === []) {
-			$alignments = $this->alignmentsFollowIds(alignments: [], ids: ($row['competencyIds'] ?? []));
-		}
-
 		$effective = [];
 		$seen      = [];
-		foreach ($alignments as $alignment) {
+		foreach ($this->namedAlignments(row: $row) as $alignment) {
 			$goal = $alignment['competencyId'];
-			if (isset($seen[$goal]) === true) {
-				continue;
+			if (isset($seen[$goal]) === false) {
+				$seen[$goal] = true;
+				$effective[] = ['competencyId' => $goal, 'depth' => $this->knownDepth(alignment: $alignment, levels: ($levelsByGoal[$goal] ?? null))];
 			}
-
-			$seen[$goal] = true;
-			$depth       = $alignment['depth'];
-			if ($depth !== null && isset($levelsByGoal[$goal]) === true
-				&& in_array(needle: $depth, haystack: $levelsByGoal[$goal], strict: true) === false
-			) {
-				$depth = null;
-			}
-
-			$effective[] = ['competencyId' => $goal, 'depth' => $depth];
 		}
 
 		return $effective;
 	}//end effectiveAlignments()
+
+	/**
+	 * A row's alignments with a goal id, else its flat list with depth null.
+	 *
+	 * @param array<string, mixed> $row The object's data.
+	 *
+	 * @return array<int, array{competencyId: string, depth: string|null}>
+	 */
+	private function namedAlignments(array $row): array {
+		$alignments = array_filter(
+			$this->normalise(raw: ($row['competencyAlignments'] ?? [])),
+			static fn (array $alignment): bool => $alignment['competencyId'] !== ''
+		);
+		if ($alignments === []) {
+			return $this->alignmentsFollowIds(alignments: [], ids: ($row['competencyIds'] ?? []));
+		}
+
+		return array_values($alignments);
+	}//end namedAlignments()
+
+	/**
+	 * An alignment's depth, or null when the goal's known levels no longer hold it.
+	 *
+	 * @param array{competencyId: string, depth: string|null} $alignment The alignment.
+	 * @param array<int, string>|null                         $levels    The goal's level ids, when known.
+	 *
+	 * @return string|null
+	 */
+	private function knownDepth(array $alignment, ?array $levels): ?string {
+		if ($levels !== null && in_array(needle: $alignment['depth'], haystack: $levels, strict: true) === false) {
+			return null;
+		}
+
+		return $alignment['depth'];
+	}//end knownDepth()
 
 	/**
 	 * The distinct, non-empty string ids of a raw `competencyIds` value.
@@ -259,10 +296,6 @@ class CompetencyAlignmentNormaliser {
 	 * @return string
 	 */
 	private function stringOrEmpty(mixed $value): string {
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return trim($value);
+		return (new TextValue())->trimmedOrEmpty(value: $value);
 	}//end stringOrEmpty()
 }//end class

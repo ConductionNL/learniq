@@ -44,7 +44,7 @@
 
 import type { APIRequestContext, Browser, Page } from '@playwright/test'
 
-import { expect, request } from '@playwright/test'
+import { expect, request, test } from '@playwright/test'
 import * as path from 'node:path'
 import { baseUrl } from '../base-url.ts'
 
@@ -365,18 +365,24 @@ export async function grantPortalAccount(
 }
 
 /**
- * Make sure the portal offers a sign-in mode, and hand back how to undo it.
+ * Require the portal to offer a sign-in mode, and skip with the reason when it does not.
+ *
+ * The suite never adds the mode itself (a-portal-declares-its-sign-in-modes):
+ * the example portal declares the modes its audiences need, and a test that
+ * edits shared configuration leaves it changed when the run is killed. Point
+ * `AUDIENCE_FLOW_PORTAL` at a portal that offers the mode (the vo and mbo
+ * example portals offer `nextcloud`).
  *
  * @param {APIRequestContext} admin An admin context.
  * @param {string} slug The portal slug.
- * @param {string} mode The mode to offer, e.g. `nextcloud`.
- * @return {Promise<{restore: () => Promise<void>, organisation: string}>} The undo and the portal's tenant.
+ * @param {string} mode The mode the suite signs in with, e.g. `nextcloud`.
+ * @return {Promise<{organisation: string}>} The portal's tenant.
  */
-export async function offerSignInMode(
+export async function requireSignInMode(
 	admin: APIRequestContext,
 	slug: string,
 	mode: string,
-): Promise<{ restore: () => Promise<void>; organisation: string }> {
+): Promise<{ organisation: string }> {
 	const list = await admin.get(
 		'/apps/openregister/api/objects/portaliq/portal?_limit=100',
 	)
@@ -387,33 +393,15 @@ export async function offerSignInMode(
 	)
 	expect(portal, `the portal ${slug} is not on this instance`).toBeTruthy()
 
-	const authentication = { ...(portal.authentication ?? {}) }
-	const before: string[] = Array.isArray(authentication.modes)
-		? [...authentication.modes]
+	const modes: string[] = Array.isArray(portal.authentication?.modes)
+		? portal.authentication.modes
 		: []
-	const organisation = String(portal.organisation ?? '')
+	test.skip(
+		!modes.includes(mode),
+		`portal ${slug} does not offer the ${mode} sign-in mode (it offers: ${modes.join(', ') || 'none'}); set AUDIENCE_FLOW_PORTAL to a portal that does`,
+	)
 
-	if (before.includes(mode)) {
-		return { restore: async () => undefined, organisation }
-	}
-
-	const write = async (modes: string[]) => {
-		const res = await admin.patch(
-			`/apps/openregister/api/objects/portaliq/portal/${portal.id}`,
-			{ data: { authentication: { ...authentication, modes } } },
-		)
-		expect(res.status(), await res.text()).toBeLessThan(300)
-	}
-
-	await write([...before, mode])
-	return {
-		restore: async () => {
-			await write(before).catch(() => {
-				console.warn(`could not put the sign-in modes of ${slug} back`)
-			})
-		},
-		organisation,
-	}
+	return { organisation: String(portal.organisation ?? '') }
 }
 
 /**

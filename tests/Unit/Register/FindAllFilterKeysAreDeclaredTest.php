@@ -77,18 +77,14 @@ class FindAllFilterKeysAreDeclaredTest extends TestCase {
 	 * The 29 reads that filtered on `id` or `uuid` moved the id into the
 	 * config's `ids` (reads-that-filter-on-undeclared-ids), and
 	 * FindAllConfigScopeTest now refuses those two keys for every schema.
-	 * What remains needs a schema or query decision. Tracked in
-	 * ConductionNL/learniq#1116.
+	 * The last five (the xAPI lookups on `actor.id`, `object.id`, `verb.id`
+	 * and `xapiObjectId`) now read the stamped `lessonId` and
+	 * `verified_actor_id` instead (ConductionNL/learniq#1116), so the list is
+	 * empty and stays that way.
 	 *
 	 * @var string[]
 	 */
-	private const KNOWN_UNDECLARED = [
-		'lib/Lifecycle/AttestationSigningGuard.php: xapi-statement has no property "actor.id"',
-		'lib/Lifecycle/AttestationSigningGuard.php: xapi-statement has no property "object.id"',
-		'lib/Lifecycle/AttestationSigningGuard.php: xapi-statement has no property "verb.id"',
-		'lib/Service/XapiEnrolmentCompletion.php: lesson has no property "xapiObjectId"',
-		'lib/Service/LessonProgress.php: lesson has no property "xapiObjectId"',
-	];
+	private const KNOWN_UNDECLARED = [];
 
 	/**
 	 * Resolved findAll() calls the last scan checked.

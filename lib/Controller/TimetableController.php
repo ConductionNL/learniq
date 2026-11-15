@@ -3,6 +3,9 @@
 /**
  * Learniq Personal Timetable Controller
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Read-only personal timetable: returns the signed-in caller's own scheduled
  * `Session` objects for a time window. The caller's sessions are resolved by
  * first determining the cohorts the caller belongs to — as a teacher via
@@ -39,8 +42,6 @@
  * @copyright 2024 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -52,11 +53,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PersonalTimetableServiceInterface;
+use OCA\Learniq\Kernel\Contracts\TimetableProjectorInterface;
+use OCA\Learniq\Kernel\Contracts\TimetableSourceResolverInterface;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\PersonalTimetableService;
-use OCA\Learniq\Service\TimetableProjector;
-use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -86,21 +87,21 @@ class TimetableController extends Controller {
 	 * @param IRequest $request HTTP request.
 	 * @param IUserSession $userSession Current user session.
 	 * @param ObjectService $objectService OR object query service (RBAC-scoped).
-	 * @param TimetableProjector $projector Window resolution and Session projection.
-	 * @param TimetableSourceResolver $sources Where sessions are read from: planninq when installed, else Session.
-	 * @param PersonalTimetableService $timetable The caller's own lessons, shared with the calendar feed.
+	 * @param TimetableProjectorInterface $projector Window resolution and Session projection.
+	 * @param TimetableSourceResolverInterface $sources Where sessions are read from: planninq when installed, else Session.
+	 * @param PersonalTimetableServiceInterface $timetable The caller's own lessons, shared with the calendar feed.
 	 * @param LoggerInterface $logger Application logger.
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly ObjectService $objectService,
-		private readonly TimetableProjector $projector,
-		private readonly TimetableSourceResolver $sources,
-		private readonly PersonalTimetableService $timetable,
+		private readonly TimetableProjectorInterface $projector,
+		private readonly TimetableSourceResolverInterface $sources,
+		private readonly PersonalTimetableServiceInterface $timetable,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -195,8 +196,7 @@ class TimetableController extends Controller {
 
 		$sessions = $this->projector->windowedSessions(
 			rawSessions: $rawSessions,
-			windowFrom: $windowFrom,
-			windowTo: $windowTo,
+			window: [$windowFrom, $windowTo],
 			roomCache: $this->timetable->preloadRooms(sessions: $rawSessions)
 		);
 

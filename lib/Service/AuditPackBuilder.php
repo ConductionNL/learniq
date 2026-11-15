@@ -36,13 +36,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use DateTimeImmutable;
-use DateTimeInterface;
-use DateTimeZone;
-use OCA\OpenRegister\Db\AuditTrailMapper;
+use OCA\Learniq\Kernel\Contracts\AuditPackBuilderInterface;
 use OCA\OpenRegister\Service\AuditHashService;
 use OCP\IUser;
-use ZipArchive;
 
 /**
  * Builds the compliance audit-pack ZIP for a tenant, regulation and period.
@@ -60,26 +56,28 @@ use ZipArchive;
  *
  * @spec openspec/specs/avg-verwerkingsregister/spec.md
  */
-class AuditPackBuilder {
+class AuditPackBuilder implements AuditPackBuilderInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param AuditTrailMapper $auditTrailMapper OR audit-trail database mapper.
+	 * @param AuditPeriodReader $period Reads the audit entries of the export period.
 	 * @param AuditHashService $auditHashService OR HMAC chain verification service.
 	 * @param CallerTenantResolver $tenants Resolves the tenant: the per-user binding, else the default tenant.
 	 * @param CsvCellSanitizer $sanitizer CSV formula-injection neutraliser.
 	 * @param VerwerkingsregisterCsvBuilder $registerCsv AVG Art. 30 register artefact builder.
 	 * @param ExternalTrainingCsvBuilder $trainingCsv External-training evidence artefact builder.
 	 * @param AuditEntryAttribution $attribution Keeps the entries whose object is in the caller's tenant.
+	 * @param FrozenAttestationLines $attestations Lists the signed and revoked attestations as frozen.
 	 */
 	public function __construct(
-		private readonly AuditTrailMapper $auditTrailMapper,
+		private readonly AuditPeriodReader $period,
 		private readonly AuditHashService $auditHashService,
 		private readonly CallerTenantResolver $tenants,
 		private readonly CsvCellSanitizer $sanitizer,
 		private readonly VerwerkingsregisterCsvBuilder $registerCsv,
 		private readonly ExternalTrainingCsvBuilder $trainingCsv,
 		private readonly AuditEntryAttribution $attribution,
+		private readonly FrozenAttestationLines $attestations,
 	) {
 
 	}//end __construct()
@@ -87,8 +85,8 @@ class AuditPackBuilder {
 	/**
 	 * Build the audit-pack ZIP bytes for one request.
 	 *
-	 * #184: the audit-trail query is always scoped to the requesting user's own
-	 * tenant so entries from other tenants are never returned.
+	 * #184: only entries about objects in the requesting user's own tenant are
+	 * exported (AuditEntryAttribution); entries from other tenants never are.
 	 *
 	 * @param IUser $user Authenticated user whose tenant scopes the pack.
 	 * @param string $regulationSlug Regulation slug to filter (e.g. 'NIS2').
@@ -104,15 +102,10 @@ class AuditPackBuilder {
 
 		// The trail has no tenant column, and AuditTrailMapper::findAll() drops
 		// every filter outside its column allowlist, so a tenant_id filter here
-		// returned every tenant's entries. The period is filtered by the
-		// mapper; the tenant is decided by the object each entry is about.
-		$entries = $this->auditTrailMapper->findAll(
-			filters: ['created' => $dateFrom . ',' . $dateTo],
-			sort: ['created' => 'ASC']
-		);
-
+		// returned every tenant's entries. The tenant is decided by the object
+		// each entry is about; the period by AuditPeriodReader.
 		$own = $this->attribution->ownEntries(
-			entries: $this->serialise(entries: $entries),
+			entries: $this->period->entries(dateFrom: $dateFrom, dateTo: $dateTo),
 			tenantId: $tenantId,
 			regulationSlug: $regulationSlug
 		);
@@ -126,13 +119,8 @@ class AuditPackBuilder {
 
 		return $this->buildZip(
 			files: $this->buildPackFiles(
-				events: $events,
-				verification: $verification,
-				tenantId: $tenantId,
-				regulationSlug: $regulationSlug,
-				dateFrom: $dateFrom,
-				dateTo: $dateTo,
-				unattributed: $own['unattributed'],
+				scope: new AuditPackScope(tenantId: $tenantId, regulationSlug: $regulationSlug, dateFrom: $dateFrom, dateTo: $dateTo),
+				content: new AuditPackContent(events: $events, unattributed: $own['unattributed'], verification: $verification)
 			)
 		);
 
@@ -155,22 +143,19 @@ class AuditPackBuilder {
 	}//end resolveTenantId()
 
 	/**
-	 * Serialise the audit-trail entities, in mapper order.
+	 * Whether both bounds of the export period are dates.
 	 *
-	 * @param array<int,mixed> $entries AuditTrail entities from the OR mapper.
+	 * @param string $dateFrom ISO-8601 lower bound.
+	 * @param string $dateTo ISO-8601 upper bound.
 	 *
-	 * @return array<int,array<string,mixed>> Serialised entries.
+	 * @return bool True when both parse.
 	 *
 	 * @spec openspec/specs/compliance-audit/spec.md#requirement-export-audit-ready-zip-per-regulation-and-date-range
 	 */
-	private function serialise(array $entries): array {
-		$rows = [];
-		foreach ($entries as $entry) {
-			$rows[] = (array)$entry->jsonSerialize();
-		}
-
-		return $rows;
-	}//end serialise()
+	public function isPeriod(string $dateFrom, string $dateTo): bool {
+		return $this->period->parseBound(value: $dateFrom, endOfDay: false) !== null
+			&& $this->period->parseBound(value: $dateTo, endOfDay: true) !== null;
+	}//end isPeriod()
 
 	/**
 	 * Find the lowest and highest audit-entry ID among the exported events.
@@ -244,64 +229,34 @@ class AuditPackBuilder {
 	 * present: when the platform capability behind one is missing it degrades
 	 * to loud warning content rather than being silently omitted.
 	 *
-	 * @param array<int,array<string,mixed>> $events Serialised, filtered events.
-	 * @param array<string,mixed> $verification OR AuditHashService::verifyChain() response.
-	 * @param string $tenantId Resolved tenant scope.
-	 * @param string $regulationSlug Regulation slug for this pack.
-	 * @param string $dateFrom ISO-8601 period start.
-	 * @param string $dateTo ISO-8601 period end.
-	 * @param int $unattributed Entries left out because no tenant could be attributed.
+	 * @param AuditPackScope   $scope   The tenant, regulation and period.
+	 * @param AuditPackContent $content The entries and their chain verification.
 	 *
 	 * @return array<string,string> Archive filename => file content.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
 	 */
-	private function buildPackFiles(
-		array $events,
-		array $verification,
-		string $tenantId,
-		string $regulationSlug,
-		string $dateFrom,
-		string $dateTo,
-		int $unattributed,
-	): array {
-		$signatureStatus = 'broken';
-		if (($verification['valid'] ?? false) === true) {
-			$signatureStatus = 'valid';
-		}
-
-		// A broken chain cannot vouch for the key it was signed with either.
-		$keyFingerprint = (string)($verification['keyFingerprint'] ?? 'unavailable');
-		if (array_key_exists('brokenAt', $verification) === true) {
-			$keyFingerprint = 'unavailable';
-		}
-
-		$exportTimestamp = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
-
+	private function buildPackFiles(AuditPackScope $scope, AuditPackContent $content): array {
 		return [
-			'audit-trail.ndjson' => $this->buildNdjson(events: $events),
-			'audit-trail.csv' => $this->buildCsv(events: $events),
-			'manifest.json' => $this->buildManifestJson(
-				tenantId: $tenantId,
-				regulationSlug: $regulationSlug,
-				dateFrom: $dateFrom,
-				dateTo: $dateTo,
-				eventCount: count($events),
-				signatureStatus: $signatureStatus,
-				exportTimestamp: $exportTimestamp,
-				keyFingerprint: $keyFingerprint,
-				unattributed: $unattributed,
+			'audit-trail.ndjson' => $this->buildNdjson(events: $content->events),
+			'audit-trail.csv' => $this->buildCsv(events: $content->events),
+			'manifest.json' => $content->manifestJson(scope: $scope),
+			'signature-verification.txt' => $this->buildVerificationTxt(
+				verification: $content->verification,
+				attestationLines: $this->attestations->lines(
+					regulationSlug: $scope->regulationSlug,
+					tenantId: $scope->tenantId,
+				),
 			),
-			'signature-verification.txt' => $this->buildVerificationTxt(verification: $verification),
 			'verwerkingsregister.csv' => $this->registerCsv->build(
-				dateFrom: $dateFrom,
-				dateTo: $dateTo,
+				dateFrom: $scope->dateFrom,
+				dateTo: $scope->dateTo,
 			),
 			'external-training.csv' => $this->trainingCsv->build(
-				regulationSlug: $regulationSlug,
-				dateFrom: $dateFrom,
-				dateTo: $dateTo,
-				tenantId: $tenantId,
+				regulationSlug: $scope->regulationSlug,
+				dateFrom: $scope->dateFrom,
+				dateTo: $scope->dateTo,
+				tenantId: $scope->tenantId,
 			),
 		];
 
@@ -371,61 +326,17 @@ class AuditPackBuilder {
 	}//end buildCsv()
 
 	/**
-	 * Build the manifest.json content per ADR-008 §6.
-	 *
-	 * @param string $tenantId Tenant UUID.
-	 * @param string $regulationSlug Regulation slug.
-	 * @param string $dateFrom Period start.
-	 * @param string $dateTo Period end.
-	 * @param int $eventCount Total events in pack.
-	 * @param string $signatureStatus OR chain verification result.
-	 * @param string $exportTimestamp ISO-8601 timestamp of this export.
-	 * @param string $keyFingerprint Public verification key fingerprint.
-	 * @param int $unattributed Entries left out because no tenant could be attributed.
-	 *
-	 * @return string JSON string.
-	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
-	 */
-	private function buildManifestJson(
-		string $tenantId,
-		string $regulationSlug,
-		string $dateFrom,
-		string $dateTo,
-		int $eventCount,
-		string $signatureStatus,
-		string $exportTimestamp,
-		string $keyFingerprint,
-		int $unattributed,
-	): string {
-		$manifest = [
-			'schema_version' => '1.0',
-			'tenant_id' => $tenantId,
-			'regulation_slug' => $regulationSlug,
-			'period' => ['from' => $dateFrom, 'to' => $dateTo],
-			'event_count' => $eventCount,
-			'signature_status' => $signatureStatus,
-			'export_timestamp' => $exportTimestamp,
-			'key_fingerprint' => $keyFingerprint,
-			// Entries in the period whose object is gone or has no tenant: left
-			// out, because they cannot be shown to be this tenant's.
-			'unattributed_entries_excluded' => $unattributed,
-			'generator' => 'learniq/AuditPackExportController@0.1.0',
-		];
-
-		return (string)json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-	}//end buildManifestJson()
-
-	/**
 	 * Build the signature-verification.txt content from OR's chain verification result.
 	 *
-	 * @param array<string,mixed> $verification OR AuditHashService::verifyChain() response.
+	 * @param array<string,mixed> $verification     OR AuditHashService::verifyChain() response.
+	 * @param array<int,string>   $attestationLines The signed and revoked attestations, one line each.
 	 *
 	 * @return string Plain-text verification report.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-2
+	 * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-the-audit-pack-states-the-freeze
 	 */
-	private function buildVerificationTxt(array $verification): string {
+	private function buildVerificationTxt(array $verification, array $attestationLines): string {
 		$valid = ($verification['valid'] ?? false) === true;
 		$status = 'broken';
 		if ($valid === true) {
@@ -452,6 +363,15 @@ class AuditPackBuilder {
 		}
 
 		$lines[] = '';
+		$lines[] = 'Signed attestations: ' . count($attestationLines);
+		if (empty($attestationLines) === false) {
+			$lines[] = 'The evidence fields of a signed or revoked attestation cannot be changed after signing.';
+			foreach ($attestationLines as $attestationLine) {
+				$lines[] = $attestationLine;
+			}
+		}
+
+		$lines[] = '';
 		$lines[] = 'This report is generated by OpenRegister\'s AuditHashService::verifyChain().';
 		$lines[] = 'For offline verification cross-reference the NDJSON file with the chain hashes.';
 
@@ -468,26 +388,6 @@ class AuditPackBuilder {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
 	 */
 	private function buildZip(array $files): string {
-		$tmpFile = tempnam(sys_get_temp_dir(), 'learniq_audit_');
-		if ($tmpFile === false) {
-			return '';
-		}
-
-		$zip = new ZipArchive();
-		if ($zip->open($tmpFile, ZipArchive::OVERWRITE) !== true) {
-			unlink($tmpFile);
-			return '';
-		}
-
-		foreach ($files as $filename => $content) {
-			$zip->addFromString($filename, $content);
-		}
-
-		$zip->close();
-
-		$zipContent = (string)file_get_contents($tmpFile);
-		unlink($tmpFile);
-
-		return $zipContent;
+		return (new InMemoryZip(tempPrefix: 'learniq_audit_'))->build(files: $files);
 	}//end buildZip()
 }//end class

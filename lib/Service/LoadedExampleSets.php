@@ -13,13 +13,17 @@
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * @link https://conduction.nl
+ *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\LoadedExampleSetsInterface;
 use OCP\IAppConfig;
 
 /**
@@ -32,9 +36,9 @@ use OCP\IAppConfig;
  * reason: reading them back from the descriptors would parse megabytes of
  * JSON on every page load.
  *
- * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+ * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
  */
-class LoadedExampleSets {
+class LoadedExampleSets implements LoadedExampleSetsInterface {
 	/**
 	 * App-config key holding the loaded sets as a JSON list of `{id, label}`.
 	 *
@@ -69,10 +73,10 @@ class LoadedExampleSets {
 	 *
 	 * @return array<int, array{id: string, label: string}> The sets.
 	 *
-	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
 	 */
 	public function all(): array {
-		$raw     = $this->appConfig->getValueString(Application::APP_ID, self::CONFIG_KEY, '');
+		$raw     = $this->appConfig->getValueString(AppIdentity::APP_ID, self::CONFIG_KEY, '');
 		$decoded = json_decode($raw, true);
 		if (is_array($decoded) === false) {
 			return [];
@@ -100,7 +104,7 @@ class LoadedExampleSets {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
 	 */
 	public function record(string $setId, string $label): void {
 		$sets = $this->without(setId: $setId);
@@ -115,7 +119,7 @@ class LoadedExampleSets {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
 	 */
 	public function forget(string $setId): void {
 		$this->store(sets: $this->without(setId: $setId));
@@ -129,7 +133,7 @@ class LoadedExampleSets {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
 	 */
 	public function recordFromChoices(string $setId, array $choices): void {
 		$label = $setId;
@@ -151,7 +155,7 @@ class LoadedExampleSets {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
 	 */
 	public function forgetIfRemoved(string $setId, array $answer): void {
 		if (($answer['errors'] ?? 1) === 0 && ($answer['jobs'] ?? []) !== []) {
@@ -173,7 +177,7 @@ class LoadedExampleSets {
 	 *
 	 * @return array<string, array{done: bool}> Step id to state.
 	 *
-	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-removal-step-never-runs-by-itself
 	 */
 	public function removalSteps(array $choices): array {
 		$steps = [];
@@ -194,7 +198,7 @@ class LoadedExampleSets {
 	 *
 	 * @return string|null The set id.
 	 *
-	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
 	 */
 	public function setIdFromAction(string $actionId): ?string {
 		if (str_starts_with($actionId, self::REMOVE_ACTION_PREFIX) === false) {
@@ -233,6 +237,6 @@ class LoadedExampleSets {
 	 * @return void
 	 */
 	private function store(array $sets): void {
-		$this->appConfig->setValueString(Application::APP_ID, self::CONFIG_KEY, (string)json_encode($sets));
+		$this->appConfig->setValueString(AppIdentity::APP_ID, self::CONFIG_KEY, (string)json_encode($sets));
 	}//end store()
 }//end class

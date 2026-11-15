@@ -45,6 +45,22 @@ The `load-example-set` action MUST import the set stored in `example_profile` th
 - **WHEN** the answer is saved
 - **THEN** it is refused with HTTP 400
 
+### Requirement: Example-set rows carry the instance's organisation
+Every row a shipped example set writes MUST carry the instance's default organisation (OpenRegister's `OrganisationService::ensureDefaultOrganisation()`), as a normal write does. The loader MUST resolve the organisation before it writes anything; when none resolves it MUST refuse the load with a message that names the default organisation, and write no row. A row of the set that already carries an organisation MUST keep it, so loading a set again gives the organisation to rows an earlier load wrote without one. A row that cannot be given it MUST make the load fail.
+
+#### Scenario: A loaded row carries the instance's organisation
+- **GIVEN** the instance's default organisation
+- **WHEN** `occ learniq:example-set:load po` runs
+- **THEN** every row of `po.json` carries that organisation
+- @e2e exclude backend loader behaviour without a DOM surface; covered by SeedProfileServiceTest and ExampleSetOrganisationTest
+
+#### Scenario: No default organisation stops the load
+- **GIVEN** OpenRegister cannot resolve a default organisation
+- **WHEN** `occ learniq:example-set:load po` runs
+- **THEN** the command fails with a message naming the default organisation
+- **AND** no row is written
+- @e2e exclude backend loader behaviour without a DOM surface; covered by SeedProfileServiceTest and ExampleSetOrganisationTest
+
 ### Requirement: A loaded set can be removed exactly
 `occ learniq:example-set:remove <id>` MUST hand exactly the fixed uuids that `<id>.json` declares, in reverse load order, to OpenRegister's `openregister:objects:purge` with `--force`, and MUST pass `--apply` only when it was given `--apply` itself (dry run by default). It MUST NOT delete anything itself and MUST NOT offer an HTTP route: three school schemas are archival, and OpenRegister keeps the shell as the one deliberate exit for them. The generated set has no fixed uuids and MUST be refused with an explanation, as MUST an unknown id and an instance without OpenRegister's purge command.
 
@@ -463,22 +479,29 @@ Before a shipped example set is imported, the app MUST leave out each row of the
 - **THEN** every one of its regulation rows is imported, so a changed row is updated
 
 ### Requirement: The wizard removes a loaded example set through OpenRegister's import jobs
-The setup wizard MUST offer a `remove-example-set` step. Its action MUST remove the example set stored as the wizard's answer by calling OpenRegister's `ConfigurationService::softDeleteAppImports()` with that set's import app id: `learniq.profile.<id>` for a shipped set, `learniq.demo` for the generated one. The call MUST be duck-typed: when the method does not exist, the action MUST NOT fail silently and MUST answer `success: false` with the `occ` command that removes the set instead (`php occ learniq:example-set:remove <id> --apply` for a shipped set). When no set was loaded (no answer, or "None"), or no import job was recorded, the action MUST say so and remove nothing. When OpenRegister reports errors, the action MUST answer `success: false`, name the count, and name `occ openregister:objects:purge --import-job <id>` to finish. A successful removal MUST keep the load step answered, so the wizard does not reopen.
+
+The setup wizard MUST NOT offer a step that removes example data. The setup action `remove-example-set` stays on the server: its action MUST remove the example set stored as the wizard's answer by calling OpenRegister's `ConfigurationService::softDeleteAppImports()` with that set's import app id: `learniq.profile.<id>` for a shipped set, `learniq.demo` for the generated one. The call MUST be duck-typed: when the method does not exist, the action MUST NOT fail silently and MUST answer `success: false` with the `occ` command that removes the set instead (`php occ learniq:example-set:remove <id> --apply` for a shipped set). When no set was loaded (no answer, or "None"), or no import job was recorded, the action MUST say so and remove nothing. When OpenRegister reports errors, the action MUST answer `success: false`, name the count, and name `occ openregister:objects:purge --import-job <id>` to finish. A successful removal MUST keep the load step answered, so the wizard does not reopen.
+
+#### Scenario: The wizard has no removal step
+
+- **GIVEN** the setup wizard as the manifest declares it
+- **WHEN** an administrator goes through it
+- **THEN** its steps are welcome, example data, kind of organisation and done, and none removes data
 
 #### Scenario: Removing the company set
 - **GIVEN** the wizard loaded the company set and OpenRegister records one import job for `learniq.profile.corporate`
-- **WHEN** the admin runs "Remove the example data"
+- **WHEN** an administrator posts the `remove-example-set` action
 - **THEN** `softDeleteAppImports('learniq.profile.corporate')` is called once
 - **AND** the answer says how many objects moved to the trash
 
 #### Scenario: An OpenRegister without the method
 - **GIVEN** OpenRegister's ConfigurationService has no `softDeleteAppImports`
-- **WHEN** the admin runs the step for the company set
+- **WHEN** an administrator posts the `remove-example-set` action for the company set
 - **THEN** the answer is `success: false` and names `php occ learniq:example-set:remove corporate --apply`
 
 #### Scenario: Nothing was loaded
 - **GIVEN** the wizard's example set answer is "None"
-- **WHEN** the admin runs the step
+- **WHEN** an administrator posts the `remove-example-set` action
 - **THEN** nothing is called and the answer says there is nothing to remove
 
 ### Requirement: The removal step never runs by itself
@@ -502,21 +525,214 @@ The wizard's segment answer MUST be written to `LearniqSettings.segment` only wh
 - **WHEN** they post `segment: po`
 - **THEN** the segment is written with them as the one who set it
 
-### Requirement: The wizard lists every loaded example set with its own remove button
-The app MUST record each example set the wizard loads, with its label, in app config (`example_sets_loaded`), and MUST drop a set from that list only after OpenRegister removed a recorded import of it without errors. The page MUST hand the list to the browser as the `loadedExampleSets` initial state, and the browser MUST replace the single `remove-example-set` step with one run-action step per loaded set, step and action `remove-example-set-<id>`, each with its own button (D34). With no set recorded the single step MUST stay. `POST /api/setup/action/remove-example-set-<id>` MUST remove that set through the same path as the single step, and MUST answer 400 for an id that names no set. The setup status MUST report every `remove-example-set-<id>` step as done, so none of them runs by itself or reopens the wizard.
+### Requirement: The register seeds reference rows only
+`lib/Settings/learniq_register.json` MUST NOT carry example rows in `components.objects`. It MAY seed shared reference rows that the example sets point at by code (the `regulation` `AVG`). Learners, staff, courses, cohorts, programmes, enrolments and every other example row MUST live in a set under `lib/Settings/profiles/`, so an install holds only the set its admin picked, or nothing.
 
-#### Scenario: Two sets were loaded
-- **GIVEN** the company set and then the training set were loaded
-- **WHEN** an admin opens the setup wizard
-- **THEN** it shows "Remove the example set \"Company\"" and "Remove the example set \"Training institute\"", each with its own button
+#### Scenario: A clean primary school install holds no company rows
+- **GIVEN** a clean install where the admin loads only the primary school set
+- **WHEN** the admin opens the courses, cohorts and learners lists
+- **THEN** every row belongs to the primary school set
+- **AND** there is no NIS2, AVG or BIO2 course, no "All Employees 2026" cohort and no learner Anna or Bram
+- @e2e exclude register file shape, covered by PHPUnit `RegisterSeedObjectsTest`; checked live on a clean instance (po-parent-flows lane report)
 
-#### Scenario: Removing one of two loaded sets
+### Requirement: The example portal offers the sign-in modes its audiences need
+
+The portal learniq provisions for an example set MUST declare the sign-in modes the audiences in that set use: `nextcloud` where the set has pupils, workplace trainers or external assessors, and `digid` where it has guardians. Re-provisioning MUST NOT overwrite the modes of a portal that already exists, because a school may have chosen its own.
+
+#### Scenario: A school with pupils and BPV
+- GIVEN the mbo example set is loaded on a fresh instance
+- WHEN its portal is provisioned
+- THEN the portal offers `digid` and `nextcloud`
+- @e2e exclude asserted on the provisioner, from the caller
+
+#### Scenario: A portal the school already changed
+- GIVEN a portal that offers only `digid`, chosen by the school
+- WHEN the set is loaded again
+- THEN its modes are left exactly as they are
+- @e2e exclude as above
+
+### Requirement: A test suite never edits a portal's sign-in modes
+
+An e2e suite MUST NOT write a portal's `authentication.modes`. Where a suite needs a mode the portal does not offer, it MUST skip with a reason naming the portal and the mode.
+
+#### Scenario: The instance does not offer the mode
+- GIVEN a portal that offers only `digid`
+- WHEN the pupil suite runs against it
+- THEN it skips, naming the portal and the mode it needs
+- @e2e exclude the skip is the suite's own behaviour, asserted by reading its result
+
+### Requirement: Each example set is the school its portal was designed for
+
+The curated example sets MUST carry the schools of the four portal designs: po MUST be "Basisschool De Wilgenboom", vo MUST be "Zuiddrecht College", mbo MUST be "Esdoornveen" and training MUST be the "Warmtepompacademie", each in the fictional town of Zuiddrecht. Each set MUST contain the people its design names, with the dates and numbers its boards show, pinned to Monday 5 October 2026. A number on a board MUST come out of the data (an average from its grade entries, an hours total from its hour weeks), not from a stored copy that disagrees with them.
+
+#### Scenario: The po set holds the Hulstkamp family's autumn
+- **GIVEN** a fresh instance
+- **WHEN** the operator loads the po set
+- **THEN** Fatima Hulstkamp is the guardian of Vera (Groep 7, po-leerkracht-09) and Sami (Groep 4, po-leerkracht-07)
+- **AND** Sami has an undecided absence report for 5 October 2026 reading "Sami heeft buikgriep", marked by his teacher at 8.12
+- **AND** for school year 2026-2027 Vera has 1 day absent and 1 late arrival of 10 minutes, Sami 2 days absent
+- **AND** Vera's parent-evening time is Thursday 29 October 2026 18.00 to 18.10, acknowledged
+- @e2e exclude seed data with no screen of its own, covered by PHPUnit `PrimarySchoolExampleSetTest::testTheWilgenboomStoryIsInTheData`; the portal screens over it are checked by `tests/e2e/portal-design/wilgenboom.spec.ts`
+
+#### Scenario: The vo set holds Noor Bakker's Monday
+- **GIVEN** a fresh instance
+- **WHEN** the operator loads the vo set
+- **THEN** Zuiddrecht College has a pupil Noor Bakker in class H4b with seven sessions on 5 October 2026, of which lesson 3 has a room change and lesson 7 is cancelled
+- **AND** her wiskunde A grade entries 6,1 (weight 1), 4,7 (weight 3) and 5,8 (weight 1) average 5,2
+- @e2e exclude seed data, covered by PHPUnit `SecondarySchoolExampleSetTest`
+
+#### Scenario: The mbo set holds Milan de Groot's placement
+- **GIVEN** a fresh instance
+- **WHEN** the operator loads the mbo set
+- **THEN** Esdoornveen has a student Milan de Groot in Mechatronica niveau 4 (crebo 25743) with a placement at Bakker Techniek BV whose agreed hours are 480
+- **AND** his hour weeks give 96 hours approved, 16 waiting and 8 returned
+- @e2e exclude seed data, covered by PHPUnit `VocationalCollegeExampleSetTest`
+
+#### Scenario: The training set holds Jansen Installatietechniek's enrolments
+- **GIVEN** a fresh instance
+- **WHEN** the operator loads the training set
+- **THEN** the Warmtepompacademie has Tom Verbeek, Youssef El Amrani and Sanne Kok enrolled for "F-gassen: herhaling en examen" on 8 October 2026, and Youssef has no birth date
+- **AND** their F-gassen certificates expire on 30 November 2026
+- @e2e exclude seed data, covered by PHPUnit `TrainingExampleSetTest`
+
+#### Scenario: Reloading a renamed set moves no stored object
+- **GIVEN** an instance that loaded the po set before this change
+- **WHEN** the operator loads the po set again
+- **THEN** every object keeps its uuid and slug, the story objects are added, and `occ learniq:example-set:remove po` still removes exactly the set's objects
+- @e2e exclude covered by `python3 scripts/example-sets/po.py --check` and PHPUnit `ExampleSetDescriptorContractTest`
+
+### Requirement: An administrator removes a loaded example set on the admin page
+
+learniq's admin settings page MUST show an Example data section that lists every loaded example set (`example_sets_loaded`) by its label, read through the admin-only `GET /api/setup/example-sets`. Each set MUST have its own Remove button. A click MUST ask for confirmation first, and only a confirmation MUST post `POST /api/setup/action/remove-example-set-<id>`, which moves the set's objects to OpenRegister's trash. The section MUST show the answer's message as a success or an error, and MUST read the list again, so a set removed without errors disappears and a set with errors stays. With no set loaded, the section MUST say so.
+
+#### Scenario: Removing the company set
+
 - **GIVEN** the company and training sets are loaded
-- **WHEN** the admin clicks the training set's button and OpenRegister removes its recorded import without errors
-- **THEN** only `softDeleteAppImports('learniq.profile.training')` is called
-- **AND** the company set stays on the list
+- **WHEN** the administrator clicks Remove next to "Company" and confirms
+- **THEN** `POST /api/setup/action/remove-example-set-corporate` is sent
+- **AND** the question before the confirmation named how many objects go to the trash
+- **AND** only the training set is still listed
 
-#### Scenario: A removal with errors
-- **GIVEN** OpenRegister reports errors for a set's import
-- **WHEN** the admin clicks that set's button
-- **THEN** the set stays on the list, so its button stays
+#### Scenario: The administrator changes their mind
+
+- **GIVEN** the company set is loaded
+- **WHEN** the administrator clicks Remove and cancels the question
+- **THEN** nothing is posted and the set stays listed
+
+#### Scenario: Nothing loaded
+
+- **GIVEN** no example set was loaded
+- **WHEN** the administrator opens the admin page
+- **THEN** the Example data section says no example set is loaded
+
+### Requirement: Loading an example set gives its school a themed portal
+
+When portaliq is installed, loading an example set MUST leave its school with a portal in portaliq whose `theme` is the matching thematiq example set: po `example-basisschool`, vo `example-voortgezet`, mbo `example-college`, he `example-college`, training `example-opleider`, corporate `example-opleider`. The portal MUST be found by its slug (po `wilgenboom`). A missing portal MUST be created with `status: published`. An existing portal without a theme MUST get the example theme and keep every other field. A portal whose theme is set MUST NOT be changed. Without portaliq nothing MUST be read or written. A failure to write the portal MUST NOT fail the import of the set.
+
+#### Scenario: A set whose school has no portal gets a new themed one
+- **GIVEN** portaliq is installed and no portal has the slug `vaartveld`
+- **WHEN** the operator loads the vo set
+- **THEN** a published portal `vaartveld` titled "Mijn Zuiddrecht" exists with theme `example-voortgezet`, or with `vaartveld` when thematiq ships that set (example-portal-declares-its-site)
+- @e2e exclude a write through OpenRegister with no screen of its own, covered by PHPUnit `ExamplePortalProvisionerTest::testAMissingPortalIsCreatedWithTheExampleTheme`
+
+#### Scenario: An existing portal without a theme gets the example theme
+- **GIVEN** the hand-made portal `wilgenboom` with no theme
+- **WHEN** the operator loads the po set, or runs `occ learniq:example-set:portal po`
+- **THEN** `wilgenboom` has theme `example-basisschool` and keeps its title, authentication and organisation
+- @e2e exclude covered by PHPUnit `ExamplePortalProvisionerTest::testAnUnthemedPortalGetsTheThemeAndKeepsItsFields`; the themed page itself is portaliq's to test
+
+#### Scenario: A theme an administrator chose is kept
+- **GIVEN** portal `wilgenboom` with theme `rijkshuisstijl`
+- **WHEN** the operator loads the po set again
+- **THEN** the theme stays `rijkshuisstijl` and nothing is written
+- @e2e exclude covered by PHPUnit `ExamplePortalProvisionerTest::testAChosenThemeIsKeptAndAReloadWritesNothing`
+
+#### Scenario: Without portaliq loading a set writes no portal
+- **GIVEN** portaliq is not installed
+- **WHEN** the operator loads the po set
+- **THEN** the set is imported, one log line says the set gets no portal, and OpenRegister is not asked for a portal
+- @e2e exclude covered by PHPUnit `ExamplePortalProvisionerTest::testWithoutPortaliqNothingIsReadOrWritten`
+
+### Requirement: The primary school set has a record for every drawn detail page
+
+The po example set MUST contain an aanmelding in an open admissions round, an issued certificate of one of its pupils, an assessment item in an item bank, a peer review by a pupil other than the one who handed in, and a lesson delivered as cmi5, each with a fixed uuid in the set's namespace.
+
+#### Scenario: The certificate page opens
+
+- **GIVEN** the po set is loaded
+- **WHEN** a user opens `/credentials/ee010025-0000-4000-8000-000000000001`
+- **THEN** the page shows the verkeersdiploma of a groep 8 pupil
+
+#### Scenario: The peer review page opens
+
+- **GIVEN** the po set is loaded
+- **WHEN** a teacher opens the peer review `ee010028-0000-4000-8000-000000000001` of its assignment
+- **THEN** the review names a reviewer who is not the pupil who handed in
+
+### Requirement: The primary-school set has a guardian with two children
+
+The po example set MUST give guardian Fatima Hulstkamp a second child, Sami Hulstkamp, enrolled in a groep 3 cohort of De Wilgenboom, beside Vera. Sami MUST share Vera's `guardianRefs`. He MUST have attendance, a summary for the current school year and at least one published grade, so the overview of `site-guardian-portal-design` has something to show for him.
+
+#### Scenario: The child switcher has two children
+- GIVEN the po example set loaded
+- WHEN guardian Fatima Hulstkamp signs in on the Wilgenboom site
+- THEN her overview offers Vera and Sami
+- @e2e exclude planned: written with the build in tests/e2e/po-parent-flows.spec.ts (specs-only change)
+
+#### Scenario: The set still loads and removes cleanly
+- GIVEN the po set with Sami added
+- WHEN the set is checked and loaded
+- THEN `python3 scripts/example-sets/po.py --check` passes and every row passes its schema
+- @e2e exclude descriptor contract; covered by ExampleSetDescriptorContractTest
+
+### Requirement: The secondary school set holds the records the 3HV-B boards draw
+
+The vo example set MUST hold, for class 3HV-B, the pupils Daan Visser, Julia Peters and Lucas van Dijk with an active enrolment in the class; Daan's care note and support request; Julia's concept grade for Nederlands; Lucas's unexcused absence at Nederlands; a Biologie test open to take on the reference day, a published one not yet open and a closed Nederlands test; the assignment Betoog schrijven with its submissions and marks; and, for the school, an admission after the intake in a 2027-2028 round, an own 8-hour attendance threshold, a bilingual course and the Meldcode regulation. The records MUST be added after every other object without a random draw, so no existing uuid moves.
+
+#### Scenario: A fresh load carries the board records
+- **GIVEN** a fresh instance
+- **WHEN** the operator loads the vo set
+- **THEN** Daan Visser's dossier holds the care note of 2 October, Julia Peters has a concept 8,2 for Nederlands, Lucas van Dijk is unexcused absent at Monday's Nederlands, 3HV-B has an open Biologie test, and Betoog schrijven has 14 handed-in submissions
+- @e2e exclude covered by PHPUnit `SecondarySchoolBoardRecordsTest` and the generator check (`scripts/example-sets/vo.py --check`)
+
+### Requirement: The secondary school set holds the lesson, the Wednesday and the shared courses the pupil boards draw
+
+The vo example set MUST hold a published course Biologie leerjaar 3 havo/vwo with ten lessons, its own group and an active enrolment in that group for every pupil of 3HV-B, whose third lesson carries a reading block, a video block, a quiz block and an assignment block that point at rows of the set. On Wednesday 7 October 2026, 3HV-B MUST have a cancelled Frans lesson in the 6th hour and a mentor hour in another room in the 7th, and its Biologie lesson that day MUST point at the third lesson. The set MUST hold three shared course packages, each with a course and lessons to install. The records MUST be added after every other object without a random draw, so no existing uuid moves.
+
+#### Scenario: A fresh load carries the lesson, the Wednesday and the store
+- **GIVEN** a fresh instance
+- **WHEN** the operator loads the vo set
+- **THEN** Fenna de Jong opens lesson 3 of Biologie leerjaar 3 havo/vwo and sees its reading text, video, quiz and assignment
+- **AND** her timetable for the week of the load shows Frans cancelled and the mentor hour moved on the Wednesday
+- **AND** with `registry_url` set to `local` the store page lists three shared courses
+- @e2e exclude covered by PHPUnit `SecondarySchoolLessonAndStoreRecordsTest` and the generator check (`scripts/example-sets/vo.py --check`)
+
+### Requirement: The homes mark the lead photo, and Esdoornveen invites training companies with links
+
+The po, vo and mbo homes MUST mark where the lead news photo goes with the board's words. Esdoornveen's home MUST offer training companies a card with the links "Inloggen als leerbedrijf" and "Leerbedrijf worden", not a second sign-in card.
+
+#### Scenario: Esdoornveen's home
+- **GIVEN** the mbo set loaded on a fresh instance
+- **WHEN** a visitor opens Esdoornveen's home
+- **THEN** one dark sign-in card shows (Mijn Esdoornveen), and "Voor leerbedrijven" is a light card with two links
+- @e2e exclude declaration covered by PHPUnit `ExamplePortalDeclarationsTest::testTheHomesMarkTheLeadPhotoAndInviteCompaniesWithLinks`
+
+### Requirement: The board checks run against any instance that loaded the sets
+
+The board checks in `tests/e2e/portal-design/` MUST run against an instance that loaded the four example sets, without edits. Admin requests MUST send their credentials without waiting for a challenge. A text check MUST pass only on a visible match. The sign-in step MUST use the Nextcloud sign-in button the portal declares. Signed-in pages MUST be opened at the route portaliq gives them (`/mijn/<app>/<page>`). With `PORTAL_DESIGN_EXTERNAL_STUB=1` a sign-in test MUST use the stub broker that already answers at the issuer instead of starting its own.
+
+#### Scenario: The suite runs on the proof instance as checked in
+- **GIVEN** an instance that loaded po, vo, mbo and training, with a long-lived DigiD stub at the issuer
+- **WHEN** the operator runs `PORTAL_DESIGN_EXTERNAL_STUB=1 npx playwright test -c tests/e2e/portal-design.config.ts`
+- **THEN** the admin calls are answered, the sign-in reaches the account pages, and every failure names the portal, not the test
+- @e2e exclude this requirement is about the e2e suite itself; it is checked by running `tests/e2e/portal-design/`
+
+### Requirement: A school's menu and search show what its board shows
+
+The vo portal MUST leave the BPV hours page (`learniq:studentHourWeeks`) out of its pupils' menu. The po portal's search MUST search its news.
+
+#### Scenario: Noor's menu
+- **GIVEN** Noor, a pupil at Vaartveld College
+- **WHEN** she opens Mijn Vaartveld
+- **THEN** her menu has no "BPV en uren"
+- @e2e exclude declaration covered by PHPUnit `ExamplePortalDeclarationsTest::testEverySchoolPortalLeavesOutTheCaseItems`

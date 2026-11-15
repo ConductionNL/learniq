@@ -36,6 +36,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Attendance;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\RollCallServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IL10N;
@@ -46,7 +47,7 @@ use OCP\IUser;
  *
  * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
  */
-class RollCallService {
+class RollCallService implements RollCallServiceInterface {
 	use RollCallRows;
 
 	private const REGISTER = 'learniq';
@@ -307,11 +308,8 @@ class RollCallService {
 		foreach ($learnerIds as $learnerId) {
 			$profile = ($profiles[$learnerId] ?? null);
 			$rows[] = $this->marks->pupilRow(
-				learnerId: $learnerId,
-				name: $this->nameOf(learnerId: $learnerId, profile: $profile),
-				profile: $profile,
-				record: ($records[$learnerId] ?? null),
-				report: ($reports[$learnerId] ?? null)
+				pupil: ['learnerId' => $learnerId, 'name' => $this->nameOf(learnerId: $learnerId, profile: $profile), 'profile' => $profile],
+				day: ['record' => ($records[$learnerId] ?? null), 'report' => ($reports[$learnerId] ?? null)]
 			);
 		}
 
