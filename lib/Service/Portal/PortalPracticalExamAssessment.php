@@ -142,6 +142,23 @@ class PortalPracticalExamAssessment implements PortalPracticalExamAssessmentInte
 			$lifecycle = 'draft';
 		}
 
+		return $this->store(
+			assessorRef: $assessorRef,
+			request: ['assurance' => $assurance, 'lifecycle' => $lifecycle, 'pair' => $pair, 'body' => $body]
+		);
+	}//end submit()
+
+	/**
+	 * Store an assessment the request checks let through: the assessor must be
+	 * known and assigned, and a submitted assessment is never stored again.
+	 *
+	 * @param string               $assessorRef The `externalAssessorId` claim.
+	 * @param array<string, mixed> $request     `assurance`, `lifecycle`, `pair` (sitting and candidate) and `body`.
+	 *
+	 * @return PortalOutcome 201 or 200 `{assessmentId, assuranceLevel, lifecycle}`, or 403, 409 or 502.
+	 */
+	private function store(string $assessorRef, array $request): PortalOutcome {
+		$pair = $request['pair'];
 		try {
 			$assessor = $this->row(schema: self::ASSESSOR_SCHEMA, id: $assessorRef);
 			if ($assessor === null) {
@@ -160,10 +177,14 @@ class PortalPracticalExamAssessment implements PortalPracticalExamAssessmentInte
 
 			$saved = $this->objectService->saveObject(
 				object: $this->stamped(
-					assessorRef: $assessorRef,
 					assessor: $assessor,
-					stamp: ['assurance' => $assurance, 'lifecycle' => $lifecycle, 'tenant' => $this->text(value: ($assignment['tenant_id'] ?? null))],
-					body: $body
+					stamp: [
+						'assessorRef' => $assessorRef,
+						'assurance' => $request['assurance'],
+						'lifecycle' => $request['lifecycle'],
+						'tenant' => $this->text(value: ($assignment['tenant_id'] ?? null)),
+						'body' => $request['body'],
+					]
 				),
 				register: self::REGISTER,
 				schema: self::ASSESSMENT_SCHEMA,
@@ -188,11 +209,11 @@ class PortalPracticalExamAssessment implements PortalPracticalExamAssessmentInte
 			status: $status,
 			body: [
 				'assessmentId' => $this->idOf(row: $this->toRow(object: $saved)),
-				'assuranceLevel' => $assurance,
-				'lifecycle' => $lifecycle,
+				'assuranceLevel' => $request['assurance'],
+				'lifecycle' => $request['lifecycle'],
 			]
 		);
-	}//end submit()
+	}//end store()
 
 	/**
 	 * The assessor's own draft for one candidate at one sitting, to resume it.
@@ -345,20 +366,18 @@ class PortalPracticalExamAssessment implements PortalPracticalExamAssessmentInte
 	 * assessed, how sure the school is, the lifecycle and the tenant. A client
 	 * value for any of the server's fields is dropped, never merged.
 	 *
-	 * @param string               $assessorRef The assessor's uuid.
-	 * @param array<string, mixed> $assessor    The ExternalAssessor record.
-	 * @param array<string, string> $stamp      assurance, lifecycle and tenant.
-	 * @param array<string, mixed> $body        What the form sent.
+	 * @param array<string, mixed> $assessor The ExternalAssessor record.
+	 * @param array<string, mixed> $stamp    `assessorRef` (the assessor's uuid), `assurance`, `lifecycle`, `tenant` and `body` (what the form sent).
 	 *
 	 * @return array<string, mixed>
 	 *
 	 * @spec openspec/changes/practical-exam-assessment/specs/exam-board/spec.md#requirement-a-practical-exam-assessment-records-who-assessed-and-how-sure-the-school-is
 	 */
-	private function stamped(string $assessorRef, array $assessor, array $stamp, array $body): array {
+	private function stamped(array $assessor, array $stamp): array {
 		$object = [];
 		foreach (self::WRITABLE as $field) {
-			if (array_key_exists($field, $body) === true) {
-				$object[$field] = $body[$field];
+			if (array_key_exists($field, $stamp['body']) === true) {
+				$object[$field] = $stamp['body'][$field];
 			}
 		}
 
@@ -367,7 +386,7 @@ class PortalPracticalExamAssessment implements PortalPracticalExamAssessmentInte
 		return array_merge(
 			$object,
 			[
-				'assessorId' => $assessorRef,
+				'assessorId' => $stamp['assessorRef'],
 				'assessorName' => $this->orNull(value: $name),
 				'assuranceLevel' => $stamp['assurance'],
 				'lifecycle' => $stamp['lifecycle'],
