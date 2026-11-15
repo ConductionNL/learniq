@@ -18,6 +18,7 @@ import AssignmentPeerReviewAllocation from './components/sections/AssignmentPeer
 import CredentialWalletOffer from './components/sections/CredentialWalletOffer.vue'
 // exam-sitting-overview-section: body section on ExamSittingDetail.
 import ExamSittingOverview from './components/sections/ExamSittingOverview.vue'
+import LearningPlanVersionChanges from './components/sections/LearningPlanVersionChanges.vue'
 // lqb-c board dialogs: purpose-built create and decision dialogs (G5, G11).
 import AccessibilityBarrierDialog from './dialogs/AccessibilityBarrierDialog.vue'
 import CohortCreateDialog from './dialogs/CohortCreateDialog.vue'
@@ -414,6 +415,11 @@ export default {
 		kind: 'section',
 		component: CredentialWalletOffer,
 		_note: 'The holder\'s wallet block on CredentialDetail: the open offer as a QR code with its link, the claim date, or a sentence. Only the holder (learnerUserId) sees it.',
+	},
+	LearningPlanVersionChanges: {
+		kind: 'section',
+		component: LearningPlanVersionChanges,
+		_note: 'What changed on LearningPlanDetail against the version the plan replaces (supersedesId): goals and support measures added, removed or changed. Hidden on a first version; reads the earlier version through OpenRegister.',
 	},
 	AssignmentPeerReviewAllocation: {
 		kind: 'section',

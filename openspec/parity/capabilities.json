@@ -5558,8 +5558,8 @@
       "area": "support",
       "name": "Keep every version of a plan, so you can see what changed.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Settings/learniq_register.json LearningPlan is versioned; a material revision creates a new version Not built: LearningPlanDetail only links to the version it replaces (supersedesId); nothing compares two versions.",
+        "state": "built",
+        "evidence": "lib/Settings/learniq_register.json LearningPlan is versioned (version, supersedesId); src/manifest.d/learning.json LearningPlanDetail lp-version (Replaces links to the earlier version) and the lp-version-changes body section; src/components/sections/LearningPlanVersionChanges.vue; src/utils/planVersionChanges.js (goals and support measures added, removed or changed, matched on goalId and measureId); tests/unit-js/planVersionChanges.test.mjs",
         "owner": "ConductionNL/openregister",
         "change": "learning-plan",
         "requirement": [
