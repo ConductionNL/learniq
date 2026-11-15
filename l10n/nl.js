@@ -5790,7 +5790,11 @@ OC.L10N.register(
         "Would pass": "Zou voldoende zijn",
         "Would not pass": "Zou onvoldoende zijn",
         "Read and understood": "Gelezen en begrepen",
-        "The learner's confirmation that they read and understood the training. A learner signing their own attestation must set it; it is part of the signed record.": "De bevestiging van de leerling dat die de training heeft gelezen en begrepen. Een leerling die de eigen verklaring ondertekent, moet dit aanvinken; het hoort bij het ondertekende record."
+        "The learner's confirmation that they read and understood the training. A learner signing their own attestation must set it; it is part of the signed record.": "De bevestiging van de leerling dat die de training heeft gelezen en begrepen. Een leerling die de eigen verklaring ondertekent, moet dit aanvinken; het hoort bij het ondertekende record.",
+        "Move notice": "Verplaatsingsbericht",
+        "The lesson and its new room or time, written server-side by SessionMoveNoticeHandler when one lesson moves outside a change batch; the lessonMoved notification names it. Derived — do not set manually.": "De les en het nieuwe lokaal of de nieuwe tijd, door de server vastgelegd door SessionMoveNoticeHandler wanneer één les buiten een wijzigingsbatch verschuift; de melding lessonMoved noemt dit. Afgeleid — niet handmatig invullen.",
+        "Moved at": "Verplaatst op",
+        "When SessionMoveNoticeHandler last recorded a move of this lesson to another room or time; the lessonMoved notification fires when it changes. Derived — do not set manually.": "Wanneer SessionMoveNoticeHandler voor het laatst vastlegde dat deze les naar een ander lokaal of een andere tijd ging; de melding lessonMoved gaat uit wanneer dit verandert. Afgeleid — niet handmatig invullen."
     },
     "nplurals=2; plural=(n != 1);"
 )

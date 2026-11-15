@@ -5296,7 +5296,11 @@ OC.L10N.register(
         "Would pass": "Would pass",
         "Would not pass": "Would not pass",
         "Read and understood": "Read and understood",
-        "The learner's confirmation that they read and understood the training. A learner signing their own attestation must set it; it is part of the signed record.": "The learner's confirmation that they read and understood the training. A learner signing their own attestation must set it; it is part of the signed record."
+        "The learner's confirmation that they read and understood the training. A learner signing their own attestation must set it; it is part of the signed record.": "The learner's confirmation that they read and understood the training. A learner signing their own attestation must set it; it is part of the signed record.",
+        "Move notice": "Move notice",
+        "The lesson and its new room or time, written server-side by SessionMoveNoticeHandler when one lesson moves outside a change batch; the lessonMoved notification names it. Derived — do not set manually.": "The lesson and its new room or time, written server-side by SessionMoveNoticeHandler when one lesson moves outside a change batch; the lessonMoved notification names it. Derived — do not set manually.",
+        "Moved at": "Moved at",
+        "When SessionMoveNoticeHandler last recorded a move of this lesson to another room or time; the lessonMoved notification fires when it changes. Derived — do not set manually.": "When SessionMoveNoticeHandler last recorded a move of this lesson to another room or time; the lessonMoved notification fires when it changes. Derived — do not set manually."
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -6479,8 +6479,8 @@
       "area": "attendance",
       "name": "Tell everyone when a lesson moves or is cancelled.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Listener/SessionChangeNoticeHandler.php; lib/Lifecycle/SessionChangeGuard.php Not built: only a batch room change sends a notice (SessionChangeBatch batchApplied); a single-lesson room change is a plain PATCH that SessionChangeNoticeHandler ignores, and nothing moves a lesson to another time.",
+        "state": "built",
+        "evidence": "lib/Listener/SessionChangeNoticeHandler.php; lib/Lifecycle/SessionChangeGuard.php; lib/Listener/SessionMoveNoticeHandler.php (one lesson moved to another room or time notifies the group's learners and parents through the Session's lessonMoved notification); tests/Unit/Listener/SessionMoveNoticeHandlerTest.php",
         "owner": "ConductionNL/learniq",
         "change": "2026-07-16-timetabling-and-substitution",
         "requirement": [

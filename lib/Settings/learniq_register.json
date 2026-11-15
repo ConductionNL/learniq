@@ -7848,6 +7848,21 @@
                         "description": "Nextcloud user IDs of every linked parent/guardian of an affected learner, resolved from each affected learner's LearnerProfile.parentIds and persisted by SessionChangeNoticeHandler alongside affectedLearnerIds.",
                         "title": "Affected Parent IDs"
                     },
+                    "moveNotice": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "The lesson and its new room or time, written server-side by SessionMoveNoticeHandler when one lesson moves outside a change batch; the lessonMoved notification names it. Derived — do not set manually.",
+                        "title": "Move notice",
+                        "visible": false
+                    },
+                    "movedAt": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "date-time",
+                        "description": "When SessionMoveNoticeHandler last recorded a move of this lesson to another room or time; the lessonMoved notification fires when it changes. Derived — do not set manually.",
+                        "title": "Moved at",
+                        "visible": false
+                    },
                     "changedAt": {
                         "type": "string",
                         "nullable": true,
@@ -7974,6 +7989,33 @@
                     }
                 },
                 "x-openregister-notifications": {
+                    "lessonMoved": {
+                        "trigger": {
+                            "type": "updated",
+                            "condition": {
+                                "field": "movedAt",
+                                "operator": "changed"
+                            }
+                        },
+                        "enabled": true,
+                        "channels": [
+                            "nc-notification"
+                        ],
+                        "recipients": [
+                            {
+                                "kind": "field",
+                                "field": "affectedLearnerIds"
+                            },
+                            {
+                                "kind": "field",
+                                "field": "affectedParentIds"
+                            }
+                        ],
+                        "subject": {
+                            "nl": "Je les is verplaatst: {{moveNotice}}",
+                            "en": "Your lesson has moved: {{moveNotice}}"
+                        }
+                    },
                     "rosterChanged": {
                         "trigger": {
                             "type": "transition",
