@@ -30,6 +30,7 @@ use RuntimeException;
  * @covers \OCA\Learniq\Service\Portal\PortalPermissionAnswer
  * @uses   \OCA\Learniq\Service\Portal\PortalOutcome
  * @uses   \OCA\Learniq\Support\SerialisedRow
+ * @uses   \OCA\Learniq\Support\TextValue
  */
 class PortalPermissionAnswerTest extends TestCase {
 

@@ -98,9 +98,7 @@ class PortalPermissionController extends Controller {
 	public function answer(): JSONResponse {
 		$claims = $this->verifier->verify(jwt: (string)$this->request->getHeader(PortalAssertionVerifierInterface::HEADER));
 		if ($claims === null) {
-			$response = new JSONResponse(data: ['error' => 'unauthorized'], statusCode: Http::STATUS_UNAUTHORIZED);
-			$response->throttle(['action' => self::THROTTLE_ACTION]);
-			return $response;
+			return $this->unauthorized();
 		}
 
 		// The guardian is the subject portaliq resolved, never a value the
@@ -127,6 +125,18 @@ class PortalPermissionController extends Controller {
 
 		return new JSONResponse(data: $outcome->body, statusCode: $outcome->status);
 	}//end answer()
+
+	/**
+	 * The answer to a request without a valid assertion, counted by the brute-force throttle.
+	 *
+	 * @return JSONResponse 401.
+	 */
+	private function unauthorized(): JSONResponse {
+		$response = new JSONResponse(data: ['error' => 'unauthorized'], statusCode: Http::STATUS_UNAUTHORIZED);
+		$response->throttle(['action' => self::THROTTLE_ACTION]);
+
+		return $response;
+	}//end unauthorized()
 
 	/**
 	 * The whitelisted fields the form sent.

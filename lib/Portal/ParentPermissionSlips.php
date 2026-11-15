@@ -60,6 +60,81 @@ class ParentPermissionSlips {
 
 	private const ANSWER_FIELDS = ['permissionRequestId', 'learnerRef', 'answer'];
 
+	/**
+	 * The open-requests collection before its child join.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private const COLLECTION_HEAD = [
+		'id' => self::COLLECTION,
+		'register' => self::REGISTER,
+		'schema' => 'permission-request',
+		'scopeField' => 'learnerRefs',
+		'scopeClaim' => 'guardianRef',
+	];
+
+	/**
+	 * The open-requests collection after its child join.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private const COLLECTION_TAIL = [
+		'filter' => ['lifecycle' => 'open'],
+		'label' => 'Permission asked by the school',
+		'listable' => true,
+		'minTrust' => 'low',
+		'fields' => self::FIELDS,
+		'columns' => self::COLUMNS,
+		'rowActions' => [self::ACTION],
+	];
+
+	/**
+	 * The answer action before the child it is given for.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private const ACTION_HEAD = [
+		'id' => self::ACTION,
+		'type' => 'endpoint-forward',
+		'label' => 'Give your answer',
+		'endpoint' => '/apps/learniq/api/portal/permission-answers',
+		'method' => 'POST',
+		// A school may demand more through `permission_answer_min_assurance`.
+		'minTrust' => 'low',
+		'subjectField' => 'guardianRef',
+		'scopeClaim' => 'guardianRef',
+		'fields' => self::ANSWER_FIELDS,
+		'requiredFields' => self::ANSWER_FIELDS,
+		// A row action on the request: portaliq stamps its id (portaliq#805).
+		'rowField' => 'permissionRequestId',
+		// Only an open request takes an answer; the receiver refuses a closed one too.
+		'rowWhen' => ['field' => 'lifecycle', 'in' => ['open']],
+	];
+
+	/**
+	 * The answer action after the child it is given for.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private const ACTION_TAIL = [
+		'fieldConfigs' => self::ANSWER_FIELD_CONFIGS,
+		'submitLabel' => 'Send my answer',
+		'successMessage' => 'Your answer is sent to the school.',
+	];
+
+	/**
+	 * The two answers a guardian can give, as the form's options.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private const ANSWER_OPTIONS = [
+		'type' => 'static',
+		'options' => [
+			['value' => 'yes', 'label' => 'Yes, I give permission'],
+			['value' => 'no', 'label' => 'No, I do not give permission'],
+		],
+	];
+
 	private const ANSWER_FIELD_CONFIGS = [
 		'permissionRequestId' => ['label' => 'Request', 'required' => true],
 		'learnerRef' => ['label' => 'Child', 'required' => true],
@@ -76,23 +151,7 @@ class ParentPermissionSlips {
 	 * @spec openspec/changes/permission-slips
 	 */
 	public function collections(array $childJoin): array {
-		return [
-			[
-				'id' => self::COLLECTION,
-				'register' => self::REGISTER,
-				'schema' => 'permission-request',
-				'scopeField' => 'learnerRefs',
-				'scopeClaim' => 'guardianRef',
-				'via' => $childJoin,
-				'filter' => ['lifecycle' => 'open'],
-				'label' => 'Permission asked by the school',
-				'listable' => true,
-				'minTrust' => 'low',
-				'fields' => self::FIELDS,
-				'columns' => self::COLUMNS,
-				'rowActions' => [self::ACTION],
-			],
-		];
+		return [self::COLLECTION_HEAD + ['via' => $childJoin] + self::COLLECTION_TAIL];
 	}//end collections()
 
 	/**
@@ -107,38 +166,13 @@ class ParentPermissionSlips {
 	 * @spec openspec/changes/permission-slips
 	 */
 	public function actions(): array {
+		$children = new ParentPortalCollections();
+
 		return [
-			[
-				'id' => self::ACTION,
-				'type' => 'endpoint-forward',
-				'label' => 'Give your answer',
-				'endpoint' => '/apps/learniq/api/portal/permission-answers',
-				'method' => 'POST',
-				// A school may demand more through `permission_answer_min_assurance`.
-				'minTrust' => 'low',
-				'subjectField' => 'guardianRef',
-				'scopeClaim' => 'guardianRef',
-				'fields' => self::ANSWER_FIELDS,
-				'requiredFields' => self::ANSWER_FIELDS,
-				// A row action on the request: portaliq stamps its id (portaliq#805).
-				'rowField' => 'permissionRequestId',
-				// Only an open request takes an answer; the receiver refuses a closed one too.
-				'rowWhen' => ['field' => 'lifecycle', 'in' => ['open']],
-				'crossRefs' => ['learnerRef' => (new ParentPortalCollections())->childCrossRef()],
-				'optionsProviders' => [
-					'learnerRef' => (new ParentPortalCollections())->childOptions(),
-					'answer' => [
-						'type' => 'static',
-						'options' => [
-							['value' => 'yes', 'label' => 'Yes, I give permission'],
-							['value' => 'no', 'label' => 'No, I do not give permission'],
-						],
-					],
-				],
-				'fieldConfigs' => self::ANSWER_FIELD_CONFIGS,
-				'submitLabel' => 'Send my answer',
-				'successMessage' => 'Your answer is sent to the school.',
-			],
+			self::ACTION_HEAD + [
+				'crossRefs' => ['learnerRef' => $children->childCrossRef()],
+				'optionsProviders' => ['learnerRef' => $children->childOptions(), 'answer' => self::ANSWER_OPTIONS],
+			] + self::ACTION_TAIL,
 		];
 	}//end actions()
 

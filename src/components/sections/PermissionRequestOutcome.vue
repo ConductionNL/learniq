@@ -70,10 +70,20 @@ import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
 import { NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
-import { listRows, objectsUrl, oneObject } from '../../utils/customPages.js'
 import { canSeeHandInStatus } from '../../utils/handInStatus.js'
 import { createLearnerNameResolver } from '../../utils/learnerName.js'
-import { permissionOutcome } from '../../utils/permissionOutcome.js'
+import { loadPermissionAnswers, permissionOutcome } from '../../utils/permissionOutcome.js'
+
+/**
+ * The decoded body of an app-relative path.
+ *
+ * @param {string} path The path.
+ * @param {object} [params] Query parameters.
+ * @return {Promise<unknown>}
+ */
+async function fetchJson (path, params) {
+  return (await axios.get(generateUrl(path), params ? { params } : undefined)).data
+}
 
 const resolver = createLearnerNameResolver({
 	getJson: async (url) => (await axios.get(url)).data,
@@ -156,21 +166,9 @@ export default {
 			this.loading = true
 			this.loadError = ''
 			try {
-				const request = oneObject(
-					(
-						await axios.get(
-							generateUrl(objectsUrl('permission-request', this.requestId)),
-						)
-					).data,
-				)
-				this.request = { ...request, id: request.id ?? this.requestId }
-				this.responses = listRows(
-					(
-						await axios.get(generateUrl(objectsUrl('permission-response')), {
-							params: { permissionRequestId: this.requestId, _limit: 1000 },
-						})
-					).data,
-				)
+				const { request, responses } = await loadPermissionAnswers(this.requestId, fetchJson)
+				this.request = request
+				this.responses = responses
 				await this.loadNames()
 			} catch {
 				this.loadError = this.t(

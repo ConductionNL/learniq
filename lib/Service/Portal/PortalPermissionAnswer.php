@@ -33,6 +33,7 @@ use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
 use OCA\Learniq\Kernel\Contracts\PortalPermissionAnswerInterface;
 use OCA\Learniq\Support\SerialisedRow;
+use OCA\Learniq\Support\TextValue;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
@@ -120,96 +121,136 @@ class PortalPermissionAnswer implements PortalPermissionAnswerInterface {
 			return new PortalOutcome(status: 403, body: ['error' => 'assurance_too_low', 'required' => $floor], reason: 'assurance-too-low');
 		}
 
-		$requestId  = self::text(value: ($body['permissionRequestId'] ?? null));
-		$learnerRef = self::text(value: ($body['learnerRef'] ?? null));
-		$answer     = self::text(value: ($body['answer'] ?? null));
-		if ($guardianRef === '' || $requestId === '' || $learnerRef === '' || in_array($answer, self::ANSWERS, true) === false) {
+		$now      = ($now ?? new DateTimeImmutable());
+		$response = self::response(guardianRef: $guardianRef, body: $body, now: $now, assurance: $assurance);
+		if ($response === null) {
 			return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
 		}
 
-		$now = ($now ?? new DateTimeImmutable());
+		$keys = ['permissionRequestId' => true, 'learnerRef' => true, 'answer' => true, 'assuranceLevel' => true];
+
+		return $this->store(response: $response, now: $now) ?? new PortalOutcome(status: 200, body: array_intersect_key($response, $keys));
+	}//end answer()
+
+	/**
+	 * The answer to store, from what the form sent, or null when the request,
+	 * the child or the guardian is missing or the answer is unknown.
+	 *
+	 * @param string               $guardianRef The `guardianRef` claim.
+	 * @param array<string, mixed> $body        What the form sent.
+	 * @param DateTimeImmutable    $now         The moment of the answer.
+	 * @param string               $assurance   The session's assurance level.
+	 *
+	 * @return array<string, string>|null
+	 */
+	private static function response(string $guardianRef, array $body, DateTimeImmutable $now, string $assurance): ?array {
+		$response = [
+			'permissionRequestId' => (new TextValue())->trimmedOrEmpty(value: ($body['permissionRequestId'] ?? null)),
+			'learnerRef' => (new TextValue())->trimmedOrEmpty(value: ($body['learnerRef'] ?? null)),
+			'answer' => (new TextValue())->trimmedOrEmpty(value: ($body['answer'] ?? null)),
+			'answeredByRef' => $guardianRef,
+			'answeredAt' => $now->format(DATE_ATOM),
+			'assuranceLevel' => $assurance,
+		];
+		$named = $guardianRef !== '' && $response['permissionRequestId'] !== '' && $response['learnerRef'] !== '';
+		if ($named === false || in_array($response['answer'], self::ANSWERS, true) === false) {
+			return null;
+		}
+
+		return $response;
+	}//end response()
+
+	/**
+	 * Check the request and the child, then store the answer, replacing an earlier one.
+	 *
+	 * @param array<string, string> $response The answer to store, naming the request, child and guardian.
+	 * @param DateTimeImmutable     $now      The moment of the answer.
+	 *
+	 * @return PortalOutcome|null The refusal or the failure; null when stored.
+	 */
+	private function store(array $response, DateTimeImmutable $now): ?PortalOutcome {
 		try {
-			$checked = $this->refusal(requestId: $requestId, learnerRef: $learnerRef, guardianRef: $guardianRef, now: $now);
+			$checked = $this->refusal(response: $response, now: $now);
 			if ($checked instanceof PortalOutcome) {
 				return $checked;
 			}
 
-			$response = [
-				'permissionRequestId' => $requestId,
-				'learnerRef' => $learnerRef,
-				'answer' => $answer,
-				'answeredByRef' => $guardianRef,
-				'answeredAt' => $now->format(DATE_ATOM),
-				'assuranceLevel' => $assurance,
-				'tenant_id' => self::text(value: ($checked['tenant_id'] ?? null)),
-			];
-			$earlier = $this->earlierResponseId(requestId: $requestId, learnerRef: $learnerRef);
-			if ($earlier !== null) {
-				$response['id'] = $earlier;
-			}
-
-			$this->objectService->saveObject(
-				object: $response,
-				register: self::REGISTER,
-				schema: self::RESPONSE_SCHEMA,
-				_rbac: false,
-				_multitenancy: false
-			);
+			$this->save(response: $response, request: $checked);
 		} catch (Throwable $exception) {
-			$this->logger->error(
-				'[PortalPermissionAnswer] A permission answer could not be stored: {msg}',
-				['msg' => $exception->getMessage(), 'exception' => $exception]
-			);
+			$context = ['msg' => $exception->getMessage(), 'exception' => $exception];
+			$this->logger->error('[PortalPermissionAnswer] A permission answer could not be stored: {msg}', $context);
 			return new PortalOutcome(status: 502, body: ['error' => 'downstream_error'], reason: 'downstream');
 		}//end try
 
-		return new PortalOutcome(
-			status: 200,
-			body: [
-				'permissionRequestId' => $requestId,
-				'learnerRef' => $learnerRef,
-				'answer' => $answer,
-				'assuranceLevel' => $assurance,
-			]
+		return null;
+	}//end store()
+
+	/**
+	 * Save the answer in the request's tenant, replacing the answer already given for this child.
+	 *
+	 * @param array<string, string> $response The answer.
+	 * @param array<string, mixed>  $request  The request answered.
+	 *
+	 * @return void
+	 */
+	private function save(array $response, array $request): void {
+		$response['tenant_id'] = (new TextValue())->trimmedOrEmpty(value: ($request['tenant_id'] ?? null));
+		$earlier = $this->earlierResponseId(requestId: $response['permissionRequestId'], learnerRef: $response['learnerRef']);
+		if ($earlier !== null) {
+			$response['id'] = $earlier;
+		}
+
+		$this->objectService->saveObject(
+			object: $response,
+			register: self::REGISTER,
+			schema: self::RESPONSE_SCHEMA,
+			_rbac: false,
+			_multitenancy: false
 		);
-	}//end answer()
+	}//end save()
 
 	/**
 	 * Why the answer is refused, or the request when it may be given.
 	 *
-	 * @param string            $requestId   The request's uuid.
-	 * @param string            $learnerRef  The child's uuid.
-	 * @param string            $guardianRef The guardian's uuid.
-	 * @param DateTimeImmutable $now         The moment of the answer.
+	 * @param array<string, string> $response The answer, naming the request, the child and the guardian.
+	 * @param DateTimeImmutable     $now      The moment of the answer.
 	 *
 	 * @return PortalOutcome|array<string, mixed> The refusal, or the request.
 	 */
-	private function refusal(string $requestId, string $learnerRef, string $guardianRef, DateTimeImmutable $now): PortalOutcome|array {
-		$request = $this->row(schema: self::REQUEST_SCHEMA, id: $requestId);
+	private function refusal(array $response, DateTimeImmutable $now): PortalOutcome|array {
+		$request = $this->row(schema: self::REQUEST_SCHEMA, id: $response['permissionRequestId']);
 		if ($request === null) {
 			return new PortalOutcome(status: 404, body: ['error' => 'not_found'], reason: 'request-unknown');
 		}
 
 		if (self::isClosed(request: $request, now: $now) === true) {
-			return new PortalOutcome(
-				status: 409,
-				body: ['error' => 'request_closed', 'message' => 'This request is closed. It no longer takes an answer.'],
-				reason: 'request-closed'
-			);
+			$closed = ['error' => 'request_closed', 'message' => 'This request is closed. It no longer takes an answer.'];
+			return new PortalOutcome(status: 409, body: $closed, reason: 'request-closed');
 		}
 
-		$child = $this->profiles->byRef(learnerRef: $learnerRef);
-		$covers = in_array($learnerRef, array_map('strval', (array)($request['learnerRefs'] ?? [])), true);
-		if ($covers === false || $child === null || in_array($guardianRef, (array)($child['guardianRefs'] ?? []), true) === false) {
-			return new PortalOutcome(
-				status: 403,
-				body: ['error' => 'forbidden', 'message' => 'You can only answer for your own child.'],
-				reason: 'not-your-child'
-			);
+		if ($this->isOwnChild(request: $request, learnerRef: $response['learnerRef'], guardianRef: $response['answeredByRef']) === false) {
+			$notYours = ['error' => 'forbidden', 'message' => 'You can only answer for your own child.'];
+			return new PortalOutcome(status: 403, body: $notYours, reason: 'not-your-child');
 		}
 
 		return $request;
 	}//end refusal()
+
+	/**
+	 * Whether the request asked this child and the child's profile lists this guardian.
+	 *
+	 * @param array<string, mixed> $request     The request.
+	 * @param string               $learnerRef  The child's uuid.
+	 * @param string               $guardianRef The guardian's uuid.
+	 *
+	 * @return bool
+	 */
+	private function isOwnChild(array $request, string $learnerRef, string $guardianRef): bool {
+		$child  = $this->profiles->byRef(learnerRef: $learnerRef);
+		$covers = in_array($learnerRef, array_map('strval', (array)($request['learnerRefs'] ?? [])), true);
+
+		return $covers === true && $child !== null && in_array($guardianRef, (array)($child['guardianRefs'] ?? []), true) === true;
+	}//end isOwnChild()
 
 	/**
 	 * Whether a request no longer takes answers: closed, or past its deadline.
@@ -224,7 +265,7 @@ class PortalPermissionAnswer implements PortalPermissionAnswerInterface {
 			return true;
 		}
 
-		$respondBy = self::text(value: ($request['respondBy'] ?? null));
+		$respondBy = (new TextValue())->trimmedOrEmpty(value: ($request['respondBy'] ?? null));
 		if ($respondBy === '') {
 			return false;
 		}
@@ -245,7 +286,7 @@ class PortalPermissionAnswer implements PortalPermissionAnswerInterface {
 	 * @return string|null
 	 */
 	private function earlierResponseId(string $requestId, string $learnerRef): ?string {
-		$objects = $this->objectService->findAll(
+		$earlier = $this->first(
 			config: [
 				'filters' => [
 					'register' => self::REGISTER,
@@ -253,20 +294,15 @@ class PortalPermissionAnswer implements PortalPermissionAnswerInterface {
 					'permissionRequestId' => $requestId,
 					'learnerRef' => $learnerRef,
 				],
-				'limit' => 1,
 			],
-			_rbac: false,
-			_multitenancy: false
+			matches: static fn (array $row): bool => ($row['permissionRequestId'] ?? null) === $requestId && ($row['learnerRef'] ?? null) === $learnerRef
 		);
 
-		foreach ($objects as $object) {
-			$row = (new SerialisedRow())->asArray(object: $object);
-			if (($row['permissionRequestId'] ?? null) === $requestId && ($row['learnerRef'] ?? null) === $learnerRef) {
-				return (string)($row['id'] ?? ($row['uuid'] ?? ''));
-			}
+		if ($earlier === null) {
+			return null;
 		}
 
-		return null;
+		return (string)($earlier['id'] ?? ($earlier['uuid'] ?? ''));
 	}//end earlierResponseId()
 
 	/**
@@ -276,6 +312,7 @@ class PortalPermissionAnswer implements PortalPermissionAnswerInterface {
 	 */
 	private function floor(): string {
 		$floor = $this->appConfig->getValueString('learniq', self::MIN_ASSURANCE_KEY, 'basic');
+
 		if (isset(self::ASSURANCE_ORDER[$floor]) === false) {
 			return 'basic';
 		}
@@ -292,38 +329,32 @@ class PortalPermissionAnswer implements PortalPermissionAnswerInterface {
 	 * @return array<string, mixed>|null
 	 */
 	private function row(string $schema, string $id): ?array {
-		$objects = $this->objectService->findAll(
+		return $this->first(
 			config: [
 				'filters' => ['register' => self::REGISTER, 'schema' => $schema],
 				'ids' => [$id],
-				'limit' => 1,
 			],
-			_rbac: false,
-			_multitenancy: false
+			matches: static fn (array $row): bool => ($row['id'] ?? ($row['uuid'] ?? null)) === $id
 		);
+	}//end row()
 
+	/**
+	 * The first row a search finds that matches, RBAC off (the receiver has no session), or null.
+	 *
+	 * @param array<string, mixed> $config  The search, without its limit.
+	 * @param callable             $matches Whether a row is the one asked for.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private function first(array $config, callable $matches): ?array {
+		$objects = $this->objectService->findAll(config: $config + ['limit' => 1], _rbac: false, _multitenancy: false);
 		foreach ($objects as $object) {
 			$row = (new SerialisedRow())->asArray(object: $object);
-			if (($row['id'] ?? ($row['uuid'] ?? null)) === $id) {
+			if ($matches($row) === true) {
 				return $row;
 			}
 		}
 
 		return null;
-	}//end row()
-
-	/**
-	 * A trimmed string, or '' for anything else.
-	 *
-	 * @param mixed $value The value.
-	 *
-	 * @return string
-	 */
-	private static function text(mixed $value): string {
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return trim($value);
-	}//end text()
+	}//end first()
 }//end class

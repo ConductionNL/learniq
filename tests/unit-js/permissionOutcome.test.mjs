@@ -11,6 +11,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
 	latestAnswers,
+	loadPermissionAnswers,
 	permissionOutcome,
 } from '../../src/utils/permissionOutcome.js'
 
@@ -107,3 +108,34 @@ test('a request with no learners asks nobody', () => {
 	assert.equal(outcome.asked, 0)
 	assert.deepEqual([outcome.yes, outcome.no, outcome.notAnswered], [[], [], []])
 })
+
+test('loadPermissionAnswers reads the request and its answers, keeping the asked id', async () => {
+	const calls = []
+	const bodies = [
+		{ object: { learnerRefs: ['child-1'] } },
+		{ results: [{ learnerRef: 'child-1', answer: 'yes' }] },
+	]
+	const getJson = async (path, params) => {
+		calls.push([path, params])
+		return bodies.shift()
+	}
+
+	const { request, responses } = await loadPermissionAnswers('req 1', getJson)
+
+	assert.deepEqual(request, { learnerRefs: ['child-1'], id: 'req 1' })
+	assert.deepEqual(responses, [{ learnerRef: 'child-1', answer: 'yes' }])
+	assert.equal(calls.length, 2)
+	assert.match(calls[0][0], /\/permission-request\/req%201$/)
+	assert.equal(calls[0][1], undefined)
+	assert.match(calls[1][0], /\/permission-response$/)
+	assert.deepEqual(calls[1][1], { permissionRequestId: 'req 1', _limit: 1000 })
+})
+
+test('loadPermissionAnswers keeps the id the request body carries', async () => {
+	const bodies = [{ id: 'stored-id' }, []]
+	const { request, responses } = await loadPermissionAnswers('req-1', async () => bodies.shift())
+
+	assert.equal(request.id, 'stored-id')
+	assert.deepEqual(responses, [])
+})
+

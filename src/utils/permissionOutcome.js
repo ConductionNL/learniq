@@ -13,6 +13,8 @@
  * @spec openspec/changes/permission-slips/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
  */
 
+import { listRows, objectsUrl, oneObject } from './customPages.js'
+
 /** The answers a PermissionResponse can carry. */
 export const ANSWERS = ['yes', 'no']
 
@@ -59,22 +61,48 @@ export function latestAnswers(request, responses) {
 	const asked = new Set(refsOf(request?.learnerRefs))
 	const latest = new Map()
 	for (const response of responses ?? []) {
-		if (!response || !ANSWERS.includes(response.answer)) {
+		if (!countsFor(response, { requestId, asked })) {
 			continue
 		}
-		if (requestId !== '' && response.permissionRequestId !== requestId) {
-			continue
-		}
-		const ref = response.learnerRef
-		if (!asked.has(ref)) {
-			continue
-		}
-		const earlier = latest.get(ref)
+		const earlier = latest.get(response.learnerRef)
 		if (!earlier || answeredTime(response) >= answeredTime(earlier)) {
-			latest.set(ref, response)
+			latest.set(response.learnerRef, response)
 		}
 	}
 	return latest
+}
+
+/**
+ * Whether a response is a real answer to this request for a child it asked.
+ *
+ * @param {object} response A PermissionResponse.
+ * @param {{requestId: string, asked: Set<string>}} scope The request's id ('' accepts any request) and the children it asked.
+ * @return {boolean}
+ */
+function countsFor(response, { requestId, asked }) {
+	if (!response || !ANSWERS.includes(response.answer)) {
+		return false
+	}
+	if (requestId !== '' && response.permissionRequestId !== requestId) {
+		return false
+	}
+	return asked.has(response.learnerRef)
+}
+
+/**
+ * The children asked, split by their latest answer, in the order asked.
+ *
+ * @param {string[]} asked The children the request asked.
+ * @param {Map<string, object>} latest learnerRef -> latest response.
+ * @return {{yes: string[], no: string[], notAnswered: string[]}}
+ */
+function splitByAnswer(asked, latest) {
+	const split = { yes: [], no: [], notAnswered: [] }
+	for (const ref of asked) {
+		const answer = latest.get(ref)?.answer
+		split[answer === 'yes' || answer === 'no' ? answer : 'notAnswered'].push(ref)
+	}
+	return split
 }
 
 /**
@@ -91,20 +119,7 @@ export function latestAnswers(request, responses) {
  */
 export function permissionOutcome(request, responses) {
 	const asked = refsOf(request?.learnerRefs)
-	const latest = latestAnswers(request, responses)
-	const yes = []
-	const no = []
-	const notAnswered = []
-	for (const ref of asked) {
-		const answer = latest.get(ref)?.answer
-		if (answer === 'yes') {
-			yes.push(ref)
-		} else if (answer === 'no') {
-			no.push(ref)
-		} else {
-			notAnswered.push(ref)
-		}
-	}
+	const { yes, no, notAnswered } = splitByAnswer(asked, latestAnswers(request, responses))
 	const silenceRefuses = request?.treatSilenceAsRefusal !== false
 	return {
 		yes,
@@ -116,4 +131,22 @@ export function permissionOutcome(request, responses) {
 		refused: no.length + (silenceRefuses ? notAnswered.length : 0),
 		permitted: yes.length + (silenceRefuses ? 0 : notAnswered.length),
 	}
+}
+
+/**
+ * Read a request and its answers through `getJson(path, params)`, which
+ * answers the decoded body of an app-relative path. The request keeps the
+ * asked id when the body has none.
+ *
+ * @param {string} requestId The PermissionRequest uuid.
+ * @param {(path: string, params?: object) => Promise<unknown>} getJson Reads one path.
+ * @return {Promise<{request: object, responses: object[]}>}
+ * @spec openspec/changes/permission-slips/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
+ */
+export async function loadPermissionAnswers(requestId, getJson) {
+	const request = oneObject(await getJson(objectsUrl('permission-request', requestId)))
+	const responses = listRows(
+		await getJson(objectsUrl('permission-response'), { permissionRequestId: requestId, _limit: 1000 }),
+	)
+	return { request: { ...request, id: request.id ?? requestId }, responses }
 }
