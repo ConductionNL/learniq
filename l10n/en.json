@@ -5363,7 +5363,16 @@
         "Invoice status": "Invoice status",
         "Signed At": "Signed At",
         "When the attestation was signed. Stamped by the sign transition; part of the signed payload.": "When the attestation was signed. Stamped by the sign transition; part of the signed payload.",
-        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason."
+        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.",
+        "Conversation with the parents": "Conversation with the parents",
+        "The messages with the parents cannot be reached right now.": "The messages with the parents cannot be reached right now.",
+        "Our school": "Our school",
+        "Message to the parents": "Message to the parents",
+        "Send to the parents": "Send to the parents",
+        "You have no conversation with the parents of this pupil yet.": "You have no conversation with the parents of this pupil yet.",
+        "Write a message first.": "Write a message first.",
+        "The message could not be sent. Try again.": "The message could not be sent. Try again.",
+        "You cannot open the page of this pupil.": "You cannot open the page of this pupil."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

@@ -18,6 +18,8 @@ import AssignmentPeerReviewAllocation from './components/sections/AssignmentPeer
 import CredentialWalletOffer from './components/sections/CredentialWalletOffer.vue'
 // exam-sitting-overview-section: body section on ExamSittingDetail.
 import ExamSittingOverview from './components/sections/ExamSittingOverview.vue'
+// learner-list-and-page-follow-the-boards T5: the guardian conversation on the pupil's page.
+import PupilGuardianConversation from './components/sections/PupilGuardianConversation.vue'
 // lqb-c board dialogs: purpose-built create and decision dialogs (G5, G11).
 import AccessibilityBarrierDialog from './dialogs/AccessibilityBarrierDialog.vue'
 import CohortCreateDialog from './dialogs/CohortCreateDialog.vue'
@@ -409,6 +411,11 @@ export default {
 		kind: 'section',
 		component: ExamSittingOverview,
 		_note: 'Extra time and invigilators on ExamSittingDetail: each accommodated learner with the extra time, the end time and a separate room, the invigilator places, and the colleagues free for the whole sitting with an Ask button that writes a pending invigilator-assignment through OpenRegister. Self-fetches the exam schedule overview and available-invigilators routes; hidden for a caller they refuse.',
+	},
+	PupilGuardianConversation: {
+		kind: 'section',
+		component: PupilGuardianConversation,
+		_note: 'The conversation with the guardians on LearnerProfileDetail: the newest messages the reader takes part in, read through portaliq\'s staff messaging by /api/pupils/{learnerId}/conversation in CnConversationThread, with a reply box for a participant.',
 	},
 	CredentialWalletOffer: {
 		kind: 'section',

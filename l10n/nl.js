@@ -5809,7 +5809,16 @@ OC.L10N.register(
         "Invoice": "Factuur",
         "Invoice status": "Factuurstatus",
         "When the attestation was signed. Stamped by the sign transition; part of the signed payload.": "Wanneer de verklaring is ondertekend. Vastgelegd bij het ondertekenen; maakt deel uit van de ondertekende gegevens.",
-        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Waarom een ondertekende verklaring is ingetrokken. Vastgelegd bij het intrekken, dat een lege reden weigert."
+        "Why a signed attestation was revoked. Written by the revoke transition, which refuses an empty reason.": "Waarom een ondertekende verklaring is ingetrokken. Vastgelegd bij het intrekken, dat een lege reden weigert.",
+        "Conversation with the parents": "Gesprek met de ouders",
+        "The messages with the parents cannot be reached right now.": "De berichten met de ouders zijn nu niet bereikbaar.",
+        "Our school": "Onze school",
+        "Message to the parents": "Bericht aan de ouders",
+        "Send to the parents": "Versturen naar de ouders",
+        "You have no conversation with the parents of this pupil yet.": "Je hebt nog geen gesprek met de ouders van deze leerling.",
+        "Write a message first.": "Schrijf eerst een bericht.",
+        "The message could not be sent. Try again.": "Het bericht kon niet worden verstuurd. Probeer het opnieuw.",
+        "You cannot open the page of this pupil.": "Je kunt de pagina van deze leerling niet openen."
     },
     "nplurals=2; plural=(n != 1);"
 )
