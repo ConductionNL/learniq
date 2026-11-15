@@ -91,6 +91,7 @@ class AttestationFreezeListener implements IEventListener {
 		'signingKeyId',
 		'signedAt',
 		'tenant_id',
+		'readAndUnderstood',
 	];
 
 	/**

@@ -5788,7 +5788,9 @@ OC.L10N.register(
         "Average now": "Gemiddelde nu",
         "Average it would become": "Gemiddelde dat het zou worden",
         "Would pass": "Zou voldoende zijn",
-        "Would not pass": "Zou onvoldoende zijn"
+        "Would not pass": "Zou onvoldoende zijn",
+        "Read and understood": "Gelezen en begrepen",
+        "The learner's confirmation that they read and understood the training. A learner signing their own attestation must set it; it is part of the signed record.": "De bevestiging van de leerling dat die de training heeft gelezen en begrepen. Een leerling die de eigen verklaring ondertekent, moet dit aanvinken; het hoort bij het ondertekende record."
     },
     "nplurals=2; plural=(n != 1);"
 )

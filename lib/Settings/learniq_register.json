@@ -5017,11 +5017,23 @@
                 ],
                 "properties": {
                     "learnerId": {
+                        "authorization": {
+                            "update": [
+                                "hr",
+                                "compliance-officers"
+                            ]
+                        },
                         "type": "string",
                         "description": "Nextcloud user ID or external learner identifier.",
                         "title": "Learner ID"
                     },
                     "lessonId": {
+                        "authorization": {
+                            "update": [
+                                "hr",
+                                "compliance-officers"
+                            ]
+                        },
                         "type": "string",
                         "format": "uuid",
                         "$ref": "Lesson",
@@ -5032,6 +5044,12 @@
                         "title": "Lesson ID"
                     },
                     "courseId": {
+                        "authorization": {
+                            "update": [
+                                "hr",
+                                "compliance-officers"
+                            ]
+                        },
                         "type": "string",
                         "format": "uuid",
                         "$ref": "Course",
@@ -5039,29 +5057,59 @@
                         "title": "Course ID"
                     },
                     "regulationSlug": {
+                        "authorization": {
+                            "update": [
+                                "hr",
+                                "compliance-officers"
+                            ]
+                        },
                         "type": "string",
                         "description": "Slug of the Regulation this attestation is captured for.",
                         "title": "Regulation Slug"
                     },
                     "actorIp": {
+                        "authorization": {
+                            "update": [
+                                "hr",
+                                "compliance-officers"
+                            ]
+                        },
                         "type": "string",
                         "nullable": true,
                         "description": "IP address of the learner at time of attestation, for audit purposes.",
                         "title": "Actor IP Address"
                     },
                     "employeeId": {
+                        "authorization": {
+                            "update": [
+                                "hr",
+                                "compliance-officers"
+                            ]
+                        },
                         "type": "string",
                         "nullable": true,
                         "description": "HR system employee identifier, if available.",
                         "title": "Employee ID"
                     },
                     "score": {
+                        "authorization": {
+                            "update": [
+                                "hr",
+                                "compliance-officers"
+                            ]
+                        },
                         "type": "number",
                         "nullable": true,
                         "description": "Assessment score at time of attestation, if applicable.",
                         "title": "Assessment Score"
                     },
                     "xapiStatementId": {
+                        "authorization": {
+                            "update": [
+                                "hr",
+                                "compliance-officers"
+                            ]
+                        },
                         "type": "string",
                         "nullable": true,
                         "format": "uuid",
@@ -5087,6 +5135,12 @@
                         "format": "uuid",
                         "description": "Tenant identifier for multi-tenant isolation.",
                         "title": "Tenant ID"
+                    },
+                    "readAndUnderstood": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "The learner's confirmation that they read and understood the training. A learner signing their own attestation must set it; it is part of the signed record.",
+                        "title": "Read and understood"
                     },
                     "revocationReason": {
                         "type": "string",
@@ -5121,6 +5175,13 @@
                             "from": "drafted",
                             "to": "signed",
                             "requires": "OCA\\Learniq\\Lifecycle\\AttestationSigningGuard",
+                        "description": "Sign the attestation. A learner signs their own, confirming they read and understood the training; staff may sign on their behalf.",
+                        "inputs": [
+                            {
+                                "field": "readAndUnderstood",
+                                "required": false
+                            }
+                        ],
                             "actions": [
                                 {
                                     "action": "OCA\\Learniq\\Lifecycle\\Action\\StampTransitionTimeAction",
@@ -5150,7 +5211,13 @@
                 "authorization": {
                     "read": [
                         "hr",
-                        "compliance-officers"
+                        "compliance-officers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        }
                     ],
                     "create": [
                         "hr",
@@ -5158,7 +5225,14 @@
                     ],
                     "update": [
                         "hr",
-                        "compliance-officers"
+                        "compliance-officers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId",
+                                "lifecycle": "drafted"
+                            }
+                        }
                     ]
                 }
             },

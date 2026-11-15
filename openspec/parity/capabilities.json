@@ -1349,8 +1349,8 @@
       "area": "compliance",
       "name": "Ask a learner to sign that they read and understood the training.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.Attestation, signed by lib/Lifecycle/AttestationSigningGuard.php Not built: the learner cannot read or update an Attestation (authorization names only hr and compliance-officers), and there is no read-and-understood confirmation step.",
+        "state": "built",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.Attestation (the learner reads their own and signs it while drafted; readAndUnderstood is asked on sign), signed by lib/Lifecycle/AttestationSigningGuard.php (a learner signing without confirming is refused); tests/Unit/Lifecycle/AttestationSigningGuardTest.php",
         "owner": "ConductionNL/learniq",
         "change": "compliance-audit",
         "requirement": [

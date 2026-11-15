@@ -5294,7 +5294,9 @@ OC.L10N.register(
         "Average now": "Average now",
         "Average it would become": "Average it would become",
         "Would pass": "Would pass",
-        "Would not pass": "Would not pass"
+        "Would not pass": "Would not pass",
+        "Read and understood": "Read and understood",
+        "The learner's confirmation that they read and understood the training. A learner signing their own attestation must set it; it is part of the signed record.": "The learner's confirmation that they read and understood the training. A learner signing their own attestation must set it; it is part of the signed record."
     },
     "nplurals=2; plural=(n != 1);"
 )
