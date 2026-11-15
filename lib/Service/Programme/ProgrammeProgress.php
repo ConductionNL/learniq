@@ -33,8 +33,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Programme;
 
+use OCA\Learniq\Kernel\Contracts\ProgrammeProgressInterface;
+use OCA\Learniq\Support\FindOrNull;
+use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Db\DoesNotExistException;
 
 /**
  * Programme progress per learner, counting mandatory parts only.
@@ -50,7 +52,8 @@ use OCP\AppFramework\Db\DoesNotExistException;
  *     complete: bool, mandatory: list<ProgrammePart>, optional: list<ProgrammePart>
  * }
  */
-class ProgrammeProgress {
+class ProgrammeProgress implements ProgrammeProgressInterface {
+	use FindOrNull;
 
 	/**
 	 * The register every row lives in.
@@ -193,18 +196,8 @@ class ProgrammeProgress {
 			return null;
 		}
 
-		try {
-			$object = $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false, _render: false);
-		} catch (DoesNotExistException) {
-			return null;
-		}
-
-		$row = $object?->jsonSerialize();
-		if (is_array($row) === false) {
-			return null;
-		}
-
-		return $row;
+		$find = fn () => $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false, _render: false);
+		return $this->findRowOrNull(find: $find);
 	}//end read()
 
 	/**
@@ -215,14 +208,6 @@ class ProgrammeProgress {
 	 * @return array<string, mixed>
 	 */
 	private function toArray(mixed $value): array {
-		if (is_object($value) === true && method_exists($value, 'jsonSerialize') === true) {
-			$value = $value->jsonSerialize();
-		}
-
-		if (is_array($value) === false) {
-			return [];
-		}
-
-		return $value;
+		return (new SerialisedRow())->asArray(object: $value);
 	}//end toArray()
 }//end class

@@ -54,7 +54,7 @@ class ContactHoursCalendarTest extends TestCase {
 			['periodCode' => '2', 'startDate' => '2026-09-21', 'endDate' => '2026-10-02', 'holidays' => []],
 		];
 
-		$share = (new ContactHoursCalendar())->share(null, $periods, '2026-2027', '2026-09-07', '2026-09-18');
+		$share = (new ContactHoursCalendar())->share(null, $periods, '2026-2027', ['2026-09-07', '2026-09-18']);
 
 		self::assertEqualsWithDelta(5 / 15, $share, 0.0001);
 	}//end testWholeYearLineIsProratedByTeachingDays()
@@ -68,9 +68,9 @@ class ContactHoursCalendarTest extends TestCase {
 		$periods = [['periodCode' => '1', 'startDate' => '2026-09-01', 'endDate' => '2026-11-06']];
 		$calendar = new ContactHoursCalendar();
 
-		self::assertSame(1.0, $calendar->share('1', $periods, '2026-2027', '2026-08-01', '2026-12-31'));
-		self::assertSame(0.0, $calendar->share('1', $periods, '2026-2027', '2026-10-01', '2026-12-31'));
-		self::assertSame(0.0, $calendar->share('9', $periods, '2026-2027', '2026-08-01', '2026-12-31'));
+		self::assertSame(1.0, $calendar->share('1', $periods, '2026-2027', ['2026-08-01', '2026-12-31']));
+		self::assertSame(0.0, $calendar->share('1', $periods, '2026-2027', ['2026-10-01', '2026-12-31']));
+		self::assertSame(0.0, $calendar->share('9', $periods, '2026-2027', ['2026-08-01', '2026-12-31']));
 		self::assertSame(1.5, $calendar->hours('2026-09-01T09:00:00+02:00', '2026-09-01T10:30:00+02:00'));
 	}//end testPeriodLineCountsWhenTheWholePeriodIsInside()
 }//end class

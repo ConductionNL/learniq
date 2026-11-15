@@ -479,11 +479,11 @@ The system MUST persist `School` (BRIN, name, pedagogical concept) and `Location
 - **THEN** `locationId` resolves to `null` and the cohort's existing `programmeId`/`courseId`/`teacherIds`/`learnerIds` fields and lifecycle are unchanged
 
 ### Requirement: Frontend is declarative for School and Location
-`School` and `Location` MUST render as manifest-declared index+detail page pairs under the existing People domain (`src/manifest.d/people.json`), matching the Enrolment/Credential convention: a data widget, a related widget, and an audit-history sidebar tab. No custom Vue view and no PHP CRUD controller.
+`School` and `Location` MUST render as manifest-declared index+detail page pairs under "Leerlingen, Scholen" in the menu (declared in `src/manifest.d/people.json`), matching the Enrolment/Credential convention: a data widget, a related widget, and an audit-history sidebar tab. No custom Vue view and no PHP CRUD controller.
 
 #### Scenario: A coordinator opens a School's detail page
 - **GIVEN** the School/Location pages are configured
-- **WHEN** a coordinator navigates to People → Schools and opens a School
+- **WHEN** a coordinator goes to "Leerlingen, Scholen" and opens a School
 - **THEN** the detail page renders from the manifest (data + related widgets, audit tab), with no bespoke Vue component
 
 ### Requirement: Cohort carries free-text notes
@@ -516,9 +516,9 @@ The system MUST persist `School` (BRIN, name, pedagogical concept) and `Location
 `CohortDetail`'s header MUST show the cohort's own `name`, not the static page-type label. This is satisfied by the current `@conduction/nextcloud-vue` `CnDetailPage` component's `objectDisplayName`/`displayTitle` resolution (which prefers `obj.name` over the `title` prop) consuming `Cohort.name` (already a required property); no manifest change is needed.
 
 #### Scenario: A coordinator opens a cohort and sees its name in the header
-- **GIVEN** `CohortDetail` for a cohort named "Groep 5/6"
+- **GIVEN** `CohortDetail` for a cohort named "3HV-B"
 - **WHEN** the page renders and the object has loaded
-- **THEN** the header reads "Groep 5/6", not the literal string "Cohort"
+- **THEN** the header reads "3HV-B", not the literal string "Cohort"
 
 ### Requirement: A class x subject teacher join exists distinct from Cohort.teacherIds
 The system MUST persist `SubjectTeacherAssignment` (`cohortId`, `courseId`, `teacherId`) as an OpenRegister object, distinct from `Cohort.teacherIds`. `Cohort.teacherIds` names who teaches the cohort generally; `SubjectTeacherAssignment` names who teaches a specific subject (`Course`) within that cohort.

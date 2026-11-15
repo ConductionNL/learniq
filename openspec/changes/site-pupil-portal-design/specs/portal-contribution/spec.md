@@ -7,18 +7,18 @@ The student audience MUST declare pages. The first MUST be `studentOverview`, "O
 #### Scenario: Noa opens the portal between classes
 - GIVEN pupil Noa with one assignment due today at 23.59 and one due in 7 days
 - WHEN she signs in on her phone
-- THEN "Dit moet u nog doen" on `/mijn` shows both, today's first, each with its date and time
+- THEN "Huiswerk en toetsen" on `/mijn` shows both, today's first, each with its date and time
 - AND below it today's lessons and her three newest grades
 - @e2e exclude planned: written with the build in tests/e2e/vo-pupil-flows.spec.ts (specs-only change)
 
 ### Requirement: The pupil menu is short
 
-The student pages MUST declare `group: Mijn omgeving` and appear in the menu as: Overzicht, Rooster, Inleveren, Cijfers, Toetsen, Afwezig melden. Berichten is portaliq's own inbox entry. The default page of each student collection MUST keep its route and MUST declare `menu: false`.
+The student pages MUST appear in the menu as the board groups them: Overzicht under Mijn Zuiddrecht; Rooster, Huiswerk en toetsen, Cijfers and Afwezigheid under School; Mentorgesprek, Vakken en profiel and Documenten under Regelen; Mijn gegevens under Account. Berichten is portaliq's own inbox entry. The default page of each student collection MUST keep its route and MUST declare `menu: false`.
 
 #### Scenario: No collection names in the menu
 - GIVEN Noa signed in
 - WHEN she opens the menu
-- THEN she sees the six entries and Berichten, and no "My submissions" or "My enrolments"
+- THEN she sees the nine entries and Berichten, and no "My submissions" or "My enrolments"
 - @e2e exclude planned: written with the build in tests/e2e/vo-pupil-flows.spec.ts (specs-only change)
 
 ### Requirement: NEW: A pupil sees her own timetable
@@ -73,7 +73,7 @@ The student audience MUST declare `studentHomework`, the published assignments w
 #### Scenario: A double-weight grade
 - GIVEN a published grade 7,2 for wiskunde, hoofdstuk 2, weight 2
 - WHEN Noa opens "Overzicht"
-- THEN she reads "Wiskunde, hoofdstuk 2", 7,2 and "Telt 2 keer mee"
+- THEN she reads "Wiskunde" with "Hoofdstuk 2", 7,2 and "Telt mee" with the weight 2 in that column
 - @e2e exclude planned: written with the build in tests/e2e/vo-pupil-flows.spec.ts (specs-only change)
 
 ### Requirement: Every pupil label on the site reads in Dutch

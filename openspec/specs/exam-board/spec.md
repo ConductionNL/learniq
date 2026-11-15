@@ -1,7 +1,7 @@
 # exam-board Specification
 
 ## Purpose
-TBD - created by archiving change exam-board-case-handling. Update Purpose after archive.
+Let the exam board handle exemption requests and fraud cases, each decided with a rationale. A granted exemption feeds grading, a proven fraud carries a capped sanction and an appeal term the school sets, 42 days by default, and the accused learner does not see the hearing record.
 ## Requirements
 ### Requirement: Persist exam-board domain objects in OpenRegister
 The system MUST persist `ExemptionCase` and `FraudCase` as OpenRegister objects. `ExemptionCase` has
@@ -84,9 +84,9 @@ Enforced by `FraudCaseDecisionGuard` (an ADR-031 lifecycle-guard exception).
 - **THEN** `FraudCaseDecisionGuard` blocks it until `sanctionType`, `sanctionScope`, and a
   `sanctionDurationMonths` of at most 12 are supplied
 
-### Requirement: A decided FraudCase stamps a 42-day appeal deadline
+### Requirement: A decided FraudCase stamps the appeal deadline from the school's appeal term
 When `FraudCase.decide` succeeds, `FraudCaseDecisionGuard` MUST stamp `appealDeadline` onto the transition
-payload as `decidedAt` + 42 days (the CBE 6-week appeal window, journey 1745) — a guard-stamped computed
+payload as `decidedAt` plus the school's appeal term in days (app setting `examBoardAppealDays`, default 42, the CBE 6-week appeal window, journey 1745; set on learniq/LqInstellingen under Examencommissie, decision 333) — a guard-stamped computed
 field, the same pattern `ExternalTrainingVerificationGuard` uses for `verifiedBy`/`verifiedAt`, not a
 declarative `x-openregister-calculations` expression (this register's calculation DSL has confirmed
 precedent only for `today()` comparisons, not date arithmetic).
@@ -94,7 +94,12 @@ precedent only for `today()` comparisons, not date arithmetic).
 #### Scenario: Deciding a case stamps the appeal deadline
 - **GIVEN** a `FraudCase` in `heard` with a valid decision payload
 - **WHEN** `decide` succeeds
-- **THEN** `decidedAt` is set to the current time and `appealDeadline` is stamped at `decidedAt + 42 days`
+- **THEN** `decidedAt` is set to the current time and `appealDeadline` is stamped at `decidedAt` plus the school's appeal term, 42 days by default
+
+#### Scenario: The school sets its own appeal term
+- **GIVEN** an administrator sets the appeal term to 28 days on the settings page under Examencommissie
+- **WHEN** a case is decided afterwards
+- **THEN** `appealDeadline` is `decidedAt + 28 days`, and the case page shows that date; cases decided earlier keep their deadline
 
 ### Requirement: A fraud-proven decision invalidates a still-concept contested GradeEntry
 The system MUST drive a linked, still-`concept` `GradeEntry` through its new `invalidate` transition
@@ -128,28 +133,37 @@ dialect only (ADR-031), no imperative dispatch.
 - **THEN** the requesting learner (exemption) or the accused learner and reporter (fraud case) receive a
   notification per the declared rule
 
-### Requirement: FraudCase read access is restricted; hearing/decision internals are UI-gated within that set
-`FraudCase.x-property-rbac.read` MUST restrict read access to `admin`, the `examboard` role, the accused
-learner (`accusedLearnerId` match), and the reporter (`reporterId` match) — fail-closed for anyone else, the
-same `anyOf`-role-plus-self-match shape as `ExternalTrainingRecord`. Within that readable set,
-`ExamCaseDossierView` MUST additionally withhold `hearingRecords` and decision-internal detail from anyone
-who is not the accused, the reporter, or an `examboard` member — this is an application-level UI convention,
-**not** a server-enforced field-level RBAC guarantee (this register has no field-level read/write RBAC
-primitive at HEAD, the same documented residual gap as `ProctoringSession.flags[].reviewDecision`); anyone
-holding object-level read access can retrieve the full object via the generic object API.
+### Requirement: FraudCase read access is restricted; hearing/decision internals are withheld by the server
+`FraudCase.authorization.read` MUST restrict read access to `instructors`, `compliance-officers`, the accused
+learner (`accusedLearnerUserId` match) and the reporter (`reporterId` match), fail-closed for anyone else.
+Within that readable set, `hearingRecords`, `decisionRationale`, `sanctionType`, `sanctionDurationMonths` and
+`sanctionScope` MUST carry a property `authorization` block that lets only the exam board
+(`compliance-officers`) read and update them, so OpenRegister strips them from every response to anyone else,
+including the accused and the reporter. `DashboardRoleService::resolveViews()` MUST add `exam-board` for exam
+board members and admins, and `ExamCaseDossierView` MUST render the decision forms (start assessment, grant,
+reject, schedule hearing, record hearing held, decide, dismiss) and the internals block for `exam-board` only.
 
 #### Scenario: An uninvolved user cannot read a FraudCase at all
-- **GIVEN** a user who is not `admin`, not an `examboard` member, not the accused learner, and not the
-  reporter
+- **GIVEN** a user who is not `admin`, not an `instructors` or `compliance-officers` member, not the accused
+  learner, and not the reporter
 - **WHEN** that user requests the `FraudCase` object
-- **THEN** the request is denied by `x-property-rbac.read` (fail-closed)
+- **THEN** the request is denied (fail-closed)
 
-#### Scenario: The accused learner can read the case but the UI withholds hearing internals pre-decision
+#### Scenario: The accused learner reads the case without its internals
 - **GIVEN** the accused learner, who has object-level read access to their own `FraudCase`
-- **WHEN** they open `ExamCaseDossierView` for a case still `hearing-scheduled` or `heard`
-- **THEN** the UI withholds `hearingRecords` detail from their view
-- **AND** this withholding is a client-side convention only — the accused learner's read grant at the
-  OpenRegister API layer is unchanged and unrestricted at the field level
+- **WHEN** they read the object through the OpenRegister object API
+- **THEN** the response carries the allegation, the verdict and the appeal deadline
+- **AND** it carries no `hearingRecords`, `decisionRationale` or sanction fields
+
+#### Scenario: The reporter reads the case without its internals
+- **GIVEN** the instructor who reported the case
+- **WHEN** they read the object
+- **THEN** the response carries no `hearingRecords`, `decisionRationale` or sanction fields
+
+#### Scenario: Only the exam board gets the decision forms
+- **GIVEN** a user whose `dashboardRoles` initial state does not include `exam-board`
+- **WHEN** they open `ExamCaseDossierView`
+- **THEN** no decision form or decision button renders
 
 ### Requirement: Frontend is declarative with one shared custom detail view
 The frontend MUST be declarative: `src/manifest.json` index/detail pages for `ExemptionCase` and `FraudCase`.

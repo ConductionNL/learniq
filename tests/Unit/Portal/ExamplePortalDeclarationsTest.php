@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Portal;
 
 use OCA\Learniq\Portal\ExamplePortalDeclarations;
+use OCA\Learniq\Portal\ExamplePortalProvisioner;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -145,7 +146,7 @@ class ExamplePortalDeclarationsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-each-portal-declares-the-chrome-its-board-shows
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-each-portal-declares-the-chrome-its-board-shows
 	 */
 	public function testTheChromeIconsAndNewsAudienceAreDeclared(): void {
 		$lineIcons    = ['alert', 'chat', 'calendar', 'calendarLines', 'clock', 'document', 'documentGrade', 'home', 'book', 'bookLines', 'bookStack', 'personPlus', 'heartPlus', 'sun', 'pencil', 'card', 'plusBox', 'building'];
@@ -187,6 +188,35 @@ class ExamplePortalDeclarationsTest extends TestCase {
 			self::assertStringNotContainsString("\u{2013}", $text, basename($file));
 		}
 	}//end testTheCopyHasNoLongDashes()
+
+	/**
+	 * The vo portal carries the name of the school in its set: the title, the
+	 * tagline, the fallback map and every line of copy. Only the legacy titles
+	 * of older sets and the slug and theme ids keep the earlier name.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/example-sets/spec.md#requirement-each-example-set-is-the-school-its-portal-was-designed-for
+	 */
+	public function testTheSecondarySchoolPortalCarriesTheSchoolsName(): void {
+		$declaration = (new ExamplePortalDeclarations())->forSet(setId: 'vo');
+		self::assertNotNull(actual: $declaration);
+		$portal = $declaration['portal'];
+		self::assertSame(
+			expected: ['Mijn Zuiddrecht', 'Zuiddrecht College', 'Mijn Zuiddrecht'],
+			actual: [$portal['title'], $portal['tagline'], $portal['accountLabel']]
+		);
+		$fallback = ExamplePortalProvisioner::PORTALS['vo'];
+		self::assertSame(expected: ['Mijn Zuiddrecht', 'Zuiddrecht College'], actual: [$fallback['title'], $fallback['tagline']]);
+
+		$profile = (string)file_get_contents(dirname(__DIR__, 3) . '/lib/Settings/profiles/vo.json');
+		self::assertStringContainsString(needle: '"name": "Zuiddrecht College"', haystack: $profile);
+		self::assertStringNotContainsString(needle: 'Vaartveld', haystack: $profile);
+
+		$copy = $declaration;
+		unset($copy['legacyTitles'], $copy['portal']['slug'], $copy['portal']['theme']);
+		self::assertStringNotContainsString(needle: 'Vaartveld', haystack: (string)json_encode($copy, JSON_UNESCAPED_UNICODE));
+	}//end testTheSecondarySchoolPortalCarriesTheSchoolsName()
 
 	/**
 	 * The declarations follow the boards where portal proof run 1 found them

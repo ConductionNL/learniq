@@ -29,13 +29,14 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\AssessmentAccessFactsInterface;
+use OCA\Learniq\Kernel\Contracts\DashboardRoleServiceInterface;
+use OCA\Learniq\Kernel\Contracts\LessonReleaseEvaluatorInterface;
+use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\AssessmentAccessFacts;
-use OCA\Learniq\Service\LessonReleaseEvaluator;
-use OCA\Learniq\Service\DashboardRoleService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -52,6 +53,7 @@ use Throwable;
  * @spec openspec/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
  */
 class LessonReleaseController extends Controller {
+	use FindOrNull;
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const LESSON_SCHEMA = 'lesson';
@@ -74,19 +76,19 @@ class LessonReleaseController extends Controller {
 	 * @param IRequest $request HTTP request.
 	 * @param IUserSession $userSession NC user session.
 	 * @param ObjectService $objectService OR object access service.
-	 * @param LessonReleaseEvaluator $releaseEvaluator Stateless release-gate evaluator.
-	 * @param DashboardRoleService $dashboardRoleService Resolves the caller's Learniq role/views.
-	 * @param AssessmentAccessFacts $accessFacts Attempt-gate facts for an Assessment.
+	 * @param LessonReleaseEvaluatorInterface $releaseEvaluator Stateless release-gate evaluator.
+	 * @param DashboardRoleServiceInterface $dashboardRoleService Resolves the caller's Learniq role/views.
+	 * @param AssessmentAccessFactsInterface $accessFacts Attempt-gate facts for an Assessment.
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly ObjectService $objectService,
-		private readonly LessonReleaseEvaluator $releaseEvaluator,
-		private readonly DashboardRoleService $dashboardRoleService,
-		private readonly AssessmentAccessFacts $accessFacts,
+		private readonly LessonReleaseEvaluatorInterface $releaseEvaluator,
+		private readonly DashboardRoleServiceInterface $dashboardRoleService,
+		private readonly AssessmentAccessFactsInterface $accessFacts,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 
 	}//end __construct()
 
@@ -135,38 +137,20 @@ class LessonReleaseController extends Controller {
 			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
 		}
 
-		try {
-			$item = $this->resolveObject(id: $itemId, schema: $itemSchema);
-		} catch (Throwable $exception) {
-			return new JSONResponse(
-				data: ['error' => 'Failed to resolve the requested item'],
-				statusCode: Http::STATUS_BAD_GATEWAY
-			);
+		$item = $this->itemOrError(itemId: $itemId, itemSchema: $itemSchema);
+		if ($item instanceof JSONResponse) {
+			return $item;
 		}
 
-		if ($item === null) {
-			$notFoundLabel = 'Lesson not found';
-			if ($itemSchema === self::ASSESSMENT_SCHEMA) {
-				$notFoundLabel = 'Assessment not found';
-			}
-
-			return new JSONResponse(data: ['error' => $notFoundLabel], statusCode: Http::STATUS_NOT_FOUND);
-		}
-
-		$courseId = (string)($item['courseId'] ?? '');
 		$isStaff = $this->callerIsStaff(user: $user);
-
-		$enrolment = [];
-		if ($courseId !== '') {
-			$enrolment = $this->resolveEnrolment(learnerId: $user->getUID(), courseId: $courseId);
-		}
+		$enrolment = $this->enrolmentFor(user: $user, item: $item);
 
 		// Any authenticated learner holding an Enrolment for the item's
 		// course may see its own release status; staff (admin/teacher-
 		// equivalent) may always preview it, even without a personal
 		// Enrolment. Everyone else is denied — this endpoint computes new
 		// information (a lock/unlock decision), not a pass-through read.
-		if ($enrolment === [] && $isStaff === false) {
+		if ($this->isRefused(enrolment: $enrolment, isStaff: $isStaff) === true) {
 			return new JSONResponse(
 				data: ['error' => 'Not enrolled in the course this item belongs to'],
 				statusCode: Http::STATUS_FORBIDDEN
@@ -209,6 +193,37 @@ class LessonReleaseController extends Controller {
 	}//end callerIsStaff()
 
 	/**
+	 * Whether the caller is refused the item's status: no own Enrolment and
+	 * no staff view.
+	 *
+	 * @param array<string, mixed> $enrolment The caller's own Enrolment, or `[]`.
+	 * @param bool                 $isStaff   Whether the caller holds a staff view.
+	 *
+	 * @return bool True to answer 403.
+	 */
+	private function isRefused(array $enrolment, bool $isStaff): bool {
+		return $enrolment === [] && $isStaff === false;
+	}//end isRefused()
+
+	/**
+	 * The caller's own Enrolment for the item's course, or `[]` when the item
+	 * names no course or the caller has none.
+	 *
+	 * @param IUser                $user The authenticated caller.
+	 * @param array<string, mixed> $item The Lesson or Assessment.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function enrolmentFor(IUser $user, array $item): array {
+		$courseId = (string)($item['courseId'] ?? '');
+		if ($courseId === '') {
+			return [];
+		}
+
+		return $this->resolveEnrolment(learnerId: $user->getUID(), courseId: $courseId);
+	}//end enrolmentFor()
+
+	/**
 	 * Resolve the caller's own Enrolment for a course, or `[]` when none.
 	 *
 	 * @param string $learnerId NC user ID.
@@ -243,18 +258,11 @@ class LessonReleaseController extends Controller {
 	 * @param string $schema Schema slug.
 	 *
 	 * @return array<string, mixed>|null Null when no such object exists.
+	 *
+	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException When the id matches more than one object; LookupIntegrityMiddleware answers it.
 	 */
 	private function resolveObject(string $id, string $schema): ?array {
-		// ObjectService::find() THROWS DoesNotExistException for an unknown id —
-		// it does not return null — so without this catch the `=== null` check
-		// below was dead code and an unknown id escaped as a 500 instead of the
-		// 404 this resolver's nullable contract promises the caller.
-		try {
-			$object = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
-		} catch (DoesNotExistException $e) {
-			return null;
-		}
-
+		$object = $this->findOrNull(find: fn () => $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema));
 		if ($object === null) {
 			return null;
 		}
@@ -276,4 +284,62 @@ class LessonReleaseController extends Controller {
 
 		return $object->jsonSerialize();
 	}//end toArray()
+
+	/**
+	 * The item, null when it does not exist, or a 502 when it could not be read.
+	 *
+	 * @param string $itemId     UUID of the Lesson or Assessment.
+	 * @param string $itemSchema 'lesson' or 'exam'.
+	 *
+	 * @return array<string, mixed>|JSONResponse|null
+	 *
+	 * @throws MultipleObjectsReturnedException When the id matches more than one object; LookupIntegrityMiddleware answers it.
+	 */
+	private function itemOrBadGateway(string $itemId, string $itemSchema): array|JSONResponse|null {
+		try {
+			return $this->resolveObject(id: $itemId, schema: $itemSchema);
+		} catch (MultipleObjectsReturnedException $exception) {
+			throw $exception;
+		} catch (Throwable) {
+			return new JSONResponse(
+				data: ['error' => 'Failed to resolve the requested item'],
+				statusCode: Http::STATUS_BAD_GATEWAY
+			);
+		}
+	}//end itemOrBadGateway()
+
+	/**
+	 * The item, or the 404 or 502 that answers for it.
+	 *
+	 * @param string $itemId     UUID of the Lesson or Assessment.
+	 * @param string $itemSchema 'lesson' or 'exam'.
+	 *
+	 * @return array<string, mixed>|JSONResponse
+	 *
+	 * @throws MultipleObjectsReturnedException When the id matches more than one object; LookupIntegrityMiddleware answers it.
+	 */
+	private function itemOrError(string $itemId, string $itemSchema): array|JSONResponse {
+		$item = $this->itemOrBadGateway(itemId: $itemId, itemSchema: $itemSchema);
+		if ($item === null) {
+			return $this->notFound(itemSchema: $itemSchema);
+		}
+
+		return $item;
+	}//end itemOrError()
+
+	/**
+	 * The 404 for an item that does not exist, named after its kind.
+	 *
+	 * @param string $itemSchema 'lesson' or 'exam'.
+	 *
+	 * @return JSONResponse
+	 */
+	private function notFound(string $itemSchema): JSONResponse {
+		$notFoundLabel = 'Lesson not found';
+		if ($itemSchema === self::ASSESSMENT_SCHEMA) {
+			$notFoundLabel = 'Assessment not found';
+		}
+
+		return new JSONResponse(data: ['error' => $notFoundLabel], statusCode: Http::STATUS_NOT_FOUND);
+	}//end notFound()
 }//end class

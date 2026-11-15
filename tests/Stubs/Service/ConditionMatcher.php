@@ -1,5 +1,6 @@
 <?php
-// Test-only copy, verbatim, of ConductionNL/openregister lib/Service/ConditionMatcher.php at development 574a0f35 (30 Sep 2026).
+// Test-only copy, verbatim, of ConductionNL/openregister lib/Service/ConditionMatcher.php at development 574a0f35 (30 Sep 2026),
+// with the constructor of main cef85cca (10 Nov 2026), which takes the session and group manager as a ConditionUserResolvers.
 // Kept identical below this line, except that OpenRegister's spec-anchor tags are renamed to @or-spec: they name OpenRegister's specs, which this repo does not have.
 
 /**
@@ -92,23 +93,36 @@ class ConditionMatcher {
 	];
 
 	/**
+	 * User session for current user context.
+	 *
+	 * @var IUserSession
+	 */
+	private readonly IUserSession $userSession;
+
+	/**
+	 * Group manager for resolving `$user.groups` (optional).
+	 *
+	 * @var IGroupManager|null
+	 */
+	private readonly ?IGroupManager $groupManager;
+
+	/**
 	 * Constructor for ConditionMatcher
 	 *
-	 * @param IUserSession $userSession User session for current user context
-	 * @param ContainerInterface $container Container for service injection
-	 * @param OperatorEvaluator $operatorEvaluator Operator evaluator for comparisons
-	 * @param LoggerInterface $logger Logger for debugging
-	 * @param IGroupManager|null $groupManager Group manager for resolving `$user.groups` (optional;
-	 *                                         {@see resolveUserGroups()} falls back to an empty array
-	 *                                         when not wired — Wave-12 Fix 4)
+	 * @param ConditionUserResolvers $users             The session and group manager (optional; without it
+	 *                                                  `$user.groups` resolves to an empty array)
+	 * @param ContainerInterface     $container         Container for service injection
+	 * @param OperatorEvaluator      $operatorEvaluator Operator evaluator for comparisons
+	 * @param LoggerInterface        $logger            Logger for debugging
 	 */
 	public function __construct(
-		private readonly IUserSession $userSession,
+		ConditionUserResolvers $users,
 		private readonly ContainerInterface $container,
 		private readonly OperatorEvaluator $operatorEvaluator,
 		private readonly LoggerInterface $logger,
-		private readonly ?IGroupManager $groupManager = null,
 	) {
+		$this->userSession = $users->userSession;
+		$this->groupManager = $users->groupManager;
 	}//end __construct()
 
 	/**

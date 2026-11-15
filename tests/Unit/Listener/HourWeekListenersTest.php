@@ -22,15 +22,15 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
- * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
+ * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+ * @spec openspec/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\IntegrityListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\IntegrityListenerRegistrar;
 use OCA\Learniq\Listener\HourWeekSubmissionStamp;
 use OCA\Learniq\Listener\HourWeekTotalRollup;
 use OCA\Learniq\Service\ListenerSchemaResolver;
@@ -222,6 +222,51 @@ class HourWeekListenersTest extends TestCase {
 	}//end testThePupilsWeekLearnsWhoWhenAndWhichSchool()
 
 	/**
+	 * A week written as days gets its hours from them: each day's hours from
+	 * its times, the week's from their sum, whatever number was sent.
+	 *
+	 * @return void
+	 */
+	public function testAWeekOfDaysIsTheSumOfItsDays(): void {
+		$event = $this->pupilCreate(
+			extra: [
+				'isoWeek' => '2026-W41',
+				'hoursSubmitted' => 40,
+				'days' => [
+					['date' => '2026-10-06', 'startTime' => '08:00', 'endTime' => '12:00', 'breakMinutes' => 0],
+					['date' => '2026-10-05', 'startTime' => '08:00', 'endTime' => '16:30', 'breakMinutes' => 30, 'hours' => 12],
+				],
+			]
+		);
+		$this->stamp()->handle($event);
+
+		self::assertFalse($event->isPropagationStopped());
+		$stamped = $event->getModifiedData();
+		self::assertSame(12.0, $stamped['hoursSubmitted']);
+		self::assertSame(['2026-10-05', '2026-10-06'], array_column($stamped['days'], 'date'));
+		self::assertSame([8.0, 4.0], array_column($stamped['days'], 'hours'));
+	}//end testAWeekOfDaysIsTheSumOfItsDays()
+
+	/**
+	 * A day outside the week, and a week with neither hours nor days, are
+	 * refused in words before anything is stored.
+	 *
+	 * @return void
+	 */
+	public function testAWrongDayOrNoHoursAtAllIsRefused(): void {
+		$outside = $this->pupilCreate(extra: ['days' => [['date' => '2026-10-05', 'startTime' => '08:00', 'endTime' => '16:00']]]);
+		$this->stamp()->handle($outside);
+		self::assertTrue($outside->isPropagationStopped());
+		self::assertSame('hour-day-outside-week', $outside->getErrors()['reason']);
+		self::assertSame('Each day of these hours must be a date inside the week.', $outside->getErrors()['message']);
+
+		$nothing = $this->pupilCreate(extra: ['hoursSubmitted' => null, 'days' => []]);
+		$this->stamp()->handle($nothing);
+		self::assertTrue($nothing->isPropagationStopped());
+		self::assertSame('hour-week-hours-missing', $nothing->getErrors()['reason']);
+	}//end testAWrongDayOrNoHoursAtAllIsRefused()
+
+	/**
 	 * A learner sent in the body never decides whose week it is: the placement
 	 * does. So hours cannot be filed under another student's name even if the
 	 * scope stamp were ever bypassed.
@@ -347,7 +392,7 @@ class HourWeekListenersTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-the-hours-bar-shows-approved-waiting-and-returned-hours
+	 * @spec openspec/specs/bpv/spec.md#requirement-the-hours-bar-shows-approved-waiting-and-returned-hours
 	 */
 	public function testWaitingAndReturnedHoursAreKeptBesideTheApprovedOnes(): void {
 		$this->store->rows['bpv-hour-week'] = [];
@@ -594,6 +639,71 @@ class HourWeekListenersTest extends TestCase {
 
 		self::assertSame(0, $writes);
 	}//end testANonRowPlacementMovesNoTotal()
+
+	/**
+	 * The sums read every week of the one placement without RBAC or tenancy:
+	 * approved from every week, waiting from submitted weeks, returned from
+	 * rejected weeks (never below zero), anything that is not a number as zero.
+	 *
+	 * @return void
+	 */
+	public function testTheSumsOfEveryKindOfWeek(): void {
+		$calls = [];
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			function (array $config = [], bool $_rbac = true, bool $_multitenancy = true) use (&$calls): array {
+				$calls[] = [$config, $_rbac, $_multitenancy];
+				return [
+					['hoursSubmitted' => '8.5', 'hoursApproved' => '8', 'lifecycle' => 'approved'],
+					OrEntityFactory::make(['id' => 'w2', 'hoursSubmitted' => 4, 'lifecycle' => 'submitted'], 'bpv-hour-week'),
+					['hoursSubmitted' => 6, 'hoursApproved' => 2, 'lifecycle' => 'rejected'],
+					['hoursSubmitted' => 1, 'hoursApproved' => 3, 'lifecycle' => 'rejected'],
+					['hoursSubmitted' => 'veel', 'hoursApproved' => null, 'lifecycle' => 'submitted'],
+					['hoursSubmitted' => 9, 'hoursApproved' => 7, 'lifecycle' => 'corrected'],
+					'not a week',
+				];
+			}
+		);
+		$rollup = new HourWeekTotalRollup(
+			schemaResolver: $this->createMock(ListenerSchemaResolver::class),
+			objectService: $objectService,
+			logger: new NullLogger()
+		);
+
+		self::assertSame(
+			['hoursApprovedTotal' => 20.0, 'hoursWaitingTotal' => 4.0, 'hoursReturnedTotal' => 4.0],
+			$rollup->sumsFor(placementId: 'p-9')
+		);
+		self::assertSame(
+			[[['filters' => ['register' => 'learniq', 'schema' => 'bpv-hour-week', 'bpvPlacementId' => 'p-9'], 'limit' => 500], false, false]],
+			$calls
+		);
+	}//end testTheSumsOfEveryKindOfWeek()
+
+	/**
+	 * A created week and the new side of an updated week move their own
+	 * placement's total; another schema's write moves none.
+	 *
+	 * @return void
+	 */
+	public function testTheWrittenWeekPicksThePlacement(): void {
+		$this->store->rows['bpv-hour-week'] = [
+			['id' => 'w1', 'bpvPlacementId' => self::PLACEMENT, 'hoursApproved' => 30, 'lifecycle' => 'approved'],
+			['id' => 'w2', 'bpvPlacementId' => self::BARE_PLACEMENT, 'hoursApproved' => 12, 'lifecycle' => 'approved'],
+		];
+		$first  = OrEntityFactory::make($this->store->rows['bpv-hour-week'][0], 'bpv-hour-week');
+		$second = OrEntityFactory::make($this->store->rows['bpv-hour-week'][1], 'bpv-hour-week');
+
+		$this->rollup(slug: 'bpv-placement')->handle(new ObjectCreatedEvent($first));
+		self::assertSame(0, $this->placement(id: self::PLACEMENT)['hoursApprovedTotal']);
+
+		$this->rollup()->handle(new ObjectUpdatedEvent($second, $first));
+		self::assertSame(12.0, (float)$this->placement(id: self::BARE_PLACEMENT)['hoursApprovedTotal']);
+		self::assertSame(0, $this->placement(id: self::PLACEMENT)['hoursApprovedTotal']);
+
+		$this->rollup()->handle(new ObjectCreatedEvent($first));
+		self::assertSame(30.0, (float)$this->placement(id: self::PLACEMENT)['hoursApprovedTotal']);
+	}//end testTheWrittenWeekPicksThePlacement()
 
 	/**
 	 * One placement as the store holds it.

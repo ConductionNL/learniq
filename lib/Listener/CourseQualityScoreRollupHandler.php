@@ -35,10 +35,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\CourseQualityScoreEvaluatorInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Service\CourseQualityScoreEvaluator;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 
@@ -49,23 +49,30 @@ use OCP\EventDispatcher\IEventListener;
  */
 class CourseQualityScoreRollupHandler implements IEventListener {
 
+	use PicksFields;
+
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const COURSE_EVALUATION_RESPONSE_SCHEMA = 'course-evaluation-response';
 	private const COURSE_QUALITY_SCORE_SCHEMA = 'course-quality-score';
 
 	/**
+	 * The CourseQualityScore fields copied from CourseQualityScoreEvaluator::evaluate().
+	 */
+	private const SCORE_FIELDS = ['responseCount', 'invitationCount', 'averageOverallScore', 'responseRate', 'lastRecomputedAt'];
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
-	 * @param CourseQualityScoreEvaluator $evaluator Calculation engine.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param CourseQualityScoreEvaluatorInterface $evaluator Calculation engine.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly CourseQualityScoreEvaluator $evaluator,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly CourseQualityScoreEvaluatorInterface $evaluator,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -79,124 +86,99 @@ class CourseQualityScoreRollupHandler implements IEventListener {
 	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
 	 */
 	public function handle(Event $event): void {
-		if (($event instanceof ObjectTransitionedEvent) === false) {
+		$response = $this->submittedResponse(event: $event);
+		$scope = self::scopeOf(response: $response ?? []);
+		if ($response === null || $scope === null) {
 			return;
+		}
+
+		// The scope's keys are evaluate()'s parameter names.
+		$result = $this->evaluator->evaluate(...$scope);
+		$fields = $scope + self::pick(row: $result, keys: self::SCORE_FIELDS) + ['tenant_id' => $response['tenant_id'] ?? ''];
+
+		$this->objectService->saveObject(
+			register: self::LEARNIQ_REGISTER,
+			schema: self::COURSE_QUALITY_SCORE_SCHEMA,
+			object: array_merge($this->findExisting(scope: $scope) ?? [], $fields)
+		);
+	}//end handle()
+
+	/**
+	 * The data of a learniq CourseEvaluationResponse that was just submitted, or null for any other event.
+	 *
+	 * @param Event $event The event.
+	 *
+	 * @return array<string,mixed>|null
+	 */
+	private function submittedResponse(Event $event): ?array {
+		if (($event instanceof ObjectTransitionedEvent) === false) {
+			return null;
 		}
 
 		if ($this->schemas->eventRegister(event: $event) !== self::LEARNIQ_REGISTER
 			|| $this->schemas->eventSchema(event: $event) !== self::COURSE_EVALUATION_RESPONSE_SCHEMA
 			|| $event->getTo() !== 'submitted'
 		) {
-			return;
+			return null;
 		}
 
-		$response = $event->getObject()->jsonSerialize();
-
-		$courseId = $response['courseId'] ?? '';
-		$academicYear = $response['academicYear'] ?? '';
-		$period = $response['period'] ?? '';
-
-		if ($courseId === '' || $academicYear === '' || $period === '') {
-			return;
-		}
-
-		$teacherId = $response['teacherId'] ?? null;
-		if ($teacherId === '') {
-			$teacherId = null;
-		}
-
-		$tenantId = $response['tenant_id'] ?? '';
-
-		$result = $this->evaluator->evaluate(
-			courseId: $courseId,
-			teacherId: $teacherId,
-			academicYear: $academicYear,
-			period: $period
-		);
-
-		$existing = $this->findExisting(
-			courseId: $courseId,
-			teacherId: $teacherId,
-			academicYear: $academicYear,
-			period: $period
-		);
-
-		$data = array_merge(
-			$existing ?? [],
-			[
-				'courseId' => $courseId,
-				'teacherId' => $teacherId,
-				'academicYear' => $academicYear,
-				'period' => $period,
-				'responseCount' => $result['responseCount'],
-				'invitationCount' => $result['invitationCount'],
-				'averageOverallScore' => $result['averageOverallScore'],
-				'responseRate' => $result['responseRate'],
-				'lastRecomputedAt' => $result['lastRecomputedAt'],
-				'tenant_id' => $tenantId,
-			]
-		);
-
-		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::COURSE_QUALITY_SCORE_SCHEMA,
-			object: $data
-		);
-
-	}//end handle()
+		return $event->getObject()->jsonSerialize();
+	}//end submittedResponse()
 
 	/**
-	 * Find the existing CourseQualityScore row for this scope, if any.
+	 * The course, teacher (null for a course-level score), year and period a response scores, or null when one is missing.
 	 *
-	 * @param string $courseId Course UUID.
-	 * @param string|null $teacherId Teacher NC user id, or null.
-	 * @param string $academicYear Academic year.
-	 * @param string $period Period label.
+	 * @param array<string,mixed> $response The response.
 	 *
-	 * @return array|null
-	 *
-	 * @spec openspec/specs/course-evaluation/spec.md#scenario-a-new-response-recomputes-the-course-s-quality-score
+	 * @return array{courseId: string, teacherId: string|null, academicYear: string, period: string}|null
 	 */
-	private function findExisting(
-		string $courseId,
-		?string $teacherId,
-		string $academicYear,
-		string $period,
-	): ?array {
-		$filters = [
-			'courseId' => $courseId,
-			'academicYear' => $academicYear,
-			'period' => $period,
+	private static function scopeOf(array $response): ?array {
+		$scope = [
+			'courseId' => $response['courseId'] ?? '',
+			'teacherId' => $response['teacherId'] ?? null,
+			'academicYear' => $response['academicYear'] ?? '',
+			'period' => $response['period'] ?? '',
 		];
+		if ($scope['courseId'] === '' || $scope['academicYear'] === '' || $scope['period'] === '') {
+			return null;
+		}
 
-		// OR's filter matching treats a missing key as "any" rather than
-		// "null" for some drivers; an explicit null is still passed through
-		// so a course-level (teacherId:null) row is not confused with a
-		// teacher-scoped one.
-		$filters['teacherId'] = $teacherId;
+		if ($scope['teacherId'] === '') {
+			$scope['teacherId'] = null;
+		}
 
-		$existing = $this->objectService->findAll(
-			[
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::COURSE_QUALITY_SCORE_SCHEMA,
-					]
-				),
-				'limit' => 1,
-			]
-		);
+		return $scope;
+	}//end scopeOf()
 
+	/**
+	 * The stored CourseQualityScore row of the scope, if any.
+	 *
+	 * OR's filter matching treats a missing key as "any" rather than "null"
+	 * for some drivers; an explicit null is still passed through so a
+	 * course-level (teacherId:null) row is not confused with a teacher-scoped one.
+	 *
+	 * @param array{courseId: string, teacherId: string|null, academicYear: string, period: string} $scope The scope.
+	 *
+	 * @return array<string,mixed>|null
+	 */
+	private function findExisting(array $scope): ?array {
+		$filters = [
+			'courseId' => $scope['courseId'],
+			'academicYear' => $scope['academicYear'],
+			'period' => $scope['period'],
+			'teacherId' => $scope['teacherId'],
+			'register' => self::LEARNIQ_REGISTER,
+			'schema' => self::COURSE_QUALITY_SCORE_SCHEMA,
+		];
+		$existing = $this->objectService->findAll(['filters' => $filters, 'limit' => 1]);
 		if (empty($existing) === true) {
 			return null;
 		}
 
-		$existingObj = $existing[0];
-		if (is_array($existingObj) === false) {
-			$existingObj = $existingObj->jsonSerialize();
+		if (is_array($existing[0]) === false) {
+			return $existing[0]->jsonSerialize();
 		}
 
-		return $existingObj;
+		return $existing[0];
 	}//end findExisting()
 }//end class

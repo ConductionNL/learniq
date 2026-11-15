@@ -1,7 +1,7 @@
 # timetabling Specification
 
 ## Purpose
-TBD - created by archiving change timetabling-and-substitution. Update Purpose after archive.
+Import a timetable from an outside planner, and queue double bookings and capacity overruns for a coordinator. Substitutions and cancellations need a reason, standby teachers are offered first, and affected learners and parents are told.
 
 ## Requirements
 

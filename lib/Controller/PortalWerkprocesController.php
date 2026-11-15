@@ -30,9 +30,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Portal\PortalAssertionVerifier;
-use OCA\Learniq\Service\Portal\PortalWerkprocesAssessment;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PortalAssertionVerifierInterface;
+use OCA\Learniq\Kernel\Contracts\PortalWerkprocesAssessmentInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
@@ -84,19 +84,19 @@ class PortalWerkprocesController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest                   $request     The request.
-	 * @param PortalAssertionVerifier    $verifier    Verifies X-Portal-Subject.
-	 * @param PortalWerkprocesAssessment $assessments Checks, stamps and stores the assessment.
+	 * @param PortalAssertionVerifierInterface    $verifier    Verifies X-Portal-Subject.
+	 * @param PortalWerkprocesAssessmentInterface $assessments Checks, stamps and stores the assessment.
 	 * @param LoggerInterface            $logger      PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly PortalAssertionVerifier $verifier,
-		private readonly PortalWerkprocesAssessment $assessments,
+		private readonly PortalAssertionVerifierInterface $verifier,
+		private readonly PortalWerkprocesAssessmentInterface $assessments,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -111,7 +111,7 @@ class PortalWerkprocesController extends Controller {
 	#[AnonRateLimit(limit: 600, period: 60)]
 	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
 	public function submit(): JSONResponse {
-		$claims = $this->verifier->verify(jwt: (string)$this->request->getHeader(PortalAssertionVerifier::HEADER));
+		$claims = $this->verifier->verify(jwt: (string)$this->request->getHeader(PortalAssertionVerifierInterface::HEADER));
 		if ($claims === null) {
 			$response = new JSONResponse(data: ['error' => 'unauthorized'], statusCode: Http::STATUS_UNAUTHORIZED);
 			$response->throttle(['action' => self::THROTTLE_ACTION]);

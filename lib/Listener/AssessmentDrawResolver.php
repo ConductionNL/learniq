@@ -3,6 +3,9 @@
 /**
  * Learniq Assessment Draw Resolver
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * ADR-031 legitimate exception: server-side randomness/shuffle resolution
  * cannot be client-supplied — the exact trust boundary AssessmentScoringHandler
  * already defends for autoScore (lib/Lifecycle/AssessmentScoringHandler.php).
@@ -43,8 +46,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -56,11 +57,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Kernel\Contracts\ItemPoolFilterInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\QtiChoiceOrderResolverInterface;
+use OCA\Learniq\Service\AssessmentObjectReads;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Service\ItemPoolFilter;
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\QtiChoiceOrderResolver;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
@@ -84,23 +86,31 @@ class AssessmentDrawResolver implements IEventListener {
 	private const ITEM_SCHEMA = 'item';
 
 	/**
+	 * Reads the assessment objects this class works from.
+	 *
+	 * @var AssessmentObjectReads
+	 */
+	private readonly AssessmentObjectReads $reads;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object service for Assessment/Item lookups and the follow-up save.
-	 * @param QtiChoiceOrderResolver $choiceResolver QTI simpleChoice parsing/permutation collaborator.
-	 * @param ItemPoolFilter $poolFilter Pool filter/variant-grouping collaborator.
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
+	 * @param QtiChoiceOrderResolverInterface $choiceResolver QTI simpleChoice parsing/permutation collaborator.
+	 * @param ItemPoolFilterInterface $poolFilter Pool filter/variant-grouping collaborator.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the entity's register/schema ids to slugs.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly QtiChoiceOrderResolver $choiceResolver,
-		private readonly ItemPoolFilter $poolFilter,
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly QtiChoiceOrderResolverInterface $choiceResolver,
+		private readonly ItemPoolFilterInterface $poolFilter,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->reads = new AssessmentObjectReads(objectService: $objectService);
 	}//end __construct()
 
 	/**
@@ -123,27 +133,55 @@ class AssessmentDrawResolver implements IEventListener {
 	 * @spec openspec/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
 	 */
 	public function handle(Event $event): void {
-		if (($event instanceof ObjectCreatedEvent) === false) {
+		$result = $this->createdResult(event: $event);
+		$assessmentId = $result['assessmentId'] ?? null;
+		if ($result === null || $assessmentId === null) {
 			return;
+		}
+
+		$assessment = $this->loadAssessment(assessmentId: $assessmentId, tenantId: $result['tenant_id'] ?? '');
+		$drawnItemRefs = null;
+		if ($assessment !== null) {
+			$drawnItemRefs = $this->drawFor(assessment: $assessment, result: $result);
+		}
+
+		if ($drawnItemRefs !== null) {
+			$this->saveDraw(result: $result, drawnItemRefs: $drawnItemRefs);
+		}
+	}//end handle()
+
+	/**
+	 * The data of a newly created learniq AssessmentResult, or null for any other event.
+	 *
+	 * @param Event $event The event.
+	 *
+	 * @return array<string,mixed>|null
+	 */
+	private function createdResult(Event $event): ?array {
+		if (($event instanceof ObjectCreatedEvent) === false) {
+			return null;
 		}
 
 		$objectEntity = $event->getObject();
-
 		if ($this->schemaResolver->registerSlug(entity: $objectEntity) !== self::LEARNIQ_REGISTER
 			|| $this->schemaResolver->schemaSlug(entity: $objectEntity) !== self::ASSESSMENT_RESULT_SCHEMA
 		) {
-			return;
+			return null;
 		}
 
-		$result = $objectEntity->jsonSerialize();
-		$assessmentId = $result['assessmentId'] ?? null;
-		$tenantId = $result['tenant_id'] ?? '';
+		return $objectEntity->jsonSerialize();
+	}//end createdResult()
 
-		if ($assessmentId === null) {
-			return;
-		}
-
-		$assessment = $this->fetchOne(schema: self::ASSESSMENT_SCHEMA, uuid: $assessmentId, tenantId: $tenantId);
+	/**
+	 * The result's Assessment, or null (logged) when it is unreachable.
+	 *
+	 * @param string $assessmentId The Assessment's UUID.
+	 * @param string $tenantId     Tenant scope.
+	 *
+	 * @return array<string,mixed>|null
+	 */
+	private function loadAssessment(string $assessmentId, string $tenantId): ?array {
+		$assessment = $this->reads->inTenant(tenantId: $tenantId)->one(schema: self::ASSESSMENT_SCHEMA, uuid: $assessmentId);
 		if ($assessment === null) {
 			// Fail-CLOSED: parent Assessment unreachable — leave drawnItemRefs at its
 			// default [] rather than trusting anything client-supplied.
@@ -151,25 +189,47 @@ class AssessmentDrawResolver implements IEventListener {
 				'[AssessmentDrawResolver] Assessment {id} not found or out-of-tenant; leaving drawnItemRefs empty (fail-closed).',
 				['id' => $assessmentId]
 			);
-			return;
 		}
 
+		return $assessment;
+	}//end loadAssessment()
+
+	/**
+	 * The drawnItemRefs for the Assessment, or null (logged) when its pool cannot supply the draw.
+	 *
+	 * @param array<string,mixed> $assessment The Assessment.
+	 * @param array<string,mixed> $result     The AssessmentResult the draw is for.
+	 *
+	 * @return array<int,array{itemId:string,points:mixed,optionOrder:array<int,string>|null}>|null
+	 */
+	private function drawFor(array $assessment, array $result): ?array {
+		$tenantId = $result['tenant_id'] ?? '';
 		$itemSequence = $this->resolveItemSequence(assessment: $assessment, tenantId: $tenantId);
 		if ($itemSequence === null) {
 			$this->logger->error(
 				'[AssessmentDrawResolver] Item pool for Assessment {id} cannot supply the configured '
 				. 'drawCount across distinct variant groups; leaving drawnItemRefs empty (fail-closed).',
-				['id' => $assessmentId]
+				['id' => $result['assessmentId']]
 			);
-			return;
+			return null;
 		}
 
-		$drawnItemRefs = $this->buildDrawnItemRefs(
+		return $this->buildDrawnItemRefs(
 			itemSequence: $itemSequence,
 			shuffleAnswerOptions: (($assessment['shuffleAnswerOptions'] ?? false) === true),
 			tenantId: $tenantId
 		);
+	}//end drawFor()
 
+	/**
+	 * Save the drawnItemRefs on the result.
+	 *
+	 * @param array<string,mixed>            $result        The AssessmentResult.
+	 * @param array<int,array<string,mixed>> $drawnItemRefs The draw.
+	 *
+	 * @return void
+	 */
+	private function saveDraw(array $result, array $drawnItemRefs): void {
 		$this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: self::ASSESSMENT_RESULT_SCHEMA,
@@ -178,10 +238,9 @@ class AssessmentDrawResolver implements IEventListener {
 
 		$this->logger->info(
 			'[AssessmentDrawResolver] Resolved {count} drawnItemRefs for AssessmentResult on Assessment {id}.',
-			['count' => count($drawnItemRefs), 'id' => $assessmentId]
+			['count' => count($drawnItemRefs), 'id' => $result['assessmentId']]
 		);
-
-	}//end handle()
+	}//end saveDraw()
 
 	/**
 	 * Resolve the ordered item-id sequence and any per-item points overrides
@@ -249,7 +308,7 @@ class AssessmentDrawResolver implements IEventListener {
 		$drawnItemRefs = [];
 
 		foreach ($itemSequence['itemIds'] as $itemId) {
-			$item = $this->fetchOne(schema: self::ITEM_SCHEMA, uuid: $itemId, tenantId: $tenantId);
+			$item = $this->reads->inTenant(tenantId: $tenantId)->one(schema: self::ITEM_SCHEMA, uuid: $itemId);
 			if ($item === null) {
 				continue;
 			}
@@ -291,40 +350,52 @@ class AssessmentDrawResolver implements IEventListener {
 			return null;
 		}
 
-		$itemBankId = $poolConfig['itemBankId'] ?? null;
 		$drawCount = (int)($poolConfig['drawCount'] ?? 0);
-		if ($itemBankId === null || $drawCount < 1) {
+		if (($poolConfig['itemBankId'] ?? null) === null || $drawCount < 1) {
 			return null;
 		}
 
-		$filters = ['itemBankId' => $itemBankId, 'lifecycle' => 'published'];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$items = $this->objectService->findAll(
-			[
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::ITEM_SCHEMA,
-					]
-				),
-			]
-		);
-
-		$groups = $this->poolFilter->filterAndGroupByVariant(items: $items, poolConfig: $poolConfig);
-
+		$groups = $this->variantGroups(poolConfig: $poolConfig, tenantId: $tenantId);
 		if (count($groups) < $drawCount) {
 			// Not enough DISTINCT variant groups to satisfy drawCount — fail closed.
 			return null;
 		}
 
-		$drawnGroupKeys = array_slice($this->secureShuffle(items: array_keys($groups)), 0, $drawCount);
+		return $this->drawFromGroups(groups: $groups, drawCount: $drawCount);
+	}//end resolveRandomDraw()
 
+	/**
+	 * The published items of the pool's item bank that match its filters, grouped by variant.
+	 *
+	 * @param array<string,mixed> $poolConfig The Assessment's itemPoolConfig.
+	 * @param string              $tenantId   Tenant scope.
+	 *
+	 * @return array<string,array<int,string>> Item ids per variant group.
+	 */
+	private function variantGroups(array $poolConfig, string $tenantId): array {
+		$filters = ['itemBankId' => $poolConfig['itemBankId'], 'lifecycle' => 'published'];
+		if ($tenantId !== '') {
+			$filters['tenant_id'] = $tenantId;
+		}
+
+		$items = $this->objectService->findAll(
+			['filters' => array_merge($filters, ['register' => self::LEARNIQ_REGISTER, 'schema' => self::ITEM_SCHEMA])]
+		);
+
+		return $this->poolFilter->filterAndGroupByVariant(items: $items, poolConfig: $poolConfig);
+	}//end variantGroups()
+
+	/**
+	 * Draw $drawCount random groups, and one random item from each.
+	 *
+	 * @param array<string,array<int,string>> $groups    Item ids per variant group.
+	 * @param int                             $drawCount The number of items to draw.
+	 *
+	 * @return array<int,string> The drawn item ids.
+	 */
+	private function drawFromGroups(array $groups, int $drawCount): array {
 		$drawn = [];
-		foreach ($drawnGroupKeys as $groupKey) {
+		foreach (array_slice($this->secureShuffle(items: array_keys($groups)), 0, $drawCount) as $groupKey) {
 			$candidates = $groups[$groupKey];
 			$pickIndex = 0;
 			if (count($candidates) > 1) {
@@ -335,7 +406,7 @@ class AssessmentDrawResolver implements IEventListener {
 		}
 
 		return $drawn;
-	}//end resolveRandomDraw()
+	}//end drawFromGroups()
 
 	/**
 	 * Fisher-Yates shuffle using `random_int()` (cryptographically-strong,
@@ -357,44 +428,4 @@ class AssessmentDrawResolver implements IEventListener {
 		return $items;
 	}//end secureShuffle()
 
-	/**
-	 * Fetch a single object by uuid, scoped to the given tenant when one is set.
-	 *
-	 * @param string $schema OR schema slug.
-	 * @param string $uuid Object UUID.
-	 * @param string $tenantId Tenant ID, or '' to skip tenant scoping.
-	 *
-	 * @return array<string,mixed>|null
-	 */
-	private function fetchOne(string $schema, string $uuid, string $tenantId): ?array {
-		$filters = [];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$matches = $this->objectService->findAll(
-			[
-				'ids' => [$uuid],
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => $schema,
-					]
-				),
-				'limit' => 1,
-			]
-		);
-
-		if (empty($matches) === true) {
-			return null;
-		}
-
-		$match = $matches[0];
-		if (is_array($match) === true) {
-			return $match;
-		}
-
-		return $match->jsonSerialize();
-	}//end fetchOne()
 }//end class

@@ -24,7 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\CollaborationListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\CollaborationListenerRegistrar;
 use OCA\Learniq\Listener\ConferenceInvitationSync;
 use OCA\Learniq\Repair\BackfillConferenceInvitations;
 use OCA\Learniq\Service\ConferenceInvitations;

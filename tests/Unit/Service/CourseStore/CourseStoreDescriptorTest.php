@@ -31,6 +31,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * @covers \OCA\Learniq\Service\CourseStore\CourseStoreDescriptor
  * @uses   \OCA\Learniq\Service\CourseStore\CourseStoreRegistryObject
+ * @uses   \OCA\Learniq\Support\TextValue
  */
 class CourseStoreDescriptorTest extends TestCase {
 

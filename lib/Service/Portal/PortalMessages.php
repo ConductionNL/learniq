@@ -26,7 +26,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PortalMessagesInterface;
 use OCP\IUser;
 use OCP\L10N\IFactory;
 
@@ -35,7 +36,7 @@ use OCP\L10N\IFactory;
  *
  * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
  */
-class PortalMessages {
+class PortalMessages implements PortalMessagesInterface {
 
 	/**
 	 * English source text per reason; translated through l10n.
@@ -80,7 +81,7 @@ class PortalMessages {
 	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function message(string $reason, ?IUser $user): string {
-		$l10n = $this->l10nFactory->get(Application::APP_ID, $this->l10nFactory->getUserLanguage($user));
+		$l10n = $this->l10nFactory->get(AppIdentity::APP_ID, $this->l10nFactory->getUserLanguage($user));
 
 		return $l10n->t(self::TEXTS[$reason] ?? self::TEXTS['not-available']);
 	}//end message()

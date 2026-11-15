@@ -18,14 +18,14 @@ Learniq SHALL declare its outside connections in `lib/Settings/connections.json`
 - **AND** its `app` SHALL equal the id in `appinfo/info.xml`
 - **AND** every key SHALL be unique
 
-#### Scenario: A connection to a missing endpoint reads Not available and names the path
-@e2e exclude Superseded by #1157: integriq carries the exchanges and data-exchange is declared available, so no declared row names a missing endpoint on a live instance; tests/Unit/Settings/ConnectionsDeclarationTest.php guards that any unavailable message names the path the code calls.
+#### Scenario: The data exchange row reads working
+@e2e exclude The row's status comes from integriq's check of a live exchange, which the CI instance does not run; tests/Unit/Settings/ConnectionsDeclarationTest.php checks the declaration's shape and anchors.
 
-- **GIVEN** integriq has synced learniq's declaration
-- **WHEN** an admin reads the Data exchange row
-- **THEN** it SHALL read Not available
-- **AND** its message SHALL name `api/sources/[target]/run`
-- **AND** it SHALL offer Open settings on the data exchange section
+- **GIVEN** integriq has synced learniq's declaration, with `data-exchange` declared available
+- **AND** the last report to the Verzuimloket went out
+- **WHEN** an admin reads the Gegevensuitwisseling row on Integraties
+- **THEN** it SHALL read Werkt, with the last exchange as its status message
+- **AND** it SHALL offer Instellen on the data exchange section
 
 #### Scenario: A changed call path turns the declaration test red
 @e2e exclude The guard reads source constants; tests/Unit/Settings/ConnectionsDeclarationTest.php compares each unavailable message with the path the code calls.

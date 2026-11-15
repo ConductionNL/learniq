@@ -32,6 +32,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\CourseStore;
 
+use OCA\Learniq\Support\TextValue;
+
 /**
  * Share package in, registry object out.
  */
@@ -162,11 +164,6 @@ class CourseStoreRegistryObject {
 	 * @return string
 	 */
 	private function text(mixed $value): string {
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return trim($value);
-
+		return (new TextValue())->trimmedOrEmpty(value: $value);
 	}//end text()
 }//end class

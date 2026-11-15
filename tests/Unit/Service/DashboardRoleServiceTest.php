@@ -70,7 +70,7 @@ class DashboardRoleServiceTest extends TestCase {
 
 		$this->assertSame('admin', $service->resolvePrimaryRole(user: $user));
 		$this->assertSame('admin', $service->resolveDefaultView(user: $user));
-		$this->assertSame(['admin', 'teacher', 'student'], $service->resolveViews(user: $user));
+		$this->assertSame(['admin', 'teacher', 'student', 'exam-board'], $service->resolveViews(user: $user));
 	}//end testAdminGroupResolvesToAdmin()
 
 	/**
@@ -240,6 +240,41 @@ class DashboardRoleServiceTest extends TestCase {
 			)->isConfidentialCounsellor(user: $user)
 		);
 	}//end testAdminsAndSchoolLeadersAreNotConfidentialCounsellors()
+
+	/**
+	 * The exam board is the compliance-officers group: its members get the
+	 * `exam-board` entry after their dashboard views, so the default view
+	 * stays the first.
+	 *
+	 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-withheld-by-the-server
+	 *
+	 * @return void
+	 */
+	public function testComplianceOfficersAreTheExamBoard(): void {
+		$service = $this->serviceWith(isAdmin: false, groups: ['compliance-officers' => true]);
+		$user = $this->user();
+
+		$this->assertSame(['admin', 'student', 'exam-board'], $service->resolveViews(user: $user));
+		$this->assertSame('admin', $service->resolveDefaultView(user: $user));
+	}//end testComplianceOfficersAreTheExamBoard()
+
+	/**
+	 * Teachers, HR and learners are not the exam board, so a reporter or an
+	 * accused learner never gets the entry.
+	 *
+	 * @spec openspec/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-withheld-by-the-server
+	 *
+	 * @return void
+	 */
+	public function testOthersAreNotTheExamBoard(): void {
+		$user = $this->user();
+		foreach (['instructors', 'hr', 'coordinators', 'team-leads', 'guardians'] as $group) {
+			$views = $this->serviceWith(isAdmin: false, groups: [$group => true])->resolveViews(user: $user);
+			$this->assertNotContains('exam-board', $views, $group);
+		}
+
+		$this->assertNotContains('exam-board', $this->serviceWith(isAdmin: false, groups: [])->resolveViews(user: $user));
+	}//end testOthersAreNotTheExamBoard()
 
 	/**
 	 * The resolver's group vocabulary matches the register's declared scopes,

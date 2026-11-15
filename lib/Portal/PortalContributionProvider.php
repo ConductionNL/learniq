@@ -3,6 +3,9 @@
 /**
  * Learniq Portal Contribution Provider
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Learniq's contribution to the shared Portaliq external portal (hydra ADR-046
  * + contribution contract v2, 2026-07-06 amendment). Portaliq — the ONE shared
  * portal for people WITHOUT Nextcloud accounts — discovers this class by
@@ -30,9 +33,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -44,8 +44,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
-use OCA\Learniq\Service\Portal\BpvPlacementSteps;
-use OCA\Learniq\Service\Portal\EmployerBookingSteps;
+use OCA\Learniq\Kernel\Contracts\BpvPlacementStepsInterface;
+use OCA\Learniq\Kernel\Contracts\EmployerBookingStepsInterface;
 use OCP\L10N\IFactory;
 
 /**
@@ -81,20 +81,192 @@ class PortalContributionProvider {
 	 */
 	private const REGISTER = 'learniq';
 
+	private const HAND_IN_ROW_WHEN = [
+		'field' => 'lifecycle',
+		'in' => ['draft'],
+	];
+
+	private const CREATE_SUBMISSION_FIELD_CONFIGS = [
+		// Same reason as the absence form below: an unlabelled field
+		// is drawn as `assignmentId`.
+		'assignmentId' => ['label' => 'The work you are handing in', 'required' => true],
+		'attachmentRefs' => [
+			'type' => 'file',
+			'label' => 'Your work',
+			'multiple' => true,
+			'accept' => ['.pdf', '.doc', '.docx', '.odt', '.pptx', '.jpg', '.png'],
+			'maxSizeMb' => 20,
+		],
+	];
+
+	private const CREATE_SUBMISSION_FIELDS = [
+		'assignmentId',
+		'attachmentRefs',
+	];
+
+	private const EXCUSE_REQUEST_REASON_KIND = [
+		'label' => 'Kind of absence',
+		'required' => true,
+		'valueLabels' => PortalValueLabels::ABSENCE_KIND,
+		'widget' => 'choices',
+		'choiceOptions' => ['illness', 'medical-appointment'],
+		'otherLabel' => 'Another reason',
+	];
+
+	private const STUDENT_EXCUSE_REQUEST_FIELDS = [
+		'dateFrom',
+		'dateTo',
+		'reason',
+		'reasonKind',
+		'attachmentRef',
+	];
+
+	private const STUDENT_EXCUSE_REQUEST_DATE_TO = [
+		'label' => 'Last day you are absent',
+		'required' => true,
+		'widget' => 'dateChoices',
+		'dateChoices' => 2,
+		'requiredMessage' => 'Choose the last day you are absent.',
+	];
+
+	private const PARENT_CONTRIBUTION_GUARDIAN_AUDIENCE = [
+		'children' => 'parentChildren',
+		'schoolField' => 'schoolId',
+		'groups' => [
+			'collection' => 'parentGroupMemberships',
+			'field' => 'cohortId',
+		],
+	];
+
+	private const PARENT_EXCUSE_REQUEST_SUMMARY = [
+		'label' => 'You report',
+		'template' => '{learnerRef} is {reasonKind} {dateFrom}.',
+		'phrases' => [
+			'reasonKind' => [
+				'illness' => 'ill',
+				'medical-appointment' => 'at the doctor or dentist',
+				'family-circumstance' => 'away for a family reason',
+				'religious-observance' => 'away for a religious holiday',
+				'bereavement' => 'away for a funeral',
+				'other' => 'away for another reason',
+			],
+		],
+	];
+
+	private const PARENT_EXCUSE_REQUEST_FIELDS = [
+		'learnerRef',
+		'dateFrom',
+		'dateTo',
+		'reason',
+		'reasonKind',
+		'attachmentRef',
+	];
+
+	private const PARENT_EXCUSE_REQUEST_DATE_TO = [
+		'label' => 'Last day absent',
+		'required' => true,
+		'widget' => 'dateChoices',
+		'dateChoices' => 2,
+		'requiredMessage' => 'Choose the last day your child is absent.',
+	];
+
+	private const PARENT_EXCUSE_REQUEST_CONFIRMATION = [
+		'title' => 'Your report has been sent',
+		'body' => 'The teacher sees it in the class right away. In the list of absence reports you see when the teacher has decided.',
+	];
+
+	private const PARENT_GRADES_FIELDS = [
+		'learnerRef',
+		'courseId',
+		// Readable copies and the weight (site-guardian-portal-design):
+		// the subject and test a grade is for, and how often it counts.
+		'courseName',
+		'methodName',
+		'methodBlock',
+		'weight',
+		'curriculumPlanId',
+		'componentId',
+		'value',
+		'gradeScaleId',
+		'period',
+		'gradedAt',
+	];
+
+	private const PARENT_ATTENDANCE_FIELDS = [
+		'learnerRef',
+		'sessionId',
+		'cohortId',
+		'status',
+		// Minutes late, not minutes present: a late row read "330 minutes
+		// present", the day minus the minutes late (portal proof run 3).
+		'lateMinutes',
+		'markedAt',
+	];
+
+	private const PARENT_GRADES_COLUMNS = [
+		['field' => 'value', 'label' => 'Grade'],
+		['field' => 'period', 'label' => 'Period'],
+		['field' => 'gradedAt', 'label' => 'Given on'],
+	];
+
+	private const PARENT_ATTENDANCE_COLUMNS = [
+		['field' => 'markedAt', 'label' => 'Date', 'render' => 'date'],
+		['field' => 'status', 'label' => 'Attendance', 'valueLabels' => PortalValueLabels::ATTENDANCE_STATUS],
+		['field' => 'lateMinutes', 'label' => 'Minutes late'],
+	];
+
+	private const PARENT_EXCUSE_REQUESTS_FIELDS = [
+		'learnerRef',
+		'dateFrom',
+		'dateTo',
+		'reason',
+		'reasonKind',
+		'attachmentRef',
+		'lifecycle',
+		'decidedAt',
+		// Read only as a name (render: user), never as the user id.
+		'decidedBy',
+	];
+
+	private const PARENT_REPORT_CARDS_FIELDS = [
+		'learnerRef',
+		'reportPeriodId',
+		'periodName',
+		'gradeLines',
+		'attendanceSummary',
+		'mentorComment',
+		'docudeskDocumentRef',
+	];
+
+	private const PARENT_EXCUSE_REQUESTS_COLUMNS = [
+		['field' => 'dateFrom', 'label' => 'From'],
+		['field' => 'dateTo', 'label' => 'To'],
+		['field' => 'reason', 'label' => 'Reason'],
+		['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::EXCUSE_STATUS],
+		['field' => 'decidedAt', 'label' => 'Decided on'],
+		['field' => 'decidedBy', 'label' => 'Decided by', 'render' => 'user'],
+	];
+
+	private const PARENT_REPORT_CARDS_COLUMNS = [
+		['field' => 'periodName', 'label' => 'Period'],
+		['field' => 'mentorComment', 'label' => "Teacher's comment"],
+		['field' => 'gradeLines', 'label' => 'Grades'],
+	];
+
 	/**
 	 * Constructor; the container hands in the factory, `new` with no arguments answers in English.
 	 *
 	 * @param IFactory|null             $l10nFactory    Puts parent labels in the request's language (PortalLabelTranslator).
-	 * @param EmployerBookingSteps|null $bookingSteps   Answers a company booking's steps (employer-portal-audience).
-	 * @param BpvPlacementSteps|null    $placementSteps Answers a work placement's steps (site-workplace-trainer-portal-design).
-	 * @param PortalMessageContacts|null $messageContacts Who a resident may write to (portal-message-contacts).
+	 * @param EmployerBookingStepsInterface|null $bookingSteps   Answers a company booking's steps (employer-portal-audience).
+	 * @param BpvPlacementStepsInterface|null    $placementSteps Answers a work placement's steps (site-workplace-trainer-portal-design).
+	 * @param PortalRecordProviders|null $records        Who a resident may write to and what a guardian may download, per row.
 	 * @param PortalPublicIndex|null     $publicIndex     What a visitor may find (portal-public-index).
 	 */
 	public function __construct(
 		private readonly ?IFactory $l10nFactory=null,
-		private readonly ?EmployerBookingSteps $bookingSteps=null,
-		private readonly ?BpvPlacementSteps $placementSteps=null,
-		private readonly ?PortalMessageContacts $messageContacts=null,
+		private readonly ?EmployerBookingStepsInterface $bookingSteps=null,
+		private readonly ?BpvPlacementStepsInterface $placementSteps=null,
+		private readonly ?PortalRecordProviders $records=null,
 		private readonly ?PortalPublicIndex $publicIndex=null,
 	) {
 	}//end __construct()
@@ -140,7 +312,7 @@ class PortalContributionProvider {
 	 * @spec openspec/changes/portal-message-contacts/specs/portal-contribution/spec.md#requirement-a-guardian-and-a-pupil-may-write-to-the-teachers-of-the-pupils-current-groups
 	 */
 	public function childMessageContacts(string $id): array {
-		return ($this->messageContacts?->childContacts(profileId: $id) ?? []);
+		return ($this->records?->contacts?->childContacts(profileId: $id) ?? []);
 	}//end childMessageContacts()
 
 	/**
@@ -153,8 +325,37 @@ class PortalContributionProvider {
 	 * @spec openspec/changes/portal-message-contacts/specs/portal-contribution/spec.md#requirement-a-guardian-and-a-pupil-may-write-to-the-teachers-of-the-pupils-current-groups
 	 */
 	public function ownMessageContacts(string $id): array {
-		return ($this->messageContacts?->ownContacts(enrolmentId: $id) ?? []);
+		return ($this->records?->contacts?->ownContacts(enrolmentId: $id) ?? []);
 	}//end ownMessageContacts()
+
+	/**
+	 * The `documents` provider of `parentChildren`: the files of the child's
+	 * published report cards. Portaliq calls this only for a child it read
+	 * through the guardian's own scoped collection.
+	 *
+	 * @param string $id The child's learner profile id.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/guardian-reports-and-documents/specs/portal-contribution/spec.md#requirement-a-guardian-reads-her-childrens-published-reports-and-the-schools-papers-on-one-page
+	 */
+	public function childDocuments(string $id): array {
+		return ($this->records?->documents?->childReports(profileId: $id) ?? []);
+	}//end childDocuments()
+
+	/**
+	 * The `documents` provider of `parentSchools`: the files of the school's
+	 * published documents for guardians, for a school one of her children attends.
+	 *
+	 * @param string $id The school's id.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/guardian-reports-and-documents/specs/portal-contribution/spec.md#requirement-a-guardian-reads-her-childrens-published-reports-and-the-schools-papers-on-one-page
+	 */
+	public function schoolDocuments(string $id): array {
+		return ($this->records?->documents?->schoolPapers(schoolId: $id) ?? []);
+	}//end schoolDocuments()
 
 	/**
 	 * The audiences this provider contributes to (contract v2, preferred).
@@ -371,10 +572,7 @@ class PortalContributionProvider {
 			'subjectField' => 'learnerRef',
 			'scopeClaim' => 'learnerRef',
 			'rowField' => 'submissionId',
-			'rowWhen' => [
-				'field' => 'lifecycle',
-				'in' => ['draft'],
-			],
+			'rowWhen' => self::HAND_IN_ROW_WHEN,
 		];
 
 	}//end handInAction()
@@ -428,22 +626,8 @@ class PortalContributionProvider {
 			'scopeField' => 'learnerRef',
 			'scopeClaim' => 'learnerRef',
 			'minTrust' => 'low',
-			'fields' => [
-				'assignmentId',
-				'attachmentRefs',
-			],
-			'fieldConfigs' => [
-				// Same reason as the absence form below: an unlabelled field
-				// is drawn as `assignmentId`.
-				'assignmentId' => ['label' => 'The work you are handing in', 'required' => true],
-				'attachmentRefs' => [
-					'type' => 'file',
-					'label' => 'Your work',
-					'multiple' => true,
-					'accept' => ['.pdf', '.doc', '.docx', '.odt', '.pptx', '.jpg', '.png'],
-					'maxSizeMb' => 20,
-				],
-			],
+			'fields' => self::CREATE_SUBMISSION_FIELDS,
+			'fieldConfigs' => self::CREATE_SUBMISSION_FIELD_CONFIGS,
 			'submitLabel' => 'Hand in your work',
 		];
 
@@ -466,13 +650,7 @@ class PortalContributionProvider {
 		'scopeField' => 'learnerRef',
 		'scopeClaim' => 'learnerRef',
 		'minTrust' => 'low',
-		'fields' => [
-			'dateFrom',
-			'dateTo',
-			'reason',
-			'reasonKind',
-			'attachmentRef',
-		],
+		'fields' => self::STUDENT_EXCUSE_REQUEST_FIELDS,
 		// A field portaliq is given no label for is drawn under its own
 		// name, so the pupil's form read `dateFrom`, `reason`,
 		// `reasonKind` where her guardian's reads Dutch sentences
@@ -480,22 +658,9 @@ class PortalContributionProvider {
 		// the same labels and the same widgets, addressed to her.
 		'fieldConfigs' => [
 			'dateFrom' => ['label' => 'First day you are absent', 'required' => true, 'widget' => 'dateChoices', 'dateChoices' => 2],
-			'dateTo' => [
-				'label' => 'Last day you are absent',
-				'required' => true,
-				'widget' => 'dateChoices',
-				'dateChoices' => 2,
-				'requiredMessage' => 'Choose the last day you are absent.',
-			],
+			'dateTo' => self::STUDENT_EXCUSE_REQUEST_DATE_TO,
 			'reason' => ['label' => 'Reason', 'required' => true],
-			'reasonKind' => [
-				'label' => 'Kind of absence',
-				'required' => true,
-				'valueLabels' => PortalValueLabels::ABSENCE_KIND,
-				'widget' => 'choices',
-				'choiceOptions' => ['illness', 'medical-appointment'],
-				'otherLabel' => 'Another reason',
-			],
+			'reasonKind' => self::EXCUSE_REQUEST_REASON_KIND,
 			'attachmentRef' => (new ExcuseAttachmentField())->config(),
 		],
 		'submitLabel' => 'Report your absence',
@@ -563,11 +728,14 @@ class PortalContributionProvider {
 			$extras->conferenceCollections(childJoin: $childJoin),
 			[$extras->groupMembershipsCollection(childJoin: $childJoin)],
 			[$extras->reportSubjectGradesCollection(childJoin: $childJoin)],
-			$record->collections(childJoin: $childJoin)
+			$record->collections(childJoin: $childJoin),
+			[(new ParentDocumentsPage())->schoolsCollection(childJoin: $childJoin)],
+			(new ParentPermissionSlips())->collections(childJoin: $childJoin)
 		);
 		$actions = array_merge(
 			$this->parentActions(childJoin: $childJoin),
-			$extras->conferenceActions()
+			$extras->conferenceActions(),
+			(new ParentPermissionSlips())->actions()
 		);
 
 		return [
@@ -583,14 +751,7 @@ class PortalContributionProvider {
 			// Portaliq news-audience-from-the-school-app: which of the collections
 			// above name the guardian's children, their school and their groups,
 			// so a news item for the school or a group reaches the guardian.
-			'guardianAudience' => [
-				'children' => 'parentChildren',
-				'schoolField' => 'schoolId',
-				'groups' => [
-					'collection' => 'parentGroupMemberships',
-					'field' => 'cohortId',
-				],
-			],
+			'guardianAudience' => self::PARENT_CONTRIBUTION_GUARDIAN_AUDIENCE,
 		];
 
 	}//end parentContribution()
@@ -625,42 +786,23 @@ class PortalContributionProvider {
 				'scopeClaim' => 'guardianRef',
 				'via' => $childJoin,
 				'minTrust' => 'substantial',
-				'fields' => [
-					'learnerRef',
-					'dateFrom',
-					'dateTo',
-					'reason',
-					'reasonKind',
-					'attachmentRef',
-				],
+				'fields' => self::PARENT_EXCUSE_REQUEST_FIELDS,
 				// The child is picked from the guardian's own children, and portaliq
 				// refuses any other value before the write (portal-parent-conference-
 				// booking); ExcuseRequestOwnerStamp checks it again.
 				'crossRefs' => ['learnerRef' => (new ParentPortalCollections())->childCrossRef()],
 				'optionsProviders' => ['learnerRef' => (new ParentPortalCollections())->childOptions()],
 				'fieldConfigs' => [
-					'learnerRef' => ['label' => 'Child', 'required' => true],
+					// One card per child (wilgenboom/MobielDetail "Wie is er afwezig?").
+					'learnerRef' => ['label' => 'Child', 'required' => true, 'widget' => 'choices'],
 					// Today and the next day as cards, then "Een andere dag" (portaliq
 					// site-multi-step-forms REQ-SMF-005, LearniqAbsence.dc.html).
 					'dateFrom' => ['label' => 'First day absent', 'required' => true, 'widget' => 'dateChoices', 'dateChoices' => 2],
-					'dateTo' => [
-						'label' => 'Last day absent',
-						'required' => true,
-						'widget' => 'dateChoices',
-						'dateChoices' => 2,
-						'requiredMessage' => 'Choose the last day your child is absent.',
-					],
+					'dateTo' => self::PARENT_EXCUSE_REQUEST_DATE_TO,
 					'reason' => ['label' => 'Reason', 'required' => true],
 					// Two cards and "Een andere reden" for the other four kinds, as the
 					// approved mockup shows.
-					'reasonKind' => [
-						'label' => 'Kind of absence',
-						'required' => true,
-						'valueLabels' => PortalValueLabels::ABSENCE_KIND,
-						'widget' => 'choices',
-						'choiceOptions' => ['illness', 'medical-appointment'],
-						'otherLabel' => 'Another reason',
-					],
+					'reasonKind' => self::EXCUSE_REQUEST_REASON_KIND,
 					'attachmentRef' => (new ExcuseAttachmentField())->config(),
 				],
 				'submitLabel' => 'Report the absence',
@@ -668,25 +810,9 @@ class PortalContributionProvider {
 				// The sentence above the send button and on the confirmation (board MobielDetail:
 				// "Sami is vandaag de hele dag ziek."). A date answer reads as "vandaag", "morgen" or
 				// a weekday in the page language; the child reads as the option's own label (L2-3).
-				'summary' => [
-					'label' => 'You report',
-					'template' => '{learnerRef} is {reasonKind} {dateFrom}.',
-					'phrases' => [
-						'reasonKind' => [
-							'illness' => 'ill',
-							'medical-appointment' => 'at the doctor or dentist',
-							'family-circumstance' => 'away for a family reason',
-							'religious-observance' => 'away for a religious holiday',
-							'bereavement' => 'away for a funeral',
-							'other' => 'away for another reason',
-						],
-					],
-				],
+				'summary' => self::PARENT_EXCUSE_REQUEST_SUMMARY,
 				// What she reads after sending (site-guardian-portal-design T6b, REQ-SMF-022).
-				'confirmation' => [
-					'title' => 'Your report has been sent',
-					'body' => 'The teacher sees it in the class right away. In the list of absence reports you see when the teacher has decided.',
-				],
+				'confirmation' => self::PARENT_EXCUSE_REQUEST_CONFIRMATION,
 			],
 		];
 
@@ -718,27 +844,8 @@ class PortalContributionProvider {
 				'label' => "My child's grades",
 				'listable' => true,
 				'minTrust' => 'substantial',
-				'fields' => [
-					'learnerRef',
-					'courseId',
-					// Readable copies and the weight (site-guardian-portal-design):
-					// the subject and test a grade is for, and how often it counts.
-					'courseName',
-					'methodName',
-					'methodBlock',
-					'weight',
-					'curriculumPlanId',
-					'componentId',
-					'value',
-					'gradeScaleId',
-					'period',
-					'gradedAt',
-				],
-				'columns' => [
-					['field' => 'value', 'label' => 'Grade'],
-					['field' => 'period', 'label' => 'Period'],
-					['field' => 'gradedAt', 'label' => 'Given on'],
-				],
+				'fields' => self::PARENT_GRADES_FIELDS,
+				'columns' => self::PARENT_GRADES_COLUMNS,
 			],
 			[
 				'id' => 'parentAttendance',
@@ -751,21 +858,8 @@ class PortalContributionProvider {
 				'label' => "My child's attendance",
 				'listable' => true,
 				'minTrust' => 'substantial',
-				'fields' => [
-					'learnerRef',
-					'sessionId',
-					'cohortId',
-					'status',
-					// Minutes late, not minutes present: a late row read "330 minutes
-					// present", the day minus the minutes late (portal proof run 3).
-					'lateMinutes',
-					'markedAt',
-				],
-				'columns' => [
-					['field' => 'markedAt', 'label' => 'Date', 'render' => 'date'],
-					['field' => 'status', 'label' => 'Attendance', 'valueLabels' => PortalValueLabels::ATTENDANCE_STATUS],
-					['field' => 'lateMinutes', 'label' => 'Minutes late'],
-				],
+				'fields' => self::PARENT_ATTENDANCE_FIELDS,
+				'columns' => self::PARENT_ATTENDANCE_COLUMNS,
 			],
 		];
 
@@ -801,26 +895,8 @@ class PortalContributionProvider {
 				'label' => "My child's absence excuses",
 				'listable' => true,
 				'minTrust' => 'substantial',
-				'fields' => [
-					'learnerRef',
-					'dateFrom',
-					'dateTo',
-					'reason',
-					'reasonKind',
-					'attachmentRef',
-					'lifecycle',
-					'decidedAt',
-					// Read only as a name (render: user), never as the user id.
-					'decidedBy',
-				],
-				'columns' => [
-					['field' => 'dateFrom', 'label' => 'From'],
-					['field' => 'dateTo', 'label' => 'To'],
-					['field' => 'reason', 'label' => 'Reason'],
-					['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::EXCUSE_STATUS],
-					['field' => 'decidedAt', 'label' => 'Decided on'],
-					['field' => 'decidedBy', 'label' => 'Decided by', 'render' => 'user'],
-				],
+				'fields' => self::PARENT_EXCUSE_REQUESTS_FIELDS,
+				'columns' => self::PARENT_EXCUSE_REQUESTS_COLUMNS,
 			],
 			[
 				'id' => 'parentReportCards',
@@ -846,20 +922,8 @@ class PortalContributionProvider {
 				// nested subjectGrades: the portal writes a nested list into one
 				// cell and leaves its uuids out, so it read "7,9, Yes" without a
 				// subject or a period (portal-parent-report-card-grades).
-				'fields' => [
-					'learnerRef',
-					'reportPeriodId',
-					'periodName',
-					'gradeLines',
-					'attendanceSummary',
-					'mentorComment',
-					'docudeskDocumentRef',
-				],
-				'columns' => [
-					['field' => 'periodName', 'label' => 'Period'],
-					['field' => 'mentorComment', 'label' => "Teacher's comment"],
-					['field' => 'gradeLines', 'label' => 'Grades'],
-				],
+				'fields' => self::PARENT_REPORT_CARDS_FIELDS,
+				'columns' => self::PARENT_REPORT_CARDS_COLUMNS,
 			],
 		];
 

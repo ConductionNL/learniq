@@ -31,14 +31,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
+ * @spec openspec/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -52,7 +52,7 @@ use Throwable;
  *
  * @template-implements IEventListener<Event>
  *
- * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
+ * @spec openspec/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
  */
 class HourWeekTotalRollup implements IEventListener {
 
@@ -65,14 +65,14 @@ class HourWeekTotalRollup implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
 	 * @param ObjectService          $objectService  Reads the weeks and writes the placement.
 	 * @param LoggerInterface        $logger         PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
 	) {
@@ -94,29 +94,10 @@ class HourWeekTotalRollup implements IEventListener {
 	 * weeks of ONE placement, capped at 500, a sum over them, and a write only
 	 * when the number actually moved.
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
+	 * @spec openspec/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
 	 */
 	public function handle(Event $event): void {
-		if ($event instanceof ObjectCreatedEvent === false && $event instanceof ObjectUpdatedEvent === false) {
-			return;
-		}
-
-		$entity = $event->getObject();
-		if ($event instanceof ObjectUpdatedEvent === true) {
-			$entity = $event->getNewObject();
-		}
-
-		try {
-			if ($this->schemaResolver->guardSchemaSlug(entity: $entity) !== self::WEEK_SCHEMA) {
-				return;
-			}
-		} catch (Throwable $exception) {
-			// Not knowing the schema is not knowing it is ours.
-			return;
-		}
-
-		$week = ($entity->getObject() ?? []);
-		$placementId = (string)($week['bpvPlacementId'] ?? '');
+		$placementId = $this->placementOfWrittenWeek(event: $event);
 		if ($placementId === '') {
 			return;
 		}
@@ -134,6 +115,58 @@ class HourWeekTotalRollup implements IEventListener {
 	}//end handle()
 
 	/**
+	 * The placement of the week a created or updated event wrote, or '' for
+	 * any other event, any other schema, or a week without a placement.
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return string
+	 */
+	private function placementOfWrittenWeek(Event $event): string {
+		$entity = self::writtenEntity(event: $event);
+		if ($entity === null || $this->isWeek(entity: $entity) === false) {
+			return '';
+		}
+
+		$week = ($entity->getObject() ?? []);
+		return (string)($week['bpvPlacementId'] ?? '');
+	}//end placementOfWrittenWeek()
+
+	/**
+	 * The object a created event carries, or the new side of an updated one.
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return object|null Null for any other event.
+	 */
+	private static function writtenEntity(Event $event): ?object {
+		if ($event instanceof ObjectUpdatedEvent === true) {
+			return $event->getNewObject();
+		}
+
+		if ($event instanceof ObjectCreatedEvent === true) {
+			return $event->getObject();
+		}
+
+		return null;
+	}//end writtenEntity()
+
+	/**
+	 * Whether the entity is an hour week; not knowing the schema is not knowing it is ours.
+	 *
+	 * @param object $entity The written entity.
+	 *
+	 * @return bool
+	 */
+	private function isWeek(object $entity): bool {
+		try {
+			return $this->schemaResolver->guardSchemaSlug(entity: $entity) === self::WEEK_SCHEMA;
+		} catch (Throwable $exception) {
+			return false;
+		}
+	}//end isWeek()
+
+	/**
 	 * The approved, waiting and returned hours of every week of one placement.
 	 *
 	 * Approved: `hoursApproved` of every week that has it. Waiting: the hours
@@ -147,10 +180,35 @@ class HourWeekTotalRollup implements IEventListener {
 	 *
 	 * @throws Throwable When the weeks cannot be read.
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-the-hours-bar-shows-approved-waiting-and-returned-hours
+	 * @spec openspec/specs/bpv/spec.md#requirement-the-hours-bar-shows-approved-waiting-and-returned-hours
 	 */
 	public function sumsFor(string $placementId): array {
-		$weeks = $this->objectService->findAll(
+		$totals = ['hoursApprovedTotal' => 0.0, 'hoursWaitingTotal' => 0.0, 'hoursReturnedTotal' => 0.0];
+		foreach ($this->weeksOf(placementId: $placementId) as $object) {
+			$row = $object;
+			if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
+				$row = (array)$object->jsonSerialize();
+			}
+
+			if (is_array($row) === true) {
+				$totals = self::withWeek(totals: $totals, row: $row);
+			}
+		}
+
+		return $totals;
+	}//end sumsFor()
+
+	/**
+	 * Every week of one placement, read without RBAC or tenancy, at most 500.
+	 *
+	 * @param string $placementId The placement.
+	 *
+	 * @return array<int, mixed>
+	 *
+	 * @throws Throwable When the weeks cannot be read.
+	 */
+	private function weeksOf(string $placementId): array {
+		return $this->objectService->findAll(
 			config: [
 				'filters' => [
 					'register' => self::REGISTER,
@@ -162,31 +220,31 @@ class HourWeekTotalRollup implements IEventListener {
 			_rbac: false,
 			_multitenancy: false
 		);
+	}//end weeksOf()
 
-		$totals = ['hoursApprovedTotal' => 0.0, 'hoursWaitingTotal' => 0.0, 'hoursReturnedTotal' => 0.0];
-		foreach ($weeks as $object) {
-			$row = $object;
-			if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-				$row = (array)$object->jsonSerialize();
-			}
-
-			if (is_array($row) === false) {
-				continue;
-			}
-
-			$approved  = self::hours(value: ($row['hoursApproved'] ?? null));
-			$submitted = self::hours(value: ($row['hoursSubmitted'] ?? null));
-			$totals['hoursApprovedTotal'] += $approved;
-			$lifecycle = (string)($row['lifecycle'] ?? '');
-			if ($lifecycle === 'submitted') {
-				$totals['hoursWaitingTotal'] += $submitted;
-			} else if ($lifecycle === 'rejected') {
-				$totals['hoursReturnedTotal'] += max(0.0, $submitted - $approved);
-			}
+	/**
+	 * The totals with one week added: its approved hours always, its submitted
+	 * hours as waiting while `submitted`, as returned (less what was approved)
+	 * when `rejected`.
+	 *
+	 * @param array{hoursApprovedTotal: float, hoursWaitingTotal: float, hoursReturnedTotal: float} $totals The totals so far.
+	 * @param array<string, mixed>                                                                    $row    The week.
+	 *
+	 * @return array{hoursApprovedTotal: float, hoursWaitingTotal: float, hoursReturnedTotal: float}
+	 */
+	private static function withWeek(array $totals, array $row): array {
+		$approved  = self::hours(value: ($row['hoursApproved'] ?? null));
+		$submitted = self::hours(value: ($row['hoursSubmitted'] ?? null));
+		$totals['hoursApprovedTotal'] += $approved;
+		$lifecycle = (string)($row['lifecycle'] ?? '');
+		if ($lifecycle === 'submitted') {
+			$totals['hoursWaitingTotal'] += $submitted;
+		} else if ($lifecycle === 'rejected') {
+			$totals['hoursReturnedTotal'] += max(0.0, $submitted - $approved);
 		}
 
 		return $totals;
-	}//end sumsFor()
+	}//end withWeek()
 
 	/**
 	 * A number of hours, or zero when the field holds none.

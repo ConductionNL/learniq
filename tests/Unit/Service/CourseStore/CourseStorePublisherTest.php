@@ -29,6 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service\CourseStore;
 
 use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\CourseStore\CourseStoreDefinition;
 use OCA\Learniq\Service\CourseStore\CourseStoreDescriptor;
 use OCA\Learniq\Service\CourseStore\CourseStorePublisher;
 use OCA\Learniq\Service\CourseStore\CourseStoreRegistryObject;
@@ -45,8 +46,10 @@ use stdClass;
 
 /**
  * @covers \OCA\Learniq\Service\CourseStore\CourseStorePublisher
+ * @uses   \OCA\Learniq\Service\CourseStore\CourseStoreDefinition
  * @uses   \OCA\Learniq\Service\CourseStore\CourseStoreDescriptor
  * @uses   \OCA\Learniq\Service\CourseStore\CourseStoreRegistryObject
+ * @uses   \OCA\Learniq\Support\TextValue
  */
 class CourseStorePublisherTest extends TestCase {
 
@@ -95,8 +98,7 @@ class CourseStorePublisherTest extends TestCase {
 	private function publisher(bool $supported=true): CourseStorePublisher {
 		return new CourseStorePublisher(
 			storeService: $this->storeService,
-			descriptor: $this->descriptor(supported: $supported),
-			registryObject: new CourseStoreRegistryObject(),
+			definition: new CourseStoreDefinition(descriptor: $this->descriptor(supported: $supported), registryObject: new CourseStoreRegistryObject()),
 			container: $this->container,
 			logger: new NullLogger(),
 		);
