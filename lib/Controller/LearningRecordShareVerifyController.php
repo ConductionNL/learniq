@@ -53,6 +53,9 @@ use DateTimeInterface;
 use DateTimeZone;
 use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\LearningRecordExportSigningServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
@@ -333,9 +336,8 @@ class LearningRecordShareVerifyController extends Controller {
 
 		try {
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::SHARE_SCHEMA,
-				object: $updated
+				object: $updated,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::SHARE_SCHEMA))
 			);
 		} catch (\Throwable) {
 			// Best-effort — a failed access-stamp must never block a valid verification response.
@@ -363,7 +365,7 @@ class LearningRecordShareVerifyController extends Controller {
 		// fail closed on, so it must return null and let the caller emit the denied JSON —
 		// matching the `catch (\Throwable)` already used by the other methods on this class.
 		try {
-			$obj = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
+			$obj = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema));
 		} catch (\Throwable) {
 			return null;
 		}

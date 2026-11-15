@@ -36,6 +36,7 @@ use OCP\IURLGenerator;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * offerToWallet and recordWalletClaim are self-loops (issued -> issued), and
@@ -122,7 +123,11 @@ class CredentialWalletTransitionListenerTest extends TestCase {
 	private function captureSave(): \ArrayObject {
 		$captured = new \ArrayObject();
 		$this->objectService->expects($this->once())->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use ($captured) {
+			static function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use ($captured) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$captured['object'] = $object;
 				$captured['register'] = $register;
 				$captured['schema'] = $schema;

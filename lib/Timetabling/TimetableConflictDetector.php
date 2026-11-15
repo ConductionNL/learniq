@@ -63,6 +63,8 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use OCA\Learniq\Kernel\Contracts\TimetableConflictDetectorInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -189,9 +191,11 @@ class TimetableConflictDetector implements TimetableConflictDetectorInterface {
 
 		foreach ($scan->toCreate as $conflict) {
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::TIMETABLE_CONFLICT_SCHEMA,
-				object: $conflict
+				object: $conflict,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(
+						register: self::LEARNIQ_REGISTER,
+						schema: self::TIMETABLE_CONFLICT_SCHEMA
+					))
 			);
 		}
 

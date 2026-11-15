@@ -38,14 +38,14 @@ namespace OCA\Learniq\Lifecycle\Action;
 
 use OCA\Learniq\Kernel\Contracts\WalletRevocationPropagationServiceInterface;
 use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
-use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
+use OCA\OpenRegister\Lifecycle\ContextLifecycleActionInterface;
 
 /**
  * Records the wallet revocation outcome on a revoked Credential.
  *
  * @spec openspec/specs/certification/spec.md#requirement-revoking-a-credential-propagates-to-any-outstanding-wallet-offer-fail-soft
  */
-class WalletRevocationPropagationAction implements LifecycleActionInterface {
+class WalletRevocationPropagationAction implements ContextLifecycleActionInterface {
 
 	/**
 	 * Constructor.
