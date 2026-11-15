@@ -24,7 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Listener;
 
 use DateTime;
-use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
+use OCA\Learniq\Listener\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\LearningRecordOwnerStamp;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\LearningRecordAggregationService;

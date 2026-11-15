@@ -36,6 +36,7 @@ namespace OCA\Learniq\Service\Portal;
 
 use DateTimeImmutable;
 use Exception;
+use OCA\Learniq\Kernel\Contracts\PortalResultReaderInterface;
 use OCP\AppFramework\Utility\ITimeFactory;
 
 /**
@@ -43,7 +44,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
  *
  * @spec openspec/specs/assessment/spec.md#requirement-a-portal-result-is-shown-only-once-the-teacher-released-it
  */
-class PortalResultReader {
+class PortalResultReader implements PortalResultReaderInterface {
 
 	/**
 	 * GradeEntry states that count as released.

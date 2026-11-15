@@ -30,9 +30,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Portal\CallerOrganisations;
-use OCA\Learniq\Portal\EmployerPortalInvitation;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CallerOrganisationsInterface;
+use OCA\Learniq\Kernel\Contracts\EmployerPortalInvitationInterface;
 use OCA\Learniq\Service\CallerGroups;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -78,21 +78,21 @@ class PortalEmployerInviteController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest                 $request       The request.
-	 * @param EmployerPortalInvitation $invitations   Provisions the account and writes its claims.
+	 * @param EmployerPortalInvitationInterface $invitations   Provisions the account and writes its claims.
 	 * @param CallerGroups             $caller      The user session and the group manager.
-	 * @param CallerOrganisations      $organisations The organisations the caller belongs to.
+	 * @param CallerOrganisationsInterface      $organisations The organisations the caller belongs to.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly EmployerPortalInvitation $invitations,
+		private readonly EmployerPortalInvitationInterface $invitations,
 		CallerGroups $caller,
-		private readonly CallerOrganisations $organisations,
+		private readonly CallerOrganisationsInterface $organisations,
 	) {
 		$this->userSession = $caller->userSession;
 		$this->groups = $caller->groupManager;
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

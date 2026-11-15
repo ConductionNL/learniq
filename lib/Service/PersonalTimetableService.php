@@ -33,7 +33,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
+use OCA\Learniq\Kernel\Contracts\PersonalTimetableServiceInterface;
+use OCA\Learniq\Kernel\Contracts\TimetableSourceResolverInterface;
+use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
@@ -43,7 +45,7 @@ use RuntimeException;
  *
  * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
  */
-class PersonalTimetableService {
+class PersonalTimetableService implements PersonalTimetableServiceInterface {
 	/**
 	 * OpenRegister register slug that owns the Learniq schemas.
 	 *
@@ -59,19 +61,27 @@ class PersonalTimetableService {
 	private const ENDED_ENROLMENT = ['withdrawn', 'completed', 'failed'];
 
 	/**
+	 * Turns one OpenRegister result into a plain array.
+	 *
+	 * @var ObjectRow
+	 */
+	private readonly ObjectRow $objectRow;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService           $objectService OR object query service (RBAC-scoped).
 	 * @param TimetableProjector      $projector     Window resolution and Session projection.
-	 * @param TimetableSourceResolver $sources       Where sessions are read from: planninq when installed, else Session.
+	 * @param TimetableSourceResolverInterface $sources       Where sessions are read from: planninq when installed, else Session.
 	 * @param LoggerInterface         $logger        Application logger.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly TimetableProjector $projector,
-		private readonly TimetableSourceResolver $sources,
+		private readonly TimetableSourceResolverInterface $sources,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->objectRow = new ObjectRow();
 	}//end __construct()
 
 	/**
@@ -333,15 +343,7 @@ class PersonalTimetableService {
 	 * @return array<string,mixed> The serialized object data.
 	 */
 	private function toArray(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-			return (array)$row->jsonSerialize();
-		}
-
-		return [];
+		return $this->objectRow->asArray(object: $row);
 	}//end toArray()
 
 	/**

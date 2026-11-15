@@ -245,6 +245,51 @@ class SeedProfileServiceTest extends TestCase {
 	}//end testABrokenFileIsSkippedAndLogged()
 
 	/**
+	 * Each set's card: its own fields with their defaults, in wizard order,
+	 * without its order and segment; every file that is not a set is skipped
+	 * with the warning that names why; the generated set comes last.
+	 *
+	 * @return void
+	 */
+	public function testEveryCardAndEverySkippedFile(): void {
+		$dir = $this->appPath . '/lib/Settings/profiles/';
+		file_put_contents($dir . 'a.json', json_encode(['x-openregister' => ['type' => 'profile', 'profile' => ['id' => 'bare']]]));
+		file_put_contents($dir . 'b.json', json_encode(['x-openregister' => ['type' => 'profile', 'profile' => ['id' => 'full', 'segment' => 'vo', 'label' => 'Vol', 'description' => 'D', 'order' => 1, 'objectCount' => '7', 'icon' => 'School']]]));
+		file_put_contents($dir . 'c.json', json_encode(['x-openregister' => ['type' => 'register', 'profile' => ['id' => 'x']]]));
+		file_put_contents($dir . 'd.json', json_encode(['x-openregister' => ['type' => 'profile', 'profile' => 'x']]));
+		file_put_contents($dir . 'e.json', json_encode(['x-openregister' => ['type' => 'profile', 'profile' => ['id' => 5]]]));
+		file_put_contents($dir . 'f.json', 'not json');
+		$warnings = [];
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->method('warning')->willReturnCallback(
+			static function (string $message) use (&$warnings): void {
+				$warnings[] = $message;
+			}
+		);
+
+		$profiles = $this->service(logger: $logger)->listProfiles();
+
+		self::assertSame(
+			[
+				['id' => 'full', 'label' => 'Vol', 'description' => 'D', 'objectCount' => 7, 'icon' => 'School'],
+				['id' => 'bare', 'label' => 'bare', 'description' => '', 'objectCount' => 0, 'icon' => ''],
+				['id' => 'demo', 'label' => 'Every schema, generated values', 'description' => 'x', 'objectCount' => 405, 'icon' => 'DatabaseOutline'],
+			],
+			$profiles
+		);
+		self::assertSame(
+			[
+				'[SeedProfileService] example set declares no profile block: c.json',
+				'[SeedProfileService] example set declares no profile block: d.json',
+				'[SeedProfileService] example set declares no profile block: e.json',
+				'[SeedProfileService] unreadable or malformed example set: f.json',
+			],
+			$warnings
+		);
+		self::assertSame(['full', 'bare'], array_column($this->service(generated: false)->listProfiles(), 'id'));
+	}//end testEveryCardAndEverySkippedFile()
+
+	/**
 	 * Only ids a file declares are known; a path never is.
 	 *
 	 * @return void

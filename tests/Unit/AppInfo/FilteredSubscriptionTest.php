@@ -21,8 +21,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\AppInfo;
 
-use OCA\Learniq\AppInfo\Registrar\BootListenerRegistrar;
-use OCA\Learniq\AppInfo\Registrar\CoverageListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\BootListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\CoverageListenerRegistrar;
 use OCA\Learniq\Listener\AttendanceSummaryListener;
 use OCA\Learniq\Listener\CurriculumCoverageRollupHandler;
 use OCA\Learniq\Listener\SessionConflictListener;
@@ -37,8 +37,8 @@ use PHPUnit\Framework\TestCase;
 /**
  * Each filtered listener reaches OpenRegister with its own registers and schemas.
  *
- * @covers \OCA\Learniq\AppInfo\Registrar\BootListenerRegistrar
- * @covers \OCA\Learniq\AppInfo\Registrar\CoverageListenerRegistrar
+ * @covers \OCA\Learniq\Listener\Registrar\BootListenerRegistrar
+ * @covers \OCA\Learniq\Listener\Registrar\CoverageListenerRegistrar
  */
 class FilteredSubscriptionTest extends TestCase {
 

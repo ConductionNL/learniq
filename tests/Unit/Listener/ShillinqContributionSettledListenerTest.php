@@ -27,7 +27,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\BootListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\BootListenerRegistrar;
 use OCA\Learniq\Listener\ShillinqContributionSettledListener;
 use OCA\Learniq\Service\ContributionBeneficiaryResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;

@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Support\EventGetter;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -121,10 +122,6 @@ class ExchangeJobConcludedListener implements IEventListener {
 	 * @return mixed The value, or null when the getter does not exist.
 	 */
 	private function read(Event $event, string $getter): mixed {
-		if (method_exists($event, $getter) === false) {
-			return null;
-		}
-
-		return $event->$getter();
+		return (new EventGetter())->value(event: $event, getter: $getter);
 	}//end read()
 }//end class

@@ -210,17 +210,6 @@ class MoodleBackupParser {
 	 * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
 	 */
 	private function childText(DOMElement $element, string $tagName): ?string {
-		foreach ($element->childNodes as $child) {
-			if ($child instanceof DOMElement && $child->tagName === $tagName) {
-				$text = trim((string)$child->textContent);
-				if ($text !== '') {
-					return $text;
-				}
-
-				return null;
-			}
-		}
-
-		return null;
+		return (new XmlChildText())->firstOf(element: $element, tagName: $tagName);
 	}//end childText()
 }//end class

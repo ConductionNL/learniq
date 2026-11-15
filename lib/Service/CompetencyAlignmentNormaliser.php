@@ -40,12 +40,15 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\CompetencyAlignmentNormaliserInterface;
+use OCA\Learniq\Support\TextValue;
+
 /**
  * Derives, syncs, checks and reads competency alignments.
  *
  * @spec openspec/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
  */
-class CompetencyAlignmentNormaliser {
+class CompetencyAlignmentNormaliser implements CompetencyAlignmentNormaliserInterface {
 
 	/**
 	 * Normalise a raw `competencyAlignments` value to a list of
@@ -293,10 +296,6 @@ class CompetencyAlignmentNormaliser {
 	 * @return string
 	 */
 	private function stringOrEmpty(mixed $value): string {
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return trim($value);
+		return (new TextValue())->trimmedOrEmpty(value: $value);
 	}//end stringOrEmpty()
 }//end class

@@ -41,8 +41,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\BackgroundJob\CompetencyAttainmentRollupJob;
-use OCA\Learniq\Service\CompetencyAttainmentRollup;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\CompetencyAttainmentRollupInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
@@ -66,11 +66,11 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ListenerDeferralService $deferral Queues the work with the acting user.
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the created object's register and schema.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the created object's register and schema.
 	 */
 	public function __construct(
 		private readonly ListenerDeferralService $deferral,
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 	) {
 	}//end __construct()
 
@@ -111,7 +111,7 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 			return;
 		}
 
-		$this->queue(kind: CompetencyAttainmentRollup::WERKPROCES_CREATED, object: $entity->jsonSerialize());
+		$this->queue(kind: CompetencyAttainmentRollupInterface::WERKPROCES_CREATED, object: $entity->jsonSerialize());
 	}//end handleObjectCreated()
 
 	/**
@@ -129,12 +129,12 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 		}
 
 		if ($this->schemaResolver->eventSchema(event: $event) === self::GRADE_ENTRY_SCHEMA && $event->getTo() === 'published') {
-			$this->queue(kind: CompetencyAttainmentRollup::GRADE_ENTRY_PUBLISHED, object: $event->getObject()->jsonSerialize());
+			$this->queue(kind: CompetencyAttainmentRollupInterface::GRADE_ENTRY_PUBLISHED, object: $event->getObject()->jsonSerialize());
 			return;
 		}
 
 		if ($this->schemaResolver->eventSchema(event: $event) === self::WERKPROCES_SCHEMA && $event->getTo() === 'confirmed') {
-			$this->queue(kind: CompetencyAttainmentRollup::WERKPROCES_CONFIRMED, object: $event->getObject()->jsonSerialize());
+			$this->queue(kind: CompetencyAttainmentRollupInterface::WERKPROCES_CONFIRMED, object: $event->getObject()->jsonSerialize());
 		}
 	}//end handleObjectTransitioned()
 

@@ -153,7 +153,7 @@ export function playerVisibleBlocks(blocks) {
 export function splitTeacherNotes(blocks) {
 	const lessonBlocks = []
 	const notes = []
-	const positions = {}
+	const nextPosition = notePositions()
 	let anchor = ''
 	for (const block of blocks ?? []) {
 		if (block?.type !== TEACHER_NOTE) {
@@ -161,17 +161,41 @@ export function splitTeacherNotes(blocks) {
 			anchor = block?.blockId ?? ''
 			continue
 		}
-		const position = positions[anchor] ?? 0
-		positions[anchor] = position + 1
-		notes.push({
-			blockId: block.blockId,
-			afterBlockId: anchor,
-			position,
-			text: String(block.text ?? ''),
-			noteId: block.noteId ?? null,
-		})
+		notes.push(placedNote(block, { afterBlockId: anchor, position: nextPosition(anchor) }))
 	}
 	return { blocks: lessonBlocks, notes }
+}
+
+/**
+ * A counter per anchor: each call returns the next note position after it,
+ * starting at 0.
+ *
+ * @return {function(string): number} The counter.
+ */
+function notePositions() {
+	const positions = {}
+	return (anchor) => {
+		const position = positions[anchor] ?? 0
+		positions[anchor] = position + 1
+		return position
+	}
+}
+
+/**
+ * A note block as a note at its place among the lesson blocks.
+ *
+ * @param {object} block A `teacherNote` composer block.
+ * @param {{afterBlockId: string, position: number}} place Its anchor and position.
+ * @return {{blockId: string, afterBlockId: string, position: number, text: string, noteId: (string|null)}} The note.
+ */
+function placedNote(block, place) {
+	return {
+		blockId: block.blockId,
+		afterBlockId: place.afterBlockId,
+		position: place.position,
+		text: String(block.text ?? ''),
+		noteId: block.noteId ?? null,
+	}
 }
 
 /**
@@ -224,33 +248,83 @@ export function mergeTeacherNotes(lessonBlocks, notes) {
  * @spec openspec/specs/course-management/spec.md#requirement-the-composer-shows-notes-inline-and-saves-them-to-the-staff-store
  */
 export function diffTeacherNotes(loaded, current) {
-	const idOf = (note) => note?.id ?? note?.uuid ?? note?.['@self']?.id ?? null
-	const stored = new Map((loaded ?? []).map((note) => [note.blockId, note]))
-	const create = []
-	const update = []
+	const writes = { stored: storedNotesByBlockId(loaded), create: [], update: [] }
 	for (const note of current ?? []) {
-		const fields = {
-			blockId: note.blockId,
-			afterBlockId: note.afterBlockId,
-			position: note.position,
-			text: note.text,
-		}
-		const before = stored.get(note.blockId)
-		if (!before) {
-			create.push(fields)
-			continue
-		}
-		stored.delete(note.blockId)
-		if (
-			before.text !== fields.text
-			|| (before.afterBlockId ?? '') !== fields.afterBlockId
-			|| (before.position ?? 0) !== fields.position
-		) {
-			update.push({ ...fields, id: idOf(before) })
-		}
+		sortNoteWrite(note, writes)
 	}
-	const remove = [...stored.values()].map(idOf).filter((id) => id)
-	return { create, update, remove }
+	const remove = [...writes.stored.values()].map(storedNoteId).filter((id) => id)
+	return { create: writes.create, update: writes.update, remove }
+}
+
+/**
+ * The id of a stored note, wherever the object carries it.
+ *
+ * @param {object} note A `lesson-teacher-note` object.
+ * @return {string|null} The id.
+ */
+function storedNoteId(note) {
+	return note?.id ?? note?.uuid ?? note?.['@self']?.id ?? null
+}
+
+/**
+ * The loaded notes keyed by their `blockId`.
+ *
+ * @param {Array<object>} loaded The notes as loaded.
+ * @return {Map<string, object>} The notes by block id.
+ */
+function storedNotesByBlockId(loaded) {
+	return new Map((loaded ?? []).map((note) => [note.blockId, note]))
+}
+
+/**
+ * Put one current note among the writes: a create when it is new, an update
+ * when its text or place changed. A matched note leaves `stored`, so what is
+ * left there was removed.
+ *
+ * @param {object} note A note from splitTeacherNotes().
+ * @param {{stored: Map<string, object>, create: Array<object>, update: Array<object>}} writes The diff being built.
+ */
+function sortNoteWrite(note, writes) {
+	const fields = noteWriteFields(note)
+	const before = writes.stored.get(note.blockId)
+	if (!before) {
+		writes.create.push(fields)
+		return
+	}
+	writes.stored.delete(note.blockId)
+	if (noteChanged(before, fields)) {
+		writes.update.push({ ...fields, id: storedNoteId(before) })
+	}
+}
+
+/**
+ * The fields of a note that the store holds.
+ *
+ * @param {object} note A note from splitTeacherNotes().
+ * @return {{blockId: string, afterBlockId: string, position: number, text: string}} The fields.
+ */
+function noteWriteFields(note) {
+	return {
+		blockId: note.blockId,
+		afterBlockId: note.afterBlockId,
+		position: note.position,
+		text: note.text,
+	}
+}
+
+/**
+ * Whether a stored note's text or place differs from the current one.
+ *
+ * @param {object} before The stored note.
+ * @param {{afterBlockId: string, position: number, text: string}} fields The current note.
+ * @return {boolean}
+ */
+function noteChanged(before, fields) {
+	return (
+		before.text !== fields.text
+		|| (before.afterBlockId ?? '') !== fields.afterBlockId
+		|| (before.position ?? 0) !== fields.position
+	)
 }
 
 /** The block types a teacher adds in the composer, in palette order. */

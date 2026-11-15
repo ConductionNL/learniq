@@ -81,6 +81,34 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcLoadingIcon, NcNoteCard, NcTextArea } from '@nextcloud/vue'
 
+/**
+ * A reissue run's figures, zero where the run did not count.
+ *
+ * @param {object} run The last run.
+ * @return {{processed: number, skipped: number, failed: number}}
+ */
+function runFigures(run) {
+	return {
+		processed: run.processed ?? 0,
+		skipped: run.skipped ?? 0,
+		failed: run.failed ?? 0,
+	}
+}
+
+/**
+ * The course's certificate counts, zero where the answer has none.
+ *
+ * @param {object} data The answer.
+ * @return {{issued: number, revoked: number, expired: number}}
+ */
+function credentialCounts(data) {
+	return {
+		issued: data.issued ?? 0,
+		revoked: data.revoked ?? 0,
+		expired: data.expired ?? 0,
+	}
+}
+
 export default {
 	name: 'ReissueCertificatesView',
 
@@ -118,11 +146,7 @@ export default {
 			return this.t(
 				'learniq',
 				'Last reissue: {processed} reissued, {skipped} skipped, {failed} failed.',
-				{
-					processed: this.lastRun.processed ?? 0,
-					skipped: this.lastRun.skipped ?? 0,
-					failed: this.lastRun.failed ?? 0,
-				},
+				runFigures(this.lastRun),
 			)
 		},
 	},
@@ -147,11 +171,7 @@ export default {
 						),
 					)
 				).data
-				this.counts = {
-					issued: data.issued ?? 0,
-					revoked: data.revoked ?? 0,
-					expired: data.expired ?? 0,
-				}
+				this.counts = credentialCounts(data)
 				this.lastRun = data.lastRun ?? null
 			} catch {
 				this.error = this.t(

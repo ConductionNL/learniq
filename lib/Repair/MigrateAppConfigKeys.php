@@ -3,6 +3,9 @@
 /**
  * Learniq MigrateAppConfigKeys Repair Step
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V.
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Rename-to-learniq boundary 4 (IAppConfig key migration): copies every
  * stored `IAppConfig` value from the old `scholiq` app-config namespace to
  * the new `learniq` namespace. Nextcloud's `IAppConfig` is namespaced by app
@@ -54,9 +57,6 @@
  *     raw stored string, regardless of which typed getter/setter wrote it —
  *     IAppConfig's storage layer is string-based; the typed accessors only
  *     coerce on read, so a string round-trip cannot lose or corrupt data.
- *
- * SPDX-License-Identifier: EUPL-1.2
- * SPDX-FileCopyrightText: 2026 Conduction B.V.
  *
  * @category Repair
  * @package  OCA\Learniq\Repair

@@ -30,6 +30,8 @@ use PHPUnit\Framework\TestCase;
  * @covers \OCA\Learniq\Service\PersonalTimetableService
  * @covers \OCA\Learniq\Service\TimetableProjector
  * @uses   \OCA\Learniq\Service\LessonNoteReader
+ * @uses   \OCA\Learniq\Service\StaffGroupCheck
+ * @uses   \OCA\Learniq\Support\ObjectRow
  */
 class PersonalTimetableGoldenTest extends TestCase {
 	use GoldenFile;

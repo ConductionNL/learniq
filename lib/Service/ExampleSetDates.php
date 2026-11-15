@@ -30,7 +30,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\ExampleSetDatesInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IAppConfig;
@@ -42,7 +43,7 @@ use Throwable;
  *
  * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
  */
-class ExampleSetDates {
+class ExampleSetDates implements ExampleSetDatesInterface {
 
 	/**
 	 * The app config key, per set, of the offset its dates carry.
@@ -94,7 +95,7 @@ class ExampleSetDates {
 	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
 	 */
 	public function appliedOffset(string $setId): ?int {
-		$stored = $this->appConfig->getValueString(Application::APP_ID, self::KEY_PREFIX . $setId, '');
+		$stored = $this->appConfig->getValueString(AppIdentity::APP_ID, self::KEY_PREFIX . $setId, '');
 		if (preg_match('/^-?\d+$/', $stored) === 1) {
 			return (int)$stored;
 		}
@@ -143,7 +144,7 @@ class ExampleSetDates {
 	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
 	 */
 	public function remember(string $setId, int $offset): void {
-		$this->appConfig->setValueString(Application::APP_ID, self::KEY_PREFIX . $setId, (string)$offset);
+		$this->appConfig->setValueString(AppIdentity::APP_ID, self::KEY_PREFIX . $setId, (string)$offset);
 	}//end remember()
 
 	/**
@@ -156,7 +157,7 @@ class ExampleSetDates {
 	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
 	 */
 	public function forget(string $setId): void {
-		$this->appConfig->deleteKey(Application::APP_ID, self::KEY_PREFIX . $setId);
+		$this->appConfig->deleteKey(AppIdentity::APP_ID, self::KEY_PREFIX . $setId);
 	}//end forget()
 
 	/**

@@ -271,6 +271,11 @@ class RolloverServiceTest extends TestCase {
 		$this->assertNull($svc->nextProgrammeYear(fromCohort: ['programmeId' => 'p'], mapping: []));
 		$this->assertNull($svc->nextProgrammeYear(fromCohort: ['programmeId' => 'p', 'programmeYear' => 2], mapping: ['toProgrammeId' => 'q']));
 		$this->assertSame(3, $svc->nextProgrammeYear(fromCohort: ['programmeId' => 'p', 'programmeYear' => 2], mapping: ['toProgrammeId' => 'p']));
+		$this->assertSame(5, $svc->nextProgrammeYear(fromCohort: ['programmeId' => 'p', 'programmeYear' => '4'], mapping: ['toProgrammeId' => '']));
+		$this->assertSame(0, $svc->nextProgrammeYear(fromCohort: ['programmeYear' => -1], mapping: []));
+		$this->assertNull($svc->nextProgrammeYear(fromCohort: ['programmeId' => 'p', 'programmeYear' => '4a'], mapping: []));
+		$this->assertNull($svc->nextProgrammeYear(fromCohort: ['programmeId' => 'p', 'programmeYear' => 2.0], mapping: []));
+		$this->assertNull($svc->nextProgrammeYear(fromCohort: ['programmeYear' => 2], mapping: ['toProgrammeId' => 'p']));
 	}//end testNextProgrammeYearNeedsTheSameProgramme()
 
 	/**

@@ -77,6 +77,12 @@ class RegulationAudienceResolver {
 				$this->stringList(value: $profile['roles'] ?? []),
 				$this->stringList(value: $regulation['audienceRoles'] ?? [])
 			) !== [],
+			// A third criterion next to departments and roles: the job
+			// title the HR system holds (compliance-assign-from-hr-roles).
+			'job-title' => $this->holdsJobTitle(
+				jobTitle: (string)($profile['jobTitle'] ?? ''),
+				jobTitles: $this->stringList(value: $regulation['audienceJobTitles'] ?? [])
+			),
 			default => true,
 		};
 	}//end covers()
@@ -132,6 +138,32 @@ class RegulationAudienceResolver {
 
 		return $levels;
 	}//end departmentLevels()
+
+	/**
+	 * Whether a job title is one of the regulation's, ignoring case and
+	 * surrounding spaces.
+	 *
+	 * @param string             $jobTitle  The person's job title.
+	 * @param array<int, string> $jobTitles The regulation's job titles.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/compliance-assign-from-hr-roles/specs/compliance-rule-coverage/spec.md#requirement-a-change-of-department-roles-or-job-title-re-runs-the-assignment-for-that-person
+	 */
+	private function holdsJobTitle(string $jobTitle, array $jobTitles): bool {
+		$jobTitle = mb_strtolower(trim($jobTitle));
+		if ($jobTitle === '') {
+			return false;
+		}
+
+		foreach ($jobTitles as $scoped) {
+			if (mb_strtolower(trim($scoped)) === $jobTitle) {
+				return true;
+			}
+		}
+
+		return false;
+	}//end holdsJobTitle()
 
 	/**
 	 * Whether a department equals or sits under any of the listed departments.

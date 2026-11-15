@@ -27,6 +27,7 @@ use ReflectionMethod;
  *
  * @covers \OCA\Learniq\Listener\ConferenceFreeSlotGenerator
  * @uses   \OCA\Learniq\Service\ConferenceSlotSlicer
+ * @uses   \OCA\Learniq\Service\ConferenceSlotPattern
  */
 class ConferenceFreeSlotFlagsTest extends TestCase {
 

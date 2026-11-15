@@ -29,9 +29,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Service\Calendar\SchoolYear;
-use OCA\Learniq\Service\CallerTenantResolver;
-use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -67,18 +67,18 @@ class StandbySlotDefaultsStamp implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
 	 * @param SchoolYearClock        $calendar       The school year and the server's clock.
 	 * @param IUserSession           $userSession    The planner.
-	 * @param CallerTenantResolver   $tenants        The planner's tenant.
+	 * @param CallerTenantResolverInterface   $tenants        The planner's tenant.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		SchoolYearClock $calendar,
 		private readonly IUserSession $userSession,
-		private readonly CallerTenantResolver $tenants,
+		private readonly CallerTenantResolverInterface $tenants,
 	) {
 		$this->schoolYear = $calendar->schoolYear;
 		$this->timeFactory = $calendar->timeFactory;

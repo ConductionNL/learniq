@@ -31,6 +31,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \OCA\Learniq\Service\CourseSharePackageBuilder
+ * @uses \OCA\Learniq\Support\TextValue
  */
 class CourseSharePackageBuilderTest extends TestCase {
 

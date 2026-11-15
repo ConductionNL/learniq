@@ -23,6 +23,8 @@ namespace OCA\Learniq\Tests\Unit\Lifecycle\Action;
 
 use OCA\Learniq\Lifecycle\Action\PokParentSignatureStampAction;
 use OCA\Learniq\Service\PokParentSignatureRule;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 
@@ -78,7 +80,14 @@ class PokParentSignatureStampActionTest extends TestCase {
 		$asked  = [];
 		$action = $this->makeAction(['required' => true, 'reason' => 'minor', 'parentIds' => ['ouder-1']], [], $asked);
 
-		$result = $action->execute(['id' => 'pok-1', 'version' => 2, 'lifecycle' => 'pending-signatures'], [], [], 'requestSignatures');
+		$result = $action->execute(
+			new LifecycleActionContext(
+				objectData: ['id' => 'pok-1', 'version' => 2, 'lifecycle' => 'pending-signatures'],
+				previousData: [],
+				parameters: [],
+				actionName: 'requestSignatures'
+			)
+		);
 
 		self::assertTrue($result['parentSignatureRequired']);
 		self::assertSame('pending-signatures', $result['lifecycle']);
@@ -96,7 +105,14 @@ class PokParentSignatureStampActionTest extends TestCase {
 		$asked  = [];
 		$action = $this->makeAction(['required' => false, 'reason' => 'adult', 'parentIds' => []], [], $asked);
 
-		$result = $action->execute(['id' => 'pok-1', 'version' => 2, 'parentSignatureRequired' => true], [], [], 'requestSignatures');
+		$result = $action->execute(
+			new LifecycleActionContext(
+				objectData: ['id' => 'pok-1', 'version' => 2, 'parentSignatureRequired' => true],
+				previousData: [],
+				parameters: [],
+				actionName: 'requestSignatures'
+			)
+		);
 
 		self::assertFalse($result['parentSignatureRequired']);
 	}//end testAnAdultsAgreementIsNotFlagged()
@@ -117,7 +133,14 @@ class PokParentSignatureStampActionTest extends TestCase {
 		];
 		$action     = $this->makeAction(['required' => true, 'reason' => 'minor', 'parentIds' => ['ouder-1']], $signatures, $asked);
 
-		$action->execute(['id' => 'pok-1', 'version' => 2], [], [], 'activate');
+		$action->execute(
+			new LifecycleActionContext(
+				objectData: ['id' => 'pok-1', 'version' => 2],
+				previousData: [],
+				parameters: [],
+				actionName: 'activate'
+			)
+		);
 
 		self::assertSame(['2025-08-22T19:05:00+02:00'], $asked);
 	}//end testOnActivationTheStudentsSignatureDateCounts()
@@ -131,7 +154,60 @@ class PokParentSignatureStampActionTest extends TestCase {
 		$asked  = [];
 		$action = $this->makeAction(['required' => true, 'reason' => 'minor', 'parentIds' => []], [], $asked);
 
-		self::assertSame(['version' => 1], $action->execute(['version' => 1], [], [], 'requestSignatures'));
+		self::assertSame(['version' => 1], $action->execute(
+			new LifecycleActionContext(
+				objectData: ['version' => 1],
+				previousData: [],
+				parameters: [],
+				actionName: 'requestSignatures'
+			)
+		));
 		self::assertSame([], $asked);
 	}//end testAPokWithoutAnIdIsLeftAlone()
+	/**
+	 * Signature rows that come back as entities are read through their
+	 * serialised form; the tenant narrows the lookup.
+	 *
+	 * @return void
+	 */
+	public function testEntitySignatureRowsAreRead(): void {
+		$asked = [];
+		$rows  = OrEntityFactory::makeMany(
+			[
+				['id' => 's-1', 'signerRole' => 'student', 'signedAt' => '2025-08-24T08:00:00+02:00'],
+				['id' => 's-2', 'signerRole' => 'student', 'signedAt' => '2025-08-21T12:00:00+02:00'],
+			],
+			'pok-signature'
+		);
+		$rule = $this->getMockBuilder(PokParentSignatureRule::class)
+			->disableOriginalConstructor()
+			->onlyMethods(['evaluate'])
+			->getMock();
+		$rule->method('evaluate')->willReturnCallback(
+			static function (array $pok, ?string $studentSignedAt) use (&$asked): array {
+				$asked[] = $studentSignedAt;
+				return ['required' => false, 'reason' => 'adult', 'parentIds' => []];
+			}
+		);
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->expects($this->once())->method('findAll')->willReturnCallback(
+			static function (array $config) use ($rows): array {
+				self::assertSame('tenant-a', $config['filters']['tenant_id']);
+				self::assertSame(1, $config['filters']['subjectVersion']);
+				return $rows;
+			}
+		);
+
+		$pok = (new PokParentSignatureStampAction($rule, $objectService))->execute(
+			new LifecycleActionContext(
+				objectData: ['uuid' => 'pok-9', 'tenant_id' => 'tenant-a'],
+				previousData: [],
+				parameters: [],
+				actionName: 'activate'
+			)
+		);
+
+		self::assertSame(['2025-08-21T12:00:00+02:00'], $asked);
+		self::assertFalse($pok['parentSignatureRequired']);
+	}//end testEntitySignatureRowsAreRead()
 }//end class

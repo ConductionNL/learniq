@@ -231,3 +231,60 @@ test('the serialiser keeps only the payload of each block type (unchanged behavi
 		{ blockId: 'e', type: 'richText', order: 3, text: '' },
 	])
 })
+
+test('each outcome carries its reason, and only ok carries the answer', () => {
+	const off = { outcome: 'off', reason: 'not-installed', data: null }
+	assert.deepEqual(classifyOutcome('outline', { status: 404, data: { available: true } }), off)
+	assert.deepEqual(classifyOutcome('outline', { status: 429, error: 'x' }), { outcome: 'busy', reason: 'rate-limited', data: null })
+	const failed = { outcome: 'failed', reason: 'request-failed', data: null }
+	assert.deepEqual(classifyOutcome('outline', undefined), failed)
+	assert.deepEqual(classifyOutcome('outline', { status: 200, error: null, data: { available: true, draftText: 'x' } }), failed)
+	assert.deepEqual(classifyOutcome('outline', { status: 200 }), failed)
+	assert.deepEqual(classifyOutcome('outline', { status: 200, data: 'text' }), failed)
+	assert.deepEqual(classifyOutcome('outline', { status: 200, data: { available: false, reason: 'feature-not-enabled', draftText: 'x' } }), {
+		outcome: 'off',
+		reason: 'feature-not-enabled',
+		data: null,
+	})
+	assert.deepEqual(classifyOutcome('outline', { status: 200, data: { available: false, reason: 7 } }), { outcome: 'retry', reason: '7', data: null })
+	assert.deepEqual(classifyOutcome('outline', { status: 200, data: { available: false } }), { outcome: 'retry', reason: 'provider-error', data: null })
+	const unusable = { outcome: 'retry', reason: 'unusable-answer', data: null }
+	assert.deepEqual(classifyOutcome('outline', { status: 200, data: { draftText: 'x' } }), unusable)
+	assert.deepEqual(classifyOutcome('outline', { status: 200, data: { available: true, draftText: 3 } }), unusable)
+	assert.deepEqual(classifyOutcome('questions', { status: 200, data: { available: true, questions: 'q' } }), unusable)
+	assert.deepEqual(classifyOutcome('unknown', { status: 200, data: { available: true } }), unusable)
+	const goals = { available: true, suggestedGoals: [] }
+	assert.deepEqual(classifyOutcome('goal-suggestions', { status: 200, data: goals }), { outcome: 'ok', reason: null, data: goals })
+	const rewrite = { available: true, draftText: ' text ' }
+	assert.deepEqual(classifyOutcome('simplify', { status: 200, data: rewrite }), { outcome: 'ok', reason: null, data: rewrite })
+	const questions = { available: true, questions: [{ q: 1 }] }
+	assert.deepEqual(classifyOutcome('questions', { status: 200, data: questions }), { outcome: 'ok', reason: null, data: questions })
+})
+
+test('goal payloads skip blank, repeated and missing goals and stop at the cap', () => {
+	assert.deepEqual(goalPayload(undefined), { titles: [], ids: [] })
+	assert.deepEqual(
+		goalPayload([null, { id: 7, title: '  Read  ' }, { id: '', title: 'x' }, { id: 'b' }, { id: 7, title: 'again' }, { id: 'c', title: 'C' }]),
+		{ titles: ['Read', 'C'], ids: ['7', 'c'] },
+	)
+	const long = 'a'.repeat(GOAL_TITLE_MAX) + '   b'
+	assert.equal(goalPayload([{ id: 'l', title: ' ' + long }]).titles[0].length, GOAL_TITLE_MAX)
+	const many = Array.from({ length: GOAL_COUNT_MAX + 5 }, (_, i) => ({ id: `g${i}`, title: `T${i}` }))
+	const capped = goalPayload(many)
+	assert.equal(capped.ids.length, GOAL_COUNT_MAX)
+	assert.equal(capped.ids.at(-1), `g${GOAL_COUNT_MAX - 1}`)
+	assert.deepEqual(goalIdsFromSuggestions([{ index: 1 }, null, { index: -1 }, { index: 2 }, { index: 0.5 }, { index: '0' }, { index: 1 }, { index: 0 }], ['a', 'b']), ['b', 'a'])
+	assert.deepEqual(goalIdsFromSuggestions({ index: 0 }, ['a']), [])
+})
+
+test('request bodies normalise their fields and refuse an unknown action', () => {
+	assert.throws(() => buildRequestBody('translate', {}), { message: 'Unknown lesson assist action: translate' })
+	assert.deepEqual(buildRequestBody('outline'), { goalTitles: [], language: buildRequestBody('outline').language })
+	assert.deepEqual(buildRequestBody('goal-suggestions', { goalTitles: [null, ' g ', ''], lessonText: 'x' }), { lessonText: 'x', goalTitles: ['g'] })
+	assert.deepEqual(Object.keys(buildRequestBody('questions', { lessonText: '', goalTitles: ['g'] })), ['lessonText', 'questionCount', 'language', 'goalTitles'])
+	assert.deepEqual(Object.keys(buildRequestBody('outline', { lessonText: 'x' })), ['goalTitles', 'language', 'lessonText'])
+	assert.equal(canRun('questions', null), false)
+	assert.equal(canRun('simplify', { lessonText: 3 }), false)
+	assert.equal(canRun('outline', { goalTitles: 'g' }), false)
+	assert.equal(canRun('goal-suggestions', { lessonText: '', goalTitles: ['g'] }), false)
+})

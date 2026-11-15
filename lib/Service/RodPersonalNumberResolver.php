@@ -127,14 +127,28 @@ class RodPersonalNumberResolver {
 			return self::none();
 		}
 
-		$filters = ['register' => self::LEARNIQ_REGISTER, 'schema' => self::LEARNER_PROFILE_SCHEMA, 'ncUserId' => $ncUserId];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
+		$results = $this->readProfiles(ncUserId: $ncUserId, tenantId: $tenantId);
+		if (empty($results) === true) {
+			return self::none();
 		}
 
+		return $this->pairOf(profile: $this->rowOf(result: $results[0]), tenantId: $tenantId);
+	}//end forLearner()
+
+	/**
+	 * The learner's profile rows (at most one), or null when the read failed.
+	 *
+	 * @param string $ncUserId The learner's Nextcloud user id.
+	 * @param string $tenantId The tenant the job runs for; empty skips the filter.
+	 *
+	 * @return array<int, mixed>|null The rows, or null; the failure is logged without a value.
+	 *
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-school-advice-goes-to-rod-with-duos-aanleverenadviesvo-field-set
+	 */
+	private function readProfiles(string $ncUserId, string $tenantId): ?array {
 		try {
-			$results = $this->objectService->findAll(
-				config: ['filters' => $filters, 'limit' => 1],
+			return $this->objectService->findAll(
+				config: ['filters' => $this->profileFilters(ncUserId: $ncUserId, tenantId: $tenantId), 'limit' => 1],
 				_rbac: false,
 				_multitenancy: false
 			);
@@ -143,20 +157,43 @@ class RodPersonalNumberResolver {
 				'[RodPersonalNumberResolver] the learner profile of a school advice could not be read ({class}).',
 				['class' => $exception::class]
 			);
-			return self::none();
+			return null;
+		}
+	}//end readProfiles()
+
+	/**
+	 * The filters that find one learner's profile, scoped to the tenant when there is one.
+	 *
+	 * @param string $ncUserId The learner's Nextcloud user id.
+	 * @param string $tenantId The tenant the job runs for; empty skips the filter.
+	 *
+	 * @return array<string, string> The filters.
+	 *
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-school-advice-goes-to-rod-with-duos-aanleverenadviesvo-field-set
+	 */
+	private function profileFilters(string $ncUserId, string $tenantId): array {
+		$filters = ['register' => self::LEARNIQ_REGISTER, 'schema' => self::LEARNER_PROFILE_SCHEMA, 'ncUserId' => $ncUserId];
+		if ($tenantId !== '') {
+			$filters['tenant_id'] = $tenantId;
 		}
 
-		if (empty($results) === true) {
-			return self::none();
+		return $filters;
+	}//end profileFilters()
+
+	/**
+	 * A found profile as a row, whether the store returned an array or an entity.
+	 *
+	 * @param mixed $result The first findAll result.
+	 *
+	 * @return array<string, mixed> The row.
+	 */
+	private function rowOf($result): array {
+		if (is_array($result) === false) {
+			return (array)$result->jsonSerialize();
 		}
 
-		$profile = $results[0];
-		if (is_array($profile) === false) {
-			$profile = (array)$profile->jsonSerialize();
-		}
-
-		return $this->pairOf(profile: $profile, tenantId: $tenantId);
-	}//end forLearner()
+		return $result;
+	}//end rowOf()
 
 	/**
 	 * Whether a nine-digit number passes the elfproef (BSN) or the adapted one (onderwijsnummer).
@@ -176,20 +213,34 @@ class RodPersonalNumberResolver {
 			return false;
 		}
 
-		$sum = 0;
-		for ($position = 0; $position < 8; $position++) {
-			$sum += ((9 - $position) * (int)$number[$position]);
-		}
-
-		$sum -= (int)$number[8];
-		$remainder = ((($sum % 11) + 11) % 11);
-
+		$remainder = self::elfproefRemainder(number: $number);
 		if ($type === 'bsn') {
 			return $remainder === 0 && $number !== '000000000';
 		}
 
 		return $remainder === 5;
 	}//end isValid()
+
+	/**
+	 * The remainder modulo 11 of a nine-digit number's weighted sum: the first
+	 * eight digits weighed 9 down to 2, the ninth subtracted, kept in 0..10.
+	 *
+	 * @param string $number The nine-digit number.
+	 *
+	 * @return integer The remainder.
+	 *
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-rod-learner-record-carries-the-personal-number-where-duo-expects-a-bsn
+	 */
+	private static function elfproefRemainder(string $number): int {
+		$sum = 0;
+		for ($position = 0; $position < 8; $position++) {
+			$sum += ((9 - $position) * (int)$number[$position]);
+		}
+
+		$sum -= (int)$number[8];
+
+		return ((($sum % 11) + 11) % 11);
+	}//end elfproefRemainder()
 
 	/**
 	 * The pair from a profile row, checked.

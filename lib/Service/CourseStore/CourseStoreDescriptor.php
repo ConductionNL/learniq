@@ -3,6 +3,9 @@
 /**
  * Learniq Course Store Descriptor
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Learniq's parameters for OpenRegister's store plane (ADR-080): shared course
  * packages live as `shared-course-package` objects in the `learniq` register of
  * the configured registry. The registry URL, token and register come from
@@ -28,8 +31,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -42,22 +43,19 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\CourseStore;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CourseStoreDescriptorInterface;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\OpenRegister\AppHost\Service\StoreDescriptor;
-use OCA\OpenRegister\AppHost\Service\StoreListing;
-use OCA\OpenRegister\AppHost\Service\StoreSharing;
 
 /**
  * Builds the StoreDescriptor for shared course packages.
  */
-class CourseStoreDescriptor {
+class CourseStoreDescriptor implements CourseStoreDescriptorInterface {
 
 	public const SCHEMA = 'shared-course-package';
 
 	public const DEFAULT_REGISTER = 'learniq';
-
-	public const KIND = 'course-package';
 
 	/**
 	 * Card field => registry object property.
@@ -126,24 +124,19 @@ class CourseStoreDescriptor {
 	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-store-publish-travels-through-the-store-planes-write-path
 	 */
 	public function descriptor(): StoreDescriptor {
-		$listing = new StoreListing(
-			appId: Application::APP_ID,
-			schema: self::SCHEMA,
-			defaultRegister: self::DEFAULT_REGISTER,
-			cardFields: self::CARD_FIELDS
-		);
+		$arguments = [
+			'appId'           => AppIdentity::APP_ID,
+			'schema'          => self::SCHEMA,
+			'defaultRegister' => self::DEFAULT_REGISTER,
+			'cardFields'      => self::CARD_FIELDS,
+		];
 
-		if ($this->supportsPublish() === false) {
-			return new StoreDescriptor(listing: $listing);
+		if ($this->supportsPublish() === true) {
+			$arguments['publishFields'] = self::PUBLISH_FIELDS;
+			$arguments['publishGroups'] = array_values($this->actionAuth->getAllowedGroups(action: self::ACTION_PUBLISH));
 		}
 
-		return new StoreDescriptor(
-			listing: $listing,
-			sharing: new StoreSharing(
-				publishFields: self::PUBLISH_FIELDS,
-				publishGroups: array_values($this->actionAuth->getAllowedGroups(action: self::ACTION_PUBLISH))
-			)
-		);
+		return new StoreDescriptor(...$arguments);
 
 	}//end descriptor()
 

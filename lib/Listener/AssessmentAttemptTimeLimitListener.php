@@ -3,6 +3,9 @@
 /**
  * Learniq Assessment Attempt Time Limit Listener
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Holds a learner's attempt on the in-app test screen to its time limit, on
  * the server, the way the portal endpoints hold a portal attempt to it
  * (in-app-test-limits-server-side):
@@ -32,8 +35,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -45,8 +46,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\AssessmentAttemptLimits;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\AssessmentAttemptLimitsInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -74,19 +75,19 @@ class AssessmentAttemptTimeLimitListener implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the event entity's schema slug.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the event entity's schema slug.
 	 * @param IUserSession $userSession The acting user.
 	 * @param IGroupManager $groupManager Admin check.
-	 * @param AssessmentAttemptLimits $limits The time limit, as the portal endpoints apply it.
+	 * @param AssessmentAttemptLimitsInterface $limits The time limit, as the portal endpoints apply it.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
-		private readonly AssessmentAttemptLimits $limits,
+		private readonly AssessmentAttemptLimitsInterface $limits,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()

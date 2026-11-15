@@ -25,12 +25,29 @@
 export function isLaunchForm(body) {
 	return Boolean(
 		body
-		&& typeof body.formActionUrl === 'string'
-		&& body.formActionUrl !== ''
-		&& body.fields
-		&& typeof body.fields === 'object'
-		&& !Array.isArray(body.fields),
+		&& hasFormAction(body)
+		&& isFieldMap(body.fields),
 	)
+}
+
+/**
+ * Whether a launch response names a form action URL.
+ *
+ * @param {object} body The launch response.
+ * @return {boolean}
+ */
+function hasFormAction(body) {
+	return typeof body.formActionUrl === 'string' && body.formActionUrl !== ''
+}
+
+/**
+ * Whether the form fields are a plain object of name to value.
+ *
+ * @param {object|Array|string|null|undefined} fields The response's `fields`.
+ * @return {boolean}
+ */
+function isFieldMap(fields) {
+	return Boolean(fields && typeof fields === 'object' && !Array.isArray(fields))
 }
 
 /**
