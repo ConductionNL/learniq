@@ -185,7 +185,7 @@ class EmployerBookingFactsTest extends TestCase {
 		$cohorts = $byId('cohort');
 		$staff = ['training-trainer-10' => 'Henk Dekker', 'training-trainer-11' => 'Fatima Ouali'];
 		$location = $objects['vestiging'][0];
-		self::assertCount(4, $objects['course-booking']);
+		self::assertCount(7, $objects['course-booking']);
 
 		foreach ($objects['course-booking'] as $booking) {
 			$participants = [];
@@ -226,7 +226,7 @@ class EmployerBookingFactsTest extends TestCase {
 		}//end foreach
 
 		$waiting = array_column($objects['course-booking'], 'employerStatus', 'bookingNumber');
-		self::assertSame(['I-2026-0377' => 'completed', 'I-2026-0412' => 'waiting-for-you', 'I-2026-0425' => 'confirmed', 'I-2026-0431' => 'received'], $waiting);
+		self::assertSame(['I-2026-0377' => 'completed', 'I-2026-0412' => 'waiting-for-you', 'I-2026-0425' => 'confirmed', 'I-2026-0431' => 'received', 'I-2026-0501' => 'waiting-for-you', 'I-2026-0502' => 'waiting-for-you', 'I-2026-0503' => 'waiting-for-you'], $waiting);
 	}//end testTheSeededBookingsAgreeWithTheServer()
 
 	/**

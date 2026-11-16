@@ -990,8 +990,8 @@ class JansenStory:
         self.add_trainers()
         self.add_editions()
         self.add_credentials()
-        self.add_booking_facts()
         self.add_course_days()
+        self.add_booking_facts()
 
     def add_rooms(self) -> None:
         """Rooms in the praktijkhal."""
@@ -1153,31 +1153,34 @@ class JansenStory:
             self.b.add("subjectteacherassignment", {"cohortId": cohort["uuid"], "courseId": course["uuid"], "teacherId": trainer})
             lesson = self.lessons[key][0][0] if self.lessons[key] else None
             when = f"{day.day} {MAAND[day.month - 1]} {day.year}"
+            sessions = []
             if key == "WP-S":
                 (h1, m1), _ = HALL_SLOTS["ochtend"]
                 _, (h2, m2) = HALL_SLOTS["middag"]
-                self.b.add("session", {
+                sessions.append(self.b.add("session", {
                     "cohortId": cohort["uuid"], "courseId": course["uuid"], "lessonId": lesson["uuid"] if lesson else None,
                     "title": f"{course['name']} ({when})", "startsAt": stamp(day, h1, m1), "endsAt": stamp(day, h2, m2),
                     "location": f"{self.room_of['middag']['name']}, {self.location['name']}", "roomId": self.room_of["middag"]["uuid"],
                     "lifecycle": "scheduled",
                     "parts": [{"key": part, "startsAt": stamp(day, *HALL_SLOTS[slot][0]), "endsAt": stamp(day, *HALL_SLOTS[slot][1])}
                               for part, slot in STORY_PARTS.items()],
-                })
+                }))
             else:
                 for part in ("ochtend", "middag"):
                     (h1, m1), (h2, m2) = HALL_SLOTS[part]
-                    self.b.add("session", {
+                    sessions.append(self.b.add("session", {
                         "cohortId": cohort["uuid"], "courseId": course["uuid"], "lessonId": lesson["uuid"] if lesson else None,
                         "title": f"{course['name']}, {part} ({when})", "startsAt": stamp(day, h1, m1), "endsAt": stamp(day, h2, m2),
                         "location": f"{self.room_of[part]['name']}, {self.location['name']}", "roomId": self.room_of[part]["uuid"],
                         "lifecycle": "scheduled",
-                    })
-            self.b.add("course-booking", {
+                    }))
+            booking = self.b.add("course-booking", {
                 "organisationRef": company["uuid"], "bookingNumber": f"I-2026-{number:04d}", "cohortId": cohort["uuid"],
                 "courseId": course["uuid"], "participantCount": places, "requestedAt": stamp(day - dt.timedelta(days=40), 10, 0),
                 "requestedByName": "Erik de Boer", "lifecycle": state,
             })
+            # No participants are named yet; add_booking_facts still writes what the server derives for the booking.
+            self.bookings.append((booking, course, sessions, []))
 
     def add_credentials(self) -> None:
         """Sanne's proof of participation for Waterzijdig inregelen, ready on Thursday 1 October at 16.52,
