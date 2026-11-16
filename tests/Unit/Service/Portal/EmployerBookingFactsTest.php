@@ -87,6 +87,8 @@ class EmployerBookingFactsTest extends TestCase {
 		self::assertSame('birth-date-missing', $facts['enrolments']['en-2']['detailsStatus']);
 		self::assertSame('Vul de geboortedatum van Youssef Test in', $facts['enrolments']['en-2']['openTask']);
 		self::assertSame('Certificaat geldig tot 30 november 2026', $facts['enrolments']['en-2']['certificateLine']);
+		self::assertSame('2026-11-30', $facts['enrolments']['en-2']['certificateValidUntil']);
+		self::assertNull($facts['enrolments']['en-1']['certificateValidUntil']);
 		self::assertSame('complete', $facts['enrolments']['en-1']['detailsStatus']);
 		self::assertNull($facts['enrolments']['en-1']['openTask']);
 	}//end testAMissingBirthDateBeforeAnExamWaitsForTheEmployer()

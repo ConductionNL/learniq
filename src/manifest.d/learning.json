@@ -533,6 +533,22 @@
 					}
 				},
 				{
+					"id": "CourseParticipantsMenu",
+					"label": "Participants",
+					"icon": "AccountMultiple",
+					"route": "CourseParticipants",
+					"order": 58,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "SessionsThisWeekMenu",
 					"label": "This week's sessions",
 					"icon": "Calendar",
@@ -3045,6 +3061,92 @@
 				"rowRoute": "CohortDetail",
 				"countText": "{shown} of {total} course days",
 				"bulkNoun": "course days"
+			}
+		},
+		{
+			"id": "CourseParticipants",
+			"route": "/course-participants",
+			"type": "index",
+			"title": "Participants",
+			"_note": "training-provider-course-days T7: the participants of the course days with their course, course day, status and the certificate their course renews. certificateValidUntil is written by EmployerBookingProjection from that certificate; certificateStatus is OpenRegister's calculation on it (warning within 8 weeks, error once passed), kept current by its temporal sweep.",
+			"config": {
+				"register": "learniq",
+				"schema": "Enrolment",
+				"showTitle": true,
+				"readOnly": true,
+				"columns": [
+					{
+						"key": "learnerName",
+						"label": "Participant"
+					},
+					{
+						"key": "courseName",
+						"label": "Course"
+					},
+					{
+						"key": "dayLabel",
+						"label": "Course day"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					},
+					{
+						"key": "certificateValidUntil",
+						"label": "Certificate valid until",
+						"formatter": "date"
+					},
+					{
+						"key": "certificateStatus",
+						"label": "Certificate",
+						"enum": [
+							"valid",
+							"expiring",
+							"expired",
+							"none"
+						],
+						"enumLabels": {
+							"valid": "Valid",
+							"expiring": "Runs out within 8 weeks",
+							"expired": "Expired",
+							"none": "No certificate"
+						},
+						"colorMap": {
+							"valid": "success",
+							"expiring": "warning",
+							"expired": "error",
+							"none": "default"
+						}
+					}
+				],
+				"quickFilters": [
+					{
+						"label": "All",
+						"filter": {},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Coming",
+						"filter": {
+							"upcoming": true
+						},
+						"showCount": true
+					},
+					{
+						"label": "Certificate runs out",
+						"filter": {
+							"certificateStatus": [
+								"expiring",
+								"expired"
+							]
+						},
+						"showCount": true
+					}
+				],
+				"defaultSort": "firstDay",
+				"countText": "{shown} of {total} participants",
+				"bulkNoun": "participants"
 			}
 		},
 		{

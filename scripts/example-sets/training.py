@@ -862,11 +862,13 @@ def booking_lifecycle(booking: dict, states: list[str]) -> str:
 
 def participant_facts(p: dict, name: str, credential: dict | None, needs: bool, first: dt.date | None) -> dict:
     """One participant's facts: the certificate line, and the open task when an exam needs a missing birth date."""
-    line = None
+    line, valid_until = None, None
     if credential and credential.get("expiresAt"):
         x = parse_moment(credential["expiresAt"])
         line = f"Certificaat geldig tot {x.day} {MAAND[x.month - 1]} {x.year}"
-    fields = {"detailsStatus": "complete", "openTask": None, "openTaskNote": None, "openTaskDueAt": None, "certificateLine": line}
+        valid_until = x.date().isoformat()
+    fields = {"detailsStatus": "complete", "openTask": None, "openTaskNote": None, "openTaskDueAt": None, "certificateLine": line,
+              "certificateValidUntil": valid_until}
     if needs and not p.get("birthDate"):
         given = p.get("givenName", "").strip()
         weekday = f" {NL_WEEKDAYS[first.weekday()]}" if first else ""

@@ -3412,7 +3412,7 @@
             "Enrolment": {
                 "slug": "enrolment",
                 "icon": "AccountSchoolOutline",
-                "version": "0.5.2",
+                "version": "0.6.0",
                 "title": "Enrolment",
                 "description": "Learner enrolment in a course (Schema.org EnrollmentRequest)",
                 "type": "object",
@@ -3740,6 +3740,29 @@
                         "title": "Certificate",
                         "description": "The participant's current certificate this course renews, as one line, for example \"Certificaat geldig tot 30 november 2026\". Written by the server."
                     },
+                    "certificateValidUntil": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "Certificate valid until",
+                        "description": "The last day the participant's current certificate this course renews is valid. Written by the server from that certificate (training-provider-course-days)."
+                    },
+                    "certificateDaysLeft": {
+                        "type": "integer",
+                        "title": "Certificate days left",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
+                        "readOnly": true,
+                        "nullable": true,
+                        "x-notes": "Materialised value of the certificateDaysLeft calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
+                    },
+                    "certificateStatus": {
+                        "type": "string",
+                        "title": "Certificate status",
+                        "description": "Calculated automatically from this record; it cannot be edited.",
+                        "readOnly": true,
+                        "nullable": true,
+                        "x-notes": "Materialised value of the certificateStatus calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand. Values: valid, expiring (within 8 weeks), expired, or none without a certificate."
+                    },
                     "firstDay": {
                         "type": "string",
                         "format": "date",
@@ -3975,6 +3998,77 @@
                                                 },
                                                 "amber",
                                                 "green"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "certificateDaysLeft": {
+                        "type": "integer",
+                        "materialise": true,
+                        "expression": {
+                            "if": [
+                                {
+                                    "eq": [
+                                        {
+                                            "prop": "certificateValidUntil"
+                                        },
+                                        null
+                                    ]
+                                },
+                                null,
+                                {
+                                    "dateDiff": {
+                                        "from": "now",
+                                        "to": {
+                                            "prop": "certificateValidUntil"
+                                        },
+                                        "unit": "days"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "certificateStatus": {
+                        "type": "string",
+                        "materialise": true,
+                        "description": "The colour rule of the participants list (training-provider-course-days): expiring within 8 weeks (56 days), expired once the valid-until day has passed. dateDiff floors from now to the valid-until day's midnight, so that day itself reads -1 and is still valid; the day after reads -2.",
+                        "expression": {
+                            "if": [
+                                {
+                                    "eq": [
+                                        {
+                                            "prop": "certificateValidUntil"
+                                        },
+                                        null
+                                    ]
+                                },
+                                "none",
+                                {
+                                    "if": [
+                                        {
+                                            "lt": [
+                                                {
+                                                    "prop": "certificateDaysLeft"
+                                                },
+                                                -1
+                                            ]
+                                        },
+                                        "expired",
+                                        {
+                                            "if": [
+                                                {
+                                                    "lte": [
+                                                        {
+                                                            "prop": "certificateDaysLeft"
+                                                        },
+                                                        56
+                                                    ]
+                                                },
+                                                "expiring",
+                                                "valid"
                                             ]
                                         }
                                     ]

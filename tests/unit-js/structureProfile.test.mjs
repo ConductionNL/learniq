@@ -370,6 +370,7 @@ const KNOWN_UNLINKED = {
 		'CheckInMenu',
 		'ConferenceScheduleBoardMenu',
 		'CourseDaysMenu',
+		'CourseParticipantsMenu',
 		'DossierNotesMenu',
 		'ExamAccommodationsMenu',
 		'FirstAidIncidentsMenu',
@@ -409,6 +410,7 @@ const KNOWN_UNLINKED = {
 		'AdmissionsReviewBoardMenu',
 		'ConferenceScheduleBoardMenu',
 		'CourseDaysMenu',
+		'CourseParticipantsMenu',
 		'DossierReviewsMenu',
 		'ExamAccommodationsMenu',
 		'ExchangeJobsMenu',
@@ -442,6 +444,7 @@ const KNOWN_UNLINKED = {
 		'AdmissionsReviewBoardMenu',
 		'CatalogueMenu',
 		'CourseDaysMenu',
+		'CourseParticipantsMenu',
 		'ExamAccommodationsMenu',
 		'GroupPeople',
 		'HourPlanActivitiesMenu',
@@ -622,13 +625,14 @@ test('the full profile is exactly the plain manifest build', () => {
 	// 111 since proctoring-flag-review-page added the Proctoring review entry
 	// under Learning and its twin under Compliance; 112 with Course days
 	// (training-provider-course-days); 113 since permission-slips added the
-	// Permission slips entry at the top level, beside the School calendar.
-	assert.equal(entries.length, 113)
+	// Permission slips entry at the top level, beside the School calendar; 114
+	// with Participants (training-provider-course-days T7).
+	assert.equal(entries.length, 114)
 	assert.equal(plain.menu.length, 27)
-	// 104 in main: Course days and Permission slips each added one.
+	// 105 in main: Course days, Permission slips and Participants each added one.
 	assert.deepEqual(
 		[count('main'), count('footer'), count('settings')],
-		[104, 2, 7],
+		[105, 2, 7],
 	)
 	// 347 since the four unreached pages (BulkEnrol, CohortTimetable,
 	// MarkAttendanceView, SubmitExcuseModal) became actions; 348 with
@@ -636,8 +640,8 @@ test('the full profile is exactly the plain manifest build', () => {
 	// MyGrades became the learner lens of GradeEntries; 349 with
 	// AttendanceNearingLimit (attendance-warns-before-the-threshold); 350 with
 	// CourseDays (training-provider-course-days); 352 with the permission-slips
-	// list and detail.
-	assert.equal(plain.pages.length, 352)
+	// list and detail; 353 with CourseParticipants (training-provider-course-days T7).
+	assert.equal(plain.pages.length, 353)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {

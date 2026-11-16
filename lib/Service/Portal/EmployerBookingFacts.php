@@ -281,6 +281,7 @@ class EmployerBookingFacts {
 			'openTaskNote' => null,
 			'openTaskDueAt' => null,
 			'certificateLine' => $this->certificateLine(credential: ($renewed[(string)($row['enrolment']['id'] ?? '')] ?? null)),
+			'certificateValidUntil' => $this->lines->date(value: ($renewed[(string)($row['enrolment']['id'] ?? '')]['expiresAt'] ?? null))?->format('Y-m-d'),
 		];
 		if ($needsBirthDate === false || trim((string)($profile['birthDate'] ?? '')) !== '') {
 			return $fields;
