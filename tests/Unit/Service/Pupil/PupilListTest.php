@@ -25,6 +25,25 @@ use PHPUnit\Framework\TestCase;
 class PupilListTest extends TestCase {
 
 	/**
+	 * One row through PupilList::row(), with the pupil's parts named one by one, at now().
+	 *
+	 * @param string                    $learnerId  The pupil's user id.
+	 * @param array<string, mixed>|null $profile    The profile, or null.
+	 * @param string                    $todayState Today's state.
+	 * @param array<string, mixed>|null $summary    The attendance summary, or null.
+	 * @param array<string, mixed>      $records    The records by schema.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function rowOf(string $learnerId, ?array $profile, string $todayState, ?array $summary, array $records): array {
+		return PupilList::row(
+			learnerId: $learnerId,
+			pupil: ['profile' => $profile, 'todayState' => $todayState, 'summary' => $summary, 'records' => $records],
+			now: self::now()
+		);
+	}//end rowOf()
+
+	/**
 	 * Monday 26 October 2026, 08.30 Amsterdam time.
 	 *
 	 * @return DateTimeImmutable
@@ -40,7 +59,7 @@ class PupilListTest extends TestCase {
 	 * @return void
 	 */
 	public function testVerasRowCarriesWhatThePrimaryListShows(): void {
-		$row = PupilList::row(
+		$row = self::rowOf(
 			learnerId: 'vera',
 			profile: ['id' => 'p-vera', 'givenName' => 'Vera', 'familyName' => 'Hulstkamp'],
 			todayState: TodayState::IN_CLASS,
@@ -54,7 +73,6 @@ class PupilListTest extends TestCase {
 				],
 				'learning-plan' => [['lifecycle' => 'closed'], ['lifecycle' => 'active']],
 			],
-			now: self::now()
 		);
 
 		$this->assertSame(
@@ -87,7 +105,7 @@ class PupilListTest extends TestCase {
 	 * @return void
 	 */
 	public function testThreeInsufficientGradesAreASignal(): void {
-		$row = PupilList::row(
+		$row = self::rowOf(
 			learnerId: 'noor',
 			profile: ['uuid' => 'p-noor', 'fullName' => 'Noor Bakker'],
 			todayState: TodayState::LATE,
@@ -103,7 +121,6 @@ class PupilListTest extends TestCase {
 				],
 				'support-request' => [['lifecycle' => 'closed'], ['lifecycle' => 'submitted']],
 			],
-			now: self::now()
 		);
 
 		$this->assertSame('p-noor', $row['profileId']);
@@ -130,9 +147,9 @@ class PupilListTest extends TestCase {
 		];
 		$nearing = ['thresholdNearing' => true];
 
-		$flagged = PupilList::row(learnerId: 'a', profile: null, todayState: TodayState::IN_CLASS, summary: $nearing, records: ['attendance-flag' => [['lifecycle' => 'in-handling']], 'grade-entry' => $insufficient], now: self::now());
-		$near = PupilList::row(learnerId: 'b', profile: null, todayState: TodayState::IN_CLASS, summary: $nearing, records: ['attendance-flag' => [['lifecycle' => 'resolved']], 'grade-entry' => $insufficient], now: self::now());
-		$grades = PupilList::row(learnerId: 'c', profile: null, todayState: TodayState::IN_CLASS, summary: ['thresholdNearing' => 'yes'], records: ['grade-entry' => $insufficient], now: self::now());
+		$flagged = self::rowOf(learnerId: 'a', profile: null, todayState: TodayState::IN_CLASS, summary: $nearing, records: ['attendance-flag' => [['lifecycle' => 'in-handling']], 'grade-entry' => $insufficient]);
+		$near = self::rowOf(learnerId: 'b', profile: null, todayState: TodayState::IN_CLASS, summary: $nearing, records: ['attendance-flag' => [['lifecycle' => 'resolved']], 'grade-entry' => $insufficient]);
+		$grades = self::rowOf(learnerId: 'c', profile: null, todayState: TodayState::IN_CLASS, summary: ['thresholdNearing' => 'yes'], records: ['grade-entry' => $insufficient]);
 
 		$this->assertSame(PupilList::SIGNAL_ATTENDANCE_FLAG, $flagged['signal']);
 		$this->assertSame(PupilList::SIGNAL_NEARING_THRESHOLD, $near['signal']);
@@ -148,7 +165,7 @@ class PupilListTest extends TestCase {
 	 * @return void
 	 */
 	public function testMilansPlacementColumns(): void {
-		$row = PupilList::row(
+		$row = self::rowOf(
 			learnerId: 'milan',
 			profile: ['fullName' => ''],
 			todayState: TodayState::NOT_REGISTERED,
@@ -160,7 +177,6 @@ class PupilListTest extends TestCase {
 				],
 				'conference-slot' => [['lifecycle' => 'proposed', 'startsAt' => '2026-11-02T16:00:00+01:00'], ['lifecycle' => 'booked', 'startsAt' => 'not a date']],
 			],
-			now: self::now()
 		);
 
 		$this->assertSame('milan', $row['name']);

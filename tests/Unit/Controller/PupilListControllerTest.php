@@ -38,14 +38,17 @@ class PupilListControllerTest extends TestCase {
 	 *
 	 * @return PupilListController
 	 */
-	private function controller(PupilListService $service, bool $signedIn=true): PupilListController {
+	private function controller(PupilListService $service, bool $signedIn=true, array $params=[]): PupilListController {
 		$session = $this->createMock(IUserSession::class);
 		$user = $this->createMock(IUser::class);
 		$session->method('getUser')->willReturn($signedIn === true ? $user : null);
 		$l10n = $this->createMock(IL10N::class);
 		$l10n->method('t')->willReturnArgument(0);
 
-		return new PupilListController(request: $this->createMock(IRequest::class), userSession: $session, pupilList: $service, logger: new NullLogger(), l10n: $l10n);
+		$request = $this->createMock(IRequest::class);
+		$request->method('getParam')->willReturnCallback(static fn (string $key, mixed $default=null): mixed => ($params[$key] ?? $default));
+
+		return new PupilListController(request: $request, userSession: $session, pupilList: $service, logger: new NullLogger(), l10n: $l10n);
 	}//end controller()
 
 	/**
@@ -55,10 +58,10 @@ class PupilListControllerTest extends TestCase {
 	 */
 	public function testIndexAnswersTheList(): void {
 		$service = $this->createMock(PupilListService::class);
-		$service->expects($this->once())->method('forCohort')->with($this->isInstanceOf(IUser::class), 'groep-7', 'absent-today', 'signal-first')
+		$service->expects($this->once())->method('forCohort')->with($this->isInstanceOf(IUser::class), ['cohortId' => 'groep-7', 'view' => 'absent-today', 'sort' => 'signal-first'])
 			->willReturn(['results' => [], 'total' => 0]);
 
-		$response = $this->controller(service: $service)->index(cohortId: 'groep-7', view: 'absent-today', sort: 'signal-first');
+		$response = $this->controller(service: $service, params: ['cohortId' => 'groep-7', 'view' => 'absent-today', 'sort' => 'signal-first'])->index();
 
 		$this->assertSame(200, $response->getStatus());
 		$this->assertSame(['results' => [], 'total' => 0], $response->getData());
@@ -71,7 +74,7 @@ class PupilListControllerTest extends TestCase {
 	 */
 	public function testIndexWithoutAViewAsksForAll(): void {
 		$service = $this->createMock(PupilListService::class);
-		$service->expects($this->once())->method('forCohort')->with($this->isInstanceOf(IUser::class), null, '', '')->willReturn([]);
+		$service->expects($this->once())->method('forCohort')->with($this->isInstanceOf(IUser::class), ['cohortId' => null, 'view' => '', 'sort' => ''])->willReturn([]);
 
 		$this->assertSame(200, $this->controller(service: $service)->index()->getStatus());
 	}//end testIndexWithoutAViewAsksForAll()
@@ -100,7 +103,7 @@ class PupilListControllerTest extends TestCase {
 		$service = $this->createMock(PupilListService::class);
 		$service->method('forCohort')->willThrowException(new RollCallException('You cannot take the register of this group.', 403));
 
-		$response = $this->controller(service: $service)->index(cohortId: 'groep-8');
+		$response = $this->controller(service: $service, params: ['cohortId' => 'groep-8'])->index();
 
 		$this->assertSame(403, $response->getStatus());
 		$this->assertSame(['error' => 'You cannot take the register of this group.', 'message' => 'You cannot take the register of this group.'], $response->getData());

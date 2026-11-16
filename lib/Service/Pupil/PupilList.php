@@ -125,62 +125,117 @@ final class PupilList {
 	 * One pupil's row. Its `id` is the profile's, so a row opens the pupil's
 	 * page; a pupil without a profile keeps the user id.
 	 *
-	 * @param string                     $learnerId  The pupil's Nextcloud user id.
-	 * @param array<string, mixed>|null  $profile    The pupil's profile, or null when there is none.
-	 * @param string                     $todayState The pupil's state today (a TodayState constant).
-	 * @param array<string, mixed>|null  $summary    The attendance summary of this school year, or null.
-	 * @param array<string, list<array<string, mixed>>> $records The pupil's conference-slot, learning-plan,
-	 *                                                           support-request, attendance-flag, grade-entry
-	 *                                                           and bpv-placement rows, keyed by schema.
-	 * @param DateTimeImmutable          $now        Now, in the school's zone.
+	 * The pupil holds `profile` (the pupil's profile, or null when there is
+	 * none), `todayState` (a TodayState constant), `summary` (the attendance
+	 * summary of this school year, or null) and `records` (the pupil's
+	 * conference-slot, learning-plan, support-request, attendance-flag,
+	 * grade-entry and bpv-placement rows, keyed by schema).
+	 *
+	 * @param string               $learnerId The pupil's Nextcloud user id.
+	 * @param array<string, mixed> $pupil     The pupil's profile, today's state, summary and records.
+	 * @param DateTimeImmutable    $now       Now, in the school's zone.
 	 *
 	 * @return array<string, mixed>
 	 *
 	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T1
 	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T2
 	 */
-	public static function row(string $learnerId, ?array $profile, string $todayState, ?array $summary, array $records, DateTimeImmutable $now): array {
-		$conference = self::nextConference(slots: ($records['conference-slot'] ?? []), now: $now);
+	public static function row(string $learnerId, array $pupil, DateTimeImmutable $now): array {
+		$profile = self::arrayOrNull(value: ($pupil['profile'] ?? null));
+		$summary = self::arrayOrNull(value: ($pupil['summary'] ?? null));
+		$records = (array)($pupil['records'] ?? []);
 		$grades = self::grades(entries: ($records['grade-entry'] ?? []));
-		$placement = PupilPage::runningPlacement(placements: ($records['bpv-placement'] ?? []));
+		$profileId = self::idOf(row: ($profile ?? []));
 
-		$conferenceAt = null;
-		$conferenceState = self::CONFERENCE_NONE;
-		if ($conference !== null) {
-			$conferenceAt = (string)$conference['startsAt'];
-			$conferenceState = (string)$conference['lifecycle'];
+		return array_merge(
+			[
+				'id' => self::rowId(profileId: $profileId, learnerId: $learnerId),
+				'learnerId' => $learnerId,
+				'profileId' => $profileId,
+				'name' => self::nameOf(learnerId: $learnerId, profile: $profile),
+				'todayState' => (string)($pupil['todayState'] ?? ''),
+				'absentDays' => self::count(row: $summary, key: 'absentDays'),
+				'lateCount' => self::count(row: $summary, key: 'lateCount'),
+			],
+			self::conferenceFields(conference: self::nextConference(slots: ($records['conference-slot'] ?? []), now: $now)),
+			[
+				'care' => self::care(plans: ($records['learning-plan'] ?? []), requests: ($records['support-request'] ?? [])),
+				'signal' => self::orGradeSignal(
+					signal: self::attendanceSignal(flags: ($records['attendance-flag'] ?? []), summary: $summary),
+					insufficient: $grades['insufficient']
+				),
+				'average' => $grades['average'],
+				'insufficientCount' => $grades['insufficient'],
+			],
+			self::placementFields(placement: PupilPage::runningPlacement(placements: ($records['bpv-placement'] ?? [])))
+		);
+	}//end row()
+
+	/**
+	 * A value that is an array, else null.
+	 *
+	 * @param mixed $value The value.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private static function arrayOrNull(mixed $value): ?array {
+		if (is_array($value) === false) {
+			return null;
 		}
 
+		return $value;
+	}//end arrayOrNull()
+
+	/**
+	 * The row id: the profile's id, else the user id.
+	 *
+	 * @param string $profileId The profile's id, '' without one.
+	 * @param string $learnerId The pupil's Nextcloud user id.
+	 *
+	 * @return string
+	 */
+	private static function rowId(string $profileId, string $learnerId): string {
+		if ($profileId === '') {
+			return $learnerId;
+		}
+
+		return $profileId;
+	}//end rowId()
+
+	/**
+	 * The conference columns of a row: when and in which state the next conference is.
+	 *
+	 * @param array<string, mixed>|null $conference The next conference slot, or null.
+	 *
+	 * @return array{conferenceAt: string|null, conferenceState: string}
+	 */
+	private static function conferenceFields(?array $conference): array {
+		if ($conference === null) {
+			return ['conferenceAt' => null, 'conferenceState' => self::CONFERENCE_NONE];
+		}
+
+		return ['conferenceAt' => (string)$conference['startsAt'], 'conferenceState' => (string)$conference['lifecycle']];
+	}//end conferenceFields()
+
+	/**
+	 * The placement columns of a row: company, approved hours and state of the running placement.
+	 *
+	 * @param array<string, mixed>|null $placement The running placement, or null.
+	 *
+	 * @return array{company: string, bpvHoursApproved: float|null, placementState: string}
+	 */
+	private static function placementFields(?array $placement): array {
 		$bpvHoursApproved = null;
 		if ($placement !== null) {
 			$bpvHoursApproved = (float)($placement['hoursApprovedTotal'] ?? 0);
 		}
 
-		$profileId = self::idOf(row: ($profile ?? []));
-		$rowId = $profileId;
-		if ($rowId === '') {
-			$rowId = $learnerId;
-		}
-
 		return [
-			'id' => $rowId,
-			'learnerId' => $learnerId,
-			'profileId' => $profileId,
-			'name' => self::nameOf(learnerId: $learnerId, profile: $profile),
-			'todayState' => $todayState,
-			'absentDays' => self::count(row: $summary, key: 'absentDays'),
-			'lateCount' => self::count(row: $summary, key: 'lateCount'),
-			'conferenceAt' => $conferenceAt,
-			'conferenceState' => $conferenceState,
-			'care' => self::care(plans: ($records['learning-plan'] ?? []), requests: ($records['support-request'] ?? [])),
-			'signal' => self::signal(flags: ($records['attendance-flag'] ?? []), summary: $summary, insufficient: $grades['insufficient']),
-			'average' => $grades['average'],
-			'insufficientCount' => $grades['insufficient'],
 			'company' => self::text(row: $placement, key: 'trainingCompanyName'),
 			'bpvHoursApproved' => $bpvHoursApproved,
 			'placementState' => self::text(row: $placement, key: 'lifecycle'),
 		];
-	}//end row()
+	}//end placementFields()
 
 	/**
 	 * Whether a row belongs to a saved view; an unknown or empty view holds every row.
@@ -261,12 +316,8 @@ final class PupilList {
 		$next = null;
 		$nextAt = null;
 		foreach ($slots as $slot) {
-			$at = self::moment(value: ($slot['startsAt'] ?? null));
-			if ($at === null || $at < $now || in_array($slot['lifecycle'] ?? '', self::COMING_SLOT_STATES, true) === false) {
-				continue;
-			}
-
-			if ($nextAt === null || $at < $nextAt) {
+			$at = self::comingAt(slot: $slot, now: $now);
+			if ($at !== null && ($nextAt === null || $at < $nextAt)) {
 				$next = $slot;
 				$nextAt = $at;
 			}
@@ -274,6 +325,27 @@ final class PupilList {
 
 		return $next;
 	}//end nextConference()
+
+	/**
+	 * When a slot starts, if it is still coming (not before now, in a coming state), else null.
+	 *
+	 * @param array<string, mixed> $slot The conference slot.
+	 * @param DateTimeImmutable    $now  Now.
+	 *
+	 * @return DateTimeImmutable|null
+	 */
+	private static function comingAt(array $slot, DateTimeImmutable $now): ?DateTimeImmutable {
+		if (in_array($slot['lifecycle'] ?? '', self::COMING_SLOT_STATES, true) === false) {
+			return null;
+		}
+
+		$at = self::moment(value: ($slot['startsAt'] ?? null));
+		if ($at === null || $at < $now) {
+			return null;
+		}
+
+		return $at;
+	}//end comingAt()
 
 	/**
 	 * The pupil's care: a running plan, else an open support request, else ''.
@@ -300,16 +372,15 @@ final class PupilList {
 	}//end care()
 
 	/**
-	 * The pupil's signal: an open attendance flag, else a nearing threshold,
-	 * else three or more insufficient grades, else ''.
+	 * The pupil's attendance signal: an open attendance flag, else a nearing
+	 * threshold, else '' (orGradeSignal() then adds the grade signal).
 	 *
-	 * @param list<array<string, mixed>> $flags        The attendance flags.
-	 * @param array<string, mixed>|null  $summary      This school year's attendance summary.
-	 * @param int                        $insufficient The number of insufficient grades.
+	 * @param list<array<string, mixed>> $flags   The attendance flags.
+	 * @param array<string, mixed>|null  $summary This school year's attendance summary.
 	 *
 	 * @return string
 	 */
-	private static function signal(array $flags, ?array $summary, int $insufficient): string {
+	private static function attendanceSignal(array $flags, ?array $summary): string {
 		foreach ($flags as $flag) {
 			if (in_array($flag['lifecycle'] ?? '', self::OPEN_FLAG_STATES, true) === true) {
 				return self::SIGNAL_ATTENDANCE_FLAG;
@@ -320,12 +391,24 @@ final class PupilList {
 			return self::SIGNAL_NEARING_THRESHOLD;
 		}
 
-		if ($insufficient >= self::INSUFFICIENT_SIGNAL_COUNT) {
+		return '';
+	}//end attendanceSignal()
+
+	/**
+	 * An attendance signal as it is; without one, the grade signal when enough grades are insufficient.
+	 *
+	 * @param string $signal       The attendance signal, '' for none.
+	 * @param int    $insufficient The number of insufficient grades.
+	 *
+	 * @return string
+	 */
+	private static function orGradeSignal(string $signal, int $insufficient): string {
+		if ($signal === '' && $insufficient >= self::INSUFFICIENT_SIGNAL_COUNT) {
 			return self::SIGNAL_INSUFFICIENT_GRADES;
 		}
 
-		return '';
-	}//end signal()
+		return $signal;
+	}//end orGradeSignal()
 
 	/**
 	 * The weighted average of the counting grades (one decimal, null without
@@ -340,19 +423,15 @@ final class PupilList {
 		$weights = 0.0;
 		$insufficient = 0;
 		foreach ($entries as $entry) {
-			$value = ($entry['value'] ?? null);
-			if (in_array($entry['lifecycle'] ?? '', self::COUNTING_GRADE_STATES, true) === false || (is_int($value) === false && is_float($value) === false)) {
+			$value = self::countingValue(entry: $entry);
+			if ($value === null) {
 				continue;
 			}
 
-			$weight = ($entry['weight'] ?? 1);
-			if ((is_int($weight) === false && is_float($weight) === false) || $weight <= 0) {
-				$weight = 1;
-			}
-
-			$sum += ((float)$value * (float)$weight);
-			$weights += (float)$weight;
-			if ((float)$value < self::INSUFFICIENT_BELOW) {
+			$weight = self::weightOf(entry: $entry);
+			$sum += ($value * $weight);
+			$weights += $weight;
+			if ($value < self::INSUFFICIENT_BELOW) {
 				$insufficient++;
 			}
 		}
@@ -364,6 +443,42 @@ final class PupilList {
 
 		return ['average' => $average, 'insufficient' => $insufficient];
 	}//end grades()
+
+	/**
+	 * The numeric value of a grade entry that counts (published or revised), else null.
+	 *
+	 * @param array<string, mixed> $entry The grade entry.
+	 *
+	 * @return float|null
+	 */
+	private static function countingValue(array $entry): ?float {
+		$value = ($entry['value'] ?? null);
+		if (in_array($entry['lifecycle'] ?? '', self::COUNTING_GRADE_STATES, true) === false) {
+			return null;
+		}
+
+		if (is_int($value) === false && is_float($value) === false) {
+			return null;
+		}
+
+		return (float)$value;
+	}//end countingValue()
+
+	/**
+	 * The weight of a grade entry: its positive numeric weight, else 1.
+	 *
+	 * @param array<string, mixed> $entry The grade entry.
+	 *
+	 * @return float
+	 */
+	private static function weightOf(array $entry): float {
+		$weight = ($entry['weight'] ?? 1);
+		if ((is_int($weight) === false && is_float($weight) === false) || $weight <= 0) {
+			return 1.0;
+		}
+
+		return (float)$weight;
+	}//end weightOf()
 
 	/**
 	 * The pupil's name off the profile, else the user id.

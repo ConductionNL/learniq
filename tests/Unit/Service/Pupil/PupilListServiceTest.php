@@ -106,7 +106,7 @@ class PupilListServiceTest extends TestCase {
 			}
 		);
 
-		$all = $this->service()->forCohort(user: $this->user, cohortId: 'groep-7');
+		$all = $this->service()->forCohort(user: $this->user, query: ['cohortId' => 'groep-7']);
 
 		$this->assertSame('groep-7', $all['cohortId']);
 		$this->assertSame('Groep 7', $all['cohortName']);
@@ -154,7 +154,7 @@ class PupilListServiceTest extends TestCase {
 		$this->todayStates->method('forCohort')->willReturn(['lina' => TodayState::APPOINTMENT, 'vera' => TodayState::IN_CLASS]);
 		$this->reader->method('ofPupils')->willReturn([]);
 
-		$list = $this->service()->forCohort(user: $this->user, cohortId: null, view: PupilList::VIEW_ABSENT_TODAY);
+		$list = $this->service()->forCohort(user: $this->user, query: ['cohortId' => null, 'view' => PupilList::VIEW_ABSENT_TODAY]);
 
 		$this->assertSame(1, $list['total']);
 		$this->assertSame(['lina'], array_column($list['results'], 'learnerId'));
@@ -179,7 +179,7 @@ class PupilListServiceTest extends TestCase {
 			}
 		);
 
-		$list = $this->service()->forCohort(user: $this->user, sort: PupilList::SORT_SIGNAL_FIRST);
+		$list = $this->service()->forCohort(user: $this->user, query: ['sort' => PupilList::SORT_SIGNAL_FIRST]);
 
 		$this->assertSame(['noor', 'anne'], array_column($list['results'], 'learnerId'));
 	}//end testSignalFirstReachesTheRules()
@@ -215,7 +215,7 @@ class PupilListServiceTest extends TestCase {
 		$this->reader->expects($this->never())->method('ofPupils');
 
 		$this->expectException(RollCallException::class);
-		$this->service()->forCohort(user: $this->user, cohortId: 'groep-7');
+		$this->service()->forCohort(user: $this->user, query: ['cohortId' => 'groep-7']);
 	}//end testAGroupTheCallerMayNotOpenIsRefused()
 
 	/**

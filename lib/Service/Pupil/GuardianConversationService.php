@@ -161,12 +161,26 @@ class GuardianConversationService {
 
 		$messages = GuardianConversation::messages(
 			byThread: $byThread,
-			isStaff: fn (string $ref): bool => $this->userManager->userExists($ref),
-			nameOf: fn (string $ref): string => (string)($this->userManager->getDisplayName($ref) ?? $ref)
+			staffName: fn (string $ref): ?string => $this->staffName(ref: $ref)
 		);
 
 		return ['messages' => $messages, 'replyThread' => GuardianConversation::replyThread(threads: $about, messages: $messages)];
 	}//end conversation()
+
+	/**
+	 * The display name of a sender who is a Nextcloud user (a member of staff), else null.
+	 *
+	 * @param string $ref The sender reference.
+	 *
+	 * @return string|null
+	 */
+	private function staffName(string $ref): ?string {
+		if ($this->userManager->userExists($ref) === false) {
+			return null;
+		}
+
+		return (string)($this->userManager->getDisplayName($ref) ?? $ref);
+	}//end staffName()
 
 	/**
 	 * Refuse a caller for whom no group they may see holds the pupil.

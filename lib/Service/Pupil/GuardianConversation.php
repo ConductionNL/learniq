@@ -77,14 +77,14 @@ final class GuardianConversation {
 	 * The newest messages of the threads, oldest first, mapped for the page.
 	 *
 	 * @param array<string, array<int, array<string, mixed>>> $byThread Messages per thread id.
-	 * @param callable(string): bool                           $isStaff  Whether a sender is a member of staff.
-	 * @param callable(string): string                         $nameOf   The display name of a member of staff.
+	 * @param callable(string): ?string                        $staffName The display name of a sender who is a member
+	 *                                                                    of staff, null for anyone else.
 	 *
 	 * @return array<int, array{id: string, threadId: string, text: string, time: string, side: string, author: string}>
 	 *
 	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T5
 	 */
-	public static function messages(array $byThread, callable $isStaff, callable $nameOf): array {
+	public static function messages(array $byThread, callable $staffName): array {
 		$rows = [];
 		foreach ($byThread as $threadId => $messages) {
 			foreach ($messages as $message) {
@@ -94,11 +94,14 @@ final class GuardianConversation {
 				}
 
 				$sender = (string)($message['senderRef'] ?? '');
-				$side = self::SIDE_GUARDIAN;
-				$author = '';
-				if ($sender !== '' && $isStaff($sender) === true) {
-					$side = self::SIDE_SCHOOL;
-					$author = $nameOf($sender);
+				$author = null;
+				if ($sender !== '') {
+					$author = $staffName($sender);
+				}
+
+				$side = self::SIDE_SCHOOL;
+				if ($author === null) {
+					$side = self::SIDE_GUARDIAN;
 				}
 
 				$rows[] = [
@@ -107,7 +110,7 @@ final class GuardianConversation {
 					'text' => $text,
 					'time' => (string)($message['sentAt'] ?? ''),
 					'side' => $side,
-					'author' => $author,
+					'author' => (string)$author,
 				];
 			}
 		}

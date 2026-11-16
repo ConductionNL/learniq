@@ -60,8 +60,7 @@ class GuardianConversationTest extends TestCase {
 
 		$messages = GuardianConversation::messages(
 			byThread: $byThread,
-			isStaff: static fn (string $ref): bool => $ref === 'daan',
-			nameOf: static fn (string $ref): string => 'Daan de Wit'
+			staffName: static fn (string $ref): ?string => ($ref === 'daan' ? 'Daan de Wit' : null)
 		);
 
 		$this->assertSame(['m1', 'm2', 'm3'], array_column($messages, 'id'));
@@ -84,8 +83,7 @@ class GuardianConversationTest extends TestCase {
 
 		$messages = GuardianConversation::messages(
 			byThread: ['t' => $rows],
-			isStaff: static fn (string $ref): bool => false,
-			nameOf: static fn (string $ref): string => ''
+			staffName: static fn (string $ref): ?string => null
 		);
 
 		$this->assertCount(GuardianConversation::LIMIT, $messages);

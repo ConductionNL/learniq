@@ -71,9 +71,10 @@ class PupilListController extends Controller {
 	/**
 	 * The pupils of a group, as list rows with the saved views' counts.
 	 *
-	 * @param string|null $cohortId The group; empty for the caller's first group.
-	 * @param string|null $view     A saved view narrowing the rows: absent-today, no-conference-time, with-care or with-signal.
-	 * @param string|null $sort     `signal-first` for pupils with a signal first; else by name.
+	 * Query parameters: `cohortId` (the group; empty for the caller's first
+	 * group), `view` (a saved view narrowing the rows: absent-today,
+	 * no-conference-time, with-care or with-signal) and `sort` (`signal-first`
+	 * for pupils with a signal first; else by name).
 	 *
 	 * @return JSONResponse The list, or 401 / 403 / 503.
 	 *
@@ -85,14 +86,14 @@ class PupilListController extends Controller {
 	 *  group or school-wide staff) and RollCallAccess::chosenCohort() answers 403 for any other group.
 	 */
 	#[NoAdminRequired]
-	public function index(?string $cohortId=null, ?string $view=null, ?string $sort=null): JSONResponse {
+	public function index(): JSONResponse {
 		$user = $this->userSession->getUser();
 		if ($user === null) {
 			return new JSONResponse(data: ['error' => $this->l10n->t('Sign in to open this page.')], statusCode: Http::STATUS_UNAUTHORIZED);
 		}
 
 		try {
-			return new JSONResponse(data: $this->pupilList->forCohort(user: $user, cohortId: $cohortId, view: (string)$view, sort: (string)$sort));
+			return new JSONResponse(data: $this->pupilList->forCohort(user: $user, query: $this->query()));
 		} catch (RollCallException $exception) {
 			return new JSONResponse(data: ['error' => $exception->getMessage(), 'message' => $exception->getMessage()], statusCode: $exception->getStatus());
 		} catch (Throwable $exception) {
@@ -104,4 +105,22 @@ class PupilListController extends Controller {
 			return new JSONResponse(data: ['error' => $message], statusCode: Http::STATUS_SERVICE_UNAVAILABLE);
 		}
 	}//end index()
+
+	/**
+	 * The group, view and sort the request asks for.
+	 *
+	 * @return array{cohortId: string|null, view: string, sort: string}
+	 */
+	private function query(): array {
+		$cohortId = $this->request->getParam('cohortId');
+		if (is_string($cohortId) === false) {
+			$cohortId = null;
+		}
+
+		return [
+			'cohortId' => $cohortId,
+			'view' => (string)$this->request->getParam('view', ''),
+			'sort' => (string)$this->request->getParam('sort', ''),
+		];
+	}//end query()
 }//end class

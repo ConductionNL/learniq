@@ -74,10 +74,12 @@ class PupilListService {
 	/**
 	 * The list of a group's pupils.
 	 *
-	 * @param IUser       $user     The caller.
-	 * @param string|null $cohortId The group; null or '' for the caller's first group.
-	 * @param string      $view     A saved view (PupilList::VIEWS) narrowing the rows; '' for all.
-	 * @param string      $sort     PupilList::SORT_SIGNAL_FIRST, else by name.
+	 * The query holds `cohortId` (the group; null or '' for the caller's first
+	 * group), `view` (a saved view, PupilList::VIEWS, narrowing the rows; '' or
+	 * absent for all) and `sort` (PupilList::SORT_SIGNAL_FIRST, else by name).
+	 *
+	 * @param IUser                $user  The caller.
+	 * @param array<string, mixed> $query The group, view and sort asked for.
 	 *
 	 * @return array<string, mixed> cohortId, cohortName, schoolYear, results, total and views (the count per saved view).
 	 *
@@ -87,7 +89,13 @@ class PupilListService {
 	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T2
 	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/specs/pupil-dossier/spec.md#scenario-groep-7-on-monday-morning
 	 */
-	public function forCohort(IUser $user, ?string $cohortId=null, string $view='', string $sort=''): array {
+	public function forCohort(IUser $user, array $query=[]): array {
+		$view = (string)($query['view'] ?? '');
+		$cohortId = $query['cohortId'] ?? null;
+		if (is_string($cohortId) === false) {
+			$cohortId = null;
+		}
+
 		$cohort = $this->access->chosenCohort(cohorts: $this->access->cohortsFor(user: $user), cohortId: $cohortId);
 		$learnerIds = array_values(
 			array_filter((array)($cohort['learnerIds'] ?? []), static fn (mixed $id): bool => is_string($id) === true && $id !== '')
@@ -100,7 +108,8 @@ class PupilListService {
 
 		$rows = [];
 		if ($learnerIds !== []) {
-			$rows = $this->rows(cohort: $cohort, learnerIds: $learnerIds, today: $today, schoolYear: $schoolYear, now: $now, zone: $zone);
+			$moment = ['today' => $today, 'schoolYear' => $schoolYear, 'now' => $now, 'zone' => $zone];
+			$rows = $this->rows(cohort: $cohort, learnerIds: $learnerIds, moment: $moment);
 		}
 
 		$inView = array_values(array_filter($rows, static fn (array $row): bool => PupilList::inView(row: $row, view: $view)));
@@ -109,7 +118,7 @@ class PupilListService {
 			'cohortId' => $this->reader->idOf(row: $cohort),
 			'cohortName' => (string)($cohort['name'] ?? ''),
 			'schoolYear' => $schoolYear,
-			'results' => PupilList::ordered(rows: $inView, sort: $sort),
+			'results' => PupilList::ordered(rows: $inView, sort: (string)($query['sort'] ?? '')),
 			'total' => count($inView),
 			'views' => PupilList::viewCounts(rows: $rows),
 		];
@@ -118,17 +127,17 @@ class PupilListService {
 	/**
 	 * One row per pupil of the group.
 	 *
+	 * The moment holds `today` (`Y-m-d`), `schoolYear`, `now` (a
+	 * DateTimeImmutable) and `zone` (the school's DateTimeZone).
+	 *
 	 * @param array<string, mixed> $cohort     The group.
 	 * @param list<string>         $learnerIds Its pupils.
-	 * @param string               $today      Today, `Y-m-d`.
-	 * @param string               $schoolYear This school year.
-	 * @param DateTimeImmutable    $now        Now.
-	 * @param DateTimeZone        $zone       The school's zone.
+	 * @param array<string, mixed> $moment     Today, this school year, now and the school's zone.
 	 *
 	 * @return list<array<string, mixed>>
 	 */
-	private function rows(array $cohort, array $learnerIds, string $today, string $schoolYear, DateTimeImmutable $now, DateTimeZone $zone): array {
-		$states = $this->todayStates->forCohort(cohort: $cohort, date: $today, zone: $zone);
+	private function rows(array $cohort, array $learnerIds, array $moment): array {
+		$states = $this->todayStates->forCohort(cohort: $cohort, date: $moment['today'], zone: $moment['zone']);
 		$profiles = $this->reader->ofPupils(schema: 'learner-profile', learnerIds: $learnerIds, field: 'ncUserId');
 		$summaries = $this->reader->ofPupils(schema: 'attendance-summary', learnerIds: $learnerIds);
 
@@ -143,11 +152,13 @@ class PupilListService {
 		foreach ($learnerIds as $learnerId) {
 			$result[] = PupilList::row(
 				learnerId: $learnerId,
-				profile: ($profiles[$learnerId][0] ?? null),
-				todayState: ($states[$learnerId] ?? TodayState::NOT_REGISTERED),
-				summary: self::summaryOf(summaries: ($summaries[$learnerId] ?? []), schoolYear: $schoolYear),
-				records: ($records[$learnerId] ?? []),
-				now: $now
+				pupil: [
+					'profile' => ($profiles[$learnerId][0] ?? null),
+					'todayState' => ($states[$learnerId] ?? TodayState::NOT_REGISTERED),
+					'summary' => self::summaryOf(summaries: ($summaries[$learnerId] ?? []), schoolYear: $moment['schoolYear']),
+					'records' => ($records[$learnerId] ?? []),
+				],
+				now: $moment['now']
 			);
 		}
 
