@@ -212,13 +212,27 @@ class SchoolActivityStaff implements SchoolActivityStaffInterface {
 			$id   = ActivityRecords::idOf(row: $prior);
 		}
 
+		return $this->saveMark(data: $data, id: $id);
+	}//end mark()
+
+	/**
+	 * Write the attendance mark.
+	 *
+	 * @param array<string,mixed> $data The attendance mark to write.
+	 * @param string              $id   The prior mark to overwrite, or an empty string for a new one.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/school-activities-staff-side/specs/school-activities/spec.md#requirement-staff-must-be-able-to-mark-attendance-per-session
+	 */
+	private function saveMark(array $data, string $id): array {
 		$saved = $this->records->save(schema: ActivityRecords::ATTENDANCE, data: $data, id: $id);
 		if ($saved === null) {
 			return ['error' => self::REASON_UNAVAILABLE];
 		}
 
 		return $saved;
-	}//end mark()
+	}//end saveMark()
 
 	/**
 	 * Why a mark is refused, or null when it may be written.
