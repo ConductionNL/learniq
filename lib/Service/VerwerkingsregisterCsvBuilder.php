@@ -144,6 +144,21 @@ class VerwerkingsregisterCsvBuilder {
 			return '';
 		}
 
+		return $this->writeRows(entries: $entries, handle: $handle);
+	}//end fromEntries()
+
+	/**
+	 * Write the header and one sanitised row per entry to the stream, then read it
+	 * back as the CSV and close it.
+	 *
+	 * @param array<int,mixed> $entries The register entries.
+	 * @param mixed            $handle  The open php://memory stream to write to.
+	 *
+	 * @return string CSV content.
+	 *
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md
+	 */
+	private function writeRows(array $entries, mixed $handle): string {
 		if (empty($entries) === true) {
 			fputcsv($handle, ['activity', 'register', 'schema', 'action', 'actor', 'subjectIdType', 'created']);
 			rewind($handle);
@@ -177,7 +192,7 @@ class VerwerkingsregisterCsvBuilder {
 		fclose($handle);
 
 		return $csv;
-	}//end fromEntries()
+	}//end writeRows()
 
 	/**
 	 * Build the loud "platform capability missing" warning artefact content.

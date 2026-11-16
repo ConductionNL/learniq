@@ -124,6 +124,22 @@ class PeerReviewAllocationService implements PeerReviewAllocationServiceInterfac
 			return $this->result(strategy: self::DEFAULT_STRATEGY, submissionsProcessed: 0, createdCount: 0);
 		}
 
+		return $this->allocateFor(assignment: $assignment, assignmentId: $assignmentId);
+	}//end allocate()
+
+	/**
+	 * Allocate reviewers for a found assignment by its strategy.
+	 *
+	 * @param array<string,mixed> $assignment   The assignment.
+	 * @param string              $assignmentId Its id.
+	 *
+	 * @return array{strategy: string, submissionsProcessed: int, createdCount: int}
+	 *
+	 * @spec openspec/specs/assignments/spec.md#scenario-round-robin-allocates-the-configured-reviewer-count-while-excluding-self
+	 * @spec openspec/specs/assignments/spec.md#scenario-manual-strategy-performs-no-automatic-allocation
+	 * @spec openspec/specs/assignments/spec.md#scenario-re-running-allocation-is-idempotent
+	 */
+	private function allocateFor(array $assignment, string $assignmentId): array {
 		$strategy = $this->resolveStrategy(assignment: $assignment);
 		if ($strategy === 'manual') {
 			// No-op — the teacher creates PeerReview rows by hand.
@@ -154,7 +170,7 @@ class PeerReviewAllocationService implements PeerReviewAllocationServiceInterfac
 		);
 
 		return $this->result(strategy: $strategy, submissionsProcessed: count($submissions), createdCount: $createdCount);
-	}//end allocate()
+	}//end allocateFor()
 
 	/**
 	 * Walk every Submission in order, topping up short-of-quota reviewer counts.

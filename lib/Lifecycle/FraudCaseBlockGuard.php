@@ -139,6 +139,25 @@ class FraudCaseBlockGuard implements LifecycleGuardInterface {
 			return false;
 		}
 
+		return $this->caseAllowsPublish(entry: $entry, fraudCase: $fraudCase);
+	}//end allows()
+
+	/**
+	 * Whether the linked FraudCase lets the GradeEntry publish: not while the case
+	 * is open, never once it is decided fraud-proven.
+	 *
+	 * @param array<string,mixed> $entry     The GradeEntry, with a fraudCaseId.
+	 * @param array<string,mixed> $fraudCase The linked FraudCase.
+	 *
+	 * @return bool True if the transition is allowed; false blocks it (HTTP 422).
+	 *
+	 * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
+	 * @spec openspec/changes/archive/2026-07-13-exam-board-case-handling/specs/grading/spec.md#scenario-a-permanently-fraud-proven-link-blocks-publish-even-after-decision
+	 */
+	private function caseAllowsPublish(array $entry, array $fraudCase): bool {
+		$entryId = $entry['id'] ?? ($entry['uuid'] ?? '');
+		$fraudCaseId = $entry['fraudCaseId'];
+
 		$lifecycle = $fraudCase['lifecycle'] ?? '';
 		$verdict = $fraudCase['verdict'] ?? '';
 
@@ -161,7 +180,7 @@ class FraudCaseBlockGuard implements LifecycleGuardInterface {
 
 		// Decided/unfounded or dismissed — publication may proceed.
 		return true;
-	}//end allows()
+	}//end caseAllowsPublish()
 
 	/**
 	 * Fetch the linked FraudCase by id.
