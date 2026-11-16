@@ -43,6 +43,7 @@ use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for LessonReleaseController::status() / assessmentStatus().
@@ -121,7 +122,11 @@ class LessonReleaseControllerTest extends TestCase {
 		// and returns ?ObjectEntity. willReturnCallback() hands the closure the
 		// mock's arguments POSITIONALLY, so the closure must mirror that order.
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+			function (int|string $id, ?ObjectFindOptions $options = null) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				foreach (($this->db[$schema] ?? []) as $rec) {
 					if (($rec['id'] ?? null) === $id) {
 						return OrEntityFactory::make($rec, (string)$schema);
@@ -356,7 +361,11 @@ class LessonReleaseControllerTest extends TestCase {
 	private function recordingController(\ArrayObject $calls, array $item): LessonReleaseController {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($calls, $item) {
+			static function (int|string $id, ?ObjectFindOptions $options = null) use ($calls, $item) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				$calls[] = 'find ' . $schema . ' ' . $id;
 				if (isset($item[$schema]) === false) {
 					return null;

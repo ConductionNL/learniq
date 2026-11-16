@@ -40,6 +40,8 @@ use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * "Verzorgende IG" is open: the application is submitted and stamped.
@@ -69,7 +71,11 @@ class ApplicationRoundOpenGuardTest extends TestCase {
 	private function guard(array $rounds): ApplicationRoundOpenGuard {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($rounds): ?ObjectEntity {
+			static function (int|string $id, ?ObjectFindOptions $options = null) use ($rounds): ?ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($id === 'broken') {
 					throw new RuntimeException('database gone');
 				}
@@ -150,7 +156,10 @@ class ApplicationRoundOpenGuardTest extends TestCase {
 		$saved = [];
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('saveObject')->willReturnCallback(
-			static function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null) use (&$saved): ObjectEntity {
+			static function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$saved): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$saved[] = [(string)$schema, (array)$object];
 				return OrEntityFactory::make((array)$object, (string)$schema);
 			}

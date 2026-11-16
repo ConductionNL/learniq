@@ -32,6 +32,7 @@ namespace OCA\Learniq\Service;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\Learniq\Support\ResultArrays;
 use OCA\Learniq\Support\RowId;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserManager;
 
@@ -148,7 +149,7 @@ class ExternalTrainingLearnerMatch {
 		}
 
 		$find = fn () => $this->objectService
-			->find(id: $id, register: self::REGISTER, schema: self::PROFILE_SCHEMA, _rbac: false, _multitenancy: false);
+			->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: self::PROFILE_SCHEMA), _rbac: false, _multitenancy: false);
 		$object = $this->findOrNull(find: $find);
 
 		$rows = self::rows(objects: [$object]);

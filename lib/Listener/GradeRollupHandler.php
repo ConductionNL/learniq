@@ -51,6 +51,9 @@ use OCA\Learniq\Kernel\Contracts\GradeVisibilityResolverInterface;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -224,9 +227,8 @@ class GradeRollupHandler implements IEventListener {
 		$visibleFrom = $resolved->format(\DATE_ATOM);
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::GRADE_ENTRY_SCHEMA,
-			object: array_merge($entry, ['visibleFrom' => $visibleFrom])
+			object: array_merge($entry, ['visibleFrom' => $visibleFrom]),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::GRADE_ENTRY_SCHEMA))
 		);
 
 		return $visibleFrom;
@@ -244,7 +246,11 @@ class GradeRollupHandler implements IEventListener {
 	private function fetchGradeVisibilityPolicy(string $curriculumPlanId): ?array {
 		// A system read: the publishing teacher may not read the plan (D9).
 		$find = fn () => $this->objectService
-			->find(id: $curriculumPlanId, register: self::LEARNIQ_REGISTER, schema: self::CURRICULUM_PLAN_SCHEMA, _rbac: false);
+			->find(
+				id: $curriculumPlanId,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::CURRICULUM_PLAN_SCHEMA),
+				_rbac: false
+			);
 		$plan = $this->findOrNull(find: $find);
 		if ($plan === null) {
 			return null;
@@ -309,9 +315,8 @@ class GradeRollupHandler implements IEventListener {
 		);
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::FINAL_GRADE_SCHEMA,
-			object: $data
+			object: $data,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::FINAL_GRADE_SCHEMA))
 		);
 
 	}//end recomputeFinalGrade()
@@ -484,8 +489,6 @@ class GradeRollupHandler implements IEventListener {
 			// The record has no id (fresh insert) and only the fields needed for the
 			// notification — it is NOT the GradeEntry object itself. Fixes #183.
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: 'grade-notification',
 				object: [
 					'event' => 'gradePublished',
 					'recipient' => $parentId,
@@ -505,7 +508,8 @@ class GradeRollupHandler implements IEventListener {
 						'sourceId' => $sourceId,
 						'idempotencyKey' => $sourceId . '-parent-' . $parentId,
 					],
-				]
+				],
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: 'grade-notification'))
 			);
 		}//end foreach
 
@@ -587,9 +591,8 @@ class GradeRollupHandler implements IEventListener {
 		];
 
 		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::GRADE_ENTRY_SCHEMA,
-			object: $gradeEntry
+			object: $gradeEntry,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::GRADE_ENTRY_SCHEMA))
 		);
 
 		$savedData = $saved->jsonSerialize();
@@ -602,9 +605,8 @@ class GradeRollupHandler implements IEventListener {
 
 		// Back-link the GradeEntry to the AssessmentResult.
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ASSESSMENT_RESULT_SCHEMA,
-			object: array_merge($result, ['gradeEntryId' => $gradeEntryId])
+			object: array_merge($result, ['gradeEntryId' => $gradeEntryId]),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ASSESSMENT_RESULT_SCHEMA))
 		);
 
 	}//end handleAssessmentResultGraded()

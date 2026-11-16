@@ -30,6 +30,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IUserManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * The reader's queries to OpenRegister and the learner's overview it builds from them.
@@ -60,7 +61,12 @@ class WorkGroupReaderTest extends TestCase {
 	protected function setUp(): void {
 		$this->objects = $this->createMock(ObjectService::class);
 		$this->objects->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, mixed $register = null, mixed $schema = null, bool $_rbac = true, bool $_multitenancy = true, bool $_render = true) {
+			function (int|string $id, ?ObjectFindOptions $options = null, bool $_rbac = true, bool $_multitenancy = true) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
+				$_render = $options?->render ?? true;
 				$this->finds[] = $schema . ':' . $id;
 				self::assertSame('learniq', $register);
 				self::assertFalse($_rbac, 'reads are made as the system');

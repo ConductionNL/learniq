@@ -41,6 +41,8 @@ namespace OCA\Learniq\Lifecycle;
 use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -292,15 +294,17 @@ class ExcuseApprovalHandler implements IEventListener {
 			}
 
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::ATTENDANCE_RECORD_SCHEMA,
 				object: array_merge(
 					$record,
 					[
 						'status' => 'absent-excused',
 						'excuseRequestId' => $requestId,
 					]
-				)
+				),
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(
+						register: self::LEARNIQ_REGISTER,
+						schema: self::ATTENDANCE_RECORD_SCHEMA
+					))
 			);
 
 			$flippedCount++;

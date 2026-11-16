@@ -67,6 +67,9 @@ use DateTimeImmutable;
 use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\LtiAgsPullClientInterface;
 use OCA\Learniq\Support\ObjectRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
@@ -266,8 +269,6 @@ class LtiAgsScorePollJob extends TimedJob {
 		// written is decided above (placement, line item, learner), not by the
 		// caller's rights.
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::GRADE_ENTRY_SCHEMA,
 			object: $this->gradeEntryFor(
 				score: $score,
 				target: $target,
@@ -275,6 +276,7 @@ class LtiAgsScorePollJob extends TimedJob {
 				placementId: $placementId,
 				resultId: $resultId
 			),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::GRADE_ENTRY_SCHEMA)),
 			_rbac: false,
 			_multitenancy: false
 		);
@@ -481,8 +483,7 @@ class LtiAgsScorePollJob extends TimedJob {
 		try {
 			$object = $this->objectService->find(
 				id: $lineItemId,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::PLACEMENT_SCHEMA,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::PLACEMENT_SCHEMA),
 				_rbac: false,
 				_multitenancy: false
 			);
@@ -585,8 +586,7 @@ class LtiAgsScorePollJob extends TimedJob {
 		// in schema 'GradeScale'") and no grade was written.
 		$scale = $this->objectService->find(
 			id: $gradeScaleId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::GRADE_SCALE_SCHEMA,
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::GRADE_SCALE_SCHEMA),
 			_rbac: false,
 			_multitenancy: false
 		);

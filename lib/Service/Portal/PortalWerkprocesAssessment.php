@@ -41,6 +41,8 @@ namespace OCA\Learniq\Service\Portal;
 use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\PortalWerkprocesAssessmentInterface;
 use OCA\Learniq\Support\ObjectRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
@@ -163,8 +165,7 @@ class PortalWerkprocesAssessment implements PortalWerkprocesAssessmentInterface 
 
 			$saved = $this->objectService->saveObject(
 				object: $this->stamped(trainerRef: $trainerRef, trainer: $trainer, assurance: $assurance, body: $body),
-				register: self::REGISTER,
-				schema: self::ASSESSMENT_SCHEMA,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::ASSESSMENT_SCHEMA)),
 				_rbac: false,
 				_multitenancy: false
 			);

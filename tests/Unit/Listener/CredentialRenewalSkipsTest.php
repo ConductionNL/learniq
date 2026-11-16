@@ -32,6 +32,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * @covers \OCA\Learniq\Listener\CredentialRenewalListener
@@ -114,8 +115,8 @@ class CredentialRenewalSkipsTest extends TestCase {
 	public function testAnEnrolmentWithoutAnIdIsNotLinked(): void {
 		$saved = $this->createMock(ObjectEntity::class);
 		$saved->method('jsonSerialize')->willReturn([]);
-		$this->objectService->expects(self::once())->method('saveObject')->with(
-			[
+		$this->objectService->expects(self::once())->method('saveObject')->with(...LegacyObjectArgs::with(method: 'saveObject', expected: [
+				'object' => [
 				'learnerId' => 'learner-1',
 				'courseId' => 'course-1',
 				'source' => 'credential-renewal',
@@ -123,10 +124,10 @@ class CredentialRenewalSkipsTest extends TestCase {
 				'regulationSlug' => null,
 				'tenant_id' => 't-1',
 			],
-			self::anything(),
-			'learniq',
-			'enrolment'
-		)->willReturn($saved);
+				'extend' => self::anything(),
+				'register' => 'learniq',
+				'schema' => 'enrolment',
+			]))->willReturn($saved);
 		$this->logger->expects(self::once())->method('warning')->with(self::stringContains('has no id; not linking'), ['id' => 'cred-2']);
 
 		$this->listener->handle($this->expired(['uuid' => 'cred-2', 'learnerId' => 'learner-1', 'courseId' => 'course-1', 'tenant_id' => 't-1']));
