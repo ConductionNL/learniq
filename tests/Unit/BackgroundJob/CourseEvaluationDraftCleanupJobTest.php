@@ -32,6 +32,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IAppConfig;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
 
 /**
  * Unit tests for CourseEvaluationDraftCleanupJob.
@@ -110,7 +111,7 @@ class CourseEvaluationDraftCleanupJobTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objects->method('deleteObject')->willReturnCallback(
-			fn (string $uuid, $register = null, $schema = null, bool $_rbac = true, bool $_multitenancy = true, bool $_retentionSweep = false, $currentUser = null, bool $permanent = false): bool => $store->delete((string)$schema, $uuid, $_rbac, $_multitenancy, $permanent)
+			fn (ObjectDeletion $deletion, bool $_rbac = true, bool $_multitenancy = true, bool $_retentionSweep = false): bool => $store->delete((string)($deletion->target->schema), ($deletion->uuid), $_rbac, $_multitenancy, ($deletion->permanent ?? false))
 		);
 
 		$time = $this->createMock(ITimeFactory::class);

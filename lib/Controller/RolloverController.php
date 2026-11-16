@@ -36,6 +36,8 @@ use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
 use OCA\Learniq\Kernel\Contracts\RolloverServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -237,7 +239,10 @@ class RolloverController extends Controller {
 
 		// A plan deleted between the read above and this save reads as absent.
 		try {
-			$this->objectService->saveObject(register: 'learniq', schema: 'rollover-plan', object: $plan);
+			$this->objectService->saveObject(
+				object: $plan,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: 'learniq', schema: 'rollover-plan'))
+			);
 		} catch (DoesNotExistException $e) {
 			return new JSONResponse(data: ['error' => 'Plan not found'], statusCode: Http::STATUS_NOT_FOUND);
 		}

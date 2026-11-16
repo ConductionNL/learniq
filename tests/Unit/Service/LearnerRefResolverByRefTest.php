@@ -36,6 +36,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for LearnerRefResolver's portal half: a profile by uuid, and a profile
@@ -80,7 +81,11 @@ class LearnerRefResolverByRefTest extends TestCase {
 	private function makeLookup(bool $throws = false): LearnerRefResolver {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($throws) {
+			function (int|string $id, ?ObjectFindOptions $options = null) use ($throws) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($throws === true) {
 					throw new RuntimeException('database gone');
 				}

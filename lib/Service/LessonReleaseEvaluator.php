@@ -53,6 +53,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use Exception;
 use OCA\Learniq\Kernel\Contracts\LessonReleaseEvaluatorInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -456,7 +457,7 @@ class LessonReleaseEvaluator implements LessonReleaseEvaluatorInterface {
 	 * @return string|null
 	 */
 	private function resolveName(string $id, string $schema): ?string {
-		$object = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
+		$object = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema));
 		if ($object === null) {
 			return null;
 		}

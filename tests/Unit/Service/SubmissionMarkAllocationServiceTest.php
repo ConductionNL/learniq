@@ -27,6 +27,7 @@ use OCA\Learniq\Service\SubmissionMarkAllocationService;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Allocation over a register-faithful store, so an undeclared filter key or a
@@ -59,7 +60,7 @@ class SubmissionMarkAllocationServiceTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) => $this->store->save((string)$schema, $object, $uuid)
+			fn (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) => $this->store->save((string)($options->target->schema), $object, ($options->uuid))
 		);
 
 		return new SubmissionMarkAllocationService(objectService: $objects);

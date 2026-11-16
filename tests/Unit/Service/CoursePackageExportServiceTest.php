@@ -34,6 +34,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
 use ZipArchive;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for CoursePackageExportService.
@@ -56,7 +57,11 @@ class CoursePackageExportServiceTest extends TestCase {
 		// — the callback receives those positionally, and may only hand back an
 		// ObjectEntity or null.
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+			function (int|string $id, ?ObjectFindOptions $options = null) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				$row = match ([$schema, $id]) {
 					['course', 'course-1'] => ['id' => 'course-1', 'name' => 'Physics 101', 'tenant_id' => 't1'],
 					['item', 'item-1'] => ['id' => 'item-1', 'itemBankId' => 'bank-1', 'qtiBody' => '<x/>'],

@@ -37,7 +37,7 @@ namespace OCA\Learniq\Lifecycle\Action;
 
 use OCA\Learniq\Lifecycle\AssessmentScoringHandler;
 use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
-use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
+use OCA\OpenRegister\Lifecycle\ContextLifecycleActionInterface;
 use RuntimeException;
 
 /**
@@ -45,7 +45,7 @@ use RuntimeException;
  *
  * @spec openspec/specs/assessment/spec.md#requirement-a-teacher-scores-open-answers-question-by-question-and-a-finished-attempt-stays-immutable
  */
-class AssessmentAutoScoreAction implements LifecycleActionInterface {
+class AssessmentAutoScoreAction implements ContextLifecycleActionInterface {
 
 	/**
 	 * Constructor.
