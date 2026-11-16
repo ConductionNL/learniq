@@ -4203,8 +4203,8 @@
       "type": "library",
       "name": "config-array",
       "group": "@eslint",
-      "version": "0.23.5",
-      "bom-ref": "learniq@0.1.0|@eslint/config-array@0.23.5",
+      "version": "0.23.6",
+      "bom-ref": "learniq@0.1.0|@eslint/config-array@0.23.6",
       "licenses": [
         {
           "license": {
@@ -4212,15 +4212,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40eslint/config-array@0.23.5",
+      "purl": "pkg:npm/%40eslint/config-array@0.23.6",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@eslint/config-array/-/config-array-0.23.5.tgz",
+          "url": "https://registry.npmjs.org/@eslint/config-array/-/config-array-0.23.6.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "63790a2ef0b576f4ce4fea0696a350d572ea2ba0f51d4d985cf739d8d98094965b30c583cc66173223d127c4d80f7f66b83fce4e395998d27889beddbd2acc04"
+              "content": "5ab4c7ee78a823d40f6383591a7b32c2679cb3025d81eab804233beaaa24f558234cedbd66053352f72e24b54f61540ce2e0db68f054d0cdf747d0c8c48f17df"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -4234,6 +4234,45 @@
         {
           "name": "cdx:npm:package:path",
           "value": "node_modules/@eslint/config-array"
+        }
+      ],
+      "components": [
+        {
+          "type": "library",
+          "name": "minimatch",
+          "version": "11.0.8",
+          "bom-ref": "learniq@0.1.0|@eslint/config-array@0.23.6|minimatch@11.0.8",
+          "licenses": [
+            {
+              "license": {
+                "id": "BlueOak-1.0.0"
+              }
+            }
+          ],
+          "purl": "pkg:npm/minimatch@11.0.8",
+          "externalReferences": [
+            {
+              "url": "https://registry.npmjs.org/minimatch/-/minimatch-11.0.8.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "9c542e6124d5ac6bf2b15069b39221fb405d9d814dfc28f70bcd7aafafa9ef22be147ad52c61383b837d005c3292b94d96f3361d8b7e45a775522ae8ea1f3c22"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:development",
+              "value": "true"
+            },
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/@eslint/config-array/node_modules/minimatch"
+            }
+          ]
         }
       ]
     },
@@ -4712,6 +4751,40 @@
         {
           "name": "cdx:npm:package:path",
           "value": "node_modules/@humanwhocodes/retry"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "nonrecursive-glob-match",
+      "group": "@isaacs",
+      "version": "1.1.0",
+      "bom-ref": "learniq@0.1.0|@isaacs/nonrecursive-glob-match@1.1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BlueOak-1.0.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40isaacs/nonrecursive-glob-match@1.1.0",
+      "externalReferences": [
+        {
+          "url": "https://registry.npmjs.org/@isaacs/nonrecursive-glob-match/-/nonrecursive-glob-match-1.1.0.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "18f9bf0dbbe4e512e68519f15c86bb9d3a4ad31b65e04d308f432c96cb8d889d45211394fb6fbd960502fdd805ec4cb84025a17c4b20c6294c44c09d1cf7c37f"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@isaacs/nonrecursive-glob-match"
         }
       ]
     },
@@ -10288,6 +10361,10 @@
       ],
       "properties": [
         {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        },
+        {
           "name": "cdx:npm:package:path",
           "value": "node_modules/axe-core"
         }
@@ -10552,10 +10629,6 @@
       ],
       "properties": [
         {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
           "name": "cdx:npm:package:path",
           "value": "node_modules/balanced-match"
         }
@@ -10757,10 +10830,6 @@
         }
       ],
       "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
         {
           "name": "cdx:npm:package:path",
           "value": "node_modules/brace-expansion"
@@ -13485,8 +13554,8 @@
     {
       "type": "library",
       "name": "eslint",
-      "version": "10.14.0",
-      "bom-ref": "learniq@0.1.0|eslint@10.14.0",
+      "version": "10.15.0",
+      "bom-ref": "learniq@0.1.0|eslint@10.15.0",
       "licenses": [
         {
           "license": {
@@ -13494,15 +13563,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/eslint@10.14.0",
+      "purl": "pkg:npm/eslint@10.15.0",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/eslint/-/eslint-10.14.0.tgz",
+          "url": "https://registry.npmjs.org/eslint/-/eslint-10.15.0.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "4f4a4db3191bf482a6b508e1a4adddee758ea45bfe607b8c6d326749532841b945d289ef5df12baeda785758c7b6c40f6a7edd29a1950f4ab55825e7ccc177d4"
+              "content": "fb95a0e29fb37b7b06d5612b62050eff71f521021f141ca6554034168fd74de04e2d2e9440851e929489f2c751927eceef08e1f386f9e70feba2a6af1f669272"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -13523,7 +13592,7 @@
           "type": "library",
           "name": "ajv",
           "version": "6.15.0",
-          "bom-ref": "learniq@0.1.0|eslint@10.14.0|ajv@6.15.0",
+          "bom-ref": "learniq@0.1.0|eslint@10.15.0|ajv@6.15.0",
           "licenses": [
             {
               "license": {
@@ -13560,7 +13629,7 @@
           "type": "library",
           "name": "eslint-visitor-keys",
           "version": "5.0.1",
-          "bom-ref": "learniq@0.1.0|eslint@10.14.0|eslint-visitor-keys@5.0.1",
+          "bom-ref": "learniq@0.1.0|eslint@10.15.0|eslint-visitor-keys@5.0.1",
           "licenses": [
             {
               "license": {
@@ -13597,7 +13666,7 @@
           "type": "library",
           "name": "espree",
           "version": "11.2.0",
-          "bom-ref": "learniq@0.1.0|eslint@10.14.0|espree@11.2.0",
+          "bom-ref": "learniq@0.1.0|eslint@10.15.0|espree@11.2.0",
           "licenses": [
             {
               "license": {
@@ -13632,9 +13701,46 @@
         },
         {
           "type": "library",
+          "name": "minimatch",
+          "version": "11.0.8",
+          "bom-ref": "learniq@0.1.0|eslint@10.15.0|minimatch@11.0.8",
+          "licenses": [
+            {
+              "license": {
+                "id": "BlueOak-1.0.0"
+              }
+            }
+          ],
+          "purl": "pkg:npm/minimatch@11.0.8",
+          "externalReferences": [
+            {
+              "url": "https://registry.npmjs.org/minimatch/-/minimatch-11.0.8.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "9c542e6124d5ac6bf2b15069b39221fb405d9d814dfc28f70bcd7aafafa9ef22be147ad52c61383b837d005c3292b94d96f3361d8b7e45a775522ae8ea1f3c22"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:development",
+              "value": "true"
+            },
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/eslint/node_modules/minimatch"
+            }
+          ]
+        },
+        {
+          "type": "library",
           "name": "json-schema-traverse",
           "version": "0.4.1",
-          "bom-ref": "learniq@0.1.0|eslint@10.14.0|json-schema-traverse@0.4.1",
+          "bom-ref": "learniq@0.1.0|eslint@10.15.0|json-schema-traverse@0.4.1",
           "licenses": [
             {
               "license": {
@@ -26236,24 +26342,24 @@
         {
           "type": "library",
           "name": "minimatch",
-          "version": "9.0.9",
-          "bom-ref": "learniq@0.1.0|webdav@5.11.0|minimatch@9.0.9",
+          "version": "11.0.8",
+          "bom-ref": "learniq@0.1.0|webdav@5.11.0|minimatch@11.0.8",
           "licenses": [
             {
               "license": {
-                "id": "ISC"
+                "id": "BlueOak-1.0.0"
               }
             }
           ],
-          "purl": "pkg:npm/minimatch@9.0.9",
+          "purl": "pkg:npm/minimatch@11.0.8",
           "externalReferences": [
             {
-              "url": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.9.tgz",
+              "url": "https://registry.npmjs.org/minimatch/-/minimatch-11.0.8.tgz",
               "type": "distribution",
               "hashes": [
                 {
                   "alg": "SHA-512",
-                  "content": "381c0137d00be1daa61139694b6cdab31faf4de59c956ce46e57d993b2930398f78de38e373fed4429d9a26532bcd83cdf02f966ff52b3a1cc2570202fc47662"
+                  "content": "9c542e6124d5ac6bf2b15069b39221fb405d9d814dfc28f70bcd7aafafa9ef22be147ad52c61383b837d005c3292b94d96f3361d8b7e45a775522ae8ea1f3c22"
                 }
               ],
               "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -26263,72 +26369,6 @@
             {
               "name": "cdx:npm:package:path",
               "value": "node_modules/webdav/node_modules/minimatch"
-            }
-          ]
-        },
-        {
-          "type": "library",
-          "name": "brace-expansion",
-          "version": "2.1.8",
-          "bom-ref": "learniq@0.1.0|webdav@5.11.0|brace-expansion@2.1.8",
-          "licenses": [
-            {
-              "license": {
-                "id": "MIT"
-              }
-            }
-          ],
-          "purl": "pkg:npm/brace-expansion@2.1.8",
-          "externalReferences": [
-            {
-              "url": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-2.1.8.tgz",
-              "type": "distribution",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "067943cc3610a29953b194af3e2f3a08dce66dc6f4ed7f2e7d1f1f935ce2bda8842655c9922ab5310c830959a559cb166e3e9a597a879ebc307af6eb9bf49a8a"
-                }
-              ],
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-            }
-          ],
-          "properties": [
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/webdav/node_modules/brace-expansion"
-            }
-          ]
-        },
-        {
-          "type": "library",
-          "name": "balanced-match",
-          "version": "1.0.2",
-          "bom-ref": "learniq@0.1.0|webdav@5.11.0|balanced-match@1.0.2",
-          "licenses": [
-            {
-              "license": {
-                "id": "MIT"
-              }
-            }
-          ],
-          "purl": "pkg:npm/balanced-match@1.0.2",
-          "externalReferences": [
-            {
-              "url": "https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.2.tgz",
-              "type": "distribution",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "de849e50ed13315ebb84dd4099b5ec2b8c9aa94eed8e21e56f144364ea47d0a5bdf82797e1b440697d009f1b74b71d8cae94695b041a3f02252121098585393f"
-                }
-              ],
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-            }
-          ],
-          "properties": [
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/webdav/node_modules/balanced-match"
             }
           ]
         }
