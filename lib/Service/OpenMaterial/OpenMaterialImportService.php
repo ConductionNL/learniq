@@ -30,6 +30,8 @@ namespace OCA\Learniq\Service\OpenMaterial;
 use OCA\Learniq\Exception\MaterialImportRefusedException;
 use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\OpenMaterialImportServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUser;
 
@@ -212,7 +214,10 @@ class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 	 * @return array<string, mixed> The saved Material.
 	 */
 	private function save(array $material): array {
-		return $this->objectService->saveObject(object: $material, register: AppIdentity::APP_ID, schema: 'material')->jsonSerialize();
+		return $this->objectService->saveObject(
+			object: $material,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: AppIdentity::APP_ID, schema: 'material'))
+		)->jsonSerialize();
 	}//end save()
 
 	/**

@@ -30,6 +30,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for BackfillLvsResultLearnerRef::run().
@@ -70,7 +71,7 @@ class BackfillLvsResultLearnerRefTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) => $this->store->save((string)$schema, $object, $uuid)
+			fn (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) => $this->store->save((string)($options->target->schema), $object, ($options->uuid))
 		);
 
 		return new BackfillLvsResultLearnerRef(

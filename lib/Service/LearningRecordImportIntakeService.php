@@ -39,6 +39,9 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use OCA\Learniq\Kernel\Contracts\LearningRecordImportIntakeServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Files\IRootFolder;
@@ -180,8 +183,6 @@ class LearningRecordImportIntakeService implements LearningRecordImportIntakeSer
 		$uploadedAt = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
 
 		$created = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::SCHEMA,
 			object: [
 				'applicationId' => $applicationId,
 				'sourceFilename' => $sourceFilename,
@@ -191,7 +192,8 @@ class LearningRecordImportIntakeService implements LearningRecordImportIntakeSer
 				'sourceRef' => $sourceRef,
 				'lifecycle' => 'uploaded',
 				'tenant_id' => $tenantId,
-			]
+			],
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::SCHEMA))
 		);
 
 		$createdId = $this->extractId(saved: $created);
@@ -208,7 +210,7 @@ class LearningRecordImportIntakeService implements LearningRecordImportIntakeSer
 			);
 		}
 
-		$final = $this->objectService->find(id: $createdId, register: self::LEARNIQ_REGISTER, schema: self::SCHEMA);
+		$final = $this->objectService->find(id: $createdId, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::SCHEMA));
 
 		return $this->toArray(row: $final);
 	}//end createImport()

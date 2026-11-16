@@ -41,6 +41,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\Contracts\ReportCardTemplateSectionResolverInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -90,7 +91,10 @@ class ReportCardTemplateSectionResolver implements ReportCardTemplateSectionReso
 
 		$templateId = (string)$rawTemplateId;
 
-		$template = $this->objectService->find(id: $templateId, register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_TEMPLATE_SCHEMA);
+		$template = $this->objectService->find(
+			id: $templateId,
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_TEMPLATE_SCHEMA)
+		);
 		if ($template === null) {
 			$this->logger->warning(
 				'[ReportCardTemplateSectionResolver] ReportCardTemplate {template} not found; falling back to the fixed composition shape.',

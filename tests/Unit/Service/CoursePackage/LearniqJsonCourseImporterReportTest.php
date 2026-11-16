@@ -22,6 +22,7 @@ use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Imports a learniq-native JSON course tree: one object per course, child
@@ -84,7 +85,10 @@ class LearniqJsonCourseImporterReportTest extends TestCase {
 	private function importer(): LearniqJsonCourseImporter {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null) {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$this->saved[(string)$schema][] = $object;
 				return OrEntityFactory::make($object, (string)$schema, (string)$register, $schema . '-' . count($this->saved[(string)$schema]));
 			}

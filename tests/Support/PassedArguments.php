@@ -45,7 +45,7 @@ final class PassedArguments {
 	 */
 	public static function of(array $method, array $args): array {
 		$named = [];
-		foreach ((new ReflectionMethod($method[0], $method[1]))->getParameters() as $index => $param) {
+		foreach (LegacyObjectArgs::parameters($method[0], $method[1]) as $index => $param) {
 			if (array_key_exists($index, $args) === false) {
 				break;
 			}

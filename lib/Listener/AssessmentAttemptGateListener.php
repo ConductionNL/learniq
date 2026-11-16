@@ -60,6 +60,7 @@ use OCA\Learniq\Kernel\Contracts\AssessmentResultAudienceInterface;
 use OCA\Learniq\Kernel\Contracts\AssessmentResultPortalStampInterface;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -215,10 +216,12 @@ class AssessmentAttemptGateListener implements IEventListener {
 		try {
 			$object = $this->objectService->find(
 				id: $id,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::ASSESSMENT_SCHEMA,
-				_rbac: false,
-				_render: false
+				options: new ObjectFindOptions(
+					register: self::LEARNIQ_REGISTER,
+					schema: self::ASSESSMENT_SCHEMA,
+					render: false
+				),
+				_rbac: false
 			);
 		} catch (Throwable $exception) {
 			$this->logger->warning(

@@ -22,6 +22,7 @@ use OCP\IAppConfig;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * A guardian answers for her own child only, before the deadline, at or above
@@ -83,7 +84,11 @@ class PortalPermissionAnswerTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use ($saveThrows): object {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use ($saveThrows): object {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				if ($saveThrows === true) {
 					throw new RuntimeException('SQLSTATE secret');
 				}

@@ -29,6 +29,7 @@ use OCP\App\IAppManager;
 use OCP\IAppConfig;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Pins classify() for every combination of chat provider, credential id and
@@ -58,6 +59,7 @@ class AiLocalityClassifierGoldenTest extends TestCase {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
 			static function (...$args) use ($credentials, &$reads) {
+				$args = LegacyObjectArgs::positional(method: 'find', args: $args);
 				$reads[] = $args;
 				$id = (string)$args[0];
 				if ($id === 'cred-denied') {

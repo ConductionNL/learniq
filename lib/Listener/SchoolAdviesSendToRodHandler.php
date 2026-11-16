@@ -46,6 +46,8 @@ use OCA\Learniq\Kernel\Contracts\ExchangeDisclosureInterface;
 use OCA\Learniq\Kernel\Contracts\IntegriqExchangeClientInterface;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -150,10 +152,11 @@ class SchoolAdviesSendToRodHandler implements IEventListener {
 		}
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::SCHOOL_ADVIES_SCHEMA,
 			object: array_merge($schoolAdvies, ['dataExchangeJobId' => $jobId]),
-			uuid: $schoolAdviesId
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::SCHOOL_ADVIES_SCHEMA),
+				uuid: $schoolAdviesId
+			)
 		);
 
 	}//end requestRodJob()

@@ -24,6 +24,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests CommonCartridgeCourseImporter: extraction + manifest parsing, the
@@ -439,7 +440,10 @@ XML;
 		$counters = [];
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$counters) {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$counters) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$schema = (string)$schema;
 				$this->assertSame('learniq', $register);
 				$this->saved[] = ['schema' => $schema, 'object' => $object];

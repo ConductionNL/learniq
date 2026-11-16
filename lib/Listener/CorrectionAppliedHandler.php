@@ -47,6 +47,8 @@ namespace OCA\Learniq\Listener;
 use OCA\Learniq\Kernel\Contracts\CorrectionApprovalsInterface;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -141,9 +143,10 @@ class CorrectionAppliedHandler implements IEventListener {
 
 		$this->objects->saveObject(
 			object: $move,
-			register: self::REGISTER,
-			schema: 'data-correction-request',
-			uuid: $requestId,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: 'data-correction-request'),
+				uuid: $requestId
+			),
 			_rbac: false
 		);
 	}//end markApplied()

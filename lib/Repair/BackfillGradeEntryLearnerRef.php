@@ -23,6 +23,8 @@ namespace OCA\Learniq\Repair;
 
 use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
 use OCA\Learniq\Repair\Support\RepairRowWalk;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -131,9 +133,10 @@ class BackfillGradeEntryLearnerRef implements IRepairStep {
 
 			$this->objectService->saveObject(
 				object: array_merge($row, ['learnerRef' => $cache[$learnerId]]),
-				register: self::LEARNIQ_REGISTER,
-				schema: self::GRADE_ENTRY_SCHEMA,
-				uuid: $uuid,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::GRADE_ENTRY_SCHEMA),
+					uuid: $uuid
+				),
 				_rbac: false,
 				_multitenancy: false
 			);
