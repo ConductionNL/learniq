@@ -221,7 +221,7 @@
                 "slug": "credential",
                 "appendOnly": false,
                 "icon": "CertificateOutline",
-                "version": "0.4.0",
+                "version": "0.4.1",
                 "title": "Credential",
                 "description": "Verifiable Credential (W3C VC + Open Badges 3.0). Append-only compliance evidence; issued on enrolment completion; supports expiry detection with tiered reminders.",
                 "type": "object",
@@ -620,6 +620,12 @@
                         "title": "Expiry",
                         "description": "Calculated automatically from this record; it cannot be edited.",
                         "x-notes": "Materialised value of the expiryLabel calculation (\"Verloopt over 8 weken\", \"Geldig\", \"Verlopen\"), written by OpenRegister on every save and by its temporal sweep. Never edit by hand."
+                    },
+                    "issuedByUserId": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "Issued by (user)",
+                        "description": "The Nextcloud user who issued the certificate by hand, for example with \"Certificaten uitgeven\" for a course day. Empty for a certificate issued automatically (exam-registration-and-certificate-issue)."
                     }
                 },
                 "x-openregister-lifecycle": {
@@ -5766,7 +5772,7 @@
                 },
                 "slug": "learner-profile",
                 "icon": "AccountOutline",
-                "version": "0.4.1",
+                "version": "0.4.2",
                 "title": "Learner profile",
                 "description": "Learniq learner profile. Owns role assignment and is the actor reference for enrolments, credentials, and attestations.",
                 "configuration": {
@@ -5799,6 +5805,12 @@
                         "format": "date",
                         "description": "Date of birth (AVG-classified).",
                         "title": "Date of Birth"
+                    },
+                    "placeOfBirth": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "Place of birth",
+                        "description": "Place of birth (AVG-classified). An examining body may require it; only the export of an exam registration list carries it (exam-registration-and-certificate-issue)."
                     },
                     "bsnEncrypted": {
                         "type": "string",
@@ -34878,6 +34890,272 @@
                             "description": "The assessor completed the form."
                         }
                     }
+                }
+            },
+            "ExamRegistration": {
+                "slug": "exam-registration",
+                "icon": "ClipboardListOutline",
+                "version": "0.1.0",
+                "title": "ExamRegistration",
+                "description": "The registration list of one course day's exam with an external examining body: per participant whether the fields the body requires are complete, the moment the list closes, and the results. The birth date and place of birth are read from the learner profile only for the export; the list itself never carries them (exam-registration-and-certificate-issue).",
+                "type": "object",
+                "x-openregister": {
+                    "active": true,
+                    "hardDelete": false,
+                    "searchable": true
+                },
+                "required": [
+                    "cohortId",
+                    "bodyName",
+                    "closesAt",
+                    "tenant_id"
+                ],
+                "properties": {
+                    "cohortId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "$ref": "Cohort",
+                        "title": "Course day",
+                        "description": "The course day whose exam this list registers participants for."
+                    },
+                    "courseId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true,
+                        "$ref": "Course",
+                        "title": "Course",
+                        "description": "The course of that day."
+                    },
+                    "courseName": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "Course name",
+                        "description": "The course's name, for example \"F-gassen: herhaling en examen\". Written by the server."
+                    },
+                    "examDate": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "Exam date",
+                        "description": "The day the exam is taken."
+                    },
+                    "bodyName": {
+                        "type": "string",
+                        "title": "Examining body",
+                        "description": "The external body that takes the exam."
+                    },
+                    "closesAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Closes at",
+                        "description": "The moment the list closes, for example Wednesday 12.00. After it the list can be exported and sent."
+                    },
+                    "requiredFields": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "fullName",
+                                "birthDate",
+                                "placeOfBirth"
+                            ]
+                        },
+                        "default": [
+                            "fullName",
+                            "birthDate",
+                            "placeOfBirth"
+                        ],
+                        "title": "Required fields",
+                        "description": "The fields this examining body requires per participant, in the order of its export columns."
+                    },
+                    "lines": {
+                        "type": "array",
+                        "default": [],
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "enrolmentId"
+                            ],
+                            "properties": {
+                                "enrolmentId": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "title": "Enrolment",
+                                    "description": "The participant's enrolment on the course day."
+                                },
+                                "learnerRef": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "nullable": true,
+                                    "title": "Participant",
+                                    "description": "The participant's learner profile."
+                                },
+                                "learnerName": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "title": "Name",
+                                    "description": "The participant's name as the list reads it."
+                                },
+                                "organisationRef": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "nullable": true,
+                                    "title": "Company",
+                                    "description": "The participant's employer."
+                                },
+                                "organisationName": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "title": "Company name",
+                                    "description": "The employer's name, for example \"Jansen Installatietechniek\"."
+                                },
+                                "contactName": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "title": "Contact at the company",
+                                    "description": "The person at the company who completes missing details, for example \"Linda Jansen\"."
+                                },
+                                "missing": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string",
+                                        "enum": [
+                                            "fullName",
+                                            "birthDate",
+                                            "placeOfBirth"
+                                        ]
+                                    },
+                                    "default": [],
+                                    "title": "Missing",
+                                    "description": "The fields the examining body requires that the participant's profile still lacks. The values themselves are never copied onto the list."
+                                },
+                                "complete": {
+                                    "type": "boolean",
+                                    "default": false,
+                                    "title": "Complete",
+                                    "description": "True when no required field is missing."
+                                },
+                                "employerNotifiedAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true,
+                                    "title": "Employer told",
+                                    "description": "When the employer was given the task to complete the missing field."
+                                },
+                                "result": {
+                                    "type": "string",
+                                    "enum": [
+                                        "pass",
+                                        "fail",
+                                        null
+                                    ],
+                                    "nullable": true,
+                                    "title": "Result",
+                                    "description": "The result the examining body gave: pass or fail. Empty while there is no result."
+                                },
+                                "resultBy": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "title": "Result entered by",
+                                    "description": "Who entered the result."
+                                },
+                                "credentialId": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "nullable": true,
+                                    "title": "Certificate",
+                                    "description": "The certificate issued for this result."
+                                }
+                            }
+                        },
+                        "title": "Participants",
+                        "description": "One line per participant: whether the required fields are complete, and the result. Written by the server."
+                    },
+                    "participantCount": {
+                        "type": "integer",
+                        "default": 0,
+                        "minimum": 0,
+                        "title": "Participants",
+                        "description": "How many participants the list holds. Written by the server."
+                    },
+                    "completeCount": {
+                        "type": "integer",
+                        "default": 0,
+                        "minimum": 0,
+                        "title": "Complete",
+                        "description": "How many participants are complete. Written by the server."
+                    },
+                    "closedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "title": "Closed at",
+                        "description": "When the list closed."
+                    },
+                    "closedBy": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "Closed by",
+                        "description": "Who closed the list; empty when it closed at its moment."
+                    },
+                    "exportedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "title": "Exported at",
+                        "description": "When the closed list was last exported."
+                    },
+                    "sentAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "title": "Sent at",
+                        "description": "When the administration marked the list sent to the examining body."
+                    },
+                    "sentBy": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "Sent by",
+                        "description": "Who marked the list sent."
+                    },
+                    "lifecycle": {
+                        "type": "string",
+                        "enum": [
+                            "open",
+                            "closed",
+                            "sent"
+                        ],
+                        "default": "open",
+                        "title": "Status",
+                        "description": "open while participants can still be completed, closed from its moment, sent once the administration sent the export. Written by the server."
+                    },
+                    "tenant_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Tenant",
+                        "description": "Tenant identifier for multi-tenant scoping."
+                    }
+                },
+                "x-openregister-seed": [],
+                "authorization": {
+                    "read": [
+                        "hr",
+                        "administration-managers",
+                        "coordinators"
+                    ],
+                    "create": [
+                        "administration-managers"
+                    ],
+                    "update": [
+                        "administration-managers"
+                    ]
+                },
+                "x-openregister-archival": {
+                    "retention": {
+                        "default": "P7Y"
+                    },
+                    "category": "The registration of participants with an examining body, kept with the certificates it led to",
+                    "action": "destroy"
                 }
             }
         },
