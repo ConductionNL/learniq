@@ -144,22 +144,6 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 
 		$payload = array_merge(($this->entityOf(event: $event)->getObject() ?? []), $event->getModifiedData());
 
-		$this->stampOrRefuse(event: $event, payload: $payload);
-	}//end handle()
-
-	/**
-	 * Stamp the excuse request with its owner and teachers, or refuse it when it
-	 * cannot be attributed.
-	 *
-	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event   The excuse request being saved.
-	 * @param array<string,mixed>                     $payload The request as it will be saved.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/specs/attendance/spec.md#requirement-the-server-stamps-who-an-excuse-request-is-about-and-who-filed-it
-	 * @spec openspec/changes/excuse-reports-follow-the-pupils-group/specs/attendance/spec.md#requirement-an-absence-report-is-read-by-the-teachers-of-the-pupils-group-and-by-school-wide-staff
-	 */
-	private function stampOrRefuse(ObjectCreatingEvent|ObjectUpdatingEvent $event, array $payload): void {
 		$outcome = $this->outcomeFor(event: $event, payload: $payload);
 		$reason = ($outcome['refuse'] ?? null);
 		if ($reason === null && $this->ownerMissing(data: array_merge($payload, $outcome['stamp'])) === true) {
@@ -176,7 +160,7 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 		$stamp['teacherIds'] = $this->teachersFor(event: $event, learnerId: $learnerId);
 
 		$event->setModifiedData(array_merge($event->getModifiedData(), $stamp));
-	}//end stampOrRefuse()
+	}//end handle()
 
 	/**
 	 * The teachers of the pupil's current groups. On an update whose pupil did

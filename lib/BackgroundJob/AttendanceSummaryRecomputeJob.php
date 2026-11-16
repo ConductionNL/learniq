@@ -89,7 +89,8 @@ class AttendanceSummaryRecomputeJob extends ForwardedJob {
 	 * Recount the attendance summaries of each learner for the school years of
 	 * their marked sessions; a failed recount is logged and the rest go on.
 	 *
-	 * @param array<string,array{sessionIds: array<int,string>, tenantId: string, learnerRef: ?string}> $learners Per learner id: the sessions marked, the tenant and the learner ref.
+	 * @param array<string,array<string,mixed>> $learners Per learner id: the sessions marked (sessionIds), the tenant (tenantId)
+	 *                                                   and the learner ref (learnerRef).
 	 *
 	 * @return void
 	 *
