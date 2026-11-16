@@ -30,6 +30,7 @@ use OCA\Learniq\Listener\PortfolioGradeEmitHandler;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for PortfolioGradeEmitHandler::handle() on Portfolio → graded.
@@ -79,7 +80,10 @@ class PortfolioGradeEmitHandlerTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null) use ($assignsId): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use ($assignsId): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$schema = (string)$schema;
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 

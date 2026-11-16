@@ -32,6 +32,7 @@ use OCA\OpenRegister\Service\OrganisationService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Resolving the instance's default organisation and giving it to a set's rows.
@@ -122,7 +123,11 @@ class ExampleSetOrganisationTest extends TestCase {
 			 *
 			 * @return ObjectEntity
 			 */
-			public function find(int|string $id, mixed $register=null, mixed $schema=null, bool $_rbac=true, bool $_multitenancy=true, bool $_render=true, bool $_audit=true): ObjectEntity {
+			public function find(int|string $id, ?ObjectFindOptions $options = null, bool $_rbac = true, bool $_multitenancy = true): ObjectEntity {
+				$register = $options?->register;
+				$schema = $options?->schema;
+				$_render = $options?->render ?? true;
+				$_audit = $options?->audit ?? true;
 				$this->reads[] = [$id, $register, $schema, $_rbac, $_multitenancy, $_render, $_audit];
 				return $this->rows[(string)$id] ?? throw new \Exception('Object not found');
 			}//end find()

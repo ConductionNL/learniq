@@ -34,6 +34,7 @@ use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * A lesson's own teachers, its substitute and staff write notes on it; nobody else.
@@ -88,7 +89,11 @@ class LessonNoteAuthorGuardTest extends TestCase {
 
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, mixed $register = null, mixed $schema = null) use ($findThrows): mixed {
+			function (int|string $id, ?ObjectFindOptions $options = null) use ($findThrows): mixed {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($findThrows === true) {
 					throw new \RuntimeException('database gone');
 				}

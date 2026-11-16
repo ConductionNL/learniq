@@ -36,6 +36,7 @@ namespace OCA\Learniq\Service\Programme;
 use OCA\Learniq\Kernel\Contracts\ProgrammeProgressInterface;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\Learniq\Support\SerialisedRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -196,7 +197,12 @@ class ProgrammeProgress implements ProgrammeProgressInterface {
 			return null;
 		}
 
-		$find = fn () => $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false, _render: false);
+		$find = fn () => $this->objects->find(
+			id: $id,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false),
+			_rbac: false,
+			_multitenancy: false
+		);
 		return $this->findRowOrNull(find: $find);
 	}//end read()
 

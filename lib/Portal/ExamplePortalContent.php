@@ -30,6 +30,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Portal;
 
 use OCA\Learniq\Service\DemoDates;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -340,9 +342,10 @@ class ExamplePortalContent {
 	public function save(string $schema, array $object, ?string $uuid = null): string {
 		$saved = $this->objectService->saveObject(
 			object: $object,
-			register: self::REGISTER,
-			schema: $schema,
-			uuid: $uuid,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: $schema),
+				uuid: $uuid
+			),
 			_rbac: false,
 			_multitenancy: false
 		);

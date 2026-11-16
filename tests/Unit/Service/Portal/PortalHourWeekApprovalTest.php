@@ -36,6 +36,7 @@ use OCP\IAppConfig;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * A trainer approves, corrects or is refused one week of hours.
@@ -95,7 +96,11 @@ class PortalHourWeekApprovalTest extends TestCase {
 		);
 		$objectService->method('saveObject')->willReturnCallback(
 			// The real saveObject() answers an entity, never an array.
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use ($saveThrows): object {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use ($saveThrows): object {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				if ($saveThrows === true) {
 					throw new RuntimeException('SQLSTATE 23505 secret table name');
 				}
@@ -481,7 +486,7 @@ class PortalHourWeekApprovalTest extends TestCase {
 		$asArrays->method('saveObject')->willReturnCallback(
 			// saveObject() always answers an entity; only the READ shape is
 			// what this case varies.
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): object => OrEntityFactory::make($object, 'bpv-hour-week')
+			fn (array $object, mixed ...$rest): object => OrEntityFactory::make($object, 'bpv-hour-week')
 		);
 		$outcome = (new PortalHourWeekApproval(
 			objectService: $asArrays,
@@ -513,7 +518,7 @@ class PortalHourWeekApprovalTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): object => $this->store->save((string)$schema, $object, $uuid ?? self::WEEK)
+			fn (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()): object => $this->store->save((string)($options->target->schema), $object, ($options->uuid) ?? self::WEEK)
 		);
 
 		return $objectService;
